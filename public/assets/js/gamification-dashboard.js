@@ -20,6 +20,29 @@
     const baseUrlMeta = document.querySelector('meta[name="base-url"]');
     const BASE = baseUrlMeta ? baseUrlMeta.content : (window.BASE_URL || '/');
 
+    // Mapeamento de cores para ícones de conquistas
+    function getAchievementIconColor(icon) {
+        const colors = {
+            'target': '#ef4444', 'flame': '#f97316', 'zap': '#eab308',
+            'calendar': '#3b82f6', 'bar-chart-3': '#06b6d4', 'palette': '#a855f7',
+            'user-check': '#22c55e', 'coins': '#eab308', 'hash': '#6366f1',
+            'graduation-cap': '#3b82f6', 'star': '#f59e0b', 'crown': '#f59e0b',
+            'gem': '#a855f7', 'trophy': '#f59e0b', 'award': '#f59e0b',
+            'sparkles': '#ec4899', 'file-text': '#64748b', 'library': '#92400e',
+            'landmark': '#3b82f6', 'sparkle': '#ec4899', 'orbit': '#6366f1',
+            'banknote': '#22c55e', 'piggy-bank': '#ec4899', 'building-2': '#64748b',
+            'trending-up': '#22c55e', 'crosshair': '#ef4444', 'medal': '#f59e0b',
+            'folder-open': '#f59e0b', 'folders': '#f59e0b', 'check-circle': '#22c55e',
+            'credit-card': '#3b82f6', 'receipt': '#14b8a6', 'calendar-check': '#22c55e',
+            'cake': '#ec4899', 'shield-check': '#22c55e', 'wand-sparkles': '#a855f7',
+            'sunrise': '#f97316', 'moon': '#6366f1', 'tree-pine': '#22c55e',
+            'party-popper': '#ef4444', 'swords': '#64748b', 'rocket': '#ef4444',
+            'handshake': '#3b82f6', 'users': '#3b82f6', 'megaphone': '#f97316',
+            'lock': '#94a3b8', 'check': '#22c55e'
+        };
+        return colors[icon] || '#f97316';
+    }
+
     let isPro = false;
     let currentProgress = {};
 
@@ -142,7 +165,7 @@
 
             if (progressText) {
                 if (isMaxLevel) {
-                    progressText.textContent = '🎉 Nível máximo alcançado!';
+                    progressText.textContent = 'Nível máximo alcançado!';
                 } else {
                     const remaining = progress.points_to_next_level || 0;
                     progressText.textContent = `Faltam ${formatNumber(remaining)} pontos para o próximo nível`;
@@ -247,7 +270,7 @@
 
         if (organizationText) {
             if (overallProgress >= 100) {
-                organizationText.textContent = '🎉 Parabéns! Você está super organizado!';
+                organizationText.textContent = 'Parabéns! Você está super organizado!';
             } else if (overallProgress >= 75) {
                 organizationText.textContent = 'Muito bem! Continue assim!';
             } else if (overallProgress >= 50) {
@@ -366,11 +389,11 @@
             // Mostrar check para conquistas já desbloqueadas
             let checkMark = '';
             if (isUnlocked) {
-                checkMark = `<div class="badge-unlocked-check">✓</div>`;
+                checkMark = `<div class="badge-unlocked-check"><i data-lucide="check" style="width:14px;height:14px;"></i></div>`;
             }
 
             badgeItem.innerHTML = `
-                <div class="badge-icon">${achievement.icon}</div>
+                <div class="badge-icon" style="color:${getAchievementIconColor(achievement.icon)}"><i data-lucide="${achievement.icon}"></i></div>
                 <div class="badge-name">${achievement.name}</div>
                 ${achievement.is_pro_only ? '<div class="badge-pro-tag">PRO</div>' : ''}
                 ${checkMark}
@@ -380,6 +403,9 @@
 
             badgesGrid.appendChild(badgeItem);
         });
+
+        // Renderizar ícones Lucide
+        if (window.lucide) lucide.createIcons();
     }
 
     /**
@@ -396,21 +422,21 @@
         let statusHtml = '';
 
         if (achievement.unlocked) {
-            statusHtml = `<p class="achievement-unlocked">✓ Desbloqueada neste mês${achievement.unlocked_at ? ` em ${formatDate(achievement.unlocked_at)}` : ''}</p>`;
+            statusHtml = `<p class="achievement-unlocked"><i data-lucide="check" style="width:16px;height:16px;display:inline-block;vertical-align:middle;"></i> Desbloqueada neste mês${achievement.unlocked_at ? ` em ${formatDate(achievement.unlocked_at)}` : ''}</p>`;
         } else if (achievement.unlocked_ever) {
-            statusHtml = `<p class="achievement-unlocked past">✓ Conquistada anteriormente</p>`;
+            statusHtml = `<p class="achievement-unlocked past"><i data-lucide="check" style="width:16px;height:16px;display:inline-block;vertical-align:middle;"></i> Conquistada anteriormente</p>`;
         } else {
-            statusHtml = '<p class="achievement-locked">🔒 Ainda não desbloqueada</p>';
+            statusHtml = '<p class="achievement-locked"><i data-lucide="lock" style="width:16px;height:16px;display:inline-block;vertical-align:middle;"></i> Ainda não desbloqueada</p>';
         }
 
         Swal.fire({
-            title: `${achievement.icon} ${achievement.name}`,
+            title: achievement.name,
             html: `
                 <p class="achievement-description">${achievement.description}</p>
                 <p class="achievement-points">
-                    <i class="fas fa-star"></i> ${achievement.points_reward} pontos
+                    <i data-lucide="star"></i> ${achievement.points_reward} pontos
                 </p>
-                ${achievement.is_pro_only ? '<p class="achievement-pro-tag"><i class="fas fa-gem"></i> Conquista exclusiva Pro</p>' : ''}
+                ${achievement.is_pro_only ? '<p class="achievement-pro-tag"><i data-lucide="gem"></i> Conquista exclusiva Pro</p>' : ''}
                 ${statusHtml}
             `,
             icon: isUnlocked ? 'success' : 'info',
@@ -418,7 +444,8 @@
             customClass: {
                 popup: 'achievement-modal',
                 confirmButton: 'btn btn-primary'
-            }
+            },
+            didOpen: () => { if (window.lucide) lucide.createIcons(); }
         });
     }
 
@@ -466,15 +493,15 @@
 
                     html += `
                         <div class="achievement-modal-item ${status}">
-                            <div class="achievement-icon">${ach.icon}</div>
+                            <div class="achievement-icon" style="color:${getAchievementIconColor(ach.icon)}"><i data-lucide="${ach.icon}"></i></div>
                             <div class="achievement-info">
                                 <div class="achievement-name">${ach.name} ${proTag}</div>
                                 <div class="achievement-desc">${ach.description}</div>
                                 <div class="achievement-points-small">
-                                    <i class="fas fa-star"></i> ${ach.points_reward} pts
+                                    <i data-lucide="star"></i> ${ach.points_reward} pts
                                 </div>
                             </div>
-                            ${ach.unlocked ? '<div class="achievement-check">✓</div>' : ''}
+                            ${ach.unlocked ? '<div class="achievement-check"><i data-lucide="check"></i></div>' : ''}
                         </div>
                     `;
                 });
@@ -488,14 +515,15 @@
                 }
 
                 Swal.fire({
-                    title: '🏆 Suas Conquistas',
+                    title: 'Suas Conquistas',
                     html: html,
                     width: '800px',
                     confirmButtonText: 'Fechar',
                     customClass: {
                         popup: 'achievements-modal',
                         confirmButton: 'btn btn-primary'
-                    }
+                    },
+                    didOpen: () => { if (window.lucide) lucide.createIcons(); }
                 });
             }
         } catch (error) {
@@ -526,25 +554,25 @@
         }
 
         Swal.fire({
-            title: '💎 Plano Pro',
+            title: 'Plano Pro',
             html: `
                 <div class="pro-upgrade-modal">
                     <h3>Acelere seu progresso!</h3>
                     <div class="pro-benefits">
                         <div class="pro-benefit">
-                            <i class="fas fa-star"></i>
+                            <i data-lucide="star"></i>
                             <span>Ganhe <strong>1.5x mais pontos</strong> em todas as ações</span>
                         </div>
                         <div class="pro-benefit">
-                            <i class="fas fa-shield-alt"></i>
+                            <i data-lucide="shield"></i>
                             <span><strong>Proteção de streak</strong> - 1 dia grátis por mês</span>
                         </div>
                         <div class="pro-benefit">
-                            <i class="fas fa-trophy"></i>
+                            <i data-lucide="trophy"></i>
                             <span><strong>Conquistas exclusivas</strong> com mais recompensas</span>
                         </div>
                         <div class="pro-benefit">
-                            <i class="fas fa-crown"></i>
+                            <i data-lucide="crown"></i>
                             <span>Alcance o <strong>nível máximo 15</strong></span>
                         </div>
                     </div>
@@ -552,7 +580,7 @@
             `,
             icon: 'info',
             showCancelButton: true,
-            confirmButtonText: '<i class="fas fa-gem"></i> Assinar Pro',
+            confirmButtonText: '<i data-lucide="gem"></i> Assinar Pro',
             cancelButtonText: 'Agora não',
             customClass: {
                 popup: 'pro-upgrade-modal',

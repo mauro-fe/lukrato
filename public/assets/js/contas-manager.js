@@ -326,13 +326,14 @@ class ContasManager {
             if (grid) {
                 grid.innerHTML = `
                     <div class="error-state">
-                        <i class="fas fa-exclamation-triangle"></i>
+                        <i data-lucide="triangle-alert"></i>
                         <p class="error-message">${message}</p>
                         <button class="btn btn-primary btn-retry" onclick="window.contasManager.loadContas()">
-                            <i class="fas fa-redo"></i> Tentar novamente
+                            <i data-lucide="refresh-cw"></i> Tentar novamente
                         </button>
                     </div>
                 `;
+                if (window.lucide) lucide.createIcons();
             }
         } finally {
             this.showLoading(false);
@@ -354,15 +355,16 @@ class ContasManager {
             container.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">
-                        <i class="fas fa-wallet"></i>
+                        <i data-lucide="wallet"></i>
                     </div>
                     <h3>Nenhuma conta cadastrada</h3>
                     <p>Comece criando sua primeira conta bancária para gerenciar suas finanças</p>
                     <button class="btn btn-primary btn-lg" id="btnCriarPrimeiraConta">
-                        <i class="fas fa-plus"></i> Criar primeira conta
+                        <i data-lucide="plus"></i> Criar primeira conta
                     </button>
                 </div>
             `;
+            if (window.lucide) lucide.createIcons();
             // Anexar listener para o botão de criar primeira conta
             setTimeout(() => {
                 const btnCriarPrimeira = document.getElementById('btnCriarPrimeiraConta');
@@ -376,6 +378,7 @@ class ContasManager {
         }
 
         container.innerHTML = this.contas.map(conta => this.createContaCard(conta)).join('');
+        if (window.lucide) lucide.createIcons();
         this.attachContaCardListeners();
     }
 
@@ -412,13 +415,13 @@ class ContasManager {
                 data-lk-tooltip="Para manter a integridade dos seus dados, contas só podem ser excluídas após serem arquivadas. Arquive a conta primeiro e depois realize a exclusão."
                 aria-label="Ajuda: Exclusão de contas"
             >
-                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                <i data-lucide="info" aria-hidden="true"></i>
             </button>
                         <button class="btn-icon" onclick="contasManager.editConta(${conta.id})" title="Editar">
-                            <i class="fas fa-edit"></i>
+                            <i data-lucide="pencil"></i>
                         </button>
                         <button class="btn-icon" onclick="contasManager.moreConta(${conta.id}, event)" title="Mais opções">
-                            <i class="fas fa-ellipsis-v"></i>
+                            <i data-lucide="more-vertical"></i>
                         </button>
                     </div>
                 </div>
@@ -431,17 +434,17 @@ class ContasManager {
                     </div>
                     <div class="account-info">
                         <button class="btn-new-transaction" data-conta-id="${conta.id}" title="Novo Lançamento">
-                            <i class="fas fa-plus-circle"></i> Novo Lançamento
+                            <i data-lucide="circle-plus"></i> Novo Lançamento
                         </button>
                     </div>
                     ${this.renderCartoesBadge(conta)}
                 </div>
                 <div class="account-list-actions">
                     <button class="btn-icon" onclick="contasManager.editConta(${conta.id})" title="Editar">
-                        <i class="fas fa-edit"></i>
+                        <i data-lucide="pencil"></i>
                     </button>
                     <button class="btn-icon" onclick="contasManager.moreConta(${conta.id}, event)" title="Mais opções">
-                        <i class="fas fa-ellipsis-v"></i>
+                        <i data-lucide="more-vertical"></i>
                     </button>
                 </div>
             </div>
@@ -845,8 +848,8 @@ class ContasManager {
             showCancelButton: true,
             confirmButtonColor: '#e67e22',
             cancelButtonColor: '#6c757d',
-            confirmButtonText: '<i class="fas fa-archive"></i> Sim, arquivar',
-            cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+            confirmButtonText: '<i data-lucide="archive"></i> Sim, arquivar',
+            cancelButtonText: '<i data-lucide="x"></i> Cancelar',
             reverseButtons: true,
             focusCancel: true,
             buttonsStyling: true,
@@ -854,7 +857,8 @@ class ContasManager {
                 popup: 'swal-custom-popup',
                 confirmButton: 'swal-confirm-btn',
                 cancelButton: 'swal-cancel-btn'
-            }
+            },
+            didOpen: () => { if (window.lucide) lucide.createIcons(); }
         });
 
         if (!result.isConfirmed) return;
@@ -1041,16 +1045,17 @@ class ContasManager {
         menuEl.className = 'context-menu';
         menuEl.innerHTML = `
             <div class="menu-option" data-action="edit">
-                <i class="fas fa-edit"></i>
+                <i data-lucide="pencil"></i>
                 <span>Editar</span>
             </div>
             <div class="menu-option" data-action="archive">
-                <i class="fas fa-archive"></i>
+                <i data-lucide="archive"></i>
                 <span>Arquivar</span>
             </div>
         `;
 
         document.body.appendChild(menuEl);
+        if (window.lucide) lucide.createIcons();
 
         // Posicionar relativo ao botão clicado
         if (event && event.target) {
@@ -1196,15 +1201,7 @@ class ContasManager {
             });
         });
 
-        // Fechar ao clicar fora (no overlay)
-        const modalOverlay = document.getElementById('modalContaOverlay');
-        if (modalOverlay) {
-            modalOverlay.onclick = (e) => {
-                if (e.target === modalOverlay) {
-                    this.closeModal();
-                }
-            };
-        }
+        // Backdrop bloqueado - conta modal fecha apenas pelo botão X
     }
 
     /**
@@ -1251,16 +1248,7 @@ class ContasManager {
             corInstituicao.dataset.listenerAdded = 'true';
         }
 
-        // Fechar modal de nova instituição ao clicar no overlay
-        const modalNovaInstituicaoOverlay = document.getElementById('modalNovaInstituicaoOverlay');
-        if (modalNovaInstituicaoOverlay && !modalNovaInstituicaoOverlay.dataset.listenerAdded) {
-            modalNovaInstituicaoOverlay.addEventListener('click', (e) => {
-                if (e.target.id === 'modalNovaInstituicaoOverlay') {
-                    this.closeNovaInstituicaoModal();
-                }
-            });
-            modalNovaInstituicaoOverlay.dataset.listenerAdded = 'true';
-        }
+        // Backdrop bloqueado - nova instituição modal fecha apenas pelo botão X
 
         // Botão novo cartão
         const btnNovoCartao = document.getElementById('btnNovoCartao');
@@ -1343,22 +1331,12 @@ class ContasManager {
             this.voltarEscolhaTipo();
         });
 
-        // Fechar modal de lançamento ao clicar no overlay
-        document.getElementById('modalLancamentoOverlay')?.addEventListener('click', (e) => {
-            if (e.target.id === 'modalLancamentoOverlay') {
-                this.closeLancamentoModal();
-            }
-        });
+        // Backdrop bloqueado - lançamento modal fecha apenas pelo botão X
 
         // View Toggle (Cards/Lista)
         this.initViewToggle();
 
-        // Fechar modal ao clicar no overlay
-        document.getElementById('modalContaOverlay')?.addEventListener('click', (e) => {
-            if (e.target.id === 'modalContaOverlay') {
-                this.closeModal();
-            }
-        });
+        // Backdrop bloqueado - modal fecha apenas pelo botão X
 
         // Fechar modal com tecla ESC
         document.addEventListener('keydown', (e) => {
@@ -1503,17 +1481,18 @@ class ContasManager {
             if (!lancamentos || lancamentos.length === 0) {
                 historicoContainer.innerHTML = `
                     <div class="lk-historico-empty">
-                        <i class="fas fa-inbox"></i>
+                        <i data-lucide="inbox"></i>
                         <p>Nenhuma movimentação recente</p>
                     </div>
                 `;
+                if (window.lucide) lucide.createIcons();
                 return;
             }
 
             // Renderizar histórico
             historicoContainer.innerHTML = lancamentos.map(l => {
                 const tipoClass = l.tipo === 'receita' ? 'receita' : l.tipo === 'despesa' ? 'despesa' : 'transferencia';
-                const tipoIcon = l.tipo === 'receita' ? 'arrow-down' : l.tipo === 'despesa' ? 'arrow-up' : 'exchange-alt';
+                const tipoIcon = l.tipo === 'receita' ? 'arrow-down' : l.tipo === 'despesa' ? 'arrow-up' : 'arrow-left-right';
                 const sinal = l.tipo === 'receita' ? '+' : '-';
                 const valorFormatado = this.formatCurrency(Math.abs(l.valor));
                 const dataFormatada = new Date(l.data + 'T00:00:00').toLocaleDateString('pt-BR', {
@@ -1524,7 +1503,7 @@ class ContasManager {
                 return `
                     <div class="lk-historico-item lk-historico-${tipoClass}">
                         <div class="lk-historico-icon">
-                            <i class="fas fa-${tipoIcon}"></i>
+                            <i data-lucide="${tipoIcon}"></i>
                         </div>
                         <div class="lk-historico-info">
                             <div class="lk-historico-desc">${l.descricao || 'Sem descrição'}</div>
@@ -1537,15 +1516,17 @@ class ContasManager {
                     </div>
                 `;
             }).join('');
+            if (window.lucide) lucide.createIcons();
 
         } catch (error) {
             console.error('Erro ao carregar histórico:', error);
             historicoContainer.innerHTML = `
                 <div class="lk-historico-empty">
-                    <i class="fas fa-exclamation-circle"></i>
+                    <i data-lucide="circle-alert"></i>
                     <p>Erro ao carregar histórico</p>
                 </div>
             `;
+            if (window.lucide) lucide.createIcons();
         }
     }
 
@@ -1617,7 +1598,7 @@ class ContasManager {
 
         if (tipo === 'receita') {
             titulo.textContent = '💰 Nova Receita';
-            btnSalvar.innerHTML = '<i class="fas fa-check"></i> Salvar Receita';
+            btnSalvar.innerHTML = '<i data-lucide="check"></i> Salvar Receita';
             btnSalvar.className = 'lk-btn lk-btn-primary';
             btnSalvar.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
             if (headerGradient) {
@@ -1628,7 +1609,7 @@ class ContasManager {
             if (formaRecebimentoGroup) formaRecebimentoGroup.style.display = 'block';
         } else if (tipo === 'despesa') {
             titulo.textContent = '💸 Nova Despesa';
-            btnSalvar.innerHTML = '<i class="fas fa-check"></i> Salvar Despesa';
+            btnSalvar.innerHTML = '<i data-lucide="check"></i> Salvar Despesa';
             btnSalvar.className = 'lk-btn lk-btn-primary';
             btnSalvar.style.background = 'linear-gradient(135deg, #dc3545, #e74c3c)';
             if (headerGradient) {
@@ -1642,7 +1623,7 @@ class ContasManager {
             this.carregarCartoesCredito();
         } else if (tipo === 'transferencia') {
             titulo.textContent = '🔄 Nova Transferência';
-            btnSalvar.innerHTML = '<i class="fas fa-check"></i> Salvar Transferência';
+            btnSalvar.innerHTML = '<i data-lucide="check"></i> Salvar Transferência';
             btnSalvar.className = 'lk-btn lk-btn-primary';
             btnSalvar.style.background = 'linear-gradient(135deg, #17a2b8, #3498db)';
             if (headerGradient) {
@@ -1655,7 +1636,7 @@ class ContasManager {
             this.preencherContasDestino();
         } else if (tipo === 'agendamento') {
             titulo.textContent = '📅 Novo Agendamento';
-            btnSalvar.innerHTML = '<i class="fas fa-calendar-check"></i> Agendar';
+            btnSalvar.innerHTML = '<i data-lucide="calendar-check"></i> Agendar';
             btnSalvar.className = 'lk-btn lk-btn-primary';
             btnSalvar.style.background = 'linear-gradient(135deg, #e67e22, #d35400)';
             if (headerGradient) {
@@ -2216,7 +2197,8 @@ class ContasManager {
         if (btnSalvar) {
             btnSalvar.className = 'lk-btn lk-btn-primary';
             btnSalvar.style.removeProperty('background');
-            btnSalvar.innerHTML = '<i class="fas fa-check"></i> Salvar Lançamento';
+            btnSalvar.innerHTML = '<i data-lucide="check"></i> Salvar Lançamento';
+            if (window.lucide) lucide.createIcons();
         }
     }
 
@@ -2267,7 +2249,8 @@ class ContasManager {
         const originalText = submitBtn?.innerHTML;
         if (submitBtn) {
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+            submitBtn.innerHTML = '<i data-lucide="loader-2" class="icon-spin"></i> Processando...';
+            if (window.lucide) lucide.createIcons();
         }
 
         try {
@@ -2623,7 +2606,8 @@ class ContasManager {
         const originalText = submitBtn?.innerHTML;
         if (submitBtn) {
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+            submitBtn.innerHTML = '<i data-lucide="loader-2" class="icon-spin"></i> Salvando...';
+            if (window.lucide) lucide.createIcons();
         }
 
         try {
@@ -2811,13 +2795,14 @@ class ContasManager {
         toast.className = `lk-toast lk-toast-${type}`;
         toast.innerHTML = `
             <div class="lk-toast-content">
-                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <i data-lucide="${type === 'success' ? 'circle-check' : type === 'error' ? 'circle-alert' : 'info'}"></i>
                 <span>${message}</span>
             </div>
         `;
 
         // Adicionar ao body
         document.body.appendChild(toast);
+        if (window.lucide) lucide.createIcons();
 
         // Animar entrada
         setTimeout(() => toast.classList.add('lk-toast-show'), 10);

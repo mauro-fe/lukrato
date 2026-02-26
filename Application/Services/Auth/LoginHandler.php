@@ -13,6 +13,7 @@ use Application\Core\Request;
 use Application\Core\Exceptions\ValidationException;
 use Application\Services\CacheService;
 use Application\Services\LogService;
+use Application\Enums\LogCategory;
 use Application\Lib\Helpers;
 use Application\Models\Usuario;
 use Throwable;
@@ -37,7 +38,7 @@ class LoginHandler implements AuthHandlerInterface
     {
         try {
             LogService::info('[LOGIN_HANDLER DEBUG] Início handle', ['email' => $credentials->email]);
-            
+
             $this->validationStrategy->validate($credentials);
             LogService::info('[LOGIN_HANDLER DEBUG] Validação OK');
 
@@ -71,11 +72,9 @@ class LoginHandler implements AuthHandlerInterface
                 'redirect' => Helpers::baseUrl('dashboard')
             ];
         } catch (Throwable $e) {
-            LogService::error('[LOGIN_HANDLER DEBUG] Exception', [
-                'type' => get_class($e),
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
+            LogService::captureException($e, LogCategory::AUTH, [
+                'action' => 'login_handler',
+                'email' => $credentials->email,
             ]);
             throw $e;
         }

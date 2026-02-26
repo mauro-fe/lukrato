@@ -127,7 +127,7 @@
 
 .progress-bar-large {
   height: 30px;
-  background: var(--color-surface-muted);
+  background: var(--color-bg);
   border-radius: 15px;
   overflow: hidden;
   position: relative;

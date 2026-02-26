@@ -266,11 +266,11 @@
                     </div>
                     <div class="lk-usage-banner__actions">
                         <a class="lk-usage-banner__link" href="<?= BASE_URL ?>billing" title="${escapeHtml(upgradeCta || 'Assinar plano Pro')}">
-                            <i class="fas fa-crown"></i>
+                            <i data-lucide="crown"></i>
                             <span>Assinar Pro</span>
                         </a>
                         <button class="lk-usage-banner__btn" type="button" data-close title="Dispensar aviso este mês">
-                            <i class="fas fa-times"></i>
+                            <i data-lucide="x"></i>
                         </button>
                     </div>
                 </div>

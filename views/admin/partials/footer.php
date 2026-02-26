@@ -3,7 +3,7 @@
 
 <!-- Botão Scroll to Top -->
 <button id="scrollToTopBtn" class="scroll-to-top" aria-label="Voltar ao topo" title="Voltar ao topo">
-    <i class="fas fa-arrow-up"></i>
+    <i data-lucide="arrow-up"></i>
 </button>
 
 <?php loadPageCss('admin-partials-footer'); ?>
@@ -13,7 +13,7 @@
         <div class="row">
             <div class="col-12 mx-auto text-center">
                 <div class="footer-content">
-                    <div class="footer-copyright">&copy; 2025 Lukrato - Suas finanças sob controle </div>
+                    <div class="footer-copyright">&copy; <?= date('Y') ?> Lukrato - Suas finanças sob controle </div>
                 </div>
             </div>
         </div>
@@ -25,11 +25,10 @@
 <script src="https://cdn.jsdelivr.net/npm/just-validate@4.3.0/dist/just-validate.production.min.js"></script>
 <script src="<?= BASE_URL ?>assets/js/lancamento-global.js?v=<?= time() ?>"></script>
 <script src="<?= BASE_URL ?>assets/js/tooltips.js?v=<?= time() ?>"></script>
-<script src="<?= BASE_URL ?>assets/js/core/popper.min.js"></script>
-<script src="<?= BASE_URL ?>assets/js/core/bootstrap.min.js"></script>
+<!-- Bootstrap já carregado via CDN no header (bootstrap.bundle.min.js inclui Popper) -->
 <script src="<?= BASE_URL ?>assets/js/plugins/perfect-scrollbar.min.js"></script>
 <script src="<?= BASE_URL ?>assets/js/plugins/smooth-scrollbar.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- SweetAlert2 já carregado no header -->
 
 <!-- Birthday Modal -->
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/birthday-modal.css?v=<?= time() ?>">

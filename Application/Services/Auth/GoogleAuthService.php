@@ -7,6 +7,7 @@ namespace Application\Services\Auth;
 use Application\Models\Usuario;
 use Application\Lib\Auth;
 use Application\Services\LogService;
+use Application\Enums\LogCategory;
 use Google_Client;
 use Google\Service\Oauth2;
 use Exception;
@@ -128,7 +129,8 @@ class GoogleAuthService
 
     private function createUserFromGoogle(array $userInfo, string $referralCode = ''): Usuario
     {
-        $randomPassword = bin2hex(random_bytes(16));
+        // Gera senha aleatória forte que passa na validação (maiúscula, minúscula, número, especial)
+        $randomPassword = bin2hex(random_bytes(12)) . 'A1@x';
 
         $registerData = [
             'name' => $userInfo['name'] ?: strtok($userInfo['email'], '@'),
@@ -136,6 +138,7 @@ class GoogleAuthService
             'password' => $randomPassword,
             'password_confirmation' => $randomPassword,
             'google_id' => $userInfo['id'],
+            'skip_email_verification' => true,
         ];
 
         if (!empty($referralCode)) {
@@ -159,6 +162,22 @@ class GoogleAuthService
             $usuario->markEmailAsVerified();
             LogService::info('Email marcado como verificado (registro via Google)', [
                 'user_id' => $usuario->id,
+            ]);
+        }
+
+        // Envia email de boas-vindas (Google já verifica o email, então envia direto)
+        try {
+            $mailService = new \Application\Services\MailService();
+            $mailService->sendWelcomeEmail($usuario->email, $usuario->nome ?? 'Usuário');
+            LogService::info('Email de boas-vindas enviado (registro via Google)', [
+                'user_id' => $usuario->id,
+                'email' => $usuario->email,
+            ]);
+        } catch (\Throwable $e) {
+            LogService::captureException($e, LogCategory::NOTIFICATION, [
+                'action' => 'enviar_welcome_email_google',
+                'user_id' => $usuario->id,
+                'email' => $usuario->email,
             ]);
         }
 
@@ -224,10 +243,10 @@ class GoogleAuthService
 
             return true;
         } catch (\Throwable $e) {
-            LogService::error('Erro ao fazer login automático após registro', [
+            LogService::captureException($e, LogCategory::AUTH, [
+                'action' => 'login_after_registration',
                 'user_id' => $userId,
                 'email' => $email,
-                'error' => $e->getMessage(),
             ]);
             return false;
         }

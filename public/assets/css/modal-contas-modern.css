@@ -406,8 +406,11 @@
   height: 300px;
 }
 
-.lk-btn i {
+.lk-btn i,
+.lk-btn svg {
   font-size: 0.875rem;
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 /* Botão Primário (Gradiente Lukrato) */

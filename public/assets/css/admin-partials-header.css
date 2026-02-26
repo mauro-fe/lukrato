@@ -297,8 +297,19 @@ h3 {
   font-size: var(--font-size-lg);
   min-width: 20px;
   text-align: center;
-  color: currentColor;
-  transition: transform var(--transition-fast);
+  color: #ffffff !important;
+  transition:
+    transform var(--transition-fast),
+    color var(--transition-fast);
+}
+
+/* Lucide SVG icons - branco por padrão (sobrescreve cores semânticas do enhancements.css) */
+.sidebar .nav-item svg.lucide,
+.sidebar .nav-item svg[class*="lucide-"] {
+  color: #ffffff !important;
+  transition:
+    transform var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .sidebar .nav-item span {
@@ -314,8 +325,11 @@ h3 {
   transform: translateX(4px);
 }
 
-.sidebar .nav-item:hover i {
+.sidebar .nav-item:hover i,
+.sidebar .nav-item:hover svg.lucide,
+.sidebar .nav-item:hover svg[class*="lucide-"] {
   transform: scale(1.1);
+  color: var(--color-primary) !important;
 }
 
 .sidebar-nav .nav-item.active,
@@ -324,6 +338,23 @@ h3 {
   background: color-mix(in srgb, var(--laranja) 10%, transparent);
   font-weight: 700;
   border-left: 3px solid var(--laranja);
+}
+
+/* Ícone ativo - cor primária */
+.sidebar-nav .nav-item.active i,
+.sidebar-nav .nav-item.active svg.lucide,
+.sidebar-nav .nav-item.active svg[class*="lucide-"],
+.sidebar-nav .nav-item[aria-current="page"] i,
+.sidebar-nav .nav-item[aria-current="page"] svg.lucide,
+.sidebar-nav .nav-item[aria-current="page"] svg[class*="lucide-"] {
+  color: var(--color-primary) !important;
+}
+
+/* Modo claro - ícones sempre na cor primária */
+:root[data-theme="light"] .sidebar .nav-item i,
+:root[data-theme="light"] .sidebar .nav-item svg.lucide,
+:root[data-theme="light"] .sidebar .nav-item svg[class*="lucide-"] {
+  color: var(--color-primary) !important;
 }
 
 .sidebar-nav .nav-item::before {
@@ -492,15 +523,33 @@ body.sidebar-collapsed .sidebar .nav-item {
   left: calc(var(--sidebar-collapsed-width) - 30px);
 }
 
-.edge-menu-btn i {
+.edge-menu-btn i,
+.edge-menu-btn svg {
   position: relative;
   z-index: 1;
   transition: transform 0.4s ease-out;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 }
 
-.edge-menu-btn:hover i {
+.edge-menu-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.edge-menu-btn:hover i,
+.edge-menu-btn:hover svg {
   transform: scale(1.08);
+}
+
+/* Rotate chevron when sidebar is collapsed */
+body.sidebar-collapsed .edge-menu-btn i,
+body.sidebar-collapsed .edge-menu-btn svg {
+  transform: rotate(180deg);
+}
+
+body.sidebar-collapsed .edge-menu-btn:hover i,
+body.sidebar-collapsed .edge-menu-btn:hover svg {
+  transform: rotate(180deg) scale(1.08);
 }
 
 /* Ocultar em mobile/tablet */

@@ -16,6 +16,8 @@ use Application\DTO\CheckoutRequestDTO;
 use Application\Builders\AsaasPaymentBuilder;
 use Application\Builders\AsaasSubscriptionBuilder;
 use Application\Enums\SubscriptionCycle;
+use Application\Enums\LogLevel;
+use Application\Enums\LogCategory;
 use Application\Providers\PerfilControllerFactory;
 use Illuminate\Database\Capsule\Manager as DB;
 
@@ -204,19 +206,20 @@ class PremiumController extends BaseController
                 $this->asaas->cancelPayment($assinatura->external_payment_id);
             } catch (\Throwable $e) {
                 // Se falhar no Asaas, continua (pode já estar expirado)
-                error_log("⚠️ [CANCEL_PENDING] Erro ao cancelar no Asaas: " . $e->getMessage());
+                LogService::captureException($e, LogCategory::PAYMENT, [
+                    'action' => 'cancel_pending_payment',
+                    'payment_id' => $assinatura->external_payment_id,
+                ], $usuario->id ?? null, LogLevel::WARNING);
             }
 
             // Deletar assinatura local
             $billingType = $assinatura->billing_type;
             $assinatura->delete();
 
-            if (class_exists(LogService::class)) {
-                LogService::info('Pagamento pendente cancelado', [
-                    'user_id' => $usuario->id,
-                    'billing_type' => $billingType,
-                ]);
-            }
+            LogService::info('Pagamento pendente cancelado', [
+                'user_id' => $usuario->id,
+                'billing_type' => $billingType,
+            ]);
 
             Response::success([
                 'message' => 'Pagamento cancelado com sucesso. Você pode escolher outro método.',
@@ -332,13 +335,11 @@ class PremiumController extends BaseController
                 $assinatura->status = AssinaturaUsuario::ST_ACTIVE;
                 $assinatura->save();
 
-                if (class_exists(LogService::class)) {
-                    LogService::info('Pagamento confirmado via polling', [
-                        'user_id' => $usuario->id,
-                        'payment_id' => $paymentId,
-                        'status' => $status,
-                    ]);
-                }
+                LogService::info('Pagamento confirmado via polling', [
+                    'user_id' => $usuario->id,
+                    'payment_id' => $paymentId,
+                    'status' => $status,
+                ]);
             }
 
             Response::success([
@@ -662,7 +663,11 @@ class PremiumController extends BaseController
                         break;
                     }
                 } catch (\Throwable $e) {
-                    error_log("⚠️ [CHECKOUT] Tentativa " . ($i + 1) . " falhou: " . $e->getMessage());
+                    LogService::captureException($e, LogCategory::PAYMENT, [
+                        'action' => 'pix_qrcode_retry',
+                        'attempt' => $i + 1,
+                        'payment_id' => $paymentId,
+                    ], $usuario->id ?? null, LogLevel::WARNING);
                 }
             }
 
@@ -693,10 +698,10 @@ class PremiumController extends BaseController
                     'bankSlipUrl' => $resp['bankSlipUrl'] ?? null,
                 ];
             } catch (\Throwable $e) {
-                LogService::error('Erro ao buscar dados do boleto', [
+                LogService::captureException($e, LogCategory::PAYMENT, [
+                    'action' => 'fetch_boleto_data',
                     'payment_id' => $paymentId,
-                    'error' => $e->getMessage(),
-                ]);
+                ], $usuario->id ?? null);
             }
         }
 
@@ -845,12 +850,10 @@ class PremiumController extends BaseController
 
     private function logCancellation(Usuario $usuario, AssinaturaUsuario $assinatura): void
     {
-        if (class_exists(LogService::class)) {
-            LogService::info('Assinatura cancelada', [
-                'user_id' => $usuario->id,
-                'assinatura_id' => $assinatura->id,
-            ]);
-        }
+        LogService::info('Assinatura cancelada', [
+            'user_id' => $usuario->id,
+            'assinatura_id' => $assinatura->id,
+        ]);
     }
 
     private function handleCheckoutError(\Throwable $e): void
@@ -859,16 +862,10 @@ class PremiumController extends BaseController
             DB::rollBack();
         }
 
-        error_log("🔴 [CHECKOUT] Erro: " . $e->getMessage());
-        error_log("🔴 [CHECKOUT] Stack trace: " . $e->getTraceAsString());
-
-        if (class_exists(LogService::class)) {
-            LogService::error('Erro no checkout', [
-                'userId' => $this->userId,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-        }
+        LogService::captureException($e, LogCategory::PAYMENT, [
+            'action' => 'checkout',
+            'userId' => $this->userId,
+        ], $this->userId);
 
         Response::error($e->getMessage() ?: 'Não foi possível concluir o checkout.');
     }
@@ -879,15 +876,10 @@ class PremiumController extends BaseController
             DB::rollBack();
         }
 
-        error_log("🔴 [CANCEL] Erro ao cancelar assinatura: " . $e->getMessage());
-        error_log("🔴 [CANCEL] Stack trace: " . $e->getTraceAsString());
-
-        if (class_exists(LogService::class)) {
-            LogService::error('Erro ao cancelar', [
-                'userId' => $this->userId,
-                'error' => $e->getMessage(),
-            ]);
-        }
+        LogService::captureException($e, LogCategory::SUBSCRIPTION, [
+            'action' => 'cancel_subscription',
+            'userId' => $this->userId,
+        ], $this->userId);
 
         Response::error('Erro interno no servidor.', 500);
     }
@@ -914,10 +906,13 @@ class PremiumController extends BaseController
             $achievementService = new AchievementService();
             $achievementService->checkAndUnlockAchievements($usuario->id, 'checkout_profile_save');
 
-            error_log("✅ [CHECKOUT] Dados salvos no perfil do usuário {$usuario->id}");
+            LogService::info('Dados do checkout salvos no perfil', ['user_id' => $usuario->id]);
         } catch (\Throwable $e) {
             // Não falhar o checkout por causa disso
-            error_log("⚠️ [CHECKOUT] Erro ao salvar dados no perfil: " . $e->getMessage());
+            LogService::captureException($e, LogCategory::PAYMENT, [
+                'action' => 'save_checkout_profile',
+                'user_id' => $usuario->id,
+            ], $usuario->id, LogLevel::WARNING);
         }
     }
 

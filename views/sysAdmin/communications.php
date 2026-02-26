@@ -6,13 +6,13 @@
     <div class="page-header" data-aos="fade-down">
         <div class="header-content">
             <h1 class="page-title">
-                <i class="fas fa-bullhorn"></i>
+                <i data-lucide="megaphone"></i>
                 Comunicações
             </h1>
             <p class="page-subtitle">Envie mensagens e notificações segmentadas para seus usuários</p>
         </div>
         <a href="<?= BASE_URL ?>sysadmin" class="btn-back">
-            <i class="fas fa-arrow-left"></i>
+            <i data-lucide="arrow-left"></i>
             Voltar ao Painel
         </a>
     </div>
@@ -21,7 +21,7 @@
     <div class="stats-grid" data-aos="fade-up" data-aos-delay="100">
         <div class="stat-card">
             <div class="stat-icon campaigns">
-                <i class="fas fa-paper-plane"></i>
+                <i data-lucide="send"></i>
             </div>
             <div class="stat-content">
                 <h3 class="stat-value" id="statTotalCampaigns"><?= number_format($stats['total_campaigns'] ?? 0, 0, ',', '.') ?></h3>
@@ -31,7 +31,7 @@
 
         <div class="stat-card">
             <div class="stat-icon notifications">
-                <i class="fas fa-bell"></i>
+                <i data-lucide="bell"></i>
             </div>
             <div class="stat-content">
                 <h3 class="stat-value" id="statTotalNotifications"><?= number_format($stats['total_notifications'] ?? 0, 0, ',', '.') ?></h3>
@@ -41,7 +41,7 @@
 
         <div class="stat-card">
             <div class="stat-icon read-rate">
-                <i class="fas fa-eye"></i>
+                <i data-lucide="eye"></i>
             </div>
             <div class="stat-content">
                 <h3 class="stat-value" id="statReadRate"><?= number_format($stats['read_rate'] ?? 0, 1, ',', '.') ?>%</h3>
@@ -51,7 +51,7 @@
 
         <div class="stat-card">
             <div class="stat-icon recent">
-                <i class="fas fa-calendar-alt"></i>
+                <i data-lucide="calendar-days"></i>
             </div>
             <div class="stat-content">
                 <h3 class="stat-value" id="statCampaignsMonth"><?= number_format($stats['campaigns_last_month'] ?? 0, 0, ',', '.') ?></h3>
@@ -66,9 +66,9 @@
         <div class="form-section" data-aos="fade-right" data-aos-delay="200">
             <div class="section-card">
                 <div class="section-header">
-                    <h2><i class="fas fa-plus-circle"></i> Nova Campanha</h2>
+                    <h2><i data-lucide="circle-plus"></i> Nova Campanha</h2>
                     <span class="preview-count" id="previewCount">
-                        <i class="fas fa-users"></i>
+                        <i data-lucide="users"></i>
                         <span id="recipientCount">-</span> usuários
                     </span>
                 </div>
@@ -77,7 +77,7 @@
                     <!-- Tipo da Campanha -->
                     <div class="form-group">
                         <label for="campaignType">
-                            <i class="fas fa-tag"></i> Tipo da Mensagem
+                            <i data-lucide="tag"></i> Tipo da Mensagem
                         </label>
                         <select id="campaignType" name="type" class="form-control" required>
                             <?php foreach ($typeOptions as $value => $label): ?>
@@ -91,7 +91,7 @@
                     <!-- Título -->
                     <div class="form-group">
                         <label for="campaignTitle">
-                            <i class="fas fa-heading"></i> Título
+                            <i data-lucide="heading"></i> Título
                         </label>
                         <input type="text" id="campaignTitle" name="title" class="form-control"
                             placeholder="Ex: Você está aproveitando o máximo do Lukrato?"
@@ -102,7 +102,7 @@
                     <!-- Mensagem -->
                     <div class="form-group">
                         <label for="campaignMessage">
-                            <i class="fas fa-align-left"></i> Mensagem
+                            <i data-lucide="align-left"></i> Mensagem
                         </label>
                         <textarea id="campaignMessage" name="message" class="form-control" rows="5"
                             placeholder="Escreva aqui sua mensagem para os usuários..." required></textarea>
@@ -111,7 +111,7 @@
                     <!-- CTA (Link) -->
                     <div class="form-group">
                         <label for="campaignLink">
-                            <i class="fas fa-link"></i> Link do CTA (opcional)
+                            <i data-lucide="link"></i> Link do CTA (opcional)
                         </label>
                         <div class="input-group">
                             <input type="url" id="campaignLink" name="link" class="form-control"
@@ -123,14 +123,14 @@
 
                     <!-- Segmentação -->
                     <div class="form-section-title">
-                        <i class="fas fa-filter"></i> Segmentação
+                        <i data-lucide="filter"></i> Segmentação
                     </div>
 
                     <div class="filters-grid">
                         <!-- Plano -->
                         <div class="form-group">
                             <label for="filterPlan">
-                                <i class="fas fa-crown"></i> Plano
+                                <i data-lucide="crown"></i> Plano
                             </label>
                             <select id="filterPlan" name="filters[plan]" class="form-control filter-input">
                                 <?php foreach ($planOptions as $value => $label): ?>
@@ -142,7 +142,7 @@
                         <!-- Status -->
                         <div class="form-group">
                             <label for="filterStatus">
-                                <i class="fas fa-user-check"></i> Status
+                                <i data-lucide="user-check"></i> Status
                             </label>
                             <select id="filterStatus" name="filters[status]" class="form-control filter-input">
                                 <?php foreach ($statusOptions as $value => $label): ?>
@@ -154,7 +154,7 @@
                         <!-- Dias Inativos -->
                         <div class="form-group">
                             <label for="filterDaysInactive">
-                                <i class="fas fa-calendar-times"></i> Inatividade
+                                <i data-lucide="calendar-x"></i> Inatividade
                             </label>
                             <select id="filterDaysInactive" name="filters[days_inactive]" class="form-control filter-input">
                                 <?php foreach ($inactiveDaysOptions as $value => $label): ?>
@@ -166,14 +166,14 @@
 
                     <!-- Canais -->
                     <div class="form-section-title">
-                        <i class="fas fa-broadcast-tower"></i> Canais de Envio
+                        <i data-lucide="radio-tower"></i> Canais de Envio
                     </div>
 
                     <div class="channels-grid">
                         <label class="channel-option">
                             <input type="checkbox" name="send_notification" id="sendNotification" checked>
                             <span class="channel-box">
-                                <i class="fas fa-bell"></i>
+                                <i data-lucide="bell"></i>
                                 <span>Notificação Interna</span>
                             </span>
                         </label>
@@ -181,7 +181,7 @@
                         <label class="channel-option">
                             <input type="checkbox" name="send_email" id="sendEmail">
                             <span class="channel-box">
-                                <i class="fas fa-envelope"></i>
+                                <i data-lucide="mail"></i>
                                 <span>E-mail</span>
                             </span>
                         </label>
@@ -190,10 +190,10 @@
                     <!-- Botão de Envio -->
                     <div class="form-actions">
                         <button type="button" class="btn btn-preview" onclick="updatePreview()">
-                            <i class="fas fa-eye"></i> Atualizar Preview
+                            <i data-lucide="eye"></i> Atualizar Preview
                         </button>
                         <button type="submit" class="btn btn-primary btn-send" id="btnSend">
-                            <i class="fas fa-paper-plane"></i> Enviar Campanha
+                            <i data-lucide="send"></i> Enviar Campanha
                         </button>
                     </div>
                 </form>
@@ -204,15 +204,15 @@
         <div class="history-section" data-aos="fade-left" data-aos-delay="300">
             <div class="section-card">
                 <div class="section-header">
-                    <h2><i class="fas fa-history"></i> Histórico de Campanhas</h2>
+                    <h2><i data-lucide="history"></i> Histórico de Campanhas</h2>
                     <button class="btn-refresh" onclick="loadCampaigns()" title="Atualizar">
-                        <i class="fas fa-sync-alt"></i>
+                        <i data-lucide="refresh-cw"></i>
                     </button>
                 </div>
 
                 <div class="campaigns-list" id="campaignsList">
                     <div class="loading-state">
-                        <i class="fas fa-spinner fa-spin"></i>
+                        <i data-lucide="loader-2" class="icon-spin"></i>
                         <span>Carregando campanhas...</span>
                     </div>
                 </div>
@@ -220,11 +220,11 @@
                 <!-- Pagination -->
                 <div class="pagination-container" id="paginationContainer" style="display: none;">
                     <button class="btn-page" id="btnPrevPage" onclick="changePage(-1)">
-                        <i class="fas fa-chevron-left"></i>
+                        <i data-lucide="chevron-left"></i>
                     </button>
                     <span class="page-info" id="pageInfo">Página 1 de 1</span>
                     <button class="btn-page" id="btnNextPage" onclick="changePage(1)">
-                        <i class="fas fa-chevron-right"></i>
+                        <i data-lucide="chevron-right"></i>
                     </button>
                 </div>
             </div>
@@ -238,7 +238,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fas fa-info-circle"></i>
+                    <i data-lucide="info"></i>
                     Detalhes da Campanha
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
@@ -254,6 +254,18 @@
     // ================================================
     // COMMUNICATIONS PAGE JS
     // ================================================
+
+    // FA → Lucide icon mapping for dynamic icons
+    const faToLucide = {
+        'fa-bullhorn': 'megaphone', 'fa-bell': 'bell', 'fa-paper-plane': 'send',
+        'fa-envelope': 'mail', 'fa-crown': 'crown', 'fa-star': 'star',
+        'fa-gift': 'gift', 'fa-rocket': 'rocket', 'fa-tag': 'tag',
+        'fa-info-circle': 'info', 'fa-exclamation-triangle': 'triangle-alert',
+        'fa-check-circle': 'circle-check', 'fa-users': 'users', 'fa-chart-line': 'line-chart'
+    };
+    function lucideIcon(faClass) {
+        return faToLucide[faClass] || faClass.replace('fa-', '');
+    }
 
     const BASE = window.LK?.getBase() || '<?= rtrim(BASE_URL, "/") . "/" ?>';
     let currentPage = 1;
@@ -325,7 +337,7 @@
         const list = document.getElementById('campaignsList');
         list.innerHTML = `
         <div class="loading-state">
-            <i class="fas fa-spinner fa-spin"></i>
+            <i data-lucide="loader-2" class="icon-spin"></i>
             <span>Carregando campanhas...</span>
         </div>
     `;
@@ -347,7 +359,7 @@
             } else {
                 list.innerHTML = `
                 <div class="empty-state">
-                    <i class="fas fa-exclamation-circle"></i>
+                    <i data-lucide="circle-alert"></i>
                     <span>${data.message || 'Erro ao carregar campanhas'}</span>
                 </div>
             `;
@@ -356,7 +368,7 @@
             console.error('Erro ao carregar campanhas:', error);
             list.innerHTML = `
             <div class="empty-state">
-                <i class="fas fa-exclamation-circle"></i>
+                <i data-lucide="circle-alert"></i>
                 <span>Erro ao carregar campanhas</span>
             </div>
         `;
@@ -370,7 +382,7 @@
         if (!campaigns || campaigns.length === 0) {
             list.innerHTML = `
             <div class="empty-state">
-                <i class="fas fa-inbox"></i>
+                <i data-lucide="inbox"></i>
                 <span>Nenhuma campanha enviada ainda</span>
             </div>
         `;
@@ -380,14 +392,14 @@
         list.innerHTML = campaigns.map(campaign => `
         <div class="campaign-item" onclick="showCampaignDetail(${campaign.id})">
             <div class="campaign-icon" style="background-color: ${campaign.color}20; color: ${campaign.color}">
-                <i class="fas ${campaign.icon}"></i>
+                <i data-lucide="${lucideIcon(campaign.icon)}"></i>
             </div>
             <div class="campaign-info">
                 <h4 class="campaign-title">${escapeHtml(campaign.title)}</h4>
                 <div class="campaign-meta">
-                    <span><i class="fas fa-users"></i> ${campaign.total_recipients}</span>
-                    <span><i class="fas fa-eye"></i> ${campaign.read_rate}%</span>
-                    <span><i class="fas fa-calendar"></i> ${campaign.created_at}</span>
+                    <span><i data-lucide="users"></i> ${campaign.total_recipients}</span>
+                    <span><i data-lucide="eye"></i> ${campaign.read_rate}%</span>
+                    <span><i data-lucide="calendar"></i> ${campaign.created_at}</span>
                 </div>
                 <div class="campaign-tags">
                     <span class="tag">${campaign.filters_description}</span>
@@ -436,7 +448,7 @@
 
         body.innerHTML = `
         <div class="text-center py-4">
-            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <i data-lucide="loader-2" class="icon-spin"></i>
         </div>
     `;
         modal.show();
@@ -456,7 +468,7 @@
                 body.innerHTML = `
                 <div class="campaign-detail">
                     <div class="detail-header" style="border-left: 4px solid ${c.color}">
-                        <i class="fas ${c.icon}" style="color: ${c.color}"></i>
+                        <i data-lucide="${lucideIcon(c.icon)}" style="color: ${c.color}"></i>
                         <div>
                             <h4>${escapeHtml(c.title)}</h4>
                             <span class="detail-creator">Por ${escapeHtml(c.creator.nome)} em ${c.created_at}</span>
@@ -466,7 +478,7 @@
                     <div class="detail-message">
                         <strong>Mensagem:</strong>
                         <p>${escapeHtml(c.message).replace(/\n/g, '<br>')}</p>
-                        ${c.link ? `<a href="${escapeHtml(c.link)}" target="_blank" class="detail-cta">${escapeHtml(c.link_text || 'Ver link')} <i class="fas fa-external-link-alt"></i></a>` : ''}
+                        ${c.link ? `<a href="${escapeHtml(c.link)}" target="_blank" class="detail-cta">${escapeHtml(c.link_text || 'Ver link')} <i data-lucide="external-link"></i></a>` : ''}
                     </div>
 
                     <div class="detail-stats">
@@ -491,8 +503,8 @@
                     </div>
 
                     <div class="detail-meta">
-                        <span><i class="fas fa-filter"></i> ${c.filters_description}</span>
-                        <span><i class="fas fa-broadcast-tower"></i> ${c.channels_description}</span>
+                        <span><i data-lucide="filter"></i> ${c.filters_description}</span>
+                        <span><i data-lucide="radio-tower"></i> ${c.channels_description}</span>
                         <span class="status-badge" style="background-color: ${c.status_badge.color}">${c.status_badge.label}</span>
                     </div>
                 </div>
@@ -556,8 +568,7 @@
 
         // Enviar
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
-
+        btn.innerHTML = '<i data-lucide="loader-2" class="icon-spin"></i> Enviando...';
         try {
             const payload = {
                 title: title,

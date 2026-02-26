@@ -6,6 +6,29 @@
 (function () {
     'use strict';
 
+    // Mapeamento de cores para ícones de conquistas
+    function getAchievementIconColor(icon) {
+        const colors = {
+            'target': '#ef4444', 'flame': '#f97316', 'zap': '#eab308',
+            'calendar': '#3b82f6', 'bar-chart-3': '#06b6d4', 'palette': '#a855f7',
+            'user-check': '#22c55e', 'coins': '#eab308', 'hash': '#6366f1',
+            'graduation-cap': '#3b82f6', 'star': '#f59e0b', 'crown': '#f59e0b',
+            'gem': '#a855f7', 'trophy': '#f59e0b', 'award': '#f59e0b',
+            'sparkles': '#ec4899', 'file-text': '#64748b', 'library': '#92400e',
+            'landmark': '#3b82f6', 'sparkle': '#ec4899', 'orbit': '#6366f1',
+            'banknote': '#22c55e', 'piggy-bank': '#ec4899', 'building-2': '#64748b',
+            'trending-up': '#22c55e', 'crosshair': '#ef4444', 'medal': '#f59e0b',
+            'folder-open': '#f59e0b', 'folders': '#f59e0b', 'check-circle': '#22c55e',
+            'credit-card': '#3b82f6', 'receipt': '#14b8a6', 'calendar-check': '#22c55e',
+            'cake': '#ec4899', 'shield-check': '#22c55e', 'wand-sparkles': '#a855f7',
+            'sunrise': '#f97316', 'moon': '#6366f1', 'tree-pine': '#22c55e',
+            'party-popper': '#ef4444', 'swords': '#64748b', 'rocket': '#ef4444',
+            'handshake': '#3b82f6', 'users': '#3b82f6', 'megaphone': '#f97316',
+            'lock': '#94a3b8', 'check': '#22c55e'
+        };
+        return colors[icon] || '#f97316';
+    }
+
     /**
      * Criar confetes animados
      */
@@ -85,7 +108,7 @@
             return;
         }
 
-        ('🎯 [notifyMultipleAchievements] Recebeu', achievements.length, 'conquista(s)');
+        ('  [notifyMultipleAchievements] Recebeu', achievements.length, 'conquista(s)');
 
         if (achievements.length === 1) {
             // Apenas uma conquista - exibir diretamente
@@ -119,7 +142,7 @@
 
         // Validar se achievement existe e tem os campos necessários
         if (!achievement || typeof achievement !== 'object') {
-            console.error('❌ Conquista inválida:', achievement);
+            console.error('Conquista inválida:', achievement);
             return;
         }
 
@@ -127,7 +150,7 @@
         const ach = {
             name: escapeHtml(achievement.name || 'Conquista Desbloqueada'),
             description: escapeHtml(achievement.description || ''),
-            icon: achievement.icon || '🏆',
+            icon: achievement.icon || 'trophy',
             points_reward: parseInt(achievement.points_reward || achievement.points || 0)
         };
 
@@ -155,19 +178,19 @@
                 // Aguardar um momento para modais fecharem
                 setTimeout(() => {
                     Swal.fire({
-                        title: '🎉 Conquista Desbloqueada!',
+                        title: 'Conquista Desbloqueada!',
                         html: `
                             <div class="achievement-unlock-animation">
-                                <div class="achievement-icon-big">${ach.icon}</div>
+                                <div class="achievement-icon-big" style="color:${getAchievementIconColor(ach.icon)}"><i data-lucide="${ach.icon}"></i></div>
                                 <h2>${ach.name}</h2>
                                 <p>${ach.description}</p>
                                 <p class="achievement-points-reward">
-                                    <i class="fas fa-star"></i> +${ach.points_reward} pontos
+                                    <i data-lucide="star"></i> +${ach.points_reward} pontos
                                 </p>
                             </div>
                         `,
                         icon: 'success',
-                        confirmButtonText: '🚀 Continuar!',
+                        confirmButtonText: 'Continuar!',
                         customClass: {
                             popup: 'achievement-unlock-modal',
                             confirmButton: 'btn btn-primary',
@@ -186,31 +209,33 @@
                         if (achievement.id) {
                             markAchievementsSeen([achievement.id]);
                         }
+                        // Renderizar ícones Lucide
+                        if (window.lucide) lucide.createIcons();
                     });
                 }, 300);
             } catch (error) {
-                console.error('❌ [notifyAchievementUnlocked] Erro ao exibir Swal:', error);
-                alert(`🎉 Conquista Desbloqueada!\n\n${ach.name}\n${ach.description}\n\n+${ach.points_reward} pontos`);
+                console.error('[notifyAchievementUnlocked] Erro ao exibir Swal:', error);
+                alert(`Conquista Desbloqueada!\n\n${ach.name}\n${ach.description}\n\n+${ach.points_reward} pontos`);
             }
         } else {
-            console.warn('⚠️ [notifyAchievementUnlocked] Swal ainda não carregado, tentando novamente em 500ms...');
+            console.warn('[notifyAchievementUnlocked] Swal ainda não carregado, tentando novamente em 500ms...');
             // Tentar novamente após 500ms
             setTimeout(() => {
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({
-                        title: '🎉 Conquista Desbloqueada!',
+                        title: 'Conquista Desbloqueada!',
                         html: `
                             <div class="achievement-unlock-animation">
-                                <div class="achievement-icon-big">${ach.icon}</div>
+                                <div class="achievement-icon-big" style="color:${getAchievementIconColor(ach.icon)}"><i data-lucide="${ach.icon}"></i></div>
                                 <h2>${ach.name}</h2>
                                 <p>${ach.description}</p>
                                 <p class="achievement-points-reward">
-                                    <i class="fas fa-star"></i> +${ach.points_reward} pontos
+                                    <i data-lucide="star"></i> +${ach.points_reward} pontos
                                 </p>
                             </div>
                         `,
                         icon: 'success',
-                        confirmButtonText: '🚀 Continuar!',
+                        confirmButtonText: 'Continuar!',
                         customClass: {
                             popup: 'achievement-unlock-modal',
                             confirmButton: 'btn btn-primary'
@@ -228,8 +253,8 @@
                         }
                     });
                 } else {
-                    console.error('❌ [notifyAchievementUnlocked] Swal NÃO disponível mesmo após 500ms!');
-                    alert(`🎉 Conquista Desbloqueada!\n\n${ach.name}\n${ach.description}\n\n+${ach.points_reward} pontos`);
+                    console.error('[notifyAchievementUnlocked] Swal NÃO disponível mesmo após 500ms!');
+                    alert(`Conquista Desbloqueada!\n\n${ach.name}\n${ach.description}\n\n+${ach.points_reward} pontos`);
                     // Marcar como vista mesmo com fallback
                     if (achievement.id) {
                         markAchievementsSeen([achievement.id]);
@@ -260,7 +285,7 @@
 
         if (typeof Swal !== 'undefined') {
             Swal.fire({
-                title: '⭐ Subiu de Nível!',
+                title: 'Subiu de Nível!',
                 html: `
                     <div class="level-up-animation">
                         <div class="level-badge-big">
@@ -272,7 +297,7 @@
                     </div>
                 `,
                 icon: 'success',
-                confirmButtonText: '🎯 Vamos lá!',
+                confirmButtonText: 'Vamos lá!',
                 customClass: {
                     popup: 'level-up-modal',
                     confirmButton: 'btn btn-primary'
@@ -285,7 +310,7 @@
                 }
             });
         } else {
-            alert(`⭐ Subiu de Nível!\n\nVocê alcançou o nível ${newLevel}!\n\nContinue assim e alcance novos patamares!`);
+            alert(`Subiu de Nível!\n\nVocê alcançou o nível ${newLevel}!\n\nContinue assim e alcance novos patamares!`);
         }
     };
 
@@ -303,7 +328,7 @@
 
         if (typeof Swal !== 'undefined') {
             Swal.fire({
-                title: '⭐ Subiu de Nível!',
+                title: 'Subiu de Nível!',
                 html: `
                     <div class="level-up-animation">
                         <div class="level-badge-big">
@@ -315,7 +340,7 @@
                     </div>
                 `,
                 icon: 'success',
-                confirmButtonText: '🎯 Vamos lá!',
+                confirmButtonText: 'Vamos lá!',
                 customClass: {
                     popup: 'level-up-modal',
                     confirmButton: 'btn btn-primary'
@@ -335,7 +360,7 @@
                 }
             });
         } else {
-            alert(`⭐ Subiu de Nível!\n\nVocê alcançou o nível ${newLevel}!\n\nContinue assim e alcance novos patamares!`);
+            alert(`Subiu de Nível!\n\nVocê alcançou o nível ${newLevel}!\n\nContinue assim e alcance novos patamares!`);
             if (onClose) onClose();
         }
     }
@@ -593,18 +618,18 @@
             }, 100);
 
             const isReferrer = reward.tipo === 'referral_referrer';
-            const icon = isReferrer ? '🎁' : '🎉';
-            const buttonText = isReferrer ? '🚀 Continuar indicando!' : '🚀 Aproveitar!';
+            const icon = isReferrer ? '<i data-lucide="gift"></i>' : '<i data-lucide="party-popper"></i>';
+            const buttonText = isReferrer ? 'Continuar indicando!' : 'Aproveitar!';
 
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
-                    title: `${icon} ${reward.titulo}`,
+                    title: `${reward.titulo}`,
                     html: `
                         <div class="referral-reward-animation">
-                            <div class="referral-icon-big">${isReferrer ? '👥' : '🌟'}</div>
+                            <div class="referral-icon-big">${isReferrer ? '<i data-lucide="users"></i>' : '<i data-lucide="sparkles"></i>'}</div>
                             <p class="referral-message">${reward.mensagem}</p>
                             <div class="referral-pro-badge">
-                                <i class="fas fa-gem"></i> Acesso PRO ativado!
+                                <i data-lucide="gem"></i> Acesso PRO ativado!
                             </div>
                         </div>
                     `,
@@ -768,7 +793,7 @@
         const ach = {
             name: escapeHtml(achievement.name || 'Conquista Desbloqueada'),
             description: escapeHtml(achievement.description || ''),
-            icon: achievement.icon || '🏆',
+            icon: achievement.icon || 'trophy',
             points_reward: parseInt(achievement.points_reward || achievement.points || 0)
         };
 
@@ -783,19 +808,19 @@
         // Verificar se SweetAlert2 está disponível
         if (typeof Swal !== 'undefined') {
             Swal.fire({
-                title: '🎉 Conquista Desbloqueada!',
+                title: 'Conquista Desbloqueada!',
                 html: `
                     <div class="achievement-unlock-animation">
-                        <div class="achievement-icon-big">${ach.icon}</div>
+                        <div class="achievement-icon-big" style="color:${getAchievementIconColor(ach.icon)}"><i data-lucide="${ach.icon}"></i></div>
                         <h2>${ach.name}</h2>
                         <p>${ach.description}</p>
                         <p class="achievement-points-reward">
-                            <i class="fas fa-star"></i> +${ach.points_reward} pontos
+                            <i data-lucide="star"></i> +${ach.points_reward} pontos
                         </p>
                     </div>
                 `,
                 icon: 'success',
-                confirmButtonText: '🚀 Continuar!',
+                confirmButtonText: 'Continuar!',
                 customClass: {
                     popup: 'achievement-unlock-modal',
                     confirmButton: 'btn btn-primary'
@@ -816,7 +841,7 @@
             });
         } else {
             // Fallback se SweetAlert2 não estiver disponível
-            alert(`🎉 Conquista Desbloqueada!\n\n${ach.name}\n${ach.description}\n\n+${ach.points_reward} pontos`);
+            alert(`Conquista Desbloqueada!\n\n${ach.name}\n${ach.description}\n\n+${ach.points_reward} pontos`);
             if (onClose) onClose();
         }
     }

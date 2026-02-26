@@ -4,11 +4,11 @@
         <div class="lk-acc-header"
             style="margin-bottom: 0; display: flex; justify-content: space-between; align-items: center;">
             <h1 style="font-size: 1.75rem; margin: 0; color: var(--color-text); font-weight: 700;">
-                <i class="fas fa-archive" style="color: var(--color-primary);"></i>
+                <i data-lucide="archive" style="color: var(--color-primary);"></i>
                 Contas Arquivadas
             </h1>
             <a class="btn btn-light" href="<?= BASE_URL ?>contas" aria-label="Voltar para contas">
-                <i class="fas fa-arrow-left"></i> Voltar
+                <i data-lucide="arrow-left"></i> Voltar
             </a>
         </div>
     </div>
@@ -17,7 +17,7 @@
     <div class="stats-grid" id="statsContainer" style="margin-bottom: 2rem;">
         <div class="stat-card" data-aos="flip-left">
             <div class="stat-icon">
-                <i class="fas fa-archive"></i>
+                <i data-lucide="archive"></i>
             </div>
             <div>
                 <div class="stat-value" id="totalArquivadas" aria-live="polite">0</div>
@@ -27,7 +27,7 @@
 
         <div class="stat-card" data-aos="flip-right">
             <div class="stat-icon">
-                <i class="fas fa-coins"></i>
+                <i data-lucide="coins"></i>
             </div>
             <div>
                 <div class="stat-value" id="saldoArquivado" aria-live="polite">R$ 0,00</div>
@@ -114,7 +114,7 @@
                 grid.innerHTML = `
                     <div class="empty-state" style="grid-column: 1 / -1;">
                         <div class="empty-icon">
-                            <i class="fas fa-archive"></i>
+                            <i data-lucide="archive"></i>
                         </div>
                         <h3>Nenhuma conta arquivada</h3>
                         <p>Quando você arquivar uma conta, ela aparecerá aqui</p>
@@ -146,7 +146,7 @@
                     </div>
                     <div class="account-body" style="position: relative;">
                         <span class="acc-badge inactive" style="position: absolute; top: 1rem; right: 1rem; background: rgba(0,0,0,0.6); color: white; border: 1px solid rgba(255,255,255,0.2); z-index: 10;">
-                            <i class="fas fa-archive"></i>
+                            <i data-lucide="archive"></i>
                             Arquivada
                         </span>
                         <h3 class="account-name">${escapeHTML(c.nome||'')}</h3>
@@ -156,11 +156,11 @@
                         </div>
                         <div class="acc-actions">
                             <button class="btn-action btn-restore" data-id="${c.id}" title="Restaurar conta">
-                                <i class="fas fa-undo"></i>
+                                <i data-lucide="undo-2"></i>
                                 <span>Restaurar</span>
                             </button>
                             <button class="btn-action btn-delete" data-id="${c.id}" title="Excluir permanentemente">
-                                <i class="fas fa-trash-alt"></i>
+                                <i data-lucide="trash-2"></i>
                                 <span>Excluir</span>
                             </button>
                         </div>
@@ -196,8 +196,8 @@
                 showCancelButton: true,
                 confirmButtonColor: '#e67e22',
                 cancelButtonColor: '#6c757d',
-                confirmButtonText: '<i class="fas fa-undo"></i> Sim, restaurar',
-                cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+                confirmButtonText: '<i data-lucide="undo-2"></i> Sim, restaurar',
+                cancelButtonText: '<i data-lucide="x"></i> Cancelar',
                 reverseButtons: true,
                 buttonsStyling: true
             });
@@ -243,8 +243,8 @@
                 html: `Tem certeza que deseja excluir <strong>${nomeConta}</strong>?<br><small class="text-muted" style="color: #dc3545;">Esta ação não pode ser desfeita!</small>`,
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: '<i class="fas fa-trash"></i> Sim, excluir',
-                cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+                confirmButtonText: '<i data-lucide="trash-2"></i> Sim, excluir',
+                cancelButtonText: '<i data-lucide="x"></i> Cancelar',
                 confirmButtonColor: '#dc3545',
                 cancelButtonColor: '#6c757d',
                 reverseButtons: true,

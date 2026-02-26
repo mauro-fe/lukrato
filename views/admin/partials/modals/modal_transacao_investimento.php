@@ -6,7 +6,7 @@
 ?>
 
 <div class="modal fade" id="modal-transacao-investimento" tabindex="-1" aria-labelledby="modalTransacaoLabel"
-    aria-hidden="true">
+    aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -74,7 +74,7 @@
 
             <div class="modal-footer">
                 <button type="submit" class="btn btn-primary" form="form-transacao-investimento">
-                    <i class="fa-solid fa-floppy-disk me-2"></i>Salvar transação
+                    <i data-lucide="save" class="me-2"></i>Salvar transação
                 </button>
             </div>
         </div>

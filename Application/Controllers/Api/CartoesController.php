@@ -6,7 +6,9 @@ use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Services\CartaoCreditoService;
 use Application\Services\CartaoFaturaService;
+use Application\Services\LogService;
 use Application\Services\PlanLimitService;
+use Application\Enums\LogCategory;
 use Application\DTO\CreateCartaoCreditoDTO;
 use Application\DTO\UpdateCartaoCreditoDTO;
 
@@ -36,19 +38,13 @@ class CartoesController
      */
     public function index(): void
     {
-        // Modo diagnóstico (temporário) - acesse com ?diag=1
-        if (isset($_GET['diag']) && $_GET['diag'] === '1') {
-            $this->runDiagnostic();
-            return;
-        }
-        
         $userId = Auth::id();
-        
+
         // Liberar lock da sessão para permitir requisições paralelas
         if (session_status() === PHP_SESSION_ACTIVE) {
             session_write_close();
         }
-        
+
         $contaId = isset($_GET['conta_id']) ? (int) $_GET['conta_id'] : null;
         $apenasAtivos = (int) ($_GET['only_active'] ?? 1) === 1;
         $arquivados = (int) ($_GET['archived'] ?? 0) === 1;
@@ -122,22 +118,17 @@ class CartoesController
         // 🎮 GAMIFICAÇÃO: Verificar conquistas após criar cartão
         $gamificationResult = [];
         try {
-            error_log("🎮 [GAMIFICATION] Verificando conquistas para user_id: {$userId}");
             $achievementService = new \Application\Services\AchievementService();
             $newAchievements = $achievementService->checkAndUnlockAchievements($userId, 'card_created');
 
-            error_log("🎮 [GAMIFICATION] Conquistas encontradas: " . count($newAchievements));
-
             if (!empty($newAchievements)) {
                 $gamificationResult['achievements'] = $newAchievements;
-                error_log("🎮 [GAMIFICATION] " . count($newAchievements) . " conquistas desbloqueadas após criar cartão");
-                error_log("🎮 [GAMIFICATION] Conquistas: " . json_encode($newAchievements));
-            } else {
-                error_log("ℹ️ [GAMIFICATION] Nenhuma conquista nova para desbloquear");
             }
         } catch (\Exception $e) {
-            error_log("❌ [GAMIFICATION] Erro ao verificar conquistas: " . $e->getMessage());
-            error_log("❌ [GAMIFICATION] Stack trace: " . $e->getTraceAsString());
+            LogService::captureException($e, LogCategory::GAMIFICATION, [
+                'action' => 'check_achievements_card_created',
+                'user_id' => $userId,
+            ]);
         }
 
         Response::json([
@@ -352,31 +343,25 @@ class CartoesController
         $contaId = isset($data['conta_id']) ? (int)$data['conta_id'] : null;
         $valorParcial = isset($data['valor_parcial']) ? (float)$data['valor_parcial'] : null;
 
-        error_log("💳 [CONTROLLER] Mes: {$mes}, Ano: {$ano}, ContaId: " . ($contaId ?? 'NULL') . ", ValorParcial: " . ($valorParcial ?? 'NULL'));
-
         try {
             $resultado = $this->faturaService->pagarFatura($id, (int)$mes, (int)$ano, $userId, $contaId, $valorParcial);
 
             // 🎮 GAMIFICAÇÃO: Verificar conquistas após pagar fatura
             $gamificationResult = [];
             try {
-                error_log("🎮 [GAMIFICATION] Verificando conquistas para user_id: {$userId}");
                 $achievementService = new \Application\Services\AchievementService();
                 $newAchievements = $achievementService->checkAndUnlockAchievements($userId, 'invoice_paid');
-
-                error_log("🎮 [GAMIFICATION] Conquistas encontradas: " . count($newAchievements));
 
                 if (!empty($newAchievements)) {
                     $gamificationResult['achievements'] = $newAchievements;
                     $resultado['gamification'] = $gamificationResult;
-                    error_log("🎮 [GAMIFICATION] " . count($newAchievements) . " conquistas desbloqueadas após pagar fatura");
-                    error_log("🎮 [GAMIFICATION] Conquistas: " . json_encode($newAchievements));
-                } else {
-                    error_log("ℹ️ [GAMIFICATION] Nenhuma conquista nova para desbloquear");
                 }
             } catch (\Exception $e) {
-                error_log("❌ [GAMIFICATION] Erro ao verificar conquistas: " . $e->getMessage());
-                error_log("❌ [GAMIFICATION] Stack trace: " . $e->getTraceAsString());
+                LogService::captureException($e, LogCategory::GAMIFICATION, [
+                    'action' => 'check_achievements_invoice_paid',
+                    'user_id' => $userId,
+                    'cartao_id' => $id,
+                ]);
             }
 
             Response::json($resultado);
@@ -477,8 +462,12 @@ class CartoesController
             $resumo = $this->faturaService->obterResumoParcelamentos($id, $mes, $ano);
             Response::json($resumo);
         } catch (\Exception $e) {
-            error_log("❌ [ParcelamentosResumo] Erro: " . $e->getMessage());
-            error_log($e->getTraceAsString());
+            LogService::captureException($e, LogCategory::CARTAO, [
+                'action' => 'parcelamentos_resumo',
+                'cartao_id' => $id,
+                'mes' => $mes,
+                'ano' => $ano,
+            ]);
 
             // Retorna dados vazios ao invés de erro 500
             Response::json([
@@ -508,14 +497,20 @@ class CartoesController
             try {
                 $vencimentos = $this->faturaService->verificarVencimentosProximos($userId, 7);
             } catch (\Exception $e) {
-                error_log("Erro ao verificar vencimentos: " . $e->getMessage());
+                LogService::captureException($e, LogCategory::CARTAO, [
+                    'action' => 'verificar_vencimentos',
+                    'user_id' => $userId,
+                ]);
             }
 
             // Buscar limites baixos com tratamento de erro
             try {
                 $limitesBaixos = $this->service->verificarLimitesBaixos($userId);
             } catch (\Exception $e) {
-                error_log("Erro ao verificar limites baixos: " . $e->getMessage());
+                LogService::captureException($e, LogCategory::CARTAO, [
+                    'action' => 'verificar_limites_baixos',
+                    'user_id' => $userId,
+                ]);
             }
 
             $alertas = array_merge($vencimentos, $limitesBaixos);
@@ -535,7 +530,10 @@ class CartoesController
                 ]
             ]);
         } catch (\Exception $e) {
-            error_log("Erro geral em alertas: " . $e->getMessage());
+            LogService::captureException($e, LogCategory::CARTAO, [
+                'action' => 'alertas',
+                'user_id' => $userId,
+            ]);
             Response::json([
                 'total' => 0,
                 'alertas' => [],
@@ -619,7 +617,13 @@ class CartoesController
             $resultado = $this->faturaService->desfazerPagamentoFatura($id, $mes, $ano, $userId);
             Response::json($resultado);
         } catch (\Exception $e) {
-            error_log("❌ [Controller] Erro: " . $e->getMessage());
+            LogService::captureException($e, LogCategory::FATURA, [
+                'action' => 'desfazer_pagamento_fatura',
+                'cartao_id' => $id,
+                'mes' => $mes,
+                'ano' => $ano,
+                'user_id' => $userId,
+            ]);
             Response::json(['status' => 'error', 'message' => $e->getMessage()], 400);
         }
     }
@@ -638,68 +642,12 @@ class CartoesController
             $resultado = $this->faturaService->desfazerPagamentoParcela($id, $userId);
             Response::json($resultado);
         } catch (\Exception $e) {
-            error_log("❌ [Controller] Erro ao desfazer parcela: " . $e->getMessage());
-            Response::json(['status' => 'error', 'message' => $e->getMessage()], 400);
-        }
-    }
-
-    /**
-     * Diagnóstico temporário - REMOVER após identificar problema
-     */
-    private function runDiagnostic(): void
-    {
-        $startTime = microtime(true);
-        $timings = [];
-        
-        try {
-            // 1. Auth
-            $t1 = microtime(true);
-            $userId = Auth::id();
-            $timings['auth'] = round((microtime(true) - $t1) * 1000, 2);
-            
-            if (!$userId) {
-                Response::json(['error' => 'Não autenticado', 'timings' => $timings]);
-                return;
-            }
-            
-            // 2. DB Connection
-            $t2 = microtime(true);
-            \Illuminate\Database\Capsule\Manager::connection()->getPdo();
-            $timings['db_connect'] = round((microtime(true) - $t2) * 1000, 2);
-            
-            // 3. Count cartoes
-            $t3 = microtime(true);
-            $cartoesCount = \Application\Models\CartaoCredito::where('user_id', $userId)->count();
-            $timings['cartoes_count'] = round((microtime(true) - $t3) * 1000, 2);
-            
-            // 4. List cartoes
-            $t4 = microtime(true);
-            $cartoes = \Application\Models\CartaoCredito::forUser($userId)
-                ->with('conta.instituicaoFinanceira')
-                ->ativos()
-                ->get();
-            $timings['cartoes_list'] = round((microtime(true) - $t4) * 1000, 2);
-            
-            $timings['total'] = round((microtime(true) - $startTime) * 1000, 2);
-            
-            Response::json([
-                'status' => 'OK',
+            LogService::captureException($e, LogCategory::FATURA, [
+                'action' => 'desfazer_pagamento_parcela',
+                'parcela_id' => $id,
                 'user_id' => $userId,
-                'cartoes_count' => $cartoesCount,
-                'timings_ms' => $timings,
-                'memory_mb' => round(memory_get_peak_usage(true) / 1024 / 1024, 2),
-                'server_time' => date('Y-m-d H:i:s')
             ]);
-            
-        } catch (\Throwable $e) {
-            $timings['error_at'] = round((microtime(true) - $startTime) * 1000, 2);
-            Response::json([
-                'status' => 'ERROR',
-                'error' => $e->getMessage(),
-                'file' => basename($e->getFile()),
-                'line' => $e->getLine(),
-                'timings_ms' => $timings
-            ], 500);
+            Response::json(['status' => 'error', 'message' => $e->getMessage()], 400);
         }
     }
 }

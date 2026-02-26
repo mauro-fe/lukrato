@@ -58,8 +58,9 @@
             e.preventDefault();
             const showing = passwordField.type === 'text';
             passwordField.type = showing ? 'password' : 'text';
-            toggleIcon.classList.toggle('fa-eye', showing);
-            toggleIcon.classList.toggle('fa-eye-slash', !showing);
+            toggleIcon.setAttribute('data-lucide', showing ? 'eye' : 'eye-off');
+            toggleIcon.className = '';
+            if(window.lucide) lucide.createIcons({nodes:[toggleIcon]});
             toggleIcon.style.color = showing ? '#888' : '#12453E';
             toggleIcon.title = showing ? 'Mostrar senha' : 'Ocultar senha';
             toggleIcon.style.transform = 'translateY(-50%) scale(1.2)';

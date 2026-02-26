@@ -7,7 +7,7 @@ require_once __DIR__ . '/../admin/partials/header.php';
     <div class="cupons-container">
         <!-- Botão Voltar -->
         <a href="<?= BASE_URL ?>sysadmin" class="btn-voltar">
-            <i class="fas fa-arrow-left"></i>
+            <i data-lucide="arrow-left"></i>
             <span>Voltar ao Painel</span>
         </a>
 
@@ -15,7 +15,7 @@ require_once __DIR__ . '/../admin/partials/header.php';
         <div class="cupons-header">
             <div class="cupons-header-title">
                 <div class="cupons-header-icon">
-                    <i class="fas fa-ticket-alt"></i>
+                    <i data-lucide="ticket"></i>
                 </div>
                 <div>
                     <h1>Gerenciar Cupons de Desconto</h1>
@@ -23,7 +23,7 @@ require_once __DIR__ . '/../admin/partials/header.php';
                 </div>
             </div>
             <button class="btn-criar-cupom" onclick="abrirModalCriarCupom()">
-                <i class="fas fa-plus-circle"></i>
+                <i data-lucide="circle-plus"></i>
                 Criar Novo Cupom
             </button>
         </div>
@@ -32,7 +32,7 @@ require_once __DIR__ . '/../admin/partials/header.php';
         <div class="cupons-stats" id="cuponsStats" style="display: none;">
             <div class="stat-card">
                 <div class="stat-icon primary">
-                    <i class="fas fa-ticket-alt"></i>
+                    <i data-lucide="ticket"></i>
                 </div>
                 <div class="stat-content">
                     <h3 id="statTotalCupons">0</h3>
@@ -41,7 +41,7 @@ require_once __DIR__ . '/../admin/partials/header.php';
             </div>
             <div class="stat-card">
                 <div class="stat-icon success">
-                    <i class="fas fa-check-circle"></i>
+                    <i data-lucide="circle-check"></i>
                 </div>
                 <div class="stat-content">
                     <h3 id="statCuponsAtivos">0</h3>
@@ -50,7 +50,7 @@ require_once __DIR__ . '/../admin/partials/header.php';
             </div>
             <div class="stat-card">
                 <div class="stat-icon warning">
-                    <i class="fas fa-chart-line"></i>
+                    <i data-lucide="line-chart"></i>
                 </div>
                 <div class="stat-content">
                     <h3 id="statTotalUsos">0</h3>
@@ -62,10 +62,10 @@ require_once __DIR__ . '/../admin/partials/header.php';
         <!-- Tabela de Cupons -->
         <div class="cupons-table-container">
             <div class="table-header">
-                <h2><i class="fas fa-list"></i> Lista de Cupons</h2>
+                <h2><i data-lucide="list"></i> Lista de Cupons</h2>
             </div>
             <div id="loading" class="loading">
-                <i class="fas fa-spinner fa-spin"></i>
+                <i data-lucide="loader-2" class="icon-spin"></i>
                 Carregando cupons...
             </div>
             <table class="cupons-table" id="cuponsTable" style="display: none;">
@@ -85,7 +85,7 @@ require_once __DIR__ . '/../admin/partials/header.php';
                 </tbody>
             </table>
             <div id="emptyState" class="empty-state" style="display: none;">
-                <i class="fas fa-ticket-alt"></i>
+                <i data-lucide="ticket"></i>
                 <h3>Nenhum cupom cadastrado</h3>
                 <p>Crie seu primeiro cupom de desconto para começar</p>
             </div>
@@ -100,7 +100,7 @@ require_once __DIR__ . '/../admin/partials/header.php';
     <div class="modal-content">
         <div class="modal-header">
             <h2>
-                <i class="fas fa-plus-circle"></i>
+                <i data-lucide="circle-plus"></i>
                 <span id="modalTitle">Criar Novo Cupom</span>
             </h2>
             <button class="btn-close" onclick="fecharModalCupom()">×</button>
@@ -157,7 +157,7 @@ require_once __DIR__ . '/../admin/partials/header.php';
                 <!-- Seção de Elegibilidade -->
                 <div class="elegibilidade-section">
                     <div class="elegibilidade-header">
-                        <i class="fas fa-users"></i>
+                        <i data-lucide="users"></i>
                         <span>Elegibilidade do Cupom</span>
                     </div>
 
@@ -181,14 +181,14 @@ require_once __DIR__ . '/../admin/partials/header.php';
                                     <span class="toggle-slider"></span>
                                 </label>
                                 <div class="option-text">
-                                    <span class="option-title"><i class="fas fa-redo-alt"></i> Win-back</span>
+                                    <span class="option-title"><i data-lucide="refresh-cw"></i> Win-back</span>
                                     <span class="option-desc">Permitir ex-assinantes inativos</span>
                                 </div>
                             </div>
 
                             <div class="meses-inatividade-box" id="mesesInatividadeGroup" style="display: none;">
                                 <label for="meses_inatividade_reativacao">
-                                    <i class="fas fa-calendar-alt"></i>
+                                    <i data-lucide="calendar-days"></i>
                                     Mínimo de inatividade
                                 </label>
                                 <div class="meses-input-group">
@@ -209,7 +209,7 @@ require_once __DIR__ . '/../admin/partials/header.php';
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="fecharModalCupom()">Cancelar</button>
                 <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i>
+                    <i data-lucide="save"></i>
                     Salvar Cupom
                 </button>
             </div>
@@ -306,22 +306,22 @@ require_once __DIR__ . '/../admin/partials/header.php';
 
         tbody.innerHTML = cupons.map(cupom => {
             const statusBadge = cupom.is_valid ?
-                '<span class="badge badge-ativo"><i class="fas fa-check-circle"></i> Válido</span>' :
-                '<span class="badge badge-inativo"><i class="fas fa-times-circle"></i> Inválido</span>';
+                '<span class="badge badge-ativo"><i data-lucide="circle-check"></i> Válido</span>' :
+                '<span class="badge badge-inativo"><i data-lucide="x-circle"></i> Inválido</span>';
 
             const tipoBadge = cupom.tipo_desconto === 'percentual' ?
-                '<span class="badge badge-percentual"><i class="fas fa-percent"></i> Percentual</span>' :
-                '<span class="badge badge-fixo"><i class="fas fa-dollar-sign"></i> Fixo</span>';
+                '<span class="badge badge-percentual"><i data-lucide="percent"></i> Percentual</span>' :
+                '<span class="badge badge-fixo"><i data-lucide="dollar-sign"></i> Fixo</span>';
 
             let usoBadge = '';
             if (cupom.limite_uso > 0) {
                 const percentual = (cupom.uso_atual / cupom.limite_uso) * 100;
                 const classe = percentual >= 80 ? 'esgotado' : (percentual >= 50 ? 'limitado' : '');
                 usoBadge =
-                    `<span class="uso-badge ${classe}"><i class="fas fa-chart-pie"></i> ${cupom.uso_atual}/${cupom.limite_uso}</span>`;
+                    `<span class="uso-badge ${classe}"><i data-lucide="pie-chart"></i> ${cupom.uso_atual}/${cupom.limite_uso}</span>`;
             } else {
                 usoBadge =
-                    `<span class="uso-badge"><i class="fas fa-infinity"></i> ${cupom.uso_atual} usos</span>`;
+                    `<span class="uso-badge"><i data-lucide="infinity"></i> ${cupom.uso_atual} usos</span>`;
             }
 
             return `
@@ -329,18 +329,18 @@ require_once __DIR__ . '/../admin/partials/header.php';
                         <td><span class="cupom-codigo">${cupom.codigo}</span></td>
                         <td><span class="desconto-valor">${cupom.desconto_formatado}</span></td>
                         <td>${tipoBadge}</td>
-                        <td><i class="fas fa-calendar-alt" style="margin-right: 0.375rem; opacity: 0.5;"></i>${cupom.valido_ate}</td>
+                        <td><i data-lucide="calendar-days" style="margin-right: 0.375rem; opacity: 0.5;"></i>${cupom.valido_ate}</td>
                         <td>${usoBadge}</td>
                         <td>${statusBadge}</td>
                         <td>
                             <button class="btn-action btn-detalhes-mobile" onclick="verDetalhesMobile(${cupom.id})" title="Ver detalhes">
-                                <i class="fas fa-eye"></i>
+                                <i data-lucide="eye"></i>
                             </button>
                             <button class="btn-action btn-ver" onclick="verEstatisticas(${cupom.id})" title="Ver estatísticas">
-                                <i class="fas fa-chart-bar"></i> Ver
+                                <i data-lucide="bar-chart-3"></i> Ver
                             </button>
                             <button class="btn-action btn-excluir" onclick="excluirCupom(${cupom.id}, '${cupom.codigo}')" title="Excluir">
-                                <i class="fas fa-trash-alt"></i> Excluir
+                                <i data-lucide="trash-2"></i> Excluir
                             </button>
                         </td>
                     </tr>
@@ -592,11 +592,11 @@ require_once __DIR__ . '/../admin/partials/header.php';
                 <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd; display: flex; gap: 0.5rem; justify-content: center;">
                     <button onclick="verEstatisticas(${cupom.id}); Swal.close();" 
                         style="padding: 0.5rem 1rem; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
-                        <i class="fas fa-chart-bar"></i> Ver Estatísticas
+                        <i data-lucide="bar-chart-3"></i> Ver Estatísticas
                     </button>
                     <button onclick="excluirCupom(${cupom.id}, '${cupom.codigo}'); Swal.close();" 
                         style="padding: 0.5rem 1rem; background: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
-                        <i class="fas fa-trash-alt"></i> Excluir
+                        <i data-lucide="trash-2"></i> Excluir
                     </button>
                 </div>
             </div>

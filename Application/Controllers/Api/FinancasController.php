@@ -276,6 +276,8 @@ class FinancasController extends BaseController
             );
 
             Response::success($orcamentos, 'Orçamento salvo com sucesso!');
+        } catch (\DomainException $e) {
+            $this->fail($e->getMessage(), 403);
         } catch (\Throwable $e) {
             $this->failAndLog($e, 'Erro ao salvar orçamento.');
         }
@@ -308,6 +310,8 @@ class FinancasController extends BaseController
             );
 
             Response::success($result, 'Orçamentos salvos com sucesso!');
+        } catch (\DomainException $e) {
+            $this->fail($e->getMessage(), 403);
         } catch (\Throwable $e) {
             $this->failAndLog($e, 'Erro ao salvar orçamentos.');
         }

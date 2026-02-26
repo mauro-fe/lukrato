@@ -630,16 +630,17 @@
             container.innerHTML = `
                 <button class="category-expand-btn" id="expandCategoriesBtn" aria-expanded="false">
                     <span>Ver todas as categorias</span>
-                    <i class="fas fa-chevron-down"></i>
+                    <i data-lucide="chevron-down"></i>
                 </button>
                 <div class="category-expandable-card" id="expandableCard" aria-hidden="true">
                     ${allCategoriesHTML}
                 </div>
                 <p class="category-info-text">
-                    <i class="fas fa-info-circle"></i>
+                    <i data-lucide="info"></i>
                     Para visualizar todas as categorias detalhadamente, exporte este relatório em PDF.
                 </p>
             `;
+            if (window.lucide) lucide.createIcons();
 
             // Adicionar listener ao botão de expansão
             this.setupExpandToggle();
@@ -901,6 +902,7 @@
             if (area) {
                 area.innerHTML = html;
                 area.setAttribute('aria-busy', 'false');
+                if (window.lucide) lucide.createIcons();
             }
         },
 
@@ -928,11 +930,11 @@
         showEmptyState() {
             this.setContent(`
                 <div class="empty-state">
-                    <i class="fas fa-chart-pie"></i>
+                    <i data-lucide="pie-chart"></i>
                     <h3>Nenhum dado encontrado</h3>
                     <p>Não há lançamentos registrados para o período selecionado. Adicione receitas ou despesas para visualizar seus relatórios.</p>
                     <a href="${BASE_URL}lancamentos" class="empty-cta">
-                        <i class="fas fa-plus"></i>
+                        <i data-lucide="plus"></i>
                         <span>Adicionar lançamento</span>
                     </a>
                 </div>
@@ -946,7 +948,7 @@
             area.setAttribute('aria-busy', 'false');
             area.innerHTML = `
                 <div class="paywall-message" role="alert">
-                    <i class="fas fa-crown" aria-hidden="true"></i>
+                    <i data-lucide="crown" aria-hidden="true"></i>
                     <h3>Recurso Premium</h3>
                     <p>${safeMessage}</p>
                     <button type="button" class="btn-upgrade" data-action="go-pro">
@@ -954,6 +956,7 @@
                     </button>
                 </div>
             `;
+            if (window.lucide) lucide.createIcons();
 
             const cta = area.querySelector('[data-action="go-pro"]');
             if (cta) {
@@ -1177,19 +1180,45 @@
             return;
         }
 
-        const insightsHTML = data.insights.map(insight => `
+        const faToLucide = {
+            'arrow-trend-up': 'trending-up', 'arrow-trend-down': 'trending-down',
+            'arrow-up': 'arrow-up', 'arrow-down': 'arrow-down',
+            'chart-line': 'line-chart', 'chart-pie': 'pie-chart',
+            'exclamation-triangle': 'triangle-alert', 'exclamation-circle': 'circle-alert',
+            'check-circle': 'circle-check', 'info-circle': 'info',
+            'lightbulb': 'lightbulb', 'star': 'star', 'bolt': 'zap',
+            'wallet': 'wallet', 'credit-card': 'credit-card',
+            'calendar-check': 'calendar-check', 'calendar': 'calendar',
+            'crown': 'crown', 'trophy': 'trophy', 'leaf': 'leaf',
+            'shield-alt': 'shield', 'money-bill-wave': 'banknote',
+            // Novos ícones (já Lucide nativos)
+            'trending-up': 'trending-up', 'trending-down': 'trending-down',
+            'shield-alert': 'shield-alert', 'gauge': 'gauge',
+            'target': 'target', 'clock': 'clock',
+            'receipt': 'receipt', 'calculator': 'calculator',
+            'layers': 'layers', 'calendar-clock': 'calendar-clock',
+            'pie-chart': 'pie-chart', 'calendar-range': 'calendar-range',
+            'list-plus': 'list-plus', 'list-minus': 'list-minus',
+            'file-text': 'file-text', 'piggy-bank': 'piggy-bank',
+            'banknote': 'banknote'
+        };
+        const insightsHTML = data.insights.map(insight => {
+            const lucideIcon = faToLucide[insight.icon] || insight.icon;
+            return `
             <div class="insight-card insight-${insight.type}">
                 <div class="insight-icon">
-                    <i class="fas fa-${insight.icon}"></i>
+                    <i data-lucide="${lucideIcon}"></i>
                 </div>
                 <div class="insight-content">
                     <h4>${escapeHtml(insight.title)}</h4>
                     <p>${escapeHtml(insight.message)}</p>
                 </div>
             </div>
-        `).join('');
+        `;
+        }).join('');
 
         insightsContainer.innerHTML = insightsHTML;
+        if (window.lucide) lucide.createIcons();
     }
 
     async function updateComparativesSection() {
@@ -1204,21 +1233,285 @@
 
         const monthlyHTML = renderComparative('Comparativo Mensal', data.monthly, 'mês anterior');
         const yearlyHTML = renderComparative('Comparativo Anual', data.yearly, 'ano anterior');
+        const categoriesHTML = renderCategoryComparison(data.categories || []);
+        const evolucaoHTML = renderEvolucao(data.evolucao || []);
+        const mediaDiariaHTML = renderMediaDiaria(data.mediaDiaria);
+        const taxaEconomiaHTML = renderTaxaEconomia(data.taxaEconomia);
+        const formasHTML = renderFormasPagamento(data.formasPagamento || []);
 
-        comparativesContainer.innerHTML = monthlyHTML + yearlyHTML;
+        comparativesContainer.innerHTML =
+            `<div class="comp-top-row">${monthlyHTML}${yearlyHTML}</div>` +
+            `<div class="comp-duo-grid">${mediaDiariaHTML}${taxaEconomiaHTML}</div>` +
+            categoriesHTML +
+            evolucaoHTML +
+            formasHTML;
+
+        if (window.lucide) lucide.createIcons();
+
+        // Mini chart for evolução
+        renderEvolucaoChart(data.evolucao || []);
+    }
+
+    // ── Comparativo de categorias ───────────────────────
+    function renderCategoryComparison(categories) {
+        if (!categories || categories.length === 0) return '';
+
+        const rows = categories.map((cat, i) => {
+            const varClass = cat.variacao > 0 ? 'trend-negative' : cat.variacao < 0 ? 'trend-positive' : 'trend-neutral';
+            const varIcon = cat.variacao > 0 ? 'arrow-up' : cat.variacao < 0 ? 'arrow-down' : 'equal';
+            const varText = Math.abs(cat.variacao) < 0.1 ? 'Sem alteração' : `${cat.variacao > 0 ? '+' : ''}${cat.variacao.toFixed(1)}%`;
+            const total = categories.reduce((s, c) => s + c.atual, 0);
+            const pct = total > 0 ? (cat.atual / total * 100).toFixed(0) : 0;
+
+            return `
+                <div class="cat-comp-row" style="animation-delay: ${i * 0.06}s">
+                    <div class="cat-comp-rank">${i + 1}</div>
+                    <div class="cat-comp-info">
+                        <span class="cat-comp-name">${escapeHtml(cat.nome)}</span>
+                        <div class="cat-comp-bar-bg">
+                            <div class="cat-comp-bar" style="width: ${pct}%"></div>
+                        </div>
+                    </div>
+                    <div class="cat-comp-values">
+                        <span class="cat-comp-current">${formatCurrency(cat.atual)}</span>
+                        <span class="cat-comp-prev">${formatCurrency(cat.anterior)}</span>
+                    </div>
+                    <div class="cat-comp-trend ${varClass}">
+                        <i data-lucide="${varIcon}"></i>
+                        <span>${varText}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="comparative-card comp-full-width">
+                <div class="comparative-header">
+                    <h3><i data-lucide="bar-chart-3"></i> Top Categorias de Despesa</h3>
+                    <span class="comp-subtitle">Mês atual vs anterior</span>
+                </div>
+                <div class="cat-comp-list">
+                    <div class="cat-comp-header-row">
+                        <span></span><span></span>
+                        <span class="cat-comp-col-label">Atual / Anterior</span>
+                        <span class="cat-comp-col-label">Variação</span>
+                    </div>
+                    ${rows}
+                </div>
+            </div>
+        `;
+    }
+
+    // ── Evolução últimos 6 meses ────────────────────────
+    function renderEvolucao(evolucao) {
+        if (!evolucao || evolucao.length === 0) return '';
+
+        return `
+            <div class="comparative-card comp-full-width">
+                <div class="comparative-header">
+                    <h3><i data-lucide="line-chart"></i> Evolução dos Últimos 6 Meses</h3>
+                    <span class="comp-subtitle">Receitas, despesas e saldo ao longo do tempo</span>
+                </div>
+                <div class="evolucao-chart-wrapper">
+                    <canvas id="evolucaoMiniChart" height="220"></canvas>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderEvolucaoChart(evolucao) {
+        if (!evolucao || evolucao.length === 0) return;
+        const canvas = document.getElementById('evolucaoMiniChart');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        const labels = evolucao.map(e => e.label);
+        const style = getComputedStyle(document.documentElement);
+        const textColor = style.getPropertyValue('--color-text-muted').trim() || '#999';
+
+        if (canvas._chartInstance) canvas._chartInstance.destroy();
+
+        canvas._chartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'Receitas',
+                        data: evolucao.map(e => e.receitas),
+                        backgroundColor: 'rgba(46, 204, 113, 0.7)',
+                        borderRadius: 6,
+                        barPercentage: 0.6,
+                    },
+                    {
+                        label: 'Despesas',
+                        data: evolucao.map(e => e.despesas),
+                        backgroundColor: 'rgba(231, 76, 60, 0.7)',
+                        borderRadius: 6,
+                        barPercentage: 0.6,
+                    },
+                    {
+                        label: 'Saldo',
+                        type: 'line',
+                        data: evolucao.map(e => e.saldo),
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        tension: 0.4,
+                        borderWidth: 2.5,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#3498db',
+                        fill: true,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: textColor, padding: 16, usePointStyle: true, pointStyle: 'circle' }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `${ctx.dataset.label}: ${formatCurrency(ctx.parsed.y)}`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: textColor }
+                    },
+                    y: {
+                        grid: { color: 'rgba(128,128,128,0.1)' },
+                        ticks: {
+                            color: textColor,
+                            callback: (v) => formatCurrency(v)
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // ── Média diária ────────────────────────────────────
+    function renderMediaDiaria(data) {
+        if (!data) return '';
+        const varClass = data.variacao > 0 ? 'trend-negative' : data.variacao < 0 ? 'trend-positive' : 'trend-neutral';
+        const varIcon = data.variacao > 0 ? 'arrow-up' : data.variacao < 0 ? 'arrow-down' : 'equal';
+
+        return `
+            <div class="comparative-card comp-mini-card">
+                <div class="comp-mini-icon" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
+                    <i data-lucide="calendar-clock"></i>
+                </div>
+                <div class="comp-mini-body">
+                    <span class="comp-mini-label">Média Diária de Gastos</span>
+                    <div class="comp-mini-values">
+                        <span class="comp-mini-current">${formatCurrency(data.atual)}/dia</span>
+                        <span class="comp-mini-prev">anterior: ${formatCurrency(data.anterior)}/dia</span>
+                    </div>
+                    <div class="comp-mini-trend ${varClass}">
+                        <i data-lucide="${varIcon}"></i>
+                        <span>${Math.abs(data.variacao).toFixed(1)}%</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // ── Taxa de economia ────────────────────────────────
+    function renderTaxaEconomia(data) {
+        if (!data) return '';
+        const isPositive = data.atual >= 0;
+        const diffClass = data.diferenca > 0 ? 'trend-positive' : data.diferenca < 0 ? 'trend-negative' : 'trend-neutral';
+        const diffIcon = data.diferenca > 0 ? 'arrow-up' : data.diferenca < 0 ? 'arrow-down' : 'equal';
+        const gradientColor = isPositive ? '#2ecc71, #27ae60' : '#e74c3c, #c0392b';
+
+        return `
+            <div class="comparative-card comp-mini-card">
+                <div class="comp-mini-icon" style="background: linear-gradient(135deg, ${gradientColor});">
+                    <i data-lucide="piggy-bank" style= "color: white"></i>
+                </div>
+                <div class="comp-mini-body">
+                    <span class="comp-mini-label">Taxa de Economia</span>
+                    <div class="comp-mini-values">
+                        <span class="comp-mini-current">${data.atual.toFixed(1)}%</span>
+                        <span class="comp-mini-prev">anterior: ${data.anterior.toFixed(1)}%</span>
+                    </div>
+                    <div class="comp-mini-trend ${diffClass}">
+                        <i data-lucide="${diffIcon}"></i>
+                        <span>${data.diferenca > 0 ? '+' : ''}${data.diferenca.toFixed(1)}pp</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // ── Formas de pagamento ─────────────────────────────
+    function renderFormasPagamento(formas) {
+        if (!formas || formas.length === 0) return '';
+
+        const iconMap = {
+            'Pix': 'zap',
+            'Cartão de Crédito': 'credit-card',
+            'Cartão de Débito': 'credit-card',
+            'Dinheiro': 'banknote',
+            'Boleto': 'file-text',
+            'Depósito': 'landmark',
+            'Transferência': 'arrow-right-left',
+            'Estorno': 'undo-2',
+        };
+
+        const totalAtual = formas.reduce((s, f) => s + f.atual, 0);
+
+        const rows = formas.map((f, i) => {
+            const pct = totalAtual > 0 ? (f.atual / totalAtual * 100).toFixed(0) : 0;
+            const icon = iconMap[f.nome] || 'wallet';
+
+            return `
+                <div class="forma-comp-row" style="animation-delay: ${i * 0.06}s">
+                    <div class="forma-comp-icon"><i data-lucide="${icon}"></i></div>
+                    <div class="forma-comp-info">
+                        <span class="forma-comp-name">${escapeHtml(f.nome)}</span>
+                        <div class="forma-comp-bar-bg">
+                            <div class="forma-comp-bar" style="width: ${pct}%"></div>
+                        </div>
+                    </div>
+                    <div class="forma-comp-values">
+                        <span class="forma-comp-current">${formatCurrency(f.atual)} <small>(${f.atual_qtd}x)</small></span>
+                        <span class="forma-comp-prev">${formatCurrency(f.anterior)} <small>(${f.anterior_qtd}x)</small></span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="comparative-card comp-full-width">
+                <div class="comparative-header">
+                    <h3><i data-lucide="wallet"></i> Formas de Pagamento</h3>
+                    <span class="comp-subtitle">Distribuição mês atual vs anterior</span>
+                </div>
+                <div class="forma-comp-list">
+                    ${rows}
+                </div>
+            </div>
+        `;
     }
 
     function renderComparative(title, data, period) {
         const getTrendIcon = (value, isDespesa = false) => {
             // Para despesas, aumento é ruim (vermelho), redução é bom (verde)
             if (isDespesa) {
-                if (value > 0) return '<i class="fas fa-arrow-up"></i>';
-                if (value < 0) return '<i class="fas fa-arrow-down"></i>';
+                if (value > 0) return '<i data-lucide="arrow-up"></i>';
+                if (value < 0) return '<i data-lucide="arrow-down"></i>';
             } else {
-                if (value > 0) return '<i class="fas fa-arrow-up"></i>';
-                if (value < 0) return '<i class="fas fa-arrow-down"></i>';
+                if (value > 0) return '<i data-lucide="arrow-up"></i>';
+                if (value < 0) return '<i data-lucide="arrow-down"></i>';
             }
-            return '<i class="fas fa-equals"></i>';
+            return '<i data-lucide="equal"></i>';
         };
 
         const getTrendClass = (value, isDespesa = false) => {
@@ -1271,7 +1564,7 @@
                 <div class="comparative-header">
                     <h3>${escapeHtml(title)}</h3>
                     <div class="period-labels">
-                        <span class="period-current"><i class="fas fa-calendar"></i> ${getCurrentPeriod()}</span>
+                        <span class="period-current"><i data-lucide="calendar" style="color: white;"></i> ${getCurrentPeriod()}</span>
                         <span class="period-separator">vs</span>
                         <span class="period-previous">${getPreviousPeriod()}</span>
                     </div>
@@ -1280,7 +1573,7 @@
                 <div class="comparative-grid-new">
                     <div class="comparative-item-new">
                         <div class="item-header">
-                            <i class="fas fa-arrow-trend-up item-icon revenue"></i>
+                            <i data-lucide="trending-up" class="item-icon revenue"></i>
                             <span class="item-label">RECEITAS</span>
                         </div>
                         <div class="item-values">
@@ -1301,7 +1594,7 @@
                     
                     <div class="comparative-item-new">
                         <div class="item-header">
-                            <i class="fas fa-arrow-trend-down item-icon expense"></i>
+                            <i data-lucide="trending-down" class="item-icon expense"></i>
                             <span class="item-label">DESPESAS</span>
                         </div>
                         <div class="item-values">
@@ -1322,7 +1615,7 @@
                     
                     <div class="comparative-item-new">
                         <div class="item-header">
-                            <i class="fas fa-wallet item-icon balance"></i>
+                            <i data-lucide="wallet" class="item-icon balance"></i>
                             <span class="item-label">SALDO</span>
                         </div>
                         <div class="item-values">
@@ -1354,7 +1647,7 @@
             <div class="consolidated-summary">
                 <div class="summary-header">
                     <div class="summary-icon">
-                        <i class="fas fa-credit-card"></i>
+                        <i data-lucide="credit-card" style="color: white"></i>
                     </div>
                     <div class="summary-title">
                         <h3>Visão Geral dos Cartões</h3>
@@ -1365,7 +1658,7 @@
                 <div class="summary-grid">
                     <div class="summary-stat">
                         <div class="stat-icon" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
-                            <i class="fas fa-file-invoice-dollar"></i>
+                            <i data-lucide="file-text" style="color: white"></i>
                         </div>
                         <div class="stat-info">
                             <span class="stat-label">Total em Faturas</span>
@@ -1375,7 +1668,7 @@
                     
                     <div class="summary-stat">
                         <div class="stat-icon" style="background: linear-gradient(135deg, #3498db, #2980b9);">
-                            <i class="fas fa-wallet"></i>
+                            <i data-lucide="wallet" style="color: white"></i>
                         </div>
                         <div class="stat-info">
                             <span class="stat-label">Limite Total</span>
@@ -1388,7 +1681,7 @@
                 data.resumo_consolidado.utilizacao_geral > 50 ? '#f39c12, #e67e22' :
                     '#2ecc71, #27ae60'
             });">
-                            <i class="fas fa-chart-pie"></i>
+                            <i data-lucide="pie-chart" style="color: white"></i>
                         </div>
                         <div class="stat-info">
                             <span class="stat-label">Utilização Geral</span>
@@ -1398,7 +1691,7 @@
                     
                     <div class="summary-stat">
                         <div class="stat-icon" style="background: linear-gradient(135deg, #2ecc71, #27ae60);">
-                            <i class="fas fa-money-bill-wave"></i>
+                            <i data-lucide="banknote" style="color: white"></i>
                         </div>
                         <div class="stat-info">
                             <span class="stat-label">Disponível</span>
@@ -1411,19 +1704,19 @@
                     <div class="summary-insights">
                         ${data.resumo_consolidado.melhor_cartao ? `
                             <div class="insight-item success">
-                                <i class="fas fa-star"></i>
+                                <i data-lucide="star"></i>
                                 <span><strong>Melhor cartão:</strong> ${escapeHtml(data.resumo_consolidado.melhor_cartao.nome)} (${data.resumo_consolidado.melhor_cartao.percentual.toFixed(1)}% de uso)</span>
                             </div>
                         ` : ''}
                         ${data.resumo_consolidado.requer_atencao ? `
                             <div class="insight-item warning">
-                                <i class="fas fa-exclamation-triangle"></i>
+                                <i data-lucide="triangle-alert"></i>
                                 <span><strong>Requer atenção:</strong> ${escapeHtml(data.resumo_consolidado.requer_atencao.nome)} (${data.resumo_consolidado.requer_atencao.percentual.toFixed(1)}% de uso)</span>
                             </div>
                         ` : ''}
                         ${data.resumo_consolidado.total_parcelamentos > 0 ? `
                             <div class="insight-item info">
-                                <i class="fas fa-calendar-check"></i>
+                                <i data-lucide="calendar-check"></i>
                                 <span><strong>${data.resumo_consolidado.total_parcelamentos} parcelamento${data.resumo_consolidado.total_parcelamentos > 1 ? 's' : ''}</strong> comprometendo ${formatCurrency(data.resumo_consolidado.valor_parcelamentos)}</span>
                             </div>
                         ` : ''}
@@ -1450,19 +1743,19 @@
                             <div class="card-header-gradient">
                                 <div class="card-brand">
                                     <div class="card-icon-wrapper" style="background: linear-gradient(135deg, ${card.cor || '#E67E22'}, ${card.cor || '#E67E22'}99);">
-                                        <i class="fas fa-credit-card"></i>
+                                        <i data-lucide="credit-card" style="color: white"></i>
                                     </div>
                                     <div class="card-info">
                                         <h3 class="card-name">${escapeHtml(card.nome)}</h3>
                                         <div class="card-meta">
-                                            ${card.conta ? `<span class="card-account"><i class="fas fa-building-columns"></i> ${escapeHtml(card.conta)}</span>` : ''}
-                                            ${card.dia_vencimento ? `<span class="card-due"><i class="fas fa-calendar"></i> Vence dia ${card.dia_vencimento}</span>` : ''}
+                                            ${card.conta ? `<span class="card-account"><i data-lucide="landmark"></i> ${escapeHtml(card.conta)}</span>` : ''}
+                                            ${card.dia_vencimento ? `<span class="card-due"><i data-lucide="calendar"></i> Vence dia ${card.dia_vencimento}</span>` : ''}
                                         </div>
                                     </div>
                                 </div>
                                 ${card.status_saude && (card.status_saude.status === 'critico' || card.status_saude.status === 'alto_uso') ? `
                                     <div class="health-indicator ${card.status_saude.status}">
-                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <i data-lucide="triangle-alert"></i>
                                     </div>
                                 ` : ''}
                             </div>
@@ -1482,7 +1775,7 @@
                                 <div class="card-alerts">
                                     ${card.alertas.map(alert => `
                                         <span class="alert-badge alert-${alert.type}">
-                                            <i class="fas fa-${alert.type === 'danger' ? 'exclamation-triangle' : alert.type === 'warning' ? 'exclamation-circle' : 'info-circle'}"></i>
+                                            <i data-lucide="${alert.type === 'danger' ? 'triangle-alert' : alert.type === 'warning' ? 'circle-alert' : 'info'}"></i>
                                             ${escapeHtml(alert.message)}
                                         </span>
                                     `).join('')}
@@ -1531,13 +1824,13 @@
                                 <div class="card-quick-info">
                                     ${card.parcelamentos && card.parcelamentos.ativos > 0 ? `
                                         <div class="quick-info-item">
-                                            <i class="fas fa-calendar-check"></i>
+                                            <i data-lucide="calendar-check"></i>
                                             <span>${card.parcelamentos.ativos} parcelamento${card.parcelamentos.ativos > 1 ? 's' : ''}</span>
                                         </div>
                                     ` : ''}
                                     ${card.proximos_meses && card.proximos_meses.length > 0 && card.proximos_meses.some(m => m.valor > 0) ? `
                                         <div class="quick-info-item">
-                                            <i class="fas fa-chart-line"></i>
+                                            <i data-lucide="line-chart"></i>
                                             <span>Próximo: ${formatCurrency(card.proximos_meses.find(m => m.valor > 0)?.valor || 0)}</span>
                                         </div>
                                     ` : ''}
@@ -1546,7 +1839,7 @@
                             
                             <div class="card-footer">
                                 <button class="card-action-btn primary full-width" onclick="event.stopPropagation(); if(window.LK_CardDetail?.open) window.LK_CardDetail.open(${card.id || 0}, '${escapeHtml(card.nome)}', '${card.cor || '#E67E22'}', '${state.currentMonth}')" title="Ver relatório detalhado">
-                                    <i class="fas fa-eye"></i>
+                                    <i data-lucide="eye"></i>
                                     <span>Ver Detalhes</span>
                                 </button>
                             </div>
@@ -1554,7 +1847,7 @@
                     `).join('') : `
                         <div class="empty-state">
                             <div class="empty-icon">
-                                <i class="fas fa-credit-card"></i>
+                                <i data-lucide="credit-card"></i>
                             </div>
                             <h3>Nenhum cartão de crédito cadastrado</h3>
                             <p>Cadastre seus cartões de crédito para visualizar relatórios detalhados de gastos e parcelamentos.</p>
@@ -1563,6 +1856,7 @@
                 </div>
             </div>
         `;
+        if (window.lucide) lucide.createIcons();
     }
 
     // ============================================================================
@@ -1736,6 +2030,68 @@
             btn.addEventListener('click', () => handleTabChange(btn.dataset.view));
         });
 
+        // === Section tabs (Relatórios / Insights / Comparativos) ===
+        const switchSection = (section) => {
+            document.querySelectorAll('.rel-section-tab').forEach(t => {
+                t.classList.remove('active');
+                t.setAttribute('aria-selected', 'false');
+            });
+            document.querySelectorAll('.rel-section-panel').forEach(p => p.classList.remove('active'));
+
+            const activeTab = document.querySelector(`.rel-section-tab[data-section="${section}"]`);
+            if (activeTab) {
+                activeTab.classList.add('active');
+                activeTab.setAttribute('aria-selected', 'true');
+            }
+            const panel = document.getElementById('section-' + section);
+            if (panel) {
+                panel.classList.add('active');
+            }
+
+            localStorage.setItem('rel_active_section', section);
+
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
+        };
+
+        const proLockedSections = ['insights', 'comparativos'];
+
+        document.querySelectorAll('.rel-section-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const section = tab.dataset.section;
+                if (!window.IS_PRO && proLockedSections.includes(section)) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Recurso Premium',
+                        html: 'Esta funcionalidade é exclusiva do <b>plano Pro</b>.<br>Faça upgrade para desbloquear!',
+                        confirmButtonText: '<i class="lucide-crown" style="margin-right:6px"></i> Fazer Upgrade',
+                        showCancelButton: true,
+                        cancelButtonText: 'Agora não',
+                        confirmButtonColor: '#f59e0b',
+                        cancelButtonColor: '#64748b'
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            window.location.href = (window.BASE_URL || '/') + 'billing';
+                        }
+                    });
+                    return;
+                }
+                switchSection(section);
+            });
+        });
+
+        // Restaurar última aba selecionada
+        const savedSection = localStorage.getItem('rel_active_section');
+        if (savedSection && document.getElementById('section-' + savedSection)) {
+            // Não restaurar aba PRO-locked para free users
+            if (!window.IS_PRO && proLockedSections.includes(savedSection)) {
+                switchSection('relatorios');
+            } else {
+                switchSection(savedSection);
+            }
+        }
+
         const reportType = document.getElementById('reportType');
         if (reportType) {
             reportType.addEventListener('change', (e) => handleTypeChange(e.target.value));
@@ -1743,6 +2099,28 @@
 
         if (accountSelect) {
             accountSelect.addEventListener('change', (e) => handleAccountChange(e.target.value));
+        }
+
+        // Botão Limpar Filtros
+        const btnLimparRel = document.getElementById('btnLimparFiltrosRel');
+        const clearFiltersWrapper = document.getElementById('clearFiltersWrapper');
+
+        const showClearBtn = () => {
+            if (!clearFiltersWrapper) return;
+            const hasTypeFilter = reportType && reportType.selectedIndex > 0;
+            const hasAccountFilter = accountSelect && accountSelect.value !== '';
+            clearFiltersWrapper.style.display = (hasTypeFilter || hasAccountFilter) ? 'flex' : 'none';
+        };
+
+        if (reportType) reportType.addEventListener('change', showClearBtn);
+        if (accountSelect) accountSelect.addEventListener('change', showClearBtn);
+
+        if (btnLimparRel) {
+            btnLimparRel.addEventListener('click', () => {
+                if (reportType) { reportType.selectedIndex = 0; handleTypeChange(reportType.value); }
+                if (accountSelect) { accountSelect.value = ''; handleAccountChange(''); }
+                showClearBtn();
+            });
         }
 
         document.addEventListener('lukrato:theme-changed', () => {

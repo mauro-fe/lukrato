@@ -4,6 +4,8 @@ namespace Application\Services;
 
 use Application\Services\BillingAuditService;
 use Application\Services\LogService;
+use Application\Enums\LogLevel;
+use Application\Enums\LogCategory;
 use Illuminate\Database\Capsule\Manager as DB;
 
 /**
@@ -71,12 +73,9 @@ class DuplicateChargeMonitor
                 }
             }
         } catch (\Throwable $e) {
-            if (class_exists(LogService::class)) {
-                LogService::error('Erro no monitor de cobranças duplicadas', [
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                ]);
-            }
+            LogService::captureException($e, LogCategory::PAYMENT, [
+                'action' => 'duplicate_charge_monitor',
+            ]);
         }
 
         return $results;

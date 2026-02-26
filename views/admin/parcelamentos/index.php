@@ -9,55 +9,75 @@
         <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
     </div>
 
-    <!-- ==================== FILTROS ==================== -->
-    <div class="modern-card filter-card" data-aos="fade-up" data-aos-delay="100">
-        <div class="card-header-icon">
-            <div class="icon-wrapper filter">
-                <i class="fas fa-filter"></i>
+    <!-- ==================== FILTROS COLAPSÁVEIS ==================== -->
+    <div class="filters-modern" data-aos="fade-up" data-aos-delay="100">
+        <div class="filters-header">
+            <div class="filters-title">
+                <div class="filters-icon">
+                    <i data-lucide="sliders-horizontal"></i>
+                </div>
+                <div class="filters-text">
+                    <h3>Filtros</h3>
+                    <span class="filters-subtitle">Refine sua busca</span>
+                </div>
             </div>
-            <div class="card-title-group">
-                <h3 class="card-title">Filtros</h3>
-                <p class="card-subtitle">Refine sua busca</p>
-            </div>
+            <button type="button" class="filters-toggle" id="toggleFilters" aria-label="Expandir filtros">
+                <i data-lucide="chevron-down"></i>
+            </button>
         </div>
 
-        <div class="filter-controls">
-            <div class="filter-row">
-                <div class="filter-group">
-                    <label for="filtroStatus" class="filter-label">
-                        <i class="fas fa-toggle-on"></i>
-                        <span>Status</span>
+        <div class="filters-body" id="filtersBody">
+            <div class="filters-grid">
+                <div class="filter-item">
+                    <label class="filter-label-modern" for="filtroStatus">
+                        <i data-lucide="toggle-right" style="color: var(--color-primary)"></i>
+                        Status
                     </label>
-                    <select id="filtroStatus" class="modern-select">
-                        <option value="">Todos</option>
-                        <option value="pendente">⏳ Pendentes</option>
-                        <option value="parcial">🔵 Parcialmente Pago</option>
-                        <option value="paga">✅ Pagas</option>
-                    </select>
+                    <div class="select-wrapper">
+                        <select id="filtroStatus" class="filter-select">
+                            <option value="">Todos</option>
+                            <option value="pendente">⏳ Pendentes</option>
+                            <option value="parcial">🔵 Parcialmente Pago</option>
+                            <option value="paga">✅ Pagas</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="select-arrow"></i>
+                    </div>
                 </div>
 
-                <div class="filter-group">
-                    <label for="filtroCartao" class="filter-label">
-                        <i class="fas fa-credit-card"></i>
-                        <span>Cartão</span>
+                <div class="filter-item">
+                    <label class="filter-label-modern" for="filtroCartao">
+                        <i data-lucide="credit-card" style="color: var(--color-primary)"></i>
+                        Cartão
                     </label>
-                    <select id="filtroCartao" class="modern-select">
-                        <option value="">Todos os cartões</option>
-                    </select>
+                    <div class="select-wrapper">
+                        <select id="filtroCartao" class="filter-select">
+                            <option value="">Todos os cartões</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="select-arrow"></i>
+                    </div>
                 </div>
 
-                <div class="filter-group">
-                    <label for="filtroAno" class="filter-label">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Ano</span>
+                <div class="filter-item">
+                    <label class="filter-label-modern" for="filtroAno">
+                        <i data-lucide="calendar" style="color: var(--color-primary)"></i>
+                        Ano
                     </label>
-                    <select id="filtroAno" class="modern-select">
-                        <option value="">Todos os anos</option>
-                    </select>
+                    <div class="select-wrapper">
+                        <select id="filtroAno" class="filter-select">
+                            <option value="">Todos os anos</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="select-arrow"></i>
+                    </div>
                 </div>
+            </div>
 
-                <button type="button" id="btnFiltrar" class="modern-btn secondary">
-                    <i class="fas fa-search"></i>
+            <div class="filters-actions">
+                <button type="button" id="btnLimparFiltros" class="btn-filter-clear">
+                    <i data-lucide="x"></i>
+                    <span>Limpar</span>
+                </button>
+                <button type="button" id="btnFiltrar" class="btn-filter-apply">
+                    <i data-lucide="search"></i>
                     <span>Filtrar</span>
                 </button>
             </div>
@@ -67,7 +87,7 @@
     <!-- ==================== LOADING ==================== -->
     <div id="loadingParcelamentos" class="loading-container" style="display: none;">
         <div class="loading-spinner">
-            <i class="fas fa-circle-notch fa-spin"></i>
+            <i class="icon-spin" data-lucide="loader-2"></i>
             <p>Carregando faturas...</p>
         </div>
     </div>
@@ -80,7 +100,7 @@
     <!-- ==================== EMPTY STATE ==================== -->
     <div id="emptyState" class="empty-state" style="display: none;">
         <div class="empty-icon">
-            <i class="fas fa-credit-card"></i>
+            <i data-lucide="credit-card"></i>
         </div>
         <h3>Nenhuma fatura encontrada</h3>
         <p>Suas faturas de cartão aparecerão aqui quando você fizer compras parceladas</p>
@@ -88,12 +108,12 @@
 </section>
 
 <!-- ==================== MODAL: DETALHES DA FATURA ==================== -->
-<div class="modal fade" id="modalDetalhesParcelamento" tabindex="-1">
+<div class="modal fade" id="modalDetalhesParcelamento" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content modern-modal">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fas fa-list"></i>
+                    <i data-lucide="list"></i>
                     <span>Detalhes da Fatura</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -111,4 +131,4 @@
 <script>
     window.BASE_URL = '<?= BASE_URL ?>';
 </script>
-<script src="<?= BASE_URL ?>assets/js/admin-faturas.js"></script>
+<script src="<?= BASE_URL ?>assets/js/admin-faturas-index.js"></script>

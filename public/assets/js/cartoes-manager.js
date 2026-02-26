@@ -116,13 +116,7 @@ class CartoesManager {
         const modalOverlay = document.getElementById('modalCartaoOverlay');
         const closeButtons = document.querySelectorAll('.modal-close, .modal-close-btn');
 
-        if (modalOverlay) {
-            modalOverlay.addEventListener('click', (e) => {
-                if (e.target === modalOverlay) {
-                    this.closeModal();
-                }
-            });
-        }
+        // Backdrop bloqueado - modal fecha apenas pelo botão X
 
         closeButtons.forEach(btn => {
             btn.addEventListener('click', () => this.closeModal());
@@ -202,22 +196,45 @@ class CartoesManager {
 
         // Search
         const searchInput = document.getElementById('searchCartoes');
+        const btnLimpar = document.getElementById('btnLimparFiltrosCartoes');
+
+        const toggleClearBtn = () => {
+            if (btnLimpar) {
+                btnLimpar.style.display = (this.searchTerm || this.currentFilter !== 'all') ? '' : 'none';
+            }
+        };
+
         if (searchInput) {
             searchInput.addEventListener('input', this.debounce((e) => {
                 this.searchTerm = e.target.value.toLowerCase();
                 this.filterCartoes();
+                toggleClearBtn();
             }, 300));
         }
 
         // Filters
-        document.querySelectorAll('.filter-btn').forEach(btn => {
+        document.querySelectorAll('.filter-btn:not(.btn-clear-filters)').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.filter-btn:not(.btn-clear-filters)').forEach(b => b.classList.remove('active'));
                 e.target.classList.add('active');
                 this.currentFilter = e.target.dataset.filter;
                 this.filterCartoes();
+                toggleClearBtn();
             });
         });
+
+        // Limpar todos os filtros
+        if (btnLimpar) {
+            btnLimpar.addEventListener('click', () => {
+                if (searchInput) searchInput.value = '';
+                this.searchTerm = '';
+                this.currentFilter = 'all';
+                document.querySelectorAll('.filter-btn:not(.btn-clear-filters)').forEach(b => b.classList.remove('active'));
+                document.querySelector('.filter-btn[data-filter="all"]')?.classList.add('active');
+                this.filterCartoes();
+                toggleClearBtn();
+            });
+        }
 
         // View toggle
         document.querySelectorAll('.view-btn').forEach(btn => {
@@ -319,13 +336,14 @@ class CartoesManager {
             this.showToast('error', message);
             grid.innerHTML = `
                 <div class="error-state">
-                    <i class="fas fa-exclamation-triangle"></i>
+                    <i data-lucide="triangle-alert"></i>
                     <p class="error-message">${message}</p>
                     <button class="btn btn-primary btn-retry" onclick="window.cartoesManager.loadCartoes()">
-                        <i class="fas fa-redo"></i> Tentar novamente
+                        <i data-lucide="refresh-cw"></i> Tentar novamente
                     </button>
                 </div>
             `;
+            if(window.lucide) lucide.createIcons();
         }
     }
 
@@ -446,6 +464,7 @@ class CartoesManager {
                 ${this.alertas.map(alerta => this.criarAlertaHTML(alerta)).join('')}
             </div>
         `;
+        if(window.lucide) lucide.createIcons();
     }
 
     /**
@@ -453,8 +472,8 @@ class CartoesManager {
      */
     criarAlertaHTML(alerta) {
         const icones = {
-            vencimento_proximo: 'fa-calendar-times',
-            limite_baixo: 'fa-exclamation-triangle'
+            vencimento_proximo: 'calendar-x',
+            limite_baixo: 'triangle-alert'
         };
 
         const cores = {
@@ -472,13 +491,13 @@ class CartoesManager {
         return `
             <div class="alerta-item alerta-${alerta.gravidade}" data-tipo="${alerta.tipo}">
                 <div class="alerta-icon" style="color: ${cores[alerta.gravidade]}">
-                    <i class="fas ${icones[alerta.tipo]}"></i>
+                    <i data-lucide="${icones[alerta.tipo]}"></i>
                 </div>
                 <div class="alerta-content">
                     <p>${mensagem}</p>
                 </div>
                 <button class="alerta-dismiss" onclick="cartoesManager.dismissAlerta(this)" title="Dispensar">
-                    <i class="fas fa-times"></i>
+                    <i data-lucide="x"></i>
                 </button>
             </div>
         `;
@@ -541,6 +560,7 @@ class CartoesManager {
         emptyState.style.display = 'none';
 
         grid.innerHTML = this.filteredCartoes.map(cartao => this.createCardHTML(cartao)).join('');
+        if(window.lucide) lucide.createIcons();
 
         // Add event listeners para ações
         this.setupCardActions();
@@ -569,7 +589,7 @@ class CartoesManager {
             <div class="credit-card" data-id="${cartao.id}" data-brand="${cartao.bandeira?.toLowerCase() || 'outros'}" style="background: ${corBg};">
                 ${cartao.temFaturaPendente ? `
                     <div class="card-badge-fatura" title="Fatura pendente">
-                        <i class="fas fa-exclamation-circle"></i>
+                        <i data-lucide="circle-alert"></i>
                         Fatura Pendente
                     </div>
                 ` : ''}
@@ -581,7 +601,7 @@ class CartoesManager {
             class="brand-logo"
             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';"
         >
-        <i class="brand-icon-fallback fas fa-credit-card" style="display: none;" aria-hidden="true"></i>
+        <i class="brand-icon-fallback" data-lucide="credit-card" style="display: none;" aria-hidden="true"></i>
         <span class="card-name">
             ${this.escapeHtml(cartao.nome_cartao || cartao.nome)}
         </span>
@@ -597,7 +617,7 @@ class CartoesManager {
             data-lk-tooltip="Para evitar perda de histórico e faturas, cartões só podem ser excluídos após serem arquivados. Arquive o cartão primeiro e depois realize a exclusão."
             aria-label="Ajuda: Exclusão de cartões"
         >
-            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            <i data-lucide="info" aria-hidden="true"></i>
         </button>
 
         <button
@@ -605,7 +625,7 @@ class CartoesManager {
             onclick="cartoesManager.verFatura(${cartao.id})"
             title="Ver Fatura"
         >
-            <i class="fas fa-file-invoice-dollar" aria-hidden="true"></i>
+            <i data-lucide="file-text" aria-hidden="true"></i>
         </button>
 
         <button
@@ -613,7 +633,7 @@ class CartoesManager {
             onclick="cartoesManager.editCartao(${cartao.id})"
             title="Editar"
         >
-            <i class="fas fa-edit" aria-hidden="true"></i>
+            <i data-lucide="pencil" aria-hidden="true"></i>
         </button>
 
         <button
@@ -621,7 +641,7 @@ class CartoesManager {
             onclick="cartoesManager.arquivarCartao(${cartao.id})"
             title="Arquivar"
         >
-            <i class="fas fa-archive" aria-hidden="true"></i>
+            <i data-lucide="archive" aria-hidden="true"></i>
         </button>
 
     </div>
@@ -1421,6 +1441,7 @@ class CartoesManager {
 
         const modal = this.criarModalFatura(fatura, parcelamentos, statusPagamento, cartaoId);
         document.body.appendChild(modal);
+        if(window.lucide) lucide.createIcons();
 
         // Animar entrada
         setTimeout(() => {
@@ -1634,20 +1655,20 @@ class CartoesManager {
                         </div>
                         <div class="fatura-navegacao">
                             <button class="btn-nav-mes" onclick="cartoesManager.navegarMes(${idCartao}, ${fatura.mes}, ${fatura.ano}, -1)" title="Mês anterior">
-                                <i class="fas fa-chevron-left"></i>
+                                <i data-lucide="chevron-left"></i>
                             </button>
                             <span class="fatura-periodo">${this.getNomeMes(fatura.mes)}/${fatura.ano}</span>
                             <button class="btn-nav-mes" onclick="cartoesManager.navegarMes(${idCartao}, ${fatura.mes}, ${fatura.ano}, 1)" title="Próximo mês">
-                                <i class="fas fa-chevron-right"></i>
+                                <i data-lucide="chevron-right"></i>
                             </button>
                         </div>
                     </div>
                     <div class="header-actions">
                         <button class="btn-historico-toggle" onclick="cartoesManager.toggleHistoricoFatura(${idCartao})" title="Ver histórico">
-                            <i class="fas fa-history"></i>
+                            <i data-lucide="history"></i>
                         </button>
                         <button class="btn-fechar-fatura" title="Fechar">
-                            <i class="fas fa-times"></i>
+                            <i data-lucide="x"></i>
                         </button>
                     </div>
                 </div>
@@ -1655,7 +1676,7 @@ class CartoesManager {
                 <div class="modal-fatura-body">
                     ${(fatura.itens || []).filter(p => !p.pago).length === 0 && (fatura.itens || []).filter(p => p.pago).length === 0 ? `
                         <div class="fatura-empty">
-                            <i class="fas fa-check-circle"></i>
+                            <i data-lucide="circle-check"></i>
                             <h3>Nenhuma fatura pendente</h3>
                             <p>Você não tem compras para pagar neste mês!</p>
                         </div>
@@ -1663,14 +1684,14 @@ class CartoesManager {
                         <!-- Todas as parcelas já foram pagas -->
                         <div class="fatura-totalmente-paga">
                             <div class="status-paga-header">
-                                <i class="fas fa-check-circle"></i>
+                                <i data-lucide="circle-check"></i>
                                 <h3>Fatura Totalmente Paga</h3>
                                 <p>Todas as compras deste mês já foram pagas!</p>
                             </div>
 
                             <div class="fatura-parcelas-pagas-completa">
                                 <h3 class="secao-titulo">
-                                    <i class="fas fa-receipt" style="color: #10b981; margin-right: 8px;"></i>
+                                    <i data-lucide="receipt" style="color: #10b981; margin-right: 8px;"></i>
                                     Itens Pagos (${(fatura.itens || []).filter(p => p.pago).length})
                                 </h3>
                                 <div class="lancamentos-lista">
@@ -1678,8 +1699,9 @@ class CartoesManager {
                                         <div class="lancamento-item lancamento-pago">
                                             <div class="lanc-info">
                                                 <span class="lanc-desc">${this.escapeHtml(parcela.descricao)}</span>
+                                                ${parcela.data_compra ? `<span class="lanc-data-compra"><i data-lucide="shopping-cart"></i> ${this.formatDate(parcela.data_compra)}</span>` : ''}
                                                 <span class="lanc-data-pagamento">
-                                                    <i class="fas fa-calendar-check"></i>
+                                                    <i data-lucide="calendar-check"></i>
                                                     Pago em ${this.formatDate(parcela.data_pagamento || parcela.data)}
                                                 </span>
                                             </div>
@@ -1688,7 +1710,7 @@ class CartoesManager {
                                                 <button class="btn-desfazer-parcela" 
                                                     onclick="cartoesManager.desfazerPagamentoParcela(${parcela.id})"
                                                     title="Desfazer pagamento desta parcela">
-                                                    <i class="fas fa-undo"></i>
+                                                    <i data-lucide="undo-2"></i>
                                                     Desfazer
                                                 </button>
                                             </div>
@@ -1726,6 +1748,7 @@ class CartoesManager {
                                         </label>
                                         <div class="lanc-info">
                                             <span class="lanc-desc">${this.escapeHtml(parcela.descricao)}</span>
+                                            ${parcela.data_compra ? `<span class="lanc-data-compra"><i data-lucide="shopping-cart"></i> ${this.formatDate(parcela.data_compra)}</span>` : ''}
                                         </div>
                                         <span class="lanc-valor">${this.formatMoney(parcela.valor)}</span>
                                     </div>
@@ -1736,7 +1759,7 @@ class CartoesManager {
                         ${(fatura.itens || []).filter(p => p.pago).length > 0 ? `
                             <div class="fatura-parcelas-pagas" style="margin-top: 1.5rem;">
                                 <h3 class="secao-titulo">
-                                    <i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i>
+                                    <i data-lucide="circle-check" style="color: #10b981; margin-right: 8px;"></i>
                                     Lançamentos Pagos
                                 </h3>
                                 <div class="lancamentos-lista">
@@ -1744,8 +1767,9 @@ class CartoesManager {
                                         <div class="lancamento-item lancamento-pago">
                                             <div class="lanc-info">
                                                 <span class="lanc-desc">${this.escapeHtml(parcela.descricao)}</span>
+                                                ${parcela.data_compra ? `<span class="lanc-data-compra"><i data-lucide="shopping-cart"></i> ${this.formatDate(parcela.data_compra)}</span>` : ''}
                                                 <span class="lanc-data-pagamento">
-                                                    <i class="fas fa-calendar-check"></i>
+                                                    <i data-lucide="calendar-check"></i>
                                                     Pago em ${this.formatDate(parcela.data_pagamento || parcela.data)}
                                                 </span>
                                             </div>
@@ -1754,7 +1778,7 @@ class CartoesManager {
                                                 <button class="btn-desfazer-parcela" 
                                                     onclick="cartoesManager.desfazerPagamentoParcela(${parcela.id})"
                                                     title="Desfazer pagamento desta parcela">
-                                                    <i class="fas fa-undo"></i>
+                                                    <i data-lucide="undo-2"></i>
                                                     Desfazer
                                                 </button>
                                             </div>
@@ -1773,7 +1797,7 @@ class CartoesManager {
                             <strong class="footer-valor" id="totalSelecionado">${this.formatMoney(fatura.total)}</strong>
                         </div>
                         <button class="btn btn-primary btn-pagar-fatura" id="btnPagarSelecionadas">
-                            <i class="fas fa-check"></i>
+                            <i data-lucide="check"></i>
                             Pagar Parcelas Selecionadas
                         </button>
                     </div>
@@ -1811,7 +1835,8 @@ class CartoesManager {
             // Ativar loading state
             if (btnPagar) {
                 btnPagar.disabled = true;
-                btnPagar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+                btnPagar.innerHTML = '<i data-lucide="loader-2" class="icon-spin"></i> Processando...';
+                if(window.lucide) lucide.createIcons();
                 btnPagar.style.opacity = '0.6';
                 btnPagar.style.cursor = 'not-allowed';
             }
@@ -1906,17 +1931,17 @@ class CartoesManager {
                     </div>
                     <div class="fatura-navegacao">
                         <button class="btn-nav-mes" onclick="cartoesManager.navegarMes(${idCartao}, ${fatura.mes}, ${fatura.ano}, -1)" title="Mês anterior">
-                            <i class="fas fa-chevron-left"></i>
+                            <i data-lucide="chevron-left"></i>
                         </button>
                         <span class="fatura-periodo">${this.getNomeMes(fatura.mes)}/${fatura.ano}</span>
                         <button class="btn-nav-mes" onclick="cartoesManager.navegarMes(${idCartao}, ${fatura.mes}, ${fatura.ano}, 1)" title="Próximo mês">
-                            <i class="fas fa-chevron-right"></i>
+                            <i data-lucide="chevron-right"></i>
                         </button>
                     </div>
                 </div>
                 <div class="header-actions">
                     <button class="btn-fechar-fatura" title="Fechar">
-                        <i class="fas fa-times"></i>
+                        <i data-lucide="x"></i>
                     </button>
                 </div>
             </div>
@@ -1924,7 +1949,7 @@ class CartoesManager {
             <div class="modal-fatura-body">
                 <div class="fatura-totalmente-paga">
                     <div class="status-paga-header">
-                        <i class="fas fa-check-circle"></i>
+                        <i data-lucide="circle-check"></i>
                         <h3>Fatura Totalmente Paga</h3>
                         <p>
                             ${dataPagamento ? `Pago em ${this.formatDate(dataPagamento)} • ` : 'Fatura paga • '}
@@ -1935,13 +1960,13 @@ class CartoesManager {
                     <div class="fatura-parcelas-pagas-completa">
                         <div class="secao-titulo-com-botao">
                             <h3 class="secao-titulo">
-                                <i class="fas fa-receipt" style="color: #10b981; margin-right: 8px;"></i>
+                                <i data-lucide="receipt" style="color: #10b981; margin-right: 8px;"></i>
                                 Itens Pagos (${(fatura.itens || []).filter(p => p.pago).length})
                             </h3>
                             <button class="btn-desfazer-todas" 
                                 onclick="cartoesManager.desfazerPagamento(${idCartao}, ${fatura.mes}, ${fatura.ano})"
                                 title="Desfazer pagamento de todas as parcelas">
-                                <i class="fas fa-undo"></i>
+                                <i data-lucide="undo-2"></i>
                                 Desfazer Todas
                             </button>
                         </div>
@@ -1950,8 +1975,9 @@ class CartoesManager {
                                 <div class="lancamento-item lancamento-pago">
                                     <div class="lanc-info">
                                         <span class="lanc-desc">${this.escapeHtml(parcela.descricao)}</span>
+                                        ${parcela.data_compra ? `<span class="lanc-data-compra"><i data-lucide="shopping-cart"></i> ${this.formatDate(parcela.data_compra)}</span>` : ''}
                                         <span class="lanc-data-pagamento">
-                                            <i class="fas fa-calendar-check"></i>
+                                            <i data-lucide="calendar-check"></i>
                                             ${parcela.parcela_atual}/${parcela.total_parcelas}
                                         </span>
                                     </div>
@@ -1960,7 +1986,7 @@ class CartoesManager {
                                         <button class="btn-desfazer-parcela" 
                                             onclick="cartoesManager.desfazerPagamentoParcela(${parcela.id})"
                                             title="Desfazer pagamento desta parcela">
-                                            <i class="fas fa-undo"></i>
+                                            <i data-lucide="undo-2"></i>
                                             Desfazer
                                         </button>
                                     </div>
@@ -2183,6 +2209,7 @@ class CartoesManager {
             if (modalContainer) {
                 const novoConteudo = this.criarConteudoModal(fatura, parcelamentos, statusPagamento, cartaoId);
                 modalContainer.innerHTML = novoConteudo;
+                if(window.lucide) lucide.createIcons();
 
                 // Re-adicionar event listeners
                 modalContainer.querySelector('.btn-fechar-fatura')?.addEventListener('click', () => {
@@ -2283,6 +2310,7 @@ class CartoesManager {
 
                 const conteudo = this.criarConteudoModal(fatura, parcelamentos, statusResponse, cartaoId);
                 modalContainer.innerHTML = conteudo;
+                if(window.lucide) lucide.createIcons();
 
                 this.adicionarEventListenersModal(fatura);
             } else {
@@ -2290,6 +2318,7 @@ class CartoesManager {
                 const historico = await this.carregarHistoricoFaturas(cartaoId);
                 const conteudo = this.criarConteudoHistorico(historico, cartaoId);
                 modalContainer.innerHTML = conteudo;
+                if(window.lucide) lucide.createIcons();
 
                 this.adicionarEventListenersModal(null);
             }
@@ -2334,10 +2363,10 @@ class CartoesManager {
                 </div>
                 <div class="header-actions">
                     <button class="btn-historico-toggle" onclick="cartoesManager.toggleHistoricoFatura(${cartaoId})" title="Voltar para fatura atual">
-                        <i class="fas fa-arrow-left"></i>
+                        <i data-lucide="arrow-left"></i>
                     </button>
                     <button class="btn-fechar-fatura" title="Fechar">
-                        <i class="fas fa-times"></i>
+                        <i data-lucide="x"></i>
                     </button>
                 </div>
             </div>
@@ -2345,7 +2374,7 @@ class CartoesManager {
             <div class="modal-fatura-body historico-faturas">
                 ${historico.historico.length === 0 ? `
                     <div class="fatura-empty">
-                        <i class="fas fa-receipt"></i>
+                        <i data-lucide="receipt"></i>
                         <h3>Nenhuma fatura paga</h3>
                         <p>Você ainda não pagou nenhuma fatura neste cartão.</p>
                     </div>
@@ -2354,7 +2383,7 @@ class CartoesManager {
                         ${historico.historico.map(item => `
                             <div class="historico-item">
                                 <div class="historico-periodo">
-                                    <i class="fas fa-calendar-check"></i>
+                                    <i data-lucide="calendar-check"></i>
                                     <div class="periodo-info">
                                         <strong>${item.mes_nome} ${item.ano}</strong>
                                         <span class="historico-data-pag">Pago em ${this.formatDate(item.data_pagamento)}</span>

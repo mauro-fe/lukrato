@@ -122,7 +122,8 @@ a[data-limit-blocked="true"]::after {
   color: var(--color-text);
 }
 
-#planUpgradeModal .fa-crown {
+#planUpgradeModal [data-lucide="crown"],
+#planUpgradeModal .lucide-crown {
   animation: float 3s ease-in-out infinite;
 }
 
@@ -278,7 +279,7 @@ a[data-limit-blocked="true"]::after {
    ============================================ */
 
 .history-restriction-info {
-  color: var(--color-text);
+  color: var(--color-text) !important;
   background: rgba(243, 156, 18, 0.15);
   border: 1px solid rgba(243, 156, 18, 0.3);
   padding: var(--spacing-2) var(--spacing-3);
@@ -357,13 +358,21 @@ option:disabled {
   color: var(--color-text);
   margin-bottom: 8px;
   padding: 12px 16px;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(245, 158, 11, 0.1) 0%,
+    rgba(217, 119, 6, 0.1) 100%
+  );
   border-radius: 8px;
   border-left: 4px solid #f59e0b;
 }
 
 [data-theme="dark"] .upgrade-context-message {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.15) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(245, 158, 11, 0.15) 0%,
+    rgba(217, 119, 6, 0.15) 100%
+  );
 }
 
 .upgrade-features-list li {
@@ -455,7 +464,8 @@ option:disabled {
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -506,7 +516,9 @@ option:disabled {
 .usage-progress-fill {
   height: 100%;
   border-radius: 4px;
-  transition: width 0.5s ease, background 0.3s ease;
+  transition:
+    width 0.5s ease,
+    background 0.3s ease;
 }
 
 .usage-progress-fill.level-ok {
@@ -523,7 +535,8 @@ option:disabled {
 }
 
 @keyframes pulse-critical {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {

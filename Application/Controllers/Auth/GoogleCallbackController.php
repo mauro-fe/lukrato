@@ -7,6 +7,7 @@ namespace Application\Controllers\Auth;
 use Application\Controllers\BaseController;
 use Application\Services\Auth\GoogleAuthService;
 use Application\Services\LogService;
+use Application\Enums\LogCategory;
 use Exception;
 use Throwable;
 
@@ -146,8 +147,8 @@ class GoogleCallbackController extends BaseController
 
             $this->redirect('dashboard?welcome=1');
         } catch (Exception $e) {
-            LogService::error('Erro ao confirmar criação de conta Google', [
-                'message' => $e->getMessage(),
+            LogService::captureException($e, LogCategory::AUTH, [
+                'action' => 'google_confirm_account',
             ]);
             $this->setError('Erro ao criar conta: ' . $e->getMessage());
             $this->redirect('login');
@@ -195,10 +196,8 @@ class GoogleCallbackController extends BaseController
      */
     private function handleCallbackError(Throwable $e): void
     {
-        LogService::error('Erro no callback do Google', [
-            'message' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
+        LogService::captureException($e, LogCategory::AUTH, [
+            'action' => 'google_callback',
             'code' => $this->getQuery('code', 'N/A'),
         ]);
 

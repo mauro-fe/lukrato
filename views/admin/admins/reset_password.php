@@ -14,7 +14,10 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
     <?= csrf_meta('reset_password_form') ?>
 
     <title>Redefinir Senha - Lukrato</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css">
+    <!-- Lucide Icons + FA Brands -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/brands.min.css">
+    <link rel="stylesheet" href="<?= rtrim(BASE_URL, '/') ?>/assets/css/lucide-compat.css">
+    <script src="<?= rtrim(BASE_URL, '/') ?>/assets/js/lucide.min.js"></script>
     <style>
         :root {
             --orange: #e67e22;
@@ -507,10 +510,10 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
             }
         }
 
-        .msg::before {
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            font-size: 16px;
+        .msg svg {
+            flex-shrink: 0;
+            width: 18px;
+            height: 18px;
         }
 
         .msg-error {
@@ -519,18 +522,10 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
             color: var(--error);
         }
 
-        .msg-error::before {
-            content: '\f06a';
-        }
-
         .msg-success {
             background: rgba(121, 230, 160, 0.1);
             border: 1px solid rgba(121, 230, 160, 0.3);
             color: var(--success);
-        }
-
-        .msg-success::before {
-            content: '\f058';
         }
 
         @media (max-width: 992px) {
@@ -610,13 +605,13 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
                             <input type="password" name="password" id="password"
                                 placeholder="Nova senha (mínimo 8 caracteres)" required minlength="8">
                             <button type="button" class="toggle-password" data-target="password">
-                                <i class="fa-solid fa-eye"></i>
+                                <i data-lucide="eye"></i>
                             </button>
                             <div class="password-strength" id="strengthBar">
                                 <div class="password-strength-bar"></div>
                             </div>
                             <div class="password-hint">
-                                <i class="fas fa-info-circle"></i>
+                                <i data-lucide="info"></i>
                                 <span>Use letras, números e símbolos para uma senha forte</span>
                             </div>
                         </div>
@@ -625,7 +620,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
                             <input type="password" name="password_confirmation" id="password_confirmation"
                                 placeholder="Confirmar nova senha" required minlength="8">
                             <button type="button" class="toggle-password" data-target="password_confirmation">
-                                <i class="fa-solid fa-eye"></i>
+                                <i data-lucide="eye"></i>
                             </button>
                         </div>
 
@@ -634,7 +629,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
                         </button>
 
                         <p class="extra-link">
-                            <a href="<?= BASE_URL ?>login"> <i class="fas fa-arrow-left"></i>
+                            <a href="<?= BASE_URL ?>login"> <i data-lucide="arrow-left"></i>
                                 Voltar para o login</a>
                         </p>
                     </form>
@@ -667,12 +662,16 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
             const input = document.getElementById(targetId);
             if (!input) return;
 
-            const icon = btn.querySelector('i');
             const isPassword = input.type === 'password';
-
             input.type = isPassword ? 'text' : 'password';
-            icon.classList.toggle('fa-eye', !isPassword);
-            icon.classList.toggle('fa-eye-slash', isPassword);
+
+            const oldIcon = btn.querySelector('svg, i');
+            if (oldIcon) {
+                const newIcon = document.createElement('i');
+                newIcon.setAttribute('data-lucide', isPassword ? 'eye-off' : 'eye');
+                oldIcon.replaceWith(newIcon);
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
         });
 
         // Password strength indicator
@@ -718,11 +717,14 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
         const messageContainer = document.getElementById('messageContainer');
 
         function showMessage(type, text) {
+            const iconName = type === 'error' ? 'circle-alert' : 'circle-check';
             messageContainer.innerHTML = `
                 <div class="msg msg-${type}">
+                    <i data-lucide="${iconName}"></i>
                     ${text}
                 </div>
             `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
         form.addEventListener('submit', function(e) {
@@ -805,6 +807,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
 
     <!-- Script de CSRF para renovação automática -->
     <script src="<?= BASE_URL ?>assets/js/csrf-keep-alive.js"></script>
+    <script src="<?= BASE_URL ?>assets/js/lucide-init.js"></script>
 </body>
 
 </html>

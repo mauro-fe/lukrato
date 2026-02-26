@@ -326,15 +326,8 @@
         };
 
         const setIcon = () => {
-            if (!icon) return;
-
-            const isMobile = media.matches;
-            const isClosed = isMobile
-                ? !body.classList.contains('sidebar-open-mobile')
-                : body.classList.contains('sidebar-collapsed');
-
-            icon.classList.remove('fa-angle-right', 'fa-angle-left');
-            icon.classList.add(isClosed ? 'fa-angle-right' : 'fa-angle-left');
+            // CSS handles chevron rotation via body.sidebar-collapsed
+            // No JS icon swap needed — the chevron-left rotates 180° automatically
         };
 
         const setDesktopState = (collapsed) => {

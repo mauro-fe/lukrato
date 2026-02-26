@@ -9,7 +9,7 @@
         <div class="filters-header">
             <div class="filters-title">
                 <div class="filters-icon">
-                    <i class="fas fa-sliders-h"></i>
+                    <i data-lucide="sliders-horizontal"></i>
                 </div>
                 <div class="filters-text">
                     <h3>Filtros</h3>
@@ -17,7 +17,7 @@
                 </div>
             </div>
             <button type="button" class="filters-toggle" id="toggleFilters" aria-label="Expandir filtros">
-                <i class="fas fa-chevron-down"></i>
+                <i data-lucide="chevron-down"></i>
             </button>
         </div>
 
@@ -26,53 +26,53 @@
                 <!-- Status -->
                 <div class="filter-item">
                     <label class="filter-label-modern" for="filtroStatus">
-                        <i class="fas fa-circle-check"></i>
+                        <i data-lucide="circle-check" style="color: var(--color-primary)"></i>
                         Status
                     </label>
                     <div class="select-wrapper">
                         <select id="filtroStatus" class="filter-select">
                             <option value="">Todos os status</option>
-                            <option value="pendente">⏳ Pendentes</option>
-                            <option value="parcial">🔄 Parcialmente Pagas</option>
-                            <option value="paga">✅ Pagas</option>
-                            <option value="cancelado">❌ Canceladas</option>
+                            <option value="pendente">&#x25F7; Pendentes</option>
+                            <option value="parcial">&#x21BB; Parcialmente Pagas</option>
+                            <option value="paga">&#x2714; Pagas</option>
+                            <option value="cancelado">&#x2718; Canceladas</option>
                         </select>
-                        <i class="fas fa-chevron-down select-arrow"></i>
+                        <i data-lucide="chevron-down" class="select-arrow"></i>
                     </div>
                 </div>
 
                 <!-- Cartão -->
                 <div class="filter-item">
                     <label class="filter-label-modern" for="filtroCartao">
-                        <i class="fas fa-credit-card"></i>
+                        <i data-lucide="credit-card" style="color: var(--color-primary)"></i>
                         Cartão
                     </label>
                     <div class="select-wrapper">
                         <select id="filtroCartao" class="filter-select">
                             <option value="">Todos os cartões</option>
                         </select>
-                        <i class="fas fa-chevron-down select-arrow"></i>
+                        <i data-lucide="chevron-down" class="select-arrow"></i>
                     </div>
                 </div>
 
                 <!-- Ano -->
                 <div class="filter-item">
                     <label class="filter-label-modern" for="filtroAno">
-                        <i class="fas fa-calendar"></i>
+                        <i data-lucide="calendar" style="color: var(--color-primary)"></i>
                         Ano
                     </label>
                     <div class="select-wrapper">
                         <select id="filtroAno" class="filter-select">
                             <option value="">Todos os anos</option>
                         </select>
-                        <i class="fas fa-chevron-down select-arrow"></i>
+                        <i data-lucide="chevron-down" class="select-arrow"></i>
                     </div>
                 </div>
 
                 <!-- Mês -->
                 <div class="filter-item">
                     <label class="filter-label-modern" for="filtroMes">
-                        <i class="fas fa-calendar-day"></i>
+                        <i data-lucide="calendar" style="color: var(--color-primary)"></i>
                         Mês
                     </label>
                     <div class="select-wrapper">
@@ -91,7 +91,7 @@
                             <option value="11">Novembro</option>
                             <option value="12">Dezembro</option>
                         </select>
-                        <i class="fas fa-chevron-down select-arrow"></i>
+                        <i data-lucide="chevron-down" class="select-arrow"></i>
                     </div>
                 </div>
             </div>
@@ -99,11 +99,11 @@
             <!-- Botões de ação -->
             <div class="filters-actions">
                 <button type="button" id="btnLimparFiltros" class="btn-filter-clear">
-                    <i class="fas fa-times"></i>
+                    <i data-lucide="x"></i>
                     <span>Limpar</span>
                 </button>
                 <button type="button" id="btnFiltrar" class="btn-filter-apply">
-                    <i class="fas fa-search"></i>
+                    <i data-lucide="search"></i>
                     <span>Aplicar Filtros</span>
                 </button>
             </div>
@@ -118,15 +118,15 @@
     <!-- ==================== HEADER COM TOGGLE ==================== -->
     <div class="faturas-header" data-aos="fade-up" data-aos-delay="150">
         <div class="faturas-title">
-            <i class="fas fa-file-invoice-dollar"></i>
+            <i data-lucide="file-text"></i>
             <span>Suas Faturas</span>
         </div>
         <div class="view-toggle">
             <button class="view-btn active" data-view="grid" title="Visualização em Cards">
-                <i class="fas fa-grip"></i>
+                <i data-lucide="grip-horizontal"></i>
             </button>
             <button class="view-btn" data-view="list" title="Visualização em Lista">
-                <i class="fas fa-list"></i>
+                <i data-lucide="list"></i>
             </button>
         </div>
     </div>
@@ -134,7 +134,7 @@
     <!-- ==================== LOADING ==================== -->
     <div id="loadingParcelamentos" class="loading-container" style="display: none;">
         <div class="loading-spinner">
-            <i class="fas fa-circle-notch fa-spin"></i>
+            <i data-lucide="loader-2" class="icon-spin"></i>
             <p>Carregando faturas...</p>
         </div>
     </div>
@@ -156,12 +156,12 @@
     <!-- ==================== EMPTY STATE ==================== -->
     <div id="emptyState" class="empty-state" style="display: none;">
         <div class="empty-icon">
-            <i class="fas fa-credit-card"></i>
+            <i data-lucide="credit-card"></i>
         </div>
         <h3>Nenhuma fatura encontrada</h3>
         <p>Suas faturas de cartão aparecerão aqui automaticamente quando você cadastrar compras parceladas</p>
         <a href="<?= BASE_URL ?>lancamentos" class="btn-cta">
-            <i class="fas fa-plus"></i>
+            <i data-lucide="plus"></i>
             Criar Lançamento Parcelado
         </a>
     </div>

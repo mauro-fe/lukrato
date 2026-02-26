@@ -5,7 +5,7 @@
         <div class="modal-header">
             <div class="modal-header-content">
                 <div class="modal-icon">
-                    <i class="fas fa-credit-card"></i>
+                    <i data-lucide="credit-card" style="color: white"></i>
                 </div>
                 <div>
                     <h2 class="modal-title" id="modalCartaoTitulo">Novo Cartão de Crédito</h2>
@@ -13,7 +13,7 @@
                 </div>
             </div>
             <button class="modal-close" type="button" aria-label="Fechar modal">
-                <i class="fas fa-times"></i>
+                <i data-lucide="x"></i>
             </button>
         </div>
 
@@ -25,7 +25,7 @@
                 <!-- Nome do Cartão -->
                 <div class="form-group">
                     <label for="nomeCartao" class="form-label required">
-                        <i class="fas fa-tag"></i>
+                        <i data-lucide="tag"></i>
                         Nome do Cartão
                     </label>
                     <input type="text" id="nomeCartao" name="nome_cartao" class="form-input"
@@ -35,7 +35,7 @@
                 <!-- Conta Vinculada -->
                 <div class="form-group">
                     <label for="contaVinculada" class="form-label required">
-                        <i class="fas fa-link"></i>
+                        <i data-lucide="link"></i>
                         Conta Vinculada
                     </label>
                     <select id="contaVinculada" name="conta_id" class="form-select" required>
@@ -49,7 +49,7 @@
                     <!-- Bandeira -->
                     <div class="form-group">
                         <label for="bandeira" class="form-label required">
-                            <i class="fas fa-star"></i>
+                            <i data-lucide="star"></i>
                             Bandeira
                         </label>
                         <select id="bandeira" name="bandeira" class="form-select" required>
@@ -66,7 +66,7 @@
                     <!-- Últimos dígitos -->
                     <div class="form-group">
                         <label for="ultimosDigitos" class="form-label required">
-                            <i class="fas fa-hashtag"></i>
+                            <i data-lucide="hash"></i>
                             Últimos 4 dígitos
                         </label>
                         <input type="text" id="ultimosDigitos" name="ultimos_digitos" class="form-input"
@@ -77,7 +77,7 @@
                 <!-- Limite Total -->
                 <div class="form-group">
                     <label for="limiteTotal" class="form-label">
-                        <i class="fas fa-money-bill-wave"></i>
+                        <i data-lucide="banknote"></i>
                         Limite Total
                     </label>
                     <div class="input-with-prefix">
@@ -93,13 +93,13 @@
                     <!-- Dia Fechamento -->
                     <div class="form-group">
                         <label for="diaFechamento" class="form-label lk-label">
-                            <i class="fas fa-calendar-check" aria-hidden="true"></i>
+                            <i data-lucide="calendar-check" aria-hidden="true"></i>
                             <span>Dia de fechamento</span>
 
                             <button type="button" class="lk-info" data-lk-tooltip-title="Dia de fechamento"
                                 data-lk-tooltip="Compras realizadas a partir deste dia serão lançadas na fatura do mês seguinte. Use esta data conforme a regra do seu cartão."
                                 aria-label="Ajuda: Dia de fechamento">
-                                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                                <i data-lucide="info" aria-hidden="true"></i>
                             </button>
                         </label>
 
@@ -111,7 +111,7 @@
                     <!-- Dia Vencimento -->
                     <div class="form-group">
                         <label for="diaVencimento" class="form-label">
-                            <i class="fas fa-calendar-alt"></i>
+                            <i data-lucide="calendar-days"></i>
                             Dia Vencimento
                         </label>
                         <input type="number" id="diaVencimento" name="dia_vencimento" class="form-input" min="1"
@@ -124,7 +124,7 @@
                 <div class="modal-footer">
 
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i>
+                        <i data-lucide="save"></i>
                         Salvar Cartão
                     </button>
                 </div>

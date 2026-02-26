@@ -10,6 +10,7 @@ use Application\Models\Lancamento;
 use Application\Models\Categoria;
 use Application\Enums\GamificationAction;
 use Application\Enums\AchievementType;
+use Application\Enums\LogCategory;
 use Carbon\Carbon;
 use Exception;
 
@@ -66,7 +67,7 @@ class GamificationService
         try {
             // Verificar se já não foi registrado (evitar duplicação)
             if ($this->isDuplicateAction($userId, $action, $relatedId, $relatedType)) {
-                error_log("🎮 [GAMIFICATION] Ação duplicada ignorada: {$action->value} para user {$userId}");
+                LogService::info("Ação duplicada ignorada: {$action->value} para user {$userId}");
                 return [
                     'success' => false,
                     'message' => 'Pontos já registrados para esta ação',
@@ -127,7 +128,7 @@ class GamificationService
             $achievementService = new AchievementService();
             $newAchievements = $achievementService->checkAndUnlockAchievements($userId, $action->value);
 
-            error_log("🎮 [GAMIFICATION] +{$points} pontos para user {$userId} - Ação: {$action->value}" . ($isPro ? ' [PRO x1.5]' : ''));
+            LogService::info("+{$points} pontos para user {$userId} - Ação: {$action->value}" . ($isPro ? ' [PRO x1.5]' : ''));
 
             return [
                 'success' => true,
@@ -141,7 +142,11 @@ class GamificationService
                 'new_achievements' => $newAchievements,
             ];
         } catch (Exception $e) {
-            error_log("🎮 [GAMIFICATION] ERRO ao adicionar pontos: " . $e->getMessage());
+            LogService::captureException($e, LogCategory::GAMIFICATION, [
+                'action' => $action->value,
+                'user_id' => $userId,
+                'related_id' => $relatedId,
+            ]);
 
             return [
                 'success' => false,
@@ -199,7 +204,7 @@ class GamificationService
                 'metadata' => ['new_level' => $newLevel, 'previous_level' => $previousLevel],
             ]);
 
-            error_log("🎮 [GAMIFICATION] User {$userId} subiu para nível {$newLevel}!");
+            LogService::info("User {$userId} subiu para nível {$newLevel}!");
 
             // Verificar conquista de nível 5
             if ($newLevel === 5) {
@@ -303,11 +308,15 @@ class GamificationService
                 $this->recalculateLevel($userId);
             }
 
-            error_log("🎮 [GAMIFICATION] User {$userId} desbloqueou: {$achievement->name} (+{$achievement->points_reward} pontos)");
+            LogService::info("User {$userId} desbloqueou: {$achievement->name} (+{$achievement->points_reward} pontos)");
 
             return true;
         } catch (Exception $e) {
-            error_log("🎮 [GAMIFICATION] ERRO ao desbloquear conquista: " . $e->getMessage());
+            LogService::captureException($e, LogCategory::GAMIFICATION, [
+                'action' => 'unlock_achievement',
+                'user_id' => $userId,
+                'achievement_id' => $achievementId,
+            ]);
             return false;
         }
     }

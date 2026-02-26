@@ -40,9 +40,20 @@
         transform: translateY(0);
     }
 
-    #lk-bell i {
+    #lk-bell i,
+    #lk-bell svg {
         font-size: 16px;
-        color: var(--color-text);
+        width: 20px;
+        height: 20px;
+        color: #f59e0b;
+        filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.3));
+        transition: color 0.3s ease, filter 0.3s ease;
+    }
+
+    #lk-bell:hover i,
+    #lk-bell:hover svg {
+        color: #ea580c;
+        filter: drop-shadow(0 0 8px rgba(234, 88, 12, 0.4));
     }
 
     /* Badge de Contagem Modernizado */
@@ -358,7 +369,7 @@ $badgeStyle = $initialUnread > 0 ? 'inline-flex' : 'none';
 $initialBadgeLabel = $initialUnread > 99 ? '99+' : $initialUnread;
 ?>
 <button id="lk-bell" aria-label="Notificacoes" aria-expanded="false">
-    <i class="fas fa-bell"></i>
+    <i data-lucide="bell"></i>
     <span id="lk-bell-badge" <?= $initialUnread > 0 ? '' : 'class="hidden"' ?>>
         <?= $initialBadgeLabel ?>
     </span>

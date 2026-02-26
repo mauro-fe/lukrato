@@ -3,7 +3,7 @@
     <div class="stats-grid pt-5" id="statsContainer" role="region" aria-label="Estatísticas das contas">
         <div class="stat-card" data-aos="flip-left">
             <div class="stat-icon">
-                <i class="fas fa-wallet"></i>
+                <i data-lucide="wallet" style="color: var(--color-primary)"></i>
             </div>
             <div>
                 <div class="stat-value" id="totalContas" aria-live="polite">0</div>
@@ -13,7 +13,7 @@
 
         <div class="stat-card" data-aos="flip-right">
             <div class="stat-icon">
-                <i class="fas fa-coins"></i>
+                <i data-lucide="coins"></i>
             </div>
             <div>
                 <div class="stat-value" id="saldoTotal" aria-live="polite">R$ 0,00</div>
@@ -29,11 +29,11 @@
         <div class="lk-acc-header">
             <div class="lk-acc-actions">
                 <button class="btn btn-primary" id="btnNovaConta" aria-label="Criar nova conta">
-                    <i class="fas fa-plus"></i> Nova Conta
+                    <i data-lucide="plus"></i> Nova Conta
                 </button>
 
                 <button class="btn btn-ghost" id="btnReload" aria-label="Recarregar contas" title="Atualizar lista">
-                    <i class="fas fa-sync-alt"></i>
+                    <i data-lucide="refresh-cw"></i>
                 </button>
             </div>
 
@@ -41,15 +41,15 @@
                 <!-- View Toggle -->
                 <div class="view-toggle" id="viewToggle">
                     <button class="view-btn active" data-view="grid" title="Visualização em cards">
-                        <i class="fas fa-th-large"></i>
+                        <i data-lucide="layout-grid"></i>
                     </button>
                     <button class="view-btn" data-view="list" title="Visualização em lista">
-                        <i class="fas fa-list"></i>
+                        <i data-lucide="list"></i>
                     </button>
                 </div>
-                
+
                 <a class="btn btn-light" href="<?= BASE_URL ?>contas/arquivadas" aria-label="Ver contas arquivadas">
-                    <i class="fas fa-archive"></i> Arquivadas
+                    <i data-lucide="archive"></i> Arquivadas
                 </a>
             </div>
         </div>
@@ -65,12 +65,22 @@
                 <span>Saldo</span>
                 <span>Ações</span>
             </div>
-            <div class="acc-grid" id="accountsGrid" aria-live="polite" aria-busy="false">
+            <div class="acc-grid" id="accountsGrid" aria-live="polite" aria-busy="true">
                 <!-- Skeleton loader inicial -->
                 <div class="acc-skeleton" aria-hidden="true"></div>
                 <div class="acc-skeleton" aria-hidden="true"></div>
                 <div class="acc-skeleton" aria-hidden="true"></div>
             </div>
+            <!-- Fallback caso JS não carregue -->
+            <noscript>
+                <div class="empty-state" style="text-align:center;padding:3rem 1rem;">
+                    <div class="empty-icon" style="font-size:3rem;margin-bottom:1rem;"><i data-lucide="wallet"
+                            style="color:var(--color-primary);"></i></div>
+                    <h3 style="color:var(--color-text);margin-bottom:0.5rem;">JavaScript necessário</h3>
+                    <p style="color:var(--color-text-muted);">Ative o JavaScript no seu navegador para visualizar suas
+                        contas.</p>
+                </div>
+            </noscript>
         </div>
     </div>
 </div>

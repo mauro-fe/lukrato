@@ -17,16 +17,16 @@ $planLabel = $isPro ? 'PRO' : 'FREE';
 // Definir breadcrumbs baseado no menu atual
 $breadcrumbsMap = [
     'dashboard'    => [],
-    'contas'       => [['label' => 'Finanças', 'icon' => 'fa-wallet']],
-    'cartoes'      => [['label' => 'Finanças', 'icon' => 'fa-wallet']],
-    'faturas'      => [['label' => 'Finanças', 'icon' => 'fa-wallet'], ['label' => 'Cartões', 'url' => 'cartoes', 'icon' => 'fa-credit-card']],
-    'categorias'   => [['label' => 'Organização', 'icon' => 'fa-folder']],
-    'lancamentos'  => [['label' => 'Finanças', 'icon' => 'fa-wallet']],
-    'relatorios'   => [['label' => 'Análises', 'icon' => 'fa-chart-bar']],
-    'agendamentos' => [['label' => 'Automações', 'icon' => 'fa-clock']],
-    'gamification' => [['label' => 'Perfil', 'icon' => 'fa-user']],
+    'contas'       => [['label' => 'Finanças', 'icon' => 'wallet']],
+    'cartoes'      => [['label' => 'Finanças', 'icon' => 'wallet']],
+    'faturas'      => [['label' => 'Finanças', 'icon' => 'wallet'], ['label' => 'Cartões', 'url' => 'cartoes', 'icon' => 'credit-card']],
+    'categorias'   => [['label' => 'Organização', 'icon' => 'folder']],
+    'lancamentos'  => [['label' => 'Finanças', 'icon' => 'wallet']],
+    'relatorios'   => [['label' => 'Análises', 'icon' => 'bar-chart-3']],
+    'agendamentos' => [['label' => 'Automações', 'icon' => 'clock']],
+    'gamification' => [['label' => 'Perfil', 'icon' => 'user']],
     'perfil'       => [],
-    'billing'      => [['label' => 'Perfil', 'icon' => 'fa-user']],
+    'billing'      => [['label' => 'Perfil', 'icon' => 'user']],
 ];
 $currentBreadcrumbs = $breadcrumbsMap[$menu ?? ''] ?? [];
 ?>
@@ -36,40 +36,42 @@ $currentBreadcrumbs = $breadcrumbsMap[$menu ?? ''] ?? [];
         <!-- Menu Button (Mobile Only) -->
         <button id="mobileMenuBtn" class="top-navbar-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="false"
             title="Menu">
-            <i class="fa fa-bars" aria-hidden="true"></i>
+            <i data-lucide="menu" aria-hidden="true"></i>
         </button>
 
         <!-- Page Title / Breadcrumb -->
         <div class="top-navbar-title">
             <h1><?= $pageTitle ?? 'Dashboard' ?></h1>
             <?php if (!empty($currentBreadcrumbs) || ($menu ?? '') !== 'dashboard'): ?>
-            <nav class="lk-breadcrumbs-wrapper" aria-label="Navegação">
-                <ol class="lk-breadcrumbs">
-                    <li class="lk-breadcrumb-item">
-                        <a href="<?= BASE_URL ?>dashboard" title="Início">
-                            <i class="fas fa-home lk-breadcrumb-home"></i>
-                        </a>
-                    </li>
-                    <?php foreach ($currentBreadcrumbs as $crumb): ?>
-                    <li class="lk-breadcrumb-separator"><i class="fas fa-chevron-right"></i></li>
-                    <li class="lk-breadcrumb-item">
-                        <?php if (!empty($crumb['url'])): ?>
-                        <a href="<?= BASE_URL . $crumb['url'] ?>">
-                            <?php if (!empty($crumb['icon'])): ?><i class="fas <?= $crumb['icon'] ?>"></i><?php endif; ?>
-                            <?= htmlspecialchars($crumb['label']) ?>
-                        </a>
-                        <?php else: ?>
-                        <span>
-                            <?php if (!empty($crumb['icon'])): ?><i class="fas <?= $crumb['icon'] ?>"></i><?php endif; ?>
-                            <?= htmlspecialchars($crumb['label']) ?>
-                        </span>
-                        <?php endif; ?>
-                    </li>
-                    <?php endforeach; ?>
-                    <li class="lk-breadcrumb-separator"><i class="fas fa-chevron-right"></i></li>
-                    <li class="lk-breadcrumb-item current"><?= $pageTitle ?? 'Dashboard' ?></li>
-                </ol>
-            </nav>
+                <nav class="lk-breadcrumbs-wrapper" aria-label="Navegação">
+                    <ol class="lk-breadcrumbs">
+                        <li class="lk-breadcrumb-item">
+                            <a href="<?= BASE_URL ?>dashboard" title="Início">
+                                <i data-lucide="home" class="lk-breadcrumb-home" style="color: var(--color-primary)"></i>
+                            </a>
+                        </li>
+                        <?php foreach ($currentBreadcrumbs as $crumb): ?>
+                            <li class="lk-breadcrumb-separator"><i data-lucide="chevron-right" class="icon-xs"></i></li>
+                            <li class="lk-breadcrumb-item">
+                                <?php if (!empty($crumb['url'])): ?>
+                                    <a href="<?= BASE_URL . $crumb['url'] ?>">
+                                        <?php if (!empty($crumb['icon'])): ?><i data-lucide="<?= $crumb['icon'] ?>"
+                                                style="color: var(--color-primary)"></i><?php endif; ?>
+                                        <?= htmlspecialchars($crumb['label']) ?>
+                                    </a>
+                                <?php else: ?>
+                                    <span>
+                                        <?php if (!empty($crumb['icon'])): ?><i data-lucide="<?= $crumb['icon'] ?>"
+                                                style="color: var(--color-primary)"></i><?php endif; ?>
+                                        <?= htmlspecialchars($crumb['label']) ?>
+                                    </span>
+                                <?php endif; ?>
+                            </li>
+                        <?php endforeach; ?>
+                        <li class="lk-breadcrumb-separator"><i data-lucide="chevron-right" class="icon-xs"></i></li>
+                        <li class="lk-breadcrumb-item current"><?= $pageTitle ?? 'Dashboard' ?></li>
+                    </ol>
+                </nav>
             <?php endif; ?>
         </div>
 
@@ -77,10 +79,11 @@ $currentBreadcrumbs = $breadcrumbsMap[$menu ?? ''] ?? [];
         <div class="top-navbar-actions">
             <!-- User Info -->
             <div class="user-info">
-                <span class="greeting">Olá, <strong><?= $topNavFirstName ?: 'usuário' ?></strong></span>
+                <span class="greeting">Olá, <a href="<?= BASE_URL ?>perfil" class="greeting-name"
+                        title="Ir para o perfil"><strong><?= $topNavFirstName ?: 'usuário' ?></strong></a></span>
                 <a href="<?= BASE_URL ?>billing" class="plan-badge <?= $isPro ? 'pro' : 'free' ?>"
                     title="Gerenciar assinatura">
-                    <i class="fa-solid <?= $isPro ? 'fa-crown' : 'fa-leaf' ?>"></i>
+                    <i data-lucide="<?= $isPro ? 'crown' : 'leaf' ?>"></i>
                     <?= $planLabel ?>
                 </a>
             </div>
@@ -88,7 +91,7 @@ $currentBreadcrumbs = $breadcrumbsMap[$menu ?? ''] ?? [];
             <!-- Upgrade Button (if not pro) -->
             <?php if (!$isPro): ?>
                 <a href="<?= BASE_URL ?>billing" class="top-nav-btn upgrade-btn" title="Fazer upgrade para Pro">
-                    <i class="fa-solid fa-crown"></i>
+                    <i data-lucide="crown"></i>
                     <span class="btn-text">Upgrade</span>
                 </a>
             <?php endif; ?>
@@ -96,8 +99,8 @@ $currentBreadcrumbs = $breadcrumbsMap[$menu ?? ''] ?? [];
             <!-- Theme Toggle -->
             <button id="topNavThemeToggle" type="button" class="top-nav-btn theme-toggle" aria-label="Alternar tema"
                 title="Modo claro/escuro">
-                <i class="fa-solid fa-sun"></i>
-                <i class="fa-solid fa-moon"></i>
+                <i data-lucide="sun"></i>
+                <i data-lucide="moon"></i>
             </button>
 
             <!-- Notifications -->
@@ -107,7 +110,7 @@ $currentBreadcrumbs = $breadcrumbsMap[$menu ?? ''] ?? [];
 
             <!-- Logout Button (Desktop Only) -->
             <a href="<?= BASE_URL ?>logout" class="top-nav-btn logout-btn desktop-only" title="Sair">
-                <i class="fa-solid fa-right-from-bracket"></i>
+                <i data-lucide="log-out"></i>
                 <span class="btn-text">Sair</span>
             </a>
         </div>

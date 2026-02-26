@@ -9,6 +9,9 @@ use Application\Models\AssinaturaUsuario;
 use Application\Models\Endereco;
 use Application\Models\Plano;
 use Application\Services\MaintenanceService;
+use Application\Services\LogService;
+use Application\Enums\LogCategory;
+use Application\Enums\LogLevel;
 use Carbon\Carbon;
 use Exception;
 
@@ -594,7 +597,7 @@ class SysAdminController extends BaseController
             $usersCreatedAt = Usuario::where('created_at', '>=', $thirtyDaysAgo->startOfDay())
                 ->pluck('created_at')
                 ->toArray();
-            
+
             $usersByDay = [];
             foreach ($usersCreatedAt as $createdAt) {
                 // Carbon converte automaticamente para o timezone do PHP (America/Sao_Paulo)
@@ -675,9 +678,133 @@ class SysAdminController extends BaseController
 
             Response::success($responseData);
         } catch (Exception $e) {
-            error_log("🚨 [SYSADMIN] Erro ao buscar estatísticas: " . $e->getMessage());
-            error_log($e->getTraceAsString());
+            LogService::captureException($e, LogCategory::GENERAL, [
+                'action' => 'sysadmin_stats',
+            ]);
             Response::error('Erro ao buscar estatísticas: ' . $e->getMessage(), 500);
+        }
+    }
+
+    // ========================================================================
+    // ERROR LOGS — Visualização e gestão dos logs de erro
+    // ========================================================================
+
+    /**
+     * GET /api/sysadmin/error-logs
+     * Listar logs de erro com filtros e paginação
+     *
+     * Query params: level, category, resolved, user_id, search, date_from, date_to, page, per_page
+     */
+    public function errorLogs(): void
+    {
+        $this->requireAuthApi();
+
+        $resolvedParam = $_GET['resolved'] ?? null;
+        $resolved = null;
+        if ($resolvedParam !== null && $resolvedParam !== '') {
+            $resolved = in_array($resolvedParam, ['1', 'true', 'yes'], true);
+        }
+
+        $filters = [
+            'level'    => $_GET['level'] ?? null,
+            'category' => $_GET['category'] ?? null,
+            'resolved' => $resolved,
+            'user_id'  => isset($_GET['user_id']) ? (int) $_GET['user_id'] : null,
+            'search'   => $_GET['search'] ?? null,
+            'from'     => $_GET['date_from'] ?? null,
+            'to'       => $_GET['date_to'] ?? null,
+        ];
+
+        $page    = max(1, (int) ($_GET['page'] ?? 1));
+        $perPage = min(100, max(10, (int) ($_GET['per_page'] ?? 25)));
+
+        try {
+            $result = LogService::query($filters, $page, $perPage);
+            Response::success($result);
+        } catch (Exception $e) {
+            Response::error('Erro ao buscar logs: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * GET /api/sysadmin/error-logs/summary
+     * Dashboard resumido de errros (últimas 24h por padrão)
+     *
+     * Query params: hours (default 24)
+     */
+    public function errorLogsSummary(): void
+    {
+        $this->requireAuthApi();
+
+        $hours = max(1, (int) ($_GET['hours'] ?? 24));
+
+        try {
+            $summary = LogService::summary($hours);
+
+            // Adicionar metadados dos enums para o frontend
+            $summary['filters'] = [
+                'levels'     => array_map(fn(LogLevel $l) => [
+                    'value' => $l->value,
+                    'label' => $l->label(),
+                    'color' => $l->color(),
+                    'icon'  => $l->icon(),
+                ], LogLevel::cases()),
+                'categories' => array_map(fn(LogCategory $c) => [
+                    'value' => $c->value,
+                    'label' => $c->label(),
+                ], LogCategory::cases()),
+            ];
+
+            Response::success($summary);
+        } catch (Exception $e) {
+            Response::error('Erro ao buscar resumo: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * PUT /api/sysadmin/error-logs/{id}/resolve
+     * Marcar um log como resolvido
+     */
+    public function resolveErrorLog(int $id): void
+    {
+        $this->requireAuthApi();
+
+        try {
+            $userId = \Application\Lib\Auth::id();
+            $resolved = LogService::resolve($id, $userId);
+
+            if ($resolved) {
+                Response::json(['success' => true, 'message' => 'Log marcado como resolvido']);
+            } else {
+                Response::error('Log não encontrado', 404);
+            }
+        } catch (Exception $e) {
+            Response::error('Erro ao resolver log: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * DELETE /api/sysadmin/error-logs/cleanup
+     * Limpar logs resolvidos antigos
+     *
+     * Query params: days (default 30)
+     */
+    public function cleanupErrorLogs(): void
+    {
+        $this->requireAuthApi();
+
+        $input = json_decode(file_get_contents('php://input'), true) ?? [];
+        $days = max(7, (int) ($input['days'] ?? $_GET['days'] ?? 30));
+
+        try {
+            $deleted = LogService::cleanup($days);
+            Response::json([
+                'success' => true,
+                'message' => "{$deleted} log(s) antigo(s) removido(s)",
+                'count'   => $deleted,
+            ]);
+        } catch (Exception $e) {
+            Response::error('Erro ao limpar logs: ' . $e->getMessage(), 500);
         }
     }
 }

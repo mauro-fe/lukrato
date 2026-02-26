@@ -13,6 +13,7 @@ use Application\DTO\Auth\CredentialsDTO;
 use Application\DTO\Auth\RegistrationDTO;
 use Application\Core\Request;
 use Application\Services\LogService;
+use Application\Enums\LogCategory;
 use Application\Models\AssinaturaUsuario;
 use Application\Models\Plano;
 use Application\Models\Usuario;
@@ -69,8 +70,10 @@ class AuthService
                     $this->processarIndicacao((int) $result['user_id'], $referralCode);
                 }
 
-                // Envia email de boas-vindas (em background para não bloquear)
-                $this->enviarEmailBoasVindas((int) $result['user_id'], $data['email'] ?? '', $data['name'] ?? '');
+                // Envia email de verificação (pula se registro via Google, pois o Google já verifica o email)
+                if (empty($data['skip_email_verification'])) {
+                    $this->enviarEmailBoasVindas((int) $result['user_id'], $data['email'] ?? '', $data['name'] ?? '');
+                }
             } else {
                 LogService::warning('[AuthService] Registro retornou sem user_id, não foi possível criar assinatura.', [
                     'email' => $data['email'] ?? 'não-informado'
@@ -83,11 +86,9 @@ class AuthService
 
             return $result;
         } catch (Throwable $e) {
-            LogService::error('[AuthService] Exceção capturada no processo de registro.', [
-                'message' => $e->getMessage(),
-                'file'    => $e->getFile(),
-                'line'    => $e->getLine(),
-                'trace'   => $e->getTraceAsString()
+            LogService::captureException($e, LogCategory::AUTH, [
+                'action' => 'registro',
+                'email' => $data['email'] ?? 'não-informado',
             ]);
 
             throw $e;
@@ -136,11 +137,9 @@ class AuthService
                 'code'     => $plano->code,
             ]);
         } catch (Throwable $e) {
-            LogService::error('[AuthService] Erro ao criar assinatura padrão.', [
+            LogService::captureException($e, LogCategory::AUTH, [
+                'action' => 'criar_assinatura_padrao',
                 'user_id' => $userId,
-                'message' => $e->getMessage(),
-                'file'    => $e->getFile(),
-                'line'    => $e->getLine(),
             ]);
         }
     }
@@ -160,39 +159,40 @@ class AuthService
                 return;
             }
 
-            // Categorias de Despesa
+            // Categorias de Despesa: [nome, ícone Lucide]
             $categoriasDespesa = [
-                '🏠 Moradia',
-                '🍔 Alimentação',
-                '🚗 Transporte',
-                '💡 Contas e Serviços',
-                '🏥 Saúde',
-                '🎓 Educação',
-                '👕 Vestuário',
-                '🎬 Lazer',
-                '💳 Cartão de Crédito',
-                '📱 Assinaturas',
-                '🛒 Compras',
-                '💰 Outros Gastos',
+                ['Moradia',           'house'],
+                ['Alimentação',       'utensils'],
+                ['Transporte',        'car'],
+                ['Contas e Serviços', 'lightbulb'],
+                ['Saúde',             'heart-pulse'],
+                ['Educação',          'graduation-cap'],
+                ['Vestuário',         'shirt'],
+                ['Lazer',             'clapperboard'],
+                ['Cartão de Crédito', 'credit-card'],
+                ['Assinaturas',       'smartphone'],
+                ['Compras',           'shopping-cart'],
+                ['Outros Gastos',     'coins'],
             ];
 
-            // Categorias de Receita
+            // Categorias de Receita: [nome, ícone Lucide]
             $categoriasReceita = [
-                '💼 Salário',
-                '💰 Freelance',
-                '📈 Investimentos',
-                '🎁 Bônus',
-                '💸 Vendas',
-                '🏆 Prêmios',
-                '💵 Outras Receitas',
+                ['Salário',           'briefcase'],
+                ['Freelance',         'laptop'],
+                ['Investimentos',     'trending-up'],
+                ['Bônus',             'gift'],
+                ['Vendas',            'banknote'],
+                ['Prêmios',           'trophy'],
+                ['Outras Receitas',   'wallet'],
             ];
 
             $criadas = 0;
 
             // Criar despesas (sem acionar gamificação)
-            foreach ($categoriasDespesa as $nome) {
+            foreach ($categoriasDespesa as [$nome, $icone]) {
                 Categoria::create([
                     'nome' => $nome,
+                    'icone' => $icone,
                     'tipo' => 'despesa',
                     'user_id' => $userId,
                     'is_auto_seed' => true, // Flag para não dar pontos
@@ -201,9 +201,10 @@ class AuthService
             }
 
             // Criar receitas (sem acionar gamificação)
-            foreach ($categoriasReceita as $nome) {
+            foreach ($categoriasReceita as [$nome, $icone]) {
                 Categoria::create([
                     'nome' => $nome,
+                    'icone' => $icone,
                     'tipo' => 'receita',
                     'user_id' => $userId,
                     'is_auto_seed' => true, // Flag para não dar pontos
@@ -216,11 +217,9 @@ class AuthService
                 'total_criadas' => $criadas,
             ]);
         } catch (Throwable $e) {
-            LogService::error('[AuthService] Erro ao criar categorias padrão.', [
+            LogService::captureException($e, LogCategory::AUTH, [
+                'action' => 'criar_categorias_padrao',
                 'user_id' => $userId,
-                'message' => $e->getMessage(),
-                'file'    => $e->getFile(),
-                'line'    => $e->getLine(),
             ]);
         }
     }
@@ -260,10 +259,10 @@ class AuthService
             }
         } catch (Throwable $e) {
             // Não propaga erro - email de verificação não deve impedir o registro
-            LogService::error('[AuthService] Erro ao enviar email de verificação.', [
+            LogService::captureException($e, LogCategory::NOTIFICATION, [
+                'action' => 'enviar_email_verificacao',
                 'user_id' => $userId,
                 'email' => $email,
-                'message' => $e->getMessage(),
             ]);
         }
     }
@@ -310,10 +309,10 @@ class AuthService
             }
         } catch (Throwable $e) {
             // Não propaga erro - indicação não deve impedir o registro
-            LogService::error('[AuthService] Erro ao processar indicação.', [
+            LogService::captureException($e, LogCategory::AUTH, [
+                'action' => 'processar_indicacao',
                 'user_id' => $userId,
                 'referral_code' => $referralCode,
-                'message' => $e->getMessage(),
             ]);
         }
     }

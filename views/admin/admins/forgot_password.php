@@ -15,7 +15,10 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
 
     <title>Recuperar senha - Lukrato</title>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css">
+    <!-- Lucide Icons + FA Brands -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/brands.min.css">
+    <link rel="stylesheet" href="<?= rtrim(BASE_URL, '/') ?>/assets/css/lucide-compat.css">
+    <script src="<?= rtrim(BASE_URL, '/') ?>/assets/js/lucide.min.js"></script>
     <style>
         /* Paleta e tokens */
         :root {
@@ -339,21 +342,19 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
         }
 
         /* Ícone animado no campo */
-        .field::before {
-            content: '\f0e0';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
+        .field-icon {
             position: absolute;
             right: 18px;
             top: 50%;
             transform: translateY(-50%);
             color: var(--muted);
-            font-size: 18px;
+            width: 18px;
+            height: 18px;
             pointer-events: none;
             transition: all 0.3s ease;
         }
 
-        .field:has(input:focus)::before {
+        .field:has(input:focus) .field-icon {
             color: var(--orange);
             transform: translateY(-50%) scale(1.1);
         }
@@ -477,10 +478,10 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
             }
         }
 
-        .msg::before {
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            font-size: 16px;
+        .msg svg {
+            flex-shrink: 0;
+            width: 18px;
+            height: 18px;
         }
 
         .msg-error {
@@ -489,18 +490,10 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
             color: var(--error);
         }
 
-        .msg-error::before {
-            content: '\f06a';
-        }
-
         .msg-success {
             background: rgba(121, 230, 160, 0.1);
             border: 1px solid rgba(121, 230, 160, 0.3);
             color: var(--success);
-        }
-
-        .msg-success::before {
-            content: '\f058';
         }
 
         /* RESPONSIVE */
@@ -583,6 +576,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
                         <div class="field">
                             <input type="email" name="email" id="email" placeholder="Digite seu e-mail"
                                 autocomplete="email" required>
+                            <i data-lucide="mail" class="field-icon"></i>
                         </div>
 
                         <button type="submit" class="btn-primary" id="submitBtn">
@@ -590,7 +584,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
                         </button>
 
                         <p class="extra-link">
-                            <a href="<?= BASE_URL ?>login"> <i class="fas fa-arrow-left"></i>
+                            <a href="<?= BASE_URL ?>login"> <i data-lucide="arrow-left"></i>
                                 Voltar para o login</a>
                         </p>
 
@@ -631,11 +625,14 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
         const messageContainer = document.getElementById('messageContainer');
 
         function showMessage(type, text) {
+            const iconName = type === 'error' ? 'circle-alert' : 'circle-check';
             messageContainer.innerHTML = `
                 <div class="msg msg-${type}">
+                    <i data-lucide="${iconName}"></i>
                     ${text}
                 </div>
             `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
         function clearMessage() {
@@ -816,6 +813,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
         `;
         document.head.appendChild(rainbowStyle);
     </script>
+    <script src="<?= rtrim(BASE_URL, '/') ?>/assets/js/lucide-init.js"></script>
 
     <!-- Script de CSRF para renovação automática -->
     <script src="<?= BASE_URL ?>assets/js/csrf-keep-alive.js"></script>

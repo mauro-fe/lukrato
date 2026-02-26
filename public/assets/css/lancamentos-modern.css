@@ -197,50 +197,17 @@
    BOTÕES MODERNOS
    ============================================================================ */
 
-.modern-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-3) var(--spacing-6);
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-base);
-  font-weight: 700;
-  font-family: var(--font-primary);
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  font-size: var(--font-size-sm);
-}
-
-.modern-btn::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.modern-btn:hover::before {
-  opacity: 1;
-}
-
-.modern-btn:active {
-  transform: scale(0.97);
-}
-
-.modern-btn i {
+.modern-btn i,
+.modern-btn svg {
   font-size: 16px;
+  width: 16px;
+  height: 16px;
 }
 
 /* Botão Primary */
 .modern-btn.primary {
   background: var(--color-primary);
-  color: #ffffff;
+  color: var(--color-text);
   box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
 }
 
@@ -259,7 +226,7 @@
 /* Botão Danger */
 .modern-btn.danger {
   background: linear-gradient(135deg, var(--color-danger), #c0392b);
-  color: #ffffff;
+  color: var(--color-text);
   box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
 }
 
@@ -473,11 +440,11 @@
 }
 
 .lk-table thead th.sortable.sort-asc .sort-icon::before {
-  content: "\f0de"; /* fa-sort-up */
+  content: "\25B2"; /* sort-up triangle */
 }
 
 .lk-table thead th.sortable.sort-desc .sort-icon::before {
-  content: "\f0dd"; /* fa-sort-down */
+  content: "\25BC"; /* sort-down triangle */
 }
 
 .lk-table thead th.sortable.sort-asc .sort-icon,
@@ -1361,7 +1328,8 @@
   box-sizing: border-box;
 }
 
-.pro-message i.fa-crown {
+.pro-message i[data-lucide="crown"],
+.pro-message i.lucide-crown {
   font-size: 2.5rem;
   color: #f59e0b;
   margin-bottom: var(--spacing-3);
@@ -1404,8 +1372,11 @@
   color: #fff;
 }
 
-.btn-pro i {
+.btn-pro i,
+.btn-pro svg {
   font-size: 0.9rem;
+  width: 0.9rem;
+  height: 0.9rem;
 }
 
 .disabled-blur {
@@ -1428,7 +1399,8 @@
     padding: var(--spacing-3);
   }
 
-  .pro-message i.fa-crown {
+  .pro-message i[data-lucide="crown"],
+  .pro-message i.lucide-crown {
     font-size: 2rem;
     margin-bottom: var(--spacing-2);
   }
@@ -1457,7 +1429,8 @@
     padding: var(--spacing-2);
   }
 
-  .pro-message i.fa-crown {
+  .pro-message i[data-lucide="crown"],
+  .pro-message i.lucide-crown {
     font-size: 1.75rem;
     margin-bottom: var(--spacing-2);
   }
@@ -3132,9 +3105,12 @@
     border: 1px solid rgba(231, 76, 60, 0.4) !important;
   }
 
-  .lan-card-detail-value.actions-slot .lk-btn i {
+  .lan-card-detail-value.actions-slot .lk-btn i,
+  .lan-card-detail-value.actions-slot .lk-btn svg {
     display: block !important;
     font-size: 0.75rem !important;
+    width: 0.75rem !important;
+    height: 0.75rem !important;
     visibility: visible !important;
     opacity: 1 !important;
   }
@@ -3278,9 +3254,12 @@
     border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent) !important;
   }
 
-  .lan-card-detail-value.actions-slot .lk-btn i {
+  .lan-card-detail-value.actions-slot .lk-btn i,
+  .lan-card-detail-value.actions-slot .lk-btn svg {
     display: block !important;
     font-size: 0.75rem !important;
+    width: 0.75rem !important;
+    height: 0.75rem !important;
     visibility: visible !important;
     opacity: 1 !important;
   }
@@ -3678,8 +3657,11 @@
   transform: scale(0.97);
 }
 
-.modern-btn i {
+.modern-btn i,
+.modern-btn svg {
   font-size: 16px;
+  width: 16px;
+  height: 16px;
 }
 
 .modern-btn.primary {

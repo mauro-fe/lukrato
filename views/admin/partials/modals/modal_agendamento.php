@@ -563,14 +563,14 @@
 </style>
 
 <!-- ==================== MODAL AGENDAMENTO (REDESENHADO) ==================== -->
-<div class="modal fade modern-modal" id="modalAgendamento" tabindex="-1" aria-labelledby="modalAgendamentoLabel"
+<div class="modal fade modern-modal" id="modalAgendamento" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="modalAgendamentoLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header modern-header">
                 <div class="modal-title-wrapper">
                     <div class="modal-icon">
-                        <i class="fas fa-calendar-plus"></i>
+                        <i data-lucide="calendar-plus"></i>
                     </div>
                     <div>
                         <h5 class="modal-title" id="modalAgendamentoLabel">Novo Agendamento</h5>
@@ -591,7 +591,7 @@
                     <div class="form-row">
                         <div class="form-group col-tipo">
                             <label for="agTipo" class="form-label">
-                                <i class="fas fa-tag"></i> Tipo
+                                <i data-lucide="tag"></i> Tipo
                             </label>
                             <select id="agTipo" name="tipo" class="form-control modern-select" required>
                                 <option value="despesa">💰 Despesa</option>
@@ -600,7 +600,7 @@
                         </div>
                         <div class="form-group col-titulo">
                             <label for="agTitulo" class="form-label">
-                                <i class="fas fa-align-left"></i> Descrição <span class="required-asterisk">*</span>
+                                <i data-lucide="align-left"></i> Descrição <span class="required-asterisk">*</span>
                             </label>
                             <input type="text" id="agTitulo" name="titulo" class="form-control"
                                 placeholder="Ex: Aluguel, Salário, Netflix..." required maxlength="160">
@@ -611,7 +611,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="agCategoria" class="form-label">
-                                <i class="fas fa-folder"></i> Categoria <span class="required-asterisk">*</span>
+                                <i data-lucide="folder"></i> Categoria <span class="required-asterisk">*</span>
                             </label>
                             <select id="agCategoria" name="categoria_id" class="form-control modern-select" required>
                                 <option value="" disabled selected>Selecione uma categoria...</option>
@@ -619,7 +619,7 @@
                         </div>
                         <div class="form-group">
                             <label for="agValor" class="form-label">
-                                <i class="fas fa-dollar-sign"></i> Valor <span class="required-asterisk">*</span>
+                                <i data-lucide="dollar-sign"></i> Valor <span class="required-asterisk">*</span>
                             </label>
                             <input type="text" id="agValor" name="valor" class="form-control" placeholder="R$ 0,00"
                                 required>
@@ -630,7 +630,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="agConta" class="form-label">
-                                <i class="fas fa-wallet"></i> Conta
+                                <i data-lucide="wallet"></i> Conta
                                 <span class="optional-badge">opcional</span>
                             </label>
                             <select id="agConta" name="conta_id" class="form-control modern-select">
@@ -639,7 +639,7 @@
                         </div>
                         <div class="form-group">
                             <label for="agDataPagamento" class="form-label">
-                                <i class="fas fa-calendar-alt"></i> Data de Execução <span class="required-asterisk">*</span>
+                                <i data-lucide="calendar-days"></i> Data de Execução <span class="required-asterisk">*</span>
                             </label>
                             <input type="datetime-local" id="agDataPagamento" name="data_pagamento" class="form-control"
                                 required>
@@ -649,7 +649,7 @@
                     <!-- Recorrência -->
                     <div class="form-group" id="recorrenciaGroup">
                         <label for="agFrequencia" class="form-label">
-                            <i class="fas fa-sync-alt"></i> Recorrência
+                            <i data-lucide="refresh-cw"></i> Recorrência
                         </label>
                         <select id="agFrequencia" name="recorrencia_freq" class="form-control modern-select">
                             <option value="">Não repetir (único)</option>
@@ -665,7 +665,7 @@
                     <!-- Forma de Pagamento -->
                     <div class="form-group" id="agFormaPagamentoGroup">
                         <label for="agFormaPagamento" class="form-label">
-                            <i class="fas fa-credit-card"></i> Forma de Pagamento
+                            <i data-lucide="credit-card"></i> Forma de Pagamento
                             <span class="optional-badge">opcional</span>
                         </label>
                         <select id="agFormaPagamento" name="forma_pagamento" class="form-control modern-select">
@@ -681,7 +681,7 @@
                     <!-- Parcelamento Moderno -->
                     <div class="form-group" id="parcelamentoGroup">
                         <label class="form-label">
-                            <i class="fas fa-credit-card"></i> Parcelamento
+                            <i data-lucide="credit-card"></i> Parcelamento
                             <span class="optional-badge">opcional</span>
                         </label>
 
@@ -703,20 +703,20 @@
                             <div class="parcelamento-config" id="parcelasInputGroup" style="display: none;">
                                 <div class="parcelas-input-wrapper">
                                     <div class="parcelas-label">
-                                        <i class="fas fa-layer-group"></i>
+                                        <i data-lucide="layers"></i>
                                         <span>Número de parcelas</span>
                                     </div>
                                     <div class="parcelas-input-group">
                                         <button type="button" class="parcelas-btn parcelas-minus"
                                             onclick="adjustParcelas(-1)">
-                                            <i class="fas fa-minus"></i>
+                                            <i data-lucide="minus"></i>
                                         </button>
                                         <input type="text" inputmode="numeric" pattern="[0-9]*" id="agNumeroParcelas"
                                             name="numero_parcelas" class="parcelas-input" value="2" placeholder="2"
                                             style="color: #fff !important; background: transparent !important; font-size: 1.2rem; font-weight: 700;">
                                         <button type="button" class="parcelas-btn parcelas-plus"
                                             onclick="adjustParcelas(1)">
-                                            <i class="fas fa-plus"></i>
+                                            <i data-lucide="plus"></i>
                                         </button>
                                         <span class="parcelas-suffix">x</span>
                                     </div>
@@ -739,7 +739,7 @@
                     <!-- Tempo de Aviso -->
                     <div class="form-group">
                         <label for="agTempoAviso" class="form-label">
-                            <i class="fas fa-clock"></i> Avisar com antecedência
+                            <i data-lucide="clock"></i> Avisar com antecedência
                         </label>
                         <select id="agTempoAviso" name="tempo_aviso" class="form-control modern-select">
                             <option value="0">No momento da execução</option>
@@ -761,7 +761,7 @@
                     <!-- Notificações -->
                     <div class="form-group">
                         <label class="form-label d-block">
-                            <i class="fas fa-bell"></i> Canais de Notificação
+                            <i data-lucide="bell"></i> Canais de Notificação
                         </label>
                         <div class="d-flex flex-column gap-2">
                             <div class="form-check">
@@ -785,11 +785,11 @@
 
             <div class="modal-footer modern-footer">
                 <button type="button" class="btn-modern btn-secondary-modern" data-bs-dismiss="modal">
-                    <i class="fas fa-times"></i>
+                    <i data-lucide="x"></i>
                     <span>Cancelar</span>
                 </button>
                 <button type="submit" form="formAgendamento" class="btn-modern btn-primary-modern">
-                    <i class="fas fa-save"></i>
+                    <i data-lucide="save"></i>
                     <span>Salvar Agendamento</span>
                 </button>
             </div>
@@ -921,13 +921,13 @@
     }
 </style>
 
-<div class="modal fade" id="modalExecutarAgendamento" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalExecutarAgendamento" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header modern-header">
                 <div class="d-flex align-items-center gap-3">
                     <div class="modal-icon">
-                        <i class="fas fa-check-circle"></i>
+                        <i data-lucide="circle-check"></i>
                     </div>
                     <div>
                         <h5 class="modal-title">Registrar Pagamento</h5>
@@ -951,7 +951,7 @@
                 <!-- Conta -->
                 <div class="form-group">
                     <label for="execConta" class="form-label">
-                        <i class="fas fa-wallet"></i> Conta
+                        <i data-lucide="wallet"></i> Conta
                     </label>
                     <select id="execConta" name="conta_id" class="form-control">
                         <option value="">Selecione a conta</option>
@@ -962,7 +962,7 @@
                 <!-- Forma de Pagamento -->
                 <div class="form-group">
                     <label for="execFormaPagamento" class="form-label">
-                        <i class="fas fa-credit-card"></i> Forma de Pagamento
+                        <i data-lucide="credit-card"></i> Forma de Pagamento
                     </label>
                     <select id="execFormaPagamento" name="forma_pagamento" class="form-control">
                         <option value="">Selecione (opcional)</option>
@@ -979,10 +979,10 @@
 
             <div class="modal-footer" style="border: 0; padding: var(--spacing-4) var(--spacing-5) var(--spacing-5);">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-2"></i>Cancelar
+                    <i data-lucide="x" class="me-2"></i>Cancelar
                 </button>
                 <button type="button" class="btn-executar" id="btnConfirmarExecucao">
-                    <i class="fas fa-check me-2"></i>Confirmar Pagamento
+                    <i data-lucide="check" class="me-2"></i>Confirmar Pagamento
                 </button>
             </div>
         </div>

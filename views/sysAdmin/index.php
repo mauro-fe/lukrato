@@ -6,14 +6,14 @@
         <!-- Total Users Card -->
         <div class="stat-card" data-aos="fade-up" data-aos-delay="0">
             <div class="stat-icon users">
-                <i class="fas fa-users"></i>
+                <i data-lucide="users"></i>
             </div>
             <div class="stat-content">
                 <h3 class="stat-value" id="total-users"><?= number_format($metrics['totalUsers'] ?? 0, 0, ',', '.') ?>
                 </h3>
                 <p class="stat-label">Usuarios Totais</p>
                 <span class="stat-badge positive">
-                    <i class="fas fa-arrow-up"></i>
+                    <i data-lucide="arrow-up"></i>
                     +<?= number_format($metrics['newToday'] ?? 0, 0, ',', '.') ?> hoje
                 </span>
             </div>
@@ -22,13 +22,13 @@
         <!-- Admins Card -->
         <div class="stat-card" data-aos="fade-up" data-aos-delay="100">
             <div class="stat-icon admins">
-                <i class="fas fa-user-shield"></i>
+                <i data-lucide="shield-check"></i>
             </div>
             <div class="stat-content">
                 <h3 class="stat-value"><?= number_format($metrics['totalAdmins'] ?? 0, 0, ',', '.') ?></h3>
                 <p class="stat-label">Admins Ativos</p>
                 <span class="stat-badge success">
-                    <i class="fas fa-check-circle"></i>
+                    <i data-lucide="circle-check"></i>
                     Com permissoes
                 </span>
             </div>
@@ -37,27 +37,27 @@
         <!-- Error Logs Card -->
         <div class="stat-card" data-aos="fade-up" data-aos-delay="200">
             <div class="stat-icon errors">
-                <i class="fas fa-exclamation-triangle"></i>
+                <i data-lucide="triangle-alert"></i>
             </div>
             <div class="stat-content">
-                <h3 class="stat-value">3</h3>
+                <h3 class="stat-value" id="stat-error-total">–</h3>
                 <p class="stat-label">Logs de Erro</p>
-                <span class="stat-badge warning">
-                    <i class="fas fa-clock"></i>
-                    Ultimo ha 20 min
+                <span class="stat-badge warning" id="stat-error-badge">
+                    <i data-lucide="clock"></i>
+                    <span id="stat-error-unresolved">Carregando...</span>
                 </span>
             </div>
-            <a href="#" class="stat-link">Ver Logs <i class="fas fa-arrow-right"></i></a>
+            <a href="#errorLogsSection" class="stat-link" onclick="document.getElementById('errorLogsSection').scrollIntoView({behavior:'smooth'});return false;">Ver Logs <i data-lucide="arrow-right"></i></a>
         </div>
     </div>
 
     <!-- Analytics Section -->
     <div class="analytics-section" data-aos="fade-up" data-aos-delay="250">
         <h2 class="section-title">
-            <i class="fas fa-chart-line"></i>
+            <i data-lucide="line-chart"></i>
             Estatísticas e Métricas
             <button class="btn-refresh-stats" onclick="loadStats()" title="Atualizar estatísticas">
-                <i class="fas fa-sync-alt"></i>
+                <i data-lucide="refresh-cw"></i>
             </button>
         </h2>
 
@@ -65,7 +65,7 @@
         <div class="stats-overview" id="statsOverview">
             <div class="overview-card">
                 <div class="overview-icon pro">
-                    <i class="fas fa-crown"></i>
+                    <i data-lucide="crown"></i>
                 </div>
                 <div class="overview-content">
                     <span class="overview-value" id="statProUsers">-</span>
@@ -74,7 +74,7 @@
             </div>
             <div class="overview-card">
                 <div class="overview-icon free">
-                    <i class="fas fa-user"></i>
+                    <i data-lucide="user"></i>
                 </div>
                 <div class="overview-content">
                     <span class="overview-value" id="statFreeUsers">-</span>
@@ -83,7 +83,7 @@
             </div>
             <div class="overview-card">
                 <div class="overview-icon conversion">
-                    <i class="fas fa-percentage"></i>
+                    <i data-lucide="percent"></i>
                 </div>
                 <div class="overview-content">
                     <span class="overview-value" id="statConversionRate">-</span>
@@ -92,7 +92,7 @@
             </div>
             <div class="overview-card">
                 <div class="overview-icon growth">
-                    <i class="fas fa-chart-line"></i>
+                    <i data-lucide="line-chart"></i>
                 </div>
                 <div class="overview-content">
                     <span class="overview-value" id="statGrowthRate">-</span>
@@ -104,17 +104,17 @@
         <!-- New Users Summary -->
         <div class="new-users-summary">
             <div class="summary-item">
-                <i class="fas fa-calendar-day"></i>
+                <i data-lucide="calendar"></i>
                 <span class="summary-value" id="statNewToday">-</span>
                 <span class="summary-label">Novos Hoje</span>
             </div>
             <div class="summary-item">
-                <i class="fas fa-calendar-week"></i>
+                <i data-lucide="calendar-range"></i>
                 <span class="summary-value" id="statNewWeek">-</span>
                 <span class="summary-label">Esta Semana</span>
             </div>
             <div class="summary-item">
-                <i class="fas fa-calendar-alt"></i>
+                <i data-lucide="calendar-days"></i>
                 <span class="summary-value" id="statNewMonth">-</span>
                 <span class="summary-label">Este Mês</span>
             </div>
@@ -125,7 +125,7 @@
             <!-- Line Chart - Users by Day -->
             <div class="chart-card large">
                 <div class="chart-header">
-                    <h3><i class="fas fa-chart-area"></i> Novos Usuários (Últimos 30 dias)</h3>
+                    <h3><i data-lucide="area-chart"></i> Novos Usuários (Últimos 30 dias)</h3>
                 </div>
                 <div class="chart-body">
                     <canvas id="usersByDayChart"></canvas>
@@ -135,7 +135,7 @@
             <!-- Pie Chart - User Distribution -->
             <div class="chart-card">
                 <div class="chart-header">
-                    <h3><i class="fas fa-chart-pie"></i> Distribuição de Usuários</h3>
+                    <h3><i data-lucide="pie-chart"></i> Distribuição de Usuários</h3>
                 </div>
                 <div class="chart-body">
                     <canvas id="userDistributionChart"></canvas>
@@ -145,7 +145,7 @@
             <!-- Doughnut Chart - Subscriptions by Gateway -->
             <div class="chart-card">
                 <div class="chart-header">
-                    <h3><i class="fas fa-credit-card"></i> Assinaturas por Gateway</h3>
+                    <h3><i data-lucide="credit-card"></i> Assinaturas por Gateway</h3>
                 </div>
                 <div class="chart-body">
                     <canvas id="subscriptionsByGatewayChart"></canvas>
@@ -157,7 +157,7 @@
     <!-- Control Panel -->
     <div class="control-section" data-aos="fade-up" data-aos-delay="300">
         <h2 class="section-title">
-            <i class="fas fa-sliders-h"></i>
+            <i data-lucide="sliders-horizontal"></i>
             Controle Mestre
         </h2>
 
@@ -165,7 +165,7 @@
             <!-- Maintenance Card -->
             <div class="control-card">
                 <div class="control-header">
-                    <i class="fas fa-tools"></i>
+                    <i data-lucide="wrench"></i>
                     <div>
                         <h3>Manutencao e Limpeza</h3>
                         <p>Ferramentas para saude do servidor</p>
@@ -173,11 +173,11 @@
                 </div>
                 <div class="control-actions">
                     <button class="btn-control primary" onclick="limparCache()">
-                        <i class="fas fa-broom"></i>
+                        <i data-lucide="paintbrush"></i>
                         Limpar Cache do Sistema
                     </button>
                     <button class="btn-control danger" id="btnMaintenance" onclick="toggleMaintenance()">
-                        <i class="fas fa-wrench" id="btnMaintenanceIcon"></i>
+                        <i data-lucide="wrench" id="btnMaintenanceIcon"></i>
                         <span id="btnMaintenanceText">Verificando...</span>
                     </button>
                 </div>
@@ -189,7 +189,7 @@
             <!-- Cupons de Desconto Card -->
             <div class="control-card">
                 <div class="control-header">
-                    <i class="fas fa-ticket-alt"></i>
+                    <i data-lucide="ticket"></i>
                     <div>
                         <h3>Cupons de Desconto</h3>
                         <p>Gerenciar cupons promocionais</p>
@@ -197,7 +197,7 @@
                 </div>
                 <div class="control-actions">
                     <button class="btn-control primary" onclick="window.location.href='<?= BASE_URL ?>sysadmin/cupons'">
-                        <i class="fas fa-ticket-alt"></i>
+                        <i data-lucide="ticket"></i>
                         Gerenciar Cupons
                     </button>
                 </div>
@@ -206,7 +206,7 @@
             <!-- Comunicações Card -->
             <div class="control-card">
                 <div class="control-header">
-                    <i class="fas fa-bullhorn" style="color: #f59e0b;"></i>
+                    <i data-lucide="megaphone" style="color: #f59e0b;"></i>
                     <div>
                         <h3>Comunicações</h3>
                         <p>Envie mensagens e campanhas</p>
@@ -214,7 +214,7 @@
                 </div>
                 <div class="control-actions">
                     <button class="btn-control primary" onclick="window.location.href='<?= BASE_URL ?>sysadmin/comunicacoes'" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-                        <i class="fas fa-paper-plane"></i>
+                        <i data-lucide="send"></i>
                         Gerenciar Campanhas
                     </button>
                 </div>
@@ -223,7 +223,7 @@
             <!-- Grant Access Card -->
             <div class="control-card">
                 <div class="control-header">
-                    <i class="fas fa-gift"></i>
+                    <i data-lucide="gift"></i>
                     <div>
                         <h3>Liberar Acesso PRO</h3>
                         <p>Conceda acesso premium temporário</p>
@@ -231,7 +231,7 @@
                 </div>
                 <div class="control-actions">
                     <button class="btn-control success" onclick="openGrantAccessModal()">
-                        <i class="fas fa-crown"></i>
+                        <i data-lucide="crown"></i>
                         Liberar Acesso
                     </button>
                 </div>
@@ -240,7 +240,7 @@
             <!-- Revoke Access Card -->
             <div class="control-card">
                 <div class="control-header">
-                    <i class="fas fa-ban"></i>
+                    <i data-lucide="ban"></i>
                     <div>
                         <h3>Remover Acesso PRO</h3>
                         <p>Revogue o acesso premium de um usuário</p>
@@ -248,10 +248,105 @@
                 </div>
                 <div class="control-actions">
                     <button class="btn-control danger" onclick="openRevokeAccessModal()">
-                        <i class="fas fa-user-slash"></i>
+                        <i data-lucide="user-x"></i>
                         Remover Acesso
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================================== -->
+    <!-- ERROR LOGS SECTION - Real-time Monitoring      -->
+    <!-- =============================================== -->
+    <div class="error-logs-section" id="errorLogsSection" data-aos="fade-up" data-aos-delay="320">
+        <h2 class="section-title">
+            <i data-lucide="shield-alert"></i>
+            Logs de Erro em Tempo Real
+            <div class="error-logs-title-actions">
+                <label class="auto-refresh-toggle" title="Atualização automática">
+                    <input type="checkbox" id="errorLogsAutoRefresh" checked>
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label">Auto</span>
+                </label>
+                <button class="btn-refresh-stats" onclick="loadErrorLogs()" title="Atualizar logs">
+                    <i data-lucide="refresh-cw" id="errorLogsRefreshIcon"></i>
+                </button>
+            </div>
+        </h2>
+
+        <!-- Error Level Summary Cards -->
+        <div class="error-level-cards" id="errorLevelCards">
+            <div class="error-level-card level-critical">
+                <div class="error-level-icon"><i data-lucide="zap"></i></div>
+                <div class="error-level-content">
+                    <span class="error-level-value" id="levelCritical">0</span>
+                    <span class="error-level-label">Critical</span>
+                </div>
+            </div>
+            <div class="error-level-card level-error">
+                <div class="error-level-icon"><i data-lucide="x-circle"></i></div>
+                <div class="error-level-content">
+                    <span class="error-level-value" id="levelError">0</span>
+                    <span class="error-level-label">Error</span>
+                </div>
+            </div>
+            <div class="error-level-card level-warning">
+                <div class="error-level-icon"><i data-lucide="alert-triangle"></i></div>
+                <div class="error-level-content">
+                    <span class="error-level-value" id="levelWarning">0</span>
+                    <span class="error-level-label">Warning</span>
+                </div>
+            </div>
+            <div class="error-level-card level-info">
+                <div class="error-level-icon"><i data-lucide="info"></i></div>
+                <div class="error-level-content">
+                    <span class="error-level-value" id="levelInfo">0</span>
+                    <span class="error-level-label">Info</span>
+                </div>
+            </div>
+            <div class="error-level-card level-unresolved">
+                <div class="error-level-icon"><i data-lucide="clock"></i></div>
+                <div class="error-level-content">
+                    <span class="error-level-value" id="levelUnresolved">0</span>
+                    <span class="error-level-label">Não Resolvidos</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Logs Filters -->
+        <div class="error-logs-filters">
+            <form id="errorLogsFilters" class="error-logs-filters-form">
+                <input type="text" name="search" class="filter-input" placeholder="Buscar mensagem, classe, arquivo..." id="errorLogSearch">
+                <select name="level" class="filter-select" id="errorLogLevel">
+                    <option value="">Todos os Níveis</option>
+                </select>
+                <select name="category" class="filter-select" id="errorLogCategory">
+                    <option value="">Todas as Categorias</option>
+                </select>
+                <select name="resolved" class="filter-select" id="errorLogResolved">
+                    <option value="">Todos</option>
+                    <option value="0" selected>Não Resolvidos</option>
+                    <option value="1">Resolvidos</option>
+                </select>
+                <select name="per_page" class="filter-select" id="errorLogPerPage">
+                    <option value="15">15 por página</option>
+                    <option value="25">25 por página</option>
+                    <option value="50">50 por página</option>
+                    <option value="100">100 por página</option>
+                </select>
+                <button type="submit" class="btn-control primary"><i data-lucide="filter"></i> Filtrar</button>
+                <button type="button" class="btn-control danger" onclick="confirmCleanupLogs()" title="Limpar logs antigos resolvidos">
+                    <i data-lucide="trash-2"></i> Limpar
+                </button>
+            </form>
+        </div>
+
+        <!-- Error Logs Table -->
+        <div class="error-logs-table-wrapper" id="errorLogsTableWrapper">
+            <div class="error-logs-loading">
+                <i data-lucide="loader-2" class="icon-spin"></i>
+                <span>Carregando logs...</span>
             </div>
         </div>
     </div>
@@ -276,7 +371,7 @@
                 <option value="50">50 por página</option>
                 <option value="100">100 por página</option>
             </select>
-            <button type="submit" class="btn-control primary"><i class="fas fa-filter"></i> Filtrar</button>
+            <button type="submit" class="btn-control primary"><i data-lucide="filter"></i> Filtrar</button>
         </form>
     </div>
 
@@ -344,11 +439,19 @@
 
         if (maintenanceActive) {
             btn.className = 'btn-control success';
-            icon.className = 'fas fa-check-circle';
+            icon.setAttribute('data-lucide', 'circle-check');
+            icon.className = '';
+            if (window.lucide) lucide.createIcons({
+                nodes: [icon]
+            });
             text.textContent = 'Desativar Manutenção (ATIVO)';
         } else {
             btn.className = 'btn-control danger';
-            icon.className = 'fas fa-wrench';
+            icon.setAttribute('data-lucide', 'wrench');
+            icon.className = '';
+            if (window.lucide) lucide.createIcons({
+                nodes: [icon]
+            });
             text.textContent = 'Ativar Modo Manutenção';
         }
     }
@@ -474,10 +577,10 @@
         if (!btn) return;
 
         const icon = btn.querySelector('i');
-        if (icon) icon.classList.add('fa-spin');
+        if (icon) icon.classList.add('icon-spin');
 
         setTimeout(() => {
-            if (icon) icon.classList.remove('fa-spin');
+            if (icon) icon.classList.remove('icon-spin');
             if (window.Swal) {
                 Swal.fire({
                     icon: 'success',
@@ -526,7 +629,7 @@
 
                     enderecoHtml = `
                         <div class="detail-section">
-                            <h4><i class="fas fa-map-marker-alt" style="color: #3b82f6;"></i> Endereço</h4>
+                            <h4><i data-lucide="map-pin" style="color: #3b82f6;"></i> Endereço</h4>
                             ${end.rua ? `<div class="detail-row">
                                 <span class="detail-label">Logradouro</span>
                                 <span class="detail-value">${end.rua}${end.numero ? ', ' + end.numero : ''}</span>
@@ -552,9 +655,9 @@
                 } else {
                     enderecoHtml = `
                         <div class="detail-section">
-                            <h4><i class="fas fa-map-marker-alt" style="color: #94a3b8;"></i> Endereço</h4>
+                            <h4><i data-lucide="map-pin" style="color: #94a3b8;"></i> Endereço</h4>
                             <p style="color: var(--color-text-muted); font-size: 14px;">
-                                <i class="fas fa-info-circle"></i> Endereço não cadastrado
+                                <i data-lucide="info"></i> Endereço não cadastrado
                             </p>
                         </div>
                     `;
@@ -587,7 +690,7 @@
 
                     subscriptionHtml = `
                         <div class="detail-section">
-                            <h4><i class="fas fa-crown" style="color: #f59e0b;"></i> Assinatura</h4>
+                            <h4><i data-lucide="crown" style="color: #f59e0b;"></i> Assinatura</h4>
                             <div class="detail-row">
                                 <span class="detail-label">Status</span>
                                 <span class="detail-value badge-${statusClass}">${statusText}</span>
@@ -609,16 +712,16 @@
                 } else {
                     subscriptionHtml = `
                         <div class="detail-section">
-                            <h4><i class="fas fa-crown" style="color: #94a3b8;"></i> Assinatura</h4>
+                            <h4><i data-lucide="crown" style="color: #94a3b8;"></i> Assinatura</h4>
                             <p style="color: var(--color-text-muted); font-size: 14px;">
-                                <i class="fas fa-info-circle"></i> Usuário não possui assinatura PRO
+                                <i data-lucide="info"></i> Usuário não possui assinatura PRO
                             </p>
                         </div>
                     `;
                 }
 
                 Swal.fire({
-                    title: `<i class="fas fa-user-circle"></i> Detalhes do Usuário`,
+                    title: `<i data-lucide="circle-user"></i> Detalhes do Usuário`,
                     html: `
                         <div class="user-details-modal">
                             <div class="user-header-info">
@@ -626,12 +729,12 @@
                                 <div class="user-main-info">
                                     <h3>${user.nome || 'Sem nome'}</h3>
                                     <p>${user.email || 'Sem email'}</p>
-                                    ${user.is_admin == 1 ? '<span class="badge-admin"><i class="fas fa-shield-alt"></i> Administrador</span>' : '<span class="badge-user"><i class="fas fa-user"></i> Usuário</span>'}
+                                    ${user.is_admin == 1 ? '<span class="badge-admin"><i data-lucide="shield"></i> Administrador</span>' : '<span class="badge-user"><i data-lucide="user"></i> Usuário</span>'}
                                 </div>
                             </div>
 
                             <div class="detail-section">
-                                <h4><i class="fas fa-info-circle"></i> Informações Gerais</h4>
+                                <h4><i data-lucide="info"></i> Informações Gerais</h4>
                                 <div class="detail-row">
                                     <span class="detail-label">ID</span>
                                     <span class="detail-value">#${user.id}</span>
@@ -711,7 +814,7 @@
                 <div style="text-align: left;">
                     <div style="margin-bottom: 15px;">
                         <label style="display: block; margin-bottom: 5px; font-weight: 600;">
-                            <i class="fas fa-user"></i> Nome
+                            <i data-lucide="user"></i> Nome
                         </label>
                         <input type="text" id="editNome" class="swal2-input" value="${user.nome || ''}" 
                             style="margin: 0; width: 100%;">
@@ -719,7 +822,7 @@
                     
                     <div style="margin-bottom: 15px;">
                         <label style="display: block; margin-bottom: 5px; font-weight: 600;">
-                            <i class="fas fa-envelope"></i> Email
+                            <i data-lucide="mail"></i> Email
                         </label>
                         <input type="email" id="editEmail" class="swal2-input" value="${user.email || ''}" 
                             style="margin: 0; width: 100%;">
@@ -727,7 +830,7 @@
                     
                     <div style="margin-bottom: 15px;">
                         <label style="display: block; margin-bottom: 5px; font-weight: 600;">
-                            <i class="fas fa-lock"></i> Nova Senha (deixe em branco para manter)
+                            <i data-lucide="lock"></i> Nova Senha (deixe em branco para manter)
                         </label>
                         <input type="password" id="editSenha" class="swal2-input" placeholder="••••••" 
                             style="margin: 0; width: 100%;">
@@ -735,7 +838,7 @@
                     
                     <div style="margin-bottom: 15px;">
                         <label style="display: block; margin-bottom: 5px; font-weight: 600;">
-                            <i class="fas fa-shield-alt"></i> Status de Admin
+                            <i data-lucide="shield"></i> Status de Admin
                         </label>
                         <select id="editIsAdmin" class="swal2-select" style="margin: 0; width: 100%;">
                             <option value="0" ${user.is_admin == 0 ? 'selected' : ''}>Usuário Normal</option>
@@ -746,7 +849,7 @@
                     ${user.subscription ? `
                     <div class="subscription-info-box">
                         <h4 style="margin: 0 0 8px 0; font-size: 14px;">
-                            <i class="fas fa-crown" style="color: #f59e0b;"></i> Assinatura Atual
+                            <i data-lucide="crown" style="color: #f59e0b;"></i> Assinatura Atual
                         </h4>
                         <p style="margin: 0; font-size: 13px;">
                             <strong>Status:</strong> ${user.subscription.status}<br>
@@ -760,14 +863,14 @@
 
                 // Abrir modal de edição
                 Swal.fire({
-                    title: '<i class="fas fa-user-edit"></i> Editar Usuário',
+                    title: '<i data-lucide="user-pen"></i> Editar Usuário',
                     html: formHtml,
                     customClass: {
                         popup: 'sysadmin-swal'
                     },
                     showCancelButton: true,
-                    confirmButtonText: '<i class="fas fa-save"></i> Salvar',
-                    cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+                    confirmButtonText: '<i data-lucide="save"></i> Salvar',
+                    cancelButtonText: '<i data-lucide="x"></i> Cancelar',
                     confirmButtonColor: '#10b981',
                     cancelButtonColor: '#94a3b8',
                     width: '500px',
@@ -919,12 +1022,12 @@
 
     function openGrantAccessModal() {
         Swal.fire({
-            title: '<i class="fas fa-crown"></i> Liberar Acesso PRO',
+            title: '<i data-lucide="crown"></i> Liberar Acesso PRO',
             html: `
             <div style="text-align: left;">
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; margin-bottom: 8px; font-weight: 600;">
-                        <i class="fas fa-user"></i> Email ou ID do Usuário
+                        <i data-lucide="user"></i> Email ou ID do Usuário
                     </label>
                     <input type="text" id="grantUserId" class="swal2-input" placeholder="Digite o email ou ID" 
                         style="margin: 0; width: 100%;">
@@ -932,7 +1035,7 @@
                 
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; margin-bottom: 8px; font-weight: 600;">
-                        <i class="fas fa-calendar-alt"></i> Período
+                        <i data-lucide="calendar-days"></i> Período
                     </label>
                     <select id="grantPeriod" class="swal2-select" style="margin: 0; width: 100%;">
                         <option value="7">1 Semana (7 dias)</option>
@@ -949,7 +1052,7 @@
                 
                 <div id="customDaysDiv" style="margin-bottom: 20px; display: none;">
                     <label style="display: block; margin-bottom: 8px; font-weight: 600;">
-                        <i class="fas fa-hashtag"></i> Dias Personalizados
+                        <i data-lucide="hash"></i> Dias Personalizados
                     </label>
                     <input type="number" id="customDays" class="swal2-input" placeholder="Digite o número de dias" 
                         min="1" style="margin: 0; width: 100%;">
@@ -960,8 +1063,8 @@
                 popup: 'sysadmin-swal'
             },
             showCancelButton: true,
-            confirmButtonText: '<i class="fas fa-check"></i> Liberar Acesso',
-            cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+            confirmButtonText: '<i data-lucide="check"></i> Liberar Acesso',
+            cancelButtonText: '<i data-lucide="x"></i> Cancelar',
             confirmButtonColor: '#f97316',
             cancelButtonColor: '#94a3b8',
             width: '500px',
@@ -1058,12 +1161,12 @@
 
     function openRevokeAccessModal() {
         Swal.fire({
-            title: '<i class="fas fa-ban"></i> Remover Acesso PRO',
+            title: '<i data-lucide="ban"></i> Remover Acesso PRO',
             html: `
             <div style="text-align: left;">
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; margin-bottom: 8px; font-weight: 600;">
-                        <i class="fas fa-user"></i> Email ou ID do Usuário
+                        <i data-lucide="user"></i> Email ou ID do Usuário
                     </label>
                     <input type="text" id="revokeUserId" class="swal2-input" placeholder="Digite o email ou ID" 
                         style="margin: 0; width: 100%;">
@@ -1071,7 +1174,7 @@
                 
                 <div style="background: rgba(239, 68, 68, 0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.3);">
                     <p style="margin: 0; font-size: 13px; color: var(--color-text);">
-                        <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
+                        <i data-lucide="triangle-alert" style="color: #ef4444;"></i>
                         <strong>Atenção:</strong> Esta ação irá cancelar imediatamente o acesso PRO do usuário.
                     </p>
                 </div>
@@ -1081,8 +1184,8 @@
                 popup: 'sysadmin-swal'
             },
             showCancelButton: true,
-            confirmButtonText: '<i class="fas fa-ban"></i> Remover Acesso',
-            cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+            confirmButtonText: '<i data-lucide="ban"></i> Remover Acesso',
+            cancelButtonText: '<i data-lucide="x"></i> Cancelar',
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#94a3b8',
             width: '500px',
@@ -1186,20 +1289,20 @@
             `<thead><tr><th>ID</th><th>Nome</th><th>Email</th><th>Plano</th><th>Status</th><th>Data de Cadastro</th><th class='text-center'>Ações</th></tr></thead><tbody>`;
         if (users.length === 0) {
             html +=
-                `<tr><td colspan='7' class='text-center' style='padding:2rem;'><i class='fas fa-inbox' style='font-size:3rem;color:var(--color-text-muted);margin-bottom:1rem;'></i><p style='color:var(--color-text-muted);'>Nenhum usuário encontrado</p></td></tr>`;
+                `<tr><td colspan='7' class='text-center' style='padding:2rem;'><i data-lucide='inbox' style='font-size:3rem;color:var(--color-text-muted);margin-bottom:1rem;'></i><p style='color:var(--color-text-muted);'>Nenhum usuário encontrado</p></td></tr>`;
         } else {
             users.forEach(u => {
                 const planBadge = u.is_pro ?
-                    `<span class='badge-status pro' style='background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-weight:600;'><i class='fas fa-crown'></i> Pro</span>` :
-                    `<span class='badge-status free' style='background:#e5e7eb;color:#6b7280;font-weight:500;'><i class='fas fa-user'></i> Free</span>`;
+                    `<span class='badge-status pro' style='background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-weight:600;'><i data-lucide='crown'></i> Pro</span>` :
+                    `<span class='badge-status free' style='background:#e5e7eb;color:#6b7280;font-weight:500;'><i data-lucide='user'></i> Free</span>`;
                 html += `<tr>
                     <td><span class='user-id'>#${u.id}</span></td>
                     <td><div class='user-info'><div class='user-avatar'>${(u.nome||'U')[0].toUpperCase()}</div><span class='user-name'>${u.nome||'-'}</span></div></td>
                     <td><span class='user-email'>${u.email||'-'}</span></td>
                     <td>${planBadge}</td>
-                    <td>${u.is_admin==1?`<span class='badge-status admin'><i class='fas fa-shield-alt'></i>Admin</span>`:`<span class='badge-status user'><i class='fas fa-user'></i>Usuário</span>`}</td>
+                    <td>${u.is_admin==1?`<span class='badge-status admin'><i data-lucide='shield'></i>Admin</span>`:`<span class='badge-status user'><i data-lucide='user'></i>Usuário</span>`}</td>
                     <td><span class='user-date'>${u.created_at?formatDate(u.created_at):'-'}</span></td>
-                    <td class='text-center'><div class='action-buttons'><button class='btn-action view' title='Ver detalhes' onclick='viewUser(${u.id})'><i class='fas fa-eye'></i></button><button class='btn-action edit' title='Editar usuário' onclick='editUser(${u.id})'><i class='fas fa-edit'></i></button><button class='btn-action delete' title='Excluir usuário' onclick='deleteUser(${u.id})'><i class='fas fa-trash'></i></button></div></td>
+                    <td class='text-center'><div class='action-buttons'><button class='btn-action view' title='Ver detalhes' onclick='viewUser(${u.id})'><i data-lucide='eye'></i></button><button class='btn-action edit' title='Editar usuário' onclick='editUser(${u.id})'><i data-lucide='pencil'></i></button><button class='btn-action delete' title='Excluir usuário' onclick='deleteUser(${u.id})'><i data-lucide='trash-2'></i></button></div></td>
                 </tr>`;
             });
         }
@@ -1224,9 +1327,9 @@
         // Controles de navegação
         html += `<div class='pagination-controls'>`;
         html +=
-            `<button class='pagination-btn' ${page<=1?'disabled':''} onclick='goToPage(1)' title='Primeira página'><i class='fas fa-angle-double-left'></i></button>`;
+            `<button class='pagination-btn' ${page<=1?'disabled':''} onclick='goToPage(1)' title='Primeira página'><i data-lucide='chevrons-left'></i></button>`;
         html +=
-            `<button class='pagination-btn' ${page<=1?'disabled':''} onclick='goToPage(${page-1})' title='Anterior'><i class='fas fa-angle-left'></i></button>`;
+            `<button class='pagination-btn' ${page<=1?'disabled':''} onclick='goToPage(${page-1})' title='Anterior'><i data-lucide='chevron-left'></i></button>`;
 
         // Números das páginas
         for (let i = Math.max(1, page - 2); i <= Math.min(totalPages, page + 2); i++) {
@@ -1234,9 +1337,9 @@
         }
 
         html +=
-            `<button class='pagination-btn' ${page>=totalPages?'disabled':''} onclick='goToPage(${page+1})' title='Próxima'><i class='fas fa-angle-right'></i></button>`;
+            `<button class='pagination-btn' ${page>=totalPages?'disabled':''} onclick='goToPage(${page+1})' title='Próxima'><i data-lucide='chevron-right'></i></button>`;
         html +=
-            `<button class='pagination-btn' ${page>=totalPages?'disabled':''} onclick='goToPage(${totalPages})' title='Última página'><i class='fas fa-angle-double-right'></i></button>`;
+            `<button class='pagination-btn' ${page>=totalPages?'disabled':''} onclick='goToPage(${totalPages})' title='Última página'><i data-lucide='chevrons-right'></i></button>`;
         html += `</div>`;
 
         html += `</div>`;
@@ -1268,6 +1371,412 @@
     fetchUsers(1);
 
     // ============================================
+    // ERROR LOGS - REAL-TIME MONITORING
+    // ============================================
+
+    let errorLogsCurrentPage = 1;
+    let errorLogsAutoRefreshTimer = null;
+    const ERROR_LOGS_REFRESH_INTERVAL = 15000; // 15 seconds
+    let errorLogFiltersLoaded = false;
+
+    // Load summary for stat card + level cards
+    async function loadErrorLogsSummary() {
+        try {
+            const res = await fetch(`${BASE_URL}api/sysadmin/error-logs/summary?hours=24`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            const data = await res.json();
+            if (!data.success) return;
+
+            const summary = data.data;
+
+            // Update stat card
+            document.getElementById('stat-error-total').textContent = (summary.total || 0).toLocaleString('pt-BR');
+            const unresolvedEl = document.getElementById('stat-error-unresolved');
+            const badgeEl = document.getElementById('stat-error-badge');
+            if (summary.unresolved > 0) {
+                unresolvedEl.textContent = `${summary.unresolved} não resolvido${summary.unresolved > 1 ? 's' : ''}`;
+                badgeEl.className = 'stat-badge warning';
+            } else {
+                unresolvedEl.textContent = 'Tudo limpo!';
+                badgeEl.className = 'stat-badge success';
+            }
+
+            // Update level cards
+            const byLevel = summary.by_level || {};
+            document.getElementById('levelCritical').textContent = byLevel['CRITICAL'] || byLevel['critical'] || 0;
+            document.getElementById('levelError').textContent = byLevel['ERROR'] || byLevel['error'] || 0;
+            document.getElementById('levelWarning').textContent = byLevel['WARNING'] || byLevel['warning'] || 0;
+            document.getElementById('levelInfo').textContent = byLevel['INFO'] || byLevel['info'] || 0;
+            document.getElementById('levelUnresolved').textContent = summary.unresolved || 0;
+
+            // Populate filter dropdowns (only once)
+            if (!errorLogFiltersLoaded && data.data.filters) {
+                populateErrorLogFilters(data.data.filters);
+                errorLogFiltersLoaded = true;
+            }
+        } catch (e) {
+            console.error('Erro ao carregar resumo de logs:', e);
+        }
+    }
+
+    function populateErrorLogFilters(filters) {
+        const levelSelect = document.getElementById('errorLogLevel');
+        const categorySelect = document.getElementById('errorLogCategory');
+
+        if (filters.levels && levelSelect) {
+            filters.levels.forEach(l => {
+                const opt = document.createElement('option');
+                opt.value = l.value;
+                opt.textContent = l.label;
+                levelSelect.appendChild(opt);
+            });
+        }
+
+        if (filters.categories && categorySelect) {
+            filters.categories.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.value;
+                opt.textContent = c.label;
+                categorySelect.appendChild(opt);
+            });
+        }
+    }
+
+    // Fetch and render error logs table
+    async function loadErrorLogs(page) {
+        if (page !== undefined) errorLogsCurrentPage = page;
+
+        const refreshIcon = document.getElementById('errorLogsRefreshIcon');
+        if (refreshIcon) refreshIcon.classList.add('icon-spin');
+
+        try {
+            // Load summary + logs in parallel
+            const form = document.getElementById('errorLogsFilters');
+            const params = new URLSearchParams(new FormData(form));
+            params.set('page', errorLogsCurrentPage);
+
+            const [logsRes] = await Promise.all([
+                fetch(`${BASE_URL}api/sysadmin/error-logs?${params.toString()}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }),
+                loadErrorLogsSummary()
+            ]);
+
+            const logsData = await logsRes.json();
+
+            if (refreshIcon) refreshIcon.classList.remove('icon-spin');
+
+            if (!logsData.success) {
+                document.getElementById('errorLogsTableWrapper').innerHTML =
+                    `<div class='error-logs-empty'><i data-lucide='alert-circle'></i><p>Erro ao carregar logs</p></div>`;
+                return;
+            }
+
+            renderErrorLogsTable(logsData.data.data, logsData.data.total, logsData.data.page, logsData.data.per_page);
+        } catch (e) {
+            if (refreshIcon) refreshIcon.classList.remove('icon-spin');
+            console.error('Erro ao carregar logs:', e);
+            document.getElementById('errorLogsTableWrapper').innerHTML =
+                `<div class='error-logs-empty'><i data-lucide='wifi-off'></i><p>Erro de conexão</p></div>`;
+        }
+    }
+
+    function renderErrorLogsTable(logs, total, page, perPage) {
+        const wrapper = document.getElementById('errorLogsTableWrapper');
+        if (!logs || logs.length === 0) {
+            wrapper.innerHTML = `
+                <div class='error-logs-empty'>
+                    <i data-lucide='check-circle-2' style='color:#10b981;'></i>
+                    <p>Nenhum log encontrado</p>
+                    <span>Sistema operando normalmente</span>
+                </div>`;
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
+        let html = `<div class='error-logs-table-card'><div class='table-responsive'><table class='error-logs-table'>`;
+        html += `<thead><tr>
+            <th style="width:40px"></th>
+            <th>Nível</th>
+            <th>Categoria</th>
+            <th>Mensagem</th>
+            <th>Arquivo</th>
+            <th>Usuário</th>
+            <th>Data</th>
+            <th class='text-center'>Ações</th>
+        </tr></thead><tbody>`;
+
+        logs.forEach(log => {
+            const levelClass = (log.level || '').toLowerCase();
+            const levelLabel = (log.level || 'N/A').toUpperCase();
+            const isResolved = !!log.resolved_at;
+            const timeAgo = getTimeAgo(log.created_at);
+            const shortMsg = truncate(log.message || log.exception_message || '(sem mensagem)', 60);
+            const fileName = log.file ? log.file.split('/').pop().split('\\\\').pop() : '–';
+            const fileLine = log.line ? `${fileName}:${log.line}` : fileName;
+
+            html += `<tr class='error-log-row ${isResolved ? "resolved" : ""}' data-log-id='${log.id}'>
+                <td><button class='btn-expand-log' onclick='toggleLogDetail(${log.id})' title='Ver detalhes'><i data-lucide='chevron-right'></i></button></td>
+                <td><span class='log-level-badge ${levelClass}'>${levelLabel}</span></td>
+                <td><span class='log-category-badge'>${log.category || '–'}</span></td>
+                <td class='log-message-cell' title='${escapeHtml(log.message || '')}'>${escapeHtml(shortMsg)}</td>
+                <td class='log-file-cell'><code>${escapeHtml(fileLine)}</code></td>
+                <td>${log.user_id ? '<span class="log-user-id">#' + log.user_id + '</span>' : '<span class="log-no-user">–</span>'}</td>
+                <td><span class='log-time' title='${log.created_at}'>${timeAgo}</span></td>
+                <td class='text-center'>
+                    ${!isResolved ? `<button class='btn-action resolve' title='Resolver' onclick='resolveErrorLog(${log.id})'><i data-lucide='check'></i></button>` : `<span class='log-resolved-badge'><i data-lucide='check-circle-2'></i></span>`}
+                </td>
+            </tr>`;
+
+            // Detail row (hidden by default)
+            html += `<tr class='error-log-detail' id='logDetail${log.id}' style='display:none'>
+                <td colspan='8'>
+                    <div class='log-detail-content'>
+                        <div class='log-detail-grid'>
+                            <div class='log-detail-item'>
+                                <strong>Mensagem Completa</strong>
+                                <pre>${escapeHtml(log.message || '–')}</pre>
+                            </div>
+                            ${log.exception_class ? `<div class='log-detail-item'>
+                                <strong>Exceção</strong>
+                                <code>${escapeHtml(log.exception_class)}</code>
+                                ${log.exception_message ? `<pre>${escapeHtml(log.exception_message)}</pre>` : ''}
+                            </div>` : ''}
+                            <div class='log-detail-item'>
+                                <strong>Arquivo</strong>
+                                <code>${escapeHtml(log.file || '–')}${log.line ? ':' + log.line : ''}</code>
+                            </div>
+                            ${log.url ? `<div class='log-detail-item'>
+                                <strong>URL</strong>
+                                <code>${escapeHtml(log.method || '')} ${escapeHtml(log.url)}</code>
+                            </div>` : ''}
+                            ${log.ip ? `<div class='log-detail-item'>
+                                <strong>IP</strong>
+                                <code>${escapeHtml(log.ip)}</code>
+                            </div>` : ''}
+                            ${log.user_agent ? `<div class='log-detail-item'>
+                                <strong>User Agent</strong>
+                                <small>${escapeHtml(log.user_agent)}</small>
+                            </div>` : ''}
+                            ${log.context && Object.keys(log.context).length > 0 ? `<div class='log-detail-item full-width'>
+                                <strong>Contexto</strong>
+                                <pre class='log-context-json'>${escapeHtml(JSON.stringify(log.context, null, 2))}</pre>
+                            </div>` : ''}
+                            ${log.stack_trace ? `<div class='log-detail-item full-width'>
+                                <strong>Stack Trace</strong>
+                                <pre class='log-stack-trace'>${escapeHtml(log.stack_trace)}</pre>
+                            </div>` : ''}
+                        </div>
+                        ${log.resolved_at ? `<div class='log-resolved-info'><i data-lucide='check-circle-2'></i> Resolvido em ${formatDate(log.resolved_at)}${log.resolved_by ? ' por #' + log.resolved_by : ''}</div>` : ''}
+                    </div>
+                </td>
+            </tr>`;
+        });
+
+        html += `</tbody></table></div>`;
+        html += renderErrorLogsPagination(total, page, perPage);
+        html += `</div>`;
+        wrapper.innerHTML = html;
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function renderErrorLogsPagination(total, page, perPage) {
+        const totalPages = Math.ceil(total / perPage);
+        if (totalPages <= 1) return '';
+
+        const startItem = ((page - 1) * perPage) + 1;
+        const endItem = Math.min(page * perPage, total);
+
+        let html = `<div class='pagination-wrapper'>`;
+        html += `<div class='pagination-info'><span>Mostrando <strong>${startItem}</strong> - <strong>${endItem}</strong> de <strong>${total}</strong> logs</span></div>`;
+        html += `<div class='pagination-controls'>`;
+        html += `<button class='pagination-btn' ${page<=1?'disabled':''} onclick='errorLogsGoToPage(1)' title='Primeira'><i data-lucide='chevrons-left'></i></button>`;
+        html += `<button class='pagination-btn' ${page<=1?'disabled':''} onclick='errorLogsGoToPage(${page-1})' title='Anterior'><i data-lucide='chevron-left'></i></button>`;
+
+        for (let i = Math.max(1, page - 2); i <= Math.min(totalPages, page + 2); i++) {
+            html += `<button class='pagination-btn ${i===page?"active":""}' onclick='errorLogsGoToPage(${i})'>${i}</button>`;
+        }
+
+        html += `<button class='pagination-btn' ${page>=totalPages?'disabled':''} onclick='errorLogsGoToPage(${page+1})' title='Próxima'><i data-lucide='chevron-right'></i></button>`;
+        html += `<button class='pagination-btn' ${page>=totalPages?'disabled':''} onclick='errorLogsGoToPage(${totalPages})' title='Última'><i data-lucide='chevrons-right'></i></button>`;
+        html += `</div></div>`;
+        return html;
+    }
+
+    function errorLogsGoToPage(p) {
+        loadErrorLogs(p);
+    }
+
+    function toggleLogDetail(logId) {
+        const detail = document.getElementById('logDetail' + logId);
+        const row = document.querySelector(`tr[data-log-id="${logId}"]`);
+        if (!detail) return;
+
+        const isVisible = detail.style.display !== 'none';
+        detail.style.display = isVisible ? 'none' : 'table-row';
+        if (row) {
+            const btn = row.querySelector('.btn-expand-log i');
+            if (btn) {
+                btn.setAttribute('data-lucide', isVisible ? 'chevron-right' : 'chevron-down');
+                if (window.lucide) lucide.createIcons({
+                    nodes: [btn]
+                });
+            }
+        }
+        if (!isVisible && window.lucide) lucide.createIcons();
+    }
+
+    async function resolveErrorLog(logId) {
+        try {
+            const data = await window.CsrfManager.fetchJson(`${BASE_URL}api/sysadmin/error-logs/${logId}/resolve`, {
+                method: 'PUT'
+            });
+
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Resolvido!',
+                    text: 'Log marcado como resolvido.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+                loadErrorLogs();
+            } else {
+                Swal.fire('Erro', data.message || 'Erro ao resolver log', 'error');
+            }
+        } catch (e) {
+            console.error('Erro ao resolver log:', e);
+            Swal.fire('Erro', 'Erro ao resolver log', 'error');
+        }
+    }
+
+    function confirmCleanupLogs() {
+        Swal.fire({
+            title: 'Limpar Logs Antigos?',
+            html: `
+                <p style="color:var(--color-text-muted);margin-bottom:16px;">Remove logs <strong>resolvidos</strong> com mais de X dias.</p>
+                <select id="cleanupDays" class="swal2-select" style="width:100%;">
+                    <option value="7">Mais de 7 dias</option>
+                    <option value="15">Mais de 15 dias</option>
+                    <option value="30" selected>Mais de 30 dias</option>
+                    <option value="60">Mais de 60 dias</option>
+                    <option value="90">Mais de 90 dias</option>
+                </select>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e74c3c',
+            cancelButtonColor: '#95a5a6',
+            confirmButtonText: 'Sim, limpar!',
+            cancelButtonText: 'Cancelar',
+            preConfirm: () => {
+                return document.getElementById('cleanupDays').value;
+            }
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const data = await window.CsrfManager.fetchJson(`${BASE_URL}api/sysadmin/error-logs/cleanup`, {
+                        method: 'DELETE',
+                        body: JSON.stringify({
+                            days: parseInt(result.value)
+                        })
+                    });
+
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Limpeza Concluída!',
+                            text: data.message || `${data.data?.deleted || 0} logs removidos.`,
+                            timer: 2500,
+                            showConfirmButton: false
+                        });
+                        loadErrorLogs();
+                    } else {
+                        Swal.fire('Erro', data.message || 'Erro na limpeza', 'error');
+                    }
+                } catch (e) {
+                    console.error('Erro cleanup:', e);
+                    Swal.fire('Erro', 'Erro ao limpar logs', 'error');
+                }
+            }
+        });
+    }
+
+    // Auto-refresh
+    function startErrorLogsAutoRefresh() {
+        stopErrorLogsAutoRefresh();
+        errorLogsAutoRefreshTimer = setInterval(() => {
+            loadErrorLogs();
+        }, ERROR_LOGS_REFRESH_INTERVAL);
+    }
+
+    function stopErrorLogsAutoRefresh() {
+        if (errorLogsAutoRefreshTimer) {
+            clearInterval(errorLogsAutoRefreshTimer);
+            errorLogsAutoRefreshTimer = null;
+        }
+    }
+
+    document.getElementById('errorLogsAutoRefresh').addEventListener('change', function() {
+        if (this.checked) {
+            startErrorLogsAutoRefresh();
+        } else {
+            stopErrorLogsAutoRefresh();
+        }
+    });
+
+    // Error logs filter form
+    document.getElementById('errorLogsFilters').addEventListener('submit', function(e) {
+        e.preventDefault();
+        errorLogsCurrentPage = 1;
+        loadErrorLogs();
+    });
+
+    // Helpers
+    function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+
+    function truncate(str, len) {
+        if (!str) return '';
+        return str.length > len ? str.substring(0, len) + '...' : str;
+    }
+
+    function getTimeAgo(dateStr) {
+        if (!dateStr) return '–';
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMin = Math.floor(diffMs / 60000);
+        const diffH = Math.floor(diffMin / 60);
+        const diffD = Math.floor(diffH / 24);
+
+        if (diffMin < 1) return 'Agora';
+        if (diffMin < 60) return `${diffMin}min atrás`;
+        if (diffH < 24) return `${diffH}h atrás`;
+        if (diffD < 7) return `${diffD}d atrás`;
+        return date.toLocaleDateString('pt-BR');
+    }
+
+    // Expose functions globally
+    window.errorLogsGoToPage = errorLogsGoToPage;
+    window.toggleLogDetail = toggleLogDetail;
+    window.resolveErrorLog = resolveErrorLog;
+    window.confirmCleanupLogs = confirmCleanupLogs;
+
+    // Init error logs
+    loadErrorLogs(1);
+    startErrorLogsAutoRefresh();
+
+    // ============================================
     // ESTATÍSTICAS E GRÁFICOS
     // ============================================
 
@@ -1277,7 +1786,7 @@
 
     function loadStats() {
         const refreshBtn = document.querySelector('.btn-refresh-stats i');
-        if (refreshBtn) refreshBtn.classList.add('fa-spin');
+        if (refreshBtn) refreshBtn.classList.add('icon-spin');
 
         fetch(`<?= BASE_URL ?>api/sysadmin/stats`, {
                 headers: {
@@ -1293,7 +1802,7 @@
                 return res.json();
             })
             .then(response => {
-                if (refreshBtn) refreshBtn.classList.remove('fa-spin');
+                if (refreshBtn) refreshBtn.classList.remove('icon-spin');
 
 
                 if (!response.success) {
@@ -1313,7 +1822,7 @@
                 renderCharts(data.charts);
             })
             .catch(err => {
-                if (refreshBtn) refreshBtn.classList.remove('fa-spin');
+                if (refreshBtn) refreshBtn.classList.remove('icon-spin');
                 console.error('Erro ao carregar estatísticas:', err);
                 showStatsError('Erro ao conectar com o servidor');
             });

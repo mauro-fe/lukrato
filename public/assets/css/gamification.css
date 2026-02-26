@@ -112,19 +112,21 @@
 }
 
 .level-progress-label {
-  font-size: 0.95rem;
-  font-weight: 600;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
-  line-height: 1.4;
-  flex: 1;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  font-size: 1rem;
 }
 
-.level-progress-label::before {
-  content: "📊";
-  font-size: 1.1rem;
+.level-progress-label i,
+.level-progress-label svg {
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
+  color: var(--primary-color, #6366f1);
 }
 
 .level-progress-points {
@@ -217,8 +219,6 @@
 
 .gamification-grid .level-progress-card .level-progress-label {
   font-size: 0.9rem;
-  flex: 1;
-  min-width: 100%;
 }
 
 .gamification-grid .level-progress-card .level-progress-points {
@@ -458,11 +458,16 @@
 }
 
 .badge-item.pro-only::after {
-  content: "💎";
+  content: "PRO";
   position: absolute;
   top: 4px;
   right: 4px;
-  font-size: 0.8rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: rgba(249, 115, 22, 0.15);
+  padding: 1px 5px;
+  border-radius: 4px;
 }
 
 .badge-item:hover {

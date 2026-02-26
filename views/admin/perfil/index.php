@@ -8,7 +8,7 @@
             <button type="button" class="lk-info" data-lk-tooltip-title="Perfil completo"
                 data-lk-tooltip="Manter seus dados sempre completos ajuda na segurança da conta, recuperação de acesso, faturamento e melhor funcionamento do Lukrato."
                 aria-label="Ajuda: Perfil completo">
-                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                <i data-lucide="info" aria-hidden="true"></i>
             </button>
         </div>
 
@@ -17,14 +17,44 @@
         </p>
     </div>
 
+    <!-- Tab Navigation -->
+    <nav class="profile-tabs" role="tablist" aria-label="Seções do perfil">
+        <button type="button" class="profile-tab active" data-tab="dados" role="tab" aria-selected="true"
+            aria-controls="panel-dados">
+            <span class="tab-icon"><i data-lucide="user" style="color:#3b82f6"></i></span>
+            <span class="tab-label">Dados Pessoais</span>
+        </button>
+        <button type="button" class="profile-tab" data-tab="endereco" role="tab" aria-selected="false"
+            aria-controls="panel-endereco">
+            <span class="tab-icon"><i data-lucide="map-pin" style="color:#ef4444"></i></span>
+            <span class="tab-label">Endereço</span>
+        </button>
+        <button type="button" class="profile-tab" data-tab="seguranca" role="tab" aria-selected="false"
+            aria-controls="panel-seguranca">
+            <span class="tab-icon"><i data-lucide="lock" style="color:#f59e0b"></i></span>
+            <span class="tab-label">Segurança</span>
+        </button>
+        <button type="button" class="profile-tab" data-tab="plano" role="tab" aria-selected="false"
+            aria-controls="panel-plano">
+            <span class="tab-icon"><i data-lucide="crown" style="color:#f59e0b"></i></span>
+            <span class="tab-label">Plano & Indicação</span>
+        </button>
+        <button type="button" class="profile-tab tab-danger" data-tab="perigo" role="tab" aria-selected="false"
+            aria-controls="panel-perigo">
+            <span class="tab-icon"><i data-lucide="triangle-alert" style="color:#ef4444"></i></span>
+            <span class="tab-label">Zona de Perigo</span>
+        </button>
+    </nav>
 
-    <form id="profileForm">
+
+    <form id="profileForm" autocomplete="off">
         <?= function_exists('csrf_input') ? csrf_input('default') : '' ?>
 
-        <div class="profile-grid">
-            <div class="profile-section" data-aos="fade-up">
+        <!-- Tab: Dados Pessoais -->
+        <div class="profile-tab-panel active" id="panel-dados" role="tabpanel" aria-labelledby="tab-dados">
+            <div class="profile-section">
                 <div class="section-header">
-                    <div class="section-icon">👤</div>
+                    <div class="section-icon"><i data-lucide="user" style="color: white"></i></div>
                     <div class="section-header-text">
                         <h3>Dados Pessoais</h3>
                         <p>Informações básicas</p>
@@ -33,7 +63,9 @@
 
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">✏️</span> Nome Completo *</label>
+                        <label class="form-label"><i data-lucide="pencil" class="icon-label" style="color:#6366f1"></i>
+                            Nome Completo
+                            *</label>
                         <input class="form-input" id="nome" name="nome" type="text"
                             placeholder="Digite seu nome completo" required>
                     </div>
@@ -41,7 +73,8 @@
 
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">📧</span> E-mail *</label>
+                        <label class="form-label"><i data-lucide="mail" class="icon-label" style="color:#3b82f6"></i>
+                            E-mail *</label>
                         <input class="form-input" id="email" name="email" type="email" placeholder="seu@email.com"
                             required>
                     </div>
@@ -50,14 +83,16 @@
                 <!-- Código de Suporte -->
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">🏷️</span> Código de Suporte</label>
+                        <label class="form-label"><i data-lucide="tag" class="icon-label" style="color:#f97316"></i>
+                            Código de Suporte</label>
                         <div style="display:flex;align-items:center;gap:8px;">
                             <input class="form-input" id="support_code" type="text" readonly
                                 style="font-family:'JetBrains Mono',monospace;font-weight:600;letter-spacing:1.5px;color:var(--color-primary);background:var(--color-bg-secondary);cursor:default;max-width:220px;"
                                 value="Carregando...">
-                            <button type="button" class="btn-copy-support" onclick="copySupportCode()" title="Copiar código"
+                            <button type="button" class="btn-copy-support" onclick="copySupportCode()"
+                                title="Copiar código"
                                 style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;background:var(--color-bg);cursor:pointer;color:var(--color-text-muted);transition:all .2s;">
-                                <i class="fa-regular fa-copy"></i>
+                                <i data-lucide="copy"></i>
                             </button>
                         </div>
                         <small style="color:var(--color-text-muted);font-size:12px;margin-top:4px;display:block;">
@@ -68,7 +103,8 @@
 
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">🆔</span> CPF</label>
+                        <label class="form-label"><i data-lucide="fingerprint" class="icon-label"
+                                style="color:#8b5cf6"></i> CPF</label>
                         <input class="form-input" id="cpf" name="cpf" type="text" inputmode="numeric" maxlength="14"
                             placeholder="000.000.000-00">
                     </div>
@@ -76,12 +112,14 @@
 
                 <div class="form-row cols-2">
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">📅</span> Nascimento</label>
+                        <label class="form-label"><i data-lucide="calendar" class="icon-label"
+                                style="color:#0ea5e9"></i> Nascimento</label>
                         <input class="form-input" id="data_nascimento" name="data_nascimento" type="date"
                             max="<?= date('Y-m-d') ?>">
                     </div>
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">📱</span> Telefone</label>
+                        <label class="form-label"><i data-lucide="smartphone" class="icon-label"
+                                style="color:#6366f1"></i> Telefone</label>
                         <input class="form-input" id="telefone" name="telefone" type="tel" inputmode="tel"
                             maxlength="15" placeholder="(00) 00000-0000">
                     </div>
@@ -89,21 +127,32 @@
 
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">⚧️</span> Sexo</label>
+                        <label class="form-label"><i data-lucide="users" class="icon-label" style="color:#14b8a6"></i>
+                            Gênero</label>
                         <select class="form-select" name="sexo" id="sexo">
                             <option value="">Selecione</option>
                             <option value="M">Masculino</option>
                             <option value="F">Feminino</option>
                             <option value="O">Outro</option>
+                            <option value="NB">Não-binário</option>
                             <option value="N">Prefiro não informar</option>
                         </select>
                     </div>
                 </div>
             </div>
 
-            <div class="profile-section" data-aos="fade-up" data-aos-delay="100">
+            <div class="form-actions">
+                <button type="submit" class="btn-save" id="btn-save-dados">
+                    <span><i data-lucide="save"></i> Salvar Dados Pessoais</span>
+                </button>
+            </div>
+        </div><!-- /panel-dados -->
+
+        <!-- Tab: Endereço -->
+        <div class="profile-tab-panel" id="panel-endereco" role="tabpanel" aria-labelledby="tab-endereco">
+            <div class="profile-section">
                 <div class="section-header">
-                    <div class="section-icon">📍</div>
+                    <div class="section-icon"><i data-lucide="map-pin" style="color:white"></i></div>
                     <div class="section-header-text">
                         <h3>Endereço</h3>
                         <p>Informações de localização</p>
@@ -112,12 +161,14 @@
 
                 <div class="form-row cols-2">
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">📮</span> CEP</label>
+                        <label class="form-label"><i data-lucide="mail-open" class="icon-label"
+                                style="color:#f97316"></i> CEP</label>
                         <input class="form-input" id="end_cep" name="endereco[cep]" type="text" inputmode="numeric"
                             placeholder="00000-000" maxlength="9">
                     </div>
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">🗺️</span> Estado</label>
+                        <label class="form-label"><i data-lucide="map" class="icon-label" style="color:#22c55e"></i>
+                            Estado</label>
                         <input class="form-input" id="end_estado" name="endereco[estado]" type="text" placeholder="SP"
                             maxlength="2" style="text-transform: uppercase;">
                     </div>
@@ -125,7 +176,8 @@
 
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">🏙️</span> Cidade</label>
+                        <label class="form-label"><i data-lucide="building-2" class="icon-label"
+                                style="color:#64748b"></i> Cidade</label>
                         <input class="form-input" id="end_cidade" name="endereco[cidade]" type="text"
                             placeholder="São Paulo">
                     </div>
@@ -133,7 +185,8 @@
 
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">🏘️</span> Bairro</label>
+                        <label class="form-label"><i data-lucide="home" class="icon-label" style="color:#f97316"></i>
+                            Bairro</label>
                         <input class="form-input" id="end_bairro" name="endereco[bairro]" type="text"
                             placeholder="Centro">
                     </div>
@@ -141,7 +194,8 @@
 
                 <div class="form-row cols-1">
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">🛣️</span> Rua/Avenida</label>
+                        <label class="form-label"><i data-lucide="route" class="icon-label" style="color:#3b82f6"></i>
+                            Rua/Avenida</label>
                         <input class="form-input" id="end_rua" name="endereco[rua]" type="text"
                             placeholder="Rua das Flores">
                     </div>
@@ -149,218 +203,285 @@
 
                 <div class="form-row cols-2">
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">🔢</span> Número</label>
+                        <label class="form-label"><i data-lucide="hash" class="icon-label" style="color:#6366f1"></i>
+                            Número</label>
                         <input class="form-input" id="end_numero" name="endereco[numero]" type="text" placeholder="123">
                     </div>
                     <div class="form-group">
-                        <label class="form-label"><span class="emoji">🏢</span> Complemento</label>
+                        <label class="form-label"><i data-lucide="building" class="icon-label"
+                                style="color:#64748b"></i> Complemento</label>
                         <input class="form-input" id="end_complemento" name="endereco[complemento]" type="text"
                             placeholder="Apto, Bloco (opcional)">
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="profile-section" data-aos="fade-up" data-aos-delay="200">
-            <div class="section-header">
-                <div class="section-icon">🔒</div>
-                <div class="section-header-text">
-                    <h3>Segurança</h3>
-                    <p>Altere sua senha de acesso</p>
-                </div>
+            <div class="form-actions">
+                <button type="submit" class="btn-save" id="btn-save-endereco">
+                    <span><i data-lucide="save"></i> Salvar Endereço</span>
+                </button>
             </div>
+        </div><!-- /panel-endereco -->
 
-            <div class="form-row cols-3">
-                <div class="form-group">
-                    <label class="form-label"><span class="emoji">🔑</span> Senha Atual</label>
-                    <input class="form-input" id="senha_atual" name="senha_atual" type="password"
-                        placeholder="Digite sua senha atual" autocomplete="current-password">
-                </div>
-                <div class="form-group">
-                    <label class="form-label"><span class="emoji">🔐</span> Nova Senha</label>
-                    <input class="form-input" id="nova_senha" name="nova_senha" type="password"
-                        placeholder="Mínimo 6 caracteres" autocomplete="new-password" minlength="6">
-                    <div class="password-strength" id="password-strength" style="display:none;">
-                        <div class="password-strength-bar"></div>
+        <!-- Tab: Segurança -->
+        <div class="profile-tab-panel" id="panel-seguranca" role="tabpanel" aria-labelledby="tab-seguranca">
+            <div class="profile-section">
+                <div class="section-header">
+                    <div class="section-icon"><i data-lucide="lock" style="color:white"></i></div>
+                    <div class="section-header-text">
+                        <h3>Segurança</h3>
+                        <p>Altere sua senha de acesso</p>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label"><span class="emoji">✅</span> Confirmar Senha</label>
-                    <input class="form-input" id="conf_senha" name="conf_senha" type="password"
-                        placeholder="Digite novamente" autocomplete="new-password" minlength="6">
+
+                <!-- Hidden fields to trick browser autofill -->
+                <input type="text" name="_fake_user" style="display:none" tabindex="-1" aria-hidden="true">
+                <input type="password" name="_fake_pass" style="display:none" tabindex="-1" aria-hidden="true">
+
+                <div class="form-row cols-3">
+                    <div class="form-group">
+                        <label class="form-label"><i data-lucide="key-round" class="icon-label"
+                                style="color:#f59e0b"></i> Senha Atual</label>
+                        <input class="form-input" id="senha_atual" name="senha_atual" type="password"
+                            placeholder="Digite sua senha atual" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><i data-lucide="lock" class="icon-label" style="color:#f59e0b"></i>
+                            Nova Senha</label>
+                        <input class="form-input" id="nova_senha" name="nova_senha" type="password"
+                            placeholder="Mínimo 8 caracteres" autocomplete="off" minlength="8">
+                        <div class="pwd-strength" id="pwdStrengthProfile">
+                            <div class="pwd-bar-label">
+                                <span>Força da senha</span>
+                                <span class="pwd-level" id="pwdLevelProfile"></span>
+                            </div>
+                            <div class="pwd-bar-wrap">
+                                <div class="pwd-bar-fill" id="pwdBarFillProfile"></div>
+                            </div>
+                            <div class="pwd-divider"></div>
+                            <div class="pwd-reqs">
+                                <div class="pwd-req" id="prof-req-length"><span class="req-icon"></span> 8+ caracteres
+                                </div>
+                                <div class="pwd-req" id="prof-req-lower"><span class="req-icon"></span> Letra minúscula
+                                </div>
+                                <div class="pwd-req" id="prof-req-upper"><span class="req-icon"></span> Letra maiúscula
+                                </div>
+                                <div class="pwd-req" id="prof-req-number"><span class="req-icon"></span> Número</div>
+                                <div class="pwd-req" id="prof-req-special"><span class="req-icon"></span> Caractere
+                                    especial</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><i data-lucide="circle-check" class="icon-label"
+                                style="color:#22c55e"></i> Confirmar
+                            Senha</label>
+                        <input class="form-input" id="conf_senha" name="conf_senha" type="password"
+                            placeholder="Digite novamente" autocomplete="off" minlength="8">
+                        <div class="pwd-match" id="pwdMatchProfile">
+                            <span class="match-icon"><i data-lucide="check"></i></span>
+                            <span class="match-text"></span>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="form-actions">
-            <button type="submit" class="btn-save" id="btn-save">
-                <span>💾 Salvar Alterações</span>
-            </button>
-        </div>
+            <div class="form-actions">
+                <button type="submit" class="btn-save" id="btn-save-seguranca">
+                    <span><i data-lucide="lock-keyhole"></i> Alterar Senha</span>
+                </button>
+            </div>
+        </div><!-- /panel-seguranca -->
     </form>
 
-    <!-- Seção de Plano -->
-    <div class="profile-section plan-section" data-aos="fade-up" data-aos-delay="250">
-        <div class="section-header">
-            <div class="section-icon">👑</div>
-            <div class="section-header-text">
-                <h3>Meu Plano</h3>
-                <p>Gerencie sua assinatura</p>
+    <!-- Tab: Plano & Indicação -->
+    <div class="profile-tab-panel" id="panel-plano" role="tabpanel" aria-labelledby="tab-plano">
+        <!-- Seção de Plano -->
+        <div class="profile-section plan-section">
+            <div class="section-header">
+                <div class="section-icon"><i data-lucide="crown" style="color:white"></i></div>
+                <div class="section-header-text">
+                    <h3>Meu Plano</h3>
+                    <p>Gerencie sua assinatura</p>
+                </div>
+            </div>
+
+            <div class="plan-section-content">
+                <div class="plan-info">
+                    <?php
+                    $isPro = isset($currentUser) && method_exists($currentUser, 'isPro') && $currentUser->isPro();
+                    $planName = $isPro ? 'PRO' : 'Gratuito';
+                    $planIcon = $isPro ? 'crown' : 'leaf';
+                    $planClass = $isPro ? 'pro' : 'free';
+                    ?>
+                    <div class="current-plan <?= $planClass ?>">
+                        <i data-lucide="<?= $planIcon ?>"></i>
+                        <span class="plan-name">Plano <?= $planName ?></span>
+                    </div>
+                    <p class="plan-description">
+                        <?php if ($isPro): ?>
+                            Você tem acesso a todos os recursos premium do Lukrato.
+                        <?php else: ?>
+                            Faça upgrade para desbloquear recursos avançados como importação automática, relatórios
+                            detalhados e
+                            muito mais.
+                        <?php endif; ?>
+                    </p>
+                </div>
+                <a href="<?= BASE_URL ?>billing" class="btn-manage-plan <?= $planClass ?>">
+                    <i data-lucide="<?= $isPro ? 'settings' : 'rocket' ?>"></i>
+                    <span><?= $isPro ? 'Gerenciar Plano' : 'Fazer Upgrade' ?></span>
+                </a>
             </div>
         </div>
 
-        <div class="plan-section-content">
-            <div class="plan-info">
-                <?php
-                $isPro = isset($currentUser) && method_exists($currentUser, 'isPro') && $currentUser->isPro();
-                $planName = $isPro ? 'PRO' : 'Gratuito';
-                $planIcon = $isPro ? 'fa-crown' : 'fa-leaf';
-                $planClass = $isPro ? 'pro' : 'free';
-                ?>
-                <div class="current-plan <?= $planClass ?>">
-                    <i class="fa-solid <?= $planIcon ?>"></i>
-                    <span class="plan-name">Plano <?= $planName ?></span>
+        <!-- Seção de Indicação -->
+        <div class="profile-section referral-section">
+            <div class="section-header">
+                <div class="section-icon"><i data-lucide="gift" style="color:white"></i></div>
+                <div class="section-header-text">
+                    <h3>Indique Amigos</h3>
+                    <p>Ganhe dias de PRO por cada indicação</p>
                 </div>
-                <p class="plan-description">
-                    <?php if ($isPro): ?>
-                        Você tem acesso a todos os recursos premium do Lukrato.
-                    <?php else: ?>
-                        Faça upgrade para desbloquear recursos avançados como importação automática, relatórios detalhados e
-                        muito mais.
-                    <?php endif; ?>
-                </p>
             </div>
-            <a href="<?= BASE_URL ?>billing" class="btn-manage-plan <?= $planClass ?>">
-                <i class="fa-solid <?= $isPro ? 'fa-gear' : 'fa-rocket' ?>"></i>
-                <span><?= $isPro ? 'Gerenciar Plano' : 'Fazer Upgrade' ?></span>
-            </a>
+
+            <div class="referral-section-content">
+                <div class="referral-info">
+                    <div class="referral-reward-info">
+                        <div class="reward-item">
+                            <span class="reward-icon"><i data-lucide="user" style="color:#3b82f6"></i></span>
+                            <span class="reward-text">Você ganha <strong>15 dias</strong> de PRO</span>
+                        </div>
+                        <div class="reward-item">
+                            <span class="reward-icon"><i data-lucide="users" style="color:#14b8a6"></i></span>
+                            <span class="reward-text">Seu amigo ganha <strong>7 dias</strong> de PRO</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="referral-container">
+                    <div class="referral-code-container">
+                        <label class="referral-label">Seu código de indicação:</label>
+                        <div class="referral-code-box">
+                            <input type="text" id="referral-code" class="referral-code-input" readonly
+                                value="Carregando...">
+                            <button type="button" class="btn-copy-code" id="btn-copy-code" title="Copiar código">
+                                <i data-lucide="copy"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="referral-link-container">
+                        <label class="referral-label">Ou compartilhe seu link:</label>
+                        <div class="referral-link-box">
+                            <input type="text" id="referral-link" class="referral-link-input" readonly
+                                value="Carregando...">
+                            <button type="button" class="btn-copy-link" id="btn-copy-link" title="Copiar link">
+                                <i data-lucide="copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Barra de limite mensal -->
+                <div class="referral-limit-bar" id="referral-limit-bar">
+                    <div class="limit-bar-header">
+                        <span class="limit-bar-title">Indicações este mês</span>
+                        <span class="limit-bar-count"><span id="limit-current">0</span> / <span
+                                id="limit-max">5</span></span>
+                    </div>
+                    <div class="limit-bar-track">
+                        <div class="limit-bar-fill" id="limit-bar-fill" style="width: 0%"></div>
+                    </div>
+                    <span class="limit-bar-hint" id="limit-bar-hint">Você pode indicar mais 5 amigos este mês</span>
+                </div>
+
+                <div class="referral-stats" id="referral-stats">
+                    <div class="stat-item">
+                        <span class="stat-value" id="stat-total">-</span>
+                        <span class="stat-label">Total</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="stat-completed">-</span>
+                        <span class="stat-label">Completadas</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="stat-days">-</span>
+                        <span class="stat-label">Dias ganhos</span>
+                    </div>
+                </div>
+
+                <div class="referral-share-buttons">
+                    <button type="button" class="btn-share whatsapp" id="btn-share-whatsapp"
+                        title="Compartilhar no WhatsApp">
+                        <i data-lucide="message-circle" style="color:#22c55e"></i>
+                        <span>WhatsApp</span>
+                    </button>
+                    <button type="button" class="btn-share telegram" id="btn-share-telegram"
+                        title="Compartilhar no Telegram">
+                        <i data-lucide="send" style="color:#0ea5e9"></i>
+                        <span>Telegram</span>
+                    </button>
+                    <button type="button" class="btn-share instagram" id="btn-share-instagram"
+                        title="Compartilhar no Instagram">
+                        <i data-lucide="camera" style="color:#ec4899"></i>
+                        <span>Instagram</span>
+                    </button>
+                </div>
+            </div>
         </div>
-    </div>
+    </div><!-- /panel-plano -->
 
-    <!-- Seção de Indicação -->
-    <div class="profile-section referral-section" data-aos="fade-up" data-aos-delay="275">
-        <div class="section-header">
-            <div class="section-icon">🎁</div>
-            <div class="section-header-text">
-                <h3>Indique Amigos</h3>
-                <p>Ganhe dias de PRO por cada indicação</p>
-            </div>
-        </div>
-
-        <div class="referral-section-content">
-            <div class="referral-info">
-                <div class="referral-reward-info">
-                    <div class="reward-item">
-                        <span class="reward-icon">👤</span>
-                        <span class="reward-text">Você ganha <strong>15 dias</strong> de PRO</span>
-                    </div>
-                    <div class="reward-item">
-                        <span class="reward-icon">👥</span>
-                        <span class="reward-text">Seu amigo ganha <strong>7 dias</strong> de PRO</span>
-                    </div>
+    <!-- Tab: Zona de Perigo -->
+    <div class="profile-tab-panel" id="panel-perigo" role="tabpanel" aria-labelledby="tab-perigo">
+        <div class="profile-section danger-zone">
+            <div class="section-header">
+                <div class="section-icon"><i data-lucide="triangle-alert" style="color:white"></i></div>
+                <div class="section-header-text">
+                    <h3>Zona de Perigo</h3>
+                    <p>Ações irreversíveis com sua conta</p>
                 </div>
             </div>
 
-            <div class="referral-container">
-                <div class="referral-code-container">
-                    <label class="referral-label">Seu código de indicação:</label>
-                    <div class="referral-code-box">
-                        <input type="text" id="referral-code" class="referral-code-input" readonly
-                            value="Carregando...">
-                        <button type="button" class="btn-copy-code" id="btn-copy-code" title="Copiar código">
-                            <i class="fa-solid fa-copy"></i>
-                        </button>
-                    </div>
+            <div class="danger-zone-content">
+                <div class="danger-zone-info">
+                    <h4><i data-lucide="trash-2"
+                            style="width:18px;height:18px;display:inline-block;vertical-align:middle;color:#ef4444"></i>
+                        Excluir
+                        Conta</h4>
+                    <p>Esta ação é <strong>permanente e irreversível</strong>. Todos os seus dados serão removidos:</p>
+                    <ul>
+                        <li><i data-lucide="bar-chart-3"
+                                style="width:15px;height:15px;display:inline-block;vertical-align:middle;color:#06b6d4"></i>
+                            Todos os
+                            lançamentos e histórico financeiro</li>
+                        <li><i data-lucide="credit-card"
+                                style="width:15px;height:15px;display:inline-block;vertical-align:middle;color:#0ea5e9"></i>
+                            Contas e
+                            cartões cadastrados</li>
+                        <li><i data-lucide="folder-open"
+                                style="width:15px;height:15px;display:inline-block;vertical-align:middle;color:#f59e0b"></i>
+                            Categorias personalizadas</li>
+                        <li><i data-lucide="target"
+                                style="width:15px;height:15px;display:inline-block;vertical-align:middle;color:#ef4444"></i>
+                            Metas e
+                            agendamentos</li>
+                        <li><i data-lucide="user"
+                                style="width:15px;height:15px;display:inline-block;vertical-align:middle;color:#3b82f6"></i>
+                            Informações pessoais</li>
+                        <li><i data-lucide="gem"
+                                style="width:15px;height:15px;display:inline-block;vertical-align:middle;color:#a855f7"></i>
+                            Plano
+                            PRO (se ativo) será cancelado automaticamente</li>
+                    </ul>
                 </div>
-
-                <div class="referral-link-container">
-                    <label class="referral-label">Ou compartilhe seu link:</label>
-                    <div class="referral-link-box">
-                        <input type="text" id="referral-link" class="referral-link-input" readonly
-                            value="Carregando...">
-                        <button type="button" class="btn-copy-link" id="btn-copy-link" title="Copiar link">
-                            <i class="fa-solid fa-copy"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Barra de limite mensal -->
-            <div class="referral-limit-bar" id="referral-limit-bar">
-                <div class="limit-bar-header">
-                    <span class="limit-bar-title">Indicações este mês</span>
-                    <span class="limit-bar-count"><span id="limit-current">0</span> / <span id="limit-max">5</span></span>
-                </div>
-                <div class="limit-bar-track">
-                    <div class="limit-bar-fill" id="limit-bar-fill" style="width: 0%"></div>
-                </div>
-                <span class="limit-bar-hint" id="limit-bar-hint">Você pode indicar mais 5 amigos este mês</span>
-            </div>
-
-            <div class="referral-stats" id="referral-stats">
-                <div class="stat-item">
-                    <span class="stat-value" id="stat-total">-</span>
-                    <span class="stat-label">Total</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value" id="stat-completed">-</span>
-                    <span class="stat-label">Completadas</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value" id="stat-days">-</span>
-                    <span class="stat-label">Dias ganhos</span>
-                </div>
-            </div>
-
-            <div class="referral-share-buttons">
-                <button type="button" class="btn-share whatsapp" id="btn-share-whatsapp"
-                    title="Compartilhar no WhatsApp">
-                    <i class="fa-brands fa-whatsapp"></i>
-                    <span>WhatsApp</span>
+                <button type="button" class="btn-delete-account" id="btn-delete-account">
+                    <i data-lucide="trash-2"></i>
+                    <span>Excluir Minha Conta</span>
                 </button>
-                <button type="button" class="btn-share telegram" id="btn-share-telegram"
-                    title="Compartilhar no Telegram">
-                    <i class="fa-brands fa-telegram"></i>
-                    <span>Telegram</span>
-                </button>
-                <button type="button" class="btn-share instagram" id="btn-share-instagram"
-                    title="Compartilhar no Instagram">
-                    <i class="fa-brands fa-instagram"></i>
-                    <span>Instagram</span>
-                </button>
             </div>
         </div>
-    </div>
-
-    <!-- Zona de Perigo -->
-    <div class="profile-section danger-zone" data-aos="fade-up" data-aos-delay="300">
-        <div class="section-header">
-            <div class="section-icon">⚠️</div>
-            <div class="section-header-text">
-                <h3>Zona de Perigo</h3>
-                <p>Ações irreversíveis com sua conta</p>
-            </div>
-        </div>
-
-        <div class="danger-zone-content">
-            <div class="danger-zone-info">
-                <h4>🗑️ Excluir Conta</h4>
-                <p>Esta ação é <strong>permanente e irreversível</strong>. Todos os seus dados serão removidos:</p>
-                <ul>
-                    <li>📊 Todos os lançamentos e histórico financeiro</li>
-                    <li>💳 Contas e cartões cadastrados</li>
-                    <li>📂 Categorias personalizadas</li>
-                    <li>🎯 Metas e agendamentos</li>
-                    <li>👤 Informações pessoais</li>
-                    <li>💎 Plano PRO (se ativo) será cancelado automaticamente</li>
-                </ul>
-            </div>
-            <button type="button" class="btn-delete-account" id="btn-delete-account">
-                <i class="fas fa-trash-alt"></i>
-                <span>Excluir Minha Conta</span>
-            </button>
-        </div>
-    </div>
+    </div><!-- /panel-perigo -->
 </div>
 
 <script>
@@ -374,6 +495,49 @@
 
         const API = `${BASE}api/`;
         const form = document.getElementById('profileForm');
+
+        // ============================================
+        // TAB SWITCHING
+        // ============================================
+        const tabs = document.querySelectorAll('.profile-tab');
+        const panels = document.querySelectorAll('.profile-tab-panel');
+
+        function switchTab(tabId) {
+            tabs.forEach(t => {
+                const isActive = t.dataset.tab === tabId;
+                t.classList.toggle('active', isActive);
+                t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+            panels.forEach(p => {
+                p.classList.toggle('active', p.id === `panel-${tabId}`);
+            });
+            // Persist
+            try {
+                localStorage.setItem('perfil_tab', tabId);
+            } catch (e) {}
+            // Update hash without scroll
+            history.replaceState(null, '', `#${tabId}`);
+        }
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+        });
+
+        // Restore tab from hash or localStorage
+        (() => {
+            const hash = location.hash.replace('#', '');
+            const validTabs = ['dados', 'endereco', 'seguranca', 'plano', 'perigo'];
+            let initial = 'dados';
+            if (hash && validTabs.includes(hash)) {
+                initial = hash;
+            } else {
+                try {
+                    const stored = localStorage.getItem('perfil_tab');
+                    if (stored && validTabs.includes(stored)) initial = stored;
+                } catch (e) {}
+            }
+            if (initial !== 'dados') switchTab(initial);
+        })();
 
         // Campos do formulário
         const fieldNome = document.getElementById('nome');
@@ -475,7 +639,7 @@
             e.preventDefault();
             form.classList.add('form-loading');
 
-            const submitBtn = document.getElementById('btn-save');
+            const submitBtn = e.submitter || form.querySelector('.btn-save');
             const originalContent = submitBtn?.innerHTML || '';
             if (submitBtn) {
                 submitBtn.innerHTML = '<span class="spinner"></span><span>Salvando...</span>';
@@ -500,7 +664,7 @@
                     throw new Error(extractApiError(j, 'Falha ao salvar.'));
                 }
 
-                // 🎮 GAMIFICAÇÃO: Exibir conquistas se houver
+                // GAMIFICAÇÃO: Exibir conquistas se houver
                 if (j?.data?.new_achievements && Array.isArray(j.data.new_achievements)) {
                     if (typeof window.notifyMultipleAchievements === 'function') {
                         window.notifyMultipleAchievements(j.data.new_achievements);
@@ -554,7 +718,7 @@
                         )) return;
                 } else {
                     const result = await Swal.fire({
-                        title: '⚠️ Confirmar Exclusão de Conta',
+                        title: 'Confirmar Exclusão de Conta',
                         html: `
                         <div style="text-align: left; padding: 1rem;">
                             <p style="font-size: 1.1rem; margin-bottom: 1rem;"><strong>Esta ação é permanente e irreversível!</strong></p>
@@ -567,8 +731,8 @@
                                 <li>Informações pessoais</li>
                                 <li>Plano PRO (será cancelado automaticamente)</li>
                             </ul>
-                            <p style="color: #e74c3c; font-weight: bold; margin-top: 1rem;">⚠️ Não será possível recuperar estes dados!</p>
-                            <p style="color: #7f8c8d; font-size: 0.9rem; margin-top: 1rem;">📋 Após a exclusão, você precisará aguardar <strong>90 dias</strong> para criar uma nova conta com o mesmo email.</p>
+                            <p style="color: #e74c3c; font-weight: bold; margin-top: 1rem;">Não será possível recuperar estes dados!</p>
+                            <p style="color: #7f8c8d; font-size: 0.9rem; margin-top: 1rem;">Após a exclusão, você precisará aguardar <strong>90 dias</strong> para criar uma nova conta com o mesmo email.</p>
                         </div>
                     `,
                         icon: 'warning',
@@ -630,7 +794,7 @@
 
                     await Swal.fire({
                         icon: 'success',
-                        title: '✅ Conta excluída!',
+                        title: 'Conta excluída!',
                         html: `
                             <div style="text-align: center;">
                                 <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">Sua conta foi excluída com sucesso.</p>
@@ -716,10 +880,10 @@
 
                     if (barHint) {
                         if (remaining === 0) {
-                            barHint.textContent = '🔒 Limite atingido! Renova no próximo mês';
+                            barHint.textContent = 'Limite atingido! Renova no próximo mês';
                             barHint.classList.add('limit-reached');
                         } else if (remaining === 1) {
-                            barHint.textContent = '⚡ Última indicação disponível este mês';
+                            barHint.textContent = 'Última indicação disponível este mês';
                             barHint.classList.remove('limit-reached');
                         } else {
                             barHint.textContent = `Você pode indicar mais ${remaining} amigos este mês`;
@@ -735,7 +899,7 @@
         function copyToClipboard(text, button) {
             navigator.clipboard.writeText(text).then(() => {
                 const originalIcon = button.innerHTML;
-                button.innerHTML = '<i class="fa-solid fa-check"></i>';
+                button.innerHTML = '<i data-lucide="check"></i>';
                 button.classList.add('copied');
 
                 setTimeout(() => {
@@ -804,7 +968,7 @@
 
         const originalIcon = btn.innerHTML;
         navigator.clipboard.writeText(input.value).then(() => {
-            btn.innerHTML = '<i class="fas fa-check"></i>';
+            btn.innerHTML = '<i data-lucide="check"></i>';
             btn.style.color = '#22c55e';
             setTimeout(() => {
                 btn.innerHTML = originalIcon;
@@ -813,7 +977,7 @@
         }).catch(() => {
             input.select();
             document.execCommand('copy');
-            btn.innerHTML = '<i class="fas fa-check"></i>';
+            btn.innerHTML = '<i data-lucide="check"></i>';
             btn.style.color = '#22c55e';
             setTimeout(() => {
                 btn.innerHTML = originalIcon;
@@ -821,6 +985,135 @@
             }, 2000);
         });
     }
+</script>
+
+<script>
+    // Real-time password strength + confirm match (Profile)
+    (function() {
+        var pwd = document.getElementById('nova_senha');
+        var confirm = document.getElementById('conf_senha');
+        var panel = document.getElementById('pwdStrengthProfile');
+        var barFill = document.getElementById('pwdBarFillProfile');
+        var levelEl = document.getElementById('pwdLevelProfile');
+        var matchEl = document.getElementById('pwdMatchProfile');
+        if (!pwd || !confirm || !panel) return;
+
+        var rules = [{
+                id: 'prof-req-length',
+                test: function(v) {
+                    return v.length >= 8;
+                }
+            },
+            {
+                id: 'prof-req-lower',
+                test: function(v) {
+                    return /[a-z]/.test(v);
+                }
+            },
+            {
+                id: 'prof-req-upper',
+                test: function(v) {
+                    return /[A-Z]/.test(v);
+                }
+            },
+            {
+                id: 'prof-req-number',
+                test: function(v) {
+                    return /[0-9]/.test(v);
+                }
+            },
+            {
+                id: 'prof-req-special',
+                test: function(v) {
+                    return /[^a-zA-Z0-9]/.test(v);
+                }
+            }
+        ];
+
+        var levels = [{
+                cls: '',
+                label: ''
+            },
+            {
+                cls: 's1',
+                label: 'Muito fraca'
+            },
+            {
+                cls: 's2',
+                label: 'Fraca'
+            },
+            {
+                cls: 's3',
+                label: 'Razoável'
+            },
+            {
+                cls: 's4',
+                label: 'Boa'
+            },
+            {
+                cls: 's5',
+                label: 'Forte'
+            }
+        ];
+
+        pwd.addEventListener('focus', function() {
+            panel.classList.add('visible');
+        });
+
+        pwd.addEventListener('input', function() {
+            var val = pwd.value;
+            var score = 0;
+
+            if (!val) {
+                panel.classList.remove('visible');
+                barFill.className = 'pwd-bar-fill';
+                levelEl.className = 'pwd-level';
+                levelEl.textContent = '';
+                rules.forEach(function(rule) {
+                    var el = document.getElementById(rule.id);
+                    if (el) el.classList.remove('pass');
+                });
+                return;
+            }
+
+            panel.classList.add('visible');
+
+            rules.forEach(function(rule) {
+                var el = document.getElementById(rule.id);
+                var passed = rule.test(val);
+                if (el) el.classList.toggle('pass', passed);
+                if (passed) score++;
+            });
+
+            barFill.className = 'pwd-bar-fill' + (score > 0 ? ' s' + score : '');
+            levelEl.className = 'pwd-level' + (score > 0 ? ' s' + score : '');
+            levelEl.textContent = levels[score].label;
+
+            if (confirm.value) checkMatch();
+        });
+
+        function checkMatch() {
+            var pVal = pwd.value;
+            var cVal = confirm.value;
+            if (!cVal) {
+                matchEl.classList.remove('visible');
+                return;
+            }
+            matchEl.classList.add('visible');
+            var ok = pVal === cVal;
+            matchEl.classList.toggle('match', ok);
+            matchEl.classList.toggle('no-match', !ok);
+            var icon = matchEl.querySelector('.match-icon');
+            var text = matchEl.querySelector('.match-text');
+            icon.innerHTML = ok ? '<i data-lucide="check"></i>' : '<i data-lucide="x"></i>';
+            text.textContent = ok ? 'Senhas coincidem' : 'Senhas não coincidem';
+        }
+
+        confirm.addEventListener('input', checkMatch);
+        pwd.addEventListener('input', function() {
+            if (confirm.value) checkMatch();
+        });
+    })();
 </script>
 
 <script src="<?= BASE_URL ?>assets/js/admin-profile-edit.js"></script>

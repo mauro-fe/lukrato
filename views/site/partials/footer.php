@@ -28,12 +28,12 @@ $extraJs = $extraJs ?? [];
                     <a href="https://instagram.com/lukrato.oficial" aria-label="Lukrato no Instagram"
                         rel="noopener noreferrer" target="_blank"
                         class="w-11 h-11 bg-white rounded-xl flex items-center justify-center" itemprop="sameAs">
-                        <i class="fa-brands fa-instagram text-lg" aria-hidden="true"></i>
+                        <i data-lucide="instagram" class="w-5 h-5 text-gray-800" aria-hidden="true"></i>
                     </a>
                     <a href="https://tiktok.com/@lukrato.oficial" aria-label="Lukrato no TikTok"
                         rel="noopener noreferrer" target="_blank"
                         class="w-11 h-11 bg-white rounded-xl flex items-center justify-center" itemprop="sameAs">
-                        <i class="fa-brands fa-tiktok text-lg" aria-hidden="true"></i>
+                        <i data-lucide="music" class="w-5 h-5 text-gray-800" aria-hidden="true"></i>
                     </a>
                     <!-- <a href="https://facebook.com/lukrato" aria-label="Lukrato no Facebook" rel="noopener noreferrer"
                         target="_blank" class="w-11 h-11 bg-white rounded-xl flex items-center justify-center"
@@ -64,7 +64,7 @@ $extraJs = $extraJs ?? [];
                         <span>Planos e Preços</span>
                     </a>
                     <a href="<?= BASE_URL ?>/#indicacao" class="text-white/70" title="Indicações">
-                        <span>Indicação 🎁</span>
+                        <span>Indicação</span>
                     </a>
                     <a href="<?= BASE_URL ?>login?tab=login" class="text-white/70" title="Entrar na sua conta">
                         <span>Entrar</span>
@@ -103,7 +103,7 @@ $extraJs = $extraJs ?? [];
                         <span
                             class="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:bg-green-500/20"
                             aria-hidden="true">
-                            <i class="fa-brands fa-whatsapp text-lg"></i>
+                            <i data-lucide="message-circle" class="w-5 h-5"></i>
                         </span>
                         <span>WhatsApp Comercial</span>
                     </a>
@@ -112,7 +112,7 @@ $extraJs = $extraJs ?? [];
                         <span
                             class="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:bg-orange-500/20"
                             aria-hidden="true">
-                            <i class="fa-regular fa-envelope text-lg"></i>
+                            <i data-lucide="mail" class="text-lg"></i>
                         </span>
                         <span class="break-all">lukratosistema@gmail.com</span>
                     </a>
@@ -128,7 +128,7 @@ $extraJs = $extraJs ?? [];
             </p>
             <p class="text-white/40 text-sm italic flex items-center gap-2">
                 <span>Feito com</span>
-                <i class="fas fa-heart text-red-400 animate-pulse" aria-hidden="true"></i>
+                <i data-lucide="heart" class="text-red-400 animate-pulse" aria-hidden="true"></i>
                 <span>para quem quer organizar suas finanças pessoais.</span>
             </p>
         </div>
@@ -149,6 +149,7 @@ $extraJs = $extraJs ?? [];
 <script>
     window.APP_BASE_URL = "<?= rtrim(BASE_URL, '/') ?>";
 </script>
+<script src="<?= BASE_URL ?>assets/js/lucide-init.js"></script>
 
 
 </body>

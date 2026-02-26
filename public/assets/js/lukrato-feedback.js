@@ -275,13 +275,13 @@
                     <p class="upgrade-context-msg">${contextMsg}</p>
                     <p>${message}</p>
                     <ul class="upgrade-features-list">
-                        ${features.map(f => `<li><i class="fas fa-check"></i> ${f}</li>`).join('')}
+                        ${features.map(f => `<li><i data-lucide="check"></i> ${f}</li>`).join('')}
                     </ul>
                 </div>
             `,
             icon: 'info',
             showCancelButton: true,
-            confirmButtonText: '<i class="fas fa-crown"></i> Quero ser Pro!',
+            confirmButtonText: '<i data-lucide="crown"></i> Quero ser Pro!',
             cancelButtonText: 'Agora não',
             confirmButtonColor: '#f59e0b',
             ...getSwalTheme(),
@@ -323,7 +323,7 @@
             `,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: '<i class="fas fa-rocket"></i> Fazer Upgrade',
+            confirmButtonText: '<i data-lucide="rocket"></i> Fazer Upgrade',
             cancelButtonText: 'Depois',
             confirmButtonColor: CONFIG.colors.primary,
             ...getSwalTheme(),

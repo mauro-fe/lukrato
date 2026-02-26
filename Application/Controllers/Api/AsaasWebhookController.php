@@ -9,6 +9,8 @@ use Application\Models\Usuario;
 use Application\Services\AsaasService;
 use Application\Services\LogService;
 use Application\Services\MailService;
+use Application\Enums\LogLevel;
+use Application\Enums\LogCategory;
 use Illuminate\Database\Capsule\Manager as DB;
 
 class AsaasWebhookController extends BaseController
@@ -46,10 +48,15 @@ class AsaasWebhookController extends BaseController
 
         // 🔐 Validação de segurança (NUNCA retornar erro externo)
         if (!$this->asaas->validateWebhookRequest($headers, $rawBody)) {
-            LogService::warning('Webhook Asaas rejeitado por validação', [
-                'headers' => array_keys($headers),
-                'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-            ]);
+            LogService::persist(
+                LogLevel::WARNING,
+                LogCategory::WEBHOOK,
+                'Webhook Asaas rejeitado por validação',
+                [
+                    'headers' => array_keys($headers),
+                    'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                ],
+            );
 
             http_response_code(200);
             echo 'OK';
@@ -59,9 +66,12 @@ class AsaasWebhookController extends BaseController
         $payload = json_decode($rawBody, true);
 
         if (!is_array($payload)) {
-            LogService::warning('Webhook Asaas com payload inválido', [
-                'rawBody' => $rawBody,
-            ]);
+            LogService::persist(
+                LogLevel::WARNING,
+                LogCategory::WEBHOOK,
+                'Webhook Asaas com payload inválido',
+                ['rawBody' => $rawBody],
+            );
 
             http_response_code(200);
             echo 'OK';
@@ -128,10 +138,9 @@ class AsaasWebhookController extends BaseController
         } catch (\Throwable $e) {
             DB::rollBack();
 
-            LogService::error('Erro ao processar webhook Asaas', [
+            LogService::captureException($e, LogCategory::WEBHOOK, [
                 'event' => $event,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+                'resource_id' => $resourceId ?? null,
             ]);
         }
 
@@ -159,9 +168,12 @@ class AsaasWebhookController extends BaseController
             ->first();
 
         if (!$assinatura) {
-            LogService::warning('Assinatura não encontrada para webhook', [
-                'asaas_id' => $asaasId,
-            ]);
+            LogService::persist(
+                LogLevel::WARNING,
+                LogCategory::SUBSCRIPTION,
+                'Assinatura não encontrada para webhook',
+                ['asaas_id' => $asaasId],
+            );
             return;
         }
 
@@ -242,11 +254,14 @@ class AsaasWebhookController extends BaseController
     {
         try {
             $usuario = Usuario::find($assinatura->user_id);
-            
+
             if (!$usuario || empty($usuario->email)) {
-                LogService::warning('Usuário não encontrado para enviar email de confirmação', [
-                    'user_id' => $assinatura->user_id,
-                ]);
+                LogService::persist(
+                    LogLevel::WARNING,
+                    LogCategory::NOTIFICATION,
+                    'Usuário não encontrado para enviar email de confirmação',
+                    ['user_id' => $assinatura->user_id],
+                );
                 return;
             }
 
@@ -278,10 +293,10 @@ class AsaasWebhookController extends BaseController
             ]);
         } catch (\Throwable $e) {
             // Não falhar o webhook por erro no email
-            LogService::error('Erro ao enviar email de confirmação de pagamento', [
+            LogService::captureException($e, LogCategory::NOTIFICATION, [
+                'action' => 'send_payment_confirmation_email',
                 'user_id' => $assinatura->user_id,
-                'error' => $e->getMessage(),
-            ]);
+            ], $assinatura->user_id);
         }
     }
 

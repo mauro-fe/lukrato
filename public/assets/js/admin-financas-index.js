@@ -2,6 +2,25 @@
  * FinancasManager - Gerenciador de Finanças (Orçamentos + Metas + Insights)
  * @version 1.0.0
  */
+// Mapeamento de cores para ícones de categorias
+function getCategoryIconColor(icon) {
+    const colors = {
+        'house': '#f97316', 'utensils': '#ef4444', 'car': '#3b82f6',
+        'lightbulb': '#eab308', 'heart-pulse': '#ef4444', 'graduation-cap': '#6366f1',
+        'shirt': '#ec4899', 'clapperboard': '#a855f7', 'credit-card': '#0ea5e9',
+        'smartphone': '#6366f1', 'shopping-cart': '#f97316', 'coins': '#eab308',
+        'briefcase': '#3b82f6', 'laptop': '#06b6d4', 'trending-up': '#22c55e',
+        'gift': '#ec4899', 'banknote': '#22c55e', 'trophy': '#f59e0b',
+        'wallet': '#14b8a6', 'tag': '#94a3b8', 'pie-chart': '#8b5cf6',
+        'piggy-bank': '#ec4899', 'plane': '#0ea5e9', 'gamepad-2': '#a855f7',
+        'baby': '#f472b6', 'dog': '#92400e', 'wrench': '#64748b',
+        'church': '#6366f1', 'dumbbell': '#ef4444', 'music': '#a855f7',
+        'book-open': '#3b82f6', 'scissors': '#ec4899', 'building-2': '#64748b',
+        'landmark': '#3b82f6', 'receipt': '#14b8a6'
+    };
+    return colors[icon] || '#f97316';
+}
+
 class FinancasManager {
     constructor() {
         this.baseUrl = this.getBaseUrl();
@@ -26,6 +45,21 @@ class FinancasManager {
         this.attachEventListeners();
         this.setupMoneyInputs();
         await Promise.all([this.loadCategorias(), this.loadContas()]);
+
+        // Restore tab from hash or localStorage
+        const hash = location.hash.replace('#', '');
+        const validTabs = ['orcamentos', 'metas'];
+        let initialTab = 'orcamentos';
+        if (hash && validTabs.includes(hash)) {
+            initialTab = hash;
+        } else {
+            try {
+                const stored = localStorage.getItem('financas_tab');
+                if (stored && validTabs.includes(stored)) initialTab = stored;
+            } catch (e) { }
+        }
+        if (initialTab !== 'orcamentos') this.switchTab(initialTab);
+
         await this.loadAll();
     }
 
@@ -72,9 +106,22 @@ class FinancasManager {
             }
         });
 
-        // Tabs
-        document.querySelectorAll('.fin-tab').forEach(tab => {
+        // Tabs + keyboard nav
+        const tabButtons = document.querySelectorAll('.fin-tab');
+        const tabNames = [...tabButtons].map(t => t.dataset.tab);
+        tabButtons.forEach(tab => {
             tab.addEventListener('click', () => this.switchTab(tab.dataset.tab));
+            tab.addEventListener('keydown', (e) => {
+                const idx = tabNames.indexOf(tab.dataset.tab);
+                let next = -1;
+                if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (idx + 1) % tabNames.length;
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (idx - 1 + tabNames.length) % tabNames.length;
+                if (next >= 0) {
+                    e.preventDefault();
+                    tabButtons[next].focus();
+                    this.switchTab(tabNames[next]);
+                }
+            });
         });
 
         // Orçamentos
@@ -199,8 +246,9 @@ class FinancasManager {
             const conta = this.contas.find(c => String(c.id) === String(contaId));
             const saldo = conta?.saldoAtual ?? 0;
             if (hint) {
-                hint.innerHTML = `<i class="fas fa-info-circle"></i> Saldo atual da conta: <strong>${this.formatCurrency(saldo)}</strong> — será usado como valor inicial. O progresso atualiza automaticamente.`;
+                hint.innerHTML = `<i data-lucide="info"></i> Saldo atual da conta: <strong>${this.formatCurrency(saldo)}</strong> — será usado como valor inicial. O progresso atualiza automaticamente.`;
                 hint.style.display = '';
+                if (window.lucide) lucide.createIcons();
             }
         } else {
             if (valorAtualGroup) valorAtualGroup.style.display = '';
@@ -218,7 +266,7 @@ class FinancasManager {
         this.categorias.forEach(cat => {
             const opt = document.createElement('option');
             opt.value = cat.id;
-            opt.textContent = `${cat.icone || '📁'} ${cat.nome}`;
+            opt.textContent = cat.nome;
             select.appendChild(opt);
         });
     }
@@ -327,7 +375,7 @@ class FinancasManager {
         // Metas summary cards
         const totalMetas = met.total_metas ?? met.ativas ?? 0;
         const totalAtual = met.total_atual ?? 0;
-        const totalAlvo  = met.total_alvo ?? 0;
+        const totalAlvo = met.total_alvo ?? 0;
         const progressoGeral = met.progresso_geral ?? 0;
         const atrasadas = met.atrasadas ?? 0;
 
@@ -337,8 +385,8 @@ class FinancasManager {
 
         // Metas progress ring
         const metasRingFill = document.getElementById('metasProgressRingFill');
-        const metasScore    = document.getElementById('metasProgressScore');
-        const metasLabel    = document.getElementById('metasProgressLabel');
+        const metasScore = document.getElementById('metasProgressScore');
+        const metasLabel = document.getElementById('metasProgressLabel');
 
         if (metasRingFill) {
             metasRingFill.style.strokeDasharray = `${progressoGeral}, 100`;
@@ -385,7 +433,7 @@ class FinancasManager {
             const pct = orc.percentual || 0;
             const statusClass = pct >= 100 ? 'over' : pct >= 80 ? 'warn' : 'ok';
             const catNome = orc.categoria?.nome || orc.categoria_nome || 'Categoria';
-            const catIcone = orc.categoria?.icone || '📁';
+            const catIcone = orc.categoria?.icone || 'tag';
             const gasto = orc.gasto_real || 0;
             const limite = orc.valor_limite || 0;
             const disponivel = limite - gasto;
@@ -397,15 +445,15 @@ class FinancasManager {
             <div class="orc-card ${statusClass}" data-aos="fade-up">
                 <div class="orc-header">
                     <div class="orc-cat">
-                        <span class="orc-icon">${catIcone}</span>
+                        <span class="orc-icon"><i data-lucide="${catIcone}" style="color:${getCategoryIconColor(catIcone)}"></i></span>
                         <span class="orc-name">${this.escHtml(catNome)}</span>
                     </div>
                     <div class="orc-actions">
                         <button class="orc-action-btn" onclick="financasManager.openOrcamentoModal(${orc.id})" title="Editar">
-                            <i class="fas fa-pencil"></i>
+                            <i data-lucide="pencil"></i>
                         </button>
                         <button class="orc-action-btn danger" onclick="financasManager.deleteOrcamento(${orc.id})" title="Excluir">
-                            <i class="fas fa-trash"></i>
+                            <i data-lucide="trash-2"></i>
                         </button>
                     </div>
                 </div>
@@ -427,6 +475,7 @@ class FinancasManager {
                 </div>
             </div>`;
         }).join('');
+        if (window.lucide) lucide.createIcons();
     }
 
     // ==================== RENDER: METAS ====================
@@ -463,7 +512,7 @@ class FinancasManager {
                 ? `<span class="meta-aporte-hint">${this.formatCurrency(meta.aporte_mensal_sugerido)}/mês sugerido</span>`
                 : '';
             const contaBadge = meta.conta_id
-                ? `<span class="meta-conta-badge"><i class="fas fa-university"></i> ${this.escHtml(meta.conta_nome || 'Conta vinculada')}</span>`
+                ? `<span class="meta-conta-badge"><i data-lucide="landmark"></i> ${this.escHtml(meta.conta_nome || 'Conta vinculada')}</span>`
                 : '';
 
             return `
@@ -477,13 +526,13 @@ class FinancasManager {
                     <div class="meta-actions">
                         ${meta.status === 'ativa' && !meta.conta_id ? `
                         <button class="meta-action-btn" onclick="financasManager.openAporteModal(${meta.id})" title="Adicionar aporte">
-                            <i class="fas fa-plus-circle"></i>
+                            <i data-lucide="circle-plus"></i>
                         </button>` : ''}
                         <button class="meta-action-btn" onclick="financasManager.openMetaModal(${meta.id})" title="Editar">
-                            <i class="fas fa-pencil"></i>
+                            <i data-lucide="pencil"></i>
                         </button>
                         <button class="meta-action-btn danger" onclick="financasManager.deleteMeta(${meta.id})" title="Excluir">
-                            <i class="fas fa-trash"></i>
+                            <i data-lucide="trash-2"></i>
                         </button>
                     </div>
                 </div>
@@ -505,6 +554,7 @@ class FinancasManager {
                 </div>
             </div>`;
         }).join('');
+        if (window.lucide) lucide.createIcons();
     }
 
     // ==================== RENDER: INSIGHTS ====================
@@ -527,7 +577,7 @@ class FinancasManager {
             return `
             <div class="insight-card ${level}" data-aos="fade-up">
                 <div class="insight-icon ${level}">
-                    <i class="fas fa-${icon}"></i>
+                    <i data-lucide="${icon}"></i>
                 </div>
                 <div class="insight-content">
                     <span class="insight-title">${this.escHtml(insight.titulo || '')}</span>
@@ -535,20 +585,39 @@ class FinancasManager {
                 </div>
             </div>`;
         }).join('');
+        if (window.lucide) lucide.createIcons();
     }
 
     // ==================== TABS ====================
 
     switchTab(tabName) {
         this.currentTab = tabName;
-        document.querySelectorAll('.fin-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabName));
+
+        // Update tab buttons + ARIA
+        document.querySelectorAll('.fin-tab').forEach(t => {
+            const isActive = t.dataset.tab === tabName;
+            t.classList.toggle('active', isActive);
+            t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+
+        // Update tab panels
         document.querySelectorAll('.fin-tab-content').forEach(c => c.classList.toggle('active', c.id === `tab-${tabName}`));
 
-        // Toggle summary card groups
-        const sumOrc  = document.getElementById('summaryOrcamentos');
+        // Crossfade summary card groups
+        const sumOrc = document.getElementById('summaryOrcamentos');
         const sumMeta = document.getElementById('summaryMetas');
-        if (sumOrc)  sumOrc.style.display  = tabName === 'orcamentos' ? '' : 'none';
-        if (sumMeta) sumMeta.style.display = tabName === 'metas' ? '' : 'none';
+        if (sumOrc) {
+            sumOrc.style.opacity = tabName === 'orcamentos' ? '1' : '0';
+            sumOrc.style.display = tabName === 'orcamentos' ? '' : 'none';
+        }
+        if (sumMeta) {
+            sumMeta.style.display = tabName === 'metas' ? '' : 'none';
+            sumMeta.style.opacity = tabName === 'metas' ? '1' : '0';
+        }
+
+        // Persist tab choice
+        try { localStorage.setItem('financas_tab', tabName); } catch (e) { }
+        history.replaceState(null, '', `#${tabName}`);
     }
 
     // ==================== MODAIS ====================
@@ -621,7 +690,10 @@ class FinancasManager {
                 alerta_100: alerta100
             });
 
-            if (res.success !== false) {
+            // Verificar se é erro de limite do plano
+            if (this.handleLimitError(res)) return;
+
+            if (res.success !== false && res.status !== 'error') {
                 this.closeModal('modalOrcamento');
                 this.showToast('Orçamento salvo!', 'success');
                 await this.loadAll();
@@ -668,7 +740,8 @@ class FinancasManager {
     async openSugestoes() {
         this.openModal('modalSugestoes');
         const list = document.getElementById('sugestoesList');
-        list.innerHTML = '<div class="loading-state"><i class="fas fa-spinner fa-spin"></i><p>Analisando seu histórico...</p></div>';
+        list.innerHTML = '<div class="loading-state"><i data-lucide="loader-2" class="icon-spin"></i><p>Analisando seu histórico...</p></div>';
+        if (window.lucide) lucide.createIcons();
 
         try {
             const res = await this.apiGet(`api/financas/orcamentos/sugestoes?mes=${this.currentMonth}&ano=${this.currentYear}`);
@@ -689,7 +762,7 @@ class FinancasManager {
             const trendIcon = sug.tendencia === 'subindo' ? 'arrow-up' : sug.tendencia === 'descendo' ? 'arrow-down' : 'minus';
             const trendClass = sug.tendencia === 'subindo' ? 'up' : sug.tendencia === 'descendo' ? 'down' : 'stable';
             const catNome = sug.categoria?.nome || sug.categoria_nome || 'Categoria';
-            const catIcone = sug.categoria?.icone || '📁';
+            const catIcone = sug.categoria?.icone || 'tag';
             const mediaGastos = sug.media_gastos || sug.media_3_meses || 0;
             const economiaTag = sug.economia_sugerida > 0
                 ? `<span class="sugestao-economia">economia de ${this.formatCurrency(sug.economia_sugerida)}/mês</span>`
@@ -697,11 +770,11 @@ class FinancasManager {
             return `
             <div class="sugestao-item">
                 <div class="sugestao-info">
-                    <span class="sugestao-icon">${catIcone}</span>
+                    <span class="sugestao-icon"><i data-lucide="${catIcone}" style="color:${getCategoryIconColor(catIcone)}"></i></span>
                     <div class="sugestao-detail">
                         <span class="sugestao-nome">${this.escHtml(catNome)}</span>
                         <span class="sugestao-media">Média: ${this.formatCurrency(mediaGastos)}
-                            <i class="fas fa-${trendIcon} trend-${trendClass}"></i>
+                            <i data-lucide="${trendIcon}" class="trend-${trendClass}"></i>
                         </span>
                         ${economiaTag}
                     </div>
@@ -713,10 +786,11 @@ class FinancasManager {
                 </div>
                 <label class="sugestao-check">
                     <input type="checkbox" checked data-sug-idx="${idx}">
-                    <span class="checkmark"><i class="fas fa-check"></i></span>
+                    <span class="checkmark"><i data-lucide="check"></i></span>
                 </label>
             </div>`;
         }).join('');
+        if (window.lucide) lucide.createIcons();
     }
 
     async aplicarSugestoes() {
@@ -746,7 +820,10 @@ class FinancasManager {
                 orcamentos: orcamentos
             });
 
-            if (res.success !== false) {
+            // Verificar se é erro de limite do plano
+            if (this.handleLimitError(res)) return;
+
+            if (res.success !== false && res.status !== 'error') {
                 this.closeModal('modalSugestoes');
                 this.showToast(`${res.data?.aplicados || orcamentos.length} orçamentos configurados!`, 'success');
                 await this.loadAll();
@@ -785,7 +862,10 @@ class FinancasManager {
                 ano_destino: this.currentYear
             });
 
-            if (res.success !== false) {
+            // Verificar se é erro de limite do plano
+            if (this.handleLimitError(res)) return;
+
+            if (res.success !== false && res.status !== 'error') {
                 this.showToast(`${res.data?.copiados || 0} orçamentos copiados!`, 'success');
                 await this.loadAll();
             } else {
@@ -897,7 +977,10 @@ class FinancasManager {
                 res = await this.apiPost('api/financas/metas', data);
             }
 
-            if (res.success !== false) {
+            // Verificar se é erro de limite do plano
+            if (this.handleLimitError(res)) return;
+
+            if (res.success !== false && res.status !== 'error') {
                 // Processar conquistas desbloqueadas
                 const responseData = res.data;
                 const gamification = responseData?.gamification || res.gamification;
@@ -1018,15 +1101,28 @@ class FinancasManager {
     async openTemplates() {
         this.openModal('modalTemplates');
         const grid = document.getElementById('templatesGrid');
-        grid.innerHTML = '<div class="loading-state"><i class="fas fa-spinner fa-spin"></i><p>Carregando templates...</p></div>';
+        grid.innerHTML = '<div class="loading-state"><i data-lucide="loader-2" class="icon-spin"></i><p>Carregando templates...</p></div>';
+        if (window.lucide) lucide.createIcons();
 
         try {
             const res = await this.apiGet('api/financas/metas/templates');
             if (res.success !== false && res.data?.length) {
+                const _faToLucide = {
+                    'fa-arrow-down': 'arrow-down', 'fa-arrow-up': 'arrow-up', 'fa-calendar-alt': 'calendar-days',
+                    'fa-check': 'check', 'fa-check-circle': 'circle-check', 'fa-chevron-right': 'chevron-right',
+                    'fa-credit-card': 'credit-card', 'fa-exclamation-circle': 'circle-alert',
+                    'fa-exclamation-triangle': 'triangle-alert', 'fa-eye': 'eye', 'fa-eye-slash': 'eye-off',
+                    'fa-info-circle': 'info', 'fa-pencil': 'pencil', 'fa-pencil-alt': 'pencil',
+                    'fa-plus': 'plus', 'fa-plus-circle': 'circle-plus', 'fa-redo': 'refresh-cw',
+                    'fa-shopping-cart': 'shopping-cart', 'fa-sort': 'arrow-up-down', 'fa-sort-down': 'arrow-down',
+                    'fa-sort-up': 'arrow-up', 'fa-spinner': 'loader-2', 'fa-times': 'x', 'fa-trash': 'trash-2',
+                    'fa-undo': 'undo-2', 'fa-university': 'landmark', 'fa-wallet': 'wallet'
+                };
                 grid.innerHTML = res.data.map(tmpl => {
-                    const iconeHtml = tmpl.icone && tmpl.icone.startsWith('fa-')
-                        ? `<i class="fas ${tmpl.icone}"></i>`
-                        : (tmpl.icone || '🎯');
+                    // icone agora vem como nome Lucide direto (ex: 'shield', 'smartphone')
+                    const iconeHtml = tmpl.icone
+                        ? `<i data-lucide="${tmpl.icone}" style="color:${getCategoryIconColor(tmpl.icone)}"></i>`
+                        : '<i data-lucide="target" style="color:#ef4444"></i>';
                     return `
                     <div class="template-card" onclick="financasManager.useTemplate(${JSON.stringify(tmpl).replace(/"/g, '&quot;')})">
                         <span class="template-icon">${iconeHtml}</span>
@@ -1035,9 +1131,10 @@ class FinancasManager {
                             <p>${this.escHtml(tmpl.descricao || '')}</p>
                             ${tmpl.valor_sugerido ? `<span class="template-valor">Sugestão: ${this.formatCurrency(tmpl.valor_sugerido)}</span>` : ''}
                         </div>
-                        <i class="fas fa-chevron-right template-arrow"></i>
+                        <i data-lucide="chevron-right" class="template-arrow"></i>
                     </div>`;
                 }).join('');
+                if (window.lucide) lucide.createIcons();
             } else {
                 grid.innerHTML = '<div class="fin-empty-state"><p>Nenhum template disponível.</p></div>';
             }
@@ -1155,6 +1252,55 @@ class FinancasManager {
         return await response.json();
     }
 
+    /**
+     * Verifica se a resposta da API indica erro de limite do plano
+     * e exibe modal de upgrade se necessário
+     * @returns true se foi erro de limite tratado, false caso contrário
+     */
+    handleLimitError(res) {
+        const isError = res.status === 'error' || res.success === false;
+        if (!isError) return false;
+
+        const msg = res.message || '';
+        const isLimitError = /limite|plano gratuito|upgrade|faça upgrade/i.test(msg);
+
+        if (isLimitError) {
+            Swal.fire({
+                icon: 'warning',
+                title: '🚀 Limite Atingido',
+                html: `
+                    <p>${msg}</p>
+                    <p style="margin-top: 12px; color: #6c757d; font-size: 0.9em;">
+                        Desbloqueie metas e orçamentos ilimitados com o plano Pro!
+                    </p>
+                `,
+                showCancelButton: true,
+                confirmButtonText: '✨ Ver Plano Pro',
+                cancelButtonText: 'Depois',
+                confirmButtonColor: '#6366f1',
+                cancelButtonColor: '#6c757d'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.goToBilling();
+                }
+            });
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Redireciona para a página de billing/assinatura
+     */
+    goToBilling() {
+        if (typeof openBillingModal === 'function') {
+            openBillingModal();
+        } else {
+            window.location.href = `${this.baseUrl}billing`;
+        }
+    }
+
     // ==================== UTILS ====================
 
     formatCurrency(value) {
@@ -1215,13 +1361,13 @@ class FinancasManager {
 
     getInsightIcon(tipo) {
         const map = {
-            alerta_80: 'exclamation-triangle',
-            alerta_100: 'skull-crossbones',
+            alerta_80: 'triangle-alert',
+            alerta_100: 'circle-alert',
             economia: 'thumbs-up',
-            tendencia_alta: 'chart-line',
-            tendencia_baixa: 'chart-line',
-            comparativo: 'balance-scale',
-            sem_orcamento: 'question-circle',
+            tendencia_alta: 'trending-up',
+            tendencia_baixa: 'trending-down',
+            comparativo: 'scale',
+            sem_orcamento: 'circle-help',
             meta_atrasada: 'clock'
         };
         return map[tipo] || 'lightbulb';

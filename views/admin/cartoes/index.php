@@ -4,12 +4,12 @@
         <div class="header-top">
 
             <button class="btn btn-primary" id="btnNovoCartao">
-                <i class="fas fa-plus"></i>
+                <i data-lucide="plus"></i>
                 Adicionar Cartão
             </button>
 
             <a href="<?= BASE_URL ?>cartoes/arquivadas" class="btn btn-secondary">
-                <i class="fas fa-archive"></i>
+                <i data-lucide="archive"></i>
                 Cartões Arquivados
             </a>
         </div>
@@ -18,7 +18,7 @@
         <div class="stats-grid">
             <div class="stat-card" data-stat="total">
                 <div class="stat-icon">
-                    <i class="fas fa-credit-card"></i>
+                    <i data-lucide="credit-card" style="color: white"></i>
                 </div>
                 <div class="stat-content">
                     <div class="stat-label">Total de Cartões</div>
@@ -28,7 +28,7 @@
 
             <div class="stat-card" data-stat="limite">
                 <div class="stat-icon">
-                    <i class="fas fa-hand-holding-usd"></i>
+                    <i data-lucide="hand-coins" style="color: white"></i>
                 </div>
                 <div class="stat-content">
                     <div class="stat-label">Limite Total</div>
@@ -38,7 +38,7 @@
 
             <div class="stat-card" data-stat="disponivel">
                 <div class="stat-icon success">
-                    <i class="fas fa-check-circle"></i>
+                    <i data-lucide="circle-check" style="color: white"></i>
                 </div>
                 <div class="stat-content">
                     <div class="stat-label">Limite Disponível</div>
@@ -48,7 +48,7 @@
 
             <div class="stat-card" data-stat="utilizado">
                 <div class="stat-icon warning">
-                    <i class="fas fa-chart-line"></i>
+                    <i data-lucide="trending-up" style="color: white"></i>
                 </div>
                 <div class="stat-content">
                     <div class="stat-label">Limite Utilizado</div>
@@ -62,13 +62,13 @@
     <div class="cartoes-toolbar">
         <div class="toolbar-left">
             <div class="search-box">
-                <i class="fas fa-search"></i>
+                <i data-lucide="search"></i>
                 <input type="text" id="searchCartoes" placeholder="Buscar cartões..." autocomplete="off">
             </div>
 
             <div class="filter-group">
                 <button class="filter-btn active" data-filter="all">
-                    <i class="fas fa-th"></i>
+                    <i data-lucide="grid-3x3"></i>
                     Todos
                 </button>
                 <button class="filter-btn" data-filter="visa">
@@ -84,22 +84,27 @@
                     <img src="<?= BASE_URL ?>assets/img/bandeiras/elo.png" alt="Elo" class="brand-logo-filter">
                     Elo
                 </button>
+                <button class="filter-btn btn-clear-filters" id="btnLimparFiltrosCartoes" title="Limpar busca e filtros"
+                    style="display:none;">
+                    <i data-lucide="eraser"></i>
+                    Limpar
+                </button>
             </div>
         </div>
 
         <div class="toolbar-right">
             <button class="btn btn-ghost" id="btnExportar" title="Exportar relatório">
-                <i class="fas fa-download"></i>
+                <i data-lucide="download"></i>
             </button>
             <button class="btn btn-ghost" id="btnReload" title="Atualizar">
-                <i class="fas fa-sync-alt"></i>
+                <i data-lucide="refresh-cw"></i>
             </button>
             <div class="view-toggle">
                 <button class="view-btn active" data-view="grid" title="Visualização em grade">
-                    <i class="fas fa-th-large"></i>
+                    <i data-lucide="layout-grid"></i>
                 </button>
                 <button class="view-btn" data-view="list" title="Visualização em lista">
-                    <i class="fas fa-list"></i>
+                    <i data-lucide="list"></i>
                 </button>
             </div>
         </div>
@@ -117,12 +122,12 @@
         <!-- Empty State -->
         <div class="empty-state" id="emptyState" style="display: none;">
             <div class="empty-icon">
-                <i class="fas fa-credit-card"></i>
+                <i data-lucide="credit-card" style="color: white"></i>
             </div>
             <h3>Nenhum cartão cadastrado</h3>
             <p>Adicione seu primeiro cartão para começar a controlar seus gastos</p>
             <button class="btn btn-primary" id="btnNovoCartaoEmpty">
-                <i class="fas fa-plus"></i>
+                <i data-lucide="plus"></i>
                 Adicionar Primeiro Cartão
             </button>
         </div>

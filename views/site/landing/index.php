@@ -49,7 +49,7 @@
                         class="group inline-flex items-center justify-center px-10 py-5 text-lg font-bold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300"
                         title="Criar conta gratuita no Lukrato" aria-label="Começar a usar o Lukrato gratuitamente">
                         Começar grátis agora
-                        <i class="fa-solid fa-arrow-right ml-3 group-hover:translate-x-1 transition-transform"
+                        <i data-lucide="arrow-right" class="ml-3 group-hover:translate-x-1 transition-transform"
                             aria-hidden="true"></i>
                     </a>
 
@@ -57,7 +57,7 @@
                         class="inline-flex items-center justify-center px-10 py-5 text-lg font-bold text-gray-700 bg-white border-2 border-gray-200 rounded-xl hover:border-primary hover:text-primary shadow-lg hover:shadow-xl transition-all duration-300"
                         title="Ver funcionalidades do app de controle financeiro"
                         aria-label="Conhecer as funcionalidades do Lukrato">
-                        <i class="fa-solid fa-play mr-3" aria-hidden="true"></i>
+                        <i data-lucide="play" class="mr-3" aria-hidden="true"></i>
                         Ver como funciona
                     </a>
                 </div>
@@ -86,11 +86,20 @@
                     <div class="text-center sm:text-left">
                         <div class="flex gap-1 mb-1 justify-center sm:justify-start"
                             aria-label="Avaliação 4.9 de 5 estrelas">
-                            <i class="fa-solid fa-star text-yellow-400" aria-hidden="true"></i>
-                            <i class="fa-solid fa-star text-yellow-400" aria-hidden="true"></i>
-                            <i class="fa-solid fa-star text-yellow-400" aria-hidden="true"></i>
-                            <i class="fa-solid fa-star text-yellow-400" aria-hidden="true"></i>
-                            <i class="fa-solid fa-star text-yellow-400" aria-hidden="true"></i>
+                            <i data-lucide="star" class="text-yellow-400" style="fill:#facc15;width:20px;height:20px;" aria-hidden="true"></i>
+                            <i data-lucide="star" class="text-yellow-400" style="fill:#facc15;width:20px;height:20px;" aria-hidden="true"></i>
+                            <i data-lucide="star" class="text-yellow-400" style="fill:#facc15;width:20px;height:20px;" aria-hidden="true"></i>
+                            <i data-lucide="star" class="text-yellow-400" style="fill:#facc15;width:20px;height:20px;" aria-hidden="true"></i>
+                            <!-- 5ª estrela: 90% preenchida (4.9/5) -->
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <defs>
+                                    <linearGradient id="star-partial">
+                                        <stop offset="90%" stop-color="#facc15" />
+                                        <stop offset="90%" stop-color="#d1d5db" />
+                                    </linearGradient>
+                                </defs>
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="url(#star-partial)" stroke="url(#star-partial)" />
+                            </svg>
                         </div>
                         <p class="text-sm text-gray-600">
                             <strong class="text-gray-900" itemprop="ratingValue">4.9</strong>/5 baseado em mais de <span
@@ -104,15 +113,15 @@
                 <!-- Features rápidos -->
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4">
                     <div class="flex items-center gap-2 text-gray-700">
-                        <i class="fa-solid fa-check-circle text-green-500" aria-hidden="true"></i>
+                        <i data-lucide="circle-check" class="text-green-500" aria-hidden="true"></i>
                         <span class="text-sm font-medium">Grátis para começar</span>
                     </div>
                     <div class="flex items-center gap-2 text-gray-700">
-                        <i class="fa-solid fa-check-circle text-green-500" aria-hidden="true"></i>
+                        <i data-lucide="circle-check" class="text-green-500" aria-hidden="true"></i>
                         <span class="text-sm font-medium">Sem cartão</span>
                     </div>
                     <div class="flex items-center gap-2 text-gray-700">
-                        <i class="fa-solid fa-check-circle text-green-500" aria-hidden="true"></i>
+                        <i data-lucide="circle-check" class="text-green-500" aria-hidden="true"></i>
                         <span class="text-sm font-medium">Fácil de usar</span>
                     </div>
                 </div>
@@ -143,7 +152,7 @@
                     <div class="flex items-center gap-2 lg:gap-3">
                         <div
                             class="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                            <i class="fa-solid fa-dollar-sign text-white text-lg lg:text-xl"></i>
+                            <i data-lucide="dollar-sign" class="text-white text-lg lg:text-xl"></i>
                         </div>
                         <div>
                             <p class="text-xs text-gray-500">Saldo Total</p>
@@ -158,7 +167,7 @@
                     <div class="flex items-center gap-2 lg:gap-3">
                         <div
                             class="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-primary to-orange-600 rounded-xl flex items-center justify-center">
-                            <i class="fa-solid fa-chart-line text-white text-lg lg:text-xl"></i>
+                            <i data-lucide="line-chart" class="text-white text-lg lg:text-xl"></i>
                         </div>
                         <div>
                             <p class="text-xs text-gray-500">Economia</p>
@@ -176,7 +185,7 @@
         <a href="#funcionalidades"
             class="flex flex-col items-center gap-2 text-gray-400 hover:text-gray-600 transition-colors animate-bounce">
             <span class="text-sm font-medium">Role para descobrir</span>
-            <i class="fa-solid fa-chevron-down text-xl"></i>
+            <i data-lucide="chevron-down" class="text-xl"></i>
         </a>
     </div>
     </div>
@@ -219,7 +228,7 @@
                     <li class="flex items-start gap-4 group">
                         <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300"
                             aria-hidden="true">
-                            <i class="fa-solid fa-chart-line text-xl"></i>
+                            <i data-lucide="line-chart" class="text-xl"></i>
                         </div>
                         <div class="flex-1 pt-1">
                             <h3 class="font-semibold text-lg text-gray-900 mb-1">Dashboard com visão clara do mês</h3>
@@ -231,7 +240,7 @@
                     <li class="flex items-start gap-4 group">
                         <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-secondary to-gray-700 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300"
                             aria-hidden="true">
-                            <i class="fa-regular fa-calendar-check text-xl"></i>
+                            <i data-lucide="calendar-check" class="text-xl"></i>
                         </div>
                         <div class="flex-1 pt-1">
                             <h3 class="font-semibold text-lg text-gray-900 mb-1">Agendamentos e lembretes de contas</h3>
@@ -243,7 +252,7 @@
                     <li class="flex items-start gap-4 group">
                         <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300"
                             aria-hidden="true">
-                            <i class="fa-solid fa-chart-pie text-xl"></i>
+                            <i data-lucide="pie-chart" class="text-xl"></i>
                         </div>
                         <div class="flex-1 pt-1">
                             <h3 class="font-semibold text-lg text-gray-900 mb-1">Relatórios e gráficos financeiros</h3>
@@ -259,14 +268,14 @@
                         class="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
                         title="Começar a usar o Lukrato grátis" aria-label="Criar conta gratuita">
                         Começar grátis
-                        <i class="fa-solid fa-arrow-right ml-2" aria-hidden="true"></i>
+                        <i data-lucide="arrow-right" class="ml-2" aria-hidden="true"></i>
                     </a>
 
                     <button type="button" id="openGalleryBtn" @click="$dispatch('open-gallery')"
                         onclick="document.getElementById('galleryModal').style.display='flex'"
                         class="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-gray-700 bg-white border-2 border-gray-200 rounded-xl hover:border-primary hover:text-primary hover:shadow-lg transition-all duration-300"
                         title="Ver screenshots do sistema" aria-label="Abrir galeria de imagens do sistema">
-                        <i class="fa-regular fa-images mr-2" aria-hidden="true"></i>
+                        <i data-lucide="images" class="mr-2" aria-hidden="true"></i>
                         Ver o sistema por dentro
                     </button>
                 </div>
@@ -292,7 +301,7 @@
                     <!-- Ícone decorativo -->
                     <div
                         class="absolute -top-6 -right-6 w-24 h-24 bg-gradient-to-br from-primary to-orange-600 rounded-full flex items-center justify-center shadow-xl">
-                        <i class="fa-solid fa-lightbulb text-4xl text-white"></i>
+                        <i data-lucide="lightbulb" class="text-4xl text-white"></i>
                     </div>
 
                     <!-- Conteúdo -->
@@ -300,7 +309,7 @@
                         <!-- Badge -->
                         <div
                             class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-orange-600 text-white rounded-full text-sm font-semibold mb-6 shadow-lg">
-                            <i class="fa-solid fa-star"></i>
+                            <i data-lucide="star"></i>
                             <span>Por que Lukrato?</span>
                         </div>
 
@@ -333,7 +342,7 @@
                                 class="flex items-start gap-3 p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow">
                                 <div
                                     class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                                    <i class="fa-solid fa-piggy-bank text-white"></i>
+                                    <i data-lucide="piggy-bank" class="text-white"></i>
                                 </div>
                                 <div>
                                     <h4 class="font-semibold text-gray-900 mb-1">Organize-se</h4>
@@ -345,7 +354,7 @@
                                 class="flex items-start gap-3 p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow">
                                 <div
                                     class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-primary to-orange-600 rounded-lg flex items-center justify-center">
-                                    <i class="fa-solid fa-chart-line text-white"></i>
+                                    <i data-lucide="line-chart" class="text-white"></i>
                                 </div>
                                 <div>
                                     <h4 class="font-semibold text-gray-900 mb-1">Lucre mais</h4>
@@ -402,7 +411,7 @@
         <!-- Close button -->
         <button @click="open = false" onclick="document.getElementById('galleryModal').style.display='none'"
             class="absolute top-4 right-4 z-20 w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors">
-            <i class="fa-solid fa-xmark text-xl text-gray-700"></i>
+            <i data-lucide="x" class="text-xl text-gray-700"></i>
         </button>
 
         <div class="p-6 sm:p-8">
@@ -425,12 +434,12 @@
                 <!-- Navigation Arrows -->
                 <button @click="prevSlide()"
                     class="absolute left-2 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-white rounded-full shadow-lg hover:bg-gray-100 transition-all hover:scale-110 z-10">
-                    <i class="fa-solid fa-chevron-left text-gray-700"></i>
+                    <i data-lucide="chevron-left" class="text-gray-700"></i>
                 </button>
 
                 <button @click="nextSlide()"
                     class="absolute right-2 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-white rounded-full shadow-lg hover:bg-gray-100 transition-all hover:scale-110 z-10">
-                    <i class="fa-solid fa-chevron-right text-gray-700"></i>
+                    <i data-lucide="chevron-right" class="text-gray-700"></i>
                 </button>
             </div>
 
@@ -489,7 +498,7 @@
                 data-aos="fade-up" data-aos-delay="100" role="listitem">
                 <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300"
                     aria-hidden="true">
-                    <i class="fa-regular fa-eye text-2xl"></i>
+                    <i data-lucide="eye" class="text-2xl"></i>
                 </div>
                 <h3 class="text-xl font-bold text-gray-900 mb-3">Clareza sobre seu orçamento pessoal</h3>
                 <p class="text-gray-600 leading-relaxed">
@@ -504,7 +513,7 @@
                 data-aos="fade-up" data-aos-delay="200" role="listitem">
                 <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-secondary to-gray-700 flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300"
                     aria-hidden="true">
-                    <i class="fa-regular fa-clock text-2xl"></i>
+                    <i data-lucide="clock" class="text-2xl"></i>
                 </div>
                 <h3 class="text-xl font-bold text-gray-900 mb-3">Economia de tempo no controle de gastos</h3>
                 <p class="text-gray-600 leading-relaxed">
@@ -519,7 +528,7 @@
                 data-aos="fade-up" data-aos-delay="300" role="listitem">
                 <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-warning to-yellow-600 flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300"
                     aria-hidden="true">
-                    <i class="fa-regular fa-bell text-2xl"></i>
+                    <i data-lucide="bell" class="text-2xl"></i>
                 </div>
                 <h3 class="text-xl font-bold text-gray-900 mb-3">Evite atrasos e juros desnecessários</h3>
                 <p class="text-gray-600 leading-relaxed">
@@ -534,7 +543,7 @@
                 data-aos="fade-up" data-aos-delay="400" role="listitem">
                 <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300"
                     aria-hidden="true">
-                    <i class="fa-regular fa-chart-bar text-2xl"></i>
+                    <i data-lucide="bar-chart-3" class="text-2xl"></i>
                 </div>
                 <h3 class="text-xl font-bold text-gray-900 mb-3">Relatórios financeiros com gráficos visuais</h3>
                 <p class="text-gray-600 leading-relaxed">
@@ -549,7 +558,7 @@
                 data-aos="fade-up" data-aos-delay="500" role="listitem">
                 <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300"
                     aria-hidden="true">
-                    <i class="fa-regular fa-face-smile text-2xl"></i>
+                    <i data-lucide="smile" class="text-2xl"></i>
                 </div>
                 <h3 class="text-xl font-bold text-gray-900 mb-3">App financeiro fácil de usar</h3>
                 <p class="text-gray-600 leading-relaxed">
@@ -564,7 +573,7 @@
                 data-aos="fade-up" data-aos-delay="600" role="listitem">
                 <div class="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300"
                     aria-hidden="true">
-                    <i class="fa-solid fa-rocket text-2xl"></i>
+                    <i data-lucide="rocket" class="text-2xl"></i>
                 </div>
                 <h3 class="text-xl font-bold mb-3">Comece agora mesmo - É grátis!</h3>
                 <p class="text-blue-50 leading-relaxed mb-6">
@@ -575,7 +584,7 @@
                     class="inline-flex items-center gap-2 px-6 py-3 bg-white text-primary font-bold rounded-xl shadow-lg shadow-orange-900/20 hover:bg-orange-50 hover:shadow-xl hover:scale-105 transition-all duration-300 group/btn"
                     title="Criar conta gratuita" aria-label="Começar a usar o Lukrato gratuitamente">
                     Começar grátis
-                    <i class="fa-solid fa-arrow-right transition-transform duration-300 group-hover/btn:translate-x-1"
+                    <i data-lucide="arrow-right" class="transition-transform duration-300 group-hover/btn:translate-x-1"
                         aria-hidden="true"></i>
                 </a>
             </article>
@@ -593,7 +602,7 @@
             <a href="<?= BASE_URL ?>login"
                 class="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
                 Começar grátis
-                <i class="fa-solid fa-arrow-right ml-2"></i>
+                <i data-lucide="arrow-right" class="ml-2"></i>
             </a>
         </div>
 
@@ -683,14 +692,14 @@
 
                                 <ul class="space-y-4 mb-8">
                                     <li class="flex items-center gap-3 text-gray-700">
-                                        <i class="fa-solid fa-check text-green-500"></i>
+                                        <i data-lucide="check" class="text-green-500"></i>
                                         <span>Controle financeiro essencial</span>
                                     </li>
                                     <?php
                                     $limitacoes = ['Relatórios avançados', 'Agendamentos', 'Exportação de dados', 'Suporte prioritário'];
                                     foreach ($limitacoes as $limite): ?>
                                         <li class="flex items-center gap-3 text-gray-400 opacity-60">
-                                            <i class="fa-solid fa-xmark text-gray-300"></i>
+                                            <i data-lucide="x" class="text-gray-300"></i>
                                             <span class="text-sm"><?= $limite ?></span>
                                         </li>
                                     <?php endforeach; ?>
@@ -745,7 +754,7 @@
                                     $recursos = $plano->metadados['recursos'] ?? ['Relatórios avançados', 'Agendamentos', 'Exportação total', 'Categorias ilimitadas', 'Suporte VIP'];
                                     foreach ($recursos as $recurso): ?>
                                         <li class="flex items-center gap-3">
-                                            <i class="fa-solid fa-check text-orange-200"></i>
+                                            <i data-lucide="check" class="text-orange-200"></i>
                                             <span class="font-medium"><?= htmlspecialchars($recurso) ?></span>
                                         </li>
                                     <?php endforeach; ?>
@@ -762,7 +771,7 @@
                 </div>
                 <div class="text-center" data-aos="fade-up">
                     <p class="text-gray-500 flex items-center justify-center gap-2 text-sm font-medium">
-                        <i class="fa-solid fa-shield-halved text-green-500"></i>
+                        <i data-lucide="shield" class="text-green-500"></i>
                         Sem fidelidade. Cancele quando quiser pelo painel.
                     </p>
                 </div>
@@ -783,7 +792,7 @@
                 <div class="flex justify-center mb-8">
                     <div
                         class="w-20 h-20 bg-gradient-to-br from-primary to-orange-600 rounded-full flex items-center justify-center shadow-lg">
-                        <i class="fa-solid fa-shield-halved text-3xl text-white"></i>
+                        <i data-lucide="shield" class="text-3xl text-white"></i>
                     </div>
                 </div>
 
@@ -806,7 +815,7 @@
                     <li class="flex items-start gap-4 group">
                         <div
                             class="flex-shrink-0 w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                            <i class="fa-solid fa-check text-green-600 text-xl"></i>
+                            <i data-lucide="check" class="text-green-600 text-xl"></i>
                         </div>
                         <div class="flex-1 pt-2">
                             <p class="text-lg text-gray-800 font-medium">
@@ -818,7 +827,7 @@
                     <li class="flex items-start gap-4 group">
                         <div
                             class="flex-shrink-0 w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                            <i class="fa-solid fa-check text-primary text-xl"></i>
+                            <i data-lucide="check" class="text-primary text-xl"></i>
                         </div>
                         <div class="flex-1 pt-2">
                             <p class="text-lg text-gray-800 font-medium">
@@ -830,7 +839,7 @@
                     <li class="flex items-start gap-4 group">
                         <div
                             class="flex-shrink-0 w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                            <i class="fa-solid fa-check text-primary text-xl"></i>
+                            <i data-lucide="check" class="text-primary text-xl"></i>
                         </div>
                         <div class="flex-1 pt-2">
                             <p class="text-lg text-gray-800 font-medium">
@@ -845,10 +854,10 @@
                     <a href="<?= BASE_URL ?>login"
                         class="inline-flex items-center justify-center px-10 py-5 text-lg font-semibold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 mb-4">
                         Começar grátis agora
-                        <i class="fa-solid fa-arrow-right ml-3"></i>
+                        <i data-lucide="arrow-right" class="ml-3"></i>
                     </a>
                     <p class="text-sm text-gray-500">
-                        <i class="fa-regular fa-clock mr-2"></i>
+                        <i data-lucide="clock" class="mr-2"></i>
                         Leva menos de 2 minutos para começar
                     </p>
                 </div>
@@ -875,7 +884,7 @@
         <!-- Header -->
         <header class="max-w-3xl mx-auto text-center mb-12" data-aos="fade-up">
             <div class="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 rounded-full mb-4">
-                <span class="text-2xl">🎁</span>
+                <span class="text-2xl"><i data-lucide="gift" class="w-6 h-6 text-primary"></i></span>
                 <span class="text-sm font-semibold text-primary">Programa de Indicação</span>
             </div>
 
@@ -901,7 +910,7 @@
                 <div class="flex items-center gap-4 mb-6">
                     <div
                         class="w-16 h-16 bg-gradient-to-br from-primary to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
-                        <span class="text-3xl">👤</span>
+                        <i data-lucide="user" class="w-8 h-8 text-white"></i>
                     </div>
                     <div>
                         <h3 class="text-xl font-bold text-gray-900">Você ganha</h3>
@@ -917,11 +926,11 @@
                 </div>
                 <ul class="mt-6 space-y-3">
                     <li class="flex items-center gap-3 text-gray-700">
-                        <i class="fa-solid fa-check-circle text-green-500"></i>
+                        <i data-lucide="circle-check" class="text-green-500"></i>
                         <span>Acumule dias ilimitados</span>
                     </li>
                     <li class="flex items-center gap-3 text-gray-700">
-                        <i class="fa-solid fa-check-circle text-green-500"></i>
+                        <i data-lucide="circle-check" class="text-green-500"></i>
                         <span>Ganhe quando seu amigo se cadastrar</span>
                     </li>
                 </ul>
@@ -933,7 +942,7 @@
                 <div class="flex items-center gap-4 mb-6">
                     <div
                         class="w-16 h-16 bg-gradient-to-br from-secondary to-gray-700 rounded-2xl flex items-center justify-center shadow-lg">
-                        <span class="text-3xl">👥</span>
+                        <i data-lucide="users" class="w-8 h-8 text-white"></i>
                     </div>
                     <div>
                         <h3 class="text-xl font-bold text-gray-900">Seu amigo ganha</h3>
@@ -949,11 +958,11 @@
                 </div>
                 <ul class="mt-6 space-y-3">
                     <li class="flex items-center gap-3 text-gray-700">
-                        <i class="fa-solid fa-check-circle text-green-500"></i>
+                        <i data-lucide="circle-check" class="text-green-500"></i>
                         <span>Começa já com benefícios PRO</span>
                     </li>
                     <li class="flex items-center gap-3 text-gray-700">
-                        <i class="fa-solid fa-check-circle text-green-500"></i>
+                        <i data-lucide="circle-check" class="text-green-500"></i>
                         <span>Sem precisar pagar nada</span>
                     </li>
                 </ul>
@@ -1020,10 +1029,10 @@
             <a href="<?= BASE_URL ?>login"
                 class="inline-flex items-center justify-center px-10 py-5 text-lg font-semibold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
                 Criar conta e começar a indicar
-                <i class="fa-solid fa-arrow-right ml-3"></i>
+                <i data-lucide="arrow-right" class="ml-3"></i>
             </a>
             <p class="text-sm text-gray-500 mt-4">
-                <i class="fa-solid fa-gift mr-2 text-primary"></i>
+                <i data-lucide="gift" class="mr-2 text-primary"></i>
                 Sem limite de indicações — quanto mais amigos, mais dias você ganha!
             </p>
         </div>
@@ -1053,13 +1062,13 @@
                 <button @click="activeTab = 'whatsapp'"
                     :class="activeTab === 'whatsapp' ? 'bg-white text-primary shadow-md' : 'text-gray-600 hover:text-gray-900'"
                     class="px-8 py-3 rounded-lg font-semibold transition-all duration-300">
-                    <i class="fa-brands fa-whatsapp mr-2"></i>
+                    <i data-lucide="message-circle" class="w-5 h-5 mr-2"></i>
                     WhatsApp
                 </button>
                 <button @click="activeTab = 'email'"
                     :class="activeTab === 'email' ? 'bg-white text-primary shadow-md' : 'text-gray-600 hover:text-gray-900'"
                     class="px-8 py-3 rounded-lg font-semibold transition-all duration-300">
-                    <i class="fa-regular fa-envelope mr-2"></i>
+                    <i data-lucide="mail" class="mr-2"></i>
                     E-mail
                 </button>
             </div>
@@ -1076,7 +1085,7 @@
 
             <div class="text-center mb-8">
                 <div class="inline-flex w-16 h-16 bg-green-500 rounded-full items-center justify-center mb-4 shadow-lg">
-                    <i class="fa-brands fa-whatsapp text-3xl text-white"></i>
+                    <i data-lucide="message-circle" class="w-8 h-8 text-white"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-2">Atendimento rápido</h3>
                 <p class="text-gray-600">Normalmente respondemos em poucos minutos em horário comercial.</p>
@@ -1086,25 +1095,25 @@
                 <a href="https://wa.me/5544999506302?text=Ol%C3%A1!%20Quero%20falar%20sobre%20o%20Lukrato."
                     target="_blank" rel="noopener"
                     class="flex-1 inline-flex items-center justify-center gap-3 px-6 py-4 bg-green-500 text-white font-semibold rounded-xl hover:bg-green-600 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
-                    <i class="fa-brands fa-whatsapp text-xl"></i>
+                    <i data-lucide="message-circle" class="w-5 h-5"></i>
                     WhatsApp (Comercial)
                 </a>
 
                 <a href="https://wa.me/5544997178938?text=Ol%C3%A1!%20Preciso%20de%20suporte%20no%20Lukrato."
                     target="_blank" rel="noopener"
                     class="flex-1 inline-flex items-center justify-center gap-3 px-6 py-4 bg-white text-green-600 border-2 border-green-500 font-semibold rounded-xl hover:bg-green-50 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
-                    <i class="fa-solid fa-headset text-xl"></i>
+                    <i data-lucide="headphones" class="text-xl"></i>
                     WhatsApp (Suporte)
                 </a>
             </div>
 
             <div class="flex flex-wrap justify-center gap-4 text-sm text-gray-600">
                 <span class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm">
-                    <i class="fa-solid fa-check-circle text-green-500"></i>
+                    <i data-lucide="circle-check" class="text-green-500"></i>
                     Sem compromisso
                 </span>
                 <span class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm">
-                    <i class="fa-solid fa-lock text-primary"></i>
+                    <i data-lucide="lock" class="text-primary"></i>
                     Seus dados ficam privados
                 </span>
             </div>
@@ -1119,7 +1128,7 @@
 
             <div class="text-center mb-8">
                 <div class="inline-flex w-16 h-16 bg-primary rounded-full items-center justify-center mb-4 shadow-lg">
-                    <i class="fa-regular fa-envelope text-3xl text-white"></i>
+                    <i data-lucide="mail" class="text-3xl text-white"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-2">Envie uma mensagem</h3>
                 <p class="text-gray-600">Prefere e-mail? Mande sua dúvida e respondemos em até 1 dia útil.</p>
@@ -1172,7 +1181,7 @@
 
                 <button type="submit"
                     class="w-full px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
-                    <i class="fa-regular fa-paper-plane mr-2"></i>
+                    <i data-lucide="send" class="mr-2"></i>
                     Enviar mensagem
                 </button>
             </form>
@@ -1192,7 +1201,7 @@
     @click="window.scrollTo({ top: 0, behavior: 'smooth' })" type="button"
     class="fixed bottom-8 right-8 z-40 w-14 h-14 bg-gradient-to-r from-primary to-orange-600 text-white rounded-full shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-300 flex items-center justify-center"
     aria-label="Voltar ao topo" title="Voltar ao topo" style="display: none;">
-    <i class="fa-solid fa-arrow-up text-xl"></i>
+    <i data-lucide="arrow-up" class="text-xl"></i>
 </button>
 
 <!-- Estilos Tailwind customizados e animações -->
@@ -1255,7 +1264,7 @@
 
                 // Desabilita o botão e mostra loading
                 submitButton.disabled = true;
-                submitButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Enviando...';
+                submitButton.innerHTML = '<svg class="inline-block w-5 h-5 mr-2 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Enviando...';
 
                 try {
                     const formData = new FormData(this);
@@ -1307,7 +1316,7 @@
                 notification.classList.add('bg-green-500', 'text-white');
                 notification.innerHTML = `
                     <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-check-circle text-2xl"></i>
+                        <i data-lucide="circle-check" class="text-2xl"></i>
                         <div>
                             <p class="font-semibold">Sucesso!</p>
                             <p class="text-sm">${message}</p>
@@ -1318,7 +1327,7 @@
                 notification.classList.add('bg-red-500', 'text-white');
                 notification.innerHTML = `
                     <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-exclamation-circle text-2xl"></i>
+                        <i data-lucide="circle-alert" class="text-2xl"></i>
                         <div>
                             <p class="font-semibold">Erro!</p>
                             <p class="text-sm">${message}</p>
@@ -1328,6 +1337,9 @@
             }
 
             document.body.appendChild(notification);
+
+            // Render Lucide icons in notification
+            if (typeof lucide !== 'undefined') lucide.createIcons();
 
             // Animação de entrada
             setTimeout(() => {
@@ -1377,4 +1389,179 @@
             });
         }, 1000);
     });
+
+    // ============================================
+    // COOKIE CONSENT BANNER
+    // ============================================
+    (function() {
+        const COOKIE_KEY = 'lk_cookie_consent';
+
+        // Verifica se já aceitou os cookies
+        if (localStorage.getItem(COOKIE_KEY)) return;
+
+        // Cria o banner após um pequeno delay
+        setTimeout(function() {
+            const banner = document.createElement('div');
+            banner.id = 'cookieConsent';
+            banner.innerHTML = `
+                <style>
+                    @keyframes cookieSlideIn {
+                        from { opacity: 0; transform: translateY(20px); }
+                        to { opacity: 1; transform: translateY(0); }
+                    }
+                    #cookieBannerInner {
+                        position: fixed;
+                        bottom: 16px;
+                        left: 16px;
+                        right: 16px;
+                        max-width: 380px;
+                        background: white;
+                        border-radius: 16px;
+                        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+                        padding: 16px;
+                        z-index: 9999;
+                        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                        animation: cookieSlideIn 0.4s ease-out;
+                    }
+                    @media (min-width: 480px) {
+                        #cookieBannerInner {
+                            right: auto;
+                            padding: 20px;
+                        }
+                    }
+                    #cookieBannerInner .cookie-content {
+                        display: flex;
+                        align-items: flex-start;
+                        gap: 12px;
+                    }
+                    #cookieBannerInner .cookie-icon {
+                        width: 36px;
+                        height: 36px;
+                        background: linear-gradient(135deg, #f97316, #ea580c);
+                        border-radius: 10px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        flex-shrink: 0;
+                        font-size: 18px;
+                    }
+                    @media (min-width: 480px) {
+                        #cookieBannerInner .cookie-icon {
+                            width: 40px;
+                            height: 40px;
+                            font-size: 20px;
+                        }
+                    }
+                    #cookieBannerInner .cookie-text {
+                        flex: 1;
+                        min-width: 0;
+                    }
+                    #cookieBannerInner h4 {
+                        margin: 0 0 4px 0;
+                        font-size: 14px;
+                        font-weight: 600;
+                        color: #1e293b;
+                    }
+                    @media (min-width: 480px) {
+                        #cookieBannerInner h4 {
+                            font-size: 15px;
+                            margin-bottom: 6px;
+                        }
+                    }
+                    #cookieBannerInner p {
+                        margin: 0 0 12px 0;
+                        font-size: 12px;
+                        color: #64748b;
+                        line-height: 1.5;
+                    }
+                    @media (min-width: 480px) {
+                        #cookieBannerInner p {
+                            font-size: 13px;
+                            margin-bottom: 14px;
+                        }
+                    }
+                    #cookieBannerInner a {
+                        color: #f97316;
+                        text-decoration: underline;
+                    }
+                    #cookieBannerInner .cookie-buttons {
+                        display: flex;
+                        gap: 8px;
+                    }
+                    #cookieBannerInner .btn-accept {
+                        flex: 1;
+                        padding: 10px 14px;
+                        background: linear-gradient(135deg, #f97316, #ea580c);
+                        color: white;
+                        border: none;
+                        border-radius: 8px;
+                        font-size: 13px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                    }
+                    #cookieBannerInner .btn-accept:hover {
+                        transform: scale(1.02);
+                    }
+                    #cookieBannerInner .btn-decline {
+                        padding: 10px 14px;
+                        background: #f1f5f9;
+                        color: #64748b;
+                        border: none;
+                        border-radius: 8px;
+                        font-size: 13px;
+                        font-weight: 500;
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                    }
+                    #cookieBannerInner .btn-decline:hover {
+                        background: #e2e8f0;
+                    }
+                </style>
+                <div id="cookieBannerInner">
+                    <div class="cookie-content">
+                        <div class="cookie-icon">
+                            <i data-lucide="cookie" class="w-6 h-6"></i>
+                        </div>
+                        <div class="cookie-text">
+                            <h4>Usamos cookies</h4>
+                            <p>
+                                Para melhorar sua experiência e analisar o uso do site.
+                                <a href="<?= BASE_URL ?>politica-de-privacidade">Saiba mais</a>
+                            </p>
+                            <div class="cookie-buttons">
+                                <button id="cookieAccept" class="btn-accept">Aceitar</button>
+                                <button id="cookieDecline" class="btn-decline">Recusar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(banner);
+
+            // Event listeners
+            document.getElementById('cookieAccept').addEventListener('click', function() {
+                localStorage.setItem(COOKIE_KEY, 'accepted');
+                closeBanner();
+            });
+
+            document.getElementById('cookieDecline').addEventListener('click', function() {
+                localStorage.setItem(COOKIE_KEY, 'declined');
+                closeBanner();
+            });
+
+            function closeBanner() {
+                const el = document.getElementById('cookieBannerInner');
+                if (el) {
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateY(20px)';
+                    el.style.transition = 'all 0.3s ease';
+                    setTimeout(() => {
+                        const wrapper = document.getElementById('cookieConsent');
+                        if (wrapper) wrapper.remove();
+                    }, 300);
+                }
+            }
+        }, 1500);
+    })();
 </script>

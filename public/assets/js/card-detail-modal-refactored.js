@@ -168,9 +168,10 @@
         const tendenciaEl = overlay.querySelector('[data-tendencia]');
         tendenciaEl.className = `tendencia-indicator ${data.evolucao.tendencia}`;
         tendenciaEl.innerHTML = `
-            <i class="fas fa-arrow-${data.evolucao.tendencia === 'subindo' ? 'up' : data.evolucao.tendencia === 'caindo' ? 'down' : 'right'}"></i>
+            <i data-lucide="${data.evolucao.tendencia === 'subindo' ? 'arrow-up' : data.evolucao.tendencia === 'caindo' ? 'arrow-down' : 'arrow-right'}"></i>
             ${data.evolucao.tendencia.charAt(0).toUpperCase() + data.evolucao.tendencia.slice(1)}
         `;
+        if (window.lucide) lucide.createIcons({nodes:[tendenciaEl]});
         overlay.querySelector('[data-media]').textContent = R.formatCurrency(data.evolucao.media);
 
         // Parcelamentos

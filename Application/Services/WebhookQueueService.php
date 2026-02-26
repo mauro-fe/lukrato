@@ -3,6 +3,8 @@
 namespace Application\Services;
 
 use Application\Services\LogService;
+use Application\Enums\LogLevel;
+use Application\Enums\LogCategory;
 use Predis\Client as RedisClient;
 
 /**
@@ -29,9 +31,12 @@ class WebhookQueueService
             }
         } catch (\Throwable $e) {
             $this->redis = null;
-            if (class_exists(LogService::class)) {
-                LogService::warning('Redis não disponível para queue de webhooks');
-            }
+            LogService::persist(
+                LogLevel::WARNING,
+                LogCategory::WEBHOOK,
+                'Redis não disponível para queue de webhooks',
+                ['error' => $e->getMessage()],
+            );
         }
     }
 
@@ -120,12 +125,15 @@ class WebhookQueueService
             $this->redis->rpush(self::FAILED_KEY, [json_encode($data)]);
             $this->redis->lrem(self::PROCESSING_KEY, 1, $payload);
 
-            if (class_exists(LogService::class)) {
-                LogService::error('Webhook falhou após múltiplas tentativas', [
+            LogService::persist(
+                LogLevel::ERROR,
+                LogCategory::WEBHOOK,
+                'Webhook falhou após múltiplas tentativas',
+                [
                     'attempts' => $data['attempts'],
                     'data' => $data['data'] ?? [],
-                ]);
-            }
+                ],
+            );
         } else {
             // Retry: voltar para fila
             $newPayload = json_encode($data);

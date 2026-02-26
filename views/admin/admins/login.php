@@ -21,8 +21,177 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
         content="<?= htmlspecialchars(csrf_token('register_form'), ENT_QUOTES, 'UTF-8') ?>">
 
     <title>Login / Cadastro - Lukrato</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css">
+    <!-- Lucide Icons + FA Brands -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/brands.min.css">
+    <link rel="stylesheet" href="<?= rtrim(BASE_URL, '/') ?>/assets/css/lucide-compat.css">
+    <script src="<?= rtrim(BASE_URL, '/') ?>/assets/js/lucide.min.js"></script>
     <?php loadPageCss('admin-admins-login'); ?>
+    <style>
+        /* ── Password Strength Panel ── */
+        .pwd-strength {
+            display: none;
+            margin-top: 10px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%);
+            border: 1px solid rgba(255,255,255,0.07);
+            padding: 14px 16px 12px;
+            animation: pwd-fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            margin-bottom: 6px;
+        }
+        @keyframes pwd-fade-in {
+            from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .pwd-strength.visible { display: block; }
+
+        /* Strength bar */
+        .pwd-bar-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .pwd-bar-label span:first-child {
+            color: rgba(255,255,255,0.3);
+            text-transform: uppercase;
+        }
+        .pwd-bar-label .pwd-level {
+            transition: color 0.3s;
+            font-weight: 700;
+        }
+        .pwd-level.s1 { color: #ef4444; }
+        .pwd-level.s2 { color: #f97316; }
+        .pwd-level.s3 { color: #eab308; }
+        .pwd-level.s4 { color: #22d3ee; }
+        .pwd-level.s5 { color: #22c55e; }
+
+        .pwd-bar-wrap {
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.06);
+            margin-bottom: 14px;
+            overflow: hidden;
+        }
+        .pwd-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1), background 0.4s ease, box-shadow 0.4s ease;
+        }
+        .pwd-bar-fill.s1 { width: 20%; background: #ef4444; box-shadow: 0 0 8px rgba(239,68,68,0.4); }
+        .pwd-bar-fill.s2 { width: 40%; background: #f97316; box-shadow: 0 0 8px rgba(249,115,22,0.4); }
+        .pwd-bar-fill.s3 { width: 60%; background: #eab308; box-shadow: 0 0 8px rgba(234,179,8,0.3); }
+        .pwd-bar-fill.s4 { width: 80%; background: #22d3ee; box-shadow: 0 0 8px rgba(34,211,238,0.3); }
+        .pwd-bar-fill.s5 { width: 100%; background: linear-gradient(90deg, #22d3ee, #22c55e); box-shadow: 0 0 12px rgba(34,197,94,0.4); }
+
+        /* Divider line */
+        .pwd-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.06);
+            margin-bottom: 12px;
+        }
+
+        /* Requirements grid */
+        .pwd-reqs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 16px;
+        }
+        .pwd-req {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            padding: 3px 0;
+        }
+        .pwd-req .req-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(255,255,255,0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+        .pwd-req.pass {
+            color: rgba(255,255,255,0.7);
+        }
+        .pwd-req.pass .req-icon {
+            background: #22c55e;
+            border-color: #22c55e;
+            box-shadow: 0 0 8px rgba(34,197,94,0.35);
+            transform: scale(1.05);
+        }
+        .pwd-req.pass .req-icon::after {
+            content: '';
+            display: block;
+            width: 5px;
+            height: 8px;
+            border-right: 1.5px solid #fff;
+            border-bottom: 1.5px solid #fff;
+            transform: rotate(45deg);
+            margin-top: -1px;
+        }
+
+        /* ── Confirm match indicator ── */
+        .pwd-match {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            animation: pwd-fade-in 0.25s ease;
+        }
+        .pwd-match.visible { display: flex; }
+        .pwd-match .match-icon {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.55rem;
+            flex-shrink: 0;
+        }
+        .pwd-match.match {
+            color: #22c55e;
+            background: rgba(34,197,94,0.08);
+            border: 1px solid rgba(34,197,94,0.15);
+        }
+        .pwd-match.match .match-icon {
+            background: #22c55e;
+            color: #fff;
+            box-shadow: 0 0 6px rgba(34,197,94,0.3);
+        }
+        .pwd-match.no-match {
+            color: #f87171;
+            background: rgba(239,68,68,0.08);
+            border: 1px solid rgba(239,68,68,0.15);
+        }
+        .pwd-match.no-match .match-icon {
+            background: #ef4444;
+            color: #fff;
+            box-shadow: 0 0 6px rgba(239,68,68,0.3);
+        }
+
+        @media (max-width: 400px) {
+            .pwd-reqs { grid-template-columns: 1fr; }
+            .pwd-strength { padding: 12px; }
+        }
+    </style>
 </head>
 
 <body>
@@ -76,7 +245,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                                         <input type="password" id="password" name="password" placeholder="Senha"
                                             required>
                                         <button type="button" class="toggle-password" data-target="password">
-                                            <i class="fa-solid fa-eye"></i>
+                                            <i data-lucide="eye"></i>
                                         </button>
                                         <small class="field-error" id="passwordError"></small>
                                     </div>
@@ -137,26 +306,48 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
 
                                     <div class="field">
                                         <input type="password" id="reg_password" name="password"
-                                            placeholder="Senha (mínimo 8 caracteres)" required>
+                                            placeholder="Senha" required>
                                         <button type="button" class="toggle-password" data-target="reg_password">
-                                            <i class="fa-solid fa-eye"></i>
+                                            <i data-lucide="eye"></i>
                                         </button>
-                                        <small class="field-error" id="regPasswordError"></small>
+                                        <div class="pwd-strength" id="pwdStrength">
+                                            <div class="pwd-bar-label">
+                                                <span>Força da senha</span>
+                                                <span class="pwd-level" id="pwdLevel"></span>
+                                            </div>
+                                            <div class="pwd-bar-wrap">
+                                                <div class="pwd-bar-fill" id="pwdBarFill"></div>
+                                            </div>
+                                            <div class="pwd-divider"></div>
+                                            <div class="pwd-reqs">
+                                                <div class="pwd-req" id="req-length"><span class="req-icon"></span> 8+ caracteres</div>
+                                                <div class="pwd-req" id="req-lower"><span class="req-icon"></span> Letra minúscula</div>
+                                                <div class="pwd-req" id="req-upper"><span class="req-icon"></span> Letra maiúscula</div>
+                                                <div class="pwd-req" id="req-number"><span class="req-icon"></span> Número</div>
+                                                <div class="pwd-req" id="req-special"><span class="req-icon"></span> Caractere especial</div>
+                                            </div>
+                                        </div>
                                     </div>
+                                        <small class="field-error" id="regPasswordError"></small>
 
                                     <div class="field">
                                         <input type="password" id="reg_password_confirm" name="password_confirmation"
                                             placeholder="Confirmar senha" required>
                                         <button type="button" class="toggle-password"
                                             data-target="reg_password_confirm">
-                                            <i class="fa-solid fa-eye"></i>
+                                            <i data-lucide="eye"></i>
                                         </button>
+                                        <div class="pwd-match" id="pwdMatch">
+                                            <span class="match-icon"><i data-lucide="check"></i></span>
+                                            <span class="match-text"></span>
+                                        </div>
                                         <small class="field-error" id="regPasswordConfirmError"></small>
+
                                     </div>
 
                                     <div class="field referral-field">
                                         <div class="input-with-icon">
-                                            <i class="fa-solid fa-gift referral-icon"></i>
+                                            <i data-lucide="gift" class="referral-icon"></i>
                                             <input type="text" id="referral_code" name="referral_code"
                                                 placeholder="Código de indicação (opcional)" maxlength="8"
                                                 style="text-transform: uppercase;">
@@ -208,6 +399,126 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
 
     <!-- Scripts de CSRF para renovação automática -->
     <script src="<?= BASE_URL ?>assets/js/csrf-keep-alive.js"></script>
+    
+    <!-- Renovação extra de CSRF para página de login -->
+    <script>
+    (function() {
+        'use strict';
+        
+        // Renovação mais frequente na página de login (5 minutos)
+        const LOGIN_CSRF_REFRESH_INTERVAL = 5 * 60 * 1000;
+        
+        // Renovar token quando usuário foca em campo do formulário
+        let lastRefresh = Date.now();
+        const MIN_REFRESH_GAP = 30000; // 30 segundos mínimo entre renovações
+        
+        function maybeRefreshToken() {
+            const now = Date.now();
+            if (now - lastRefresh > MIN_REFRESH_GAP) {
+                lastRefresh = now;
+                if (typeof window.refreshCsrfToken === 'function') {
+                    window.refreshCsrfToken();
+                }
+            }
+        }
+        
+        // Renovar ao focar nos campos
+        document.querySelectorAll('#loginForm input, #registerForm input').forEach(input => {
+            input.addEventListener('focus', maybeRefreshToken, { passive: true });
+        });
+        
+        // Timer extra de renovação para login
+        setInterval(() => {
+            if (typeof window.refreshCsrfToken === 'function') {
+                window.refreshCsrfToken();
+            }
+        }, LOGIN_CSRF_REFRESH_INTERVAL);
+        
+        // Renovar imediatamente quando a aba fica visível
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                maybeRefreshToken();
+            }
+        });
+    })();
+    </script>
+
+    <script>
+        // Real-time password strength + confirm match
+        (function() {
+            var pwd = document.getElementById('reg_password');
+            var confirm = document.getElementById('reg_password_confirm');
+            var panel = document.getElementById('pwdStrength');
+            var barFill = document.getElementById('pwdBarFill');
+            var levelEl = document.getElementById('pwdLevel');
+            var matchEl = document.getElementById('pwdMatch');
+            if (!pwd || !confirm || !panel) return;
+
+            var rules = [
+                { id: 'req-length',  test: function(v) { return v.length >= 8; } },
+                { id: 'req-lower',   test: function(v) { return /[a-z]/.test(v); } },
+                { id: 'req-upper',   test: function(v) { return /[A-Z]/.test(v); } },
+                { id: 'req-number',  test: function(v) { return /[0-9]/.test(v); } },
+                { id: 'req-special', test: function(v) { return /[^a-zA-Z0-9]/.test(v); } }
+            ];
+
+            var levels = [
+                { cls: '',   label: '' },
+                { cls: 's1', label: 'Muito fraca' },
+                { cls: 's2', label: 'Fraca' },
+                { cls: 's3', label: 'Razoável' },
+                { cls: 's4', label: 'Boa' },
+                { cls: 's5', label: 'Forte' }
+            ];
+
+            pwd.addEventListener('focus', function() {
+                panel.classList.add('visible');
+            });
+
+            pwd.addEventListener('input', function() {
+                var val = pwd.value;
+                var score = 0;
+
+                rules.forEach(function(rule) {
+                    var el = document.getElementById(rule.id);
+                    var passed = rule.test(val);
+                    if (el) el.classList.toggle('pass', passed);
+                    if (passed) score++;
+                });
+
+                // Update bar
+                barFill.className = 'pwd-bar-fill' + (score > 0 ? ' s' + score : '');
+                levelEl.className = 'pwd-level' + (score > 0 ? ' s' + score : '');
+                levelEl.textContent = levels[score].label;
+
+                // Also update confirm match if confirm has value
+                if (confirm.value) checkMatch();
+            });
+
+            function checkMatch() {
+                var pVal = pwd.value;
+                var cVal = confirm.value;
+                if (!cVal) {
+                    matchEl.classList.remove('visible');
+                    return;
+                }
+                matchEl.classList.add('visible');
+                var ok = pVal === cVal;
+                matchEl.classList.toggle('match', ok);
+                matchEl.classList.toggle('no-match', !ok);
+                var icon = matchEl.querySelector('.match-icon');
+                var text = matchEl.querySelector('.match-text');
+                icon.innerHTML = ok ? '<i data-lucide="check"></i>' : '<i data-lucide="x"></i>';
+                text.textContent = ok ? 'Senhas coincidem' : 'Senhas não coincidem';
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+
+            confirm.addEventListener('input', checkMatch);
+            pwd.addEventListener('input', function() {
+                if (confirm.value) checkMatch();
+            });
+        })();
+    </script>
 
     <script>
         // Partículas
@@ -286,10 +597,11 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
 
                 if (response.ok && data.success) {
                     referralHint.innerHTML =
-                        `<i class="fa-solid fa-check"></i> Indicado por <strong>${data.data.referrer_name}</strong> - Você ganha ${data.data.reward_days} dias de PRO!`;
+                        `<i data-lucide="check"></i> Indicado por <strong>${data.data.referrer_name}</strong> - Você ganha ${data.data.reward_days} dias de PRO!`;
                     referralHint.className = 'field-hint valid';
                     referralError.textContent = '';
                     validatedReferralCode = code;
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
                 } else {
                     referralHint.textContent = '';
                     referralHint.className = 'field-hint';
@@ -345,12 +657,16 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
             const input = document.getElementById(targetId);
             if (!input) return;
 
-            const icon = btn.querySelector('i');
             const isPassword = input.type === 'password';
-
             input.type = isPassword ? 'text' : 'password';
-            icon.classList.toggle('fa-eye', !isPassword);
-            icon.classList.toggle('fa-eye-slash', isPassword);
+
+            const oldIcon = btn.querySelector('svg, i');
+            if (oldIcon) {
+                const newIcon = document.createElement('i');
+                newIcon.setAttribute('data-lucide', isPassword ? 'eye-off' : 'eye');
+                oldIcon.replaceWith(newIcon);
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
         });
 
         // Helpers de erro
@@ -444,9 +760,17 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
         const loginForm = document.getElementById('loginForm');
 
         if (loginForm) {
+            // Renovar CSRF antes de submeter para evitar token expirado
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 clearErrors(loginForm);
+
+                // Sempre renovar o token CSRF antes de submeter
+                try {
+                    await refreshCsrfForForm('login_form');
+                } catch (err) {
+                    console.warn('Não foi possível renovar CSRF antes do submit, continuando...', err);
+                }
 
                 const emailVal = document.getElementById('email').value.trim();
                 const passwordVal = document.getElementById('password').value;
@@ -630,9 +954,17 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                 if (!password) {
                     showError('reg_password', 'regPasswordError', 'Digite sua senha');
                     hasError = true;
-                } else if (password.length < 8) {
-                    showError('reg_password', 'regPasswordError', 'Senha deve ter no mínimo 8 caracteres');
-                    hasError = true;
+                } else {
+                    var pwdErrors = [];
+                    if (password.length < 8) pwdErrors.push('mínimo 8 caracteres');
+                    if (!/[a-z]/.test(password)) pwdErrors.push('uma letra minúscula');
+                    if (!/[A-Z]/.test(password)) pwdErrors.push('uma letra maiúscula');
+                    if (!/[0-9]/.test(password)) pwdErrors.push('um número');
+                    if (!/[^a-zA-Z0-9]/.test(password)) pwdErrors.push('um caractere especial');
+                    if (pwdErrors.length) {
+                        showError('reg_password', 'regPasswordError', 'Falta: ' + pwdErrors.join(', '));
+                        hasError = true;
+                    }
                 }
 
                 if (!confirm) {
@@ -836,6 +1168,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
         document.head.appendChild(style);
     </script>
 
+    <script src="<?= rtrim(BASE_URL, '/') ?>/assets/js/lucide-init.js"></script>
 </body>
 
 </html>

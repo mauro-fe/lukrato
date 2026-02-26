@@ -494,7 +494,7 @@ main.lukrato-auth::before {
 .toggle-password {
   position: absolute;
   right: 12px;
-  top: 35%;
+  top: 22px;
   transform: translateY(-50%);
   background: transparent;
   border: none;
@@ -509,6 +509,10 @@ main.lukrato-auth::before {
   color: var(--orange);
   background: rgba(230, 126, 34, 0.1);
   transform: translateY(-50%) scale(1.1);
+}
+
+.toggle-password:focus {
+  outline: none;
 }
 
 /* Remember Me Checkbox */
@@ -834,9 +838,14 @@ main.lukrato-auth::before {
 }
 
 .msg::before {
-  font-family: "Font Awesome 6 Free";
-  font-weight: 900;
-  font-size: 16px;
+  content: "";
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 .msg::after {
@@ -867,7 +876,7 @@ main.lukrato-auth::before {
 }
 
 .msg-error::before {
-  content: "\f06a";
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23f87171' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='8' x2='12' y2='12'/%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'/%3E%3C/svg%3E");
 }
 
 .msg-error::after {
@@ -882,7 +891,7 @@ main.lukrato-auth::before {
 }
 
 .msg-success::before {
-  content: "\f058";
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%234ade80' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/%3E%3Cpolyline points='22 4 12 14.01 9 11.01'/%3E%3C/svg%3E");
 }
 
 .msg-success::after {
@@ -896,7 +905,7 @@ main.lukrato-auth::before {
 }
 
 .msg-success::before {
-  content: "\f058";
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%234ade80' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/%3E%3Cpolyline points='22 4 12 14.01 9 11.01'/%3E%3C/svg%3E");
 }
 
 .general-message {

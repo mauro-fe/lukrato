@@ -232,16 +232,20 @@
    3. BOTÕES COM MICRO-INTERAÇÕES
    ============================================================================ */
 
-.btn,
-button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button) {
+.btn:not(.modern-btn),
+button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button):not(
+    .modern-btn
+  ) {
   position: relative;
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Ripple effect - excluindo botão de suporte para não conflitar com tooltip */
-.btn:not(.lk-support-button)::after,
-button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button)::after {
+.btn:not(.lk-support-button):not(.modern-btn)::after,
+button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button):not(
+    .modern-btn
+  )::after {
   content: "";
   position: absolute;
   top: 50%;
@@ -251,24 +255,28 @@ button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button)::after {
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.5);
   transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
+  transition:
+    width 0.6s,
+    height 0.6s;
   pointer-events: none;
 }
 
-.btn:not(.lk-support-button):active::after,
-button:not(.theme-toggle):not(.lkh-modal-close):not(
-    .lk-support-button
+.btn:not(.lk-support-button):not(.modern-btn):active::after,
+button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button):not(
+    .modern-btn
   ):active::after {
   width: 300px;
   height: 300px;
-  transition: width 0.1s, height 0.1s;
+  transition:
+    width 0.1s,
+    height 0.1s;
 }
 
 /* Hover elevado */
-.btn:not(:disabled):not(.lk-support-button):hover,
+.btn:not(:disabled):not(.lk-support-button):not(.modern-btn):hover,
 button:not(:disabled):not(.theme-toggle):not(.lkh-modal-close):not(
     .lk-support-button
-  ):hover {
+  ):not(.modern-btn):hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
@@ -913,7 +921,8 @@ button:focus-visible,
    ============================================================================ */
 
 .card-glow:hover {
-  box-shadow: 0 0 20px color-mix(in srgb, var(--color-primary) 40%, transparent),
+  box-shadow:
+    0 0 20px color-mix(in srgb, var(--color-primary) 40%, transparent),
     0 8px 30px rgba(0, 0, 0, 0.2);
 }
 
@@ -1053,4 +1062,367 @@ img.zoom-hover:hover {
     height: 18px !important;
     font-size: 10px !important;
   }
+}
+
+/* ============================================================================
+   35. LUCIDE ICON COLOR SYSTEM
+   ============================================================================
+   Aplica cores semânticas aos ícones Lucide SVG globalmente.
+   - Inline styles (style="color:...") têm prioridade sobre estas regras.
+   - Ícones dentro de botões herdam a cor do pai (reset abaixo).
+   - Ícones de UI genéricos (chevrons, x, plus, etc.) não são coloridos
+     para herdar do contexto.
+   ============================================================================ */
+
+/* --- Reset: ícones dentro de botões herdam a cor do pai --- */
+.btn svg.lucide,
+.modern-btn svg.lucide,
+.lk-btn svg.lucide,
+.btn-modern svg.lucide,
+.ag-card-btn svg.lucide,
+button:not(.theme-toggle) svg.lucide,
+[class*="btn-"] svg.lucide,
+[class*="-btn"] svg.lucide {
+  color: inherit;
+}
+
+/* --- Financeiro --- */
+svg.lucide-wallet {
+  color: #14b8a6;
+}
+svg.lucide-coins {
+  color: #eab308;
+}
+svg.lucide-banknote {
+  color: #22c55e;
+}
+svg.lucide-dollar-sign {
+  color: #22c55e;
+}
+svg.lucide-hand-coins {
+  color: #f59e0b;
+}
+svg.lucide-piggy-bank {
+  color: #ec4899;
+}
+svg.lucide-receipt {
+  color: #14b8a6;
+}
+svg.lucide-credit-card {
+  color: #0ea5e9;
+}
+svg.lucide-landmark {
+  color: #6366f1;
+}
+svg.lucide-building-2 {
+  color: #64748b;
+}
+svg.lucide-scale {
+  color: #6366f1;
+}
+
+/* --- Gráficos & Análises --- */
+svg.lucide-pie-chart {
+  color: var(--color-primary);
+}
+svg.lucide-bar-chart-3 {
+  color: #06b6d4;
+}
+svg.lucide-bar-chart-2 {
+  color: #06b6d4;
+}
+svg.lucide-line-chart {
+  color: #3b82f6;
+}
+svg.lucide-trending-up {
+  color: #22c55e;
+}
+svg.lucide-trending-down {
+  color: #ef4444;
+}
+svg.lucide-heart-pulse {
+  color: #ef4444;
+}
+
+/* --- Gamificação --- */
+svg.lucide-trophy {
+  color: #f59e0b;
+}
+svg.lucide-star {
+  color: #f59e0b;
+}
+svg.lucide-crown {
+  color: #f59e0b;
+}
+svg.lucide-gem {
+  color: #a855f7;
+}
+svg.lucide-medal {
+  color: #f59e0b;
+}
+svg.lucide-flame {
+  color: #f97316;
+}
+svg.lucide-target {
+  color: #ef4444;
+}
+svg.lucide-rocket {
+  color: #ef4444;
+}
+svg.lucide-shield {
+  color: #22c55e;
+}
+svg.lucide-shield-check {
+  color: #22c55e;
+}
+svg.lucide-award {
+  color: #f59e0b;
+}
+svg.lucide-zap {
+  color: #eab308;
+}
+svg.lucide-sparkles {
+  color: #ec4899;
+}
+svg.lucide-party-popper {
+  color: #ef4444;
+}
+
+/* --- Calendário & Tempo --- */
+svg.lucide-calendar {
+  color: #3b82f6;
+}
+svg.lucide-calendar-days {
+  color: #3b82f6;
+}
+svg.lucide-calendar-check {
+  color: #22c55e;
+}
+svg.lucide-calendar-plus {
+  color: #22c55e;
+}
+svg.lucide-calendar-range {
+  color: #6366f1;
+}
+svg.lucide-clock {
+  color: #f59e0b;
+}
+svg.lucide-history {
+  color: #64748b;
+}
+
+/* --- Tags & Organização --- */
+svg.lucide-tag {
+  color: #f97316;
+}
+svg.lucide-tags {
+  color: #f97316;
+}
+svg.lucide-folder {
+  color: #f59e0b;
+}
+svg.lucide-folder-open {
+  color: #f59e0b;
+}
+svg.lucide-layers {
+  color: #8b5cf6;
+}
+svg.lucide-archive {
+  color: #64748b;
+}
+svg.lucide-inbox {
+  color: #64748b;
+}
+
+/* --- Status & Alertas --- */
+svg.lucide-info {
+  color: #3b82f6;
+}
+svg.lucide-circle-check {
+  color: #22c55e;
+}
+svg.lucide-circle-alert {
+  color: #f59e0b;
+}
+svg.lucide-triangle-alert {
+  color: #ef4444;
+}
+svg.lucide-bell {
+  color: #f59e0b;
+}
+svg.lucide-check-check {
+  color: #22c55e;
+}
+svg.lucide-x-circle {
+  color: #ef4444;
+}
+
+/* --- Pessoas --- */
+svg.lucide-user {
+  color: #3b82f6;
+}
+svg.lucide-users {
+  color: #3b82f6;
+}
+svg.lucide-circle-user {
+  color: #06b6d4;
+}
+svg.lucide-user-check {
+  color: #22c55e;
+}
+
+/* --- Comunicação --- */
+svg.lucide-mail {
+  color: #3b82f6;
+}
+svg.lucide-mail-open {
+  color: #f97316;
+}
+svg.lucide-phone {
+  color: #22c55e;
+}
+svg.lucide-headphones {
+  color: #ffffff;
+}
+
+/* --- Conteúdo & Edição --- */
+svg.lucide-lightbulb {
+  color: #eab308;
+}
+svg.lucide-wand-2 {
+  color: #a855f7;
+}
+svg.lucide-wand-sparkles {
+  color: #a855f7;
+}
+svg.lucide-palette {
+  color: #a855f7;
+}
+svg.lucide-file-text {
+  color: #64748b;
+}
+svg.lucide-file {
+  color: #64748b;
+}
+svg.lucide-file-output {
+  color: #64748b;
+}
+svg.lucide-pencil {
+  color: #6366f1;
+}
+svg.lucide-pen {
+  color: #6366f1;
+}
+svg.lucide-square-pen {
+  color: #6366f1;
+}
+svg.lucide-align-left {
+  color: #64748b;
+}
+
+/* --- Segurança --- */
+svg.lucide-lock {
+  color: #f59e0b;
+}
+svg.lucide-key-round {
+  color: #f59e0b;
+}
+
+/* --- Ações --- */
+svg.lucide-trash-2 {
+  color: #ef4444;
+}
+svg.lucide-gift {
+  color: #ec4899;
+}
+svg.lucide-flag {
+  color: #ef4444;
+}
+
+/* --- Navegação & Layout --- */
+svg.lucide-home {
+  color: #3b82f6;
+}
+svg.lucide-log-out {
+  color: #ef4444;
+}
+svg.lucide-log-in {
+  color: #3b82f6;
+}
+svg.lucide-sun {
+  color: #f59e0b;
+}
+svg.lucide-moon {
+  color: #6366f1;
+}
+
+/* --- Negócios & Diversos --- */
+svg.lucide-briefcase {
+  color: #3b82f6;
+}
+svg.lucide-shopping-cart {
+  color: #f97316;
+}
+svg.lucide-smartphone {
+  color: #6366f1;
+}
+svg.lucide-toggle-right {
+  color: #22c55e;
+}
+svg.lucide-git-branch {
+  color: #f97316;
+}
+svg.lucide-circle-plus {
+  color: #22c55e;
+}
+svg.lucide-scan-line {
+  color: #6366f1;
+}
+svg.lucide-arrow-left-right {
+  color: #6366f1;
+}
+svg.lucide-link {
+  color: #3b82f6;
+}
+svg.lucide-hash {
+  color: #6366f1;
+}
+svg.lucide-fingerprint {
+  color: #8b5cf6;
+}
+svg.lucide-map-pin {
+  color: #ef4444;
+}
+svg.lucide-map {
+  color: #22c55e;
+}
+svg.lucide-route {
+  color: #3b82f6;
+}
+svg.lucide-building {
+  color: #64748b;
+}
+svg.lucide-message-circle {
+  color: #22c55e;
+}
+svg.lucide-send {
+  color: #0ea5e9;
+}
+svg.lucide-camera {
+  color: #ec4899;
+}
+svg.lucide-copy {
+  color: #6366f1;
+}
+svg.lucide-download {
+  color: #3b82f6;
+}
+svg.lucide-save {
+  color: #22c55e;
+}
+svg.lucide-reply {
+  color: #3b82f6;
+}
+svg.lucide-undo-2 {
+  color: #3b82f6;
 }

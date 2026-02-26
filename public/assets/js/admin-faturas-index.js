@@ -11,6 +11,25 @@
     if (window.__LK_PARCELAMENTOS_LOADER__) return;
     window.__LK_PARCELAMENTOS_LOADER__ = true;
 
+    // Mapeamento de cores para ícones de categorias
+    function getCategoryIconColor(icon) {
+        const colors = {
+            'house': '#f97316', 'utensils': '#ef4444', 'car': '#3b82f6',
+            'lightbulb': '#eab308', 'heart-pulse': '#ef4444', 'graduation-cap': '#6366f1',
+            'shirt': '#ec4899', 'clapperboard': '#a855f7', 'credit-card': '#0ea5e9',
+            'smartphone': '#6366f1', 'shopping-cart': '#f97316', 'coins': '#eab308',
+            'briefcase': '#3b82f6', 'laptop': '#06b6d4', 'trending-up': '#22c55e',
+            'gift': '#ec4899', 'banknote': '#22c55e', 'trophy': '#f59e0b',
+            'wallet': '#14b8a6', 'tag': '#94a3b8', 'pie-chart': '#8b5cf6',
+            'piggy-bank': '#ec4899', 'plane': '#0ea5e9', 'gamepad-2': '#a855f7',
+            'baby': '#f472b6', 'dog': '#92400e', 'wrench': '#64748b',
+            'church': '#6366f1', 'dumbbell': '#ef4444', 'music': '#a855f7',
+            'book-open': '#3b82f6', 'scissors': '#ec4899', 'building-2': '#64748b',
+            'landmark': '#3b82f6', 'receipt': '#14b8a6'
+        };
+        return colors[icon] || '#f97316';
+    }
+
     // ============================================================================
     // CONFIGURAÇÃO
     // ============================================================================
@@ -64,6 +83,8 @@
         parcelamentos: [],
         cartoes: [],
         faturaAtual: null,
+        sortColumn: 'data_compra',
+        sortDirection: 'asc',
         filtros: {
             status: '',
             cartao_id: '',
@@ -294,6 +315,7 @@
 
             DOM.containerEl.innerHTML = '';
             DOM.containerEl.appendChild(fragment);
+            if (window.lucide) lucide.createIcons();
         },
 
         createParcelamentoCard(parc) {
@@ -331,11 +353,11 @@
             const cartaoInfo = this.getCartaoInfo(parc);
             const resumoPrincipal = this.getResumoPrincipal(parc);
             const progressoSection = this.getProgressoSection(totalItens, itensPagos, progresso);
-            
+
             // Nome e número do cartão para exibir na lista
             const cartaoNome = parc.cartao ? (parc.cartao.nome || parc.cartao.bandeira || 'Cartão') : 'Cartão';
             const cartaoNumero = parc.cartao?.ultimos_digitos ? `•••• ${parc.cartao.ultimos_digitos}` : '';
-            
+
             // Cor do cartão (definida pelo usuário, instituição ou bandeira)
             const cardColor = this.getCardColor(parc.cartao);
             const bandeira = parc.cartao?.bandeira?.toLowerCase() || 'outros';
@@ -354,7 +376,7 @@
                     </div>
                     <div class="header-right">
                         <div class="header-periodo">
-                            <i class="fas fa-calendar-alt"></i>
+                            <i data-lucide="calendar-days" style= "color:white"></i>
                             <span>${mes}/${ano}</span>
                         </div>
                         ${statusBadge}
@@ -370,7 +392,7 @@
                 <div class="fatura-status-col">${statusBadge}</div>
                 <div class="parc-card-actions">
                     <button class="parc-btn parc-btn-view" data-action="view" data-id="${parc.id}">
-                        <i class="fas fa-eye"></i>
+                        <i data-lucide="eye"></i>
                         <span>Ver Detalhes</span>
                     </button>
                 </div>
@@ -404,17 +426,16 @@
         },
 
         getBandeiraIcon(bandeira) {
-            const icons = {
-                'visa': '<i class="fab fa-cc-visa"></i>',
-                'mastercard': '<i class="fab fa-cc-mastercard"></i>',
-                'amex': '<i class="fab fa-cc-amex"></i>',
-                'discover': '<i class="fab fa-cc-discover"></i>',
-                'diners': '<i class="fab fa-cc-diners-club"></i>',
-                'jcb': '<i class="fab fa-cc-jcb"></i>',
-                'elo': '<i class="fas fa-credit-card"></i>',
-                'hipercard': '<i class="fas fa-credit-card"></i>'
+            // SVG inline para bandeiras de cartão (sem dependência de Font Awesome)
+            const svgIcons = {
+                'visa': `<svg viewBox="0 0 48 32" width="32" height="22" fill="none"><rect width="48" height="32" rx="4" fill="#1A1F71"/><text x="24" y="20" text-anchor="middle" font-size="12" font-weight="bold" fill="#fff" font-family="sans-serif">VISA</text></svg>`,
+                'mastercard': `<svg viewBox="0 0 48 32" width="32" height="22" fill="none"><rect width="48" height="32" rx="4" fill="#1A1F71" opacity="0"/><circle cx="19" cy="16" r="10" fill="#EB001B" opacity=".85"/><circle cx="29" cy="16" r="10" fill="#F79E1B" opacity=".85"/></svg>`,
+                'elo': `<svg viewBox="0 0 48 32" width="32" height="22" fill="none"><rect width="48" height="32" rx="4" fill="#000"/><text x="24" y="20" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFCB05" font-family="sans-serif">elo</text></svg>`,
+                'amex': `<svg viewBox="0 0 48 32" width="32" height="22" fill="none"><rect width="48" height="32" rx="4" fill="#006FCF"/><text x="24" y="20" text-anchor="middle" font-size="9" font-weight="bold" fill="#fff" font-family="sans-serif">AMEX</text></svg>`,
+                'hipercard': `<svg viewBox="0 0 48 32" width="32" height="22" fill="none"><rect width="48" height="32" rx="4" fill="#B11116"/><text x="24" y="20" text-anchor="middle" font-size="8" font-weight="bold" fill="#fff" font-family="sans-serif">HIPER</text></svg>`,
+                'diners': `<svg viewBox="0 0 48 32" width="32" height="22" fill="none"><rect width="48" height="32" rx="4" fill="#0079BE"/><text x="24" y="20" text-anchor="middle" font-size="8" font-weight="bold" fill="#fff" font-family="sans-serif">DINERS</text></svg>`,
             };
-            return icons[bandeira] || '<i class="fas fa-credit-card"></i>';
+            return svgIcons[bandeira] || '<i data-lucide="credit-card"></i>';
         },
 
         getCartaoInfo(parc) {
@@ -430,6 +451,46 @@
         getResumoPrincipal(parc) {
             const temEstornos = parc.total_estornos && parc.total_estornos > 0;
 
+            // Data de vencimento
+            let vencimentoHTML = '';
+            // Tentar obter data_vencimento da API, ou calcular a partir da descrição + dia_vencimento do cartão
+            let dataVencStr = parc.data_vencimento;
+            if (!dataVencStr && parc.cartao?.dia_vencimento && parc.descricao) {
+                // Extrair mês/ano da descrição (ex: "Fatura 3/2026") - mesma lógica do backend
+                const descMatch = parc.descricao.match(/(\d{1,2})\/(\d{4})/);
+                if (descMatch) {
+                    const mesFatura = descMatch[1].padStart(2, '0');
+                    const anoFatura = descMatch[2];
+                    const dia = String(parc.cartao.dia_vencimento).padStart(2, '0');
+                    dataVencStr = `${anoFatura}-${mesFatura}-${dia}`;
+                }
+            }
+
+            if (dataVencStr) {
+                const dataFormatada = Utils.formatDate(dataVencStr);
+                // Verificar se está vencida e pendente
+                const hoje = new Date();
+                hoje.setHours(0, 0, 0, 0);
+                const dataVenc = new Date(dataVencStr + 'T00:00:00');
+                const isPendente = parc.status !== 'paga' && parc.status !== 'concluido' && parc.status !== 'cancelado';
+                const isVencida = isPendente && dataVenc < hoje;
+                const isProxima = isPendente && !isVencida && (dataVenc - hoje) <= 3 * 24 * 60 * 60 * 1000; // 3 dias
+
+                let vencClass = 'resumo-vencimento';
+                if (isVencida) vencClass += ' vencimento-atrasado';
+                else if (isProxima) vencClass += ' vencimento-proximo';
+
+                vencimentoHTML = `
+                    <div class="${vencClass}">
+                        <i data-lucide="calendar-clock"></i>
+                        <span class="vencimento-label">Vencimento</span>
+                        <span class="vencimento-data">${dataFormatada}</span>
+                        ${isVencida ? '<span class="vencimento-tag tag-atrasado">Vencida</span>' : ''}
+                        ${isProxima ? '<span class="vencimento-tag tag-proximo">Em breve</span>' : ''}
+                    </div>
+                `;
+            }
+
             return `
                 <div class="resumo-item">
                     <span class="resumo-label">Total a Pagar</span>
@@ -441,6 +502,7 @@
                         <span class="resumo-valor" style="color: #10b981;">- ${Utils.formatMoney(parc.total_estornos)}</span>
                     </div>
                 ` : ''}
+                ${vencimentoHTML}
             `;
         },
 
@@ -475,21 +537,21 @@
         getStatusBadge(status, progresso = null) {
             if (progresso !== null) {
                 if (progresso === 0) {
-                    return '<span class="parc-card-badge badge-pendente">⏳ Pendente</span>';
+                    return '<span class="parc-card-badge badge-pendente"><i data-lucide="clock" style="width:12px;height:12px"></i> Pendente</span>';
                 } else if (progresso >= 100) {
-                    return '<span class="parc-card-badge badge-paga">✅ Paga</span>';
+                    return '<span class="parc-card-badge badge-paga"><i data-lucide="circle-check" style="width:12px;height:12px"></i> Paga</span>';
                 } else {
-                    return '<span class="parc-card-badge badge-parcial">🔄 Parcialmente Paga</span>';
+                    return '<span class="parc-card-badge badge-parcial"><i data-lucide="loader-2" style="width:12px;height:12px"></i> Parcial</span>';
                 }
             }
 
             const badges = {
-                'ativo': '<span class="parc-card-badge badge-ativo">⏳ Pendente</span>',
-                'paga': '<span class="parc-card-badge badge-paga">✅ Paga</span>',
-                'concluido': '<span class="parc-card-badge badge-paga">✅ Paga</span>',
-                'cancelado': '<span class="parc-card-badge badge-cancelado">❌ Cancelada</span>'
+                'ativo': '<span class="parc-card-badge badge-ativo"><i data-lucide="clock" style="width:12px;height:12px"></i> Pendente</span>',
+                'paga': '<span class="parc-card-badge badge-paga"><i data-lucide="circle-check" style="width:12px;height:12px"></i> Paga</span>',
+                'concluido': '<span class="parc-card-badge badge-paga"><i data-lucide="circle-check" style="width:12px;height:12px"></i> Paga</span>',
+                'cancelado': '<span class="parc-card-badge badge-cancelado"><i data-lucide="x-circle" style="width:12px;height:12px"></i> Cancelada</span>'
             };
-            return badges[status] || '<span class="parc-card-badge badge-ativo">⏳ Pendente</span>';
+            return badges[status] || '<span class="parc-card-badge badge-ativo"><i data-lucide="clock" style="width:12px;height:12px"></i> Pendente</span>';
         },
 
         async showDetalhes(id) {
@@ -507,14 +569,15 @@
 
                 STATE.faturaAtual = parc;
                 DOM.detalhesContent.innerHTML = this.renderDetalhes(parc);
+                if (window.lucide) lucide.createIcons();
                 this.attachDetalhesEventListeners(parc.id);
 
                 // Remover foco antes de mostrar modal
-                document.activeElement?.blur();
+                document.activeElement?.blur();;
                 STATE.modalDetalhesInstance.show();
             } catch (error) {
                 console.error('Erro ao abrir detalhes:', error);
-                
+
                 // Se erro 404, a fatura foi excluída - apenas fechar modal silenciosamente
                 if (error.message && error.message.includes('404')) {
                     if (STATE.modalDetalhesInstance) {
@@ -522,7 +585,7 @@
                     }
                     return;
                 }
-                
+
                 Swal.fire({
                     icon: 'error',
                     title: 'Erro',
@@ -532,6 +595,26 @@
         },
 
         attachDetalhesEventListeners(faturaId) {
+            // Botões de ordenação nas colunas
+            const thSortable = DOM.detalhesContent.querySelectorAll('.th-sortable');
+            thSortable.forEach(th => {
+                th.addEventListener('click', () => {
+                    const col = th.dataset.sort;
+                    if (STATE.sortColumn === col) {
+                        STATE.sortDirection = STATE.sortDirection === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        STATE.sortColumn = col;
+                        STATE.sortDirection = 'asc';
+                    }
+                    // Re-renderizar detalhes mantendo estado
+                    if (STATE.faturaAtual) {
+                        DOM.detalhesContent.innerHTML = this.renderDetalhes(STATE.faturaAtual);
+                        if (window.lucide) lucide.createIcons();
+                        this.attachDetalhesEventListeners(faturaId);
+                    }
+                });
+            });
+
             // Botões de pagar/desfazer pagamento
             const btnToggles = DOM.detalhesContent.querySelectorAll('.btn-pagar, .btn-desfazer');
             btnToggles.forEach(btn => {
@@ -621,7 +704,7 @@
                                 <button class="btn-pagar-fatura" 
                                         onclick="window.abrirModalPagarFatura(${parc.id}, ${valorRestante})"
                                         style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s;">
-                                    <i class="fas fa-credit-card"></i>
+                                    <i data-lucide="credit-card"></i>
                                     <span class="btn-text-desktop">Pagar Fatura</span>
                                     <span class="btn-text-mobile">Pagar</span>
                                 </button>
@@ -630,7 +713,7 @@
                                 <button class="btn-reverter-fatura" 
                                         onclick="window.reverterPagamentoFaturaGlobal(${parc.id})"
                                         style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s;">
-                                    <i class="fas fa-undo"></i>
+                                    <i data-lucide="undo-2"></i>
                                     <span class="btn-text-desktop">Reverter Pagamento</span>
                                     <span class="btn-text-mobile">Reverter</span>
                                 </button>
@@ -702,6 +785,18 @@
         },
 
         renderParcelasTabela(parc) {
+            const sortIcon = (col) => {
+                if (STATE.sortColumn === col) {
+                    return STATE.sortDirection === 'asc'
+                        ? '<i data-lucide="arrow-up" class="sort-icon active"></i>'
+                        : '<i data-lucide="arrow-down" class="sort-icon active"></i>';
+                }
+                return '<i data-lucide="arrow-up-down" class="sort-icon"></i>';
+            };
+
+            // Ordenar parcelas
+            const parcelasOrdenadas = this.sortParcelas(parc.parcelas || []);
+
             // Versão desktop: tabela
             let html = `
                 <h4 class="parcelas-titulo">📋 Lista de Itens</h4>
@@ -712,17 +807,17 @@
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Descrição</th>
-                                <th>Valor</th>
-                                <th>Status</th>
+                                <th class="th-sortable" data-sort="descricao">Descrição ${sortIcon('descricao')}</th>
+                                <th class="th-sortable" data-sort="data_compra">Data Compra ${sortIcon('data_compra')}</th>
+                                <th class="th-sortable" data-sort="valor">Valor ${sortIcon('valor')}</th>
                                 <th>Ação</th>
                             </tr>
                         </thead>
                         <tbody>
             `;
 
-            if (parc.parcelas && parc.parcelas.length > 0) {
-                parc.parcelas.forEach((parcela, index) => {
+            if (parcelasOrdenadas.length > 0) {
+                parcelasOrdenadas.forEach((parcela, index) => {
                     html += this.renderParcelaRow(parcela, index, parc.descricao);
                 });
             } else {
@@ -745,7 +840,8 @@
             `;
 
             if (parc.parcelas && parc.parcelas.length > 0) {
-                parc.parcelas.forEach((parcela, index) => {
+                const parcelasOrdMobile = this.sortParcelas(parc.parcelas);
+                parcelasOrdMobile.forEach((parcela, index) => {
                     html += this.renderParcelaCard(parcela, index, parc.descricao);
                 });
             } else {
@@ -759,6 +855,33 @@
             html += `</div>`;
 
             return html;
+        },
+
+        sortParcelas(parcelas) {
+            if (!parcelas || parcelas.length === 0) return [];
+            const sorted = [...parcelas];
+            const dir = STATE.sortDirection === 'asc' ? 1 : -1;
+            const col = STATE.sortColumn;
+
+            sorted.sort((a, b) => {
+                if (col === 'descricao') {
+                    const descA = (a.descricao || '').toLowerCase();
+                    const descB = (b.descricao || '').toLowerCase();
+                    return descA.localeCompare(descB) * dir;
+                }
+                if (col === 'data_compra') {
+                    const dA = a.data_compra || '0000-00-00';
+                    const dB = b.data_compra || '0000-00-00';
+                    return dA.localeCompare(dB) * dir;
+                }
+                if (col === 'valor') {
+                    const vA = parseFloat(a.valor_parcela || a.valor || 0);
+                    const vB = parseFloat(b.valor_parcela || b.valor || 0);
+                    return (vA - vB) * dir;
+                }
+                return 0;
+            });
+            return sorted;
         },
 
         renderParcelaCard(parcela, index, descricaoFatura) {
@@ -779,9 +902,9 @@
             // Se tiver categoria, mostrar o nome da categoria
             let categoriaInfo = '';
             if (parcela.categoria) {
-                const iconeCategoria = parcela.categoria.icone || '📋';
+                const iconeCategoria = parcela.categoria.icone || 'tag';
                 const nomeCategoria = parcela.categoria.nome || parcela.categoria;
-                categoriaInfo = `${iconeCategoria} ${nomeCategoria}`;
+                categoriaInfo = `<i data-lucide="${iconeCategoria}" style="width:14px;height:14px;display:inline-block;vertical-align:middle;color:${getCategoryIconColor(iconeCategoria)}"></i> ${Utils.escapeHtml(nomeCategoria)}`;
             }
 
             // Card especial para estornos
@@ -819,6 +942,12 @@
                             <span class="parcela-card-label">Descrição</span>
                             <span class="parcela-card-value">${Utils.escapeHtml(descricaoItem)}</span>
                         </div>
+                        ${parcela.data_compra ? `
+                        <div class="parcela-card-info">
+                            <span class="parcela-card-label">Data Compra</span>
+                            <span class="parcela-card-value"><i data-lucide="shopping-cart" style="margin-right: 4px; font-size: 0.75rem;"></i>${Utils.formatDate(parcela.data_compra)}</span>
+                        </div>
+                        ` : ''}
                         <div class="parcela-card-info">
                             <span class="parcela-card-label">Valor</span>
                             <span class="parcela-card-value parcela-valor">${Utils.formatMoney(parcela.valor_parcela)}</span>
@@ -876,10 +1005,12 @@
 
             // Se tiver categoria, mostrar o nome da categoria
             if (parcela.categoria) {
-                const iconeCategoria = parcela.categoria.icone || '📋';
                 const nomeCategoria = parcela.categoria.nome || parcela.categoria;
-                descricaoItem = `${iconeCategoria} ${nomeCategoria}`;
+                descricaoItem = nomeCategoria;
             }
+
+            // Formatar data de compra
+            const dataCompraFormatada = parcela.data_compra ? Utils.formatDate(parcela.data_compra) : '-';
 
             // Estornos aparecem diferente
             if (isEstorno) {
@@ -891,13 +1022,13 @@
                         <td data-label="Descrição" class="td-descricao">
                             <div class="parcela-desc" style="color: #10b981;">${Utils.escapeHtml(descricaoItem)}</div>
                         </td>
+                        <td data-label="Data Compra">
+                            <span style="color: #10b981; font-size: 0.85rem;">${dataCompraFormatada}</span>
+                        </td>
                         <td data-label="Valor">
                             <span class="parcela-valor" style="color: #10b981; font-weight: 600;">
                                 - ${Utils.formatMoney(Math.abs(parcela.valor_parcela))}
                             </span>
-                        </td>
-                        <td data-label="Status" class="td-status">
-                            <span class="status-badge parcela-paga" style="background: #10b981;">✅ Creditado</span>
                         </td>
                         <td data-label="Ação" class="td-acoes">
                             <span style="color: #10b981; font-size: 0.85rem;">Estorno aplicado</span>
@@ -914,11 +1045,11 @@
                     <td data-label="Descrição" class="td-descricao">
                         <div class="parcela-desc">${Utils.escapeHtml(descricaoItem)}</div>
                     </td>
+                    <td data-label="Data Compra">
+                        <span style="font-size: 0.85rem; color: #9ca3af;">${dataCompraFormatada}</span>
+                    </td>
                     <td data-label="Valor">
                         <span class="parcela-valor">${Utils.formatMoney(parcela.valor_parcela)}</span>
-                    </td>
-                    <td data-label="Status" class="td-status">
-                        <span class="status-badge ${statusClass}">${statusText}</span>
                     </td>
                     <td data-label="Ação" class="td-acoes">
                         ${this.renderParcelaButton(parcela, isPaga)}
@@ -939,7 +1070,7 @@
                 return `
                     <div class="btn-group-parcela">
                         <span class="badge-pago" style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 500;">
-                            <i class="fas fa-check"></i> Pago
+                            <i data-lucide="check"></i> Pago
                         </span>
                     </div>
                 `;
@@ -953,14 +1084,14 @@
                             data-descricao="${Utils.escapeHtml(parcela.descricao || '')}"
                             data-valor="${parcela.valor_parcela || 0}"
                             title="Editar item">
-                            <i class="fas fa-pencil-alt"></i>
+                            <i data-lucide="pencil"></i>
                         </button>
                         <button class="btn-toggle-parcela btn-excluir" 
                             data-lancamento-id="${parcela.id}"
                             data-eh-parcelado="${ehParcelado}"
                             data-total-parcelas="${parcela.total_parcelas || 1}"
                             title="Excluir item">
-                            <i class="fas fa-trash"></i>
+                            <i data-lucide="trash-2"></i>
                         </button>
                     </div>
                 `;
@@ -1336,7 +1467,7 @@
 
                 // Verificar se a fatura ainda existe antes de reabrir o modal
                 const faturaAindaExiste = STATE.parcelamentos.some(p => p.id === faturaId);
-                
+
                 if (faturaAindaExiste) {
                     // Reabrir o modal com dados atualizados
                     setTimeout(() => {
@@ -1372,7 +1503,7 @@
                 title: 'Excluir Parcelamento Completo?',
                 html: `
                     <p>Deseja realmente excluir <strong>todas as ${totalParcelas} parcelas</strong> deste parcelamento?</p>
-                    <p style="color: #ef4444; margin-top: 1rem;"><i class="fas fa-exclamation-triangle"></i> Esta ação não pode ser desfeita!</p>
+                    <p style="color: #ef4444; margin-top: 1rem;"><i data-lucide="triangle-alert"></i> Esta ação não pode ser desfeita!</p>
                 `,
                 icon: 'warning',
                 showCancelButton: true,
@@ -1387,6 +1518,7 @@
                 didOpen: () => {
                     const container = document.querySelector('.swal2-container');
                     if (container) container.style.zIndex = '99999';
+                    if (window.lucide) lucide.createIcons();
                 }
             });
 
@@ -1432,7 +1564,7 @@
 
                 // Verificar se a fatura ainda existe antes de reabrir o modal
                 const faturaAindaExiste = STATE.parcelamentos.some(p => p.id === faturaId);
-                
+
                 if (faturaAindaExiste) {
                     // Reabrir o modal com dados atualizados
                     setTimeout(() => {
@@ -1534,7 +1666,7 @@
                         </div>
                         <div style="margin-bottom: 1rem;">
                             <label style="display: block; text-align: left; margin-bottom: 0.5rem; color: #374151; font-weight: 500;">
-                                <i class="fas fa-university"></i> Conta para débito:
+                                <i data-lucide="landmark"></i> Conta para débito:
                             </label>
                             <select id="swalContaSelect" class="swal2-select" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.875rem;">
                                 ${contasOptions}
@@ -1546,7 +1678,7 @@
                     showCancelButton: true,
                     confirmButtonColor: '#10b981',
                     cancelButtonColor: '#6b7280',
-                    confirmButtonText: '<i class="fas fa-check"></i> Sim, pagar tudo',
+                    confirmButtonText: '<i data-lucide="check"></i> Sim, pagar tudo',
                     cancelButtonText: 'Cancelar',
                     heightAuto: false,
                     customClass: {
@@ -1555,6 +1687,7 @@
                     didOpen: () => {
                         const container = document.querySelector('.swal2-container');
                         if (container) container.style.zIndex = '99999';
+                        if (window.lucide) lucide.createIcons();
                     },
                     preConfirm: () => {
                         const contaSelect = document.getElementById('swalContaSelect');
@@ -1605,7 +1738,7 @@
                             </div>
                         </div>
                         <div style="color: #059669;">
-                            <i class="fas fa-check-circle" style="font-size: 2rem;"></i>
+                            <i data-lucide="circle-check" style="font-size: 2rem;"></i>
                         </div>
                     `,
                     timer: 3000,
@@ -1617,6 +1750,7 @@
                     didOpen: () => {
                         const container = document.querySelector('.swal2-container');
                         if (container) container.style.zIndex = '99999';
+                        if (window.lucide) lucide.createIcons();
                     }
                 });
 
@@ -1674,23 +1808,23 @@
         initViewToggle() {
             const viewToggle = document.querySelector('.view-toggle');
             const container = DOM.containerEl;
-            
+
             if (!viewToggle || !container) return;
 
             const viewButtons = viewToggle.querySelectorAll('.view-btn');
-            
+
             // Restaurar preferência salva
             const savedView = localStorage.getItem('faturas_view_mode') || 'grid';
             if (savedView === 'list') {
                 container.classList.add('list-view');
             }
-            
+
             // Atualizar estado dos botões
             this.updateViewToggleState(viewButtons, savedView);
 
             // Referência ao header da lista
             const listHeader = document.getElementById('faturasListHeader');
-            
+
             // Mostrar/ocultar header conforme view inicial
             if (savedView === 'list' && listHeader) {
                 listHeader.classList.add('visible');
@@ -1700,7 +1834,7 @@
             viewButtons.forEach(btn => {
                 btn.addEventListener('click', () => {
                     const view = btn.dataset.view;
-                    
+
                     if (view === 'list') {
                         container.classList.add('list-view');
                         if (listHeader) listHeader.classList.add('visible');
@@ -1708,10 +1842,10 @@
                         container.classList.remove('list-view');
                         if (listHeader) listHeader.classList.remove('visible');
                     }
-                    
+
                     // Salvar preferência
                     localStorage.setItem('faturas_view_mode', view);
-                    
+
                     // Atualizar estado dos botões
                     this.updateViewToggleState(viewButtons, view);
                 });
@@ -2115,10 +2249,12 @@
                     <span class="filter-badge">
                         ${badge.label}
                         <button class="filter-badge-remove" data-filter="${badge.key}" title="Remover filtro">
-                            <i class="fas fa-times"></i>
+                            <i data-lucide="x"></i>
                         </button>
                     </span>
                 `).join('');
+
+                if (window.lucide) lucide.createIcons();
 
                 // Adicionar eventos de remover
                 DOM.activeFilters.querySelectorAll('.filter-badge-remove').forEach(btn => {
@@ -2175,7 +2311,7 @@
     // ============================================================================
     // MODAL PAGAR FATURA - BOOTSTRAP
     // ============================================================================
-    
+
     // Estado do modal de pagamento
     const ModalPagarFatura = {
         instance: null,
@@ -2227,9 +2363,9 @@
                         return;
                     }
                     value = (parseInt(value) / 100).toFixed(2);
-                    e.target.value = parseFloat(value).toLocaleString('pt-BR', { 
-                        minimumFractionDigits: 2, 
-                        maximumFractionDigits: 2 
+                    e.target.value = parseFloat(value).toLocaleString('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
                     });
                 });
 
@@ -2493,7 +2629,7 @@
                 <p>Você está prestes a <strong>reverter o pagamento</strong> de todos os itens desta fatura.</p>
                 <div style="margin: 1rem 0; padding: 0.75rem; background: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b;">
                     <p style="margin: 0; color: #92400e; font-size: 0.875rem;">
-                        <i class="fas fa-exclamation-triangle"></i> 
+                        <i data-lucide="triangle-alert"></i> 
                         O lançamento de pagamento será excluído e o valor voltará para a conta.
                     </p>
                 </div>
@@ -2502,8 +2638,9 @@
             showCancelButton: true,
             confirmButtonColor: '#f59e0b',
             cancelButtonColor: '#6b7280',
-            confirmButtonText: '<i class="fas fa-undo"></i> Sim, reverter',
-            cancelButtonText: 'Cancelar'
+            confirmButtonText: '<i data-lucide="undo-2"></i> Sim, reverter',
+            cancelButtonText: 'Cancelar',
+            didOpen: () => { if (window.lucide) lucide.createIcons(); }
         });
 
         if (!result.isConfirmed) return;
@@ -2532,12 +2669,13 @@
                     html: `
                         <p>${response.message || 'O pagamento foi revertido com sucesso.'}</p>
                         <p style="color: #059669; margin-top: 0.5rem;">
-                            <i class="fas fa-check-circle"></i> 
+                            <i data-lucide="circle-check"></i> 
                             ${response.itens_revertidos || 0} item(s) voltou(aram) para pendente.
                         </p>
                     `,
                     timer: 3000,
-                    showConfirmButton: false
+                    showConfirmButton: false,
+                    didOpen: () => { if (window.lucide) lucide.createIcons(); }
                 });
 
                 // Fechar modal e recarregar
@@ -2569,8 +2707,9 @@
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#6b7280',
-            confirmButtonText: '<i class="fas fa-trash"></i> Sim, excluir',
-            cancelButtonText: 'Cancelar'
+            confirmButtonText: '<i data-lucide="trash-2"></i> Sim, excluir',
+            cancelButtonText: 'Cancelar',
+            didOpen: () => { if (window.lucide) lucide.createIcons(); }
         });
 
         if (!result.isConfirmed) return;
@@ -2618,11 +2757,12 @@
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#6b7280',
-            confirmButtonText: '<i class="fas fa-trash"></i> Sim, excluir',
+            confirmButtonText: '<i data-lucide="trash-2"></i> Sim, excluir',
             cancelButtonText: 'Cancelar',
             customClass: {
                 container: 'swal-above-modal'
-            }
+            },
+            didOpen: () => { if (window.lucide) lucide.createIcons(); }
         });
 
         if (!result.isConfirmed) return;
@@ -2685,7 +2825,10 @@
             // Atualizar ícone do botão
             const icon = btn.querySelector('i');
             if (icon) {
-                icon.className = isVisible ? 'fas fa-eye' : 'fas fa-eye-slash';
+                icon.setAttribute('data-lucide', isVisible ? 'eye' : 'eye-off');
+                icon.className = '';
+                icon.innerHTML = '';
+                if (window.lucide) lucide.createIcons({ nodes: [icon] });
             }
         }
     };

@@ -1,5 +1,6 @@
 ﻿<!-- CSS MODERNIZADO -->
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-tables-shared.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/filters-modern.css?v=<?= filemtime(BASE_PATH . '/public/assets/css/filters-modern.css') ?>">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/lancamentos-modern.css">
 
 <?php $isPro = $isPro ?? false; ?>
@@ -13,7 +14,7 @@
         <div class="modern-card export-card <?= !$isPro ? 'pro-locked' : '' ?>" data-aos="fade-up" data-aos-delay="100">
             <div class="card-header-icon">
                 <div class="icon-wrapper export">
-                    <i class="fas fa-file-export"></i>
+                    <i data-lucide="file-output" style="color: var(--color-primary)"></i>
                 </div>
                 <div class="card-title-group">
                     <h3 class="card-title">Exportar Lançamentos</h3>
@@ -21,7 +22,7 @@
                 </div>
                 <?php if (!$isPro): ?>
                     <span class="pro-badge">
-                        <i class="fas fa-crown"></i> PRO
+                        <i data-lucide="crown"></i> PRO
                     </span>
                 <?php endif; ?>
             </div>
@@ -30,7 +31,7 @@
                 <?php if (!$isPro): ?>
                     <div class="pro-overlay">
                         <div class="pro-message">
-                            <i class="fas fa-crown"
+                            <i data-lucide="crown"
                                 style="font-size:2.5rem;color:var(--color-warning);margin-bottom:var(--spacing-4);"></i>
                             <h4 style="color:#fff;font-size:1.25rem;font-weight:700;margin:0 0 var(--spacing-2);">Recurso
                                 Premium</h4>
@@ -47,7 +48,7 @@
                     <div class="date-range-group">
                         <div class="input-group">
                             <label for="exportStart" class="input-label">
-                                <i class="fas fa-calendar-alt"></i>
+                                <i data-lucide="calendar-days" style="color: var(--color-primary)"></i>
                                 <span>Data Inicial</span>
                             </label>
                             <input type="date" id="exportStart" class="modern-input" data-default-today="1"
@@ -56,7 +57,7 @@
 
                         <div class="input-group">
                             <label for="exportEnd" class="input-label">
-                                <i class="fas fa-calendar-alt"></i>
+                                <i data-lucide="calendar-days" style="color: var(--color-primary)"></i>
                                 <span>Data Final</span>
                             </label>
                             <input type="date" id="exportEnd" class="modern-input" data-default-today="1"
@@ -73,7 +74,7 @@
 
                         <button id="btnExportar" type="button" class="modern-btn primary"
                             aria-label="Exportar lançamentos" <?= !$isPro ? 'disabled' : '' ?>>
-                            <i class="fas fa-download"></i>
+                            <i data-lucide="download"></i>
                             <span>Exportar</span>
                         </button>
                     </div>
@@ -81,57 +82,75 @@
             </div>
         </div>
 
-        <!-- CARD DE FILTROS -->
-        <div class="modern-card filter-card" data-aos="fade-up" data-aos-delay="200">
-            <div class="card-header-icon">
-                <div class="icon-wrapper filter">
-                    <i class="fas fa-filter"></i>
+        <!-- CARD DE FILTROS COLAPSÁVEL -->
+        <div class="filters-modern" data-aos="fade-up" data-aos-delay="200">
+            <div class="filters-header">
+                <div class="filters-title">
+                    <div class="filters-icon">
+                        <i data-lucide="sliders-horizontal"></i>
+                    </div>
+                    <div class="filters-text">
+                        <h3>Filtros Avançados</h3>
+                        <span class="filters-subtitle">Refine sua busca por tipo, categoria e conta</span>
+                    </div>
                 </div>
-                <div class="card-title-group">
-                    <h3 class="card-title">Filtros Avançados</h3>
-                    <p class="card-subtitle">Refine sua busca por tipo, categoria e conta</p>
-                </div>
+                <button type="button" class="filters-toggle" id="toggleFilters" aria-label="Expandir filtros">
+                    <i data-lucide="chevron-down"></i>
+                </button>
             </div>
 
-            <div class="filter-controls">
-                <div class="filter-row">
-                    <div class="filter-group">
-                        <label for="filtroTipo" class="filter-label">
-                            <i class="fas fa-tag"></i>
-                            <span>Tipo</span>
+            <div class="filters-body" id="filtersBody">
+                <div class="filters-grid">
+                    <div class="filter-item">
+                        <label class="filter-label-modern" for="filtroTipo">
+                            <i data-lucide="tag" style="color: var(--color-primary)"></i>
+                            Tipo
                         </label>
-                        <select id="filtroTipo" class="modern-select" aria-label="Filtrar por tipo">
-                            <option value="">Todos os Tipos</option>
-                            <option value="receita">💰 Receitas</option>
-                            <option value="despesa">💸 Despesas</option>
-                        </select>
+                        <div class="select-wrapper">
+                            <select id="filtroTipo" class="filter-select" aria-label="Filtrar por tipo">
+                                <option value="">Todos os Tipos</option>
+                                <option value="receita">💰 Receitas</option>
+                                <option value="despesa">💸 Despesas</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="select-arrow"></i>
+                        </div>
                     </div>
 
-                    <div class="filter-group">
-                        <label for="filtroCategoria" class="filter-label">
-                            <i class="fas fa-folder"></i>
-                            <span>Categoria</span>
+                    <div class="filter-item">
+                        <label class="filter-label-modern" for="filtroCategoria">
+                            <i data-lucide="folder" style="color: var(--color-primary)"></i>
+                            Categoria
                         </label>
-                        <select id="filtroCategoria" class="modern-select" aria-label="Filtrar por categoria">
-                            <option value="">Todas as Categorias</option>
-                            <option value="none">Sem Categoria</option>
-                        </select>
+                        <div class="select-wrapper">
+                            <select id="filtroCategoria" class="filter-select" aria-label="Filtrar por categoria">
+                                <option value="">Todas as Categorias</option>
+                                <option value="none">Sem Categoria</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="select-arrow"></i>
+                        </div>
                     </div>
 
-                    <div class="filter-group">
-                        <label for="filtroConta" class="filter-label">
-                            <i class="fas fa-wallet"></i>
-                            <span>Conta</span>
+                    <div class="filter-item">
+                        <label class="filter-label-modern" for="filtroConta">
+                            <i data-lucide="wallet" style="color: var(--color-primary)"></i>
+                            Conta
                         </label>
-                        <select id="filtroConta" class="modern-select" aria-label="Filtrar por conta">
-                            <option value="">Todas as Contas</option>
-                        </select>
+                        <div class="select-wrapper">
+                            <select id="filtroConta" class="filter-select" aria-label="Filtrar por conta">
+                                <option value="">Todas as Contas</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="select-arrow"></i>
+                        </div>
                     </div>
                 </div>
 
-                <div class="filter-actions">
-                    <button id="btnFiltrar" type="button" class="modern-btn primary" aria-label="Aplicar filtros">
-                        <i class="fas fa-search"></i>
+                <div class="filters-actions">
+                    <button id="btnLimparFiltros" type="button" class="btn-filter-clear" aria-label="Limpar filtros">
+                        <i data-lucide="x"></i>
+                        <span>Limpar</span>
+                    </button>
+                    <button id="btnFiltrar" type="button" class="btn-filter-apply" aria-label="Aplicar filtros">
+                        <i data-lucide="search"></i>
                         <span>Aplicar Filtros</span>
                     </button>
                 </div>
@@ -143,24 +162,24 @@
     <div class="modern-table-wrapper" data-aos="fade-up" data-aos-delay="300">
         <div class="table-header-info">
             <div class="info-group">
-                <i class="fas fa-list-ul"></i>
+                <i data-lucide="list"></i>
                 <span>Seus Lançamentos</span>
             </div>
             <div class="table-actions">
                 <button type="button" class="modern-btn" onclick="lancamentoGlobalManager.openModal()"
                     style="background: var(--color-primary); color: white;" aria-label="Novo lançamento">
-                    <i class="fas fa-plus"></i>
+                    <i data-lucide="plus"></i>
                     <span>Novo Lançamento</span>
                 </button>
 
                 <button id="btnExcluirSel" type="button" class="modern-btn delete" disabled
                     aria-label="Excluir registros selecionados">
-                    <i class="fas fa-trash-alt"></i>
+                    <i data-lucide="trash-2"></i>
                     <span>Excluir (<span id="selCount">0</span>)</span>
                 </button>
 
                 <button type="button" class="icon-btn" title="Atualizar" onclick="location.reload()">
-                    <i class="fas fa-sync-alt"></i>
+                    <i data-lucide="refresh-cw"></i>
                 </button>
             </div>
         </div>
@@ -178,24 +197,36 @@
                                 </th>
                                 <th class="th-data sortable" data-sort="data">
                                     <span>Data</span>
-                                    <i class="fas fa-sort sort-icon"></i>
+                                    <i data-lucide="arrow-up-down" class="sort-icon"></i>
                                 </th>
                                 <th class="th-tipo sortable" data-sort="tipo">
                                     <span>Tipo</span>
-                                    <i class="fas fa-sort sort-icon"></i>
+                                    <i data-lucide="arrow-up-down" class="sort-icon"></i>
                                 </th>
                                 <th class="th-categoria">Categoria</th>
                                 <th class="th-conta">Conta</th>
                                 <th class="th-descricao">Descrição</th>
                                 <th class="th-valor sortable" data-sort="valor">
                                     <span>Valor</span>
-                                    <i class="fas fa-sort sort-icon"></i>
+                                    <i data-lucide="arrow-up-down" class="sort-icon"></i>
                                 </th>
                                 <th class="th-acoes">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="lancamentosTableBody">
-                            <!-- Linhas serão inseridas via JS -->
+                            <!-- Loading state inicial -->
+                            <tr class="lk-loading-row">
+                                <td colspan="8" style="text-align:center; padding:3rem 1rem;">
+                                    <div class="lk-loading-state">
+                                        <div class="spinner-border" role="status"
+                                            style="width:2rem;height:2rem;color:var(--color-primary);">
+                                            <span class="visually-hidden">Carregando...</span>
+                                        </div>
+                                        <p style="margin:1rem 0 0;color:var(--color-text-muted);font-size:0.9rem;">
+                                            Carregando lançamentos...</p>
+                                    </div>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -213,11 +244,11 @@
                             <option value="100">100 por página</option>
                         </select>
                         <button type="button" id="prevPage" class="pagination-btn" disabled>
-                            <i class="fas fa-chevron-left"></i>
+                            <i data-lucide="chevron-left"></i>
                         </button>
                         <span id="pageNumbers" class="page-numbers"></span>
                         <button type="button" id="nextPage" class="pagination-btn" disabled>
-                            <i class="fas fa-chevron-right"></i>
+                            <i data-lucide="chevron-right"></i>
                         </button>
                     </div>
                 </div>
@@ -226,30 +257,41 @@
             <!-- MOBILE: Cards + pager -->
             <section class="lan-cards-wrapper cards-wrapper">
                 <!-- Cards -->
-                <section class="lan-cards-container cards-container" id="lanCards"></section>
+                <section class="lan-cards-container cards-container" id="lanCards">
+                    <!-- Loading state mobile -->
+                    <div class="lk-loading-state" id="lanCardsLoading"
+                        style="text-align:center;padding:2rem 1rem;grid-column:1/-1;">
+                        <div class="spinner-border" role="status"
+                            style="width:2rem;height:2rem;color:var(--color-primary);">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <p style="margin:1rem 0 0;color:var(--color-text-muted);font-size:0.9rem;">Carregando
+                            lançamentos...</p>
+                    </div>
+                </section>
 
                 <!-- Pager -->
                 <nav class="lan-cards-pager cards-pager" id="lanCardsPager" aria-label="Paginação de lançamentos">
                     <button type="button" id="lanPagerFirst" class="lan-pager-btn pager-btn" disabled
                         aria-label="Primeira página">
-                        <i class="fas fa-angle-double-left"></i>
+                        <i data-lucide="chevrons-left"></i>
                     </button>
 
                     <button type="button" id="lanPagerPrev" class="lan-pager-btn pager-btn" disabled
                         aria-label="Página anterior">
-                        <i class="fas fa-chevron-left"></i>
+                        <i data-lucide="chevron-left"></i>
                     </button>
 
                     <span id="lanPagerInfo" class="lan-pager-info pager-info">Nenhum lançamento</span>
 
                     <button type="button" id="lanPagerNext" class="lan-pager-btn pager-btn" disabled
                         aria-label="Próxima página">
-                        <i class="fas fa-chevron-right"></i>
+                        <i data-lucide="chevron-right"></i>
                     </button>
 
                     <button type="button" id="lanPagerLast" class="lan-pager-btn pager-btn" disabled
                         aria-label="Última página">
-                        <i class="fas fa-angle-double-right"></i>
+                        <i data-lucide="chevrons-right"></i>
                     </button>
                 </nav>
             </section>

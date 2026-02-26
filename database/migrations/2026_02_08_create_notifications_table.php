@@ -20,6 +20,8 @@ return new class
 
         if (!$schema->hasTable('notifications')) {
             $schema->create('notifications', function (Blueprint $table) {
+                $table->charset = 'utf8mb4';
+                $table->collation = 'utf8mb4_unicode_ci';
                 $table->id();
 
                 // Usuário destinatário

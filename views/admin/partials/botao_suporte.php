@@ -51,6 +51,7 @@
 
     .lk-support-button i {
         animation: headset-bounce 2s ease-in-out infinite;
+        color: white !important;
     }
 
     .lk-support-button:hover i {
@@ -592,7 +593,7 @@ $ddd = $telefoneModel->ddd->codigo ?? '';
     data-support-tel="<?= htmlspecialchars($telUsuario, ENT_QUOTES, 'UTF-8') ?>"
     data-support-cod="<?= htmlspecialchars($ddd, ENT_QUOTES, 'UTF-8') ?>"
     onclick="openSupportModal(this); return false;">
-    <i class="fas fa-headset"></i>
+    <i data-lucide="headphones"></i>
 </a>
 
 <script>
@@ -603,22 +604,22 @@ $ddd = $telefoneModel->ddd->codigo ?? '';
         const codigo = triggerEl?.dataset.supportCod || '';
 
         Swal.fire({
-            title: '<i class="fas fa-headset" style="color: var(--color-primary); font-size: 26px; margin-right: 8px;"></i> Fale com o Suporte',
+            title: '<i data-lucide="headphones" style="color: var(--color-primary); font-size: 26px; margin-right: 8px;"></i> Fale com o Suporte',
             html: `
                 <div class="lk-support-info">
                     <div class="lk-support-info-label">Enviando como:</div>
                     <div class="lk-support-info-name">${name}</div>
-                    ${email ? `<div class="lk-support-info-email"><i class="fas fa-envelope"></i> ${email}</div>` : ''}
+                    ${email ? `<div class="lk-support-info-email"><i data-lucide="mail"></i> ${email}</div>` : ''}
                   ${telefone ? `
     <div class="lk-support-info-tel">
-        <i class="fas fa-phone"></i> (${codigo}) ${telefone}
+        <i data-lucide="phone"></i> (${codigo}) ${telefone}
     </div>
 ` : ''}
 
                 </div>
                 
                 <div class="lk-preference-label">
-                    <i class="fas fa-reply"></i>
+                    <i data-lucide="reply"></i>
                     Como prefere receber o retorno?
                 </div>
                 <div class="lk-contact-preference">
@@ -629,7 +630,7 @@ $ddd = $telefoneModel->ddd->codigo ?? '';
 
                     <label class="lk-radio">
                         <input type="radio" name="retorno" value="email" checked>
-                        <span><i class="fas fa-envelope"></i>E-mail</span>
+                        <span><i data-lucide="mail"></i>E-mail</span>
                     </label>
                 </div>
                 
@@ -638,8 +639,8 @@ $ddd = $telefoneModel->ddd->codigo ?? '';
                     placeholder="Descreva sua dúvida, problema ou sugestão com detalhes... Retornaremos o mais breve possível! 😊"></textarea>
             `,
             showCancelButton: true,
-            confirmButtonText: '<i class="fas fa-paper-plane"></i> Enviar Mensagem',
-            cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+            confirmButtonText: '<i data-lucide="send"></i> Enviar Mensagem',
+            cancelButtonText: '<i data-lucide="x"></i> Cancelar',
             showCloseButton: true,
             customClass: {
                 popup: 'lk-support-modal'
@@ -749,7 +750,7 @@ $ddd = $telefoneModel->ddd->codigo ?? '';
                 if (response.success) {
                     const retornoIcon = data.retorno === 'whatsapp' ?
                         '<i class="fab fa-whatsapp"></i>' :
-                        '<i class="fas fa-envelope" style="color: var(--color-primary);"></i>';
+                        '<i data-lucide="mail" style="color: var(--color-primary);"></i>';
 
                     Swal.fire({
                         icon: "success",
@@ -813,7 +814,7 @@ $ddd = $telefoneModel->ddd->codigo ?? '';
                     </p>
                     <div style="margin-top: 1rem; padding: 1rem; background: var(--glass-bg); border-radius: var(--radius-md); text-align: left; backdrop-filter: var(--glass-backdrop); border: 1px solid var(--glass-border);">
                         <p style="color: var(--color-text); font-size: var(--font-size-sm); margin: 0 0 0.75rem 0; font-weight: 600;">
-                            <i class="fas fa-lightbulb" style="color: var(--color-primary);"></i> Possíveis soluções:
+                            <i data-lucide="lightbulb" style="color: var(--color-primary);"></i> Possíveis soluções:
                         </p>
                         <ul style="color: var(--color-text-muted); font-size: var(--font-size-sm); margin: 0; padding-left: 1.5rem; line-height: 1.6;">
                             <li>Verifique sua conexão com a internet</li>

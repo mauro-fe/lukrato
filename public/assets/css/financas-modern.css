@@ -43,6 +43,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: var(--spacing-3);
+  transition: opacity 0.25s ease;
 }
 
 .summary-card {
@@ -151,7 +152,11 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface));
+  background: color-mix(
+    in srgb,
+    var(--color-primary) 12%,
+    var(--color-surface)
+  );
   display: flex;
   align-items: center;
   justify-content: center;
@@ -165,8 +170,15 @@
 }
 
 @keyframes saudePulse {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.1); }
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
 }
 
 .saude-cta-text {
@@ -282,6 +294,18 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4);
+  animation: finTabFadeIn 0.3s ease;
+}
+
+@keyframes finTabFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ============================================================================
@@ -325,12 +349,9 @@
 }
 
 .fin-action-btn.primary {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: var(--color-primary);
   color: #fff;
   border-color: transparent;
-}
-.fin-action-btn.primary:hover {
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
 }
 
 .fin-action-btn.success {
@@ -1282,7 +1303,7 @@
 }
 
 .sugestao-economia::before {
-  content: '💰';
+  content: "💰";
   font-size: 0.7rem;
 }
 

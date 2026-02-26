@@ -1,5 +1,6 @@
 <!-- CSS Agendamentos -->
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/filters-modern.css?v=<?= filemtime(BASE_PATH . '/public/assets/css/filters-modern.css') ?>">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-agendamentos-index.css?v=<?= md5(uniqid(rand(), true)) ?>">
 
 
@@ -8,61 +9,73 @@
     <div class="lan-header-modern">
         <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
 
-        <!-- CARD DE FILTROS -->
-        <div class="modern-card filter-card" data-aos="fade-up" data-aos-delay="100">
-            <div class="card-header-icon">
-                <div class="icon-wrapper filter">
-                    <i class="fas fa-filter"></i>
+        <!-- CARD DE FILTROS COLAPSÁVEL -->
+        <div class="filters-modern" data-aos="fade-up" data-aos-delay="100">
+            <div class="filters-header">
+                <div class="filters-title">
+                    <div class="filters-icon">
+                        <i data-lucide="sliders-horizontal"></i>
+                    </div>
+                    <div class="filters-text">
+                        <h3>Filtros Avançados</h3>
+                        <span class="filters-subtitle">Refine sua busca por tipo, categoria e conta</span>
+                    </div>
                 </div>
-                <div class="card-title-group">
-                    <h3 class="card-title">Filtros Avançados</h3>
-                    <p class="card-subtitle">Refine sua busca por tipo, categoria e conta</p>
-                </div>
+                <button type="button" class="filters-toggle" id="toggleFilters" aria-label="Expandir filtros" onclick="if(window.toggleAgendamentosFilters)window.toggleAgendamentosFilters(event)">
+                    <i data-lucide="chevron-down"></i>
+                </button>
             </div>
 
-            <div class="filter-controls">
-                <div class="filter-row">
-
-
-                    <div class="filter-group">
-                        <label for="filtroCategoria" class="filter-label">
-                            <i class="fas fa-folder"></i>
-                            <span>Categoria</span>
+            <div class="filters-body" id="filtersBody">
+                <div class="filters-grid">
+                    <div class="filter-item">
+                        <label class="filter-label-modern" for="filtroCategoria">
+                            <i data-lucide="folder" style="color: var(--color-primary)"></i>
+                            Categoria
                         </label>
-                        <select id="filtroCategoria" class="modern-select" aria-label="Filtrar por categoria">
-                            <option value="">Todas as categorias</option>
-                        </select>
+                        <div class="select-wrapper">
+                            <select id="filtroCategoria" class="filter-select" aria-label="Filtrar por categoria">
+                                <option value="">Todas as categorias</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="select-arrow"></i>
+                        </div>
                     </div>
 
-                    <div class="filter-group">
-                        <label for="filtroConta" class="filter-label">
-                            <i class="fas fa-wallet"></i>
-                            <span>Conta</span>
+                    <div class="filter-item">
+                        <label class="filter-label-modern" for="filtroConta">
+                            <i data-lucide="wallet" style="color: var(--color-primary)"></i>
+                            Conta
                         </label>
-                        <select id="filtroConta" class="modern-select" aria-label="Filtrar por conta">
-                            <option value="">Todas as contas</option>
-                        </select>
+                        <div class="select-wrapper">
+                            <select id="filtroConta" class="filter-select" aria-label="Filtrar por conta">
+                                <option value="">Todas as contas</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="select-arrow"></i>
+                        </div>
                     </div>
 
-                    <div class="filter-group">
-                        <label for="filtroStatus" class="filter-label">
-                            <i class="fas fa-info-circle"></i>
-                            <span>Status</span>
+                    <div class="filter-item">
+                        <label class="filter-label-modern" for="filtroStatus">
+                            <i data-lucide="info" style="color: var(--color-primary)"></i>
+                            Status
                         </label>
-                        <select id="filtroStatus" class="modern-select" aria-label="Filtrar por status">
-                            <option value="">Todos</option>
-                            <option value="hoje">📅 Hoje</option>
-                            <option value="agendado">⏰ Agendado</option>
-                            <option value="vencido">⚠️ Vencido</option>
-                            <option value="cancelado">❌ Cancelado</option>
-                        </select>
+                        <div class="select-wrapper">
+                            <select id="filtroStatus" class="filter-select" aria-label="Filtrar por status">
+                                <option value="">Todos</option>
+                                <option value="hoje">📅 Hoje</option>
+                                <option value="agendado">⏰ Agendado</option>
+                                <option value="vencido">⚠️ Vencido</option>
+                                <option value="cancelado">❌ Cancelado</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="select-arrow"></i>
+                        </div>
                     </div>
                 </div>
 
-                <div class="filter-actions">
-                    <button type="button" id="btnLimparFiltros" class="modern-btn primary" aria-label="Limpar filtros">
-                        <i class="fas fa-eraser"></i>
-                        <span>Limpar Filtros</span>
+                <div class="filters-actions">
+                    <button type="button" id="btnLimparFiltros" class="btn-filter-clear" aria-label="Limpar filtros">
+                        <i data-lucide="x"></i>
+                        <span>Limpar</span>
                     </button>
                 </div>
             </div>
@@ -75,27 +88,27 @@
         <!-- Filtros Rápidos -->
         <div class="quick-filters" id="quickFilters" data-aos="fade-up">
             <button type="button" class="quick-filter-btn" data-filter="hoje">
-                <i class="fas fa-calendar-day"></i>
+                <i data-lucide="calendar"></i>
                 <span>Hoje</span>
             </button>
             <button type="button" class="quick-filter-btn" data-filter="semana">
-                <i class="fas fa-calendar-week"></i>
+                <i data-lucide="calendar-range"></i>
                 <span>Esta Semana</span>
             </button>
             <button type="button" class="quick-filter-btn" data-filter="vencidos">
-                <i class="fas fa-exclamation-triangle"></i>
+                <i data-lucide="triangle-alert"></i>
                 <span>Vencidos</span>
             </button>
             <button type="button" class="quick-filter-btn" data-filter="receitas">
-                <i class="fas fa-arrow-down"></i>
+                <i data-lucide="arrow-up" style="color: var(--color-success)"></i>
                 <span>Receitas</span>
             </button>
             <button type="button" class="quick-filter-btn" data-filter="despesas">
-                <i class="fas fa-arrow-up"></i>
+                <i data-lucide="arrow-down" style="color: var(--color-danger)"></i>
                 <span>Despesas</span>
             </button>
             <button type="button" class="quick-filter-btn" data-filter="recorrentes">
-                <i class="fas fa-sync-alt"></i>
+                <i data-lucide="refresh-cw"></i>
                 <span>Recorrentes</span>
             </button>
         </div>
@@ -104,13 +117,13 @@
         <div class="modern-table-wrapper" style="margin-bottom: var(--spacing-4);">
             <div class="table-header-info">
                 <div class="info-group">
-                    <i class="fas fa-clock"></i>
+                    <i data-lucide="clock"></i>
                     <span>Seus Agendamentos</span>
                 </div>
                 <div class="table-actions">
                     <button type="button" id="btnAddAgendamento" class="modern-btn primary"
                         aria-label="Novo agendamento">
-                        <i class="fas fa-plus"></i>
+                        <i data-lucide="plus"></i>
                         <span>Novo Agendamento</span>
                     </button>
                 </div>
@@ -124,25 +137,34 @@
                                 <th>Título</th>
                                 <th class="sortable" data-sort="tipo">
                                     <span>Tipo</span>
-                                    <i class="fas fa-sort sort-icon"></i>
+                                    <i data-lucide="arrow-up-down" class="sort-icon"></i>
                                 </th>
                                 <th>Categoria</th>
                                 <th>Conta</th>
                                 <th class="sortable" data-sort="valor_centavos">
                                     <span>Valor</span>
-                                    <i class="fas fa-sort sort-icon"></i>
+                                    <i data-lucide="arrow-up-down" class="sort-icon"></i>
                                 </th>
                                 <th class="sortable" data-sort="data_pagamento">
                                     <span>Data</span>
-                                    <i class="fas fa-sort sort-icon"></i>
+                                    <i data-lucide="arrow-up-down" class="sort-icon"></i>
                                 </th>
                                 <th>Status</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody id="agendamentosTableBody">
-                            <tr>
-                                <td colspan="8" class="text-center">Carregando agendamentos...</td>
+                            <tr class="lk-loading-row">
+                                <td colspan="8" style="text-align:center;padding:2rem 1rem;">
+                                    <div class="lk-loading-state">
+                                        <div class="spinner-border" role="status"
+                                            style="width:2rem;height:2rem;color:var(--color-primary);">
+                                            <span class="visually-hidden">Carregando...</span>
+                                        </div>
+                                        <p style="margin:0.75rem 0 0;color:var(--color-text-muted);font-size:0.85rem;">
+                                            Carregando agendamentos...</p>
+                                    </div>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -161,11 +183,11 @@
                             <option value="100">100 por página</option>
                         </select>
                         <button type="button" id="agPrevPage" class="pagination-btn" disabled>
-                            <i class="fas fa-chevron-left"></i>
+                            <i data-lucide="chevron-left"></i>
                         </button>
                         <span id="agPageNumbers" class="page-numbers"></span>
                         <button type="button" id="agNextPage" class="pagination-btn" disabled>
-                            <i class="fas fa-chevron-right"></i>
+                            <i data-lucide="chevron-right"></i>
                         </button>
                     </div>
                 </div>
@@ -176,17 +198,17 @@
 
                 <nav class="ag-cards-pager cards-pager" id="agCardsPager">
                     <button type="button" id="agPagerFirst" class="ag-pager-btn pager-btn" disabled>
-                        <i class="fas fa-angle-double-left"></i>
+                        <i data-lucide="chevrons-left"></i>
                     </button>
                     <button type="button" id="agPagerPrev" class="ag-pager-btn pager-btn" disabled>
-                        <i class="fas fa-chevron-left"></i>
+                        <i data-lucide="chevron-left"></i>
                     </button>
                     <span id="agPagerInfo" class="ag-pager-info pager-info">Nenhum agendamento</span>
                     <button type="button" id="agPagerNext" class="ag-pager-btn pager-btn" disabled>
-                        <i class="fas fa-chevron-right"></i>
+                        <i data-lucide="chevron-right"></i>
                     </button>
                     <button type="button" id="agPagerLast" class="ag-pager-btn pager-btn" disabled>
-                        <i class="fas fa-angle-double-right"></i>
+                        <i data-lucide="chevrons-right"></i>
                     </button>
                 </nav>
             </section>
@@ -197,13 +219,13 @@
                         <div class="ag-card-title-group">
                             <h3 class="ag-card-title"></h3>
                             <p class="ag-card-subtitle">
-                                <i class="fas fa-calendar-alt"></i>
+                                <i data-lucide="calendar-days"></i>
                                 <span data-field="data"></span>
                             </p>
                             <p class="ag-card-value"></p>
                             <button type="button" class="card-toggle" data-toggle="details">
                                 <span class="card-toggle-text">Ver detalhes</span>
-                                <i class="fas fa-chevron-down"></i>
+                                <i data-lucide="chevron-down"></i>
                             </button>
                         </div>
 
@@ -261,7 +283,7 @@
 
     <div id="agPaywall" class="paywall-message d-none" role="alert">
         <div class="paywall-content">
-            <i class="fas fa-crown"></i>
+            <i data-lucide="crown"></i>
             <h3>Recurso Premium</h3>
             <p id="agPaywallMessage">Agendamentos são exclusivos do plano Pro.</p>
             <button type="button" class="btn-upgrade" id="agPaywallCta">
@@ -270,28 +292,19 @@
         </div>
     </div>
 
-    <!-- ==================== PAYWALL ==================== -->
-    <div id="agPaywall" class="paywall-message d-none" role="alert" hidden>
-        <i class="fas fa-crown"></i>
-        <h3>Recurso Premium</h3>
-        <p id="agPaywallMessage">Agendamentos são exclusivos do plano Pro.</p>
-        <button type="button" class="btn-upgrade" id="agPaywallCta">
-            <i class="fas fa-crown"></i>
-            Fazer Upgrade para PRO
-        </button>
-    </div>
+
 
 
 </section>
 
 <!-- ==================== MODAL VISUALIZAÇÃO ==================== -->
-<div class="modal fade" id="modalVisualizacao" tabindex="-1" aria-labelledby="modalVisualizacaoLabel"
-    aria-hidden="true">
+<div class="modal fade" id="modalVisualizacao" tabindex="-1" aria-labelledby="modalVisualizacaoLabel" aria-hidden="true"
+    data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content modal-view-content">
             <div class="modal-header modal-view-header">
                 <div class="view-header-content">
-                    <i class="fas fa-eye view-icon"></i>
+                    <i data-lucide="eye" class="view-icon"></i>
                     <div>
                         <h5 class="modal-title" id="modalVisualizacaoLabel">Detalhes do Agendamento</h5>
                         <p class="modal-subtitle" id="viewSubtitle">Visualização completa</p>
@@ -304,7 +317,7 @@
                     <!-- Informações Principais -->
                     <div class="view-section">
                         <h6 class="view-section-title">
-                            <i class="fas fa-info-circle"></i> Informações Principais
+                            <i data-lucide="info"></i> Informações Principais
                         </h6>
                         <div class="view-item">
                             <span class="view-label">Título:</span>
@@ -327,7 +340,7 @@
                     <!-- Classificação -->
                     <div class="view-section">
                         <h6 class="view-section-title">
-                            <i class="fas fa-tag"></i> Classificação
+                            <i data-lucide="tag"></i> Classificação
                         </h6>
                         <div class="view-item">
                             <span class="view-label">Categoria:</span>
@@ -346,7 +359,7 @@
                     <!-- Datas e Prazos -->
                     <div class="view-section">
                         <h6 class="view-section-title">
-                            <i class="fas fa-calendar-alt"></i> Datas e Prazos
+                            <i data-lucide="calendar-days"></i> Datas e Prazos
                         </h6>
                         <div class="view-item">
                             <span class="view-label">Data Agendada:</span>
@@ -369,7 +382,7 @@
                     <!-- Recorrência -->
                     <div class="view-section">
                         <h6 class="view-section-title">
-                            <i class="fas fa-sync-alt"></i> Recorrência
+                            <i data-lucide="refresh-cw"></i> Recorrência
                         </h6>
                         <div class="view-item">
                             <span class="view-label">É Recorrente:</span>
@@ -388,7 +401,7 @@
                     <!-- Notificações -->
                     <div class="view-section">
                         <h6 class="view-section-title">
-                            <i class="fas fa-bell"></i> Notificações
+                            <i data-lucide="bell"></i> Notificações
                         </h6>
                         <div class="view-item">
                             <span class="view-label">Canal E-mail:</span>
@@ -407,7 +420,7 @@
                     <!-- Descrição -->
                     <div class="view-section view-section-full" id="viewDescricaoSection" style="display: none;">
                         <h6 class="view-section-title">
-                            <i class="fas fa-align-left"></i> Descrição
+                            <i data-lucide="align-left"></i> Descrição
                         </h6>
                         <div class="view-description" id="viewDescricao">-</div>
                     </div>
@@ -415,10 +428,10 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times"></i> Fechar
+                    <i data-lucide="x"></i> Fechar
                 </button>
                 <button type="button" class="btn btn-primary" id="btnEditarFromView">
-                    <i class="fas fa-edit"></i> Editar
+                    <i data-lucide="pencil"></i> Editar
                 </button>
             </div>
         </div>
@@ -431,3 +444,49 @@
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
 <script src="<?= BASE_URL ?>assets/js/admin-agendamentos-index.js?v=<?= md5(uniqid(rand(), true)) ?>"></script>
+
+<!-- Toggle Filtros (fallback) -->
+<script>
+(function() {
+    function setupFiltersToggle() {
+        const filtersContainer = document.querySelector('.filters-modern');
+        if (!filtersContainer) {
+            console.warn('Filters toggle: container não encontrado');
+            return;
+        }
+        
+        // Função global de toggle
+        window.toggleAgendamentosFilters = function(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            filtersContainer.classList.toggle('collapsed');
+            console.log('Toggle filters:', filtersContainer.classList.contains('collapsed') ? 'fechado' : 'aberto');
+        };
+        
+        // Botão toggle
+        const toggleBtn = document.getElementById('toggleFilters');
+        if (toggleBtn) {
+            toggleBtn.onclick = window.toggleAgendamentosFilters;
+        }
+        
+        // Header click (opcional)
+        const filtersHeader = document.querySelector('.filters-header');
+        if (filtersHeader) {
+            filtersHeader.onclick = function(e) {
+                if (e.target.closest('#toggleFilters') || e.target.closest('.filters-toggle')) return;
+                window.toggleAgendamentosFilters(e);
+            };
+        }
+    }
+    
+    // Executar quando DOM estiver pronto
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupFiltersToggle);
+    } else {
+        // Pequeno delay para garantir que tudo carregou
+        setTimeout(setupFiltersToggle, 100);
+    }
+})();
+</script>

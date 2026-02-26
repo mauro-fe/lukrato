@@ -1,6 +1,6 @@
 <!-- Modal de Edição de Lançamento (usado pela tabela) -->
 <div class="modal fade" id="modalEditarLancamento" tabindex="-1" aria-labelledby="modalEditarLancamentoLabel"
-    aria-hidden="true">
+    aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered" style="max-width:650px">
         <div class="modal-content border-0 rounded-3">
             <div class="modal-header">

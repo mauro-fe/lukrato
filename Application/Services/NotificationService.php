@@ -9,6 +9,7 @@ use Application\Models\MessageCampaign;
 use Application\Models\Usuario;
 use Application\Models\UserProgress;
 use Application\Models\AssinaturaUsuario;
+use Application\Models\Plano;
 use Application\Services\Mail\EmailTemplate;
 use Carbon\Carbon;
 use Exception;
@@ -357,12 +358,22 @@ class NotificationService
      */
     private function getProUserIds(): array
     {
-        return AssinaturaUsuario::whereIn('status', [
-            AssinaturaUsuario::ST_ACTIVE,
-            AssinaturaUsuario::ST_CANCELED // Ainda ativa até data de expiração
-        ])
+        // Buscar o ID do plano PRO para não confundir com assinaturas do plano free
+        $proPlan = Plano::where('code', 'pro')->first();
+
+        if (!$proPlan) {
+            $this->logger->warning('[NotificationService] Plano PRO não encontrado');
+            return [];
+        }
+
+        return AssinaturaUsuario::where('plano_id', $proPlan->id)
+            ->whereIn('status', [
+                AssinaturaUsuario::ST_ACTIVE,
+                AssinaturaUsuario::ST_CANCELED // Ainda ativa até data de expiração
+            ])
             ->where('renova_em', '>', Carbon::now())
             ->pluck('user_id')
+            ->unique()
             ->toArray();
     }
 
@@ -638,7 +649,7 @@ class NotificationService
     private function sendBirthdayNotification(Usuario $user, int $age): Notification
     {
         $firstName = explode(' ', trim($user->nome))[0];
-        
+
         $title = "🎂 Feliz Aniversário, {$firstName}!";
         $message = "Hoje é um dia muito especial! " .
             "O Lukrato deseja a você um feliz aniversário repleto de realizações. " .
@@ -759,7 +770,7 @@ class NotificationService
         for ($i = 0; $i <= $days; $i++) {
             $checkDate = $today->copy()->addDays($i);
             $users = $this->getBirthdayUsers($checkDate);
-            
+
             if (!empty($users)) {
                 foreach ($users as $user) {
                     $user['dias_restantes'] = $i;

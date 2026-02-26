@@ -103,7 +103,6 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         gap: var(--spacing-2);
         font-weight: 600;
         font-size: var(--font-size-sm);
-        min-width: 140px;
         padding: 0 var(--spacing-3);
         color: var(--color-text);
     }
@@ -113,12 +112,16 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         color: var(--color-primary);
     }
 
-    .dash-lk-header .month-dropdown-btn i {
+    .dash-lk-header .month-dropdown-btn i,
+    .dash-lk-header .month-dropdown-btn svg {
         font-size: 12px;
+        width: 12px;
+        height: 12px;
         transition: transform var(--transition-normal);
     }
 
-    .dash-lk-header .month-dropdown-btn:hover i {
+    .dash-lk-header .month-dropdown-btn:hover i,
+    .dash-lk-header .month-dropdown-btn:hover svg {
         transform: translateY(2px);
     }
 
@@ -145,8 +148,11 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         color: #fff;
     }
 
-    .lk-pro-cta i {
+    .lk-pro-cta i,
+    .lk-pro-cta svg {
         font-size: 14px;
+        width: 14px;
+        height: 14px;
     }
 
     /* Month dropdown */
@@ -375,16 +381,34 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
 
     /* Responsividade */
     @media (max-width: 768px) {
-        .dash-lk-header {}
+        .dash-lk-header {
+            justify-content: center;
+        }
+
+        .dash-lk-header .month-selector {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .dash-lk-header .lk-period {
+            flex: 1;
+            max-width: 320px;
+        }
 
         .dash-lk-header .month-dropdown-btn {
-            min-width: 120px;
-            font-size: var(--font-size-xs);
+            min-width: 0;
+            flex: 1;
+            font-size: var(--font-size-sm);
+            padding: 0 var(--spacing-2);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .dash-lk-header .month-nav-btn {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
         }
 
         .lk-pro-cta {
@@ -401,6 +425,28 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
 
         .dash-lk-header .month-dropdown.active {
             transform: translateX(-50%) translateY(0);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .dash-lk-header .lk-period {
+            max-width: 280px;
+        }
+
+        .dash-lk-header .month-dropdown-btn {
+            font-size: var(--font-size-xs);
+            padding: 0 var(--spacing-1);
+        }
+
+        .dash-lk-header .month-nav-btn {
+            width: 32px;
+            height: 32px;
+        }
+
+        .dash-lk-header .month-nav-btn i,
+        .dash-lk-header .month-nav-btn svg {
+            width: 16px;
+            height: 16px;
         }
     }
 
@@ -422,12 +468,12 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         <div class="month-selector">
             <div class="lk-period">
                 <button class="month-nav-btn" id="prevMonth" type="button" aria-label="Mês anterior">
-                    <i class="fas fa-chevron-left"></i>
+                    <i data-lucide="chevron-left"></i>
                 </button>
                 <button class="month-dropdown-btn" id="monthDropdownBtn" type="button" data-bs-toggle="modal"
                     data-bs-target="#monthModal" aria-haspopup="true" aria-expanded="false">
                     <span id="currentMonthText">Carregando...</span>
-                    <i class="fas fa-chevron-down"></i>
+                    <i data-lucide="chevron-down"></i>
                 </button>
 
                 <div class="month-display">
@@ -435,20 +481,20 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
                 </div>
 
                 <button class="month-nav-btn" id="nextMonth" type="button" aria-label="Próximo mês">
-                    <i class="fas fa-chevron-right"></i>
+                    <i data-lucide="chevron-right"></i>
                 </button>
             </div>
             <div class="lk-year-picker" id="yearPicker" aria-hidden="true">
                 <button class="month-nav-btn" id="prevYearBtn" type="button" aria-label="Ano anterior">
-                    <i class="fas fa-chevron-left"></i>
+                    <i data-lucide="chevron-left"></i>
                 </button>
                 <button class="month-dropdown-btn year-btn" id="yearDropdownBtn" type="button" aria-haspopup="true"
                     aria-expanded="false">
                     <span id="currentYearText"><?= date('Y') ?></span>
-                    <i class="fas fa-chevron-down"></i>
+                    <i data-lucide="chevron-down"></i>
                 </button>
                 <button class="month-nav-btn" id="nextYearBtn" type="button" aria-label="Próximo ano">
-                    <i class="fas fa-chevron-right"></i>
+                    <i data-lucide="chevron-right"></i>
                 </button>
             </div>
         </div>
@@ -672,7 +718,9 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         const shiftMonth = (delta) => {
             // Debounce para evitar múltiplos cliques rápidos
             if (shiftTimeout) return;
-            shiftTimeout = setTimeout(() => { shiftTimeout = null; }, 150);
+            shiftTimeout = setTimeout(() => {
+                shiftTimeout = null;
+            }, 150);
 
             const [y, m] = state.split('-').map(Number);
             const d = new Date(y, (m - 1) + delta, 1);
@@ -789,7 +837,8 @@ $showHeaderMesCTA = !($headerMesUser && method_exists($headerMesUser, 'isPro') &
         // ---- Atalhos de teclado para navegação de mês
         document.addEventListener('keydown', (e) => {
             // Ignorar se estiver em input, textarea, select ou modal aberto
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName ===
+                'SELECT') return;
             if (e.target.closest('.modal.show') || e.target.closest('.swal2-container')) return;
 
             if (e.key === 'ArrowLeft') {

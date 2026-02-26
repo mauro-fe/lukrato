@@ -1,6 +1,6 @@
 <!-- Modal de Edição -->
 <div class="modal fade" id="modalEditCategoria" tabindex="-1" aria-labelledby="modalEditCategoriaLabel"
-    aria-hidden="true">
+    aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered" style="max-width:600px">
         <div class="modal-content border-0 rounded-3">
             <div class="modal-header">
@@ -13,14 +13,38 @@
                 <div id="editCategoriaAlert" class="alert alert-danger d-none" role="alert"></div>
 
                 <form id="formEditCategoria" novalidate>
+                    <input type="hidden" name="icone" id="editCategoriaIcone" value="">
+
+                    <!-- Icon Preview + Picker -->
+                    <div class="edit-icon-section mb-3">
+                        <label class="form-label">Ícone</label>
+                        <div class="edit-icon-row">
+                            <div class="edit-icon-preview" id="editIconPreview">
+                                <i data-lucide="tag"></i>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary edit-icon-change-btn" id="btnEditIconPicker">
+                                <i data-lucide="palette"></i> Alterar ícone
+                            </button>
+                        </div>
+                        <div class="edit-icon-picker-panel d-none" id="editIconPickerPanel">
+                            <div class="edit-icon-search-wrapper mb-2">
+                                <input type="text" class="form-control form-control-sm" id="editIconSearchInput"
+                                    placeholder="Buscar ícone..." autocomplete="off" />
+                            </div>
+                            <div class="edit-icon-grid" id="editIconPickerGrid">
+                                <!-- Populado via JS -->
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="mb-3">
-                        <label class="form-label" for="editCategoriaNome">📝 Nome</label>
+                        <label class="form-label" for="editCategoriaNome">Nome</label>
                         <input type="text" class="form-control form-control-sm" id="editCategoriaNome" name="nome"
                             placeholder="Nome da categoria" required minlength="2" maxlength="100">
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label" for="editCategoriaTipo">🏷️ Tipo</label>
+                        <label class="form-label" for="editCategoriaTipo">Tipo</label>
                         <select class="form-select form-select-sm" id="editCategoriaTipo" name="tipo" required>
                             <option value="receita">Receita</option>
                             <option value="despesa">Despesa</option>
@@ -31,7 +55,7 @@
 
             <div class="modal-footer">
                 <button type="submit" class="btn btn-primary btn-sm" form="formEditCategoria">
-                    <i class="fas fa-save"></i> Salvar
+                    <i data-lucide="save"></i> Salvar
                 </button>
             </div>
         </div>

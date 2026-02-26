@@ -233,7 +233,7 @@
 .communications-page .form-control {
   width: 100%;
   padding: var(--spacing-3) var(--spacing-4);
-  background: var(--color-surface-muted);
+  background: var(--color-bg);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
   color: var(--color-text);
@@ -341,7 +341,7 @@
   justify-content: center;
   gap: var(--spacing-2);
   padding: var(--spacing-5);
-  background: var(--color-surface-muted);
+  background: var(--color-bg);
   border: 2px solid var(--glass-border);
   border-radius: var(--radius-md);
   color: var(--color-text-muted);
@@ -446,14 +446,11 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-4);
+  background-color: var(--color-bg);
   padding: var(--spacing-4) var(--spacing-5);
   border-bottom: 1px solid var(--color-card-border);
   cursor: pointer;
   transition: background var(--transition-fast);
-}
-
-.communications-page .campaign-item:hover {
-  background: var(--glass-bg);
 }
 
 .communications-page .campaign-item:last-child {
@@ -564,7 +561,7 @@
    CAMPAIGN DETAIL MODAL
    ================================================ */
 #campaignDetailModal .modal-content {
-  background: var(--glass-bg);
+  background: var(--color-bg);
   border: 1px solid var(--color-card-border);
 }
 

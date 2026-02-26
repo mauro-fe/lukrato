@@ -10,6 +10,8 @@ use Application\Models\Agendamento;
 use Application\Models\Notificacao;
 use Application\Services\MailService;
 use Application\Services\LogService;
+use Application\Enums\LogLevel;
+use Application\Enums\LogCategory;
 
 /**
  * Controller para tarefas agendadas (cron jobs via HTTP)
@@ -468,8 +470,8 @@ class SchedulerController extends BaseController
                 'status' => 'error',
                 'message' => $e->getMessage(),
             ];
-            LogService::error('[Scheduler] Erro em dispatch_reminders', [
-                'erro' => $e->getMessage(),
+            LogService::captureException($e, LogCategory::AGENDAMENTO, [
+                'action' => 'dispatch_reminders',
             ]);
         }
 
@@ -486,8 +488,8 @@ class SchedulerController extends BaseController
                 'status' => 'error',
                 'message' => $e->getMessage(),
             ];
-            LogService::error('[Scheduler] Erro em process_expired_subscriptions', [
-                'erro' => $e->getMessage(),
+            LogService::captureException($e, LogCategory::SUBSCRIPTION, [
+                'action' => 'process_expired_subscriptions',
             ]);
         }
 
@@ -678,7 +680,7 @@ class SchedulerController extends BaseController
 
         try {
             $notificationService = new \Application\Services\NotificationService();
-            
+
             // Envia notificações internas e emails
             $result = $notificationService->processBirthdayNotifications(true);
 
@@ -690,10 +692,10 @@ class SchedulerController extends BaseController
                 'stats' => $result,
             ]);
         } catch (\Throwable $e) {
-            LogService::error('[Scheduler] Erro ao processar aniversários', [
-                'erro' => $e->getMessage(),
+            LogService::captureException($e, LogCategory::NOTIFICATION, [
+                'action' => 'dispatch_birthdays',
             ]);
-            
+
             Response::json([
                 'success' => false,
                 'error' => $e->getMessage(),

@@ -224,7 +224,7 @@
         `;
 
         const icon = document.createElement('i');
-        icon.className = `fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}`;
+        icon.setAttribute('data-lucide', `${type === 'success' ? 'circle-check' : type === 'error' ? 'circle-alert' : type === 'warning' ? 'triangle-alert' : 'info'}`);
         icon.style.cssText = `color: var(--color-${type === 'error' ? 'danger' : type === 'warning' ? 'warning' : type === 'success' ? 'success' : 'secondary'});`;
 
         const text = document.createElement('span');

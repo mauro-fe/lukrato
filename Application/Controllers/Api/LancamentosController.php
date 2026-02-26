@@ -9,21 +9,22 @@ use Application\Models\Usuario;
 use Application\Models\FaturaCartaoItem;
 use Application\Models\Fatura;
 use Application\Services\LancamentoExportService;
-use Application\Services\GamificationService;
-use Application\Services\CartaoCreditoLancamentoService;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Database\Query\Builder;
 use Application\Services\LancamentoLimitService;
+use Application\Services\LancamentoCreationService;
 use Application\Services\UserPlanService;
 use Application\Formatters\LancamentoResponseFormatter;
 use Application\Enums\LancamentoTipo;
 use Application\Repositories\LancamentoRepository;
 use Application\Repositories\CategoriaRepository;
+use Application\Services\LogService;
+use Application\Enums\LogCategory;
 use Application\Repositories\ContaRepository;
 use Application\DTO\Requests\CreateLancamentoDTO;
 use Application\DTO\Requests\UpdateLancamentoDTO;
+use Application\DTO\ServiceResultDTO;
 use Application\Validators\LancamentoValidator;
-use Application\Services\LogService;
 use InvalidArgumentException;
 use ValueError;
 
@@ -35,8 +36,7 @@ class LancamentosController extends BaseController
     private CategoriaRepository $categoriaRepo;
     private ContaRepository $contaRepo;
     private UserPlanService $planService;
-    private GamificationService $gamificationService;
-    private CartaoCreditoLancamentoService $cartaoService;
+    private LancamentoCreationService $creationService;
 
     public function __construct(
         ?LancamentoExportService $exportService = null,
@@ -48,8 +48,7 @@ class LancamentosController extends BaseController
         $this->categoriaRepo = new CategoriaRepository();
         $this->contaRepo = new ContaRepository();
         $this->planService = new UserPlanService();
-        $this->gamificationService = new GamificationService();
-        $this->cartaoService = new CartaoCreditoLancamentoService();
+        $this->creationService = new LancamentoCreationService();
     }
     // =============================================================================
     // HELPERS
@@ -257,7 +256,7 @@ class LancamentosController extends BaseController
 
         $payload = $this->getRequestPayload();
 
-        // Verificar se é estorno de cartão ANTES de validar conta
+        // Parsear campos comuns
         $formaPagamento = $payload['forma_pagamento'] ?? null;
         $formaPagamento = is_string($formaPagamento) && !empty($formaPagamento) ? $formaPagamento : null;
         $tipoLancamento = strtolower(trim($payload['tipo'] ?? ''));
@@ -266,16 +265,12 @@ class LancamentosController extends BaseController
 
         $ehEstornoCartao = ($cartaoCreditoId && $cartaoCreditoId > 0 && $tipoLancamento === 'receita' && $formaPagamento === 'estorno_cartao');
 
-        // Validar com o validator
+        // Validar campos
         $errors = LancamentoValidator::validateCreate($payload);
 
-        // Validar conta e categoria (regras de negócio)
-        // NOTA: Conta NÃO é obrigatória para estorno de cartão
         $contaId = $payload['conta_id'] ?? $payload['contaId'] ?? null;
         $contaId = is_scalar($contaId) ? (int)$contaId : null;
-
         if (!$ehEstornoCartao) {
-            // Só valida conta se NÃO for estorno de cartão
             $contaId = $this->validateConta($contaId, $userId, $errors);
         }
 
@@ -288,251 +283,59 @@ class LancamentosController extends BaseController
             return;
         }
 
-        // ============================================================
-        // ESTORNO DE CARTÃO DE CRÉDITO (receita + estorno_cartao)
-        // Processar ANTES de criar DTO para evitar criação de lançamento
-        // ============================================================
-        if ($ehEstornoCartao) {
-            // Verificar limite antes de criar
-            try {
-                $usage = $this->limitService->assertCanCreate($userId, $payload['data']);
-            } catch (\DomainException $e) {
-                Response::error($e->getMessage(), 402);
+        try {
+            // ── Fluxo 1: Estorno de cartão ──
+            if ($ehEstornoCartao) {
+                $result = $this->creationService->createEstorno($userId, $payload, $cartaoCreditoId, $categoriaId);
+                $this->sendCreationResponse($result);
                 return;
             }
 
-            // Extrair mês/ano da fatura se fornecido (formato: "2026-02")
-            $faturaMesAno = $payload['fatura_mes_ano'] ?? null;
-            $mesReferencia = null;
-            $anoReferencia = null;
-
-            if ($faturaMesAno && preg_match('/^(\d{4})-(\d{2})$/', $faturaMesAno, $matches)) {
-                $anoReferencia = (int)$matches[1];
-                $mesReferencia = (int)$matches[2];
+            // Verificar limite
+            $pago = !isset($payload['pago']) || (bool)$payload['pago'];
+            if (isset($payload['agendado']) && $payload['agendado']) {
+                $pago = false;
             }
 
-            // Usar serviço especializado para criar estorno na fatura
-            $resultado = $this->cartaoService->criarEstornoCartao($userId, [
-                'cartao_credito_id' => $cartaoCreditoId,
-                'categoria_id' => $categoriaId,
-                'valor' => LancamentoValidator::sanitizeValor($payload['valor']),
-                'data' => $payload['data'],
-                'descricao' => mb_substr(trim($payload['descricao'] ?? ''), 0, 190),
-                'mes_referencia' => $mesReferencia,
-                'ano_referencia' => $anoReferencia,
+            $dto = CreateLancamentoDTO::fromRequest($userId, [
+                'tipo'             => $tipoLancamento,
+                'data'             => $payload['data'],
+                'valor'            => LancamentoValidator::sanitizeValor($payload['valor']),
+                'descricao'        => mb_substr(trim($payload['descricao'] ?? ''), 0, 190),
+                'observacao'       => mb_substr(trim($payload['observacao'] ?? ''), 0, 500),
+                'categoria_id'     => $categoriaId,
+                'conta_id'         => $contaId,
+                'pago'             => $pago,
+                'forma_pagamento'  => $formaPagamento,
             ]);
 
-            if (!$resultado['success']) {
-                Response::error($resultado['message'], 422);
+            $usage = $this->limitService->assertCanCreate($userId, $dto->data);
+
+            // ── Fluxo 2: Compra com cartão de crédito ──
+            if ($cartaoCreditoId && $cartaoCreditoId > 0 && $dto->tipo === 'despesa') {
+                $result = $this->creationService->createCartaoExpense($userId, $dto, $payload, $cartaoCreditoId, $categoriaId, $usage);
+                $this->sendCreationResponse($result);
                 return;
             }
 
-            Response::success([
-                'item' => [
-                    'id' => $resultado['item']->id ?? null,
-                    'descricao' => $resultado['item']->descricao ?? '',
-                    'valor' => $resultado['item']->valor ?? 0,
-                ],
-                'tipo' => 'estorno_cartao',
-                'usage' => $usage,
-                'ui_message' => $this->planService->getUsageMessage($usage),
-            ], $resultado['message'], 201);
-            return;
-        }
+            // ── Fluxo 3: Lançamento normal ──
+            $recorrencia = $payload['recorrencia'] ?? null;
+            $numeroRepeticoes = isset($payload['numero_repeticoes']) ? (int)$payload['numero_repeticoes'] : 12;
 
-        // Verificar se é agendamento (não pago)
-        $pago = !isset($payload['pago']) || (bool)$payload['pago'];
-        if (isset($payload['agendado']) && $payload['agendado']) {
-            $pago = false;
-        }
-
-        // Criar DTO
-        $dto = CreateLancamentoDTO::fromRequest($userId, [
-            'tipo' => $tipoLancamento,
-            'data' => $payload['data'],
-            'valor' => LancamentoValidator::sanitizeValor($payload['valor']),
-            'descricao' => mb_substr(trim($payload['descricao'] ?? ''), 0, 190),
-            'observacao' => mb_substr(trim($payload['observacao'] ?? ''), 0, 500),
-            'categoria_id' => $categoriaId,
-            'conta_id' => $contaId,
-            'pago' => $pago,
-            'forma_pagamento' => $formaPagamento,
-        ]);
-
-        // Verificar limite antes de criar
-        try {
-            $usage = $this->limitService->assertCanCreate($userId, $dto->data);
+            $result = $this->creationService->createNormal($userId, $dto, $recorrencia, $numeroRepeticoes, $usage);
+            $this->sendCreationResponse($result);
         } catch (\DomainException $e) {
             Response::error($e->getMessage(), 402);
+        }
+    }
+
+    private function sendCreationResponse(ServiceResultDTO $result): void
+    {
+        if ($result->isError()) {
+            Response::error($result->message, $result->httpCode);
             return;
         }
-
-        // ============================================================
-        // COMPRA COM CARTÃO DE CRÉDITO (despesa)
-        // ============================================================
-        if ($cartaoCreditoId && $cartaoCreditoId > 0 && $dto->tipo === 'despesa') {
-            // Usar serviço especializado para cartão de crédito
-            // IMPORTANTE: Agora cria FaturaCartaoItem, não Lancamento direto
-            $resultado = $this->cartaoService->criarLancamentoCartao($userId, [
-                'cartao_credito_id' => $cartaoCreditoId,
-                'categoria_id' => $categoriaId,
-                'valor' => $dto->valor,
-                'data' => $dto->data,
-                'descricao' => $dto->descricao,
-                'observacao' => $dto->observacao,
-                'eh_parcelado' => (bool)($payload['eh_parcelado'] ?? false),
-                'total_parcelas' => (int)($payload['total_parcelas'] ?? 1),
-            ]);
-
-            if (!$resultado['success']) {
-                Response::error($resultado['message'], 422);
-                return;
-            }
-
-            // Para gamificação, criar um objeto compatível a partir do primeiro item
-            $primeiroItem = $resultado['itens'][0] ?? null;
-            $lancamentoFake = null;
-
-            if ($primeiroItem) {
-                // Criar objeto stdClass compatível com gamificação
-                $lancamentoFake = (object)[
-                    'id' => $primeiroItem->id,
-                    'categoria' => $primeiroItem->categoria,
-                ];
-            }
-
-            // Gamificação
-            $gamificationResult = [];
-            if ($lancamentoFake) {
-                try {
-                    $pointsResult = $this->gamificationService->addPoints(
-                        $userId,
-                        \Application\Enums\GamificationAction::CREATE_LANCAMENTO,
-                        $lancamentoFake->id,
-                        'lancamento'
-                    );
-                    $streakResult = $this->gamificationService->updateStreak($userId);
-                    $gamificationResult = [
-                        'points' => $pointsResult,
-                        'streak' => $streakResult,
-                    ];
-                } catch (\Exception $e) {
-                    error_log("🎮 [GAMIFICATION] Erro: " . $e->getMessage());
-                }
-            }
-
-            Response::success([
-                'item' => [
-                    'id' => $primeiroItem->id ?? null,
-                    'descricao' => $primeiroItem->descricao ?? '',
-                    'valor' => $primeiroItem->valor ?? 0,
-                    'data_vencimento' => $primeiroItem->data_vencimento ?? null,
-                ],
-                'total_itens_criados' => $resultado['total_criados'],
-                'eh_parcelado' => $resultado['total_criados'] > 1,
-                'usage' => $usage,
-                'ui_message' => $this->planService->getUsageMessage($usage),
-                'gamification' => $gamificationResult,
-            ], $resultado['message'], 201);
-            return;
-        }
-
-        // ============================================================
-        // LANÇAMENTO NORMAL (SEM CARTÃO)
-        // ============================================================
-
-        // Verificar se é lançamento recorrente
-        $recorrencia = $payload['recorrencia'] ?? null;
-        $numeroRepeticoes = isset($payload['numero_repeticoes']) ? (int)$payload['numero_repeticoes'] : 12;
-
-        $lancamentosCriados = [];
-
-        if ($recorrencia && in_array($recorrencia, ['semanal', 'quinzenal', 'mensal', 'bimestral', 'trimestral', 'semestral', 'anual'])) {
-            // Calcular intervalo de dias
-            $intervalos = [
-                'semanal' => 7,
-                'quinzenal' => 14,
-                'mensal' => 'P1M',
-                'bimestral' => 'P2M',
-                'trimestral' => 'P3M',
-                'semestral' => 'P6M',
-                'anual' => 'P1Y',
-            ];
-
-            $dataBase = new \DateTime($dto->data);
-
-            for ($i = 0; $i < $numeroRepeticoes; $i++) {
-                if ($i > 0) {
-                    $intervalo = $intervalos[$recorrencia];
-                    if (is_int($intervalo)) {
-                        $dataBase->modify("+{$intervalo} days");
-                    } else {
-                        $dataBase->add(new \DateInterval($intervalo));
-                    }
-                }
-
-                $dadosLancamento = $dto->toArray();
-                $dadosLancamento['data'] = $dataBase->format('Y-m-d');
-                $dadosLancamento['descricao'] = $dto->descricao . ($numeroRepeticoes > 1 ? " (" . ($i + 1) . "/{$numeroRepeticoes})" : '');
-
-                $lancamento = $this->lancamentoRepo->create($dadosLancamento);
-                $lancamentosCriados[] = $lancamento;
-            }
-
-            // Carregar relações do primeiro lançamento para resposta
-            $lancamentosCriados[0]->loadMissing(['categoria', 'conta']);
-
-            Response::success([
-                'lancamento' => LancamentoResponseFormatter::format($lancamentosCriados[0]),
-                'total_criados' => count($lancamentosCriados),
-                'recorrencia' => $recorrencia,
-                'usage' => $usage,
-                'ui_message' => $this->planService->getUsageMessage($usage),
-            ], count($lancamentosCriados) . ' lançamentos agendados com sucesso', 201);
-            return;
-        }
-
-        // Criar lançamento único
-        $lancamento = $this->lancamentoRepo->create($dto->toArray());
-        $lancamento->loadMissing(['categoria', 'conta']);
-
-        // 🎮 GAMIFICAÇÃO: Adicionar pontos e atualizar streak
-        $gamificationResult = [];
-        try {
-            // Adicionar pontos por criar lançamento
-            $pointsResult = $this->gamificationService->addPoints(
-                $userId,
-                \Application\Enums\GamificationAction::CREATE_LANCAMENTO,
-                $lancamento->id,
-                'lancamento'
-            );
-
-            // Atualizar streak diária
-            $streakResult = $this->gamificationService->updateStreak($userId);
-
-            // Verificar e desbloquear conquistas automaticamente
-            $achievementService = new \Application\Services\AchievementService();
-            $newAchievements = $achievementService->checkAndUnlockAchievements($userId, 'lancamento_created');
-
-            $gamificationResult = [
-                'points' => $pointsResult,
-                'streak' => $streakResult,
-            ];
-
-            if (!empty($newAchievements)) {
-                $gamificationResult['achievements'] = $newAchievements;
-            }
-        } catch (\Exception $e) {
-            error_log("🎮 [GAMIFICATION] Erro ao processar gamificação: " . $e->getMessage());
-            // Não falhar a requisição por erro na gamificação
-        }
-
-        Response::success([
-            'lancamento' => LancamentoResponseFormatter::format($lancamento),
-            'usage' => $usage,
-            'ui_message' => $this->planService->getUsageMessage($usage),
-            'gamification' => $gamificationResult, // Dados de gamificação para o frontend
-        ], 'Lancamento criado', 201);
+        Response::success($result->data, $result->message, 201);
     }
 
     public function update(int $id): void
@@ -703,7 +506,12 @@ class LancamentosController extends BaseController
 
             error_log("✅ [REVERTER FATURA] Reversão concluída com sucesso");
         } catch (\Exception $e) {
-            error_log("❌ [REVERTER FATURA] Erro: " . $e->getMessage());
+            LogService::captureException($e, LogCategory::FATURA, [
+                'action' => 'reverter_pagamento_fatura',
+                'lancamento_id' => $lancamento->id,
+                'cartao_id' => $cartaoId ?? null,
+                'user_id' => $lancamento->user_id,
+            ]);
         }
     }
 

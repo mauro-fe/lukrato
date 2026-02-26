@@ -1,18 +1,5 @@
 /* ==================== CARTÕES DE CRÉDITO - DESIGN SYSTEM ====================*/
 
-/* Variáveis específicas do módulo de cartões */
-:root {
-  --card-gradient-visa: linear-gradient(135deg, #1a1f71 0%, #0d47a1 100%);
-  --card-gradient-master: linear-gradient(135deg, #eb001b 0%, #f79e1b 100%);
-  --card-gradient-elo: linear-gradient(135deg, #ffcb05 0%, #000000 100%);
-  --card-gradient-outros: linear-gradient(
-    135deg,
-    var(--color-primary) 0%,
-    #c0392b 100%
-  );
-  --glow-primary: rgba(230, 126, 34, 0.3);
-}
-
 /* ==================== PÁGINA PRINCIPAL ==================== */
 .cartoes-page {
   padding: var(--spacing-3);
@@ -257,20 +244,13 @@
   gap: 0.75rem;
 }
 
-/* Search Box */
 .search-box {
+  display: flex;
   position: relative;
   flex: 1;
+  justify-content: center;
+  align-items: center;
   max-width: 320px;
-}
-
-.search-box i {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-secondary);
-  pointer-events: none;
 }
 
 .search-box input {
@@ -282,6 +262,7 @@
   color: var(--color-text);
   font-size: 0.9rem;
   transition: all 0.2s ease;
+  margin-left: var(--spacing-2);
 }
 
 .search-box input:focus {
@@ -314,7 +295,6 @@
   gap: 0.5rem;
   position: relative;
   white-space: nowrap;
-  min-width: 110px;
 }
 
 .filter-btn i {
@@ -719,6 +699,7 @@
   border-radius: 28px;
   border: 2px dashed color-mix(in srgb, var(--color-primary) 30%, transparent);
   box-shadow: var(--shadow-lg);
+  color: #ffffff;
 }
 
 .empty-icon {
@@ -745,6 +726,7 @@
 
 .empty-icon::after {
   content: "";
+  color: white !important;
   position: absolute;
   top: -50%;
   left: -50%;
@@ -964,11 +946,14 @@
 
   .filter-group {
     display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
     gap: 0.5rem !important;
     padding: 0.5rem 0 !important;
     scrollbar-width: none !important;
+    width: 100% !important;
   }
 
   .filter-group::-webkit-scrollbar {
@@ -977,9 +962,10 @@
 
   .filter-btn {
     white-space: nowrap !important;
-    padding: 8px 16px !important;
+    padding: 10px 16px !important;
     font-size: 13px !important;
-    flex-shrink: 0 !important;
+    flex: 0 0 auto !important;
+    min-width: fit-content !important;
   }
 
   .brand-logo-filter {
@@ -1270,9 +1256,16 @@
     gap: 0.75rem !important;
   }
 
+  .filter-group {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 0.5rem !important;
+  }
+
   .filter-btn {
-    padding: 6px 12px !important;
+    padding: 8px 14px !important;
     font-size: 12px !important;
+    flex: 0 0 auto !important;
   }
 
   .modal-detalhes-cartao .modal-body {
@@ -1597,6 +1590,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.lanc-data-compra {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.45);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .lanc-parcela {
@@ -2760,83 +2761,87 @@
 
 /* ==================== ESTADO DE ERRO E RETRY ==================== */
 .error-state {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 60px 20px;
-    background: rgba(231, 76, 60, 0.05);
-    border: 1px dashed rgba(231, 76, 60, 0.3);
-    border-radius: 16px;
-    margin: 20px 0;
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  background: rgba(231, 76, 60, 0.05);
+  border: 1px dashed rgba(231, 76, 60, 0.3);
+  border-radius: 16px;
+  margin: 20px 0;
 }
 
 .error-state i {
-    font-size: 3rem;
-    color: #e74c3c;
-    margin-bottom: 20px;
-    opacity: 0.7;
+  font-size: 3rem;
+  color: #e74c3c;
+  margin-bottom: 20px;
+  opacity: 0.7;
 }
 
 .error-state .error-message {
-    color: #333;
-    font-size: 1.1rem;
-    margin-bottom: 24px;
+  color: #333;
+  font-size: 1.1rem;
+  margin-bottom: 24px;
 }
 
 .error-state .btn-retry {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .error-state .btn-retry:hover {
-    transform: translateY(-2px);
+  transform: translateY(-2px);
 }
 
 .error-state .btn-retry i {
-    font-size: 1rem;
-    margin-bottom: 0;
-    color: white;
-    opacity: 1;
+  font-size: 1rem;
+  margin-bottom: 0;
+  color: white;
+  opacity: 1;
 }
 
 /* Skeleton loader melhorado */
 .card-skeleton {
-    position: relative;
-    overflow: hidden;
+  position: relative;
+  overflow: hidden;
 }
 
 .card-skeleton::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-    animation: skeleton-wave 1.5s infinite;
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: skeleton-wave 1.5s infinite;
 }
 
 @keyframes skeleton-wave {
-    0% {
-        left: -100%;
-    }
-    100% {
-        left: 100%;
-    }
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
 }
 
 /* Dark mode */
 [data-theme="dark"] .error-state {
-    background: rgba(231, 76, 60, 0.1);
-    border-color: rgba(231, 76, 60, 0.3);
+  background: rgba(231, 76, 60, 0.1);
+  border-color: rgba(231, 76, 60, 0.3);
 }
 
 [data-theme="dark"] .error-state .error-message {
-    color: #ccc;
-}
+  color: #ccc;
 }

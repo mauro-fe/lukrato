@@ -413,27 +413,27 @@ class AchievementService
 
     private function checkTotalCategories(int $userId, int $total): bool
     {
-        // Lista de categorias padrão que são criadas automaticamente no registro
+        // Categorias padrão criadas automaticamente no registro (nomes limpos, sem emoji)
         $categoriaPadrao = [
-            '🏠 Moradia',
-            '🍔 Alimentação',
-            '🚗 Transporte',
-            '💡 Contas e Serviços',
-            '🏥 Saúde',
-            '🎓 Educação',
-            '👕 Vestuário',
-            '🎬 Lazer',
-            '💳 Cartão de Crédito',
-            '📱 Assinaturas',
-            '🛒 Compras',
-            '💰 Outros Gastos',
-            '💼 Salário',
-            '💰 Freelance',
-            '📈 Investimentos',
-            '🎁 Bônus',
-            '💸 Vendas',
-            '🏆 Prêmios',
-            '💵 Outras Receitas'
+            'Moradia',
+            'Alimentação',
+            'Transporte',
+            'Contas e Serviços',
+            'Saúde',
+            'Educação',
+            'Vestuário',
+            'Lazer',
+            'Cartão de Crédito',
+            'Assinaturas',
+            'Compras',
+            'Outros Gastos',
+            'Salário',
+            'Freelance',
+            'Investimentos',
+            'Bônus',
+            'Vendas',
+            'Prêmios',
+            'Outras Receitas',
         ];
 
         // Contar apenas categorias PERSONALIZADAS (não padrão) do usuário

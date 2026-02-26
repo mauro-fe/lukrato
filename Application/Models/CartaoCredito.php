@@ -3,6 +3,7 @@
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use \Illuminate\Database\Capsule\Manager as Manager;
 
 /**
  * Class CartaoCredito
@@ -134,7 +135,7 @@ class CartaoCredito extends Model
     public function getLimiteUtilizadoAttribute(): float
     {
         // Busca total de despesas não pagas (valores positivos)
-        $totalDespesasNaoPagas = \Illuminate\Database\Capsule\Manager::table('faturas_cartao_itens')
+        $totalDespesasNaoPagas = Manager::table('faturas_cartao_itens')
             ->where('cartao_credito_id', $this->id)
             ->where('pago', false)
             ->where('tipo', '!=', 'estorno')
@@ -142,7 +143,7 @@ class CartaoCredito extends Model
 
         // Busca total de estornos (valores negativos, que liberam limite)
         // Estornos têm pago=true mas devem ser contabilizados para liberar limite
-        $totalEstornos = \Illuminate\Database\Capsule\Manager::table('faturas_cartao_itens')
+        $totalEstornos = Manager::table('faturas_cartao_itens')
             ->where('cartao_credito_id', $this->id)
             ->where('tipo', 'estorno')
             ->sum('valor'); // Já é negativo
@@ -177,15 +178,15 @@ class CartaoCredito extends Model
     public function getBandeiraIconeAttribute(): string
     {
         $icones = [
-            'visa' => 'fab fa-cc-visa',
-            'mastercard' => 'fab fa-cc-mastercard',
-            'elo' => 'fas fa-credit-card',
-            'amex' => 'fab fa-cc-amex',
-            'hipercard' => 'fas fa-credit-card',
-            'diners' => 'fab fa-cc-diners-club',
+            'visa' => 'credit-card',
+            'mastercard' => 'credit-card',
+            'elo' => 'credit-card',
+            'amex' => 'credit-card',
+            'hipercard' => 'credit-card',
+            'diners' => 'credit-card',
         ];
 
-        return $icones[strtolower($this->bandeira)] ?? 'fas fa-credit-card';
+        return $icones[strtolower($this->bandeira)] ?? 'credit-card';
     }
 
     /**

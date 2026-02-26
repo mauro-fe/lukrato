@@ -16,12 +16,26 @@ $theme = $userTheme ?? 'dark';
     <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
     <?= csrf_meta('default') ?>
     <link rel="icon" type="image/png" href="<?= $favicon ?>">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css" crossorigin="anonymous">
+    <!-- Lucide Icons + FA Brands -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/brands.min.css"
+        crossorigin="anonymous">
+    <link rel="stylesheet" href="<?= $base ?>assets/css/lucide-compat.css">
+    <script src="<?= $base ?>assets/js/lucide.min.js"></script>
     <link rel="stylesheet" href="<?= $base ?>assets/css/variables.css">
 </head>
 
 <body style="margin:0;padding:0;background:var(--color-bg);">
     <style>
+        /* ───── Reset ───── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ───── Onboarding Layout ───── */
         .lk-onboarding-wrapper {
             min-height: 100vh;
             background: var(--color-bg);
@@ -33,49 +47,122 @@ $theme = $userTheme ?? 'dark';
 
         .lk-onboarding-card {
             width: 100%;
-            max-width: 520px;
+            max-width: 480px;
             background: var(--glass-bg);
             border-radius: var(--radius-xl);
-            padding: var(--spacing-8);
+            padding: clamp(24px, 5vw, 40px);
             box-shadow: var(--shadow-xl);
             border: 1px solid var(--glass-border);
+            animation: obCardIn 0.5s ease-out both;
         }
 
-        .lk-onboarding-progress {
+        @keyframes obCardIn {
+            from {
+                opacity: 0;
+                transform: translateY(24px) scale(0.97);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* ───── Steps indicator ───── */
+        .lk-steps {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
             margin-bottom: var(--spacing-6);
         }
 
-        .lk-progress-text {
-            font-size: var(--font-size-sm);
+        .lk-step {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+
+        .lk-step-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: 2px solid var(--glass-border);
+            background: var(--color-surface);
             color: var(--color-text-muted);
-            margin-bottom: var(--spacing-2);
+            transition: all 0.3s ease;
+            flex-shrink: 0;
         }
 
-        .lk-progress-bar {
-            height: 6px;
-            background: var(--color-surface-muted);
-            border-radius: var(--radius-full);
-            overflow: hidden;
-        }
-
-        .lk-progress-fill {
-            height: 100%;
+        .lk-step.active .lk-step-circle {
+            border-color: var(--color-primary);
             background: var(--color-primary);
-            transition: var(--transition-normal);
+            color: #fff;
+            box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 20%, transparent);
         }
 
-        .lk-onboarding-header h1 {
-            font-size: 1.5rem;
+        .lk-step.done .lk-step-circle {
+            border-color: var(--color-success);
+            background: var(--color-success);
+            color: #fff;
+        }
+
+        .lk-step-line {
+            width: 60px;
+            height: 2px;
+            background: var(--glass-border);
+            margin: 0 var(--spacing-2);
+        }
+
+        .lk-step.done+.lk-step .lk-step-line,
+        .lk-step.done .lk-step-line {
+            background: var(--color-success);
+        }
+
+        /* ───── Hero ───── */
+        .lk-ob-hero {
+            text-align: center;
+            margin-bottom: var(--spacing-6);
+        }
+
+        .lk-ob-hero-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-success), color-mix(in srgb, var(--color-success) 70%, #fff));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--spacing-4);
+            box-shadow: 0 8px 24px color-mix(in srgb, var(--color-success) 30%, transparent);
+        }
+
+        .lk-ob-hero-icon i {
+            font-size: 28px;
+            color: #fff;
+        }
+
+        .lk-ob-hero h1 {
+            font-size: 1.4rem;
             font-weight: 700;
             color: var(--color-text);
-            margin-bottom: var(--spacing-2);
+            margin-bottom: 6px;
+            line-height: 1.3;
+            font-family: var(--font-primary) !important;
         }
 
-        .lk-onboarding-header p {
+        .lk-ob-hero p {
             color: var(--color-text-muted);
-            margin-bottom: var(--spacing-6);
+            font-size: 0.88rem;
+            line-height: 1.5;
         }
 
+        /* ───── Form ───── */
         .lk-form-group {
             margin-bottom: var(--spacing-5);
         }
@@ -85,40 +172,42 @@ $theme = $userTheme ?? 'dark';
             align-items: center;
             gap: var(--spacing-2);
             font-weight: 600;
+            font-size: 0.85rem;
             color: var(--color-text);
             margin-bottom: var(--spacing-2);
+            font-family: var(--font-primary);
         }
 
-        .lk-label.required::after {
-            content: '*';
+        .lk-label .lk-req {
             color: var(--color-danger);
-            margin-left: 4px;
+            margin-left: 2px;
         }
 
         .lk-input,
         .lk-select {
             width: 100%;
-            padding: var(--spacing-3) var(--spacing-4);
+            padding: 12px var(--spacing-4);
             border: 2px solid var(--glass-border);
             border-radius: var(--radius-md);
             background: var(--color-bg);
             color: var(--color-text);
-            transition: var(--transition-normal);
+            font-size: 0.92rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
         .lk-input:focus,
         .lk-select:focus {
             outline: none;
             border-color: var(--color-primary);
-            box-shadow: 0 0 0 4px var(--ring);
+            box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 12%, transparent);
         }
 
-        .lk-helper-text {
-            font-size: var(--font-size-xs);
+        .lk-input::placeholder {
             color: var(--color-text-muted);
-            margin-top: var(--spacing-2);
+            opacity: 0.6;
         }
 
+        /* ───── Money input ───── */
         .lk-input-money {
             position: relative;
         }
@@ -130,54 +219,17 @@ $theme = $userTheme ?? 'dark';
             transform: translateY(-50%);
             color: var(--color-text-muted);
             font-weight: 600;
+            font-size: 0.92rem;
         }
 
         .lk-input-with-prefix {
             padding-left: 50px;
         }
 
-        .lk-btn-primary {
-            width: 100%;
-            padding: var(--spacing-4);
-            border-radius: var(--radius-md);
-            background: var(--color-primary);
-            color: white;
-            font-weight: 600;
-            font-size: 1rem;
-            border: none;
-            cursor: pointer;
-            transition: var(--transition-normal);
-            box-shadow: var(--shadow-md);
-        }
-
-        .lk-btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .lk-onboarding-hint {
-            text-align: center;
-            font-size: var(--font-size-xs);
-            color: var(--color-text-muted);
-            margin-top: var(--spacing-4);
-        }
-
-        .lk-onboarding-error {
-            background: var(--color-danger-bg, rgba(239, 68, 68, 0.1));
-            color: var(--color-danger, #ef4444);
-            padding: var(--spacing-3) var(--spacing-4);
-            border-radius: var(--radius-md);
-            margin-bottom: var(--spacing-5);
-            font-size: var(--font-size-sm);
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-2);
-        }
-
-        /* Toggle Receita/Despesa */
+        /* ───── Toggle Receita/Despesa ───── */
         .lk-tipo-toggle {
             display: flex;
-            gap: var(--spacing-2);
+            gap: 4px;
             background: var(--color-bg);
             border-radius: var(--radius-md);
             padding: 4px;
@@ -186,14 +238,15 @@ $theme = $userTheme ?? 'dark';
 
         .lk-tipo-btn {
             flex: 1;
-            padding: var(--spacing-3) var(--spacing-4);
+            padding: 10px var(--spacing-3);
             border: none;
-            border-radius: var(--radius-sm);
+            border-radius: calc(var(--radius-md) - 2px);
             background: transparent;
             color: var(--color-text-muted);
             font-weight: 600;
+            font-size: 0.88rem;
             cursor: pointer;
-            transition: var(--transition-normal);
+            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -203,40 +256,40 @@ $theme = $userTheme ?? 'dark';
         .lk-tipo-btn.active-despesa {
             background: var(--color-danger, #ef4444);
             color: white;
-            box-shadow: var(--shadow-sm);
+            box-shadow: 0 2px 8px color-mix(in srgb, var(--color-danger) 35%, transparent);
         }
 
         .lk-tipo-btn.active-receita {
             background: var(--color-success, #10b981);
             color: white;
-            box-shadow: var(--shadow-sm);
+            box-shadow: 0 2px 8px color-mix(in srgb, var(--color-success) 35%, transparent);
         }
 
         .lk-tipo-btn:hover:not(.active-despesa):not(.active-receita) {
             background: var(--color-surface-muted);
         }
 
-        /* Conta info card */
+        /* ───── Conta info card ───── */
         .lk-conta-info {
             display: flex;
             align-items: center;
             gap: var(--spacing-3);
-            padding: var(--spacing-3) var(--spacing-4);
+            padding: 10px var(--spacing-4);
             background: var(--color-bg);
             border: 2px solid var(--glass-border);
             border-radius: var(--radius-md);
         }
 
         .lk-conta-icon {
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
             border-radius: var(--radius-md);
             background: var(--color-primary);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.1rem;
+            font-size: 1rem;
             flex-shrink: 0;
         }
 
@@ -248,22 +301,89 @@ $theme = $userTheme ?? 'dark';
         .lk-conta-name {
             font-weight: 600;
             color: var(--color-text);
-            font-size: var(--font-size-sm);
+            font-size: 0.88rem;
+            font-family: var(--font-primary);
         }
 
         .lk-conta-inst {
-            font-size: var(--font-size-xs);
+            font-size: 0.75rem;
             color: var(--color-text-muted);
         }
 
         .lk-conta-check {
             color: var(--color-success, #10b981);
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
 
-        @media (max-width: 600px) {
+        /* ───── Primary button ───── */
+        .lk-btn-primary {
+            width: 100%;
+            padding: 14px var(--spacing-4);
+            border-radius: var(--radius-md);
+            background: var(--color-primary);
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 16px color-mix(in srgb, var(--color-primary) 35%, transparent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-2);
+        }
+
+        .lk-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px color-mix(in srgb, var(--color-primary) 45%, transparent);
+        }
+
+        .lk-btn-primary:active {
+            transform: translateY(0);
+        }
+
+        /* ───── Hint ───── */
+        .lk-onboarding-hint {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            margin-top: var(--spacing-3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .lk-onboarding-hint i {
+            font-size: 0.7rem;
+        }
+
+        /* ───── Error ───── */
+        .lk-onboarding-error {
+            background: color-mix(in srgb, var(--color-danger) 10%, var(--color-surface));
+            color: var(--color-danger, #ef4444);
+            padding: var(--spacing-3) var(--spacing-4);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-5);
+            font-size: var(--font-size-sm);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-2);
+            border: 1px solid color-mix(in srgb, var(--color-danger) 25%, transparent);
+        }
+
+        @media (max-width: 500px) {
             .lk-onboarding-card {
-                padding: var(--spacing-6);
+                padding: var(--spacing-5);
+            }
+
+            .lk-ob-hero h1 {
+                font-size: 1.2rem;
+            }
+
+            .lk-step-line {
+                width: 40px;
             }
         }
     </style>
@@ -273,13 +393,14 @@ $theme = $userTheme ?? 'dark';
 
             <!-- Logo -->
             <div style="text-align:center;margin-bottom:var(--spacing-5);">
-                <img src="<?= $base ?>assets/img/icone.png" alt="Lukrato" style="width:40px;height:40px;border-radius:10px;">
+                <img src="<?= $base ?>assets/img/icone.png" alt="Lukrato"
+                    style="width:40px;height:40px;border-radius:10px;">
             </div>
 
             <!-- Erro -->
             <?php if (!empty($_SESSION['error'])): ?>
                 <div class="lk-onboarding-error">
-                    <i class="fas fa-exclamation-circle"></i>
+                    <i data-lucide="circle-alert"></i>
                     <?= htmlspecialchars($_SESSION['error']) ?>
                 </div>
                 <?php unset($_SESSION['error']); ?>
@@ -288,7 +409,7 @@ $theme = $userTheme ?? 'dark';
             <!-- Steps -->
             <div class="lk-steps">
                 <div class="lk-step done">
-                    <div class="lk-step-circle"><i class="fas fa-check" style="font-size:0.7rem"></i></div>
+                    <div class="lk-step-circle"><i data-lucide="check" style="font-size:0.7rem"></i></div>
                 </div>
                 <div class="lk-step active">
                     <div class="lk-step-line"></div>
@@ -299,7 +420,7 @@ $theme = $userTheme ?? 'dark';
             <!-- Hero -->
             <div class="lk-ob-hero">
                 <div class="lk-ob-hero-icon">
-                    <i class="fas fa-receipt"></i>
+                    <i data-lucide="receipt"></i>
                 </div>
                 <h1>Registre seu primeiro lançamento</h1>
                 <p>Pode ser algo simples — uma despesa recente ou seu salário do mês.</p>
@@ -314,21 +435,22 @@ $theme = $userTheme ?? 'dark';
                 <!-- Conta (visual, não editável) -->
                 <div class="lk-form-group">
                     <label class="lk-label">
-                        <i class="fas fa-wallet"></i>
+                        <i data-lucide="wallet"></i>
                         Conta
                     </label>
                     <div class="lk-conta-info">
                         <div class="lk-conta-icon">
-                            <i class="fas fa-university"></i>
+                            <i data-lucide="landmark"></i>
                         </div>
                         <div class="lk-conta-details">
                             <div class="lk-conta-name"><?= htmlspecialchars($conta->nome) ?></div>
                             <?php if ($conta->instituicaoFinanceira): ?>
-                                <div class="lk-conta-inst"><?= htmlspecialchars($conta->instituicaoFinanceira->nome) ?></div>
+                                <div class="lk-conta-inst"><?= htmlspecialchars($conta->instituicaoFinanceira->nome) ?>
+                                </div>
                             <?php endif; ?>
                         </div>
                         <div class="lk-conta-check">
-                            <i class="fas fa-check-circle"></i>
+                            <i data-lucide="circle-check"></i>
                         </div>
                     </div>
                 </div>
@@ -336,16 +458,16 @@ $theme = $userTheme ?? 'dark';
                 <!-- Tipo: Receita / Despesa -->
                 <div class="lk-form-group">
                     <label class="lk-label">
-                        <i class="fas fa-exchange-alt"></i>
+                        <i data-lucide="arrow-left-right"></i>
                         Tipo <span class="lk-req">*</span>
                     </label>
                     <input type="hidden" name="tipo" id="tipoInput" value="despesa">
                     <div class="lk-tipo-toggle">
                         <button type="button" class="lk-tipo-btn active-despesa" data-tipo="despesa" id="btnDespesa">
-                            <i class="fas fa-arrow-down"></i> Despesa
+                            <i data-lucide="arrow-down"></i> Despesa
                         </button>
                         <button type="button" class="lk-tipo-btn" data-tipo="receita" id="btnReceita">
-                            <i class="fas fa-arrow-up"></i> Receita
+                            <i data-lucide="arrow-up"></i> Receita
                         </button>
                     </div>
                 </div>
@@ -353,20 +475,20 @@ $theme = $userTheme ?? 'dark';
                 <!-- Valor -->
                 <div class="lk-form-group">
                     <label class="lk-label">
-                        <i class="fas fa-dollar-sign"></i>
+                        <i data-lucide="dollar-sign"></i>
                         Valor <span class="lk-req">*</span>
                     </label>
                     <div class="lk-input-money">
                         <span class="lk-currency">R$</span>
-                        <input type="text" name="valor" class="lk-input lk-input-with-prefix" placeholder="0,00" required
-                            inputmode="decimal" id="valorInput">
+                        <input type="text" name="valor" class="lk-input lk-input-with-prefix" placeholder="0,00"
+                            required inputmode="decimal" id="valorInput">
                     </div>
                 </div>
 
                 <!-- Categoria -->
                 <div class="lk-form-group">
                     <label class="lk-label">
-                        <i class="fas fa-tag"></i>
+                        <i data-lucide="tag"></i>
                         Categoria <span class="lk-req">*</span>
                     </label>
                     <select name="categoria_id" class="lk-select" required id="categoriaSelect">
@@ -387,24 +509,23 @@ $theme = $userTheme ?? 'dark';
                 <!-- Descrição -->
                 <div class="lk-form-group">
                     <label class="lk-label">
-                        <i class="fas fa-pencil-alt"></i>
+                        <i data-lucide="pencil"></i>
                         Descrição <span class="lk-req">*</span>
                     </label>
-                    <input type="text" name="descricao" class="lk-input" placeholder="Ex: Almoço, Salário, Uber..." required
-                        maxlength="190" id="descricaoInput">
+                    <input type="text" name="descricao" class="lk-input" placeholder="Ex: Almoço, Salário, Uber..."
+                        required maxlength="190" id="descricaoInput">
                 </div>
 
                 <!-- Botão -->
                 <button type="submit" class="lk-btn-primary" id="btnSubmit">
                     Concluir e começar a usar!
-                    <i class="fas fa-check"></i>
+                    <i data-lucide="check"></i>
                 </button>
 
                 <p class="lk-onboarding-hint">
-                    <i class="fas fa-info-circle"></i>
+                    <i data-lucide="info"></i>
                     Você poderá adicionar mais lançamentos depois
                 </p>
-
             </form>
 
         </div>
@@ -422,13 +543,11 @@ $theme = $userTheme ?? 'dark';
             function setTipo(tipo) {
                 tipoInput.value = tipo;
 
-                // Atualizar botões
                 btnDespesa.className = 'lk-tipo-btn' + (tipo === 'despesa' ? ' active-despesa' : '');
                 btnReceita.className = 'lk-tipo-btn' + (tipo === 'receita' ? ' active-receita' : '');
 
-                // Filtrar categorias
                 const options = categoriaSelect.querySelectorAll('option[data-tipo]');
-                categoriaSelect.value = ''; // Reset seleção
+                categoriaSelect.value = '';
 
                 options.forEach(opt => {
                     if (opt.dataset.tipo === tipo) {
@@ -444,21 +563,32 @@ $theme = $userTheme ?? 'dark';
             btnDespesa.addEventListener('click', () => setTipo('despesa'));
             btnReceita.addEventListener('click', () => setTipo('receita'));
 
-            // Máscara simples de valor (formato BR)
-            valorInput.addEventListener('input', function(e) {
-                let val = e.target.value.replace(/[^\d]/g, '');
-                if (val === '') {
-                    e.target.value = '';
-                    return;
-                }
-                // Converter para centavos e formatar
-                val = parseInt(val, 10);
-                const formatted = (val / 100).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g,
-                    '.');
-                e.target.value = formatted;
-            });
+            // Máscara de valor (formato BR)
+            if (valorInput) {
+                valorInput.addEventListener('input', function(e) {
+                    let val = e.target.value.replace(/[^\d]/g, '');
+                    if (val === '') {
+                        e.target.value = '';
+                        return;
+                    }
+                    val = parseInt(val, 10);
+                    const formatted = (val / 100).toFixed(2)
+                        .replace('.', ',')
+                        .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                    e.target.value = formatted;
+                });
+
+                valorInput.addEventListener('keydown', function(e) {
+                    if ([8, 9, 13, 27, 46, 37, 38, 39, 40].includes(e.keyCode)) return;
+                    if ((e.ctrlKey || e.metaKey) && [65, 67, 86, 88].includes(e.keyCode)) return;
+                    if ((e.keyCode < 48 || e.keyCode > 57) && (e.keyCode < 96 || e.keyCode > 105)) {
+                        e.preventDefault();
+                    }
+                });
+            }
         });
     </script>
+    <script src="<?= $base ?>assets/js/lucide-init.js"></script>
 </body>
 
 </html>
