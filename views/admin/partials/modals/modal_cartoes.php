@@ -110,13 +110,19 @@
 
                     <!-- Dia Vencimento -->
                     <div class="form-group">
-                        <label for="diaVencimento" class="form-label">
-                            <i data-lucide="calendar-days"></i>
-                            Dia Vencimento
+                        <label for="diaVencimento" class="form-label lk-label">
+                            <i data-lucide="calendar-days" aria-hidden="true"></i>
+                            <span>Dia de vencimento</span>
+
+                            <button type="button" class="lk-info" data-lk-tooltip-title="Dia de vencimento"
+                                data-lk-tooltip="Data limite para pagar a fatura sem juros. Normalmente fica alguns dias após o dia de fechamento."
+                                aria-label="Ajuda: Dia de vencimento">
+                                <i data-lucide="info" aria-hidden="true"></i>
+                            </button>
                         </label>
                         <input type="number" id="diaVencimento" name="dia_vencimento" class="form-input" min="1"
                             max="31" placeholder="Ex: 15" required>
-                        <small class="form-help">Dia do vencimento</small>
+                        <small class="form-help">Data limite para pagar sem juros</small>
                     </div>
                 </div>
 

@@ -29,6 +29,7 @@ class LancamentoResponseFormatter
             'eh_transferencia' => (bool)($lancamento->eh_transferencia ?? false),
             'eh_saldo_inicial' => (bool)($lancamento->eh_saldo_inicial ?? false),
             'pago' => (bool)($lancamento->pago ?? true),
+            'data_pagamento' => $lancamento->data_pagamento ?? null,
             'forma_pagamento' => (string)($lancamento->forma_pagamento ?? ''),
             // Recorrência
             'recorrente' => (bool)($lancamento->recorrente ?? false),

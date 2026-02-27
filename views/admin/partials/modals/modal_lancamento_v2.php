@@ -255,14 +255,15 @@
                                 </span>
                             </label>
                         </div>
+                        <small class="lk-helper-text">O valor total será dividido entre as próximas faturas.</small>
                     </div>
 
                     <!-- Assinatura / Recorrência no Cartão (somente se cartão selecionado) -->
                     <div class="lk-form-group" id="assinaturaCartaoGroup" style="display: none;">
                         <div class="lk-checkbox-wrapper" style="margin-bottom: 0.5rem;">
                             <label class="lk-checkbox-label">
-                                <input type="checkbox" id="lancamentoAssinaturaCartao" name="recorrente_cartao" value="1"
-                                    class="lk-checkbox" onchange="contasManager.toggleAssinaturaCartao()">
+                                <input type="checkbox" id="lancamentoAssinaturaCartao" name="recorrente_cartao"
+                                    value="1" class="lk-checkbox" onchange="contasManager.toggleAssinaturaCartao()">
                                 <span class="lk-checkbox-custom"></span>
                                 <span class="lk-checkbox-text">
                                     <i data-lucide="refresh-cw"></i>
@@ -299,7 +300,8 @@
                                     <input type="radio" name="assinatura_modo" value="infinito" class="lk-radio" checked
                                         onchange="contasManager.toggleAssinaturaCartaoFim()">
                                     <span class="lk-radio-custom"></span>
-                                    <span class="lk-radio-text">Sem data de fim <small style="opacity:0.7">(cancelo quando quiser)</small></span>
+                                    <span class="lk-radio-text">Sem data de fim <small style="opacity:0.7">(cancelo
+                                            quando quiser)</small></span>
                                 </label>
                                 <label class="lk-radio-label">
                                     <input type="radio" name="assinatura_modo" value="data" class="lk-radio"
@@ -310,7 +312,8 @@
                             </div>
 
                             <div id="assinaturaCartaoFimGroup" style="display: none;">
-                                <input type="date" id="lancamentoAssinaturaFim" name="recorrencia_fim_cartao" class="lk-input">
+                                <input type="date" id="lancamentoAssinaturaFim" name="recorrencia_fim_cartao"
+                                    class="lk-input">
                                 <small class="lk-helper-text">Data em que a assinatura termina.</small>
                             </div>
                         </div>
@@ -373,6 +376,8 @@
                                 </span>
                             </label>
                         </div>
+                        <small class="lk-helper-text" style="margin-top: -0.25rem; margin-bottom: 0.5rem;">Cria
+                            automaticamente este lançamento nos próximos períodos.</small>
 
                         <div id="recorrenciaDetalhes" style="display: none;">
                             <label class="lk-label">
@@ -398,10 +403,11 @@
                             </label>
                             <div class="lk-radio-group" style="margin-bottom: 0.5rem;">
                                 <label class="lk-radio-label" id="recorrenciaRadioInfinito">
-                                    <input type="radio" name="recorrencia_modo" value="infinito" class="lk-radio" checked
-                                        onchange="contasManager.toggleRecorrenciaFim()">
+                                    <input type="radio" name="recorrencia_modo" value="infinito" class="lk-radio"
+                                        checked onchange="contasManager.toggleRecorrenciaFim()">
                                     <span class="lk-radio-custom"></span>
-                                    <span class="lk-radio-text">Sem fim <small style="opacity:0.7">(ex: Spotify, Netflix)</small></span>
+                                    <span class="lk-radio-text">Sem fim <small style="opacity:0.7">(ex: Spotify,
+                                            Netflix)</small></span>
                                 </label>
                                 <label class="lk-radio-label">
                                     <input type="radio" name="recorrencia_modo" value="quantidade" class="lk-radio"
@@ -427,7 +433,8 @@
                             </div>
 
                             <div id="recorrenciaFimGroup" style="display: none;">
-                                <input type="date" id="lancamentoRecorrenciaFim" name="recorrencia_fim" class="lk-input">
+                                <input type="date" id="lancamentoRecorrenciaFim" name="recorrencia_fim"
+                                    class="lk-input">
                                 <small class="lk-helper-text">Data em que a repetição termina.</small>
                             </div>
                         </div>
@@ -481,8 +488,8 @@
                     <div class="lk-form-group" id="pagoGroup" style="display: none;">
                         <div class="lk-checkbox-wrapper">
                             <label class="lk-checkbox-label">
-                                <input type="checkbox" id="lancamentoPago" name="pago" value="1"
-                                    class="lk-checkbox" checked>
+                                <input type="checkbox" id="lancamentoPago" name="pago" value="1" class="lk-checkbox"
+                                    checked>
                                 <span class="lk-checkbox-custom"></span>
                                 <span class="lk-checkbox-text">
                                     <i data-lucide="circle-check"></i>
@@ -490,7 +497,8 @@
                                 </span>
                             </label>
                         </div>
-                        <small class="lk-helper-text" id="pagoHelperText">Desmarque se ainda não foi pago.</small>
+                        <small class="lk-helper-text" id="pagoHelperText">Pendentes não alteram o saldo até serem
+                            confirmados.</small>
                     </div>
 
                     <!-- Categoria (não obrigatório) -->
@@ -498,8 +506,8 @@
                         <label for="lancamentoCategoria" class="lk-label">
                             <i data-lucide="tag"></i>
                             Categoria
-                            <button type="button" class="lk-info"
-                                data-lk-tooltip="A categoria ajuda a organizar seus gastos. Escolha a que melhor representa essa despesa."
+                            <button type="button" class="lk-info" data-lk-tooltip-title="Categoria"
+                                data-lk-tooltip="Ajuda a organizar e visualizar para onde vai seu dinheiro nos relatórios."
                                 aria-label="Ajuda: Categoria">
                                 <i data-lucide="info" aria-hidden="true"></i>
                             </button>

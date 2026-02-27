@@ -45,6 +45,7 @@ class DashboardController
     private function createBaseQuery(int $userId): Builder
     {
         return Lancamento::where('user_id', $userId)
+            ->where('pago', 1)
             ->where('eh_transferencia', 0);
     }
 

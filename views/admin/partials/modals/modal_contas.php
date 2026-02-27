@@ -92,7 +92,7 @@
                         <input type="text" id="saldoInicial" name="saldo_inicial" class="form-input" value="0,00"
                             placeholder="0,00">
                     </div>
-                    <small class="form-help">Saldo atual disponível na conta</small>
+                    <small class="form-help">Quanto tem na conta agora. Lançamentos são calculados a partir deste valor.</small>
                 </div>
 
                 <!-- Cor da Conta -->

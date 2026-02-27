@@ -91,6 +91,7 @@ class ReportRepository
     {
         // 1. Calcular delta dos lançamentos (respeitando afeta_caixa)
         $query = DB::table('lancamentos')
+            ->where('lancamentos.pago', 1)
             ->where('lancamentos.data', '<=', $ate)
             ->where(function ($q) {
                 $q->where('lancamentos.afeta_caixa', true)
@@ -139,6 +140,7 @@ class ReportRepository
     {
         $query = DB::table('lancamentos as l')
             ->leftJoin('categorias as c', 'c.id', '=', 'l.categoria_id')
+            ->where('l.pago', 1)
             ->whereBetween('l.data', [$params->start, $params->end])
             ->where('l.tipo', $tipo)
             ->where(function ($q) {
@@ -202,6 +204,7 @@ class ReportRepository
     private function joinAccountTransactions($join, ReportParameters $params): void
     {
         $join->on(DB::raw('1'), '=', DB::raw('1'))
+            ->where('l.pago', 1)
             ->whereBetween('l.data', [$params->start, $params->end])
             ->where(fn($w) => $this->applyAccountTransactionFilter($w))
             ->where(fn($q) => $q->whereNull('l.user_id')->orWhere('l.user_id', $params->userId));
@@ -227,6 +230,7 @@ class ReportRepository
         bool $respectAfetaCaixa = true
     ): QueryBuilder {
         $query = DB::table('lancamentos')
+            ->where('lancamentos.pago', 1)
             ->whereBetween('lancamentos.data', [$start, $end]);
 
         if (!$includeSaldoInicial) {

@@ -163,7 +163,7 @@ class LancamentosController extends BaseController
         $rows = $q->selectRaw('
             l.id, l.data, l.tipo, l.valor, l.descricao, l.observacao, 
             l.categoria_id, l.conta_id, l.conta_id_destino, l.eh_transferencia, l.eh_saldo_inicial,
-            l.pago, l.parcelamento_id, l.cartao_credito_id, l.forma_pagamento, l.origem_tipo,
+            l.pago, l.data_pagamento, l.parcelamento_id, l.cartao_credito_id, l.forma_pagamento, l.origem_tipo,
             l.recorrente, l.recorrencia_freq, l.recorrencia_fim, l.recorrencia_total, l.recorrencia_pai_id, l.cancelado_em,
             l.lembrar_antes_segundos, l.canal_email, l.canal_inapp,
             COALESCE(c.nome, "") as categoria,
@@ -187,6 +187,7 @@ class LancamentosController extends BaseController
             'eh_transferencia' => (bool) ($r->eh_transferencia ?? 0),
             'eh_saldo_inicial' => (bool)($r->eh_saldo_inicial ?? 0),
             'pago'             => (bool)($r->pago ?? 0),
+            'data_pagamento'   => $r->data_pagamento ?? null,
             'parcelamento_id'  => (int)$r->parcelamento_id ?: null,
             'cartao_credito_id' => (int)$r->cartao_credito_id ?: null,
             'categoria'        => (string)$r->categoria,
@@ -423,7 +424,16 @@ class LancamentosController extends BaseController
         ]);
 
         // Atualizar
-        $this->lancamentoRepo->update($id, $dto->toArray());
+        $updateData = $dto->toArray();
+
+        // Se 'pago' foi enviado no payload, atualizar status de pagamento + data_pagamento
+        if (array_key_exists('pago', $payload)) {
+            $novoPago = (bool)$payload['pago'];
+            $updateData['pago'] = $novoPago ? 1 : 0;
+            $updateData['data_pagamento'] = $novoPago ? date('Y-m-d') : null;
+        }
+
+        $this->lancamentoRepo->update($id, $updateData);
 
         $lancamento = $this->lancamentoRepo->find($id);
         $lancamento->loadMissing(['categoria', 'conta']);

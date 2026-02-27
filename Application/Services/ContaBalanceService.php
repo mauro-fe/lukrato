@@ -90,6 +90,7 @@ class ContaBalanceService
     {
         return Lancamento::where('user_id', $this->userId)
             ->whereIn('conta_id', $this->accountIds)
+            ->where('pago', 1)
             ->where('eh_transferencia', 0)
             ->where('data', '<=', $this->endDate)
             ->where('tipo', LancamentoTipo::RECEITA->value)
@@ -106,6 +107,7 @@ class ContaBalanceService
     {
         return Lancamento::where('user_id', $this->userId)
             ->whereIn('conta_id', $this->accountIds)
+            ->where('pago', 1)
             ->where('eh_transferencia', 0)
             ->where('data', '<=', $this->endDate)
             ->where('tipo', LancamentoTipo::DESPESA->value)
@@ -122,6 +124,7 @@ class ContaBalanceService
     {
         return Lancamento::where('user_id', $this->userId)
             ->whereIn('conta_id_destino', $this->accountIds)
+            ->where('pago', 1)
             ->where('eh_transferencia', 1)
             ->where('data', '<=', $this->endDate)
             ->selectRaw('conta_id_destino as cid, SUM(valor) as tot')
@@ -137,6 +140,7 @@ class ContaBalanceService
     {
         return Lancamento::where('user_id', $this->userId)
             ->whereIn('conta_id', $this->accountIds)
+            ->where('pago', 1)
             ->where('eh_transferencia', 1)
             ->where('data', '<=', $this->endDate)
             ->selectRaw('conta_id as cid, SUM(valor) as tot')

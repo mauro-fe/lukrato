@@ -132,13 +132,13 @@ class DashboardProvisaoService
         $conta = Conta::find($contaId);
         $saldoInicial = (float)($conta->saldo_inicial ?? 0);
 
-        $base = Lancamento::where('user_id', $userId)->where('data', '<=', $ate)->where('conta_id', $contaId);
+        $base = Lancamento::where('user_id', $userId)->where('pago', 1)->where('data', '<=', $ate)->where('conta_id', $contaId);
 
         $receitas = (float)(clone $base)->where('eh_transferencia', 0)->where('tipo', LancamentoTipo::RECEITA->value)->sum('valor');
         $despesas = (float)(clone $base)->where('eh_transferencia', 0)->where('tipo', LancamentoTipo::DESPESA->value)->sum('valor');
 
-        $transfIn  = (float) Lancamento::where('user_id', $userId)->where('data', '<=', $ate)->where('eh_transferencia', 1)->where('conta_id_destino', $contaId)->sum('valor');
-        $transfOut = (float) Lancamento::where('user_id', $userId)->where('data', '<=', $ate)->where('eh_transferencia', 1)->where('conta_id', $contaId)->sum('valor');
+        $transfIn  = (float) Lancamento::where('user_id', $userId)->where('pago', 1)->where('data', '<=', $ate)->where('eh_transferencia', 1)->where('conta_id_destino', $contaId)->sum('valor');
+        $transfOut = (float) Lancamento::where('user_id', $userId)->where('pago', 1)->where('data', '<=', $ate)->where('eh_transferencia', 1)->where('conta_id', $contaId)->sum('valor');
 
         return $saldoInicial + $receitas - $despesas + $transfIn - $transfOut;
     }
@@ -147,7 +147,7 @@ class DashboardProvisaoService
     {
         $saldosIniciais = (float) Conta::where('user_id', $userId)->where('ativo', true)->sum('saldo_inicial');
 
-        $base = Lancamento::where('user_id', $userId)->where('data', '<=', $ate)->where('eh_transferencia', 0);
+        $base = Lancamento::where('user_id', $userId)->where('pago', 1)->where('data', '<=', $ate)->where('eh_transferencia', 0);
         $r    = (float)(clone $base)->where('tipo', LancamentoTipo::RECEITA->value)->sum('valor');
         $d    = (float)(clone $base)->where('tipo', LancamentoTipo::DESPESA->value)->sum('valor');
 

@@ -277,6 +277,7 @@
                                 </span>
                             </label>
                         </div>
+                        <small class="lk-helper-text">O valor total será dividido entre as próximas faturas.</small>
                     </div>
 
                     <!-- Número de Parcelas (quando parcelado) -->
@@ -311,8 +312,8 @@
                         <label for="globalLancamentoCategoria" class="lk-label">
                             <i data-lucide="tag"></i>
                             Categoria
-                            <button type="button" class="lk-info"
-                                data-lk-tooltip="A categoria ajuda a organizar seus gastos. Escolha a que melhor representa essa despesa."
+                            <button type="button" class="lk-info" data-lk-tooltip-title="Categoria"
+                                data-lk-tooltip="Ajuda a organizar e visualizar para onde vai seu dinheiro nos relatórios."
                                 aria-label="Ajuda: Categoria">
                                 <i data-lucide="info" aria-hidden="true"></i>
                             </button>
@@ -339,6 +340,7 @@
                                 </span>
                             </label>
                         </div>
+                        <small class="lk-helper-text" style="margin-top: -0.25rem; margin-bottom: 0.5rem;">Cria automaticamente este lançamento nos próximos períodos.</small>
 
                         <div id="globalRecorrenciaDetalhes" style="display: none;">
                             <label class="lk-label">
@@ -456,7 +458,7 @@
                                 </span>
                             </label>
                         </div>
-                        <small class="lk-helper-text" id="globalPagoHelperText">Desmarque se ainda não foi pago.</small>
+                        <small class="lk-helper-text" id="globalPagoHelperText">Pendentes não alteram o saldo até serem confirmados.</small>
                     </div>
 
                     <!-- Botões de Ação -->

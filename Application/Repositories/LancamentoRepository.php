@@ -511,6 +511,7 @@ class LancamentoRepository extends BaseRepository
     {
         return (float) $this->query()
             ->where('user_id', $userId)
+            ->where('pago', 1)
             ->where('tipo', LancamentoTipo::RECEITA->value)
             ->where('eh_transferencia', 0)
             ->where(function ($q) {
@@ -540,6 +541,7 @@ class LancamentoRepository extends BaseRepository
     {
         return (float) $this->query()
             ->where('user_id', $userId)
+            ->where('pago', 1)
             ->where('tipo', LancamentoTipo::DESPESA->value)
             ->where('eh_transferencia', 0)
             ->where(function ($q) {
@@ -569,6 +571,7 @@ class LancamentoRepository extends BaseRepository
     {
         return (float) $this->query()
             ->where('user_id', $userId)
+            ->where('pago', 1)
             ->where('tipo', LancamentoTipo::RECEITA->value)
             ->where('eh_transferencia', 0)
             ->where(function ($q) {
@@ -592,6 +595,7 @@ class LancamentoRepository extends BaseRepository
     {
         return (float) $this->query()
             ->where('user_id', $userId)
+            ->where('pago', 1)
             ->where('tipo', LancamentoTipo::DESPESA->value)
             ->where('eh_transferencia', 0)
             ->where(function ($q) {

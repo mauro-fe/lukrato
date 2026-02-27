@@ -186,6 +186,7 @@ class LancamentoCreationService
         // Se a data é futura, não está pago (a menos que o usuário disse que já pagou)
         if ($dataBase > $hoje) {
             $dadosPai['pago'] = 0;
+            $dadosPai['data_pagamento'] = null;
         }
 
         $pai = $this->lancamentoRepo->create($dadosPai);
@@ -208,6 +209,7 @@ class LancamentoCreationService
             $dadosFilho = $dto->toArray();
             $dadosFilho['data'] = $dataProx->format('Y-m-d');
             $dadosFilho['pago'] = 0;
+            $dadosFilho['data_pagamento'] = null;
             $dadosFilho['recorrente'] = 1;
             $dadosFilho['recorrencia_freq'] = $freq->value;
             $dadosFilho['recorrencia_fim'] = $dto->recorrenciaFim;

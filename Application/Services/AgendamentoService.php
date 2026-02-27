@@ -114,6 +114,7 @@ class AgendamentoService
             'eh_transferencia' => 0,
             'eh_saldo_inicial' => 0,
             'pago'             => true,
+            'data_pagamento'   => $data,
         ];
 
         // Adicionar forma de pagamento se fornecida
