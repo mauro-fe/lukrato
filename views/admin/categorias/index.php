@@ -116,7 +116,7 @@
     </div>
 
     <!-- ==================== SELETOR DE MÊS (padrão Lukrato) ==================== -->
-    <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
+    <?php include BASE_PATH . '/views/admin/partials/header-mes.php'; ?>
 
     <!-- ==================== CATEGORIAS SEPARADAS POR TIPO ==================== -->
     <div class="categories-grid">
@@ -233,7 +233,7 @@
 </div>
 
 <!-- Bootstrap e SweetAlert2 já carregados no header -->
-<script src="<?= BASE_URL ?>assets/js/categorias-manager.js?v=<?= time() ?>"></script>
+<!-- Page JS carregado automaticamente via loadPageJs() + Vite -->
 
 <!-- Failsafe: se JS falhar, mostra a página após 3s -->
 <script>

@@ -1,0 +1,417 @@
+/* ============================================================================
+   CREATE CARD â€” DESIGN PREMIUM
+   ============================================================================ */
+
+/* Wrapper com glow effect */
+.create-card-wrapper {
+  position: relative;
+}
+
+.create-card-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70%;
+  height: 80%;
+  pointer-events: none;
+  filter: blur(40px);
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.create-card-wrapper:hover .create-card-glow {
+  opacity: 1;
+}
+
+/* Card principal */
+.create-card.modern-card {
+  position: relative;
+  z-index: 1;
+  padding: 0;
+  overflow: hidden;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border: 1px solid
+    color-mix(in srgb, var(--color-primary) 15%, var(--glass-border));
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.create-card.modern-card:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 40%,
+    var(--glass-border)
+  );
+  box-shadow: 0 12px 40px
+    color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+.create-card-content {
+  display: flex;
+  align-items: stretch;
+  min-height: 180px;
+}
+
+/* Ãrea do Ã­cone (lado esquerdo) */
+.create-icon-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-6) var(--spacing-8);
+  border-right: 1px solid var(--glass-border);
+  min-width: 160px;
+  position: relative;
+  overflow: hidden;
+}
+
+.create-icon-area::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  animation: icon-area-pulse 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes icon-area-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+.create-icon-ring {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow:
+    0 4px 16px color-mix(in srgb, var(--color-primary) 15%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.create-icon-ring::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  padding: 3px;
+  background: conic-gradient(
+    from 0deg,
+    var(--color-primary),
+    color-mix(in srgb, var(--color-primary) 40%, transparent),
+    var(--color-primary)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  animation: ring-rotate 3s linear infinite paused;
+}
+
+.create-card-wrapper .create-icon-ring::before {
+  opacity: 1;
+  animation-play-state: running;
+}
+
+.create-card-wrapper:hover .create-icon-ring {
+  transform: scale(1.05);
+  box-shadow:
+    0 8px 24px color-mix(in srgb, var(--color-primary) 25%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+@keyframes ring-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.create-icon-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.create-main-icon {
+  color: var(--color-primary) !important;
+  width: 28px !important;
+  height: 28px !important;
+}
+
+.create-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0;
+  opacity: 0.8;
+}
+
+/* Ãrea do formulÃ¡rio (lado direito) */
+.create-form-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--spacing-5) var(--spacing-6);
+  gap: var(--spacing-4);
+}
+
+.create-form-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.create-form-title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.create-form-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+  font-weight: 400;
+}
+
+/* FormulÃ¡rio inline */
+.create-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.create-form-fields {
+  display: flex;
+  gap: var(--spacing-3);
+  align-items: center;
+}
+
+.create-field {
+  flex: 1;
+}
+
+/* Input com Ã­cone interno */
+.modern-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.modern-input-wrapper .field-icon {
+  position: absolute;
+  left: 14px;
+  width: 16px !important;
+  height: 16px !important;
+  color: var(--color-text-muted);
+  pointer-events: none;
+  transition: color 0.2s ease;
+  z-index: 1;
+}
+
+.modern-input-wrapper:focus-within .field-icon {
+  color: var(--color-primary);
+}
+
+.modern-input.create-input {
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-4) var(--spacing-3) 42px;
+  border: 1px solid var(--glass-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-primary);
+  font-weight: 500;
+  line-height: 1.5;
+  border-radius: var(--radius-md) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modern-input.create-input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.modern-input.create-input:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 35%,
+    var(--glass-border)
+  );
+}
+
+.modern-input.create-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--ring);
+  background: var(--color-surface);
+}
+
+/* Toggle pills para tipo */
+.type-toggle-group {
+  display: flex;
+  gap: 0;
+  background: var(--color-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  height: 100%;
+}
+
+.type-toggle-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+
+.type-toggle-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: calc(var(--radius-md) - 3px);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--color-text-muted);
+  user-select: none;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.type-toggle-pill svg,
+.type-toggle-pill .lucide {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.type-toggle-pill:hover {
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-text-muted) 8%, transparent);
+}
+
+/* Receita ativa */
+.type-toggle-input#tipoReceita:checked + .type-toggle-pill.receita {
+  background: color-mix(
+    in srgb,
+    var(--color-success) 18%,
+    var(--color-surface)
+  );
+  color: var(--color-success);
+  box-shadow: 0 2px 8px
+    color-mix(in srgb, var(--color-success) 15%, transparent);
+}
+
+/* Despesa ativa */
+.type-toggle-input#tipoDespesa:checked + .type-toggle-pill.despesa {
+  background: color-mix(in srgb, var(--color-danger) 18%, var(--color-surface));
+  color: var(--color-danger);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--color-danger) 15%, transparent);
+}
+
+/* BotÃ£o de submit premium */
+.create-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  align-self: flex-start;
+  padding: var(--spacing-3) var(--spacing-5);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    color-mix(in srgb, var(--color-primary) 85%, #000)
+  );
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  font-family: var(--font-primary);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.create-submit-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.create-submit-btn:hover::before {
+  left: 100%;
+}
+
+.create-submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px
+    color-mix(in srgb, var(--color-primary) 35%, transparent);
+}
+
+.create-submit-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.create-btn-text {
+  position: relative;
+  z-index: 1;
+}
+
+.create-btn-icon {
+  width: 16px !important;
+  height: 16px !important;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.3s ease;
+}
+
+.create-submit-btn:hover .create-btn-icon {
+  transform: translateX(3px);
+}
+

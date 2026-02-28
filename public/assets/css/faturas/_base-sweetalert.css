@@ -1,0 +1,116 @@
+/**
+ * ============================================================================
+ * PARCELAMENTOS - ESTILO MODERNO (Atualizado com novas variÃƒÂ¡veis)
+ * ============================================================================
+ */
+
+/* ==================== Z-INDEX PARA SWEET ALERT ==================== */
+/* Sweet Alert acima do modal do Bootstrap */
+/* Bootstrap modal tem z-index: 1050, backdrop: 1040 */
+/* Modal de fatura tem z-index: 1000 */
+.swal2-container.swal-above-modal {
+  z-index: 999999 !important;
+}
+
+.swal2-container.swal-above-modal .swal2-popup {
+  z-index: 999999 !important;
+}
+
+/* Backdrop do SweetAlert tambÃƒÂ©m precisa estar acima */
+.swal2-container.swal2-backdrop-show.swal-above-modal {
+  z-index: 999998 !important;
+  background: var(--color-bg) !important;
+}
+
+/* Garantir que qualquer swal2-container dentro de um modal apareÃƒÂ§a na frente */
+.swal2-container {
+  z-index: 999999 !important;
+}
+
+/* Estilo escuro para o popup de ediÃƒÂ§ÃƒÂ£o */
+.swal-dark-popup {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.swal-dark-popup .swal2-title {
+  color: #e2e8f0 !important;
+}
+
+.swal-dark-popup .swal2-html-container {
+  color: #cbd5e1 !important;
+  overflow: visible !important;
+}
+
+.swal-html-container-visible {
+  overflow: visible !important;
+}
+
+/* FormulÃƒÂ¡rio de ediÃƒÂ§ÃƒÂ£o customizado */
+.swal-edit-form {
+  text-align: left;
+  padding: 0.5rem 0;
+}
+
+.swal-form-group {
+  margin-bottom: 1.25rem;
+}
+
+.swal-form-group:last-child {
+  margin-bottom: 0;
+}
+
+.swal-form-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+}
+
+.swal-form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: #0f172a !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 8px;
+  color: #e2e8f0 !important;
+  font-size: 1rem;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.swal-form-input:focus {
+  outline: none;
+  border-color: #f59e0b !important;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2) !important;
+}
+
+.swal-form-input::placeholder {
+  color: #64748b;
+}
+
+.swal-dark-popup .swal2-input {
+  background: #0f172a !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #e2e8f0 !important;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.swal-dark-popup .swal2-input:focus {
+  border-color: #f59e0b !important;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2) !important;
+}
+
+.swal-dark-popup .swal2-input::placeholder {
+  color: #64748b !important;
+}
+
+.swal-dark-popup .swal2-validation-message {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #fca5a5 !important;
+  border: none !important;
+}
+

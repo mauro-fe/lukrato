@@ -52,7 +52,7 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <!-- Lucide Icons (substitui FA) + FA Brands (para ícones de marca) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/brands.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/lucide-compat.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/vendor/lucide-compat.css?v=<?= time() ?>">
     <script src="<?= BASE_URL ?>assets/js/lucide.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -61,29 +61,36 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <!-- ============================================================================
          STYLES INTERNOS
          ============================================================================ -->
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/components.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-partials-header.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/top-navbar.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/gamification.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/gamification-page.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modal-contas-modern.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modal-lancamento.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modal-lancamento-mobile.css?v=<?= time() ?>">
-    <!-- Onboarding removido -->
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/plan-limits.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/tooltips.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/first-visit-tooltips.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/lukrato-feedback.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/breadcrumbs.css?v=<?= time() ?>">
+    <!-- Core -->
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/variables.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/animations.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/components.css">
 
+    <!-- Layout -->
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/layout/view-toggle-shared.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/layout/admin-partials-header.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/layout/top-navbar.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/layout/breadcrumbs.css?v=<?= time() ?>">
+
+    <!-- Modules -->
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/gamification.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/gamification-page.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/modal-contas-modern.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/bundles/modal-lancamento.css.php?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/modal-lancamento-mobile.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/plan-limits.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/tooltips.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/first-visit-tooltips.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/lukrato-feedback.css?v=<?= time() ?>">
+
+    <!-- Page-specific CSS (auto-detected) -->
     <?php loadPageCss(); ?>
 
     <!-- Proteção contra internet lenta (timeout, retry, indicadores) -->
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/lukrato-fetch.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/lukrato-fetch.css?v=<?= time() ?>">
 
     <!-- Enhancements por último para sobrescrever tudo -->
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/enhancements.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/enhancements.css?v=<?= time() ?>">
 
     <!-- ============================================================================
          SCRIPTS EXTERNOS
@@ -92,38 +99,14 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="<?= BASE_URL ?>assets/js/csrf-manager.js"></script>
-    <script src="<?= BASE_URL ?>assets/js/csrf-keep-alive.js" defer></script>
-    <script src="<?= BASE_URL ?>assets/js/lukrato-fetch.js?v=<?= time() ?>"></script>
-    <script src="<?= BASE_URL ?>assets/js/enhancements.js" defer></script>
-
-    <!-- Sistema de Gerenciamento de Sessão -->
-    <script src="<?= BASE_URL ?>assets/js/session-manager.js?v=<?= time() ?>" defer></script>
-
-    <!-- Sistema de Gamificação Global (conquistas e level up) -->
-    <script src="<?= BASE_URL ?>assets/js/gamification-global.js?v=<?= time() ?>"></script>
-
-    <!-- Sistema de Limites do Plano (avisos de upgrade) -->
-    <?php if (!isset($skipPlanLimits) || !$skipPlanLimits): ?>
-        <script src="<?= BASE_URL ?>assets/js/plan-limits.js?v=<?= time() ?>" defer></script>
-    <?php endif; ?>
-
-    <!-- Sistema de Onboarding removido -->
-
-    <!-- Sistema de Feedback Unificado -->
-    <script src="<?= BASE_URL ?>assets/js/lukrato-feedback.js?v=<?= time() ?>"></script>
-
-    <!-- Facade Unificada: LK.toast / LK.api / LK.confirm -->
-    <script src="<?= BASE_URL ?>assets/js/lukrato-ui.js?v=<?= time() ?>"></script>
-
-    <!-- Lucide Icons Init (auto-refresh para conteúdo dinâmico) -->
-    <script src="<?= BASE_URL ?>assets/js/lucide-init.js?v=<?= time() ?>"></script>
-
-    <!-- Tooltips de Primeira Visita -->
-    <script src="<?= BASE_URL ?>assets/js/first-visit-tooltips.js?v=<?= time() ?>" defer></script>
-
-    <!-- Melhorias de Acessibilidade -->
-    <script src="<?= BASE_URL ?>assets/js/accessibility.js?v=<?= time() ?>" defer></script>
+    <!-- ============================================================================
+         GLOBAL INFRASTRUCTURE BUNDLE (Vite)
+         csrf-manager, lukrato-fetch, lukrato-feedback, lukrato-ui, session-manager,
+         gamification-global, plan-limits, enhancements, lucide-init, accessibility,
+         first-visit-tooltips, tooltips, admin-home-header, birthday-modal,
+         soft-ui-dashboard
+         ============================================================================ -->
+    <?= vite_scripts('admin/global/index.js') ?>
 
     <!-- ============================================================================
          CONFIGURAÇÃO GLOBAL (Lukrato Namespace)
@@ -263,7 +246,6 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <!-- ============================================================================
          SCRIPTS DE PÁGINA
          ============================================================================ -->
-    <?php loadPageJs('admin-home-header'); ?>
     <?php loadPageJs(); ?>
 </head>
 
@@ -423,12 +405,12 @@ if ($currentUser && isset($currentUser->theme_preference)) {
 
     <!-- ================ BOTÕES ======================== -->
 
-    <?php include __DIR__ . '/botao-lancamento_header.php'; ?>
-    <?php include __DIR__ . '/botao_suporte.php'; ?>
+    <?php include __DIR__ . '/botao-lancamento.php'; ?>
+    <?php include __DIR__ . '/botao-suporte.php'; ?>
 
     <!-- ==================== MODAIS ==================== -->
-    <?php include __DIR__ . '/modals/modal_lancamento_global.php'; ?>
-    <?php include __DIR__ . '/modals/modal_meses.php'; ?>
+    <?php include __DIR__ . '/modals/modal-lancamento-global.php'; ?>
+    <?php include __DIR__ . '/modals/modal-meses.php'; ?>
     <?php include __DIR__ . '/modals/aviso-lancamentos.php'; ?>
 
     <script>

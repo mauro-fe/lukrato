@@ -1,4 +1,4 @@
-﻿<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-perfil-index.css">
+﻿<!-- CSS carregado via loadPageCss() no header -->
 
 <div class="profile-page">
     <div class="profile-header">
@@ -1116,4 +1116,4 @@
     })();
 </script>
 
-<script src="<?= BASE_URL ?>assets/js/admin-profile-edit.js"></script>
+<!-- JS carregado via Vite (loadPageJs) -->

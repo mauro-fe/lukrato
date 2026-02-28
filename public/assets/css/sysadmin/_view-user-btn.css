@@ -1,0 +1,14 @@
+/* ===================================================================
+   VIEW USER BUTTON
+   =================================================================== */
+
+.btn-action.view {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+}
+
+.btn-action.view:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-2px);
+}
+

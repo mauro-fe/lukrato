@@ -1,0 +1,127 @@
+/* ================================================
+   16. RESPONSIVO - TABLET
+   ================================================ */
+
+@media (max-width: 768px) {
+  .lk-modal-lancamento {
+    max-width: calc(100vw - 16px) !important;
+    max-height: calc(100vh - 16px) !important;
+    margin: 8px;
+    border-radius: var(--radius-md);
+  }
+
+  .lk-modal-lancamento .lk-modal-body-modern {
+    max-height: calc(100vh - 180px);
+    min-height: auto;
+    padding: var(--spacing-4);
+  }
+
+  .lk-modal-modern {
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+    margin: 8px;
+    border-radius: var(--radius-md);
+  }
+
+  .lk-modal-header-gradient {
+    padding: var(--spacing-4);
+    padding-right: 52px;
+    min-height: auto;
+  }
+
+  .lk-modal-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    font-size: 1.25rem;
+  }
+
+  .lk-modal-title {
+    font-size: 1.25rem;
+  }
+
+  .lk-modal-close-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 1.125rem;
+    top: 6px;
+    right: 6px;
+  }
+
+  .lk-modal-body-modern {
+    padding: var(--spacing-4);
+  }
+
+  .lk-conta-info {
+    flex-direction: column;
+    gap: var(--spacing-3);
+    text-align: center;
+    padding: var(--spacing-4);
+  }
+
+  .lk-conta-badge {
+    font-size: var(--font-size-base);
+  }
+
+  .lk-conta-badge i {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  .lk-conta-saldo {
+    font-size: var(--font-size-sm);
+  }
+
+  .lk-conta-saldo strong {
+    font-size: var(--font-size-lg);
+  }
+
+  .lk-tipo-grid,
+  .lk-tipo-grid-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: var(--spacing-3);
+  }
+
+  .lk-tipo-card {
+    padding: var(--spacing-4);
+  }
+
+  .lk-tipo-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 1.25rem;
+  }
+
+  .lk-tipo-card h4 {
+    font-size: var(--font-size-lg);
+  }
+
+  .lk-tipo-card p {
+    font-size: var(--font-size-sm);
+  }
+
+  .lk-tipo-agendamento-btns {
+    flex-direction: column;
+  }
+
+  .lk-form-group {
+    margin-bottom: var(--spacing-4);
+  }
+
+  .lk-modal-footer,
+  .lk-form-actions {
+    padding: var(--spacing-4);
+    gap: var(--spacing-3);
+    flex-direction: column-reverse;
+  }
+
+  .lk-btn-primary,
+  .lk-btn-ghost,
+  .lk-btn-secondary {
+    width: 100%;
+    padding: var(--spacing-3) var(--spacing-4);
+    font-size: var(--font-size-base);
+    justify-content: center;
+  }
+}
+

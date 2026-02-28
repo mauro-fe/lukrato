@@ -23,20 +23,15 @@
 <script src="https://cdn.jsdelivr.net/npm/inputmask@5.0.9/dist/inputmask.min.js">
 </script>
 <script src="https://cdn.jsdelivr.net/npm/just-validate@4.3.0/dist/just-validate.production.min.js"></script>
-<script src="<?= BASE_URL ?>assets/js/lancamento-global.js?v=<?= time() ?>"></script>
-<script src="<?= BASE_URL ?>assets/js/tooltips.js?v=<?= time() ?>"></script>
-<!-- Bootstrap já carregado via CDN no header (bootstrap.bundle.min.js inclui Popper) -->
+<?= vite_scripts('admin/lancamento-global/index.js') ?>
 <script src="<?= BASE_URL ?>assets/js/plugins/perfect-scrollbar.min.js"></script>
 <script src="<?= BASE_URL ?>assets/js/plugins/smooth-scrollbar.min.js"></script>
-<!-- SweetAlert2 já carregado no header -->
 
-<!-- Birthday Modal -->
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/birthday-modal.css?v=<?= time() ?>">
-<script src="<?= BASE_URL ?>assets/js/birthday-modal.js?v=<?= time() ?>"></script>
+<!-- Birthday Modal CSS (JS via Vite global bundle) -->
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/birthday-modal.css?v=<?= time() ?>">
 
 <script async defer src="https://buttons.github.io/buttons.js"></script>
-
-<script src="<?= BASE_URL ?>assets/js/soft-ui-dashboard.js?v=1.1.2"></script>
+<!-- tooltips.js, birthday-modal.js, soft-ui-dashboard.js → Vite global bundle -->
 
 <?php loadPageJs(); ?>
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>

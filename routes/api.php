@@ -224,12 +224,11 @@ Router::add('POST',   '/api/faturas/{id}/itens/{itemId}/toggle', 'Api\\FaturasCo
 Router::add('DELETE', '/api/faturas/{id}/itens/{itemId}', 'Api\\FaturasController@destroyItem', ['auth', 'csrf']);
 Router::add('DELETE', '/api/faturas/{id}/itens/{itemId}/parcelamento', 'Api\\FaturasController@deleteParcelamento', ['auth', 'csrf']);
 
-// Rotas antigas para compatibilidade (DEPRECATED - usar /api/faturas)
-Router::add('GET',    '/api/parcelamentos',              'Api\\FaturasController@index',       ['auth']);
-Router::add('POST',   '/api/parcelamentos',              'Api\\FaturasController@store',       ['auth', 'csrf']);
-Router::add('GET',    '/api/parcelamentos/{id}',         'Api\\FaturasController@show',        ['auth']);
-Router::add('DELETE', '/api/parcelamentos/{id}',         'Api\\FaturasController@destroy',     ['auth', 'csrf']);
-Router::add('POST',   '/api/lancamentos/parcelado',      'Api\\FaturasController@store',       ['auth', 'csrf']);
+// Parcelamentos sem cartão (parcelas via conta bancária)
+Router::add('GET',    '/api/parcelamentos',              'Api\\ParcelamentosController@index',   ['auth']);
+Router::add('POST',   '/api/parcelamentos',              'Api\\ParcelamentosController@store',   ['auth', 'csrf']);
+Router::add('GET',    '/api/parcelamentos/{id}',         'Api\\ParcelamentosController@show',    ['auth']);
+Router::add('DELETE', '/api/parcelamentos/{id}',         'Api\\ParcelamentosController@destroy', ['auth', 'csrf']);
 
 // ============================================
 // SYSADMIN - Acesso restrito a administradores

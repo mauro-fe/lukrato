@@ -1,0 +1,47 @@
+/* ================================================
+   4. INFO DA CONTA
+   ================================================ */
+
+.lk-conta-info {
+  background: var(--glass-bg);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-5);
+  margin-bottom: var(--spacing-6);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 2px solid var(--color-card-border);
+}
+
+.lk-conta-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.lk-conta-badge i {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--color-primary), #d35400);
+  color: white;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+}
+
+.lk-conta-saldo {
+  font-size: var(--font-size-base);
+  color: var(--color-text-muted);
+}
+
+.lk-conta-saldo strong {
+  font-size: var(--font-size-xl);
+  color: var(--color-success);
+  font-weight: 700;
+}
+

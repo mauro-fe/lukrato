@@ -1,0 +1,196 @@
+/* ============================================================================
+   ICON PICKER DRAWER (slide-down panel)
+   ============================================================================ */
+
+.icon-picker-drawer {
+  max-height: 0;
+  overflow: hidden;
+  transition:
+    max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.3s ease;
+  border-top: 0 solid transparent;
+  padding: 0 var(--spacing-5);
+}
+
+.icon-picker-drawer.open {
+  max-height: 400px;
+  padding: var(--spacing-4) var(--spacing-5) var(--spacing-5);
+  border-top: 1px solid var(--glass-border);
+}
+
+.icon-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-3);
+}
+
+.icon-picker-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.icon-picker-title svg,
+.icon-picker-title .lucide {
+  width: 16px !important;
+  height: 16px !important;
+  color: var(--color-primary);
+}
+
+.icon-picker-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: color-mix(in srgb, var(--color-text-muted) 10%, transparent);
+  border-radius: 50%;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.icon-picker-close svg,
+.icon-picker-close .lucide {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.icon-picker-close:hover {
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  color: var(--color-danger);
+}
+
+/* Search */
+.icon-picker-search {
+  position: relative;
+  margin-bottom: var(--spacing-3);
+}
+
+.icon-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px !important;
+  height: 14px !important;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.icon-search-input {
+  width: 100%;
+  padding: 8px 12px 8px 34px;
+  border: 1px solid var(--glass-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-xs);
+  font-family: var(--font-primary);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.2s ease;
+}
+
+.icon-search-input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.icon-search-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+/* Grid */
+.icon-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  gap: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.icon-picker-grid::-webkit-scrollbar {
+  width: 4px;
+}
+
+.icon-picker-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.icon-picker-grid::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-text-muted) 25%, transparent);
+  border-radius: 4px;
+}
+
+.icon-pick-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid transparent;
+  background: color-mix(in srgb, var(--color-text-muted) 5%, transparent);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.icon-pick-item svg,
+.icon-pick-item .lucide {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.icon-pick-item:hover {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
+  border-color: color-mix(in srgb, var(--color-primary) 25%, transparent);
+  transform: scale(1.08);
+}
+
+.icon-pick-item.selected {
+  background: color-mix(
+    in srgb,
+    var(--color-primary) 18%,
+    var(--color-surface)
+  );
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 8px
+    color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+.icon-pick-item[title]::after {
+  content: attr(title);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.9);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: all 0.15s ease;
+  border: 1px solid var(--glass-border);
+  z-index: 10;
+}
+
+.icon-pick-item:hover[title]::after {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+

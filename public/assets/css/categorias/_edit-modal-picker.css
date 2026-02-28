@@ -1,0 +1,79 @@
+/* ============================================================================
+   EDIT MODAL â€” ICON PICKER
+   ============================================================================ */
+
+.edit-icon-section .form-label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.edit-icon-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.edit-icon-preview {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: color-mix(
+    in srgb,
+    var(--color-primary) 10%,
+    var(--color-surface)
+  );
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  transition: all 0.3s ease;
+}
+
+.edit-icon-preview svg,
+.edit-icon-preview .lucide {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+.edit-icon-change-btn {
+  font-size: var(--font-size-xs) !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.edit-icon-change-btn svg,
+.edit-icon-change-btn .lucide {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.edit-icon-picker-panel {
+  margin-top: var(--spacing-3);
+  padding: var(--spacing-3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+}
+
+.edit-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  gap: 5px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.edit-icon-grid .icon-pick-item {
+  width: 40px;
+  height: 40px;
+}
+
+.edit-icon-grid .icon-pick-item svg,
+.edit-icon-grid .icon-pick-item .lucide {
+  width: 18px !important;
+  height: 18px !important;
+}
+

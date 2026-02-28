@@ -27,7 +27,7 @@ class SuperAdminController extends BaseController
             ->get(['id', 'nome', 'email', 'is_admin', 'created_at']);
 
         $this->render(
-            'sysAdmin/index',
+            'admin/sysadmin/index',
             [
                 'pageTitle' => 'Area Restrita do Dono',
                 'subTitle' => 'Conteudo exclusivo para administradores',

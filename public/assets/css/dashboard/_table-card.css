@@ -1,0 +1,201 @@
+/* ==================== TABELA ==================== */
+.table-card {
+  margin-bottom: var(--spacing-8);
+}
+
+.table-card .card-title::before {
+  content: "Ã°Å¸â€œâ€¹";
+}
+
+.table-container {
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  padding: var(--spacing-2);
+  box-shadow: var(--shadow-md);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+  background: transparent;
+  border-radius: calc(var(--radius-md) - 4px);
+  overflow: hidden;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: var(--spacing-4);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.table th {
+  font-weight: 600;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: color-mix(in srgb, var(--color-surface-muted) 85%, transparent);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.table td {
+  color: var(--color-text);
+  transition: var(--transition-fast);
+  background: transparent;
+}
+
+.table tbody tr {
+  transition: var(--transition-smooth);
+  background: var(--color-surface);
+}
+
+.table tbody tr:nth-child(even) {
+  background: var(--color-surface);
+}
+
+.table tbody tr:hover {
+  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+  transform: none;
+  box-shadow: none;
+}
+
+.table tbody tr[data-initial="1"] {
+  background: color-mix(in srgb, var(--color-warning) 8%, transparent);
+  font-style: italic;
+  opacity: 0.8;
+}
+
+/* Badges de tipo */
+.badge-tipo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: color-mix(in srgb, var(--color-text-muted) 14%, transparent);
+  color: var(--color-text);
+  transition: var(--transition-fast);
+}
+
+.badge-tipo::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  background: currentColor;
+}
+
+.badge-tipo:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.badge-tipo.receita {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 50%, transparent);
+}
+
+.badge-tipo.despesa {
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 50%, transparent);
+}
+
+.badge-tipo.transferencia {
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
+}
+
+.badge-tipo.transferencia {
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
+  border-radius: var(--radius-md) !important;
+}
+
+/* Categoria*/
+.categoria-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  background: color-mix(
+    in srgb,
+    var(--color-primary) 8%,
+    var(--color-surface-muted)
+  );
+  color: var(--color-text);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 25%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transition: var(--transition-fast);
+  border-radius: var(--radius-md);
+}
+
+/* Valor colorido */
+.valor-cell {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.valor-cell.receita {
+  color: var(--color-success);
+}
+
+.valor-cell.despesa {
+  color: var(--color-danger);
+}
+
+/* ==================== AÃƒâ€¡Ãƒâ€¢ES ==================== */
+.actions-cell {
+  display: flex;
+  gap: var(--spacing-2);
+  justify-content: flex-end;
+}
+
+.table-card .btn-del {
+  background: linear-gradient(135deg, #ff9a2f, #ff6f00);
+  border: none;
+  color: #fff;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 24px rgba(255, 138, 0, 0.3);
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.table-card .btn-del i,
+.table-card .btn-del svg {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.table-card .btn-del:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(255, 138, 0, 0.35);
+}
+
+.table-card .btn-del:active {
+  transform: translateY(0);
+}
+

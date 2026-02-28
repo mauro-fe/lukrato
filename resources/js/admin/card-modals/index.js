@@ -1,0 +1,330 @@
+/**
+ * ============================================================================
+ * LUKRATO — Card Detail Modals (Vite Module)
+ * ============================================================================
+ * Combinação dos renderers e do modal de detalhes de cartão para relatórios.
+ *
+ * Substitui:
+ *   - public/assets/js/card-modal-renderers.js   (CardModalRenderers)
+ *   - public/assets/js/card-detail-modal-refactored.js (LK_CardDetail)
+ * ============================================================================
+ */
+
+import { getBaseUrl } from '../shared/api.js';
+import { escapeHtml } from '../shared/utils.js';
+
+// ─── Formatação local (BRL) ────────────────────────────────────────────────
+function formatCurrency(value) {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value) || 0);
+}
+
+function hexToRgba(hex, alpha = 0.1) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function getCssVar(name, fallback = '') {
+    try {
+        const value = getComputedStyle(document.documentElement).getPropertyValue(name);
+        return (value || '').trim() || fallback;
+    } catch { return fallback; }
+}
+
+// ─── Icon mapping (FA → Lucide) ────────────────────────────────────────────
+const FA_LUCIDE = {
+    'check-circle': 'circle-check', 'exclamation-triangle': 'triangle-alert',
+    'arrow-trend-up': 'trending-up', 'arrow-trend-down': 'trending-down',
+    'info-circle': 'info', 'times-circle': 'x-circle',
+    'lightbulb': 'lightbulb', 'chart-line': 'line-chart'
+};
+const lucideIcon = (faName) => { const clean = faName.replace(/^fa-/, ''); return FA_LUCIDE[clean] || clean; };
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  RENDERERS (ex CardModalRenderers)
+// ═══════════════════════════════════════════════════════════════════════════
+
+function renderLancamentos(lancamentos) {
+    if (!lancamentos || lancamentos.length === 0) {
+        return '<div class="empty-message"><i data-lucide="inbox"></i><p>Nenhum lançamento neste mês</p></div>';
+    }
+    return lancamentos.map(lanc => `
+        <div class="lancamento-row">
+            <div class="lancamento-left">
+                <div class="lancamento-category" style="background: ${lanc.categoria_cor}20; color: ${lanc.categoria_cor};">
+                    ${escapeHtml(lanc.categoria)}
+                </div>
+                <div class="lancamento-description">
+                    ${escapeHtml(lanc.descricao)}
+                    ${lanc.eh_parcelado ? `<span class="parcela-tag">${lanc.parcela_info}</span>` : ''}
+                </div>
+                <div class="lancamento-date">${new Date(lanc.data).toLocaleDateString('pt-BR')}</div>
+            </div>
+            <div class="lancamento-amount">${formatCurrency(lanc.valor)}</div>
+        </div>
+    `).join('');
+}
+
+function renderComparison(diferenca) {
+    if (Math.abs(diferenca.absoluta) <= 1) return '';
+    return `
+        <span class="comparison-label">vs mês anterior</span>
+        <span class="comparison-value ${diferenca.absoluta > 0 ? 'negative' : 'positive'}">
+            ${diferenca.absoluta > 0 ? '↑' : '↓'} 
+            ${formatCurrency(Math.abs(diferenca.absoluta))} 
+            (${diferenca.percentual > 0 ? '+' : ''}${diferenca.percentual.toFixed(1)}%)
+        </span>
+    `;
+}
+
+function renderParcelamentosTable(parcelamentos) {
+    return `
+        <table class="parcelamentos-table">
+            <thead><tr><th>Compra</th><th>Categoria</th><th>Progresso</th><th>Valor/Mês</th><th>Restante</th><th>Término</th></tr></thead>
+            <tbody>
+                ${parcelamentos.map(parc => {
+        const progress = ((parc.total_parcelas - parc.parcelas_restantes) / parc.total_parcelas) * 100;
+        return `<tr>
+                        <td><strong>${escapeHtml(parc.descricao)}</strong></td>
+                        <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${parc.categoria_cor};margin-right:.5rem;"></span>${escapeHtml(parc.categoria)}</td>
+                        <td><div class="parcela-progress"><span style="font-size:.75rem;color:var(--color-text-muted);">${parc.total_parcelas - parc.parcelas_restantes}/${parc.total_parcelas}</span><div class="parcela-bar"><div class="parcela-bar-fill" style="width:${progress}%;background:${parc.categoria_cor};"></div></div></div></td>
+                        <td>${formatCurrency(parc.valor_parcela)}</td>
+                        <td><strong>${formatCurrency(parc.valor_total_restante)}</strong></td>
+                        <td style="font-size:.875rem;color:var(--color-text-muted);">${parc.data_final}</td>
+                    </tr>`;
+    }).join('')}
+            </tbody>
+        </table>
+    `;
+}
+
+function renderParcelamentosMobile(parcelamentos) {
+    return parcelamentos.map(parc => {
+        const progress = ((parc.total_parcelas - parc.parcelas_restantes) / parc.total_parcelas) * 100;
+        return `
+            <div class="parcelamento-card-mobile">
+                <div class="parcelamento-card-header">
+                    <div class="parcelamento-card-title">
+                        <span class="categoria-dot" style="background:${parc.categoria_cor};"></span>
+                        <strong>${escapeHtml(parc.descricao)}</strong>
+                    </div>
+                    <button class="btn-ver-detalhes" onclick="this.closest('.parcelamento-card-mobile').classList.toggle('expanded')">
+                        <i data-lucide="chevron-down"></i><span>Detalhes</span>
+                    </button>
+                </div>
+                <div class="parcelamento-card-summary">
+                    <span class="valor-mensal">${formatCurrency(parc.valor_parcela)}/mês</span>
+                    <span class="parcelas-info">${parc.total_parcelas - parc.parcelas_restantes}/${parc.total_parcelas} parcelas</span>
+                </div>
+                <div class="parcelamento-card-progress">
+                    <div class="parcela-bar"><div class="parcela-bar-fill" style="width:${progress}%;background:${parc.categoria_cor};"></div></div>
+                </div>
+                <div class="parcelamento-card-details">
+                    <div class="detail-row"><span class="detail-label">Categoria</span><span class="detail-value"><span class="categoria-dot" style="background:${parc.categoria_cor};"></span>${escapeHtml(parc.categoria)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Valor por Parcela</span><span class="detail-value">${formatCurrency(parc.valor_parcela)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Total Restante</span><span class="detail-value highlight">${formatCurrency(parc.valor_total_restante)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Término Previsto</span><span class="detail-value">${parc.data_final}</span></div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderParcelamentos(data) {
+    if (!data || data.quantidade === 0) {
+        return '<div class="empty-message"><i data-lucide="circle-check"></i><p>Nenhum parcelamento ativo</p></div>';
+    }
+    return `
+        <div class="parcelamentos-table-wrapper">${renderParcelamentosTable(data.ativos)}</div>
+        <div class="parcelamentos-mobile-list">${renderParcelamentosMobile(data.ativos)}</div>
+    `;
+}
+
+function renderInsights(insights) {
+    if (!insights) return '';
+    const cards = [];
+
+    if (insights.tendencia) {
+        cards.push(`<div class="insight-card insight-${insights.tendencia.type}"><div class="insight-icon"><i data-lucide="${lucideIcon(insights.tendencia.icon)}"></i></div><div class="insight-content"><div class="insight-header-row"><span class="insight-label">Tendência</span><span class="insight-badge">${insights.tendencia.variacao}</span></div><h4 class="insight-status">${insights.tendencia.status}</h4><p class="insight-desc">${insights.tendencia.descricao}</p><p class="insight-recommendation"><i data-lucide="star"></i> ${insights.tendencia.recomendacao}</p></div></div>`);
+    }
+    if (insights.parcelamentos) {
+        cards.push(`<div class="insight-card insight-${insights.parcelamentos.type}"><div class="insight-icon"><i data-lucide="${lucideIcon(insights.parcelamentos.icon)}"></i></div><div class="insight-content"><div class="insight-header-row"><span class="insight-label">Parcelamentos</span><span class="insight-badge">${insights.parcelamentos.valor}</span></div><h4 class="insight-status">${insights.parcelamentos.status}</h4><p class="insight-desc">${insights.parcelamentos.descricao}</p><p class="insight-recommendation"><i data-lucide="star"></i> ${insights.parcelamentos.recomendacao}</p></div></div>`);
+    }
+    if (insights.limite) {
+        cards.push(`<div class="insight-card insight-${insights.limite.type}"><div class="insight-icon"><i data-lucide="${lucideIcon(insights.limite.icon)}"></i></div><div class="insight-content"><div class="insight-header-row"><span class="insight-label">Uso do Limite</span><span class="insight-badge">${insights.limite.percentual}</span></div><h4 class="insight-status">${insights.limite.status}</h4><p class="insight-desc">${insights.limite.descricao}</p><p class="insight-recommendation"><i data-lucide="star"></i> ${insights.limite.recomendacao}</p></div></div>`);
+    }
+
+    if (cards.length === 0) return '';
+    return `
+        <div class="insights-header"><i data-lucide="lightbulb"></i><h3>Análise Inteligente</h3></div>
+        <div class="insights-grid">${cards.join('')}</div>
+    `;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  CARD DETAIL MODAL (ex LK_CardDetail)
+// ═══════════════════════════════════════════════════════════════════════════
+
+let evolutionChart = null;
+let impactChart = null;
+
+async function openCardDetailModal(cardId, cardName, cardColor, currentMonth) {
+    if (!cardId) { console.error('ID do cartão não fornecido'); return; }
+
+    try {
+        const [year, month] = currentMonth.split('-');
+        const params = new URLSearchParams({ mes: month, ano: year });
+        const url = `${getBaseUrl()}api/reports/card-details/${cardId}?${params}`;
+
+        const response = await fetch(url, { credentials: 'include' });
+        if (!response.ok) throw new Error('Erro ao carregar detalhes do cartão');
+
+        const responseText = await response.text();
+        let data;
+        try { data = JSON.parse(responseText); }
+        catch (e) { throw new Error('Resposta inválida do servidor'); }
+
+        if (data.status !== 'success' || !data.data) throw new Error(data.message || 'Dados inválidos retornados');
+
+        renderCardDetailModal(data.data, cardColor);
+    } catch (error) {
+        console.error('Erro ao abrir detalhes do cartão:', error);
+        alert('Erro ao carregar relatório detalhado. Tente novamente.');
+    }
+}
+
+function renderCardDetailModal(data, cardColor) {
+    const existingModal = document.getElementById('cardDetailModalOverlay');
+    if (existingModal) existingModal.remove();
+
+    const template = document.getElementById('cardDetailModalTemplate');
+    if (!template) { console.error('Template do modal não encontrado'); return; }
+
+    const overlay = document.createElement('div');
+    overlay.id = 'cardDetailModalOverlay';
+    overlay.className = 'card-detail-modal-overlay';
+    overlay.appendChild(template.content.cloneNode(true));
+
+    populateTemplate(overlay, data, cardColor);
+    document.body.appendChild(overlay);
+
+    requestAnimationFrame(() => overlay.classList.add('active'));
+
+    setTimeout(() => {
+        renderEvolutionChart(data.evolucao.meses);
+        renderImpactChart(data.impacto_futuro.meses);
+    }, 100);
+}
+
+function populateTemplate(overlay, data, cardColor) {
+    // Header
+    overlay.querySelector('[data-color]').style.background = `linear-gradient(135deg, ${cardColor}, ${cardColor}DD)`;
+    overlay.querySelector('[data-cartao-nome]').textContent = data.cartao.nome;
+    overlay.querySelector('[data-periodo]').textContent = `${data.fatura_mes.mes}/${data.fatura_mes.ano}`;
+
+    // Stats
+    overlay.querySelector('[data-fatura-total]').textContent = formatCurrency(data.fatura_mes.total);
+    overlay.querySelector('[data-limite]').textContent = formatCurrency(data.cartao.limite);
+    overlay.querySelector('[data-disponivel]').textContent = formatCurrency(data.cartao.limite_disponivel);
+    overlay.querySelector('[data-utilizacao]').textContent = `${(data.cartao.percentual_utilizacao_geral || 0).toFixed(1)}%`;
+
+    // Lançamentos
+    const lancamentosCount = data.fatura_mes.lancamentos.length;
+    overlay.querySelector('[data-lancamentos-count]').textContent = `${lancamentosCount} ${lancamentosCount === 1 ? 'lançamento' : 'lançamentos'}`;
+    overlay.querySelector('[data-lancamentos-list]').innerHTML = renderLancamentos(data.fatura_mes.lancamentos);
+
+    // Summary
+    overlay.querySelector('[data-a-vista]').textContent = formatCurrency(data.fatura_mes.a_vista);
+    overlay.querySelector('[data-parcelado]').textContent = formatCurrency(data.fatura_mes.parcelado);
+    overlay.querySelector('[data-total]').textContent = formatCurrency(data.fatura_mes.total);
+
+    // Comparison
+    const comparisonEl = overlay.querySelector('[data-comparison]');
+    if (Math.abs(data.fatura_mes.diferenca_absoluta) > 1) {
+        comparisonEl.innerHTML = renderComparison({ absoluta: data.fatura_mes.diferenca_absoluta, percentual: data.fatura_mes.diferenca_percentual });
+        comparisonEl.style.display = 'block';
+    }
+
+    // Tendência
+    const tendenciaEl = overlay.querySelector('[data-tendencia]');
+    tendenciaEl.className = `tendencia-indicator ${data.evolucao.tendencia}`;
+    tendenciaEl.innerHTML = `
+        <i data-lucide="${data.evolucao.tendencia === 'subindo' ? 'arrow-up' : data.evolucao.tendencia === 'caindo' ? 'arrow-down' : 'arrow-right'}"></i>
+        ${data.evolucao.tendencia.charAt(0).toUpperCase() + data.evolucao.tendencia.slice(1)}
+    `;
+    if (window.lucide) window.lucide.createIcons({ nodes: [tendenciaEl] });
+    overlay.querySelector('[data-media]').textContent = formatCurrency(data.evolucao.media);
+
+    // Parcelamentos
+    const comprometidoEl = overlay.querySelector('[data-comprometido]');
+    if (data.parcelamentos.quantidade > 0) {
+        comprometidoEl.textContent = `${formatCurrency(data.parcelamentos.total_comprometido)} comprometidos`;
+        comprometidoEl.style.display = 'inline-block';
+    }
+    overlay.querySelector('[data-parcelamentos-content]').innerHTML = renderParcelamentos(data.parcelamentos);
+
+    // Insights
+    const insightsEl = overlay.querySelector('[data-insights]');
+    if (data.insights) {
+        insightsEl.innerHTML = renderInsights(data.insights);
+        insightsEl.style.display = 'block';
+    }
+}
+
+function closeCardDetailModal() {
+    const modal = document.getElementById('cardDetailModalOverlay');
+    if (!modal) return;
+    modal.classList.remove('active');
+    if (evolutionChart) { evolutionChart.destroy(); evolutionChart = null; }
+    if (impactChart) { impactChart.destroy(); impactChart = null; }
+    setTimeout(() => modal.remove(), 300);
+}
+
+function renderEvolutionChart(meses) {
+    const canvas = document.getElementById('evolutionChart');
+    if (!canvas) return;
+    if (evolutionChart) evolutionChart.destroy();
+
+    evolutionChart = new Chart(canvas.getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: meses.map(m => m.mes),
+            datasets: [{ label: 'Fatura', data: meses.map(m => m.valor), borderColor: '#E67E22', backgroundColor: hexToRgba('#E67E22', 0.1), fill: true, tension: 0.4, pointRadius: 4, pointHoverRadius: 6 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: true,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => formatCurrency(ctx.parsed.y) } } },
+            scales: {
+                y: { beginAtZero: true, ticks: { color: getCssVar('--color-text-muted'), callback: v => formatCurrency(v) }, grid: { color: getCssVar('--glass-border') } },
+                x: { ticks: { color: getCssVar('--color-text-muted') }, grid: { display: false } }
+            }
+        }
+    });
+}
+
+function renderImpactChart(meses) {
+    const canvas = document.getElementById('impactChart');
+    if (!canvas) return;
+    if (impactChart) impactChart.destroy();
+
+    impactChart = new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: meses.map(m => m.mes),
+            datasets: [{ label: 'Projeção', data: meses.map(m => m.valor), backgroundColor: '#3498DB', borderRadius: 6 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: true,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => formatCurrency(ctx.parsed.y) } } },
+            scales: {
+                y: { beginAtZero: true, ticks: { color: getCssVar('--color-text-muted'), callback: v => formatCurrency(v) }, grid: { color: getCssVar('--glass-border') } },
+                x: { ticks: { color: getCssVar('--color-text-muted') }, grid: { display: false } }
+            }
+        }
+    });
+}
+
+// ─── Expose globally (used by PHP onclick handlers) ─────────────────────────
+window.LK_CardDetail = { open: openCardDetailModal, close: closeCardDetailModal };
+window.CardModalRenderers = { renderLancamentos, renderComparison, renderParcelamentos, renderInsights, formatCurrency, escapeHtml };

@@ -45,6 +45,9 @@ class Application
         }
         require_once $configPath;
 
+        // Vite asset helper (funções vite_scripts, vite_asset, etc.)
+        require_once BASE_PATH . '/config/vite.php';
+
         // Carregar arquivos de rotas
         $routeFiles = [
             BASE_PATH . '/routes/web.php',

@@ -1,0 +1,44 @@
+/* ==================== CONTAINER PRINCIPAL ==================== */
+.parc-page {
+  margin: 0 auto;
+  max-width: 100%;
+  overflow-x: hidden;
+  padding: var(--spacing-3);
+}
+
+/* ==================== HEADER ==================== */
+.parc-header-modern {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-8);
+  flex-wrap: wrap;
+  gap: var(--spacing-6);
+}
+
+.page-title-section {
+  flex: 1;
+  min-width: 250px;
+}
+
+.page-title {
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.page-title i {
+  color: var(--color-primary);
+  font-size: var(--font-size-2xl);
+}
+
+.page-subtitle {
+  color: var(--color-text-muted);
+  margin: var(--spacing-2) 0 0 0;
+  font-size: var(--font-size-sm);
+}
+

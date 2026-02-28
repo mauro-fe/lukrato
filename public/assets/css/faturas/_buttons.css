@@ -1,0 +1,56 @@
+/* ==================== BOTÃƒâ€¢ES MODERNOS ==================== */
+.modern-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-6);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  white-space: nowrap;
+}
+
+.modern-btn.primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.modern-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px
+    color-mix(in srgb, var(--color-primary) 30%, transparent);
+  opacity: 0.9;
+}
+
+.modern-btn.secondary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.modern-btn.secondary:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+.modern-btn.danger {
+  background: var(--color-danger);
+  color: white;
+}
+
+.modern-btn.danger:hover {
+  background: color-mix(in srgb, var(--color-danger) 90%, black);
+}
+
+.modern-btn.large {
+  padding: var(--spacing-4) var(--spacing-8);
+  font-size: var(--font-size-base);
+}
+
+.modern-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+

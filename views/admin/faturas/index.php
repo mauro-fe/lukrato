@@ -1,6 +1,5 @@
 <!-- CSS MODERNIZADO -->
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-tables-shared.css">
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/faturas-modern.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/bundles/faturas-modern.css.php?v=<?= time() ?>">
 
 <section class="parc-page">
 
@@ -175,4 +174,4 @@
 <script>
     window.BASE_URL = '<?= BASE_URL ?>';
 </script>
-<script src="<?= BASE_URL ?>assets/js/admin-faturas-index.js"></script>
+<!-- Page JS carregado automaticamente via loadPageJs() + Vite -->

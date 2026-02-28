@@ -23,7 +23,6 @@ $breadcrumbsMap = [
     'categorias'   => [['label' => 'Organização', 'icon' => 'folder']],
     'lancamentos'  => [['label' => 'Finanças', 'icon' => 'wallet']],
     'relatorios'   => [['label' => 'Análises', 'icon' => 'bar-chart-3']],
-    'agendamentos' => [['label' => 'Automações', 'icon' => 'clock']],
     'gamification' => [['label' => 'Perfil', 'icon' => 'user']],
     'perfil'       => [],
     'billing'      => [['label' => 'Perfil', 'icon' => 'user']],

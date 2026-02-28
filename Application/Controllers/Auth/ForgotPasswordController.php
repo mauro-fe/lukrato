@@ -38,7 +38,7 @@ class ForgotPasswordController extends BaseController
      */
     public function showRequestForm(): void
     {
-        $this->render('admin/admins/forgot_password', [
+        $this->render('admin/auth/forgot-password', [
             'error'      => $this->getError(),
             'success'    => $this->getSuccess(),
         ]);
@@ -113,7 +113,7 @@ class ForgotPasswordController extends BaseController
             return;
         }
 
-        $this->render('admin/admins/reset_password', [
+        $this->render('admin/auth/reset-password', [
             'token'      => $token,
         ]);
     }

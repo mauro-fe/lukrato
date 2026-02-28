@@ -19,9 +19,9 @@ $theme = $userTheme ?? 'dark';
     <!-- Lucide Icons + FA Brands -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/brands.min.css"
         crossorigin="anonymous">
-    <link rel="stylesheet" href="<?= $base ?>assets/css/lucide-compat.css">
+    <link rel="stylesheet" href="<?= $base ?>assets/css/vendor/lucide-compat.css">
     <script src="<?= $base ?>assets/js/lucide.min.js"></script>
-    <link rel="stylesheet" href="<?= $base ?>assets/css/variables.css">
+    <link rel="stylesheet" href="<?= $base ?>assets/css/core/variables.css">
 </head>
 
 <body style="margin:0;padding:0;background:var(--color-bg);">

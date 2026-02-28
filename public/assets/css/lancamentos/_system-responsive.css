@@ -1,0 +1,47 @@
+/* =========================================
+   RESPONSIVIDADE (MOBILE)
+   ========================================= */
+/* =========================================
+   RESPONSIVIDADE (MOBILE)
+   ========================================= */
+@media (max-width: 768px) {
+  /* CONTAINER PRINCIPAL DAS DATAS */
+  /* ForÃ§a grid de 2 colunas iguais (50% / 50%) */
+  .export-range .mes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    background: transparent;
+    padding: 0;
+    font-size: 1rem;
+  }
+
+  /* CONTAINER DE CADA DATA (Texto + Input) */
+  /* Texto em cima, input embaixo */
+  .date-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    min-width: 0;
+    /* Impede overflow */
+  }
+
+  .date-group span {
+    font-size: 0.8em;
+    margin-bottom: 4px;
+    margin-left: 2px;
+    opacity: 0.9;
+  }
+
+  /* INPUTS DE DATA */
+  .export-range .date-range {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 8px 2px !important;
+    /* Padding lateral menor para caber o texto */
+    text-align: center;
+    font-size: 0.85rem;
+  }
+}
+

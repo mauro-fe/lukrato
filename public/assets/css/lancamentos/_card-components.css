@@ -1,0 +1,141 @@
+/* ====================== */
+/* CARD WRAPPER           */
+/* ====================== */
+.lan-cards-wrapper {
+  margin-top: 1rem;
+  padding-bottom: 0.5rem;
+}
+
+/* ====================== */
+/* HEADER DOS CARDS       */
+/* ====================== */
+
+.lan-cards-header {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr 1fr 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem;
+
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+  border-radius: 10px;
+
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  color: var(--color-text-muted, #9ca3af);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.lan-cards-header-btn {
+  border: none;
+  background: transparent;
+  padding: 0.15rem 0.25rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+  color: inherit;
+  transition: 0.15s ease;
+}
+
+.lan-cards-header-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.lan-sort-indicator {
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+/* ====================== */
+/* PAGER (NAVEGAÃ‡ÃƒO)      */
+/* ====================== */
+
+.lan-cards-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-surface-muted) 80%, transparent),
+    color-mix(in srgb, var(--color-surface) 90%, transparent)
+  );
+  backdrop-filter: blur(10px);
+  border-radius: 0 0 16px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--glass-border);
+  border-top: none;
+}
+
+.lan-pager-btn {
+  border: none;
+  background: var(--color-primary);
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text);
+  font-size: 1rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(230, 126, 34, 0.3);
+}
+
+.lan-pager-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.lan-pager-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-primary) 120%, black);
+  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.4);
+  transform: translateY(-2px);
+}
+
+.lan-pager-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  background: var(--color-surface-muted);
+  box-shadow: none;
+  color: var(--color-text-muted);
+}
+
+/* PÃ¡gina atual */
+#lanPagerInfo {
+  color: var(--color-text-muted, #bac0c8);
+  padding: 0 0.35rem;
+  font-weight: bold;
+}
+
+/* ====================== */
+/* RESPONSIVO             */
+/* ====================== */
+
+@media (max-width: 768px) {
+  .table-container {
+    display: none;
+  }
+
+  .lan-pager-info {
+    font-size: 0.6rem;
+    font-weight: bold !important;
+  }
+}
+
+@media (min-width: 1001px) {
+  .lan-cards-wrapper,
+  .lan-cards-container,
+  .lan-cards-pager {
+    display: none;
+  }
+}
+

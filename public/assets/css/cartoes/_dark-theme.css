@@ -1,0 +1,103 @@
+/* ==================== DARK MODE ==================== */
+@media (prefers-color-scheme: dark) {
+  .card-skeleton {
+    background: linear-gradient(90deg, #1a1f2e 0%, #2a3447 50%, #1a1f2e 100%);
+  }
+
+  .modal-fatura-container {
+    background: #1a1f2e;
+  }
+
+  .modal-fatura-header {
+    border-bottom-color: #2a3447;
+  }
+
+  .modal-fatura-header h2 {
+    color: #ffffff;
+  }
+
+  .fatura-periodo {
+    color: #8b95a5;
+  }
+
+  .btn-fechar-fatura {
+    color: #8b95a5;
+  }
+
+  .btn-fechar-fatura:hover {
+    background: #2a3447;
+    color: #ffffff;
+  }
+
+  .fatura-empty h3 {
+    color: #ffffff;
+  }
+
+  .fatura-empty p {
+    color: #8b95a5;
+  }
+
+  .fatura-parcelas h3 {
+    color: #ffffff;
+  }
+
+  .table-parcelas thead tr {
+    background: #2a3447;
+  }
+
+  .table-parcelas th {
+    color: #8b95a5;
+  }
+
+  .table-parcelas tbody tr {
+    border-bottom-color: #2a3447;
+  }
+
+  .table-parcelas tbody tr:hover {
+    background: #2a3447;
+  }
+
+  .table-parcelas td {
+    color: #ffffff;
+  }
+
+  .modal-fatura-footer {
+    border-top-color: #2a3447;
+    background: #151920;
+  }
+
+  .fatura-parcelamentos-resumo {
+    background: rgba(230, 126, 34, 0.08);
+    border-color: rgba(230, 126, 34, 0.2);
+  }
+
+  .parc-header {
+    border-bottom-color: rgba(230, 126, 34, 0.15);
+  }
+
+  .parc-item {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .parc-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(230, 126, 34, 0.25);
+  }
+
+  .parc-projecao {
+    background: rgba(52, 152, 219, 0.08);
+    border-color: rgba(52, 152, 219, 0.2);
+  }
+
+  .parc-desc,
+  .parc-header h4,
+  .projecao-titulo span {
+    color: #ffffff;
+  }
+
+  .parc-link {
+    border-top-color: rgba(230, 126, 34, 0.15);
+  }
+}
+

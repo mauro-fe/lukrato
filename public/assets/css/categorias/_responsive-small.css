@@ -1,0 +1,17 @@
+/* ============================================================================
+   RESPONSIVIDADE - MOBILE PEQUENO
+   ============================================================================ */
+@media (max-width: 360px) {
+  .cat-card-name {
+    font-size: 0.75rem;
+  }
+
+  .cat-card-budget {
+    padding-left: 0;
+  }
+
+  .cat-card-budget.no-budget {
+    padding-left: 0;
+  }
+}
+

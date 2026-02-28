@@ -177,7 +177,7 @@ $breadcrumbItems = $breadcrumbItems ?? [];
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/variables.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/site/landing-base.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/site/modal-override.css">
 
@@ -188,7 +188,7 @@ $breadcrumbItems = $breadcrumbItems ?? [];
     <!-- Lucide Icons + FA Brands (para ícones de marca) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/brands.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/lucide-compat.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/vendor/lucide-compat.css">
     <script src="<?= BASE_URL ?>assets/js/lucide.min.js"></script>
 
     <!-- Schema.org Markup (JSON-LD) - SoftwareApplication -->

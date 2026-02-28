@@ -161,7 +161,7 @@ class LancamentosController extends BaseController
             ->limit($limit);
 
         $rows = $q->selectRaw('
-            l.id, l.data, l.tipo, l.valor, l.descricao, l.observacao, 
+            l.id, l.data, l.hora_lancamento, l.tipo, l.valor, l.descricao, l.observacao, 
             l.categoria_id, l.conta_id, l.conta_id_destino, l.eh_transferencia, l.eh_saldo_inicial,
             l.pago, l.data_pagamento, l.parcelamento_id, l.cartao_credito_id, l.forma_pagamento, l.origem_tipo,
             l.recorrente, l.recorrencia_freq, l.recorrencia_fim, l.recorrencia_total, l.recorrencia_pai_id, l.cancelado_em,
@@ -177,6 +177,7 @@ class LancamentosController extends BaseController
         $out = $rows->map(fn($r) => [
             'id'               => (int)$r->id,
             'data'             => (string)$r->data,
+            'hora_lancamento'  => $r->hora_lancamento ?? null,
             'tipo'             => (string)$r->tipo,
             'valor'            => (float)$r->valor,
             'descricao'        => (string)($r->descricao ?? ''),
@@ -315,6 +316,7 @@ class LancamentosController extends BaseController
             $dto = CreateLancamentoDTO::fromRequest($userId, [
                 'tipo'             => $tipoLancamento,
                 'data'             => $payload['data'],
+                'hora_lancamento'  => $payload['hora_lancamento'] ?? null,
                 'valor'            => LancamentoValidator::sanitizeValor($payload['valor']),
                 'descricao'        => mb_substr(trim($payload['descricao'] ?? ''), 0, 190),
                 'observacao'       => mb_substr(trim($payload['observacao'] ?? ''), 0, 500),
@@ -388,6 +390,7 @@ class LancamentosController extends BaseController
         $mergedData = [
             'tipo' => $payload['tipo'] ?? $lancamento->tipo,
             'data' => $payload['data'] ?? $lancamento->data,
+            'hora_lancamento' => array_key_exists('hora_lancamento', $payload) ? ($payload['hora_lancamento'] ?: null) : $lancamento->hora_lancamento,
             'valor' => $payload['valor'] ?? $lancamento->valor,
             'descricao' => $payload['descricao'] ?? $lancamento->descricao,
             'observacao' => $payload['observacao'] ?? $lancamento->observacao,
@@ -415,6 +418,7 @@ class LancamentosController extends BaseController
         $dto = UpdateLancamentoDTO::fromRequest([
             'tipo' => strtolower(trim($mergedData['tipo'])),
             'data' => $mergedData['data'],
+            'hora_lancamento' => $mergedData['hora_lancamento'] ?? null,
             'valor' => LancamentoValidator::sanitizeValor($mergedData['valor']),
             'descricao' => mb_substr(trim($mergedData['descricao'] ?? ''), 0, 190),
             'observacao' => mb_substr(trim($mergedData['observacao'] ?? ''), 0, 500),
@@ -441,6 +445,15 @@ class LancamentosController extends BaseController
         Response::success(LancamentoResponseFormatter::format($lancamento));
     }
 
+    /**
+     * Excluir lançamento(s)
+     * DELETE /api/lancamentos/{id}
+     *
+     * Query params opcionais:
+     *  - scope=single  → Exclui apenas este lançamento (default)
+     *  - scope=future  → Exclui este e todos os futuros da série (recorrência ou parcelamento)
+     *  - scope=all     → Exclui todos da série (recorrência ou parcelamento)
+     */
     public function destroy(int $id): void
     {
         $uid = Auth::id();
@@ -456,12 +469,126 @@ class LancamentosController extends BaseController
             return;
         }
 
+        $scope = $_GET['scope'] ?? 'single';
+
         // Se for um pagamento de fatura, reverter os itens da fatura
         if ($t->origem_tipo === 'pagamento_fatura' && $t->cartao_credito_id) {
             $this->reverterPagamentoFatura($t);
         }
 
+        // ── RECORRÊNCIA ────────────────────────
+        if ($scope !== 'single' && $t->recorrente && $t->recorrencia_pai_id) {
+            $paiId = $t->recorrencia_pai_id;
+
+            if ($scope === 'all') {
+                // Excluir TODOS os lançamentos da série (pai + filhos)
+                $excluidos = \Application\Models\Lancamento::where(function ($q) use ($paiId) {
+                    $q->where('recorrencia_pai_id', $paiId)
+                        ->orWhere('id', $paiId);
+                })
+                    ->where('user_id', $uid)
+                    ->delete();
+
+                Response::success([
+                    'ok' => true,
+                    'message' => "{$excluidos} lançamentos da recorrência excluídos",
+                    'excluidos' => $excluidos,
+                ]);
+                return;
+            }
+
+            if ($scope === 'future') {
+                // Excluir este e todos os futuros não pagos da série
+                $dataRef = $t->data;
+                $excluidos = \Application\Models\Lancamento::where(function ($q) use ($paiId) {
+                    $q->where('recorrencia_pai_id', $paiId)
+                        ->orWhere('id', $paiId);
+                })
+                    ->where('user_id', $uid)
+                    ->where('data', '>=', $dataRef)
+                    ->where('pago', 0)
+                    ->delete();
+
+                Response::success([
+                    'ok' => true,
+                    'message' => "{$excluidos} lançamentos futuros da recorrência excluídos",
+                    'excluidos' => $excluidos,
+                ]);
+                return;
+            }
+        }
+
+        // ── PARCELAMENTO ────────────────────────
+        if ($scope !== 'single' && $t->parcelamento_id) {
+            $parcelamentoId = $t->parcelamento_id;
+
+            if ($scope === 'all') {
+                // Excluir TODAS as parcelas
+                $excluidos = \Application\Models\Lancamento::where('parcelamento_id', $parcelamentoId)
+                    ->where('user_id', $uid)
+                    ->delete();
+
+                // Excluir o header do parcelamento
+                \Application\Models\Parcelamento::where('id', $parcelamentoId)
+                    ->where('user_id', $uid)
+                    ->delete();
+
+                Response::success([
+                    'ok' => true,
+                    'message' => "{$excluidos} parcelas excluídas",
+                    'excluidos' => $excluidos,
+                ]);
+                return;
+            }
+
+            if ($scope === 'future') {
+                // Excluir esta e futuras não pagas
+                $dataRef = $t->data;
+                $excluidos = \Application\Models\Lancamento::where('parcelamento_id', $parcelamentoId)
+                    ->where('user_id', $uid)
+                    ->where('data', '>=', $dataRef)
+                    ->where('pago', 0)
+                    ->delete();
+
+                // Atualizar o header do parcelamento
+                $restantes = \Application\Models\Lancamento::where('parcelamento_id', $parcelamentoId)->count();
+                if ($restantes === 0) {
+                    \Application\Models\Parcelamento::where('id', $parcelamentoId)
+                        ->where('user_id', $uid)
+                        ->delete();
+                } else {
+                    $parcelamento = \Application\Models\Parcelamento::find($parcelamentoId);
+                    if ($parcelamento) {
+                        $parcelamento->numero_parcelas = $restantes;
+                        $parcelamento->save();
+                        (new \Application\Repositories\ParcelamentoRepository())->atualizarParcelasPagas($parcelamentoId);
+                    }
+                }
+
+                Response::success([
+                    'ok' => true,
+                    'message' => "{$excluidos} parcelas futuras excluídas",
+                    'excluidos' => $excluidos,
+                ]);
+                return;
+            }
+        }
+
+        // ── EXCLUSÃO SIMPLES (single) ────────────────────────
         $this->lancamentoRepo->delete($id);
+
+        // Se fazia parte de um parcelamento, atualizar o header
+        if ($t->parcelamento_id) {
+            $restantes = \Application\Models\Lancamento::where('parcelamento_id', $t->parcelamento_id)->count();
+            if ($restantes === 0) {
+                \Application\Models\Parcelamento::where('id', $t->parcelamento_id)
+                    ->where('user_id', $uid)
+                    ->delete();
+            } else {
+                (new \Application\Repositories\ParcelamentoRepository())->atualizarParcelasPagas($t->parcelamento_id);
+            }
+        }
+
         Response::success(['ok' => true]);
     }
 

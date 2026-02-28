@@ -1,0 +1,99 @@
+/* ========================================================================
+   AJUSTES ESPECï¿½FICOS PARA MOBILE DA TABELA DE LANï¿½AMENTOS
+   (estilo parecido com o mock do celular)
+   ======================================================================== */
+
+@media (max-width: 576px) {
+  /* Tirar os filtros do cabeï¿½alho no mobile */
+  .table-container .tabulator .tabulator-header-filter {
+    display: none !important;
+  }
+
+  /* Deixar o card da tabela mais parecido com um "cartï¿½o" */
+  .container-table {
+    padding: var(--spacing-2);
+    border-radius: 24px;
+  }
+
+  .table-container .tabulator {
+    border-radius: 24px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.08);
+  }
+
+  /* Cabeï¿½alho mais compacto e legï¿½vel */
+  .table-container .tabulator .tabulator-header {
+    border-bottom-width: 1px;
+  }
+
+  .table-container .tabulator .tabulator-col {
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 8px 6px;
+  }
+
+  /* Primeira coluna (setinha) menor, sï¿½ pro toggle */
+  .table-container .tabulator .tabulator-cell:first-child {
+    width: 40px !important;
+    max-width: 40px !important;
+    padding-left: 6px;
+    padding-right: 4px;
+  }
+
+  /* Aumentar ï¿½rea de clique da setinha */
+  .table-container
+    .tabulator
+    .tabulator-cell
+    .tabulator-responsive-collapse-toggle {
+    font-size: 1.1rem;
+    padding: 4px;
+  }
+
+  /* Linhas mais "cardzinhas" */
+  .table-container .tabulator .tabulator-row {
+    font-size: 0.9rem;
+  }
+
+  .table-container .tabulator .tabulator-cell {
+    padding: 10px 6px;
+  }
+
+  /* Ajuste de tamanho dos badges e botï¿½es pra caber bem */
+  .badge-tipo {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.6rem;
+  }
+
+  /* ï¿½rea colapsada (Detalhes, Categoria, Conta, Descriï¿½ï¿½o) no estilo stack */
+  .table-container .tabulator .tabulator-responsive-collapse {
+    background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+    border-top: 1px solid var(--glass-border);
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+
+  .lk-collapse-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+  }
+
+  .lk-collapse-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .lk-collapse-row .lk-label {
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  .lk-collapse-row .lk-value {
+    color: var(--color-text);
+    text-align: right;
+  }
+}
+

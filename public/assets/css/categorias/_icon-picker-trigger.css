@@ -1,0 +1,33 @@
+/* ============================================================================
+   ICON PICKER TRIGGER (no create-icon-area)
+   ============================================================================ */
+
+.icon-picker-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+  border-radius: 20px;
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  font-family: var(--font-primary);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.icon-picker-trigger svg,
+.icon-picker-trigger .lucide {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.icon-picker-trigger:hover {
+  background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+

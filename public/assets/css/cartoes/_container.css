@@ -1,0 +1,12 @@
+/* ==================== CARTÃƒâ€¢ES GRID ==================== */
+.cartoes-container {
+  min-height: 400px;
+}
+
+.cartoes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2rem;
+  animation: fadeInUp 0.6s ease;
+}
+

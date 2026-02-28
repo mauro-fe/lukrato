@@ -52,7 +52,7 @@ class LoginController extends BaseController
         $errorMessage = $this->getError();
         $socialSuccess = isset($_GET['new_google']) && $_GET['new_google'] == 1;
 
-        $this->render('admin/admins/login', [
+        $this->render('admin/auth/login', [
             'error' => $errorMessage,
             'registerErrorMessage' => $errorMessage,
             'registerErrors' => $registerErrors,

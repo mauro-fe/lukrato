@@ -1,0 +1,149 @@
+/* ============================================================================
+   GRID DE CATEGORIAS (RECEITAS E DESPESAS SEPARADAS)
+   ============================================================================ */
+
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: var(--spacing-5);
+}
+
+/* ============================================================================
+   CARDS DE CATEGORIA
+   ============================================================================ */
+
+.category-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+}
+
+.category-card:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Header das Categorias */
+.category-header {
+  padding: var(--spacing-5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  position: relative;
+  overflow: hidden;
+}
+.category-title {
+  color: var(--color-text);
+}
+.category-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.1;
+}
+
+.category-header.receitas {
+  background: linear-gradient(135deg, var(--color-success), #27ae60);
+  color: #ffffff;
+}
+
+.category-header.receitas::before {
+  background: var(--color-text) !important;
+}
+
+.category-header.despesas {
+  background: linear-gradient(135deg, var(--color-danger), #c0392b);
+  color: #ffffff;
+}
+
+.category-header.despesas::before {
+  background: var(--color-text) !important;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex: 1;
+}
+
+.header-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.header-text {
+  flex: 1;
+}
+
+.category-title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  margin: 0 0 var(--spacing-1) 0;
+  letter-spacing: -0.02em;
+}
+
+.category-count {
+  font-size: var(--font-size-sm);
+  margin: 0;
+  opacity: 0.9;
+  font-weight: 600;
+}
+
+.category-header .refresh-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+.category-header .refresh-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: rotate(180deg);
+}
+
+/* Lista de Categorias */
+.category-list {
+  flex: 1;
+  padding: var(--spacing-3);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--spacing-2);
+  overflow-y: auto;
+  max-height: 600px;
+  align-content: start;
+}
+
+.category-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.category-list::-webkit-scrollbar-track {
+  background: var(--color-surface-muted);
+  border-radius: 4px;
+}
+
+.category-list::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 4px;
+}
+
+.category-list::-webkit-scrollbar-thumb:hover {
+  background: var(--color-secondary);
+}
+

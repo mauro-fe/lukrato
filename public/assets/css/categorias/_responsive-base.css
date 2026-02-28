@@ -1,0 +1,30 @@
+/* ============================================================================
+   RESPONSIVIDADE
+   ============================================================================ */
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 16px;
+}
+
+.icon-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 1000px) {
+  .categories-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

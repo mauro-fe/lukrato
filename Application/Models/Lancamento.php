@@ -99,6 +99,7 @@ class Lancamento extends Model
         'user_id',
         'tipo',
         'data',
+        'hora_lancamento',
         'categoria_id',
         'conta_id',
         'conta_id_destino',

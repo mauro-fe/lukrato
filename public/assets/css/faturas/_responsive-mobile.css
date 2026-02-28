@@ -1,0 +1,620 @@
+/* ==================== RESPONSIVO FATURAS ==================== */
+@media (max-width: 768px) {
+  /* Ocultar header de colunas no mobile */
+  .faturas-list-header.visible {
+    display: none !important;
+  }
+
+  /* Ocultar coluna de status separada no mobile (vai aparecer no header) */
+  .parcelamentos-grid.list-view .parcelamento-card .fatura-status-col {
+    display: none !important;
+  }
+
+  .faturas-header {
+    flex-direction: column;
+    gap: 1rem;
+    padding: var(--spacing-4);
+  }
+
+  .faturas-title {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .view-toggle {
+    padding: 0.2rem;
+  }
+
+  .view-btn {
+    padding: 0.4rem 0.7rem;
+    font-size: 0.9rem;
+    min-width: 36px;
+  }
+
+  /* List View Mobile - Faturas */
+  .parcelamentos-grid.list-view .parcelamento-card {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 0 !important;
+    background: var(--glass-bg) !important;
+    grid-template-columns: none !important;
+  }
+
+  /* Header compacto no mobile - mostra info do cartÃƒÂ£o */
+  .parcelamentos-grid.list-view .parcelamento-card .parc-card-header {
+    width: 100% !important;
+    min-width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    flex: none !important;
+    padding: 0.875rem 1rem !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    border-radius: 12px 12px 0 0 !important;
+  }
+
+  /* Mostrar elementos no mobile */
+  .parcelamentos-grid.list-view .parcelamento-card .parc-card-header::before {
+    display: block !important;
+  }
+
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .parc-card-header
+    .header-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+  }
+
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .parc-card-header
+    .header-brand {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 1.1rem !important;
+  }
+
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .parc-card-header
+    .header-info {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.15rem !important;
+  }
+
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .parc-card-header
+    .header-cartao-nome {
+    font-size: 0.95rem !important;
+  }
+
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .parc-card-header
+    .header-cartao-numero {
+    font-size: 0.75rem !important;
+  }
+
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .parc-card-header
+    .header-right {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+  }
+
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .parc-card-header
+    .header-right::before {
+    display: none !important;
+  }
+
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .parc-card-header
+    .header-periodo {
+    display: flex !important;
+    font-size: 0.8rem !important;
+    padding: 0.25rem 0.5rem !important;
+  }
+
+  /* Mostrar badge de status no header mobile */
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .parc-card-header
+    .parc-card-badge {
+    display: flex !important;
+    font-size: 0.65rem !important;
+    padding: 0.2rem 0.5rem !important;
+  }
+
+  /* Ocultar fatura-list-info no mobile pois o header jÃƒÂ¡ mostra */
+  .parcelamentos-grid.list-view .parcelamento-card .fatura-list-info {
+    display: none !important;
+  }
+
+  /* Resumo com valores - layout compacto mobile */
+  .parcelamentos-grid.list-view .parcelamento-card .fatura-resumo-principal {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    padding: 0.75rem 1rem !important;
+    background: transparent !important;
+  }
+
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .fatura-resumo-principal
+    .resumo-item {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+  }
+
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .fatura-resumo-principal
+    .resumo-item:first-child {
+    flex-direction: row !important;
+  }
+
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .fatura-resumo-principal
+    .resumo-label {
+    display: block !important;
+    font-size: 0.8rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.02em !important;
+    color: var(--color-text-muted) !important;
+  }
+
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .fatura-resumo-principal
+    .resumo-valor {
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    color: #f59e0b !important;
+  }
+
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .fatura-resumo-principal
+    .resumo-data {
+    font-size: 0.9rem !important;
+    color: var(--color-text) !important;
+  }
+
+  /* SeÃƒÂ§ÃƒÂ£o de progresso mobile - compacta */
+  .parcelamentos-grid.list-view .parcelamento-card .parc-progress-section {
+    padding: 0.5rem 1rem 0.75rem !important;
+  }
+
+  .parcelamentos-grid.list-view .parcelamento-card .parc-progress-header {
+    font-size: 0.75rem !important;
+  }
+
+  /* BotÃƒÂ£o de aÃƒÂ§ÃƒÂ£o - compacto */
+  .parcelamentos-grid.list-view .parcelamento-card .parc-card-actions {
+    padding: 0 1rem 0.75rem !important;
+    width: 100% !important;
+    background: transparent !important;
+    justify-content: center !important;
+  }
+
+  .parcelamentos-grid.list-view
+    .parcelamento-card
+    .parc-card-actions
+    .parc-btn {
+    flex: 0 0 auto !important;
+    justify-content: center !important;
+    padding: 0.5rem 1.5rem !important;
+    font-size: 0.8rem !important;
+    max-width: 180px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .parcelamentos-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-4);
+  }
+}
+
+.parcelamento-card {
+  background: var(--glass-bg);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.12),
+    0 1px 4px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--glass-border);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.parcelamento-card:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.18),
+    0 2px 8px rgba(0, 0, 0, 0.1);
+  border-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
+}
+
+.parcelamento-card.status-cancelado {
+  opacity: 0.6;
+  filter: grayscale(0.3);
+}
+
+/* CabeÃƒÂ§alho do Card - Design Elegante */
+.parc-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.25rem 1rem;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  min-height: 80px;
+}
+
+/* Efeito de brilho animÃƒÂ¡vel */
+.parc-card-header::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -150%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    60deg,
+    transparent 25%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 75%
+  );
+  transition: left 0.6s ease;
+  pointer-events: none;
+}
+
+.parcelamento-card:hover .parc-card-header::before {
+  left: 150%;
+}
+
+.parc-card-header .header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.parc-card-header .header-brand {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #fff;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: transform 0.3s ease;
+}
+
+.parcelamento-card:hover .header-brand {
+  transform: scale(1.08);
+}
+
+.parc-card-header .header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.parc-card-header .header-cartao-nome {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.parc-card-header .header-cartao-numero {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: "Consolas", "Monaco", monospace;
+  letter-spacing: 0.1em;
+}
+
+.parc-card-header .header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.parc-card-header .header-periodo {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.375rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fff;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.parc-card-header .header-periodo i {
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+.parc-card-header .parc-card-badge {
+  padding: 0.3rem 0.65rem;
+  border-radius: 20px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.parc-card-header .parc-card-badge svg.lucide {
+  width: 12px !important;
+  height: 12px !important;
+  stroke-width: 2.5;
+}
+
+.parc-card-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+  flex: 1;
+}
+
+.parc-card-badge {
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: 20px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-ativo {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge-pendente {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge-paga {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badge-parcial {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.badge-concluido {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badge-cancelado {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Lucide icon inside badges */
+.parc-card-badge svg.lucide {
+  width: 12px !important;
+  height: 12px !important;
+  stroke-width: 2.5;
+  flex-shrink: 0;
+  color: inherit;
+}
+
+/* Valores */
+.parc-card-values {
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+}
+
+.parc-value-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-2) 0;
+}
+
+.parc-value-row:not(:last-child) {
+  border-bottom: 1px solid var(--color-card-border);
+}
+
+.parc-value-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.parc-value-amount {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.parc-value-amount.primary {
+  font-size: var(--font-size-xl);
+  color: var(--color-primary);
+}
+
+/* Progresso */
+.parc-progress-section {
+  padding: 0.85rem 1.25rem 0.75rem;
+}
+
+.parc-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+
+.parc-progress-text {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.parc-progress-percent {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.parc-progress-bar {
+  height: 6px;
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.parc-progress-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--color-primary),
+    color-mix(in srgb, var(--color-primary) 80%, #facc15)
+  ) !important;
+  border-radius: 99px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+/* Paga = 100% green bar */
+.parcelamento-card.status-paga .parc-progress-fill,
+.parcelamento-card.status-concluido .parc-progress-fill {
+  background: linear-gradient(90deg, #10b981, #34d399) !important;
+}
+
+.parcelamento-card.status-paga .parc-progress-percent,
+.parcelamento-card.status-concluido .parc-progress-percent {
+  color: #10b981;
+}
+
+/* PrÃƒÂ³xima Parcela */
+.parc-proxima-parcela {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  background: color-mix(in srgb, var(--color-secondary) 10%, transparent);
+  border-left: 3px solid var(--color-secondary);
+  border-radius: 4px;
+  margin-top: var(--spacing-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+
+.parc-proxima-parcela i {
+  color: var(--color-secondary);
+  font-size: var(--font-size-base);
+}
+
+/* Info adicional */
+.parc-card-info {
+  display: flex;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+  flex-wrap: wrap;
+}
+
+.parc-info-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.parc-info-item i {
+  color: var(--color-primary);
+}
+
+/* AÃƒÂ§ÃƒÂµes do Card */
+.parc-card-actions {
+  display: flex;
+  gap: var(--spacing-2);
+  padding: 0.5rem 1.25rem 1.25rem;
+}
+
+.parc-btn {
+  flex: 1;
+  padding: 0.7rem 1rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.parc-btn svg.lucide {
+  color: inherit;
+}
+
+.parc-btn-view {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    color-mix(in srgb, var(--color-primary) 80%, #000)
+  );
+  color: white;
+  box-shadow: 0 2px 10px
+    color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+.parc-btn-view:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px
+    color-mix(in srgb, var(--color-primary) 40%, transparent);
+}
+
+.parc-btn-cancel {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.parc-btn-cancel:hover {
+  background: #fecaca;
+}
+

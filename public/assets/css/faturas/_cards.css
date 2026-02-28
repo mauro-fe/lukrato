@@ -1,0 +1,600 @@
+/* ==================== CARDS MODERNOS ==================== */
+.modern-card {
+  background: var(--color-card-bg);
+  -bottom: 2px solid var(--color-primary);
+  padding-bottom: var(--spacing-2);
+}
+
+/* ==================== HEADER DO MODAL DETALHES ==================== */
+.detalhes-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.detalhes-header-content .detalhes-title {
+  margin: 0;
+  flex: 1;
+  min-width: 150px;
+}
+
+.btn-pagar-fatura-completa {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  white-space: nowrap;
+}
+
+.btn-pagar-fatura-completa:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.btn-pagar-fatura-completa .btn-text-mobile {
+  display: none;
+}
+
+.btn-pagar-fatura-completa .btn-text-desktop {
+  display: inline;
+}
+
+/* BotÃƒÂ£o Pagar Fatura (modal detalhes) */
+.btn-pagar-fatura .btn-text-mobile {
+  display: none;
+}
+
+.btn-pagar-fatura .btn-text-desktop {
+  display: inline;
+}
+
+/* BotÃƒÂ£o Excluir Fatura */
+.btn-excluir-fatura {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  white-space: nowrap;
+}
+
+.btn-excluir-fatura:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.btn-excluir-fatura .btn-text-mobile {
+  display: none;
+}
+
+.btn-excluir-fatura .btn-text-desktop {
+  display: inline;
+}
+
+/* BotÃƒÂ£o Reverter Pagamento */
+.btn-reverter-fatura {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+  white-space: nowrap;
+}
+
+.btn-reverter-fatura:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+.btn-reverter-fatura .btn-text-mobile {
+  display: none;
+}
+
+.btn-reverter-fatura .btn-text-desktop {
+  display: inline;
+}
+
+/* Grupo de botÃƒÂµes de aÃƒÂ§ÃƒÂ£o do item */
+.btn-group-parcela {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+
+/* BotÃƒÂµes de aÃƒÂ§ÃƒÂ£o da tabela */
+.btn-toggle-parcela {
+  border: none;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+}
+
+.btn-toggle-parcela.btn-pagar {
+  background: #10b981;
+  color: white;
+}
+
+.btn-toggle-parcela.btn-pagar:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.btn-toggle-parcela.btn-desfazer {
+  background: #6366f1;
+  color: white;
+}
+
+.btn-toggle-parcela.btn-desfazer:hover {
+  background: #4f46e5;
+  transform: translateY(-1px);
+}
+
+.btn-toggle-parcela.btn-editar {
+  background: #f59e0b;
+  color: white;
+}
+
+.btn-toggle-parcela.btn-editar:hover {
+  background: #d97706;
+  transform: translateY(-1px);
+}
+
+.btn-toggle-parcela.btn-excluir {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-toggle-parcela.btn-excluir:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+/* BotÃƒÂ£o Excluir Item Individual */
+.btn-excluir-item {
+  background: #ef4444;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+}
+
+.btn-excluir-item:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+}
+
+/* BotÃƒÂ£o Editar Item */
+.btn-editar-item {
+  background: #f59e0b;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+}
+
+.btn-editar-item:hover {
+  background: #d97706;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+}
+
+.detalhes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+}
+
+.detalhes-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  padding: var(--spacing-3);
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+}
+
+.detalhes-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.detalhes-value {
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.detalhes-value-highlight {
+  color: var(--card-accent, var(--color-primary));
+  font-size: var(--font-size-xl);
+}
+
+/* Barra de Progresso no Modal */
+.detalhes-progresso {
+  background: var(--card-accent, var(--color-primary));
+  padding: var(--spacing-3);
+  border-radius: var(--radius-sm);
+  color: white;
+  margin-bottom: var(--spacing-3);
+}
+
+.progresso-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.35rem;
+  font-size: var(--font-size-sm);
+}
+
+.progresso-percent {
+  font-size: var(--font-size-lg);
+}
+
+.progresso-barra {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin-bottom: 0.35rem;
+}
+
+.progresso-fill {
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: var(--radius-sm);
+  transition: width var(--transition-slow);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.progresso-valores {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-xs);
+}
+
+.valor-pago {
+  color: #d1fae5;
+}
+
+.valor-restante {
+  color: #fef3c7;
+}
+
+/* Lista de Parcelas */
+.parcelas-titulo {
+  margin: var(--spacing-4) 0 var(--spacing-3) 0;
+  font-size: var(--font-size-base);
+  color: var(--color-primary);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.parcelas-container {
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-card-border);
+  width: 100%;
+}
+
+.parcelas-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-bg);
+  box-shadow: var(--shadow-sm);
+  table-layout: fixed;
+}
+
+.parcelas-table thead {
+  background: var(--color-primary);
+  border-bottom: 2px solid var(--color-primary);
+}
+
+.parcelas-table th {
+  padding: var(--spacing-2) var(--spacing-3);
+  text-align: center !important;
+  font-weight: 600;
+  color: #ffffff;
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.parcelas-table th.th-sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.parcelas-table th.th-sortable:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.parcelas-table th .sort-icon {
+  margin-left: 4px;
+  font-size: 0.7rem;
+  opacity: 0.4;
+  vertical-align: middle;
+}
+
+.parcelas-table th .sort-icon.active {
+  opacity: 1;
+  color: #fbbf24;
+}
+
+/* Larguras especÃƒÂ­ficas das colunas */
+.parcelas-table th:nth-child(1) {
+  width: 50px;
+} /* # */
+.parcelas-table th:nth-child(2) {
+  width: auto;
+  min-width: 100px;
+} /* DescriÃƒÂ§ÃƒÂ£o */
+.parcelas-table th:nth-child(3) {
+  width: 110px;
+} /* Data Compra */
+.parcelas-table th:nth-child(4) {
+  width: 110px;
+} /* Valor */
+.parcelas-table th:nth-child(5) {
+  width: 130px;
+} /* AÃƒÂ§ÃƒÂ£o */
+
+/* CÃƒÂ©lula de descriÃƒÂ§ÃƒÂ£o */
+.parcelas-table .td-descricao {
+  text-align: center;
+  padding-left: var(--spacing-4);
+}
+
+/* CÃƒÂ©lula de status */
+.parcelas-table .td-status {
+  white-space: nowrap;
+}
+
+/* Badge de status */
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-badge.parcela-paga {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+
+.status-badge.parcela-pendente {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+/* CÃƒÂ©lula de aÃƒÂ§ÃƒÂµes */
+.parcelas-table .td-acoes {
+  white-space: nowrap;
+}
+
+.parcelas-table tbody tr {
+  border-bottom: 1px solid var(--color-card-border);
+  background: var(--color-surface);
+  transition: all var(--transition-fast);
+}
+
+.parcelas-table tbody tr.tr-paga {
+  background: var(--color-surface);
+  border-left: 3px solid var(--color-success);
+}
+
+.parcelas-table td {
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  text-align: center;
+  vertical-align: middle;
+}
+
+.parcela-numero {
+  display: inline-block;
+  background: var(--color-primary);
+  color: white;
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: var(--font-size-xs);
+}
+
+.parcela-desc {
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.parcela-data {
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.parcela-valor {
+  color: var(--color-text);
+  font-weight: 700;
+  font-size: var(--font-size-base);
+}
+
+.parcela-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--color-success);
+}
+
+.parcela-paga {
+  background: var(--color-success);
+  color: white;
+  padding: 0.4rem 0.85rem;
+  border-radius: 20px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  box-shadow: 0 2px 4px
+    color-mix(in srgb, var(--color-success) 30%, transparent);
+  white-space: nowrap;
+}
+
+.parcela-pendente {
+  background: linear-gradient(
+    135deg,
+    var(--color-warning) 0%,
+    var(--color-primary) 100%
+  );
+  color: white;
+  padding: 0.4rem 0.85rem;
+  border-radius: 20px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  box-shadow: 0 2px 4px
+    color-mix(in srgb, var(--color-primary) 30%, transparent);
+  white-space: nowrap;
+}
+
+/* BotÃƒÂµes de Toggle na AÃƒÂ§ÃƒÂ£o */
+.btn-toggle-parcela {
+  padding: var(--spacing-2);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 95px;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.btn-ver-detalhes-parcela {
+  padding: var(--spacing-2) var(--spacing-3);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  background: var(--color-primary);
+  color: white;
+  width: 100%;
+  max-width: 120px;
+}
+
+.btn-ver-detalhes-parcela:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-ver-detalhes-parcela i {
+  font-size: var(--font-size-xs);
+}
+
+.btn-pago {
+  background: linear-gradient(135deg, var(--color-success) 0%, #20c997 100%);
+  color: white;
+}
+
+.btn-pago:hover {
+  background: linear-gradient(135deg, #20c997 0%, var(--color-success) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px
+    color-mix(in srgb, var(--color-success) 40%, transparent);
+}
+
+.btn-pendente {
+  background: linear-gradient(
+    135deg,
+    var(--color-neutral) 0%,
+    color-mix(in srgb, var(--color-neutral) 80%, black) 100%
+  );
+  color: white;
+}
+
+.btn-pendente:hover {
+  background: linear-gradient(135deg, var(--color-success) 0%, #20c997 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px
+    color-mix(in srgb, var(--color-success) 40%, transparent);
+}
+
+.btn-toggle-parcela:active {
+  transform: translateY(0);
+}
+

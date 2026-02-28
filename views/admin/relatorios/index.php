@@ -1,10 +1,10 @@
 <!-- Relatórios View -->
 <?php $isPro = $isPro ?? false; ?>
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-relatorios-relatorios.css?v=<?= time() ?>">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/bundles/admin-relatorios-relatorios.css.php?v=<?= time() ?>">
 
 <div class="rel-page">
     <!-- ==================== NAVEGAÇÃO DE MÊS ==================== -->
-    <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
+    <?php include BASE_PATH . '/views/admin/partials/header-mes.php'; ?>
 
     <!-- ==================== CARDS DE RESUMO RÁPIDO ==================== -->
     <div class="quick-stats-grid">
@@ -330,13 +330,12 @@
 </div>
 
 <!-- Template do Modal de Detalhes do Cartão -->
-<?php include BASE_PATH . '/views/modals/card-detail-modal.php'; ?>
+<?php include BASE_PATH . '/views/admin/partials/modals/card-detail-modal.php'; ?>
 
 <!-- ==================== SCRIPTS ==================== -->
 <script>
     window.IS_PRO = <?= json_encode($isPro) ?>;
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-<script src="<?= BASE_URL ?>assets/js/card-modal-renderers.js?v=<?= time() ?>"></script>
-<script src="<?= BASE_URL ?>assets/js/card-detail-modal-refactored.js?v=<?= time() ?>"></script>
-<script src="<?= BASE_URL ?>assets/js/admin-relatorios-relatorios.js"></script>
+<?= vite_scripts('admin/card-modals/index.js') ?>
+<!-- Page JS carregado automaticamente via loadPageJs() + Vite -->

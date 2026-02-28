@@ -9,6 +9,7 @@ readonly class UpdateLancamentoDTO
     public function __construct(
         public string $tipo,
         public string $data,
+        public ?string $horaLancamento = null,
         public float $valor,
         public string $descricao,
         public ?string $observacao = null,
@@ -23,6 +24,7 @@ readonly class UpdateLancamentoDTO
         return [
             'tipo' => $this->tipo,
             'data' => $this->data,
+            'hora_lancamento' => $this->horaLancamento,
             'valor' => $this->valor,
             'descricao' => $this->descricao,
             'observacao' => $this->observacao,
@@ -38,6 +40,7 @@ readonly class UpdateLancamentoDTO
         return new self(
             tipo: $data['tipo'] ?? '',
             data: $data['data'] ?? '',
+            horaLancamento: !empty($data['hora_lancamento']) ? $data['hora_lancamento'] : null,
             valor: (float)($data['valor'] ?? 0),
             descricao: $data['descricao'] ?? '',
             observacao: $data['observacao'] ?? null,

@@ -1,0 +1,97 @@
+/* ===================================================================
+   PAGINATION SECTION
+   =================================================================== */
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: var(--glass-bg);
+  border-top: 1px solid var(--glass-border);
+  border-radius: 0 0 12px 12px;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.pagination-info {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.pagination-info strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.pagination-controls {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.pagination-btn {
+  background: var(--color-surface);
+  border: 1px solid var(--color-card-border);
+  color: var(--color-text);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.pagination-btn.active {
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 8px rgba(230, 126, 34, 0.3);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.pagination-modern {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin: 1rem 0 0 0;
+}
+
+.pagination-modern button {
+  background: var(--color-bg);
+  border: 1px solid var(--color-card-border);
+  color: var(--color-text);
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.pagination-modern button.active {
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: bold;
+}
+
+.pagination-modern button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+

@@ -1,14 +1,12 @@
 ﻿<!-- CSS MODERNIZADO -->
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-tables-shared.css">
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/filters-modern.css?v=<?= filemtime(BASE_PATH . '/public/assets/css/filters-modern.css') ?>">
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/lancamentos-modern.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/bundles/lancamentos-modern.css.php?v=<?= time() ?>">
 
 <?php $isPro = $isPro ?? false; ?>
 
 <section class="lan-page">
     <!-- ==================== HEADER MODERNIZADO ==================== -->
     <div class="lan-header-modern">
-        <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
+        <?php include BASE_PATH . '/views/admin/partials/header-mes.php'; ?>
 
         <!-- CARD DE EXPORTAÇÃO -->
         <div class="modern-card export-card <?= !$isPro ? 'pro-locked' : '' ?>" data-aos="fade-up" data-aos-delay="100">
@@ -65,6 +63,32 @@
                         </div>
                     </div>
 
+                    <div class="export-filters-row">
+                        <div class="export-filter-item">
+                            <label for="exportConta" class="export-filter-label">Conta</label>
+                            <select id="exportConta" class="modern-select export-select"
+                                <?= !$isPro ? 'disabled' : '' ?>>
+                                <option value="">Todas</option>
+                            </select>
+                        </div>
+                        <div class="export-filter-item">
+                            <label for="exportCategoria" class="export-filter-label">Categoria</label>
+                            <select id="exportCategoria" class="modern-select export-select"
+                                <?= !$isPro ? 'disabled' : '' ?>>
+                                <option value="">Todas</option>
+                            </select>
+                        </div>
+                        <div class="export-filter-item">
+                            <label for="exportTipo" class="export-filter-label">Tipo</label>
+                            <select id="exportTipo" class="modern-select export-select"
+                                <?= !$isPro ? 'disabled' : '' ?>>
+                                <option value="">Todos</option>
+                                <option value="receita">Receitas</option>
+                                <option value="despesa">Despesas</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="export-actions-group">
                         <select id="exportFormat" class="modern-select" aria-label="Formato de exportação"
                             <?= !$isPro ? 'disabled' : '' ?>>
@@ -82,78 +106,58 @@
             </div>
         </div>
 
-        <!-- CARD DE FILTROS COLAPSÁVEL -->
-        <div class="filters-modern" data-aos="fade-up" data-aos-delay="200">
-            <div class="filters-header">
-                <div class="filters-title">
-                    <div class="filters-icon">
-                        <i data-lucide="sliders-horizontal"></i>
+        <!-- BARRA DE FILTROS INLINE -->
+        <div class="lk-filters-bar" data-aos="fade-up" data-aos-delay="200">
+            <div class="lk-filters-row">
+                <div class="lk-filter-search">
+                    <i data-lucide="search" class="lk-filter-search-icon"></i>
+                    <input type="text" id="filtroTexto" class="lk-filter-search-input"
+                        placeholder="Buscar por descrição..." aria-label="Buscar lançamentos">
+                </div>
+
+                <div class="lk-filter-group">
+                    <div class="lk-filter-chip-select">
+                        <i data-lucide="tag"></i>
+                        <select id="filtroTipo" class="lk-filter-native" aria-label="Filtrar por tipo">
+                            <option value="">Tipo</option>
+                            <option value="receita">Receitas</option>
+                            <option value="despesa">Despesas</option>
+                        </select>
                     </div>
-                    <div class="filters-text">
-                        <h3>Filtros Avançados</h3>
-                        <span class="filters-subtitle">Refine sua busca por tipo, categoria e conta</span>
+
+                    <div class="lk-filter-chip-select">
+                        <i data-lucide="folder"></i>
+                        <select id="filtroCategoria" class="lk-filter-native" aria-label="Filtrar por categoria">
+                            <option value="">Categoria</option>
+                            <option value="none">Sem Categoria</option>
+                        </select>
+                    </div>
+
+                    <div class="lk-filter-chip-select">
+                        <i data-lucide="wallet"></i>
+                        <select id="filtroConta" class="lk-filter-native" aria-label="Filtrar por conta">
+                            <option value="">Conta</option>
+                        </select>
+                    </div>
+
+                    <div class="lk-filter-chip-select">
+                        <i data-lucide="circle-check"></i>
+                        <select id="filtroStatus" class="lk-filter-native" aria-label="Filtrar por status">
+                            <option value="">Status</option>
+                            <option value="pago">Pagos</option>
+                            <option value="pendente">Pendentes</option>
+                        </select>
                     </div>
                 </div>
-                <button type="button" class="filters-toggle" id="toggleFilters" aria-label="Expandir filtros">
-                    <i data-lucide="chevron-down"></i>
+
+                <button id="btnLimparFiltros" type="button" class="lk-filter-clear-btn" aria-label="Limpar filtros"
+                    title="Limpar filtros">
+                    <i data-lucide="x"></i>
                 </button>
             </div>
 
-            <div class="filters-body" id="filtersBody">
-                <div class="filters-grid">
-                    <div class="filter-item">
-                        <label class="filter-label-modern" for="filtroTipo">
-                            <i data-lucide="tag" style="color: var(--color-primary)"></i>
-                            Tipo
-                        </label>
-                        <div class="select-wrapper">
-                            <select id="filtroTipo" class="filter-select" aria-label="Filtrar por tipo">
-                                <option value="">Todos os Tipos</option>
-                                <option value="receita">💰 Receitas</option>
-                                <option value="despesa">💸 Despesas</option>
-                            </select>
-                            <i data-lucide="chevron-down" class="select-arrow"></i>
-                        </div>
-                    </div>
-
-                    <div class="filter-item">
-                        <label class="filter-label-modern" for="filtroCategoria">
-                            <i data-lucide="folder" style="color: var(--color-primary)"></i>
-                            Categoria
-                        </label>
-                        <div class="select-wrapper">
-                            <select id="filtroCategoria" class="filter-select" aria-label="Filtrar por categoria">
-                                <option value="">Todas as Categorias</option>
-                                <option value="none">Sem Categoria</option>
-                            </select>
-                            <i data-lucide="chevron-down" class="select-arrow"></i>
-                        </div>
-                    </div>
-
-                    <div class="filter-item">
-                        <label class="filter-label-modern" for="filtroConta">
-                            <i data-lucide="wallet" style="color: var(--color-primary)"></i>
-                            Conta
-                        </label>
-                        <div class="select-wrapper">
-                            <select id="filtroConta" class="filter-select" aria-label="Filtrar por conta">
-                                <option value="">Todas as Contas</option>
-                            </select>
-                            <i data-lucide="chevron-down" class="select-arrow"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="filters-actions">
-                    <button id="btnLimparFiltros" type="button" class="btn-filter-clear" aria-label="Limpar filtros">
-                        <i data-lucide="x"></i>
-                        <span>Limpar</span>
-                    </button>
-                    <button id="btnFiltrar" type="button" class="btn-filter-apply" aria-label="Aplicar filtros">
-                        <i data-lucide="search"></i>
-                        <span>Aplicar Filtros</span>
-                    </button>
-                </div>
+            <!-- Active filter badges -->
+            <div class="lk-active-filters" id="activeFilterBadges" style="display: none;">
             </div>
         </div>
     </div>
@@ -195,6 +199,7 @@
                                     <input type="checkbox" id="selectAllLancamentos" class="lk-checkbox"
                                         title="Selecionar todos">
                                 </th>
+                                <th class="th-expand"></th>
                                 <th class="th-data sortable" data-sort="data">
                                     <span>Data</span>
                                     <i data-lucide="arrow-up-down" class="sort-icon"></i>
@@ -203,15 +208,14 @@
                                     <span>Tipo</span>
                                     <i data-lucide="arrow-up-down" class="sort-icon"></i>
                                 </th>
-                                <th class="th-categoria">Categoria</th>
-                                <th class="th-conta">Conta</th>
                                 <th class="th-descricao">Descrição</th>
+                                <th class="th-categoria">Categoria</th>
                                 <th class="th-valor sortable" data-sort="valor">
                                     <span>Valor</span>
                                     <i data-lucide="arrow-up-down" class="sort-icon"></i>
                                 </th>
-                                <th class="th-status">Status</th>
-                                <th class="th-data-pagamento">Pago em</th>
+                                <th class="th-tags">Info</th>
+                                <th class="th-pago-em">Pago Em</th>
                                 <th class="th-acoes">Ações</th>
                             </tr>
                         </thead>

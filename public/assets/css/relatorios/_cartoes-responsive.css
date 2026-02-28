@@ -1,0 +1,891 @@
+﻿/* ============================================================================
+   RESPONSIVIDADE
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .quick-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-3);
+  }
+
+  .stat-card {
+    padding: var(--spacing-4);
+  }
+
+  .stat-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+  }
+
+  .stat-value {
+    font-size: var(--font-size-lg);
+  }
+
+  /* Cards de cartÃƒÆ’Ã‚Âµes */
+  .cards-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-4);
+  }
+
+  .card-header-gradient {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .card-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+  }
+
+  .card-name {
+    font-size: var(--font-size-lg);
+  }
+
+  .balance-value {
+    font-size: 1.75rem;
+  }
+
+  .balance-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .forecast-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Tabs */
+  .tabs-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .tab-btn {
+    min-width: 120px;
+    padding: var(--spacing-3);
+  }
+
+  /* Charts */
+  .chart-container {
+    min-height: 380px;
+    padding: var(--spacing-4);
+  }
+
+  .chart-container canvas {
+    min-height: 320px !important;
+  }
+
+  .chart-dual {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-4);
+  }
+
+  .chart-title {
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--spacing-3);
+  }
+
+  /* Comparativos */
+  .comparatives-container {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-4);
+  }
+
+  .comparative-card {
+    padding: var(--spacing-4);
+  }
+
+  .comparative-header {
+    margin-bottom: var(--spacing-4);
+  }
+
+  .comparative-card h3 {
+    font-size: var(--font-size-lg);
+  }
+
+  .period-labels {
+    gap: var(--spacing-2);
+  }
+
+  .period-current {
+    font-size: var(--font-size-sm);
+    padding: 6px 10px;
+  }
+
+  .period-previous {
+    font-size: var(--font-size-sm);
+  }
+
+  .comparative-item-new {
+    padding: var(--spacing-4);
+  }
+
+  .item-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .item-label {
+    font-size: 0.7rem;
+  }
+
+  .item-values {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-3);
+  }
+
+  .value-current .value-amount {
+    font-size: var(--font-size-xl);
+  }
+
+  .value-previous .value-amount {
+    font-size: var(--font-size-lg);
+  }
+
+  .item-trend {
+    font-size: var(--font-size-sm);
+    padding: 6px 10px;
+  }
+
+  /* Controles */
+  .controls-row {
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+
+  .control-group {
+    width: 100%;
+  }
+
+  /* Month picker */
+  .month-picker-wrapper {
+    width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  /* Layout geral */
+  .rel-page {
+    padding: var(--spacing-2);
+  }
+
+  /* TÃƒÆ’Ã‚Â­tulos */
+  .page-title {
+    font-size: var(--font-size-xl);
+  }
+
+  /* Stats cards */
+  .quick-stats-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-3);
+  }
+
+  .stat-card {
+    flex-direction: row;
+    text-align: left;
+    padding: var(--spacing-4);
+  }
+
+  .stat-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
+
+  /* Cards de cartÃƒÆ’Ã‚Âµes */
+  .card-header-gradient {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: var(--spacing-3);
+  }
+
+  .card-brand {
+    width: 100%;
+  }
+
+  .card-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .card-name {
+    font-size: var(--font-size-base);
+  }
+
+  .card-account {
+    font-size: 0.7rem;
+  }
+
+  .card-due {
+    width: 100%;
+    margin-top: var(--spacing-2);
+    justify-content: center;
+  }
+
+  /* Valores */
+  .card-balance {
+    padding: var(--spacing-3);
+  }
+
+  .balance-value {
+    font-size: 1.4rem;
+  }
+
+  .balance-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-2);
+  }
+
+  .balance-small-value {
+    font-size: var(--font-size-base);
+  }
+
+  /* Barra de utilizaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o */
+  .card-usage-new {
+    padding: var(--spacing-2) var(--spacing-3);
+  }
+
+  .usage-bar-new {
+    height: 10px;
+  }
+
+  /* Parcelamentos */
+  .card-installments {
+    padding: var(--spacing-2) var(--spacing-3);
+  }
+
+  .installments-badge {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-1);
+  }
+
+  .installments-text {
+    font-size: 0.75rem;
+  }
+
+  .installments-value {
+    font-size: var(--font-size-base);
+  }
+
+  /* PrÃƒÆ’Ã‚Â³ximos meses */
+  .card-forecast {
+    padding: var(--spacing-2) var(--spacing-3);
+  }
+
+  .forecast-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-2);
+  }
+
+  .forecast-month {
+    padding: var(--spacing-2);
+  }
+
+  /* Alertas */
+  .card-alerts {
+    padding: var(--spacing-2) var(--spacing-3);
+  }
+
+  .alert-badge {
+    font-size: 0.65rem;
+    padding: 3px 6px;
+  }
+
+  /* Tabs */
+  .tabs-container {
+    gap: var(--spacing-1);
+    padding: var(--spacing-2);
+  }
+
+  .tab-btn span {
+    display: none;
+  }
+
+  .tab-btn {
+    min-width: 44px;
+    padding: var(--spacing-2);
+  }
+
+  .tab-btn i,
+  .tab-btn svg {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Controles */
+  .controls-row {
+    gap: var(--spacing-2);
+  }
+
+  .control-group label {
+    font-size: var(--font-size-sm);
+  }
+
+  .form-select {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-2) var(--spacing-3);
+  }
+
+  /* Comparativos mobile */
+  .comparatives-container {
+    gap: var(--spacing-3);
+  }
+
+  .comparative-card {
+    padding: var(--spacing-3);
+    border-radius: var(--radius-lg);
+  }
+
+  .comparative-header {
+    margin-bottom: var(--spacing-3);
+    padding-bottom: var(--spacing-2);
+  }
+
+  .comparative-card h3 {
+    font-size: var(--font-size-base);
+    margin-bottom: var(--spacing-2);
+  }
+
+  .period-labels {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-1);
+  }
+
+  .period-current {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+  }
+
+  .period-separator {
+    display: none;
+  }
+
+  .period-previous {
+    font-size: 0.7rem;
+    padding-left: var(--spacing-2);
+  }
+
+  .period-previous::before {
+    content: "ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ ";
+    margin-right: 4px;
+  }
+
+  .comparative-grid-new {
+    gap: var(--spacing-2);
+  }
+
+  .comparative-item-new {
+    padding: var(--spacing-3);
+    border-radius: var(--radius-md);
+  }
+
+  .item-header {
+    margin-bottom: var(--spacing-2);
+    padding-bottom: var(--spacing-2);
+  }
+
+  .item-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .item-label {
+    font-size: 0.65rem;
+  }
+
+  .item-values {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-2);
+    margin-bottom: var(--spacing-2);
+  }
+
+  .value-label {
+    font-size: 0.6rem;
+  }
+
+  .value-current .value-amount {
+    font-size: var(--font-size-lg);
+  }
+
+  .value-previous {
+    padding-top: var(--spacing-1);
+    border-top: 1px solid var(--glass-border);
+  }
+
+  .value-previous .value-amount {
+    font-size: var(--font-size-base);
+  }
+
+  .item-trend {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .item-trend i {
+    font-size: 0.9em;
+  }
+
+  /* Charts otimizados para mobile */
+  .lk-chart,
+  .chart-container {
+    min-height: 320px;
+    padding: var(--spacing-3);
+    border-radius: var(--radius-md);
+  }
+
+  .chart-container canvas {
+    min-height: 260px !important;
+  }
+
+  .chart-dual {
+    gap: var(--spacing-3);
+  }
+
+  .chart-title {
+    font-size: var(--font-size-base);
+    margin-bottom: var(--spacing-2);
+    padding-bottom: var(--spacing-2);
+  }
+
+  /* ExportaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o */
+  .export-controls {
+    flex-direction: column;
+    gap: var(--spacing-2);
+  }
+
+  .export-controls .form-group {
+    width: 100%;
+  }
+
+  .export-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* iPhones modernos e similares (390-480px) */
+@media (min-width: 390px) and (max-width: 480px) {
+  .comparative-card {
+    padding: var(--spacing-3);
+  }
+
+  .comparative-header {
+    margin-bottom: var(--spacing-3);
+  }
+
+  .comparative-card h3 {
+    font-size: 0.9rem;
+  }
+
+  .period-labels {
+    gap: var(--spacing-2);
+  }
+
+  .period-current {
+    font-size: 0.75rem;
+    padding: 5px 10px;
+  }
+
+  .period-previous {
+    font-size: 0.75rem;
+  }
+
+  .comparative-item-new {
+    padding: var(--spacing-3);
+  }
+
+  .item-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
+  }
+
+  .item-label {
+    font-size: 0.7rem;
+  }
+
+  .value-current .value-amount {
+    font-size: 1.1rem;
+  }
+
+  .value-previous .value-amount {
+    font-size: 0.9rem;
+  }
+
+  .item-trend {
+    font-size: 0.75rem;
+    padding: 5px 10px;
+  }
+}
+
+/* Smartphones muito pequenos */
+@media (max-width: 400px) {
+  /* Layout ultra compacto */
+  .rel-page {
+    padding: var(--spacing-1);
+  }
+
+  /* Cards */
+  .modern-card,
+  .comparative-card,
+  .card-item {
+    padding: var(--spacing-2);
+    border-radius: var(--radius-md);
+  }
+
+  /* TÃƒÆ’Ã‚Â­tulos */
+  .page-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .comparative-card h3 {
+    font-size: 0.75rem;
+    margin-bottom: var(--spacing-1);
+  }
+
+  .comparative-header {
+    margin-bottom: var(--spacing-2);
+    padding-bottom: var(--spacing-2);
+  }
+
+  /* Comparativos ultra compactos */
+  .comparatives-container {
+    gap: var(--spacing-2);
+  }
+
+  .period-labels {
+    gap: 4px;
+  }
+
+  .period-current {
+    font-size: 0.6rem;
+    padding: 3px 6px;
+  }
+
+  .period-previous {
+    font-size: 0.6rem;
+  }
+
+  .comparative-grid-new {
+    gap: var(--spacing-2);
+  }
+
+  .comparative-item-new {
+    padding: var(--spacing-2);
+  }
+
+  .item-header {
+    gap: 6px;
+    margin-bottom: var(--spacing-1);
+    padding-bottom: var(--spacing-1);
+  }
+
+  .item-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+  }
+
+  .item-label {
+    font-size: 0.6rem;
+  }
+
+  .item-values {
+    gap: var(--spacing-1);
+    margin-bottom: var(--spacing-1);
+  }
+
+  .value-label {
+    font-size: 0.55rem;
+  }
+
+  .value-current .value-amount {
+    font-size: var(--font-size-base);
+  }
+
+  .value-previous .value-amount {
+    font-size: var(--font-size-sm);
+  }
+
+  .item-trend {
+    font-size: 0.65rem;
+    padding: 3px 6px;
+  }
+
+  .item-trend i {
+    font-size: 0.85em;
+  }
+
+  /* Stats */
+  .stat-card {
+    padding: var(--spacing-3);
+  }
+
+  .stat-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+  }
+
+  .stat-value {
+    font-size: var(--font-size-base);
+  }
+
+  /* CartÃƒÆ’Ã‚Âµes */
+  .card-icon-wrapper {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  .card-name {
+    font-size: var(--font-size-sm);
+  }
+
+  .balance-value {
+    font-size: 1.2rem;
+  }
+
+  .balance-small-value {
+    font-size: var(--font-size-sm);
+  }
+
+  /* Tabs */
+  .tab-btn {
+    min-width: 40px;
+    padding: var(--spacing-1);
+  }
+
+  .tab-btn i,
+  .tab-btn svg {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Charts ultra compactos */
+  .lk-chart,
+  .chart-container {
+    min-height: 280px;
+    padding: var(--spacing-2);
+  }
+
+  .chart-container canvas {
+    min-height: 220px !important;
+  }
+
+  .chart-title {
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-2);
+  }
+
+  /* Comparativos */
+  .comparative-card {
+    padding: var(--spacing-3);
+  }
+
+  .item-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+
+  .item-label {
+    font-size: 0.65rem;
+  }
+
+  .value-label {
+    font-size: 0.6rem;
+  }
+
+  .value-current .value-amount {
+    font-size: var(--font-size-base);
+  }
+
+  .value-previous .value-amount {
+    font-size: var(--font-size-sm);
+  }
+
+  /* BotÃƒÆ’Ã‚Âµes */
+  .form-select,
+  .modern-btn {
+    font-size: var(--font-size-sm);
+    padding: 8px 12px;
+  }
+
+  /* EspaÃƒÆ’Ã‚Â§amentos */
+  .controls-row,
+  .comparative-grid-new {
+    gap: var(--spacing-2);
+  }
+}
+
+/* Landscape em smartphones */
+@media (max-height: 500px) and (orientation: landscape) {
+  .lk-chart,
+  .chart-container {
+    min-height: 240px;
+    padding: var(--spacing-2);
+  }
+
+  .chart-container canvas {
+    min-height: 180px !important;
+  }
+
+  .chart-title {
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-1);
+    padding-bottom: var(--spacing-1);
+  }
+
+  .stat-card {
+    padding: var(--spacing-2);
+  }
+
+  .card-balance,
+  .card-usage-new,
+  .card-installments {
+    padding: var(--spacing-2);
+  }
+
+  /* Comparativos em landscape */
+  .comparatives-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-2);
+  }
+
+  .comparative-card {
+    padding: var(--spacing-2);
+  }
+
+  .comparative-header {
+    margin-bottom: var(--spacing-2);
+    padding-bottom: var(--spacing-1);
+  }
+
+  .comparative-card h3 {
+    font-size: var(--font-size-sm);
+  }
+
+  .period-labels {
+    flex-direction: row;
+    gap: var(--spacing-1);
+  }
+
+  .comparative-grid-new {
+    gap: var(--spacing-2);
+  }
+
+  .comparative-item-new {
+    padding: var(--spacing-2);
+  }
+
+  .item-header {
+    margin-bottom: var(--spacing-1);
+  }
+
+  .item-values {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-2);
+  }
+}
+
+/* Tablets em landscape */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+  .chart-container {
+    min-height: 350px;
+  }
+
+  .chart-container canvas {
+    min-height: 300px !important;
+  }
+
+  /* Comparativos em 2 colunas */
+  .comparatives-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-4);
+  }
+
+  .comparative-card {
+    padding: var(--spacing-4);
+  }
+
+  .comparative-header {
+    margin-bottom: var(--spacing-3);
+  }
+
+  .item-values {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .value-current .value-amount {
+    font-size: var(--font-size-xl);
+  }
+}
+
+/* Smartphones em landscape especÃƒÆ’Ã‚Â­fico */
+@media (min-width: 576px) and (max-width: 896px) and (orientation: landscape) {
+  .chart-container {
+    min-height: 300px;
+  }
+
+  .chart-container canvas {
+    min-height: 240px !important;
+  }
+
+  .tabs-container {
+    padding: var(--spacing-1);
+  }
+
+  .tab-btn {
+    padding: var(--spacing-2);
+  }
+}
+
+/* High DPI displays (Retina) */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .chart-container canvas {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Ajuste para iPads especÃƒÆ’Ã‚Â­ficos */
+@media only screen and (min-device-width: 768px) and (max-device-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
+  .chart-container {
+    min-height: 400px;
+  }
+
+  .chart-container canvas {
+    min-height: 340px !important;
+  }
+
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Ajuste para iPhone especÃƒÆ’Ã‚Â­ficos (notch devices) */
+@supports (padding: env(safe-area-inset-left)) {
+  .rel-page {
+    padding-left: max(var(--spacing-2), env(safe-area-inset-left));
+    padding-right: max(var(--spacing-2), env(safe-area-inset-right));
+    padding-bottom: max(var(--spacing-2), env(safe-area-inset-bottom));
+  }
+}
+
+/* Animations */

@@ -40,6 +40,16 @@ POST /api/scheduler/dispatch-reminders
 
 Processa e envia lembretes de agendamentos pendentes.
 
+### Dispatch Fatura Reminders (Requer Token)
+
+```
+GET /api/scheduler/dispatch-fatura-reminders?token=SEU_TOKEN
+POST /api/scheduler/dispatch-fatura-reminders
+    Header: X-Scheduler-Token: SEU_TOKEN
+```
+
+Envia lembretes de vencimento de faturas de cartão de crédito. Verifica cartões com lembrete configurado e notifica o usuário (in-app e/ou email) quando a data de vencimento se aproxima. Evita duplicidade por mês usando o campo `fatura_notificado_mes`.
+
 ### Process Expired Subscriptions (Requer Token)
 
 ```
@@ -60,6 +70,9 @@ Se seu servidor suporta cron jobs nativos, configure assim:
 
 # Assinaturas expiradas a cada hora
 0 * * * * curl -s "https://seudominio.com.br/api/scheduler/process-expired-subscriptions?token=SEU_TOKEN" > /dev/null
+
+# Lembretes de vencimento de faturas de cartão a cada hora
+0 * * * * curl -s "https://seudominio.com.br/api/scheduler/dispatch-fatura-reminders?token=SEU_TOKEN" > /dev/null
 
 # Notificações de aniversário diariamente às 8h
 0 8 * * * curl -s "https://seudominio.com.br/api/scheduler/dispatch-birthdays?token=SEU_TOKEN" > /dev/null
@@ -85,6 +98,12 @@ A maioria dos painéis de hospedagem oferece "Cron Jobs" ou "Tarefas Agendadas":
 
      ```
      https://seudominio.com.br/api/scheduler/dispatch-birthdays?token=SEU_TOKEN
+     ```
+
+   - **Faturas de cartão** (a cada hora):
+
+     ```
+     https://seudominio.com.br/api/scheduler/dispatch-fatura-reminders?token=SEU_TOKEN
      ```
 
    - **Assinaturas** (a cada hora):

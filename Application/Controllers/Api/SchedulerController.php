@@ -511,6 +511,23 @@ class SchedulerController extends BaseController
             ]);
         }
 
+        // 4. Lembretes de vencimento de faturas de cartão
+        try {
+            $faturaResult = $this->dispatchFaturaRemindersInternal();
+            $results['tasks']['dispatch_fatura_reminders'] = [
+                'status' => 'success',
+                'result' => $faturaResult,
+            ];
+        } catch (\Throwable $e) {
+            $results['tasks']['dispatch_fatura_reminders'] = [
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ];
+            LogService::captureException($e, LogCategory::NOTIFICATION, [
+                'action' => 'dispatch_fatura_reminders',
+            ]);
+        }
+
         // Verifica se houve algum erro
         foreach ($results['tasks'] as $task) {
             if ($task['status'] === 'error') {
@@ -719,5 +736,291 @@ class SchedulerController extends BaseController
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Processa lembretes de vencimento de faturas de cartão de crédito
+     *
+     * GET/POST /api/scheduler/dispatch-fatura-reminders
+     */
+    public function dispatchFaturaReminders(): void
+    {
+        if (!$this->validateSchedulerToken()) {
+            LogService::warning('[Scheduler] Tentativa de acesso não autorizada - fatura-reminders', [
+                'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            ]);
+            Response::json(['error' => 'Unauthorized'], 401);
+            return;
+        }
+
+        LogService::info('=== [Scheduler] Início do dispatch de lembretes de fatura ===');
+
+        try {
+            $now = new \DateTimeImmutable('now');
+            $mesAtual = $now->format('Y-m');
+
+            $baseUrl = defined('BASE_URL')
+                ? rtrim(BASE_URL, '/')
+                : rtrim($_ENV['APP_URL'] ?? '', '/');
+            $linkFaturas = $baseUrl ? $baseUrl . '/faturas' : null;
+
+            $mailService = new MailService();
+
+            $cartoes = \Application\Models\CartaoCredito::with(['usuario:id,nome,email'])
+                ->where('ativo', true)
+                ->where('arquivado', false)
+                ->whereNotNull('dia_vencimento')
+                ->whereNotNull('lembrar_fatura_antes_segundos')
+                ->where('lembrar_fatura_antes_segundos', '>', 0)
+                ->where(function ($q) use ($mesAtual) {
+                    $q->whereNull('fatura_notificado_mes')
+                        ->orWhere('fatura_notificado_mes', '<', $mesAtual);
+                })
+                ->get();
+
+            $stats = [
+                'processados' => count($cartoes),
+                'enviados' => 0,
+                'ignorados' => 0,
+            ];
+
+            foreach ($cartoes as $cartao) {
+                $diaVencimento = (int) $cartao->dia_vencimento;
+                $leadSeconds = (int) $cartao->lembrar_fatura_antes_segundos;
+                $diaAtual = (int) $now->format('j');
+                $mesRef = (int) $now->format('n');
+                $anoRef = (int) $now->format('Y');
+
+                if ($diaAtual > $diaVencimento) {
+                    $mesRef++;
+                    if ($mesRef > 12) {
+                        $mesRef = 1;
+                        $anoRef++;
+                    }
+                }
+
+                $diaReal = min($diaVencimento, (int) date('t', mktime(0, 0, 0, $mesRef, 1, $anoRef)));
+                $dataVencimento = new \DateTimeImmutable(
+                    sprintf('%04d-%02d-%02d 12:00:00', $anoRef, $mesRef, $diaReal)
+                );
+
+                $mesNotificacao = $dataVencimento->format('Y-m');
+                if ($cartao->fatura_notificado_mes === $mesNotificacao) {
+                    $stats['ignorados']++;
+                    continue;
+                }
+
+                $reminderTimestamp = $dataVencimento->getTimestamp() - $leadSeconds;
+                $nowTs = $now->getTimestamp();
+
+                if ($dataVencimento->getTimestamp() < ($nowTs - 86400)) {
+                    $stats['ignorados']++;
+                    continue;
+                }
+                if ($reminderTimestamp > $nowTs) {
+                    $stats['ignorados']++;
+                    continue;
+                }
+
+                // Calcular tempo restante
+                $segundosRestantes = $dataVencimento->getTimestamp() - $nowTs;
+                $tempoRestante = 'hoje';
+                if ($segundosRestantes > 86400) {
+                    $dias = floor($segundosRestantes / 86400);
+                    $tempoRestante = $dias . ' dia' . ($dias > 1 ? 's' : '');
+                } elseif ($segundosRestantes > 3600) {
+                    $horas = floor($segundosRestantes / 3600);
+                    $tempoRestante = $horas . ' hora' . ($horas > 1 ? 's' : '');
+                }
+
+                $usuario = $cartao->usuario;
+                if (!$usuario) {
+                    $stats['ignorados']++;
+                    continue;
+                }
+
+                $mensagem = $segundosRestantes > 0
+                    ? sprintf('A fatura do cartão %s vence em %s (%s).', $cartao->nome_cartao, $tempoRestante, $dataVencimento->format('d/m/Y'))
+                    : sprintf('A fatura do cartão %s vence hoje (%s)!', $cartao->nome_cartao, $dataVencimento->format('d/m/Y'));
+
+                if ($cartao->fatura_canal_inapp) {
+                    \Application\Models\Notificacao::create([
+                        'user_id' => $cartao->user_id,
+                        'tipo' => 'fatura',
+                        'titulo' => 'Lembrete de fatura',
+                        'mensagem' => $mensagem,
+                        'link' => $linkFaturas,
+                        'lida' => 0,
+                    ]);
+                }
+
+                if ($cartao->fatura_canal_email && $mailService->isConfigured() && !empty($usuario->email)) {
+                    try {
+                        $assunto = $segundosRestantes > 0
+                            ? "Lembrete: Fatura do {$cartao->nome_cartao} vence em {$tempoRestante}"
+                            : "Lembrete: Fatura do {$cartao->nome_cartao} vence HOJE!";
+
+                        $corpo = "<p>Olá, {$usuario->nome}!</p>"
+                            . "<p>{$mensagem}</p>"
+                            . "<p>Não esqueça de efetuar o pagamento para evitar juros e multas.</p>"
+                            . ($linkFaturas ? "<p><a href=\"{$linkFaturas}\">Ver minhas faturas</a></p>" : '');
+
+                        $mailService->send($usuario->email, $assunto, $corpo);
+                    } catch (\Throwable $e) {
+                        LogService::error("[Scheduler] Erro ao enviar email fatura: " . $e->getMessage());
+                    }
+                }
+
+                $cartao->fatura_notificado_mes = $mesNotificacao;
+                $cartao->save();
+                $stats['enviados']++;
+            }
+
+            LogService::info('[Scheduler] Lembretes de fatura processados', $stats);
+
+            Response::json([
+                'success' => true,
+                'message' => 'Lembretes de fatura processados',
+                'stats' => $stats,
+            ]);
+        } catch (\Throwable $e) {
+            LogService::captureException($e, LogCategory::NOTIFICATION, [
+                'action' => 'dispatch_fatura_reminders',
+            ]);
+
+            Response::json([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Lógica interna de lembretes de fatura (usada pelo runAll)
+     */
+    private function dispatchFaturaRemindersInternal(): array
+    {
+        $now = new \DateTimeImmutable('now');
+        $mesAtual = $now->format('Y-m');
+
+        $baseUrl = defined('BASE_URL')
+            ? rtrim(BASE_URL, '/')
+            : rtrim($_ENV['APP_URL'] ?? '', '/');
+        $linkFaturas = $baseUrl ? $baseUrl . '/faturas' : null;
+
+        $mailService = new MailService();
+
+        $cartoes = \Application\Models\CartaoCredito::with(['usuario:id,nome,email'])
+            ->where('ativo', true)
+            ->where('arquivado', false)
+            ->whereNotNull('dia_vencimento')
+            ->whereNotNull('lembrar_fatura_antes_segundos')
+            ->where('lembrar_fatura_antes_segundos', '>', 0)
+            ->where(function ($q) use ($mesAtual) {
+                $q->whereNull('fatura_notificado_mes')
+                    ->orWhere('fatura_notificado_mes', '<', $mesAtual);
+            })
+            ->get();
+
+        $stats = [
+            'processados' => count($cartoes),
+            'enviados' => 0,
+            'ignorados' => 0,
+        ];
+
+        foreach ($cartoes as $cartao) {
+            $diaVencimento = (int) $cartao->dia_vencimento;
+            $leadSeconds = (int) $cartao->lembrar_fatura_antes_segundos;
+            $diaAtual = (int) $now->format('j');
+            $mesRef = (int) $now->format('n');
+            $anoRef = (int) $now->format('Y');
+
+            if ($diaAtual > $diaVencimento) {
+                $mesRef++;
+                if ($mesRef > 12) {
+                    $mesRef = 1;
+                    $anoRef++;
+                }
+            }
+
+            $diaReal = min($diaVencimento, (int) date('t', mktime(0, 0, 0, $mesRef, 1, $anoRef)));
+            $dataVencimento = new \DateTimeImmutable(
+                sprintf('%04d-%02d-%02d 12:00:00', $anoRef, $mesRef, $diaReal)
+            );
+
+            $mesNotificacao = $dataVencimento->format('Y-m');
+            if ($cartao->fatura_notificado_mes === $mesNotificacao) {
+                $stats['ignorados']++;
+                continue;
+            }
+
+            $reminderTimestamp = $dataVencimento->getTimestamp() - $leadSeconds;
+            $nowTs = $now->getTimestamp();
+
+            if ($dataVencimento->getTimestamp() < ($nowTs - 86400)) {
+                $stats['ignorados']++;
+                continue;
+            }
+            if ($reminderTimestamp > $nowTs) {
+                $stats['ignorados']++;
+                continue;
+            }
+
+            $segundosRestantes = $dataVencimento->getTimestamp() - $nowTs;
+            $tempoRestante = 'hoje';
+            if ($segundosRestantes > 86400) {
+                $dias = floor($segundosRestantes / 86400);
+                $tempoRestante = $dias . ' dia' . ($dias > 1 ? 's' : '');
+            } elseif ($segundosRestantes > 3600) {
+                $horas = floor($segundosRestantes / 3600);
+                $tempoRestante = $horas . ' hora' . ($horas > 1 ? 's' : '');
+            }
+
+            $usuario = $cartao->usuario;
+            if (!$usuario) {
+                $stats['ignorados']++;
+                continue;
+            }
+
+            $mensagem = $segundosRestantes > 0
+                ? sprintf('A fatura do cartão %s vence em %s (%s).', $cartao->nome_cartao, $tempoRestante, $dataVencimento->format('d/m/Y'))
+                : sprintf('A fatura do cartão %s vence hoje (%s)!', $cartao->nome_cartao, $dataVencimento->format('d/m/Y'));
+
+            if ($cartao->fatura_canal_inapp) {
+                \Application\Models\Notificacao::create([
+                    'user_id' => $cartao->user_id,
+                    'tipo' => 'fatura',
+                    'titulo' => 'Lembrete de fatura',
+                    'mensagem' => $mensagem,
+                    'link' => $linkFaturas,
+                    'lida' => 0,
+                ]);
+            }
+
+            if ($cartao->fatura_canal_email && $mailService->isConfigured() && !empty($usuario->email)) {
+                try {
+                    $assunto = $segundosRestantes > 0
+                        ? "Lembrete: Fatura do {$cartao->nome_cartao} vence em {$tempoRestante}"
+                        : "Lembrete: Fatura do {$cartao->nome_cartao} vence HOJE!";
+
+                    $corpo = "<p>Olá, {$usuario->nome}!</p>"
+                        . "<p>{$mensagem}</p>"
+                        . "<p>Não esqueça de efetuar o pagamento para evitar juros e multas.</p>"
+                        . ($linkFaturas ? "<p><a href=\"{$linkFaturas}\">Ver minhas faturas</a></p>" : '');
+
+                    $mailService->send($usuario->email, $assunto, $corpo);
+                } catch (\Throwable $e) {
+                    LogService::error("[Scheduler] Erro ao enviar email fatura: " . $e->getMessage());
+                }
+            }
+
+            $cartao->fatura_notificado_mes = $mesNotificacao;
+            $cartao->save();
+            $stats['enviados']++;
+        }
+
+        LogService::info('[Scheduler] Lembretes de fatura processados (runAll)', $stats);
+
+        return $stats;
     }
 }

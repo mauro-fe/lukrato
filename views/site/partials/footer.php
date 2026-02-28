@@ -138,8 +138,7 @@ $extraJs = $extraJs ?? [];
 
 <!-- JS global da landing (menu mobile, scroll suave, etc.) -->
 <script src="<?= BASE_URL ?>/assets/js/csrf-manager.js"></script>
-<script src="<?= BASE_URL ?>/assets/js/csrf-keep-alive.js"></script>
-<script src="<?= BASE_URL ?>/assets/js/site/landing-base.js"></script>
+<?= vite_scripts('site/landing-base.js') ?>
 
 <!-- JS específicos da página -->
 <?php foreach ($extraJs as $js): ?>

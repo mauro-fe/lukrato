@@ -12,12 +12,23 @@
                 <div id="editLancAlert" class="alert alert-danger d-none" role="alert"></div>
                 <form id="formLancamento" novalidate>
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="editLancData" class="form-label">Data</label>
-                            <input type="date" class="form-control form-control-sm" id="editLancData" required
-                                aria-required="true">
+                        <div class="col-md-7">
+                            <label class="form-label">Data e Horário</label>
+                            <div class="lk-datetime-inline lk-datetime-sm">
+                                <div class="lk-datetime-date">
+                                    <i data-lucide="calendar" class="lk-datetime-icon"></i>
+                                    <input type="date" class="form-control form-control-sm" id="editLancData" required
+                                        aria-required="true">
+                                </div>
+                                <div class="lk-datetime-sep"><span>às</span></div>
+                                <div class="lk-datetime-time">
+                                    <i data-lucide="clock" class="lk-datetime-icon"></i>
+                                    <input type="time" class="form-control form-control-sm" id="editLancHora"
+                                        aria-label="Horário do lançamento">
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-5">
                             <label for="editLancTipo" class="form-label">Tipo</label>
                             <select class="form-select form-select-sm" id="editLancTipo" required aria-required="true">
                                 <option value="receita">Receita</option>

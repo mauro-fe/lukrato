@@ -1,0 +1,85 @@
+/* ==================== HISTÃƒâ€œRICO DE FATURAS ==================== */
+.historico-faturas {
+  padding: 1rem;
+}
+
+.historico-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.historico-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.historico-item:hover {
+  transform: translateX(4px);
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.historico-periodo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.historico-periodo i {
+  font-size: 1.5rem;
+  color: var(--color-success);
+}
+
+.periodo-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.periodo-info strong {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.historico-data-pag {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.historico-detalhes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.historico-valor {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.historico-qtd {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+/* Dark mode adjustments for histÃƒÂ³rico */
+[data-theme="dark"] .historico-item {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .historico-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(230, 126, 34, 0.3);
+}
+

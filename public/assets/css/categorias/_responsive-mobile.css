@@ -1,0 +1,167 @@
+/* ============================================================================
+   RESPONSIVIDADE - MOBILE
+   ============================================================================ */
+@media (max-width: 480px) {
+  .cat-page {
+    padding: var(--spacing-2);
+    gap: var(--spacing-3);
+  }
+
+  .modern-card {
+    padding: var(--spacing-3);
+  }
+
+  /* Create card mobile compact */
+  .create-card.modern-card {
+    border-radius: var(--radius-md);
+  }
+
+  .create-icon-area {
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+
+  .create-icon-ring {
+    width: 44px;
+    height: 44px;
+  }
+
+  .create-main-icon {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .create-form-area {
+    padding: var(--spacing-3);
+    gap: var(--spacing-3);
+  }
+
+  .create-form-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .create-form-subtitle {
+    font-size: var(--font-size-xs);
+  }
+
+  .create-submit-btn {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+
+  /* Icon picker mobile */
+  .icon-picker-drawer.open {
+    max-height: 300px;
+    padding: var(--spacing-3);
+  }
+
+  .icon-picker-grid {
+    grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+    max-height: 150px;
+  }
+
+  .icon-pick-item {
+    width: 36px;
+    height: 36px;
+  }
+
+  .icon-pick-item svg,
+  .icon-pick-item .lucide {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .icon-pick-item[title]::after {
+    display: none;
+  }
+
+  .icon-picker-trigger {
+    padding: 4px 10px;
+    font-size: 0.65rem;
+  }
+
+  .suggestions-chips {
+    gap: 4px;
+  }
+
+  .suggestion-chip {
+    font-size: 0.65rem;
+    padding: 3px 8px;
+  }
+
+  .type-toggle-pill {
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-xs);
+  }
+
+  .category-header {
+    padding: var(--spacing-3);
+  }
+
+  .header-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  .category-title {
+    font-size: var(--font-size-base);
+  }
+
+  .category-count {
+    font-size: var(--font-size-xs);
+  }
+
+  .category-card {
+    min-height: auto;
+  }
+
+  .category-list {
+    grid-template-columns: 1fr;
+    max-height: 400px;
+  }
+
+  .cat-card {
+    padding: var(--spacing-2) var(--spacing-3);
+  }
+
+  .cat-card-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .cat-card-icon i {
+    font-size: 11px;
+  }
+
+  .cat-card-emoji {
+    font-size: 13px;
+  }
+
+  .cat-card-name {
+    font-size: 0.8rem;
+  }
+
+  .cat-card-actions {
+    opacity: 0.7;
+  }
+
+  .cat-card-btn {
+    width: 26px;
+    height: 26px;
+  }
+
+  .cat-card-budget {
+    padding-left: 32px;
+  }
+
+  .cat-card-budget.no-budget {
+    padding-left: 32px;
+    font-size: 0.65rem;
+  }
+
+  .cat-budget-text {
+    font-size: 0.55rem;
+  }
+
+  }
+

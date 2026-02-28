@@ -1,0 +1,115 @@
+/* ================================================
+   13. BOTÕES
+   ================================================ */
+
+.lk-btn {
+  padding: var(--spacing-4) var(--spacing-6);
+  border-radius: var(--radius-md);
+  border: none;
+  font-weight: 600;
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  transition: all var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.lk-btn::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition:
+    width 0.6s,
+    height 0.6s;
+}
+
+.lk-btn:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+.lk-btn i,
+.lk-btn svg {
+  font-size: var(--font-size-sm);
+  width: 1em;
+  height: 1em;
+}
+
+/* Botão Primário */
+.lk-btn-primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #d35400 100%);
+  color: #fff;
+  box-shadow:
+    0 4px 12px rgba(230, 126, 34, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.lk-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 20px rgba(230, 126, 34, 0.4),
+    0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.lk-btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Botão Secondary */
+.lk-btn-secondary {
+  background: var(--glass-bg);
+  color: var(--color-text);
+  border: 2px solid var(--color-card-border);
+}
+
+.lk-btn-secondary:hover {
+  background: var(--color-surface-muted);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* Botão Ghost */
+.lk-btn-ghost {
+  background: transparent;
+  color: var(--color-text);
+  border: 2px solid var(--color-card-border);
+}
+
+.lk-btn-ghost:hover {
+  background: var(--glass-bg);
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.lk-btn-ghost:active {
+  background: var(--color-card-border);
+}
+
+/* Loading state */
+.lk-btn-primary.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.lk-btn-primary.loading i {
+  animation: lk-spin 1s linear infinite;
+}
+
+@keyframes lk-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+

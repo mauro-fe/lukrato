@@ -39,6 +39,8 @@ Router::add('GET',  '/api/scheduler/dispatch-reminders', 'Api\\SchedulerControll
 Router::add('POST', '/api/scheduler/dispatch-reminders', 'Api\\SchedulerController@dispatchReminders');
 Router::add('GET',  '/api/scheduler/dispatch-birthdays', 'Api\\SchedulerController@dispatchBirthdays');
 Router::add('POST', '/api/scheduler/dispatch-birthdays', 'Api\\SchedulerController@dispatchBirthdays');
+Router::add('GET',  '/api/scheduler/dispatch-fatura-reminders', 'Api\\SchedulerController@dispatchFaturaReminders');
+Router::add('POST', '/api/scheduler/dispatch-fatura-reminders', 'Api\\SchedulerController@dispatchFaturaReminders');
 Router::add('GET',  '/api/scheduler/process-expired-subscriptions', 'Api\\SchedulerController@processExpiredSubscriptions');
 Router::add('POST', '/api/scheduler/process-expired-subscriptions', 'Api\\SchedulerController@processExpiredSubscriptions');
 

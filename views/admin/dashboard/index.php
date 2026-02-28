@@ -569,7 +569,7 @@ if ($showOnboardingCongrats) {
 </script>
 
 <section class="modern-dashboard">
-    <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
+    <?php include BASE_PATH . '/views/admin/partials/header-mes.php'; ?>
 
     <!-- Gamificação -->
     <section class="gamification-section" data-aos="fade-up" data-aos-duration="500">
@@ -888,9 +888,5 @@ if ($showOnboardingCongrats) {
     </section>
 </section>
 
-<!-- Gamification JS -->
-<script>
-    // Define BASE_URL global para gamification script
-    window.BASE_URL = '<?= BASE_URL ?>';
-</script>
-<script src="<?= BASE_URL ?>assets/js/gamification-dashboard.js?v=<?= time() ?>"></script>
+<!-- Gamification Dashboard JS (Vite) -->
+<?= vite_scripts('admin/gamification-dashboard/index.js') ?>

@@ -86,129 +86,127 @@
 </div>
 
 <!-- ==================== MODAIS ==================== -->
-<?php include __DIR__ . '/../partials/modals/modal_contas.php'; ?>
-<?php include __DIR__ . '/../partials/modals/modal_lancamento_v2.php'; ?>
+<?php include __DIR__ . '/../partials/modals/modal-contas.php'; ?>
+<?php include __DIR__ . '/../partials/modals/modal-lancamento-v2.php'; ?>
 
 <!-- ==================== SCRIPTS ==================== -->
 <style>
-    /* Estilos customizados para SweetAlert2 */
-    .swal2-popup .swal2-actions {
-        gap: 1rem;
-    }
+/* Estilos customizados para SweetAlert2 */
+.swal2-popup .swal2-actions {
+    gap: 1rem;
+}
 
-    .swal2-popup .swal-confirm-btn,
-    .swal2-popup .swal2-confirm {
-        background-color: #e67e22 !important;
-        color: white !important;
-        border: none !important;
-        padding: 0.75rem 2rem !important;
-        border-radius: 8px !important;
-        font-weight: 600 !important;
-        font-size: 1rem !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3) !important;
-    }
+.swal2-popup .swal-confirm-btn,
+.swal2-popup .swal2-confirm {
+    background-color: #e67e22 !important;
+    color: white !important;
+    border: none !important;
+    padding: 0.75rem 2rem !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3) !important;
+}
 
-    .swal2-popup .swal-confirm-btn:hover,
-    .swal2-popup .swal2-confirm:hover {
-        background-color: #d35400 !important;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(230, 126, 34, 0.4) !important;
-    }
+.swal2-popup .swal-confirm-btn:hover,
+.swal2-popup .swal2-confirm:hover {
+    background-color: #d35400 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(230, 126, 34, 0.4) !important;
+}
 
-    .swal2-popup .swal-cancel-btn,
-    .swal2-popup .swal2-cancel {
-        background-color: #6c757d !important;
-        color: white !important;
-        border: none !important;
-        padding: 0.75rem 2rem !important;
-        border-radius: 8px !important;
-        font-weight: 600 !important;
-        font-size: 1rem !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3) !important;
-    }
+.swal2-popup .swal-cancel-btn,
+.swal2-popup .swal2-cancel {
+    background-color: #6c757d !important;
+    color: white !important;
+    border: none !important;
+    padding: 0.75rem 2rem !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3) !important;
+}
 
-    .swal2-popup .swal-cancel-btn:hover,
-    .swal2-popup .swal2-cancel:hover {
-        background-color: #5a6268 !important;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(108, 117, 125, 0.4) !important;
-    }
+.swal2-popup .swal-cancel-btn:hover,
+.swal2-popup .swal2-cancel:hover {
+    background-color: #5a6268 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(108, 117, 125, 0.4) !important;
+}
 
-    .swal2-popup .swal2-styled:focus {
-        box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.25) !important;
-    }
+.swal2-popup .swal2-styled:focus {
+    box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.25) !important;
+}
 
-    /* Garantir que ícones nos botões fiquem visíveis */
-    .swal2-popup .swal2-styled i {
-        color: white !important;
-        margin-right: 0.5rem;
-    }
+/* Garantir que ícones nos botões fiquem visíveis */
+.swal2-popup .swal2-styled i {
+    color: white !important;
+    margin-right: 0.5rem;
+}
 </style>
 <script>
-    window.BASE_URL = '<?= BASE_URL ?>';
+window.BASE_URL = '<?= BASE_URL ?>';
 
-    // Desabilitar auto-inicialização do Bootstrap ANTES do Bootstrap carregar
-    document.addEventListener('DOMContentLoaded', function() {
-        // Desabilitar completamente a inicialização automática do Bootstrap
-        if (typeof bootstrap !== 'undefined') {
-            // Sobrescrever o inicializador automático do Bootstrap
-            const style = document.createElement('style');
-            style.textContent = '[data-bs-toggle] { pointer-events: none !important; }';
-            document.head.appendChild(style);
-        }
-    });
+// Desabilitar auto-inicialização do Bootstrap ANTES do Bootstrap carregar
+document.addEventListener('DOMContentLoaded', function() {
+    // Desabilitar completamente a inicialização automática do Bootstrap
+    if (typeof bootstrap !== 'undefined') {
+        // Sobrescrever o inicializador automático do Bootstrap
+        const style = document.createElement('style');
+        style.textContent = '[data-bs-toggle] { pointer-events: none !important; }';
+        document.head.appendChild(style);
+    }
+});
 
-    // Capturar TODOS os erros relacionados ao Bootstrap
-    const originalError = console.error;
-    console.error = function(...args) {
-        const message = args.join(' ');
-        if (message.includes('backdrop') || message.includes('Bootstrap') || message.includes('modal')) {
-            console.warn('⚠️ Erro do Bootstrap suprimido:', ...args);
-            return;
-        }
-        originalError.apply(console, args);
-    };
+// Capturar TODOS os erros relacionados ao Bootstrap
+const originalError = console.error;
+console.error = function(...args) {
+    const message = args.join(' ');
+    if (message.includes('backdrop') || message.includes('Bootstrap') || message.includes('modal')) {
+        console.warn('⚠️ Erro do Bootstrap suprimido:', ...args);
+        return;
+    }
+    originalError.apply(console, args);
+};
 
-    // Interceptar erros não capturados do JavaScript
-    window.onerror = function(message, source, lineno, colno, error) {
-        if (message && (message.includes('backdrop') || message.includes('Bootstrap'))) {
-            console.warn('⚠️ Erro suprimido:', message);
-            return true; // Prevenir erro
-        }
-        return false;
-    };
+// Interceptar erros não capturados do JavaScript
+window.onerror = function(message, source, lineno, colno, error) {
+    if (message && (message.includes('backdrop') || message.includes('Bootstrap'))) {
+        console.warn('⚠️ Erro suprimido:', message);
+        return true; // Prevenir erro
+    }
+    return false;
+};
 
-    // Garantir que apenas o sistema moderno seja usado
-    (function() {
-        'use strict';
+// Garantir que apenas o sistema moderno seja usado
+(function() {
+    'use strict';
 
-        // Limpar cache
-        if ('caches' in window) {
-            caches.keys().then(keys => keys.forEach(key => caches.delete(key)));
-        }
+    // Limpar cache
+    if ('caches' in window) {
+        caches.keys().then(keys => keys.forEach(key => caches.delete(key)));
+    }
 
-        // Prevenir carregamento de scripts antigos
-        const oldScriptPattern = /admin-contas-index/;
-        const observer = new MutationObserver(mutations => {
-            mutations.forEach(mutation => {
-                mutation.addedNodes.forEach(node => {
-                    if (node.tagName === 'SCRIPT' && oldScriptPattern.test(node.src)) {
-                        console.warn('🚫 Bloqueado script antigo:', node.src);
-                        node.remove();
-                    }
-                });
+    // Prevenir carregamento de scripts antigos
+    const oldScriptPattern = /admin-contas-index/;
+    const observer = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+            mutation.addedNodes.forEach(node => {
+                if (node.tagName === 'SCRIPT' && oldScriptPattern.test(node.src)) {
+                    console.warn('🚫 Bloqueado script antigo:', node.src);
+                    node.remove();
+                }
             });
         });
+    });
 
-        observer.observe(document.documentElement, {
-            childList: true,
-            subtree: true
-        });
+    observer.observe(document.documentElement, {
+        childList: true,
+        subtree: true
+    });
 
-    })();
+})();
 </script>
-<script
-    src="<?= BASE_URL ?>assets/js/contas-manager.js?v=<?= md5_file(__DIR__ . '/../../../public/assets/js/contas-manager.js') ?>">
-</script>
+<!-- Page JS carregado automaticamente via loadPageJs() + Vite -->

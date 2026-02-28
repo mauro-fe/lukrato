@@ -114,7 +114,7 @@ class EmailVerificationController extends BaseController
 
         $email = $_SESSION['unverified_email'];
 
-        $this->render('admin/admins/verify_email', [
+        $this->render('admin/auth/verify-email', [
             'email' => $email,
             'message' => $_SESSION['verification_message'] ?? 'Por favor, verifique seu email antes de fazer login.',
         ]);

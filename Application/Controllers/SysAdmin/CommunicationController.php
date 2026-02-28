@@ -39,7 +39,7 @@ class CommunicationController extends BaseController
         $inactiveDaysOptions = MessageCampaign::getInactiveDaysOptions();
 
         $this->render(
-            'sysAdmin/communications',
+            'admin/sysadmin/communications',
             [
                 'pageTitle' => 'Comunicações - SysAdmin',
                 'subTitle' => 'Envie mensagens e notificações para seus usuários',

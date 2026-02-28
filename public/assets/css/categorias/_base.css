@@ -1,0 +1,41 @@
+/**
+ * ============================================================================
+ * CATEGORIAS - DESIGN MODERNIZADO
+ * ============================================================================
+ * Sistema de categorias com design consistente
+ * Foco em UX, produtividade e modernidade visual
+ * ============================================================================
+ */
+
+/* ============================================================================
+   PÃGINA PRINCIPAL
+   ============================================================================ */
+
+.cat-page {
+  padding: var(--spacing-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
+}
+
+/* PÃ¡gina visÃ­vel somente quando JS marcou .is-ready */
+.cat-page.is-ready {
+  visibility: visible;
+}
+
+/* TransiÃ§Ã£o suave para listas ao re-renderizar apÃ³s CRUD */
+.category-list {
+  transition: opacity 0.15s ease;
+}
+
+/* ============================================================================
+   ÃCONES
+   ============================================================================ */
+
+.fa-plus-circle,
+.fa-circle-plus,
+[data-lucide="circle-plus"],
+.lucide-circle-plus {
+  color: var(--color-primary);
+}
+

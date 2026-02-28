@@ -1,0 +1,43 @@
+/* ==================== CHARTS ==================== */
+.charts-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(16px, 4vw, 32px);
+  margin-bottom: var(--spacing-8);
+}
+
+.chart-card {
+  position: relative;
+}
+
+.chart-card .card-title::before {
+  content: "Ã°Å¸â€œÅ ";
+}
+
+.chart-container {
+  position: relative;
+  height: clamp(260px, 40vw, 360px);
+  margin-top: var(--spacing-4);
+}
+
+.chart-container canvas {
+  border-radius: var(--radius-md);
+}
+
+.chart-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--glass-bg);
+  border-radius: var(--radius-md);
+  z-index: 10;
+}
+
+.chart-loading::after {
+  content: "Ã¢ÂÂ³";
+  font-size: 3rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+

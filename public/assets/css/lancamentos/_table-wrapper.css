@@ -1,0 +1,71 @@
+/* ============================================================================
+   WRAPPER DA TABELA
+   ============================================================================ */
+
+.modern-table-wrapper {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.table-header-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-4) var(--spacing-5);
+
+  border-bottom: 1px solid var(--glass-border);
+  gap: var(--spacing-4);
+  flex-wrap: wrap;
+}
+
+.info-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.info-group i {
+  color: var(--color-primary);
+  font-size: 20px;
+}
+
+.table-actions {
+  display: flex;
+  gap: var(--spacing-3);
+  align-items: center;
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 16px;
+}
+
+.icon-btn:hover {
+  background: var(--color-primary);
+  color: #ffffff;
+  border-color: var(--color-primary);
+  transform: rotate(180deg);
+  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
+}
+
+.lan-table-container {
+  padding: var(--spacing-4);
+}
+

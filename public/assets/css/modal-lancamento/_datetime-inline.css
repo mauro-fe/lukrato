@@ -1,0 +1,124 @@
+/* ========================================
+   DATETIME INLINE (date + time side by side)
+   ======================================== */
+.lk-datetime-inline {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px;
+  background: var(--glass-bg, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--color-card-border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-lg, 12px);
+  padding: 6px 10px;
+  transition: border-color 0.2s;
+}
+
+.lk-datetime-inline:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-primary) 15%, transparent);
+}
+
+.lk-datetime-date,
+.lk-datetime-time {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+.lk-datetime-date {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.lk-datetime-time {
+  flex: 0 0 auto;
+}
+
+.lk-datetime-icon {
+  color: var(--color-text-muted);
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.lk-datetime-icon svg,
+.lk-datetime-icon i {
+  width: 15px;
+  height: 15px;
+}
+
+/* Override .lk-input width:100% inside datetime */
+.lk-datetime-inline .lk-input,
+.lk-datetime-inline .form-control,
+.lk-datetime-inline input[type="date"],
+.lk-datetime-inline input[type="time"] {
+  width: auto !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 4px 2px;
+  height: auto;
+  min-height: auto;
+  color: var(--color-text);
+  font-size: 0.88rem;
+  outline: none;
+  font-family: inherit;
+}
+
+.lk-datetime-inline .lk-input-date,
+.lk-datetime-inline input[type="date"] {
+  flex: 1 1 auto;
+  min-width: 120px;
+}
+
+.lk-datetime-inline .lk-input-time,
+.lk-datetime-inline input[type="time"] {
+  width: 90px !important;
+  text-align: center;
+}
+
+.lk-datetime-inline input[type="date"]::-webkit-calendar-picker-indicator,
+.lk-datetime-inline input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.5);
+  cursor: pointer;
+}
+
+.lk-datetime-sep {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  opacity: 0.7;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* Smaller variant for edit modal */
+.lk-datetime-sm {
+  padding: 4px 8px;
+  border-radius: var(--radius-md, 8px);
+}
+
+.lk-datetime-sm .lk-input,
+.lk-datetime-sm .form-control,
+.lk-datetime-sm input[type="date"],
+.lk-datetime-sm input[type="time"] {
+  font-size: 0.82rem;
+  padding: 2px 1px;
+}
+
+.lk-datetime-sm .lk-datetime-icon svg,
+.lk-datetime-sm .lk-datetime-icon i {
+  width: 13px;
+  height: 13px;
+}
+
+@media (max-width: 480px) {
+  .lk-datetime-inline {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .lk-datetime-sep {
+    display: none;
+  }
+}

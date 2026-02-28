@@ -13,6 +13,9 @@ class UpdateCartaoCreditoDTO
         public readonly ?int $diaFechamento = null,
         public readonly ?string $corCartao = null,
         public readonly ?bool $ativo = null,
+        public readonly ?int $lembrarFaturaAntesSegundos = null,
+        public readonly ?bool $faturaCanalEmail = null,
+        public readonly ?bool $faturaCanalInapp = null,
     ) {}
 
     public static function fromArray(array $data): self
@@ -30,6 +33,13 @@ class UpdateCartaoCreditoDTO
                 : null,
             corCartao: isset($data['cor_cartao']) ? trim((string) $data['cor_cartao']) : null,
             ativo: isset($data['ativo']) ? (bool) $data['ativo'] : null,
+            lembrarFaturaAntesSegundos: array_key_exists('lembrar_fatura_antes_segundos', $data)
+                ? ($data['lembrar_fatura_antes_segundos'] !== '' && $data['lembrar_fatura_antes_segundos'] !== null
+                    ? (int) $data['lembrar_fatura_antes_segundos']
+                    : null)
+                : null,
+            faturaCanalEmail: isset($data['fatura_canal_email']) ? (bool) $data['fatura_canal_email'] : null,
+            faturaCanalInapp: isset($data['fatura_canal_inapp']) ? (bool) $data['fatura_canal_inapp'] : null,
         );
     }
 
@@ -76,6 +86,9 @@ class UpdateCartaoCreditoDTO
         if ($this->diaFechamento !== null) $data['dia_fechamento'] = $this->diaFechamento;
         if ($this->corCartao !== null) $data['cor_cartao'] = $this->corCartao;
         if ($this->ativo !== null) $data['ativo'] = $this->ativo;
+        if ($this->lembrarFaturaAntesSegundos !== null) $data['lembrar_fatura_antes_segundos'] = $this->lembrarFaturaAntesSegundos;
+        if ($this->faturaCanalEmail !== null) $data['fatura_canal_email'] = $this->faturaCanalEmail;
+        if ($this->faturaCanalInapp !== null) $data['fatura_canal_inapp'] = $this->faturaCanalInapp;
 
         return $data;
     }

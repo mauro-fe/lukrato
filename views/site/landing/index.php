@@ -610,7 +610,7 @@
 </section>
 
 
-<?php include __DIR__ . '/gamification_section.php'; ?>
+<?php include __DIR__ . '/gamification-section.php'; ?>
 
 
 <!-- Seção de Planos -->
