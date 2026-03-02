@@ -1175,7 +1175,15 @@ export async function handleExport() {
             return;
         }
 
-        if (!response.ok) throw new Error('Export failed');
+        if (!response.ok) {
+            let errorMsg = 'Erro ao exportar relatório.';
+            try {
+                const errorData = await response.json();
+                if (errorData?.message) errorMsg = errorData.message;
+                else if (errorData?.errors) errorMsg = Object.values(errorData.errors).flat().join(', ');
+            } catch (_) { /* response body not JSON */ }
+            throw new Error(errorMsg);
+        }
 
         const blob = await response.blob();
         const disposition = response.headers.get('Content-Disposition');
@@ -1212,12 +1220,12 @@ export async function handleExport() {
                 position: 'top-end',
                 icon: 'error',
                 title: 'Erro ao exportar',
-                text: 'Tente novamente.',
+                text: error.message || 'Tente novamente.',
                 showConfirmButton: false,
                 timer: 3000
             });
         } else {
-            alert('Erro ao exportar relatório. Tente novamente.');
+            alert(error.message || 'Erro ao exportar relatório. Tente novamente.');
         }
     } finally {
         exportBtn.disabled = false;

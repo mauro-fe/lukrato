@@ -161,9 +161,20 @@ $theme = $userTheme ?? 'dark';
                     <i data-lucide="check"></i>
                 </button>
 
+                <!-- Divisória -->
+                <div class="lk-skip-divider">
+                    <span>ou</span>
+                </div>
+
+                <!-- Botão Skip -->
+                <button type="button" class="lk-skip-btn" id="btnSkipOnboarding">
+                    Explorar o Lukrato
+                    <i data-lucide="arrow-right"></i>
+                </button>
+
                 <p class="lk-onboarding-hint">
                     <i data-lucide="info"></i>
-                    Você poderá adicionar mais lançamentos depois
+                    Você poderá adicionar lançamentos depois pelo menu
                 </p>
             </form>
 

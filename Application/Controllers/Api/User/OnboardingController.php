@@ -192,7 +192,7 @@ class OnboardingController extends BaseController
             $user = Usuario::find($this->userId);
             if ($user) {
                 $user->onboarding_completed_at = now();
-                $user->onboarding_mode = 'self';
+                $user->onboarding_mode = 'complete';
                 $user->save();
             }
 
@@ -209,6 +209,98 @@ class OnboardingController extends BaseController
             $this->redirect('onboarding');
         }
     }
+
+    /**
+     * POST /api/onboarding/complete
+     * Marca o onboarding como concluído (usado pelo botão "Explorar o Lukrato")
+     */
+    public function complete(): void
+    {
+        $this->requireAuthApi();
+
+        try {
+            $user = Usuario::find($this->userId);
+
+            if (!$user) {
+                Response::error('Usuário não encontrado', 404);
+                return;
+            }
+
+            // Verificar se tem pelo menos uma conta
+            $temConta = Conta::where('user_id', $this->userId)->exists();
+            if (!$temConta) {
+                Response::error('Você precisa criar pelo menos uma conta antes de continuar.', 422);
+                return;
+            }
+
+            // Marcar onboarding como concluído (modo skipped = pulou o lançamento)
+            $user->onboarding_completed_at = now();
+            $user->onboarding_mode = 'skipped';
+            $user->save();
+
+            // Flag para confetti no dashboard
+            $_SESSION['onboarding_just_completed'] = true;
+
+            Response::success([
+                'message' => 'Onboarding concluído!',
+                'redirect' => BASE_URL . 'dashboard',
+            ]);
+        } catch (Throwable $e) {
+            $this->failAndLog($e, 'Erro ao completar onboarding');
+        }
+    }
+
+    /**
+     * POST /api/onboarding/skip-tour
+     * Marca o tour guiado como pulado
+     */
+    public function skipTour(): void
+    {
+        $this->requireAuthApi();
+
+        try {
+            $user = Usuario::find($this->userId);
+
+            if (!$user) {
+                Response::error('Usuário não encontrado', 404);
+                return;
+            }
+
+            $user->skipOnboardingTour();
+
+            Response::success(['message' => 'Tour pulado com sucesso.']);
+        } catch (Throwable $e) {
+            $this->failAndLog($e, 'Erro ao pular tour do onboarding');
+        }
+    }
+
+    /**
+     * POST /api/onboarding/reset
+     * Reseta o estado do onboarding (útil para debug/admin)
+     */
+    public function reset(): void
+    {
+        $this->requireAuthApi();
+
+        try {
+            $user = Usuario::find($this->userId);
+
+            if (!$user) {
+                Response::error('Usuário não encontrado', 404);
+                return;
+            }
+
+            $user->onboarding_completed_at = null;
+            $user->onboarding_mode = null;
+            $user->onboarding_tour_skipped_at = null;
+            $user->save();
+
+            Response::success(['message' => 'Onboarding resetado com sucesso.']);
+        } catch (Throwable $e) {
+            $this->failAndLog($e, 'Erro ao resetar onboarding');
+        }
+    }
+
     /**
      * GET /api/onboarding/checklist
      * Retorna status da checklist de primeiros passos

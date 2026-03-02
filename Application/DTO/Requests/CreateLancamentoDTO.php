@@ -50,7 +50,7 @@ readonly class CreateLancamentoDTO
             'eh_saldo_inicial' => $this->ehSaldoInicial ? 1 : 0,
             'conta_id_destino' => $this->contaIdDestino,
             'pago' => $this->pago ? 1 : 0,
-            'data_pagamento' => $this->pago ? date('Y-m-d') : null,
+            'data_pagamento' => $this->pago ? $this->data : null,
             'forma_pagamento' => $this->formaPagamento,
             'recorrente' => $this->recorrente ? 1 : 0,
             'recorrencia_freq' => $this->recorrenciaFreq,

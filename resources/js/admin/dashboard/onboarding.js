@@ -34,6 +34,10 @@ export function initOnboardingChecklist() {
             el.style.display = 'block';
 
             if (firstVisit) {
+                // Set localStorage flags for gamification/state tracking
+                localStorage.setItem('lukrato_onboarding_completed', 'true');
+                localStorage.removeItem('lukrato_onboarding_in_progress');
+
                 fireConfetti();
                 setTimeout(function () {
                     if (typeof window.checkPendingAchievements === 'function') {

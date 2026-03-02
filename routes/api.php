@@ -12,8 +12,6 @@ use Application\Core\Router;
  */
 
 
-Router::add('POST', '/api/onboarding/complete', 'Api\OnboardingController@complete', ['auth', 'csrf', 'ratelimit']);
-
 Router::add('POST', '/api/tour/complete', 'Api\TourController@complete', ['auth', 'csrf', 'ratelimit']);
 
 

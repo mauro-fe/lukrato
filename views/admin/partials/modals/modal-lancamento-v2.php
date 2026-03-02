@@ -16,7 +16,7 @@
 
         <!-- Body do Modal -->
         <div class="lk-modal-body-modern">
-            <!-- Conta Selecionada -->
+            <!-- Conta Selecionada (sempre visível) -->
             <div class="lk-conta-info">
                 <div class="lk-conta-badge">
                     <i data-lucide="wallet"></i>
@@ -27,30 +27,36 @@
                 </div>
             </div>
 
-            <!-- Histórico Recente -->
-            <div class="lk-historico-section">
-                <h3 class="lk-section-title">
-                    <i data-lucide="history"></i>
-                    Últimas Movimentações
-                </h3>
-                <div class="lk-historico-list" id="lancamentoHistorico">
-                    <!-- Preenchido via JS -->
-                    <div class="lk-historico-empty">
-                        <i data-lucide="inbox"></i>
-                        <p>Nenhuma movimentação recente</p>
-                    </div>
-                </div>
+            <!-- Wizard Progress (dots) -->
+            <div class="lk-wizard-progress" id="contasWizardProgress" style="display: none;">
+                <!-- Renderizado via JS -->
             </div>
 
-            <!-- Escolha do Tipo de Lançamento -->
-            <div class="lk-tipo-section" id="tipoSection">
-                <h3 class="lk-section-title">
-                    <i data-lucide="list-checks"></i>
-                    Escolha o tipo de movimentação
-                </h3>
+            <!-- ====== STEP 1: Tipo de Movimentação ====== -->
+            <div class="lk-wizard-step active" data-step="1" id="contasStep1">
+                <!-- Histórico Recente -->
+                <div class="lk-historico-section">
+                    <h3 class="lk-section-title">
+                        <i data-lucide="history"></i>
+                        Últimas Movimentações
+                    </h3>
+                    <div class="lk-historico-list" id="lancamentoHistorico">
+                        <div class="lk-historico-empty">
+                            <i data-lucide="inbox"></i>
+                            <p>Nenhuma movimentação recente</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lk-wizard-question">
+                    <h3>
+                        <i data-lucide="list-checks"></i>
+                        O que você quer registrar?
+                    </h3>
+                    <p>Escolha o tipo de movimentação</p>
+                </div>
 
                 <div class="lk-tipo-grid lk-tipo-grid-3">
-                    <!-- Receita -->
                     <button type="button" class="lk-tipo-card lk-tipo-receita"
                         onclick="contasManager.mostrarFormularioLancamento('receita')">
                         <div class="lk-tipo-icon">
@@ -61,7 +67,6 @@
                         <div class="lk-tipo-badge">+ Entrada</div>
                     </button>
 
-                    <!-- Despesa -->
                     <button type="button" class="lk-tipo-card lk-tipo-despesa"
                         onclick="contasManager.mostrarFormularioLancamento('despesa')">
                         <div class="lk-tipo-icon">
@@ -72,7 +77,6 @@
                         <div class="lk-tipo-badge">- Saída</div>
                     </button>
 
-                    <!-- Transferência -->
                     <button type="button" class="lk-tipo-card lk-tipo-transferencia"
                         onclick="contasManager.mostrarFormularioLancamento('transferencia')">
                         <div class="lk-tipo-icon">
@@ -85,17 +89,20 @@
                 </div>
             </div>
 
-            <!-- Formulário de Lançamento (oculto inicialmente) -->
-            <div class="lk-form-section" id="formSection" style="display: none;">
-                <!-- Botão voltar -->
-                <button type="button" class="lk-btn-voltar" onclick="contasManager.voltarEscolhaTipo()">
-                    <i data-lucide="arrow-left"></i>
-                    Voltar
-                </button>
+            <!-- Form wrapper (steps 2-5 share one form) -->
+            <form id="formLancamento" autocomplete="off">
+                <input type="hidden" id="lancamentoContaId" name="conta_id">
+                <input type="hidden" id="lancamentoTipo" name="tipo">
 
-                <form id="formLancamento" autocomplete="off">
-                    <input type="hidden" id="lancamentoContaId" name="conta_id">
-                    <input type="hidden" id="lancamentoTipo" name="tipo">
+                <!-- ====== STEP 2: Descrição + Valor ====== -->
+                <div class="lk-wizard-step" data-step="2" id="contasStep2">
+                    <div class="lk-wizard-question" id="contasStep2Question">
+                        <h3>
+                            <i data-lucide="pencil-line"></i>
+                            <span id="contasStep2Title">Com o que você gastou?</span>
+                        </h3>
+                        <p id="contasStep2Subtitle">Descreva e informe o valor</p>
+                    </div>
 
                     <!-- Descrição -->
                     <div class="lk-form-group">
@@ -120,6 +127,33 @@
                         </div>
                     </div>
 
+                    <!-- Nav -->
+                    <div class="lk-wizard-nav">
+                        <div class="lk-wizard-nav-left">
+                            <button type="button" class="lk-btn-voltar" onclick="contasManager.prevStep()">
+                                <i data-lucide="arrow-left"></i>
+                                Voltar
+                            </button>
+                        </div>
+                        <div class="lk-wizard-nav-right">
+                            <button type="button" class="lk-btn lk-btn-primary" onclick="contasManager.nextStep()">
+                                Próximo
+                                <i data-lucide="arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ====== STEP 3: Forma de Pagamento / Conta Destino ====== -->
+                <div class="lk-wizard-step" data-step="3" id="contasStep3">
+                    <div class="lk-wizard-question" id="contasStep3Question">
+                        <h3>
+                            <i data-lucide="wallet"></i>
+                            <span id="contasStep3Title">Como você pagou?</span>
+                        </h3>
+                        <p id="contasStep3Subtitle">Escolha a forma de pagamento</p>
+                    </div>
+
                     <!-- Conta Destino (somente para transferência) -->
                     <div class="lk-form-group" id="contaDestinoGroup" style="display: none;">
                         <label for="lancamentoContaDestino" class="lk-label required">
@@ -129,7 +163,6 @@
                         <div class="lk-select-wrapper">
                             <select id="lancamentoContaDestino" name="conta_destino_id" class="lk-select">
                                 <option value="">Selecione a conta de destino</option>
-                                <!-- Preenchido via JS -->
                             </select>
                             <i data-lucide="chevron-down" class="lk-select-icon"></i>
                         </div>
@@ -176,7 +209,7 @@
                     <!-- Forma de Recebimento (para receitas) -->
                     <div class="lk-form-group lk-forma-pagamento-section" id="formaRecebimentoGroup"
                         style="display: none;">
-                        <input type="hidden" id="formaRecebimento" name="forma_pagamento" value="">
+                        <input type="hidden" id="formaRecebimento" name="forma_recebimento" value="">
                         <label class="lk-forma-pagamento-label">
                             <i data-lucide="hand-coins"></i>
                             Como você vai receber?
@@ -220,7 +253,6 @@
                             <select id="lancamentoCartaoCredito" name="cartao_credito_id" class="lk-select"
                                 onchange="contasManager.onCartaoChange()">
                                 <option value="">Selecione o cartão</option>
-                                <!-- Preenchido via JS -->
                             </select>
                             <i data-lucide="chevron-down" class="lk-select-icon"></i>
                         </div>
@@ -236,7 +268,6 @@
                         <div class="lk-select-wrapper">
                             <select id="lancamentoFaturaEstorno" name="fatura_mes_ano" class="lk-select">
                                 <option value="">Selecione a fatura</option>
-                                <!-- Preenchido via JS -->
                             </select>
                             <i data-lucide="chevron-down" class="lk-select-icon"></i>
                         </div>
@@ -331,8 +362,34 @@
                             <span class="lk-input-suffix">vezes</span>
                         </div>
                         <div id="parcelamentoPreview" class="lk-parcelamento-preview" style="display: none;">
-                            <!-- Preview preenchido via JS -->
                         </div>
+                    </div>
+
+                    <!-- Nav -->
+                    <div class="lk-wizard-nav">
+                        <div class="lk-wizard-nav-left">
+                            <button type="button" class="lk-btn-voltar" onclick="contasManager.prevStep()">
+                                <i data-lucide="arrow-left"></i>
+                                Voltar
+                            </button>
+                        </div>
+                        <div class="lk-wizard-nav-right">
+                            <button type="button" class="lk-btn lk-btn-primary" onclick="contasManager.nextStep()">
+                                Próximo
+                                <i data-lucide="arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ====== STEP 4: Data + Hora + Pago ====== -->
+                <div class="lk-wizard-step" data-step="4" id="contasStep4">
+                    <div class="lk-wizard-question" id="contasStep4Question">
+                        <h3>
+                            <i data-lucide="calendar-clock"></i>
+                            <span id="contasStep4Title">Quando aconteceu?</span>
+                        </h3>
+                        <p id="contasStep4Subtitle">Informe a data e horário</p>
                     </div>
 
                     <!-- Data e Hora -->
@@ -357,6 +414,50 @@
                         <small class="lk-helper-text">Horário é opcional — útil para organizar.</small>
                     </div>
 
+                    <!-- Status de Pagamento -->
+                    <div class="lk-form-group" id="pagoGroup" style="display: none;">
+                        <div class="lk-checkbox-wrapper">
+                            <label class="lk-checkbox-label">
+                                <input type="checkbox" id="lancamentoPago" name="pago" value="1" class="lk-checkbox"
+                                    checked>
+                                <span class="lk-checkbox-custom"></span>
+                                <span class="lk-checkbox-text">
+                                    <i data-lucide="circle-check"></i>
+                                    <span id="pagoLabel">Já foi pago</span>
+                                </span>
+                            </label>
+                        </div>
+                        <small class="lk-helper-text" id="pagoHelperText">Pendentes não alteram o saldo até serem
+                            confirmados.</small>
+                    </div>
+
+                    <!-- Nav -->
+                    <div class="lk-wizard-nav">
+                        <div class="lk-wizard-nav-left">
+                            <button type="button" class="lk-btn-voltar" onclick="contasManager.prevStep()">
+                                <i data-lucide="arrow-left"></i>
+                                Voltar
+                            </button>
+                        </div>
+                        <div class="lk-wizard-nav-right" id="contasStep4NavRight">
+                            <button type="button" class="lk-btn lk-btn-primary" onclick="contasManager.nextStep()">
+                                Próximo
+                                <i data-lucide="arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ====== STEP 5: Categoria + Recorrência + Lembrete (pulável) ====== -->
+                <div class="lk-wizard-step" data-step="5" id="contasStep5">
+                    <div class="lk-wizard-question">
+                        <h3>
+                            <i data-lucide="sparkles"></i>
+                            Quer organizar melhor?
+                        </h3>
+                        <p>Categoria, recorrência e lembrete são opcionais</p>
+                    </div>
+
                     <!-- Tipo de Agendamento (receita/despesa) - oculto por padrão -->
                     <div class="lk-form-group" id="tipoAgendamentoGroup" style="display: none;">
                         <label class="lk-label required">
@@ -374,6 +475,39 @@
                             </button>
                         </div>
                         <input type="hidden" id="lancamentoTipoAgendamento" name="tipo_agendamento" value="despesa">
+                    </div>
+
+                    <!-- Categoria -->
+                    <div class="lk-form-group" id="categoriaGroup">
+                        <label for="lancamentoCategoria" class="lk-label">
+                            <i data-lucide="tag"></i>
+                            Categoria
+                            <button type="button" class="lk-info" data-lk-tooltip-title="Categoria"
+                                data-lk-tooltip="Ajuda a organizar e visualizar para onde vai seu dinheiro nos relatórios."
+                                aria-label="Ajuda: Categoria">
+                                <i data-lucide="info" aria-hidden="true"></i>
+                            </button>
+                        </label>
+                        <div class="lk-select-wrapper">
+                            <select id="lancamentoCategoria" name="categoria_id" class="lk-select">
+                                <option value="">Selecione (opcional)</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="lk-select-icon"></i>
+                        </div>
+                    </div>
+
+                    <!-- Subcategoria -->
+                    <div class="lk-form-group subcategoria-select-group" id="subcategoriaGroup" style="display: none;">
+                        <label for="lancamentoSubcategoria" class="lk-label">
+                            <i data-lucide="tags"></i>
+                            Subcategoria
+                        </label>
+                        <div class="lk-select-wrapper">
+                            <select id="lancamentoSubcategoria" name="subcategoria_id" class="lk-select">
+                                <option value="">Sem subcategoria</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="lk-select-icon"></i>
+                        </div>
                     </div>
 
                     <!-- Recorrência (para receita e despesa) -->
@@ -497,71 +631,27 @@
                         </div>
                     </div>
 
-                    <!-- Status de Pagamento -->
-                    <div class="lk-form-group" id="pagoGroup" style="display: none;">
-                        <div class="lk-checkbox-wrapper">
-                            <label class="lk-checkbox-label">
-                                <input type="checkbox" id="lancamentoPago" name="pago" value="1" class="lk-checkbox"
-                                    checked>
-                                <span class="lk-checkbox-custom"></span>
-                                <span class="lk-checkbox-text">
-                                    <i data-lucide="circle-check"></i>
-                                    <span id="pagoLabel">Já foi pago</span>
-                                </span>
-                            </label>
-                        </div>
-                        <small class="lk-helper-text" id="pagoHelperText">Pendentes não alteram o saldo até serem
-                            confirmados.</small>
-                    </div>
-
-                    <!-- Categoria (não obrigatório) -->
-                    <div class="lk-form-group" id="categoriaGroup">
-                        <label for="lancamentoCategoria" class="lk-label">
-                            <i data-lucide="tag"></i>
-                            Categoria
-                            <button type="button" class="lk-info" data-lk-tooltip-title="Categoria"
-                                data-lk-tooltip="Ajuda a organizar e visualizar para onde vai seu dinheiro nos relatórios."
-                                aria-label="Ajuda: Categoria">
-                                <i data-lucide="info" aria-hidden="true"></i>
+                    <!-- Nav -->
+                    <div class="lk-wizard-nav">
+                        <div class="lk-wizard-nav-left">
+                            <button type="button" class="lk-btn-voltar" onclick="contasManager.prevStep()">
+                                <i data-lucide="arrow-left"></i>
+                                Voltar
                             </button>
-                        </label>
-                        <div class="lk-select-wrapper">
-                            <select id="lancamentoCategoria" name="categoria_id" class="lk-select">
-                                <option value="">Selecione (opcional)</option>
-                                <!-- Preenchido via JS -->
-                            </select>
-                            <i data-lucide="chevron-down" class="lk-select-icon"></i>
+                        </div>
+                        <div class="lk-wizard-nav-right">
+                            <button type="button" class="lk-btn-skip" onclick="contasManager.skipAndSave()">
+                                <i data-lucide="fast-forward"></i>
+                                Pular e Salvar
+                            </button>
+                            <button type="submit" class="lk-btn lk-btn-primary" id="btnSalvarLancamento">
+                                <i data-lucide="check"></i>
+                                Salvar Lançamento
+                            </button>
                         </div>
                     </div>
-
-                    <!-- Subcategoria -->
-                    <div class="lk-form-group subcategoria-select-group" id="subcategoriaGroup" style="display: none;">
-                        <label for="lancamentoSubcategoria" class="lk-label">
-                            <i data-lucide="tags"></i>
-                            Subcategoria
-                        </label>
-                        <div class="lk-select-wrapper">
-                            <select id="lancamentoSubcategoria" name="subcategoria_id" class="lk-select">
-                                <option value="">Sem subcategoria</option>
-                            </select>
-                            <i data-lucide="chevron-down" class="lk-select-icon"></i>
-                        </div>
-                    </div>
-
-                    <!-- Footer -->
-                    <div class="lk-modal-footer">
-                        <button type="button" class="lk-btn lk-btn-ghost"
-                            onclick="contasManager.closeLancamentoModal()">
-                            <i data-lucide="x"></i>
-                            Cancelar
-                        </button>
-                        <button type="submit" class="lk-btn lk-btn-primary" id="btnSalvarLancamento">
-                            <i data-lucide="check"></i>
-                            Salvar Lançamento
-                        </button>
-                    </div>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>

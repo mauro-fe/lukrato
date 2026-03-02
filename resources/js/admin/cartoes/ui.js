@@ -473,6 +473,22 @@ export const CartoesUI = {
      * Exportar relatório em PDF
      */
     async exportarRelatorio() {
+        if (!STATE.filteredCartoes?.length) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'info',
+                    title: 'Nenhum cartão para exportar',
+                    text: 'Adicione cartões ou altere os filtros.',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
+            return;
+        }
+
         try {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();

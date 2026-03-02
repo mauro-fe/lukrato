@@ -59,8 +59,8 @@ class ExportController extends BaseController
         }
 
         header('Content-Type: ' . $result['mime']);
-        header('Content-Disposition', 'attachment; filename="' . $result['filename'] . '"');
-        header('Content-Length', (string) mb_strlen($result['binary'], '8bit'));
+        header('Content-Disposition: attachment; filename="' . $result['filename'] . '"');
+        header('Content-Length: ' . (string) mb_strlen($result['binary'], '8bit'));
         echo $result['binary'];
         exit;
     }

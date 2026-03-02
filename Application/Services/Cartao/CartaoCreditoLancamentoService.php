@@ -190,6 +190,25 @@ class CartaoCreditoLancamentoService
             $vencimento['ano']
         );
 
+        // Validar e sanitizar recorrencia_fim
+        $recorrenciaFim = $data['recorrencia_fim'] ?? null;
+        if ($recorrenciaFim !== null) {
+            if (!is_string($recorrenciaFim) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $recorrenciaFim)) {
+                $recorrenciaFim = null; // Formato inválido — ignorar
+                LogService::warning('[CARTAO] recorrencia_fim com formato inválido ignorado', [
+                    'valor_recebido' => $data['recorrencia_fim'],
+                    'user_id' => $userId,
+                ]);
+            }
+        }
+
+        // Validar frequência
+        $recorrenciaFreq = $data['recorrencia_freq'] ?? 'mensal';
+        $freqValidas = ['semanal', 'quinzenal', 'mensal', 'bimestral', 'trimestral', 'semestral', 'anual'];
+        if (!in_array($recorrenciaFreq, $freqValidas, true)) {
+            $recorrenciaFreq = 'mensal';
+        }
+
         $item = FaturaCartaoItem::create([
             'user_id' => $userId,
             'cartao_credito_id' => $cartao->id,
@@ -207,8 +226,8 @@ class CartaoCreditoLancamentoService
             'pago' => false,
             // Campos de recorrência
             'recorrente' => true,
-            'recorrencia_freq' => $data['recorrencia_freq'] ?? 'mensal',
-            'recorrencia_fim' => $data['recorrencia_fim'] ?? null,
+            'recorrencia_freq' => $recorrenciaFreq,
+            'recorrencia_fim' => $recorrenciaFim,
             'recorrencia_pai_id' => null, // Este é o item pai (original)
         ]);
 

@@ -30,7 +30,7 @@
     opacity: 0;
 }
 .cat-subcategorias-panel.is-open {
-    max-height: 500px;   /* generous — will clamp to content */
+    max-height: 800px;   /* generous — accommodates list + inline form + icon picker */
     opacity: 1;
 }
 .subcat-panel-inner {
@@ -220,6 +220,82 @@
     display: flex;
     gap: 6px;
     align-items: center;
+}
+
+/* ---- Add subcategoria inline form (inside accordion) ---- */
+.subcat-add-form-inline {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color, rgba(255,255,255,0.06));
+}
+.subcat-add-form-inline .subcat-icon-btn {
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--border-color, rgba(255,255,255,0.1));
+    border-radius: 6px;
+    background: var(--surface-2, rgba(255,255,255,0.05));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: border-color 0.15s;
+    padding: 0;
+}
+.subcat-add-form-inline .subcat-icon-btn:hover {
+    border-color: var(--primary, #6366f1);
+}
+.subcat-add-form-inline .subcat-icon-btn svg {
+    width: 14px;
+    height: 14px;
+    color: var(--text-secondary, #cbd5e1);
+}
+.subcat-add-form-inline input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    height: 30px;
+    font-size: 0.8rem;
+    padding: 4px 8px;
+}
+.subcat-add-form-inline .btn-add-subcat {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.subcat-add-form-inline .btn-add-subcat svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* Icon picker panel inline (inside accordion) */
+.subcat-icon-picker-panel-inline {
+    margin-top: 6px;
+    margin-bottom: 2px;
+    border: 1px solid var(--border-color, rgba(255,255,255,0.08));
+    border-radius: 8px;
+    padding: 6px;
+    background: var(--surface-2, rgba(255,255,255,0.03));
+}
+.subcat-icon-picker-panel-inline .icon-search-input {
+    width: 100%;
+    margin-bottom: 6px;
+    font-size: 0.78rem;
+    padding: 4px 8px;
+}
+.subcat-icon-picker-panel-inline .subcat-icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
+    gap: 2px;
+    max-height: 100px;
+    overflow-y: auto;
 }
 .subcat-add-form .subcat-icon-btn {
     width: 34px;

@@ -96,6 +96,7 @@ export function renderAccordionPanel(categoriaId) {
                 <div class="subcat-list" id="subcat-list-${categoriaId}">
                     ${isOpen ? renderSubcategoriasList(categoriaId) : '<div class="subcat-loading"><i data-lucide="loader"></i> Carregando...</div>'}
                 </div>
+                ${renderInlineAddForm(categoriaId)}
             </div>
         </div>`;
 }
@@ -181,6 +182,195 @@ function refreshSubcategoriasList(categoriaId) {
     if (!listEl) return;
     listEl.innerHTML = renderSubcategoriasList(categoriaId);
     Utils.processNewIcons();
+}
+
+// =========================================================================
+// INLINE ADD FORM — inside accordion panel
+// =========================================================================
+
+/**
+ * Gera o mini-form para adicionar subcategoria diretamente no accordion.
+ * Usa data-* attributes em vez de IDs para suportar múltiplos painéis.
+ */
+function renderInlineAddForm(categoriaId) {
+    const selectedIcon = STATE.inlineSubcategoriaIcon[categoriaId] || 'tag';
+    return `
+        <div class="subcat-add-form-inline" data-inline-form-cat="${categoriaId}">
+            <button type="button" class="subcat-icon-btn" data-inline-icon-picker="${categoriaId}"
+                    title="Escolher ícone">
+                <span class="inline-icon-preview" data-inline-icon-preview="${categoriaId}">
+                    <i data-lucide="${selectedIcon}"></i>
+                </span>
+            </button>
+            <input type="text" class="form-control form-control-sm"
+                   data-inline-subcat-nome="${categoriaId}"
+                   placeholder="Nova subcategoria..."
+                   maxlength="100" />
+            <button type="button" class="btn btn-primary btn-sm btn-add-subcat"
+                    data-inline-add-subcat="${categoriaId}"
+                    title="Adicionar subcategoria">
+                <i data-lucide="plus"></i>
+            </button>
+        </div>
+        <div class="subcat-icon-picker-panel-inline d-none" data-inline-icon-panel="${categoriaId}">
+            <input type="text" class="form-control form-control-sm icon-search-input"
+                   data-inline-icon-search="${categoriaId}"
+                   placeholder="Buscar ícone..." />
+            <div class="subcat-icon-grid" data-inline-icon-grid="${categoriaId}"></div>
+        </div>`;
+}
+
+/**
+ * Adiciona subcategoria a partir do form inline do accordion.
+ */
+async function handleAddSubcategoriaInline(categoriaId) {
+    const nomeInput = document.querySelector(`[data-inline-subcat-nome="${categoriaId}"]`);
+    const nome = (nomeInput?.value || '').trim();
+    if (!nome || nome.length < 2) {
+        toastError('Nome deve ter pelo menos 2 caracteres');
+        nomeInput?.focus();
+        return;
+    }
+
+    const icone = STATE.inlineSubcategoriaIcon[categoriaId] || null;
+
+    try {
+        await apiCreateSubcategoria(categoriaId, { nome, icone });
+        toastSuccess('Subcategoria criada!');
+
+        // Limpar form
+        if (nomeInput) nomeInput.value = '';
+        delete STATE.inlineSubcategoriaIcon[categoriaId];
+        const iconPreview = document.querySelector(`[data-inline-icon-preview="${categoriaId}"]`);
+        if (iconPreview) {
+            iconPreview.innerHTML = '<i data-lucide="tag"></i>';
+        }
+
+        // Fechar icon picker se estiver aberto
+        const iconPanel = document.querySelector(`[data-inline-icon-panel="${categoriaId}"]`);
+        if (iconPanel) iconPanel.classList.add('d-none');
+
+        // Invalidar cache e re-renderizar accordion
+        delete STATE.subcategoriasCache[categoriaId];
+        await fetchSubcategorias(categoriaId);
+        refreshSubcategoriasList(categoriaId);
+
+        // Se o modal de edição estiver aberto para esta categoria, sincronizar
+        if (STATE.categoriaEmEdicao?.id === categoriaId) {
+            await renderEditModalSubcategorias(categoriaId);
+        }
+    } catch (err) {
+        toastError(err.message);
+    }
+}
+
+/**
+ * Edita subcategoria a partir do accordion (SweetAlert prompt).
+ */
+async function handleEditSubcategoriaInCard(subcatId) {
+    // Encontrar a categoria pai
+    let parentId = null;
+    for (const [catId, subs] of Object.entries(STATE.subcategoriasCache)) {
+        if (subs.find(s => s.id === subcatId)) { parentId = Number(catId); break; }
+    }
+    if (!parentId) return;
+
+    const sub = STATE.subcategoriasCache[parentId]?.find(s => s.id === subcatId);
+    if (!sub || !sub.user_id) return; // não pode editar subcategorias globais
+
+    const { value: nome } = await Swal.fire({
+        title: 'Editar subcategoria',
+        input: 'text',
+        inputLabel: 'Nome',
+        inputValue: sub.nome,
+        showCancelButton: true,
+        confirmButtonText: 'Salvar',
+        cancelButtonText: 'Cancelar',
+        inputValidator: (v) => {
+            if (!v || v.trim().length < 2) return 'Nome deve ter pelo menos 2 caracteres';
+        }
+    });
+
+    if (!nome) return;
+
+    try {
+        await apiUpdateSubcategoria(subcatId, { nome: nome.trim() });
+        toastSuccess('Subcategoria atualizada!');
+        delete STATE.subcategoriasCache[parentId];
+        await fetchSubcategorias(parentId);
+        refreshSubcategoriasList(parentId);
+
+        // Sincronizar modal se aberto
+        if (STATE.categoriaEmEdicao?.id === parentId) {
+            await renderEditModalSubcategorias(parentId);
+        }
+    } catch (err) {
+        toastError(err.message);
+    }
+}
+
+/**
+ * Alterna visibilidade do picker de ícones inline.
+ */
+function toggleInlineIconPicker(categoriaId) {
+    const panel = document.querySelector(`[data-inline-icon-panel="${categoriaId}"]`);
+    if (!panel) return;
+
+    const isHidden = panel.classList.contains('d-none');
+    if (isHidden) {
+        // Lazy-init: renderizar grid de ícones se ainda não foi feito
+        const grid = panel.querySelector(`[data-inline-icon-grid="${categoriaId}"]`);
+        if (grid && !grid.dataset.ready) {
+            grid.innerHTML = AVAILABLE_ICONS.map(ic => `
+                <button type="button" class="icon-grid-item" data-inline-select-icon="${ic.name}"
+                        data-icon-cat="${categoriaId}"
+                        title="${ic.label}" aria-label="${ic.label}">
+                    <i data-lucide="${ic.name}"></i>
+                </button>
+            `).join('');
+            grid.dataset.ready = '1';
+            Utils.processNewIcons();
+        }
+        panel.classList.remove('d-none');
+    } else {
+        panel.classList.add('d-none');
+    }
+}
+
+/**
+ * Seleciona ícone no picker inline.
+ */
+function selectInlineIcon(categoriaId, iconName) {
+    STATE.inlineSubcategoriaIcon[categoriaId] = iconName;
+    const preview = document.querySelector(`[data-inline-icon-preview="${categoriaId}"]`);
+    if (preview) {
+        preview.innerHTML = `<i data-lucide="${iconName}"></i>`;
+        Utils.processNewIcons();
+    }
+    // Highlight
+    const grid = document.querySelector(`[data-inline-icon-grid="${categoriaId}"]`);
+    if (grid) {
+        grid.querySelectorAll('.icon-grid-item').forEach(btn => {
+            btn.classList.toggle('selected', btn.dataset.inlineSelectIcon === iconName);
+        });
+    }
+    // Fechar painel
+    const panel = document.querySelector(`[data-inline-icon-panel="${categoriaId}"]`);
+    if (panel) panel.classList.add('d-none');
+}
+
+/**
+ * Filtra ícones no picker inline.
+ */
+function filterInlineIcons(categoriaId, query) {
+    const q = (query || '').toLowerCase();
+    const grid = document.querySelector(`[data-inline-icon-grid="${categoriaId}"]`);
+    if (!grid) return;
+    grid.querySelectorAll('.icon-grid-item').forEach(btn => {
+        const label = (btn.title || '').toLowerCase();
+        const name = (btn.dataset.inlineSelectIcon || '').toLowerCase();
+        btn.style.display = (!q || label.includes(q) || name.includes(q)) ? '' : 'none';
+    });
 }
 
 // =========================================================================
@@ -382,6 +572,11 @@ async function handleDeleteSubcategoriaInCard(subcatId) {
         delete STATE.subcategoriasCache[parentId];
         await fetchSubcategorias(parentId);
         refreshSubcategoriasList(parentId);
+
+        // Sincronizar modal se aberto
+        if (STATE.categoriaEmEdicao?.id === parentId) {
+            await renderEditModalSubcategorias(parentId);
+        }
     } catch (err) {
         toastError(err.message);
     }
@@ -470,6 +665,57 @@ export function initSubcategoriaEvents() {
                 handleDeleteSubcategoriaInCard(Number(deleteBtn.dataset.deleteSubcat));
                 return;
             }
+            // Edit subcategoria from card
+            const editBtn = e.target.closest('[data-edit-subcat]');
+            if (editBtn) {
+                e.stopPropagation();
+                handleEditSubcategoriaInCard(Number(editBtn.dataset.editSubcat));
+                return;
+            }
+            // Inline add subcategoria button
+            const addInlineBtn = e.target.closest('[data-inline-add-subcat]');
+            if (addInlineBtn) {
+                e.stopPropagation();
+                handleAddSubcategoriaInline(Number(addInlineBtn.dataset.inlineAddSubcat));
+                return;
+            }
+            // Inline icon picker toggle
+            const iconPickerBtn = e.target.closest('[data-inline-icon-picker]');
+            if (iconPickerBtn) {
+                e.stopPropagation();
+                toggleInlineIconPicker(Number(iconPickerBtn.dataset.inlineIconPicker));
+                return;
+            }
+            // Inline icon selection
+            const iconSelectBtn = e.target.closest('[data-inline-select-icon]');
+            if (iconSelectBtn) {
+                e.stopPropagation();
+                const catId = Number(iconSelectBtn.dataset.iconCat);
+                selectInlineIcon(catId, iconSelectBtn.dataset.inlineSelectIcon);
+                return;
+            }
+        });
+
+        // Enter key on inline nome input
+        el.addEventListener('keydown', (e) => {
+            const inlineInput = e.target.closest('[data-inline-subcat-nome]');
+            if (inlineInput && e.key === 'Enter') {
+                e.preventDefault();
+                handleAddSubcategoriaInline(Number(inlineInput.dataset.inlineSubcatNome));
+            }
+            // Inline icon search
+            const iconSearch = e.target.closest('[data-inline-icon-search]');
+            if (iconSearch) {
+                filterInlineIcons(Number(iconSearch.dataset.inlineIconSearch), iconSearch.value);
+            }
+        });
+
+        // Input event for icon search filtering
+        el.addEventListener('input', (e) => {
+            const iconSearch = e.target.closest('[data-inline-icon-search]');
+            if (iconSearch) {
+                filterInlineIcons(Number(iconSearch.dataset.inlineIconSearch), iconSearch.value);
+            }
         });
     });
 
@@ -525,6 +771,8 @@ export const SubcategoriasModule = {
     renderEditModalSubcategorias,
     initSubcategoriaEvents,
     toggleAccordion,
+    handleAddSubcategoriaInline,
+    toggleInlineIconPicker,
     invalidateCache(categoriaId) {
         if (categoriaId) {
             delete STATE.subcategoriasCache[categoriaId];

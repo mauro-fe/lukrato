@@ -19,6 +19,7 @@ use Application\Models\CartaoCredito;
 use Application\Models\Notificacao;
 use Application\Services\Communication\MailService;
 use Application\Services\Infrastructure\LogService;
+use Application\Services\Mail\EmailTemplate;
 
 LogService::info('=== [dispatch_fatura_reminders] Inicio do lembrete de faturas ===');
 
@@ -178,13 +179,46 @@ try {
                         ? "Lembrete: Fatura do {$cartao->nome_cartao} vence em {$tempoRestante}"
                         : "Lembrete: Fatura do {$cartao->nome_cartao} vence HOJE!";
 
-                    $corpo = "<p>Olá, {$usuario->nome}!</p>"
-                        . "<p>{$mensagem}</p>"
-                        . "<p>Não esqueça de efetuar o pagamento para evitar juros e multas.</p>"
-                        . ($linkFaturas ? "<p><a href=\"{$linkFaturas}\">Ver minhas faturas</a></p>" : '');
+                    $nomeCartao = htmlspecialchars($cartao->nome_cartao, ENT_QUOTES, 'UTF-8');
+                    $nomeUsuario = htmlspecialchars($usuario->nome, ENT_QUOTES, 'UTF-8');
+                    $dataFormatada = $dataVencimento->format('d/m/Y');
+
+                    $conteudo = "
+                        <p style='font-size: 15px; line-height: 1.8; color: #5a6c7d; margin: 0 0 20px 0;'>
+                            Olá, {$nomeUsuario}!
+                        </p>
+                        <p style='font-size: 15px; line-height: 1.8; color: #5a6c7d; margin: 0 0 20px 0;'>
+                            {$mensagem}
+                        </p>
+                        <p style='font-size: 15px; line-height: 1.8; color: #e74c3c; margin: 0 0 20px 0; font-weight: 600;'>
+                            ⚠️ Não esqueça de efetuar o pagamento para evitar juros e multas.
+                        </p>
+                    ";
+
+                    if ($linkFaturas) {
+                        $conteudo .= "
+                            <div style='text-align: center; margin: 32px 0;'>
+                                <a href='{$linkFaturas}' 
+                                   style='display: inline-block; padding: 14px 28px; border-radius: 10px; 
+                                          background: #e67e22; color: #ffffff; text-decoration: none; font-weight: 600;'>
+                                    Ver minhas faturas
+                                </a>
+                            </div>
+                        ";
+                    }
+
+                    $corpo = EmailTemplate::wrap(
+                        'Lembrete de Fatura',
+                        '#e67e22',
+                        '💳 Lembrete de Fatura',
+                        "Cartão {$nomeCartao} • Vencimento {$dataFormatada}",
+                        $conteudo,
+                        'Este é um lembrete automático configurado por você no Lukrato.'
+                    );
 
                     $mailService->send(
                         $usuario->email,
+                        $usuario->nome,
                         $assunto,
                         $corpo
                     );

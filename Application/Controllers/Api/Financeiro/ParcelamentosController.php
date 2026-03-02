@@ -178,6 +178,19 @@ class ParcelamentosController
             }
         }
 
+        $subcategoriaId = null;
+        if (!empty($data['subcategoria_id'])) {
+            $subcategoriaId = (int)$data['subcategoria_id'];
+            if (!$this->categoriaRepo->belongsToUser($subcategoriaId, $userId)) {
+                $subcategoriaId = null; // Silently ignore invalid subcategoria
+            }
+        }
+
+        $formaPagamento = $data['forma_pagamento'] ?? null;
+        if ($formaPagamento !== null && !in_array($formaPagamento, ['pix', 'cartao_credito', 'cartao_debito', 'dinheiro', 'boleto', 'transferencia', 'deposito'], true)) {
+            $formaPagamento = null;
+        }
+
         $tipo = strtolower(trim($data['tipo'] ?? 'despesa'));
         if (!in_array($tipo, ['receita', 'despesa'], true)) {
             $tipo = 'despesa';
@@ -239,9 +252,11 @@ class ParcelamentosController
                     'tipo' => $tipo,
                     'data' => $dataVencimento->format('Y-m-d'),
                     'categoria_id' => $categoriaId,
+                    'subcategoria_id' => $subcategoriaId,
                     'conta_id' => $contaId,
                     'descricao' => $descricao . " ({$i}/{$numeroParcelas})",
                     'valor' => $valorDessa,
+                    'forma_pagamento' => $formaPagamento,
                     'eh_transferencia' => false,
                     'eh_saldo_inicial' => false,
                     'parcelamento_id' => $parcelamento->id,
@@ -271,7 +286,7 @@ class ParcelamentosController
                 'numero_parcelas' => (int)$parcelamento->numero_parcelas,
                 'total_criados' => $numeroParcelas,
                 'message' => "Parcelamento criado: {$numeroParcelas} parcelas geradas",
-            ], 201);
+            ], 'Parcelamento criado com sucesso', 201);
         } catch (\Throwable $e) {
             LogService::captureException($e, LogCategory::LANCAMENTO, [
                 'action' => 'create_parcelamento',

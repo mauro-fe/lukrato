@@ -84,6 +84,11 @@ window.contasManager = {
     toggleRecorrenciaFim: (s) => ContasLancamento.toggleRecorrenciaFim(s),
     selecionarTipoLancamento: (t) => ContasLancamento.selecionarTipoLancamento(t),
     selecionarTipoAgendamento: (t) => ContasLancamento.selecionarTipoAgendamento(t),
+
+    // ── Lançamento — wizard steps ───────────────────────────────────────
+    nextStep: () => ContasLancamento.nextStep(),
+    prevStep: () => ContasLancamento.prevStep(),
+    skipAndSave: () => ContasLancamento.skipAndSave(),
 };
 
 // Guard + bootstrap

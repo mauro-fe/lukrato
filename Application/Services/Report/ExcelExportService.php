@@ -267,11 +267,40 @@ class ExcelExportService implements ReportExporterInterface
             $cell = $sheet->getCell("{$columnLetter}{$row}");
             $value = $cell->getValue();
 
-            if (is_numeric($value) && strpos((string) $value, '.') !== false) {
+            // Handle pre-formatted currency strings like "R$ 1.234,56" or "R$ -1.234,56"
+            $numericFromCurrency = $this->parseCurrencyString($value);
+            if ($numericFromCurrency !== null) {
+                $cell->setValue($numericFromCurrency);
+                $cell->getStyle()->getNumberFormat()
+                    ->setFormatCode('"R$ "#,##0.00;[Red]"R$ "-#,##0.00');
+                continue;
+            }
+
+            if (is_numeric($value)) {
                 $cell->getStyle()->getNumberFormat()
                     ->setFormatCode('#,##0.00');
             }
         }
+    }
+
+    /**
+     * Parse a Brazilian currency string ("R$ 1.234,56") into a float.
+     * Returns null if the value is not a currency string.
+     */
+    private function parseCurrencyString(mixed $value): ?float
+    {
+        if (!is_string($value)) {
+            return null;
+        }
+
+        if (!preg_match('/^R\$\s*(-?[\d.]+,\d{2})$/', trim($value), $matches)) {
+            return null;
+        }
+
+        $raw = str_replace('.', '', $matches[1]);
+        $raw = str_replace(',', '.', $raw);
+
+        return (float) $raw;
     }
 
     private function renderTotals(
@@ -297,7 +326,14 @@ class ExcelExportService implements ReportExporterInterface
                 ->applyFromArray(self::TOTAL_LABEL_STYLE);
 
             // Valor
-            $sheet->setCellValue("{$lastColumn}{$totalRow}", $this->formatTotalValue($value));
+            $numericTotal = $this->parseCurrencyString($value);
+            if ($numericTotal !== null) {
+                $sheet->setCellValue("{$lastColumn}{$totalRow}", $numericTotal);
+                $sheet->getStyle("{$lastColumn}{$totalRow}")->getNumberFormat()
+                    ->setFormatCode('"R$ "#,##0.00;[Red]"R$ "-#,##0.00');
+            } else {
+                $sheet->setCellValue("{$lastColumn}{$totalRow}", $this->formatTotalValue($value));
+            }
             $sheet->getStyle("{$lastColumn}{$totalRow}")
                 ->applyFromArray(self::TOTAL_VALUE_STYLE);
 

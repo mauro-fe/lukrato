@@ -27,6 +27,10 @@ class LancamentoGlobalManager {
         this.eventosConfigurados = false;
         this.salvando = false;
         this.isEstornoCartao = false;
+
+        // Wizard state
+        this.currentStep = 1;
+        this.totalSteps = 5; // receita/despesa = 5, transferencia = 4
     }
 
     // ── Init ─────────────────────────────────────────────────────────────────
@@ -361,7 +365,7 @@ class LancamentoGlobalManager {
             overlay.classList.add('active');
             document.body.style.overflow = 'hidden';
             await this.carregarDados();
-            this.voltarEscolhaTipo();
+            this.initWizard();
             setTimeout(() => {
                 if (this.contas.length === 1) {
                     const select = document.getElementById('globalContaSelect');
@@ -378,20 +382,217 @@ class LancamentoGlobalManager {
             document.body.style.overflow = '';
             const headerGradient = overlay.querySelector('.lk-modal-header-gradient');
             if (headerGradient) headerGradient.style.setProperty('background', 'var(--color-primary)', 'important');
-            this.resetarFormulario();
+            this.initWizard();
         }
     }
 
     voltarEscolhaTipo() {
-        const formSection = document.getElementById('globalFormSection');
-        if (formSection) formSection.style.display = 'none';
-        const tipoSection = document.getElementById('globalTipoSection');
-        if (tipoSection) tipoSection.style.display = 'block';
+        this.goToStep(1);
         const tituloEl = document.getElementById('modalLancamentoGlobalTitulo');
         if (tituloEl) tituloEl.textContent = 'Nova Movimentação';
         const headerGradient = document.querySelector('#modalLancamentoGlobalOverlay .lk-modal-header-gradient');
         if (headerGradient) headerGradient.style.setProperty('background', 'var(--color-primary)', 'important');
         this.resetarFormulario();
+    }
+
+    // ── Wizard Step Engine ───────────────────────────────────────────────────
+    initWizard() {
+        this.currentStep = 1;
+        this.tipoAtual = null;
+        this.totalSteps = 5;
+        this.resetarFormulario();
+        // Hide progress dots on step 1
+        const progress = document.getElementById('globalWizardProgress');
+        if (progress) progress.style.display = 'none';
+        // Show step 1, hide others
+        for (let i = 1; i <= 5; i++) {
+            const step = document.getElementById(`globalStep${i}`);
+            if (step) {
+                step.classList.remove('active');
+                step.style.display = 'none';
+            }
+        }
+        const step1 = document.getElementById('globalStep1');
+        if (step1) {
+            step1.classList.add('active');
+            step1.style.display = '';
+        }
+    }
+
+    renderProgress() {
+        const container = document.getElementById('globalWizardProgress');
+        if (!container) return;
+
+        // Hide on step 1 (type selection)
+        if (this.currentStep <= 1) {
+            container.style.display = 'none';
+            return;
+        }
+        container.style.display = 'flex';
+
+        // Steps 2..totalSteps mapped to dot indices 0..(totalSteps-2)
+        const dotCount = this.totalSteps - 1; // exclude step 1 from dots
+        let html = '';
+        for (let i = 0; i < dotCount; i++) {
+            const stepNum = i + 2; // dot 0 → step 2, dot 1 → step 3, etc.
+            let stateClass = 'pending';
+            if (stepNum < this.currentStep) stateClass = 'completed';
+            else if (stepNum === this.currentStep) stateClass = 'active';
+
+            if (i > 0) {
+                const lineClass = stepNum <= this.currentStep ? 'completed' : '';
+                html += `<div class="lk-wizard-line ${lineClass}"></div>`;
+            }
+            html += `<div class="lk-wizard-dot ${stateClass}"></div>`;
+        }
+        container.innerHTML = html;
+    }
+
+    goToStep(n) {
+        // Ensure valid range
+        if (n < 1 || n > this.totalSteps) return;
+
+        const prev = this.currentStep;
+        this.currentStep = n;
+
+        // Animate out previous step
+        for (let i = 1; i <= 5; i++) {
+            const step = document.getElementById(`globalStep${i}`);
+            if (!step) continue;
+            if (i === prev && i !== n) {
+                step.classList.remove('active');
+                step.style.display = 'none';
+            }
+        }
+
+        // Show new step
+        const newStep = document.getElementById(`globalStep${n}`);
+        if (newStep) {
+            newStep.style.display = '';
+            newStep.classList.add('active');
+        }
+
+        this.renderProgress();
+
+        // Scroll modal body to top
+        const body = document.querySelector('#modalLancamentoGlobalOverlay .lk-modal-body-modern');
+        if (body) body.scrollTop = 0;
+
+        // Re-render icons
+        refreshIcons();
+    }
+
+    nextStep() {
+        if (!this.validateCurrentStep()) return;
+
+        let next = this.currentStep + 1;
+
+        // For transferência: skip step 3 (payment) and step 5 (category/recurrence)
+        if (this.tipoAtual === 'transferencia') {
+            if (next === 5) next = this.totalSteps + 1; // no step 5 for transfer
+        }
+
+        if (next > this.totalSteps) {
+            // Submit the form
+            this.salvarLancamento();
+            return;
+        }
+        this.goToStep(next);
+    }
+
+    prevStep() {
+        let prev = this.currentStep - 1;
+
+        // For transferência: skip step 3 back to 2
+        if (this.tipoAtual === 'transferencia') {
+            // no special skip needed going back
+        }
+
+        if (prev < 1) prev = 1;
+        this.goToStep(prev);
+    }
+
+    skipAndSave() {
+        this.salvarLancamento();
+    }
+
+    validateCurrentStep() {
+        const step = this.currentStep;
+
+        if (step === 2) {
+            const descricao = document.getElementById('globalLancamentoDescricao')?.value.trim() || '';
+            const valor = parseMoney(document.getElementById('globalLancamentoValor')?.value);
+            if (!descricao) {
+                Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe a descrição', customClass: { container: 'swal-above-modal' } });
+                return false;
+            }
+            if (!valor || valor <= 0) {
+                Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe um valor válido', customClass: { container: 'swal-above-modal' } });
+                return false;
+            }
+        }
+
+        if (step === 3) {
+            if (this.tipoAtual === 'transferencia') {
+                const contaDest = document.getElementById('globalLancamentoContaDestino')?.value;
+                if (!contaDest) {
+                    Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione a conta de destino', customClass: { container: 'swal-above-modal' } });
+                    return false;
+                }
+            }
+            // Validate credit card limit if cartão selected
+            if (this.tipoAtual === 'despesa') {
+                const cartaoId = document.getElementById('globalLancamentoCartaoCredito')?.value;
+                if (cartaoId) {
+                    const cartao = this.cartoes.find(c => c.id == cartaoId);
+                    if (cartao) {
+                        const valor = parseMoney(document.getElementById('globalLancamentoValor')?.value);
+                        const limiteDisponivel = parseFloat(cartao.limite_disponivel || 0);
+                        if (valor > limiteDisponivel) {
+                            Swal.fire({
+                                icon: 'error', title: 'Limite Insuficiente',
+                                html: `<p>O valor (${formatMoney(valor)}) excede o limite disponível.</p><p><strong>Limite:</strong> ${formatMoney(limiteDisponivel)}</p>`,
+                                confirmButtonText: 'Entendi', customClass: { container: 'swal-above-modal' }
+                            });
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (step === 4) {
+            const data = document.getElementById('globalLancamentoData')?.value || '';
+            if (!data) {
+                Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe a data', customClass: { container: 'swal-above-modal' } });
+                return false;
+            }
+        }
+
+        // Step 5: validar parcelas e recorrência
+        if (step === 5) {
+            const parcelado = document.getElementById('globalParceladoCheck')?.checked;
+            if (parcelado) {
+                const totalParcelas = parseInt(document.getElementById('globalTotalParcelas')?.value) || 0;
+                if (totalParcelas < 2 || totalParcelas > 48) {
+                    Swal.fire({ icon: 'warning', title: 'Atenção', text: 'O número de parcelas deve ser entre 2 e 48', customClass: { container: 'swal-above-modal' } });
+                    return false;
+                }
+            }
+            const recorrente = document.getElementById('globalRecorrenteCheck')?.checked;
+            if (recorrente) {
+                const modo = document.querySelector('input[name="global_recorrencia_modo"]:checked')?.value;
+                if (modo === 'quantidade') {
+                    const total = parseInt(document.getElementById('globalRecorrenciaTotal')?.value) || 0;
+                    if (total < 2 || total > 120) {
+                        Swal.fire({ icon: 'warning', title: 'Atenção', text: 'A quantidade de repetições deve ser entre 2 e 120', customClass: { container: 'swal-above-modal' } });
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 
     resetarFormulario() {
@@ -459,6 +660,10 @@ class LancamentoGlobalManager {
         // Forma de pagamento
         this.resetarFormaPagamento();
         this.tipoAtual = null;
+
+        // Reset wizard state
+        this.currentStep = 1;
+        this.totalSteps = 5;
     }
 
     // ── Form Type Selection ──────────────────────────────────────────────────
@@ -496,21 +701,80 @@ class LancamentoGlobalManager {
         }
 
         this.tipoAtual = tipo;
-        const tipoSection = document.getElementById('globalTipoSection');
-        if (tipoSection) tipoSection.style.display = 'none';
-        const formSection = document.getElementById('globalFormSection');
-        if (formSection) formSection.style.display = 'block';
 
         const tipoInput = document.getElementById('globalLancamentoTipo');
         if (tipoInput) tipoInput.value = tipo;
         const contaIdInput = document.getElementById('globalLancamentoContaId');
         if (contaIdInput) contaIdInput.value = this.contaSelecionada.id;
 
+        // Set total steps based on type
+        this.totalSteps = tipo === 'transferencia' ? 4 : 5;
+
         this.configurarCamposPorTipo(tipo);
 
         const titulos = { receita: 'Nova Receita', despesa: 'Nova Despesa', transferencia: 'Nova Transferência' };
         const tituloEl = document.getElementById('modalLancamentoGlobalTitulo');
         if (tituloEl) tituloEl.textContent = titulos[tipo] || 'Nova Movimentação';
+
+        // Update step 2 question text
+        const step2Title = document.getElementById('globalStep2Title');
+        const step2Subtitle = document.getElementById('globalStep2Subtitle');
+        if (tipo === 'receita') {
+            if (step2Title) step2Title.textContent = 'O que você recebeu?';
+            if (step2Subtitle) step2Subtitle.textContent = 'Descreva e informe o valor recebido';
+        } else if (tipo === 'transferencia') {
+            if (step2Title) step2Title.textContent = 'Quanto quer transferir?';
+            if (step2Subtitle) step2Subtitle.textContent = 'Descreva e informe o valor da transferência';
+        } else {
+            if (step2Title) step2Title.textContent = 'Com o que você gastou?';
+            if (step2Subtitle) step2Subtitle.textContent = 'Descreva e informe o valor';
+        }
+
+        // Update step 3 question text
+        const step3Title = document.getElementById('globalStep3Title');
+        const step3Subtitle = document.getElementById('globalStep3Subtitle');
+        if (tipo === 'receita') {
+            if (step3Title) step3Title.textContent = 'Como você recebeu?';
+            if (step3Subtitle) step3Subtitle.textContent = 'Escolha a forma de recebimento';
+        } else if (tipo === 'transferencia') {
+            if (step3Title) step3Title.textContent = 'Para onde vai?';
+            if (step3Subtitle) step3Subtitle.textContent = 'Escolha a conta de destino';
+        } else {
+            if (step3Title) step3Title.textContent = 'Como você pagou?';
+            if (step3Subtitle) step3Subtitle.textContent = 'Escolha a forma de pagamento';
+        }
+
+        // Update step 4 question text
+        const step4Title = document.getElementById('globalStep4Title');
+        if (tipo === 'receita') {
+            if (step4Title) step4Title.textContent = 'Quando recebeu?';
+        } else if (tipo === 'transferencia') {
+            if (step4Title) step4Title.textContent = 'Quando será a transferência?';
+        } else {
+            if (step4Title) step4Title.textContent = 'Quando aconteceu?';
+        }
+
+        // For transferência: step 4 is the last, show Salvar instead of Próximo
+        const step4NavRight = document.getElementById('globalStep4NavRight');
+        if (step4NavRight) {
+            if (tipo === 'transferencia') {
+                step4NavRight.innerHTML = `
+                    <button type="submit" class="lk-btn lk-btn-primary" form="globalFormLancamento">
+                        <i data-lucide="check"></i>
+                        Salvar Transferência
+                    </button>`;
+            } else {
+                step4NavRight.innerHTML = `
+                    <button type="button" class="lk-btn lk-btn-primary" onclick="lancamentoGlobalManager.nextStep()">
+                        Próximo
+                        <i data-lucide="arrow-right"></i>
+                    </button>`;
+            }
+            refreshIcons();
+        }
+
+        // Navigate to step 2
+        this.goToStep(2);
     }
 
     // ── Field Configuration by Type ──────────────────────────────────────────
@@ -527,7 +791,8 @@ class LancamentoGlobalManager {
             if (colors[tipo]) headerGradient.style.setProperty('background', colors[tipo], 'important');
         }
 
-        // Conta Destino
+        // ── Step 3 visibility per type ──
+        // Conta Destino (transfer only)
         const contaDestinoGroup = document.getElementById('globalContaDestinoGroup');
         if (contaDestinoGroup) contaDestinoGroup.style.display = tipo === 'transferencia' ? 'block' : 'none';
         if (tipo === 'transferencia') this.preencherContasDestino();
@@ -542,11 +807,17 @@ class LancamentoGlobalManager {
         this.resetarFormaPagamento();
         if (tipo === 'despesa') this.preencherCartoes();
 
+        // ── Step 5 visibility per type ──
         // Categoria
         this.preencherCategorias(tipo === 'receita' ? 'receita' : 'despesa');
 
-        // Recorrência e Lembrete
-        const showRecorrencia = (tipo === 'receita' || tipo === 'despesa');
+        const showStep5Fields = (tipo === 'receita' || tipo === 'despesa');
+        const categoriaGroup = document.getElementById('globalCategoriaGroup');
+        const subcategoriaGroup = document.getElementById('globalSubcategoriaGroup');
+        if (categoriaGroup) categoriaGroup.style.display = showStep5Fields ? 'block' : 'none';
+        if (subcategoriaGroup) subcategoriaGroup.style.display = 'none';
+
+        // Recorrência e Lembrete (receita/despesa only)
         const recorrenciaGroup = document.getElementById('globalRecorrenciaGroup');
         const lembreteGroup = document.getElementById('globalLembreteGroup');
         const recorrenciaDetalhes = document.getElementById('globalRecorrenciaDetalhes');
@@ -554,41 +825,25 @@ class LancamentoGlobalManager {
         const recorrenteCheck = document.getElementById('globalLancamentoRecorrente');
         const tempoAvisoSelect = document.getElementById('globalLancamentoTempoAviso');
 
-        if (recorrenciaGroup) recorrenciaGroup.style.display = showRecorrencia ? 'block' : 'none';
-        if (lembreteGroup) lembreteGroup.style.display = showRecorrencia ? 'block' : 'none';
+        if (recorrenciaGroup) recorrenciaGroup.style.display = showStep5Fields ? 'block' : 'none';
+        if (lembreteGroup) lembreteGroup.style.display = showStep5Fields ? 'block' : 'none';
         if (recorrenciaDetalhes) recorrenciaDetalhes.style.display = 'none';
         if (canaisNotificacaoInline) canaisNotificacaoInline.style.display = 'none';
         if (recorrenteCheck) recorrenteCheck.checked = false;
         if (tempoAvisoSelect) tempoAvisoSelect.value = '';
 
-        // Parcelamento
+        // Parcelamento (in step 3 for credit card payments)
         const parcelamentoGroup = document.getElementById('globalParcelamentoGroup');
         const numParcelasGroup = document.getElementById('globalNumeroParcelasGroup');
         const parceladoCheck = document.getElementById('globalLancamentoParcelado');
-
-        if (showRecorrencia) {
-            if (parcelamentoGroup) {
-                parcelamentoGroup.style.display = 'block';
-                const parcelTexto = parcelamentoGroup.querySelector('.lk-checkbox-text');
-                if (tipo === 'receita') {
-                    if (parcelTexto) parcelTexto.innerHTML = '<i data-lucide="calendar-days"></i> Parcelar recebimento';
-                } else {
-                    if (parcelTexto) parcelTexto.innerHTML = '<i data-lucide="calendar-days"></i> Parcelar pagamento';
-                }
-                refreshIcons();
-                const parcelHelper = parcelamentoGroup.querySelector('.lk-helper-text');
-                if (parcelHelper) parcelHelper.textContent = 'O valor total será dividido em parcelas mensais.';
-            }
-        } else {
-            if (parcelamentoGroup) parcelamentoGroup.style.display = 'none';
-        }
+        if (parcelamentoGroup) parcelamentoGroup.style.display = 'none';
         if (numParcelasGroup) numParcelasGroup.style.display = 'none';
         if (parceladoCheck) parceladoCheck.checked = false;
 
-        // Pago toggle
+        // ── Step 4: Pago toggle ──
         const pagoGroup = document.getElementById('globalPagoGroup');
         const pagoCheck = document.getElementById('globalLancamentoPago');
-        if (pagoGroup) pagoGroup.style.display = showRecorrencia ? 'block' : 'none';
+        if (pagoGroup) pagoGroup.style.display = showStep5Fields ? 'block' : 'none';
         if (pagoCheck) pagoCheck.checked = true;
 
         const pagoLabel = document.getElementById('globalPagoLabel');
@@ -608,8 +863,8 @@ class LancamentoGlobalManager {
         if (fimGroup) fimGroup.style.display = 'none';
 
         const radioInfinito = document.getElementById('globalRecorrenciaRadioInfinito');
-        const defaultModo = tipo === 'receita' ? 'quantidade' : 'infinito';
-        if (radioInfinito) radioInfinito.style.display = tipo === 'receita' ? 'none' : '';
+        const defaultModo = 'infinito';
+        if (radioInfinito) radioInfinito.style.display = '';
         const radios = document.querySelectorAll('input[name="global_recorrencia_modo"]');
         radios.forEach(r => r.checked = r.value === defaultModo);
 
@@ -626,7 +881,7 @@ class LancamentoGlobalManager {
             const fimGroup = document.getElementById('globalRecorrenciaFimGroup');
             if (totalGroup) totalGroup.style.display = 'none';
             if (fimGroup) fimGroup.style.display = 'none';
-            const defaultModo = this.tipoAtual === 'receita' ? 'quantidade' : 'infinito';
+            const defaultModo = 'infinito';
             document.querySelectorAll('input[name="global_recorrencia_modo"]').forEach(r => r.checked = r.value === defaultModo);
         }
     }
@@ -636,6 +891,27 @@ class LancamentoGlobalManager {
         const totalGroup = document.getElementById('globalRecorrenciaTotalGroup');
         const fimGroup = document.getElementById('globalRecorrenciaFimGroup');
         if (totalGroup) totalGroup.style.display = modo === 'quantidade' ? 'block' : 'none';
+        if (fimGroup) fimGroup.style.display = modo === 'data' ? 'block' : 'none';
+    }
+
+    // ── Card Subscription Toggles ────────────────────────────────────────────
+    toggleAssinaturaCartao() {
+        const checkbox = document.getElementById('globalLancamentoAssinaturaCartao');
+        const detalhes = document.getElementById('globalAssinaturaCartaoDetalhes');
+        if (detalhes) detalhes.style.display = checkbox?.checked ? 'block' : 'none';
+
+        // Assinatura e parcelamento são mutuamente exclusivos
+        if (checkbox?.checked) {
+            const parceladoCheck = document.getElementById('globalLancamentoParcelado');
+            if (parceladoCheck) parceladoCheck.checked = false;
+            const numParcelasGroup = document.getElementById('globalNumeroParcelasGroup');
+            if (numParcelasGroup) numParcelasGroup.style.display = 'none';
+        }
+    }
+
+    toggleAssinaturaCartaoFim() {
+        const modo = document.querySelector('input[name="global_assinatura_modo"]:checked')?.value || 'infinito';
+        const fimGroup = document.getElementById('globalAssinaturaCartaoFimGroup');
         if (fimGroup) fimGroup.style.display = modo === 'data' ? 'block' : 'none';
     }
 
@@ -674,6 +950,13 @@ class LancamentoGlobalManager {
         if (parcelamentoGroup) parcelamentoGroup.style.display = 'none';
         const numParcelasGroup = document.getElementById('globalNumeroParcelasGroup');
         if (numParcelasGroup) numParcelasGroup.style.display = 'none';
+        // Reset assinatura
+        const assinaturaGroup = document.getElementById('globalAssinaturaCartaoGroup');
+        if (assinaturaGroup) assinaturaGroup.style.display = 'none';
+        const assinaturaCheck = document.getElementById('globalLancamentoAssinaturaCartao');
+        if (assinaturaCheck) assinaturaCheck.checked = false;
+        const assinaturaDetalhes = document.getElementById('globalAssinaturaCartaoDetalhes');
+        if (assinaturaDetalhes) assinaturaDetalhes.style.display = 'none';
     }
 
     selecionarFormaPagamento(forma) {
@@ -693,6 +976,9 @@ class LancamentoGlobalManager {
             this.preencherCartoes();
             const cartaoSelect = document.getElementById('globalLancamentoCartaoCredito');
             if (cartaoSelect?.value && parcelamentoGroup) parcelamentoGroup.style.display = 'block';
+            // Show assinatura group for card
+            const assinaturaGroup = document.getElementById('globalAssinaturaCartaoGroup');
+            if (assinaturaGroup) assinaturaGroup.style.display = 'block';
             if (recorrenciaGroup) recorrenciaGroup.style.display = 'none';
             const recorrenteCheck = document.getElementById('globalLancamentoRecorrente');
             if (recorrenteCheck) recorrenteCheck.checked = false;
@@ -725,6 +1011,13 @@ class LancamentoGlobalManager {
                 const pagoGroup = document.getElementById('globalPagoGroup');
                 if (pagoGroup) pagoGroup.style.display = 'block';
             }
+            // Hide assinatura for non-card
+            const assinaturaGroup = document.getElementById('globalAssinaturaCartaoGroup');
+            if (assinaturaGroup) assinaturaGroup.style.display = 'none';
+            const assinaturaCheck = document.getElementById('globalLancamentoAssinaturaCartao');
+            if (assinaturaCheck) assinaturaCheck.checked = false;
+            const assinaturaDetalhes = document.getElementById('globalAssinaturaCartaoDetalhes');
+            if (assinaturaDetalhes) assinaturaDetalhes.style.display = 'none';
         }
     }
 
@@ -819,6 +1112,28 @@ class LancamentoGlobalManager {
                 return false;
             }
         }
+
+        // Validar ranges de parcelas e recorrência
+        const parcelado = document.getElementById('globalParceladoCheck')?.checked;
+        if (parcelado) {
+            const totalParcelas = parseInt(document.getElementById('globalTotalParcelas')?.value) || 0;
+            if (totalParcelas < 2 || totalParcelas > 48) {
+                Swal.fire({ icon: 'warning', title: 'Atenção', text: 'O número de parcelas deve ser entre 2 e 48', customClass: { container: 'swal-above-modal' } });
+                return false;
+            }
+        }
+        const recorrente = document.getElementById('globalRecorrenteCheck')?.checked;
+        if (recorrente) {
+            const modo = document.querySelector('input[name="global_recorrencia_modo"]:checked')?.value;
+            if (modo === 'quantidade') {
+                const total = parseInt(document.getElementById('globalRecorrenciaTotal')?.value) || 0;
+                if (total < 2 || total > 120) {
+                    Swal.fire({ icon: 'warning', title: 'Atenção', text: 'A quantidade de repetições deve ser entre 2 e 120', customClass: { container: 'swal-above-modal' } });
+                    return false;
+                }
+            }
+        }
+
         return true;
     }
 
@@ -852,9 +1167,26 @@ class LancamentoGlobalManager {
                 const cartaoId = document.getElementById('globalLancamentoCartaoCredito')?.value;
                 if (cartaoId) {
                     dados.cartao_credito_id = parseInt(cartaoId);
-                    dados.eh_parcelado = document.getElementById('globalLancamentoParcelado')?.checked || false;
-                    if (dados.eh_parcelado) {
-                        dados.total_parcelas = parseInt(document.getElementById('globalLancamentoTotalParcelas')?.value) || 1;
+
+                    // Assinatura/recorrência no cartão
+                    const assinaturaCheck = document.getElementById('globalLancamentoAssinaturaCartao');
+                    if (assinaturaCheck?.checked) {
+                        dados.recorrente = '1';
+                        dados.recorrencia_freq = document.getElementById('globalLancamentoAssinaturaFreq')?.value || 'mensal';
+                        dados.eh_parcelado = false; // Assinatura não é parcelamento
+
+                        const modoAssinatura = document.querySelector('input[name="global_assinatura_modo"]:checked')?.value || 'infinito';
+                        if (modoAssinatura === 'data') {
+                            const fimAssinatura = document.getElementById('globalLancamentoAssinaturaFim')?.value || null;
+                            if (fimAssinatura) {
+                                dados.recorrencia_fim = fimAssinatura;
+                            }
+                        }
+                    } else {
+                        dados.eh_parcelado = document.getElementById('globalLancamentoParcelado')?.checked || false;
+                        if (dados.eh_parcelado) {
+                            dados.total_parcelas = parseInt(document.getElementById('globalLancamentoTotalParcelas')?.value) || 1;
+                        }
                     }
                 }
             }
@@ -952,6 +1284,8 @@ class LancamentoGlobalManager {
                     valor_total: dados.valor,
                     numero_parcelas: dados.total_parcelas,
                     categoria_id: dados.categoria_id || null,
+                    subcategoria_id: dados.subcategoria_id || null,
+                    forma_pagamento: dados.forma_pagamento || null,
                     conta_id: dados.conta_id,
                     tipo: dados.tipo,
                     data_criacao: dados.data,

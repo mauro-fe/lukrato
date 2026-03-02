@@ -6,6 +6,7 @@ use Application\Contracts\Auth\PasswordResetRepositoryInterface;
 use Application\Contracts\Auth\TokenGeneratorInterface;
 use Application\Contracts\Auth\PasswordResetNotificationInterface;
 use Application\Core\Exceptions\ValidationException;
+use Application\Models\PasswordReset;
 use Application\Models\Usuario;
 use DateTimeImmutable;
 
@@ -49,6 +50,17 @@ class PasswordResetService
                 ['email' => 'Esta conta utiliza login com Google.'],
                 'Conta vinculada ao Google'
             );
+        }
+
+        // Rate limiting: max 1 reset a cada 2 minutos
+        $recentToken = PasswordReset::where('email', $usuario->email)
+            ->where('created_at', '>=', (new DateTimeImmutable('-2 minutes'))->format('Y-m-d H:i:s'))
+            ->whereNull('used_at')
+            ->exists();
+
+        if ($recentToken) {
+            // Silenciosamente retorna sem enviar outro email (do ponto de vista do usuário, "email enviado")
+            return;
         }
 
         // Gera token

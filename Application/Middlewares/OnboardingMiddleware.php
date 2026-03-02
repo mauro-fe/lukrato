@@ -6,7 +6,6 @@ use Application\Lib\Auth;
 use Application\Core\Request;
 use Application\Models\Usuario;
 use Application\Models\Conta;
-use Application\Models\Lancamento;
 
 class OnboardingMiddleware
 {
@@ -26,12 +25,16 @@ class OnboardingMiddleware
             return;
         }
 
-        // Verificar se o usuário possui contas e lançamentos
-        $temConta = Conta::where('user_id', $user->id)->exists();
-        $temLancamento = Lancamento::where('user_id', $user->id)->exists();
+        // Se o onboarding já foi concluído (inclusive via skip), liberar acesso
+        if ($user->onboarding_completed_at !== null) {
+            return;
+        }
 
-        // Se não tem contas OU não tem lançamentos, redirecionar para onboarding
-        if (!$temConta || !$temLancamento) {
+        // Verificar se o usuário possui pelo menos uma conta
+        $temConta = Conta::where('user_id', $user->id)->exists();
+
+        // Sem conta = precisa passar pelo onboarding
+        if (!$temConta) {
             header('Location: ' . BASE_URL . 'onboarding');
             exit;
         }

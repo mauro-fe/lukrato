@@ -494,3 +494,115 @@
             font-size: 1rem;
         }
 
+        /* ───── Welcome text ───── */
+        .lk-ob-welcome {
+            font-size: 0.9rem;
+            color: var(--color-primary);
+            font-weight: 600;
+            margin-bottom: var(--spacing-2);
+            letter-spacing: 0.01em;
+        }
+
+        /* ───── Skip divider ───── */
+        .lk-skip-divider {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-3);
+            margin: var(--spacing-4) 0;
+        }
+
+        .lk-skip-divider::before,
+        .lk-skip-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--glass-border);
+        }
+
+        .lk-skip-divider span {
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            text-transform: lowercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* ───── Skip button ───── */
+        .lk-skip-btn {
+            width: 100%;
+            padding: 12px var(--spacing-4);
+            border-radius: var(--radius-md);
+            background: transparent;
+            color: var(--color-text-muted);
+            font-weight: 500;
+            font-size: 0.9rem;
+            border: 2px solid var(--glass-border);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-2);
+        }
+
+        .lk-skip-btn:hover {
+            color: var(--color-primary);
+            border-color: var(--color-primary);
+            background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+        }
+
+        .lk-skip-btn:active {
+            transform: scale(0.98);
+        }
+
+        .lk-skip-btn:disabled {
+            opacity: 0.7;
+            cursor: wait;
+        }
+
+        .lk-skip-btn i {
+            font-size: 0.85rem;
+            transition: transform 0.2s;
+        }
+
+        .lk-skip-btn:hover i {
+            transform: translateX(3px);
+        }
+
+        /* ───── Skip loading spinner ───── */
+        .lk-skip-loading {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--glass-border);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: obSkipSpin 0.6s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes obSkipSpin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ───── Form entrance animation ───── */
+        .lk-onboarding-form .lk-form-group {
+            animation: obFormIn 0.4s ease-out both;
+        }
+
+        .lk-onboarding-form .lk-form-group:nth-child(1) { animation-delay: 0.05s; }
+        .lk-onboarding-form .lk-form-group:nth-child(2) { animation-delay: 0.10s; }
+        .lk-onboarding-form .lk-form-group:nth-child(3) { animation-delay: 0.15s; }
+        .lk-onboarding-form .lk-form-group:nth-child(4) { animation-delay: 0.20s; }
+        .lk-onboarding-form .lk-form-group:nth-child(5) { animation-delay: 0.25s; }
+        .lk-onboarding-form .lk-form-group:nth-child(6) { animation-delay: 0.30s; }
+
+        @keyframes obFormIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+

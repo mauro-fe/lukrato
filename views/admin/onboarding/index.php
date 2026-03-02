@@ -5,6 +5,8 @@ use Application\Lib\Auth;
 $base = BASE_URL;
 $favicon = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
 $theme = $userTheme ?? 'dark';
+$userName = isset($currentUser) ? htmlspecialchars($currentUser->nome ?? '') : '';
+$firstName = $userName ? explode(' ', trim($userName))[0] : '';
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="<?= htmlspecialchars($theme) ?>">
@@ -61,8 +63,11 @@ $theme = $userTheme ?? 'dark';
                 <div class="lk-ob-hero-icon">
                     <i data-lucide="wallet"></i>
                 </div>
-                <h1>Onde você guarda seu dinheiro?</h1>
-                <p>Adicione sua principal conta para começar a organizar suas finanças.</p>
+                <?php if ($firstName): ?>
+                    <p class="lk-ob-welcome">Olá, <?= $firstName ?>! 👋</p>
+                <?php endif; ?>
+                <h1>Vamos configurar sua conta</h1>
+                <p>Comece adicionando onde você guarda seu dinheiro — leva menos de 30 segundos.</p>
             </div>
 
             <!-- Form -->
@@ -124,8 +129,8 @@ $theme = $userTheme ?? 'dark';
                 </button>
 
                 <p class="lk-onboarding-hint">
-                    <i data-lucide="zap"></i>
-                    Leva menos de 30 segundos
+                    <i data-lucide="shield-check"></i>
+                    Seus dados ficam seguros e só você tem acesso
                 </p>
 
             </form>

@@ -42,6 +42,7 @@ class MailService implements MailServiceInterface
   {
     return !empty($this->config['host'])
       && !empty($this->config['username'])
+      && !empty($this->config['password'])
       && !empty($this->config['from_email']);
   }
 
@@ -485,7 +486,7 @@ TEXT;
         Sem a confirmação, você não conseguirá fazer login.
       </p>
 
-      <p style="font-size: 15px; line-height: 1.8; color: #e74c3c; margin: 0 0: 20px 0; font-weight: 600;">
+      <p style="font-size: 15px; line-height: 1.8; color: #e74c3c; margin: 0 0 20px 0; font-weight: 600;">
         ⚠️ Contas não verificadas são removidas automaticamente após 7 dias.
       </p>
 

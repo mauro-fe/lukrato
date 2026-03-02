@@ -90,13 +90,13 @@ class LoginController extends BaseController
         try {
             LogService::info('[LOGIN DEBUG] Validando CSRF');
             // Segurança
+            $ip = $this->request->ip() ?? 'unknown';
             $this->validateCsrfToken();
 
             LogService::info('[LOGIN DEBUG] Aplicando rate limit');
             $this->applyRateLimit();
 
             // Turnstile CAPTCHA (progressivo — só valida se o IP já atingiu o threshold)
-            $ip = $this->request->ip() ?? 'unknown';
             $this->verifyCaptchaIfRequired($ip);
 
             // Autenticação

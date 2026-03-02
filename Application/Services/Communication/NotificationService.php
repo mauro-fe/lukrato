@@ -690,6 +690,7 @@ class NotificationService
     private function buildBirthdayEmailHtml(Usuario $user, string $firstName, int $age): string
     {
         $year = date('Y');
+        $dashboardUrl = rtrim($_ENV['APP_URL'] ?? (defined('BASE_URL') ? BASE_URL : 'https://lukrato.com.br'), '/') . '/dashboard';
 
         $content = "
             <div style='text-align: center; padding: 20px 0;'>
@@ -712,7 +713,7 @@ class NotificationService
                 <p style='font-size: 14px; color: #888;'>
                     Continue organizando suas finanças com a gente!
                 </p>
-                <a href='https://lukrato.com.br/dashboard' 
+                <a href='{$dashboardUrl}' 
                    style='display: inline-block; background: linear-gradient(135deg, #e67e22, #d97706); 
                           color: white; padding: 12px 30px; border-radius: 8px; 
                           text-decoration: none; font-weight: 600; margin-top: 10px;'>

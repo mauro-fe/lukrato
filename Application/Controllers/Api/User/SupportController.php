@@ -7,6 +7,7 @@ use Application\Core\Response;
 use Application\Models\Usuario;
 use Application\Models\Telefone;
 use Application\Services\Communication\MailService;
+use Application\Services\Infrastructure\CacheService;
 
 class SupportController extends BaseController
 {
@@ -77,6 +78,20 @@ class SupportController extends BaseController
                     ? sprintf('(%s) %s', $ddd, $num)
                     : $num;
             }
+        }
+
+        try {
+            // Rate limit: máximo 3 mensagens de suporte por hora por usuário
+            $cache = new CacheService();
+            $cache->checkRateLimit("support:{$userId}", 3, 3600);
+        } catch (\Application\Core\Exceptions\ValidationException $e) {
+            (new Response())
+                ->jsonBody([
+                    'success' => false,
+                    'message' => 'Você já enviou várias mensagens recentemente. Aguarde um pouco antes de enviar outra.',
+                ])
+                ->send();
+            return;
         }
 
         try {

@@ -25,6 +25,18 @@ class LancamentoValidator
         'anual',
     ];
 
+    /** Formas de pagamento válidas */
+    private const FORMAS_PAGAMENTO_VALIDAS = [
+        'pix',
+        'cartao_credito',
+        'cartao_debito',
+        'dinheiro',
+        'boleto',
+        'transferencia',
+        'deposito',
+        'estorno_cartao',
+    ];
+
     /**
      * Valida dados para criação de lançamento.
      */
@@ -82,6 +94,19 @@ class LancamentoValidator
         $observacao = trim($data['observacao'] ?? '');
         if (!empty($observacao) && mb_strlen($observacao) > 500) {
             $errors['observacao'] = 'A observação não pode ter mais de 500 caracteres.';
+        }
+
+        // Validar conta_id (obrigatório para lançamentos sem cartão)
+        $contaId = $data['conta_id'] ?? null;
+        $cartaoCreditoId = $data['cartao_credito_id'] ?? null;
+        if (empty($contaId) && empty($cartaoCreditoId)) {
+            $errors['conta_id'] = 'A conta é obrigatória.';
+        }
+
+        // Validar forma de pagamento (opcional, mas se informada deve ser válida)
+        $formaPagamento = $data['forma_pagamento'] ?? null;
+        if (!empty($formaPagamento) && !in_array($formaPagamento, self::FORMAS_PAGAMENTO_VALIDAS, true)) {
+            $errors['forma_pagamento'] = 'Forma de pagamento inválida.';
         }
 
         // Validar recorrência

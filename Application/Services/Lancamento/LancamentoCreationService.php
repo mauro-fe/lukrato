@@ -15,6 +15,7 @@ use Application\Services\Gamification\GamificationService;
 use Application\Services\Gamification\AchievementService;
 use Application\Services\Plan\UserPlanService;
 use Application\Services\Infrastructure\LogService;
+use Illuminate\Database\Capsule\Manager as DB;
 
 class LancamentoCreationService
 {
@@ -241,6 +242,11 @@ class LancamentoCreationService
         // Fluxo legado: N repetições finitas (parcelamento)
         $freq = Recorrencia::tryFromString($recorrencia);
         if ($freq !== null && $numeroRepeticoes > 1) {
+            LogService::warning('[RECORRENCIA] Fluxo legado createRecurrent atingido — considerar migração para createRecurring', [
+                'user_id' => $userId,
+                'recorrencia' => $recorrencia,
+                'numero_repeticoes' => $numeroRepeticoes,
+            ]);
             return $this->createRecurrent($userId, $dto, $freq, $numeroRepeticoes, $usage);
         }
 
@@ -458,18 +464,31 @@ class LancamentoCreationService
         $paiId = $lancamento->recorrencia_pai_id ?? $lancamento->id;
         $agora = date('Y-m-d H:i:s');
 
-        // Cancelar todos os futuros não pagos da série
-        $afetados = \Application\Models\Lancamento::where(function ($q) use ($paiId) {
-            $q->where('recorrencia_pai_id', $paiId)
-                ->orWhere('id', $paiId);
-        })
+        // 1) Sempre marcar o pai como cancelado (mesmo se já pago)
+        //    para impedir que o cron regenere filhos futuros
+        \Application\Models\Lancamento::where('id', $paiId)
+            ->where('user_id', $userId)
+            ->whereNull('cancelado_em')
+            ->update(['cancelado_em' => $agora]);
+
+        // 2) Cancelar todos os filhos não pagos da série
+        $afetados = \Application\Models\Lancamento::where('recorrencia_pai_id', $paiId)
+            ->where('id', '!=', $paiId)
             ->where('user_id', $userId)
             ->where('pago', 0)
             ->whereNull('cancelado_em')
             ->update(['cancelado_em' => $agora]);
 
-        return ServiceResultDTO::ok("{$afetados} lançamentos futuros cancelados.", [
-            'cancelados' => $afetados,
+        // Contar o pai se ele foi cancelado agora (era não-pago)
+        $paiCancelado = \Application\Models\Lancamento::where('id', $paiId)
+            ->where('cancelado_em', $agora)
+            ->where('pago', 0)
+            ->exists();
+
+        $totalAfetados = $afetados + ($paiCancelado ? 1 : 0);
+
+        return ServiceResultDTO::ok("{$totalAfetados} lançamentos futuros cancelados.", [
+            'cancelados' => $totalAfetados,
             'recorrencia_pai_id' => $paiId,
         ]);
     }
@@ -499,46 +518,79 @@ class LancamentoCreationService
             $freq = Recorrencia::tryFromString($pai->recorrencia_freq);
             if (!$freq) continue;
 
-            // Encontrar a data do último filho gerado
-            $ultimoFilho = \Application\Models\Lancamento::where('recorrencia_pai_id', $pai->id)
-                ->whereNull('cancelado_em')
-                ->orderBy('data', 'desc')
-                ->first();
+            try {
+                DB::beginTransaction();
 
-            $ultimaData = $ultimoFilho
-                ? new \DateTime($ultimoFilho->data)
-                : new \DateTime($pai->data);
+                // Lock no pai para prevenir race condition entre execuções concorrentes
+                $paiLocked = \Application\Models\Lancamento::where('id', $pai->id)
+                    ->whereNull('cancelado_em')
+                    ->lockForUpdate()
+                    ->first();
 
-            // Gerar a partir do dia seguinte ao último
-            $dataProx = clone $ultimaData;
-            $freq->advance($dataProx);
+                if (!$paiLocked) {
+                    DB::rollBack();
+                    continue;
+                }
 
-            while ($dataProx <= $limite) {
-                $dados = [
-                    'user_id'            => $pai->user_id,
-                    'tipo'               => $pai->tipo,
-                    'data'               => $dataProx->format('Y-m-d'),
-                    'valor'              => $pai->valor,
-                    'descricao'          => $pai->descricao,
-                    'observacao'         => $pai->observacao,
-                    'categoria_id'       => $pai->categoria_id,
-                    'conta_id'           => $pai->conta_id,
-                    'pago'               => 0,
-                    'forma_pagamento'    => $pai->forma_pagamento,
-                    'recorrente'         => 1,
-                    'recorrencia_freq'   => $pai->recorrencia_freq,
-                    'recorrencia_fim'    => null,
-                    'recorrencia_pai_id' => $pai->id,
-                    'origem_tipo'        => \Application\Models\Lancamento::ORIGEM_RECORRENCIA,
-                    'lembrar_antes_segundos' => $pai->lembrar_antes_segundos,
-                    'canal_email'        => $pai->canal_email,
-                    'canal_inapp'        => $pai->canal_inapp,
-                ];
+                // Encontrar a data do último filho gerado
+                $ultimoFilho = \Application\Models\Lancamento::where('recorrencia_pai_id', $pai->id)
+                    ->whereNull('cancelado_em')
+                    ->orderBy('data', 'desc')
+                    ->first();
 
-                $this->lancamentoRepo->create($dados);
-                $totalCriados++;
+                $ultimaData = $ultimoFilho
+                    ? new \DateTime($ultimoFilho->data)
+                    : new \DateTime($pai->data);
 
+                // Gerar a partir do dia seguinte ao último
+                $dataProx = clone $ultimaData;
                 $freq->advance($dataProx);
+
+                while ($dataProx <= $limite) {
+                    // Verificação de duplicata (idempotência)
+                    $jaExiste = \Application\Models\Lancamento::where('recorrencia_pai_id', $pai->id)
+                        ->where('data', $dataProx->format('Y-m-d'))
+                        ->whereNull('cancelado_em')
+                        ->exists();
+
+                    if (!$jaExiste) {
+                        $dados = [
+                            'user_id'            => $pai->user_id,
+                            'tipo'               => $pai->tipo,
+                            'data'               => $dataProx->format('Y-m-d'),
+                            'hora_lancamento'    => $pai->hora_lancamento,
+                            'valor'              => $pai->valor,
+                            'descricao'          => $pai->descricao,
+                            'observacao'         => $pai->observacao,
+                            'categoria_id'       => $pai->categoria_id,
+                            'subcategoria_id'    => $pai->subcategoria_id,
+                            'conta_id'           => $pai->conta_id,
+                            'pago'               => 0,
+                            'forma_pagamento'    => $pai->forma_pagamento,
+                            'recorrente'         => 1,
+                            'recorrencia_freq'   => $pai->recorrencia_freq,
+                            'recorrencia_fim'    => null,
+                            'recorrencia_pai_id' => $pai->id,
+                            'origem_tipo'        => \Application\Models\Lancamento::ORIGEM_RECORRENCIA,
+                            'lembrar_antes_segundos' => $pai->lembrar_antes_segundos,
+                            'canal_email'        => $pai->canal_email,
+                            'canal_inapp'        => $pai->canal_inapp,
+                        ];
+
+                        $this->lancamentoRepo->create($dados);
+                        $totalCriados++;
+                    }
+
+                    $freq->advance($dataProx);
+                }
+
+                DB::commit();
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                LogService::captureException($e, LogCategory::LANCAMENTO, [
+                    'action' => 'estender_recorrencia',
+                    'pai_id' => $pai->id,
+                ]);
             }
         }
 

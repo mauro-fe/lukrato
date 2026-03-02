@@ -46,7 +46,8 @@ export const STATE = {
     subcategoriasCache: {},          // { [categoriaId]: subcategoria[] }
     expandedCategorias: new Set(),   // IDs das categorias com acordeão aberto
     subcategoriaEmEdicao: null,      // subcategoria sendo editada no modal
-    editSubcategoriaIcon: '',        // ícone selecionado no form de subcategoria
+    editSubcategoriaIcon: '',        // ícone selecionado no form de subcategoria (modal)
+    inlineSubcategoriaIcon: {},      // { [categoriaId]: iconName } — ícone selecionado no form inline
 };
 
 // ─── Available Icons (grouped by context / search label) ─────────────────────

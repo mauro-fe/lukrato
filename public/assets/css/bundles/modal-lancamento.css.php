@@ -18,6 +18,7 @@ $modules = [
     '_tipo-movimentacao.css',
     '_agendamento.css',
     '_formulario.css',
+    '_wizard-steps.css',
     '_checkbox.css',
     '_radio-buttons.css',
     '_preview-parcelamento.css',

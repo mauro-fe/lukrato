@@ -16,7 +16,7 @@
 
         <!-- Body do Modal -->
         <div class="lk-modal-body-modern">
-            <!-- Seleção de Conta -->
+            <!-- Seleção de Conta (sempre visível) -->
             <div class="lk-form-group">
                 <label for="globalContaSelect" class="lk-label required">
                     <i data-lucide="wallet"></i>
@@ -26,7 +26,6 @@
                     <select id="globalContaSelect" class="lk-select" required
                         onchange="lancamentoGlobalManager.onContaChange()">
                         <option value="">Escolha uma conta...</option>
-                        <!-- Preenchido via JS -->
                     </select>
                     <i data-lucide="chevron-down" class="lk-select-icon"></i>
                 </div>
@@ -43,15 +42,22 @@
                 </div>
             </div>
 
-            <!-- Escolha do Tipo de Lançamento -->
-            <div class="lk-tipo-section" id="globalTipoSection">
-                <h3 class="lk-section-title">
-                    <i data-lucide="list-checks"></i>
-                    Escolha o tipo de movimentação
-                </h3>
+            <!-- Wizard Progress (dots) -->
+            <div class="lk-wizard-progress" id="globalWizardProgress" style="display: none;">
+                <!-- Renderizado via JS -->
+            </div>
+
+            <!-- ====== STEP 1: Tipo de Movimentação ====== -->
+            <div class="lk-wizard-step active" data-step="1" id="globalStep1">
+                <div class="lk-wizard-question">
+                    <h3>
+                        <i data-lucide="list-checks"></i>
+                        O que você quer registrar?
+                    </h3>
+                    <p>Escolha o tipo de movimentação</p>
+                </div>
 
                 <div class="lk-tipo-grid lk-tipo-grid-3">
-                    <!-- Receita -->
                     <button type="button" class="lk-tipo-card lk-tipo-receita"
                         onclick="lancamentoGlobalManager.mostrarFormulario('receita')">
                         <div class="lk-tipo-icon">
@@ -62,7 +68,6 @@
                         <div class="lk-tipo-badge">+ Entrada</div>
                     </button>
 
-                    <!-- Despesa -->
                     <button type="button" class="lk-tipo-card lk-tipo-despesa"
                         onclick="lancamentoGlobalManager.mostrarFormulario('despesa')">
                         <div class="lk-tipo-icon">
@@ -73,7 +78,6 @@
                         <div class="lk-tipo-badge">- Saída</div>
                     </button>
 
-                    <!-- Transferência -->
                     <button type="button" class="lk-tipo-card lk-tipo-transferencia"
                         onclick="lancamentoGlobalManager.mostrarFormulario('transferencia')">
                         <div class="lk-tipo-icon">
@@ -86,35 +90,20 @@
                 </div>
             </div>
 
-            <!-- Formulário de Lançamento (oculto inicialmente) -->
-            <div class="lk-form-section" id="globalFormSection" style="display: none;">
-                <!-- Botão voltar -->
-                <button type="button" class="lk-btn-voltar" onclick="lancamentoGlobalManager.voltarEscolhaTipo()">
-                    <i data-lucide="arrow-left"></i>
-                    Voltar
-                </button>
+            <!-- Form wrapper (steps 2-5 share one form) -->
+            <form id="globalFormLancamento" autocomplete="off">
+                <input type="hidden" id="globalLancamentoContaId" name="conta_id">
+                <input type="hidden" id="globalLancamentoTipo" name="tipo">
+                <input type="hidden" id="globalLancamentoTipoAgendamento" name="tipo_agendamento" value="despesa">
 
-                <form id="globalFormLancamento" autocomplete="off">
-                    <input type="hidden" id="globalLancamentoContaId" name="conta_id">
-                    <input type="hidden" id="globalLancamentoTipo" name="tipo">
-                    <input type="hidden" id="globalLancamentoTipoAgendamento" name="tipo_agendamento" value="despesa">
-
-                    <!-- Tipo de Agendamento (somente para agendamento) - LEGACY hidden -->
-                    <div class="lk-form-group" id="globalTipoAgendamentoGroup" style="display: none;">
-                        <label class="lk-label required">
-                            <i data-lucide="tag"></i>
-                            Tipo de Agendamento
-                        </label>
-                        <div class="lk-tipo-agendamento-btns">
-                            <button type="button" class="lk-btn-tipo-ag lk-btn-tipo-receita"
-                                onclick="lancamentoGlobalManager.selecionarTipoAgendamento('receita')">
-                                <i data-lucide="arrow-down"></i> Receita
-                            </button>
-                            <button type="button" class="lk-btn-tipo-ag lk-btn-tipo-despesa active"
-                                onclick="lancamentoGlobalManager.selecionarTipoAgendamento('despesa')">
-                                <i data-lucide="arrow-up"></i> Despesa
-                            </button>
-                        </div>
+                <!-- ====== STEP 2: Descrição + Valor ====== -->
+                <div class="lk-wizard-step" data-step="2" id="globalStep2">
+                    <div class="lk-wizard-question" id="globalStep2Question">
+                        <h3>
+                            <i data-lucide="pencil-line"></i>
+                            <span id="globalStep2Title">Com o que você gastou?</span>
+                        </h3>
+                        <p id="globalStep2Subtitle">Descreva e informe o valor</p>
                     </div>
 
                     <!-- Descrição -->
@@ -141,6 +130,33 @@
                         </div>
                     </div>
 
+                    <!-- Nav -->
+                    <div class="lk-wizard-nav">
+                        <div class="lk-wizard-nav-left">
+                            <button type="button" class="lk-btn-voltar" onclick="lancamentoGlobalManager.prevStep()">
+                                <i data-lucide="arrow-left"></i>
+                                Voltar
+                            </button>
+                        </div>
+                        <div class="lk-wizard-nav-right">
+                            <button type="button" class="lk-btn lk-btn-primary" onclick="lancamentoGlobalManager.nextStep()">
+                                Próximo
+                                <i data-lucide="arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ====== STEP 3: Forma de Pagamento / Conta Destino ====== -->
+                <div class="lk-wizard-step" data-step="3" id="globalStep3">
+                    <div class="lk-wizard-question" id="globalStep3Question">
+                        <h3>
+                            <i data-lucide="wallet"></i>
+                            <span id="globalStep3Title">Como você pagou?</span>
+                        </h3>
+                        <p id="globalStep3Subtitle">Escolha a forma de pagamento</p>
+                    </div>
+
                     <!-- Conta Destino (somente para transferência) -->
                     <div class="lk-form-group" id="globalContaDestinoGroup" style="display: none;">
                         <label for="globalLancamentoContaDestino" class="lk-label required">
@@ -150,13 +166,11 @@
                         <div class="lk-select-wrapper">
                             <select id="globalLancamentoContaDestino" name="conta_destino_id" class="lk-select">
                                 <option value="">Selecione a conta de destino</option>
-                                <!-- Preenchido via JS -->
                             </select>
                             <i data-lucide="chevron-down" class="lk-select-icon"></i>
                         </div>
                         <small class="lk-helper-text">Para onde o dinheiro vai ser transferido</small>
                     </div>
-
 
                     <!-- Forma de Pagamento (para despesas) -->
                     <div class="lk-form-group lk-forma-pagamento-section" id="globalFormaPagamentoGroup"
@@ -198,7 +212,7 @@
                     <!-- Forma de Recebimento (para receitas) -->
                     <div class="lk-form-group lk-forma-pagamento-section" id="globalFormaRecebimentoGroup"
                         style="display: none;">
-                        <input type="hidden" id="globalFormaRecebimento" name="forma_pagamento" value="">
+                        <input type="hidden" id="globalFormaRecebimento" name="forma_recebimento" value="">
                         <label class="lk-forma-pagamento-label">
                             <i data-lucide="hand-coins"></i>
                             Como você vai receber?
@@ -242,7 +256,6 @@
                             <select id="globalLancamentoCartaoCredito" name="cartao_credito_id" class="lk-select"
                                 onchange="typeof lancamentoGlobalManager !== 'undefined' && lancamentoGlobalManager.onCartaoEstornoChange && lancamentoGlobalManager.onCartaoEstornoChange()">
                                 <option value="">Selecione o cartão</option>
-                                <!-- Preenchido via JS -->
                             </select>
                             <i data-lucide="chevron-down" class="lk-select-icon"></i>
                         </div>
@@ -273,11 +286,72 @@
                                 <span class="lk-checkbox-custom"></span>
                                 <span class="lk-checkbox-text">
                                     <i data-lucide="calendar-days"></i>
-                                    Parcelar compra
+                                    <span class="lk-parcel-texto">Parcelar compra</span>
                                 </span>
                             </label>
                         </div>
                         <small class="lk-helper-text">O valor total será dividido entre as próximas faturas.</small>
+                    </div>
+
+                    <!-- Assinatura / Recorrência no Cartão (somente se cartão selecionado) -->
+                    <div class="lk-form-group" id="globalAssinaturaCartaoGroup" style="display: none;">
+                        <div class="lk-checkbox-wrapper" style="margin-bottom: 0.5rem;">
+                            <label class="lk-checkbox-label">
+                                <input type="checkbox" id="globalLancamentoAssinaturaCartao" name="recorrente_cartao"
+                                    value="1" class="lk-checkbox" onchange="lancamentoGlobalManager.toggleAssinaturaCartao()">
+                                <span class="lk-checkbox-custom"></span>
+                                <span class="lk-checkbox-text">
+                                    <i data-lucide="refresh-cw"></i>
+                                    Assinatura / Recorrente
+                                </span>
+                            </label>
+                        </div>
+                        <small class="lk-helper-text" style="margin-top: -0.25rem; margin-bottom: 0.5rem;">
+                            Ex: Spotify, ChatGPT, Netflix — cobra todo mês automaticamente
+                        </small>
+
+                        <div id="globalAssinaturaCartaoDetalhes" style="display: none;">
+                            <label class="lk-label">
+                                <i data-lucide="refresh-cw"></i>
+                                Frequência da cobrança
+                            </label>
+                            <div class="lk-select-wrapper" style="margin-bottom: 0.75rem;">
+                                <select id="globalLancamentoAssinaturaFreq" name="recorrencia_freq_cartao" class="lk-select">
+                                    <option value="mensal" selected>Mensal</option>
+                                    <option value="bimestral">Bimestral</option>
+                                    <option value="trimestral">Trimestral</option>
+                                    <option value="semestral">Semestral</option>
+                                    <option value="anual">Anual</option>
+                                </select>
+                                <i data-lucide="chevron-down" class="lk-select-icon"></i>
+                            </div>
+
+                            <label class="lk-label">
+                                <i data-lucide="flag"></i>
+                                Até quando?
+                            </label>
+                            <div class="lk-radio-group" style="margin-bottom: 0.5rem;">
+                                <label class="lk-radio-label">
+                                    <input type="radio" name="global_assinatura_modo" value="infinito" class="lk-radio" checked
+                                        onchange="lancamentoGlobalManager.toggleAssinaturaCartaoFim()">
+                                    <span class="lk-radio-custom"></span>
+                                    <span class="lk-radio-text">Sem data de fim <small style="opacity:0.7">(cancelo
+                                            quando quiser)</small></span>
+                                </label>
+                                <label class="lk-radio-label">
+                                    <input type="radio" name="global_assinatura_modo" value="data" class="lk-radio"
+                                        onchange="lancamentoGlobalManager.toggleAssinaturaCartaoFim()">
+                                    <span class="lk-radio-custom"></span>
+                                    <span class="lk-radio-text">Até uma data específica</span>
+                                </label>
+                            </div>
+
+                            <div id="globalAssinaturaCartaoFimGroup" style="display: none;">
+                                <input type="date" id="globalLancamentoAssinaturaFim" name="recorrencia_fim_cartao"
+                                    class="lk-input">
+                                <small class="lk-helper-text">Data em que a assinatura termina.</small>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Número de Parcelas (quando parcelado) -->
@@ -292,8 +366,34 @@
                             <span class="lk-input-suffix">vezes</span>
                         </div>
                         <div id="globalParcelamentoPreview" class="lk-parcelamento-preview" style="display: none;">
-                            <!-- Preview preenchido via JS -->
                         </div>
+                    </div>
+
+                    <!-- Nav -->
+                    <div class="lk-wizard-nav">
+                        <div class="lk-wizard-nav-left">
+                            <button type="button" class="lk-btn-voltar" onclick="lancamentoGlobalManager.prevStep()">
+                                <i data-lucide="arrow-left"></i>
+                                Voltar
+                            </button>
+                        </div>
+                        <div class="lk-wizard-nav-right">
+                            <button type="button" class="lk-btn lk-btn-primary" onclick="lancamentoGlobalManager.nextStep()">
+                                Próximo
+                                <i data-lucide="arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ====== STEP 4: Data + Hora + Pago ====== -->
+                <div class="lk-wizard-step" data-step="4" id="globalStep4">
+                    <div class="lk-wizard-question" id="globalStep4Question">
+                        <h3>
+                            <i data-lucide="calendar-clock"></i>
+                            <span id="globalStep4Title">Quando aconteceu?</span>
+                        </h3>
+                        <p id="globalStep4Subtitle">Informe a data e horário</p>
                     </div>
 
                     <!-- Data e Hora -->
@@ -318,7 +418,66 @@
                         <small class="lk-helper-text">Horário é opcional — útil para organizar e lembretes.</small>
                     </div>
 
-                    <!-- Hora (removido - agendamentos foram unificados nos lançamentos) -->
+                    <!-- Status de Pagamento -->
+                    <div class="lk-form-group" id="globalPagoGroup" style="display: none;">
+                        <div class="lk-checkbox-wrapper">
+                            <label class="lk-checkbox-label">
+                                <input type="checkbox" id="globalLancamentoPago" name="pago" value="1"
+                                    class="lk-checkbox" checked>
+                                <span class="lk-checkbox-custom"></span>
+                                <span class="lk-checkbox-text">
+                                    <i data-lucide="circle-check"></i>
+                                    <span id="globalPagoLabel">Já foi pago</span>
+                                </span>
+                            </label>
+                        </div>
+                        <small class="lk-helper-text" id="globalPagoHelperText">Pendentes não alteram o saldo até serem confirmados.</small>
+                    </div>
+
+                    <!-- Nav -->
+                    <div class="lk-wizard-nav">
+                        <div class="lk-wizard-nav-left">
+                            <button type="button" class="lk-btn-voltar" onclick="lancamentoGlobalManager.prevStep()">
+                                <i data-lucide="arrow-left"></i>
+                                Voltar
+                            </button>
+                        </div>
+                        <div class="lk-wizard-nav-right" id="globalStep4NavRight">
+                            <button type="button" class="lk-btn lk-btn-primary" onclick="lancamentoGlobalManager.nextStep()">
+                                Próximo
+                                <i data-lucide="arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ====== STEP 5: Categoria + Recorrência + Lembrete (pulável) ====== -->
+                <div class="lk-wizard-step" data-step="5" id="globalStep5">
+                    <div class="lk-wizard-question">
+                        <h3>
+                            <i data-lucide="sparkles"></i>
+                            Quer organizar melhor?
+                        </h3>
+                        <p>Categoria, recorrência e lembrete são opcionais</p>
+                    </div>
+
+                    <!-- Tipo de Agendamento (somente para agendamento) - LEGACY hidden -->
+                    <div class="lk-form-group" id="globalTipoAgendamentoGroup" style="display: none;">
+                        <label class="lk-label required">
+                            <i data-lucide="tag"></i>
+                            Tipo de Agendamento
+                        </label>
+                        <div class="lk-tipo-agendamento-btns">
+                            <button type="button" class="lk-btn-tipo-ag lk-btn-tipo-receita"
+                                onclick="lancamentoGlobalManager.selecionarTipoAgendamento('receita')">
+                                <i data-lucide="arrow-down"></i> Receita
+                            </button>
+                            <button type="button" class="lk-btn-tipo-ag lk-btn-tipo-despesa active"
+                                onclick="lancamentoGlobalManager.selecionarTipoAgendamento('despesa')">
+                                <i data-lucide="arrow-up"></i> Despesa
+                            </button>
+                        </div>
+                    </div>
 
                     <!-- Categoria -->
                     <div class="lk-form-group" id="globalCategoriaGroup">
@@ -334,7 +493,6 @@
                         <div class="lk-select-wrapper">
                             <select id="globalLancamentoCategoria" name="categoria_id" class="lk-select">
                                 <option value="">Sem categoria</option>
-                                <!-- Preenchido via JS -->
                             </select>
                             <i data-lucide="chevron-down" class="lk-select-icon"></i>
                         </div>
@@ -472,36 +630,27 @@
                         </div>
                     </div>
 
-                    <!-- Status de Pagamento -->
-                    <div class="lk-form-group" id="globalPagoGroup" style="display: none;">
-                        <div class="lk-checkbox-wrapper">
-                            <label class="lk-checkbox-label">
-                                <input type="checkbox" id="globalLancamentoPago" name="pago" value="1"
-                                    class="lk-checkbox" checked>
-                                <span class="lk-checkbox-custom"></span>
-                                <span class="lk-checkbox-text">
-                                    <i data-lucide="circle-check"></i>
-                                    <span id="globalPagoLabel">Já foi pago</span>
-                                </span>
-                            </label>
+                    <!-- Nav -->
+                    <div class="lk-wizard-nav">
+                        <div class="lk-wizard-nav-left">
+                            <button type="button" class="lk-btn-voltar" onclick="lancamentoGlobalManager.prevStep()">
+                                <i data-lucide="arrow-left"></i>
+                                Voltar
+                            </button>
                         </div>
-                        <small class="lk-helper-text" id="globalPagoHelperText">Pendentes não alteram o saldo até serem confirmados.</small>
+                        <div class="lk-wizard-nav-right">
+                            <button type="button" class="lk-btn-skip" onclick="lancamentoGlobalManager.skipAndSave()">
+                                <i data-lucide="fast-forward"></i>
+                                Pular e Salvar
+                            </button>
+                            <button type="submit" class="lk-btn lk-btn-primary" id="globalBtnSalvar">
+                                <i data-lucide="save"></i>
+                                Salvar
+                            </button>
+                        </div>
                     </div>
-
-                    <!-- Botões de Ação -->
-                    <div class="lk-form-actions">
-                        <button type="button" class="lk-btn lk-btn-secondary"
-                            onclick="lancamentoGlobalManager.closeModal()">
-                            <i data-lucide="x"></i>
-                            Cancelar
-                        </button>
-                        <button type="submit" class="lk-btn lk-btn-primary" id="globalBtnSalvar">
-                            <i data-lucide="save"></i>
-                            Salvar
-                        </button>
-                    </div>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>
