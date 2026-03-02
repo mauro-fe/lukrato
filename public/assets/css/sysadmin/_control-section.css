@@ -102,45 +102,45 @@
 }
 
 .btn-control.primary {
-  background: linear-gradient(135deg, var(--color-primary), #f39c12);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-warning));
   color: white;
-  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 30%, transparent);
 }
 
 .btn-control.primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(230, 126, 34, 0.4);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
 .btn-control.danger {
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  background: linear-gradient(135deg, var(--color-danger), color-mix(in srgb, var(--color-danger) 80%, black));
   color: white;
-  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-danger) 30%, transparent);
 }
 
 .btn-control.danger:hover {
-  background: linear-gradient(135deg, #c0392b, #a93226);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-danger) 80%, black), color-mix(in srgb, var(--color-danger) 65%, black));
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(231, 76, 60, 0.4);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--color-danger) 40%, transparent);
 }
 
 .btn-control.success {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, var(--color-success), color-mix(in srgb, var(--color-success) 80%, black));
   color: white;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-success) 30%, transparent);
 }
 
 .btn-control.success:hover {
-  background: linear-gradient(135deg, #059669, #047857);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-success) 80%, black), color-mix(in srgb, var(--color-success) 65%, black));
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--color-success) 40%, transparent);
 }
 
 .btn-campanhas {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: linear-gradient(135deg, var(--color-warning), color-mix(in srgb, var(--color-warning) 80%, black));
 }
 .btn-campanhas:hover {
-  background: linear-gradient(135deg, #d97706, #b45309);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-warning) 80%, black), color-mix(in srgb, var(--color-warning) 65%, black));
 }
 
 .search-box {
@@ -162,7 +162,7 @@
 .search-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 
 .search-input::placeholder {

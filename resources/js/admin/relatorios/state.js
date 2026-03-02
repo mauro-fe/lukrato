@@ -20,16 +20,7 @@ export const PAYWALL_MESSAGE = 'Relatórios são exclusivos do plano Pro.';
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 
 export const CONFIG = {
-    // Detecta BASE_URL do DOM ou usa padrão
-    BASE_URL: (() => {
-        const meta = document.querySelector('meta[name="base-url"]');
-        if (meta) return meta.content.replace(/\/?$/, '/');
-
-        const base = document.querySelector('base[href]');
-        if (base) return base.href.replace(/\/?$/, '/');
-
-        return window.BASE_URL ? String(window.BASE_URL).replace(/\/?$/, '/') : '/';
-    })(),
+    BASE_URL: (window.LK?.getBase?.() || '/'),
 
     CHART_COLORS: [
         '#E67E22', '#2C3E50', '#2ECC71', '#F39C12',
@@ -93,7 +84,10 @@ export const STATE = {
     currentAccount: null,
     chart: null,
     accounts: [],
-    accessRestricted: false
+    accessRestricted: false,
+    // Subcategory drill-down state
+    activeDrilldown: null,       // cat_id of expanded category (or null)
+    reportDetails: null,         // details[] from API response (PRO only)
 };
 
 // ─── UTILITIES ───────────────────────────────────────────────────────────────
@@ -102,10 +96,7 @@ export const Utils = {
     getCurrentMonth: computeInitialMonth,
 
     formatCurrency(value) {
-        return new Intl.NumberFormat('pt-BR', {
-            style: 'currency',
-            currency: 'BRL'
-        }).format(Number(value) || 0);
+        return formatMoney(value);
     },
 
     formatMonthLabel(yearMonth) {
@@ -128,6 +119,30 @@ export const Utils = {
         const g = parseInt(hex.slice(3, 5), 16);
         const b = parseInt(hex.slice(5, 7), 16);
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    },
+
+    /**
+     * Generate lighter/darker shades of a hex color for subcategory palette.
+     * @param {string} hex - Parent hex color
+     * @param {number} count - Number of shades needed
+     * @returns {string[]} Array of hex colors
+     */
+    generateShades(hex, count) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+
+        const shades = [];
+        for (let i = 0; i < count; i++) {
+            // Distribute from light to dark: factor goes from 0.3 to -0.3
+            const factor = 0.35 - (i / Math.max(count - 1, 1)) * 0.7;
+            const adjust = (c) => Math.min(255, Math.max(0, Math.round(c + (factor > 0 ? (255 - c) * factor : c * factor))));
+            const nr = adjust(r);
+            const ng = adjust(g);
+            const nb = adjust(b);
+            shades.push(`#${nr.toString(16).padStart(2, '0')}${ng.toString(16).padStart(2, '0')}${nb.toString(16).padStart(2, '0')}`);
+        }
+        return shades;
     },
 
     isYearlyView(view = STATE.currentView) {

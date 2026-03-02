@@ -1,4 +1,14 @@
 /* ===============================
+   BREAKPOINTS CANÔNICOS (referência)
+   ===============================
+   Mobile small:      480px
+   Mobile large (sm): 576px
+   Tablet (md):       768px
+   Tablet land (lg):  1024px
+   Desktop (xl):      1200px
+   =============================== */
+
+/* ===============================
    TOKENS BASE (fixos)
    =============================== */
 :root {

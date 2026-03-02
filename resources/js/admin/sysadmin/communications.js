@@ -302,36 +302,23 @@ async function handleFormSubmit(e) {
     const sendEmail = document.getElementById('sendEmail').checked;
 
     if (!title || !message) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Campos obrigatórios',
-            text: 'Preencha o título e a mensagem da campanha.'
-        });
+        LKFeedback.warning('Preencha o título e a mensagem da campanha.');
         return;
     }
 
     if (!sendNotification && !sendEmail) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Selecione um canal',
-            text: 'Escolha pelo menos um canal de envio (Notificação ou E-mail).'
-        });
+        LKFeedback.warning('Escolha pelo menos um canal de envio (Notificação ou E-mail).');
         return;
     }
 
     // Confirmar envio
     const recipientCount = document.getElementById('recipientCount').textContent;
-    const result = await Swal.fire({
-        icon: 'question',
+    const channelText = [sendNotification ? 'Notificação' : '', sendEmail ? 'E-mail' : ''].filter(Boolean).join(' + ');
+    const result = await LKFeedback.confirm(`Você está prestes a enviar uma campanha para ${recipientCount} usuários. Canais: ${channelText}`, {
         title: 'Confirmar envio?',
-        html: `
-            <p>Você está prestes a enviar uma campanha para <strong>${recipientCount} usuários</strong>.</p>
-            <p class="text-muted">Canais: ${sendNotification ? 'Notificação' : ''} ${sendNotification && sendEmail ? '+' : ''} ${sendEmail ? 'E-mail' : ''}</p>
-        `,
-        showCancelButton: true,
+        icon: 'question',
         confirmButtonText: 'Sim, enviar!',
-        cancelButtonText: 'Cancelar',
-        confirmButtonColor: '#10b981'
+        cancelButtonText: 'Cancelar'
     });
 
     if (!result.isConfirmed) return;
@@ -371,16 +358,7 @@ async function handleFormSubmit(e) {
         const data = await response.json();
 
         if (data.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Campanha enviada!',
-                html: `
-                    <p><strong>${data.data.total_recipients}</strong> usuários receberão sua mensagem.</p>
-                    ${data.data.emails_sent > 0 ? `<p>E-mails enviados: ${data.data.emails_sent}</p>` : ''}
-                    ${data.data.emails_failed > 0 ? `<p class="text-warning">E-mails com falha: ${data.data.emails_failed}</p>` : ''}
-                `,
-                timer: 5000
-            });
+            LKFeedback.success(`${data.data.total_recipients} usuários receberão sua mensagem.${data.data.emails_sent > 0 ? ` E-mails enviados: ${data.data.emails_sent}` : ''}${data.data.emails_failed > 0 ? ` E-mails com falha: ${data.data.emails_failed}` : ''}`, { toast: true });
 
             // Limpar formulário
             document.getElementById('campaignForm').reset();
@@ -391,19 +369,11 @@ async function handleFormSubmit(e) {
             loadCampaigns();
             updatePreview();
         } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Erro ao enviar',
-                text: data.message || 'Ocorreu um erro ao enviar a campanha.'
-            });
+            LKFeedback.error(data.message || 'Ocorreu um erro ao enviar a campanha.');
         }
     } catch (error) {
         console.error('Erro:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Erro ao enviar',
-            text: 'Ocorreu um erro de conexão. Tente novamente.'
-        });
+        LKFeedback.error('Ocorreu um erro de conexão. Tente novamente.');
     } finally {
         btn.disabled = false;
         btn.innerHTML = originalText;

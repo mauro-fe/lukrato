@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $tipo
  * @property int|null $user_id
  * @property int|null $parent_id
+ * @property bool $is_seeded
  *
  * @method static \Illuminate\Database\Eloquent\Builder where(string $column, $operator = null, $value = null, string $boolean = 'and')
  * @method static \Illuminate\Database\Eloquent\Builder receitas()
@@ -24,10 +25,11 @@ use Illuminate\Database\Eloquent\Model;
 class Categoria extends Model
 {
     protected $table = 'categorias';
-    protected $fillable = ['nome', 'icone', 'tipo', 'user_id', 'parent_id'];
+    protected $fillable = ['nome', 'icone', 'tipo', 'user_id', 'parent_id', 'is_seeded'];
     protected $casts = [
         'user_id'   => 'int',
         'parent_id' => 'int',
+        'is_seeded' => 'bool',
     ];
     public $timestamps = false;
 

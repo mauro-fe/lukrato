@@ -471,11 +471,7 @@ export const ParcelamentoGrouper = {
                 throw new Error(data.message || 'Erro ao atualizar status');
             }
         } catch (error) {
-            await Swal.fire({
-                icon: 'error',
-                title: 'Erro',
-                text: error.message
-            });
+            LKFeedback.error(error.message, { toast: true });
         }
     },
 
@@ -514,22 +510,13 @@ export const ParcelamentoGrouper = {
                 const data = await response.json();
 
                 if (response.ok) {
-                    await Swal.fire({
-                        icon: 'success',
-                        title: 'Concluído!',
-                        text: data.message || 'Parcelamento atualizado com sucesso',
-                        timer: 2000
-                    });
+                    LKFeedback.success(data.message || 'Parcelamento atualizado com sucesso', { toast: true });
                     await DataManager.load();
                 } else {
                     throw new Error(data.message || 'Erro ao cancelar parcelamento');
                 }
             } catch (error) {
-                await Swal.fire({
-                    icon: 'error',
-                    title: 'Erro',
-                    text: error.message
-                });
+                LKFeedback.error(error.message, { toast: true });
             }
         }
     },

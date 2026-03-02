@@ -60,6 +60,7 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
     <!-- Layout -->
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/layout/view-toggle-shared.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/layout/admin-partials-header.css?v=<?= time() ?>">
+    <?php loadPageCss('admin-partials-footer'); ?>
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/layout/top-navbar.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/layout/breadcrumbs.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/layout/notifications-bell.css?v=<?= time() ?>">

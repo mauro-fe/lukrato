@@ -13,15 +13,32 @@
     // CONFIGURAÇÃO
     // ============================================
 
+    // Cores fallback alinhadas com variables.css
+    const FALLBACK_COLORS = {
+        success: '#2ecc71',
+        error: '#e74c3c',
+        warning: '#f39c12',
+        info: '#3498db',
+        primary: '#e67e22',
+    };
+
+    /**
+     * Lê cores dos CSS custom properties (design tokens) com fallback.
+     * Garante sincronização automática com dark/light theme.
+     */
+    function getThemeColors() {
+        const root = document.documentElement;
+        const style = getComputedStyle(root);
+        return {
+            success: style.getPropertyValue('--color-success').trim() || FALLBACK_COLORS.success,
+            error:   style.getPropertyValue('--color-danger').trim()  || FALLBACK_COLORS.error,
+            warning: style.getPropertyValue('--color-warning').trim() || FALLBACK_COLORS.warning,
+            info:    style.getPropertyValue('--color-secondary').trim() || FALLBACK_COLORS.info,
+            primary: style.getPropertyValue('--color-primary').trim() || FALLBACK_COLORS.primary,
+        };
+    }
+
     const CONFIG = {
-        // Cores do tema
-        colors: {
-            success: '#10b981',
-            error: '#ef4444',
-            warning: '#f59e0b', 
-            info: '#3b82f6',
-            primary: '#6366f1',
-        },
         // Duração padrão em ms
         durations: {
             toast: 3000,
@@ -30,6 +47,11 @@
         },
         // Posição do toast
         toastPosition: 'top-end',
+
+        // Getter dinâmico para cores — sempre lê dos CSS tokens
+        get colors() {
+            return getThemeColors();
+        },
     };
 
     // ============================================
@@ -91,17 +113,21 @@
     function showError(message, options = {}) {
         const {
             title = 'Erro',
-            duration = null,
-            showConfirmButton = true,
+            duration = options.toast ? 5000 : null,
+            timer = duration,
+            showConfirmButton = !options.toast,
             confirmButtonText = 'Entendi',
+            toast = false,
         } = options;
 
         return Swal.fire({
             icon: 'error',
-            title: title,
-            text: message,
-            timer: duration,
-            timerProgressBar: !!duration,
+            title: toast ? message : title,
+            text: toast ? undefined : message,
+            toast: toast,
+            position: toast ? CONFIG.toastPosition : 'center',
+            timer: timer,
+            timerProgressBar: !!timer,
             showConfirmButton: showConfirmButton,
             confirmButtonText: confirmButtonText,
             ...getSwalTheme(),
@@ -121,8 +147,9 @@
     function showWarning(message, options = {}) {
         const {
             title = 'Atenção',
-            duration = 5000,
-            showConfirmButton = true,
+            duration = options.toast ? 4000 : 5000,
+            timer = duration,
+            showConfirmButton = !options.toast,
             confirmButtonText = 'OK',
             toast = false,
         } = options;
@@ -133,8 +160,8 @@
             text: toast ? undefined : message,
             toast: toast,
             position: toast ? CONFIG.toastPosition : 'center',
-            timer: duration,
-            timerProgressBar: !!duration,
+            timer: timer,
+            timerProgressBar: !!timer,
             showConfirmButton: showConfirmButton,
             confirmButtonText: confirmButtonText,
             ...getSwalTheme(),
@@ -283,7 +310,7 @@
             showCancelButton: true,
             confirmButtonText: '<i data-lucide="crown"></i> Quero ser Pro!',
             cancelButtonText: 'Agora não',
-            confirmButtonColor: '#f59e0b',
+            confirmButtonColor: CONFIG.colors.warning,
             ...getSwalTheme(),
             customClass: {
                 popup: 'lk-swal-popup lk-swal-upgrade',

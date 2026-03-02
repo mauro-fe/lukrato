@@ -1,7 +1,7 @@
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/modal-cartoes.css?v=<?= time() ?>">
 
 <!-- Modal de Cartão de Crédito -->
-<div class="modal-overlay" id="modalCartaoOverlay">
+<div class="lk-modal-overlay" id="modalCartaoOverlay">
     <div class="modal-container" id="modalCartao" onclick="event.stopPropagation()">
         <!-- Header -->
         <div class="modal-header">

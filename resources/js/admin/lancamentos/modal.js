@@ -559,7 +559,7 @@ const ModalManager = {
                     data: payload.data
                 };
 
-                const response = await fetch('/api/parcelamentos', {
+                const response = await fetch(`${CONFIG.BASE_URL}api/parcelamentos`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -574,22 +574,13 @@ const ModalManager = {
                     throw new Error(result.message || 'Erro ao criar parcelamento');
                 }
 
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'Sucesso!',
-                    text: result.message || `Parcelamento criado! ${numeroParcelas} parcelas foram geradas.`,
-                    timer: 3000
-                });
+                LKFeedback.success(result.message || `Parcelamento criado! ${numeroParcelas} parcelas foram geradas.`, { toast: true });
 
                 bootstrap.Modal.getInstance(DOM.modalEdit).hide();
                 await Modules.DataManager.load();
                 return;
             } catch (error) {
-                await Swal.fire({
-                    icon: 'error',
-                    title: 'Erro',
-                    text: error.message || 'Erro ao criar parcelamento'
-                });
+                LKFeedback.error(error.message || 'Erro ao criar parcelamento', { toast: true });
                 return;
             }
         }

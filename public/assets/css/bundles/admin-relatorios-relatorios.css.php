@@ -35,6 +35,9 @@ $modules = [
     '_insights.css',
     '_cartoes-credito.css',
 
+    // Subcategory drill-down
+    '_subcategory-drilldown.css',
+
     // Modal
     '_modal-cartao.css',
     '_modal-responsive.css',

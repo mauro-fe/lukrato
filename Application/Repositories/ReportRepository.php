@@ -134,6 +134,64 @@ class ReportRepository
         return (float)($query->sum('saldo_inicial') ?? 0.0);
     }
 
+    /**
+     * Busca totais agrupados por categoria E subcategoria (double-grouping).
+     * Retorna hierarquia completa para drill-down nos relatórios PRO.
+     */
+    public function getCategoryWithSubcategoryTotals(string $tipo, ReportParameters $params): array
+    {
+        $query = $this->buildCategoryQuery($tipo, $params);
+
+        if ($params->accountId !== null) {
+            $query->where(fn($w) => $this->applyAccountCategoryFilter($w, $params->accountId, $tipo))
+                  ->where(fn($w) => $this->applyAccountTypeFilter($w, $tipo));
+        } else {
+            $query->where('l.eh_transferencia', 0);
+        }
+
+        $rows = $query
+            ->leftJoin('categorias as sc', 'sc.id', '=', 'l.subcategoria_id')
+            ->selectRaw('COALESCE(c.id, 0) as cat_id')
+            ->selectRaw("COALESCE(MAX(c.nome), 'Sem categoria') as cat_label")
+            ->selectRaw('COALESCE(sc.id, 0) as subcat_id')
+            ->selectRaw("COALESCE(MAX(sc.nome), 'Sem subcategoria') as subcat_label")
+            ->selectRaw('SUM(l.valor) as total')
+            ->groupBy('cat_id', 'subcat_id')
+            ->orderByDesc(DB::raw('SUM(l.valor)'))
+            ->get();
+
+        // Agrupar em hierarquia: categoria → subcategorias
+        $categories = [];
+        foreach ($rows as $row) {
+            $catId = (int)$row->cat_id;
+            if (!isset($categories[$catId])) {
+                $categories[$catId] = [
+                    'cat_id' => $catId,
+                    'label'  => $row->cat_label,
+                    'total'  => 0.0,
+                    'subcategories' => [],
+                ];
+            }
+            $categories[$catId]['total'] += (float)$row->total;
+
+            $subcatId = (int)$row->subcat_id;
+            $categories[$catId]['subcategories'][] = [
+                'id'    => $subcatId,
+                'label' => $subcatId === 0 ? 'Outros' : $row->subcat_label,
+                'total' => (float)$row->total,
+            ];
+        }
+
+        // Ordernar categorias por total desc e subcategorias por total desc
+        $result = array_values($categories);
+        usort($result, fn($a, $b) => $b['total'] <=> $a['total']);
+        foreach ($result as &$cat) {
+            usort($cat['subcategories'], fn($a, $b) => $b['total'] <=> $a['total']);
+        }
+
+        return $result;
+    }
+
     // --- Builders de Query Específicos ---
 
     private function buildCategoryQuery(string $tipo, ReportParameters $params): QueryBuilder
@@ -146,6 +204,10 @@ class ReportRepository
             ->where(function ($q) {
                 $q->whereNull('l.origem_tipo')
                    ->orWhere('l.origem_tipo', '!=', 'pagamento_fatura');
+            })
+            ->where(function ($q) {
+                $q->where('l.afeta_caixa', true)
+                   ->orWhereNull('l.afeta_caixa');
             });
 
         return $this->applyUserScope($query, $params->userId, 'l');

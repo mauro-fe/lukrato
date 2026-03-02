@@ -140,9 +140,8 @@ class ComparativesService
     /** Top 5 categorias: mês atual vs anterior */
     private function buildCategoryComparison(): array
     {
-        $topCategorias = Lancamento::where('lancamentos.user_id', $this->userId)
-            ->where('lancamentos.tipo', 'despesa')
-            ->where('lancamentos.eh_transferencia', 0)
+        // 1. Top 5 categorias do mês atual (com todos os filtros)
+        $topCategorias = $this->despesaQuery('lancamentos')
             ->whereBetween('lancamentos.data', [$this->currentStart->toDateString(), $this->currentEnd->toDateString()])
             ->join('categorias', 'lancamentos.categoria_id', '=', 'categorias.id')
             ->selectRaw('categorias.id, categorias.nome, categorias.icone, SUM(lancamentos.valor) as total')
@@ -151,24 +150,106 @@ class ComparativesService
             ->limit(5)
             ->get();
 
+        if ($topCategorias->isEmpty()) {
+            return [];
+        }
+
+        $catIds = $topCategorias->pluck('id')->all();
+
+        // 2. Batch: totais do mês anterior para todas as top categorias
+        $previousTotals = $this->despesaQuery()
+            ->whereIn('categoria_id', $catIds)
+            ->whereBetween('data', [$this->previousMonthStart->toDateString(), $this->previousMonthEnd->toDateString()])
+            ->selectRaw('categoria_id, SUM(valor) as total')
+            ->groupBy('categoria_id')
+            ->pluck('total', 'categoria_id');
+
+        // 3. Batch: todas as subcategorias das top categorias (mês atual)
+        $allSubcategorias = $this->despesaQuery('lancamentos')
+            ->whereIn('lancamentos.categoria_id', $catIds)
+            ->whereNotNull('lancamentos.subcategoria_id')
+            ->whereBetween('lancamentos.data', [$this->currentStart->toDateString(), $this->currentEnd->toDateString()])
+            ->join('categorias as sc', 'lancamentos.subcategoria_id', '=', 'sc.id')
+            ->selectRaw('lancamentos.categoria_id, sc.id, sc.nome, SUM(lancamentos.valor) as total')
+            ->groupBy('lancamentos.categoria_id', 'sc.id', 'sc.nome')
+            ->orderByDesc('total')
+            ->get()
+            ->groupBy('categoria_id');
+
+        // Top 3 por categoria + coletar IDs para batch de totais anteriores
+        $subcatMap = [];
+        $allSubcatIds = [];
+        foreach ($catIds as $catId) {
+            $subs = ($allSubcategorias[$catId] ?? collect())->take(3);
+            $subcatMap[$catId] = $subs;
+            foreach ($subs as $sub) {
+                $allSubcatIds[] = $sub->id;
+            }
+        }
+
+        // 4. Batch: totais do mês anterior para todas as subcategorias
+        $prevSubTotals = collect();
+        if (!empty($allSubcatIds)) {
+            $prevSubTotals = $this->despesaQuery()
+                ->whereIn('subcategoria_id', array_unique($allSubcatIds))
+                ->whereBetween('data', [$this->previousMonthStart->toDateString(), $this->previousMonthEnd->toDateString()])
+                ->selectRaw('categoria_id, subcategoria_id, SUM(valor) as total')
+                ->groupBy('categoria_id', 'subcategoria_id')
+                ->get()
+                ->keyBy(fn($row) => $row->categoria_id . '_' . $row->subcategoria_id);
+        }
+
+        // Montar resultado
         $result = [];
         foreach ($topCategorias as $cat) {
-            $previousTotal = Lancamento::where('user_id', $this->userId)
-                ->where('tipo', 'despesa')
-                ->where('categoria_id', $cat->id)
-                ->whereBetween('data', [$this->previousMonthStart->toDateString(), $this->previousMonthEnd->toDateString()])
-                ->sum('valor');
+            $previousTotal = (float)($previousTotals[$cat->id] ?? 0);
+
+            $subcategorias = [];
+            foreach ($subcatMap[$cat->id] ?? [] as $sub) {
+                $key = $cat->id . '_' . $sub->id;
+                $prevSubTotal = (float)($prevSubTotals[$key]->total ?? 0);
+
+                $subcategorias[] = [
+                    'nome'     => $sub->nome,
+                    'atual'    => round((float)$sub->total, 2),
+                    'anterior' => round($prevSubTotal, 2),
+                    'variacao' => $this->calculateVariation($prevSubTotal, (float)$sub->total),
+                ];
+            }
 
             $result[] = [
-                'nome'     => $cat->nome,
-                'icone'    => $cat->icone,
-                'atual'    => round((float)$cat->total, 2),
-                'anterior' => round((float)$previousTotal, 2),
-                'variacao' => $this->calculateVariation($previousTotal, $cat->total),
+                'nome'          => $cat->nome,
+                'icone'         => $cat->icone,
+                'atual'         => round((float)$cat->total, 2),
+                'anterior'      => round($previousTotal, 2),
+                'variacao'      => $this->calculateVariation($previousTotal, (float)$cat->total),
+                'subcategorias' => $subcategorias,
             ];
         }
 
         return $result;
+    }
+
+    /**
+     * Query base para despesas com todos os filtros consistentes:
+     * eh_transferencia=0, pago=1, afeta_caixa, origem_tipo!=pagamento_fatura
+     */
+    private function despesaQuery(?string $alias = null): \Illuminate\Database\Eloquent\Builder
+    {
+        $col = fn(string $c) => $alias ? "{$alias}.{$c}" : $c;
+
+        return Lancamento::where($col('user_id'), $this->userId)
+            ->where($col('tipo'), 'despesa')
+            ->where($col('eh_transferencia'), 0)
+            ->where($col('pago'), 1)
+            ->where(function ($q) use ($col) {
+                $q->where($col('afeta_caixa'), true)
+                  ->orWhereNull($col('afeta_caixa'));
+            })
+            ->where(function ($q) use ($col) {
+                $q->whereNull($col('origem_tipo'))
+                  ->orWhere($col('origem_tipo'), '!=', 'pagamento_fatura');
+            });
     }
 
     /** Evolução dos últimos 6 meses */

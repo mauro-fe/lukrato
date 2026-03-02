@@ -64,7 +64,7 @@ async function carregarCupons() {
         }
     } catch (error) {
         console.error('Erro ao carregar cupons:', error);
-        Swal.fire('Erro', error.message, 'error');
+        LKFeedback.error(error.message);
     } finally {
         document.getElementById('loading').style.display = 'none';
     }
@@ -216,7 +216,7 @@ document.getElementById('formCupom').addEventListener('submit', async (e) => {
         const result = await response.json();
 
         if (result.status === 'success') {
-            Swal.fire('Sucesso!', result.message, 'success');
+            LKFeedback.success(result.message, { toast: true });
             fecharModalCupom();
             carregarCupons();
         } else {
@@ -224,18 +224,15 @@ document.getElementById('formCupom').addEventListener('submit', async (e) => {
         }
     } catch (error) {
         console.error('Erro:', error);
-        Swal.fire('Erro', error.message, 'error');
+        LKFeedback.error(error.message);
     }
 });
 
 async function excluirCupom(id, codigo) {
-    const result = await Swal.fire({
+    const result = await LKFeedback.confirm(`Deseja realmente excluir o cupom "${codigo}"?`, {
         title: 'Confirmar exclusão?',
-        text: `Deseja realmente excluir o cupom "${codigo}"?`,
         icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#ef4444',
-        cancelButtonColor: '#6b7280',
+        isDanger: true,
         confirmButtonText: 'Sim, excluir',
         cancelButtonText: 'Cancelar'
     });
@@ -265,14 +262,14 @@ async function excluirCupom(id, codigo) {
         const data = await response.json();
 
         if (data.status === 'success') {
-            Swal.fire('Excluído!', data.message, 'success');
+            LKFeedback.success(data.message, { toast: true });
             carregarCupons();
         } else {
             throw new Error(data.message || 'Erro ao excluir cupom');
         }
     } catch (error) {
         console.error('❌ Erro ao excluir:', error);
-        Swal.fire('Erro', error.message || 'Erro ao excluir cupom', 'error');
+        LKFeedback.error(error.message || 'Erro ao excluir cupom');
     }
 }
 
@@ -328,7 +325,7 @@ async function verEstatisticas(cupomId) {
             throw new Error(data.message);
         }
     } catch (error) {
-        Swal.fire('Erro', error.message, 'error');
+        LKFeedback.error(error.message);
     }
 }
 

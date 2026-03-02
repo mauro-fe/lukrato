@@ -10,43 +10,7 @@ export { formatMoney as fmtMoney, escapeHtml, debounce };
 
 // ── Configuration ──────────────────────────────────────────────
 export const CONFIG = {
-    BASE_URL: (() => {
-        try {
-            // Usar a função global LK.getBase() se disponível
-            if (window.LK && typeof window.LK.getBase === 'function') {
-                const url = window.LK.getBase();
-                return url;
-            }
-
-            // Fallback para meta tag
-            const meta = document.querySelector('meta[name="base-url"]');
-            if (meta?.content) {
-                return meta.content;
-            }
-
-            if (window.BASE_URL) {
-                const url = window.BASE_URL.endsWith('/') ? window.BASE_URL : window.BASE_URL + '/';
-                return url;
-            }
-
-            // Fallback: detectar automaticamente
-            const path = window.location.pathname;
-            const publicIndex = path.indexOf('/public/');
-
-            if (publicIndex !== -1) {
-                const base = path.substring(0, publicIndex + 8);
-                const url = window.location.origin + base;
-                return url;
-            }
-
-            // Último fallback
-            const url = window.location.origin + '/lukrato/public/';
-            return url;
-        } catch (error) {
-            console.error('❌ Erro ao obter BASE_URL:', error);
-            return window.location.origin + '/lukrato/public/';
-        }
-    })(),
+    BASE_URL: (window.LK?.getBase?.() || '/'),
     API_URL: '',
 };
 CONFIG.API_URL = CONFIG.BASE_URL + 'api';
@@ -107,13 +71,10 @@ export const Utils = {
     },
 
     /**
-     * Formatar dinheiro
+     * Formatar dinheiro — delega para shared/utils.formatMoney
      */
     formatMoney(value) {
-        return new Intl.NumberFormat('pt-BR', {
-            style: 'currency',
-            currency: 'BRL'
-        }).format(value || 0);
+        return formatMoney(value);
     },
 
     /**

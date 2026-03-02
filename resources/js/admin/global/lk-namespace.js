@@ -12,29 +12,34 @@
  * ============================================================================
  */
 
-// ── Error Suppression (Bootstrap Modal) ─────────────────────────────────────
+// ── Error Suppression (Bootstrap Modal backdrop only) ────────────────────────
+// Narrowly suppresses only the known Bootstrap 5 backdrop disposal error.
+// Previous version also suppressed ALL "Cannot read properties of undefined"
+// which masked real bugs. Now only suppresses messages matching Bootstrap's
+// specific backdrop-related error patterns.
 (function () {
+    const isBootstrapBackdropError = (msg) =>
+        typeof msg === 'string' &&
+        msg.includes('backdrop') &&
+        (msg.includes('Modal') || msg.includes('modal') || msg.includes('dispose') || msg.includes('hide'));
+
     const originalError = console.error;
     console.error = function (...args) {
         const message = args.join(' ');
-        if (message.includes('backdrop') || message.includes('Cannot read properties of undefined')) {
-            return;
-        }
+        if (isBootstrapBackdropError(message)) return;
         originalError.apply(console, args);
     };
 
     window.addEventListener('error', function (event) {
-        if (event.message && (event.message.includes('backdrop') || event.message.includes('Cannot read properties of undefined'))) {
+        if (event.message && isBootstrapBackdropError(event.message)) {
             event.preventDefault();
             event.stopImmediatePropagation();
             return true;
         }
     }, true);
 
-    window.onerror = function (message, source, lineno, colno, error) {
-        if (message && (message.includes('backdrop') || message.includes('Cannot read properties of undefined'))) {
-            return true;
-        }
+    window.onerror = function (message) {
+        if (isBootstrapBackdropError(message)) return true;
         return false;
     };
 })();

@@ -12,6 +12,7 @@ import { CONFIG, STATE, Utils, Modules } from './state.js';
 // Local aliases (keep method bodies identical to original)
 const formatCurrency = (v) => Utils.formatCurrency(v);
 const hexToRgba = (h, a) => Utils.hexToRgba(h, a);
+const escapeHtml = (v) => String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m] || m));
 
 // ─── Doughnut Labels Plugin ──────────────────────────────────────────────────
 
@@ -74,6 +75,13 @@ export const ChartManager = {
             }
             STATE.chart = null;
         }
+        // Clean up drilldown state
+        if (ChartManager._drilldownChart) {
+            ChartManager._drilldownChart.destroy();
+            ChartManager._drilldownChart = null;
+        }
+        STATE.activeDrilldown = null;
+        STATE.reportDetails = null;
     },
 
     setupDefaults() {
@@ -85,21 +93,34 @@ export const ChartManager = {
     },
 
     renderPie(data) {
-        const { labels = [], values = [] } = data;
+        const { labels = [], values = [], details = null } = data;
 
         if (!labels.length || !values.some(v => v > 0)) {
             return Modules.UI.showEmptyState();
         }
+
+        // Store details for drill-down (PRO only)
+        STATE.reportDetails = details;
+        STATE.activeDrilldown = null;
 
         // Preparar entradas com cores
         let entries = labels
             .map((label, idx) => ({
                 label,
                 value: Number(values[idx]) || 0,
-                color: CONFIG.CHART_COLORS[idx % CONFIG.CHART_COLORS.length]
+                color: CONFIG.CHART_COLORS[idx % CONFIG.CHART_COLORS.length],
+                catId: details ? (details[idx]?.cat_id ?? null) : null
             }))
             .filter(e => e.value > 0)
             .sort((a, b) => b.value - a.value);
+
+        // Re-map catId after sorting (match details by label)
+        if (details) {
+            entries = entries.map(e => {
+                const match = details.find(d => d.label === e.label);
+                return { ...e, catId: match?.cat_id ?? null };
+            });
+        }
 
         const isMobile = window.innerWidth < 768;
 
@@ -142,6 +163,7 @@ export const ChartManager = {
                     `).join('')}
                 </div>
             </div>
+            <div id="subcategoryDrilldown" class="drilldown-panel" aria-hidden="true"></div>
             ${isMobile ? '<div id="categoryListMobile" class="category-list-mobile"></div>' : ''}
         `;
 
@@ -160,14 +182,19 @@ export const ChartManager = {
         };
         const title = titleMap[type] || 'Distribuição por Categoria';
 
+        // Track cumulative offset for multi-chunk indexing
+        let chunkOffset = 0;
+
         STATE.chart = chunks.map((chunk, idx) => {
             const canvas = document.getElementById(`chart${idx}`);
             const isLightTheme = (document.documentElement.getAttribute('data-theme') || '').toLowerCase() === 'light'
                 || Utils.isLightTheme();
             const labelColor = isLightTheme ? '#2c3e50' : '#ffffff';
             const chunkTotal = chunk.reduce((sum, item) => sum + item.value, 0);
+            const currentChunkOffset = chunkOffset;
+            chunkOffset += chunk.length;
 
-            return new Chart(canvas, {
+            const chart = new Chart(canvas, {
                 type: 'doughnut',
                 data: {
                     labels: chunk.map(e => e.label),
@@ -176,13 +203,26 @@ export const ChartManager = {
                         backgroundColor: chunk.map(e => e.color),
                         borderWidth: 2,
                         borderColor: getComputedStyle(document.documentElement)
-                            .getPropertyValue('--color-surface').trim()
+                            .getPropertyValue('--color-surface').trim(),
+                        offset: chunk.map(() => 0),
+                        hoverOffset: 8
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     cutout: '60%',
+                    // ===================================================================
+                    // CLICK HANDLER: Drill-down into subcategories (PRO)
+                    // ===================================================================
+                    onClick: (event, elements) => {
+                        if (!elements.length) return;
+                        const el = elements[0];
+                        const globalIdx = currentChunkOffset + el.index;
+                        const entry = processedEntries[globalIdx];
+                        if (!entry || entry.isOthers) return;
+                        ChartManager.handlePieClick(entry, globalIdx, el, idx);
+                    },
                     plugins: {
                         // ===================================================================
                         // MOBILE: Esconder legendas para visual limpo
@@ -224,6 +264,8 @@ export const ChartManager = {
                     }
                 }
             });
+
+            return chart;
         });
 
         // ===================================================================
@@ -238,25 +280,60 @@ export const ChartManager = {
     /**
      * Renderiza a lista de categorias para mobile com expansão
      * UX: Visual clean - apenas botão + lista expansível
+     * Inclui drill-down de subcategorias (PRO)
      */
     renderMobileCategoryList(entries) {
         const container = document.getElementById('categoryListMobile');
         if (!container) return;
 
         const total = entries.reduce((sum, item) => sum + item.value, 0);
+        const hasDetails = !!STATE.reportDetails && window.IS_PRO;
 
         // Todas as categorias dentro do card expansível
-        const allCategoriesHTML = entries.map(entry => {
+        const allCategoriesHTML = entries.map((entry, idx) => {
             const percentage = ((entry.value / total) * 100).toFixed(1);
+            const detail = hasDetails && entry.catId != null
+                ? STATE.reportDetails.find(d => d.cat_id === entry.catId)
+                : null;
+            const hasSubcats = detail && detail.subcategories && detail.subcategories.length > 1;
+            const chevron = hasSubcats ? `<i data-lucide="chevron-down" class="category-chevron"></i>` : '';
+
+            let subcatHTML = '';
+            if (hasSubcats) {
+                const shades = Utils.generateShades(entry.color, detail.subcategories.length);
+                subcatHTML = `
+                    <div class="category-subcats-panel" id="mobileSubcatPanel-${idx}" aria-hidden="true">
+                        ${detail.subcategories.map((sub, si) => {
+                            const subPct = detail.total > 0 ? ((sub.total / detail.total) * 100).toFixed(1) : '0.0';
+                            return `
+                                <div class="drilldown-item drilldown-item-mobile">
+                                    <div class="drilldown-indicator" style="background-color: ${shades[si]}"></div>
+                                    <div class="drilldown-info">
+                                        <span class="drilldown-name">${escapeHtml(sub.label)}</span>
+                                    </div>
+                                    <div class="drilldown-values">
+                                        <span class="drilldown-value">${formatCurrency(sub.total)}</span>
+                                        <span class="drilldown-pct">${subPct}%</span>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+
             return `
-                <div class="category-item">
+                <div class="category-item ${hasSubcats ? 'has-subcats' : ''}"
+                     ${hasSubcats ? `data-subcat-toggle="${idx}"` : ''}>
                     <div class="category-indicator" style="background-color: ${entry.color}"></div>
                     <div class="category-info">
-                        <span class="category-name">${entry.label}</span>
+                        <span class="category-name">${escapeHtml(entry.label)}</span>
                         <span class="category-value">${formatCurrency(entry.value)}</span>
                     </div>
                     <span class="category-percentage">${percentage}%</span>
+                    ${chevron}
                 </div>
+                ${subcatHTML}
             `;
         }).join('');
 
@@ -269,15 +346,45 @@ export const ChartManager = {
             <div class="category-expandable-card" id="expandableCard" aria-hidden="true">
                 ${allCategoriesHTML}
             </div>
-            <p class="category-info-text">
+            ${hasDetails ? '' : `<p class="category-info-text">
                 <i data-lucide="info"></i>
                 Para visualizar todas as categorias detalhadamente, exporte este relatório em PDF.
-            </p>
+            </p>`}
         `;
         if (window.lucide) lucide.createIcons();
 
         // Adicionar listener ao botão de expansão
         ChartManager.setupExpandToggle();
+
+        // Setup mobile subcategory accordion toggles
+        if (hasDetails) {
+            ChartManager.setupMobileSubcatToggles();
+        }
+    },
+
+    /**
+     * Setup accordion toggles for mobile subcategory panels
+     */
+    setupMobileSubcatToggles() {
+        document.querySelectorAll('[data-subcat-toggle]').forEach(item => {
+            item.addEventListener('click', function () {
+                const idx = this.dataset.subcatToggle;
+                const panel = document.getElementById(`mobileSubcatPanel-${idx}`);
+                const chevron = this.querySelector('.category-chevron');
+                if (!panel) return;
+
+                const isOpen = panel.getAttribute('aria-hidden') === 'false';
+                if (isOpen) {
+                    panel.style.maxHeight = '0px';
+                    panel.setAttribute('aria-hidden', 'true');
+                    if (chevron) chevron.style.transform = 'rotate(0deg)';
+                } else {
+                    panel.style.maxHeight = panel.scrollHeight + 'px';
+                    panel.setAttribute('aria-hidden', 'false');
+                    if (chevron) chevron.style.transform = 'rotate(180deg)';
+                }
+            });
+        });
     },
 
     /**
@@ -309,6 +416,218 @@ export const ChartManager = {
             }
         });
     },
+
+    /**
+     * Handle click on a doughnut segment: toggle subcategory drill-down
+     */
+    handlePieClick(entry, globalIdx, element, chartIdx) {
+        // PRO check
+        if (!window.IS_PRO) {
+            if (window.Swal?.fire) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Recurso Premium',
+                    html: 'O detalhamento por <b>subcategorias</b> é exclusivo do <b>plano Pro</b>.<br>Faça upgrade para desbloquear!',
+                    confirmButtonText: 'Fazer Upgrade',
+                    showCancelButton: true,
+                    cancelButtonText: 'Agora não',
+                    confirmButtonColor: '#f59e0b',
+                    cancelButtonColor: '#64748b'
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        window.location.href = (CONFIG.BASE_URL || '/') + 'billing';
+                    }
+                });
+            }
+            return;
+        }
+
+        if (!STATE.reportDetails) return;
+
+        const catId = entry.catId;
+        const detail = STATE.reportDetails.find(d => d.cat_id === catId);
+        if (!detail || !detail.subcategories || detail.subcategories.length <= 1) return;
+
+        // Toggle: clicking same segment again closes drill-down
+        if (STATE.activeDrilldown === catId) {
+            ChartManager.closeDrilldown();
+            return;
+        }
+
+        STATE.activeDrilldown = catId;
+
+        // Highlight clicked segment (offset it)
+        ChartManager._resetAllSegmentOffsets();
+        if (Array.isArray(STATE.chart) && STATE.chart[chartIdx]) {
+            const ds = STATE.chart[chartIdx].data.datasets[0];
+            if (ds.offset) {
+                ds.offset[element.index] = 14;
+                STATE.chart[chartIdx].update('none');
+            }
+        }
+
+        ChartManager.renderSubcategoryDrilldown(detail, entry.color);
+    },
+
+    /**
+     * Reset offset on all chart segments
+     */
+    _resetAllSegmentOffsets() {
+        if (!Array.isArray(STATE.chart)) return;
+        STATE.chart.forEach(c => {
+            if (!c) return;
+            const ds = c.data.datasets[0];
+            if (ds.offset) {
+                ds.offset = ds.offset.map(() => 0);
+                c.update('none');
+            }
+        });
+    },
+
+    /**
+     * Close the drill-down panel
+     */
+    closeDrilldown() {
+        STATE.activeDrilldown = null;
+        ChartManager._resetAllSegmentOffsets();
+
+        const panel = document.getElementById('subcategoryDrilldown');
+        if (panel) {
+            panel.style.maxHeight = '0px';
+            panel.setAttribute('aria-hidden', 'true');
+            setTimeout(() => { panel.innerHTML = ''; }, 400);
+        }
+    },
+
+    /**
+     * Render the subcategory drill-down panel below the doughnut chart
+     */
+    renderSubcategoryDrilldown(categoryDetail, parentColor) {
+        const panel = document.getElementById('subcategoryDrilldown');
+        if (!panel) return;
+
+        const { label, total, subcategories } = categoryDetail;
+        const shades = Utils.generateShades(parentColor, subcategories.length);
+
+        const subcatItems = subcategories.map((sub, i) => {
+            const pct = total > 0 ? ((sub.total / total) * 100).toFixed(1) : '0.0';
+            const barWidth = total > 0 ? ((sub.total / total) * 100).toFixed(0) : '0';
+            return `
+                <div class="drilldown-item" style="animation-delay: ${i * 0.05}s">
+                    <div class="drilldown-indicator" style="background-color: ${shades[i]}"></div>
+                    <div class="drilldown-info">
+                        <span class="drilldown-name">${escapeHtml(sub.label)}</span>
+                        <div class="drilldown-bar-bg">
+                            <div class="drilldown-bar" style="width: ${barWidth}%; background-color: ${shades[i]}"></div>
+                        </div>
+                    </div>
+                    <div class="drilldown-values">
+                        <span class="drilldown-value">${formatCurrency(sub.total)}</span>
+                        <span class="drilldown-pct">${pct}%</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Mini doughnut only on desktop
+        const isMobile = window.innerWidth < 768;
+        const miniChartHTML = !isMobile ? `
+            <div class="drilldown-mini-chart">
+                <canvas id="drilldownMiniChart"></canvas>
+            </div>
+        ` : '';
+
+        panel.innerHTML = `
+            <div class="drilldown-header" style="border-left-color: ${parentColor}">
+                <div class="drilldown-title">
+                    <span class="drilldown-cat-indicator" style="background-color: ${parentColor}"></span>
+                    <h4>${escapeHtml(label)}</h4>
+                    <span class="drilldown-total">${formatCurrency(total)}</span>
+                </div>
+                <button class="drilldown-close" id="drilldownCloseBtn" aria-label="Fechar detalhamento">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="drilldown-body">
+                ${miniChartHTML}
+                <div class="drilldown-list">
+                    ${subcatItems}
+                </div>
+            </div>
+        `;
+
+        // Animate open
+        panel.setAttribute('aria-hidden', 'false');
+        requestAnimationFrame(() => {
+            panel.style.maxHeight = panel.scrollHeight + 'px';
+        });
+
+        // Close button
+        document.getElementById('drilldownCloseBtn')?.addEventListener('click', () => {
+            ChartManager.closeDrilldown();
+        });
+
+        // Render mini doughnut chart
+        if (!isMobile) {
+            ChartManager._renderDrilldownMiniChart(subcategories, shades);
+        }
+
+        if (window.lucide) lucide.createIcons();
+    },
+
+    /**
+     * Render mini doughnut inside the drill-down panel
+     */
+    _renderDrilldownMiniChart(subcategories, shades) {
+        const canvas = document.getElementById('drilldownMiniChart');
+        if (!canvas) return;
+
+        // Destroy any existing mini chart
+        if (ChartManager._drilldownChart) {
+            ChartManager._drilldownChart.destroy();
+            ChartManager._drilldownChart = null;
+        }
+
+        ChartManager._drilldownChart = new Chart(canvas, {
+            type: 'doughnut',
+            data: {
+                labels: subcategories.map(s => s.label),
+                datasets: [{
+                    data: subcategories.map(s => s.total),
+                    backgroundColor: shades,
+                    borderWidth: 2,
+                    borderColor: getComputedStyle(document.documentElement)
+                        .getPropertyValue('--color-surface').trim()
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                cutout: '55%',
+                plugins: {
+                    legend: { display: false },
+                    title: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        padding: 10,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: (ctx) => {
+                                const total = subcategories.reduce((s, sc) => s + sc.total, 0);
+                                const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : '0';
+                                return `${ctx.label}: ${formatCurrency(ctx.parsed)} (${pct}%)`;
+                            }
+                        }
+                    },
+                    lkDoughnutLabels: false
+                }
+            }
+        });
+    },
+
+    _drilldownChart: null,
 
     renderLine(data) {
         const { labels = [], values = [] } = data;

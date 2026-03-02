@@ -457,6 +457,10 @@ class CategoriaRepository extends BaseRepository
         return $this->query()
             ->where('user_id', $userId)
             ->whereNotNull('parent_id')
+            ->where(function ($q) {
+                $q->where('is_seeded', false)
+                  ->orWhereNull('is_seeded');
+            })
             ->count();
     }
 

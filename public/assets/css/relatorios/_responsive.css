@@ -549,7 +549,7 @@
 }
 
 /* ========== Ajustes especÃƒÆ’Ã‚Â­ficos para Mobile ========== */
-@media (max-width: 767px) {
+@media (max-width: 768px) {
   .lk-titlebar {
     flex-direction: column;
     align-items: stretch;
@@ -570,7 +570,7 @@
   }
 }
 
-@media (max-width: 479px) {
+@media (max-width: 480px) {
   .lk-t {
     font-size: var(--font-size-xl);
   }

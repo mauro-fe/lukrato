@@ -14,16 +14,13 @@
  * @returns {string} URL com trailing slash
  */
 export function getBaseUrl() {
-    // 1) window.LK.getBase()
+    // Delega para LK.getBase() (fonte canônica) com fallbacks
     if (window.LK && typeof window.LK.getBase === 'function') {
         return window.LK.getBase();
     }
-    // 2) meta tag
     const meta = document.querySelector('meta[name="base-url"]');
     if (meta?.content) return meta.content.replace(/\/?$/, '/');
-    // 3) window.BASE_URL
     if (window.BASE_URL) return window.BASE_URL.replace(/\/?$/, '/');
-    // 4) fallback por pathname
     if (location.pathname.includes('/public/')) {
         return location.pathname.split('/public/')[0] + '/public/';
     }
@@ -83,20 +80,36 @@ export function buildUrl(endpoint, params = {}) {
  * Fetch wrapper com CSRF automático e error handling
  * @param {string} url - Relativo ao base URL (ex: "api/lancamentos")
  * @param {RequestInit} options
+ * @param {Object} [extra] - Opções extras: { timeout: ms }
  * @returns {Promise<any>} JSON parsed response
  */
-export async function apiFetch(url, options = {}) {
+export async function apiFetch(url, options = {}, extra = {}) {
     const base = getBaseUrl();
     const fullUrl = url.startsWith('http') ? url : base + url.replace(/^\//, '');
+    const method = (options.method || 'GET').toUpperCase();
 
     const defaultHeaders = {
-        'Content-Type': 'application/json',
+        'Accept': 'application/json',
         'X-CSRF-Token': getCSRFToken(),
     };
+
+    // Só define Content-Type para requisições com body
+    if (method !== 'GET' && method !== 'HEAD') {
+        defaultHeaders['Content-Type'] = 'application/json';
+    }
+
+    // Timeout support (default: 20s)
+    const timeout = extra.timeout ?? 20000;
+    const controller = new AbortController();
+    let timeoutId;
+    if (timeout > 0) {
+        timeoutId = setTimeout(() => controller.abort(), timeout);
+    }
 
     try {
         const response = await fetch(fullUrl, {
             ...options,
+            signal: controller.signal,
             headers: {
                 ...defaultHeaders,
                 ...options.headers,
@@ -129,8 +142,13 @@ export async function apiFetch(url, options = {}) {
         }
         return data;
     } catch (error) {
+        if (error.name === 'AbortError') {
+            throw new Error('A requisição demorou demais. Verifique sua conexão e tente novamente.');
+        }
         console.error('Erro na requisição:', error);
         throw error;
+    } finally {
+        if (timeoutId) clearTimeout(timeoutId);
     }
 }
 

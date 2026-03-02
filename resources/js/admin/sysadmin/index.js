@@ -13,32 +13,22 @@
  * ============================================================================
  */
 
-const BASE_URL = window.__LK_CONFIG?.baseUrl || window.BASE_URL || '/';
+const BASE_URL = (window.LK?.getBase?.() || '/');
 
 // ============================================================================
 // CACHE MANAGEMENT
 // ============================================================================
 
 function limparCache() {
-    if (window.Swal) {
-        Swal.fire({
+    if (window.LKFeedback) {
+        LKFeedback.confirm('Isso ira remover todos os arquivos de cache do sistema.', {
             title: 'Limpar Cache?',
-            text: 'Isso ira remover todos os arquivos de cache do sistema.',
             icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#e67e22',
-            cancelButtonColor: '#95a5a6',
             confirmButtonText: 'Sim, limpar!',
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Cache Limpo!',
-                    text: 'O cache do sistema foi limpo com sucesso.',
-                    timer: 2000,
-                    showConfirmButton: false
-                });
+                LKFeedback.success('O cache do sistema foi limpo com sucesso.', { toast: true });
             }
         });
     } else {
@@ -110,26 +100,21 @@ async function toggleMaintenance() {
 
             maintenanceActive = data.active;
             updateMaintenanceButton();
-            if (window.Swal) {
-                Swal.fire({
-                    icon: 'success',
-                    title: data.active ? 'Manutenção Ativada' : 'Sistema Online',
-                    text: data.message,
-                    timer: 2500
-                });
+            if (window.LKFeedback) {
+                LKFeedback.success(data.message, { toast: true });
             } else {
                 alert(data.message);
             }
         } catch (e) {
-            if (window.Swal) {
-                Swal.fire({ icon: 'error', title: 'Erro', text: e.message });
+            if (window.LKFeedback) {
+                LKFeedback.error(e.message);
             } else {
                 alert('Erro: ' + e.message);
             }
         }
     };
 
-    if (window.Swal) {
+    if (window.LKFeedback) {
         if (action === 'activate') {
             const { value: formValues } = await Swal.fire({
                 title: title,
@@ -151,11 +136,9 @@ async function toggleMaintenance() {
                 await doToggle(formValues.reason, formValues.minutes ? parseInt(formValues.minutes) : null);
             }
         } else {
-            const result = await Swal.fire({
-                title, text, icon,
-                showCancelButton: true,
-                confirmButtonColor: '#2ecc71',
-                cancelButtonColor: '#95a5a6',
+            const result = await LKFeedback.confirm(text, {
+                title,
+                icon,
                 confirmButtonText: confirmText,
                 cancelButtonText: 'Cancelar'
             });
@@ -260,7 +243,7 @@ function viewUser(userId) {
         .then(res => res.json())
         .then(response => {
             if (!response.success) {
-                Swal.fire('Erro', response.message || 'Erro ao buscar usuário', 'error');
+                LKFeedback.error(response.message || 'Erro ao buscar usuário');
                 return;
             }
 
@@ -355,24 +338,20 @@ function viewUser(userId) {
         })
         .catch(err => {
             console.error('Erro ao buscar usuário:', err);
-            Swal.fire('Erro', 'Erro ao buscar dados do usuário', 'error');
+            LKFeedback.error('Erro ao buscar dados do usuário');
         });
 }
 
 function editUser(userId) {
-    Swal.close();
-    Swal.fire({
-        title: 'Carregando...', text: 'Buscando dados do usuário',
-        allowOutsideClick: false, allowEscapeKey: false, showConfirmButton: false,
-        didOpen: () => { Swal.showLoading(); }
-    });
+    LKFeedback.hideLoading();
+    LKFeedback.loading('Buscando dados do usuário');
 
     fetch(`${BASE_URL}api/sysadmin/users/${userId}`)
         .then(res => res.json())
         .then(response => {
-            Swal.close();
+            LKFeedback.hideLoading();
             if (!response.success) {
-                Swal.fire('Erro', response.message || 'Erro ao buscar usuário', 'error');
+                LKFeedback.error(response.message || 'Erro ao buscar usuário');
                 return;
             }
 
@@ -436,7 +415,7 @@ function editUser(userId) {
                     const payload = { nome: result.value.nome, email: result.value.email, is_admin: result.value.is_admin };
                     if (result.value.senha) payload.senha = result.value.senha;
 
-                    Swal.fire({ title: 'Salvando...', allowOutsideClick: false, allowEscapeKey: false, showConfirmButton: false, didOpen: () => { Swal.showLoading(); } });
+                    LKFeedback.loading('Salvando...');
 
                     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
                     fetch(`${BASE_URL}api/sysadmin/users/${userId}`, {
@@ -447,25 +426,27 @@ function editUser(userId) {
                         .then(res => res.json())
                         .then(saveResponse => {
                             if (saveResponse.success) {
-                                Swal.fire({ icon: 'success', title: 'Sucesso!', text: saveResponse.message || 'Usuário atualizado com sucesso', timer: 2000, showConfirmButton: false });
+                                LKFeedback.success(saveResponse.message || 'Usuário atualizado com sucesso', { toast: true });
                                 fetchUsers(currentPage);
                             } else {
-                                Swal.fire('Erro', saveResponse.message || 'Erro ao atualizar usuário', 'error');
+                                LKFeedback.error(saveResponse.message || 'Erro ao atualizar usuário');
                             }
                         })
-                        .catch(err => { console.error('Erro ao salvar:', err); Swal.fire('Erro', 'Erro ao salvar alterações', 'error'); });
+                        .catch(err => { console.error('Erro ao salvar:', err); LKFeedback.error('Erro ao salvar alterações'); });
                 }
             });
         })
-        .catch(err => { console.error('Erro ao buscar usuário:', err); Swal.fire('Erro', 'Erro ao buscar dados do usuário', 'error'); });
+        .catch(err => { console.error('Erro ao buscar usuário:', err); LKFeedback.error('Erro ao buscar dados do usuário'); });
 }
 
 function deleteUser(userId) {
-    if (!window.Swal) return;
-    Swal.fire({
-        title: 'Excluir Usuario?', text: 'Esta acao nao podera ser desfeita!', icon: 'warning',
-        showCancelButton: true, confirmButtonColor: '#e74c3c', cancelButtonColor: '#95a5a6',
-        confirmButtonText: 'Sim, excluir!', cancelButtonText: 'Cancelar'
+    if (!window.LKFeedback) return;
+    LKFeedback.confirm('Esta acao nao podera ser desfeita!', {
+        title: 'Excluir Usuario?',
+        icon: 'warning',
+        isDanger: true,
+        confirmButtonText: 'Sim, excluir!',
+        cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -476,13 +457,13 @@ function deleteUser(userId) {
                 .then(res => res.json())
                 .then(response => {
                     if (response.success) {
-                        Swal.fire({ icon: 'success', title: 'Deletado!', text: response.message || 'Usuário removido com sucesso.', timer: 2000, showConfirmButton: false });
+                        LKFeedback.success(response.message || 'Usuário removido com sucesso.', { toast: true });
                         fetchUsers(currentPage);
                     } else {
-                        Swal.fire('Erro', response.message || 'Erro ao excluir usuário', 'error');
+                        LKFeedback.error(response.message || 'Erro ao excluir usuário');
                     }
                 })
-                .catch(err => { console.error('Erro ao excluir:', err); Swal.fire('Erro', 'Erro ao excluir usuário', 'error'); });
+                .catch(err => { console.error('Erro ao excluir:', err); LKFeedback.error('Erro ao excluir usuário'); });
         }
     });
 }
@@ -566,11 +547,11 @@ async function grantProAccess(userId, days) {
                 confirmButtonColor: '#f97316'
             }).then(() => location.reload());
         } else {
-            Swal.fire({ icon: 'error', title: 'Erro', text: data.message || 'Não foi possível liberar o acesso', confirmButtonColor: '#f97316' });
+            LKFeedback.error(data.message || 'Não foi possível liberar o acesso');
         }
     } catch (error) {
         console.error('Erro:', error);
-        Swal.fire({ icon: 'error', title: 'Erro', text: 'Ocorreu um erro ao processar a solicitação', confirmButtonColor: '#f97316' });
+        LKFeedback.error('Ocorreu um erro ao processar a solicitação');
     }
 }
 
@@ -621,11 +602,11 @@ async function revokeProAccess(userId) {
                 confirmButtonColor: '#ef4444'
             }).then(() => location.reload());
         } else {
-            Swal.fire({ icon: 'error', title: 'Erro', text: data.message || 'Não foi possível remover o acesso', confirmButtonColor: '#ef4444' });
+            LKFeedback.error(data.message || 'Não foi possível remover o acesso');
         }
     } catch (error) {
         console.error('Erro:', error);
-        Swal.fire({ icon: 'error', title: 'Erro', text: 'Ocorreu um erro ao processar a solicitação', confirmButtonColor: '#ef4444' });
+        LKFeedback.error('Ocorreu um erro ao processar a solicitação');
     }
 }
 
@@ -832,14 +813,14 @@ async function resolveErrorLog(logId) {
     try {
         const data = await window.CsrfManager.fetchJson(`${BASE_URL}api/sysadmin/error-logs/${logId}/resolve`, { method: 'PUT' });
         if (data.success) {
-            Swal.fire({ icon: 'success', title: 'Resolvido!', text: 'Log marcado como resolvido.', timer: 1500, showConfirmButton: false });
+            LKFeedback.success('Log marcado como resolvido.', { toast: true });
             loadErrorLogs();
         } else {
-            Swal.fire('Erro', data.message || 'Erro ao resolver log', 'error');
+            LKFeedback.error(data.message || 'Erro ao resolver log');
         }
     } catch (e) {
         console.error('Erro ao resolver log:', e);
-        Swal.fire('Erro', 'Erro ao resolver log', 'error');
+        LKFeedback.error('Erro ao resolver log');
     }
 }
 
@@ -862,12 +843,12 @@ function confirmCleanupLogs() {
                     method: 'DELETE', body: JSON.stringify({ days: parseInt(result.value) })
                 });
                 if (data.success) {
-                    Swal.fire({ icon: 'success', title: 'Limpeza Concluída!', text: data.message || `${data.data?.deleted || 0} logs removidos.`, timer: 2500, showConfirmButton: false });
+                    LKFeedback.success(data.message || `${data.data?.deleted || 0} logs removidos.`, { toast: true });
                     loadErrorLogs();
                 } else {
-                    Swal.fire('Erro', data.message || 'Erro na limpeza', 'error');
+                    LKFeedback.error(data.message || 'Erro na limpeza');
                 }
-            } catch (e) { console.error('Erro cleanup:', e); Swal.fire('Erro', 'Erro ao limpar logs', 'error'); }
+            } catch (e) { console.error('Erro cleanup:', e); LKFeedback.error('Erro ao limpar logs'); }
         }
     });
 }

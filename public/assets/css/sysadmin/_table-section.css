@@ -103,7 +103,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-primary), #f39c12);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-warning));
   color: white;
   display: flex;
   align-items: center;
@@ -137,13 +137,13 @@
 }
 
 .badge-status.admin {
-  background: rgba(46, 204, 113, 0.15);
-  color: #2ecc71;
+  background: color-mix(in srgb, var(--color-success) 15%, transparent);
+  color: var(--color-success);
 }
 
 .badge-status.user {
-  background: rgba(52, 152, 219, 0.15);
-  color: #3498db;
+  background: color-mix(in srgb, var(--color-secondary) 15%, transparent);
+  color: var(--color-secondary);
 }
 
 .action-buttons {
@@ -166,22 +166,22 @@
 }
 
 .btn-action.edit {
-  background: rgba(52, 152, 219, 0.15);
-  color: #3498db;
+  background: color-mix(in srgb, var(--color-secondary) 15%, transparent);
+  color: var(--color-secondary);
 }
 
 .btn-action.edit:hover {
-  background: rgba(52, 152, 219, 0.25);
+  background: color-mix(in srgb, var(--color-secondary) 25%, transparent);
   transform: scale(1.1);
 }
 
 .btn-action.delete {
-  background: rgba(231, 76, 60, 0.15);
-  color: #e74c3c;
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  color: var(--color-danger);
 }
 
 .btn-action.delete:hover {
-  background: rgba(231, 76, 60, 0.25);
+  background: color-mix(in srgb, var(--color-danger) 25%, transparent);
   transform: scale(1.1);
 }
 

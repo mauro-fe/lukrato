@@ -342,6 +342,14 @@ class LancamentoGlobalManager {
         if (horaInput && !horaInput.value) {
             horaInput.value = `${String(hoje.getHours()).padStart(2, '0')}:${String(hoje.getMinutes()).padStart(2, '0')}`;
         }
+
+        // Fechar modal com tecla ESC
+        document.addEventListener('keydown', (e) => {
+            const overlay = document.getElementById('modalLancamentoGlobalOverlay');
+            if (e.key === 'Escape' && overlay && overlay.classList.contains('active')) {
+                this.closeModal();
+            }
+        });
     }
 
     onContaChange() {

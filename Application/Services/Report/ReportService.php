@@ -22,20 +22,20 @@ class ReportService
     /**
      * Ponto de entrada do serviço.
      */
-    public function generateReport(ReportType $type, ReportParameters $params): array
+    public function generateReport(ReportType $type, ReportParameters $params, bool $includeDetails = false): array
     {
         return match ($type) {
             ReportType::DESPESAS_POR_CATEGORIA =>
-            $this->handleCategoriasReport(LancamentoTipo::DESPESA, $params),
+            $this->handleCategoriasReport(LancamentoTipo::DESPESA, $params, $includeDetails),
 
             ReportType::DESPESAS_ANUAIS_POR_CATEGORIA =>
-            $this->handleAnnualCategoriasReport(LancamentoTipo::DESPESA, $params),
+            $this->handleAnnualCategoriasReport(LancamentoTipo::DESPESA, $params, $includeDetails),
 
             ReportType::RECEITAS_ANUAIS_POR_CATEGORIA =>
-            $this->handleAnnualCategoriasReport(LancamentoTipo::RECEITA, $params),
+            $this->handleAnnualCategoriasReport(LancamentoTipo::RECEITA, $params, $includeDetails),
 
             ReportType::RECEITAS_POR_CATEGORIA =>
-            $this->handleCategoriasReport(LancamentoTipo::RECEITA, $params),
+            $this->handleCategoriasReport(LancamentoTipo::RECEITA, $params, $includeDetails),
 
             ReportType::SALDO_MENSAL =>
             $this->handleSaldoMensalReport($params),
@@ -62,18 +62,25 @@ class ReportService
 
     // --- Relatórios de Categoria ---
 
-    private function handleCategoriasReport(LancamentoTipo $tipo, ReportParameters $params): array
+    private function handleCategoriasReport(LancamentoTipo $tipo, ReportParameters $params, bool $includeDetails = false): array
     {
         $data = $this->repository->getCategoryTotals($tipo->value, $params);
 
-        return [
+        $result = [
             'labels' => $data->pluck('label')->values()->all(),
             'values' => $data->pluck('total')->map(fn($v) => (float)$v)->values()->all(),
             'total' => $data->sum(fn($row) => (float)$row->total),
         ];
+
+        // PRO: incluir details com subcategorias para drill-down
+        if ($includeDetails) {
+            $result['details'] = $this->repository->getCategoryWithSubcategoryTotals($tipo->value, $params);
+        }
+
+        return $result;
     }
 
-    private function handleAnnualCategoriasReport(LancamentoTipo $tipo, ReportParameters $params): array
+    private function handleAnnualCategoriasReport(LancamentoTipo $tipo, ReportParameters $params, bool $includeDetails = false): array
     {
         [$yearStart, $yearEnd, $year] = $this->getYearRange($params);
 
@@ -85,7 +92,7 @@ class ReportService
             $params->includeTransfers
         );
 
-        $report = $this->handleCategoriasReport($tipo, $annualParams);
+        $report = $this->handleCategoriasReport($tipo, $annualParams, $includeDetails);
 
         return array_merge($report, [
             'year' => $year,

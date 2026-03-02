@@ -15,11 +15,12 @@
  * @returns {string}
  */
 export function formatMoney(value) {
-    if (Math.abs(value) < 0.01) value = 0;
+    const num = Number(value) || 0;
+    if (Math.abs(num) < 0.01) return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(0);
     return new Intl.NumberFormat('pt-BR', {
         style: 'currency',
         currency: 'BRL',
-    }).format(value || 0);
+    }).format(num);
 }
 
 /**

@@ -170,7 +170,7 @@ export const ContasEvents = {
                 activeEl.tagName === 'SELECT' ||
                 activeEl.isContentEditable
             );
-            const isModalOpen = document.querySelector('.modal.show, .modal-overlay.active');
+            const isModalOpen = document.querySelector('.modal.show, .lk-modal-overlay.active');
 
             if (isInputFocused || isModalOpen) return;
 

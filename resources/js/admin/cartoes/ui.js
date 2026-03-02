@@ -66,6 +66,14 @@ export const CartoesUI = {
             }
         });
 
+        // Fechar modal com tecla ESC
+        document.addEventListener('keydown', (e) => {
+            const overlay = document.getElementById('modalCartaoOverlay');
+            if (e.key === 'Escape' && overlay && overlay.classList.contains('active')) {
+                CartoesUI.closeModal();
+            }
+        });
+
         // Form submit
         const form = document.getElementById('formCartao');
         if (form) {

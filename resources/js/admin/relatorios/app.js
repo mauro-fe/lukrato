@@ -542,6 +542,25 @@ function renderCategoryComparison(categories) {
         const total = categories.reduce((s, c) => s + c.atual, 0);
         const pct = total > 0 ? (cat.atual / total * 100).toFixed(0) : 0;
 
+        // Subcategory pills (PRO)
+        let subcatPills = '';
+        if (cat.subcategorias && cat.subcategorias.length > 0) {
+            const pills = cat.subcategorias.map(sub => {
+                const subVarClass = sub.variacao > 0 ? 'trend-negative' : sub.variacao < 0 ? 'trend-positive' : '';
+                const subVarText = Math.abs(sub.variacao) < 0.1
+                    ? ''
+                    : `<span class="subcat-trend ${subVarClass}">${sub.variacao > 0 ? '↑' : '↓'}${Math.abs(sub.variacao).toFixed(0)}%</span>`;
+                return `
+                    <span class="cat-comp-subcat-pill">
+                        ${escapeHtml(sub.nome)}
+                        <span class="subcat-value">${formatCurrency(sub.atual)}</span>
+                        ${subVarText}
+                    </span>
+                `;
+            }).join('');
+            subcatPills = `<div class="cat-comp-subcats">${pills}</div>`;
+        }
+
         return `
             <div class="cat-comp-row" style="animation-delay: ${i * 0.06}s">
                 <div class="cat-comp-rank">${i + 1}</div>
@@ -550,6 +569,7 @@ function renderCategoryComparison(categories) {
                     <div class="cat-comp-bar-bg">
                         <div class="cat-comp-bar" style="width: ${pct}%"></div>
                     </div>
+                    ${subcatPills}
                 </div>
                 <div class="cat-comp-values">
                     <span class="cat-comp-current">${formatCurrency(cat.atual)}</span>

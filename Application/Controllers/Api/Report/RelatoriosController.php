@@ -26,6 +26,7 @@ class RelatoriosController extends BaseController
     private ExcelExportService $excelExport;
     private InsightsService $insightsService;
     private ComparativesService $comparativesService;
+    private ?Usuario $currentUser = null;
 
     public function __construct()
     {
@@ -46,7 +47,10 @@ class RelatoriosController extends BaseController
             $params = $this->buildReportParameters();
             $type = $this->resolveReportType();
 
-            $result = $this->reportService->generateReport($type, $params);
+            // PRO users get subcategory details for category reports
+            $includeDetails = $this->shouldIncludeDetails($type);
+
+            $result = $this->reportService->generateReport($type, $params, $includeDetails);
 
             $this->sendSuccessResponse($result, $type, $params);
         } catch (InvalidArgumentException $e) {
@@ -62,7 +66,7 @@ class RelatoriosController extends BaseController
             $this->validateAccess();
 
             // Verificar se usuário é PRO
-            $user = Usuario::find(Auth::id());
+            $user = $this->getCurrentUser();
             if (!$user || !$user->isPro()) {
                 Response::error('Exportação de relatórios é um recurso exclusivo do plano PRO.', 403);
                 return;
@@ -72,7 +76,8 @@ class RelatoriosController extends BaseController
             $type = $this->resolveReportType();
             $format = $this->resolveExportFormat();
 
-            $report = $this->reportService->generateReport($type, $params);
+            $includeDetails = $this->shouldIncludeDetails($type);
+            $report = $this->reportService->generateReport($type, $params, $includeDetails);
             $reportData = $this->exportBuilder->build($type, $params, $report);
 
             if ($format === 'excel') {
@@ -158,6 +163,34 @@ class RelatoriosController extends BaseController
     private function userCanAccessReports($user): bool
     {
         return !method_exists($user, 'podeAcessar') || $user->podeAcessar('reports');
+    }
+
+    /**
+     * Retorna o usuário autenticado com cache por request.
+     */
+    private function getCurrentUser(): ?Usuario
+    {
+        return $this->currentUser ??= Usuario::find(Auth::id());
+    }
+
+    /**
+     * Determina se deve incluir detalhes de subcategorias (PRO only, apenas para relatórios de categoria).
+     */
+    private function shouldIncludeDetails(ReportType $type): bool
+    {
+        $categoryTypes = [
+            ReportType::DESPESAS_POR_CATEGORIA,
+            ReportType::RECEITAS_POR_CATEGORIA,
+            ReportType::DESPESAS_ANUAIS_POR_CATEGORIA,
+            ReportType::RECEITAS_ANUAIS_POR_CATEGORIA,
+        ];
+
+        if (!in_array($type, $categoryTypes, true)) {
+            return false;
+        }
+
+        $user = $this->getCurrentUser();
+        return $user && $user->isPro();
     }
 
     private function buildReportParameters(): ReportParameters

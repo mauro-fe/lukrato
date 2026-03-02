@@ -1,12 +1,12 @@
-/* ============================================================================
+﻿/* ============================================================================
    LUKRATO - MELHORIAS GERAIS
    ============================================================================
    Arquivo: enhancements.css
-   DescriÃ§Ã£o: AnimaÃ§Ãµes, micro-interaÃ§Ãµes e efeitos visuais modernos
+   Descrição: Animações, micro-interações e efeitos visuais modernos
    ============================================================================ */
 
 /* ============================================================================
-   1. ANIMAÃ‡Ã•ES DE ENTRADA
+   1. ANIMAÇÕES DE ENTRADA
    ============================================================================ */
 
 /* ============================================================================
@@ -14,13 +14,13 @@
    ============================================================================ */
 
 .card {
-  /* Removida animaÃ§Ã£o automÃ¡tica para nÃ£o conflitar com AOS */
+  /* Removida animação automática para não conflitar com AOS */
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
 
-/* Excluir ag-card do overflow:hidden para permitir expansÃ£o dos detalhes */
+/* Excluir ag-card do overflow:hidden para permitir expansão dos detalhes */
 .ag-card,
 .card-item {
   overflow: visible !important;
@@ -53,9 +53,9 @@
   left: 100%;
 }
 
-/* KPI Cards especÃ­ficos */
+/* KPI Cards específicos */
 .kpi-card {
-  /* Removido animation-delay para nÃ£o conflitar com AOS */
+  /* Removido animation-delay para não conflitar com AOS */
   border: 1px solid var(--glass-border);
   backdrop-filter: var(--glass-backdrop);
 }
@@ -90,7 +90,7 @@
 }
 
 /* ============================================================================
-   3. BOTÃ•ES COM MICRO-INTERAÃ‡Ã•ES
+   3. BOTÕES COM MICRO-INTERAÇÕES
    ============================================================================ */
 
 .btn:not(.modern-btn),
@@ -102,7 +102,7 @@ button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button):not(
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Ripple effect - excluindo botÃ£o de suporte para nÃ£o conflitar com tooltip */
+/* Ripple effect - excluindo botão de suporte para não conflitar com tooltip */
 .btn:not(.lk-support-button):not(.modern-btn)::after,
 button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button):not(
     .modern-btn
@@ -142,7 +142,7 @@ button:not(:disabled):not(.theme-toggle):not(.lkh-modal-close):not(
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
-/* BotÃ£o primÃ¡rio especial */
+/* Botão primário especial */
 .btn-primary,
 .btn.btn-primary {
   background: linear-gradient(
@@ -251,7 +251,7 @@ textarea:focus {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-/* AnimaÃ§Ã£o de entrada das linhas */
+/* Animação de entrada das linhas */
 .table tbody tr {
   animation: fadeInLeft 0.4s ease both;
   animation-delay: calc(var(--row-index, 0) * 0.05s);
@@ -383,7 +383,7 @@ textarea:focus {
 }
 
 /* ============================================================================
-   11. NOTIFICAÃ‡Ã•ES E TOASTS
+   11. NOTIFICAÇÕES E TOASTS
    ============================================================================ */
 
 .toast,
@@ -392,7 +392,7 @@ textarea:focus {
 }
 
 /* ============================================================================
-   12. CHARTS E GRÃFICOS
+   12. CHARTS E GRÁFICOS
    ============================================================================ */
 
 .chart-container {
@@ -430,7 +430,7 @@ textarea:focus {
    14. GRID IMPROVEMENTS
    ============================================================================ */
 
-/* Removido para nÃ£o conflitar com animaÃ§Ãµes AOS do dashboard */
+/* Removido para não conflitar com animações AOS do dashboard */
 /* .kpi-grid > div,
 .charts-grid > div {
     animation: fadeInUp 0.6s ease both;
@@ -881,7 +881,7 @@ img.zoom-hover:hover {
 }
 
 /* ============================================================================
-   34. RESPONSIVE - NOTIFICAÃ‡Ã•ES MOBILE
+   34. RESPONSIVE - NOTIFICAÇÕES MOBILE
    ============================================================================ */
 
 @media (max-width: 768px) {
@@ -928,14 +928,14 @@ img.zoom-hover:hover {
 /* ============================================================================
    35. LUCIDE ICON COLOR SYSTEM
    ============================================================================
-   Aplica cores semÃ¢nticas aos Ã­cones Lucide SVG globalmente.
-   - Inline styles (style="color:...") tÃªm prioridade sobre estas regras.
-   - Ãcones dentro de botÃµes herdam a cor do pai (reset abaixo).
-   - Ãcones de UI genÃ©ricos (chevrons, x, plus, etc.) nÃ£o sÃ£o coloridos
+   Aplica cores semânticas aos ícones Lucide SVG globalmente.
+   - Inline styles (style="color:...") têm prioridade sobre estas regras.
+   - Ícones dentro de botões herdam a cor do pai (reset abaixo).
+   - Ícones de UI genéricos (chevrons, x, plus, etc.) não são coloridos
      para herdar do contexto.
    ============================================================================ */
 
-/* --- Reset: Ã­cones dentro de botÃµes herdam a cor do pai --- */
+/* --- Reset: ícones dentro de botões herdam a cor do pai --- */
 .btn svg.lucide,
 .modern-btn svg.lucide,
 .lk-btn svg.lucide,
@@ -982,7 +982,7 @@ svg.lucide-scale {
   color: #6366f1;
 }
 
-/* --- GrÃ¡ficos & AnÃ¡lises --- */
+/* --- Gráficos & Análises --- */
 svg.lucide-pie-chart {
   color: var(--color-primary);
 }
@@ -1005,7 +1005,7 @@ svg.lucide-heart-pulse {
   color: #ef4444;
 }
 
-/* --- GamificaÃ§Ã£o --- */
+/* --- Gamificação --- */
 svg.lucide-trophy {
   color: #f59e0b;
 }
@@ -1049,7 +1049,7 @@ svg.lucide-party-popper {
   color: #ef4444;
 }
 
-/* --- CalendÃ¡rio & Tempo --- */
+/* --- Calendãrio & Tempo --- */
 svg.lucide-calendar {
   color: #3b82f6;
 }
@@ -1072,7 +1072,7 @@ svg.lucide-history {
   color: #64748b;
 }
 
-/* --- Tags & OrganizaÃ§Ã£o --- */
+/* --- Tags & Organização --- */
 svg.lucide-tag {
   color: #f97316;
 }
@@ -1132,7 +1132,7 @@ svg.lucide-user-check {
   color: #22c55e;
 }
 
-/* --- ComunicaÃ§Ã£o --- */
+/* --- Comunicação --- */
 svg.lucide-mail {
   color: #3b82f6;
 }
@@ -1146,7 +1146,7 @@ svg.lucide-headphones {
   color: #ffffff;
 }
 
-/* --- ConteÃºdo & EdiÃ§Ã£o --- */
+/* --- Conteãºdo & Edição --- */
 svg.lucide-lightbulb {
   color: #eab308;
 }
@@ -1181,7 +1181,7 @@ svg.lucide-align-left {
   color: #64748b;
 }
 
-/* --- SeguranÃ§a --- */
+/* --- Seguranã§a --- */
 svg.lucide-lock {
   color: #f59e0b;
 }
@@ -1189,7 +1189,7 @@ svg.lucide-key-round {
   color: #f59e0b;
 }
 
-/* --- AÃ§Ãµes --- */
+/* --- Ações --- */
 svg.lucide-trash-2 {
   color: #ef4444;
 }
@@ -1200,7 +1200,7 @@ svg.lucide-flag {
   color: #ef4444;
 }
 
-/* --- NavegaÃ§Ã£o & Layout --- */
+/* --- Navegação & Layout --- */
 svg.lucide-home {
   color: #3b82f6;
 }
@@ -1217,7 +1217,7 @@ svg.lucide-moon {
   color: #6366f1;
 }
 
-/* --- NegÃ³cios & Diversos --- */
+/* --- Negã³cios & Diversos --- */
 svg.lucide-briefcase {
   color: #3b82f6;
 }

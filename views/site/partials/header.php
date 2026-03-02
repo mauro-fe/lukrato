@@ -22,6 +22,13 @@ $breadcrumbItems = $breadcrumbItems ?? [];
 
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
+<script>
+(function(){
+    var t=localStorage.getItem('lukrato-theme');
+    if(t!=='light'&&t!=='dark') t=window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';
+    document.documentElement.setAttribute('data-theme',t);
+})();
+</script>
 
 <head>
     <meta charset="UTF-8">
@@ -103,6 +110,7 @@ $breadcrumbItems = $breadcrumbItems ?? [];
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: ['selector', '[data-theme="dark"]'],
             theme: {
                 extend: {
                     colors: {
@@ -140,7 +148,7 @@ $breadcrumbItems = $breadcrumbItems ?? [];
             position: fixed;
             inset: 0;
             z-index: 99999;
-            background: #fff;
+            background: var(--color-bg, #fff);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -453,7 +461,7 @@ $breadcrumbItems = $breadcrumbItems ?? [];
 
     <!-- Header Premium -->
     <header x-data="{ scrolled: false }" @scroll.window="scrolled = window.scrollY > 50"
-        :class="scrolled ? 'bg-white/80 backdrop-blur-xl shadow-[0_1px_3px_rgba(0,0,0,0.08)] border-b border-gray-200/50' : 'bg-transparent backdrop-blur-none border-b border-transparent'"
+        :class="scrolled ? 'bg-white/80 dark:bg-[#1c2c3c]/80 backdrop-blur-xl shadow-[0_1px_3px_rgba(0,0,0,0.08)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)] border-b border-gray-200/50 dark:border-white/10' : 'bg-transparent backdrop-blur-none border-b border-transparent'"
         class="fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out" role="banner">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between transition-all duration-500" :class="scrolled ? 'h-16' : 'h-20'">
@@ -470,7 +478,7 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                 <nav class="hidden lg:flex items-center gap-8" aria-label="Navegação principal" role="navigation">
                     <a href="<?= BASE_URL ?>#funcionalidades"
                         class="relative font-semibold transition-all duration-300 group"
-                        :class="scrolled ? 'text-gray-600 hover:text-primary' : 'text-gray-700 hover:text-primary'"
+                        :class="scrolled ? 'text-gray-600 dark:text-gray-300 hover:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-primary'"
                         aria-label="Ver funcionalidades do app">
                         Funcionalidades
                         <span
@@ -479,7 +487,7 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                     </a>
                     <a href="<?= BASE_URL ?>#beneficios"
                         class="relative font-semibold transition-all duration-300 group"
-                        :class="scrolled ? 'text-gray-600 hover:text-primary' : 'text-gray-700 hover:text-primary'"
+                        :class="scrolled ? 'text-gray-600 dark:text-gray-300 hover:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-primary'"
                         aria-label="Conhecer benefícios do Lukrato">
                         Benefícios
                         <span
@@ -488,7 +496,7 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                     </a>
                     <a href="<?= BASE_URL ?>#planos"
                         class="relative font-semibold transition-all duration-300 group"
-                        :class="scrolled ? 'text-gray-600 hover:text-primary' : 'text-gray-700 hover:text-primary'"
+                        :class="scrolled ? 'text-gray-600 dark:text-gray-300 hover:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-primary'"
                         aria-label="Ver planos e preços">
                         Planos
                         <span
@@ -497,7 +505,7 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                     </a>
                     <a href="<?= BASE_URL ?>#indicacao"
                         class="relative font-semibold transition-all duration-300 group"
-                        :class="scrolled ? 'text-gray-600 hover:text-primary' : 'text-gray-700 hover:text-primary'"
+                        :class="scrolled ? 'text-gray-600 dark:text-gray-300 hover:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-primary'"
                         aria-label="Programa de indicação">
                         <span class="inline-flex items-center gap-1">
                             Indicação
@@ -510,7 +518,7 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                     </a>
                     <a href="<?= BASE_URL ?>#contato"
                         class="relative font-semibold transition-all duration-300 group"
-                        :class="scrolled ? 'text-gray-600 hover:text-primary' : 'text-gray-700 hover:text-primary'"
+                        :class="scrolled ? 'text-gray-600 dark:text-gray-300 hover:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-primary'"
                         aria-label="Entre em contato conosco">
                         Contato
                         <span
@@ -521,9 +529,17 @@ $breadcrumbItems = $breadcrumbItems ?? [];
 
                 <!-- Desktop Actions Premium -->
                 <div class="hidden lg:flex items-center gap-3">
+                    <!-- Theme Toggle -->
+                    <button id="landingThemeToggle"
+                        class="lk-theme-toggle relative w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-300 overflow-hidden"
+                        :class="scrolled ? 'text-gray-600 hover:bg-orange-50 dark:hover:bg-white/10' : 'text-gray-700 hover:bg-white/20 dark:hover:bg-white/10'"
+                        type="button" aria-label="Alternar tema claro/escuro" title="Alternar tema">
+                        <i data-lucide="sun" class="w-5 h-5" aria-hidden="true"></i>
+                        <i data-lucide="moon" class="w-5 h-5" aria-hidden="true"></i>
+                    </button>
                     <a href="<?= BASE_URL ?>login"
                         class="inline-flex items-center gap-2 px-4 py-2 font-semibold rounded-lg transition-all duration-300 group"
-                        :class="scrolled ? 'text-gray-600 hover:text-primary hover:bg-orange-50' : 'text-gray-700 hover:text-primary hover:bg-white/20'"
+                        :class="scrolled ? 'text-gray-600 dark:text-gray-300 hover:text-primary hover:bg-orange-50 dark:hover:bg-white/10' : 'text-gray-700 dark:text-gray-300 hover:text-primary hover:bg-white/20 dark:hover:bg-white/10'"
                         aria-label="Entrar na sua conta">
                         <i data-lucide="user" class="text-sm transition-transform group-hover:scale-110"
                             aria-hidden="true"></i>
@@ -540,8 +556,8 @@ $breadcrumbItems = $breadcrumbItems ?? [];
 
                 <!-- Mobile Menu Button Premium -->
                 <button @click="mobileMenuOpen = !mobileMenuOpen"
-                    class="lg:hidden relative p-2.5 hover:text-primary hover:bg-orange-50 rounded-xl transition-all duration-300"
-                    :class="scrolled ? 'text-gray-700' : 'text-gray-700'"
+                    class="lg:hidden relative p-2.5 hover:text-primary hover:bg-orange-50 dark:hover:bg-white/10 rounded-xl transition-all duration-300"
+                    :class="scrolled ? 'text-gray-700 dark:text-gray-300' : 'text-gray-700 dark:text-gray-300'"
                     type="button" aria-label="Abrir menu de navegação" aria-expanded="false"
                     :aria-expanded="mobileMenuOpen">
                     <i data-lucide="menu" class="text-2xl" x-show="!mobileMenuOpen" aria-hidden="true"></i>
@@ -591,13 +607,20 @@ $breadcrumbItems = $breadcrumbItems ?? [];
         x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
         x-transition:leave="transition ease-in duration-200 transform" x-transition:leave-start="translate-x-0"
         x-transition:leave-end="translate-x-full"
-        class="fixed top-0 right-0 bottom-0 w-80 max-w-full bg-white shadow-2xl z-[70] lg:hidden overflow-y-auto"
+        class="fixed top-0 right-0 bottom-0 w-80 max-w-full bg-white dark:bg-[#1c2c3c] shadow-2xl z-[70] lg:hidden overflow-y-auto"
         x-cloak role="dialog" aria-modal="true" aria-label="Menu de navegação mobile">
         <div class="p-6">
             <!-- Header do Menu -->
-            <div class="flex items-center justify-end mb-8">
+            <div class="flex items-center justify-between mb-8">
+                <!-- Mobile Theme Toggle -->
+                <button id="landingThemeToggleMobile"
+                    class="lk-theme-toggle relative w-10 h-10 flex items-center justify-center rounded-xl text-gray-600 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-white/10 transition-all duration-300 overflow-hidden"
+                    type="button" aria-label="Alternar tema claro/escuro" title="Alternar tema">
+                    <i data-lucide="sun" class="w-5 h-5" aria-hidden="true"></i>
+                    <i data-lucide="moon" class="w-5 h-5" aria-hidden="true"></i>
+                </button>
                 <button @click="mobileMenuOpen = false"
-                    class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors"
                     type="button" aria-label="Fechar menu">
                     <i data-lucide="x" class="text-2xl" aria-hidden="true"></i>
                 </button>
@@ -606,34 +629,34 @@ $breadcrumbItems = $breadcrumbItems ?? [];
             <!-- Navegação -->
             <nav class="flex flex-col gap-4 mb-6" role="navigation" aria-label="Menu mobile">
                 <a href="<?= BASE_URL ?>#funcionalidades" @click="mobileMenuOpen = false"
-                    class="text-gray-700 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 transition-colors">
+                    class="text-gray-700 dark:text-gray-200 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
                     Funcionalidades
                 </a>
                 <a href="<?= BASE_URL ?>#beneficios" @click="mobileMenuOpen = false"
-                    class="text-gray-700 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 transition-colors">
+                    class="text-gray-700 dark:text-gray-200 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
                     Benefícios
                 </a>
                 <a href="<?= BASE_URL ?>#planos" @click="mobileMenuOpen = false"
-                    class="text-gray-700 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 transition-colors">
+                    class="text-gray-700 dark:text-gray-200 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
                     Planos
                 </a>
                 <a href="<?= BASE_URL ?>#indicacao" @click="mobileMenuOpen = false"
-                    class="text-gray-700 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 transition-colors flex items-center justify-between">
+                    class="text-gray-700 dark:text-gray-200 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors flex items-center justify-between">
                     <span>Indicação</span>
                     <span
                         class="text-xs bg-gradient-to-r from-primary to-orange-600 text-white px-2 py-1 rounded-full"><i data-lucide="gift" class="w-3 h-3 inline-block"></i>
                         Ganhe PRO</span>
                 </a>
                 <a href="<?= BASE_URL ?>#contato" @click="mobileMenuOpen = false"
-                    class="text-gray-700 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 transition-colors">
+                    class="text-gray-700 dark:text-gray-200 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
                     Contato
                 </a>
             </nav>
 
             <!-- Botões de Ação -->
-            <div class="flex flex-col gap-3 pt-4 border-t border-gray-100">
+            <div class="flex flex-col gap-3 pt-4 border-t border-gray-100 dark:border-white/10">
                 <a href="<?= BASE_URL ?>login"
-                    class="inline-flex items-center justify-center gap-2 px-6 py-3 text-gray-700 hover:text-primary font-semibold border-2 border-gray-200 rounded-xl hover:border-primary transition-all duration-300"
+                    class="inline-flex items-center justify-center gap-2 px-6 py-3 text-gray-700 dark:text-gray-200 hover:text-primary font-semibold border-2 border-gray-200 dark:border-white/20 rounded-xl hover:border-primary transition-all duration-300"
                     aria-label="Entrar">
                     <i data-lucide="user" aria-hidden="true"></i>
                     <span>Entrar</span>

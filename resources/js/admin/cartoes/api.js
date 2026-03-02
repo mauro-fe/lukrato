@@ -600,11 +600,7 @@ export const CartoesAPI = {
             const data = await response.json();
 
             if (response.ok) {
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'Sucesso!',
-                    text: data.message || 'Parcelas pagas com sucesso!'
-                });
+                LKFeedback.success(data.message || 'Parcelas pagas com sucesso!', { toast: true });
 
                 // Fechar modal e recarregar
                 const modal = document.querySelector('.modal-fatura-overlay');
@@ -617,11 +613,7 @@ export const CartoesAPI = {
                 throw new Error(data.message || 'Erro ao pagar parcelas');
             }
         } catch (error) {
-            await Swal.fire({
-                icon: 'error',
-                title: 'Erro',
-                text: error.message
-            });
+            LKFeedback.error(error.message, { toast: true });
         }
     },
 
@@ -752,13 +744,7 @@ export const CartoesAPI = {
             const data = await response.json();
 
             if (data.success) {
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'Pagamento desfeito!',
-                    text: data.message,
-                    timer: 2500,
-                    showConfirmButton: false
-                });
+                LKFeedback.success(data.message, { toast: true });
 
                 // Fechar modal e recarregar
                 const modal = document.querySelector('.modal-fatura-overlay');
@@ -771,11 +757,7 @@ export const CartoesAPI = {
                 throw new Error(data.message || 'Erro ao desfazer pagamento');
             }
         } catch (error) {
-            await Swal.fire({
-                icon: 'error',
-                title: 'Erro',
-                text: error.message
-            });
+            LKFeedback.error(error.message, { toast: true });
         }
     },
 
@@ -823,13 +805,7 @@ export const CartoesAPI = {
             const data = await response.json();
 
             if (response.ok && data.success) {
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'Pagamento desfeito!',
-                    text: data.message,
-                    timer: 2000,
-                    showConfirmButton: false
-                });
+                LKFeedback.success(data.message, { toast: true });
 
                 // Fechar modal e recarregar
                 const modal = document.querySelector('.modal-fatura-overlay');
@@ -842,11 +818,7 @@ export const CartoesAPI = {
                 throw new Error(data.message || 'Erro ao desfazer pagamento');
             }
         } catch (error) {
-            await Swal.fire({
-                icon: 'error',
-                title: 'Erro',
-                text: error.message
-            });
+            LKFeedback.error(error.message, { toast: true });
         }
     },
 };

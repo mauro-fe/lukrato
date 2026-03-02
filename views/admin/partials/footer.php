@@ -6,8 +6,6 @@
     <i data-lucide="arrow-up"></i>
 </button>
 
-<?php loadPageCss('admin-partials-footer'); ?>
-
 <footer class="footer">
     <div class="footer-content">
         <p class="footer-copyright">&copy; <?= date('Y') ?> Lukrato - Suas finanças sob controle</p>

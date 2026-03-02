@@ -109,8 +109,10 @@ export async function showConfirm(opts = {}) {
             showCancelButton: true,
             confirmButtonText: confirmText,
             cancelButtonText: cancelText,
-            confirmButtonColor: confirmColor || (danger ? '#e74c3c' : '#e67e22'),
-            cancelButtonColor: '#95a5a6',
+            confirmButtonColor: confirmColor || (danger
+                ? (getComputedStyle(document.documentElement).getPropertyValue('--color-danger').trim() || '#e74c3c')
+                : (getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#e67e22')),
+            cancelButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--color-neutral').trim() || '#95a5a6',
             reverseButtons: true,
             focusCancel: danger,
         });

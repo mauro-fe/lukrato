@@ -15,8 +15,7 @@ export { formatMoney as fmtMoney, escapeHtml, normalizeText, getTipoClass, debou
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 
 export const CONFIG = {
-    BASE_URL: (window.BASE_URL || (location.pathname.includes('/public/') ?
-        location.pathname.split('/public/')[0] + '/public/' : '/')).replace(/\/?$/, '/'),
+    BASE_URL: (window.LK?.getBase?.() || '/'),
     TABLE_HEIGHT: '520px',
     PAGINATION_SIZE: 10,
     PAGINATION_OPTIONS: [10, 25, 50, 100],

@@ -1,7 +1,7 @@
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/modal-contas.css?v=<?= time() ?>">
 
 <!-- Modal de Nova Conta -->
-<div class="modal-overlay" id="modalContaOverlay">
+<div class="lk-modal-overlay" id="modalContaOverlay">
     <div class="modal-container" id="modalConta" onclick="event.stopPropagation()">
         <!-- Header -->
         <div class="modal-header">
@@ -131,7 +131,7 @@
 </div>
 
 <!-- Modal de Nova Instituição -->
-<div class="modal-overlay" id="modalNovaInstituicaoOverlay" style="z-index: 10001;">
+<div class="lk-modal-overlay" id="modalNovaInstituicaoOverlay" style="z-index: 10001;">
     <div class="modal-container" id="modalNovaInstituicao" onclick="event.stopPropagation()" style="max-width: 480px;">
         <!-- Header -->
         <div class="modal-header" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);">

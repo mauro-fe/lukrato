@@ -8,7 +8,7 @@
 }
 
 /* A partir daqui, sï¿½ mobile e tablets */
-@media (max-width: 1000px) {
+@media (max-width: 1024px) {
   /* Esconde a tabela Tabulator no mobile e tablets */
   .table-container {
     display: none !important;
