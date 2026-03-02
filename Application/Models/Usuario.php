@@ -343,7 +343,13 @@ class Usuario extends Model
     {
         $assinatura = $this->assinaturaAtiva()->with('plano')->first();
 
-        if (!$assinatura || $assinatura->plano?->code !== 'pro') {
+        if (!$assinatura) {
+            return false;
+        }
+
+        // Verifica se o plano é "pro" (qualquer código que NÃO seja free/gratuito)
+        $code = strtolower((string) ($assinatura->plano?->code ?? ''));
+        if (in_array($code, ['free', 'gratuito', ''], true)) {
             return false;
         }
 
@@ -423,27 +429,5 @@ class Usuario extends Model
         return $this->hasOne(Endereco::class, 'user_id')
             ->where('tipo', 'principal')
             ->withDefault();
-    }
-
-    private function isProUser(int $userId): bool
-    {
-        try {
-            /** @var Usuario|null $user */
-            $user = Usuario::query()->with(['assinaturaAtiva.plano'])->find($userId);
-            if (!$user) return false;
-
-            // Se não tem assinatura ativa, é FREE
-            $assinatura = $user->assinaturaAtiva;
-            if (!$assinatura) return false;
-
-            // Se tem assinatura ativa, considera PRO (com plano válido)
-            // Se você tiver um plano "free" registrado no banco, pode bloquear aqui:
-            $code = strtolower((string)($assinatura->plano?->code ?? ''));
-            if ($code === 'free') return false;
-
-            return true;
-        } catch (\Throwable) {
-            return false;
-        }
     }
 }

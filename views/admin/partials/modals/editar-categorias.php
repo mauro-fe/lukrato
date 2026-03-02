@@ -52,36 +52,6 @@
                     </div>
                 </form>
 
-                <!-- Subcategorias Section -->
-                <div id="editSubcategoriasSection" class="edit-subcategorias-section" style="display:none">
-                    <div class="edit-subcategorias-header">
-                        <span class="edit-subcategorias-title">Subcategorias</span>
-                        <span class="edit-subcategorias-count" id="editSubcategoriasCount">0</span>
-                    </div>
-
-                    <div class="edit-subcategorias-list" id="editSubcategoriasList">
-                        <!-- Populado via JS -->
-                    </div>
-
-                    <div class="subcat-add-form">
-                        <button type="button" class="subcat-icon-btn" id="btnSubcatIconPicker" title="Escolher ícone">
-                            <span id="newSubcategoriaIconPreview"><i data-lucide="tag"></i></span>
-                        </button>
-                        <input type="text" class="form-control form-control-sm" id="newSubcategoriaNome"
-                               placeholder="Nova subcategoria..." maxlength="100" autocomplete="off">
-                        <button type="button" class="btn btn-primary btn-sm btn-add-subcat" id="btnAddSubcategoria">
-                            <i data-lucide="plus"></i>
-                        </button>
-                    </div>
-
-                    <div class="subcat-icon-picker-panel d-none" id="newSubcategoriaIconPanel">
-                        <input type="text" class="form-control form-control-sm icon-search-input"
-                               id="newSubcategoriaIconSearch" placeholder="Buscar ícone..." autocomplete="off">
-                        <div class="subcat-icon-grid" id="newSubcategoriaIconGrid">
-                            <!-- Populado via JS -->
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <div class="modal-footer">

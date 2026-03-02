@@ -20,6 +20,10 @@ class UserPlanService
 
     /**
      * Verifica se o usuário tem plano Pro.
+     * Delega para Usuario::isPro() que trata corretamente:
+     * - Período de carência (3 dias após vencimento)
+     * - Assinaturas canceladas com período pago restante
+     * - Códigos de plano 'free' e 'gratuito'
      */
     public function isProUser(int $userId): bool
     {
@@ -30,26 +34,7 @@ class UserPlanService
                 return false;
             }
 
-            // Busca assinatura ativa
-            $assinatura = $user->assinaturas()
-                ->where('status', 'active')
-                ->orderByDesc('created_at')
-                ->first();
-
-            if (!$assinatura) {
-                return false;
-            }
-
-            // Carrega o plano
-            $plano = $assinatura->plano;
-            if (!$plano) {
-                return false;
-            }
-
-            // Se o plano NÃO for free, é PRO
-            $code = strtolower((string)$plano->code);
-
-            return $code !== 'free';
+            return $user->isPro();
         } catch (\Throwable) {
             return false;
         }

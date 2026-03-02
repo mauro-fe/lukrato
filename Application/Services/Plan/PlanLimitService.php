@@ -26,7 +26,19 @@ class PlanLimitService
     }
 
     /**
-     * Verifica se o usuário possui plano Pro ativo
+     * Retorna a configuração de billing (para fallbacks)
+     */
+    public function getConfig(): array
+    {
+        return $this->config;
+    }
+
+    /**
+     * Verifica se o usuário possui plano Pro ativo.
+     * Delega para Usuario::isPro() que trata corretamente:
+     * - Período de carência (3 dias após vencimento)
+     * - Assinaturas canceladas com período pago restante
+     * - Códigos de plano 'free' e 'gratuito'
      */
     public function isPro(int $userId): bool
     {
@@ -45,24 +57,7 @@ class PlanLimitService
                 return false;
             }
 
-            $assinatura = $user->assinaturas()
-                ->where('status', 'active')
-                ->orderByDesc('created_at')
-                ->first();
-
-            if (!$assinatura) {
-                $this->isPro = false;
-                return false;
-            }
-
-            $plano = $assinatura->plano;
-            if (!$plano) {
-                $this->isPro = false;
-                return false;
-            }
-
-            $code = strtolower((string) $plano->code);
-            $this->isPro = $code !== 'free';
+            $this->isPro = $user->isPro();
             return $this->isPro;
         } catch (\Throwable) {
             $this->isPro = false;

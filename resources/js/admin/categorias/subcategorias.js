@@ -2,7 +2,7 @@
  * ============================================================================
  * LUKRATO — Categorias / Subcategorias Module
  * ============================================================================
- * Accordion expand/collapse, subcategoria CRUD inside the edit modal,
+ * Accordion expand/collapse, subcategoria CRUD inline on category cards,
  * lazy-loading + caching, and event delegation.
  * Imported by app.js — never runs standalone.
  * ============================================================================
@@ -70,9 +70,15 @@ async function apiDeleteSubcategoria(id) {
 
 /**
  * Gera o botão de expand (chevron) para o card de categoria.
+ * Inclui badge com contagem de subcategorias quando disponível.
  */
 export function renderExpandButton(categoriaId) {
     const isOpen = STATE.expandedCategorias.has(categoriaId);
+    const cached = STATE.subcategoriasCache[categoriaId];
+    const count = cached ? cached.length : null;
+    const badge = count !== null
+        ? `<span class="subcat-count-badge" id="subcat-badge-${categoriaId}">${count}</span>`
+        : `<span class="subcat-count-badge d-none" id="subcat-badge-${categoriaId}"></span>`;
     return `
         <button type="button"
                 class="cat-card-btn expand ${isOpen ? 'is-open' : ''}"
@@ -80,7 +86,21 @@ export function renderExpandButton(categoriaId) {
                 title="Ver subcategorias"
                 aria-expanded="${isOpen}">
             <i data-lucide="chevron-down"></i>
+            ${badge}
         </button>`;
+}
+
+/**
+ * Atualiza o badge de contagem de subcategorias no botão expand.
+ */
+function updateSubcatBadge(categoriaId) {
+    const badge = document.getElementById(`subcat-badge-${categoriaId}`);
+    if (!badge) return;
+    const subs = STATE.subcategoriasCache[categoriaId];
+    if (subs) {
+        badge.textContent = subs.length;
+        badge.classList.remove('d-none');
+    }
 }
 
 /**
@@ -139,6 +159,7 @@ async function toggleAccordion(categoriaId) {
             }
         }
         refreshSubcategoriasList(categoriaId);
+        updateSubcatBadge(categoriaId);
     }
 }
 
@@ -254,11 +275,7 @@ async function handleAddSubcategoriaInline(categoriaId) {
         delete STATE.subcategoriasCache[categoriaId];
         await fetchSubcategorias(categoriaId);
         refreshSubcategoriasList(categoriaId);
-
-        // Se o modal de edição estiver aberto para esta categoria, sincronizar
-        if (STATE.categoriaEmEdicao?.id === categoriaId) {
-            await renderEditModalSubcategorias(categoriaId);
-        }
+        updateSubcatBadge(categoriaId);
     } catch (err) {
         toastError(err.message);
     }
@@ -299,11 +316,7 @@ async function handleEditSubcategoriaInCard(subcatId) {
         delete STATE.subcategoriasCache[parentId];
         await fetchSubcategorias(parentId);
         refreshSubcategoriasList(parentId);
-
-        // Sincronizar modal se aberto
-        if (STATE.categoriaEmEdicao?.id === parentId) {
-            await renderEditModalSubcategorias(parentId);
-        }
+        updateSubcatBadge(parentId);
     } catch (err) {
         toastError(err.message);
     }
@@ -374,175 +387,9 @@ function filterInlineIcons(categoriaId, query) {
 }
 
 // =========================================================================
-// EDIT MODAL — Subcategorias section
+// DELETE — Subcategoria from accordion card
 // =========================================================================
 
-/**
- * Popula a seção de subcategorias dentro do modal de edição da categoria.
- * Chamado por app.js quando `editarCategoria()` abre o modal.
- */
-export async function renderEditModalSubcategorias(categoriaId) {
-    const container = document.getElementById('editSubcategoriasSection');
-    if (!container) return;
-
-    container.style.display = '';
-    const listEl = document.getElementById('editSubcategoriasList');
-    const countEl = document.getElementById('editSubcategoriasCount');
-
-    // Carregar
-    if (listEl) listEl.innerHTML = '<div class="subcat-loading"><i data-lucide="loader"></i></div>';
-    Utils.processNewIcons();
-
-    try {
-        const subs = await fetchSubcategorias(categoriaId);
-        if (countEl) countEl.textContent = subs.length;
-
-        if (listEl) {
-            if (subs.length === 0) {
-                listEl.innerHTML = '<div class="subcat-empty-modal">Nenhuma subcategoria ainda</div>';
-            } else {
-                listEl.innerHTML = subs.map(sub => renderModalSubcategoriaItem(sub)).join('');
-            }
-        }
-    } catch {
-        if (listEl) listEl.innerHTML = '<div class="subcat-empty-modal">Erro ao carregar</div>';
-    }
-
-    // Limpar form de criação
-    const nomeInput = document.getElementById('newSubcategoriaNome');
-    if (nomeInput) nomeInput.value = '';
-    STATE.editSubcategoriaIcon = '';
-    const iconPreview = document.getElementById('newSubcategoriaIconPreview');
-    if (iconPreview) {
-        iconPreview.innerHTML = '<i data-lucide="tag"></i>';
-    }
-
-    Utils.processNewIcons();
-}
-
-function renderModalSubcategoriaItem(sub) {
-    const icon = sub.icone || 'tag';
-    const color = ICON_COLORS[icon] || '#94a3b8';
-    const isOwn = !!sub.user_id;
-
-    return `
-        <div class="edit-subcat-item" data-subcat-id="${sub.id}">
-            <div class="edit-subcat-icon" style="color:${color}">
-                <i data-lucide="${icon}"></i>
-            </div>
-            <span class="edit-subcat-name">${escapeHtml(sub.nome)}</span>
-            ${isOwn ? `
-            <div class="edit-subcat-actions">
-                <button type="button" class="subcat-btn edit" data-modal-edit-subcat="${sub.id}" title="Editar">
-                    <i data-lucide="pen"></i>
-                </button>
-                <button type="button" class="subcat-btn delete" data-modal-delete-subcat="${sub.id}" title="Excluir">
-                    <i data-lucide="trash-2"></i>
-                </button>
-            </div>` : '<span class="subcat-badge-global">padrão</span>'}
-        </div>`;
-}
-
-// =========================================================================
-// CRUD — Create / Edit / Delete (inside edit modal)
-// =========================================================================
-
-async function handleAddSubcategoria() {
-    const catId = STATE.categoriaEmEdicao?.id;
-    if (!catId) return;
-
-    const nomeInput = document.getElementById('newSubcategoriaNome');
-    const nome = (nomeInput?.value || '').trim();
-    if (!nome || nome.length < 2) {
-        toastError('Nome deve ter pelo menos 2 caracteres');
-        nomeInput?.focus();
-        return;
-    }
-
-    const icone = STATE.editSubcategoriaIcon || null;
-
-    try {
-        await apiCreateSubcategoria(catId, { nome, icone });
-        toastSuccess('Subcategoria criada!');
-        if (nomeInput) nomeInput.value = '';
-        STATE.editSubcategoriaIcon = '';
-        const iconPreview = document.getElementById('newSubcategoriaIconPreview');
-        if (iconPreview) {
-            iconPreview.innerHTML = '<i data-lucide="tag"></i>';
-            Utils.processNewIcons();
-        }
-        // Invalidar cache e re-renderizar
-        delete STATE.subcategoriasCache[catId];
-        await renderEditModalSubcategorias(catId);
-    } catch (err) {
-        toastError(err.message);
-    }
-}
-
-async function handleEditSubcategoriaInModal(subcatId) {
-    const catId = STATE.categoriaEmEdicao?.id;
-    if (!catId) return;
-
-    const subs = STATE.subcategoriasCache[catId] || [];
-    const sub = subs.find(s => s.id === subcatId);
-    if (!sub) return;
-
-    const { value: nome } = await Swal.fire({
-        title: 'Editar subcategoria',
-        input: 'text',
-        inputLabel: 'Nome',
-        inputValue: sub.nome,
-        showCancelButton: true,
-        confirmButtonText: 'Salvar',
-        cancelButtonText: 'Cancelar',
-        inputValidator: (v) => {
-            if (!v || v.trim().length < 2) return 'Nome deve ter pelo menos 2 caracteres';
-        }
-    });
-
-    if (!nome) return;
-
-    try {
-        await apiUpdateSubcategoria(subcatId, { nome: nome.trim() });
-        toastSuccess('Subcategoria atualizada!');
-        delete STATE.subcategoriasCache[catId];
-        await renderEditModalSubcategorias(catId);
-    } catch (err) {
-        toastError(err.message);
-    }
-}
-
-async function handleDeleteSubcategoriaInModal(subcatId) {
-    const catId = STATE.categoriaEmEdicao?.id;
-    if (!catId) return;
-
-    const subs = STATE.subcategoriasCache[catId] || [];
-    const sub = subs.find(s => s.id === subcatId);
-    if (!sub) return;
-
-    const confirm = await Swal.fire({
-        title: 'Excluir subcategoria',
-        html: `Deseja excluir <strong>${escapeHtml(sub.nome)}</strong>?<br/><small class="text-muted">Lançamentos vinculados perderão a subcategoria.</small>`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#dc3545',
-        confirmButtonText: 'Sim, excluir',
-        cancelButtonText: 'Cancelar',
-    });
-
-    if (!confirm.isConfirmed) return;
-
-    try {
-        await apiDeleteSubcategoria(subcatId);
-        toastSuccess('Subcategoria excluída!');
-        delete STATE.subcategoriasCache[catId];
-        await renderEditModalSubcategorias(catId);
-    } catch (err) {
-        toastError(err.message);
-    }
-}
-
-// Delete from accordion card (same logic, different refresh)
 async function handleDeleteSubcategoriaInCard(subcatId) {
     // Find parent category
     let parentId = null;
@@ -572,71 +419,10 @@ async function handleDeleteSubcategoriaInCard(subcatId) {
         delete STATE.subcategoriasCache[parentId];
         await fetchSubcategorias(parentId);
         refreshSubcategoriasList(parentId);
-
-        // Sincronizar modal se aberto
-        if (STATE.categoriaEmEdicao?.id === parentId) {
-            await renderEditModalSubcategorias(parentId);
-        }
+        updateSubcatBadge(parentId);
     } catch (err) {
         toastError(err.message);
     }
-}
-
-// =========================================================================
-// ICON PICKER — Subcategoria (inside edit modal)
-// =========================================================================
-
-let _subcatIconPickerReady = false;
-
-function toggleSubcatIconPicker() {
-    const panel = document.getElementById('newSubcategoriaIconPanel');
-    if (!panel) return;
-
-    const isHidden = panel.classList.contains('d-none');
-    if (isHidden) {
-        // Lazy-init grid
-        if (!_subcatIconPickerReady) {
-            const grid = document.getElementById('newSubcategoriaIconGrid');
-            if (grid) {
-                grid.innerHTML = AVAILABLE_ICONS.map(ic => `
-                    <button type="button" class="icon-grid-item" data-subcat-icon="${ic.name}"
-                            title="${ic.label}" aria-label="${ic.label}">
-                        <i data-lucide="${ic.name}"></i>
-                    </button>
-                `).join('');
-                Utils.processNewIcons();
-            }
-            _subcatIconPickerReady = true;
-        }
-        panel.classList.remove('d-none');
-    } else {
-        panel.classList.add('d-none');
-    }
-}
-
-function selectSubcatIcon(iconName) {
-    STATE.editSubcategoriaIcon = iconName;
-    const preview = document.getElementById('newSubcategoriaIconPreview');
-    if (preview) {
-        preview.innerHTML = `<i data-lucide="${iconName}"></i>`;
-        Utils.processNewIcons();
-    }
-    // Highlight
-    document.querySelectorAll('#newSubcategoriaIconGrid .icon-grid-item').forEach(btn => {
-        btn.classList.toggle('selected', btn.dataset.subcatIcon === iconName);
-    });
-    // Close panel
-    const panel = document.getElementById('newSubcategoriaIconPanel');
-    if (panel) panel.classList.add('d-none');
-}
-
-function filterSubcatIcons(query) {
-    const q = (query || '').toLowerCase();
-    document.querySelectorAll('#newSubcategoriaIconGrid .icon-grid-item').forEach(btn => {
-        const label = (btn.title || '').toLowerCase();
-        const name = (btn.dataset.subcatIcon || '').toLowerCase();
-        btn.style.display = (!q || label.includes(q) || name.includes(q)) ? '' : 'none';
-    });
 }
 
 // =========================================================================
@@ -718,47 +504,6 @@ export function initSubcategoriaEvents() {
             }
         });
     });
-
-    // Edit modal — subcategoria events (delegated on the section)
-    const editSection = document.getElementById('editSubcategoriasSection');
-    if (editSection && !editSection.dataset.subcatEventsAttached) {
-        editSection.dataset.subcatEventsAttached = '1';
-
-        // Add button
-        const addBtn = document.getElementById('btnAddSubcategoria');
-        if (addBtn) addBtn.addEventListener('click', () => handleAddSubcategoria());
-
-        // Enter key on name input
-        const nomeInput = document.getElementById('newSubcategoriaNome');
-        if (nomeInput) {
-            nomeInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') { e.preventDefault(); handleAddSubcategoria(); }
-            });
-        }
-
-        // Icon picker toggle
-        const iconBtn = document.getElementById('btnSubcatIconPicker');
-        if (iconBtn) iconBtn.addEventListener('click', () => toggleSubcatIconPicker());
-
-        // Icon search
-        const iconSearch = document.getElementById('newSubcategoriaIconSearch');
-        if (iconSearch) iconSearch.addEventListener('input', (e) => filterSubcatIcons(e.target.value));
-
-        // Icon selection + edit/delete (delegated)
-        editSection.addEventListener('click', (e) => {
-            // Icon grid selection
-            const iconItem = e.target.closest('[data-subcat-icon]');
-            if (iconItem) { selectSubcatIcon(iconItem.dataset.subcatIcon); return; }
-
-            // Edit subcategoria
-            const editBtn = e.target.closest('[data-modal-edit-subcat]');
-            if (editBtn) { handleEditSubcategoriaInModal(Number(editBtn.dataset.modalEditSubcat)); return; }
-
-            // Delete subcategoria
-            const deleteBtn = e.target.closest('[data-modal-delete-subcat]');
-            if (deleteBtn) { handleDeleteSubcategoriaInModal(Number(deleteBtn.dataset.modalDeleteSubcat)); return; }
-        });
-    }
 }
 
 // =========================================================================
@@ -768,7 +513,6 @@ export function initSubcategoriaEvents() {
 export const SubcategoriasModule = {
     renderExpandButton,
     renderAccordionPanel,
-    renderEditModalSubcategorias,
     initSubcategoriaEvents,
     toggleAccordion,
     handleAddSubcategoriaInline,

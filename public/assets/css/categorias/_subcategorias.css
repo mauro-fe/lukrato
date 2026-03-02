@@ -134,92 +134,21 @@
     white-space: nowrap;
 }
 
-/* ============================================================================
-   EDIT MODAL — Subcategorias section
-   ============================================================================ */
-.edit-subcategorias-section {
-    border-top: 1px solid var(--border-color, rgba(255,255,255,0.08));
-    margin-top: 16px;
-    padding-top: 14px;
-}
-.edit-subcategorias-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
-}
-.edit-subcategorias-title {
-    font-size: 0.88rem;
+/* ---- Subcategoria count badge on expand button ---- */
+.subcat-count-badge {
+    font-size: 0.65rem;
     font-weight: 600;
-    color: var(--text-primary, #f1f5f9);
-}
-.edit-subcategorias-count {
-    font-size: 0.72rem;
     background: var(--primary, #6366f1);
     color: #fff;
-    padding: 0 7px;
-    border-radius: 10px;
-    min-width: 18px;
+    padding: 0 5px;
+    border-radius: 8px;
+    min-width: 16px;
     text-align: center;
-    line-height: 18px;
+    line-height: 16px;
+    margin-left: 2px;
 }
-
-/* List inside modal */
-.edit-subcategorias-list {
-    max-height: 180px;
-    overflow-y: auto;
-    margin-bottom: 10px;
-}
-.edit-subcat-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 6px;
-    border-radius: 6px;
-    transition: background 0.15s;
-}
-.edit-subcat-item:hover {
-    background: var(--hover-bg, rgba(255,255,255,0.04));
-}
-.edit-subcat-icon {
-    flex-shrink: 0;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.edit-subcat-icon svg {
-    width: 15px;
-    height: 15px;
-}
-.edit-subcat-name {
-    flex: 1;
-    font-size: 0.84rem;
-    color: var(--text-secondary, #cbd5e1);
-}
-.edit-subcat-actions {
-    display: flex;
-    gap: 2px;
-    opacity: 0;
-    transition: opacity 0.15s;
-}
-.edit-subcat-item:hover .edit-subcat-actions {
-    opacity: 1;
-}
-
-.subcat-empty-modal {
-    font-size: 0.8rem;
-    color: var(--text-muted, #94a3b8);
-    padding: 8px 4px;
-    text-align: center;
-}
-
-/* ---- Add subcategoria mini-form (inside modal) ---- */
-.subcat-add-form {
-    display: flex;
-    gap: 6px;
-    align-items: center;
+.cat-card-btn.expand {
+    gap: 3px;
 }
 
 /* ---- Add subcategoria inline form (inside accordion) ---- */
@@ -310,40 +239,7 @@
     flex-shrink: 0;
     transition: border-color 0.15s;
 }
-.subcat-add-form .subcat-icon-btn:hover {
-    border-color: var(--primary, #6366f1);
-}
-.subcat-add-form .subcat-icon-btn svg {
-    width: 16px;
-    height: 16px;
-    color: var(--text-secondary, #cbd5e1);
-}
-.subcat-add-form input[type="text"] {
-    flex: 1;
-    min-width: 0;
-}
-.subcat-add-form .btn-add-subcat {
-    flex-shrink: 0;
-    height: 34px;
-    padding: 0 12px;
-    font-size: 0.82rem;
-}
-
-/* Icon picker panel for subcategoria (inside modal) */
-.subcat-icon-picker-panel {
-    margin-top: 8px;
-    margin-bottom: 4px;
-    border: 1px solid var(--border-color, rgba(255,255,255,0.08));
-    border-radius: 8px;
-    padding: 8px;
-    background: var(--surface-2, rgba(255,255,255,0.03));
-}
-.subcat-icon-picker-panel .icon-search-input {
-    width: 100%;
-    margin-bottom: 6px;
-    font-size: 0.8rem;
-    padding: 5px 8px;
-}
+/* ---- Shared icon grid styles (used by inline icon picker) ---- */
 .subcat-icon-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));

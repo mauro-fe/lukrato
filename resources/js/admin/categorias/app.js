@@ -619,10 +619,6 @@ function editarCategoria(id) {
     // Abrir modal
     const modal = new bootstrap.Modal(document.getElementById('modalEditCategoria'));
     modal.show();
-
-    // Carregar subcategorias no modal
-    SubcategoriasModule.renderEditModalSubcategorias(id);
-    SubcategoriasModule.initSubcategoriaEvents();
 }
 
 /**

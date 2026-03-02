@@ -53,10 +53,12 @@ const OptionsManager = {
      */
     populateSubcategoriaSelect: async (categoriaId, selectedSubcatId) => {
         const select = DOM.selectLancSubcategoria;
+        const group = DOM.subcategoriaGroup;
         if (!select) return;
 
         if (!categoriaId) {
             select.innerHTML = '<option value="">Sem subcategoria</option>';
+            if (group) group.classList.add('hidden');
             return;
         }
 
@@ -77,8 +79,14 @@ const OptionsManager = {
                 if (selectedVal && String(sub.id) === selectedVal) opt.selected = true;
                 select.appendChild(opt);
             });
+
+            if (group) {
+                if (subs.length > 0) group.classList.remove('hidden');
+                else group.classList.add('hidden');
+            }
         } catch {
             select.innerHTML = '<option value="">Sem subcategoria</option>';
+            if (group) group.classList.add('hidden');
         }
     },
 

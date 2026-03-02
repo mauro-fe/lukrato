@@ -48,17 +48,18 @@ class PlanController
                 'user_id' => $userId,
             ], $userId);
 
-            // Retornar resposta padrão sem bloquear o usuário
+            // Retornar resposta padrão com limites do plano free para não liberar acesso indevido
+            $freeConfig = $this->limitService->getConfig()['limits']['free'] ?? [];
             Response::json([
                 'success' => true,
                 'data' => [
                     'plan' => 'free',
                     'is_pro' => false,
-                    'contas' => ['allowed' => true, 'limit' => null, 'used' => 0],
-                    'cartoes' => ['allowed' => true, 'limit' => null, 'used' => 0],
-                    'categorias' => ['allowed' => true, 'limit' => null, 'used' => 0],
-                    'metas' => ['allowed' => true, 'limit' => null, 'used' => 0],
-                    'historico' => ['restricted' => false],
+                    'contas' => ['allowed' => true, 'limit' => $freeConfig['max_contas'] ?? 2, 'used' => 0],
+                    'cartoes' => ['allowed' => true, 'limit' => $freeConfig['max_cartoes'] ?? 1, 'used' => 0],
+                    'categorias' => ['allowed' => true, 'limit' => $freeConfig['max_categorias_custom'] ?? 10, 'used' => 0],
+                    'metas' => ['allowed' => true, 'limit' => $freeConfig['max_metas'] ?? 2, 'used' => 0],
+                    'historico' => ['restricted' => true, 'months_limit' => $freeConfig['historico_meses'] ?? 3],
                     'features' => [],
                     'upgrade_url' => '/assinatura',
                 ],

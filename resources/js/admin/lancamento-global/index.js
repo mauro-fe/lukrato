@@ -194,10 +194,12 @@ class LancamentoGlobalManager {
      */
     async preencherSubcategorias(categoriaId) {
         const select = document.getElementById('globalLancamentoSubcategoria');
+        const group = document.getElementById('globalSubcategoriaGroup');
         if (!select) return;
 
         if (!categoriaId) {
             select.innerHTML = '<option value="">Sem subcategoria</option>';
+            if (group) group.style.display = 'none';
             return;
         }
 
@@ -215,8 +217,11 @@ class LancamentoGlobalManager {
                 opt.textContent = sub.nome;
                 select.appendChild(opt);
             });
+
+            if (group) group.style.display = subs.length > 0 ? 'block' : 'none';
         } catch {
             select.innerHTML = '<option value="">Sem subcategoria</option>';
+            if (group) group.style.display = 'none';
         }
     }
 

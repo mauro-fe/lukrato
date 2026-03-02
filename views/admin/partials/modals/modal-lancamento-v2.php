@@ -278,7 +278,7 @@
                     <div class="lk-form-group" id="parcelamentoGroup" style="display: none;">
                         <div class="lk-checkbox-wrapper">
                             <label class="lk-checkbox-label">
-                                <input type="checkbox" id="lancamentoParcelado" name="eh_parcelado" class="lk-checkbox">
+                                <input type="checkbox" id="lancamentoParcelado" name="eh_parcelado" class="lk-checkbox" onchange="contasManager.aoMarcarParcelado()">
                                 <span class="lk-checkbox-custom"></span>
                                 <span class="lk-checkbox-text">
                                     <i data-lucide="calendar-days"></i>

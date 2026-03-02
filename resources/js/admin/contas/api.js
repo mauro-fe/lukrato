@@ -660,10 +660,12 @@ export const ContasAPI = {
      */
     async preencherSubcategorias(categoriaId, selectedSubcatId) {
         const select = document.getElementById('lancamentoSubcategoria');
+        const group = document.getElementById('subcategoriaGroup');
         if (!select) return;
 
         if (!categoriaId) {
             select.innerHTML = '<option value="">Sem subcategoria</option>';
+            if (group) group.style.display = 'none';
             return;
         }
 
@@ -682,8 +684,11 @@ export const ContasAPI = {
                 if (selectedSubcatId && String(sub.id) === String(selectedSubcatId)) opt.selected = true;
                 select.appendChild(opt);
             });
+
+            if (group) group.style.display = subs.length > 0 ? 'block' : 'none';
         } catch {
             select.innerHTML = '<option value="">Sem subcategoria</option>';
+            if (group) group.style.display = 'none';
         }
     },
 

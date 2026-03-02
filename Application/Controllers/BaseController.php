@@ -73,6 +73,11 @@ abstract class BaseController
             $data['menu'] = $this->inferMenuFromView($viewPath) ?? $data['menu'] ?? null;
         }
 
+        // Auto-inject admin layout variables when using admin header
+        if ($header === 'admin/partials/header') {
+            $data = $this->injectAdminLayoutData($data);
+        }
+
         $view = new View($viewPath, $data);
         if ($header) $view->setHeader($header);
         if ($footer) $view->setFooter($footer);
@@ -81,39 +86,63 @@ abstract class BaseController
     }
 
 
+    /**
+     * Atalho: renderiza com header/footer admin.
+     */
     protected function renderAdmin(string $viewPath, array $data = []): void
     {
-        // Preparar dados do layout que antes eram calculados no header.php
+        $this->render($viewPath, $data, 'admin/partials/header', 'admin/partials/footer');
+    }
+
+    /**
+     * Injeta automaticamente variáveis do layout admin (plano, role, tema, etc.)
+     * Só sobrescreve se o controller NÃO passou o valor explicitamente.
+     */
+    private function injectAdminLayoutData(array $data): array
+    {
         $currentUser = $data['currentUser'] ?? Auth::user();
-        $isPro = $currentUser && method_exists($currentUser, 'isPro') && $currentUser->isPro();
+
+        // Plan check — fonte de verdade: Usuario::isPro()
+        $isPro = $data['isPro'] ?? (
+            $currentUser && method_exists($currentUser, 'isPro') && $currentUser->isPro()
+        );
 
         $data['currentUser']    = $currentUser;
         $data['username']       = $data['username'] ?? ($currentUser?->nome ?? 'usuario');
-        $data['isSysAdmin']     = ($currentUser?->is_admin ?? 0) == 1;
-        $data['showUpgradeCTA'] = !$isPro;
-        $data['userTheme']      = 'dark';
-        if ($currentUser && isset($currentUser->theme_preference)) {
-            $data['userTheme'] = in_array($currentUser->theme_preference, ['light', 'dark'])
-                ? $currentUser->theme_preference
-                : 'dark';
+        $data['isSysAdmin']     = $data['isSysAdmin'] ?? (((int)($currentUser?->is_admin ?? 0)) === 1);
+        $data['isPro']          = $isPro;
+        $data['planLabel']      = $data['planLabel'] ?? ($isPro ? 'PRO' : 'FREE');
+        $data['showUpgradeCTA'] = $data['showUpgradeCTA'] ?? (!$isPro);
+
+        // Theme
+        if (!isset($data['userTheme'])) {
+            $data['userTheme'] = 'dark';
+            if ($currentUser && isset($currentUser->theme_preference)) {
+                $data['userTheme'] = in_array($currentUser->theme_preference, ['light', 'dark'])
+                    ? $currentUser->theme_preference
+                    : 'dark';
+            }
         }
 
         // Top navbar
-        $fullName = $currentUser->nome ?? ($currentUser->name ?? '');
-        $data['topNavFirstName'] = $fullName ? explode(' ', trim($fullName))[0] : '';
-        $data['isPro']           = $isPro;
-        $data['planLabel']       = $isPro ? 'PRO' : 'FREE';
-        $data['currentBreadcrumbs'] = $this->resolveBreadcrumbs($data['menu'] ?? '');
+        if (!isset($data['topNavFirstName'])) {
+            $fullName = $currentUser->nome ?? ($currentUser->name ?? '');
+            $data['topNavFirstName'] = $fullName ? explode(' ', trim($fullName))[0] : '';
+        }
+
+        $data['currentBreadcrumbs'] = $data['currentBreadcrumbs'] ?? $this->resolveBreadcrumbs($data['menu'] ?? '');
 
         // Botão suporte
-        $data['supportName']  = $currentUser->nome ?? '';
-        $data['supportEmail'] = $currentUser->email ?? '';
-        $userId = $currentUser->id_usuario ?? $currentUser->id ?? null;
-        $telefoneModel = $userId ? Telefone::where('id_usuario', $userId)->first() : null;
-        $data['supportTel']   = $telefoneModel?->numero ?? '';
-        $data['supportDdd']   = $telefoneModel?->ddd?->codigo ?? '';
+        if (!isset($data['supportName'])) {
+            $data['supportName']  = $currentUser->nome ?? '';
+            $data['supportEmail'] = $currentUser->email ?? '';
+            $userId = $currentUser->id_usuario ?? $currentUser->id ?? null;
+            $telefoneModel = $userId ? Telefone::where('id_usuario', $userId)->first() : null;
+            $data['supportTel']   = $telefoneModel?->numero ?? '';
+            $data['supportDdd']   = $telefoneModel?->ddd?->codigo ?? '';
+        }
 
-        $this->render($viewPath, $data, 'admin/partials/header', 'admin/partials/footer');
+        return $data;
     }
 
     private function resolveBreadcrumbs(string $menu): array

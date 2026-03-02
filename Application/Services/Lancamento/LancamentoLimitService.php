@@ -35,7 +35,11 @@ class LancamentoLimitService
     }
 
     /**
-     * Verifica se o usuário possui plano Pro ativo
+     * Verifica se o usuário possui plano Pro ativo.
+     * Delega para Usuario::isPro() que trata corretamente:
+     * - Período de carência (3 dias após vencimento)
+     * - Assinaturas canceladas com período pago restante
+     * - Códigos de plano 'free' e 'gratuito'
      */
     public function isPro(int $userId): bool
     {
@@ -46,24 +50,7 @@ class LancamentoLimitService
                 return false;
             }
 
-            $assinatura = $user->assinaturas()
-                ->where('status', 'active')
-                ->orderByDesc('created_at')
-                ->first();
-
-            if (!$assinatura) {
-                return false;
-            }
-
-            $plano = $assinatura->plano;
-            if (!$plano) {
-                return false;
-            }
-
-            $code = strtolower((string) $plano->code);
-
-            // Plano "free" não conta como Pro
-            return $code !== 'free';
+            return $user->isPro();
         } catch (\Throwable) {
             return false;
         }

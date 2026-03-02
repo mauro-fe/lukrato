@@ -264,12 +264,16 @@ export const ContasLancamento = {
         ContasLancamento._tipoAtual = tipo;
 
         // Preencher dados
-        document.getElementById('lancamentoContaId').value = STATE.contaSelecionadaLancamento.id;
-        document.getElementById('lancamentoTipo').value = tipo;
+        const elContaId = document.getElementById('lancamentoContaId');
+        const elTipo = document.getElementById('lancamentoTipo');
+        const elData = document.getElementById('lancamentoData');
+
+        if (elContaId) elContaId.value = STATE.contaSelecionadaLancamento?.id ?? '';
+        if (elTipo) elTipo.value = tipo;
 
         // Data e hora de agora
         const hoje = new Date();
-        document.getElementById('lancamentoData').value = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+        if (elData) elData.value = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
         const horaField = document.getElementById('lancamentoHora');
         if (horaField) horaField.value = `${String(hoje.getHours()).padStart(2, '0')}:${String(hoje.getMinutes()).padStart(2, '0')}`;
 
@@ -723,12 +727,7 @@ export const ContasLancamento = {
             const recorrenciaDetalhes = document.getElementById('recorrenciaDetalhes');
             if (recorrenciaDetalhes) recorrenciaDetalhes.style.display = 'none';
 
-            // Adicionar listener no checkbox de parcelamento
-            const checkboxParcelado = document.getElementById('lancamentoParcelado');
-            if (checkboxParcelado && !checkboxParcelado.dataset.listenerAdded) {
-                checkboxParcelado.addEventListener('change', () => ContasLancamento.aoMarcarParcelado());
-                checkboxParcelado.dataset.listenerAdded = 'true';
-            }
+            // Listener do checkbox de parcelamento agora é via onchange no HTML
         } else {
             // Ocultar parcelamento e assinatura de cartão
             parcelamentoGroup.style.display = 'none';
@@ -891,13 +890,18 @@ export const ContasLancamento = {
         ContasLancamento.goToStep(1);
 
         // Reset form
-        document.getElementById('formLancamento').reset();
+        const form = document.getElementById('formLancamento');
+        if (form) form.reset();
 
         // Reset specific fields
-        document.getElementById('cartaoCreditoGroup').style.display = 'none';
-        document.getElementById('parcelamentoGroup').style.display = 'none';
-        document.getElementById('numeroParcelasGroup').style.display = 'none';
-        document.getElementById('contaDestinoGroup').style.display = 'none';
+        const cartaoCreditoGroup = document.getElementById('cartaoCreditoGroup');
+        const parcelamentoGroup = document.getElementById('parcelamentoGroup');
+        const numeroParcelasGroup = document.getElementById('numeroParcelasGroup');
+        const contaDestinoGroup = document.getElementById('contaDestinoGroup');
+        if (cartaoCreditoGroup) cartaoCreditoGroup.style.display = 'none';
+        if (parcelamentoGroup) parcelamentoGroup.style.display = 'none';
+        if (numeroParcelasGroup) numeroParcelasGroup.style.display = 'none';
+        if (contaDestinoGroup) contaDestinoGroup.style.display = 'none';
 
         const tipoAgendamentoGroup = document.getElementById('tipoAgendamentoGroup');
         const recorrenciaGroup = document.getElementById('recorrenciaGroup');
@@ -926,7 +930,8 @@ export const ContasLancamento = {
         radios.forEach(r => r.checked = r.value === 'infinito');
 
         // Restore title and header
-        document.getElementById('modalLancamentoTitulo').textContent = 'Nova Movimentação';
+        const tituloEl = document.getElementById('modalLancamentoTitulo');
+        if (tituloEl) tituloEl.textContent = 'Nova Movimentação';
         const headerGradient = document.querySelector('#modalLancamentoOverlay .lk-modal-header-gradient');
         if (headerGradient) headerGradient.style.removeProperty('background');
 

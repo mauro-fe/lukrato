@@ -46,23 +46,23 @@ Router::add('GET', '/gamification', 'GamificationController@index', ['auth', 'on
 Router::add('GET', '/billing', 'Admin\\BillingController@index', ['auth', 'onboarding']);
 
 // Super Admin
-Router::add('GET', '/super_admin', 'SysAdmin\\SuperAdminController@index', ['auth']);
-Router::add('GET', '/sysadmin', 'SysAdmin\\SuperAdminController@index', ['auth']);
+Router::add('GET', '/super_admin', 'SysAdmin\\SuperAdminController@index', ['auth', 'sysadmin']);
+Router::add('GET', '/sysadmin', 'SysAdmin\\SuperAdminController@index', ['auth', 'sysadmin']);
 
 // SysAdmin - Gerenciamento de cupons
-Router::add('GET', '/sysadmin/cupons', 'SysAdmin\\CupomViewController@index', ['auth']);
+Router::add('GET', '/sysadmin/cupons', 'SysAdmin\\CupomViewController@index', ['auth', 'sysadmin']);
 
 // SysAdmin - Comunicações e campanhas
-Router::add('GET', '/sysadmin/comunicacoes', 'SysAdmin\\CommunicationController@index', ['auth']);
+Router::add('GET', '/sysadmin/comunicacoes', 'SysAdmin\\CommunicationController@index', ['auth', 'sysadmin']);
 
 // SysAdmin - Listagem de usuários com filtros
-Router::add('GET', '/sysadmin/users', 'SysAdmin\\UserAdminController@list', ['auth']);
+Router::add('GET', '/sysadmin/users', 'SysAdmin\\UserAdminController@list', ['auth', 'sysadmin']);
 
 // SysAdmin - Listagem de usuários com filtros (rota alternativa)
-Router::add('GET', '/super_admin/users', 'SysAdmin\UserAdminController@list', ['auth']);
+Router::add('GET', '/super_admin/users', 'SysAdmin\UserAdminController@list', ['auth', 'sysadmin']);
 
 // SysAdmin - Listagem de usuários com filtros (rota alternativa com hífen)
-Router::add('GET', '/super-admin/users', 'SysAdmin\UserAdminController@list', ['auth']);
+Router::add('GET', '/super-admin/users', 'SysAdmin\UserAdminController@list', ['auth', 'sysadmin']);
 
 
 

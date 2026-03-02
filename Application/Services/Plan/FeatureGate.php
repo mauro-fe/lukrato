@@ -5,46 +5,45 @@ namespace Application\Services\Plan;
 use Application\Models\Usuario;
 
 /**
- * @var array<string, array<string, mixed>>
+ * Feature gate centralizado — usa Billing.php como fonte de verdade.
+ * Delega a verificação de plano para Usuario::isPro().
  */
 final class FeatureGate
 {
-    private static array $entitlements = [
-        'gratuito' => [
-            'reports' => false,
-            'scheduling' => false,
-            'export' => false,
-            'limits' => ['lancamentos_mes' => 200, 'contas' => 3, 'categorias' => 5],
-        ],
-        'pro' => [
-            'reports' => true,
-            'scheduling' => true,
-            'export' => true,
-            'limits' => ['lancamentos_mes' => null, 'contas' => null, 'categorias' => null],
-        ],
-    ];
+    private static ?array $config = null;
 
-    public static function allows(Usuario $u, string $feature): bool
+    /**
+     * Carrega a configuração de billing (com cache estático).
+     */
+    private static function config(): array
     {
-        $plano = $u->planoAtual();
-        $code = 'gratuito';
-        if ($plano && ($plano->code ?? null)) {
-            $code = (string) $plano->code;
-        } elseif (!empty($u->plano)) {
-            $code = (string) $u->plano;
+        if (self::$config === null) {
+            self::$config = require __DIR__ . '/../../Config/Billing.php';
         }
-
-        $map = [
-            'gratuito' => ['reports' => false, 'scheduling' => false, 'export' => false],
-            'free'     => ['reports' => false, 'scheduling' => false, 'export' => false],
-            'pro'      => ['reports' => true, 'scheduling' => true, 'export' => true],
-        ];
-        return (bool) ($map[$code][$feature] ?? false);
+        return self::$config;
     }
 
+    /**
+     * Verifica se o usuário tem acesso a uma feature.
+     * Usa Billing.php como fonte de verdade.
+     */
+    public static function allows(Usuario $u, string $feature): bool
+    {
+        $plan = $u->isPro() ? 'pro' : 'free';
+        $config = self::config();
+        return (bool) ($config['features'][$plan][$feature] ?? false);
+    }
+
+    /**
+     * Retorna o limite de um recurso para o usuário.
+     * Usa Billing.php como fonte de verdade.
+     * Retorna null se ilimitado (pro).
+     */
     public static function limit(Usuario $u, string $key): ?int
     {
-        $plan = $u->plano ?: 'gratuito';
-        return self::$entitlements[$plan]['limits'][$key] ?? null;
+        $plan = $u->isPro() ? 'pro' : 'free';
+        $config = self::config();
+        $value = $config['limits'][$plan][$key] ?? null;
+        return $value !== null ? (int) $value : null;
     }
 }
