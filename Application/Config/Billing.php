@@ -128,6 +128,7 @@ return [
     'features' => [
 
         'free' => [
+            'reports'                 => false,
             'relatorios_basicos'      => true,
             'relatorios_avancados'    => false,
             'exportacao_pdf'          => false,
@@ -145,6 +146,7 @@ return [
         ],
 
         'pro' => [
+            'reports'                 => true,
             'relatorios_basicos'      => true,
             'relatorios_avancados'    => true,
             'exportacao_pdf'          => true,

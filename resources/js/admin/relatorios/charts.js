@@ -12,7 +12,7 @@ import { CONFIG, STATE, Utils, Modules } from './state.js';
 // Local aliases (keep method bodies identical to original)
 const formatCurrency = (v) => Utils.formatCurrency(v);
 const hexToRgba = (h, a) => Utils.hexToRgba(h, a);
-const escapeHtml = (v) => String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m] || m));
+const escapeHtml = (v) => String(v ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m] || m));
 
 // ─── Doughnut Labels Plugin ──────────────────────────────────────────────────
 
@@ -304,8 +304,8 @@ export const ChartManager = {
                 subcatHTML = `
                     <div class="category-subcats-panel" id="mobileSubcatPanel-${idx}" aria-hidden="true">
                         ${detail.subcategories.map((sub, si) => {
-                            const subPct = detail.total > 0 ? ((sub.total / detail.total) * 100).toFixed(1) : '0.0';
-                            return `
+                    const subPct = detail.total > 0 ? ((sub.total / detail.total) * 100).toFixed(1) : '0.0';
+                    return `
                                 <div class="drilldown-item drilldown-item-mobile">
                                     <div class="drilldown-indicator" style="background-color: ${shades[si]}"></div>
                                     <div class="drilldown-info">
@@ -317,7 +317,7 @@ export const ChartManager = {
                                     </div>
                                 </div>
                             `;
-                        }).join('')}
+                }).join('')}
                     </div>
                 `;
             }
@@ -446,7 +446,7 @@ export const ChartManager = {
 
         const catId = entry.catId;
         const detail = STATE.reportDetails.find(d => d.cat_id === catId);
-        if (!detail || !detail.subcategories || detail.subcategories.length <= 1) return;
+        if (!detail || !detail.subcategories || detail.subcategories.length === 0) return;
 
         // Toggle: clicking same segment again closes drill-down
         if (STATE.activeDrilldown === catId) {

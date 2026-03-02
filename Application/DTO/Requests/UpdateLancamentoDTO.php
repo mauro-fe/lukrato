@@ -9,9 +9,9 @@ readonly class UpdateLancamentoDTO
     public function __construct(
         public string $tipo,
         public string $data,
-        public ?string $horaLancamento = null,
         public float $valor,
         public string $descricao,
+        public ?string $horaLancamento = null,
         public ?string $observacao = null,
         public ?int $categoriaId = null,
         public ?int $subcategoriaId = null,
