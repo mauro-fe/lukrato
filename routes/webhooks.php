@@ -13,11 +13,11 @@ use Application\Core\Router;
  */
 
 // Asaas (Gateway de pagamento)
-Router::add('POST', '/api/webhook/asaas', 'Api\\AsaasWebhookController@receive');
+Router::add('POST', '/api/webhook/asaas', 'Api\\Billing\\AsaasWebhookController@receive');
 
 // GET apenas para desenvolvimento (retorna 404 em produção)
 if (!defined('APP_ENV') || APP_ENV !== 'production') {
-    Router::add('GET', '/api/webhook/asaas', 'Api\\AsaasWebhookController@test');
+    Router::add('GET', '/api/webhook/asaas', 'Api\\Billing\\AsaasWebhookController@test');
 }
 
 /**
@@ -30,20 +30,20 @@ if (!defined('APP_ENV') || APP_ENV !== 'production') {
  */
 
 // Health check (público)
-Router::add('GET', '/api/scheduler/health', 'Api\\SchedulerController@health');
+Router::add('GET', '/api/scheduler/health', 'Api\\Billing\\SchedulerController@health');
 
 // Tarefas agendadas (requerem SCHEDULER_TOKEN)
-Router::add('GET',  '/api/scheduler/tasks', 'Api\\SchedulerController@tasks');
-Router::add('GET',  '/api/scheduler/debug', 'Api\\SchedulerController@debug');
-Router::add('GET',  '/api/scheduler/dispatch-reminders', 'Api\\SchedulerController@dispatchReminders');
-Router::add('POST', '/api/scheduler/dispatch-reminders', 'Api\\SchedulerController@dispatchReminders');
-Router::add('GET',  '/api/scheduler/dispatch-birthdays', 'Api\\SchedulerController@dispatchBirthdays');
-Router::add('POST', '/api/scheduler/dispatch-birthdays', 'Api\\SchedulerController@dispatchBirthdays');
-Router::add('GET',  '/api/scheduler/dispatch-fatura-reminders', 'Api\\SchedulerController@dispatchFaturaReminders');
-Router::add('POST', '/api/scheduler/dispatch-fatura-reminders', 'Api\\SchedulerController@dispatchFaturaReminders');
-Router::add('GET',  '/api/scheduler/process-expired-subscriptions', 'Api\\SchedulerController@processExpiredSubscriptions');
-Router::add('POST', '/api/scheduler/process-expired-subscriptions', 'Api\\SchedulerController@processExpiredSubscriptions');
+Router::add('GET',  '/api/scheduler/tasks', 'Api\\Billing\\SchedulerController@tasks');
+Router::add('GET',  '/api/scheduler/debug', 'Api\\Billing\\SchedulerController@debug');
+Router::add('GET',  '/api/scheduler/dispatch-reminders', 'Api\\Billing\\SchedulerController@dispatchReminders');
+Router::add('POST', '/api/scheduler/dispatch-reminders', 'Api\\Billing\\SchedulerController@dispatchReminders');
+Router::add('GET',  '/api/scheduler/dispatch-birthdays', 'Api\\Billing\\SchedulerController@dispatchBirthdays');
+Router::add('POST', '/api/scheduler/dispatch-birthdays', 'Api\\Billing\\SchedulerController@dispatchBirthdays');
+Router::add('GET',  '/api/scheduler/dispatch-fatura-reminders', 'Api\\Billing\\SchedulerController@dispatchFaturaReminders');
+Router::add('POST', '/api/scheduler/dispatch-fatura-reminders', 'Api\\Billing\\SchedulerController@dispatchFaturaReminders');
+Router::add('GET',  '/api/scheduler/process-expired-subscriptions', 'Api\\Billing\\SchedulerController@processExpiredSubscriptions');
+Router::add('POST', '/api/scheduler/process-expired-subscriptions', 'Api\\Billing\\SchedulerController@processExpiredSubscriptions');
 
 // Rota única para executar todas as tarefas do cron
-Router::add('GET',  '/api/rota-do-cron', 'Api\\SchedulerController@runAll');
-Router::add('POST', '/api/rota-do-cron', 'Api\\SchedulerController@runAll');
+Router::add('GET',  '/api/rota-do-cron', 'Api\\Billing\\SchedulerController@runAll');
+Router::add('POST', '/api/rota-do-cron', 'Api\\Billing\\SchedulerController@runAll');

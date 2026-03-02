@@ -4,7 +4,7 @@ namespace Application\Middlewares;
 
 use Application\Core\Response;
 use Application\Lib\Auth;
-use Application\Services\FeatureGate;
+use Application\Services\Plan\FeatureGate;
 
 final class RequireFeature
 {

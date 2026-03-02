@@ -12,15 +12,23 @@
    ============================================================================ */
 
 .cat-page {
+  visibility: hidden;
+  min-height: 80vh;
   padding: var(--spacing-3);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-5);
 }
 
-/* PÃ¡gina visÃ­vel somente quando JS marcou .is-ready */
+/* Página visível quando JS marcou .is-ready */
 .cat-page.is-ready {
   visibility: visible;
+}
+
+/* Fallback: se JS estiver desabilitado, mostra a página */
+noscript + .cat-page,
+.no-js .cat-page {
+  visibility: visible !important;
 }
 
 /* TransiÃ§Ã£o suave para listas ao re-renderizar apÃ³s CRUD */

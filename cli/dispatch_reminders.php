@@ -6,8 +6,8 @@ require __DIR__ . '/../bootstrap.php';
 
 use Application\Models\Lancamento;
 use Application\Models\Notificacao;
-use Application\Services\MailService;
-use Application\Services\LogService;
+use Application\Services\Communication\MailService;
+use Application\Services\Infrastructure\LogService;
 
 LogService::info('=== [dispatch_reminders] Inicio do lembrete de lançamentos ===');
 

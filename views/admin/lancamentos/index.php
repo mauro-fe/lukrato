@@ -1,4 +1,4 @@
-﻿<!-- CSS MODERNIZADO -->
+<!-- CSS MODERNIZADO -->
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/bundles/lancamentos-modern.css.php?v=<?= time() ?>">
 
 <?php $isPro = $isPro ?? false; ?>
@@ -170,8 +170,8 @@
                 <span>Seus Lançamentos</span>
             </div>
             <div class="table-actions">
-                <button type="button" class="modern-btn" onclick="lancamentoGlobalManager.openModal()"
-                    style="background: var(--color-primary); color: white;" aria-label="Novo lançamento">
+                <button type="button" class="modern-btn btn-novo-lancamento" id="btnNovoLancamento"
+                    aria-label="Novo lançamento">
                     <i data-lucide="plus"></i>
                     <span>Novo Lançamento</span>
                 </button>
@@ -182,7 +182,7 @@
                     <span>Excluir (<span id="selCount">0</span>)</span>
                 </button>
 
-                <button type="button" class="icon-btn" title="Atualizar" onclick="location.reload()">
+                <button type="button" class="icon-btn" title="Atualizar" id="btnRefreshPage">
                     <i data-lucide="refresh-cw"></i>
                 </button>
             </div>

@@ -38,17 +38,6 @@ if (isset($plans) && is_iterable($plans)) {
 }
 
 $currentPlanCode = $currentPlanCode ?? ($user?->planoAtual()?->code ?? null);
-
-// Função helper para formatar o intervalo
-function formatInterval(string $interval): string
-{
-    return match (strtolower($interval)) {
-        'year', 'ano', 'anual', 'annual' => 'ano',
-        'week', 'semanal' => 'semana',
-        'day', 'dia', 'daily' => 'dia',
-        default => 'mês',
-    };
-}
 ?>
 
 <!-- ============================================================================
@@ -81,37 +70,7 @@ function formatInterval(string $interval): string
             <?php foreach ($planItems as $plan): ?>
                 <?php
                 $meta = $plan['metadata'];
-                // Map FA icon names to Lucide equivalents
-                $faToLucide = [
-                    'fa-layer-group' => 'layers',
-                    'layer-group' => 'layers',
-                    'fa-rocket' => 'rocket',
-                    'rocket' => 'rocket',
-                    'fa-crown' => 'crown',
-                    'crown' => 'crown',
-                    'fa-gem' => 'gem',
-                    'gem' => 'gem',
-                    'fa-star' => 'star',
-                    'star' => 'star',
-                    'fa-bolt' => 'zap',
-                    'bolt' => 'zap',
-                    'fa-shield-alt' => 'shield',
-                    'shield-alt' => 'shield',
-                    'fa-infinity' => 'infinity',
-                    'infinity' => 'infinity',
-                    'fa-gift' => 'gift',
-                    'gift' => 'gift',
-                    'fa-trophy' => 'trophy',
-                    'trophy' => 'trophy',
-                    'fa-fire' => 'flame',
-                    'fire' => 'flame',
-                    'fa-briefcase' => 'briefcase',
-                    'briefcase' => 'briefcase',
-                    'fa-wallet' => 'wallet',
-                    'wallet' => 'wallet',
-                ];
-                $rawIcon = trim($meta['icone'] ?? $meta['icon'] ?? 'fa-layer-group');
-                $icon = $faToLucide[$rawIcon] ?? $faToLucide[ltrim($rawIcon, 'fa-')] ?? 'layers';
+                $icon = faToLucideIcon($meta['icone'] ?? $meta['icon'] ?? 'layer-group');
                 $description = trim($meta['descricao'] ?? $meta['description'] ?? 'Plano completo para organizar suas finanças.');
                 $features = array_values(array_filter(array_map('trim', $meta['features'] ?? [])));
                 $missingFeatures = array_values(array_filter(array_map('trim', $meta['missing_features'] ?? [])));

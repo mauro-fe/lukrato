@@ -21,6 +21,7 @@ enum LogCategory: string
     case EXPORT        = 'export';
     case MIGRATION     = 'migration';
     case NOTIFICATION  = 'notification';
+    case SECURITY      = 'security';
     case GENERAL       = 'general';
 
     public function label(): string
@@ -38,6 +39,7 @@ enum LogCategory: string
             self::EXPORT       => 'Exportação',
             self::MIGRATION    => 'Migrações',
             self::NOTIFICATION => 'Notificações',
+            self::SECURITY     => 'Segurança',
             self::GENERAL      => 'Geral',
         };
     }

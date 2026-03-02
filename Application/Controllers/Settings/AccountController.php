@@ -6,8 +6,8 @@ use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Models\Usuario;
-use Application\Services\LogService;
-use Application\Services\ReferralAntifraudService;
+use Application\Services\Infrastructure\LogService;
+use Application\Services\Referral\ReferralAntifraudService;
 use Application\Core\Exceptions\AuthException;
 use Exception;
 

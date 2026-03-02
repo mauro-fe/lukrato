@@ -1,18 +1,3 @@
-﻿<!-- Previne FOUC: conteúdo invisível até JS renderizar + processar ícones -->
-<style>
-    .cat-page:not(.is-ready) {
-        visibility: hidden;
-        min-height: 80vh
-    }
-</style>
-<noscript>
-    <style>
-        .cat-page {
-            visibility: visible !important
-        }
-    </style>
-</noscript>
-
 <section class="cat-page">
     <!-- ==================== CARD DE NOVA CATEGORIA ==================== -->
     <div class="create-card-wrapper">
@@ -232,13 +217,4 @@
     </div>
 </div>
 
-<!-- Bootstrap e SweetAlert2 já carregados no header -->
 <!-- Page JS carregado automaticamente via loadPageJs() + Vite -->
-
-<!-- Failsafe: se JS falhar, mostra a página após 3s -->
-<script>
-    setTimeout(function() {
-        var p = document.querySelector('.cat-page');
-        if (p && !p.classList.contains('is-ready')) p.classList.add('is-ready')
-    }, 3000);
-</script>

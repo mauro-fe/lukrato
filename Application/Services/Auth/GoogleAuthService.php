@@ -6,7 +6,7 @@ namespace Application\Services\Auth;
 
 use Application\Models\Usuario;
 use Application\Lib\Auth;
-use Application\Services\LogService;
+use Application\Services\Infrastructure\LogService;
 use Application\Enums\LogCategory;
 use Google_Client;
 use Google\Service\Oauth2;
@@ -167,7 +167,7 @@ class GoogleAuthService
 
         // Envia email de boas-vindas (Google já verifica o email, então envia direto)
         try {
-            $mailService = new \Application\Services\MailService();
+            $mailService = new \Application\Services\Communication\MailService();
             $mailService->sendWelcomeEmail($usuario->email, $usuario->nome ?? 'Usuário');
             LogService::info('Email de boas-vindas enviado (registro via Google)', [
                 'user_id' => $usuario->id,

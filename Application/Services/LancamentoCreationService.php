@@ -34,6 +34,95 @@ class LancamentoCreationService
     }
 
     /**
+     * Cria um lançamento a partir do payload bruto do request.
+     *
+     * Encapsula toda a orquestração: sanitização, validação, detecção de fluxo
+     * (estorno, cartão, normal/recorrente) e delegação ao método específico.
+     *
+     * @param int $userId
+     * @param array $payload Dados brutos vindos do request
+     * @return ServiceResultDTO Sucesso, erro de validação (422) ou erro de domínio
+     */
+    public function createFromPayload(int $userId, array $payload): ServiceResultDTO
+    {
+        // 1. Sanitizar inputs
+        $formaPagamento  = $payload['forma_pagamento'] ?? null;
+        $formaPagamento  = is_string($formaPagamento) && !empty($formaPagamento) ? $formaPagamento : null;
+        $tipoLancamento  = strtolower(trim($payload['tipo'] ?? ''));
+        $cartaoCreditoId = $payload['cartao_credito_id'] ?? null;
+        $cartaoCreditoId = is_scalar($cartaoCreditoId) ? (int) $cartaoCreditoId : null;
+
+        $ehEstornoCartao = ($cartaoCreditoId && $cartaoCreditoId > 0
+            && $tipoLancamento === 'receita'
+            && $formaPagamento === 'estorno_cartao');
+
+        // 2. Validar
+        $errors = LancamentoValidator::validateCreate($payload);
+
+        $contaId = $payload['conta_id'] ?? $payload['contaId'] ?? null;
+        $contaId = is_scalar($contaId) ? (int) $contaId : null;
+        if (!$ehEstornoCartao) {
+            $contaId = LancamentoValidator::validateContaOwnership($contaId, $userId, $errors);
+        }
+
+        $categoriaId = $payload['categoria_id'] ?? $payload['categoriaId'] ?? null;
+        $categoriaId = is_scalar($categoriaId) ? (int) $categoriaId : null;
+        $categoriaId = LancamentoValidator::validateCategoriaOwnership($categoriaId, $userId, $errors);
+
+        if (!empty($errors)) {
+            return ServiceResultDTO::validationFail($errors);
+        }
+
+        // 3. Estorno de cartão
+        if ($ehEstornoCartao) {
+            return $this->createEstorno($userId, $payload, $cartaoCreditoId, $categoriaId);
+        }
+
+        // 4. Construir DTO
+        $pago = !isset($payload['pago']) || (bool) $payload['pago'];
+        if (isset($payload['agendado']) && $payload['agendado']) {
+            $pago = false;
+        }
+
+        $dto = CreateLancamentoDTO::fromRequest($userId, [
+            'tipo'                   => $tipoLancamento,
+            'data'                   => $payload['data'],
+            'hora_lancamento'        => $payload['hora_lancamento'] ?? null,
+            'valor'                  => LancamentoValidator::sanitizeValor($payload['valor']),
+            'descricao'              => mb_substr(trim($payload['descricao'] ?? ''), 0, 190),
+            'observacao'             => mb_substr(trim($payload['observacao'] ?? ''), 0, 500),
+            'categoria_id'           => $categoriaId,
+            'conta_id'               => $contaId,
+            'pago'                   => $pago,
+            'forma_pagamento'        => $formaPagamento,
+            'recorrente'             => (bool) ($payload['recorrente'] ?? false),
+            'recorrencia_freq'       => $payload['recorrencia_freq'] ?? null,
+            'recorrencia_fim'        => $payload['recorrencia_fim'] ?? null,
+            'recorrencia_total'      => isset($payload['recorrencia_total']) ? (int) $payload['recorrencia_total'] : null,
+            'lembrar_antes_segundos' => $payload['lembrar_antes_segundos'] ?? null,
+            'canal_email'            => (bool) ($payload['canal_email'] ?? false),
+            'canal_inapp'            => (bool) ($payload['canal_inapp'] ?? false),
+        ]);
+
+        try {
+            $usage = $this->limitService->assertCanCreate($userId, $dto->data);
+        } catch (\DomainException $e) {
+            return ServiceResultDTO::fail($e->getMessage(), 402);
+        }
+
+        // 5. Compra com cartão de crédito
+        if ($cartaoCreditoId && $cartaoCreditoId > 0 && $dto->tipo === 'despesa') {
+            return $this->createCartaoExpense($userId, $dto, $payload, $cartaoCreditoId, $categoriaId, $usage);
+        }
+
+        // 6. Lançamento normal (com ou sem recorrência)
+        $recorrencia      = $payload['recorrencia'] ?? null;
+        $numeroRepeticoes = isset($payload['numero_repeticoes']) ? (int) $payload['numero_repeticoes'] : 12;
+
+        return $this->createNormal($userId, $dto, $recorrencia, $numeroRepeticoes, $usage);
+    }
+
+    /**
      * Processa estorno de cartão de crédito
      */
     public function createEstorno(int $userId, array $payload, int $cartaoCreditoId, int $categoriaId): ServiceResultDTO

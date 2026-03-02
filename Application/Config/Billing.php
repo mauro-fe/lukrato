@@ -21,6 +21,7 @@ return [
             'grace_extra'           => 5,    // Lançamentos extras de cortesia após limite
             'max_contas'            => 2,    // Máximo de contas bancárias
             'max_categorias_custom' => 10,   // Máximo de categorias personalizadas
+            'max_subcategorias_custom' => 20, // Máximo de subcategorias personalizadas
             'historico_meses'       => 3,    // Apenas 3 meses de histórico visível
             'max_cartoes'           => 1,    // Apenas 1 cartão de crédito
             'max_metas'             => 2,    // Apenas 2 metas financeiras
@@ -31,6 +32,7 @@ return [
             'lancamentos_per_month' => null, // ilimitado
             'max_contas'            => null, // ilimitado
             'max_categorias_custom' => null, // ilimitado
+            'max_subcategorias_custom' => null, // ilimitado
             'historico_meses'       => null, // ilimitado
             'max_cartoes'           => null, // ilimitado
             'max_metas'             => null, // ilimitado
@@ -75,6 +77,9 @@ return [
 
         'categorias_limit' => 'Limite de {limit} categorias personalizadas atingido. ' .
             'Faça upgrade para criar categorias ilimitadas.',
+
+        'subcategorias_limit' => 'Limite de {limit} subcategorias personalizadas atingido. ' .
+            'Faça upgrade para criar subcategorias ilimitadas.',
 
         'historico_limit' => 'No plano gratuito, você só pode visualizar os últimos {limit} meses. ' .
             'Faça upgrade para acessar todo seu histórico financeiro.',

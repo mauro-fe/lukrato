@@ -1,4 +1,4 @@
-﻿<!-- Hero Section -->
+<!-- Hero Section -->
 <section
     class="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-orange-50 via-orange-50/30 to-gray-50"
     aria-label="Seção principal - Controle financeiro pessoal" itemscope itemtype="https://schema.org/WebPageElement">

@@ -1,31 +1,22 @@
-﻿<?php
-
-use Application\Lib\Auth;
+<?php
 
 // ============================================================================
-// VARIÁVEIS E CONFIGURAÇÕES
+// VARIÁVEIS (preparadas pelo BaseController::renderAdmin)
 // ============================================================================
 
-$username       = $username     ?? 'usuario';
-$menu           = $menu         ?? '';
+$username       = $username       ?? 'usuario';
+$menu           = $menu           ?? '';
 $base           = BASE_URL;
 $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
-$pageTitle      = $pageTitle    ?? 'Lukrato';
-$currentUser    = $currentUser  ?? Auth::user();
-$isSysAdmin     = ($currentUser?->is_admin ?? 0) == 1;
-$showUpgradeCTA = !($currentUser && method_exists($currentUser, 'isPro') && $currentUser->isPro());
+$pageTitle      = $pageTitle      ?? 'Lukrato';
+$currentUser    = $currentUser    ?? null;
+$isSysAdmin     = $isSysAdmin     ?? false;
+$showUpgradeCTA = $showUpgradeCTA ?? true;
+$userTheme      = $userTheme      ?? 'dark';
 
 // Helpers para menu ativo
 $active = fn(string $key): string => (!empty($menu) && $menu === $key) ? 'active' : '';
 $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-current="page"' : '';
-
-// Obter tema do usuário do banco de dados
-$userTheme = 'dark'; // valor padrão
-if ($currentUser && isset($currentUser->theme_preference)) {
-    $userTheme = in_array($currentUser->theme_preference, ['light', 'dark'])
-        ? $currentUser->theme_preference
-        : 'dark';
-}
 
 ?>
 
@@ -71,6 +62,8 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/layout/admin-partials-header.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/layout/top-navbar.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/layout/breadcrumbs.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/layout/notifications-bell.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/layout/header-month-picker.css?v=<?= time() ?>">
 
     <!-- Modules -->
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/gamification.css">
@@ -82,6 +75,9 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/tooltips.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/first-visit-tooltips.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/lukrato-feedback.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/modal-meses.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/aviso-lancamentos.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/support-button.css?v=<?= time() ?>">
 
     <!-- Page-specific CSS (auto-detected) -->
     <?php loadPageCss(); ?>
@@ -98,6 +94,7 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- ============================================================================
          GLOBAL INFRASTRUCTURE BUNDLE (Vite)
@@ -109,139 +106,22 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <?= vite_scripts('admin/global/index.js') ?>
 
     <!-- ============================================================================
-         CONFIGURAÇÃO GLOBAL (Lukrato Namespace)
+         BRIDGE PHP → JS (configuração global centralizada)
          ============================================================================ -->
     <script>
-        // Suprimir erros do Bootstrap Modal GLOBALMENTE
-        (function() {
-            // Interceptar console.error para suprimir erros do Bootstrap
-            const originalError = console.error;
-            console.error = function(...args) {
-                const message = args.join(' ');
-                if (message.includes('backdrop') || message.includes('Cannot read properties of undefined')) {
-                    return; // Silenciosamente ignorar
-                }
-                originalError.apply(console, args);
-            };
-
-            // Interceptar erros do JavaScript
-            window.addEventListener('error', function(event) {
-                if (event.message && (event.message.includes('backdrop') || event.message.includes(
-                        'Cannot read properties of undefined'))) {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
-                    return true;
-                }
-            }, true);
-
-            // Interceptar erros não tratados
-            window.onerror = function(message, source, lineno, colno, error) {
-                if (message && (message.includes('backdrop') || message.includes(
-                        'Cannot read properties of undefined'))) {
-                    return true; // Suprimir erro
-                }
-                return false;
-            };
-        })();
-
-        // Namespace global do Lukrato
-        window.LK = window.LK || {};
-        window.LK.csrfTtl = <?= (int) \Application\Middlewares\CsrfMiddleware::TOKEN_TTL ?>;
-
-        // ========================================================================
-        // HELPERS GLOBAIS
-        // ========================================================================
-        LK.getBase = () => {
-            const meta = document.querySelector('meta[name="base-url"]');
-            return (meta?.content || '/').replace(/\/?$/, '/');
+        window.__LK_CONFIG = {
+            baseUrl: <?= json_encode(rtrim(BASE_URL, '/') . '/', JSON_UNESCAPED_SLASHES) ?>,
+            csrfTtl: <?= (int) \Application\Middlewares\CsrfMiddleware::TOKEN_TTL ?>,
+            isPro: <?= json_encode(!$showUpgradeCTA) ?>,
+            isSysAdmin: <?= json_encode($isSysAdmin) ?>,
+            userId: <?= json_encode($currentUser?->id ?? null) ?>,
+            username: <?= json_encode($username) ?>
         };
-
-        // Definir window.BASE_URL para compatibilidade com scripts antigos
-        window.BASE_URL = LK.getBase();
-
-        LK.getCSRF = () => {
-            return document.querySelector('meta[name="csrf-token"]')?.content ||
-                document.querySelector('input[name="_token"]')?.value || '';
-        };
-
-        LK.apiBase = () => LK.getBase() + 'api/';
-
-        LK.initPageTransitions = () => {
-            const overlay = document.getElementById('lkPageTransitionOverlay');
-            if (!overlay) return;
-
-            let isTransitioning = false;
-
-            const cleanup = () => {
-                isTransitioning = false;
-                overlay.classList.remove('active');
-                overlay.setAttribute('aria-hidden', 'true');
-                document.body.classList.remove('page-transitioning');
-            };
-
-            const startTransition = (target) => {
-                if (isTransitioning) return;
-                isTransitioning = true;
-                document.body.classList.add('page-transitioning');
-                overlay.classList.add('active');
-                overlay.setAttribute('aria-hidden', 'false');
-
-                setTimeout(() => {
-                    window.location.href = target;
-                }, 220);
-            };
-
-            const isSamePageAnchor = (href) => href?.startsWith('#');
-
-            document.addEventListener('click', (event) => {
-                if (event.defaultPrevented || event.button !== 0) return;
-                if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-
-                const link = event.target.closest('a[href]');
-                if (!link) return;
-                if (link.target && link.target !== '_self') return;
-                if (link.hasAttribute('download')) return;
-                if (link.dataset.noTransition === 'true') return;
-
-                const href = link.getAttribute('href');
-                if (!href || isSamePageAnchor(href)) return;
-
-                const url = new URL(link.href, window.location.href);
-                if (url.origin !== window.location.origin) return;
-                if (url.pathname === window.location.pathname && url.search === window.location.search) return;
-
-                event.preventDefault();
-                startTransition(url.href);
-            });
-
-            window.addEventListener('pageshow', cleanup);
-            cleanup();
-        };
-
-        // ========================================================================
-        // INICIALIZAÇÃO DOM
-        // ========================================================================
-        document.addEventListener('DOMContentLoaded', () => {
-            // Header (sidebar active, logout confirm, seletor de contas)
-            if (window.LK?.initHeader) {
-                window.LK.initHeader();
-            }
-
-            // Sininho de notificações
-            if (window.initNotificationsBell) {
-                window.initNotificationsBell();
-            }
-
-            // Modais (abre/fecha via data-open-modal / data-close-modal)
-            if (window.LK?.initModals) {
-                window.LK.initModals();
-            }
-
-            if (window.LK?.initPageTransitions) {
-                window.LK.initPageTransitions();
-            }
-        });
     </script>
+
+    <!-- ============================================================================
+         CONFIGURAÇÃO GLOBAL (Lukrato Namespace) — via Vite global bundle
+         ============================================================================ -->
 
     <!-- ============================================================================
          SCRIPTS DE PÁGINA
@@ -256,25 +136,6 @@ if ($currentUser && isset($currentUser->theme_preference)) {
          TOP NAVBAR
          ============================================================================ -->
     <?php include __DIR__ . '/top-navbar.php'; ?>
-
-    <!-- ============================================================================
-         SIDEBAR COLLAPSE STATE (Pre-render)
-         ============================================================================ -->
-    <script>
-        (function() {
-            try {
-                const STORAGE_KEY = 'lk.sidebar';
-                const prefersCollapsed = localStorage.getItem(STORAGE_KEY) === '1';
-                const isDesktop = window.matchMedia('(min-width: 993px)').matches;
-
-                if (prefersCollapsed && isDesktop) {
-                    document.body.classList.add('sidebar-collapsed');
-                }
-            } catch (err) {
-                console.error('Erro ao restaurar estado da sidebar:', err);
-            }
-        })();
-    </script>
 
     <!-- ============================================================================
          SIDEBAR NAVIGATION
@@ -344,8 +205,8 @@ if ($currentUser && isset($currentUser->theme_preference)) {
             </a>
 
             <!-- Finanças -->
-            <a href="<?= BASE_URL ?>financas" class="nav-item <?= $active('financas') ?>"
-                <?= $aria('financas') ?> title="Finanças">
+            <a href="<?= BASE_URL ?>financas" class="nav-item <?= $active('financas') ?>" <?= $aria('financas') ?>
+                title="Finanças">
                 <i data-lucide="wallet"></i>
                 <span>Finanças</span>
             </a>
@@ -411,18 +272,7 @@ if ($currentUser && isset($currentUser->theme_preference)) {
     <!-- ==================== MODAIS ==================== -->
     <?php include __DIR__ . '/modals/modal-lancamento-global.php'; ?>
     <?php include __DIR__ . '/modals/modal-meses.php'; ?>
-    <?php include __DIR__ . '/modals/aviso-lancamentos.php'; ?>
-
-    <script>
-        // Função global para abrir FAB menu
-        function openLancamentoModalGlobal() {
-            if (typeof lancamentoGlobalManager !== 'undefined') {
-                lancamentoGlobalManager.openModal();
-            }
-        }
-    </script>
-
-
+    <!-- aviso-lancamentos: funcionalidade migrada para JS (Vite bundle) -->
 
     <!-- ============================================================================
          CONTENT WRAPPER

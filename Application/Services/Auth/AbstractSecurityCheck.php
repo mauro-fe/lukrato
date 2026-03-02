@@ -9,7 +9,7 @@ namespace Application\Services\Auth;
 use Application\Contracts\Auth\SecurityCheckInterface;
 use Application\Core\Request;
 use Application\Core\Exceptions\ValidationException;
-use Application\Services\LogService;
+use Application\Services\Infrastructure\LogService;
 
 abstract class AbstractSecurityCheck implements SecurityCheckInterface
 {

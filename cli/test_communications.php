@@ -5,7 +5,7 @@
 
 require dirname(__DIR__) . '/bootstrap.php';
 
-use Application\Services\NotificationService;
+use Application\Services\Communication\NotificationService;
 use Application\Models\Notification;
 use Application\Models\MessageCampaign;
 

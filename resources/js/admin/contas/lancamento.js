@@ -95,12 +95,18 @@ export const ContasLancamento = {
 
         // Carregar categorias (exceto para transferência)
         const categoriaGroup = document.getElementById('categoriaGroup');
+        const subcategoriaGroup = document.getElementById('subcategoriaGroup');
         if (tipo !== 'transferencia') {
             Modules.API.preencherCategorias(tipo);
             if (categoriaGroup) categoriaGroup.style.display = 'block';
+            if (subcategoriaGroup) subcategoriaGroup.style.display = 'block';
         } else {
             if (categoriaGroup) categoriaGroup.style.display = 'none';
+            if (subcategoriaGroup) subcategoriaGroup.style.display = 'none';
         }
+
+        // Resetar subcategoria
+        Modules.API.resetSubcategoriaSelect();
 
         // Configurar botão e título baseado no tipo
         const btnSalvar = document.getElementById('btnSalvarLancamento');
@@ -916,6 +922,7 @@ export const ContasLancamento = {
                 data: formData.get('data'),
                 hora_lancamento: horaLancamento,
                 categoria_id: formData.get('categoria_id') || null,
+                subcategoria_id: formData.get('subcategoria_id') || null,
                 observacao: formData.get('observacoes') || null,
                 forma_pagamento: formaPagamento,
                 fatura_mes_ano: faturaEstornoMesAno,
@@ -1001,6 +1008,7 @@ export const ContasLancamento = {
                     valor_total: valor,
                     numero_parcelas: totalParcelas,
                     categoria_id: formData.get('categoria_id') || null,
+                    subcategoria_id: formData.get('subcategoria_id') || null,
                     conta_id: contaId,
                     tipo: tipo,
                     data_criacao: formData.get('data'),

@@ -11,6 +11,11 @@
  * ============================================================================
  */
 
+// ─── 0. Namespace + Infrastructure (extraído do header.php inline) ──────────
+import './lk-namespace.js';        // window.LK namespace, error suppression, page transitions, DOM init
+import './sidebar-state.js';       // Sidebar collapsed pre-render (localStorage)
+import './scroll-to-top.js';       // AOS init + scroll-to-top button logic
+
 // ─── 1. Core: CSRF + Fetch + Feedback + UI Facade ──────────────────────────
 import './csrf-manager.js';        // window.CsrfManager, LK.getCSRF, LK.refreshCSRF
 import './lukrato-fetch.js';       // window.lkFetch (LukratoFetch), fetch interceptor
@@ -31,5 +36,14 @@ import './tooltips.js';            // Tooltips customizados (hover)
 import './admin-home-header.js';   // LK.initHeader, LK.initModals (sidebar, notificações)
 import './birthday-modal.js';      // window.BirthdayModal
 
-// ─── 4. Theme ───────────────────────────────────────────────────────────────
+// ─── 4. Banners & Avisos ────────────────────────────────────────────────────
+import '../shared/aviso-lancamentos.js'; // Usage banner (plano free)
+
+// ─── 5. Theme ───────────────────────────────────────────────────────────────
 import './soft-ui-dashboard.js';   // Scrollbar, navbar, sidebar, dark mode theme
+import './theme-toggle.js';        // Dark/light toggle (top-navbar)
+
+// ─── 6. Partials extraídos (notificações, header, suporte) ─────────────────
+import './notification-manager.js'; // NotificationManager + lkNotify (bell.php)
+import './month-picker.js';         // LukratoHeader month/year nav (header-mes.php)
+import './support-button.js';       // openSupportModal / sendSupportMessage (botao-suporte.php)

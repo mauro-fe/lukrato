@@ -38,6 +38,48 @@ const OptionsManager = {
             fallback.selected = true;
             select.appendChild(fallback);
         }
+
+        // Listener cascata subcategoria
+        if (!select.dataset.subcatListenerAttached) {
+            select.dataset.subcatListenerAttached = '1';
+            select.addEventListener('change', () => {
+                OptionsManager.populateSubcategoriaSelect(select.value);
+            });
+        }
+    },
+
+    /**
+     * Preencher select de subcategoria com base na categoria selecionada (edit modal)
+     */
+    populateSubcategoriaSelect: async (categoriaId, selectedSubcatId) => {
+        const select = DOM.selectLancSubcategoria;
+        if (!select) return;
+
+        if (!categoriaId) {
+            select.innerHTML = '<option value="">Sem subcategoria</option>';
+            return;
+        }
+
+        try {
+            const res = await fetch(`${CONFIG.BASE_URL}api/categorias/${categoriaId}/subcategorias`, {
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!res.ok) throw new Error();
+            const json = await res.json();
+            const subs = json?.data?.subcategorias ?? (Array.isArray(json?.data) ? json.data : []);
+
+            const selectedVal = selectedSubcatId ? String(selectedSubcatId) : '';
+            select.innerHTML = '<option value="">Sem subcategoria</option>';
+            subs.forEach(sub => {
+                const opt = document.createElement('option');
+                opt.value = String(sub.id);
+                opt.textContent = sub.nome;
+                if (selectedVal && String(sub.id) === selectedVal) opt.selected = true;
+                select.appendChild(opt);
+            });
+        } catch {
+            select.innerHTML = '<option value="">Sem subcategoria</option>';
+        }
     },
 
     populateContaSelect: (select, selectedId) => {
@@ -214,6 +256,15 @@ const ModalManager = {
             DOM.selectLancTipo?.value || '',
             data?.categoria_id ?? null
         );
+
+        // Subcategoria cascata
+        if (data?.categoria_id) {
+            OptionsManager.populateSubcategoriaSelect(data.categoria_id, data?.subcategoria_id ?? null);
+        } else {
+            // Reset subcategoria
+            if (DOM.selectLancSubcategoria) DOM.selectLancSubcategoria.innerHTML = '<option value="">Sem subcategoria</option>';
+            if (DOM.subcategoriaGroup) DOM.subcategoriaGroup.classList.add('hidden');
+        }
 
         if (DOM.inputLancValor) {
             const valor = Math.abs(Number(data?.valor ?? 0));
@@ -477,6 +528,7 @@ const ModalManager = {
             descricao: descricaoValue,
             conta_id: Number(contaValue),
             categoria_id: categoriaValue ? Number(categoriaValue) : null,
+            subcategoria_id: DOM.selectLancSubcategoria?.value ? Number(DOM.selectLancSubcategoria.value) : null,
             forma_pagamento: formaPagamentoValue || null
         };
 

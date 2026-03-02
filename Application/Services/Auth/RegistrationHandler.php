@@ -4,8 +4,8 @@ namespace Application\Services\Auth;
 
 use Application\DTO\Auth\RegistrationDTO;
 use Application\Models\Usuario;
-use Application\Services\LogService;
-use Application\Services\ReferralAntifraudService;
+use Application\Services\Infrastructure\LogService;
+use Application\Services\Referral\ReferralAntifraudService;
 use Throwable;
 
 class RegistrationHandler

@@ -3,8 +3,8 @@
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Application\Services\LogService;
-use Application\Services\FeatureGate;
+use Application\Services\Infrastructure\LogService;
+use Application\Services\Plan\FeatureGate;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**

@@ -534,6 +534,20 @@
                         </div>
                     </div>
 
+                    <!-- Subcategoria -->
+                    <div class="lk-form-group subcategoria-select-group" id="subcategoriaGroup" style="display: none;">
+                        <label for="lancamentoSubcategoria" class="lk-label">
+                            <i data-lucide="tags"></i>
+                            Subcategoria
+                        </label>
+                        <div class="lk-select-wrapper">
+                            <select id="lancamentoSubcategoria" name="subcategoria_id" class="lk-select">
+                                <option value="">Sem subcategoria</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="lk-select-icon"></i>
+                        </div>
+                    </div>
+
                     <!-- Footer -->
                     <div class="lk-modal-footer">
                         <button type="button" class="lk-btn lk-btn-ghost"

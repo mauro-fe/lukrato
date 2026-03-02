@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Application\Bootstrap;
 
 use Application\Core\Router;
-use Application\Services\MaintenanceService;
+use Application\Services\Infrastructure\MaintenanceService;
 
 class Application
 {

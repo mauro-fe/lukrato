@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../bootstrap.php';
 
-use Application\Services\LancamentoCreationService;
+use Application\Services\Lancamento\LancamentoCreationService;
 
 echo "[" . date('Y-m-d H:i:s') . "] Gerando lançamentos recorrentes...\n";
 

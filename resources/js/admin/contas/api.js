@@ -627,6 +627,19 @@ export const ContasAPI = {
                 select.value = selectedId;
             }
 
+            // Listener cascata: ao trocar categoria → preencher subcategorias
+            if (!select.dataset.subcatListenerAttached) {
+                select.dataset.subcatListenerAttached = '1';
+                select.addEventListener('change', () => {
+                    Modules.API.preencherSubcategorias(select.value);
+                });
+            }
+
+            // Se já tem categoria selecionada, carregar subcategorias
+            if (selectedId) {
+                Modules.API.preencherSubcategorias(selectedId);
+            }
+
         } catch (error) {
             console.error('❌ Erro ao carregar categorias:', error);
             console.error('Stack:', error.stack);
@@ -640,6 +653,46 @@ export const ContasAPI = {
                 confirmButtonColor: '#3085d6'
             });
         }
+    },
+
+    /**
+     * Preencher subcategorias com base na categoria selecionada
+     */
+    async preencherSubcategorias(categoriaId, selectedSubcatId) {
+        const select = document.getElementById('lancamentoSubcategoria');
+        if (!select) return;
+
+        if (!categoriaId) {
+            select.innerHTML = '<option value="">Sem subcategoria</option>';
+            return;
+        }
+
+        try {
+            const url = `${CONFIG.BASE_URL}api/categorias/${categoriaId}/subcategorias`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error();
+            const result = await response.json();
+            const subs = result?.data?.subcategorias ?? (Array.isArray(result?.data) ? result.data : []);
+
+            select.innerHTML = '<option value="">Sem subcategoria</option>';
+            subs.forEach(sub => {
+                const opt = document.createElement('option');
+                opt.value = sub.id;
+                opt.textContent = sub.nome;
+                if (selectedSubcatId && String(sub.id) === String(selectedSubcatId)) opt.selected = true;
+                select.appendChild(opt);
+            });
+        } catch {
+            select.innerHTML = '<option value="">Sem subcategoria</option>';
+        }
+    },
+
+    /**
+     * Resetar select de subcategoria
+     */
+    resetSubcategoriaSelect() {
+        const select = document.getElementById('lancamentoSubcategoria');
+        if (select) select.innerHTML = '<option value="">Sem subcategoria</option>';
     },
 
     /**

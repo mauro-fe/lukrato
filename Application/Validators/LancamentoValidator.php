@@ -6,6 +6,8 @@ namespace Application\Validators;
 
 use Application\Enums\LancamentoTipo;
 use Application\Enums\Recorrencia;
+use Application\Repositories\CategoriaRepository;
+use Application\Repositories\ContaRepository;
 
 /**
  * Validador para lançamentos.
@@ -144,5 +146,90 @@ class LancamentoValidator
         }
 
         return round(abs((float)$valor), 2);
+    }
+
+    // ─── Validação de pertencimento ────────────────────────
+
+    /**
+     * Valida que a categoria pertence ao usuário.
+     *
+     * @param int|null $id ID da categoria
+     * @param int $userId ID do usuário
+     * @param array &$errors Array de erros para append
+     * @return int|null ID validado ou null
+     */
+    public static function validateCategoriaOwnership(?int $id, int $userId, array &$errors): ?int
+    {
+        if ($id === null || $id <= 0) {
+            return null;
+        }
+
+        if ((new CategoriaRepository())->belongsToUser($id, $userId)) {
+            return $id;
+        }
+
+        $errors['categoria_id'] = 'Categoria invalida.';
+        return null;
+    }
+
+    /**
+     * Valida que a subcategoria pertence ao usuário e à categoria informada.
+     *
+     * @param int|null $subcategoriaId ID da subcategoria
+     * @param int|null $categoriaId ID da categoria pai
+     * @param int $userId ID do usuário
+     * @param array &$errors Array de erros para append
+     * @return int|null ID validado ou null
+     */
+    public static function validateSubcategoriaOwnership(?int $subcategoriaId, ?int $categoriaId, int $userId, array &$errors): ?int
+    {
+        if ($subcategoriaId === null || $subcategoriaId <= 0) {
+            return null;
+        }
+
+        $repo = new CategoriaRepository();
+
+        // Verificar se a subcategoria existe e pertence ao usuário
+        if (!$repo->belongsToUser($subcategoriaId, $userId)) {
+            $errors['subcategoria_id'] = 'Subcategoria inválida.';
+            return null;
+        }
+
+        // Verificar se é realmente uma subcategoria (tem parent_id)
+        $subcategoria = $repo->find($subcategoriaId);
+        if (!$subcategoria || !$subcategoria->isSubcategoria()) {
+            $errors['subcategoria_id'] = 'A categoria selecionada não é uma subcategoria.';
+            return null;
+        }
+
+        // Verificar se pertence à categoria pai informada
+        if ($categoriaId !== null && (int) $subcategoria->parent_id !== $categoriaId) {
+            $errors['subcategoria_id'] = 'Subcategoria não pertence à categoria selecionada.';
+            return null;
+        }
+
+        return $subcategoriaId;
+    }
+
+    /**
+     * Valida que a conta pertence ao usuário.
+     *
+     * @param int|null $id ID da conta
+     * @param int $userId ID do usuário
+     * @param array &$errors Array de erros para append
+     * @return int|null ID validado ou null
+     */
+    public static function validateContaOwnership(?int $id, int $userId, array &$errors): ?int
+    {
+        if ($id === null) {
+            return null;
+        }
+
+        if ((new ContaRepository())->belongsToUser($id, $userId)) {
+            return $id;
+        }
+
+        $errors['conta_id'] = 'Conta invalida.';
+        return null;
     }
 }

@@ -22,6 +22,8 @@ import {
     toastError,
 } from './state.js';
 
+import { SubcategoriasModule } from './subcategorias.js';
+
 // =========================================================================
 // DATA LOADING
 // =========================================================================
@@ -86,12 +88,19 @@ async function loadAll() {
 
     await Promise.all([loadCategorias(), loadOrcamentos()]);
     renderCategorias();
+    SubcategoriasModule.initSubcategoriaEvents();
 
     // Na primeira carga, revela a página (remove visibility:hidden)
     if (isFirstLoad && page) {
         requestAnimationFrame(() => page.classList.add('is-ready'));
     }
 }
+
+// Failsafe: se JS demorar, mostra a página após 3s
+setTimeout(() => {
+    const p = document.querySelector('.cat-page');
+    if (p && !p.classList.contains('is-ready')) p.classList.add('is-ready');
+}, 3000);
 
 // =========================================================================
 // HELPERS
@@ -224,6 +233,7 @@ function renderCategoriaItem(categoria, tipo) {
                 </div>
                 <span class="cat-card-name">${escapeHtml(displayName)}</span>
                 <div class="cat-card-actions">
+                    ${SubcategoriasModule.renderExpandButton(categoria.id)}
                     <button type="button" class="cat-card-btn edit" 
                             onclick="categoriasManager.editarCategoria(${categoria.id})"
                             title="Editar">
@@ -237,6 +247,7 @@ function renderCategoriaItem(categoria, tipo) {
                 </div>
             </div>
             ${budgetHtml}
+            ${SubcategoriasModule.renderAccordionPanel(categoria.id)}
         </div>
     `;
 }
@@ -608,6 +619,10 @@ function editarCategoria(id) {
     // Abrir modal
     const modal = new bootstrap.Modal(document.getElementById('modalEditCategoria'));
     modal.show();
+
+    // Carregar subcategorias no modal
+    SubcategoriasModule.renderEditModalSubcategorias(id);
+    SubcategoriasModule.initSubcategoriaEvents();
 }
 
 /**

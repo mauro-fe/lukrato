@@ -14,7 +14,7 @@ declare(strict_types=1);
 require __DIR__ . '/../bootstrap.php';
 
 use Application\Services\Auth\EmailVerificationService;
-use Application\Services\LogService;
+use Application\Services\Infrastructure\LogService;
 
 echo "=== Lembretes de Verificação de Email ===" . PHP_EOL;
 echo "Data/Hora: " . date('Y-m-d H:i:s') . PHP_EOL;

@@ -10,7 +10,8 @@ use Application\Services\Auth\GoogleAuthService;
 use Application\Services\Auth\RegistrationResponseHandler;
 use Application\Core\Exceptions\ValidationException;
 use Application\Middlewares\CsrfMiddleware;
-use Application\Services\LogService;
+use Application\Services\Infrastructure\LogService;
+use Application\Services\Infrastructure\TurnstileService;
 use Application\Enums\LogCategory;
 use Throwable;
 
@@ -54,6 +55,13 @@ class RegistroController extends BaseController
     {
         // Valida CSRF com tokenId específico do formulário
         CsrfMiddleware::handle($this->request, 'register_form');
+
+        // Turnstile CAPTCHA no registro (sempre, se habilitado)
+        if (TurnstileService::isEnabled()) {
+            $turnstile = new TurnstileService();
+            $token = $this->request->post('cf-turnstile-response', '');
+            $turnstile->verify($token, $this->request->ip() ?? 'unknown');
+        }
 
         $email = $this->request->post('email', 'não-informado');
         $socialData = $_SESSION['social_register'] ?? null;

@@ -42,4 +42,4 @@ Router::add('GET',  '/resetar-senha',   'Auth\\ForgotPasswordController@showRese
 Router::add('POST', '/resetar-senha',   'Auth\\ForgotPasswordController@resetPassword', ['ratelimit']);
 
 // Exclusão de conta
-Router::add('POST', '/config/excluir-conta', 'Settings\\AccountController@delete', ['auth', 'csrf']);
+Router::add('POST', '/config/excluir-conta', 'Settings\\AccountController@delete', ['auth', 'csrf', 'ratelimit_strict']);

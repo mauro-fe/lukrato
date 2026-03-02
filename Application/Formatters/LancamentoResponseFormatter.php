@@ -19,6 +19,7 @@ class LancamentoResponseFormatter
         return [
             'id' => (int)$lancamento->id,
             'data' => (string)$lancamento->data,
+            'hora_lancamento' => $lancamento->hora_lancamento ?? null,
             'tipo' => (string)$lancamento->tipo,
             'valor' => (float)$lancamento->valor,
             'descricao' => (string)($lancamento->descricao ?? ''),
@@ -30,7 +31,10 @@ class LancamentoResponseFormatter
             'eh_saldo_inicial' => (bool)($lancamento->eh_saldo_inicial ?? false),
             'pago' => (bool)($lancamento->pago ?? true),
             'data_pagamento' => $lancamento->data_pagamento ?? null,
+            'parcelamento_id' => (int)($lancamento->parcelamento_id ?? 0) ?: null,
+            'cartao_credito_id' => (int)($lancamento->cartao_credito_id ?? 0) ?: null,
             'forma_pagamento' => (string)($lancamento->forma_pagamento ?? ''),
+            'origem_tipo' => (string)($lancamento->origem_tipo ?? ''),
             // Recorrência
             'recorrente' => (bool)($lancamento->recorrente ?? false),
             'recorrencia_freq' => $lancamento->recorrencia_freq ?? null,
@@ -45,9 +49,14 @@ class LancamentoResponseFormatter
             // Relações
             'categoria' => $lancamento->categoria?->nome ?? '',
             'categoria_nome' => $lancamento->categoria?->nome ?? '',
+            'subcategoria_id' => $lancamento->subcategoria_id ? (int) $lancamento->subcategoria_id : null,
+            'subcategoria_nome' => $lancamento->subcategoria?->nome ?? '',
+            'subcategoria_icone' => $lancamento->subcategoria?->icone ?? '',
             'conta' => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
             'conta_nome' => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
             'conta_instituicao' => $lancamento->conta?->instituicao ?? '',
+            'cartao_nome' => $lancamento->cartaoCredito?->nome_cartao ?? '',
+            'cartao_bandeira' => $lancamento->cartaoCredito?->bandeira ?? '',
         ];
     }
 

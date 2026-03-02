@@ -9,8 +9,8 @@ use Application\Services\Auth\PasswordResetService;
 use Application\Repositories\PasswordResetRepositoryEloquent;
 use Application\Services\Auth\MailPasswordResetNotification;
 use Application\Services\Auth\SecureTokenGenerator;
-use Application\Services\MailService;
-use Application\Services\LogService;
+use Application\Services\Communication\MailService;
+use Application\Services\Infrastructure\LogService;
 use Throwable;
 
 class ForgotPasswordController extends BaseController

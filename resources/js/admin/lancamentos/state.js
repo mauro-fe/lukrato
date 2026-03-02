@@ -77,6 +77,8 @@ export function initDOM() {
     DOM.selectLancTipo = document.getElementById('editLancTipo');
     DOM.selectLancConta = document.getElementById('editLancConta');
     DOM.selectLancCategoria = document.getElementById('editLancCategoria');
+    DOM.selectLancSubcategoria = document.getElementById('editLancSubcategoria');
+    DOM.subcategoriaGroup = document.getElementById('editSubcategoriaGroup');
     // Modal de edição transferência
     DOM.modalEditTransEl = document.getElementById('modalEditarTransferencia');
     DOM.formTrans = document.getElementById('formTransLancamento');

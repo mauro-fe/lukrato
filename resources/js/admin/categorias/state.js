@@ -42,6 +42,11 @@ export const STATE = {
     anoSelecionado: new Date().getFullYear(),
     _iconGridCreateReady: false,
     _iconGridEditReady: false,
+    // Subcategorias
+    subcategoriasCache: {},          // { [categoriaId]: subcategoria[] }
+    expandedCategorias: new Set(),   // IDs das categorias com acordeão aberto
+    subcategoriaEmEdicao: null,      // subcategoria sendo editada no modal
+    editSubcategoriaIcon: '',        // ícone selecionado no form de subcategoria
 };
 
 // ─── Available Icons (grouped by context / search label) ─────────────────────

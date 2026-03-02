@@ -50,6 +50,10 @@
   opacity: 0.7;
 }
 
+.lk-breadcrumb-icon {
+  color: var(--color-primary);
+}
+
 /* Separator */
 .lk-breadcrumb-separator {
   color: var(--text-muted, #94a3b8);

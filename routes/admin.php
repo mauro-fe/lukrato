@@ -26,7 +26,7 @@ Router::add('GET', '/relatorios', 'Admin\\RelatoriosController@view', ['auth', '
 
 // Configurações
 Router::add('GET',  '/config',     'Admin\\ConfigController@index', ['auth', 'onboarding']);
-Router::add('POST', '/api/config', 'Api\\ConfigController@update',  ['auth', 'csrf']);
+Router::add('POST', '/api/config', 'Api\\Admin\\ConfigController@update',  ['auth', 'csrf', 'ratelimit']);
 
 // Perfil
 Router::add('GET', '/perfil', 'Admin\\PerfilController@index', ['auth', 'onboarding']);
@@ -38,10 +38,9 @@ Router::add('GET', '/contas/arquivadas', 'Admin\\ContasController@archived', ['a
 // Categorias
 Router::add('GET', '/categorias', 'Admin\\CategoriaController@index', ['auth', 'onboarding']);
 
-// Agendamentos (removido - unificado em lançamentos)
 
-// Investimentos
-Router::add('GET', '/investimentos', 'Admin\\InvestimentosController@index', ['auth', 'onboarding']);
+// Gamificação
+Router::add('GET', '/gamification', 'GamificationController@index', ['auth', 'onboarding']);
 
 // Billing / Planos
 Router::add('GET', '/billing', 'Admin\\BillingController@index', ['auth', 'onboarding']);

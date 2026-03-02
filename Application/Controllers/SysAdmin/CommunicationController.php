@@ -7,7 +7,7 @@ namespace Application\Controllers\SysAdmin;
 use Application\Controllers\BaseController;
 use Application\Lib\Auth;
 use Application\Models\MessageCampaign;
-use Application\Services\NotificationService;
+use Application\Services\Communication\NotificationService;
 
 /**
  * CommunicationController

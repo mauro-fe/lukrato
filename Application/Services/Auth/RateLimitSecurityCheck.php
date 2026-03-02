@@ -5,7 +5,7 @@ namespace Application\Services\Auth;
 
 use Application\Core\Request;
 use Application\Core\Exceptions\ValidationException;
-use Application\Services\CacheService;
+use Application\Services\Infrastructure\CacheService;
 use Application\Middlewares\RateLimitMiddleware;
 
 class RateLimitSecurityCheck extends AbstractSecurityCheck

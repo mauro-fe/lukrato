@@ -3,24 +3,33 @@
  * LUKRATO — Modal de Pagamento (Vite Module)
  * ============================================================================
  * Gerencia o modal de pagamento: cartão, PIX, boleto.
- * Depende de window.BILLING_CONFIG definido inline no PHP.
+ * Lê configurações via data-* attributes do elemento #billing-modal.
  *
  * Substitui: public/assets/js/modal-pagamento.js
  * ============================================================================
  */
 
-import { getCSRFToken } from '../shared/api.js';
+import { getCSRFToken, getBaseUrl } from '../shared/api.js';
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 
-const CONFIG = window.BILLING_CONFIG || {};
-const BASE_URL = CONFIG.baseUrl || '';
+const modalEl = document.getElementById('billing-modal');
+const ds = modalEl?.dataset || {};
+const BASE_URL = getBaseUrl();
 const CSRF_TOKEN = getCSRFToken();
-const userDataComplete = CONFIG.userDataComplete || {};
+const userDataComplete = {
+    pix: ds.pixComplete === '1',
+    boleto: ds.boletoComplete === '1',
+    cpf: ds.cpf || '',
+    phone: ds.phone || '',
+    cep: ds.cep || '',
+    endereco: ds.endereco || '',
+    email: ds.email || '',
+};
 
 // ─── DOM Elements ───────────────────────────────────────────────────────────
 
-const modal = document.getElementById('billing-modal');
+const modal = modalEl;
 const modalTitle = document.getElementById('billing-modal-title');
 const modalText = document.getElementById('billing-modal-text');
 const modalPrice = document.getElementById('billing-modal-price');

@@ -4,7 +4,7 @@ namespace Application\Middlewares;
 
 use Application\Core\Request;
 use Application\Core\Exceptions\ValidationException;
-use Application\Services\LogService;
+use Application\Services\Infrastructure\LogService;
 
 class CsrfMiddleware
 {

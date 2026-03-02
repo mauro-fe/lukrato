@@ -340,6 +340,20 @@
                         </div>
                     </div>
 
+                    <!-- Subcategoria -->
+                    <div class="lk-form-group subcategoria-select-group" id="globalSubcategoriaGroup">
+                        <label for="globalLancamentoSubcategoria" class="lk-label">
+                            <i data-lucide="tags"></i>
+                            Subcategoria
+                        </label>
+                        <div class="lk-select-wrapper">
+                            <select id="globalLancamentoSubcategoria" name="subcategoria_id" class="lk-select">
+                                <option value="">Sem subcategoria</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="lk-select-icon"></i>
+                        </div>
+                    </div>
+
                     <!-- Recorrência (para receita e despesa) -->
                     <div class="lk-form-group" id="globalRecorrenciaGroup" style="display: none;">
                         <div class="lk-checkbox-wrapper" style="margin-bottom: 0.5rem;">

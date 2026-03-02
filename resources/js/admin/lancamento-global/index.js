@@ -174,6 +174,51 @@ class LancamentoGlobalManager {
             option.textContent = cat.nome;
             select.appendChild(option);
         });
+
+        // Reset subcategoria ao trocar categorias
+        this.resetSubcategoriaSelect();
+
+        // Listener cascata: ao trocar categoria → preencher subcategorias
+        if (!select.dataset.subcatListenerAttached) {
+            select.dataset.subcatListenerAttached = '1';
+            select.addEventListener('change', () => this.preencherSubcategorias(select.value));
+        }
+    }
+
+    /**
+     * Preencher select de subcategorias com base na categoria selecionada
+     */
+    async preencherSubcategorias(categoriaId) {
+        const select = document.getElementById('globalLancamentoSubcategoria');
+        if (!select) return;
+
+        if (!categoriaId) {
+            select.innerHTML = '<option value="">Sem subcategoria</option>';
+            return;
+        }
+
+        try {
+            const base = getBaseUrl();
+            const res = await fetch(`${base}api/categorias/${categoriaId}/subcategorias`);
+            if (!res.ok) throw new Error();
+            const json = await res.json();
+            const subs = json?.data?.subcategorias ?? json?.data ?? [];
+
+            select.innerHTML = '<option value="">Sem subcategoria</option>';
+            subs.forEach(sub => {
+                const opt = document.createElement('option');
+                opt.value = sub.id;
+                opt.textContent = sub.nome;
+                select.appendChild(opt);
+            });
+        } catch {
+            select.innerHTML = '<option value="">Sem subcategoria</option>';
+        }
+    }
+
+    resetSubcategoriaSelect() {
+        const select = document.getElementById('globalLancamentoSubcategoria');
+        if (select) select.innerHTML = '<option value="">Sem subcategoria</option>';
     }
 
     // ── Fatura Estorno ───────────────────────────────────────────────────────
@@ -407,6 +452,9 @@ class LancamentoGlobalManager {
         const faturaGroup = document.getElementById('globalFaturaEstornoGroup');
         if (faturaGroup) faturaGroup.style.display = 'none';
         this.isEstornoCartao = false;
+
+        // Subcategoria
+        this.resetSubcategoriaSelect();
 
         // Forma de pagamento
         this.resetarFormaPagamento();
@@ -787,6 +835,7 @@ class LancamentoGlobalManager {
             data: document.getElementById('globalLancamentoData').value,
             hora_lancamento: document.getElementById('globalLancamentoHora')?.value || null,
             categoria_id: document.getElementById('globalLancamentoCategoria').value || null,
+            subcategoria_id: document.getElementById('globalLancamentoSubcategoria')?.value || null,
             pago: true
         };
 

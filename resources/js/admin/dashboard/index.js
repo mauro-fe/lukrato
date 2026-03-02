@@ -9,6 +9,7 @@
 
 import { Modules } from './state.js';
 import { DashboardManager, EventListeners } from './app.js';
+import { initOnboardingChecklist } from './onboarding.js';
 
 // ─── Guard against double-loading ────────────────────────────────────────────
 if (!window.__LK_DASHBOARD_LOADER__) {
@@ -22,6 +23,7 @@ if (!window.__LK_DASHBOARD_LOADER__) {
     // ─── Bootstrap ───────────────────────────────────────────────────────────
     const init = () => {
         EventListeners.init();
+        initOnboardingChecklist();
 
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', DashboardManager.init);

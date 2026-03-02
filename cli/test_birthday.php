@@ -9,7 +9,7 @@ require dirname(__DIR__) . '/bootstrap.php';
 
 use Application\Models\Usuario;
 use Application\Models\Notification;
-use Application\Services\NotificationService;
+use Application\Services\Communication\NotificationService;
 use Carbon\Carbon;
 
 echo "=================================================\n";

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Application\Contracts;
 
-use Application\Models\Agendamento;
 use Application\Models\Lancamento;
 use Application\Models\Usuario;
 
@@ -35,12 +34,6 @@ interface MailServiceInterface
      * Envia email de recuperação de senha.
      */
     public function sendPasswordReset(string $toEmail, string $toName, string $resetLink): bool;
-
-    /**
-     * Envia lembrete de agendamento.
-     * @param string $tipo Tipo do lembrete: 'antecedencia', 'horario' ou 'padrao'
-     */
-    public function sendAgendamentoReminder(Agendamento $agendamento, Usuario $usuario, string $tipo = 'padrao'): bool;
 
     /**
      * Envia lembrete de lançamento.

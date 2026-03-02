@@ -3,7 +3,7 @@
 namespace Application\Services\Auth;
 
 use Application\Core\Request;
-use Application\Services\LogService;
+use Application\Services\Infrastructure\LogService;
 use Application\Lib\Auth;
 use Application\Lib\Helpers;
 

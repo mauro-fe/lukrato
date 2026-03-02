@@ -28,6 +28,18 @@ function defineApplicationConstants(): void
         define('APP_DEBUG', filter_var($_ENV['APP_DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN));
     }
 
+    // Cloudflare Turnstile (CAPTCHA progressivo)
+    if (!defined('TURNSTILE_SITE_KEY')) {
+        define('TURNSTILE_SITE_KEY', $_ENV['TURNSTILE_SITE_KEY'] ?? '');
+    }
+    if (!defined('TURNSTILE_SECRET_KEY')) {
+        define('TURNSTILE_SECRET_KEY', $_ENV['TURNSTILE_SECRET_KEY'] ?? '');
+    }
+    // Número de falhas de login antes de exigir CAPTCHA
+    if (!defined('TURNSTILE_THRESHOLD')) {
+        define('TURNSTILE_THRESHOLD', (int) ($_ENV['TURNSTILE_THRESHOLD'] ?? 3));
+    }
+
     if (!defined('BASE_URL')) {
         if (APP_ENV === 'production') {
             $base = $_ENV['BASE_URL'] ?? 'https://lukrato.com.br/';

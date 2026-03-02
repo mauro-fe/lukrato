@@ -8,7 +8,7 @@ use Application\Controllers\BaseController;
 use Application\Services\Auth\EmailVerificationService;
 use Application\Models\Usuario;
 use Application\Core\Response;
-use Application\Services\LogService;
+use Application\Services\Infrastructure\LogService;
 
 /**
  * Controller para verificação de email

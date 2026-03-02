@@ -5,7 +5,10 @@ namespace Application\Middlewares;
 use Application\Core\Request;
 use Application\Core\Exceptions\ValidationException;
 
-use Application\Services\CacheService;
+use Application\Services\Infrastructure\CacheService;
+use Application\Services\Infrastructure\LogService;
+use Application\Enums\LogLevel;
+use Application\Enums\LogCategory;
 
 class RateLimitMiddleware
 {
@@ -42,9 +45,23 @@ class RateLimitMiddleware
 
         // Verifica se o número de tentativas excede o limite
         if (count($attempts) >= self::MAX_ATTEMPTS) {
-            // TODO: Integrar LogService aqui para registrar ataques de rate limit
-            // LogService::warning('Rate limit exceeded', ['identifier' => $identifier, 'ip' => $request->ip()]);
-            throw new ValidationException(['rate_limit' => 'Muitas requisições. Por favor, tente novamente em breve.'], 429); // 429 Too Many Requests
+            LogService::persist(
+                level: LogLevel::WARNING,
+                category: LogCategory::SECURITY,
+                message: 'Rate limit excedido',
+                context: [
+                    'ip'         => $request->ip(),
+                    'identifier' => $identifier,
+                    'uri'        => $_SERVER['REQUEST_URI'] ?? '',
+                    'method'     => $_SERVER['REQUEST_METHOD'] ?? '',
+                    'attempts'   => count($attempts),
+                    'limit'      => self::MAX_ATTEMPTS,
+                    'window'     => self::TIME_WINDOW . 's',
+                    'tier'       => 'standard',
+                ],
+            );
+
+            throw new ValidationException(['rate_limit' => 'Muitas requisições. Por favor, tente novamente em breve.'], 429);
         }
 
         // Adiciona a tentativa atual

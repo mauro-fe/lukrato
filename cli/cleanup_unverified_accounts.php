@@ -18,7 +18,7 @@ declare(strict_types=1);
 require __DIR__ . '/../bootstrap.php';
 
 use Application\Services\Auth\EmailVerificationService;
-use Application\Services\LogService;
+use Application\Services\Infrastructure\LogService;
 
 $isDryRun = in_array('--dry-run', $argv ?? [], true);
 

@@ -136,6 +136,13 @@
   box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
 }
 
+.btn-campanhas {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+.btn-campanhas:hover {
+  background: linear-gradient(135deg, #d97706, #b45309);
+}
+
 .search-box {
   display: flex;
   gap: var(--spacing-3);

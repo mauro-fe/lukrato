@@ -47,6 +47,14 @@
                             <select class="form-select form-select-sm" id="editLancCategoria"></select>
                         </div>
                     </div>
+                    <div class="row g-3 mt-1 subcategoria-select-group" id="editSubcategoriaGroup">
+                        <div class="col-md-6 offset-md-6">
+                            <label for="editLancSubcategoria" class="form-label">Subcategoria</label>
+                            <select class="form-select form-select-sm" id="editLancSubcategoria">
+                                <option value="">Sem subcategoria</option>
+                            </select>
+                        </div>
+                    </div>
                     <div class="row g-3 mt-1">
                         <div class="col-md-8">
                             <label for="editLancDescricao" class="form-label">Descrição</label>

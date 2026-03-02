@@ -292,6 +292,12 @@ const init = async () => {
     ExportManager.initDefaults();
     EventListeners.init();
 
+    // Bind view buttons
+    document.getElementById('btnNovoLancamento')?.addEventListener('click', () => {
+        if (window.lancamentoGlobalManager) window.lancamentoGlobalManager.openModal();
+    });
+    document.getElementById('btnRefreshPage')?.addEventListener('click', () => location.reload());
+
     // Carregar dados iniciais
     await OptionsManager.loadFilterOptions();
     await DataManager.load();

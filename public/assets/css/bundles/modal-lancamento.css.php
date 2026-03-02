@@ -30,6 +30,7 @@ $modules = [
     '_responsive-mobile.css',
     '_forma-pagamento.css',
     '_datetime-inline.css',
+    '_subcategoria-select.css',
 ];
 
 $lastModified = 0;

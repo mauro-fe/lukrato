@@ -26,6 +26,17 @@ export default defineConfig({
                 'billing': resolve(__dirname, 'resources/js/admin/billing/index.js'),
                 'perfil': resolve(__dirname, 'resources/js/admin/perfil/index.js'),
                 'card-modals': resolve(__dirname, 'resources/js/admin/card-modals/index.js'),
+                'sysadmin': resolve(__dirname, 'resources/js/admin/sysadmin/index.js'),
+                'contas-arquivadas': resolve(__dirname, 'resources/js/admin/contas-arquivadas/index.js'),
+                'onboarding': resolve(__dirname, 'resources/js/admin/onboarding/index.js'),
+                'onboarding-lancamento': resolve(__dirname, 'resources/js/admin/onboarding/lancamento.js'),
+                'sysadmin-communications': resolve(__dirname, 'resources/js/admin/sysadmin/communications.js'),
+                'sysadmin-cupons': resolve(__dirname, 'resources/js/admin/sysadmin/cupons.js'),
+                // Auth
+                'auth-login': resolve(__dirname, 'resources/js/admin/auth/login/index.js'),
+                'auth-forgot-password': resolve(__dirname, 'resources/js/admin/auth/forgot-password/index.js'),
+                'auth-reset-password': resolve(__dirname, 'resources/js/admin/auth/reset-password/index.js'),
+                'auth-verify-email': resolve(__dirname, 'resources/js/admin/auth/verify-email/index.js'),
                 // Site (público)
                 'landing-base': resolve(__dirname, 'resources/js/site/landing-base.js'),
                 'site-card': resolve(__dirname, 'resources/js/site/card/index.js'),

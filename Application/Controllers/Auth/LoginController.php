@@ -4,16 +4,18 @@ namespace Application\Controllers\Auth;
 
 use Application\Controllers\BaseController;
 use Application\Services\Auth\AuthService;
-use Application\Services\CacheService;
+use Application\Services\Infrastructure\CacheService;
+use Application\Services\Infrastructure\TurnstileService;
 use Application\Core\Exceptions\ValidationException;
 use Application\Middlewares\CsrfMiddleware;
-use Application\Services\LogService;
+use Application\Services\Infrastructure\LogService;
 use Application\Enums\LogCategory;
 use Throwable;
 
 class LoginController extends BaseController
 {
     private AuthService $authService;
+    private TurnstileService $turnstile;
 
     public function __construct(?CacheService $cache = null)
     {
@@ -24,6 +26,7 @@ class LoginController extends BaseController
         $this->cache = $cache ?? new CacheService();
 
         $this->authService = new AuthService($this->request, $this->cache);
+        $this->turnstile = new TurnstileService($this->cache);
     }
 
 
@@ -52,6 +55,10 @@ class LoginController extends BaseController
         $errorMessage = $this->getError();
         $socialSuccess = isset($_GET['new_google']) && $_GET['new_google'] == 1;
 
+        // Verificar se CAPTCHA deve ser exibido para este IP
+        $ip = $this->request->ip() ?? 'unknown';
+        $requireCaptcha = $this->turnstile->shouldRequireCaptcha($ip);
+
         $this->render('admin/auth/login', [
             'error' => $errorMessage,
             'registerErrorMessage' => $errorMessage,
@@ -60,7 +67,9 @@ class LoginController extends BaseController
             'success' => $this->getSuccess(),
             'socialSuccess' => $socialSuccess,
             'csrf_token' => CsrfMiddleware::generateToken('login_form'),
-        ], null, 'admin/footer');
+            'require_captcha' => $requireCaptcha,
+            'turnstile_site_key' => TurnstileService::isEnabled() ? TURNSTILE_SITE_KEY : '',
+        ]);
     }
 
 
@@ -86,6 +95,10 @@ class LoginController extends BaseController
             LogService::info('[LOGIN DEBUG] Aplicando rate limit');
             $this->applyRateLimit();
 
+            // Turnstile CAPTCHA (progressivo — só valida se o IP já atingiu o threshold)
+            $ip = $this->request->ip() ?? 'unknown';
+            $this->verifyCaptchaIfRequired($ip);
+
             // Autenticação
             $remember = $this->request->post('remember', '0') === '1';
             $email = $this->request->post('email', '');
@@ -101,17 +114,30 @@ class LoginController extends BaseController
             LogService::info('[LOGIN DEBUG] Login OK, limpando tokens');
             $this->clearOldCsrfTokens();
 
+            // Login OK: zera contador de falhas do Turnstile
+            $this->turnstile->resetFailedAttempts($ip);
+
             LogService::info('[LOGIN DEBUG] Retornando sucesso');
             $this->ok([
                 'message'  => 'Login realizado com sucesso!',
                 'redirect' => $result['redirect']
             ]);
         } catch (ValidationException $e) {
+            // Incrementa falhas do Turnstile (exceto se o próprio captcha falhou)
+            $captchaErrors = $e->getErrors()['captcha'] ?? null;
+            if (!$captchaErrors) {
+                $this->turnstile->recordFailedAttempt($ip);
+            }
+
             LogService::persist(
                 \Application\Enums\LogLevel::WARNING,
                 LogCategory::AUTH,
                 'Login: falha de validação',
-                ['email' => $email, 'errors' => $e->getErrors()]
+                [
+                    'email' => $email,
+                    'errors' => $e->getErrors(),
+                    'captcha_required' => $this->turnstile->shouldRequireCaptcha($ip),
+                ]
             );
             $this->handleValidationException($e);
         } catch (Throwable $e) {
@@ -166,6 +192,20 @@ class LoginController extends BaseController
     }
 
     /**
+     * Verifica CAPTCHA Turnstile se o IP atingiu o threshold de falhas.
+     * @throws ValidationException
+     */
+    private function verifyCaptchaIfRequired(string $ip): void
+    {
+        if (!$this->turnstile->shouldRequireCaptcha($ip)) {
+            return;
+        }
+
+        $token = $this->request->post('cf-turnstile-response', '');
+        $this->turnstile->verify($token, $ip);
+    }
+
+    /**
      * Limpa tokens CSRF antigos.
      */
     private function clearOldCsrfTokens(): void
@@ -179,20 +219,27 @@ class LoginController extends BaseController
     private function handleValidationException(ValidationException $e): void
     {
         $message = $e->getMessage();
+        $ip = $this->request->ip() ?? 'unknown';
+        $captchaFlag = $this->turnstile->shouldRequireCaptcha($ip);
+        $errors = $e->getErrors();
+
+        if ($captchaFlag) {
+            $errors['require_captcha'] = true;
+        }
 
         if (str_contains($message, 'Muitas tentativas') || str_contains($message, 'rate limit')) {
-            $this->fail('Muitas tentativas. Aguarde 1 minuto e tente novamente.', 429, $e->getErrors());
+            $this->fail('Muitas tentativas. Aguarde 1 minuto e tente novamente.', 429, $errors);
             return;
         }
 
         // Caso especial para conta Google-only
         if (str_contains($message, 'Conta vinculada ao Google')) {
-            $this->fail($message, 401, $e->getErrors());
+            $this->fail($message, 401, $errors);
             return;
         }
 
         // Caso geral
-        $this->fail('E-mail ou senha inválidos.', 401, $e->getErrors());
+        $this->fail('E-mail ou senha inválidos.', 401, $errors);
     }
 
     /**
@@ -201,9 +248,16 @@ class LoginController extends BaseController
     private function handleLoginError(Throwable $e): void
     {
         $message = trim($e->getMessage());
+        $ip = $this->request->ip() ?? 'unknown';
+
+        // Incrementa falhas do Turnstile para erros de credenciais
+        $this->turnstile->recordFailedAttempt($ip);
 
         if (str_contains($message, 'credenciais inválidas') || str_contains($message, 'inválidos')) {
-            $this->fail('E-mail ou senha inválidos.', 401);
+            $extra = $this->turnstile->shouldRequireCaptcha($ip)
+                ? ['require_captcha' => true]
+                : [];
+            $this->fail('E-mail ou senha inválidos.', 401, $extra);
             return;
         }
 

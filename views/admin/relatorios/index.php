@@ -336,6 +336,5 @@
 <script>
     window.IS_PRO = <?= json_encode($isPro) ?>;
 </script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <?= vite_scripts('admin/card-modals/index.js') ?>
 <!-- Page JS carregado automaticamente via loadPageJs() + Vite -->

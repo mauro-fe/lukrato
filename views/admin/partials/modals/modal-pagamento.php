@@ -1,69 +1,30 @@
 <?php
 
-use Illuminate\Database\Capsule\Manager as DB;
-
-/** @var \Application\Models\Usuario $user */
-
-// Valores padrão
-$cpfValue      = '';
-$telefoneValue = '';
-$cepValue      = '';
-$enderecoValue = '';
-
-if (isset($user) && $user) {
-    // CPF – documentos.id_tipo = 1 (CPF)
-    $cpfValue = DB::table('documentos')
-        ->where('id_usuario', $user->id)
-        ->where('id_tipo', 1) // 1 = CPF
-        ->value('numero') ?? '';
-
-    // Telefone – telefones + ddd
-    $telRow = DB::table('telefones as t')
-        ->leftJoin('ddd as d', 'd.id_ddd', '=', 't.id_ddd')
-        ->where('t.id_usuario', $user->id)
-        ->orderBy('t.id_telefone')
-        ->first();
-
-    if ($telRow) {
-        $ddd = trim((string)($telRow->codigo ?? ''));
-        $num = trim((string)($telRow->numero ?? ''));
-        if ($ddd !== '' && $num !== '') {
-            $telefoneValue = sprintf('(%s) %s', $ddd, $num);
-        }
-    }
-
-    // CEP e Endereço – endereço principal ou primeiro endereço disponível
-    $endereco = $user->enderecoPrincipal ?? null;
-
-    // Se não tem endereço principal, tentar buscar qualquer endereço
-    if (!$endereco || empty($endereco->cep)) {
-        $endereco = DB::table('enderecos')
-            ->where('user_id', $user->id)
-            ->whereNotNull('cep')
-            ->where('cep', '!=', '')
-            ->first();
-    }
-
-    if ($endereco && !empty($endereco->cep)) {
-        $cepValue = $endereco->cep;
-        $enderecoValue = ($endereco->logradouro ?? '') . ($endereco->numero ? ', ' . $endereco->numero : '');
-    }
-}
-
-// Verificar se os dados estão completos para cada método
-$cpfDigits = preg_replace('/\D/', '', $cpfValue);
-$phoneDigits = preg_replace('/\D/', '', $telefoneValue);
-$cepDigits = preg_replace('/\D/', '', $cepValue);
-
-// PIX precisa apenas de CPF (11 dígitos)
-$pixDataComplete = strlen($cpfDigits) === 11;
-
-// Boleto precisa de CPF + CEP
-$boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
+/**
+ * Modal de Pagamento.
+ *
+ * Variáveis esperadas (vindas do BillingController):
+ * @var \Application\Models\Usuario $user
+ * @var string  $cpfValue
+ * @var string  $telefoneValue
+ * @var string  $cepValue
+ * @var string  $enderecoValue
+ * @var string  $cpfDigits
+ * @var string  $phoneDigits
+ * @var string  $cepDigits
+ * @var bool    $pixDataComplete
+ * @var bool    $boletoDataComplete
+ */
 ?>
 
-
-<div id="billing-modal" class="payment-modal" role="dialog" aria-labelledby="billing-modal-title" aria-modal="true">
+<div id="billing-modal" class="payment-modal" role="dialog" aria-labelledby="billing-modal-title" aria-modal="true"
+    data-pix-complete="<?= $pixDataComplete ? '1' : '0' ?>"
+    data-boleto-complete="<?= $boletoDataComplete ? '1' : '0' ?>"
+    data-cpf="<?= htmlspecialchars($cpfDigits, ENT_QUOTES, 'UTF-8') ?>"
+    data-phone="<?= htmlspecialchars($phoneDigits, ENT_QUOTES, 'UTF-8') ?>"
+    data-cep="<?= htmlspecialchars($cepDigits, ENT_QUOTES, 'UTF-8') ?>"
+    data-endereco="<?= htmlspecialchars($enderecoValue, ENT_QUOTES, 'UTF-8') ?>"
+    data-email="<?= htmlspecialchars($user->email ?? '', ENT_QUOTES, 'UTF-8') ?>">
     <div class="payment-modal__content">
         <div class="payment-modal__header">
             <button class="payment-modal__close" aria-label="Fechar modal" type="button"
@@ -397,19 +358,4 @@ $boletoDataComplete = strlen($cpfDigits) === 11 && strlen($cepDigits) === 8;
     </div>
 </div>
 
-
-<script>
-    window.BILLING_CONFIG = {
-        BASE_URL: '<?= BASE_URL ?>',
-        userDataComplete: {
-            pix: <?= $pixDataComplete ? 'true' : 'false' ?>,
-            boleto: <?= $boletoDataComplete ? 'true' : 'false' ?>,
-            cpf: '<?= htmlspecialchars($cpfDigits, ENT_QUOTES, 'UTF-8') ?>',
-            phone: '<?= htmlspecialchars($phoneDigits, ENT_QUOTES, 'UTF-8') ?>',
-            cep: '<?= htmlspecialchars($cepDigits, ENT_QUOTES, 'UTF-8') ?>',
-            endereco: '<?= htmlspecialchars($enderecoValue, ENT_QUOTES, 'UTF-8') ?>',
-            email: <?= json_encode($user->email ?? '') ?>
-        }
-    };
-</script>
 <!-- modal-pagamento.js carregado via Vite (importado pelo billing module) -->

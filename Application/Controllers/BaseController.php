@@ -6,8 +6,9 @@ use Application\Core\View;
 use Application\Lib\Auth;
 use Application\Core\Response;
 use Application\Core\Request;
-use Application\Services\LogService;
-use Application\Services\CacheService;
+use Application\Services\Infrastructure\LogService;
+use Application\Services\Infrastructure\CacheService;
+use Application\Models\Telefone;
 use Throwable;
 
 abstract class BaseController
@@ -82,7 +83,55 @@ abstract class BaseController
 
     protected function renderAdmin(string $viewPath, array $data = []): void
     {
+        // Preparar dados do layout que antes eram calculados no header.php
+        $currentUser = $data['currentUser'] ?? Auth::user();
+        $isPro = $currentUser && method_exists($currentUser, 'isPro') && $currentUser->isPro();
+
+        $data['currentUser']    = $currentUser;
+        $data['username']       = $data['username'] ?? ($currentUser?->nome ?? 'usuario');
+        $data['isSysAdmin']     = ($currentUser?->is_admin ?? 0) == 1;
+        $data['showUpgradeCTA'] = !$isPro;
+        $data['userTheme']      = 'dark';
+        if ($currentUser && isset($currentUser->theme_preference)) {
+            $data['userTheme'] = in_array($currentUser->theme_preference, ['light', 'dark'])
+                ? $currentUser->theme_preference
+                : 'dark';
+        }
+
+        // Top navbar
+        $fullName = $currentUser->nome ?? ($currentUser->name ?? '');
+        $data['topNavFirstName'] = $fullName ? explode(' ', trim($fullName))[0] : '';
+        $data['isPro']           = $isPro;
+        $data['planLabel']       = $isPro ? 'PRO' : 'FREE';
+        $data['currentBreadcrumbs'] = $this->resolveBreadcrumbs($data['menu'] ?? '');
+
+        // Botão suporte
+        $data['supportName']  = $currentUser->nome ?? '';
+        $data['supportEmail'] = $currentUser->email ?? '';
+        $userId = $currentUser->id_usuario ?? $currentUser->id ?? null;
+        $telefoneModel = $userId ? Telefone::where('id_usuario', $userId)->first() : null;
+        $data['supportTel']   = $telefoneModel?->numero ?? '';
+        $data['supportDdd']   = $telefoneModel?->ddd?->codigo ?? '';
+
         $this->render($viewPath, $data, 'admin/partials/header', 'admin/partials/footer');
+    }
+
+    private function resolveBreadcrumbs(string $menu): array
+    {
+        $map = [
+            'dashboard'    => [],
+            'contas'       => [['label' => 'Finanças', 'icon' => 'wallet']],
+            'cartoes'      => [['label' => 'Finanças', 'icon' => 'wallet']],
+            'faturas'      => [['label' => 'Finanças', 'icon' => 'wallet'], ['label' => 'Cartões', 'url' => 'cartoes', 'icon' => 'credit-card']],
+            'categorias'   => [['label' => 'Organização', 'icon' => 'folder']],
+            'lancamentos'  => [['label' => 'Finanças', 'icon' => 'wallet']],
+            'relatorios'   => [['label' => 'Análises', 'icon' => 'bar-chart-3']],
+            'gamification' => [['label' => 'Perfil', 'icon' => 'user']],
+            'perfil'       => [],
+            'billing'      => [['label' => 'Perfil', 'icon' => 'user']],
+        ];
+
+        return $map[$menu] ?? [];
     }
 
 

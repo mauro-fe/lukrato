@@ -1,0 +1,143 @@
+/**
+ * ============================================================================
+ * LUKRATO — LK Namespace Setup + Error Suppression + Page Transitions
+ * ============================================================================
+ * Extraído de views/admin/partials/header.php (inline <script> block)
+ *
+ * Responsabilidades:
+ * - Suprimir erros do Bootstrap Modal (backdrop issues)
+ * - Configurar window.LK namespace com helpers globais
+ * - Sistema de transições entre páginas
+ * - Inicialização DOM (header, bell, modals, transitions)
+ * ============================================================================
+ */
+
+// ── Error Suppression (Bootstrap Modal) ─────────────────────────────────────
+(function () {
+    const originalError = console.error;
+    console.error = function (...args) {
+        const message = args.join(' ');
+        if (message.includes('backdrop') || message.includes('Cannot read properties of undefined')) {
+            return;
+        }
+        originalError.apply(console, args);
+    };
+
+    window.addEventListener('error', function (event) {
+        if (event.message && (event.message.includes('backdrop') || event.message.includes('Cannot read properties of undefined'))) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            return true;
+        }
+    }, true);
+
+    window.onerror = function (message, source, lineno, colno, error) {
+        if (message && (message.includes('backdrop') || message.includes('Cannot read properties of undefined'))) {
+            return true;
+        }
+        return false;
+    };
+})();
+
+// ── LK Namespace ────────────────────────────────────────────────────────────
+window.LK = window.LK || {};
+
+// Lê csrfTtl do bridge PHP→JS
+window.LK.csrfTtl = window.__LK_CONFIG?.csrfTtl ?? 3600;
+
+// ── Helpers Globais ─────────────────────────────────────────────────────────
+LK.getBase = () => {
+    // Primeiro tenta o bridge config, depois meta tag, depois fallback
+    if (window.__LK_CONFIG?.baseUrl) return window.__LK_CONFIG.baseUrl;
+    const meta = document.querySelector('meta[name="base-url"]');
+    return (meta?.content || '/').replace(/\/?$/, '/');
+};
+
+// Compatibilidade com scripts antigos
+window.BASE_URL = LK.getBase();
+
+LK.getCSRF = () => {
+    return document.querySelector('meta[name="csrf-token"]')?.content ||
+        document.querySelector('input[name="_token"]')?.value || '';
+};
+
+LK.apiBase = () => LK.getBase() + 'api/';
+
+// ── Page Transitions ────────────────────────────────────────────────────────
+LK.initPageTransitions = () => {
+    const overlay = document.getElementById('lkPageTransitionOverlay');
+    if (!overlay) return;
+
+    let isTransitioning = false;
+
+    const cleanup = () => {
+        isTransitioning = false;
+        overlay.classList.remove('active');
+        overlay.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('page-transitioning');
+    };
+
+    const startTransition = (target) => {
+        if (isTransitioning) return;
+        isTransitioning = true;
+        document.body.classList.add('page-transitioning');
+        overlay.classList.add('active');
+        overlay.setAttribute('aria-hidden', 'false');
+
+        setTimeout(() => {
+            window.location.href = target;
+        }, 220);
+    };
+
+    const isSamePageAnchor = (href) => href?.startsWith('#');
+
+    document.addEventListener('click', (event) => {
+        if (event.defaultPrevented || event.button !== 0) return;
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+        const link = event.target.closest('a[href]');
+        if (!link) return;
+        if (link.target && link.target !== '_self') return;
+        if (link.hasAttribute('download')) return;
+        if (link.dataset.noTransition === 'true') return;
+
+        const href = link.getAttribute('href');
+        if (!href || isSamePageAnchor(href)) return;
+
+        const url = new URL(link.href, window.location.href);
+        if (url.origin !== window.location.origin) return;
+        if (url.pathname === window.location.pathname && url.search === window.location.search) return;
+
+        event.preventDefault();
+        startTransition(url.href);
+    });
+
+    window.addEventListener('pageshow', cleanup);
+    cleanup();
+};
+
+// ── Global FAB Menu Helper ──────────────────────────────────────────────────
+window.openLancamentoModalGlobal = function () {
+    if (typeof lancamentoGlobalManager !== 'undefined') {
+        lancamentoGlobalManager.openModal();
+    }
+};
+
+// ── DOM Initialization ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.LK?.initHeader) {
+        window.LK.initHeader();
+    }
+
+    if (window.initNotificationsBell) {
+        window.initNotificationsBell();
+    }
+
+    if (window.LK?.initModals) {
+        window.LK.initModals();
+    }
+
+    if (window.LK?.initPageTransitions) {
+        window.LK.initPageTransitions();
+    }
+});

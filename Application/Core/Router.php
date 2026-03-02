@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Core;
 
-use Application\Services\CacheService;
-use Application\Services\LogService;
+use Application\Services\Infrastructure\CacheService;
+use Application\Services\Infrastructure\LogService;
 use Application\Core\Exceptions\AuthException;
 use Application\Core\Exceptions\ValidationException;
 use Throwable;
@@ -81,7 +81,7 @@ class Router
 
             $middlewareClass = $registry[$name];
 
-            if ($name === 'ratelimit') {
+            if ($name === 'ratelimit' || $name === 'ratelimit_strict') {
                 $identifier = $request->ip() ?? 'unknown';
                 (new $middlewareClass(new CacheService()))->handle($request, $identifier);
             } elseif ($name === 'sysadmin') {

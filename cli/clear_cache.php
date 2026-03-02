@@ -4,7 +4,7 @@
  */
 require_once __DIR__ . '/../bootstrap.php';
 
-use Application\Services\CacheService;
+use Application\Services\Infrastructure\CacheService;
 
 echo "=== Limpando Cache ===\n\n";
 

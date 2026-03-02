@@ -461,6 +461,46 @@ class LancamentoRepository extends BaseRepository
             ->exists();
     }
 
+    /**
+     * Busca lançamentos por filtros combinados (para listagem).
+     *
+     * Carrega eager-load das relações categoria, conta e cartaoCredito.
+     *
+     * @param int $userId
+     * @param string $startDate Data inicial (Y-m-d)
+     * @param string $endDate Data final (Y-m-d)
+     * @param array{
+     *     account_id?: int|null,
+     *     categoria_id?: int|null,
+     *     categoria_null?: bool,
+     *     tipo?: string|null,
+     *     limit?: int
+     * } $filters
+     * @return Collection
+     */
+    public function findByFilters(int $userId, string $startDate, string $endDate, array $filters = []): Collection
+    {
+        $limit = min((int) ($filters['limit'] ?? 500), 1000);
+
+        return $this->query()
+            ->with(['categoria', 'conta', 'cartaoCredito'])
+            ->where('user_id', $userId)
+            ->whereBetween('data', [$startDate, $endDate])
+            ->when($filters['account_id'] ?? null, function ($q, $accId) {
+                $q->where(function ($s) use ($accId) {
+                    $s->where('conta_id', $accId)
+                        ->orWhere('conta_id_destino', $accId);
+                });
+            })
+            ->when($filters['categoria_null'] ?? false, fn($q) => $q->whereNull('categoria_id'))
+            ->when($filters['categoria_id'] ?? null, fn($q, $catId) => $q->where('categoria_id', $catId))
+            ->when($filters['tipo'] ?? null, fn($q, $tipo) => $q->where('tipo', $tipo))
+            ->orderBy('data', 'desc')
+            ->orderBy('id', 'desc')
+            ->limit($limit)
+            ->get();
+    }
+
     // ============================================================================
     // MÉTODOS DE COMPETÊNCIA (Refatoração Cartão de Crédito)
     // ============================================================================

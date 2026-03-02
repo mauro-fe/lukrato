@@ -10,6 +10,7 @@
 
 import { Modules } from './state.js';
 import { CategoriasManager, EventListeners } from './app.js';
+import { SubcategoriasModule } from './subcategorias.js';
 
 // ─── Guard against double-loading ────────────────────────────────────────────
 // Bloqueia admin-categorias-index.js (loader legado) — este arquivo é o principal

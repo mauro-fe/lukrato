@@ -17,8 +17,8 @@ require __DIR__ . '/../bootstrap.php';
 
 use Application\Models\CartaoCredito;
 use Application\Models\Notificacao;
-use Application\Services\MailService;
-use Application\Services\LogService;
+use Application\Services\Communication\MailService;
+use Application\Services\Infrastructure\LogService;
 
 LogService::info('=== [dispatch_fatura_reminders] Inicio do lembrete de faturas ===');
 

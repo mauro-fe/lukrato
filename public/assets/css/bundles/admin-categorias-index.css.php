@@ -24,6 +24,7 @@ $modules = [
     '_responsive-mobile.css',
     '_responsive-small.css',
     '_modal-orcamento.css',
+    '_subcategorias.css',
 ];
 
 $lastModified = 0;
