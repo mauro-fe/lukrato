@@ -39,7 +39,7 @@ export const ContasLancamento = {
         }
 
         // Preencher informações da conta
-        const saldo = conta.saldoAtual ?? conta.saldo_atual ?? conta.saldo ?? 0;
+        const saldo = conta.saldoAtual ?? 0;
         document.getElementById('lancamentoContaNome').textContent = conta.nome;
         document.getElementById('lancamentoContaSaldo').textContent = Utils.formatCurrency(saldo);
 

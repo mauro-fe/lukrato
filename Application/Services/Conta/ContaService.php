@@ -23,9 +23,6 @@ class ContaService
         bool $comSaldos = false,
         string $mes = null
     ): array {
-        $startTime = microtime(true);
-        error_log("[ContaService] listarContas START - userId: $userId, comSaldos: " . ($comSaldos ? 'true' : 'false'));
-
         $query = Conta::forUser($userId)->with('instituicaoFinanceira');
 
         if ($arquivadas) {
@@ -35,13 +32,10 @@ class ContaService
         }
 
         $contas = $query->orderBy('created_at', 'desc')->get();
-        error_log("[ContaService] Query executed in " . round((microtime(true) - $startTime) * 1000, 2) . "ms, count: " . $contas->count());
 
         if ($comSaldos && $contas->count() > 0) {
             $mes = $mes ?? date('Y-m');
-            error_log("[ContaService] Calculating saldos for month: $mes");
             $saldos = $this->calcularSaldos($userId, $contas->pluck('id')->all(), $mes);
-            error_log("[ContaService] Saldos calculated in " . round((microtime(true) - $startTime) * 1000, 2) . "ms");
 
             return $contas->map(function ($conta) use ($saldos) {
                 $saldo = $saldos[$conta->id] ?? null;
@@ -49,7 +43,6 @@ class ContaService
             })->all();
         }
 
-        error_log("[ContaService] listarContas END - total time: " . round((microtime(true) - $startTime) * 1000, 2) . "ms");
         return $contas->toArray();
     }
 
@@ -296,10 +289,11 @@ class ContaService
             ->pluck('saldo_inicial', 'id')
             ->all();
 
-        // Receitas - apenas lançamentos que afetam caixa
+        // Receitas - apenas lançamentos pagos que afetam caixa
         $receitas = Lancamento::where('user_id', $userId)
             ->whereIn('conta_id', $contaIds)
             ->where('eh_transferencia', 0)
+            ->where('pago', 1)
             ->where('data', '<=', $dataFim)
             ->where('tipo', 'receita')
             ->where('afeta_caixa', true)
@@ -308,10 +302,11 @@ class ContaService
             ->pluck('total', 'conta_id')
             ->all();
 
-        // Despesas - apenas lançamentos que afetam caixa
+        // Despesas - apenas lançamentos pagos que afetam caixa
         $despesas = Lancamento::where('user_id', $userId)
             ->whereIn('conta_id', $contaIds)
             ->where('eh_transferencia', 0)
+            ->where('pago', 1)
             ->where('data', '<=', $dataFim)
             ->where('tipo', 'despesa')
             ->where('afeta_caixa', true)

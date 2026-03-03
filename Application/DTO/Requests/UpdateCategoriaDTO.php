@@ -14,11 +14,16 @@ readonly class UpdateCategoriaDTO
 
     public function toArray(): array
     {
-        return [
+        $data = [
             'nome' => $this->nome,
             'tipo' => $this->tipo,
-            'icone' => $this->icone,
         ];
+
+        if ($this->icone !== null) {
+            $data['icone'] = $this->icone;
+        }
+
+        return $data;
     }
 
     public static function fromRequest(array $data): self

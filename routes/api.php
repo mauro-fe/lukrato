@@ -115,14 +115,14 @@ Router::add('POST', '/api/transfers',               'Api\\Financeiro\\Financeiro
 Router::add('GET',    '/api/accounts',              'Api\\Conta\\ContasController@index',      ['auth']);
 Router::add('POST',   '/api/accounts',              'Api\\Conta\\ContasController@store',      ['auth', 'csrf', 'ratelimit']);
 Router::add('PUT',    '/api/accounts/{id}',         'Api\\Conta\\ContasController@update',     ['auth', 'csrf', 'ratelimit']);
-Router::add('DELETE', '/api/accounts/{id}',         'Api\\Conta\\ContasController@delete',     ['auth', 'csrf', 'ratelimit']);
+Router::add('DELETE', '/api/accounts/{id}',         'Api\\Conta\\ContasController@destroy',    ['auth', 'csrf', 'ratelimit']);
 Router::add('POST',   '/api/accounts/{id}/archive', 'Api\\Conta\\ContasController@archive',    ['auth', 'csrf', 'ratelimit']);
 Router::add('POST',   '/api/accounts/{id}/restore', 'Api\\Conta\\ContasController@restore',    ['auth', 'csrf', 'ratelimit']);
 Router::add('POST',   '/api/accounts/{id}/delete',  'Api\\Conta\\ContasController@hardDelete', ['auth', 'csrf', 'ratelimit']);
 
 // Rotas legadas (manter compatibilidade)
 Router::add('POST', '/api/accounts/archive',   'Api\\Conta\\ContasController@archive',   ['auth', 'csrf', 'ratelimit']);
-Router::add('POST', '/api/accounts/unarchive', 'Api\\Conta\\ContasController@unarchive', ['auth', 'csrf', 'ratelimit']);
+Router::add('POST', '/api/accounts/unarchive', 'Api\\Conta\\ContasController@restore',   ['auth', 'csrf', 'ratelimit']);
 
 // Rotas em português (compatibilidade com frontend)
 Router::add('GET',    '/api/instituicoes',             'Api\\Conta\\ContasController@instituicoes', ['auth']);
@@ -133,6 +133,7 @@ Router::add('POST',   '/api/contas',                   'Api\\Conta\\ContasContro
 Router::add('PUT',    '/api/contas/{id}',              'Api\\Conta\\ContasController@update',       ['auth', 'csrf', 'ratelimit']);
 Router::add('POST',   '/api/contas/{id}/archive',      'Api\\Conta\\ContasController@archive',      ['auth', 'csrf', 'ratelimit']);
 Router::add('POST',   '/api/contas/{id}/restore',      'Api\\Conta\\ContasController@restore',      ['auth', 'csrf', 'ratelimit']);
+Router::add('POST',   '/api/contas/{id}/delete',       'Api\\Conta\\ContasController@hardDelete',   ['auth', 'csrf', 'ratelimit']);
 Router::add('DELETE', '/api/contas/{id}',              'Api\\Conta\\ContasController@destroy',      ['auth', 'csrf', 'ratelimit']);
 
 // ============================================

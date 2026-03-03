@@ -153,7 +153,7 @@ async function handleRestore(id) {
     if (!result.isConfirmed) return;
 
     try {
-        const res = await fetchAPI(`accounts/${id}/restore`, {
+        const res = await fetchAPI(`contas/${id}/restore`, {
             method: 'POST',
             credentials: 'same-origin',
             headers: CSRF ? { 'X-CSRF-TOKEN': CSRF } : {}
@@ -198,7 +198,7 @@ async function handleHardDelete(id, nome = '') {
     if (!ok.isConfirmed) return;
 
     try {
-        const res = await fetchAPI(`accounts/${id}/delete`, {
+        const res = await fetchAPI(`contas/${id}/delete`, {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
@@ -240,7 +240,7 @@ async function handleHardDelete(id, nome = '') {
                     return;
                 }
 
-                const res2 = await fetchAPI(`accounts/${id}/delete?force=1`, {
+                const res2 = await fetchAPI(`contas/${id}/delete?force=1`, {
                     method: 'POST',
                     credentials: 'same-origin',
                     headers: {
@@ -285,7 +285,7 @@ async function load() {
             <div class="acc-skeleton"></div>`;
 
         const ym = new Date().toISOString().slice(0, 7);
-        const res = await fetchAPI(`accounts?archived=1&with_balances=1&month=${ym}`);
+        const res = await fetchAPI(`contas?archived=1&with_balances=1&month=${ym}`);
         const ct = res.headers.get('content-type') || '';
 
         if (!res.ok) {

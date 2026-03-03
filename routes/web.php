@@ -107,7 +107,6 @@ function registerAppRoutes(): void
 
     Router::add('GET', '/cartoes/arquivadas', 'Admin\\CartoesController@archived',    ['auth', 'onboarding']);
 
-    Router::add('GET', '/categorias',        'Admin\\CategoriaController@index',     ['auth', 'onboarding']);
 
     // Agendamentos removido - unificado em lançamentos
 

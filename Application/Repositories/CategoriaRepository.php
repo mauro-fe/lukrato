@@ -233,27 +233,19 @@ class CategoriaRepository extends BaseRepository
     {
         $nomeLower = mb_strtolower($nome);
 
-        error_log("🔍 [DUPLICATE CHECK] UserID={$userId}, Nome='{$nome}', NomeLower='{$nomeLower}', Tipo='{$tipo}', ExcludeId=" . ($excludeId ?? 'null'));
-
         $query = $this->query()
-            ->where('user_id', $userId)
+            ->where(function ($q) use ($userId) {
+                $q->whereNull('user_id')->orWhere('user_id', $userId);
+            })
             ->whereRaw('LOWER(nome) = ?', [$nomeLower])
-            ->where('tipo', $tipo);
+            ->where('tipo', $tipo)
+            ->whereNull('parent_id');
 
         if ($excludeId) {
             $query->where('id', '!=', $excludeId);
         }
 
-        $exists = $query->exists();
-
-        if ($exists) {
-            $existing = $query->first();
-            error_log("🔍 [DUPLICATE CHECK] Duplicata encontrada! ID={$existing->id}, Nome='{$existing->nome}'");
-        } else {
-            error_log("🔍 [DUPLICATE CHECK] Nenhuma duplicata encontrada");
-        }
-
-        return $exists;
+        return $query->exists();
     }
 
     /**
@@ -459,7 +451,7 @@ class CategoriaRepository extends BaseRepository
             ->whereNotNull('parent_id')
             ->where(function ($q) {
                 $q->where('is_seeded', false)
-                  ->orWhereNull('is_seeded');
+                    ->orWhereNull('is_seeded');
             })
             ->count();
     }

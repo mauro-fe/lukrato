@@ -65,7 +65,7 @@ export const ContasRender = {
         const logoUrl = instituicao?.logo_url || `${CONFIG.BASE_URL}assets/img/banks/default.svg`;
         const corPrimaria = instituicao?.cor_primaria || '#667eea';
         // Normalizar saldo: valores muito próximos de zero são tratados como zero
-        let saldo = conta.saldo_atual || conta.saldoAtual || 0;
+        let saldo = conta.saldoAtual ?? 0;
         if (Math.abs(saldo) < 0.01) saldo = 0;
         const saldoClass = saldo >= 0 ? 'positive' : 'negative';
 
@@ -165,7 +165,7 @@ export const ContasRender = {
      */
     updateStats() {
         const totalContas = STATE.contas.length;
-        const saldoTotal = STATE.contas.reduce((sum, c) => sum + (c.saldoAtual || 0), 0);
+        const saldoTotal = STATE.contas.reduce((sum, c) => sum + (c.saldoAtual ?? 0), 0);
 
         const totalContasEl = document.getElementById('totalContas');
         const saldoTotalEl = document.getElementById('saldoTotal');

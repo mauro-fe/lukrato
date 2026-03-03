@@ -156,8 +156,8 @@ function showError(message) {
  * Renderizar categorias na tela
  */
 function renderCategorias() {
-    const receitas = STATE.categorias.filter(c => c.tipo === 'receita');
-    const despesas = STATE.categorias.filter(c => c.tipo === 'despesa');
+    const receitas = STATE.categorias.filter(c => c.tipo === 'receita' || c.tipo === 'ambas');
+    const despesas = STATE.categorias.filter(c => c.tipo === 'despesa' || c.tipo === 'ambas');
 
     // Atualizar contadores
     document.getElementById('receitasCount').textContent = receitas.length;
