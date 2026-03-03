@@ -92,7 +92,6 @@ function registerAppRoutes(): void
 
     Router::add('GET', '/lancamentos',       'Admin\\LancamentoController@index',    ['auth', 'onboarding']);
 
-    Router::add('GET', '/parcelamentos',     'Admin\FaturaController@index',  ['auth', 'onboarding']);
     Router::add('GET', '/faturas',           'Admin\FaturaController@index',  ['auth', 'onboarding']);
 
     Router::add('GET', '/relatorios',        'Admin\\RelatoriosController@view',     ['auth', 'onboarding']);
@@ -139,17 +138,9 @@ function registerApiRoutes(): void
 /* =========================
 
  * BILLING (Página de planos)
+ * Rota registrada em routes/admin.php
 
  * =======================*/
-
-function registerBillingRoutes(): void
-
-{
-
-    // Página do plano
-
-    Router::add('GET',  '/billing',                      'Admin\\BillingController@index',        ['auth', 'onboarding']);
-}
 
 
 
@@ -191,4 +182,3 @@ function redirectToUserDashboard(): void
 registerRedirectRoutes();
 registerAppRoutes();
 registerApiRoutes();
-registerBillingRoutes();

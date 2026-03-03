@@ -163,7 +163,6 @@ if (!function_exists('loadPageJs')) {
             'admin-relatorios-index'    => 'admin/relatorios/index.js',
             'admin-categorias-index'    => 'admin/categorias/index.js',
             'admin-dashboard-index'     => 'admin/dashboard/index.js',
-            'admin-parcelamentos-index' => 'admin/faturas/index.js',
             'admin-cartoes-arquivadas'  => 'admin/cartoes-arquivadas/index.js',
             'admin-gamification-index'  => 'admin/gamification/index.js',
             'admin-billing-index'       => 'admin/billing/index.js',

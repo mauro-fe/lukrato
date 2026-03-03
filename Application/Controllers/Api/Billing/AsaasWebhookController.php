@@ -206,26 +206,79 @@ class AsaasWebhookController extends BaseController
             return;
         }
 
-        // ⚠️ ATIVAR PLANO APENAS SE FOR PAGAMENTO DE ASSINATURA
-        if (
-            empty($payment['subscription']) ||
-            ($payment['status'] ?? null) !== 'RECEIVED'
-        ) {
+        $paymentStatus = $payment['status'] ?? null;
+        $paidStatuses = ['RECEIVED', 'CONFIRMED', 'RECEIVED_IN_CASH'];
+        $isPaid = in_array($paymentStatus, $paidStatuses, true);
+
+        // ────────────────────────────────────────────────────────────
+        // CASO 1: Pagamento vinculado a uma SUBSCRIPTION (Cartão de crédito recorrente)
+        // ────────────────────────────────────────────────────────────
+        if (!empty($payment['subscription'])) {
+            if (!$isPaid) {
+                return;
+            }
+
+            $assinatura = AssinaturaUsuario::where(
+                'external_subscription_id',
+                $payment['subscription']
+            )
+                ->lockForUpdate()
+                ->latest('id')
+                ->first();
+
+            if (!$assinatura) {
+                LogService::persist(
+                    LogLevel::WARNING,
+                    LogCategory::SUBSCRIPTION,
+                    'Assinatura não encontrada para pagamento de subscription',
+                    ['subscription_id' => $payment['subscription'], 'payment_id' => $payment['id']],
+                );
+                return;
+            }
+
+            $this->activateSubscription($assinatura, $payment);
             return;
         }
 
-        $assinatura = AssinaturaUsuario::where(
-            'external_subscription_id',
-            $payment['subscription']
-        )
+        // ────────────────────────────────────────────────────────────
+        // CASO 2: Pagamento AVULSO (PIX ou Boleto) — sem subscription vinculada
+        // ────────────────────────────────────────────────────────────
+        $paymentId = $payment['id'];
+
+        $assinatura = AssinaturaUsuario::where('external_payment_id', $paymentId)
             ->lockForUpdate()
             ->latest('id')
             ->first();
 
         if (!$assinatura) {
+            // Pagamento avulso não relacionado a nenhuma assinatura — ignorar
             return;
         }
 
+        if ($isPaid) {
+            $this->activateSubscription($assinatura, $payment);
+        } elseif (in_array($paymentStatus, ['OVERDUE', 'REFUNDED', 'DELETED', 'REFUND_REQUESTED'], true)) {
+            // Pagamento cancelado/expirado — marcar assinatura como expirada
+            if ($assinatura->status === AssinaturaUsuario::ST_PENDING) {
+                $assinatura->status = AssinaturaUsuario::ST_EXPIRED;
+                $assinatura->save();
+
+                LogService::info('Pagamento avulso expirado/cancelado via webhook', [
+                    'assinatura_id' => $assinatura->id,
+                    'user_id' => $assinatura->user_id,
+                    'payment_id' => $paymentId,
+                    'payment_status' => $paymentStatus,
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Ativa uma assinatura após confirmação de pagamento.
+     * Usado tanto para pagamentos de subscription (cartão) quanto avulsos (PIX/Boleto).
+     */
+    private function activateSubscription(AssinaturaUsuario $assinatura, array $payment): void
+    {
         $statusAnterior = $assinatura->status;
         $isPrimeiraAtivacao = $statusAnterior !== AssinaturaUsuario::ST_ACTIVE;
 
@@ -238,6 +291,7 @@ class AsaasWebhookController extends BaseController
             'payment_id' => $payment['id'],
             'status_anterior' => $statusAnterior,
             'status_novo' => AssinaturaUsuario::ST_ACTIVE,
+            'payment_status' => $payment['status'] ?? null,
             'payment_date' => $payment['paymentDate'] ?? null,
         ]);
 

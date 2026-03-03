@@ -104,25 +104,18 @@ export const CartoesAPI = {
 
     /**
      * Verificar se cartões têm faturas pendentes
+     * Usa o endpoint /faturas-pendentes que retorna apenas os meses pendentes (leve)
      */
     async verificarFaturasPendentes() {
-        // Temporariamente desabilitado para evitar erros 404 no console
-        // TODO: Implementar verificação quando a API estiver pronta
-        const hoje = new Date();
-        const mesAtual = hoje.getMonth() + 1;
-        const anoAtual = hoje.getFullYear();
-
         // Marcar todos os cartões como sem fatura pendente por padrão
         STATE.cartoes.forEach(cartao => {
             cartao.temFaturaPendente = false;
         });
 
-        return; // Desabilitado temporariamente
-
-        // Verificar para cada cartão se tem fatura pendente no mês atual
+        // Verificar para cada cartão se tem fatura pendente
         const promises = STATE.cartoes.map(async (cartao) => {
             try {
-                const response = await fetch(`${CONFIG.API_URL}/cartoes/${cartao.id}/fatura?mes=${mesAtual}&ano=${anoAtual}`, {
+                const response = await fetch(`${CONFIG.API_URL}/cartoes/${cartao.id}/faturas-pendentes`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -132,17 +125,13 @@ export const CartoesAPI = {
                 });
 
                 if (response.ok) {
-                    const fatura = await response.json();
-                    // Se tem parcelas não pagas e total > 0, marca como pendente
-                    cartao.temFaturaPendente = fatura.itens && fatura.itens.length > 0 && fatura.total > 0;
-                } else if (response.status === 404) {
-                    // Fatura não encontrada - normal para cartões sem lançamentos
-                    cartao.temFaturaPendente = false;
+                    const data = await response.json();
+                    const meses = data.data || data || [];
+                    cartao.temFaturaPendente = Array.isArray(meses) && meses.length > 0;
                 } else {
                     cartao.temFaturaPendente = false;
                 }
             } catch (error) {
-                // Silenciar erro de rede/fetch
                 cartao.temFaturaPendente = false;
             }
         });
@@ -600,12 +589,12 @@ export const CartoesAPI = {
             const data = await response.json();
 
             if (response.ok) {
-                LKFeedback.success(data.message || 'Parcelas pagas com sucesso!', { toast: true });
+                Utils.showToast('success', data.message || 'Parcelas pagas com sucesso!');
 
                 // Fechar modal e recarregar
                 const modal = document.querySelector('.modal-fatura-overlay');
                 if (modal) {
-                    Modules.UI.fecharModalFatura(modal);
+                    Modules.Fatura.fecharModalFatura(modal);
                 }
 
                 await CartoesAPI.loadCartoes();
@@ -613,89 +602,7 @@ export const CartoesAPI = {
                 throw new Error(data.message || 'Erro ao pagar parcelas');
             }
         } catch (error) {
-            LKFeedback.error(error.message, { toast: true });
-        }
-    },
-
-    /**
-     * Pagar fatura
-     */
-    async pagarFatura(fatura) {
-        const confirmado = await Utils.showConfirmDialog(
-            'Confirmar Pagamento',
-            `Deseja pagar a fatura de ${Utils.formatMoney(fatura.total)}?\n\nEsta ação criará um lançamento de despesa na conta vinculada e liberará o limite do cartão.`,
-            'Sim, Pagar'
-        );
-
-        if (!confirmado) return;
-
-        // Referência ao botão
-        const btnPagar = document.querySelector('.btn-pagar-fatura');
-        const originalText = btnPagar ? btnPagar.innerHTML : '';
-
-        try {
-            // Ativar loading state
-            if (btnPagar) {
-                btnPagar.disabled = true;
-                btnPagar.innerHTML = '<i data-lucide="loader-2" class="icon-spin"></i> Processando...';
-                refreshIcons();
-                btnPagar.style.opacity = '0.6';
-                btnPagar.style.cursor = 'not-allowed';
-            }
-
-            const csrfToken = await Utils.getCSRFToken();
-
-            const response = await fetch(`${CONFIG.API_URL}/cartoes/${fatura.cartao.id}/fatura/pagar`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                credentials: 'same-origin',
-                body: JSON.stringify({
-                    mes: fatura.mes,
-                    ano: fatura.ano
-                })
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Erro ao pagar fatura');
-            }
-
-            const resultado = await response.json();
-
-            // 🎮 GAMIFICAÇÃO: Exibir conquistas se houver
-            if (resultado.gamification?.achievements && Array.isArray(resultado.gamification.achievements)) {
-                if (typeof window.notifyMultipleAchievements === 'function') {
-                    window.notifyMultipleAchievements(resultado.gamification.achievements);
-                } else {
-                    console.error('❌ notifyMultipleAchievements não está disponível');
-                }
-            }
-
-            Utils.showToast('success', `Fatura paga com sucesso! ${resultado.parcelas_pagas} parcela(s) quitada(s).`);
-
-            // Fechar modal
-            const modal = document.querySelector('.modal-fatura-overlay');
-            if (modal) {
-                Modules.UI.fecharModalFatura(modal);
-            }
-
-            // Recarregar cartões para atualizar limite
-            CartoesAPI.loadCartoes();
-        } catch (error) {
-            console.error('❌ Erro ao pagar fatura:', error);
-
-            // Restaurar botão em caso de erro
-            if (btnPagar) {
-                btnPagar.disabled = false;
-                btnPagar.innerHTML = originalText;
-                btnPagar.style.opacity = '1';
-                btnPagar.style.cursor = 'pointer';
-            }
-            Utils.showToast('error', error.message || 'Erro ao pagar fatura');
+            Utils.showToast('error', error.message);
         }
     },
 
@@ -744,12 +651,12 @@ export const CartoesAPI = {
             const data = await response.json();
 
             if (data.success) {
-                LKFeedback.success(data.message, { toast: true });
+                Utils.showToast('success', data.message);
 
                 // Fechar modal e recarregar
                 const modal = document.querySelector('.modal-fatura-overlay');
                 if (modal) {
-                    Modules.UI.fecharModalFatura(modal);
+                    Modules.Fatura.fecharModalFatura(modal);
                 }
 
                 await CartoesAPI.loadCartoes();
@@ -757,7 +664,7 @@ export const CartoesAPI = {
                 throw new Error(data.message || 'Erro ao desfazer pagamento');
             }
         } catch (error) {
-            LKFeedback.error(error.message, { toast: true });
+            Utils.showToast('error', error.message);
         }
     },
 
@@ -805,12 +712,12 @@ export const CartoesAPI = {
             const data = await response.json();
 
             if (response.ok && data.success) {
-                LKFeedback.success(data.message, { toast: true });
+                Utils.showToast('success', data.message);
 
                 // Fechar modal e recarregar
                 const modal = document.querySelector('.modal-fatura-overlay');
                 if (modal) {
-                    Modules.UI.fecharModalFatura(modal);
+                    Modules.Fatura.fecharModalFatura(modal);
                 }
 
                 await CartoesAPI.loadCartoes();
@@ -818,7 +725,7 @@ export const CartoesAPI = {
                 throw new Error(data.message || 'Erro ao desfazer pagamento');
             }
         } catch (error) {
-            LKFeedback.error(error.message, { toast: true });
+            Utils.showToast('error', error.message);
         }
     },
 };

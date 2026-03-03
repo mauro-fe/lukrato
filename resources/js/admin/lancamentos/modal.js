@@ -414,7 +414,7 @@ const ModalManager = {
 
         // Preencher ID oculto
         if (DOM.viewLancamentoId) {
-            DOM.viewLancamentoId.value = data.id || '';
+            DOM.viewLancamentoId.textContent = data.id || '';
         }
 
         // Data
@@ -439,12 +439,12 @@ const ModalManager = {
         if (DOM.viewLancStatus) {
             let statusLabel = 'Efetivado';
             let statusClass = 'bg-success';
-            if (data.status === 'pendente') {
-                statusLabel = 'Pendente';
-                statusClass = 'bg-warning text-dark';
-            } else if (data.status === 'cancelado') {
+            if (data.cancelado_em) {
                 statusLabel = 'Cancelado';
                 statusClass = 'bg-secondary';
+            } else if (!data.pago) {
+                statusLabel = 'Pendente';
+                statusClass = 'bg-warning text-dark';
             }
             DOM.viewLancStatus.textContent = statusLabel;
             DOM.viewLancStatus.className = 'badge ' + statusClass;
@@ -462,7 +462,7 @@ const ModalManager = {
 
         // Cartão
         if (DOM.viewLancCartaoItem && DOM.viewLancCartao) {
-            if (data.cartao_id && data.cartao_nome) {
+            if (data.cartao_credito_id && data.cartao_nome) {
                 DOM.viewLancCartaoItem.classList.remove('d-none');
                 DOM.viewLancCartao.textContent = data.cartao_nome;
             } else {
@@ -524,8 +524,8 @@ const ModalManager = {
         if (!contaValue) return ModalManager.showLancAlert('Selecione a conta.');
 
         const valorFloat = Math.abs(Number(MoneyMask.unformat(valorValue)));
-        if (!Number.isFinite(valorFloat)) {
-            return ModalManager.showLancAlert('Informe um valor válido.');
+        if (!Number.isFinite(valorFloat) || valorFloat <= 0) {
+            return ModalManager.showLancAlert('Informe um valor válido maior que zero.');
         }
 
         const payload = {
@@ -540,52 +540,7 @@ const ModalManager = {
             forma_pagamento: formaPagamentoValue || null
         };
 
-        // payload remains unchanged for normal edit
-
-        // Detectar se é um parcelamento
-        const ehParcelado = payload.eh_parcelado == 1 || payload.eh_parcelado === '1';
-        const numeroParcelas = parseInt(payload.numero_parcelas) || 0;
-
-        // Se for parcelamento com múltiplas parcelas E não for edição (sem id), redirecionar para API de parcelamentos
-        if (!STATE.editingLancamentoId && ehParcelado && numeroParcelas > 1) {
-            try {
-                const parcelamentoData = {
-                    descricao: payload.descricao,
-                    valor: parseFloat(payload.valor) || 0,
-                    numero_parcelas: numeroParcelas,
-                    categoria_id: payload.categoria_id,
-                    conta_id: payload.conta_id,
-                    tipo: payload.tipo,
-                    data: payload.data
-                };
-
-                const response = await fetch(`${CONFIG.BASE_URL}api/parcelamentos`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                    },
-                    body: JSON.stringify(parcelamentoData)
-                });
-
-                const result = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(result.message || 'Erro ao criar parcelamento');
-                }
-
-                LKFeedback.success(result.message || `Parcelamento criado! ${numeroParcelas} parcelas foram geradas.`, { toast: true });
-
-                bootstrap.Modal.getInstance(DOM.modalEdit).hide();
-                await Modules.DataManager.load();
-                return;
-            } catch (error) {
-                LKFeedback.error(error.message || 'Erro ao criar parcelamento', { toast: true });
-                return;
-            }
-        }
-
-        // Continuar com lógica normal de lançamento simples...
+        // Continuar com lógica normal de atualização...
         const submitBtn = DOM.formLanc.querySelector('button[type="submit"]');
         submitBtn?.setAttribute('disabled', 'disabled');
 
@@ -601,7 +556,7 @@ const ModalManager = {
             }
 
             ModalManager.ensureLancModal()?.hide();
-            Notifications.toast('lançamento atualizado com sucesso!');
+            Notifications.toast('Lançamento atualizado com sucesso!');
             await Modules.DataManager.load();
 
             document.dispatchEvent(new CustomEvent('lukrato:data-changed', {

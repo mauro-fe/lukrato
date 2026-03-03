@@ -91,7 +91,7 @@ $currentPlanCode = $currentPlanCode ?? ($user?->planoAtual()?->code ?? null);
                 if ($isCurrentPlan) $cardClasses[] = 'plan-card--active';
 
                 $buttonId = strcasecmp($plan['code'], 'pro') === 0 ? 'btnAssinar' : null;
-                $renewDate = $user->plano_renova_em ?? $user->plan_renews_at ?? null;
+                $renewDate = $subscriptionStatus['renews_at'] ?? null;
                 ?>
 
                 <article class="<?= implode(' ', $cardClasses) ?>" aria-label="Plano <?= htmlspecialchars($plan['name']) ?>">

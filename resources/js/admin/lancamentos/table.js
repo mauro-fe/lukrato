@@ -8,6 +8,7 @@
  */
 
 import { CONFIG, DOM, STATE, Utils, Notifications, Modules } from './state.js';
+import { handleMarcarPago, handleDesmarcarPago, handleCancelarRecorrencia, handleDelete, handleEdit } from './actions.js';
 
 export const TableManager = {
     /**
@@ -760,168 +761,23 @@ export const TableManager = {
         }
 
         if (action === 'edit') {
-            if (!Utils.canEditLancamento(item)) return;
-            if (item.eh_transferencia) {
-                Modules.ModalManager.openEditTransferencia(item);
-            } else {
-                Modules.ModalManager.openEditLancamento(item);
-            }
+            handleEdit(item);
         }
 
         if (action === 'delete') {
-            if (Utils.isSaldoInicial(item)) return;
-
-            (async () => {
-                let scope = 'single';
-                const isRecorrente = item.recorrente && item.recorrencia_pai_id;
-                const isParcelamento = !!item.parcelamento_id;
-
-                if (isRecorrente || isParcelamento) {
-                    const tipoLabel = isRecorrente ? 'recorrência' : 'parcelamento';
-                    const result = await Swal.fire({
-                        title: 'Excluir lançamento',
-                        html: `<p>Este lançamento faz parte de uma <strong>${tipoLabel}</strong>. O que deseja fazer?</p>`,
-                        icon: 'question',
-                        input: 'radio',
-                        inputOptions: {
-                            'single': 'Apenas este lançamento',
-                            'future': 'Este e todos os futuros não pagos',
-                            'all': `Toda a ${tipoLabel}`
-                        },
-                        inputValue: 'single',
-                        showCancelButton: true,
-                        confirmButtonColor: '#d33',
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: 'Excluir',
-                        cancelButtonText: 'Cancelar',
-                        inputValidator: (value) => !value ? 'Selecione uma opção' : undefined
-                    });
-                    if (!result.isConfirmed) return;
-                    scope = result.value;
-                } else {
-                    const ok = await Notifications.ask(
-                        'Excluir lançamento?',
-                        'Esta ação não pode ser desfeita.'
-                    );
-                    if (!ok) return;
-                }
-
-                btn.disabled = true;
-                const okDel = await Modules.API.deleteOne(id, scope);
-                btn.disabled = false;
-
-                if (okDel) {
-                    STATE.selectedIds.delete(String(id));
-                    const msgs = {
-                        single: 'Lançamento excluído com sucesso!',
-                        future: 'Lançamentos futuros excluídos!',
-                        all: 'Toda a série excluída!'
-                    };
-                    Notifications.toast(msgs[scope] || 'Excluído!');
-                    await Modules.DataManager.load();
-                } else {
-                    Notifications.toast('Falha ao excluir lançamento.', 'error');
-                }
-            })();
+            handleDelete(id, item, btn);
         }
 
         if (action === 'marcar-pago') {
-            (async () => {
-                const ok = await Notifications.ask(
-                    'Marcar como pago?',
-                    'Este lançamento será marcado como pago.'
-                );
-                if (!ok) return;
-
-                btn.disabled = true;
-                try {
-                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-                    const response = await fetch(`${CONFIG.BASE_URL}api/lancamentos/${id}/pagar`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-Token': csrfToken
-                        }
-                    });
-                    if (response.ok) {
-                        Notifications.toast('Lançamento marcado como pago!');
-                        await Modules.DataManager.load();
-                    } else {
-                        const err = await response.json();
-                        Notifications.toast(err.message || 'Erro ao marcar como pago.', 'error');
-                    }
-                } catch (error) {
-                    console.error('Erro ao marcar como pago:', error);
-                    Notifications.toast('Erro ao marcar como pago.', 'error');
-                }
-                btn.disabled = false;
-            })();
+            handleMarcarPago(id, btn);
         }
 
         if (action === 'desmarcar-pago') {
-            (async () => {
-                const ok = await Notifications.ask(
-                    'Marcar como pendente?',
-                    'Este lançamento voltará para pendente e não afetará mais o saldo da conta.'
-                );
-                if (!ok) return;
-
-                btn.disabled = true;
-                try {
-                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-                    const response = await fetch(`${CONFIG.BASE_URL}api/lancamentos/${id}/despagar`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-Token': csrfToken
-                        }
-                    });
-                    if (response.ok) {
-                        Notifications.toast('Lançamento marcado como pendente!');
-                        await Modules.DataManager.load();
-                    } else {
-                        const err = await response.json();
-                        Notifications.toast(err.message || 'Erro ao marcar como pendente.', 'error');
-                    }
-                } catch (error) {
-                    console.error('Erro ao desmarcar como pago:', error);
-                    Notifications.toast('Erro ao desmarcar como pago.', 'error');
-                }
-                btn.disabled = false;
-            })();
+            handleDesmarcarPago(id, btn);
         }
 
         if (action === 'cancelar-recorrencia') {
-            (async () => {
-                const ok = await Notifications.ask(
-                    'Cancelar recorrência?',
-                    'Todos os lançamentos futuros não pagos desta série serão cancelados. Esta ação não pode ser desfeita.'
-                );
-                if (!ok) return;
-
-                btn.disabled = true;
-                try {
-                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-                    const response = await fetch(`${CONFIG.BASE_URL}api/lancamentos/${id}/cancelar-recorrencia`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-Token': csrfToken
-                        }
-                    });
-                    if (response.ok) {
-                        Notifications.toast('Recorrência cancelada com sucesso!');
-                        await Modules.DataManager.load();
-                    } else {
-                        const err = await response.json();
-                        Notifications.toast(err.message || 'Erro ao cancelar recorrência.', 'error');
-                    }
-                } catch (error) {
-                    console.error('Erro ao cancelar recorrência:', error);
-                    Notifications.toast('Erro ao cancelar recorrência.', 'error');
-                }
-                btn.disabled = false;
-            })();
+            handleCancelarRecorrencia(id, btn);
         }
     },
 

@@ -138,6 +138,12 @@ class PerfilService
             // Agendamentos
             $deleteIfExists('agendamentos');
 
+            // Orçamentos
+            $deleteIfExists('orcamentos_categoria');
+
+            // Parcelamentos
+            $deleteIfExists('parcelamentos');
+
             // Categorias
             $deleteIfExists('categorias');
 
@@ -151,7 +157,16 @@ class PerfilService
             $deleteIfExists('faturas_cartao_itens');
             $deleteIfExists('faturas');
 
-            // Investimentos
+            // Investimentos (transações e proventos primeiro)
+            try {
+                $investimentoIds = DB::table('investimentos')->where('user_id', $userId)->pluck('id');
+                if ($investimentoIds->isNotEmpty()) {
+                    DB::table('transacoes_investimento')->whereIn('investimento_id', $investimentoIds)->delete();
+                    DB::table('proventos')->whereIn('investimento_id', $investimentoIds)->delete();
+                }
+            } catch (\Exception $e) {
+                LogService::warning("Erro ao deletar transações/proventos de investimentos: " . $e->getMessage());
+            }
             $deleteIfExists('investimentos');
 
             // Metas
@@ -160,12 +175,34 @@ class PerfilService
             // Gamificação
             $deleteIfExists('user_achievements');
             $deleteIfExists('points_log');
+            $deleteIfExists('user_progress');
 
             // Notificações
             $deleteIfExists('notificacoes');
+            $deleteIfExists('notifications');
 
             // Preferências
             $deleteIfExists('preferencias_usuario');
+
+            // Assinatura
+            $deleteIfExists('assinaturas_usuarios');
+
+            // Indicações (pode ser referrer ou referred)
+            try {
+                DB::table('indicacoes')
+                    ->where('referrer_id', $userId)
+                    ->orWhere('referred_id', $userId)
+                    ->delete();
+            } catch (\Exception $e) {
+                LogService::warning("Tabela indicacoes não existe ou erro ao deletar: " . $e->getMessage());
+            }
+
+            // Cupons usados (usa usuario_id, não user_id)
+            try {
+                DB::table('cupons_usados')->where('usuario_id', $userId)->delete();
+            } catch (\Exception $e) {
+                LogService::warning("Tabela cupons_usados não existe ou erro ao deletar: " . $e->getMessage());
+            }
 
             // Documentos
             $this->documentoRepo->deleteCpf($userId);
@@ -243,7 +280,7 @@ class PerfilService
 
                         $this->enderecoRepo->updateOrCreatePrincipal($userId, [
                             'cep' => $cepLimpo,
-                            'logradouro' => $logradouro ?: null,
+                            'rua' => $logradouro ?: null,
                             'numero' => $numero,
                         ]);
                     }

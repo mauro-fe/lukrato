@@ -162,7 +162,11 @@ class Router
         }
     }
 
-    private static function handleNotFound(?Request $request): void
+    /**
+     * Retorna resposta 404 padrão (JSON para API/AJAX, HTML para web).
+     * Público para que middlewares possam reutilizar (stealth mode).
+     */
+    public static function handleNotFound(?Request $request = null): void
     {
         $wantsJson = $request?->wantsJson() || $request?->isAjax();
 

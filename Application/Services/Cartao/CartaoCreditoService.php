@@ -7,6 +7,8 @@ use Application\Models\Conta;
 use Application\DTO\CreateCartaoCreditoDTO;
 use Application\DTO\UpdateCartaoCreditoDTO;
 use Application\Validators\CartaoCreditoValidator;
+use Application\Services\Infrastructure\LogService;
+use Application\Enums\LogCategory;
 use Illuminate\Database\Capsule\Manager as DB;
 use Throwable;
 
@@ -102,8 +104,11 @@ class CartaoCreditoService
             ];
         } catch (Throwable $e) {
             DB::rollBack();
-            error_log('❌ Erro ao salvar cartão: ' . $e->getMessage());
+            LogService::captureException($e, LogCategory::CARTAO, [
+                'action' => 'criar_cartao',
+            ]);
             return [
+                'success' => false,
                 'message' => 'Erro ao criar cartão: ' . $e->getMessage(),
             ];
         }
@@ -406,14 +411,19 @@ class CartaoCreditoService
                         ];
                     }
                 } catch (\Exception $e) {
-                    error_log("Erro ao verificar limite do cartão {$cartao->id}: " . $e->getMessage());
+                    LogService::captureException($e, LogCategory::CARTAO, [
+                        'action' => 'verificar_limite_cartao',
+                        'cartao_id' => $cartao->id,
+                    ]);
                     continue;
                 }
             }
 
             return $alertas;
         } catch (\Exception $e) {
-            error_log("Erro geral em verificarLimitesBaixos: " . $e->getMessage());
+            LogService::captureException($e, LogCategory::CARTAO, [
+                'action' => 'verificar_limites_baixos',
+            ]);
             return [];
         }
     }

@@ -143,8 +143,8 @@ export const CartoesUI = {
         document.querySelectorAll('.filter-btn:not(.btn-clear-filters)').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.filter-btn:not(.btn-clear-filters)').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                STATE.currentFilter = e.target.dataset.filter;
+                e.currentTarget.classList.add('active');
+                STATE.currentFilter = e.currentTarget.dataset.filter;
                 CartoesUI.filterCartoes();
                 toggleClearBtn();
             });

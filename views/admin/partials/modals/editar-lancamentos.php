@@ -81,6 +81,8 @@
                                 <option value="boleto">📄 Boleto</option>
                                 <option value="transferencia">🏦 Transferência</option>
                                 <option value="deposito">🏦 Depósito</option>
+                                <option value="estorno_cartao">↩️ Estorno Cartão</option>
+                                <option value="cheque">📝 Cheque</option>
                             </select>
                         </div>
                     </div>

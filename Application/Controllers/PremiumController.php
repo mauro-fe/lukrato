@@ -434,25 +434,77 @@ class PremiumController extends BaseController
             ->lockForUpdate()
             ->first();
 
-        if ($existingSubscription) {
-            // Se é uma assinatura ativa de verdade, bloqueia
-            if ($existingSubscription->status === AssinaturaUsuario::ST_ACTIVE) {
-                throw new \RuntimeException('Você já possui uma assinatura ativa.');
-            }
+        if (!$existingSubscription) {
+            return;
+        }
 
-            // Se é PENDING com PIX/Boleto aguardando, permite deletar e recriar
-            // (usuário pode querer trocar método de pagamento)
-            if (
-                $existingSubscription->status === AssinaturaUsuario::ST_PENDING
-                && in_array($existingSubscription->billing_type, ['PIX', 'BOLETO'])
-            ) {
-                // Deleta a assinatura pendente para permitir nova tentativa
-                $existingSubscription->delete();
+        // ──────────────────────────────────────────────────────────────
+        // STATUS ACTIVE — verificar se está genuinamente ativo ou vencido
+        // ──────────────────────────────────────────────────────────────
+        if ($existingSubscription->status === AssinaturaUsuario::ST_ACTIVE) {
+            $renewsAt = $existingSubscription->renova_em
+                ? \Carbon\Carbon::parse($existingSubscription->renova_em)
+                : null;
+
+            // Se renova_em já passou, está em período de carência ou expirado
+            // → permitir renovação expirando a assinatura antiga
+            if ($renewsAt && $renewsAt->isPast()) {
+                $this->expireOldSubscription($existingSubscription);
                 return;
             }
 
-            throw new \RuntimeException('Você já possui uma assinatura em andamento.');
+            // Genuinamente ativa e dentro do prazo
+            throw new \RuntimeException('Você já possui uma assinatura ativa.');
         }
+
+        // ──────────────────────────────────────────────────────────────
+        // STATUS PENDING — PIX/Boleto aguardando → permitir trocar método
+        // ──────────────────────────────────────────────────────────────
+        if (
+            $existingSubscription->status === AssinaturaUsuario::ST_PENDING
+            && in_array($existingSubscription->billing_type, ['PIX', 'BOLETO'])
+        ) {
+            $existingSubscription->delete();
+            return;
+        }
+
+        // ──────────────────────────────────────────────────────────────
+        // STATUS PAST_DUE — pagamento falhou → permitir nova tentativa
+        // ──────────────────────────────────────────────────────────────
+        if ($existingSubscription->status === AssinaturaUsuario::ST_PAST_DUE) {
+            $this->expireOldSubscription($existingSubscription);
+            return;
+        }
+
+        throw new \RuntimeException('Você já possui uma assinatura em andamento.');
+    }
+
+    /**
+     * Expira uma assinatura antiga para permitir renovação.
+     * Cancela no Asaas se houver subscription vinculada.
+     */
+    private function expireOldSubscription(AssinaturaUsuario $subscription): void
+    {
+        // Cancelar no Asaas se for assinatura de cartão recorrente
+        if ($subscription->gateway === 'asaas' && $subscription->external_subscription_id) {
+            try {
+                $this->asaas->cancelSubscription($subscription->external_subscription_id);
+            } catch (\Throwable $e) {
+                // Não falhar — assinatura pode já estar cancelada no Asaas
+                LogService::captureException($e, LogCategory::SUBSCRIPTION, [
+                    'action' => 'expire_old_subscription_asaas_cancel',
+                    'subscription_id' => $subscription->id,
+                ], $subscription->user_id, LogLevel::WARNING);
+            }
+        }
+
+        $subscription->status = AssinaturaUsuario::ST_EXPIRED;
+        $subscription->save();
+
+        LogService::info('Assinatura antiga expirada para permitir renovação', [
+            'subscription_id' => $subscription->id,
+            'user_id' => $subscription->user_id,
+        ]);
     }
 
     private function getPlanoPro(): Plano
@@ -687,55 +739,44 @@ class PremiumController extends BaseController
             ];
         }
 
-        // 🧾 Boleto
+        // 🧾 Boleto: buscar linha digitável com retry
         if ($dto->isBoleto()) {
-            try {
-                $boletoData = $this->asaas->getBoletoIdentificationField($paymentId);
-                $result['boleto'] = [
-                    'identificationField' => $boletoData['identificationField'] ?? null,
-                    'nossoNumero' => $boletoData['nossoNumero'] ?? null,
-                    'barCode' => $boletoData['barCode'] ?? null,
-                    'bankSlipUrl' => $resp['bankSlipUrl'] ?? null,
-                ];
-            } catch (\Throwable $e) {
-                LogService::captureException($e, LogCategory::PAYMENT, [
-                    'action' => 'fetch_boleto_data',
-                    'payment_id' => $paymentId,
-                ], $usuario->id ?? null);
+            $boletoData = null;
+
+            for ($i = 0; $i < 5; $i++) {
+                usleep(500000); // 500ms
+                try {
+                    $boletoData = $this->asaas->getBoletoIdentificationField($paymentId);
+
+                    if (!empty($boletoData['identificationField'])) {
+                        break;
+                    }
+                } catch (\Throwable $e) {
+                    LogService::captureException($e, LogCategory::PAYMENT, [
+                        'action' => 'boleto_data_retry',
+                        'attempt' => $i + 1,
+                        'payment_id' => $paymentId,
+                    ], $usuario->id ?? null, LogLevel::WARNING);
+                }
+            }
+
+            $result['boleto'] = [
+                'identificationField' => $boletoData['identificationField'] ?? null,
+                'nossoNumero' => $boletoData['nossoNumero'] ?? null,
+                'barCode' => $boletoData['barCode'] ?? null,
+                'bankSlipUrl' => $resp['bankSlipUrl'] ?? null,
+            ];
+
+            // Se não conseguiu obter a linha digitável E nem a URL do boleto, falha
+            if (empty($result['boleto']['identificationField']) && empty($result['boleto']['bankSlipUrl'])) {
+                error_log("🔴 [CHECKOUT] Dados do boleto não disponíveis após 5 tentativas");
+                throw new \RuntimeException(
+                    'Boleto criado, mas os dados de pagamento ainda não foram disponibilizados pelo gateway. Tente novamente em alguns segundos.'
+                );
             }
         }
 
         return $result;
-    }
-
-
-    private function createPayment(Usuario $usuario, Plano $plano, CheckoutRequestDTO $dto, $customerData, float $total): array
-    {
-        $builder = (new AsaasPaymentBuilder())
-            ->forCustomer($usuario)
-            ->withValue($total)
-            ->withDescription($plano->nome . ' (Semestral -10%)')
-            ->withBillingType($dto->billingType)
-            ->withDueDate(date('Y-m-d'))
-            ->withExternalReference("pay:user:{$usuario->id}:plano:{$plano->id}:m6");
-
-        if ($dto->hasCreditCard()) {
-            $builder->withCreditCard($dto->creditCard, $customerData);
-        }
-
-        $resp = $this->asaas->createPayment($builder->build());
-        $status = $resp['status'] ?? 'PENDING';
-
-        return [
-            'asaas_id' => $resp['id'] ?? null,
-            'asaas_status' => $status,
-            'status' => match ($status) {
-                'CONFIRMED', 'RECEIVED' => AssinaturaUsuario::ST_ACTIVE,
-                default => AssinaturaUsuario::ST_PENDING,
-            },
-            'renova_em' => date('Y-m-d', strtotime('+6 months')),
-            'message' => 'Cobrança semestral criada. Aguarde confirmação.',
-        ];
     }
 
     private function createSubscription(Usuario $usuario, Plano $plano, CheckoutRequestDTO $dto, $customerData, float $valorMensal, float $total, ?array $cupomAplicado = null): array

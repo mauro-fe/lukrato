@@ -169,7 +169,107 @@
                 submitBtn.disabled = true;
             }
 
-            const fd = new FormData(form);
+            // Detect which tab panel the submit button belongs to
+            const panel = submitBtn?.closest('.profile-tab-panel');
+            const panelId = panel?.id || '';
+
+            // If security tab → password change endpoint
+            if (panelId === 'panel-seguranca') {
+                const fd = new FormData();
+                fd.append('senha_atual', document.getElementById('senha_atual')?.value || '');
+                fd.append('nova_senha', document.getElementById('nova_senha')?.value || '');
+                fd.append('conf_senha', document.getElementById('conf_senha')?.value || '');
+
+                // Include CSRF token
+                const csrfInput = form.querySelector('input[name="csrf_token"]') || form.querySelector('input[name="_token"]');
+                if (csrfInput) fd.append(csrfInput.name, csrfInput.value);
+
+                try {
+                    const r = await fetch(`${API}perfil/senha`, {
+                        method: 'POST',
+                        credentials: 'include',
+                        body: fd,
+                        headers: { 'Accept': 'application/json' }
+                    });
+
+                    const j = await r.json().catch(() => null);
+                    if (!r.ok || j?.status === 'error') {
+                        throw new Error(extractApiError(j, 'Falha ao alterar senha.'));
+                    }
+
+                    // Clear password fields
+                    document.getElementById('senha_atual').value = '';
+                    document.getElementById('nova_senha').value = '';
+                    document.getElementById('conf_senha').value = '';
+
+                    // Hide strength panel
+                    const strengthPanel = document.getElementById('pwdStrengthProfile');
+                    if (strengthPanel) strengthPanel.classList.remove('visible');
+                    const matchPanel = document.getElementById('pwdMatchProfile');
+                    if (matchPanel) matchPanel.classList.remove('visible');
+
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Senha alterada!',
+                            text: 'Sua senha foi atualizada com sucesso.',
+                            confirmButtonColor: '#e67e22',
+                            timer: 2000
+                        });
+                    }
+                } catch (err) {
+                    console.error('Erro ao alterar senha:', err);
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erro ao alterar senha',
+                            text: err.message || 'Erro ao alterar senha.',
+                            confirmButtonColor: '#e74c3c'
+                        });
+                    }
+                } finally {
+                    form.classList.remove('form-loading');
+                    if (submitBtn) {
+                        submitBtn.innerHTML = originalContent;
+                        submitBtn.disabled = false;
+                    }
+                }
+                return;
+            }
+
+            // For dados/endereco tabs → send only relevant fields
+            const fd = new FormData();
+
+            // Always include CSRF token
+            const csrfInput = form.querySelector('input[name="csrf_token"]') || form.querySelector('input[name="_token"]');
+            if (csrfInput) fd.append(csrfInput.name, csrfInput.value);
+
+            // Collect only fields from the active panel (or all non-password fields)
+            const activeFields = panel
+                ? panel.querySelectorAll('input[name]:not([type="password"]):not([name^="_fake"]), select[name], textarea[name]')
+                : form.querySelectorAll('input[name]:not([type="password"]):not([name^="_fake"]), select[name], textarea[name]');
+
+            activeFields.forEach(field => {
+                if (field.name && !field.name.startsWith('_fake')) {
+                    fd.append(field.name, field.value);
+                }
+            });
+
+            // For endereco tab, also include personal data fields (API expects all profile fields)
+            // For dados tab, also include endereco fields (API expects all profile fields)
+            // Since the API replaces all fields, we need to send everything from both tabs
+            if (panelId === 'panel-dados' || panelId === 'panel-endereco') {
+                const otherPanelId = panelId === 'panel-dados' ? 'panel-endereco' : 'panel-dados';
+                const otherPanel = document.getElementById(otherPanelId);
+                if (otherPanel) {
+                    const otherFields = otherPanel.querySelectorAll('input[name]:not([type="password"]):not([name^="_fake"]), select[name], textarea[name]');
+                    otherFields.forEach(field => {
+                        if (field.name && !field.name.startsWith('_fake') && !fd.has(field.name)) {
+                            fd.append(field.name, field.value);
+                        }
+                    });
+                }
+            }
 
             try {
                 const r = await fetch(`${API}perfil`, {
@@ -424,10 +524,12 @@
                 const originalIcon = button.innerHTML;
                 button.innerHTML = '<i data-lucide="check"></i>';
                 button.classList.add('copied');
+                if (window.lucide) lucide.createIcons();
 
                 setTimeout(() => {
                     button.innerHTML = originalIcon;
                     button.classList.remove('copied');
+                    if (window.lucide) lucide.createIcons();
                 }, 2000);
             }).catch(err => {
                 console.error('Erro ao copiar:', err);
@@ -487,25 +589,24 @@
     function copySupportCode() {
         const input = document.getElementById('support_code');
         const btn = document.getElementById('btn-copy-support');
-        if (!input || !input.value) return;
+        if (!input || !input.value || !btn) return;
 
         const originalIcon = btn.innerHTML;
-        navigator.clipboard.writeText(input.value).then(() => {
+        const showCheck = () => {
             btn.innerHTML = '<i data-lucide="check"></i>';
             btn.style.color = '#22c55e';
+            if (window.lucide) lucide.createIcons();
             setTimeout(() => {
                 btn.innerHTML = originalIcon;
                 btn.style.color = '';
+                if (window.lucide) lucide.createIcons();
             }, 2000);
-        }).catch(() => {
+        };
+
+        navigator.clipboard.writeText(input.value).then(showCheck).catch(() => {
             input.select();
             document.execCommand('copy');
-            btn.innerHTML = '<i data-lucide="check"></i>';
-            btn.style.color = '#22c55e';
-            setTimeout(() => {
-                btn.innerHTML = originalIcon;
-                btn.style.color = '';
-            }, 2000);
+            showCheck();
         });
     }
 

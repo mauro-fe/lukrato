@@ -8,7 +8,7 @@
  * ============================================================================
  */
 
-import { formatMoney, formatDate, escapeHtml, getTipoClass as sharedGetTipoClass } from '../shared/utils.js';
+import { formatMoney, formatDate, escapeHtml } from '../shared/utils.js';
 import { showToast, showConfirm, showLoading, hideLoading, toastSuccess, toastError } from '../shared/ui.js';
 import { getBaseUrl, getCSRFToken } from '../shared/api.js';
 
@@ -63,9 +63,6 @@ export const DOM = {
 
     // Gamificação
     streakDays: document.getElementById('streakDays'),
-    organizationPercentage: document.getElementById('organizationPercentage'),
-    organizationBar: document.getElementById('organizationBar'),
-    organizationText: document.getElementById('organizationText'),
     badgesGrid: document.getElementById('badgesGrid'),
     userLevel: document.getElementById('userLevel'),
     totalLancamentos: document.getElementById('totalLancamentos'),
@@ -79,9 +76,7 @@ export const DOM = {
 export const STATE = {
     chartInstance: null,
     currentMonth: null,
-    isLoading: false,
-    gamificationData: null,
-    allTransactions: []
+    isLoading: false
 };
 
 // ─── Dashboard Utils ─────────────────────────────────────────────────────────
@@ -130,11 +125,6 @@ export const Utils = {
         } catch {
             return '-';
         }
-    },
-
-    getCsrfToken: () => {
-        return document.querySelector('meta[name="csrf-token"]')?.content ||
-            document.querySelector('input[name="csrf_token"]')?.value || '';
     },
 
     getCurrentMonth: () => {

@@ -35,6 +35,7 @@ class LancamentoValidator
         'transferencia',
         'deposito',
         'estorno_cartao',
+        'cheque',
     ];
 
     /**

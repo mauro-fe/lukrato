@@ -268,7 +268,6 @@ export const ParcelamentoGrouper = {
                         conta: item.conta,
                         cartao_credito: item.cartao_credito,
                         parcelas: [],
-                        // Totais reais vindos da tabela parcelamentos
                         totalParcelas: item.total_parcelas || 0,
                         parcelasPagas: item.parcelas_pagas ?? null
                     };
@@ -286,92 +285,6 @@ export const ParcelamentoGrouper = {
     },
 
     /**
-     * Cria row visual de parcelamento
-     */
-    createRow(grupo) {
-        const totalParcelas = grupo.totalParcelas || grupo.parcelas.length;
-        const parcelasPagas = grupo.parcelasPagas ?? grupo.parcelas.filter(p => p.pago).length;
-        const valorTotal = grupo.parcelas.reduce((sum, p) => sum + parseFloat(p.valor || 0), 0);
-        const percentual = totalParcelas > 0 ? (parcelasPagas / totalParcelas) * 100 : 0;
-
-        const primeira = grupo.parcelas[0];
-        const tipoClass = primeira.tipo === 'receita' ? 'success' : 'danger';
-        const tipoIcon = primeira.tipo === 'receita' ? '↑' : '↓';
-
-        const tr = document.createElement('tr');
-        tr.className = 'parcelamento-grupo bg-light';
-        tr.dataset.parcelamentoId = grupo.id;
-
-        tr.innerHTML = `
-            <td>
-                <div class="d-flex align-items-center gap-2">
-                    <button class="btn btn-sm btn-link p-0 text-decoration-none toggle-parcelas" 
-                            data-parcelamento-id="${grupo.id}"
-                            title="Ver parcelas">
-                        <i data-lucide="chevron-right"></i>
-                    </button>
-                    <div>
-                        <div class="fw-bold">
-                            📦 ${grupo.descricao}
-                        </div>
-                        <small class="text-muted">
-                            ${totalParcelas}x de R$ ${(valorTotal / totalParcelas).toFixed(2)}
-                        </small>
-                    </div>
-                </div>
-            </td>
-            <td>
-                <span class="badge bg-${tipoClass}">
-                    ${tipoIcon} ${primeira.tipo}
-                </span>
-            </td>
-            <td>
-                <span class="badge bg-secondary">${primeira.categoria || '-'}</span>
-            </td>
-            <td>
-                ${primeira.conta || primeira.cartao_credito || '-'}
-            </td>
-            <td class="text-end">
-                <div class="fw-bold">R$ ${valorTotal.toFixed(2)}</div>
-                <div class="progress mt-1" style="height: 6px;">
-                    <div class="progress-bar bg-${tipoClass}" 
-                         role="progressbar"
-                         style="width: ${percentual}%"></div>
-                </div>
-                <small class="text-muted">
-                    ${parcelasPagas}/${totalParcelas} pagas (${Math.round(percentual)}%)
-                </small>
-            </td>
-            <td class="text-center">
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
-                        <i data-lucide="more-vertical"></i>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li>
-                            <a class="dropdown-item toggle-parcelas-menu" 
-                               href="#" 
-                               data-parcelamento-id="${grupo.id}">
-                                <i data-lucide="list"></i> Ver Parcelas
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item text-danger delete-parcelamento" 
-                               href="#" 
-                               data-parcelamento-id="${grupo.id}">
-                                <i data-lucide="trash-2"></i> Cancelar Parcelamento
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </td>
-        `;
-
-        return tr;
-    },
-
-    /**
      * Abre modal de parcelas buscando TODAS do endpoint da API
      */
     async toggle(parcelamentoId) {
@@ -380,7 +293,7 @@ export const ParcelamentoGrouper = {
 
         try {
             // Buscar TODAS as parcelas da API (não apenas as do mês atual)
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const csrfToken = Utils.getCSRFToken();
             const resp = await fetch(`${CONFIG.BASE_URL}api/parcelamentos/${parcelamentoId}`, {
                 headers: { 'X-CSRF-Token': csrfToken }
             });
@@ -490,7 +403,7 @@ export const ParcelamentoGrouper = {
      */
     async togglePago(lancamentoId, pago) {
         try {
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const csrfToken = Utils.getCSRFToken();
             const endpoint = pago
                 ? `${CONFIG.BASE_URL}api/lancamentos/${lancamentoId}/pagar`
                 : `${CONFIG.BASE_URL}api/lancamentos/${lancamentoId}/despagar`;
@@ -550,7 +463,7 @@ export const ParcelamentoGrouper = {
                 const response = await fetch(`${CONFIG.BASE_URL}api/parcelamentos/${parcelamentoId}?scope=${scope}`, {
                     method: 'DELETE',
                     headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                        'X-CSRF-TOKEN': Utils.getCSRFToken()
                     }
                 });
 
@@ -721,7 +634,7 @@ export const FaturaDetalhes = {
                         <span class="fw-bold">${Utils.fmtMoney(data.total)}</span>
                     </div>
                     <div class="mt-2 text-end">
-                        <a href="${CONFIG.BASE_URL}admin/faturas" class="text-decoration-none" style="font-size:0.8rem;color:#7c3aed;">
+                        <a href="${CONFIG.BASE_URL}faturas" class="text-decoration-none" style="font-size:0.8rem;color:#7c3aed;">
                             Ver fatura completa <i data-lucide="arrow-right" style="width:12px;height:12px;vertical-align:middle;"></i>
                         </a>
                     </div>
@@ -793,7 +706,7 @@ export const FaturaDetalhes = {
                     <span class="fw-bold">${Utils.fmtMoney(data.total)}</span>
                 </div>
                 <div class="text-end mt-1">
-                    <a href="${CONFIG.BASE_URL}admin/faturas" style="font-size:0.75rem;color:#7c3aed;">Ver fatura →</a>
+                    <a href="${CONFIG.BASE_URL}faturas" style="font-size:0.75rem;color:#7c3aed;">Ver fatura →</a>
                 </div>
             </div>
         `;

@@ -156,8 +156,9 @@ Modules.API = API;
 
 const EventListeners = {
     init() {
-        // Money mask on edit modal value field
+        // Money mask on edit modal value fields
         MoneyMask.bind(DOM.inputLancValor);
+        MoneyMask.bind(DOM.inputTransValor);
 
         // Tipo de lançamento mudou — atualizar categorias
         DOM.selectLancTipo?.addEventListener('change', () => {
@@ -177,6 +178,9 @@ const EventListeners = {
 
         // Submit do formulário de edição
         DOM.formLanc?.addEventListener('submit', ModalManager.submitEditForm);
+
+        // Submit do formulário de edição de transferência
+        DOM.formTrans?.addEventListener('submit', ModalManager.submitTransForm);
 
         // Botão editar do modal de visualização
         DOM.btnEditFromView?.addEventListener('click', () => {

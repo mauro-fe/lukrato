@@ -4,44 +4,41 @@ namespace Application\Middlewares;
 
 use Application\Lib\Auth;
 use Application\Core\Request;
-use Application\Core\Exceptions\AuthException;
+use Application\Core\Router;
 
+/**
+ * Middleware de autenticação com Stealth Mode.
+ *
+ * Em vez de retornar 401 ou redirecionar para /login (o que revelaria
+ * que a rota existe), retorna exatamente a mesma resposta 404 que o
+ * Router usa para rotas inexistentes. Para um usuário não autenticado,
+ * rotas protegidas são indistinguíveis de rotas que não existem.
+ *
+ * A detecção de sessão expirada no frontend é feita pelo SessionManager
+ * via endpoint público /api/session/status (que NÃO passa por este middleware).
+ */
 class AuthMiddleware
 {
     /**
-     * Verifica se o admin está logado e lança exceção se não estiver.
+     * Verifica se o usuário está logado.
+     * Se não estiver → responde com 404 idêntico ao de rota inexistente (stealth).
      */
-    public static function handle(Request $request): void // Aceita a instância de Request
+    public static function handle(Request $request): void
     {
-        // NOTA: session_start() já deve ter sido chamado em public/index.php
-
-        $expectsJson = $request->wantsJson() || $request->isAjax();
-
+        // Usuário não está logado → stealth 404
         if (!Auth::isLoggedIn()) {
             Auth::logout();
-            if ($expectsJson) {
-                throw new AuthException('Acesso não autorizado. Por favor, faça login.', 401);
-            }
-            self::redirectToLogin();
+            Router::handleNotFound($request);
+            return; // handleNotFound chama exit, mas por segurança
         }
 
-        // Se o admin está logado, também verifica a inatividade da sessão
-        // Usa timeout dinâmico: 30 dias se marcou "lembrar-me", 1 hora padrão
+        // Sessão expirada por inatividade → stealth 404
         if (!Auth::checkActivity()) {
             Auth::logout();
-            if ($expectsJson) {
-                throw new AuthException('Sessão expirada por inatividade. Faça login novamente.', 419);
-            }
-            self::redirectToLogin();
+            Router::handleNotFound($request);
+            return;
         }
 
-        // Se o usuário está logado e ativo, a requisição continua.
-        // Aqui você pode adicionar lógica de autorização mais granular, se for necessário em todas as rotas protegidas.
-    }
-
-    private static function redirectToLogin(): void
-    {
-        header('Location: ' . BASE_URL . 'login');
-        exit;
+        // Usuário logado e sessão ativa → requisição continua normalmente
     }
 }

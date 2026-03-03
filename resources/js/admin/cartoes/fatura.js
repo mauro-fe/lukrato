@@ -93,7 +93,9 @@ export const FaturaModal = {
         // Selecionar/desselecionar todos
         if (selectAll) {
             selectAll.addEventListener('change', (e) => {
-
+                checkboxes.forEach(cb => {
+                    cb.checked = e.target.checked;
+                });
                 atualizarTotal();
             });
         }
@@ -417,7 +419,7 @@ export const FaturaModal = {
             } else {
             }
 
-            Utils.showToast('success', `Fatura paga com sucesso! ${resultado.parcelas_pagas} parcela(s) quitada(s).`);
+            Utils.showToast('success', `Fatura paga com sucesso! ${resultado.itens_pagos} parcela(s) quitada(s).`);
 
             // Fechar modal
             const modal = document.querySelector('.modal-fatura-overlay');

@@ -320,7 +320,7 @@ class CartoesController
         }
 
         try {
-            $fatura = $this->faturaService->obterFaturaMes($id, $mes, $ano);
+            $fatura = $this->faturaService->obterFaturaMes($id, $mes, $ano, $userId);
             Response::json($fatura);
         } catch (\Exception $e) {
             Response::json(['status' => 'error', 'message' => $e->getMessage()], 404);
@@ -335,8 +335,6 @@ class CartoesController
     {
         $userId = Auth::id();
         $data = $this->getRequestPayload();
-
-        error_log("💳 [CONTROLLER] Payload recebido: " . json_encode($data));
 
         $mes = $data['mes'] ?? (int) date('n');
         $ano = $data['ano'] ?? (int) date('Y');
@@ -431,7 +429,7 @@ class CartoesController
         $limite = (int) ($_GET['limite'] ?? 12);
 
         try {
-            $historico = $this->faturaService->obterHistoricoFaturasPagas($id, $limite);
+            $historico = $this->faturaService->obterHistoricoFaturasPagas($id, $userId, $limite);
             Response::json($historico);
         } catch (\Exception $e) {
             Response::json(['status' => 'error', 'message' => $e->getMessage()], 404);
@@ -456,10 +454,8 @@ class CartoesController
         $mes = isset($_GET['mes']) ? (int) $_GET['mes'] : (int) date('n');
         $ano = isset($_GET['ano']) ? (int) $_GET['ano'] : (int) date('Y');
 
-        error_log("📊 [ParcelamentosResumo] Cartão: {$id}, Mês: {$mes}, Ano: {$ano}");
-
         try {
-            $resumo = $this->faturaService->obterResumoParcelamentos($id, $mes, $ano);
+            $resumo = $this->faturaService->obterResumoParcelamentos($id, $mes, $ano, $userId);
             Response::json($resumo);
         } catch (\Exception $e) {
             LogService::captureException($e, LogCategory::CARTAO, [
@@ -600,15 +596,10 @@ class CartoesController
         $userId = Auth::id();
         $data = $this->getRequestPayload();
 
-        error_log("🔍 [Controller] desfazerPagamentoFatura - ID={$id}, User={$userId}, Data=" . json_encode($data));
-
         $mes = isset($data['mes']) ? (int) $data['mes'] : null;
         $ano = isset($data['ano']) ? (int) $data['ano'] : null;
 
-        error_log("📅 [Controller] Mês={$mes}, Ano={$ano}");
-
         if (!$mes || !$ano) {
-            error_log("❌ [Controller] Mês ou ano faltando");
             Response::json(['status' => 'error', 'message' => 'Mês e ano são obrigatórios'], 400);
             return;
         }
@@ -635,8 +626,6 @@ class CartoesController
     public function desfazerPagamentoParcela(int $id): void
     {
         $userId = Auth::id();
-
-        error_log("🔍 [Controller] desfazerPagamentoParcela - Parcela ID={$id}, User={$userId}");
 
         try {
             $resultado = $this->faturaService->desfazerPagamentoParcela($id, $userId);

@@ -92,7 +92,7 @@ class FinanceiroController extends BaseController
             $saldoAcumulado = $this->calcularSaldoAcumulado($uid, $endStr);
 
             Response::json([
-                'saldo'          => $resultado,
+                'saldo'          => $saldoAcumulado,
                 'receitas'       => $receitas,
                 'despesas'       => $despesas,
                 'resultado'      => $resultado,

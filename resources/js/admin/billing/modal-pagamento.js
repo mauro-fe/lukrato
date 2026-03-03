@@ -497,7 +497,7 @@ async function cancelPendingPayment() {
 
         const resp = await fetch(`${BASE_URL}premium/cancel-pending`, {
             method: 'POST', credentials: 'include',
-            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN }
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-Token': CSRF_TOKEN }
         });
         const json = await resp.json();
 
@@ -703,16 +703,21 @@ form?.addEventListener('submit', async (e) => {
             } else {
                 throw new Error('PIX gerado mas dados não recebidos. Tente novamente.');
             }
-        } else if (currentBillingType === 'BOLETO' && json.data?.boleto) {
-            const boleto = json.data.boleto;
-            showPendingPaymentSection({ billingType: 'BOLETO', createdAt: new Date().toLocaleString('pt-BR'), paymentId: json.data.paymentId, boleto: { identificationField: boleto.identificationField, bankSlipUrl: boleto.bankSlipUrl } });
-            window.Swal?.fire({ icon: 'success', title: 'Boleto gerado!', text: 'Copie o código ou baixe o PDF para pagar.', confirmButtonText: 'Entendi' });
+        } else if (currentBillingType === 'BOLETO') {
+            const boleto = json.data?.boleto;
+            if (boleto) {
+                showPendingPaymentSection({ billingType: 'BOLETO', createdAt: new Date().toLocaleString('pt-BR'), paymentId: json.data.paymentId, boleto: { identificationField: boleto.identificationField, bankSlipUrl: boleto.bankSlipUrl } });
+                window.Swal?.fire({ icon: 'success', title: 'Boleto gerado!', text: 'Copie o código ou baixe o PDF para pagar.', confirmButtonText: 'Entendi' });
+            } else {
+                throw new Error('Boleto criado mas os dados não foram recebidos. Tente novamente.');
+            }
         }
     } catch (error) {
         console.error('[Checkout] Erro:', error);
         Swal?.close();
         window.Swal?.fire('Erro', error.message || 'Erro ao processar. Tente novamente.', 'error');
     } finally {
-        if (currentBillingType === 'CREDIT_CARD') { submitBtn.disabled = false; updateSubmitButton(); }
+        submitBtn.disabled = false;
+        updateSubmitButton();
     }
 });

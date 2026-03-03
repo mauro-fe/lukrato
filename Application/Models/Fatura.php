@@ -89,7 +89,7 @@ class Fatura extends Model
      */
     public function getValorPagoAttribute(): float
     {
-        return (float) $this->itens()->where('pago', 1)->sum('valor_parcela');
+        return (float) $this->itens()->where('pago', 1)->sum('valor');
     }
 
     /**
@@ -97,7 +97,7 @@ class Fatura extends Model
      */
     public function getValorPendenteAttribute(): float
     {
-        return (float) $this->itens()->where('pago', 0)->sum('valor_parcela');
+        return (float) $this->itens()->where('pago', 0)->sum('valor');
     }
 
     /**
@@ -133,24 +133,17 @@ class Fatura extends Model
         $totalItens = $this->itens->count();
         $itensPagos = $this->itens->where('pago', 1)->count();
 
-        error_log("🔍 [FATURA STATUS] Fatura ID: {$this->id}, Total: {$totalItens}, Pagos: {$itensPagos}");
-
         if ($totalItens === 0) {
             $this->status = self::STATUS_PENDENTE;
-            error_log("📊 [FATURA STATUS] Status: PENDENTE (sem itens)");
         } elseif ($itensPagos === 0) {
             $this->status = self::STATUS_PENDENTE;
-            error_log("📊 [FATURA STATUS] Status: PENDENTE (nenhum item pago)");
         } elseif ($itensPagos >= $totalItens) {
             $this->status = self::STATUS_PAGA;
-            error_log("✅ [FATURA STATUS] Status: PAGA (todos itens pagos)");
         } else {
             $this->status = self::STATUS_PARCIAL;
-            error_log("📊 [FATURA STATUS] Status: PARCIAL ({$itensPagos}/{$totalItens} pagos)");
         }
 
         $this->save();
-        error_log("💾 [FATURA STATUS] Status salvo: {$this->status}");
     }
 
     /**

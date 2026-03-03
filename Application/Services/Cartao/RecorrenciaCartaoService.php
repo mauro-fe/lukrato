@@ -407,6 +407,7 @@ class RecorrenciaCartaoService
 
     /**
      * Atualizar limite do cartão
+     * Recalcula do zero a partir dos itens não pagos para evitar drift
      */
     private function atualizarLimiteCartao(int $cartaoId, float $valor, string $tipo = 'debito'): void
     {
@@ -415,12 +416,6 @@ class RecorrenciaCartaoService
             return;
         }
 
-        if ($tipo === 'debito') {
-            $cartao->limite_disponivel = max(0, $cartao->limite_disponivel - $valor);
-        } else {
-            $cartao->limite_disponivel = min($cartao->limite_total, $cartao->limite_disponivel + $valor);
-        }
-
-        $cartao->save();
+        $cartao->atualizarLimiteDisponivel();
     }
 }

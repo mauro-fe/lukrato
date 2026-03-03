@@ -15,8 +15,7 @@ use Application\Core\Router;
 // Onboarding (SEM middleware de onboarding - senão dá loop)
 Router::add('GET', '/onboarding', 'Admin\\OnboardingController@index', ['auth']);
 
-// Dashboard
-Router::add('GET', '/dashboard', 'Admin\\DashboardController@dashboard', ['auth', 'onboarding']);
+// Dashboard (definido em web.php)
 
 // Lançamentos
 Router::add('GET', '/lancamentos', 'Admin\\LancamentoController@index', ['auth', 'onboarding']);
@@ -74,11 +73,6 @@ Router::add('GET', '/admin', function () {
 
 Router::add('GET', '/admin/login', function () {
     header('Location: ' . BASE_URL . 'login');
-    exit;
-});
-
-Router::add('GET', '/admin/dashboard', function () {
-    header('Location: ' . BASE_URL . 'dashboard');
     exit;
 });
 

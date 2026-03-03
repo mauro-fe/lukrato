@@ -191,7 +191,7 @@ export const Utils = {
      * Obter ícone/logo da bandeira
      */
     getBrandIcon(bandeira) {
-        const baseUrl = CONFIG.BASE_URL.replace('/public/', '/public/assets/img/bandeiras/');
+        const baseUrl = `${CONFIG.BASE_URL}assets/img/bandeiras/`;
         const logos = {
             'visa': `${baseUrl}visa.png`,
             'mastercard': `${baseUrl}mastercard.png`,
@@ -349,7 +349,7 @@ export const Utils = {
 
         for (const row of data) {
             const values = headers.map(header => {
-                const escaped = ('' + row[header]).replace(/"/g, '\\"');
+                const escaped = ('' + row[header]).replace(/"/g, '""');
                 return `"${escaped}"`;
             });
             csvRows.push(values.join(','));

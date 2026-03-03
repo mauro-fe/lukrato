@@ -39,4 +39,58 @@ class DestroyController extends BaseController
 
         Response::success($result);
     }
+
+    /**
+     * Exclui múltiplos lançamentos de uma vez.
+     * Recebe JSON: { "ids": [1, 2, 3] }
+     */
+    public function bulkDelete(): void
+    {
+        $uid = Auth::id();
+        if (!$uid) {
+            Response::error('Nao autenticado', 401);
+            return;
+        }
+
+        $payload = $this->getRequestPayload();
+        $ids = $payload['ids'] ?? [];
+
+        if (!is_array($ids) || empty($ids)) {
+            Response::error('Nenhum lançamento selecionado.', 422);
+            return;
+        }
+
+        // Limitar a 100 itens por request para segurança
+        if (count($ids) > 100) {
+            Response::error('Máximo de 100 lançamentos por operação.', 422);
+            return;
+        }
+
+        $deleted = 0;
+        $errors  = [];
+
+        foreach ($ids as $id) {
+            $id = (int) $id;
+            if ($id <= 0) continue;
+
+            $lancamento = $this->lancamentoRepo->findByIdAndUser($id, $uid);
+            if (!$lancamento) {
+                $errors[] = "Lançamento #{$id} não encontrado.";
+                continue;
+            }
+
+            try {
+                $this->deletionService->delete($lancamento, $uid, 'single');
+                $deleted++;
+            } catch (\Throwable $e) {
+                $errors[] = "Erro ao excluir #{$id}: {$e->getMessage()}";
+            }
+        }
+
+        Response::success([
+            'deleted' => $deleted,
+            'errors'  => $errors,
+            'message' => "{$deleted} lançamento(s) excluído(s) com sucesso."
+        ]);
+    }
 }

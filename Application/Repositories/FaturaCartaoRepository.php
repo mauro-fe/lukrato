@@ -23,7 +23,7 @@ class FaturaCartaoRepository
      */
     public function getCategoryBreakdown(int $cartaoCreditoId, int $userId, int $ano, int $mes): Collection
     {
-        return DB::table('fatura_cartao_itens as fi')
+        return DB::table('faturas_cartao_itens as fi')
             ->leftJoin('categorias as c', 'c.id', '=', 'fi.categoria_id')
             ->where('fi.cartao_credito_id', $cartaoCreditoId)
             ->where('fi.user_id', $userId)

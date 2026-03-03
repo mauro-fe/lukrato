@@ -5,6 +5,7 @@ namespace Application\Controllers\Api\Lancamentos;
 use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Lib\Auth;
+use Application\Repositories\ContaRepository;
 use Application\Repositories\LancamentoRepository;
 use Application\Services\Lancamento\LancamentoUpdateService;
 
@@ -35,7 +36,7 @@ class UpdateController extends BaseController
         }
 
         if ((bool) ($lancamento->eh_transferencia ?? 0) === true) {
-            Response::error('Nao e possivel editar uma transferencia. Crie uma nova.', 422);
+            $this->updateTransferencia($userId, $lancamento);
             return;
         }
 
@@ -52,5 +53,79 @@ class UpdateController extends BaseController
         }
 
         Response::success($result->data['lancamento']);
+    }
+
+    /**
+     * Atualiza uma transferência (data, valor, contas e descrição).
+     */
+    private function updateTransferencia(int $userId, $lancamento): void
+    {
+        $payload = $this->getRequestPayload();
+
+        $errors = [];
+
+        // Validar data
+        $data = $payload['data'] ?? (string) $lancamento->data;
+        if (empty($data)) {
+            $errors['data'] = 'A data é obrigatória.';
+        } elseif (!preg_match('/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/', $data)) {
+            $errors['data'] = 'Data inválida. Use o formato YYYY-MM-DD.';
+        }
+
+        // Validar valor
+        $valor = $payload['valor'] ?? $lancamento->valor;
+        if (is_string($valor)) {
+            $valor = str_replace(['R$', ' ', '.'], '', $valor);
+            $valor = str_replace(',', '.', $valor);
+        }
+        $valor = round(abs((float) $valor), 2);
+        if ($valor <= 0) {
+            $errors['valor'] = 'O valor deve ser maior que zero.';
+        }
+
+        // Validar contas
+        $contaRepo = new ContaRepository();
+        $contaOrigemId = isset($payload['conta_id']) ? (int) $payload['conta_id'] : (int) $lancamento->conta_id;
+        $contaDestinoId = isset($payload['conta_id_destino']) ? (int) $payload['conta_id_destino'] : (int) $lancamento->conta_id_destino;
+
+        if ($contaOrigemId === $contaDestinoId) {
+            $errors['conta_id_destino'] = 'A conta de destino deve ser diferente da origem.';
+        }
+
+        if ($contaOrigemId && !$contaRepo->belongsToUser($contaOrigemId, $userId)) {
+            $errors['conta_id'] = 'Conta de origem inválida.';
+        }
+        if ($contaDestinoId && !$contaRepo->belongsToUser($contaDestinoId, $userId)) {
+            $errors['conta_id_destino'] = 'Conta de destino inválida.';
+        }
+
+        if (!empty($errors)) {
+            Response::validationError($errors);
+            return;
+        }
+
+        // Buscar nomes das contas para descrição automática
+        $descricao = $payload['descricao'] ?? null;
+        if ($descricao === null || trim($descricao) === '') {
+            $origem = $contaRepo->find($contaOrigemId);
+            $destino = $contaRepo->find($contaDestinoId);
+            $nomeOrigem = $origem->nome ?? $origem->instituicao ?? 'Conta';
+            $nomeDestino = $destino->nome ?? $destino->instituicao ?? 'Conta';
+            $descricao = "Transferência: {$nomeOrigem} → {$nomeDestino}";
+        }
+
+        // Atualizar lancamento
+        $this->lancamentoRepo->update($lancamento->id, [
+            'data'             => $data,
+            'valor'            => $valor,
+            'conta_id'         => $contaOrigemId,
+            'conta_id_destino' => $contaDestinoId,
+            'descricao'        => mb_substr(trim($descricao), 0, 190),
+        ]);
+
+        $updated = $this->lancamentoRepo->find($lancamento->id);
+        $updated->loadMissing(['categoria', 'conta', 'subcategoria']);
+
+        Response::success(\Application\Formatters\LancamentoResponseFormatter::format($updated));
     }
 }

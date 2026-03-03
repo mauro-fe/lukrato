@@ -43,6 +43,7 @@ Router::add('POST', '/api/suporte/enviar', 'Api\\User\\SupportController@send', 
 
 Router::add('GET',  '/api/perfil', 'Api\\User\\PerfilController@show',   ['auth']);
 Router::add('POST', '/api/perfil', 'Api\\User\\PerfilController@update', ['auth', 'csrf', 'ratelimit']);
+Router::add('POST', '/api/perfil/senha', 'Api\\User\\PerfilController@updatePassword', ['auth', 'csrf', 'ratelimit_strict']);
 Router::add('POST', '/api/perfil/tema', 'Api\\User\\PerfilController@updateTheme', ['auth', 'csrf', 'ratelimit']);
 Router::add('DELETE', '/api/perfil/delete', 'Api\\User\\PerfilController@delete', ['auth', 'csrf', 'ratelimit_strict']);
 
@@ -85,6 +86,7 @@ Router::add('GET', '/api/reports/export',      'Api\\Report\\RelatoriosControlle
 
 Router::add('GET',    '/api/lancamentos',        'Api\\Lancamentos\\IndexController@__invoke',                ['auth']);
 Router::add('POST',   '/api/lancamentos',        'Api\\Lancamentos\\StoreController@__invoke',                ['auth', 'csrf', 'ratelimit']);
+Router::add('POST',   '/api/lancamentos/delete',  'Api\\Lancamentos\\DestroyController@bulkDelete',            ['auth', 'csrf', 'ratelimit']);
 Router::add('PUT',    '/api/lancamentos/{id}',   'Api\\Lancamentos\\UpdateController@__invoke',               ['auth', 'csrf', 'ratelimit']);
 Router::add('DELETE', '/api/lancamentos/{id}',   'Api\\Lancamentos\\DestroyController@__invoke',              ['auth', 'csrf', 'ratelimit']);
 Router::add('GET',    '/api/lancamentos/usage',  'Api\\Lancamentos\\UsageController@__invoke',                ['auth']);

@@ -9,6 +9,8 @@ use Application\Services\Gamification\AchievementService;
 use Application\DTO\PerfilUpdateDTO;
 use Application\Validators\PerfilValidator;
 use Application\Providers\PerfilControllerFactory;
+use Application\Services\Infrastructure\LogService;
+use Application\Enums\LogCategory;
 use Throwable;
 
 
@@ -55,9 +57,11 @@ class PerfilController
                 'user' => $perfil,
             ], 'Perfil carregado');
         } catch (Throwable $e) {
-            Response::error('Erro interno', 500, [
-                'exception' => $e->getMessage()
+            LogService::captureException($e, LogCategory::AUTH, [
+                'action' => 'show_perfil',
+                'user_id' => Auth::user()?->id,
             ]);
+            Response::error('Erro interno', 500);
         }
     }
 
@@ -93,15 +97,67 @@ class PerfilController
                 'new_achievements' => $newAchievements,
             ]);
         } catch (Throwable $e) {
+            LogService::captureException($e, LogCategory::AUTH, [
+                'action' => 'update_perfil',
+                'user_id' => Auth::user()?->id,
+            ]);
+
             $statusCode = $e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException
                 ? 404
                 : 500;
 
-            Response::error(
-                'Erro interno ao atualizar perfil',
-                $statusCode,
-                ['exception' => $e->getMessage()]
-            );
+            Response::error('Erro interno ao atualizar perfil', $statusCode);
+        }
+    }
+
+    public function updatePassword(): void
+    {
+        try {
+            $user = Auth::user();
+
+            if (!$user) {
+                Response::error('Não autenticado', 401);
+                return;
+            }
+
+            $senhaAtual = $_POST['senha_atual'] ?? '';
+            $novaSenha = $_POST['nova_senha'] ?? '';
+            $confSenha = $_POST['conf_senha'] ?? '';
+
+            // Validações
+            if ($senhaAtual === '' || $novaSenha === '' || $confSenha === '') {
+                Response::validationError(['senha' => 'Todos os campos de senha são obrigatórios.']);
+                return;
+            }
+
+            if (!password_verify($senhaAtual, $user->senha)) {
+                Response::validationError(['senha_atual' => 'Senha atual incorreta.']);
+                return;
+            }
+
+            if (strlen($novaSenha) < 8) {
+                Response::validationError(['nova_senha' => 'A nova senha deve ter no mínimo 8 caracteres.']);
+                return;
+            }
+
+            if ($novaSenha !== $confSenha) {
+                Response::validationError(['conf_senha' => 'As senhas não coincidem.']);
+                return;
+            }
+
+            // Atualiza senha (o hook saving do modelo faz o hash automaticamente)
+            $user->senha = $novaSenha;
+            $user->save();
+
+            Response::success([
+                'message' => 'Senha alterada com sucesso',
+            ]);
+        } catch (Throwable $e) {
+            LogService::captureException($e, LogCategory::AUTH, [
+                'action' => 'update_password',
+                'user_id' => Auth::user()?->id,
+            ]);
+            Response::error('Erro ao alterar senha', 500);
         }
     }
 
@@ -128,8 +184,6 @@ class PerfilController
                 }
             }
 
-            error_log("🎨 [TEMA] Tema recebido: " . var_export($theme, true));
-
             // Validar tema
             if (!in_array($theme, ['light', 'dark'], true)) {
                 Response::error('Tema inválido. Use "light" ou "dark"', 400);
@@ -137,7 +191,6 @@ class PerfilController
             }
 
             // Atualizar tema
-            $temaAnterior = $user->theme_preference;
             $user->theme_preference = $theme;
             $user->save();
 
@@ -147,11 +200,11 @@ class PerfilController
                 'theme' => $theme,
             ]);
         } catch (Throwable $e) {
-            Response::error(
-                'Erro ao atualizar tema',
-                500,
-                ['exception' => $e->getMessage()]
-            );
+            LogService::captureException($e, LogCategory::AUTH, [
+                'action' => 'update_theme',
+                'user_id' => Auth::user()?->id,
+            ]);
+            Response::error('Erro ao atualizar tema', 500);
         }
     }
 
@@ -175,11 +228,11 @@ class PerfilController
                 'message' => 'Conta excluída com sucesso',
             ]);
         } catch (Throwable $e) {
-            Response::error(
-                'Erro ao excluir conta',
-                500,
-                ['exception' => $e->getMessage()]
-            );
+            LogService::captureException($e, LogCategory::AUTH, [
+                'action' => 'delete_account',
+                'user_id' => Auth::user()?->id,
+            ]);
+            Response::error('Erro ao excluir conta', 500);
         }
     }
 }

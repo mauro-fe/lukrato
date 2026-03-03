@@ -22,20 +22,7 @@ class CreateCartaoCreditoDTO
 
     public static function fromArray(array $data, int $userId): self
     {
-        // Debug temporário
-        file_put_contents(
-            __DIR__ . '/../../storage/logs/debug-cartao.log',
-            date('Y-m-d H:i:s') . " - Data recebida: " . json_encode($data) . "\n",
-            FILE_APPEND
-        );
-
         $limiteTotal = self::parseLimiteTotal($data['limite_total'] ?? 0);
-
-        file_put_contents(
-            __DIR__ . '/../../storage/logs/debug-cartao.log',
-            date('Y-m-d H:i:s') . " - Limite total convertido: " . $limiteTotal . "\n",
-            FILE_APPEND
-        );
 
         return new self(
             userId: $userId,

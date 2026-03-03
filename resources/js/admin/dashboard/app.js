@@ -14,7 +14,9 @@ import {
     STATE,
     Utils,
     Modules,
-    getThemeColors
+    getThemeColors,
+    escapeHtml,
+    getCSRFToken
 } from './state.js';
 
 // ==================== API ====================
@@ -69,7 +71,7 @@ export const API = {
             throw new Error(res.message || 'Erro ao excluir');
         }
         // Fallback com múltiplos endpoints
-        const csrf = Utils.getCsrfToken();
+        const csrf = getCSRFToken();
         const headers = {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -178,7 +180,7 @@ export const Gamification = {
             const transactionDate = new Date(y, m - 1, d);
             transactionDate.setHours(0, 0, 0, 0);
 
-            const diffDays = Math.floor((checkDate - transactionDate) / (1000 * 60 * 60 * 24));
+            const diffDays = Math.round((checkDate - transactionDate) / (1000 * 60 * 60 * 24));
 
             if (diffDays === 0 || diffDays === 1) {
                 streak++;
@@ -238,8 +240,8 @@ export const Gamification = {
 
         const activeMonths = months.size;
 
-        const receitas = Number(metrics?.receitasMes || 0);
-        const despesas = Number(metrics?.despesasMes || 0);
+        const receitas = Number(metrics?.receitas || 0);
+        const despesas = Number(metrics?.despesas || 0);
         const savingsRate = receitas > 0 ? ((receitas - despesas) / receitas) * 100 : 0;
 
         const data = {
@@ -254,17 +256,6 @@ export const Gamification = {
         const level = Gamification.calculateLevel(points);
 
         return { ...data, points, level };
-    },
-
-    render: (gamificationData) => {
-        // NOTA: A renderização de gamificação (streak, nível, conquistas)
-        // é feita pelo gamification-dashboard.js que usa dados da API.
-        // Este método apenas renderiza estatísticas básicas.
-        if (!gamificationData) return;
-
-        // Stats básicos (totalLancamentos, categorias, meses ativos)
-        // são atualizados pelo gamification-dashboard.js via API
-        // Não sobrescrever para evitar conflitos
     }
 };
 
@@ -358,11 +349,12 @@ export const Renderers = {
                         null;
 
                     const categoriaDisplay = categoriaNome
-                        ? categoriaNome
+                        ? escapeHtml(categoriaNome)
                         : '<span class="categoria-empty">Sem categoria</span>';
 
-                    const contaNome = Utils.getContaLabel(transaction);
-                    const descricao = transaction.descricao || transaction.observacao || '--';
+                    const contaNome = escapeHtml(Utils.getContaLabel(transaction));
+                    const descricao = escapeHtml(transaction.descricao || transaction.observacao || '--');
+                    const tipoLabelSafe = escapeHtml(tipoLabel);
                     const valor = Number(transaction.valor) || 0;
                     const dataBR = Utils.dateBR(transaction.data);
 
@@ -373,7 +365,7 @@ export const Renderers = {
                     tr.innerHTML = `
               <td data-label="Data">${dataBR}</td>
               <td data-label="Tipo">
-                <span class="badge-tipo ${tipoClass}">${tipoLabel}</span>
+                <span class="badge-tipo ${tipoClass}">${tipoLabelSafe}</span>
               </td>
               <td data-label="Categoria">${categoriaDisplay}</td>
               <td data-label="Conta">${contaNome}</td>
@@ -406,11 +398,11 @@ export const Renderers = {
                 <div class="transaction-card-body">
                   <div class="transaction-info-row">
                     <span class="transaction-label">Tipo</span>
-                    <span class="transaction-badge tipo-${tipoClass}">${tipoLabel}</span>
+                    <span class="transaction-badge tipo-${tipoClass}">${tipoLabelSafe}</span>
                   </div>
                   <div class="transaction-info-row">
                     <span class="transaction-label">Categoria</span>
-                    <span class="transaction-text">${categoriaNome}</span>
+                    <span class="transaction-text">${categoriaDisplay}</span>
                   </div>
                   <div class="transaction-info-row">
                     <span class="transaction-label">Conta</span>
@@ -422,6 +414,11 @@ export const Renderers = {
                     <span class="transaction-description">${descricao}</span>
                   </div>
                   ` : ''}
+                </div>
+                <div class="transaction-card-actions">
+                  <button class="lk-btn danger btn-del" data-id="${transaction.id}" title="Excluir">
+                    <i data-lucide="trash-2"></i>
+                  </button>
                 </div>
               `;
 
@@ -610,8 +607,7 @@ export const TransactionManager = {
                 }, 300);
             }
 
-            await DashboardManager.refresh();
-
+            // Refresh will be triggered by the lukrato:data-changed event listener
             document.dispatchEvent(new CustomEvent('lukrato:data-changed', {
                 detail: {
                     resource: 'transactions',
@@ -682,45 +678,6 @@ export const Provisao = {
             Provisao.renderData(data, isPro);
         } catch (err) {
             console.error('Erro ao carregar provisão:', err);
-        }
-    },
-
-    renderPlaceholder: () => {
-        const pagar = document.getElementById('provisaoPagar');
-        const receber = document.getElementById('provisaoReceber');
-        const projetado = document.getElementById('provisaoProjetado');
-        const pagarCount = document.getElementById('provisaoPagarCount');
-        const receberCount = document.getElementById('provisaoReceberCount');
-
-        if (pagar) pagar.textContent = 'R$ 1.250,00';
-        if (receber) receber.textContent = 'R$ 3.800,00';
-        if (projetado) projetado.textContent = 'R$ 5.430,00';
-        if (pagarCount) pagarCount.textContent = '4 pendentes';
-        if (receberCount) receberCount.textContent = '2 pendentes';
-
-        // Show sample upcoming items
-        const list = document.getElementById('provisaoProximosList');
-        if (list) {
-            list.innerHTML = `
-                    <div class="provisao-item">
-                        <div class="provisao-item-dot despesa"></div>
-                        <div class="provisao-item-info">
-                            <div class="provisao-item-titulo">Aluguel</div>
-                            <div class="provisao-item-meta"><span class="provisao-item-badge recorrente">Mensal</span></div>
-                        </div>
-                        <span class="provisao-item-valor despesa">R$ 800,00</span>
-                        <span class="provisao-item-data">15/02</span>
-                    </div>
-                    <div class="provisao-item">
-                        <div class="provisao-item-dot receita"></div>
-                        <div class="provisao-item-info">
-                            <div class="provisao-item-titulo">Salário</div>
-                            <div class="provisao-item-meta"><span class="provisao-item-badge recorrente">Mensal</span></div>
-                        </div>
-                        <span class="provisao-item-valor receita">R$ 3.800,00</span>
-                        <span class="provisao-item-data">05/02</span>
-                    </div>
-                `;
         }
     },
 
@@ -894,7 +851,7 @@ export const Provisao = {
                             badges += '<span class="provisao-item-badge recorrente">Recorrente</span>';
                         }
                         if (item.categoria) {
-                            badges += `<span>${item.categoria}</span>`;
+                            badges += `<span>${escapeHtml(item.categoria)}</span>`;
                         }
                     }
 
@@ -904,7 +861,7 @@ export const Provisao = {
                     el.innerHTML = `
                             <div class="provisao-item-dot ${tipoClass}"></div>
                             <div class="provisao-item-info">
-                                <div class="provisao-item-titulo">${item.titulo || 'Sem título'}</div>
+                                <div class="provisao-item-titulo">${escapeHtml(item.titulo || 'Sem título')}</div>
                                 <div class="provisao-item-meta">${badges}</div>
                             </div>
                             <span class="provisao-item-valor ${tipoClass}">${money(item.valor || 0)}</span>
@@ -966,33 +923,6 @@ export const DashboardManager = {
         try {
             Renderers.updateMonthLabel(month);
 
-            // Buscar dados para gamificação (todas as transações do usuário)
-            const allTransactionsPromise = fetch(`${CONFIG.API_URL}lancamentos?limit=1000`, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            }).then(res => res.ok ? res.json() : []).catch(() => []);
-
-            const metricsPromise = API.getMetrics(month);
-
-            const [allTransactionsData, metrics] = await Promise.all([
-                allTransactionsPromise,
-                metricsPromise
-            ]);
-
-            // Processar transações
-            const allTransactions = Array.isArray(allTransactionsData)
-                ? allTransactionsData
-                : (allTransactionsData?.data || allTransactionsData?.lancamentos || []);
-
-            STATE.allTransactions = allTransactions;
-
-            // Calcular e renderizar gamificação
-            const gamificationData = Gamification.calculateData(allTransactions, metrics);
-            STATE.gamificationData = gamificationData;
-            Gamification.render(gamificationData);
-
             await Promise.allSettled([
                 Renderers.renderKPIs(month),
                 Renderers.renderTable(month),
@@ -1030,6 +960,21 @@ export const EventListeners = {
             btn.disabled = false;
         });
 
+        // Event listener para cards mobile
+        DOM.cardsContainer?.addEventListener('click', async (e) => {
+            const btn = e.target.closest('.btn-del');
+            if (!btn) return;
+
+            const card = e.target.closest('.transaction-card');
+            const id = btn.getAttribute('data-id');
+
+            if (!id) return;
+
+            btn.disabled = true;
+            await TransactionManager.delete(id, card);
+            btn.disabled = false;
+        });
+
         document.addEventListener('lukrato:data-changed', () => {
             DashboardManager.refresh();
         });
@@ -1041,12 +986,6 @@ export const EventListeners = {
         document.addEventListener('lukrato:theme-changed', () => {
             DashboardManager.refresh();
         });
-
-        // Fallback para quando o evento não vier: observa o atributo data-theme
-        const observer = new MutationObserver(() => {
-            DashboardManager.refresh();
-        });
-        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
     }
 };
 

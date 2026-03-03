@@ -22,13 +22,17 @@ if (!window.__LK_DASHBOARD_LOADER__) {
 
     // ─── Bootstrap ───────────────────────────────────────────────────────────
     const init = () => {
-        EventListeners.init();
+        const bootstrap = () => {
+            EventListeners.init();
+            DashboardManager.init();
+        };
+
         initOnboardingChecklist();
 
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', DashboardManager.init);
+            document.addEventListener('DOMContentLoaded', bootstrap);
         } else {
-            DashboardManager.init();
+            bootstrap();
         }
     };
 

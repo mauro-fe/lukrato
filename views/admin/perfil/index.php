@@ -89,7 +89,7 @@
                             <input class="form-input" id="support_code" type="text" readonly
                                 style="font-family:'JetBrains Mono',monospace;font-weight:600;letter-spacing:1.5px;color:var(--color-primary);background:var(--color-bg-secondary);cursor:default;max-width:220px;"
                                 value="Carregando...">
-                            <button type="button" class="btn-copy-support" onclick="copySupportCode()"
+                            <button type="button" class="btn-copy-support" id="btn-copy-support" onclick="copySupportCode()"
                                 title="Copiar código"
                                 style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;background:var(--color-bg);cursor:pointer;color:var(--color-text-muted);transition:all .2s;">
                                 <i data-lucide="copy"></i>

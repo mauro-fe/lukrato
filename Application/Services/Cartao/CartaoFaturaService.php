@@ -15,16 +15,23 @@ use Illuminate\Database\Capsule\Manager as DB;
 use Application\Services\Infrastructure\LogService;
 
 /**
- * Service para gerenciar faturas de cartão de crédito
+ * Service para gerenciar faturas de cartão de crédito.
+ *
+ * NOTA: Este service filtra faturas por YEAR(data_vencimento) e MONTH(data_vencimento),
+ * que é o correto para a página de cartões (agrupa itens pela data de vencimento da fatura).
+ * Já o FaturaService (página /faturas) filtra por mes_referencia/ano_referencia,
+ * que agrupa pela competência da despesa. São visões complementares e intencionalmente diferentes.
  */
 class CartaoFaturaService
 {
     /**
      * Obter histórico de faturas pagas
      */
-    public function obterHistoricoFaturasPagas(int $cartaoId, int $limite = 12): array
+    public function obterHistoricoFaturasPagas(int $cartaoId, int $userId, int $limite = 12): array
     {
-        $cartao = CartaoCredito::findOrFail($cartaoId);
+        $cartao = CartaoCredito::where('id', $cartaoId)
+            ->where('user_id', $userId)
+            ->firstOrFail();
 
         $historico = FaturaCartaoItem::where('cartao_credito_id', $cartaoId)
             ->where('pago', true)
@@ -57,9 +64,11 @@ class CartaoFaturaService
     /**
      * Obter fatura do mês de um cartão
      */
-    public function obterFaturaMes(int $cartaoId, int $mes, int $ano): array
+    public function obterFaturaMes(int $cartaoId, int $mes, int $ano, int $userId): array
     {
-        $cartao = CartaoCredito::findOrFail($cartaoId);
+        $cartao = CartaoCredito::where('id', $cartaoId)
+            ->where('user_id', $userId)
+            ->firstOrFail();
 
         $itens = FaturaCartaoItem::where('cartao_credito_id', $cartaoId)
             ->whereYear('data_vencimento', $ano)
@@ -116,8 +125,6 @@ class CartaoFaturaService
      */
     public function pagarFatura(int $cartaoId, int $mes, int $ano, int $userId, ?int $contaIdOverride = null, ?float $valorParcial = null): array
     {
-        error_log("💳 [FATURA] Iniciando pagamento - Cartão: {$cartaoId}, Mês: {$mes}/{$ano}, User: {$userId}, ContaOverride: " . ($contaIdOverride ?? 'NULL') . ", ValorParcial: " . ($valorParcial ?? 'NULL'));
-
         DB::beginTransaction();
 
         try {
@@ -125,9 +132,7 @@ class CartaoFaturaService
                 ->where('user_id', $userId)
                 ->firstOrFail();
 
-            error_log("💳 [FATURA] Cartão encontrado: {$cartao->nome_cartao} (Conta padrão: " . ($cartao->conta_id ?? 'NULL') . ")");
-
-            $fatura = $this->obterFaturaMes($cartaoId, $mes, $ano);
+            $fatura = $this->obterFaturaMes($cartaoId, $mes, $ano, $userId);
 
             if (empty($fatura['itens'])) {
                 throw new \Exception('Não há itens para pagar neste mês.');
@@ -223,7 +228,6 @@ class CartaoFaturaService
                 // (neste caso, ainda assim marcamos pelo menos como pagamento registrado)
                 if (empty($itensParaPagar) && !empty($itensNaoPagos)) {
                     // Pagamento não cobre nenhum item completo, mas registra o valor pago
-                    error_log("💳 [FATURA] Pagamento parcial: valor não cobre nenhum item completo, apenas registrando lançamento");
                 }
             } else {
                 $itensParaPagar = $itensNaoPagos;
@@ -259,8 +263,6 @@ class CartaoFaturaService
                 'origem_tipo' => 'pagamento_fatura',
             ]);
 
-            error_log("💳 [FATURA] Lançamento ÚNICO criado - ID: {$lancamento->id}, Valor: {$totalPagar}, Itens a pagar: {$qtdItensPagos}");
-
             // Marcar itens como pagos (apenas os que cabem no valor pago)
             foreach ($itensParaPagar as $itemData) {
                 $item = FaturaCartaoItem::find($itemData['id']);
@@ -283,8 +285,6 @@ class CartaoFaturaService
             $cartao->atualizarLimiteDisponivel();
 
             DB::commit();
-
-            error_log("✅ [FATURA] Pagamento concluído - Lançamento único ID: {$lancamento->id}, " . count($itensIds) . " itens marcados como pagos");
 
             $mensagem = $isPagamentoParcial
                 ? sprintf('Pagamento parcial realizado! R$ %.2f pago(s), %d item(s) quitado(s).', $totalPagar, count($itensIds))
@@ -346,16 +346,12 @@ class CartaoFaturaService
      */
     public function pagarParcelas(int $cartaoId, array $parcelaIds, int $mes, int $ano, int $userId): array
     {
-        error_log("💳 [PARCELAS] Iniciando pagamento - Cartão: {$cartaoId}, Parcelas: " . count($parcelaIds) . ", User: {$userId}");
-
         DB::beginTransaction();
 
         try {
             $cartao = CartaoCredito::where('id', $cartaoId)
                 ->where('user_id', $userId)
                 ->firstOrFail();
-
-            error_log("💳 [PARCELAS] Cartão encontrado: {$cartao->nome_cartao} (Conta: " . ($cartao->conta_id ?? 'NULL') . ")");
 
             $itens = FaturaCartaoItem::whereIn('id', $parcelaIds)
                 ->where('user_id', $userId)
@@ -397,8 +393,6 @@ class CartaoFaturaService
 
             $dataPagamento = now()->format('Y-m-d');
 
-            error_log("💳 [PARCELAS] Pagando " . $itens->count() . " itens, valor total: {$totalPagar}");
-
             // ===============================================================
             // REFATORADO: Criar UM ÚNICO lançamento para o pagamento parcial
             // ===============================================================
@@ -414,10 +408,16 @@ class CartaoFaturaService
                 $qtdItens === 1 ? 'item' : 'itens'
             );
 
+            // Buscar categoria "Cartão de Crédito" do usuário para vincular ao lançamento
+            $categoriaCartao = Categoria::where('user_id', $userId)
+                ->where('nome', 'Cartão de Crédito')
+                ->where('tipo', 'despesa')
+                ->first();
+
             $lancamento = Lancamento::create([
                 'user_id' => $userId,
                 'conta_id' => $contaId,
-                'categoria_id' => null,
+                'categoria_id' => $categoriaCartao?->id,
                 'cartao_credito_id' => $cartaoId,
                 'forma_pagamento' => 'debito_conta',
                 'tipo' => 'despesa',
@@ -438,8 +438,6 @@ class CartaoFaturaService
                 'origem_tipo' => 'pagamento_fatura',
             ]);
 
-            error_log("💳 [PARCELAS] Lançamento ÚNICO criado - ID: {$lancamento->id}, Valor: {$totalPagar}");
-
             // Marcar todos os itens como pagos
             foreach ($itens as $item) {
                 $item->pago = true;
@@ -455,8 +453,6 @@ class CartaoFaturaService
             DB::commit();
 
             $descricaoParcelas = count($parcelaIds) === 1 ? '1 item' : count($parcelaIds) . ' itens';
-
-            error_log("✅ [PARCELAS] Pagamento concluído - Lançamento único ID: {$lancamento->id}");
 
             return [
                 'success' => true,
@@ -605,13 +601,28 @@ class CartaoFaturaService
             return null;
         }
 
-        $padraoDescricao = sprintf('- %02d/%04d', $mes, $ano);
+        // Buscar lançamento de pagamento pelo origem_tipo (padrão criado por pagarFatura/pagarParcelas)
+        $padraoObservacao = sprintf('Fatura %02d/%04d', $mes, $ano);
+
         $lancamentoPagamento = Lancamento::where('user_id', $userId)
-            ->whereNull('cartao_credito_id')
-            ->where('tipo', 'despesa')
-            ->where('descricao', 'LIKE', "Pagamento Fatura%{$cartao->nome_cartao}%{$padraoDescricao}%")
+            ->where('cartao_credito_id', $cartaoId)
+            ->where('origem_tipo', 'pagamento_fatura')
+            ->where('observacao', 'LIKE', "%{$padraoObservacao}%")
             ->orderBy('id', 'desc')
             ->first();
+
+        if (!$lancamentoPagamento) {
+            // Fallback: buscar pelo padrão antigo na descrição (dados migrados)
+            $nomeMes = $this->getNomeMes($mes);
+            $padraoDescricaoAntigo = "- {$nomeMes}/{$ano}";
+
+            $lancamentoPagamento = Lancamento::where('user_id', $userId)
+                ->where('cartao_credito_id', $cartaoId)
+                ->where('tipo', 'despesa')
+                ->where('descricao', 'LIKE', "Pagamento Fatura%{$cartao->nome_cartao}%{$padraoDescricaoAntigo}%")
+                ->orderBy('id', 'desc')
+                ->first();
+        }
 
         return [
             'pago' => true,
@@ -633,8 +644,6 @@ class CartaoFaturaService
                 ->where('user_id', $userId)
                 ->firstOrFail();
 
-            error_log("🔄 [DESFAZER FATURA] Cartão: {$cartao->nome_cartao}, Mês: {$mes}/{$ano}");
-
             // Buscar lançamento de pagamento de fatura pelo origem_tipo (mais confiável)
             // Observação contém: "X item(s) pago(s) - Fatura MM/YYYY"
             $padraoObservacao = sprintf('Fatura %02d/%04d', $mes, $ano);
@@ -644,9 +653,6 @@ class CartaoFaturaService
                 ->where('origem_tipo', 'pagamento_fatura')
                 ->where('observacao', 'LIKE', "%{$padraoObservacao}%")
                 ->get();
-
-            error_log("🔍 [DESFAZER FATURA] Padrão de busca: {$padraoObservacao}");
-            error_log("🔍 [DESFAZER FATURA] Lançamentos encontrados: {$lancamentosPagamento->count()}");
 
             if ($lancamentosPagamento->isEmpty()) {
                 // Fallback: buscar pelo padrão antigo na descrição
@@ -658,8 +664,6 @@ class CartaoFaturaService
                     ->where('tipo', 'despesa')
                     ->where('descricao', 'LIKE', "Pagamento Fatura%{$cartao->nome_cartao}%{$padraoDescricaoAntigo}%")
                     ->get();
-
-                error_log("🔍 [DESFAZER FATURA] Fallback - Padrão descrição: {$padraoDescricaoAntigo}, Encontrados: {$lancamentosPagamento->count()}");
             }
 
             if ($lancamentosPagamento->isEmpty()) {
@@ -695,12 +699,9 @@ class CartaoFaturaService
                 ->where('pago', true)
                 ->update(['pago' => false, 'data_pagamento' => null]);
 
-            error_log("📊 [DESFAZER FATURA] {$itensRevertidos} itens revertidos");
-
             $this->atualizarStatusFaturas($faturasAfetadas);
 
             foreach ($lancamentosPagamento as $pagamento) {
-                error_log("🗑️ [DESFAZER FATURA] Excluindo lançamento ID: {$pagamento->id}");
                 $pagamento->delete();
             }
 
@@ -708,8 +709,6 @@ class CartaoFaturaService
             $cartao->atualizarLimiteDisponivel();
 
             DB::commit();
-
-            error_log("✅ [DESFAZER FATURA] Concluído com sucesso");
 
             return [
                 'status' => 'success',
@@ -808,8 +807,15 @@ class CartaoFaturaService
     /**
      * Obter resumo dos parcelamentos ativos
      */
-    public function obterResumoParcelamentos(int $cartaoId, int $mes, int $ano): array
+    public function obterResumoParcelamentos(int $cartaoId, int $mes, int $ano, ?int $userId = null): array
     {
+        // Defense-in-depth: se userId fornecido, verificar ownership
+        if ($userId) {
+            CartaoCredito::where('id', $cartaoId)
+                ->where('user_id', $userId)
+                ->firstOrFail();
+        }
+
         $itens = FaturaCartaoItem::where('cartao_credito_id', $cartaoId)
             ->where('total_parcelas', '>', 1)
             ->where('pago', false)

@@ -174,8 +174,9 @@ export const Utils = {
             'cartao_credito': '💳 Crédito',
             'transferencia': '🔄 Transferência',
             'boleto': '📄 Boleto',
-            'cheque': '📝 Cheque',
-            'outro': '📋 Outro'
+            'deposito': '🏦 Depósito',
+            'estorno_cartao': '↩️ Estorno Cartão',
+            'cheque': '📝 Cheque'
         };
         return mapa[forma] || forma.charAt(0).toUpperCase() + forma.slice(1).replace(/_/g, ' ');
     },
