@@ -1,0 +1,171 @@
+/* ================================================
+   6. SELEÇÃO DE TIPO DE MOVIMENTAÇÃO
+   ================================================ */
+
+.lk-tipo-section {
+  margin-top: var(--spacing-8);
+}
+
+.lk-tipo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-4);
+}
+
+.lk-tipo-grid-4 {
+  grid-template-columns: repeat(4, 1fr) !important;
+}
+
+/* Modal maior quando tem grid de 4 colunas */
+.lk-modal-modern:has(.lk-tipo-grid-4) {
+  max-width: 750px;
+}
+
+.lk-tipo-card {
+  background: var(--glass-bg);
+  border: 2px solid var(--color-card-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6) var(--spacing-4);
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-normal);
+}
+
+.lk-tipo-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Tipos de cards */
+.lk-tipo-receita {
+  border-color: rgba(46, 204, 113, 0.3);
+}
+
+.lk-tipo-receita:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(46, 204, 113, 0.05),
+    rgba(46, 204, 113, 0.1)
+  );
+  border-color: var(--color-success);
+}
+
+.lk-tipo-despesa {
+  border-color: rgba(231, 76, 60, 0.3);
+}
+
+.lk-tipo-despesa:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(231, 76, 60, 0.05),
+    rgba(231, 76, 60, 0.1)
+  );
+  border-color: var(--color-danger);
+}
+
+.lk-tipo-transferencia {
+  border-color: rgba(52, 152, 219, 0.3);
+}
+
+.lk-tipo-transferencia:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(52, 152, 219, 0.05),
+    rgba(52, 152, 219, 0.1)
+  );
+  border-color: #3498db;
+}
+
+.lk-tipo-agendamento {
+  border-color: rgba(230, 126, 34, 0.3);
+}
+
+.lk-tipo-agendamento:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(230, 126, 34, 0.05),
+    rgba(230, 126, 34, 0.1)
+  );
+  border-color: var(--color-primary);
+}
+
+/* Ícone do tipo */
+.lk-tipo-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto var(--spacing-4);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  transition: all var(--transition-normal);
+}
+
+.lk-tipo-receita .lk-tipo-icon {
+  background: linear-gradient(135deg, var(--color-success), #27ae60);
+  color: #fff;
+  box-shadow: 0 8px 16px rgba(46, 204, 113, 0.3);
+}
+
+.lk-tipo-despesa .lk-tipo-icon {
+  background: linear-gradient(135deg, var(--color-danger), #c0392b);
+  color: #fff;
+  box-shadow: 0 8px 16px rgba(231, 76, 60, 0.3);
+}
+
+.lk-tipo-transferencia .lk-tipo-icon {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: #fff;
+  box-shadow: 0 8px 16px rgba(52, 152, 219, 0.3);
+}
+
+.lk-tipo-agendamento .lk-tipo-icon {
+  background: linear-gradient(135deg, var(--color-primary), #d35400);
+  color: #fff;
+  box-shadow: 0 8px 16px rgba(230, 126, 34, 0.3);
+}
+
+.lk-tipo-card h4 {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-2);
+}
+
+.lk-tipo-card p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0 0 var(--spacing-4);
+}
+
+.lk-tipo-badge {
+  display: inline-block;
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: 20px;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.lk-tipo-receita .lk-tipo-badge {
+  background: rgba(46, 204, 113, 0.15);
+  color: var(--color-success);
+}
+
+.lk-tipo-despesa .lk-tipo-badge {
+  background: rgba(231, 76, 60, 0.15);
+  color: var(--color-danger);
+}
+
+.lk-tipo-transferencia .lk-tipo-badge {
+  background: rgba(52, 152, 219, 0.15);
+  color: #3498db;
+}
+
+.lk-tipo-agendamento .lk-tipo-badge {
+  background: rgba(230, 126, 34, 0.15);
+  color: var(--color-primary);
+}
+

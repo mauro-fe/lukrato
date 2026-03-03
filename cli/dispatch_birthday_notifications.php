@@ -18,7 +18,7 @@
 
 require dirname(__DIR__) . '/bootstrap.php';
 
-use Application\Services\NotificationService;
+use Application\Services\Communication\NotificationService;
 use Carbon\Carbon;
 
 echo "=================================================\n";

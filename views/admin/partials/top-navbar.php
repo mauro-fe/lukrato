@@ -1,34 +1,12 @@
 <?php
+// CSS: public/assets/css/layout/top-navbar.css (carregado via header.php)
+// JS:  resources/js/admin/global/theme-toggle.js (carregado via Vite bundle)
+// Variáveis: $topNavFirstName, $isPro, $planLabel, $currentBreadcrumbs (via BaseController::renderAdmin)
 
-use Application\Lib\Auth;
-
-$topNavUser = $currentUser ?? Auth::user();
-$topNavName = $topNavUser->nome ?? ($topNavUser->name ?? '');
-$topNavFirstName = '';
-if ($topNavName) {
-    $topNavFirstName = trim($topNavName);
-    $parts = preg_split('/\s+/', $topNavFirstName);
-    $topNavFirstName = $parts[0] ?? $topNavFirstName;
-}
-
-$isPro = $topNavUser && method_exists($topNavUser, 'isPro') && $topNavUser->isPro();
-$planLabel = $isPro ? 'PRO' : 'FREE';
-
-// Definir breadcrumbs baseado no menu atual
-$breadcrumbsMap = [
-    'dashboard'    => [],
-    'contas'       => [['label' => 'Finanças', 'icon' => 'wallet']],
-    'cartoes'      => [['label' => 'Finanças', 'icon' => 'wallet']],
-    'faturas'      => [['label' => 'Finanças', 'icon' => 'wallet'], ['label' => 'Cartões', 'url' => 'cartoes', 'icon' => 'credit-card']],
-    'categorias'   => [['label' => 'Organização', 'icon' => 'folder']],
-    'lancamentos'  => [['label' => 'Finanças', 'icon' => 'wallet']],
-    'relatorios'   => [['label' => 'Análises', 'icon' => 'bar-chart-3']],
-    'agendamentos' => [['label' => 'Em Manutenção', 'icon' => 'hard-hat']],
-    'gamification' => [['label' => 'Perfil', 'icon' => 'user']],
-    'perfil'       => [],
-    'billing'      => [['label' => 'Perfil', 'icon' => 'user']],
-];
-$currentBreadcrumbs = $breadcrumbsMap[$menu ?? ''] ?? [];
+$topNavFirstName   = $topNavFirstName   ?? '';
+$isPro             = $isPro             ?? false;
+$planLabel         = $planLabel         ?? 'FREE';
+$currentBreadcrumbs = $currentBreadcrumbs ?? [];
 ?>
 
 <div class="top-navbar">
@@ -47,7 +25,7 @@ $currentBreadcrumbs = $breadcrumbsMap[$menu ?? ''] ?? [];
                     <ol class="lk-breadcrumbs">
                         <li class="lk-breadcrumb-item">
                             <a href="<?= BASE_URL ?>dashboard" title="Início">
-                                <i data-lucide="home" class="lk-breadcrumb-home" style="color: var(--color-primary)"></i>
+                                <i data-lucide="home" class="lk-breadcrumb-home lk-breadcrumb-icon"></i>
                             </a>
                         </li>
                         <?php foreach ($currentBreadcrumbs as $crumb): ?>
@@ -56,13 +34,13 @@ $currentBreadcrumbs = $breadcrumbsMap[$menu ?? ''] ?? [];
                                 <?php if (!empty($crumb['url'])): ?>
                                     <a href="<?= BASE_URL . $crumb['url'] ?>">
                                         <?php if (!empty($crumb['icon'])): ?><i data-lucide="<?= $crumb['icon'] ?>"
-                                                style="color: var(--color-primary)"></i><?php endif; ?>
+                                                class="lk-breadcrumb-icon"></i><?php endif; ?>
                                         <?= htmlspecialchars($crumb['label']) ?>
                                     </a>
                                 <?php else: ?>
                                     <span>
                                         <?php if (!empty($crumb['icon'])): ?><i data-lucide="<?= $crumb['icon'] ?>"
-                                                style="color: var(--color-primary)"></i><?php endif; ?>
+                                                class="lk-breadcrumb-icon"></i><?php endif; ?>
                                         <?= htmlspecialchars($crumb['label']) ?>
                                     </span>
                                 <?php endif; ?>
@@ -116,103 +94,3 @@ $currentBreadcrumbs = $breadcrumbsMap[$menu ?? ''] ?? [];
         </div>
     </div>
 </div>
-
-<script>
-    (() => {
-        'use strict';
-
-        const root = document.documentElement;
-        const themeBtn = document.getElementById('topNavThemeToggle');
-        const STORAGE_KEY = 'lukrato-theme';
-        const THEME_EVENT = 'lukrato:theme-changed';
-
-        function getTheme() {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved === 'light' || saved === 'dark') return saved;
-            const attr = root.getAttribute('data-theme');
-            if (attr === 'light' || attr === 'dark') return attr;
-            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        }
-
-        function updateThemeIcon(theme) {
-            if (!themeBtn) return;
-            themeBtn.classList.toggle('dark', theme === 'dark');
-        }
-
-        async function saveThemeToDatabase(theme) {
-            try {
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-
-                if (!csrfToken) {
-                    console.warn('[Theme] CSRF token não encontrado');
-                    return;
-                }
-
-                const baseUrl = document.querySelector('meta[name="base-url"]')?.content || '';
-                const url = baseUrl + 'api/perfil/tema';
-
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        theme: theme,
-                        csrf_token: csrfToken
-                    }),
-                    credentials: 'same-origin'
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                } else {
-                    console.warn('[Theme] Falha ao salvar tema:', response.status);
-                }
-            } catch (error) {
-                console.warn('[Theme] Erro ao salvar tema:', error);
-            }
-        }
-
-        function applyTheme(theme, saveToDb = true) {
-            root.setAttribute('data-theme', theme);
-            localStorage.setItem(STORAGE_KEY, theme);
-            updateThemeIcon(theme);
-            document.dispatchEvent(new CustomEvent(THEME_EVENT, {
-                detail: {
-                    theme
-                }
-            }));
-
-            // Salvar no banco de dados apenas se solicitado
-            if (saveToDb) {
-                saveThemeToDatabase(theme);
-            }
-        }
-
-        function toggleTheme() {
-            const current = getTheme();
-            const next = current === 'dark' ? 'light' : 'dark';
-            applyTheme(next);
-        }
-
-        // Initialize - sincronizar com tema do servidor
-        const initialTheme = getTheme();
-        const htmlTheme = root.getAttribute('data-theme');
-
-        // Se o HTML tem um tema definido (vindo do banco), usar esse
-        if (htmlTheme && (htmlTheme === 'light' || htmlTheme === 'dark')) {
-            localStorage.setItem(STORAGE_KEY, htmlTheme);
-            updateThemeIcon(htmlTheme);
-        } else {
-            updateThemeIcon(initialTheme);
-        }
-
-        if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
-
-        // Listen for theme changes
-        document.addEventListener(THEME_EVENT, (e) => {
-            updateThemeIcon(e.detail.theme);
-        });
-    })();
-</script>

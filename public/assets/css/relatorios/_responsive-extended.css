@@ -1,0 +1,729 @@
+﻿
+
+@media (max-width: 1270px) {
+  .controls-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tabs {
+    width: 100%;
+  }
+
+  .select-wrapper {
+    width: 100%;
+  }
+}
+
+@media (max-width: 1024px) {
+  .lk-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tabs {
+    overflow-x: auto;
+  }
+
+  .tab-btn {
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .rel-page {
+    padding: var(--spacing-2);
+  }
+
+  .lk-t {
+    font-size: var(--font-size-2xl);
+  }
+
+  .lk-titlebar {
+    flex-direction: column;
+    align-items: stretch;
+    margin-bottom: var(--spacing-4);
+  }
+
+  .export-card {
+    padding: var(--spacing-4);
+  }
+
+  .lk-card {
+    margin: var(--spacing-3) var(--spacing-4);
+    padding: var(--spacing-4);
+  }
+
+  .lk-chart,
+  .chart-container {
+    padding: var(--spacing-4);
+    min-height: 400px;
+  }
+
+  .chart-dual {
+    grid-template-columns: 1fr !important;
+    gap: var(--spacing-4);
+  }
+
+  .tab-btn span {
+    display: none;
+  }
+
+  .tab-btn {
+    padding: var(--spacing-3);
+    justify-content: center;
+    min-width: 44px;
+  }
+
+  .month-label {
+    font-size: var(--font-size-base);
+    min-width: 150px;
+  }
+}
+
+@media (max-width: 540px) {
+  .rel-page {
+    padding: var(--spacing-1);
+  }
+
+  .lk-controls {
+    padding: 0 var(--spacing-3);
+  }
+
+  .lk-card {
+    margin: var(--spacing-2) var(--spacing-3);
+  }
+
+  .export-controls {
+    flex-direction: column;
+  }
+
+  .export-controls .select-wrapper,
+  .export-controls .btn {
+    width: 100%;
+  }
+
+  .tabs {
+    padding: var(--spacing-1);
+    gap: var(--spacing-1);
+  }
+
+  .tab-btn {
+    padding: var(--spacing-2);
+  }
+}
+
+@media (max-width: 480px) {
+  .lk-t {
+    font-size: var(--font-size-xl);
+  }
+
+  .export-label {
+    font-size: var(--font-size-xs);
+  }
+
+  .chart-container canvas {
+    min-height: 320px;
+  }
+
+  .consolidated-summary {
+    padding: var(--spacing-3) !important;
+    margin-bottom: var(--spacing-4) !important;
+  }
+
+  .summary-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: var(--spacing-2) !important;
+    padding-bottom: var(--spacing-3) !important;
+    margin-bottom: var(--spacing-3) !important;
+  }
+
+  .summary-icon {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 18px !important;
+  }
+
+  .summary-title h3 {
+    font-size: 1rem !important;
+  }
+
+  .summary-title p {
+    font-size: 0.75rem !important;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr !important;
+    gap: var(--spacing-2) !important;
+    margin-bottom: var(--spacing-3) !important;
+  }
+
+  .summary-stat {
+    padding: var(--spacing-3) !important;
+    gap: var(--spacing-2) !important;
+  }
+
+  .summary-stat .stat-icon {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 18px !important;
+  }
+
+  .summary-stat .stat-label {
+    font-size: 0.65rem !important;
+  }
+
+  .summary-stat .stat-value {
+    font-size: 1.1rem !important;
+  }
+
+  .summary-insights {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: var(--spacing-3) !important;
+    gap: var(--spacing-2) !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .insight-item {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: var(--spacing-2) !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    font-size: 0.8rem !important;
+    padding: var(--spacing-3) !important;
+    box-sizing: border-box !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+  }
+
+  .insight-item span {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    white-space: normal !important;
+  }
+
+  .insight-item i,
+  .insight-item svg {
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    flex-shrink: 0 !important;
+  }
+  .cards-grid {
+    gap: var(--spacing-3) !important;
+  }
+
+  .card-item {
+    border-radius: var(--radius-lg) !important;
+  }
+
+  .card-header-gradient {
+    padding: var(--spacing-3) !important;
+  }
+
+  .card-brand {
+    gap: var(--spacing-2) !important;
+  }
+
+  .card-icon-wrapper {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 16px !important;
+  }
+
+  .card-name {
+    font-size: 0.9rem !important;
+  }
+
+  .card-meta {
+    font-size: 0.65rem !important;
+  }
+
+  .health-indicator {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 12px !important;
+  }
+
+  .card-trend-compact {
+    padding: var(--spacing-2) var(--spacing-3) !important;
+    gap: var(--spacing-2) !important;
+  }
+
+  .trend-label {
+    font-size: 0.55rem !important;
+  }
+
+  .card-balance-section {
+    padding: var(--spacing-3) !important;
+  }
+
+  .balance-value {
+    font-size: 1.25rem !important;
+  }
+
+  .balance-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: var(--spacing-2) !important;
+  }
+
+  .balance-item {
+    padding: var(--spacing-2) !important;
+  }
+
+  .balance-label {
+    font-size: 0.55rem !important;
+  }
+
+  .balance-amount {
+    font-size: 0.85rem !important;
+  }
+
+  .card-footer {
+    padding: var(--spacing-3) !important;
+    gap: var(--spacing-2) !important;
+  }
+
+  .btn-ver-detalhes-card {
+    padding: var(--spacing-2) var(--spacing-3) !important;
+    font-size: 0.75rem !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .rel-page {
+    padding: var(--spacing-2) !important;
+  }
+
+  .consolidated-summary {
+    padding: var(--spacing-2) !important;
+  }
+
+  .summary-header {
+    gap: var(--spacing-1) !important;
+  }
+
+  .summary-icon {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 16px !important;
+  }
+
+  .summary-title h3 {
+    font-size: 0.9rem !important;
+  }
+
+  .summary-title p {
+    font-size: 0.7rem !important;
+  }
+
+  .summary-grid {
+    gap: var(--spacing-1) !important;
+  }
+
+  .summary-stat {
+    padding: var(--spacing-2) !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+  }
+
+  .summary-stat .stat-icon {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 14px !important;
+  }
+
+  .summary-stat .stat-value {
+    font-size: 1rem !important;
+  }
+
+  .insight-item {
+    font-size: 0.75rem !important;
+    max-width: 100% !important;
+    padding: var(--spacing-2) var(--spacing-3) !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: var(--spacing-2) !important;
+  }
+
+  .insight-item svg {
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
+  }
+
+  .card-header-gradient {
+    padding: var(--spacing-2) !important;
+  }
+
+  .card-icon-wrapper {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 14px !important;
+  }
+
+  .card-name {
+    font-size: 0.85rem !important;
+  }
+
+  .card-info {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .card-meta {
+    font-size: 0.6rem !important;
+    flex-wrap: wrap;
+  }
+
+  .card-balance-section {
+    padding: var(--spacing-2) !important;
+  }
+
+  .balance-value {
+    font-size: 1.1rem !important;
+  }
+
+  .balance-grid {
+    gap: var(--spacing-1) !important;
+  }
+
+  .balance-item {
+    padding: var(--spacing-1) !important;
+  }
+
+  .balance-label {
+    font-size: 0.5rem !important;
+  }
+
+  .balance-amount {
+    font-size: 0.75rem !important;
+  }
+
+  /* ========== COMPARATIVOS - MOBILE 480px ========== */
+  .comparatives-card .card-header {
+    padding: var(--spacing-3) !important;
+  }
+
+  .comparatives-card .header-left {
+    gap: var(--spacing-2) !important;
+  }
+
+  .comparatives-card .header-left i {
+    font-size: 1.25rem !important;
+  }
+
+  .comparatives-card .header-text h3 {
+    font-size: 1rem !important;
+  }
+
+  .comparatives-card .header-text p {
+    font-size: 0.7rem !important;
+  }
+
+  .comparatives-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: var(--spacing-3) !important;
+  }
+
+  .comparative-card {
+    padding: var(--spacing-3) !important;
+    border-radius: var(--radius-lg) !important;
+  }
+
+  .comparative-header {
+    margin-bottom: var(--spacing-3) !important;
+    padding-bottom: var(--spacing-2) !important;
+  }
+
+  .comparative-card h3 {
+    font-size: 0.95rem !important;
+    margin-bottom: var(--spacing-2) !important;
+  }
+
+  .period-labels {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: var(--spacing-1) !important;
+    align-items: center !important;
+  }
+
+  .period-current {
+    font-size: 0.7rem !important;
+    padding: 4px 8px !important;
+  }
+
+  .period-separator {
+    font-size: 0.65rem !important;
+  }
+
+  .period-previous {
+    font-size: 0.7rem !important;
+  }
+
+  .comparative-grid-new {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: var(--spacing-2) !important;
+  }
+
+  .comparative-item-new {
+    padding: var(--spacing-3) !important;
+    border-radius: var(--radius-md) !important;
+  }
+
+  .item-header {
+    display: flex !important;
+    align-items: center !important;
+    gap: var(--spacing-2) !important;
+    margin-bottom: var(--spacing-2) !important;
+    padding-bottom: var(--spacing-2) !important;
+  }
+
+  .item-icon {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 14px !important;
+    border-radius: var(--radius-md) !important;
+  }
+
+  .item-label {
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+  }
+
+  .item-values {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: var(--spacing-2) !important;
+    margin-bottom: var(--spacing-2) !important;
+  }
+
+  .value-current,
+  .value-previous {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+  }
+
+  .value-label {
+    font-size: 0.6rem !important;
+    color: var(--color-text-muted) !important;
+    text-transform: uppercase !important;
+  }
+
+  .value-current .value-amount {
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+  }
+
+  .value-previous .value-amount {
+    font-size: 0.9rem !important;
+    color: var(--color-text-muted) !important;
+  }
+
+  .item-trend {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: var(--spacing-1) !important;
+    padding: 6px 10px !important;
+    border-radius: var(--radius-md) !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+  }
+
+  .item-trend i {
+    font-size: 0.8rem !important;
+  }
+}
+
+/* ========== MOBILE MUITO PEQUENO (max-width: 360px) - COMPARATIVOS ========== */
+@media (max-width: 360px) {
+  .comparatives-card .card-header {
+    padding: var(--spacing-2) !important;
+  }
+
+  .comparatives-card .header-text h3 {
+    font-size: 0.9rem !important;
+  }
+
+  .comparatives-card .header-text p {
+    font-size: 0.65rem !important;
+  }
+
+  .comparative-card {
+    padding: var(--spacing-2) !important;
+  }
+
+  .comparative-header {
+    margin-bottom: var(--spacing-2) !important;
+    padding-bottom: var(--spacing-1) !important;
+  }
+
+  .comparative-card h3 {
+    font-size: 0.85rem !important;
+  }
+
+  .period-current {
+    font-size: 0.6rem !important;
+    padding: 3px 6px !important;
+  }
+
+  .period-separator {
+    font-size: 0.55rem !important;
+  }
+
+  .period-previous {
+    font-size: 0.6rem !important;
+  }
+
+  .comparative-item-new {
+    padding: var(--spacing-2) !important;
+  }
+
+  .item-header {
+    gap: var(--spacing-1) !important;
+    margin-bottom: var(--spacing-1) !important;
+    padding-bottom: var(--spacing-1) !important;
+  }
+
+  .item-icon {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 12px !important;
+  }
+
+  .item-label {
+    font-size: 0.6rem !important;
+  }
+
+  .item-values {
+    gap: var(--spacing-1) !important;
+    margin-bottom: var(--spacing-1) !important;
+  }
+
+  .value-label {
+    font-size: 0.5rem !important;
+  }
+
+  .value-current .value-amount {
+    font-size: 0.85rem !important;
+  }
+
+  .value-previous .value-amount {
+    font-size: 0.75rem !important;
+  }
+
+  .item-trend {
+    padding: 4px 8px !important;
+    font-size: 0.65rem !important;
+  }
+
+  .item-trend i {
+    font-size: 0.7rem !important;
+  }
+}
+
+/* Scroll suave em mobile */
+.tabs-container,
+.forecast-grid,
+.chart-dual {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.chart-container,
+.chart-wrapper,
+canvas {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Previne zoom em inputs iOS */
+@supports (-webkit-touch-callout: none) {
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+
+/* Hover apenas para dispositivos com mouse */
+@media (hover: hover) {
+  .card-item:hover {
+    transform: translateY(-6px);
+  }
+
+  .stat-card:hover {
+    transform: translateY(-5px);
+  }
+
+  .comparative-item-new:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* Touch feedback */
+@media (hover: none) {
+  .tab-btn:active,
+  .modern-btn:active,
+  .card-item:active {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+}
+
+/* Alto contraste */
+@media (prefers-contrast: high) {
+  .export-card,
+  .lk-card,
+  .tabs {
+    border-width: 2px;
+  }
+
+  .tab-btn {
+    border-width: 2px;
+  }
+}
+
+/* ============================================================================
+   TEMA ESCURO
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+  .export-card:hover,
+  .lk-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+}
+
+
+@media print {
+  .lk-controls,
+  .export-card,
+  .controls-section,
+  .tabs,
+  .btn {
+    display: none !important;
+  }
+
+  .chart-dual {
+    page-break-inside: avoid;
+  }
+}

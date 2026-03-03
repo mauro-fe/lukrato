@@ -33,6 +33,11 @@ class FaturaCartaoItem extends Model
         'item_pai_id',
         'pago',
         'data_pagamento',
+        'recorrente',
+        'recorrencia_freq',
+        'recorrencia_fim',
+        'recorrencia_pai_id',
+        'cancelado_em',
     ];
 
     protected $casts = [
@@ -42,6 +47,9 @@ class FaturaCartaoItem extends Model
         'data_pagamento' => 'date',
         'pago' => 'boolean',
         'eh_parcelado' => 'boolean',
+        'recorrente' => 'boolean',
+        'recorrencia_fim' => 'date',
+        'cancelado_em' => 'datetime',
         'parcela_atual' => 'integer',
         'total_parcelas' => 'integer',
         'mes_referencia' => 'integer',
@@ -124,5 +132,52 @@ class FaturaCartaoItem extends Model
     {
         return $query->whereYear('data_vencimento', $ano)
             ->whereMonth('data_vencimento', $mes);
+    }
+
+    // Relacionamentos de recorrência
+
+    /**
+     * Item pai da recorrência (o primeiro item que originou a assinatura)
+     */
+    public function recorrenciaPai()
+    {
+        return $this->belongsTo(FaturaCartaoItem::class, 'recorrencia_pai_id');
+    }
+
+    /**
+     * Itens filhos gerados por esta recorrência
+     */
+    public function recorrenciaFilhos()
+    {
+        return $this->hasMany(FaturaCartaoItem::class, 'recorrencia_pai_id');
+    }
+
+    // Scopes de recorrência
+
+    /**
+     * Itens que são origens de recorrência ativa (não cancelados, sem pai)
+     */
+    public function scopeRecorrenciasAtivas($query)
+    {
+        return $query->where('recorrente', true)
+            ->whereNull('recorrencia_pai_id')
+            ->whereNull('cancelado_em');
+    }
+
+    /**
+     * Verifica se esta recorrência ainda está ativa
+     */
+    public function isRecorrenciaAtiva(): bool
+    {
+        if (!$this->recorrente) {
+            return false;
+        }
+        if ($this->cancelado_em !== null) {
+            return false;
+        }
+        if ($this->recorrencia_fim !== null && $this->recorrencia_fim->lt(now())) {
+            return false;
+        }
+        return true;
     }
 }

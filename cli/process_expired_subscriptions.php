@@ -13,8 +13,8 @@
 
 require __DIR__ . '/../bootstrap.php';
 
-use Application\Services\SubscriptionExpirationService;
-use Application\Services\LogService;
+use Application\Services\Billing\SubscriptionExpirationService;
+use Application\Services\Infrastructure\LogService;
 
 echo "=== Processando Assinaturas Expiradas ===" . PHP_EOL;
 echo "Data/Hora: " . date('Y-m-d H:i:s') . PHP_EOL;

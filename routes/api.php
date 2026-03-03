@@ -12,209 +12,279 @@ use Application\Core\Router;
  */
 
 
-Router::add('POST', '/api/onboarding/complete', 'Api\OnboardingController@complete', ['auth', 'csrf']);
-
-Router::add('POST', '/api/tour/complete', 'Api\TourController@complete', ['auth', 'csrf']);
+Router::add('POST', '/api/tour/complete', 'Api\TourController@complete', ['auth', 'csrf', 'ratelimit']);
 
 
 // ============================================
 // SEGURANÇA / UTILIDADES
 // ============================================
 
-Router::add('POST', '/api/csrf/refresh', 'Api\\SecurityController@refreshCsrf');
+Router::add('POST', '/api/csrf/refresh', 'Api\\User\\SecurityController@refreshCsrf', ['ratelimit']);
 
 // ============================================
 // GERENCIAMENTO DE SESSÃO
 // ============================================
 
 // Status e Renew sem middleware auth para permitir verificação/renovação mesmo com sessão expirada
-Router::add('GET',  '/api/session/status',    'Api\\SessionController@status');
-Router::add('POST', '/api/session/renew',     'Api\\SessionController@renew');
-Router::add('POST', '/api/session/heartbeat', 'Api\\SessionController@heartbeat', ['auth']);
+Router::add('GET',  '/api/session/status',    'Api\\User\\SessionController@status');
+Router::add('POST', '/api/session/renew',     'Api\\User\\SessionController@renew', ['ratelimit']);
+Router::add('POST', '/api/session/heartbeat', 'Api\\User\\SessionController@heartbeat', ['auth']);
 
 // ============================================
 // CONTATO / SUPORTE (Público) - Rate limiting para evitar spam
 // ============================================
 
-Router::add('POST', '/api/contato/enviar', 'Api\\ContactController@send', ['ratelimit']);
-Router::add('POST', '/api/suporte/enviar', 'Api\\SupportController@send', ['ratelimit']);
+Router::add('POST', '/api/contato/enviar', 'Api\\User\\ContactController@send', ['ratelimit']);
+Router::add('POST', '/api/suporte/enviar', 'Api\\User\\SupportController@send', ['ratelimit']);
 
 // ============================================
 // PERFIL
 // ============================================
 
-Router::add('GET',  '/api/perfil', 'Api\\PerfilController@show',   ['auth']);
-Router::add('POST', '/api/perfil', 'Api\\PerfilController@update', ['auth', 'csrf']);
-Router::add('POST', '/api/perfil/tema', 'Api\\PerfilController@updateTheme', ['auth', 'csrf']);
-Router::add('DELETE', '/api/perfil/delete', 'Api\\PerfilController@delete', ['auth', 'csrf']);
+Router::add('GET',  '/api/perfil', 'Api\\User\\PerfilController@show',   ['auth']);
+Router::add('POST', '/api/perfil', 'Api\\User\\PerfilController@update', ['auth', 'csrf', 'ratelimit']);
+Router::add('POST', '/api/perfil/senha', 'Api\\User\\PerfilController@updatePassword', ['auth', 'csrf', 'ratelimit_strict']);
+Router::add('POST', '/api/perfil/tema', 'Api\\User\\PerfilController@updateTheme', ['auth', 'csrf', 'ratelimit']);
+Router::add('DELETE', '/api/perfil/delete', 'Api\\User\\PerfilController@delete', ['auth', 'csrf', 'ratelimit_strict']);
 
 // ============================================
 // ONBOARDING
 // ============================================
 
-Router::add('GET',  '/api/onboarding/status',    'Api\\OnboardingController@status',   ['auth']);
-Router::add('GET',  '/api/onboarding/checklist', 'Api\\OnboardingController@checklist', ['auth']);
-Router::add('POST', '/api/onboarding/complete',  'Api\\OnboardingController@complete', ['auth', 'csrf']);
-Router::add('POST', '/api/onboarding/skip-tour', 'Api\\OnboardingController@skipTour', ['auth', 'csrf']);
-Router::add('POST', '/api/onboarding/reset',     'Api\\OnboardingController@reset',    ['auth', 'csrf']);
-Router::add('POST', '/api/onboarding/conta',       'Api\\OnboardingController@storeConta',      ['auth']);
-Router::add('POST', '/api/onboarding/lancamento',  'Api\\OnboardingController@storeLancamento', ['auth']);
+Router::add('GET',  '/api/onboarding/status',    'Api\\User\\OnboardingController@status',   ['auth']);
+Router::add('GET',  '/api/onboarding/checklist', 'Api\\User\\OnboardingController@checklist', ['auth']);
+Router::add('POST', '/api/onboarding/complete',  'Api\\User\\OnboardingController@complete', ['auth', 'csrf', 'ratelimit']);
+Router::add('POST', '/api/onboarding/skip-tour', 'Api\\User\\OnboardingController@skipTour', ['auth', 'csrf', 'ratelimit']);
+Router::add('POST', '/api/onboarding/reset',     'Api\\User\\OnboardingController@reset',    ['auth', 'csrf', 'ratelimit']);
+Router::add('POST', '/api/onboarding/conta',       'Api\\User\\OnboardingController@storeConta',      ['auth']);
+Router::add('POST', '/api/onboarding/lancamento',  'Api\\User\\OnboardingController@storeLancamento', ['auth']);
 
 // ============================================
 // DASHBOARD
 // ============================================
 
-Router::add('GET', '/api/dashboard/metrics',      'Api\\FinanceiroController@metrics',      ['auth']);
-Router::add('GET', '/api/dashboard/transactions', 'Api\\DashboardController@transactions',  ['auth']);
-Router::add('GET', '/api/dashboard/comparativo-competencia', 'Api\\DashboardController@comparativoCompetenciaCaixa', ['auth']);
-Router::add('GET', '/api/dashboard/provisao',     'Api\\DashboardController@provisao',       ['auth']);
-Router::add('GET', '/api/options',                'Api\\FinanceiroController@options',      ['auth']);
+Router::add('GET', '/api/dashboard/metrics',      'Api\\Financeiro\\FinanceiroController@metrics',      ['auth']);
+Router::add('GET', '/api/dashboard/transactions', 'Api\\Financeiro\\DashboardController@transactions',  ['auth']);
+Router::add('GET', '/api/dashboard/comparativo-competencia', 'Api\\Financeiro\\DashboardController@comparativoCompetenciaCaixa', ['auth']);
+Router::add('GET', '/api/dashboard/provisao',     'Api\\Financeiro\\DashboardController@provisao',       ['auth']);
+Router::add('GET', '/api/options',                'Api\\Financeiro\\FinanceiroController@options',      ['auth']);
 
 // ============================================
 // RELATÓRIOS
 // ============================================
 
-Router::add('GET', '/api/reports',             'Api\\RelatoriosController@index',        ['auth']);
-Router::add('GET', '/api/reports/overview',    'Api\\RelatoriosController@overview',     ['auth']);
-Router::add('GET', '/api/reports/table',       'Api\\RelatoriosController@table',        ['auth']);
-Router::add('GET', '/api/reports/timeseries',  'Api\\RelatoriosController@timeseries',   ['auth']);
-Router::add('GET', '/api/reports/summary',     'Api\\RelatoriosController@summary',      ['auth']);
-Router::add('GET', '/api/reports/insights',    'Api\\RelatoriosController@insights',     ['auth']);
-Router::add('GET', '/api/reports/comparatives', 'Api\\RelatoriosController@comparatives', ['auth']);
-Router::add('GET', '/api/reports/export',      'Api\\RelatoriosController@export',       ['auth']);
+Router::add('GET', '/api/reports',             'Api\\Report\\RelatoriosController@index',        ['auth']);
+Router::add('GET', '/api/reports/summary',     'Api\\Report\\RelatoriosController@summary',      ['auth']);
+Router::add('GET', '/api/reports/insights',    'Api\\Report\\RelatoriosController@insights',     ['auth']);
+Router::add('GET', '/api/reports/comparatives', 'Api\\Report\\RelatoriosController@comparatives', ['auth']);
+Router::add('GET', '/api/reports/card-details/{id}', 'Api\\Report\\RelatoriosController@cardDetails', ['auth']);
+Router::add('GET', '/api/reports/export',      'Api\\Report\\RelatoriosController@export',       ['auth', 'ratelimit']);
 
 // ============================================
 // LANÇAMENTOS (REST)
 // ============================================
 
-Router::add('GET',    '/api/lancamentos',        'Api\\LancamentosController@index',   ['auth']);
-Router::add('POST',   '/api/lancamentos',        'Api\\LancamentosController@store',   ['auth', 'csrf']);
-Router::add('PUT',    '/api/lancamentos/{id}',   'Api\\LancamentosController@update',  ['auth', 'csrf']);
-Router::add('DELETE', '/api/lancamentos/{id}',   'Api\\LancamentosController@destroy', ['auth', 'csrf']);
-Router::add('GET',    '/api/lancamentos/usage',  'Api\\LancamentosController@usage',   ['auth']);
-Router::add('GET',    '/api/lancamentos/export', 'Api\\LancamentosController@export',  ['auth']);
+Router::add('GET',    '/api/lancamentos',        'Api\\Lancamentos\\IndexController@__invoke',                ['auth']);
+Router::add('POST',   '/api/lancamentos',        'Api\\Lancamentos\\StoreController@__invoke',                ['auth', 'csrf', 'ratelimit']);
+Router::add('POST',   '/api/lancamentos/delete',  'Api\\Lancamentos\\DestroyController@bulkDelete',            ['auth', 'csrf', 'ratelimit']);
+Router::add('PUT',    '/api/lancamentos/{id}',   'Api\\Lancamentos\\UpdateController@__invoke',               ['auth', 'csrf', 'ratelimit']);
+Router::add('DELETE', '/api/lancamentos/{id}',   'Api\\Lancamentos\\DestroyController@__invoke',              ['auth', 'csrf', 'ratelimit']);
+Router::add('GET',    '/api/lancamentos/usage',  'Api\\Lancamentos\\UsageController@__invoke',                ['auth']);
+Router::add('GET',    '/api/lancamentos/export', 'Api\\Lancamentos\\ExportController@__invoke',               ['auth', 'ratelimit']);
+Router::add('POST',   '/api/lancamentos/{id}/cancelar-recorrencia', 'Api\\Lancamentos\\CancelarRecorrenciaController@__invoke', ['auth', 'csrf', 'ratelimit']);
+Router::add('PUT',    '/api/lancamentos/{id}/pagar',                'Api\\Lancamentos\\MarcarPagoController@__invoke',          ['auth', 'csrf', 'ratelimit']);
+Router::add('PUT',    '/api/lancamentos/{id}/despagar',              'Api\\Lancamentos\\MarcarPagoController@desmarcar',          ['auth', 'csrf', 'ratelimit']);
+Router::add('GET',    '/api/lancamentos/{id}/fatura-detalhes',      'Api\\Lancamentos\\FaturaDetalhesController@__invoke',      ['auth']);
 
 // Rota para histórico recente de uma conta (alias do index com limit)
-Router::add('GET',    '/api/contas/{id}/lancamentos', 'Api\\LancamentosController@index', ['auth']);
+Router::add('GET',    '/api/contas/{id}/lancamentos', 'Api\\Lancamentos\\IndexController@__invoke', ['auth']);
 
 // ============================================
 // TRANSAÇÕES / TRANSFERÊNCIAS
 // ============================================
 
-Router::add('POST', '/api/transactions',            'Api\\FinanceiroController@store',    ['auth', 'csrf']);
-Router::add('PUT',  '/api/transactions/{id}',       'Api\\FinanceiroController@update',   ['auth', 'csrf']);
-Router::add('POST', '/api/transactions/{id}/update', 'Api\\FinanceiroController@update',   ['auth', 'csrf']); // Compat
-Router::add('POST', '/api/transfers',               'Api\\FinanceiroController@transfer', ['auth', 'csrf']);
+Router::add('POST', '/api/transactions',            'Api\\Financeiro\\FinanceiroController@store',    ['auth', 'csrf', 'ratelimit']);
+Router::add('PUT',  '/api/transactions/{id}',       'Api\\Financeiro\\FinanceiroController@update',   ['auth', 'csrf', 'ratelimit']);
+Router::add('POST', '/api/transactions/{id}/update', 'Api\\Financeiro\\FinanceiroController@update',   ['auth', 'csrf', 'ratelimit']); // Compat
+Router::add('POST', '/api/transfers',               'Api\\Financeiro\\FinanceiroController@transfer', ['auth', 'csrf', 'ratelimit_strict']);
 
 // ============================================
 // CONTAS (REST)
 // ============================================
 
-Router::add('GET',    '/api/accounts',              'Api\\ContasController@index',      ['auth']);
-Router::add('POST',   '/api/accounts',              'Api\\ContasController@store',      ['auth', 'csrf']);
-Router::add('PUT',    '/api/accounts/{id}',         'Api\\ContasController@update',     ['auth', 'csrf']);
-Router::add('DELETE', '/api/accounts/{id}',         'Api\\ContasController@delete',     ['auth', 'csrf']);
-Router::add('POST',   '/api/accounts/{id}/archive', 'Api\\ContasController@archive',    ['auth', 'csrf']);
-Router::add('POST',   '/api/accounts/{id}/restore', 'Api\\ContasController@restore',    ['auth', 'csrf']);
-Router::add('POST',   '/api/accounts/{id}/delete',  'Api\\ContasController@hardDelete', ['auth', 'csrf']);
+Router::add('GET',    '/api/accounts',              'Api\\Conta\\ContasController@index',      ['auth']);
+Router::add('POST',   '/api/accounts',              'Api\\Conta\\ContasController@store',      ['auth', 'csrf', 'ratelimit']);
+Router::add('PUT',    '/api/accounts/{id}',         'Api\\Conta\\ContasController@update',     ['auth', 'csrf', 'ratelimit']);
+Router::add('DELETE', '/api/accounts/{id}',         'Api\\Conta\\ContasController@destroy',    ['auth', 'csrf', 'ratelimit']);
+Router::add('POST',   '/api/accounts/{id}/archive', 'Api\\Conta\\ContasController@archive',    ['auth', 'csrf', 'ratelimit']);
+Router::add('POST',   '/api/accounts/{id}/restore', 'Api\\Conta\\ContasController@restore',    ['auth', 'csrf', 'ratelimit']);
+Router::add('POST',   '/api/accounts/{id}/delete',  'Api\\Conta\\ContasController@hardDelete', ['auth', 'csrf', 'ratelimit']);
 
 // Rotas legadas (manter compatibilidade)
-Router::add('POST', '/api/accounts/archive',   'Api\\ContasController@archive',   ['auth', 'csrf']);
-Router::add('POST', '/api/accounts/unarchive', 'Api\\ContasController@unarchive', ['auth', 'csrf']);
+Router::add('POST', '/api/accounts/archive',   'Api\\Conta\\ContasController@archive',   ['auth', 'csrf', 'ratelimit']);
+Router::add('POST', '/api/accounts/unarchive', 'Api\\Conta\\ContasController@restore',   ['auth', 'csrf', 'ratelimit']);
 
 // Rotas em português (compatibilidade com frontend)
-Router::add('GET',    '/api/instituicoes',             'Api\\ContasController@instituicoes', ['auth']);
-Router::add('POST',   '/api/instituicoes',             'Api\\ContasController@createInstituicao', ['auth', 'csrf']);
-Router::add('GET',    '/api/contas/instituicoes',      'Api\\ContasController@instituicoes', ['auth']);
-Router::add('GET',    '/api/contas',                   'Api\\ContasController@index',        ['auth']);
-Router::add('POST',   '/api/contas',                   'Api\\ContasController@store',        ['auth', 'csrf']);
-Router::add('PUT',    '/api/contas/{id}',              'Api\\ContasController@update',       ['auth', 'csrf']);
-Router::add('POST',   '/api/contas/{id}/archive',      'Api\\ContasController@archive',      ['auth', 'csrf']);
-Router::add('POST',   '/api/contas/{id}/restore',      'Api\\ContasController@restore',      ['auth', 'csrf']);
-Router::add('DELETE', '/api/contas/{id}',              'Api\\ContasController@destroy',      ['auth', 'csrf']);
+Router::add('GET',    '/api/instituicoes',             'Api\\Conta\\ContasController@instituicoes', ['auth']);
+Router::add('POST',   '/api/instituicoes',             'Api\\Conta\\ContasController@createInstituicao', ['auth', 'csrf', 'ratelimit']);
+Router::add('GET',    '/api/contas/instituicoes',      'Api\\Conta\\ContasController@instituicoes', ['auth']);
+Router::add('GET',    '/api/contas',                   'Api\\Conta\\ContasController@index',        ['auth']);
+Router::add('POST',   '/api/contas',                   'Api\\Conta\\ContasController@store',        ['auth', 'csrf', 'ratelimit']);
+Router::add('PUT',    '/api/contas/{id}',              'Api\\Conta\\ContasController@update',       ['auth', 'csrf', 'ratelimit']);
+Router::add('POST',   '/api/contas/{id}/archive',      'Api\\Conta\\ContasController@archive',      ['auth', 'csrf', 'ratelimit']);
+Router::add('POST',   '/api/contas/{id}/restore',      'Api\\Conta\\ContasController@restore',      ['auth', 'csrf', 'ratelimit']);
+Router::add('POST',   '/api/contas/{id}/delete',       'Api\\Conta\\ContasController@hardDelete',   ['auth', 'csrf', 'ratelimit']);
+Router::add('DELETE', '/api/contas/{id}',              'Api\\Conta\\ContasController@destroy',      ['auth', 'csrf', 'ratelimit']);
 
 // ============================================
 // CATEGORIAS (REST)
 // ============================================
 
-Router::add('GET',    '/api/categorias',     'Api\\CategoriaController@index',  ['auth']);
-Router::add('POST',   '/api/categorias',     'Api\\CategoriaController@store',  ['auth', 'csrf']);
-Router::add('PUT',    '/api/categorias/{id}', 'Api\\CategoriaController@update', ['auth', 'csrf']);
-Router::add('DELETE', '/api/categorias/{id}', 'Api\\CategoriaController@delete', ['auth', 'csrf']);
+Router::add('GET',    '/api/categorias',     'Api\\Categoria\\CategoriaController@index',  ['auth']);
+Router::add('POST',   '/api/categorias',     'Api\\Categoria\\CategoriaController@store',  ['auth', 'csrf', 'ratelimit']);
+Router::add('PUT',    '/api/categorias/{id}', 'Api\\Categoria\\CategoriaController@update', ['auth', 'csrf', 'ratelimit']);
+Router::add('DELETE', '/api/categorias/{id}', 'Api\\Categoria\\CategoriaController@delete', ['auth', 'csrf', 'ratelimit']);
 
 // ============================================
-// AGENDAMENTOS (REST)
+// SUBCATEGORIAS (REST)
 // ============================================
 
-Router::add('GET',  '/api/agendamentos',                  'Api\\AgendamentoController@index',        ['auth']);
-Router::add('GET',  '/api/agendamentos/{id}',             'Api\\AgendamentoController@show',         ['auth']);
-Router::add('POST', '/api/agendamentos',                  'Api\\AgendamentoController@store',        ['auth', 'csrf']);
-Router::add('PUT',  '/api/agendamentos/{id}',             'Api\\AgendamentoController@update',       ['auth', 'csrf']);
-Router::add('POST', '/api/agendamentos/{id}',             'Api\\AgendamentoController@update',       ['auth', 'csrf']); // Compat
-Router::add('POST', '/api/agendamentos/{id}/status',      'Api\\AgendamentoController@updateStatus', ['auth', 'csrf']);
-Router::add('POST', '/api/agendamentos/{id}/executar',    'Api\\AgendamentoController@executar',     ['auth', 'csrf']);
-Router::add('POST', '/api/agendamentos/{id}/cancelar',    'Api\\AgendamentoController@cancel',       ['auth', 'csrf']);
-Router::add('POST', '/api/agendamentos/{id}/reativar',    'Api\\AgendamentoController@restore',      ['auth', 'csrf']);
+Router::add('GET',    '/api/categorias/{id}/subcategorias', 'Api\\Categoria\\SubcategoriaController@index',  ['auth']);
+Router::add('POST',   '/api/categorias/{id}/subcategorias', 'Api\\Categoria\\SubcategoriaController@store',  ['auth', 'csrf', 'ratelimit']);
+Router::add('GET',    '/api/subcategorias/grouped',         'Api\\Categoria\\SubcategoriaController@grouped', ['auth']);
+Router::add('PUT',    '/api/subcategorias/{id}',            'Api\\Categoria\\SubcategoriaController@update', ['auth', 'csrf', 'ratelimit']);
+Router::add('DELETE', '/api/subcategorias/{id}',            'Api\\Categoria\\SubcategoriaController@delete', ['auth', 'csrf', 'ratelimit']);
 
 // ============================================
-// INVESTIMENTOS
+// CARTÕES DE CRÉDITO (REST)
+// ============================================
+
+Router::add('GET',    '/api/cartoes',                     'Api\\Cartao\\CartoesController@index',           ['auth']);
+Router::add('GET',    '/api/cartoes/resumo',              'Api\\Cartao\\CartoesController@summary',         ['auth']);
+Router::add('GET',    '/api/cartoes/alertas',             'Api\\Cartao\\CartoesController@alertas',         ['auth']);
+Router::add('GET',    '/api/cartoes/validar-integridade', 'Api\\Cartao\\CartoesController@validarIntegridade', ['auth']);
+Router::add('GET',    '/api/cartoes/{id}',                'Api\\Cartao\\CartoesController@show',            ['auth']);
+Router::add('POST',   '/api/cartoes',                     'Api\\Cartao\\CartoesController@store',           ['auth', 'csrf', 'ratelimit']);
+Router::add('PUT',    '/api/cartoes/{id}',                'Api\\Cartao\\CartoesController@update',          ['auth', 'csrf', 'ratelimit']);
+Router::add('POST',   '/api/cartoes/{id}/deactivate',     'Api\\Cartao\\CartoesController@deactivate',      ['auth', 'csrf', 'ratelimit']);
+Router::add('POST',   '/api/cartoes/{id}/reactivate',     'Api\\Cartao\\CartoesController@reactivate',      ['auth', 'csrf', 'ratelimit']);
+Router::add('POST',   '/api/cartoes/{id}/archive',        'Api\\Cartao\\CartoesController@archive',         ['auth', 'csrf', 'ratelimit']);
+Router::add('POST',   '/api/cartoes/{id}/restore',        'Api\\Cartao\\CartoesController@restore',         ['auth', 'csrf', 'ratelimit']);
+Router::add('POST',   '/api/cartoes/{id}/delete',         'Api\\Cartao\\CartoesController@delete',          ['auth', 'csrf', 'ratelimit']);
+Router::add('DELETE', '/api/cartoes/{id}',                'Api\\Cartao\\CartoesController@destroy',         ['auth', 'csrf', 'ratelimit']);
+Router::add('PUT',    '/api/cartoes/{id}/limite',         'Api\\Cartao\\CartoesController@updateLimit',     ['auth', 'csrf', 'ratelimit']);
+
+// Faturas de Cartão
+Router::add('GET',    '/api/cartoes/{id}/fatura',         'Api\\Cartao\\CartoesController@fatura',          ['auth']);
+Router::add('POST',   '/api/cartoes/{id}/fatura/pagar',   'Api\\Cartao\\CartoesController@pagarFatura',     ['auth', 'csrf', 'ratelimit']);
+Router::add('GET',    '/api/cartoes/{id}/fatura/status',  'Api\\Cartao\\CartoesController@statusFatura',    ['auth']);
+Router::add('POST',   '/api/cartoes/{id}/fatura/desfazer-pagamento', 'Api\\Cartao\\CartoesController@desfazerPagamentoFatura', ['auth', 'csrf', 'ratelimit']);
+Router::add('POST',   '/api/cartoes/{id}/parcelas/pagar', 'Api\\Cartao\\CartoesController@pagarParcelas',   ['auth', 'csrf', 'ratelimit']);
+Router::add('POST',   '/api/cartoes/parcelas/{id}/desfazer-pagamento', 'Api\\Cartao\\CartoesController@desfazerPagamentoParcela', ['auth', 'csrf', 'ratelimit']);
+Router::add('GET',    '/api/cartoes/{id}/faturas-pendentes', 'Api\\Cartao\\CartoesController@faturasPendentes', ['auth']);
+Router::add('GET',    '/api/cartoes/{id}/faturas-historico', 'Api\\Cartao\\CartoesController@faturasHistorico', ['auth']);
+Router::add('GET',    '/api/cartoes/{id}/parcelamentos-resumo', 'Api\\Cartao\\CartoesController@parcelamentosResumo', ['auth']);
+
+// Recorrências / Assinaturas de Cartão
+Router::add('GET',    '/api/cartoes/recorrencias',                'Api\\Cartao\\CartoesController@recorrencias',         ['auth']);
+Router::add('GET',    '/api/cartoes/{id}/recorrencias',           'Api\\Cartao\\CartoesController@recorrenciasCartao',   ['auth']);
+Router::add('POST',   '/api/cartoes/recorrencias/{id}/cancelar',  'Api\\Cartao\\CartoesController@cancelarRecorrencia',  ['auth', 'csrf', 'ratelimit']);
+
+// ============================================
+// GAMIFICAÇÃO
+// ============================================
+
+Router::add('GET',  '/api/gamification/progress',      'Api\\Gamification\\GamificationController@getProgress',         ['auth']);
+Router::add('GET',  '/api/gamification/achievements',  'Api\\Gamification\\GamificationController@getAchievements',     ['auth']);
+Router::add('GET',  '/api/gamification/achievements/pending', 'Api\\Gamification\\GamificationController@getPendingAchievements', ['auth']);
+Router::add('GET',  '/api/gamification/stats',         'Api\\Gamification\\GamificationController@getStats',            ['auth']);
+Router::add('GET',  '/api/gamification/history',       'Api\\Gamification\\GamificationController@getHistory',          ['auth']);
+Router::add('POST', '/api/gamification/achievements/mark-seen', 'Api\\Gamification\\GamificationController@markAchievementsSeen', ['auth', 'csrf', 'ratelimit']);
+Router::add('GET',  '/api/gamification/leaderboard',   'Api\\Gamification\\GamificationController@getLeaderboard',      ['auth']);
+
+// ============================================
+// FINANÇAS (Metas + Orçamentos)
+// ============================================
+
+Router::add('GET',    '/api/financas/resumo',                    'Api\\Financeiro\\FinancasController@resumo',                  ['auth']);
+Router::add('GET',    '/api/financas/metas',                     'Api\\Financeiro\\FinancasController@metasIndex',              ['auth']);
+Router::add('POST',   '/api/financas/metas',                     'Api\\Financeiro\\FinancasController@metasStore',              ['auth', 'csrf', 'ratelimit']);
+Router::add('PUT',    '/api/financas/metas/{id}',                'Api\\Financeiro\\FinancasController@metasUpdate',             ['auth', 'csrf', 'ratelimit']);
+Router::add('POST',   '/api/financas/metas/{id}/aporte',         'Api\\Financeiro\\FinancasController@metasAporte',             ['auth', 'csrf', 'ratelimit']);
+Router::add('DELETE', '/api/financas/metas/{id}',                'Api\\Financeiro\\FinancasController@metasDestroy',            ['auth', 'csrf', 'ratelimit']);
+Router::add('GET',    '/api/financas/metas/templates',           'Api\\Financeiro\\FinancasController@metasTemplates',          ['auth']);
+Router::add('GET',    '/api/financas/orcamentos',                'Api\\Financeiro\\FinancasController@orcamentosIndex',         ['auth']);
+Router::add('POST',   '/api/financas/orcamentos',                'Api\\Financeiro\\FinancasController@orcamentosStore',         ['auth', 'csrf', 'ratelimit']);
+Router::add('POST',   '/api/financas/orcamentos/bulk',           'Api\\Financeiro\\FinancasController@orcamentosBulk',          ['auth', 'csrf', 'ratelimit']);
+Router::add('DELETE', '/api/financas/orcamentos/{id}',           'Api\\Financeiro\\FinancasController@orcamentosDestroy',       ['auth', 'csrf', 'ratelimit']);
+Router::add('GET',    '/api/financas/orcamentos/sugestoes',      'Api\\Financeiro\\FinancasController@orcamentosSugestoes',     ['auth']);
+Router::add('POST',   '/api/financas/orcamentos/aplicar-sugestoes', 'Api\\Financeiro\\FinancasController@orcamentosAplicarSugestoes', ['auth', 'csrf', 'ratelimit']);
+Router::add('POST',   '/api/financas/orcamentos/copiar-mes',    'Api\\Financeiro\\FinancasController@orcamentosCopiarMes',     ['auth', 'csrf', 'ratelimit']);
+Router::add('GET',    '/api/financas/insights',                  'Api\\Financeiro\\FinancasController@insights',                ['auth']);
+
+// ============================================
+// INVESTIMENTOS (REST)
 // ============================================
 
 // Estatísticas e categorias (devem vir antes das rotas dinâmicas)
-Router::add('GET', '/api/investimentos/stats',      'Api\\InvestimentosController@stats',      ['auth']);
-Router::add('GET', '/api/investimentos/categorias', 'Api\\InvestimentosController@categorias', ['auth']);
+Router::add('GET', '/api/investimentos/stats',      'Api\\Financeiro\\InvestimentosController@stats',      ['auth']);
+Router::add('GET', '/api/investimentos/categorias', 'Api\\Financeiro\\InvestimentosController@categorias', ['auth']);
 
 // CRUD de investimentos
-Router::add('GET',  '/api/investimentos',             'Api\\InvestimentosController@index',   ['auth']);
-Router::add('POST', '/api/investimentos',             'Api\\InvestimentosController@store',   ['auth', 'csrf']);
-Router::add('GET',  '/api/investimentos/{id}',        'Api\\InvestimentosController@show',    ['auth']);
-Router::add('POST', '/api/investimentos/{id}/update', 'Api\\InvestimentosController@update',  ['auth', 'csrf']);
-Router::add('POST', '/api/investimentos/{id}/delete', 'Api\\InvestimentosController@destroy', ['auth', 'csrf']);
-Router::add('POST', '/api/investimentos/{id}/preco',  'Api\\InvestimentosController@atualizarPreco', ['auth', 'csrf']);
+Router::add('GET',  '/api/investimentos',             'Api\\Financeiro\\InvestimentosController@index',   ['auth']);
+Router::add('POST', '/api/investimentos',             'Api\\Financeiro\\InvestimentosController@store',   ['auth', 'csrf', 'ratelimit']);
+Router::add('GET',  '/api/investimentos/{id}',        'Api\\Financeiro\\InvestimentosController@show',    ['auth']);
+Router::add('POST', '/api/investimentos/{id}/update', 'Api\\Financeiro\\InvestimentosController@update',  ['auth', 'csrf', 'ratelimit']);
+Router::add('POST', '/api/investimentos/{id}/delete', 'Api\\Financeiro\\InvestimentosController@destroy', ['auth', 'csrf', 'ratelimit']);
+Router::add('POST', '/api/investimentos/{id}/preco',  'Api\\Financeiro\\InvestimentosController@atualizarPreco', ['auth', 'csrf', 'ratelimit']);
 
 // Transações de investimentos
-Router::add('GET',  '/api/investimentos/{id}/transacoes', 'Api\\InvestimentosController@transacoes',     ['auth']);
-Router::add('POST', '/api/investimentos/{id}/transacoes', 'Api\\InvestimentosController@criarTransacao', ['auth', 'csrf']);
+Router::add('GET',  '/api/investimentos/{id}/transacoes', 'Api\\Financeiro\\InvestimentosController@transacoes',     ['auth']);
+Router::add('POST', '/api/investimentos/{id}/transacoes', 'Api\\Financeiro\\InvestimentosController@criarTransacao', ['auth', 'csrf', 'ratelimit']);
 
 // Proventos de investimentos
-Router::add('GET',  '/api/investimentos/{id}/proventos', 'Api\\InvestimentosController@proventos',     ['auth']);
-Router::add('POST', '/api/investimentos/{id}/proventos', 'Api\\InvestimentosController@criarProvento', ['auth', 'csrf']);
+Router::add('GET',  '/api/investimentos/{id}/proventos', 'Api\\Financeiro\\InvestimentosController@proventos',     ['auth']);
+Router::add('POST', '/api/investimentos/{id}/proventos', 'Api\\Financeiro\\InvestimentosController@criarProvento', ['auth', 'csrf', 'ratelimit']);
+
 
 // ============================================
 // NOTIFICAÇÕES
 // ============================================
 
-Router::add('GET',  '/api/notificacoes',            'Api\\NotificacaoController@index',            ['auth']);
-Router::add('GET',  '/api/notificacoes/unread',     'Api\\NotificacaoController@unreadCount',      ['auth']);
-Router::add('POST', '/api/notificacoes/marcar',     'Api\\NotificacaoController@marcarLida',       ['auth', 'csrf']);
-Router::add('POST', '/api/notificacoes/marcar-todas', 'Api\\NotificacaoController@marcarTodasLidas', ['auth', 'csrf']);
+Router::add('GET',  '/api/notificacoes',            'Api\\Notification\\NotificacaoController@index',            ['auth']);
+Router::add('GET',  '/api/notificacoes/unread',     'Api\\Notification\\NotificacaoController@unreadCount',      ['auth']);
+Router::add('POST', '/api/notificacoes/marcar',     'Api\\Notification\\NotificacaoController@marcarLida',       ['auth', 'csrf', 'ratelimit']);
+Router::add('POST', '/api/notificacoes/marcar-todas', 'Api\\Notification\\NotificacaoController@marcarTodasLidas', ['auth', 'csrf', 'ratelimit']);
+Router::add('GET',  '/api/notificacoes/referral-rewards',      'Api\\Notification\\NotificacaoController@getReferralRewards',     ['auth']);
+Router::add('POST', '/api/notificacoes/referral-rewards/seen', 'Api\\Notification\\NotificacaoController@markReferralRewardsSeen', ['auth', 'csrf', 'ratelimit']);
 
 // ============================================
 // PREFERÊNCIAS DE USUÁRIO
 // ============================================
 
-Router::add('GET',  '/api/user/theme', 'Api\\PreferenciaUsuarioController@show',   ['auth']);
-Router::add('POST', '/api/user/theme', 'Api\\PreferenciaUsuarioController@update', ['auth', 'csrf']);
-Router::add('GET',  '/api/user/birthday-check', 'Api\\PreferenciaUsuarioController@birthdayCheck', ['auth']);
+Router::add('GET',  '/api/user/theme', 'Api\\User\\PreferenciaUsuarioController@show',   ['auth']);
+Router::add('POST', '/api/user/theme', 'Api\\User\\PreferenciaUsuarioController@update', ['auth', 'csrf', 'ratelimit']);
+Router::add('GET',  '/api/user/birthday-check', 'Api\\User\\PreferenciaUsuarioController@birthdayCheck', ['auth']);
 
 // ============================================
 // PREMIUM / ASSINATURA
 // ============================================
 
-Router::add('POST', '/premium/checkout', 'PremiumController@checkout', ['auth', 'csrf']);
-Router::add('POST', '/premium/cancel',   'PremiumController@cancel',   ['auth', 'csrf']);
+Router::add('POST', '/premium/checkout', 'PremiumController@checkout', ['auth', 'csrf', 'ratelimit_strict']);
+Router::add('POST', '/premium/cancel',   'PremiumController@cancel',   ['auth', 'csrf', 'ratelimit_strict']);
 Router::add('GET',  '/premium/check-payment/{paymentId}', 'PremiumController@checkPayment', ['auth']);
 Router::add('GET',  '/premium/pending-payment', 'PremiumController@getPendingPayment', ['auth']);
-Router::add('POST', '/premium/cancel-pending', 'PremiumController@cancelPendingPayment', ['auth', 'csrf']);
+Router::add('GET',  '/premium/pending-pix', 'PremiumController@getPendingPix', ['auth']);
+Router::add('POST', '/premium/cancel-pending', 'PremiumController@cancelPendingPayment', ['auth', 'csrf', 'ratelimit_strict']);
 
 // ============================================
 // CUPONS DE DESCONTO (CRUD: SysAdmin | Validar: Usuários)
 // ============================================
 
 Router::add('GET',    '/api/cupons',              'SysAdmin\\CupomController@index',        ['auth', 'sysadmin']);
-Router::add('POST',   '/api/cupons',              'SysAdmin\\CupomController@store',        ['auth', 'sysadmin', 'csrf']);
-Router::add('PUT',    '/api/cupons',              'SysAdmin\\CupomController@update',       ['auth', 'sysadmin', 'csrf']);
-Router::add('DELETE', '/api/cupons',              'SysAdmin\\CupomController@destroy',      ['auth', 'sysadmin', 'csrf']);
+Router::add('POST',   '/api/cupons',              'SysAdmin\\CupomController@store',        ['auth', 'sysadmin', 'csrf', 'ratelimit']);
+Router::add('PUT',    '/api/cupons',              'SysAdmin\\CupomController@update',       ['auth', 'sysadmin', 'csrf', 'ratelimit']);
+Router::add('DELETE', '/api/cupons',              'SysAdmin\\CupomController@destroy',      ['auth', 'sysadmin', 'csrf', 'ratelimit']);
 Router::add('GET',    '/api/cupons/validar',      'SysAdmin\\CupomController@validar',      ['auth']);  // Usuários validam no checkout
 Router::add('GET',    '/api/cupons/estatisticas', 'SysAdmin\\CupomController@estatisticas', ['auth', 'sysadmin']);
 
@@ -222,81 +292,83 @@ Router::add('GET',    '/api/cupons/estatisticas', 'SysAdmin\\CupomController@est
 // FATURAS DE CARTÃO (REST)
 // ============================================
 
-Router::add('GET',    '/api/faturas',              'Api\\FaturasController@index',       ['auth']);
-Router::add('POST',   '/api/faturas',              'Api\\FaturasController@store',       ['auth', 'csrf']);
-Router::add('GET',    '/api/faturas/{id}',         'Api\\FaturasController@show',        ['auth']);
-Router::add('DELETE', '/api/faturas/{id}',         'Api\\FaturasController@destroy',     ['auth', 'csrf']);
-Router::add('PUT',    '/api/faturas/{id}/itens/{itemId}', 'Api\\FaturasController@updateItem', ['auth', 'csrf']);
-Router::add('POST',   '/api/faturas/{id}/itens/{itemId}/toggle', 'Api\\FaturasController@toggleItemPago', ['auth', 'csrf']);
-Router::add('DELETE', '/api/faturas/{id}/itens/{itemId}', 'Api\\FaturasController@destroyItem', ['auth', 'csrf']);
-Router::add('DELETE', '/api/faturas/{id}/itens/{itemId}/parcelamento', 'Api\\FaturasController@deleteParcelamento', ['auth', 'csrf']);
+Router::add('GET',    '/api/faturas',              'Api\\Fatura\\FaturasController@index',       ['auth']);
+Router::add('POST',   '/api/faturas',              'Api\\Fatura\\FaturasController@store',       ['auth', 'csrf', 'ratelimit']);
+Router::add('GET',    '/api/faturas/{id}',         'Api\\Fatura\\FaturasController@show',        ['auth']);
+Router::add('DELETE', '/api/faturas/{id}',         'Api\\Fatura\\FaturasController@destroy',     ['auth', 'csrf', 'ratelimit']);
+Router::add('PUT',    '/api/faturas/{id}/itens/{itemId}', 'Api\\Fatura\\FaturasController@updateItem', ['auth', 'csrf', 'ratelimit']);
+Router::add('POST',   '/api/faturas/{id}/itens/{itemId}/toggle', 'Api\\Fatura\\FaturasController@toggleItemPago', ['auth', 'csrf', 'ratelimit']);
+Router::add('DELETE', '/api/faturas/{id}/itens/{itemId}', 'Api\\Fatura\\FaturasController@destroyItem', ['auth', 'csrf', 'ratelimit']);
+Router::add('DELETE', '/api/faturas/{id}/itens/{itemId}/parcelamento', 'Api\\Fatura\\FaturasController@deleteParcelamento', ['auth', 'csrf', 'ratelimit']);
 
-// Rotas antigas para compatibilidade (DEPRECATED - usar /api/faturas)
-Router::add('GET',    '/api/parcelamentos',              'Api\\FaturasController@index',       ['auth']);
-Router::add('POST',   '/api/parcelamentos',              'Api\\FaturasController@store',       ['auth', 'csrf']);
-Router::add('GET',    '/api/parcelamentos/{id}',         'Api\\FaturasController@show',        ['auth']);
-Router::add('DELETE', '/api/parcelamentos/{id}',         'Api\\FaturasController@destroy',     ['auth', 'csrf']);
-Router::add('POST',   '/api/lancamentos/parcelado',      'Api\\FaturasController@store',       ['auth', 'csrf']);
+// Parcelamentos sem cartão (parcelas via conta bancária)
+Router::add('GET',    '/api/parcelamentos',              'Api\\Financeiro\\ParcelamentosController@index',   ['auth']);
+Router::add('POST',   '/api/parcelamentos',              'Api\\Financeiro\\ParcelamentosController@store',   ['auth', 'csrf', 'ratelimit']);
+Router::add('GET',    '/api/parcelamentos/{id}',         'Api\\Financeiro\\ParcelamentosController@show',    ['auth']);
+Router::add('DELETE', '/api/parcelamentos/{id}',         'Api\\Financeiro\\ParcelamentosController@destroy', ['auth', 'csrf', 'ratelimit']);
 
 // ============================================
 // SYSADMIN - Acesso restrito a administradores
 // ============================================
 
-Router::add('GET', '/api/sysadmin/users', 'Api\\SysAdminController@listUsers', ['auth', 'sysadmin']);
-Router::add('GET', '/api/sysadmin/users/{id}', 'Api\\SysAdminController@getUser', ['auth', 'sysadmin']);
-Router::add('PUT', '/api/sysadmin/users/{id}', 'Api\\SysAdminController@updateUser', ['auth', 'sysadmin', 'csrf']);
-Router::add('DELETE', '/api/sysadmin/users/{id}', 'Api\\SysAdminController@deleteUser', ['auth', 'sysadmin', 'csrf']);
-Router::add('POST', '/api/sysadmin/grant-access', 'Api\\SysAdminController@grantAccess', ['auth', 'sysadmin', 'csrf']);
-Router::add('POST', '/api/sysadmin/revoke-access', 'Api\\SysAdminController@revokeAccess', ['auth', 'sysadmin', 'csrf']);
-Router::add('GET', '/api/sysadmin/stats', 'Api\\SysAdminController@getStats', ['auth', 'sysadmin']);
-Router::add('POST', '/api/sysadmin/maintenance', 'Api\\SysAdminController@toggleMaintenance', ['auth', 'sysadmin', 'csrf']);
-Router::add('GET', '/api/sysadmin/maintenance', 'Api\\SysAdminController@maintenanceStatus', ['auth', 'sysadmin']);
+Router::add('GET', '/api/sysadmin/users', 'Api\\Admin\\SysAdminController@listUsers', ['auth', 'sysadmin']);
+Router::add('GET', '/api/sysadmin/users/{id}', 'Api\\Admin\\SysAdminController@getUser', ['auth', 'sysadmin']);
+Router::add('PUT', '/api/sysadmin/users/{id}', 'Api\\Admin\\SysAdminController@updateUser', ['auth', 'sysadmin', 'csrf', 'ratelimit']);
+Router::add('DELETE', '/api/sysadmin/users/{id}', 'Api\\Admin\\SysAdminController@deleteUser', ['auth', 'sysadmin', 'csrf', 'ratelimit_strict']);
+Router::add('POST', '/api/sysadmin/grant-access', 'Api\\Admin\\SysAdminController@grantAccess', ['auth', 'sysadmin', 'csrf', 'ratelimit']);
+Router::add('POST', '/api/sysadmin/revoke-access', 'Api\\Admin\\SysAdminController@revokeAccess', ['auth', 'sysadmin', 'csrf', 'ratelimit']);
+Router::add('GET', '/api/sysadmin/stats', 'Api\\Admin\\SysAdminController@getStats', ['auth', 'sysadmin']);
+Router::add('POST', '/api/sysadmin/maintenance', 'Api\\Admin\\SysAdminController@toggleMaintenance', ['auth', 'sysadmin', 'csrf', 'ratelimit']);
+Router::add('GET', '/api/sysadmin/maintenance', 'Api\\Admin\\SysAdminController@maintenanceStatus', ['auth', 'sysadmin']);
 
 // Error Logs (SysAdmin)
-Router::add('GET',    '/api/sysadmin/error-logs',               'Api\\SysAdminController@errorLogs',        ['auth', 'sysadmin']);
-Router::add('GET',    '/api/sysadmin/error-logs/summary',       'Api\\SysAdminController@errorLogsSummary', ['auth', 'sysadmin']);
-Router::add('PUT',    '/api/sysadmin/error-logs/{id}/resolve',  'Api\\SysAdminController@resolveErrorLog',  ['auth', 'sysadmin', 'csrf']);
-Router::add('DELETE', '/api/sysadmin/error-logs/cleanup',       'Api\\SysAdminController@cleanupErrorLogs', ['auth', 'sysadmin', 'csrf']);
+Router::add('GET',    '/api/sysadmin/error-logs',               'Api\\Admin\\SysAdminController@errorLogs',        ['auth', 'sysadmin']);
+Router::add('GET',    '/api/sysadmin/error-logs/summary',       'Api\\Admin\\SysAdminController@errorLogsSummary', ['auth', 'sysadmin']);
+Router::add('PUT',    '/api/sysadmin/error-logs/{id}/resolve',  'Api\\Admin\\SysAdminController@resolveErrorLog',  ['auth', 'sysadmin', 'csrf', 'ratelimit']);
+Router::add('DELETE', '/api/sysadmin/error-logs/cleanup',       'Api\\Admin\\SysAdminController@cleanupErrorLogs', ['auth', 'sysadmin', 'csrf', 'ratelimit']);
+
+// Cache Management (SysAdmin)
+Router::add('POST',   '/api/sysadmin/clear-cache',              'Api\\Admin\\SysAdminController@clearCache',       ['auth', 'sysadmin', 'csrf', 'ratelimit']);
 
 // ============================================
 // CAMPANHAS DE MENSAGENS (SYSADMIN)
 // ============================================
 
-Router::add('GET',  '/api/campaigns',                'Api\\CampaignController@index',        ['auth', 'sysadmin']);
-Router::add('POST', '/api/campaigns',                'Api\\CampaignController@store',        ['auth', 'sysadmin', 'csrf']);
-Router::add('GET',  '/api/campaigns/preview',        'Api\\CampaignController@preview',      ['auth', 'sysadmin']);
-Router::add('GET',  '/api/campaigns/stats',          'Api\\CampaignController@stats',        ['auth', 'sysadmin']);
-Router::add('GET',  '/api/campaigns/options',        'Api\\CampaignController@options',      ['auth', 'sysadmin']);
-Router::add('GET',  '/api/campaigns/birthdays',      'Api\\CampaignController@birthdays',    ['auth', 'sysadmin']);
-Router::add('POST', '/api/campaigns/birthdays/send', 'Api\\CampaignController@sendBirthdays', ['auth', 'sysadmin', 'csrf']);
-Router::add('GET',  '/api/campaigns/{id}',           'Api\\CampaignController@show',         ['auth', 'sysadmin']);
+Router::add('GET',  '/api/campaigns',                'Api\\Notification\\CampaignController@index',        ['auth', 'sysadmin']);
+Router::add('POST', '/api/campaigns',                'Api\\Notification\\CampaignController@store',        ['auth', 'sysadmin', 'csrf', 'ratelimit']);
+Router::add('GET',  '/api/campaigns/preview',        'Api\\Notification\\CampaignController@preview',      ['auth', 'sysadmin']);
+Router::add('GET',  '/api/campaigns/stats',          'Api\\Notification\\CampaignController@stats',        ['auth', 'sysadmin']);
+Router::add('GET',  '/api/campaigns/options',        'Api\\Notification\\CampaignController@options',      ['auth', 'sysadmin']);
+Router::add('GET',  '/api/campaigns/birthdays',      'Api\\Notification\\CampaignController@birthdays',    ['auth', 'sysadmin']);
+Router::add('POST', '/api/campaigns/birthdays/send', 'Api\\Notification\\CampaignController@sendBirthdays', ['auth', 'sysadmin', 'csrf', 'ratelimit']);
+Router::add('GET',  '/api/campaigns/{id}',           'Api\\Notification\\CampaignController@show',         ['auth', 'sysadmin']);
 
 // ============================================
 // NOTIFICAÇÕES (USUÁRIO)
 // ============================================
 
-Router::add('GET',    '/api/notifications',            'Api\\NotificationController@index',         ['auth']);
-Router::add('GET',    '/api/notifications/count',      'Api\\NotificationController@count',         ['auth']);
-Router::add('POST',   '/api/notifications/{id}/read',  'Api\\NotificationController@markAsRead',    ['auth', 'csrf']);
-Router::add('POST',   '/api/notifications/read-all',   'Api\\NotificationController@markAllAsRead', ['auth', 'csrf']);
-Router::add('DELETE', '/api/notifications/{id}',       'Api\\NotificationController@destroy',       ['auth', 'csrf']);
-Router::add('DELETE', '/api/notifications/read',       'Api\\NotificationController@deleteRead',    ['auth', 'csrf']);
+Router::add('GET',    '/api/notifications',            'Api\\Notification\\NotificationController@index',         ['auth']);
+Router::add('GET',    '/api/notifications/count',      'Api\\Notification\\NotificationController@count',         ['auth']);
+Router::add('POST',   '/api/notifications/{id}/read',  'Api\\Notification\\NotificationController@markAsRead',    ['auth', 'csrf', 'ratelimit']);
+Router::add('POST',   '/api/notifications/read-all',   'Api\\Notification\\NotificationController@markAllAsRead', ['auth', 'csrf', 'ratelimit']);
+Router::add('DELETE', '/api/notifications/{id}',       'Api\\Notification\\NotificationController@destroy',       ['auth', 'csrf', 'ratelimit']);
+Router::add('DELETE', '/api/notifications/read',       'Api\\Notification\\NotificationController@deleteRead',    ['auth', 'csrf', 'ratelimit']);
 
 // ============================================
 // PLANO / LIMITES
 // ============================================
 
-Router::add('GET', '/api/plan/limits',              'Api\\PlanController@limits',             ['auth']);
-Router::add('GET', '/api/plan/features',            'Api\\PlanController@features',           ['auth']);
-Router::add('GET', '/api/plan/can-create/{resource}', 'Api\\PlanController@canCreate',        ['auth']);
-Router::add('GET', '/api/plan/history-restriction', 'Api\\PlanController@historyRestriction', ['auth']);
+Router::add('GET', '/api/plan/limits',              'Api\\Plan\\PlanController@limits',             ['auth']);
+Router::add('GET', '/api/plan/features',            'Api\\Plan\\PlanController@features',           ['auth']);
+Router::add('GET', '/api/plan/can-create/{resource}', 'Api\\Plan\\PlanController@canCreate',        ['auth']);
+Router::add('GET', '/api/plan/history-restriction', 'Api\\Plan\\PlanController@historyRestriction', ['auth']);
 
 // ============================================
 // INDICAÇÕES / REFERRAL
 // ============================================
 
-Router::add('GET', '/api/referral/info',     'Api\\ReferralController@getInfo');              // Público
-Router::add('GET', '/api/referral/validate', 'Api\\ReferralController@validateCode');         // Público (para cadastro)
-Router::add('GET', '/api/referral/stats',    'Api\\ReferralController@getStats',    ['auth']);
-Router::add('GET', '/api/referral/code',     'Api\\ReferralController@getCode',     ['auth']);
-Router::add('GET', '/api/referral/ranking',  'Api\\ReferralController@getRanking',  ['auth']);
+Router::add('GET', '/api/referral/info',     'Api\\Referral\\ReferralController@getInfo');              // Público
+Router::add('GET', '/api/referral/validate', 'Api\\Referral\\ReferralController@validateCode');         // Público (para cadastro)
+Router::add('GET', '/api/referral/stats',    'Api\\Referral\\ReferralController@getStats',    ['auth']);
+Router::add('GET', '/api/referral/code',     'Api\\Referral\\ReferralController@getCode',     ['auth']);
+Router::add('GET', '/api/referral/ranking',  'Api\\Referral\\ReferralController@getRanking',  ['auth']);

@@ -6,20 +6,20 @@ use Application\Services\Auth\LoginHandler;
 use Application\Services\Auth\RegistrationHandler;
 use Application\Services\Auth\LogoutHandler;
 use Application\Services\Auth\EmailVerificationService;
-use Application\Services\CacheService;
-use Application\Services\MailService;
-use Application\Services\ReferralService;
+use Application\Services\Infrastructure\CacheService;
+use Application\Services\Communication\MailService;
+use Application\Services\Referral\ReferralService;
 use Application\DTO\Auth\CredentialsDTO;
 use Application\DTO\Auth\RegistrationDTO;
 use Application\Core\Request;
-use Application\Services\LogService;
+use Application\Services\Infrastructure\LogService;
 use Application\Enums\LogCategory;
 use Application\Models\AssinaturaUsuario;
 use Application\Models\Plano;
 use Application\Models\Usuario;
 use Application\Models\Categoria;
 use Carbon\Carbon;
-
+use Illuminate\Database\Capsule\Manager as DB;
 
 use Throwable;
 
@@ -186,42 +186,165 @@ class AuthService
                 ['Outras Receitas',   'wallet'],
             ];
 
-            $criadas = 0;
+            // Mapa de subcategorias padrão por nome da categoria pai
+            $subcategoriasPadrao = self::getSubcategoriasPadrao();
 
-            // Criar despesas (sem acionar gamificação)
-            foreach ($categoriasDespesa as [$nome, $icone]) {
-                Categoria::create([
-                    'nome' => $nome,
-                    'icone' => $icone,
-                    'tipo' => 'despesa',
-                    'user_id' => $userId,
-                    'is_auto_seed' => true, // Flag para não dar pontos
+            // Envolver tudo em transação para garantir atomicidade
+            DB::connection()->transaction(function () use ($userId, $categoriasDespesa, $categoriasReceita, $subcategoriasPadrao) {
+                $criadas = 0;
+                $subcriadas = 0;
+
+                // ── Criar categorias raiz + subcategorias ──
+
+                // Despesas
+                foreach ($categoriasDespesa as [$nome, $icone]) {
+                    $cat = Categoria::create([
+                        'nome'      => $nome,
+                        'icone'     => $icone,
+                        'tipo'      => 'despesa',
+                        'user_id'   => $userId,
+                        'is_seeded' => true,
+                    ]);
+                    $criadas++;
+
+                    // Criar subcategorias se houver para esta categoria
+                    if (isset($subcategoriasPadrao[$nome])) {
+                        foreach ($subcategoriasPadrao[$nome] as $sub) {
+                            Categoria::create([
+                                'nome'      => $sub['nome'],
+                                'icone'     => $sub['icone'],
+                                'tipo'      => 'despesa',
+                                'user_id'   => $userId,
+                                'parent_id' => $cat->id,
+                                'is_seeded' => true,
+                            ]);
+                            $subcriadas++;
+                        }
+                    }
+                }
+
+                // Receitas
+                foreach ($categoriasReceita as [$nome, $icone]) {
+                    $cat = Categoria::create([
+                        'nome'      => $nome,
+                        'icone'     => $icone,
+                        'tipo'      => 'receita',
+                        'user_id'   => $userId,
+                        'is_seeded' => true,
+                    ]);
+                    $criadas++;
+
+                    // Criar subcategorias se houver para esta categoria
+                    if (isset($subcategoriasPadrao[$nome])) {
+                        foreach ($subcategoriasPadrao[$nome] as $sub) {
+                            Categoria::create([
+                                'nome'      => $sub['nome'],
+                                'icone'     => $sub['icone'],
+                                'tipo'      => 'receita',
+                                'user_id'   => $userId,
+                                'parent_id' => $cat->id,
+                                'is_seeded' => true,
+                            ]);
+                            $subcriadas++;
+                        }
+                    }
+                }
+
+                LogService::info('[AuthService] Categorias e subcategorias padrão criadas com sucesso.', [
+                    'user_id'          => $userId,
+                    'categorias'       => $criadas,
+                    'subcategorias'    => $subcriadas,
+                    'total'            => $criadas + $subcriadas,
                 ]);
-                $criadas++;
-            }
-
-            // Criar receitas (sem acionar gamificação)
-            foreach ($categoriasReceita as [$nome, $icone]) {
-                Categoria::create([
-                    'nome' => $nome,
-                    'icone' => $icone,
-                    'tipo' => 'receita',
-                    'user_id' => $userId,
-                    'is_auto_seed' => true, // Flag para não dar pontos
-                ]);
-                $criadas++;
-            }
-
-            LogService::info('[AuthService] Categorias padrão criadas com sucesso.', [
-                'user_id' => $userId,
-                'total_criadas' => $criadas,
-            ]);
+            });
         } catch (Throwable $e) {
             LogService::captureException($e, LogCategory::AUTH, [
                 'action' => 'criar_categorias_padrao',
                 'user_id' => $userId,
             ]);
         }
+    }
+
+    /**
+     * Retorna o mapa de subcategorias padrão agrupadas pelo nome da categoria pai.
+     * Utilizado no registro de novos usuários e no script retroativo.
+     *
+     * @return array<string, array<int, array{nome: string, icone: string}>>
+     */
+    public static function getSubcategoriasPadrao(): array
+    {
+        return [
+            // ── Despesa ──
+            'Alimentação' => [
+                ['nome' => 'Restaurantes',          'icone' => 'utensils'],
+                ['nome' => 'Supermercado',           'icone' => 'shopping-cart'],
+                ['nome' => 'Delivery',               'icone' => 'bike'],
+                ['nome' => 'Padaria',                'icone' => 'croissant'],
+                ['nome' => 'Lanches',                'icone' => 'sandwich'],
+            ],
+            'Transporte' => [
+                ['nome' => 'Combustível',            'icone' => 'fuel'],
+                ['nome' => 'Uber / 99',              'icone' => 'car'],
+                ['nome' => 'Transporte Público',     'icone' => 'bus'],
+                ['nome' => 'Estacionamento',         'icone' => 'parking-circle'],
+                ['nome' => 'Manutenção Veículo',     'icone' => 'wrench'],
+            ],
+            'Moradia' => [
+                ['nome' => 'Aluguel',                'icone' => 'home'],
+                ['nome' => 'Condomínio',             'icone' => 'building'],
+                ['nome' => 'Energia',                'icone' => 'zap'],
+                ['nome' => 'Água',                   'icone' => 'droplets'],
+                ['nome' => 'Internet',               'icone' => 'wifi'],
+                ['nome' => 'Gás',                    'icone' => 'flame'],
+            ],
+            'Saúde' => [
+                ['nome' => 'Farmácia',               'icone' => 'pill'],
+                ['nome' => 'Consultas',              'icone' => 'stethoscope'],
+                ['nome' => 'Plano de Saúde',         'icone' => 'heart-pulse'],
+                ['nome' => 'Academia',               'icone' => 'dumbbell'],
+            ],
+            'Educação' => [
+                ['nome' => 'Cursos',                 'icone' => 'graduation-cap'],
+                ['nome' => 'Livros',                 'icone' => 'book-open'],
+                ['nome' => 'Mensalidade',            'icone' => 'school'],
+            ],
+            'Lazer' => [
+                ['nome' => 'Cinema',                 'icone' => 'popcorn'],
+                ['nome' => 'Viagens',                'icone' => 'plane'],
+                ['nome' => 'Jogos',                  'icone' => 'gamepad-2'],
+                ['nome' => 'Streaming',              'icone' => 'tv'],
+            ],
+            'Compras' => [
+                ['nome' => 'Roupas',                 'icone' => 'shirt'],
+                ['nome' => 'Eletrônicos',            'icone' => 'smartphone'],
+                ['nome' => 'Casa e Decoração',       'icone' => 'sofa'],
+            ],
+            'Contas e Serviços' => [
+                ['nome' => 'Telefone',               'icone' => 'phone'],
+                ['nome' => 'Impostos',               'icone' => 'landmark'],
+                ['nome' => 'Seguros',                'icone' => 'shield-check'],
+            ],
+            'Assinaturas' => [
+                ['nome' => 'Música',                 'icone' => 'music'],
+                ['nome' => 'Armazenamento',          'icone' => 'cloud'],
+                ['nome' => 'Software',               'icone' => 'laptop'],
+            ],
+            // ── Receita ──
+            'Salário' => [
+                ['nome' => 'Salário Fixo',           'icone' => 'banknote'],
+                ['nome' => 'Hora Extra',             'icone' => 'clock'],
+                ['nome' => '13º Salário',            'icone' => 'gift'],
+            ],
+            'Freelance' => [
+                ['nome' => 'Projetos',               'icone' => 'briefcase'],
+                ['nome' => 'Consultoria',            'icone' => 'message-square'],
+            ],
+            'Investimentos' => [
+                ['nome' => 'Dividendos',             'icone' => 'trending-up'],
+                ['nome' => 'Renda Fixa',             'icone' => 'landmark'],
+                ['nome' => 'Ações',                  'icone' => 'bar-chart-2'],
+            ],
+        ];
     }
 
     /**

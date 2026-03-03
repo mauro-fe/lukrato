@@ -106,24 +106,7 @@ class UserProgress extends Model
      */
     private function getPreviousLevelThreshold(): int
     {
-        // Usar thresholds completos do GamificationService
-        $thresholds = [
-            1 => 0,
-            2 => 300,
-            3 => 500,
-            4 => 700,
-            5 => 1000,
-            6 => 1500,
-            7 => 2200,
-            8 => 3000,
-            9 => 4000,
-            10 => 5500,
-            11 => 7500,
-            12 => 10000,
-            13 => 15000,
-            14 => 25000,
-            15 => 50000
-        ];
+        $thresholds = \Application\Services\Gamification\GamificationService::LEVEL_THRESHOLDS;
         $index = max(1, $this->current_level - 1);
         return $thresholds[$index] ?? 0;
     }
@@ -133,24 +116,7 @@ class UserProgress extends Model
      */
     private function getCurrentLevelThreshold(): int
     {
-        // Usar thresholds completos do GamificationService
-        $thresholds = [
-            1 => 0,
-            2 => 300,
-            3 => 500,
-            4 => 700,
-            5 => 1000,
-            6 => 1500,
-            7 => 2200,
-            8 => 3000,
-            9 => 4000,
-            10 => 5500,
-            11 => 7500,
-            12 => 10000,
-            13 => 15000,
-            14 => 25000,
-            15 => 50000
-        ];
+        $thresholds = \Application\Services\Gamification\GamificationService::LEVEL_THRESHOLDS;
         $index = max(1, $this->current_level);
         return $thresholds[$index] ?? 50000;
     }

@@ -34,7 +34,7 @@ class CategoriaValidator
             try {
                 CategoriaTipo::from($tipo);
             } catch (\ValueError) {
-                $errors['tipo'] = 'Tipo inválido. Use "receita", "despesa" ou "ambas".';
+                $errors['tipo'] = 'Tipo inválido. Use "receita", "despesa", "transferencia" ou "ambas".';
             }
         }
 
@@ -49,9 +49,41 @@ class CategoriaValidator
 
     /**
      * Valida dados para atualização de categoria.
+     * Apenas valida campos presentes no array (suporta atualizações parciais).
      */
     public static function validateUpdate(array $data): array
     {
-        return self::validateCreate($data);
+        $errors = [];
+
+        if (array_key_exists('nome', $data)) {
+            $nome = trim($data['nome'] ?? '');
+            if (empty($nome)) {
+                $errors['nome'] = 'O nome é obrigatório.';
+            } elseif (mb_strlen($nome) > 100) {
+                $errors['nome'] = 'O nome não pode ter mais de 100 caracteres.';
+            }
+        }
+
+        if (array_key_exists('tipo', $data)) {
+            $tipo = strtolower(trim($data['tipo'] ?? ''));
+            if (empty($tipo)) {
+                $errors['tipo'] = 'O tipo é obrigatório.';
+            } else {
+                try {
+                    CategoriaTipo::from($tipo);
+                } catch (\ValueError) {
+                    $errors['tipo'] = 'Tipo inválido. Use "receita", "despesa", "transferencia" ou "ambas".';
+                }
+            }
+        }
+
+        if (array_key_exists('icone', $data)) {
+            $icone = trim($data['icone'] ?? '');
+            if (!empty($icone) && mb_strlen($icone) > 50) {
+                $errors['icone'] = 'O ícone não pode ter mais de 50 caracteres.';
+            }
+        }
+
+        return $errors;
     }
 }

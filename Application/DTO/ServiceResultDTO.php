@@ -35,11 +35,24 @@ readonly class ServiceResultDTO
         return new self(false, $message, [], $httpCode);
     }
 
+    /**
+     * Resultado de falha de validação com erros por campo.
+     */
+    public static function validationFail(array $errors): self
+    {
+        return new self(false, 'Erro de validação', ['errors' => $errors], 422);
+    }
+
     // ─── Helpers ────────────────────────────────────────────
 
     public function isError(): bool
     {
         return !$this->success;
+    }
+
+    public function isValidationError(): bool
+    {
+        return !$this->success && isset($this->data['errors']);
     }
 
     /**

@@ -1,6 +1,5 @@
 <!-- CSS MODERNIZADO -->
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin-tables-shared.css">
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/faturas-modern.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/bundles/faturas-modern.css.php?v=<?= time() ?>">
 
 <section class="parc-page">
 
@@ -169,10 +168,5 @@
 <?php include __DIR__ . '/../partials/modals/modal-detalhes-faturas.php'; ?>
 
 
-<!-- JavaScript -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-    window.BASE_URL = '<?= BASE_URL ?>';
-</script>
-<script src="<?= BASE_URL ?>assets/js/admin-faturas-index.js"></script>
+<!-- JavaScript (CDN scripts já carregados no header) -->
+<!-- Page JS carregado automaticamente via loadPageJs() + Vite -->

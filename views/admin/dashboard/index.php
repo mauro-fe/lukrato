@@ -1,377 +1,10 @@
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/onboarding-checklist.css">
 
-<?php
-$showOnboardingCongrats = !empty($_SESSION['onboarding_just_completed']);
-if ($showOnboardingCongrats) {
-    unset($_SESSION['onboarding_just_completed']);
-}
-?>
-
-<?php if ($showOnboardingCongrats): ?>
+<?php if (!empty($showOnboardingCongrats)): ?>
     <script>
         window.__lkFirstVisit = true;
     </script>
 <?php endif; ?>
-
-<style>
-    /* ── Onboarding Checklist (Modern) ── */
-    .lk-checklist {
-        border-radius: var(--radius-xl);
-        margin-bottom: var(--spacing-6);
-        overflow: hidden;
-        background: linear-gradient(135deg, rgba(var(--color-primary-rgb, 230, 126, 34), 0.04) 0%, var(--glass-bg) 40%, rgba(99, 102, 241, 0.03) 100%);
-        border: 1px solid var(--glass-border);
-        animation: lk-checkIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-        display: none;
-        position: relative;
-    }
-
-    @keyframes lk-checkIn {
-        from {
-            opacity: 0;
-            transform: translateY(-16px) scale(0.99);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-    }
-
-    /* Top accent shimmer */
-    .lk-checklist-accent {
-        height: 3px;
-
-        background-size: 200% 100%;
-        animation: lk-shimmer 3s ease infinite;
-        border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    }
-
-    @keyframes lk-shimmer {
-
-        0%,
-        100% {
-            background-position: 0% 50%;
-        }
-
-        50% {
-            background-position: 100% 50%;
-        }
-    }
-
-    .lk-checklist-body {
-        padding: var(--spacing-5) var(--spacing-6);
-        position: relative;
-    }
-
-    /* Skip button - inline no header (mais robusto) */
-    .lk-checklist-dismiss {
-        background: transparent;
-        border: 1px solid var(--glass-border);
-        color: var(--color-text-muted);
-        border-radius: 15px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        transition: all 0.2s ease;
-        font-size: 0.7rem;
-        font-weight: 500;
-        padding: 5px 12px;
-        opacity: 0.8;
-        margin-left: auto;
-        flex-shrink: 0;
-    }
-
-    .lk-checklist-dismiss:hover {
-        background: var(--color-primary);
-        color: var(--color-text);
-        opacity: 1;
-    }
-
-    /* Header */
-    .lk-checklist-header {
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-4);
-        margin-bottom: var(--spacing-5);
-    }
-
-    .lk-checklist-icon-box {
-        width: 48px;
-        height: 48px;
-        border-radius: 14px;
-        background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 70%, #6366f1));
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        font-size: 1.4rem;
-        box-shadow: 0 6px 20px color-mix(in srgb, var(--color-primary) 30%, transparent),
-            0 2px 6px rgba(0, 0, 0, 0.15);
-    }
-
-    .lk-checklist-title {
-        flex: 1;
-    }
-
-    .lk-checklist-title h2 {
-        font-size: 1.05rem;
-        font-weight: 800;
-        color: var(--color-text);
-        margin: 0 0 3px 0;
-        letter-spacing: -0.01em;
-    }
-
-    .lk-checklist-title p {
-        font-size: 0.78rem;
-        color: var(--color-text-muted);
-        margin: 0;
-    }
-
-    /* Badge */
-    .lk-checklist-badge {
-        background: var(--color-surface);
-        border: 1px solid var(--glass-border);
-        border-radius: 15px;
-        padding: 5px 14px;
-        font-size: 0.78rem;
-        font-weight: 800;
-        color: var(--color-text-muted);
-        white-space: nowrap;
-        letter-spacing: 0.5px;
-    }
-
-    .lk-checklist-badge.complete {
-        background: linear-gradient(135deg, #22c55e, #16a34a);
-        color: #fff;
-        border-color: transparent;
-        box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
-    }
-
-    /* Progress bar */
-    .lk-checklist-progress {
-        height: 5px;
-        background: var(--color-surface-muted);
-        border-radius: 4px;
-        margin-bottom: var(--spacing-5);
-        overflow: hidden;
-        position: relative;
-    }
-
-    .lk-checklist-progress-fill {
-        height: 100%;
-        border-radius: 4px;
-        background: linear-gradient(90deg, var(--color-primary), #6366f1, var(--color-success));
-        background-size: 200% 100%;
-        animation: lk-shimmer 3s ease infinite;
-        transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        width: 0%;
-        box-shadow: 0 0 10px color-mix(in srgb, var(--color-primary) 30%, transparent);
-    }
-
-    /* Item grid */
-    .lk-checklist-items {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-    }
-
-    /* Individual card items */
-    .lk-checklist-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 14px;
-        border-radius: 12px;
-        text-decoration: none;
-        color: var(--color-text);
-        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        border: 1px solid var(--glass-border);
-        background: rgba(255, 255, 255, 0.02);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .lk-checklist-item::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg, transparent 60%, rgba(255, 255, 255, 0.02));
-        pointer-events: none;
-        transition: opacity 0.3s;
-        opacity: 0;
-    }
-
-    .lk-checklist-item:not(.done):hover {
-        background: rgba(255, 255, 255, 0.04);
-        border-color: rgba(255, 255, 255, 0.1);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-    }
-
-    .lk-checklist-item:not(.done):hover::before {
-        opacity: 1;
-    }
-
-    .lk-checklist-item.done {
-        opacity: 0.45;
-        background: rgba(34, 197, 94, 0.03);
-        border-color: rgba(34, 197, 94, 0.08);
-    }
-
-    /* Check circle */
-    .lk-checklist-check {
-        width: 22px;
-        height: 22px;
-        border-radius: var(--radius-full);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        font-size: 0.6rem;
-        transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .lk-checklist-item:not(.done) .lk-checklist-check {
-        border: 2px solid rgba(255, 255, 255, 0.12);
-        background: transparent;
-        color: transparent;
-    }
-
-    .lk-checklist-item.done .lk-checklist-check {
-        border: none;
-        background: #22c55e;
-        color: #fff;
-        box-shadow: 0 2px 8px rgba(34, 197, 94, 0.35);
-        transform: scale(1.05);
-    }
-
-    /* Icon */
-    .lk-checklist-item-icon {
-        width: 34px;
-        height: 34px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.85rem;
-        flex-shrink: 0;
-        transition: transform 0.3s;
-    }
-
-    .lk-checklist-item:not(.done):hover .lk-checklist-item-icon {
-        transform: scale(1.1);
-    }
-
-    /* Text */
-    .lk-checklist-item-text {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .lk-checklist-item-label {
-        font-size: 0.8rem;
-        font-weight: 700;
-        display: block;
-        line-height: 1.3;
-        letter-spacing: -0.01em;
-    }
-
-    .lk-checklist-item-desc {
-        font-size: 0.68rem;
-        color: var(--color-text-muted);
-        display: block;
-        line-height: 1.3;
-        margin-top: 1px;
-    }
-
-    .lk-checklist-item.done .lk-checklist-item-label {
-        text-decoration: line-through;
-        opacity: 0.7;
-    }
-
-    .lk-checklist-item-arrow {
-        color: var(--color-text-muted);
-        font-size: 0.65rem;
-        opacity: 0;
-        transition: all 0.25s;
-    }
-
-    .lk-checklist-item:not(.done):hover .lk-checklist-item-arrow {
-        opacity: 1;
-        transform: translateX(2px);
-    }
-
-    .lk-checklist-item.done .lk-checklist-item-arrow {
-        display: none;
-    }
-
-    /* All-complete celebration */
-    .lk-checklist-complete {
-        text-align: center;
-        padding: var(--spacing-5) var(--spacing-4);
-        grid-column: 1 / -1;
-    }
-
-    .lk-checklist-complete-icon {
-        font-size: 3rem;
-        margin-bottom: var(--spacing-3);
-        animation: lk-bounce 1s ease infinite;
-    }
-
-    @keyframes lk-bounce {
-
-        0%,
-        100% {
-            transform: translateY(0);
-        }
-
-        50% {
-            transform: translateY(-6px);
-        }
-    }
-
-    .lk-checklist-complete h3 {
-        font-size: 1.05rem;
-        font-weight: 800;
-        color: var(--color-text);
-        margin: 0 0 6px 0;
-    }
-
-    .lk-checklist-complete p {
-        font-size: 0.8rem;
-        color: var(--color-text-muted);
-        margin: 0;
-    }
-
-    @media (max-width: 900px) {
-        .lk-checklist-items {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    @media (max-width: 600px) {
-        .lk-checklist-body {
-            padding: var(--spacing-4);
-        }
-
-        .lk-checklist-items {
-            grid-template-columns: 1fr;
-        }
-
-        .lk-checklist-item-desc {
-            display: none;
-        }
-
-        .lk-checklist-item {
-            padding: 12px;
-        }
-    }
-</style>
 
 <!-- Onboarding Checklist (persistent) -->
 <div class="lk-checklist" id="onboardingChecklist">
@@ -401,175 +34,8 @@ if ($showOnboardingCongrats) {
     </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var firstVisit = !!window.__lkFirstVisit;
-        var SKIP_KEY = 'lk_checklist_skipped';
-        var el = document.getElementById('onboardingChecklist');
-
-        // User explicitly skipped? Don't show anymore
-        if (localStorage.getItem(SKIP_KEY) === '1') return;
-
-        fetch(BASE_URL + 'api/onboarding/checklist', {
-                headers: {
-                    'Accept': 'application/json'
-                }
-            })
-            .then(function(r) {
-                return r.json();
-            })
-            .then(function(res) {
-                if (!res.success) return;
-                var data = res.data;
-
-                // All complete and not first visit → auto-hide after this visit
-                if (data.all_complete && !firstVisit) return;
-
-                renderChecklist(data);
-                el.style.display = 'block';
-
-                if (firstVisit) {
-                    fireConfetti();
-                    setTimeout(function() {
-                        if (typeof window.checkPendingAchievements === 'function') {
-                            window.gamificationPaused = false;
-                            window.checkPendingAchievements();
-                        }
-                    }, 1500);
-                }
-            })
-            .catch(function() {});
-
-        // Dismiss → confirm skip
-        document.getElementById('checklistDismiss').addEventListener('click', function() {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: 'Pular primeiros passos?',
-                    text: 'Você pode sempre acessar essas funcionalidades pelo menu lateral.',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: 'var(--color-primary, #e67e22)',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Sim, pular',
-                    cancelButtonText: 'Continuar'
-                }).then(function(result) {
-                    if (result.isConfirmed) {
-                        localStorage.setItem(SKIP_KEY, '1');
-                        el.style.opacity = '0';
-                        el.style.transform = 'translateY(-16px)';
-                        el.style.transition = 'all 0.3s ease';
-                        setTimeout(function() {
-                            el.style.display = 'none';
-                        }, 300);
-                    }
-                });
-            } else {
-                if (confirm('Pular primeiros passos? Você pode acessar tudo pelo menu lateral.')) {
-                    localStorage.setItem(SKIP_KEY, '1');
-                    el.style.display = 'none';
-                }
-            }
-        });
-
-        function renderChecklist(data) {
-            var badge = document.getElementById('checklistBadge');
-            var fill = document.getElementById('checklistProgressFill');
-            var box = document.getElementById('checklistItems');
-
-            badge.textContent = data.done_count + '/' + data.total;
-            if (data.all_complete) badge.classList.add('complete');
-
-            var pct = (data.done_count / data.total) * 100;
-            setTimeout(function() {
-                fill.style.width = pct + '%';
-            }, 100);
-
-            // All complete → celebration
-            if (data.all_complete) {
-                box.innerHTML =
-                    '<div class="lk-checklist-complete">' +
-                    '<div class="lk-checklist-complete-icon"><i data-lucide="party-popper" style="width:48px;height:48px;color:var(--color-success);"></i></div>' +
-                    '<h3>Parabéns! Você completou tudo</h3>' +
-                    '<p>Agora é só manter o controle das suas finanças</p>' +
-                    '</div>';
-
-                if (firstVisit) {
-                    setTimeout(function() {
-                        el.style.opacity = '0';
-                        el.style.transform = 'translateY(-16px)';
-                        el.style.transition = 'all 0.5s ease';
-                        setTimeout(function() {
-                            el.style.display = 'none';
-                        }, 500);
-                    }, 8000);
-                }
-                return;
-            }
-
-            // Sort: pending first, done last
-            var sorted = data.items.slice().sort(function(a, b) {
-                return a.done - b.done;
-            });
-
-            box.innerHTML = sorted.map(function(item) {
-                return '<a href="' + BASE_URL + item.href + '" class="lk-checklist-item ' + (item.done ?
-                        'done' : '') + '">' +
-                    '<div class="lk-checklist-check"><i data-lucide="check"></i></div>' +
-                    '<div class="lk-checklist-item-icon" style="background:color-mix(in srgb, ' + item
-                    .color + ' 15%, var(--color-surface));color:' + item.color + ';">' +
-                    '<i data-lucide="' + item.icon + '"></i>' +
-                    '</div>' +
-                    '<div class="lk-checklist-item-text">' +
-                    '<span class="lk-checklist-item-label">' + item.label + '</span>' +
-                    '<span class="lk-checklist-item-desc">' + item.description + '</span>' +
-                    '</div>' +
-                    '<i data-lucide="chevron-right" class="lk-checklist-item-arrow"></i>' +
-                    '</a>';
-            }).join('');
-
-            if (window.lucide) lucide.createIcons();
-        }
-
-        function fireConfetti() {
-            if (typeof confetti !== 'function') return;
-            var duration = 3500;
-            var end = Date.now() + duration;
-            var defaults = {
-                startVelocity: 35,
-                spread: 360,
-                ticks: 70,
-                zIndex: 99999
-            };
-
-            var interval = setInterval(function() {
-                var timeLeft = end - Date.now();
-                if (timeLeft <= 0) return clearInterval(interval);
-                var count = 60 * (timeLeft / duration);
-                try {
-                    confetti(Object.assign({}, defaults, {
-                        particleCount: count,
-                        origin: {
-                            x: Math.random() * 0.3 + 0.1,
-                            y: Math.random() - 0.2
-                        }
-                    }));
-                    confetti(Object.assign({}, defaults, {
-                        particleCount: count,
-                        origin: {
-                            x: Math.random() * 0.3 + 0.6,
-                            y: Math.random() - 0.2
-                        }
-                    }));
-                } catch (e) {
-                    clearInterval(interval);
-                }
-            }, 200);
-        }
-    });
-</script>
-
 <section class="modern-dashboard">
-    <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
+    <?php include BASE_PATH . '/views/admin/partials/header-mes.php'; ?>
 
     <!-- Gamificação -->
     <section class="gamification-section" data-aos="fade-up" data-aos-duration="500">
@@ -725,7 +191,7 @@ if ($showOnboardingCongrats) {
         </div>
     </section>
 
-    <!-- Previsão Financeira (Agendamentos) -->
+    <!-- Previsão Financeira -->
     <section class="provisao-section" id="provisaoSection" data-aos="fade-up" data-aos-duration="500">
         <h2 class="provisao-title">
             <i data-lucide="calendar-check"></i>
@@ -741,7 +207,7 @@ if ($showOnboardingCongrats) {
                     <strong id="provisaoAlertDespesasCount">0</strong> despesa(s) vencida(s) totalizando
                     <strong id="provisaoAlertDespesasTotal">R$ 0,00</strong>
                 </div>
-                <a href="<?= BASE_URL ?>agendamentos?tipo=despesa&status=vencido" class="provisao-alert-link">Ver <i
+                <a href="<?= BASE_URL ?>lancamentos?tipo=despesa&pago=0" class="provisao-alert-link">Ver <i
                         data-lucide="arrow-right"></i></a>
             </div>
             <!-- Alerta de receitas vencidas (não recebidas) -->
@@ -751,7 +217,7 @@ if ($showOnboardingCongrats) {
                     <strong id="provisaoAlertReceitasCount">0</strong> recebimento(s) atrasado(s) totalizando
                     <strong id="provisaoAlertReceitasTotal">R$ 0,00</strong>
                 </div>
-                <a href="<?= BASE_URL ?>agendamentos?tipo=receita&status=vencido" class="provisao-alert-link">Ver <i
+                <a href="<?= BASE_URL ?>lancamentos?tipo=receita&pago=0" class="provisao-alert-link">Ver <i
                         data-lucide="arrow-right"></i></a>
             </div>
             <!-- Alerta de faturas vencidas -->
@@ -772,7 +238,7 @@ if ($showOnboardingCongrats) {
                 <div class="provisao-card-body">
                     <span class="provisao-card-label">A Pagar</span>
                     <span class="provisao-card-value" id="provisaoPagar">R$ 0,00</span>
-                    <span class="provisao-card-count" id="provisaoPagarCount">0 agendamentos</span>
+                    <span class="provisao-card-count" id="provisaoPagarCount">0 pendentes</span>
                 </div>
             </div>
             <div class="provisao-card receber">
@@ -780,7 +246,7 @@ if ($showOnboardingCongrats) {
                 <div class="provisao-card-body">
                     <span class="provisao-card-label">A Receber</span>
                     <span class="provisao-card-value" id="provisaoReceber">R$ 0,00</span>
-                    <span class="provisao-card-count" id="provisaoReceberCount">0 agendamentos</span>
+                    <span class="provisao-card-count" id="provisaoReceberCount">0 pendentes</span>
                 </div>
             </div>
             <div class="provisao-card projetado">
@@ -798,7 +264,7 @@ if ($showOnboardingCongrats) {
             <div class="provisao-proximos-header">
                 <span class="provisao-proximos-title" id="provisaoProximosTitle"><i data-lucide="clock"></i> Próximos
                     Vencimentos</span>
-                <a href="<?= BASE_URL ?>agendamentos" class="provisao-ver-todos" id="provisaoVerTodos">Ver todos <i
+                <a href="<?= BASE_URL ?>lancamentos" class="provisao-ver-todos" id="provisaoVerTodos">Ver todos <i
                         data-lucide="arrow-right"></i></a>
             </div>
             <div class="provisao-proximos-list" id="provisaoProximosList">
@@ -824,9 +290,9 @@ if ($showOnboardingCongrats) {
                 </div>
                 <h3>Previsão Financeira</h3>
                 <p>Veja quanto vai pagar, receber e como ficará seu saldo. Disponível no plano <strong>Pro</strong>.</p>
-                <button class="provisao-pro-btn" onclick="window.location.href='<?= BASE_URL ?>planos'">
+                <a href="<?= BASE_URL ?>planos" class="provisao-pro-btn">
                     <i data-lucide="rocket"></i> Conhecer o Pro
-                </button>
+                </a>
             </div>
         </div>
     </section>
@@ -888,9 +354,5 @@ if ($showOnboardingCongrats) {
     </section>
 </section>
 
-<!-- Gamification JS -->
-<script>
-    // Define BASE_URL global para gamification script
-    window.BASE_URL = '<?= BASE_URL ?>';
-</script>
-<script src="<?= BASE_URL ?>assets/js/gamification-dashboard.js?v=<?= time() ?>"></script>
+<!-- Gamification Dashboard JS (Vite) -->
+<?= vite_scripts('admin/gamification-dashboard/index.js') ?>

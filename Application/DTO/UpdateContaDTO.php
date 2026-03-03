@@ -19,8 +19,8 @@ class UpdateContaDTO
     {
         return new self(
             nome: isset($data['nome']) ? trim((string) $data['nome']) : null,
-            instituicaoFinanceiraId: isset($data['instituicao_financeira_id']) && $data['instituicao_financeira_id'] !== '' 
-                ? (int) $data['instituicao_financeira_id'] 
+            instituicaoFinanceiraId: isset($data['instituicao_financeira_id']) && $data['instituicao_financeira_id'] !== ''
+                ? (int) $data['instituicao_financeira_id']
                 : null,
             instituicao: isset($data['instituicao']) ? trim((string) $data['instituicao']) : null,
             tipoConta: isset($data['tipo_conta']) ? trim((string) $data['tipo_conta']) : null,
@@ -34,15 +34,16 @@ class UpdateContaDTO
     public function toArray(): array
     {
         $data = [];
-        
+
         if ($this->nome !== null) $data['nome'] = $this->nome;
         if ($this->instituicaoFinanceiraId !== null) $data['instituicao_financeira_id'] = $this->instituicaoFinanceiraId;
         if ($this->instituicao !== null) $data['instituicao'] = $this->instituicao;
         if ($this->tipoConta !== null) $data['tipo_conta'] = $this->tipoConta;
         if ($this->moeda !== null) $data['moeda'] = $this->moeda;
         if ($this->tipoId !== null) $data['tipo_id'] = $this->tipoId;
+        if ($this->saldoInicial !== null) $data['saldo_inicial'] = $this->saldoInicial;
         if ($this->ativo !== null) $data['ativo'] = $this->ativo;
-        
+
         return $data;
     }
 }

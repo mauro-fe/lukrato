@@ -1,0 +1,37 @@
+/* ================================================
+   15. ESTADOS DE VALIDAÇÃO
+   ================================================ */
+
+.lk-input.invalid,
+.lk-select.invalid {
+  border-color: var(--color-danger);
+  animation: lk-shake 0.4s;
+}
+
+@keyframes lk-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-8px);
+  }
+  75% {
+    transform: translateX(8px);
+  }
+}
+
+.lk-error-message {
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-2);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-weight: 500;
+}
+
+.lk-error-message i {
+  font-size: var(--font-size-xs);
+}
+

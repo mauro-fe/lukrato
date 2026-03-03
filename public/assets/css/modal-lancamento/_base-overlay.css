@@ -1,0 +1,97 @@
+/* ================================================
+   MODAL DE LANÇAMENTOS - ESTILOS UNIFICADOS
+   Lukrato - Sistema Financeiro
+   
+   Este arquivo contém todos os estilos para os modais
+   de lançamento (contas e global), usando variáveis
+   CSS do sistema para consistência visual.
+   ================================================ */
+
+/* ================================================
+   SWEETALERT ACIMA DO MODAL
+   ================================================ */
+.swal-above-modal {
+  z-index: 99999 !important;
+}
+
+/* ================================================
+   1. MODAL BASE - OVERLAY E CONTAINER
+   ================================================ */
+
+.lk-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #0007 !important;
+  backdrop-filter: var(--glass-backdrop);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: var(--spacing-4);
+  animation: lk-fadeIn 0.3s ease;
+}
+
+.lk-modal-overlay.active {
+  display: flex;
+}
+
+@keyframes lk-fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Container do Modal */
+.lk-modal-modern {
+  background: var(--color-bg);
+  border-radius: var(--radius-xl);
+  max-width: 580px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow:
+    var(--shadow-xl),
+    0 0 0 1px var(--color-card-border);
+  animation: lk-slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+@keyframes lk-slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Modal de Lançamento - Ajustes Específicos */
+.lk-modal-lancamento {
+  max-width: 720px !important;
+  max-height: 90vh !important;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-self: flex-start;
+  margin-top: 5vh;
+}
+
+.lk-modal-lancamento .lk-modal-body-modern {
+  overflow-y: auto;
+  max-height: calc(90vh - 100px);
+  min-height: 400px;
+  flex: 1;
+  padding: var(--spacing-8);
+  padding-bottom: var(--spacing-12);
+  scroll-behavior: smooth;
+  position: relative;
+}
+

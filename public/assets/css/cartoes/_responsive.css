@@ -1,0 +1,480 @@
+/* ==================== RESPONSIVE ==================== */
+@media (min-width: 915px) and (max-width: 992px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1.25rem !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1.25rem !important;
+  }
+
+  .cartoes-page {
+    padding: var(--spacing-4);
+  }
+
+  .cartoes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .cartoes-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar-left {
+    flex-wrap: wrap;
+  }
+
+  .search-box {
+    max-width: 100%;
+  }
+
+  .card-info-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-4);
+  }
+}
+
+@media (max-width: 768px) {
+  .cartoes-page {
+    padding: 1rem 0.75rem;
+    padding-bottom: 120px !important;
+  }
+
+  .header-top {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    margin-bottom: var(--spacing-4);
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .header-actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .btn-adicionar-cartao,
+  #btnNovoCartao,
+  .btn-primary {
+    width: 100% !important;
+    padding: 14px 16px !important;
+    font-size: 15px !important;
+    justify-content: center !important;
+  }
+
+  .btn-filtros {
+    flex: 1;
+    min-width: 140px;
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  .stat-card {
+    padding: 1rem !important;
+    gap: 0.75rem !important;
+  }
+
+  .stat-icon {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 1.25rem !important;
+  }
+
+  .stat-label {
+    font-size: 11px !important;
+  }
+
+  .stat-value {
+    font-size: 1.25rem !important;
+  }
+
+  .cartoes-toolbar {
+    padding: 1rem 0.75rem !important;
+    margin: 0 -0.75rem !important;
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+  }
+
+  .toolbar-left {
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+  }
+
+  .search-box {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .filter-group {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 0.5rem !important;
+    padding: 0.5rem 0 !important;
+    scrollbar-width: none !important;
+    width: 100% !important;
+  }
+
+  .filter-group::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .filter-btn {
+    white-space: nowrap !important;
+    padding: 10px 16px !important;
+    font-size: 13px !important;
+    flex: 0 0 auto !important;
+    min-width: fit-content !important;
+  }
+
+  .brand-logo-filter {
+    width: 20px !important;
+    height: auto !important;
+  }
+
+  .cartoes-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  .credit-card,
+  .cartao-card {
+    height: 200px !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    margin-top: 10px;
+  }
+
+  .card-chip {
+    width: 45px !important;
+    height: 36px !important;
+  }
+
+  .card-number {
+    font-size: 16px !important;
+    letter-spacing: 2px !important;
+  }
+
+  .card-holder,
+  .card-expiry,
+  .card-brand {
+    font-size: 12px !important;
+  }
+
+  .card-info-grid {
+    grid-template-columns: 1fr !important;
+    gap: var(--spacing-3) !important;
+  }
+
+  .modal-detalhes-cartao .modal-dialog {
+    max-width: 98% !important;
+    margin: 5px auto !important;
+  }
+
+  .modal-detalhes-cartao .modal-body {
+    padding: 16px !important;
+  }
+
+  .detalhes-grid {
+    grid-template-columns: 1fr !important;
+    gap: var(--spacing-4) !important;
+  }
+
+  .table {
+    font-size: 13px !important;
+  }
+
+  .table th,
+  .table td {
+    padding: 8px 6px !important;
+    white-space: nowrap !important;
+  }
+
+  .card-actions {
+    flex-direction: row !important;
+    gap: 0.5rem !important;
+    justify-content: flex-end !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .card-action-btn {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 10px !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    font-size: 14px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .card-action-btn:active {
+    transform: scale(0.92) !important;
+  }
+
+  .card-header {
+    margin-bottom: 1.5rem !important;
+    gap: 0.5rem !important;
+  }
+
+  .card-brand {
+    flex: 1 !important;
+    gap: 0.5rem !important;
+  }
+
+  .brand-logo {
+    height: 28px !important;
+    max-width: 50px !important;
+  }
+
+  .card-name {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+  }
+
+  .card-number {
+    font-size: 16px !important;
+    letter-spacing: 2px !important;
+    margin-bottom: 1.25rem !important;
+    line-height: 1.5 !important;
+  }
+
+  .card-footer {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    gap: 1rem !important;
+  }
+
+  .card-holder {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .card-label {
+    font-size: 9px !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  .card-value {
+    font-size: 13px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .card-limit {
+    text-align: right !important;
+    flex-shrink: 0 !important;
+  }
+
+  .limit-bar {
+    width: 100px !important;
+    height: 6px !important;
+    margin-top: 0.4rem !important;
+  }
+
+  .card-badge-fatura {
+    top: 0.75rem !important;
+    left: 1rem !important;
+    padding: 0.35rem 0.6rem !important;
+    font-size: 10px !important;
+    border-radius: 8px !important;
+  }
+
+  .faturas-list {
+    gap: var(--spacing-3) !important;
+  }
+
+  .fatura-card {
+    padding: 16px !important;
+  }
+
+  .fatura-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+
+  .fatura-valores {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .lancamento-item {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 10px !important;
+    gap: 8px !important;
+  }
+
+  .lancamento-info {
+    width: 100% !important;
+  }
+
+  .lancamento-valor {
+    width: 100% !important;
+    text-align: left !important;
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .cartoes-page {
+    padding: 0.75rem 0.5rem !important;
+    padding-bottom: 120px !important;
+  }
+
+  .page-title {
+    font-size: 18px !important;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  .stat-card {
+    padding: 1rem !important;
+    flex-direction: row !important;
+  }
+
+  .stat-icon {
+    width: 48px !important;
+    height: 48px !important;
+  }
+
+  .stat-value {
+    font-size: 1.5rem !important;
+  }
+
+  .stat-label {
+    font-size: 12px !important;
+  }
+
+  .credit-card,
+  .cartao-card {
+    height: 180px !important;
+    padding: 1.25rem !important;
+  }
+
+  .card-number {
+    font-size: 14px !important;
+    letter-spacing: 1px !important;
+  }
+
+  .card-header {
+    margin-bottom: 1rem !important;
+  }
+
+  .card-actions {
+    gap: 0.4rem !important;
+  }
+
+  .card-action-btn {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 13px !important;
+  }
+
+  .brand-logo {
+    height: 24px !important;
+    max-width: 45px !important;
+  }
+
+  .card-name {
+    font-size: 13px !important;
+  }
+
+  .card-number {
+    font-size: 14px !important;
+    letter-spacing: 1px !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .card-label {
+    font-size: 8px !important;
+  }
+
+  .card-value {
+    font-size: 12px !important;
+  }
+
+  .limit-bar {
+    width: 80px !important;
+    height: 5px !important;
+  }
+
+  .card-badge-fatura {
+    padding: 0.3rem 0.5rem !important;
+    font-size: 9px !important;
+  }
+
+  .card-footer {
+    gap: 0.75rem !important;
+  }
+
+  .filter-group {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 0.5rem !important;
+  }
+
+  .filter-btn {
+    padding: 8px 14px !important;
+    font-size: 12px !important;
+    flex: 0 0 auto !important;
+  }
+
+  .modal-detalhes-cartao .modal-body {
+    padding: 12px !important;
+  }
+
+  .fatura-card {
+    padding: 12px !important;
+  }
+
+  .fatura-valores {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  .search-box input {
+    font-size: 14px !important;
+    padding: 10px 12px 10px 38px !important;
+  }
+
+  .cartoes-toolbar {
+    padding: 0.75rem 0.5rem !important;
+    margin: 0 -0.5rem !important;
+  }
+}
+
+.table {
+  font-size: 12px !important;
+}
+
+.table th,
+.table td {
+  padding: 6px 4px !important;
+}
+

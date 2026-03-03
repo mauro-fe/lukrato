@@ -21,8 +21,8 @@ class CreateContaDTO
         return new self(
             userId: $userId,
             nome: trim((string) ($data['nome'] ?? '')),
-            instituicaoFinanceiraId: isset($data['instituicao_financeira_id']) && $data['instituicao_financeira_id'] !== '' 
-                ? (int) $data['instituicao_financeira_id'] 
+            instituicaoFinanceiraId: isset($data['instituicao_financeira_id']) && $data['instituicao_financeira_id'] !== ''
+                ? (int) $data['instituicao_financeira_id']
                 : null,
             instituicao: isset($data['instituicao']) ? trim((string) $data['instituicao']) : null,
             tipoConta: trim((string) ($data['tipo_conta'] ?? 'conta_corrente')),
@@ -43,6 +43,7 @@ class CreateContaDTO
             'tipo_conta' => $this->tipoConta,
             'moeda' => $this->moeda,
             'tipo_id' => $this->tipoId,
+            'saldo_inicial' => $this->saldoInicial,
             'ativo' => $this->ativo,
         ];
     }

@@ -28,7 +28,7 @@ class UsuarioRepository
         // Dados básicos
         $user->nome = $data['nome'];
         $user->email = $data['email'];
-        $user->data_nascimento = $data['data_nascimento'];
+        $user->data_nascimento = $data['data_nascimento'] ?: null;
 
         // Sexo
         if (!empty($data['sexo'])) {
@@ -67,6 +67,7 @@ class UsuarioRepository
             'M', 'MASCULINO' => 'Masculino',
             'F', 'FEMININO'  => 'Feminino',
             'O', 'OUTRO'     => 'Outro',
+            'NB', 'NAO BINARIO' => 'Nao-binario',
             'N', 'NAO INFORMADO', 'NAO-INFORMADO', 'PREFIRO NAO INFORMAR' => 'Nao informado',
             default => null,
         };

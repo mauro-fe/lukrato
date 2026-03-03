@@ -6,8 +6,9 @@ use Application\Core\View;
 use Application\Lib\Auth;
 use Application\Core\Response;
 use Application\Core\Request;
-use Application\Services\LogService;
-use Application\Services\CacheService;
+use Application\Services\Infrastructure\LogService;
+use Application\Services\Infrastructure\CacheService;
+use Application\Models\Telefone;
 use Throwable;
 
 abstract class BaseController
@@ -72,6 +73,11 @@ abstract class BaseController
             $data['menu'] = $this->inferMenuFromView($viewPath) ?? $data['menu'] ?? null;
         }
 
+        // Auto-inject admin layout variables when using admin header
+        if ($header === 'admin/partials/header') {
+            $data = $this->injectAdminLayoutData($data);
+        }
+
         $view = new View($viewPath, $data);
         if ($header) $view->setHeader($header);
         if ($footer) $view->setFooter($footer);
@@ -80,9 +86,81 @@ abstract class BaseController
     }
 
 
+    /**
+     * Atalho: renderiza com header/footer admin.
+     */
     protected function renderAdmin(string $viewPath, array $data = []): void
     {
         $this->render($viewPath, $data, 'admin/partials/header', 'admin/partials/footer');
+    }
+
+    /**
+     * Injeta automaticamente variáveis do layout admin (plano, role, tema, etc.)
+     * Só sobrescreve se o controller NÃO passou o valor explicitamente.
+     */
+    private function injectAdminLayoutData(array $data): array
+    {
+        $currentUser = $data['currentUser'] ?? Auth::user();
+
+        // Plan check — fonte de verdade: Usuario::isPro()
+        $isPro = $data['isPro'] ?? (
+            $currentUser && method_exists($currentUser, 'isPro') && $currentUser->isPro()
+        );
+
+        $data['currentUser']    = $currentUser;
+        $data['username']       = $data['username'] ?? ($currentUser?->nome ?? 'usuario');
+        $data['isSysAdmin']     = $data['isSysAdmin'] ?? (((int)($currentUser?->is_admin ?? 0)) === 1);
+        $data['isPro']          = $isPro;
+        $data['planLabel']      = $data['planLabel'] ?? ($isPro ? 'PRO' : 'FREE');
+        $data['showUpgradeCTA'] = $data['showUpgradeCTA'] ?? (!$isPro);
+
+        // Theme
+        if (!isset($data['userTheme'])) {
+            $data['userTheme'] = 'dark';
+            if ($currentUser && isset($currentUser->theme_preference)) {
+                $data['userTheme'] = in_array($currentUser->theme_preference, ['light', 'dark'])
+                    ? $currentUser->theme_preference
+                    : 'dark';
+            }
+        }
+
+        // Top navbar
+        if (!isset($data['topNavFirstName'])) {
+            $fullName = $currentUser->nome ?? ($currentUser->name ?? '');
+            $data['topNavFirstName'] = $fullName ? explode(' ', trim($fullName))[0] : '';
+        }
+
+        $data['currentBreadcrumbs'] = $data['currentBreadcrumbs'] ?? $this->resolveBreadcrumbs($data['menu'] ?? '');
+
+        // Botão suporte
+        if (!isset($data['supportName'])) {
+            $data['supportName']  = $currentUser->nome ?? '';
+            $data['supportEmail'] = $currentUser->email ?? '';
+            $userId = $currentUser->id_usuario ?? $currentUser->id ?? null;
+            $telefoneModel = $userId ? Telefone::where('id_usuario', $userId)->first() : null;
+            $data['supportTel']   = $telefoneModel?->numero ?? '';
+            $data['supportDdd']   = $telefoneModel?->ddd?->codigo ?? '';
+        }
+
+        return $data;
+    }
+
+    private function resolveBreadcrumbs(string $menu): array
+    {
+        $map = [
+            'dashboard'    => [],
+            'contas'       => [['label' => 'Finanças', 'icon' => 'wallet']],
+            'cartoes'      => [['label' => 'Finanças', 'icon' => 'wallet']],
+            'faturas'      => [['label' => 'Finanças', 'icon' => 'wallet'], ['label' => 'Cartões', 'url' => 'cartoes', 'icon' => 'credit-card']],
+            'categorias'   => [['label' => 'Organização', 'icon' => 'folder']],
+            'lancamentos'  => [['label' => 'Finanças', 'icon' => 'wallet']],
+            'relatorios'   => [['label' => 'Análises', 'icon' => 'bar-chart-3']],
+            'gamification' => [['label' => 'Perfil', 'icon' => 'user']],
+            'perfil'       => [],
+            'billing'      => [['label' => 'Perfil', 'icon' => 'user']],
+        ];
+
+        return $map[$menu] ?? [];
     }
 
 
@@ -230,6 +308,7 @@ abstract class BaseController
             'categorias'    => 'categorias',
             'financas'      => 'financas',
             'perfil'        => 'perfil',
+            'sysadmin'      => 'super_admin',
             default         => null,
         };
     }

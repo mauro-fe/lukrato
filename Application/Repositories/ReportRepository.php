@@ -91,11 +91,9 @@ class ReportRepository
     {
         // 1. Calcular delta dos lançamentos (respeitando afeta_caixa)
         $query = DB::table('lancamentos')
+            ->where('lancamentos.pago', 1)
             ->where('lancamentos.data', '<=', $ate)
-            ->where(function ($q) {
-                $q->where('lancamentos.afeta_caixa', true)
-                    ->orWhereNull('lancamentos.afeta_caixa'); // Backward compatibility
-            })
+            ->where('lancamentos.afeta_caixa', 1)
             ->selectRaw(...$this->deltaExpression($params->accountId, 'saldo'));
 
         if (!$useTransfers) {
@@ -133,14 +131,97 @@ class ReportRepository
         return (float)($query->sum('saldo_inicial') ?? 0.0);
     }
 
+    /**
+     * Busca totais agrupados por categoria E subcategoria (double-grouping).
+     * Retorna hierarquia completa para drill-down nos relatórios PRO.
+     */
+    public function getCategoryWithSubcategoryTotals(string $tipo, ReportParameters $params): array
+    {
+        $query = $this->buildCategoryQuery($tipo, $params);
+
+        $isAccountFiltered = $params->accountId !== null;
+
+        if ($isAccountFiltered) {
+            $query->where(fn($w) => $this->applyAccountCategoryFilter($w, $params->accountId, $tipo))
+                ->where(fn($w) => $this->applyAccountTypeFilter($w, $tipo));
+        } else {
+            $query->where('l.eh_transferencia', 0);
+        }
+
+        // Use the same label expression as getCategoryTotals to ensure labels match
+        $catLabelExpr = $isAccountFiltered
+            ? $this->selectCategoryLabel()
+            : "COALESCE(MAX(c.nome), 'Sem categoria') as label";
+
+        // For account-filtered views we also need to group by transfer flag
+        $groupCols = $isAccountFiltered
+            ? ['cat_id', 'is_transf', 'subcat_id']
+            : ['cat_id', 'subcat_id'];
+
+        $selectQuery = $query
+            ->leftJoin('categorias as sc', 'sc.id', '=', 'l.subcategoria_id')
+            ->selectRaw('COALESCE(c.id, 0) as cat_id')
+            ->selectRaw($catLabelExpr)
+            ->selectRaw('COALESCE(sc.id, 0) as subcat_id')
+            ->selectRaw("COALESCE(MAX(sc.nome), 'Sem subcategoria') as subcat_label")
+            ->selectRaw('SUM(l.valor) as total');
+
+        if ($isAccountFiltered) {
+            $selectQuery->selectRaw('l.eh_transferencia as is_transf');
+        }
+
+        $rows = $selectQuery
+            ->groupBy(...$groupCols)
+            ->orderByDesc(DB::raw('SUM(l.valor)'))
+            ->get();
+
+        // Agrupar em hierarquia: categoria → subcategorias
+        // For account-filtered views with transfers, combine entries with same cat_id
+        $categories = [];
+        foreach ($rows as $row) {
+            $catId = (int)$row->cat_id;
+            if (!isset($categories[$catId])) {
+                $categories[$catId] = [
+                    'cat_id' => $catId,
+                    'label'  => $row->label,
+                    'total'  => 0.0,
+                    'subcategories' => [],
+                ];
+            }
+            $categories[$catId]['total'] += (float)$row->total;
+
+            $subcatId = (int)$row->subcat_id;
+            $categories[$catId]['subcategories'][] = [
+                'id'    => $subcatId,
+                'label' => $subcatId === 0 ? 'Outros' : $row->subcat_label,
+                'total' => (float)$row->total,
+            ];
+        }
+
+        // Ordernar categorias por total desc e subcategorias por total desc
+        $result = array_values($categories);
+        usort($result, fn($a, $b) => $b['total'] <=> $a['total']);
+        foreach ($result as &$cat) {
+            usort($cat['subcategories'], fn($a, $b) => $b['total'] <=> $a['total']);
+        }
+
+        return $result;
+    }
+
     // --- Builders de Query Específicos ---
 
     private function buildCategoryQuery(string $tipo, ReportParameters $params): QueryBuilder
     {
         $query = DB::table('lancamentos as l')
             ->leftJoin('categorias as c', 'c.id', '=', 'l.categoria_id')
+            ->where('l.pago', 1)
             ->whereBetween('l.data', [$params->start, $params->end])
-            ->where('l.tipo', $tipo);
+            ->where('l.tipo', $tipo)
+            ->where(function ($q) {
+                $q->whereNull('l.origem_tipo')
+                    ->orWhere('l.origem_tipo', '!=', 'pagamento_fatura');
+            })
+            ->where('l.afeta_caixa', 1);
 
         return $this->applyUserScope($query, $params->userId, 'l');
     }
@@ -198,6 +279,7 @@ class ReportRepository
     private function joinAccountTransactions($join, ReportParameters $params): void
     {
         $join->on(DB::raw('1'), '=', DB::raw('1'))
+            ->where('l.pago', 1)
             ->whereBetween('l.data', [$params->start, $params->end])
             ->where(fn($w) => $this->applyAccountTransactionFilter($w))
             ->where(fn($q) => $q->whereNull('l.user_id')->orWhere('l.user_id', $params->userId));
@@ -223,6 +305,7 @@ class ReportRepository
         bool $respectAfetaCaixa = true
     ): QueryBuilder {
         $query = DB::table('lancamentos')
+            ->where('lancamentos.pago', 1)
             ->whereBetween('lancamentos.data', [$start, $end]);
 
         if (!$includeSaldoInicial) {
@@ -235,10 +318,7 @@ class ReportRepository
 
         // Respeitar campo afeta_caixa para cálculos de saldo
         if ($respectAfetaCaixa) {
-            $query->where(function ($q) {
-                $q->where('lancamentos.afeta_caixa', true)
-                    ->orWhereNull('lancamentos.afeta_caixa'); // Backward compatibility
-            });
+            $query->where('lancamentos.afeta_caixa', 1);
         }
 
         $this->applyUserScope($query, $params->userId);

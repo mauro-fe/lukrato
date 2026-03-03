@@ -3,7 +3,7 @@
 namespace Application\Providers;
 
 // Classes principais que o Controller precisa
-use Application\Services\PerfilService;
+use Application\Services\User\PerfilService;
 use Application\Validators\PerfilValidator;
 
 // --- Dependências do PerfilService (7) ---

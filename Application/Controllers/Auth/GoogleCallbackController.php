@@ -6,7 +6,7 @@ namespace Application\Controllers\Auth;
 
 use Application\Controllers\BaseController;
 use Application\Services\Auth\GoogleAuthService;
-use Application\Services\LogService;
+use Application\Services\Infrastructure\LogService;
 use Application\Enums\LogCategory;
 use Exception;
 use Throwable;

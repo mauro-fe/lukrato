@@ -1,0 +1,165 @@
+/* ================================================
+   8. FORMULÁRIO
+   ================================================ */
+
+.lk-form-section {
+  animation: lk-slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes lk-slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.lk-form-group {
+  margin-bottom: var(--spacing-6);
+}
+
+.lk-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-2);
+}
+
+.lk-label.required::after {
+  content: "*";
+  color: var(--color-danger);
+  margin-left: var(--spacing-1);
+}
+
+.lk-label i {
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+}
+
+.lk-input,
+.lk-select,
+.lk-textarea {
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 2px solid var(--color-card-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  background: var(--color-bg) !important;
+  transition: all var(--transition-fast);
+  font-family: var(--font-primary);
+}
+
+.lk-input:focus,
+.lk-select:focus,
+.lk-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+.lk-input::placeholder {
+  color: var(--color-neutral);
+}
+
+/* Input com moeda */
+.lk-input-money {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.lk-currency-symbol {
+  position: absolute;
+  left: var(--spacing-4);
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--color-success);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.lk-input-money .lk-input-with-prefix,
+input.lk-input.lk-input-with-prefix {
+  padding-left: 3.5rem !important;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Select wrapper */
+.lk-select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.lk-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 2.5rem !important;
+  cursor: pointer;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  line-height: 1.5 !important;
+  height: auto !important;
+  min-height: 2.75rem;
+}
+
+.lk-select-icon {
+  position: absolute;
+  right: var(--spacing-4);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  pointer-events: none;
+  transition: transform var(--transition-fast);
+}
+
+.lk-select:focus ~ .lk-select-icon {
+  color: var(--color-primary);
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.lk-helper-text {
+  display: block;
+  margin-top: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* Input Group */
+.lk-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.lk-input-group .lk-input {
+  padding-right: 70px;
+}
+
+.lk-input-suffix {
+  position: absolute;
+  right: var(--spacing-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  pointer-events: none;
+}
+
+/* Textarea */
+.lk-textarea {
+  resize: vertical;
+  font-family: var(--font-primary);
+  line-height: 1.5;
+}
+

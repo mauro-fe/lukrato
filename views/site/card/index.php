@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,11 +10,12 @@
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/card.css">
     <!-- Lucide Icons + FA Brands -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/brands.min.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/lucide-compat.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/vendor/lucide-compat.css">
     <script src="<?= BASE_URL ?>/assets/js/lucide.min.js"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <div class="container">
         <!-- Header com Logo -->
@@ -150,7 +152,8 @@
         </footer>
     </div>
 
-    <script src="/assets/js/card.js"></script>
+    <?= vite_scripts('site/card/index.js') ?>
     <script src="/assets/js/lucide-init.js"></script>
 </body>
+
 </html>

@@ -15,24 +15,14 @@ class CreateCartaoCreditoDTO
         public readonly ?int $diaFechamento = null,
         public readonly ?string $corCartao = null,
         public readonly bool $ativo = true,
+        public readonly ?int $lembrarFaturaAntesSegundos = null,
+        public readonly bool $faturaCanalEmail = false,
+        public readonly bool $faturaCanalInapp = true,
     ) {}
 
     public static function fromArray(array $data, int $userId): self
     {
-        // Debug temporário
-        file_put_contents(
-            __DIR__ . '/../../storage/logs/debug-cartao.log',
-            date('Y-m-d H:i:s') . " - Data recebida: " . json_encode($data) . "\n",
-            FILE_APPEND
-        );
-
         $limiteTotal = self::parseLimiteTotal($data['limite_total'] ?? 0);
-
-        file_put_contents(
-            __DIR__ . '/../../storage/logs/debug-cartao.log',
-            date('Y-m-d H:i:s') . " - Limite total convertido: " . $limiteTotal . "\n",
-            FILE_APPEND
-        );
 
         return new self(
             userId: $userId,
@@ -49,6 +39,11 @@ class CreateCartaoCreditoDTO
                 : null,
             corCartao: isset($data['cor_cartao']) ? trim((string) $data['cor_cartao']) : null,
             ativo: (bool) ($data['ativo'] ?? true),
+            lembrarFaturaAntesSegundos: isset($data['lembrar_fatura_antes_segundos']) && $data['lembrar_fatura_antes_segundos'] !== ''
+                ? (int) $data['lembrar_fatura_antes_segundos']
+                : null,
+            faturaCanalEmail: (bool) ($data['fatura_canal_email'] ?? false),
+            faturaCanalInapp: (bool) ($data['fatura_canal_inapp'] ?? true),
         );
     }
 
@@ -97,6 +92,9 @@ class CreateCartaoCreditoDTO
             'dia_fechamento' => $this->diaFechamento,
             'cor_cartao' => $this->corCartao,
             'ativo' => $this->ativo,
+            'lembrar_fatura_antes_segundos' => $this->lembrarFaturaAntesSegundos,
+            'fatura_canal_email' => $this->faturaCanalEmail,
+            'fatura_canal_inapp' => $this->faturaCanalInapp,
         ];
     }
 }

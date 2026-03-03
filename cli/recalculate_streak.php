@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../bootstrap.php';
 
-use Application\Services\StreakService;
+use Application\Services\Gamification\StreakService;
 use Application\Models\Usuario;
 
 $userId = $argv[1] ?? 1;

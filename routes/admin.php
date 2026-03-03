@@ -15,8 +15,7 @@ use Application\Core\Router;
 // Onboarding (SEM middleware de onboarding - senão dá loop)
 Router::add('GET', '/onboarding', 'Admin\\OnboardingController@index', ['auth']);
 
-// Dashboard
-Router::add('GET', '/dashboard', 'Admin\\DashboardController@dashboard', ['auth', 'onboarding']);
+// Dashboard (definido em web.php)
 
 // Lançamentos
 Router::add('GET', '/lancamentos', 'Admin\\LancamentoController@index', ['auth', 'onboarding']);
@@ -26,7 +25,7 @@ Router::add('GET', '/relatorios', 'Admin\\RelatoriosController@view', ['auth', '
 
 // Configurações
 Router::add('GET',  '/config',     'Admin\\ConfigController@index', ['auth', 'onboarding']);
-Router::add('POST', '/api/config', 'Api\\ConfigController@update',  ['auth', 'csrf']);
+Router::add('POST', '/api/config', 'Api\\Admin\\ConfigController@update',  ['auth', 'csrf', 'ratelimit']);
 
 // Perfil
 Router::add('GET', '/perfil', 'Admin\\PerfilController@index', ['auth', 'onboarding']);
@@ -38,33 +37,22 @@ Router::add('GET', '/contas/arquivadas', 'Admin\\ContasController@archived', ['a
 // Categorias
 Router::add('GET', '/categorias', 'Admin\\CategoriaController@index', ['auth', 'onboarding']);
 
-// Agendamentos
-Router::add('GET', '/agendamentos', 'Admin\\AgendamentoController@index', ['auth', 'onboarding']);
 
-// Investimentos
-Router::add('GET', '/investimentos', 'Admin\\InvestimentosController@index', ['auth', 'onboarding']);
+// Gamificação
+Router::add('GET', '/gamification', 'GamificationController@index', ['auth', 'onboarding']);
 
 // Billing / Planos
 Router::add('GET', '/billing', 'Admin\\BillingController@index', ['auth', 'onboarding']);
 
 // Super Admin
-Router::add('GET', '/super_admin', 'SysAdmin\\SuperAdminController@index', ['auth']);
-Router::add('GET', '/sysadmin', 'SysAdmin\\SuperAdminController@index', ['auth']);
+Router::add('GET', '/super_admin', 'SysAdmin\\SuperAdminController@index', ['auth', 'sysadmin']);
+Router::add('GET', '/sysadmin', 'SysAdmin\\SuperAdminController@index', ['auth', 'sysadmin']);
 
 // SysAdmin - Gerenciamento de cupons
-Router::add('GET', '/sysadmin/cupons', 'SysAdmin\\CupomViewController@index', ['auth']);
+Router::add('GET', '/sysadmin/cupons', 'SysAdmin\\CupomViewController@index', ['auth', 'sysadmin']);
 
 // SysAdmin - Comunicações e campanhas
-Router::add('GET', '/sysadmin/comunicacoes', 'SysAdmin\\CommunicationController@index', ['auth']);
-
-// SysAdmin - Listagem de usuários com filtros
-Router::add('GET', '/sysadmin/users', 'SysAdmin\\UserAdminController@list', ['auth']);
-
-// SysAdmin - Listagem de usuários com filtros (rota alternativa)
-Router::add('GET', '/super_admin/users', 'SysAdmin\UserAdminController@list', ['auth']);
-
-// SysAdmin - Listagem de usuários com filtros (rota alternativa com hífen)
-Router::add('GET', '/super-admin/users', 'SysAdmin\UserAdminController@list', ['auth']);
+Router::add('GET', '/sysadmin/comunicacoes', 'SysAdmin\\CommunicationController@index', ['auth', 'sysadmin']);
 
 
 
@@ -76,11 +64,6 @@ Router::add('GET', '/admin', function () {
 
 Router::add('GET', '/admin/login', function () {
     header('Location: ' . BASE_URL . 'login');
-    exit;
-});
-
-Router::add('GET', '/admin/dashboard', function () {
-    header('Location: ' . BASE_URL . 'dashboard');
     exit;
 });
 

@@ -2,7 +2,7 @@
 
 namespace Application\Controllers;
 
-use Application\Services\GamificationService;
+use Application\Services\Gamification\GamificationService;
 
 class GamificationController extends BaseController
 {

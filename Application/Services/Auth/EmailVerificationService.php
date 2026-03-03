@@ -6,9 +6,9 @@ namespace Application\Services\Auth;
 
 use Application\Models\Usuario;
 use Application\Models\Notificacao;
-use Application\Services\LogService;
-use Application\Services\MailService;
-use Application\Services\ReferralService;
+use Application\Services\Infrastructure\LogService;
+use Application\Services\Communication\MailService;
+use Application\Services\Referral\ReferralService;
 
 /**
  * Serviço para verificação de email
@@ -90,7 +90,7 @@ class EmailVerificationService
 
         // Verifica se o token não expirou (24 horas)
         $sentAt = $user->email_verification_sent_at;
-        if ($sentAt && $sentAt->diffInHours(now()) > 24) {
+        if (!$sentAt || $sentAt->diffInHours(now()) > 24) {
             LogService::warning('[EmailVerification] Token expirado', [
                 'user_id' => $user->id,
                 'sent_at' => $sentAt->toDateTimeString(),
@@ -191,7 +191,7 @@ class EmailVerificationService
 
                 // Verifica conquistas de indicação para quem indicou
                 try {
-                    $achievementService = new \Application\Services\AchievementService();
+                    $achievementService = new \Application\Services\Gamification\AchievementService();
                     $achievementService->checkAndUnlockAchievements($referrer->id, 'referral');
                 } catch (\Throwable $e) {
                     LogService::warning('[EmailVerification] Erro ao verificar conquistas', [

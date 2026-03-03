@@ -7,7 +7,7 @@
 
 require __DIR__ . '/../bootstrap.php';
 
-use Application\Services\MailService;
+use Application\Services\Communication\MailService;
 
 echo "=== Teste de Email SMTP ===\n\n";
 

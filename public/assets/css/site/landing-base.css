@@ -25,11 +25,12 @@ body {
     "Segoe UI",
     sans-serif
   );
-  background: #fff;
-  color: #1f2937;
+  background: var(--color-bg, #fff);
+  color: var(--color-text, #1f2937);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 header {
   background-color: var(--color-bg) !important;
@@ -332,13 +333,13 @@ svg {
 }
 
 .lk-footer a:focus-visible {
-  outline: 2px solid #e67e22;
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
   border-radius: 2px;
 }
 
 .lk-footer a:hover {
-  color: #e67e22;
+  color: var(--color-primary);
 }
 
 /* Links de navegação com underline animado */
@@ -360,7 +361,7 @@ svg {
   left: 0;
   width: 0;
   height: 2px;
-  background: linear-gradient(90deg, #e67e22, #f39c12);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-warning));
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 2px;
 }
@@ -390,7 +391,7 @@ svg {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #e67e22, #f39c12);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-warning));
   opacity: 0;
   transition: opacity 0.3s ease;
   z-index: 0;
@@ -439,7 +440,7 @@ svg {
 }
 
 .lk-footer div a[href^="mailto:"]:hover i {
-  color: #e67e22;
+  color: var(--color-primary);
   transform: scale(1.2) rotate(10deg);
 }
 
@@ -1594,14 +1595,14 @@ svg {
 }
 
 .plan-card:focus-within {
-  outline: 2px solid #e67e22;
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
 .plan-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 16px 40px rgba(230, 126, 34, 0.15);
-  border-color: #e67e22;
+  box-shadow: 0 16px 40px color-mix(in srgb, var(--color-primary) 15%, transparent);
+  border-color: var(--color-primary);
 }
 
 .plan-card h3 {
@@ -1614,7 +1615,7 @@ svg {
 .plan-price {
   font-size: 2rem;
   font-weight: 800;
-  color: #e67e22;
+  color: var(--color-primary);
   margin: 12px 0;
   display: flex;
   align-items: baseline;
@@ -1657,7 +1658,7 @@ svg {
   position: absolute;
   left: 0;
   top: 2px;
-  color: #e67e22;
+  color: var(--color-primary);
   font-weight: 700;
 }
 
@@ -1698,7 +1699,7 @@ svg {
 }
 
 .plan-btn:focus-visible {
-  outline: 2px solid #e67e22;
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
@@ -1715,22 +1716,22 @@ svg {
 
 .plan-btn.outline:hover {
   background: #f8f9fb;
-  border-color: #e67e22;
+  border-color: var(--color-primary);
 }
 
 .plan-btn.primary {
-  background: #e67e22;
+  background: var(--color-primary);
   color: #ffffff;
-  box-shadow: 0 8px 20px rgba(230, 126, 34, 0.25);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--color-primary) 25%, transparent);
 }
 
 .plan-btn.primary:hover {
-  box-shadow: 0 12px 28px rgba(230, 126, 34, 0.35);
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--color-primary) 35%, transparent);
 }
 
 /* Destaque Pro */
 .plan-card.featured {
-  border: 2px solid #e67e22;
+  border: 2px solid var(--color-primary);
   transform: scale(1.02);
 }
 
@@ -1743,7 +1744,7 @@ svg {
   top: 20px;
   right: 20px;
   background: #fff2e8;
-  color: #e67e22;
+  color: var(--color-primary);
   font-size: 0.75rem;
   font-weight: 700;
   padding: 6px 12px;
@@ -1878,13 +1879,13 @@ svg {
 }
 
 .plan-btn.primary {
-  background: #e67e22;
+  background: var(--color-primary);
   color: #ffffff;
 }
 
 /* Destaque Pro */
 .plan-card.featured {
-  border: 2px solid #e67e22;
+  border: 2px solid var(--color-primary);
 }
 
 .plan-badge {
@@ -1892,7 +1893,7 @@ svg {
   top: 20px;
   right: 20px;
   background: #fff2e8;
-  color: #e67e22;
+  color: var(--color-primary);
   font-size: 0.75rem;
   font-weight: 700;
   padding: 6px 12px;
@@ -2554,4 +2555,190 @@ svg {
     width: 54px;
     height: 54px;
   }
+}
+
+/* =======================
+   Theme Toggle – Landing
+   ======================= */
+.lk-theme-toggle {
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: #f59e0b;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lk-theme-toggle:hover {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  box-shadow: 0 0 16px rgba(230, 126, 34, 0.12);
+  border-radius: 12px;
+}
+
+/* Position both icons absolutely for swap animation */
+.lk-theme-toggle i,
+.lk-theme-toggle svg {
+  position: absolute;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lk-theme-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Sun icon: visible by default (light mode) */
+.lk-theme-toggle [data-lucide="sun"],
+.lk-theme-toggle .lucide-sun {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+  color: #f59e0b;
+  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.35));
+}
+
+/* Moon icon: hidden by default */
+.lk-theme-toggle [data-lucide="moon"],
+.lk-theme-toggle .lucide-moon {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0);
+  color: #60a5fa;
+  filter: none;
+}
+
+/* Dark mode active: hide sun, show moon */
+.lk-theme-toggle.dark [data-lucide="sun"],
+.lk-theme-toggle.dark .lucide-sun {
+  opacity: 0;
+  transform: rotate(90deg) scale(0);
+  filter: none;
+}
+
+.lk-theme-toggle.dark [data-lucide="moon"],
+.lk-theme-toggle.dark .lucide-moon {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+  filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.45));
+}
+
+/* =======================
+   Dark Mode — Landing Page
+   ========================
+   Overrides Tailwind utility classes when data-theme="dark".
+   Scoped to <main> to avoid affecting header (handled with dark: classes)
+   and footer (already has dark styling).
+   ======================= */
+
+/* ── Text Colors ── */
+[data-theme="dark"] main .text-gray-900 { color: #f8f9fa; }
+[data-theme="dark"] main .text-gray-800 { color: #e2e8f0; }
+[data-theme="dark"] main .text-gray-700 { color: #cbd5e1; }
+[data-theme="dark"] main .text-gray-600 { color: #94a3b8; }
+[data-theme="dark"] main .text-gray-500 { color: #94a3b8; }
+
+/* ── Background Colors ── */
+[data-theme="dark"] main .bg-white { background-color: var(--color-surface); }
+[data-theme="dark"] main .bg-white\/80 { background-color: rgba(28, 44, 60, 0.8); }
+[data-theme="dark"] main .bg-gray-50 { background-color: var(--color-bg); }
+[data-theme="dark"] main .bg-gray-100 { background-color: var(--color-surface-muted); }
+[data-theme="dark"] main .bg-orange-50 { background-color: rgba(230, 126, 34, 0.08); }
+[data-theme="dark"] main .bg-orange-100 { background-color: rgba(230, 126, 34, 0.15); }
+[data-theme="dark"] main .bg-green-100 { background-color: rgba(46, 204, 113, 0.15); }
+
+/* ── Border Colors ── */
+[data-theme="dark"] main .border-gray-200 { border-color: var(--color-card-border); }
+[data-theme="dark"] main .border-gray-100 { border-color: var(--color-card-border); }
+[data-theme="dark"] main .border-white { border-color: var(--color-surface); }
+[data-theme="dark"] main .border-orange-100 { border-color: var(--color-card-border); }
+
+/* ── Hover States ── */
+[data-theme="dark"] main .hover\:bg-gray-50:hover,
+[data-theme="dark"] main .hover\:bg-gray-100:hover { background-color: rgba(255, 255, 255, 0.05); }
+[data-theme="dark"] main .hover\:bg-orange-50:hover { background-color: rgba(230, 126, 34, 0.1); }
+[data-theme="dark"] main .hover\:text-gray-900:hover { color: #f8f9fa; }
+[data-theme="dark"] main .hover\:text-gray-600:hover { color: #94a3b8; }
+[data-theme="dark"] main .hover\:border-orange-200:hover { border-color: rgba(230, 126, 34, 0.3); }
+
+/* ── Gradient Stops (section backgrounds) ── */
+[data-theme="dark"] main .from-orange-50 { --tw-gradient-from: var(--color-bg) var(--tw-gradient-from-position); }
+[data-theme="dark"] main .from-white { --tw-gradient-from: var(--color-bg) var(--tw-gradient-from-position); }
+[data-theme="dark"] main .from-gray-50 { --tw-gradient-from: var(--color-bg) var(--tw-gradient-from-position); }
+[data-theme="dark"] main .from-green-50 { --tw-gradient-from: var(--color-bg) var(--tw-gradient-from-position); }
+[data-theme="dark"] main .to-gray-50 { --tw-gradient-to: var(--color-surface) var(--tw-gradient-to-position); }
+[data-theme="dark"] main .to-white { --tw-gradient-to: var(--color-surface) var(--tw-gradient-to-position); }
+[data-theme="dark"] main .to-orange-50\/20 { --tw-gradient-to: var(--color-surface) var(--tw-gradient-to-position); }
+[data-theme="dark"] main .to-orange-100\/50 { --tw-gradient-to: var(--color-surface) var(--tw-gradient-to-position); }
+[data-theme="dark"] main .to-gray-100\/50 { --tw-gradient-to: var(--color-surface) var(--tw-gradient-to-position); }
+[data-theme="dark"] main .to-emerald-50 { --tw-gradient-to: var(--color-surface-muted) var(--tw-gradient-to-position); }
+
+/* ── Decorative Blobs ── */
+[data-theme="dark"] main .mix-blend-multiply { mix-blend-mode: screen; }
+
+/* ── Shadows (deeper on dark backgrounds) ── */
+[data-theme="dark"] main .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+[data-theme="dark"] main .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3); }
+[data-theme="dark"] main .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3); }
+[data-theme="dark"] main .shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3); }
+[data-theme="dark"] main .shadow-inner { box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.3); }
+
+/* ── Form Inputs ── */
+[data-theme="dark"] main input,
+[data-theme="dark"] main textarea,
+[data-theme="dark"] main select {
+  background-color: var(--color-surface-muted) !important;
+  border-color: var(--color-card-border) !important;
+  color: var(--color-text) !important;
+}
+
+[data-theme="dark"] main input::placeholder,
+[data-theme="dark"] main textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* ── Alpine Dynamic States (gallery dots, toggles) ── */
+[data-theme="dark"] main .bg-gray-300 { background-color: #475569; }
+[data-theme="dark"] main .hover\:bg-gray-400:hover { background-color: #64748b; }
+
+/* ── Extra pastel backgrounds (funcionalidades/benefícios cards) ── */
+[data-theme="dark"] main .bg-blue-50  { background-color: rgba(59, 130, 246, 0.1); }
+[data-theme="dark"] main .bg-purple-50 { background-color: rgba(168, 85, 247, 0.1); }
+[data-theme="dark"] main .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.1); }
+[data-theme="dark"] main .bg-red-50 { background-color: rgba(239, 68, 68, 0.1); }
+[data-theme="dark"] main .bg-indigo-50 { background-color: rgba(99, 102, 241, 0.1); }
+[data-theme="dark"] main .bg-violet-50 { background-color: rgba(139, 92, 246, 0.1); }
+
+
+/* ============================================================================
+   Inline extractions (ex-index.php <style>)
+   ============================================================================ */
+
+@keyframes blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(30px, -50px) scale(1.1); }
+  66%      { transform: translate(-20px, 20px) scale(0.9); }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+[x-cloak] {
+  display: none !important;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Melhorar a tipografia */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

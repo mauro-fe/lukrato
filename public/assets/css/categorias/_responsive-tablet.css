@@ -1,0 +1,140 @@
+/* ============================================================================
+   RESPONSIVIDADE - TABLET
+   ============================================================================ */
+@media (max-width: 768px) {
+  .cat-page {
+    padding: var(--spacing-3) var(--spacing-2);
+    gap: var(--spacing-4);
+  }
+
+  .modern-card {
+    padding: var(--spacing-4);
+    border-radius: var(--radius-md);
+  }
+
+  /* Create card: layout vertical no tablet */
+  .create-card-content {
+    flex-direction: column;
+  }
+
+  .create-icon-area {
+    flex-direction: row;
+    padding: var(--spacing-4) var(--spacing-5);
+    border-right: none;
+    border-bottom: 1px solid var(--glass-border);
+    min-width: auto;
+  }
+
+  .create-icon-ring {
+    width: 52px;
+    height: 52px;
+  }
+
+  .create-main-icon {
+    width: 22px !important;
+    height: 22px !important;
+  }
+
+  .create-hint {
+    font-size: 0.7rem;
+  }
+
+  .create-form-area {
+    padding: var(--spacing-4);
+  }
+
+  .create-form-fields {
+    flex-direction: column;
+  }
+
+  .create-field {
+    width: 100%;
+  }
+
+  .create-submit-btn {
+    width: 100%;
+  }
+
+  /* Icon picker tablet */
+  .icon-picker-drawer.open {
+    max-height: 350px;
+  }
+
+  .icon-picker-grid {
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    max-height: 180px;
+  }
+
+  .icon-pick-item {
+    width: 40px;
+    height: 40px;
+  }
+
+  .icon-pick-item svg,
+  .icon-pick-item .lucide {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .icon-picker-trigger span {
+    display: none;
+  }
+
+  .suggestions-chips {
+    gap: 5px;
+  }
+
+  .suggestion-chip {
+    font-size: 0.68rem;
+    padding: 4px 10px;
+  }
+
+  .categories-grid {
+    gap: var(--spacing-3);
+  }
+
+  .category-header {
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+
+  .header-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .category-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .category-card {
+    min-height: 300px;
+  }
+
+  .category-list {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    max-height: 450px;
+  }
+
+  .cat-card-icon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .cat-card-name {
+    font-size: 0.8rem;
+  }
+
+  .cat-card-actions {
+    opacity: 0.7;
+  }
+
+  .cat-card-budget.no-budget {
+    opacity: 0.5;
+  }
+
+  .cat-budget-text {
+    font-size: 0.6rem;
+  }
+}
+

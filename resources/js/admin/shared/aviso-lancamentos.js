@@ -1,0 +1,112 @@
+/**
+ * Aviso de Lançamentos (Usage Banner)
+ * Extraído de views/admin/partials/modals/aviso-lancamentos.php
+ *
+ * Exibe banner de uso de lançamentos para usuários do plano free.
+ * Requer <meta name="base-url"> no header.
+ */
+(function () {
+    const root = document.getElementById('lk-usage-banner-root');
+    if (!root) return;
+
+    const BASE_URL = document.querySelector('meta[name="base-url"]')?.content || '/';
+
+    // Evita spammar o usuário: guarda por mês
+    const now = new Date();
+    const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const dismissedKey = `lk_usage_banner_dismissed_${ym}`;
+
+    if (localStorage.getItem(dismissedKey) === '1') return;
+
+    const endpoint = BASE_URL + 'api/lancamentos/usage?month=' + encodeURIComponent(ym);
+
+    fetch(endpoint, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json'
+        }
+    })
+        .then(r => r.json())
+        .then(json => {
+            const data = json?.data ?? json;
+            const msg = data?.ui_message;
+            const usage = data?.usage;
+            const upgradeCta = data?.upgrade_cta;
+
+            if (!msg || !usage) return;
+            if (usage.plan !== 'free') return;
+            if (!usage.should_warn) return;
+
+            const percentage = usage.percentage || 0;
+            const isCritical = percentage >= 90;
+            const bannerClass = isCritical ? 'lk-usage-banner lk-usage-banner--critical' : 'lk-usage-banner';
+            const icon = isCritical ? '🔴' : '⚠️';
+
+            // Render banner avançado
+            root.innerHTML = `
+                <div class="${bannerClass}" role="alert" aria-live="polite">
+                    <div class="lk-usage-banner__left">
+                        <div class="lk-usage-banner__icon">${icon}</div>
+                        <div class="lk-usage-banner__content">
+                            <div class="lk-usage-banner__text">${msg}</div>
+                            <div class="lk-usage-banner__progress">
+                                <div class="lk-usage-banner__progress-bar" 
+                                     style="width: ${percentage}%" 
+                                     role="progressbar"
+                                     aria-valuenow="${percentage}"
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100"></div>
+                            </div>
+                            <div class="lk-usage-banner__stats">
+                                <span class="lk-usage-banner__stat">
+                                    <span class="lk-usage-banner__stat-value">${usage.used}</span>
+                                    <span>utilizados</span>
+                                </span>
+                                <span class="lk-usage-banner__stat">
+                                    <span class="lk-usage-banner__stat-value">${usage.remaining}</span>
+                                    <span>restantes</span>
+                                </span>
+                                <span class="lk-usage-banner__stat">
+                                    <span class="lk-usage-banner__stat-value">${percentage}%</span>
+                                    <span>usado</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lk-usage-banner__actions">
+                        <a class="lk-usage-banner__link" href="${BASE_URL}billing" title="${escapeHtml(upgradeCta || 'Assinar plano Pro')}">
+                            <i data-lucide="crown"></i>
+                            <span>Assinar Pro</span>
+                        </a>
+                        <button class="lk-usage-banner__btn" type="button" data-close title="Dispensar aviso este mês">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            const closeBtn = root.querySelector('[data-close]');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    localStorage.setItem(dismissedKey, '1');
+                    root.style.animation = 'lk-slideInDown 0.3s ease reverse';
+                    setTimeout(() => {
+                        root.innerHTML = '';
+                    }, 300);
+                });
+            }
+        })
+        .catch(err => {
+            console.warn('Erro ao carregar aviso de limite:', err);
+        });
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#039;');
+    }
+})();

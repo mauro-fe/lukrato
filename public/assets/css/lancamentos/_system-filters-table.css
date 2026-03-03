@@ -1,0 +1,187 @@
+/* ============================================================================
+   FILTROS
+   ============================================================================ */
+
+.lan-filter {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.type-filter {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+}
+
+.type-filter small {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.type-filter small #selCount {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.mobile-filter-heading {
+  display: none;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-weight: 700;
+  color: var(--color-text);
+  font-size: 1rem;
+}
+
+.mobile-filter-heading i {
+  color: var(--branco);
+}
+
+@media (max-width: 768px) {
+  .mobile-filter-heading {
+    display: inline-flex;
+    margin-bottom: var(--spacing-2);
+  }
+
+  /* Ocultar contador de selecionados no mobile */
+  #selInfo {
+    display: none;
+  }
+
+  /* Ocultar botï¿½o de excluir selecionados no mobile */
+  #btnExcluirSel {
+    display: none;
+  }
+}
+
+/* ============================================================================
+   TABELA
+   ============================================================================ */
+
+.container-table {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-4);
+  overflow: hidden;
+}
+
+.table-container .tabulator {
+  background: transparent;
+  border: none;
+}
+
+.table-container .tabulator .tabulator-tableholder {
+  overflow-x: hidden !important;
+}
+
+.table-container .tabulator .tabulator-header {
+  background: var(--color-surface-muted);
+  border-bottom: 2px solid var(--glass-border);
+}
+
+.table-container .tabulator .tabulator-row {
+  transition: var(--transition-fast);
+  will-change: background-color;
+}
+
+.table-container .tabulator .tabulator-row:hover {
+  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+}
+
+.table-container .tabulator .tabulator-row.tabulator-selected {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border-left: 3px solid var(--color-primary);
+  font-weight: 500;
+}
+
+/* Saldo Inicial */
+.table-container .tabulator .lk-row-inicial {
+  opacity: 0.6;
+  font-style: italic;
+  background: color-mix(in srgb, var(--color-surface) 50%, transparent);
+}
+
+.table-container .tabulator .lk-row-inicial .tabulator-cell {
+  color: var(--color-text-muted);
+}
+
+.table-container .tabulator .lk-row-inicial .tabulator-cell:first-child {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.table-container .tabulator .tabulator-cell.lk-cell-select-disabled {
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+/* Aï¿½ï¿½es */
+.table-container .tabulator .tabulator-row .tabulator-cell .lk-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+}
+
+/* Collapse responsivo do Tabulator */
+.table-container .tabulator .tabulator-responsive-collapse {
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  border-top: 1px solid var(--glass-border);
+  padding: var(--spacing-3) var(--spacing-4);
+}
+
+.table-container
+  .tabulator
+  .tabulator-cell
+  .tabulator-responsive-collapse-toggle {
+  color: var(--color-text);
+  opacity: 0.85;
+}
+
+.lk-collapse-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-surface) 75%, transparent) 0%,
+    color-mix(in srgb, var(--color-surface) 55%, transparent) 100%
+  );
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-3) var(--spacing-4);
+  box-shadow: var(--shadow-sm);
+}
+
+.lk-collapse-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  width: 100%;
+}
+
+.lk-collapse-row .lk-label {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.lk-collapse-row .lk-value {
+  color: var(--color-text);
+  text-align: right;
+}
+
+.ft-card {
+  border-radius: var(--radius-md);
+  background-color: var(--glass-bg) !important;
+}

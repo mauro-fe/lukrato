@@ -1,0 +1,191 @@
+/* ================================================
+   5. SEÇÃO DE HISTÓRICO
+   ================================================ */
+
+.lk-historico-section {
+  margin-bottom: var(--spacing-6);
+}
+
+.lk-section-title {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-4);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.lk-section-title i {
+  color: var(--color-primary);
+}
+
+.lk-historico-list {
+  background: var(--glass-bg);
+  border: 2px solid var(--color-card-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-4);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+/* Scrollbar do histórico */
+.lk-historico-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.lk-historico-list::-webkit-scrollbar-track {
+  background: var(--color-surface-muted);
+  border-radius: 3px;
+}
+
+.lk-historico-list::-webkit-scrollbar-thumb {
+  background: var(--color-neutral);
+  border-radius: 3px;
+}
+
+.lk-historico-list::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+.lk-historico-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-3);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-2);
+  border-left: 3px solid var(--color-card-border);
+  transition: all var(--transition-fast);
+}
+
+.lk-historico-item:last-child {
+  margin-bottom: 0;
+}
+
+.lk-historico-item:hover {
+  transform: translateX(4px);
+  box-shadow: var(--shadow-sm);
+  background: var(--glass-bg);
+}
+
+/* Tipos de histórico */
+.lk-historico-receita,
+.lk-historico-item.receita {
+  border-left-color: var(--color-success);
+}
+
+.lk-historico-despesa,
+.lk-historico-item.despesa {
+  border-left-color: var(--color-danger);
+}
+
+.lk-historico-transferencia,
+.lk-historico-item.transferencia {
+  border-left-color: #3498db;
+}
+
+.lk-historico-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex: 1;
+  min-width: 0;
+}
+
+.lk-historico-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  flex-shrink: 0;
+}
+
+.lk-historico-icon.receita {
+  background: rgba(46, 204, 113, 0.15);
+  color: var(--color-success);
+}
+
+.lk-historico-icon.despesa {
+  background: rgba(231, 76, 60, 0.15);
+  color: var(--color-danger);
+}
+
+.lk-historico-icon.transferencia {
+  background: rgba(52, 152, 219, 0.15);
+  color: #3498db;
+}
+
+.lk-historico-desc {
+  flex: 1;
+  min-width: 0;
+}
+
+.lk-historico-desc h5 {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lk-historico-desc p {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: 2px 0 0;
+}
+
+.lk-historico-right {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.lk-historico-valor {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+}
+
+.lk-historico-valor.positivo,
+.lk-historico-receita .lk-historico-valor {
+  color: var(--color-success);
+}
+
+.lk-historico-valor.negativo,
+.lk-historico-despesa .lk-historico-valor {
+  color: var(--color-danger);
+}
+
+.lk-historico-transferencia .lk-historico-valor {
+  color: #3498db;
+}
+
+.lk-historico-data {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+  text-transform: capitalize;
+}
+
+.lk-historico-empty {
+  text-align: center;
+  padding: var(--spacing-8) var(--spacing-4);
+  color: var(--color-text-muted);
+}
+
+.lk-historico-empty i {
+  font-size: 2.5rem;
+  margin-bottom: var(--spacing-3);
+  opacity: 0.3;
+  color: var(--color-neutral);
+}
+
+.lk-historico-empty p {
+  margin: 0;
+  font-size: var(--font-size-base);
+}
+

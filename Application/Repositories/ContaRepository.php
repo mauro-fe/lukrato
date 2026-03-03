@@ -65,16 +65,16 @@ class ContaRepository extends BaseRepository
     public function findByIdAndUserOrFail(int $id, int $userId): Conta
     {
         $conta = $this->findByIdAndUser($id, $userId);
-        
+
         if (!$conta) {
             throw new ModelNotFoundException('Conta não encontrada');
         }
-        
+
         return $conta;
     }
 
     /**
-     * Busca contas ativas de um usuário (não arquivadas).
+     * Busca contas ativas de um usuário.
      * 
      * @param int $userId
      * @return Collection
@@ -83,21 +83,22 @@ class ContaRepository extends BaseRepository
     {
         return $this->query()
             ->where('user_id', $userId)
-            ->whereNull('deleted_at')
+            ->where('ativo', true)
             ->orderBy('nome')
             ->get();
     }
 
     /**
-     * Busca contas arquivadas de um usuário (soft deleted).
+     * Busca contas arquivadas de um usuário (ativo = false).
      * 
      * @param int $userId
      * @return Collection
      */
     public function findArchived(int $userId): Collection
     {
-        return Conta::onlyTrashed()
+        return $this->query()
             ->where('user_id', $userId)
+            ->where('ativo', false)
             ->orderBy('nome')
             ->get();
     }
@@ -128,7 +129,7 @@ class ContaRepository extends BaseRepository
     public function createForUser(int $userId, array $data): Conta
     {
         $data['user_id'] = $userId;
-        
+
         return $this->create($data);
     }
 
@@ -148,7 +149,7 @@ class ContaRepository extends BaseRepository
     }
 
     /**
-     * Arquiva uma conta (soft delete).
+     * Arquiva uma conta (define ativo = false).
      * 
      * @param int $id
      * @param int $userId
@@ -158,11 +159,12 @@ class ContaRepository extends BaseRepository
     public function archive(int $id, int $userId): bool
     {
         $conta = $this->findByIdAndUserOrFail($id, $userId);
-        return (bool) $conta->delete();
+        $conta->ativo = false;
+        return $conta->save();
     }
 
     /**
-     * Restaura uma conta arquivada.
+     * Restaura uma conta arquivada (define ativo = true).
      * 
      * @param int $id
      * @param int $userId
@@ -171,12 +173,9 @@ class ContaRepository extends BaseRepository
      */
     public function restore(int $id, int $userId): bool
     {
-        $conta = Conta::onlyTrashed()
-            ->where('id', $id)
-            ->where('user_id', $userId)
-            ->firstOrFail();
-        
-        return (bool) $conta->restore();
+        $conta = $this->findByIdAndUserOrFail($id, $userId);
+        $conta->ativo = true;
+        return $conta->save();
     }
 
     /**
@@ -203,7 +202,7 @@ class ContaRepository extends BaseRepository
     {
         return $this->query()
             ->where('user_id', $userId)
-            ->whereNull('deleted_at')
+            ->where('ativo', true)
             ->count();
     }
 

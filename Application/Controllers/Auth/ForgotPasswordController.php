@@ -9,8 +9,8 @@ use Application\Services\Auth\PasswordResetService;
 use Application\Repositories\PasswordResetRepositoryEloquent;
 use Application\Services\Auth\MailPasswordResetNotification;
 use Application\Services\Auth\SecureTokenGenerator;
-use Application\Services\MailService;
-use Application\Services\LogService;
+use Application\Services\Communication\MailService;
+use Application\Services\Infrastructure\LogService;
 use Throwable;
 
 class ForgotPasswordController extends BaseController
@@ -38,7 +38,7 @@ class ForgotPasswordController extends BaseController
      */
     public function showRequestForm(): void
     {
-        $this->render('admin/admins/forgot_password', [
+        $this->render('admin/auth/forgot-password', [
             'error'      => $this->getError(),
             'success'    => $this->getSuccess(),
         ]);
@@ -113,7 +113,7 @@ class ForgotPasswordController extends BaseController
             return;
         }
 
-        $this->render('admin/admins/reset_password', [
+        $this->render('admin/auth/reset-password', [
             'token'      => $token,
         ]);
     }

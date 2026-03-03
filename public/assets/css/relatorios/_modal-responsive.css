@@ -1,0 +1,239 @@
+﻿/* ============================================================================
+   RESPONSIVO - MOBILE MUITO PEQUENO (max-width: 360px)
+   ============================================================================ */
+@media (max-width: 360px) {
+  .card-detail-header {
+    padding: 10px !important;
+  }
+
+  .card-detail-icon {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 14px !important;
+  }
+
+  .card-detail-info h2 {
+    font-size: 0.9rem !important;
+  }
+
+  .card-detail-stats-grid {
+    gap: 4px !important;
+  }
+
+  .stat-box {
+    padding: 6px 2px !important;
+  }
+
+  .stat-box-label {
+    font-size: 0.5rem !important;
+  }
+
+  .stat-box-value {
+    font-size: 0.75rem !important;
+  }
+
+  .card-detail-body {
+    padding: 10px !important;
+  }
+
+  .lancamento-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  .lancamento-amount {
+    align-self: flex-end !important;
+    margin-top: 4px !important;
+  }
+}
+
+
+@media (max-width: 768px) {
+  .card-detail-modal {
+    animation: slideUp 0.3s ease;
+  }
+}
+
+
+
+.export-card.pro-locked {
+  position: relative;
+}
+
+.export-card .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pro-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+}
+
+.pro-badge i {
+  font-size: 0.7rem;
+}
+
+.export-card .card-body {
+  position: relative;
+  min-height: 100px;
+}
+
+.export-card.pro-locked .card-body {
+  min-height: 140px;
+}
+
+.pro-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 58, 95, 0.97);
+  border: 2px solid rgba(59, 130, 246, 0.3);
+  border-radius: var(--radius-lg);
+  z-index: 10;
+  padding: var(--spacing-4);
+  margin: 0;
+}
+
+.pro-message {
+  text-align: center;
+  padding: var(--spacing-4);
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.pro-message i[data-lucide="crown"],
+.pro-message i.lucide-crown {
+  font-size: 2.5rem;
+  color: #f59e0b;
+  margin-bottom: var(--spacing-3);
+  display: block;
+}
+
+.pro-message h4 {
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 var(--spacing-2);
+}
+
+.pro-message p {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+  margin: 0 0 var(--spacing-3);
+  line-height: 1.4;
+}
+
+.btn-pro {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+.btn-pro:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
+  color: #fff;
+}
+
+.btn-pro i,
+.btn-pro svg {
+  font-size: 0.9rem;
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.disabled-blur {
+  filter: blur(2px);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Responsivo - PRO Overlay */
+@media (max-width: 768px) {
+  .export-card.pro-locked .card-body {
+    min-height: 130px;
+  }
+
+  .pro-overlay {
+    padding: var(--spacing-3);
+  }
+
+  .pro-message {
+    padding: var(--spacing-3);
+  }
+
+  .pro-message i[data-lucide="crown"],
+  .pro-message i.lucide-crown {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-2);
+  }
+
+  .pro-message h4 {
+    font-size: 1rem;
+  }
+
+  .pro-message p {
+    font-size: 0.8rem;
+    margin-bottom: var(--spacing-2);
+  }
+
+  .btn-pro {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .export-card.pro-locked .card-body {
+    min-height: 120px;
+  }
+
+  .pro-message {
+    padding: var(--spacing-2);
+  }
+
+  .pro-message i[data-lucide="crown"],
+  .pro-message i.lucide-crown {
+    font-size: 1.75rem;
+    margin-bottom: var(--spacing-2);
+  }
+
+  .pro-message h4 {
+    font-size: 0.95rem;
+  }
+
+  .pro-message p {
+    font-size: 0.75rem;
+    margin-bottom: var(--spacing-2);
+  }
+
+  .btn-pro {
+    padding: 8px 14px;
+    font-size: 0.8rem;
+  }
+}

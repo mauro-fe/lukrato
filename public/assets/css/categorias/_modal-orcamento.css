@@ -1,0 +1,166 @@
+/* ============================================================================
+   MODAL DE ORÃ‡AMENTO
+   ============================================================================ */
+
+.modal-content {
+  background: var(--color-bg);
+}
+.modal-body {
+  padding: var(--spacing-4) var(--spacing-5) !important;
+}
+
+#modalOrcamento .modal-content {
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-lg);
+  font-family: var(--font-primary);
+}
+
+#modalOrcamento .modal-header {
+  border: 0;
+  background: var(--color-bg);
+  padding: var(--spacing-4) var(--spacing-5);
+}
+
+#modalOrcamento .modal-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+#modalOrcamento .btn-close-custom {
+  filter: brightness(0) saturate(100%) invert(59%) sepia(61%) saturate(2423%)
+    hue-rotate(351deg) brightness(99%) contrast(89%);
+  opacity: 1;
+}
+
+#modalOrcamento .btn-close-custom:hover {
+  opacity: 0.8;
+}
+
+#modalOrcamento .modal-body {
+  padding: var(--spacing-4) var(--spacing-5);
+}
+
+.orc-modal-description {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-bg));
+  border: 1px solid
+    color-mix(in srgb, var(--color-primary) 20%, var(--glass-border));
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.orc-modal-description i {
+  color: var(--color-primary);
+  font-size: 14px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.orc-modal-cat-name {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+.orc-modal-cat-name strong {
+  color: var(--color-text);
+}
+
+.orc-modal-gasto {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--spacing-3) 0;
+}
+
+.orc-modal-gasto strong {
+  color: var(--color-primary);
+}
+
+#modalOrcamento .form-label {
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  margin-bottom: var(--spacing-2);
+}
+
+#modalOrcamento .form-control {
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
+  padding: var(--spacing-3);
+  transition: var(--transition-smooth);
+}
+
+#modalOrcamento .form-control:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--ring);
+  background: var(--color-surface);
+}
+
+#modalOrcamento .form-control::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+#modalOrcamento .modal-footer {
+  border: 0;
+  background: transparent;
+  padding: var(--spacing-3) var(--spacing-5) var(--spacing-4);
+  gap: var(--spacing-2);
+}
+
+#modalOrcamento .btn-primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+#modalOrcamento .btn-primary:hover {
+  filter: brightness(1.1);
+}
+
+#modalOrcamento .btn-secondary {
+  background: var(--color-surface-muted, #333);
+  border-color: var(--glass-border);
+  color: var(--color-text-muted);
+}
+
+#modalOrcamento .btn-outline-danger {
+  margin-right: auto;
+}
+
+/* Input com prefixo R$ */
+.orc-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.orc-input-prefix {
+  position: absolute;
+  left: 12px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.orc-input-currency {
+  padding-left: 38px !important;
+  font-size: var(--font-size-lg) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}

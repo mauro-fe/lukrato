@@ -1,0 +1,75 @@
+/* ================================================
+   7. BOTÕES DE TIPO DE AGENDAMENTO
+   ================================================ */
+
+.lk-tipo-agendamento-btns {
+  display: flex;
+  gap: var(--spacing-3);
+}
+
+.lk-btn-tipo-ag {
+  flex: 1;
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 2px solid var(--color-card-border);
+  border-radius: var(--radius-sm);
+  background: var(--glass-bg);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  transition: all var(--transition-fast);
+}
+
+.lk-btn-tipo-ag:hover {
+  background: var(--color-surface-muted);
+}
+
+.lk-btn-tipo-receita.active {
+  border-color: #28a745 !important;
+  background: linear-gradient(
+    135deg,
+    rgba(40, 167, 69, 0.2),
+    rgba(40, 167, 69, 0.35)
+  ) !important;
+  color: #28a745 !important;
+  box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.25);
+}
+
+.lk-btn-tipo-despesa.active {
+  border-color: #dc3545 !important;
+  background: linear-gradient(
+    135deg,
+    rgba(220, 53, 69, 0.2),
+    rgba(220, 53, 69, 0.35)
+  ) !important;
+  color: #dc3545 !important;
+  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25);
+}
+
+/* Dark mode para botões de tipo de agendamento */
+:root[data-theme="dark"] .lk-btn-tipo-receita.active {
+  border-color: #28a745 !important;
+  background: linear-gradient(
+    135deg,
+    rgba(40, 167, 69, 0.3),
+    rgba(40, 167, 69, 0.5)
+  ) !important;
+  color: #5cb85c !important;
+  box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.3);
+}
+
+:root[data-theme="dark"] .lk-btn-tipo-despesa.active {
+  border-color: #dc3545 !important;
+  background: linear-gradient(
+    135deg,
+    rgba(220, 53, 69, 0.3),
+    rgba(220, 53, 69, 0.5)
+  ) !important;
+  color: #ff6b6b !important;
+  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.3);
+}
+

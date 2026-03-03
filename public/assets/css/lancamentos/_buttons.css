@@ -1,0 +1,65 @@
+/* ============================================================================
+   BOTÃ•ES MODERNOS
+   ============================================================================ */
+
+.modern-btn i,
+.modern-btn svg {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+/* BotÃ£o Primary */
+.modern-btn.primary {
+  background: var(--color-primary);
+  color: var(--color-text);
+  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
+}
+
+.modern-btn.primary:hover {
+  box-shadow: 0 6px 20px rgba(230, 126, 34, 0.4);
+  transform: translateY(-2px);
+}
+
+.modern-btn.primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* BotÃ£o Danger */
+.modern-btn.danger {
+  background: linear-gradient(135deg, var(--color-danger), #c0392b);
+  color: var(--color-text);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+.modern-btn.danger:hover:not(:disabled) {
+  box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+  transform: translateY(-2px);
+}
+
+.modern-btn.danger:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  filter: grayscale(0.5);
+}
+
+/* BotÃ£o de exclusÃ£o na Ã¡rea da tabela */
+.table-actions .modern-btn.danger {
+  padding: var(--spacing-2) var(--spacing-4);
+  font-size: var(--font-size-xs);
+}
+
+.table-actions .modern-btn {
+  white-space: nowrap;
+}
+
+.btn-novo-lancamento {
+  background: var(--color-primary);
+  color: white;
+}
+

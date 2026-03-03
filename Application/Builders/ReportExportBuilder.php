@@ -68,10 +68,48 @@ class ReportExportBuilder
 
     private function processCategoryReport(array $payload, string $labelHeader): array
     {
+        // Se contém details (PRO), renderizar com subcategorias
+        if (!empty($payload['details'])) {
+            return $this->processCategoryReportWithSubcategories($payload, $labelHeader);
+        }
+
         return [
             [$labelHeader, 'Valor Total'],
             $this->mapSingleColumn($payload)
         ];
+    }
+
+    private function processCategoryReportWithSubcategories(array $payload, string $labelHeader): array
+    {
+        $headers = [$labelHeader, 'Subcategoria', 'Valor'];
+        $rows = [];
+
+        foreach ($payload['details'] as $category) {
+            $label = $this->sanitizeLabel($category['label'] ?? '');
+            $catTotal = (float)($category['total'] ?? 0);
+            $subcategories = $category['subcategories'] ?? [];
+
+            if (empty($subcategories)) {
+                // Sem subcategorias: linha simples
+                $rows[] = [$label, '—', $this->formatMoney($catTotal)];
+            } else {
+                // Linha de cada subcategoria indentada
+                foreach ($subcategories as $i => $sub) {
+                    $subLabel = $sub['label'] ?? 'Sem subcategoria';
+                    $subTotal = (float)($sub['total'] ?? 0);
+
+                    $rows[] = [
+                        $i === 0 ? $label : '',  // Nome da categoria apenas na primeira linha
+                        '  ↳ ' . $this->sanitizeLabel($subLabel),
+                        $this->formatMoney($subTotal),
+                    ];
+                }
+                // Subtotal da categoria
+                $rows[] = ['', 'Subtotal ' . $label, $this->formatMoney($catTotal)];
+            }
+        }
+
+        return [$headers, $rows];
     }
 
     private function processBalanceReport(array $payload): array

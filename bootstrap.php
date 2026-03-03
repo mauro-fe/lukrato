@@ -17,6 +17,9 @@ if (file_exists(BASE_PATH . '/.env')) {
 // Timezone padrão
 date_default_timezone_set($_ENV['APP_TZ'] ?? 'America/Sao_Paulo');
 
+// Vite asset helper
+require_once BASE_PATH . '/config/vite.php';
+
 // BASE_URL (CLI não tem SERVER vars)
 if (!defined('BASE_URL')) {
     $baseFromEnv = $_ENV['BASE_URL'] ?? $_ENV['APP_URL'] ?? 'http://localhost/lukrato/';

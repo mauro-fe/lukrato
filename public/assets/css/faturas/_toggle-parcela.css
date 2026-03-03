@@ -1,0 +1,112 @@
+.btn-toggle-parcela {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-toggle-parcela i {
+  font-size: 0.875rem;
+}
+
+.btn-toggle-parcela.btn-pagar {
+  background: var(--color-success);
+  color: white;
+  margin-top: auto;
+}
+
+.btn-toggle-parcela.btn-pagar:hover {
+  background: color-mix(in srgb, var(--color-success) 90%, black);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px
+    color-mix(in srgb, var(--color-success) 30%, transparent);
+}
+
+.btn-toggle-parcela.btn-desfazer {
+  background: var(--color-warning);
+  color: white;
+}
+
+.btn-toggle-parcela.btn-desfazer:hover {
+  background: color-mix(in srgb, var(--color-warning) 90%, black);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px
+    color-mix(in srgb, var(--color-warning) 30%, transparent);
+}
+
+.btn-toggle-parcela:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 768px) {
+  .btn-toggle-parcela {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    font-size: 0.75rem;
+  }
+
+  .btn-excluir-item {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    font-size: 0.75rem;
+  }
+}
+.card-header-icon {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-6);
+}
+
+.icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xl);
+}
+
+.icon-wrapper.filter {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-primary) 15%, var(--color-surface)),
+    color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))
+  );
+  color: var(--color-primary);
+}
+
+.icon-wrapper.filter i {
+  color: var(--color-primary);
+}
+
+.card-title-group {
+  flex: 1;
+}
+
+.card-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.card-subtitle {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  margin: var(--spacing-1) 0 0 0;
+}
+

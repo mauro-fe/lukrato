@@ -46,6 +46,10 @@ class CartaoCredito extends Model
         'cor_cartao',
         'ativo',
         'arquivado',
+        'lembrar_fatura_antes_segundos',
+        'fatura_canal_email',
+        'fatura_canal_inapp',
+        'fatura_notificado_mes',
     ];
 
     protected $casts = [
@@ -57,6 +61,9 @@ class CartaoCredito extends Model
         'dia_fechamento' => 'int',
         'ativo' => 'bool',
         'arquivado' => 'bool',
+        'lembrar_fatura_antes_segundos' => 'int',
+        'fatura_canal_email' => 'bool',
+        'fatura_canal_inapp' => 'bool',
     ];
 
     protected $appends = ['numero_mascarado', 'limite_utilizado', 'limite_disponivel_real', 'percentual_uso'];

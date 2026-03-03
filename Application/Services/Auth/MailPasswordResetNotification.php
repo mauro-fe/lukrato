@@ -3,7 +3,7 @@
 namespace Application\Services\Auth;
 
 use Application\Contracts\Auth\PasswordResetNotificationInterface;
-use Application\Services\MailService;
+use Application\Services\Communication\MailService;
 
 class MailPasswordResetNotification implements PasswordResetNotificationInterface
 {

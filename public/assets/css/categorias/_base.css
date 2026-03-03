@@ -1,0 +1,49 @@
+/**
+ * ============================================================================
+ * CATEGORIAS - DESIGN MODERNIZADO
+ * ============================================================================
+ * Sistema de categorias com design consistente
+ * Foco em UX, produtividade e modernidade visual
+ * ============================================================================
+ */
+
+/* ============================================================================
+   PÃGINA PRINCIPAL
+   ============================================================================ */
+
+.cat-page {
+  visibility: hidden;
+  min-height: 80vh;
+  padding: var(--spacing-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
+}
+
+/* Página visível quando JS marcou .is-ready */
+.cat-page.is-ready {
+  visibility: visible;
+}
+
+/* Fallback: se JS estiver desabilitado, mostra a página */
+noscript + .cat-page,
+.no-js .cat-page {
+  visibility: visible !important;
+}
+
+/* TransiÃ§Ã£o suave para listas ao re-renderizar apÃ³s CRUD */
+.category-list {
+  transition: opacity 0.15s ease;
+}
+
+/* ============================================================================
+   ÃCONES
+   ============================================================================ */
+
+.fa-plus-circle,
+.fa-circle-plus,
+[data-lucide="circle-plus"],
+.lucide-circle-plus {
+  color: var(--color-primary);
+}
+

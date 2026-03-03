@@ -1,0 +1,288 @@
+/* ================================================
+   WIZARD STEPS — Lançamento Modal
+   Progressão em etapas com dots/bolinhas
+   ================================================ */
+
+/* ── Progress Bar (Dots) ────────────────────────── */
+.lk-wizard-progress {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: var(--spacing-4) var(--spacing-6);
+    margin-bottom: var(--spacing-6);
+}
+
+.lk-wizard-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    flex-shrink: 0;
+    z-index: 1;
+}
+
+/* Dot — pendente */
+.lk-wizard-dot.pending {
+    background: var(--color-surface-muted);
+    color: var(--color-text-muted);
+    border: 2px solid var(--color-card-border);
+}
+
+/* Dot — ativo */
+.lk-wizard-dot.active {
+    background: var(--color-primary);
+    color: #fff;
+    border: 2px solid var(--color-primary);
+    box-shadow: 0 0 0 4px rgba(230, 126, 34, 0.2);
+    transform: scale(1.1);
+}
+
+/* Dot — completo */
+.lk-wizard-dot.completed {
+    background: var(--color-success);
+    color: #fff;
+    border: 2px solid var(--color-success);
+}
+
+.lk-wizard-dot.completed .lk-wizard-dot-number {
+    display: none;
+}
+
+.lk-wizard-dot.completed .lk-wizard-dot-check {
+    display: flex;
+}
+
+.lk-wizard-dot-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.lk-wizard-dot-check {
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.lk-wizard-dot-check svg,
+.lk-wizard-dot-check i {
+    width: 16px;
+    height: 16px;
+}
+
+/* Linhas conectoras entre dots */
+.lk-wizard-line {
+    flex: 1;
+    height: 3px;
+    background: var(--color-card-border);
+    transition: background 0.3s ease;
+    min-width: 24px;
+    max-width: 60px;
+}
+
+.lk-wizard-line.completed {
+    background: var(--color-success);
+}
+
+/* ── Steps Container ────────────────────────────── */
+.lk-wizard-step {
+    display: none;
+    animation: lk-wizardSlideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lk-wizard-step.active {
+    display: block;
+}
+
+.lk-wizard-step.slide-out-left {
+    animation: lk-wizardSlideOutLeft 0.2s ease forwards;
+}
+
+.lk-wizard-step.slide-in-right {
+    animation: lk-wizardSlideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lk-wizard-step.slide-in-left {
+    animation: lk-wizardSlideInLeft 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes lk-wizardSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes lk-wizardSlideOutLeft {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+}
+
+@keyframes lk-wizardSlideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ── Pergunta Conversacional ────────────────────── */
+.lk-wizard-question {
+    text-align: center;
+    margin-bottom: var(--spacing-8);
+    padding: 0 var(--spacing-4);
+}
+
+.lk-wizard-question h3 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0 0 var(--spacing-2) 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-3);
+}
+
+.lk-wizard-question h3 i,
+.lk-wizard-question h3 svg {
+    color: var(--color-primary);
+    width: 24px;
+    height: 24px;
+}
+
+.lk-wizard-question p {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+/* ── Navigation Buttons ─────────────────────────── */
+.lk-wizard-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-4);
+    margin-top: var(--spacing-8);
+    padding-top: var(--spacing-6);
+    border-top: 2px solid var(--color-card-border);
+}
+
+.lk-wizard-nav-left {
+    display: flex;
+    align-items: center;
+}
+
+.lk-wizard-nav-right {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+}
+
+/* Botão Pular */
+.lk-btn-skip {
+    padding: var(--spacing-3) var(--spacing-5);
+    border-radius: var(--radius-md);
+    border: 2px dashed var(--color-card-border);
+    background: transparent;
+    color: var(--color-text-muted);
+    font-weight: 500;
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    transition: all var(--transition-fast);
+}
+
+.lk-btn-skip:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--glass-bg);
+}
+
+.lk-btn-skip i,
+.lk-btn-skip svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* Step 1 override — tipo selection nav has no top border */
+.lk-wizard-step[data-step="1"] .lk-wizard-nav {
+    border-top: none;
+    margin-top: var(--spacing-4);
+    padding-top: 0;
+}
+
+/* ── Responsivo ─────────────────────────────────── */
+@media (max-width: 576px) {
+    .lk-wizard-progress {
+        padding: var(--spacing-3) var(--spacing-4);
+        margin-bottom: var(--spacing-4);
+    }
+
+    .lk-wizard-dot {
+        width: 26px;
+        height: 26px;
+        font-size: 0.7rem;
+    }
+
+    .lk-wizard-dot.active {
+        transform: scale(1.05);
+    }
+
+    .lk-wizard-line {
+        min-width: 16px;
+    }
+
+    .lk-wizard-question h3 {
+        font-size: 1.15rem;
+    }
+
+    .lk-wizard-nav {
+        flex-direction: column-reverse;
+        gap: var(--spacing-3);
+    }
+
+    .lk-wizard-nav-left,
+    .lk-wizard-nav-right {
+        width: 100%;
+    }
+
+    .lk-wizard-nav-left .lk-btn,
+    .lk-wizard-nav-left .lk-btn-voltar {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .lk-wizard-nav-right {
+        flex-direction: column;
+    }
+
+    .lk-wizard-nav-right .lk-btn,
+    .lk-wizard-nav-right .lk-btn-skip {
+        width: 100%;
+        justify-content: center;
+    }
+}

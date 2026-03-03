@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Core;
 
-use Application\Services\CacheService;
-use Application\Services\LogService;
+use Application\Services\Infrastructure\CacheService;
+use Application\Services\Infrastructure\LogService;
 use Application\Core\Exceptions\AuthException;
 use Application\Core\Exceptions\ValidationException;
 use Throwable;
@@ -81,7 +81,7 @@ class Router
 
             $middlewareClass = $registry[$name];
 
-            if ($name === 'ratelimit') {
+            if ($name === 'ratelimit' || $name === 'ratelimit_strict') {
                 $identifier = $request->ip() ?? 'unknown';
                 (new $middlewareClass(new CacheService()))->handle($request, $identifier);
             } elseif ($name === 'sysadmin') {
@@ -142,7 +142,7 @@ class Router
             'trace' => $e->getTraceAsString(),
         ]);
 
-        $isDev = (($_ENV['APP_ENV'] ?? 'production') !== 'development');
+        $isDev = (($_ENV['APP_ENV'] ?? 'production') === 'development');
         $wantsJson = $request?->wantsJson() || $request?->isAjax();
 
         if ($wantsJson && !$isDev) {
@@ -151,33 +151,76 @@ class Router
         }
 
         if ($isDev) {
-            $html = '<h1>Erro na Aplica├º├úo</h1><pre>';
+            $html = '<h1>Erro na Aplicação</h1><pre>';
             $html .= '<strong>Mensagem:</strong> ' . htmlspecialchars($e->getMessage()) . "\n\n";
             $html .= '<strong>Arquivo:</strong> ' . $e->getFile() . ' (Linha ' . $e->getLine() . ")\n\n";
             $html .= '<strong>Trace:</strong>' . "\n" . htmlspecialchars($e->getTraceAsString());
             $html .= '</pre>';
             Response::htmlOut($html, 500);
         } else {
-            self::handleViewError(500, BASE_PATH . '/views/errors/500.php', 'Erro no servidor');
+            self::handleViewError(500, BASE_PATH . '/views/errors/500.php', 'Erro no servidor', ['exception' => $e]);
         }
     }
 
-    private static function handleNotFound(?Request $request): void
+    /**
+     * Retorna resposta 404 padrão (JSON para API/AJAX, HTML para web).
+     * Público para que middlewares possam reutilizar (stealth mode).
+     */
+    public static function handleNotFound(?Request $request = null): void
     {
         $wantsJson = $request?->wantsJson() || $request?->isAjax();
 
         if ($wantsJson) {
-            Response::notFound('Recurso n├úo encontrado');
+            Response::notFound('Recurso não encontrado');
             return;
         }
 
-        self::handleViewError(404, BASE_PATH . '/views/errors/404.php', 'P├ígina n├úo encontrada');
+        self::handleViewError(404, BASE_PATH . '/views/errors/404.php', 'Página não encontrada');
     }
 
-    private static function handleViewError(int $code, string $viewPath, string $defaultMessage): void
+    /**
+     * Retorna resposta 403 (JSON para API/AJAX, HTML para web).
+     */
+    public static function handleForbidden(?Request $request = null): void
+    {
+        $wantsJson = $request?->wantsJson() || $request?->isAjax();
+
+        if ($wantsJson) {
+            Response::forbidden('Acesso negado');
+            return;
+        }
+
+        self::handleViewError(403, BASE_PATH . '/views/errors/403.php', 'Acesso negado');
+    }
+
+    /**
+     * Retorna resposta 429 (JSON para API/AJAX, HTML para web).
+     */
+    public static function handleTooManyRequests(?Request $request = null, int $retryAfter = 60): void
+    {
+        header("Retry-After: {$retryAfter}");
+
+        $wantsJson = $request?->wantsJson() || $request?->isAjax();
+
+        if ($wantsJson) {
+            Response::error('Muitas requisições. Tente novamente mais tarde.', 429);
+            return;
+        }
+
+        self::handleViewError(429, BASE_PATH . '/views/errors/429.php', 'Muitas requisições', [
+            'retryAfter' => $retryAfter,
+        ]);
+    }
+
+    /**
+     * Renderiza uma view de erro com o código HTTP correspondente.
+     * @param array $data Variáveis extras disponibilizadas na view via extract()
+     */
+    private static function handleViewError(int $code, string $viewPath, string $defaultMessage, array $data = []): void
     {
         http_response_code($code);
         if (file_exists($viewPath)) {
+            extract($data, EXTR_SKIP);
             include $viewPath;
         } else {
             echo "<h2>{$code} | {$defaultMessage}</h2>";

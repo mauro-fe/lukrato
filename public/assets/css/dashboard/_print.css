@@ -1,0 +1,14 @@
+/* ==================== PRINT ==================== */
+@media print {
+  .modal,
+  .btn-del {
+    display: none !important;
+  }
+
+  .card {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+}
+

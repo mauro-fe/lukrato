@@ -7,8 +7,8 @@
 
 require_once __DIR__ . '/../bootstrap.php';
 
-use Application\Services\WebhookQueueService;
-use Application\Controllers\Api\AsaasWebhookController;
+use Application\Services\Billing\WebhookQueueService;
+use Application\Controllers\Api\Billing\AsaasWebhookController;
 
 $queue = new WebhookQueueService();
 

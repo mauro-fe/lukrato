@@ -233,27 +233,19 @@ class CategoriaRepository extends BaseRepository
     {
         $nomeLower = mb_strtolower($nome);
 
-        error_log("🔍 [DUPLICATE CHECK] UserID={$userId}, Nome='{$nome}', NomeLower='{$nomeLower}', Tipo='{$tipo}', ExcludeId=" . ($excludeId ?? 'null'));
-
         $query = $this->query()
-            ->where('user_id', $userId)
+            ->where(function ($q) use ($userId) {
+                $q->whereNull('user_id')->orWhere('user_id', $userId);
+            })
             ->whereRaw('LOWER(nome) = ?', [$nomeLower])
-            ->where('tipo', $tipo);
+            ->where('tipo', $tipo)
+            ->whereNull('parent_id');
 
         if ($excludeId) {
             $query->where('id', '!=', $excludeId);
         }
 
-        $exists = $query->exists();
-
-        if ($exists) {
-            $existing = $query->first();
-            error_log("🔍 [DUPLICATE CHECK] Duplicata encontrada! ID={$existing->id}, Nome='{$existing->nome}'");
-        } else {
-            error_log("🔍 [DUPLICATE CHECK] Nenhuma duplicata encontrada");
-        }
-
-        return $exists;
+        return $query->exists();
     }
 
     /**
@@ -352,5 +344,177 @@ class CategoriaRepository extends BaseRepository
             ->whereDoesntHave('lancamentos')
             ->orderBy('nome')
             ->get();
+    }
+
+    // ============================================================
+    // SUBCATEGORIAS
+    // ============================================================
+
+    /**
+     * Busca categorias raiz (sem parent_id) do usuário + globais, com subcategorias eager-loaded.
+     *
+     * @param int $userId
+     * @return Collection
+     */
+    public function findRootsByUser(int $userId): Collection
+    {
+        return $this->query()
+            ->whereNull('parent_id')
+            ->where(function ($q) use ($userId) {
+                $q->whereNull('user_id')
+                    ->orWhere('user_id', $userId);
+            })
+            ->with(['subcategorias' => function ($q) use ($userId) {
+                $q->where(function ($sq) use ($userId) {
+                    $sq->whereNull('user_id')
+                        ->orWhere('user_id', $userId);
+                })->orderBy('nome');
+            }])
+            ->orderBy('nome')
+            ->get();
+    }
+
+    /**
+     * Busca categorias raiz por tipo com subcategorias.
+     *
+     * @param int $userId
+     * @param CategoriaTipo $tipo
+     * @return Collection
+     */
+    public function findRootsByType(int $userId, CategoriaTipo $tipo): Collection
+    {
+        return $this->query()
+            ->whereNull('parent_id')
+            ->where(function ($q) use ($userId) {
+                $q->whereNull('user_id')
+                    ->orWhere('user_id', $userId);
+            })
+            ->whereIn('tipo', [$tipo->value, CategoriaTipo::AMBAS->value])
+            ->with(['subcategorias' => function ($q) use ($userId) {
+                $q->where(function ($sq) use ($userId) {
+                    $sq->whereNull('user_id')
+                        ->orWhere('user_id', $userId);
+                })->orderBy('nome');
+            }])
+            ->orderBy('nome')
+            ->get();
+    }
+
+    /**
+     * Busca subcategorias de uma categoria pai.
+     *
+     * @param int $parentId
+     * @param int $userId
+     * @return Collection
+     */
+    public function findSubcategoriasByParent(int $parentId, int $userId): Collection
+    {
+        return $this->query()
+            ->where('parent_id', $parentId)
+            ->where(function ($q) use ($userId) {
+                $q->whereNull('user_id')
+                    ->orWhere('user_id', $userId);
+            })
+            ->orderBy('nome')
+            ->get();
+    }
+
+    /**
+     * Busca uma subcategoria por ID, validando que pertence ao usuário (ou é global).
+     *
+     * @param int $id
+     * @param int $userId
+     * @return Categoria|null
+     */
+    public function findSubcategoriaByIdAndUser(int $id, int $userId): ?Categoria
+    {
+        return $this->query()
+            ->where('id', $id)
+            ->whereNotNull('parent_id')
+            ->where(function ($q) use ($userId) {
+                $q->whereNull('user_id')
+                    ->orWhere('user_id', $userId);
+            })
+            ->first();
+    }
+
+    /**
+     * Conta total de subcategorias próprias do usuário (não globais).
+     *
+     * @param int $userId
+     * @return int
+     */
+    public function countSubcategoriasByUser(int $userId): int
+    {
+        return $this->query()
+            ->where('user_id', $userId)
+            ->whereNotNull('parent_id')
+            ->where(function ($q) {
+                $q->where('is_seeded', false)
+                    ->orWhereNull('is_seeded');
+            })
+            ->count();
+    }
+
+    /**
+     * Conta subcategorias de uma categoria pai específica (do usuário + globais).
+     *
+     * @param int $parentId
+     * @param int $userId
+     * @return int
+     */
+    public function countSubcategoriasByParent(int $parentId, int $userId): int
+    {
+        return $this->query()
+            ->where('parent_id', $parentId)
+            ->where(function ($q) use ($userId) {
+                $q->whereNull('user_id')
+                    ->orWhere('user_id', $userId);
+            })
+            ->count();
+    }
+
+    /**
+     * Verifica duplicata de subcategoria dentro da mesma categoria pai.
+     *
+     * @param int $userId
+     * @param int $parentId
+     * @param string $nome
+     * @param int|null $excludeId
+     * @return bool
+     */
+    public function hasDuplicateSubcategoria(int $userId, int $parentId, string $nome, ?int $excludeId = null): bool
+    {
+        $nomeLower = mb_strtolower($nome);
+
+        $query = $this->query()
+            ->where('parent_id', $parentId)
+            ->where(function ($q) use ($userId) {
+                $q->where('user_id', $userId)
+                    ->orWhereNull('user_id');
+            })
+            ->whereRaw('LOWER(nome) = ?', [$nomeLower]);
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        return $query->exists();
+    }
+
+    /**
+     * Busca uma subcategoria própria do usuário (não global).
+     *
+     * @param int $id
+     * @param int $userId
+     * @return Categoria|null
+     */
+    public function findOwnSubcategoriaByIdAndUser(int $id, int $userId): ?Categoria
+    {
+        return $this->query()
+            ->where('id', $id)
+            ->where('user_id', $userId)
+            ->whereNotNull('parent_id')
+            ->first();
     }
 }

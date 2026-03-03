@@ -1,0 +1,62 @@
+/* ================================================
+   9. CHECKBOX PERSONALIZADO
+   ================================================ */
+
+.lk-checkbox-wrapper {
+  margin: var(--spacing-3) 0;
+}
+
+.lk-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  cursor: pointer;
+  user-select: none;
+}
+
+.lk-checkbox {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.lk-checkbox-custom {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-card-border);
+  border-radius: 6px;
+  transition: all var(--transition-fast);
+  position: relative;
+  background: var(--color-card-bg);
+  flex-shrink: 0;
+}
+
+.lk-checkbox:checked ~ .lk-checkbox-custom {
+  background: linear-gradient(135deg, var(--color-primary), #d35400);
+  border-color: var(--color-primary);
+}
+
+.lk-checkbox:checked ~ .lk-checkbox-custom::after {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.lk-checkbox-text {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.lk-checkbox-text i {
+  color: var(--color-primary);
+}
+

@@ -1,9 +1,9 @@
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/financas-modern.css?v=<?= time() ?>">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/financas-modern.css?v=<?= time() ?>">
 
 <section class="fin-page">
 
     <!-- ==================== SELETOR DE MÊS (compartilhado) ==================== -->
-    <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
+    <?php include BASE_PATH . '/views/admin/partials/header-mes.php'; ?>
 
     <!-- ==================== CARDS RESUMO: ORÇAMENTOS ==================== -->
     <div class="fin-summary-grid" id="summaryOrcamentos" data-aos="fade-up">
@@ -480,5 +480,4 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="<?= BASE_URL ?>assets/js/admin-financas-index.js?v=<?= time() ?>"></script>
+<!-- Page JS carregado automaticamente via loadPageJs() + Vite -->

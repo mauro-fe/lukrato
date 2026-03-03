@@ -119,12 +119,27 @@ if (!function_exists('loadPageCss')) {
         $view = $name ?: ($GLOBALS['current_view'] ?? '');
         if ($view === '') return;
 
-        $cssPath = 'assets/css/' . $view . '.css';
-        $abs     = public_path($cssPath);
+        // 1. Preferir concatenador PHP (.css.php) em bundles/
+        $phpPath = 'assets/css/bundles/' . $view . '.css.php';
+        $absPhp  = public_path($phpPath);
 
-        if (is_file($abs)) {
-            $v = @filemtime($abs) ?: time();
-            echo '<link rel="stylesheet" href="' . asset_url($cssPath) . '?v=' . $v . '">' . PHP_EOL;
+        if (is_file($absPhp)) {
+            $v = @filemtime($absPhp) ?: time();
+            echo '<link rel="stylesheet" href="' . asset_url($phpPath) . '?v=' . $v . '">' . PHP_EOL;
+            return;
+        }
+
+        // 2. Fallback: CSS estático nas subpastas organizadas
+        $folders = ['pages', 'layout', 'modules', 'auth', 'core', ''];
+        foreach ($folders as $folder) {
+            $cssPath = 'assets/css/' . ($folder ? $folder . '/' : '') . $view . '.css';
+            $abs     = public_path($cssPath);
+
+            if (is_file($abs)) {
+                $v = @filemtime($abs) ?: time();
+                echo '<link rel="stylesheet" href="' . asset_url($cssPath) . '?v=' . $v . '">' . PHP_EOL;
+                return;
+            }
         }
     }
 }
@@ -137,6 +152,44 @@ if (!function_exists('loadPageJs')) {
         $view = $view ?? ($GLOBALS['current_view'] ?? '');
         if ($view === '') return;
 
+        // ── Vite entry points ──────────────────────────────────
+        // Mapeamento: identificador da view → entry relativo a resources/js/
+        static $viteEntries = [
+            'admin-lancamentos-index'   => 'admin/lancamentos/index.js',
+            'admin-cartoes-index'       => 'admin/cartoes/index.js',
+            'admin-contas-index'        => 'admin/contas/index.js',
+            'admin-faturas-index'       => 'admin/faturas/index.js',
+            'admin-financas-index'      => 'admin/financas/index.js',
+            'admin-relatorios-index'    => 'admin/relatorios/index.js',
+            'admin-categorias-index'    => 'admin/categorias/index.js',
+            'admin-dashboard-index'     => 'admin/dashboard/index.js',
+            'admin-cartoes-arquivadas'  => 'admin/cartoes-arquivadas/index.js',
+            'admin-gamification-index'  => 'admin/gamification/index.js',
+            'admin-billing-index'       => 'admin/billing/index.js',
+            'admin-perfil-index'        => 'admin/perfil/index.js',
+            'admin-sysadmin-index'      => 'admin/sysadmin/index.js',
+            'admin-auth-login'          => 'admin/auth/login/index.js',
+            'admin-auth-forgot-password' => 'admin/auth/forgot-password/index.js',
+            'admin-auth-reset-password' => 'admin/auth/reset-password/index.js',
+            'admin-auth-verify-email'   => 'admin/auth/verify-email/index.js',
+            'admin-contas-arquivadas'   => 'admin/contas-arquivadas/index.js',
+            'admin-onboarding-index'    => 'admin/onboarding/index.js',
+            'admin-onboarding-lancamento' => 'admin/onboarding/lancamento.js',
+            'admin-sysadmin-communications' => 'admin/sysadmin/communications.js',
+            'admin-sysadmin-cupons'     => 'admin/sysadmin/cupons.js',
+        ];
+
+        if (isset($viteEntries[$view]) && function_exists('vite_scripts')) {
+            $entry = $viteEntries[$view];
+            $key   = 'vite:' . $entry;
+            if (!in_array($key, $loadedScripts, true)) {
+                echo vite_scripts($entry);
+                $loadedScripts[] = $key;
+            }
+            return;
+        }
+
+        // ── Legacy fallback (arquivos em assets/js/) ───────────
         $candidates = [];
         $candidates[] = 'assets/js/' . $view . '.js';
         $candidates[] = 'assets/js/' . str_replace(['\\', '/'], '-', $view) . '.js';
@@ -193,4 +246,44 @@ function config(string $key, $default = null)
     }
 
     return $configs[$file][$item] ?? $default;
+}
+
+/**
+ * Converte um nome de intervalo (EN/PT) para um rótulo amigável em PT-BR.
+ */
+function formatInterval(string $interval): string
+{
+    return match (strtolower($interval)) {
+        'year', 'ano', 'anual', 'annual' => 'ano',
+        'week', 'semanal'                => 'semana',
+        'day', 'dia', 'daily'            => 'dia',
+        default                          => 'mês',
+    };
+}
+
+/**
+ * Mapeia um ícone FontAwesome (fa-xxx) para o equivalente Lucide.
+ * Retorna o nome Lucide pronto para uso em <i data-lucide="...">.
+ */
+function faToLucideIcon(string $faIcon, string $fallback = 'layers'): string
+{
+    static $map = [
+        'layer-group' => 'layers',
+        'rocket'      => 'rocket',
+        'crown'       => 'crown',
+        'gem'         => 'gem',
+        'star'        => 'star',
+        'bolt'        => 'zap',
+        'shield-alt'  => 'shield',
+        'shield'      => 'shield',
+        'infinity'    => 'infinity',
+        'gift'        => 'gift',
+        'trophy'      => 'trophy',
+        'fire'        => 'flame',
+        'briefcase'   => 'briefcase',
+        'wallet'      => 'wallet',
+    ];
+
+    $key = ltrim(trim($faIcon), 'fa-');
+    return $map[$key] ?? $fallback;
 }

@@ -1,18 +1,3 @@
-﻿<!-- Previne FOUC: conteúdo invisível até JS renderizar + processar ícones -->
-<style>
-.cat-page:not(.is-ready) {
-    visibility: hidden;
-    min-height: 80vh
-}
-</style>
-<noscript>
-    <style>
-    .cat-page {
-        visibility: visible !important
-    }
-    </style>
-</noscript>
-
 <section class="cat-page">
     <!-- ==================== CARD DE NOVA CATEGORIA ==================== -->
     <div class="create-card-wrapper">
@@ -116,7 +101,7 @@
     </div>
 
     <!-- ==================== SELETOR DE MÊS (padrão Lukrato) ==================== -->
-    <?php include BASE_PATH . '/views/admin/partials/header_mes.php'; ?>
+    <?php include BASE_PATH . '/views/admin/partials/header-mes.php'; ?>
 
     <!-- ==================== CATEGORIAS SEPARADAS POR TIPO ==================== -->
     <div class="categories-grid">
@@ -232,13 +217,4 @@
     </div>
 </div>
 
-<!-- Bootstrap e SweetAlert2 já carregados no header -->
-<script src="<?= BASE_URL ?>assets/js/categorias-manager.js?v=<?= time() ?>"></script>
-
-<!-- Failsafe: se JS falhar, mostra a página após 3s -->
-<script>
-setTimeout(function() {
-    var p = document.querySelector('.cat-page');
-    if (p && !p.classList.contains('is-ready')) p.classList.add('is-ready')
-}, 3000);
-</script>
+<!-- Page JS carregado automaticamente via loadPageJs() + Vite -->

@@ -50,7 +50,7 @@ class Conta extends Model
         'user_id'       => 'int',
         'instituicao_financeira_id' => 'int',
         'saldo_inicial' => 'float',
-        'tipo_id',
+        'tipo_id'       => 'int',
         'ativo'         => 'bool',
     ];
 

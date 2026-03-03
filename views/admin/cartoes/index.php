@@ -135,19 +135,11 @@
 </div>
 
 <!-- ==================== MODAIS ==================== -->
-<?php include __DIR__ . '/../partials/modals/modal_cartoes.php'; ?>
+<?php include __DIR__ . '/../partials/modals/modal-cartoes.php'; ?>
 
 
 <!-- ==================== SCRIPTS E ESTILOS ==================== -->
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/cartoes-modern.css?v=<?= time() ?>">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/bundles/cartoes-modern.css.php?v=<?= time() ?>">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-<script src="<?= BASE_URL ?>assets/js/cartoes-manager.js?v=<?= time() ?>"></script>
-<script>
-    window.BASE_URL = '<?= BASE_URL ?>';
-
-    // Inicializar manager ao carregar a página
-    document.addEventListener('DOMContentLoaded', () => {
-        window.cartoesManager = new CartoesManager();
-    });
-</script>
+<!-- Page JS carregado automaticamente via loadPageJs() + Vite -->

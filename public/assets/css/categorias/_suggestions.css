@@ -1,0 +1,71 @@
+/* ============================================================================
+   SUGGESTIONS SECTION
+   ============================================================================ */
+
+.suggestions-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.suggestions-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.suggestions-label svg,
+.suggestions-label .lucide {
+  width: 13px !important;
+  height: 13px !important;
+  color: var(--color-primary);
+}
+
+.suggestions-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.suggestion-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: color-mix(in srgb, var(--color-text-muted) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-text-muted) 12%, transparent);
+  border-radius: 20px;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.suggestion-chip svg,
+.suggestion-chip .lucide {
+  width: 13px !important;
+  height: 13px !important;
+}
+
+.suggestion-chip:hover {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 25%, transparent);
+  color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.suggestion-chip.used {
+  opacity: 0.35;
+  pointer-events: none;
+  text-decoration: line-through;
+}
+

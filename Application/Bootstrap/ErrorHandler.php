@@ -89,7 +89,7 @@ class ErrorHandler
 
         if (in_array($severity, [E_ERROR, E_USER_ERROR, E_PARSE])) {
             http_response_code(500);
-            $this->showErrorPage();
+            $this->showErrorPage(new \ErrorException($message, 0, $severity, $file, $line));
             exit;
         }
 
@@ -113,7 +113,7 @@ class ErrorHandler
             ]);
         } else {
             http_response_code(500);
-            $this->showErrorPage();
+            $this->showErrorPage($e);
         }
 
         exit;
@@ -134,7 +134,7 @@ class ErrorHandler
             );
 
             http_response_code(500);
-            $this->showErrorPage();
+            $this->showErrorPage($e);
         }
     }
 
@@ -157,7 +157,7 @@ class ErrorHandler
         exit;
     }
 
-    private function showErrorPage(): void
+    private function showErrorPage(?\Throwable $exception = null): void
     {
         $errorPage = BASE_PATH . '/views/errors/500.php';
         if (file_exists($errorPage)) {

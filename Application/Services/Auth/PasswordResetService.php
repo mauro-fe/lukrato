@@ -6,6 +6,7 @@ use Application\Contracts\Auth\PasswordResetRepositoryInterface;
 use Application\Contracts\Auth\TokenGeneratorInterface;
 use Application\Contracts\Auth\PasswordResetNotificationInterface;
 use Application\Core\Exceptions\ValidationException;
+use Application\Models\PasswordReset;
 use Application\Models\Usuario;
 use DateTimeImmutable;
 
@@ -51,6 +52,17 @@ class PasswordResetService
             );
         }
 
+        // Rate limiting: max 1 reset a cada 2 minutos
+        $recentToken = PasswordReset::where('email', $usuario->email)
+            ->where('created_at', '>=', (new DateTimeImmutable('-2 minutes'))->format('Y-m-d H:i:s'))
+            ->whereNull('used_at')
+            ->exists();
+
+        if ($recentToken) {
+            // Silenciosamente retorna sem enviar outro email (do ponto de vista do usuário, "email enviado")
+            return;
+        }
+
         // Gera token
         $token     = $this->tokenGenerator->generate();
         $expiresAt = (new DateTimeImmutable('+1 hour'))->format('Y-m-d H:i:s');
@@ -81,6 +93,22 @@ class PasswordResetService
 
         if (strlen($newPass) < 8) {
             throw new ValidationException(['password' => 'A senha deve ter ao menos 8 caracteres.']);
+        }
+
+        if (!preg_match('/[a-z]/', $newPass)) {
+            throw new ValidationException(['password' => 'A senha deve conter pelo menos uma letra minúscula.']);
+        }
+
+        if (!preg_match('/[A-Z]/', $newPass)) {
+            throw new ValidationException(['password' => 'A senha deve conter pelo menos uma letra maiúscula.']);
+        }
+
+        if (!preg_match('/[0-9]/', $newPass)) {
+            throw new ValidationException(['password' => 'A senha deve conter pelo menos um número.']);
+        }
+
+        if (!preg_match('/[^a-zA-Z0-9]/', $newPass)) {
+            throw new ValidationException(['password' => 'A senha deve conter pelo menos um caractere especial.']);
         }
 
         $reset = $this->repository->findValidToken($token);

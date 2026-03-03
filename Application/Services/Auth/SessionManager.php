@@ -43,8 +43,8 @@ class SessionManager implements SessionManagerInterface
         }
 
         // Log de depuração da sessão
-        if (class_exists('Application\\Services\\LogService')) {
-            \Application\Services\LogService::info('Sessão após login', [
+        if (class_exists('Application\\Services\\Infrastructure\\LogService')) {
+            \Application\Services\Infrastructure\LogService::info('Sessão após login', [
                 'session' => $_SESSION,
                 'remember' => $remember
             ]);

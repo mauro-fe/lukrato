@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Application\Bootstrap;
 
 use Application\Core\Router;
-use Application\Services\MaintenanceService;
+use Application\Services\Infrastructure\MaintenanceService;
 
 class Application
 {
@@ -44,6 +44,9 @@ class Application
             die('Erro: Arquivo de configuração não encontrado.');
         }
         require_once $configPath;
+
+        // Vite asset helper (funções vite_scripts, vite_asset, etc.)
+        require_once BASE_PATH . '/config/vite.php';
 
         // Carregar arquivos de rotas
         $routeFiles = [

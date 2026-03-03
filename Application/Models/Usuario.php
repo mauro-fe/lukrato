@@ -3,8 +3,8 @@
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Application\Services\LogService;
-use Application\Services\FeatureGate;
+use Application\Services\Infrastructure\LogService;
+use Application\Services\Plan\FeatureGate;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -302,27 +302,10 @@ class Usuario extends Model
 
     public static function authenticate(string $email, string $password): ?self
     {
-        LogService::info('[AUTH DEBUG] Buscando usuário', ['email' => strtolower(trim($email))]);
-
         $user = self::whereRaw('LOWER(email)=?', [trim(strtolower($email))])->first();
 
-        LogService::info('[AUTH DEBUG] Usuário encontrado?', [
-            'found' => $user !== null,
-            'user_id' => $user ? $user->id : null,
-            'has_senha' => $user ? !empty($user->senha) : false,
-            'senha_len' => $user ? strlen($user->senha) : 0
-        ]);
-
-        if ($user) {
-            $verifyResult = password_verify($password, $user->senha);
-            LogService::info('[AUTH DEBUG] password_verify resultado', [
-                'result' => $verifyResult,
-                'hash_prefix' => substr($user->senha, 0, 10) . '...'
-            ]);
-
-            if ($verifyResult) {
-                return $user;
-            }
+        if ($user && password_verify($password, $user->senha)) {
+            return $user;
         }
 
         LogService::warning('Tentativa de login inválida', ['email' => $email]);
@@ -343,7 +326,13 @@ class Usuario extends Model
     {
         $assinatura = $this->assinaturaAtiva()->with('plano')->first();
 
-        if (!$assinatura || $assinatura->plano?->code !== 'pro') {
+        if (!$assinatura) {
+            return false;
+        }
+
+        // Verifica se o plano é "pro" (qualquer código que NÃO seja free/gratuito)
+        $code = strtolower((string) ($assinatura->plano?->code ?? ''));
+        if (in_array($code, ['free', 'gratuito', ''], true)) {
             return false;
         }
 
@@ -423,27 +412,5 @@ class Usuario extends Model
         return $this->hasOne(Endereco::class, 'user_id')
             ->where('tipo', 'principal')
             ->withDefault();
-    }
-
-    private function isProUser(int $userId): bool
-    {
-        try {
-            /** @var Usuario|null $user */
-            $user = Usuario::query()->with(['assinaturaAtiva.plano'])->find($userId);
-            if (!$user) return false;
-
-            // Se não tem assinatura ativa, é FREE
-            $assinatura = $user->assinaturaAtiva;
-            if (!$assinatura) return false;
-
-            // Se tem assinatura ativa, considera PRO (com plano válido)
-            // Se você tiver um plano "free" registrado no banco, pode bloquear aqui:
-            $code = strtolower((string)($assinatura->plano?->code ?? ''));
-            if ($code === 'free') return false;
-
-            return true;
-        } catch (\Throwable) {
-            return false;
-        }
     }
 }

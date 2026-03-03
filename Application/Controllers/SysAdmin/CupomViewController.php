@@ -19,7 +19,7 @@ class CupomViewController extends BaseController
         }
 
         $this->render(
-            'sysAdmin/cupons',
+            'admin/sysadmin/cupons',
             [
                 'pageTitle' => 'Gerenciar Cupons de Desconto',
                 'menu' => 'cupons',

@@ -74,6 +74,7 @@ class PerfilPayloadBuilder
             'M', 'MASCULINO' => 'M',
             'F', 'FEMININO' => 'F',
             'O', 'OUTRO' => 'O',
+            'NB', 'NAO BINARIO' => 'NB',
             'N', 'NAO INFORMADO', 'NAO-INFORMADO', 'PREFIRO NAO INFORMAR' => 'N',
             default => '',
         };

@@ -1,0 +1,35 @@
+/* ================================================
+   11. BOTÃO VOLTAR
+   ================================================ */
+
+.lk-btn-voltar {
+  background: none;
+  border: 2px solid var(--color-card-border);
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  padding: var(--spacing-2) var(--spacing-4);
+  margin-bottom: var(--spacing-6);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.lk-btn-voltar:hover {
+  color: var(--color-text);
+  border-color: var(--color-primary);
+  background: var(--glass-bg);
+  transform: translateX(-4px);
+}
+
+.lk-btn-voltar i {
+  transition: transform var(--transition-fast);
+}
+
+.lk-btn-voltar:hover i {
+  transform: translateX(-2px);
+}
+
