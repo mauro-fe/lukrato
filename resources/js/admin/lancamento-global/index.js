@@ -572,6 +572,17 @@ class LancamentoGlobalManager {
                     }
                 }
             }
+            // Validate estorno requires card selection
+            if (this.tipoAtual === 'receita') {
+                const formaRec = document.getElementById('globalFormaRecebimento')?.value;
+                if (formaRec === 'estorno_cartao') {
+                    const cartaoId = document.getElementById('globalLancamentoCartaoCredito')?.value;
+                    if (!cartaoId) {
+                        Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione o cartão para o estorno', customClass: { container: 'swal-above-modal' } });
+                        return false;
+                    }
+                }
+            }
         }
 
         if (step === 4) {
@@ -584,19 +595,19 @@ class LancamentoGlobalManager {
 
         // Step 5: validar parcelas e recorrência
         if (step === 5) {
-            const parcelado = document.getElementById('globalParceladoCheck')?.checked;
+            const parcelado = document.getElementById('globalLancamentoParcelado')?.checked;
             if (parcelado) {
-                const totalParcelas = parseInt(document.getElementById('globalTotalParcelas')?.value) || 0;
+                const totalParcelas = parseInt(document.getElementById('globalLancamentoTotalParcelas')?.value) || 0;
                 if (totalParcelas < 2 || totalParcelas > 48) {
                     Swal.fire({ icon: 'warning', title: 'Atenção', text: 'O número de parcelas deve ser entre 2 e 48', customClass: { container: 'swal-above-modal' } });
                     return false;
                 }
             }
-            const recorrente = document.getElementById('globalRecorrenteCheck')?.checked;
+            const recorrente = document.getElementById('globalLancamentoRecorrente')?.checked;
             if (recorrente) {
                 const modo = document.querySelector('input[name="global_recorrencia_modo"]:checked')?.value;
                 if (modo === 'quantidade') {
-                    const total = parseInt(document.getElementById('globalRecorrenciaTotal')?.value) || 0;
+                    const total = parseInt(document.getElementById('globalLancamentoRecorrenciaTotal')?.value) || 0;
                     if (total < 2 || total > 120) {
                         Swal.fire({ icon: 'warning', title: 'Atenção', text: 'A quantidade de repetições deve ser entre 2 e 120', customClass: { container: 'swal-above-modal' } });
                         return false;
@@ -706,6 +717,24 @@ class LancamentoGlobalManager {
 
         if (!this.contaSelecionada) {
             Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione uma conta primeiro!', customClass: { container: 'swal-above-modal' } });
+            return;
+        }
+
+        // Guard: transferência requer pelo menos 2 contas
+        if (tipo === 'transferencia' && this.contas.length < 2) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Não é possível transferir',
+                text: 'Você precisa ter pelo menos duas contas cadastradas para realizar uma transferência.',
+                confirmButtonText: 'Criar outra conta',
+                showCancelButton: true,
+                cancelButtonText: 'Agora não',
+                customClass: { container: 'swal-above-modal' }
+            }).then(result => {
+                if (result.isConfirmed) {
+                    window.location.href = getBaseUrl() + 'contas';
+                }
+            });
             return;
         }
 
@@ -1127,19 +1156,19 @@ class LancamentoGlobalManager {
         }
 
         // Validar ranges de parcelas e recorrência
-        const parcelado = document.getElementById('globalParceladoCheck')?.checked;
+        const parcelado = document.getElementById('globalLancamentoParcelado')?.checked;
         if (parcelado) {
-            const totalParcelas = parseInt(document.getElementById('globalTotalParcelas')?.value) || 0;
+            const totalParcelas = parseInt(document.getElementById('globalLancamentoTotalParcelas')?.value) || 0;
             if (totalParcelas < 2 || totalParcelas > 48) {
                 Swal.fire({ icon: 'warning', title: 'Atenção', text: 'O número de parcelas deve ser entre 2 e 48', customClass: { container: 'swal-above-modal' } });
                 return false;
             }
         }
-        const recorrente = document.getElementById('globalRecorrenteCheck')?.checked;
+        const recorrente = document.getElementById('globalLancamentoRecorrente')?.checked;
         if (recorrente) {
             const modo = document.querySelector('input[name="global_recorrencia_modo"]:checked')?.value;
             if (modo === 'quantidade') {
-                const total = parseInt(document.getElementById('globalRecorrenciaTotal')?.value) || 0;
+                const total = parseInt(document.getElementById('globalLancamentoRecorrenciaTotal')?.value) || 0;
                 if (total < 2 || total > 120) {
                     Swal.fire({ icon: 'warning', title: 'Atenção', text: 'A quantidade de repetições deve ser entre 2 e 120', customClass: { container: 'swal-above-modal' } });
                     return false;

@@ -168,6 +168,13 @@ class CategoriaController extends BaseController
         $dto = UpdateCategoriaDTO::fromRequest(['nome' => $nome, 'tipo' => $tipo, 'icone' => $icone]);
         $this->categoriaRepo->update($categoria->id, $dto->toArray());
 
+        // Se o tipo mudou, cascatear para subcategorias
+        if ($tipo !== $categoria->tipo) {
+            Categoria::where('parent_id', $categoria->id)
+                ->where('user_id', $this->userId)
+                ->update(['tipo' => $tipo]);
+        }
+
         Response::success($categoria->fresh());
     }
 
@@ -188,6 +195,12 @@ class CategoriaController extends BaseController
         $categoria = Categoria::forUser($this->userId)->find($id);
         if (!$categoria) {
             Response::error('Categoria não encontrada.', 404);
+            return;
+        }
+
+        // Impedir exclusão de categorias padrão (seeded)
+        if ($categoria->is_seeded) {
+            Response::error('Categorias padrão não podem ser excluídas.', 403);
             return;
         }
 

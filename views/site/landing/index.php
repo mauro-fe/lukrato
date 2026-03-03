@@ -11,6 +11,8 @@
 
 <?php include __DIR__ . '/hero-section.php'; ?>
 
+<?php include __DIR__ . '/como-funciona-section.php'; ?>
+
 <?php include __DIR__ . '/funcionalidades-section.php'; ?>
 
 <?php include __DIR__ . '/gallery-modal-section.php'; ?>
@@ -20,6 +22,8 @@
 <?php include __DIR__ . '/gamification-section.php'; ?>
 
 <?php include __DIR__ . '/planos-section.php'; ?>
+
+<?php include __DIR__ . '/faq-section.php'; ?>
 
 <?php include __DIR__ . '/garantia-section.php'; ?>
 

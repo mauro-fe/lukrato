@@ -6,6 +6,10 @@
   .tab-desktop {
     display: none !important;
   }
+  /* Bulk delete button hidden on mobile — no row selection in card view */
+  #btnExcluirSel {
+    display: none !important;
+  }
 }
 
 @media (max-width: 768px) {

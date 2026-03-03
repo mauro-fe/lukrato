@@ -179,6 +179,7 @@ function renderSubcategoriaItem(sub) {
     const icon = sub.icone || 'tag';
     const color = ICON_COLORS[icon] || '#94a3b8';
     const isOwn = !!sub.user_id; // só pode editar/excluir se for do usuário
+    const isSeeded = !!sub.is_seeded;
 
     return `
         <div class="subcat-item" data-subcat-id="${sub.id}">
@@ -191,9 +192,9 @@ function renderSubcategoriaItem(sub) {
                 <button type="button" class="subcat-btn edit" data-edit-subcat="${sub.id}" title="Editar">
                     <i data-lucide="pen"></i>
                 </button>
-                <button type="button" class="subcat-btn delete" data-delete-subcat="${sub.id}" title="Excluir">
+                ${!isSeeded ? `<button type="button" class="subcat-btn delete" data-delete-subcat="${sub.id}" title="Excluir">
                     <i data-lucide="trash-2"></i>
-                </button>
+                </button>` : ''}
             </div>` : '<span class="subcat-badge-global">padrão</span>'}
         </div>`;
 }

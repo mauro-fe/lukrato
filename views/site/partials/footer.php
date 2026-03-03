@@ -53,19 +53,19 @@ $extraJs = $extraJs ?? [];
             <div class="lk-footer-links">
                 <h3 class="font-bold text-lg mb-5 text-white">Produto</h3>
                 <nav class="flex flex-col gap-3" aria-label="Links do produto">
+                    <a href="<?= BASE_URL ?>/#como-funciona" class="text-white/70"
+                        title="Como funciona o Lukrato">
+                        <span>Como Funciona</span>
+                    </a>
                     <a href="<?= BASE_URL ?>/#funcionalidades" class="text-white/70"
                         title="Funcionalidades do app de controle financeiro">
                         <span>Funcionalidades</span>
                     </a>
-                    <a href="<?= BASE_URL ?>/#beneficios" class="text-white/70"
-                        title="Benefícios do controle financeiro pessoal">
-                        <span>Benefícios</span>
-                    </a>
                     <a href="<?= BASE_URL ?>/#planos" class="text-white/70" title="Planos e preços do Lukrato">
                         <span>Planos e Preços</span>
                     </a>
-                    <a href="<?= BASE_URL ?>/#indicacao" class="text-white/70" title="Indicações">
-                        <span>Indicação</span>
+                    <a href="<?= BASE_URL ?>/#faq" class="text-white/70" title="Perguntas frequentes">
+                        <span>FAQ</span>
                     </a>
                     <a href="<?= BASE_URL ?>login?tab=login" class="text-white/70" title="Entrar na sua conta">
                         <span>Entrar</span>

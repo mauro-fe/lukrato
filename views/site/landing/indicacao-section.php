@@ -1,12 +1,12 @@
 <!-- Seção de Indicação -->
-<section id="indicacao" class="relative py-14 md:py-24 bg-white overflow-hidden" aria-labelledby="indicacao-titulo">
+<section id="indicacao" class="relative py-16 md:py-24 bg-white overflow-hidden" aria-labelledby="indicacao-titulo">
     <!-- Background decorations -->
     <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div
-            class="absolute top-20 left-10 w-72 h-72 bg-orange-200 rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-blob">
+            class="absolute top-20 left-10 w-72 h-72 bg-orange-200 rounded-full mix-blend-multiply filter blur-3xl opacity-10">
         </div>
         <div
-            class="absolute bottom-20 right-10 w-72 h-72 bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000">
+            class="absolute bottom-20 right-10 w-72 h-72 bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl opacity-[0.07]">
         </div>
     </div>
 
@@ -35,7 +35,7 @@
         <!-- Cards de benefícios -->
         <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
             <!-- Card Você Ganha -->
-            <div class="bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
+            <div class="bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-3xl p-8 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                 data-aos="fade-right">
                 <div class="flex items-center gap-4 mb-6">
                     <div
@@ -67,7 +67,7 @@
             </div>
 
             <!-- Card Amigo Ganha -->
-            <div class="bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
+            <div class="bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-3xl p-8 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                 data-aos="fade-left">
                 <div class="flex items-center gap-4 mb-6">
                     <div
@@ -157,7 +157,7 @@
         <!-- CTA -->
         <div class="text-center mt-16" data-aos="fade-up">
             <a href="<?= BASE_URL ?>login"
-                class="inline-flex items-center justify-center px-10 py-5 text-lg font-semibold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
+                class="inline-flex items-center justify-center px-10 py-5 text-lg font-semibold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
                 Criar conta e começar a indicar
                 <i data-lucide="arrow-right" class="ml-3"></i>
             </a>

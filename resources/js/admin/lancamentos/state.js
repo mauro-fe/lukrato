@@ -89,6 +89,7 @@ export function initDOM() {
     DOM.inputTransDescricao = document.getElementById('editTransDescricao');
     DOM.inputLancValor = document.getElementById('editLancValor');
     DOM.inputLancDescricao = document.getElementById('editLancDescricao');
+    DOM.inputLancObservacao = document.getElementById('editLancObservacao');
     DOM.selectLancFormaPagamento = document.getElementById('editLancFormaPagamento');
     // Modal de visualização
     DOM.modalViewLancEl = document.getElementById('modalViewLancamento');
@@ -106,6 +107,11 @@ export function initDOM() {
     DOM.viewLancDescricao = document.getElementById('viewLancDescricao');
     DOM.viewLancParcelamentoCard = document.getElementById('viewLancParcelamentoCard');
     DOM.viewLancParcela = document.getElementById('viewLancParcela');
+    DOM.viewLancObservacaoCard = document.getElementById('viewLancObservacaoCard');
+    DOM.viewLancObservacao = document.getElementById('viewLancObservacao');
+    DOM.viewLancLembreteCard = document.getElementById('viewLancLembreteCard');
+    DOM.viewLancLembreteTempo = document.getElementById('viewLancLembreteTempo');
+    DOM.viewLancLembreteCanais = document.getElementById('viewLancLembreteCanais');
     DOM.btnEditFromView = document.getElementById('btnEditFromView');
     DOM.modalViewLancamentoLabel = document.getElementById('modalViewLancamentoLabel');
     DOM.viewLancamentoId = document.getElementById('viewLancamentoId');

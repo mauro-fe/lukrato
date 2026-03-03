@@ -1,188 +1,135 @@
 <!-- Seção de Funcionalidades -->
-<section id="funcionalidades" class="relative py-14 md:py-24 overflow-hidden bg-gradient-to-b from-white to-gray-50"
+<section id="funcionalidades" class="relative py-16 md:py-24 overflow-hidden bg-gradient-to-b from-gray-50 to-white"
     aria-labelledby="funcionalidades-titulo">
-    <!-- Background decoration -->
-    <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div
-            class="absolute top-20 right-0 w-96 h-96 bg-orange-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob">
-        </div>
-        <div
-            class="absolute bottom-20 left-0 w-96 h-96 bg-orange-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000">
-        </div>
-    </div>
 
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
-            <!-- Conteúdo de texto -->
-            <article class="order-2 lg:order-1 space-y-8" data-aos="fade-right">
-                <div class="space-y-4">
-                    <h2 id="funcionalidades-titulo"
-                        class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
-                        Funcionalidades para Organizar suas
-                        <span class="bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
-                            Finanças Pessoais
-                        </span>
-                    </h2>
-                    <p class="text-lg sm:text-xl text-gray-600 leading-relaxed">
-                        Acompanhe <strong>receitas, despesas e agendamentos</strong> em um painel simples de entender,
-                        pensado para o seu dia a dia. Controle financeiro nunca foi tão fácil.
-                    </p>
+        <!-- Header -->
+        <header class="max-w-3xl mx-auto text-center mb-14" data-aos="fade-up">
+            <div class="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 rounded-full mb-4">
+                <i data-lucide="layout-dashboard" class="w-5 h-5 text-primary"></i>
+                <span class="text-sm font-semibold text-primary">Funcionalidades</span>
+            </div>
+            <h2 id="funcionalidades-titulo"
+                class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight mb-4">
+                Tudo que você precisa para organizar suas
+                <span class="bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
+                    finanças pessoais
+                </span>
+            </h2>
+            <p class="text-lg sm:text-xl text-gray-600 leading-relaxed">
+                Ferramentas práticas e intuitivas para acompanhar cada centavo do seu dinheiro.
+            </p>
+        </header>
+
+        <!-- Grid de funcionalidades -->
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto mb-12">
+
+            <!-- Card 1 - Dashboard -->
+            <article class="group bg-white rounded-2xl p-7 shadow-sm border border-gray-100 hover:shadow-lg hover:border-orange-100 transition-all duration-300"
+                data-aos="fade-up" data-aos-delay="0">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center text-white mb-5"
+                    aria-hidden="true">
+                    <i data-lucide="line-chart" class="w-6 h-6"></i>
                 </div>
-
-                <!-- Lista de features -->
-                <ul class="space-y-4" role="list">
-                    <li class="flex items-start gap-4 group">
-                        <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300"
-                            aria-hidden="true">
-                            <i data-lucide="line-chart" class="text-xl"></i>
-                        </div>
-                        <div class="flex-1 pt-1">
-                            <h3 class="font-semibold text-lg text-gray-900 mb-1">Dashboard com visão clara do mês</h3>
-                            <p class="text-gray-600">Saldo consolidado e leitura rápida de <strong>receitas e
-                                    despesas</strong> do período.</p>
-                        </div>
-                    </li>
-
-                    <li class="flex items-start gap-4 group">
-                        <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-secondary to-gray-700 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300"
-                            aria-hidden="true">
-                            <i data-lucide="calendar-check" class="text-xl"></i>
-                        </div>
-                        <div class="flex-1 pt-1">
-                            <h3 class="font-semibold text-lg text-gray-900 mb-1">Agendamentos e lembretes de contas</h3>
-                            <p class="text-gray-600">Organize <strong>contas a pagar</strong> e evite atrasos com
-                                lembretes automáticos.</p>
-                        </div>
-                    </li>
-
-                    <li class="flex items-start gap-4 group">
-                        <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300"
-                            aria-hidden="true">
-                            <i data-lucide="pie-chart" class="text-xl"></i>
-                        </div>
-                        <div class="flex-1 pt-1">
-                            <h3 class="font-semibold text-lg text-gray-900 mb-1">Relatórios e gráficos financeiros</h3>
-                            <p class="text-gray-600">Entenda seus <strong>hábitos de consumo</strong> com visual limpo e
-                                objetivo.</p>
-                        </div>
-                    </li>
-                </ul>
-
-                <!-- CTAs -->
-                <div class="flex flex-col sm:flex-row gap-4 pt-4">
-                    <a href="<?= BASE_URL ?>login"
-                        class="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
-                        title="Começar a usar o Lukrato grátis" aria-label="Criar conta gratuita">
-                        Começar grátis
-                        <i data-lucide="arrow-right" class="ml-2" aria-hidden="true"></i>
-                    </a>
-
-                    <button type="button" id="openGalleryBtn" @click="$dispatch('open-gallery')"
-                        onclick="document.getElementById('galleryModal').style.display='flex'"
-                        class="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-gray-700 bg-white border-2 border-gray-200 rounded-xl hover:border-primary hover:text-primary hover:shadow-lg transition-all duration-300"
-                        title="Ver screenshots do sistema" aria-label="Abrir galeria de imagens do sistema">
-                        <i data-lucide="images" class="mr-2" aria-hidden="true"></i>
-                        Ver o sistema por dentro
-                    </button>
-                </div>
-
-                <!-- Social proof -->
-                <div class="flex items-center gap-3 pt-4">
-                    <div class="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full animate-pulse" aria-hidden="true"></div>
-                    <p class="text-sm text-gray-600">
-                        Painel pensado para ser rápido, bonito e fácil de usar.
-                    </p>
-                </div>
+                <h3 class="font-bold text-lg text-gray-900 mb-2">Dashboard inteligente</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    Visão consolidada do mês com saldo, receitas, despesas e gráficos.
+                    Tudo que você precisa saber em uma única tela.
+                </p>
             </article>
-            <div class="relative">
-                <!-- Decoração de fundo -->
-                <div
-                    class="absolute -inset-4 bg-gradient-to-r from-primary to-orange-600 rounded-3xl blur-2xl opacity-20 animate-pulse">
+
+            <!-- Card 2 - Lançamentos -->
+            <article class="group bg-white rounded-2xl p-7 shadow-sm border border-gray-100 hover:shadow-lg hover:border-orange-100 transition-all duration-300"
+                data-aos="fade-up" data-aos-delay="100">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-secondary to-gray-700 flex items-center justify-center text-white mb-5"
+                    aria-hidden="true">
+                    <i data-lucide="receipt" class="w-6 h-6"></i>
                 </div>
+                <h3 class="font-bold text-lg text-gray-900 mb-2">Lançamentos completos</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    Registre receitas, despesas, recorrências e marque como pago.
+                    Controle total sobre cada movimentação financeira.
+                </p>
+            </article>
 
-                <!-- Card Principal -->
-                <div
-                    class="relative bg-gradient-to-br from-white via-orange-50/30 to-white rounded-3xl shadow-2xl p-8 sm:p-10 border-2 border-orange-100">
-
-                    <!-- Ícone decorativo -->
-                    <div
-                        class="absolute -top-6 -right-6 w-24 h-24 bg-gradient-to-br from-primary to-orange-600 rounded-full flex items-center justify-center shadow-xl">
-                        <i data-lucide="lightbulb" class="text-4xl text-white"></i>
-                    </div>
-
-                    <!-- Conteúdo -->
-                    <div class="relative">
-                        <!-- Badge -->
-                        <div
-                            class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-orange-600 text-white rounded-full text-sm font-semibold mb-6 shadow-lg">
-                            <i data-lucide="star"></i>
-                            <span>Por que Lukrato?</span>
-                        </div>
-
-                        <!-- Título -->
-                        <h3 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-                            O significado do
-                            <span class="bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
-                                nosso nome
-                            </span>
-                        </h3>
-
-                        <!-- Descrição principal -->
-                        <div class="space-y-4 mb-8">
-                            <p class="text-lg text-gray-700 leading-relaxed">
-                                <strong class="text-primary font-bold">Lukrato</strong> vem do verbo
-                                <strong class="text-gray-900">"lucrar"</strong> – e não é por acaso!
-                            </p>
-
-                            <p class="text-lg text-gray-600 leading-relaxed">
-                                Para começar a ter lucros de verdade, você precisa primeiro se organizar
-                                financeiramente.
-                                É assim que você consegue guardar sua grana e fazer seu dinheiro trabalhar para
-                                você.
-                            </p>
-                        </div>
-
-                        <!-- Cards de benefícios -->
-                        <div class="grid sm:grid-cols-2 gap-4">
-                            <div
-                                class="flex items-start gap-3 p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow">
-                                <div
-                                    class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                                    <i data-lucide="piggy-bank" class="text-white"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold text-gray-900 mb-1">Organize-se</h4>
-                                    <p class="text-sm text-gray-600">Controle total das suas finanças</p>
-                                </div>
-                            </div>
-
-                            <div
-                                class="flex items-start gap-3 p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow">
-                                <div
-                                    class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-primary to-orange-600 rounded-lg flex items-center justify-center">
-                                    <i data-lucide="line-chart" class="text-white"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold text-gray-900 mb-1">Lucre mais</h4>
-                                    <p class="text-sm text-gray-600">Faça seu dinheiro crescer</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Citação -->
-                        <div
-                            class="mt-8 p-6 bg-gradient-to-r from-primary/10 to-orange-600/10 border-l-4 border-primary rounded-r-xl">
-                            <p class="text-gray-800 italic font-medium">
-                                "Organização financeira é o primeiro passo para conquistar seus objetivos e ter
-                                tranquilidade no futuro."
-                            </p>
-                        </div>
-                    </div>
+            <!-- Card 3 - Cartões de crédito -->
+            <article class="group bg-white rounded-2xl p-7 shadow-sm border border-gray-100 hover:shadow-lg hover:border-orange-100 transition-all duration-300"
+                data-aos="fade-up" data-aos-delay="200">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white mb-5"
+                    aria-hidden="true">
+                    <i data-lucide="credit-card" class="w-6 h-6"></i>
                 </div>
+                <h3 class="font-bold text-lg text-gray-900 mb-2">Cartões de crédito</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    Gerencie faturas, parcelas, recorrências e limites de cada cartão.
+                    Nunca mais perca o controle.
+                </p>
+            </article>
+
+            <!-- Card 4 - Relatórios -->
+            <article class="group bg-white rounded-2xl p-7 shadow-sm border border-gray-100 hover:shadow-lg hover:border-orange-100 transition-all duration-300"
+                data-aos="fade-up" data-aos-delay="300">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white mb-5"
+                    aria-hidden="true">
+                    <i data-lucide="pie-chart" class="w-6 h-6"></i>
+                </div>
+                <h3 class="font-bold text-lg text-gray-900 mb-2">Relatórios visuais</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    Gráficos, comparativos e insights sobre seus hábitos de consumo.
+                    Entenda para onde vai o seu dinheiro.
+                </p>
+            </article>
+
+            <!-- Card 5 - Metas financeiras -->
+            <article class="group bg-white rounded-2xl p-7 shadow-sm border border-gray-100 hover:shadow-lg hover:border-orange-100 transition-all duration-300"
+                data-aos="fade-up" data-aos-delay="400">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white mb-5"
+                    aria-hidden="true">
+                    <i data-lucide="target" class="w-6 h-6"></i>
+                </div>
+                <h3 class="font-bold text-lg text-gray-900 mb-2">Metas financeiras</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    Defina objetivos como viagens, reserva de emergência ou compras.
+                    Acompanhe o progresso dos seus aportes.
+                </p>
+            </article>
+
+            <!-- Card 6 - Orçamentos -->
+            <article class="group bg-white rounded-2xl p-7 shadow-sm border border-gray-100 hover:shadow-lg hover:border-orange-100 transition-all duration-300"
+                data-aos="fade-up" data-aos-delay="500">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-warning to-yellow-600 flex items-center justify-center text-white mb-5"
+                    aria-hidden="true">
+                    <i data-lucide="wallet" class="w-6 h-6"></i>
+                </div>
+                <h3 class="font-bold text-lg text-gray-900 mb-2">Orçamentos por categoria</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    Defina limites de gastos por categoria e receba alertas.
+                    Mantenha seu orçamento pessoal sempre sob controle.
+                </p>
+            </article>
+
+        </div>
+
+        <!-- CTA -->
+        <div class="text-center" data-aos="fade-up">
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <a href="<?= BASE_URL ?>login"
+                    class="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300"
+                    title="Começar a usar o Lukrato grátis" aria-label="Criar conta gratuita">
+                    Começar grátis
+                    <i data-lucide="arrow-right" class="ml-2 w-5 h-5" aria-hidden="true"></i>
+                </a>
+
+                <button type="button" id="openGalleryBtn" @click="$dispatch('open-gallery')"
+                    onclick="document.getElementById('galleryModal').style.display='flex'"
+                    class="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:border-primary/40 hover:text-primary hover:shadow-md transition-all duration-300"
+                    title="Ver screenshots do sistema" aria-label="Abrir galeria de imagens do sistema">
+                    <i data-lucide="images" class="mr-2 w-5 h-5" aria-hidden="true"></i>
+                    Ver o sistema por dentro
+                </button>
             </div>
         </div>
 
-    </div>
     </div>
 </section>

@@ -283,6 +283,10 @@ const ModalManager = {
             DOM.inputLancDescricao.value = data?.descricao || '';
         }
 
+        if (DOM.inputLancObservacao) {
+            DOM.inputLancObservacao.value = data?.observacao || '';
+        }
+
         if (DOM.selectLancFormaPagamento) {
             DOM.selectLancFormaPagamento.value = data?.forma_pagamento || '';
         }
@@ -494,9 +498,48 @@ const ModalManager = {
         if (DOM.viewLancParcelamentoCard && DOM.viewLancParcela) {
             if (data.parcela_atual && data.total_parcelas) {
                 DOM.viewLancParcelamentoCard.classList.remove('d-none');
+                DOM.viewLancParcelamentoCard.style.display = '';
                 DOM.viewLancParcela.textContent = `${data.parcela_atual}/${data.total_parcelas}`;
             } else {
                 DOM.viewLancParcelamentoCard.classList.add('d-none');
+                DOM.viewLancParcelamentoCard.style.display = 'none';
+            }
+        }
+
+        // Observação
+        if (DOM.viewLancObservacaoCard && DOM.viewLancObservacao) {
+            if (data.observacao && data.observacao.trim()) {
+                DOM.viewLancObservacaoCard.classList.remove('d-none');
+                DOM.viewLancObservacaoCard.style.display = '';
+                DOM.viewLancObservacao.textContent = data.observacao;
+            } else {
+                DOM.viewLancObservacaoCard.classList.add('d-none');
+                DOM.viewLancObservacaoCard.style.display = 'none';
+            }
+        }
+
+        // Lembrete
+        if (DOM.viewLancLembreteCard) {
+            const segundos = data.lembrar_antes_segundos;
+            if (segundos && segundos > 0) {
+                DOM.viewLancLembreteCard.classList.remove('d-none');
+                DOM.viewLancLembreteCard.style.display = '';
+                // Formatar tempo
+                let tempoLabel = '';
+                if (segundos >= 604800) tempoLabel = '1 semana antes';
+                else if (segundos >= 259200) tempoLabel = '3 dias antes';
+                else if (segundos >= 172800) tempoLabel = '2 dias antes';
+                else if (segundos >= 86400) tempoLabel = '1 dia antes';
+                else tempoLabel = `${Math.round(segundos / 3600)}h antes`;
+                if (DOM.viewLancLembreteTempo) DOM.viewLancLembreteTempo.textContent = tempoLabel;
+                // Canais
+                let canais = [];
+                if (data.canal_inapp) canais.push('App');
+                if (data.canal_email) canais.push('E-mail');
+                if (DOM.viewLancLembreteCanais) DOM.viewLancLembreteCanais.textContent = canais.join(', ') || 'Nenhum canal';
+            } else {
+                DOM.viewLancLembreteCard.classList.add('d-none');
+                DOM.viewLancLembreteCard.style.display = 'none';
             }
         }
 
@@ -534,6 +577,7 @@ const ModalManager = {
             tipo: tipoValue,
             valor: Number(valorFloat.toFixed(2)),
             descricao: descricaoValue,
+            observacao: (DOM.inputLancObservacao?.value || '').trim(),
             conta_id: Number(contaValue),
             categoria_id: categoriaValue ? Number(categoriaValue) : null,
             subcategoria_id: DOM.selectLancSubcategoria?.value ? Number(DOM.selectLancSubcategoria.value) : null,
@@ -567,7 +611,9 @@ const ModalManager = {
                 }
             }));
         } catch (err) {
-            ModalManager.showLancAlert(err.message || 'Falha ao atualizar lançamento.');
+            const errorMsg = err.message || 'Falha ao atualizar lançamento.';
+            ModalManager.showLancAlert(errorMsg);
+            Notifications.toast(errorMsg, 'error');
         } finally {
             submitBtn?.removeAttribute('disabled');
         }

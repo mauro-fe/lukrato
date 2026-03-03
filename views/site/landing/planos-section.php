@@ -1,5 +1,5 @@
 <!-- Seção de Planos -->
-<section id="planos" class="relative py-14 md:py-10 bg-gray-50" aria-labelledby="planos-titulo">
+<section id="planos" class="relative py-16 md:py-24 bg-white" aria-labelledby="planos-titulo">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
 
         <div x-data="{ 

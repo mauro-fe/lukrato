@@ -19,7 +19,7 @@ use Application\Models\Plano;
 use Application\Models\Usuario;
 use Application\Models\Categoria;
 use Carbon\Carbon;
-
+use Illuminate\Database\Capsule\Manager as DB;
 
 use Throwable;
 
@@ -189,71 +189,74 @@ class AuthService
             // Mapa de subcategorias padrão por nome da categoria pai
             $subcategoriasPadrao = self::getSubcategoriasPadrao();
 
-            $criadas = 0;
-            $subcriadas = 0;
+            // Envolver tudo em transação para garantir atomicidade
+            DB::connection()->transaction(function () use ($userId, $categoriasDespesa, $categoriasReceita, $subcategoriasPadrao) {
+                $criadas = 0;
+                $subcriadas = 0;
 
-            // ── Criar categorias raiz + subcategorias ──
+                // ── Criar categorias raiz + subcategorias ──
 
-            // Despesas
-            foreach ($categoriasDespesa as [$nome, $icone]) {
-                $cat = Categoria::create([
-                    'nome'      => $nome,
-                    'icone'     => $icone,
-                    'tipo'      => 'despesa',
-                    'user_id'   => $userId,
-                    'is_seeded' => true,
-                ]);
-                $criadas++;
+                // Despesas
+                foreach ($categoriasDespesa as [$nome, $icone]) {
+                    $cat = Categoria::create([
+                        'nome'      => $nome,
+                        'icone'     => $icone,
+                        'tipo'      => 'despesa',
+                        'user_id'   => $userId,
+                        'is_seeded' => true,
+                    ]);
+                    $criadas++;
 
-                // Criar subcategorias se houver para esta categoria
-                if (isset($subcategoriasPadrao[$nome])) {
-                    foreach ($subcategoriasPadrao[$nome] as $sub) {
-                        Categoria::create([
-                            'nome'      => $sub['nome'],
-                            'icone'     => $sub['icone'],
-                            'tipo'      => 'despesa',
-                            'user_id'   => $userId,
-                            'parent_id' => $cat->id,
-                            'is_seeded' => true,
-                        ]);
-                        $subcriadas++;
+                    // Criar subcategorias se houver para esta categoria
+                    if (isset($subcategoriasPadrao[$nome])) {
+                        foreach ($subcategoriasPadrao[$nome] as $sub) {
+                            Categoria::create([
+                                'nome'      => $sub['nome'],
+                                'icone'     => $sub['icone'],
+                                'tipo'      => 'despesa',
+                                'user_id'   => $userId,
+                                'parent_id' => $cat->id,
+                                'is_seeded' => true,
+                            ]);
+                            $subcriadas++;
+                        }
                     }
                 }
-            }
 
-            // Receitas
-            foreach ($categoriasReceita as [$nome, $icone]) {
-                $cat = Categoria::create([
-                    'nome'      => $nome,
-                    'icone'     => $icone,
-                    'tipo'      => 'receita',
-                    'user_id'   => $userId,
-                    'is_seeded' => true,
-                ]);
-                $criadas++;
+                // Receitas
+                foreach ($categoriasReceita as [$nome, $icone]) {
+                    $cat = Categoria::create([
+                        'nome'      => $nome,
+                        'icone'     => $icone,
+                        'tipo'      => 'receita',
+                        'user_id'   => $userId,
+                        'is_seeded' => true,
+                    ]);
+                    $criadas++;
 
-                // Criar subcategorias se houver para esta categoria
-                if (isset($subcategoriasPadrao[$nome])) {
-                    foreach ($subcategoriasPadrao[$nome] as $sub) {
-                        Categoria::create([
-                            'nome'      => $sub['nome'],
-                            'icone'     => $sub['icone'],
-                            'tipo'      => 'receita',
-                            'user_id'   => $userId,
-                            'parent_id' => $cat->id,
-                            'is_seeded' => true,
-                        ]);
-                        $subcriadas++;
+                    // Criar subcategorias se houver para esta categoria
+                    if (isset($subcategoriasPadrao[$nome])) {
+                        foreach ($subcategoriasPadrao[$nome] as $sub) {
+                            Categoria::create([
+                                'nome'      => $sub['nome'],
+                                'icone'     => $sub['icone'],
+                                'tipo'      => 'receita',
+                                'user_id'   => $userId,
+                                'parent_id' => $cat->id,
+                                'is_seeded' => true,
+                            ]);
+                            $subcriadas++;
+                        }
                     }
                 }
-            }
 
-            LogService::info('[AuthService] Categorias e subcategorias padrão criadas com sucesso.', [
-                'user_id'          => $userId,
-                'categorias'       => $criadas,
-                'subcategorias'    => $subcriadas,
-                'total'            => $criadas + $subcriadas,
-            ]);
+                LogService::info('[AuthService] Categorias e subcategorias padrão criadas com sucesso.', [
+                    'user_id'          => $userId,
+                    'categorias'       => $criadas,
+                    'subcategorias'    => $subcriadas,
+                    'total'            => $criadas + $subcriadas,
+                ]);
+            });
         } catch (Throwable $e) {
             LogService::captureException($e, LogCategory::AUTH, [
                 'action' => 'criar_categorias_padrao',

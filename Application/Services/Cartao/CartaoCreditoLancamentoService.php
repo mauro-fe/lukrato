@@ -518,35 +518,73 @@ class CartaoCreditoLancamentoService
             }
 
             $hoje = date('Y-m-d');
+            $totalCanceladas = 0;
+            $valorDevolver = 0;
 
-            // Buscar parcelas FUTURAS (não vencidas)
-            $parcelasFuturas = Lancamento::where('parcelamento_id', $parcelamento->id)
+            // Buscar parcelas futuras em Lancamento (parcelamentos sem cartão)
+            $parcelasFuturasLanc = Lancamento::where('parcelamento_id', $parcelamento->id)
                 ->where('data', '>', $hoje)
                 ->get();
 
-            if ($parcelasFuturas->isEmpty()) {
+            if ($parcelasFuturasLanc->isNotEmpty()) {
+                $valorDevolver += $parcelasFuturasLanc->sum('valor');
+                foreach ($parcelasFuturasLanc as $parcela) {
+                    $parcela->cancelado_em = now();
+                    $parcela->save();
+                }
+                $totalCanceladas += $parcelasFuturasLanc->count();
+            }
+
+            // Buscar parcelas futuras em FaturaCartaoItem (parcelamentos com cartão de crédito)
+            $parcelasFuturasItem = FaturaCartaoItem::where('user_id', $userId)
+                ->where('cartao_credito_id', $parcelamento->cartao_credito_id)
+                ->where('eh_parcelado', true)
+                ->where('descricao', 'LIKE', '%' . ($parcelamento->descricao ?? '') . '%')
+                ->where('item_pai_id', $parcelamento->id)
+                ->whereNull('cancelado_em')
+                ->where(function ($q) use ($hoje) {
+                    $q->where('data_compra', '>', $hoje)
+                      ->orWhere('data_vencimento', '>', $hoje);
+                })
+                ->where('pago', false)
+                ->get();
+
+            // Fallback: buscar por parcelamento_id (caso exista coluna de referência)
+            if ($parcelasFuturasItem->isEmpty() && $parcelamento->cartao_credito_id) {
+                $parcelasFuturasItem = FaturaCartaoItem::where('user_id', $userId)
+                    ->where('cartao_credito_id', $parcelamento->cartao_credito_id)
+                    ->where('eh_parcelado', true)
+                    ->whereNull('cancelado_em')
+                    ->where('pago', false)
+                    ->whereRaw("parcela_atual > 1")
+                    ->where('total_parcelas', $parcelamento->numero_parcelas ?? 0)
+                    ->get();
+            }
+
+            if ($parcelasFuturasItem->isNotEmpty()) {
+                $valorDevolver += $parcelasFuturasItem->sum('valor');
+                foreach ($parcelasFuturasItem as $item) {
+                    $item->cancelado_em = now();
+                    $item->save();
+                }
+                $totalCanceladas += $parcelasFuturasItem->count();
+            }
+
+            if ($totalCanceladas === 0) {
+                DB::rollBack();
                 return [
                     'success' => false,
                     'message' => 'Não existem parcelas futuras para cancelar'
                 ];
             }
 
-            // Calcular valor total a devolver ao limite
-            $valorDevolver = $parcelasFuturas->sum('valor');
-
             // Devolver limite do cartão (uma vez só)
-            if ($parcelamento->cartao_credito_id) {
+            if ($parcelamento->cartao_credito_id && $valorDevolver > 0) {
                 $this->atualizarLimiteCartao(
                     $parcelamento->cartao_credito_id,
                     $valorDevolver,
                     'credito'
                 );
-            }
-
-            // Cancelar parcelas futuras (soft delete recomendado)
-            foreach ($parcelasFuturas as $parcela) {
-                $parcela->status = 'cancelado'; // ou usar soft delete
-                $parcela->save();
             }
 
             // Atualizar status do parcelamento
@@ -558,7 +596,7 @@ class CartaoCreditoLancamentoService
             return [
                 'success' => true,
                 'parcelamento_id' => $parcelamento->id,
-                'parcelas_canceladas' => $parcelasFuturas->count(),
+                'parcelas_canceladas' => $totalCanceladas,
                 'valor_devolvido' => $valorDevolver,
                 'message' => 'Parcelamento cancelado parcialmente com sucesso'
             ];

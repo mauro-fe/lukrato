@@ -239,11 +239,11 @@ function renderCategoriaItem(categoria, tipo) {
                             title="Editar">
                         <i data-lucide="pen"></i>
                     </button>
-                    <button type="button" class="cat-card-btn delete" 
+                    ${!categoria.is_seeded ? `<button type="button" class="cat-card-btn delete" 
                             onclick="categoriasManager.excluirCategoria(${categoria.id})"
                             title="Excluir">
                         <i data-lucide="trash-2"></i>
-                    </button>
+                    </button>` : ''}
                 </div>
             </div>
             ${budgetHtml}

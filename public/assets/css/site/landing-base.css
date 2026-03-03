@@ -2697,6 +2697,14 @@ svg {
 [data-theme="dark"] main .bg-gray-300 { background-color: #475569; }
 [data-theme="dark"] main .hover\:bg-gray-400:hover { background-color: #64748b; }
 
+/* ── Extra pastel backgrounds (funcionalidades/benefícios cards) ── */
+[data-theme="dark"] main .bg-blue-50  { background-color: rgba(59, 130, 246, 0.1); }
+[data-theme="dark"] main .bg-purple-50 { background-color: rgba(168, 85, 247, 0.1); }
+[data-theme="dark"] main .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.1); }
+[data-theme="dark"] main .bg-red-50 { background-color: rgba(239, 68, 68, 0.1); }
+[data-theme="dark"] main .bg-indigo-50 { background-color: rgba(99, 102, 241, 0.1); }
+[data-theme="dark"] main .bg-violet-50 { background-color: rgba(139, 92, 246, 0.1); }
+
 
 /* ============================================================================
    Inline extractions (ex-index.php <style>)

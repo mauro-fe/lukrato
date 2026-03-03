@@ -25,7 +25,7 @@ $breadcrumbItems = $breadcrumbItems ?? [];
 <script>
 (function(){
     var t=localStorage.getItem('lukrato-theme');
-    if(t!=='light'&&t!=='dark') t=window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';
+    if(t!=='light'&&t!=='dark') t='light';
     document.documentElement.setAttribute('data-theme',t);
 })();
 </script>
@@ -475,21 +475,21 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                 </a>
 
                 <!-- Desktop Navigation Premium -->
-                <nav class="hidden lg:flex items-center gap-8" aria-label="Navegação principal" role="navigation">
+                <nav class="hidden lg:flex items-center gap-7" aria-label="Navegação principal" role="navigation">
+                    <a href="<?= BASE_URL ?>#como-funciona"
+                        class="relative font-semibold transition-all duration-300 group"
+                        :class="scrolled ? 'text-gray-600 dark:text-gray-300 hover:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-primary'"
+                        aria-label="Como funciona o Lukrato">
+                        Como Funciona
+                        <span
+                            class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-orange-600 group-hover:w-full transition-all duration-300"
+                            aria-hidden="true"></span>
+                    </a>
                     <a href="<?= BASE_URL ?>#funcionalidades"
                         class="relative font-semibold transition-all duration-300 group"
                         :class="scrolled ? 'text-gray-600 dark:text-gray-300 hover:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-primary'"
                         aria-label="Ver funcionalidades do app">
                         Funcionalidades
-                        <span
-                            class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-orange-600 group-hover:w-full transition-all duration-300"
-                            aria-hidden="true"></span>
-                    </a>
-                    <a href="<?= BASE_URL ?>#beneficios"
-                        class="relative font-semibold transition-all duration-300 group"
-                        :class="scrolled ? 'text-gray-600 dark:text-gray-300 hover:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-primary'"
-                        aria-label="Conhecer benefícios do Lukrato">
-                        Benefícios
                         <span
                             class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-orange-600 group-hover:w-full transition-all duration-300"
                             aria-hidden="true"></span>
@@ -503,15 +503,11 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                             class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-orange-600 group-hover:w-full transition-all duration-300"
                             aria-hidden="true"></span>
                     </a>
-                    <a href="<?= BASE_URL ?>#indicacao"
+                    <a href="<?= BASE_URL ?>#faq"
                         class="relative font-semibold transition-all duration-300 group"
                         :class="scrolled ? 'text-gray-600 dark:text-gray-300 hover:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-primary'"
-                        aria-label="Programa de indicação">
-                        <span class="inline-flex items-center gap-1">
-                            Indicação
-                            <span
-                                class="text-xs bg-gradient-to-r from-primary to-orange-600 text-white px-1.5 py-0.5 rounded-full"><i data-lucide="gift" class="w-3 h-3 inline-block"></i></span>
-                        </span>
+                        aria-label="Perguntas frequentes">
+                        FAQ
                         <span
                             class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-orange-600 group-hover:w-full transition-all duration-300"
                             aria-hidden="true"></span>
@@ -628,24 +624,21 @@ $breadcrumbItems = $breadcrumbItems ?? [];
 
             <!-- Navegação -->
             <nav class="flex flex-col gap-4 mb-6" role="navigation" aria-label="Menu mobile">
+                <a href="<?= BASE_URL ?>#como-funciona" @click="mobileMenuOpen = false"
+                    class="text-gray-700 dark:text-gray-200 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
+                    Como Funciona
+                </a>
                 <a href="<?= BASE_URL ?>#funcionalidades" @click="mobileMenuOpen = false"
                     class="text-gray-700 dark:text-gray-200 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
                     Funcionalidades
-                </a>
-                <a href="<?= BASE_URL ?>#beneficios" @click="mobileMenuOpen = false"
-                    class="text-gray-700 dark:text-gray-200 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
-                    Benefícios
                 </a>
                 <a href="<?= BASE_URL ?>#planos" @click="mobileMenuOpen = false"
                     class="text-gray-700 dark:text-gray-200 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
                     Planos
                 </a>
-                <a href="<?= BASE_URL ?>#indicacao" @click="mobileMenuOpen = false"
-                    class="text-gray-700 dark:text-gray-200 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors flex items-center justify-between">
-                    <span>Indicação</span>
-                    <span
-                        class="text-xs bg-gradient-to-r from-primary to-orange-600 text-white px-2 py-1 rounded-full"><i data-lucide="gift" class="w-3 h-3 inline-block"></i>
-                        Ganhe PRO</span>
+                <a href="<?= BASE_URL ?>#faq" @click="mobileMenuOpen = false"
+                    class="text-gray-700 dark:text-gray-200 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
+                    FAQ
                 </a>
                 <a href="<?= BASE_URL ?>#contato" @click="mobileMenuOpen = false"
                     class="text-gray-700 dark:text-gray-200 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">

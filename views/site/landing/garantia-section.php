@@ -1,10 +1,10 @@
 <!-- Seção de Garantia -->
-<section id="garantia" class="relative py-14 md:py-20 bg-gradient-to-br from-orange-50 via-orange-50/30 to-gray-50">
+<section id="garantia" class="relative py-16 md:py-24 bg-gradient-to-br from-orange-50 via-orange-50/30 to-gray-50">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
 
         <div class="max-w-4xl mx-auto">
             <!-- Card principal -->
-            <div class="bg-white rounded-3xl shadow-2xl p-8 sm:p-12 lg:p-16" data-aos="zoom-in">
+            <div class="bg-white rounded-3xl shadow-lg p-8 sm:p-12 lg:p-16" data-aos="zoom-in">
 
                 <!-- Badge/Icon -->
                 <div class="flex justify-center mb-8">
@@ -70,7 +70,7 @@
                 <!-- CTA -->
                 <div class="text-center">
                     <a href="<?= BASE_URL ?>login"
-                        class="inline-flex items-center justify-center px-10 py-5 text-lg font-semibold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 mb-4">
+                        class="inline-flex items-center justify-center px-10 py-5 text-lg font-semibold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 mb-4">
                         Começar grátis agora
                         <i data-lucide="arrow-right" class="ml-3"></i>
                     </a>

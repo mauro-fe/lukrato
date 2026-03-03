@@ -1,5 +1,5 @@
 <!-- Seção de Contato -->
-<section id="contato" class="relative py-14 md:py-14 bg-white" x-data="{ activeTab: 'whatsapp' }"
+<section id="contato" class="relative py-16 md:py-24 bg-white" x-data="{ activeTab: 'whatsapp' }"
     aria-labelledby="contato-titulo" itemscope itemtype="https://schema.org/ContactPage">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
 
@@ -53,14 +53,14 @@
             <div class="flex flex-col sm:flex-row gap-4 mb-8">
                 <a href="https://wa.me/5544999506302?text=Ol%C3%A1!%20Quero%20falar%20sobre%20o%20Lukrato."
                     target="_blank" rel="noopener"
-                    class="flex-1 inline-flex items-center justify-center gap-3 px-6 py-4 bg-green-500 text-white font-semibold rounded-xl hover:bg-green-600 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
+                    class="flex-1 inline-flex items-center justify-center gap-3 px-6 py-4 bg-green-500 text-white font-semibold rounded-xl hover:bg-green-600 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-300">
                     <i data-lucide="message-circle" class="w-5 h-5"></i>
                     WhatsApp (Comercial)
                 </a>
 
                 <a href="https://wa.me/5544997178938?text=Ol%C3%A1!%20Preciso%20de%20suporte%20no%20Lukrato."
                     target="_blank" rel="noopener"
-                    class="flex-1 inline-flex items-center justify-center gap-3 px-6 py-4 bg-white text-green-600 border-2 border-green-500 font-semibold rounded-xl hover:bg-green-50 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
+                    class="flex-1 inline-flex items-center justify-center gap-3 px-6 py-4 bg-white text-green-600 border-2 border-green-500 font-semibold rounded-xl hover:bg-green-50 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-300">
                     <i data-lucide="headphones" class="text-xl"></i>
                     WhatsApp (Suporte)
                 </a>
@@ -139,7 +139,7 @@
                 </div>
 
                 <button type="submit"
-                    class="w-full px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
+                    class="w-full px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-300">
                     <i data-lucide="send" class="mr-2"></i>
                     Enviar mensagem
                 </button>

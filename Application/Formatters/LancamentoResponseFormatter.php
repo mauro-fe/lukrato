@@ -33,6 +33,7 @@ class LancamentoResponseFormatter
             'data_pagamento' => $lancamento->data_pagamento ?? null,
             'parcelamento_id' => (int)($lancamento->parcelamento_id ?? 0) ?: null,
             'numero_parcela' => $lancamento->numero_parcela ? (int)$lancamento->numero_parcela : null,
+            'parcela_atual' => $lancamento->numero_parcela ? (int)$lancamento->numero_parcela : null,
             'cartao_credito_id' => (int)($lancamento->cartao_credito_id ?? 0) ?: null,
             'forma_pagamento' => (string)($lancamento->forma_pagamento ?? ''),
             'origem_tipo' => (string)($lancamento->origem_tipo ?? ''),

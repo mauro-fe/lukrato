@@ -209,17 +209,18 @@ class PlanLimitService
     // ============================================================
 
     /**
-     * Conta quantas categorias personalizadas o usuário criou
-     * (total de categorias raiz - 19 categorias padrão criadas no registro)
+     * Conta quantas categorias personalizadas o usuário criou.
+     * Usa a flag is_seeded para identificar categorias padrão (criadas no registro).
      */
     public function countCategoriasCustom(int $userId): int
     {
-        $total = Categoria::where('user_id', $userId)
+        return Categoria::where('user_id', $userId)
             ->whereNull('parent_id')
+            ->where(function ($q) {
+                $q->where('is_seeded', false)
+                  ->orWhereNull('is_seeded');
+            })
             ->count();
-        $defaultCount = 19; // 12 despesas + 7 receitas criadas automaticamente
-
-        return max(0, $total - $defaultCount);
     }
 
     /**

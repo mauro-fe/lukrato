@@ -139,6 +139,11 @@ class SubcategoriaService implements SubcategoriaServiceInterface
             throw new \DomainException('Subcategoria não encontrada.');
         }
 
+        // Impedir exclusão de subcategorias padrão (seeded)
+        if ($subcategoria->is_seeded) {
+            throw new \DomainException('Subcategorias padrão não podem ser excluídas.');
+        }
+
         // Lançamentos que usam esta subcategoria terão subcategoria_id = NULL (SET NULL na FK)
         $subcategoria->delete();
     }

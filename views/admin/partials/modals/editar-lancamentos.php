@@ -87,6 +87,16 @@
                         </div>
                     </div>
 
+                    <!-- Observação -->
+                    <div class="row g-3 mt-1">
+                        <div class="col-12">
+                            <label for="editLancObservacao" class="form-label">Observação</label>
+                            <textarea class="form-control form-control-sm" id="editLancObservacao"
+                                rows="2" maxlength="500" placeholder="Anotações opcionais..."
+                                aria-label="Observação do lançamento"></textarea>
+                        </div>
+                    </div>
+
                     <div class="mt-4 text-end">
                         <button type="submit" class="btn btn-primary">Salvar alterações</button>
                     </div>

@@ -221,6 +221,10 @@ const MobileCards = {
             if (isPagFaturaMobile) {
                 cardBadges += ' <span class="badge" style="font-size:0.6rem;background:#7c3aed;color:white;">💳 Fatura</span>';
             }
+            // Parcela badge para mobile
+            if (item.parcela_atual && item.total_parcelas) {
+                cardBadges += ` <span class="badge bg-dark" style="font-size:0.6rem;">📦 ${item.parcela_atual}/${item.total_parcelas}</span>`;
+            }
 
             // Menu dropdown 3-dot para ações
             const canEdit = Utils.canEditLancamento(item);
