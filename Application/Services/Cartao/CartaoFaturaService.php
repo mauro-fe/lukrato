@@ -874,30 +874,38 @@ class CartaoFaturaService
 
         $saldoInicial = (float) ($conta->saldo_inicial ?? 0);
 
-        // Receitas que afetam caixa
+        // Receitas que afetam caixa (apenas pagas, sem transferências)
         $receitas = Lancamento::where('conta_id', $contaId)
             ->where('user_id', $userId)
             ->where('tipo', 'receita')
-            ->where('afeta_caixa', true)
+            ->where('pago', 1)
+            ->where('afeta_caixa', 1)
+            ->where('eh_transferencia', 0)
             ->sum('valor');
 
-        // Despesas que afetam caixa
+        // Despesas que afetam caixa (apenas pagas, sem transferências)
         $despesas = Lancamento::where('conta_id', $contaId)
             ->where('user_id', $userId)
             ->where('tipo', 'despesa')
-            ->where('afeta_caixa', true)
+            ->where('pago', 1)
+            ->where('afeta_caixa', 1)
+            ->where('eh_transferencia', 0)
             ->sum('valor');
 
-        // Transferências recebidas
+        // Transferências recebidas (pagas e que afetam caixa)
         $transfIn = Lancamento::where('conta_id_destino', $contaId)
             ->where('user_id', $userId)
             ->where('eh_transferencia', 1)
+            ->where('pago', 1)
+            ->where('afeta_caixa', 1)
             ->sum('valor');
 
-        // Transferências enviadas
+        // Transferências enviadas (pagas e que afetam caixa)
         $transfOut = Lancamento::where('conta_id', $contaId)
             ->where('user_id', $userId)
             ->where('eh_transferencia', 1)
+            ->where('pago', 1)
+            ->where('afeta_caixa', 1)
             ->sum('valor');
 
         return $saldoInicial + $receitas - $despesas + $transfIn - $transfOut;
