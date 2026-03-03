@@ -327,6 +327,9 @@ Router::add('GET',    '/api/sysadmin/error-logs/summary',       'Api\\Admin\\Sys
 Router::add('PUT',    '/api/sysadmin/error-logs/{id}/resolve',  'Api\\Admin\\SysAdminController@resolveErrorLog',  ['auth', 'sysadmin', 'csrf', 'ratelimit']);
 Router::add('DELETE', '/api/sysadmin/error-logs/cleanup',       'Api\\Admin\\SysAdminController@cleanupErrorLogs', ['auth', 'sysadmin', 'csrf', 'ratelimit']);
 
+// Cache Management (SysAdmin)
+Router::add('POST',   '/api/sysadmin/clear-cache',              'Api\\Admin\\SysAdminController@clearCache',       ['auth', 'sysadmin', 'csrf', 'ratelimit']);
+
 // ============================================
 // CAMPANHAS DE MENSAGENS (SYSADMIN)
 // ============================================

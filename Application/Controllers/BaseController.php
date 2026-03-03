@@ -308,6 +308,7 @@ abstract class BaseController
             'categorias'    => 'categorias',
             'financas'      => 'financas',
             'perfil'        => 'perfil',
+            'sysadmin'      => 'super_admin',
             default         => null,
         };
     }

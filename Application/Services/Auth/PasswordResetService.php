@@ -95,6 +95,22 @@ class PasswordResetService
             throw new ValidationException(['password' => 'A senha deve ter ao menos 8 caracteres.']);
         }
 
+        if (!preg_match('/[a-z]/', $newPass)) {
+            throw new ValidationException(['password' => 'A senha deve conter pelo menos uma letra minúscula.']);
+        }
+
+        if (!preg_match('/[A-Z]/', $newPass)) {
+            throw new ValidationException(['password' => 'A senha deve conter pelo menos uma letra maiúscula.']);
+        }
+
+        if (!preg_match('/[0-9]/', $newPass)) {
+            throw new ValidationException(['password' => 'A senha deve conter pelo menos um número.']);
+        }
+
+        if (!preg_match('/[^a-zA-Z0-9]/', $newPass)) {
+            throw new ValidationException(['password' => 'A senha deve conter pelo menos um caractere especial.']);
+        }
+
         $reset = $this->repository->findValidToken($token);
 
         if (!$reset) {

@@ -29,8 +29,9 @@ class GamificationService
     /**
      * Thresholds de pontos para cada nível
      * Níveis expandidos de 1 a 15
+     * FONTE DE VERDADE: Todas as outras classes devem referenciar esta constante
      */
-    private const LEVEL_THRESHOLDS = [
+    public const LEVEL_THRESHOLDS = [
         1 => 0,
         2 => 300,
         3 => 500,
@@ -80,10 +81,8 @@ class GamificationService
             $isPro = $user ? $user->isPro() : false;
 
             // Calcular pontos com base no plano
-            $basePoints = $action->points($isPro);
-
-            // Aplicar multiplicador Pro (1.5x)
-            $points = $isPro ? (int)round($basePoints * 1.5) : $basePoints;
+            // Pro já recebe pontos maiores via GamificationAction::points($isPro)
+            $points = $action->points($isPro);
 
             // Se é ação diária, verificar se já foi feita hoje
             if ($action->isOncePerDay()) {
@@ -111,8 +110,7 @@ class GamificationService
                 'description' => $action->description(),
                 'metadata' => array_merge($metadata, [
                     'is_pro' => $isPro,
-                    'base_points' => $basePoints,
-                    'multiplier' => $isPro ? 1.5 : 1.0,
+                    'base_points' => $points,
                 ]),
                 'related_id' => $relatedId,
                 'related_type' => $relatedType,
@@ -129,12 +127,12 @@ class GamificationService
             $achievementService = new AchievementService();
             $newAchievements = $achievementService->checkAndUnlockAchievements($userId, $action->value);
 
-            LogService::info("+{$points} pontos para user {$userId} - Ação: {$action->value}" . ($isPro ? ' [PRO x1.5]' : ''));
+            LogService::info("+{$points} pontos para user {$userId} - Ação: {$action->value}" . ($isPro ? ' [PRO]' : ''));
 
             return [
                 'success' => true,
                 'points_gained' => $points,
-                'base_points' => $basePoints,
+                'base_points' => $points,
                 'is_pro' => $isPro,
                 'total_points' => $progress->total_points,
                 'level' => $levelData['current_level'],
@@ -207,8 +205,8 @@ class GamificationService
 
             LogService::info("User {$userId} subiu para nível {$newLevel}!");
 
-            // Verificar conquista de nível 5
-            if ($newLevel === 5) {
+            // Verificar conquistas de nível (3, 5, 8, 10, 12, 15)
+            if (in_array($newLevel, [3, 5, 8, 10, 12, 15])) {
                 $this->checkAchievements($userId);
             }
         }
@@ -254,72 +252,6 @@ class GamificationService
                 'points_reward' => $ach['points_reward'],
             ];
         }, $achievements);
-    }
-
-    /**
-     * Desbloquear conquista para usuário
-     * 
-     * @param int $userId
-     * @param int $achievementId
-     * @return bool
-     */
-    public function unlockAchievement(int $userId, int $achievementId): bool
-    {
-        try {
-            // Verificar se já tem
-            $exists = UserAchievement::where('user_id', $userId)
-                ->where('achievement_id', $achievementId)
-                ->exists();
-
-            if ($exists) {
-                return false;
-            }
-
-            $achievement = Achievement::find($achievementId);
-            if (!$achievement) {
-                return false;
-            }
-
-            // Criar registro de conquista
-            UserAchievement::create([
-                'user_id' => $userId,
-                'achievement_id' => $achievementId,
-                'unlocked_at' => now(),
-                'notification_seen' => false,
-            ]);
-
-            // Adicionar pontos de recompensa
-            if ($achievement->points_reward > 0) {
-                $progress = $this->getOrCreateProgress($userId);
-                $progress->total_points += $achievement->points_reward;
-                $progress->save();
-
-                // Registrar no log
-                PointsLog::create([
-                    'user_id' => $userId,
-                    'action' => 'achievement_unlock',
-                    'points' => $achievement->points_reward,
-                    'description' => "Conquista desbloqueada: {$achievement->name}",
-                    'metadata' => ['achievement_code' => $achievement->code],
-                    'related_id' => $achievementId,
-                    'related_type' => 'achievement',
-                ]);
-
-                // Recalcular nível
-                $this->recalculateLevel($userId);
-            }
-
-            LogService::info("User {$userId} desbloqueou: {$achievement->name} (+{$achievement->points_reward} pontos)");
-
-            return true;
-        } catch (Exception $e) {
-            LogService::captureException($e, LogCategory::GAMIFICATION, [
-                'action' => 'unlock_achievement',
-                'user_id' => $userId,
-                'achievement_id' => $achievementId,
-            ]);
-            return false;
-        }
     }
 
     // ========================================================================
@@ -380,88 +312,5 @@ class GamificationService
             }
         }
         return 1;
-    }
-
-    /**
-     * Verificar condição específica de uma conquista
-     */
-    private function checkAchievementCondition(int $userId, string $code): bool
-    {
-        try {
-            $achievementType = AchievementType::from($code);
-        } catch (\ValueError $e) {
-            return false;
-        }
-
-        $progress = $this->getOrCreateProgress($userId);
-
-        return match ($achievementType) {
-            AchievementType::FIRST_LAUNCH => $this->hasLaunches($userId, 1),
-            AchievementType::STREAK_3 => $progress->current_streak >= 3,
-            AchievementType::STREAK_7 => $progress->current_streak >= 7,
-            AchievementType::CONSISTENCY_TOTAL => $progress->current_streak >= 30,
-            AchievementType::LEVEL_5 => $progress->current_level >= 5,
-            AchievementType::LEVEL_8 => $progress->current_level >= 8,
-            AchievementType::TOTAL_10_LAUNCHES => $this->hasLaunches($userId, 10),
-            AchievementType::TOTAL_100_LAUNCHES => $this->hasLaunches($userId, 100),
-            AchievementType::TOTAL_5_CATEGORIES => $this->hasCategories($userId, 5),
-            AchievementType::POSITIVE_MONTH => $this->hasPositiveMonth($userId),
-            default => false,
-        };
-    }
-
-    /**
-     * Verificar se usuário tem X lançamentos
-     */
-    private function hasLaunches(int $userId, int $count): bool
-    {
-        return Lancamento::where('user_id', $userId)->count() >= $count;
-    }
-
-    /**
-     * Verificar se usuário tem X categorias
-     */
-    private function hasCategories(int $userId, int $count): bool
-    {
-        return Categoria::where('user_id', $userId)->count() >= $count;
-    }
-
-    /**
-     * Verificar se teve mês com saldo positivo
-     */
-    private function hasPositiveMonth(int $userId): bool
-    {
-        // Implementação simplificada - verificar último mês fechado
-        $lastMonth = Carbon::now()->subMonth();
-
-        $receitas = Lancamento::where('user_id', $userId)
-            ->where('tipo', 'receita')
-            ->whereYear('data', $lastMonth->year)
-            ->whereMonth('data', $lastMonth->month)
-            ->sum('valor');
-
-        $despesas = Lancamento::where('user_id', $userId)
-            ->where('tipo', 'despesa')
-            ->whereYear('data', $lastMonth->year)
-            ->whereMonth('data', $lastMonth->month)
-            ->sum('valor');
-
-        return ($receitas - $despesas) > 0;
-    }
-
-    /**
-     * Verificar se saldo geral é positivo
-     */
-    private function hasPositiveBalance(int $userId): bool
-    {
-        $receitas = Lancamento::where('user_id', $userId)
-            ->where('tipo', 'receita')
-            ->sum('valor');
-
-        $despesas = Lancamento::where('user_id', $userId)
-            ->where('tipo', 'despesa')
-            ->sum('valor');
-
-        return ($receitas - $despesas) > 0;
     }
 }

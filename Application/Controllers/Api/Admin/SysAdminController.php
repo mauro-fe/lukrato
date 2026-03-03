@@ -269,45 +269,69 @@ class SysAdminController extends BaseController
                 $usuarios = $usuarios->where('is_admin', 0);
             }
 
-            // Filtro por plano (pro/free)
+            // Filtro por plano (pro/free) — requer isPro() via Eloquent relationship
             $planFilter = $_GET['plan'] ?? '';
 
-            $total = $usuarios->count();
-            $usersList = $usuarios->orderByDesc('id')
-                ->limit($perPage)
-                ->offset($offset)
-                ->with(['assinaturaAtiva.plano'])
-                ->get();
+            if ($planFilter === 'pro' || $planFilter === 'free') {
+                // Quando filtrando por plano, buscar todos para filtrar em PHP
+                // (isPro() depende de relationship, não pode ser feito em SQL)
+                $allUsers = $usuarios->orderByDesc('id')
+                    ->with(['assinaturaAtiva.plano'])
+                    ->get();
 
-            // Mapear dados com info de plano
-            $mapped = $usersList->map(function ($u) {
-                return [
-                    'id' => $u->id,
-                    'support_code' => $u->support_code,
-                    'nome' => $u->nome,
-                    'email' => $u->email,
-                    'is_admin' => $u->is_admin,
-                    'is_pro' => $u->isPro(),
-                    'plano_nome' => $u->isPro() ? 'Pro' : 'Free',
-                    'email_verified' => $u->email_verified_at !== null,
-                    'created_at' => $u->created_at,
-                ];
-            });
+                // Mapear e filtrar por plano
+                $mapped = $allUsers->map(function ($u) {
+                    return [
+                        'id' => $u->id,
+                        'support_code' => $u->support_code,
+                        'nome' => $u->nome,
+                        'email' => $u->email,
+                        'is_admin' => $u->is_admin,
+                        'is_pro' => $u->isPro(),
+                        'plano_nome' => $u->isPro() ? 'Pro' : 'Free',
+                        'email_verified' => $u->email_verified_at !== null,
+                        'created_at' => $u->created_at,
+                    ];
+                });
 
-            // Filtrar por plano após o mapeamento (precisa calcular isPro primeiro)
-            if ($planFilter === 'pro') {
-                $mapped = $mapped->filter(fn($u) => $u['is_pro'] === true)->values();
+                if ($planFilter === 'pro') {
+                    $mapped = $mapped->filter(fn($u) => $u['is_pro'] === true)->values();
+                } else {
+                    $mapped = $mapped->filter(fn($u) => $u['is_pro'] === false)->values();
+                }
+
                 $total = $mapped->count();
-            } elseif ($planFilter === 'free') {
-                $mapped = $mapped->filter(fn($u) => $u['is_pro'] === false)->values();
-                $total = $mapped->count();
+                // Paginar o resultado filtrado manualmente
+                $mapped = $mapped->slice($offset, $perPage)->values();
+            } else {
+                // Sem filtro de plano — paginação normal no SQL
+                $total = $usuarios->count();
+                $usersList = $usuarios->orderByDesc('id')
+                    ->limit($perPage)
+                    ->offset($offset)
+                    ->with(['assinaturaAtiva.plano'])
+                    ->get();
+
+                $mapped = $usersList->map(function ($u) {
+                    return [
+                        'id' => $u->id,
+                        'support_code' => $u->support_code,
+                        'nome' => $u->nome,
+                        'email' => $u->email,
+                        'is_admin' => $u->is_admin,
+                        'is_pro' => $u->isPro(),
+                        'plano_nome' => $u->isPro() ? 'Pro' : 'Free',
+                        'email_verified' => $u->email_verified_at !== null,
+                        'created_at' => $u->created_at,
+                    ];
+                });
             }
 
             Response::success([
                 'total' => $total,
                 'page' => $page,
                 'perPage' => $perPage,
-                'totalPages' => ceil($total / $perPage),
+                'totalPages' => (int) ceil($total / $perPage),
                 'users' => $mapped,
             ]);
         } catch (Exception $e) {
@@ -805,6 +829,66 @@ class SysAdminController extends BaseController
             ]);
         } catch (Exception $e) {
             Response::error('Erro ao limpar logs: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * POST /api/sysadmin/clear-cache
+     * Limpar cache de arquivos e Redis
+     */
+    public function clearCache(): void
+    {
+        $this->requireAuthApi();
+
+        try {
+            $user = \Application\Lib\Auth::user();
+            if (!$user || $user->is_admin != 1) {
+                Response::error('Acesso negado', 403);
+                return;
+            }
+
+            $results = [];
+
+            // 1. Limpar cache de arquivos
+            $cacheDir = BASE_PATH . '/storage/cache';
+            if (is_dir($cacheDir)) {
+                $files = new \RecursiveIteratorIterator(
+                    new \RecursiveDirectoryIterator($cacheDir, \RecursiveDirectoryIterator::SKIP_DOTS),
+                    \RecursiveIteratorIterator::CHILD_FIRST
+                );
+
+                $count = 0;
+                foreach ($files as $fileinfo) {
+                    $action = $fileinfo->isDir() ? 'rmdir' : 'unlink';
+                    if (@$action($fileinfo->getRealPath())) {
+                        $count++;
+                    }
+                }
+                $results['files'] = $count;
+            } else {
+                $results['files'] = 0;
+            }
+
+            // 2. Limpar cache Redis
+            try {
+                $cache = new \Application\Services\Infrastructure\CacheService();
+                if ($cache->isEnabled()) {
+                    $cache->flush();
+                    $results['redis'] = true;
+                } else {
+                    $results['redis'] = false;
+                }
+            } catch (\Throwable $e) {
+                $results['redis'] = false;
+            }
+
+            Response::json([
+                'success' => true,
+                'message' => "Cache limpo com sucesso ({$results['files']} arquivo(s) removido(s))",
+                'details' => $results,
+            ]);
+        } catch (Exception $e) {
+            Response::error('Erro ao limpar cache: ' . $e->getMessage(), 500);
         }
     }
 }

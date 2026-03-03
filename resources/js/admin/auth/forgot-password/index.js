@@ -15,31 +15,34 @@ createParticles();
 // Form Handler
 // =====================
 {
-    const form = document.getElementById('forgotForm');
+    const form = document.getElementById('recoverForm');
     const emailInput = document.getElementById('email');
-    const emailError = document.getElementById('emailError');
+    const messageContainer = document.getElementById('messageContainer');
     const btn = form?.querySelector('.btn-primary');
-    const successMsg = document.querySelector('.success-message');
-    const errorMsg = document.querySelector('.error-message');
-    const formContainer = document.querySelector('.forgot-form');
+
+    function showMessage(text, type = 'error') {
+        if (!messageContainer) return;
+        messageContainer.innerHTML = `<div class="alert alert-${type === 'success' ? 'success' : 'danger'}" style="padding:12px;border-radius:8px;margin-bottom:16px;font-size:0.9rem;background:${type === 'success' ? 'rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2)'}">${text}</div>`;
+    }
+
+    function clearMessage() {
+        if (messageContainer) messageContainer.innerHTML = '';
+    }
 
     if (form) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-
-            if (emailError) emailError.textContent = '';
-            if (successMsg) { successMsg.textContent = ''; successMsg.classList.remove('show'); }
-            if (errorMsg) { errorMsg.textContent = ''; errorMsg.classList.remove('show'); }
+            clearMessage();
 
             const email = emailInput.value.trim();
 
             if (!email) {
-                if (emailError) emailError.textContent = 'Digite seu e-mail';
+                showMessage('Digite seu e-mail');
                 return;
             }
 
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                if (emailError) emailError.textContent = 'E-mail inválido';
+                showMessage('E-mail inválido');
                 return;
             }
 
@@ -61,25 +64,16 @@ createParticles();
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    if (formContainer) formContainer.style.display = 'none';
-                    if (successMsg) {
-                        successMsg.textContent = data.message || 'Link de recuperação enviado para seu e-mail!';
-                        successMsg.classList.add('show');
-                    }
+                    form.style.display = 'none';
+                    showMessage(data.message || 'Link de recuperação enviado para seu e-mail!', 'success');
                     createConfetti(150);
                 } else {
-                    if (errorMsg) {
-                        errorMsg.textContent = data.message || 'Erro ao enviar link de recuperação.';
-                        errorMsg.classList.add('show');
-                    }
+                    showMessage(data.message || 'Erro ao enviar link de recuperação.');
                     btn.disabled = false;
                     btn.innerHTML = originalHtml;
                 }
             } catch (err) {
-                if (errorMsg) {
-                    errorMsg.textContent = 'Erro de conexão. Tente novamente.';
-                    errorMsg.classList.add('show');
-                }
+                showMessage('Erro de conexão. Tente novamente.');
                 btn.disabled = false;
                 btn.innerHTML = originalHtml;
             }

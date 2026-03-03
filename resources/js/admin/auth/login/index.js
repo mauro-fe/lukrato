@@ -539,6 +539,56 @@ function clearErrors(form) {
                         TurnstileManager.showLoginCaptcha();
                     }
 
+                    // Email não verificado: mostrar opção de reenviar
+                    if (data?.errors?.email_not_verified) {
+                        const userEmail = data.errors.user_email || '';
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'E-mail não verificado',
+                            html: `<p>${data.errors.email || 'Você precisa verificar seu e-mail antes de fazer login.'}</p>` +
+                                  `<p style="margin-top:8px;font-size:0.9rem;color:#888;">Verifique sua caixa de entrada e spam.</p>`,
+                            showCancelButton: true,
+                            confirmButtonText: 'Reenviar e-mail',
+                            cancelButtonText: 'OK',
+                            confirmButtonColor: '#6366f1',
+                        }).then(async (result) => {
+                            if (result.isConfirmed && userEmail) {
+                                try {
+                                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+                                    const fd = new FormData();
+                                    fd.append('email', userEmail);
+                                    // Inclui CSRF token do formulário de login como fallback
+                                    const csrfInput = document.querySelector('#loginForm input[name="csrf_token"]');
+                                    if (csrfInput) fd.append('csrf_token', csrfInput.value);
+
+                                    const res = await fetch(BASE + 'verificar-email/reenviar', {
+                                        method: 'POST',
+                                        body: fd,
+                                        headers: {
+                                            'X-Requested-With': 'XMLHttpRequest',
+                                            'Accept': 'application/json',
+                                            'X-CSRF-TOKEN': csrfToken
+                                        }
+                                    });
+                                    const resData = await res.json();
+                                    Swal.fire({
+                                        icon: res.ok ? 'success' : 'error',
+                                        title: res.ok ? 'E-mail reenviado!' : 'Erro',
+                                        text: resData.message || (res.ok ? 'Verifique sua caixa de entrada.' : 'Tente novamente.'),
+                                        timer: 3000,
+                                        showConfirmButton: false
+                                    });
+                                } catch {
+                                    Swal.fire({ icon: 'error', title: 'Erro', text: 'Erro de conexão. Tente novamente.', timer: 2500, showConfirmButton: false });
+                                }
+                            }
+                        });
+
+                        btn.disabled = false;
+                        btn.innerHTML = originalBtnHtml;
+                        return;
+                    }
+
                     // Contagem client-side de falhas (fallback para quando Redis não está disponível)
                     TurnstileManager.recordLoginFailure();
 
@@ -746,7 +796,7 @@ function clearErrors(form) {
                 Swal.fire({
                     icon: 'success',
                     title: 'Conta criada com sucesso!',
-                    text: data.message || 'Agora você pode fazer login.',
+                    text: data.message || 'Verifique seu e-mail para ativar sua conta.',
                     timer: 2000,
                     showConfirmButton: false
                 });

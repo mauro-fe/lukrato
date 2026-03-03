@@ -6,6 +6,7 @@ namespace Application\Controllers\Auth;
 
 use Application\Controllers\BaseController;
 use Application\Services\Auth\EmailVerificationService;
+use Application\Middlewares\CsrfMiddleware;
 use Application\Models\Usuario;
 use Application\Core\Response;
 use Application\Services\Infrastructure\LogService;
@@ -53,6 +54,9 @@ class EmailVerificationController extends BaseController
      */
     public function resend(): void
     {
+        // Valida CSRF
+        CsrfMiddleware::handle($this->request, 'verify_email_form');
+
         $isAjax = $this->request->isAjax();
 
         // Tenta buscar usuário por email ou pelo ID da sessão
@@ -116,7 +120,7 @@ class EmailVerificationController extends BaseController
 
         $this->render('admin/auth/verify-email', [
             'email' => $email,
-            'message' => $_SESSION['verification_message'] ?? 'Por favor, verifique seu email antes de fazer login.',
+            'message' => 'Por favor, verifique seu email antes de fazer login.',
         ]);
     }
 }

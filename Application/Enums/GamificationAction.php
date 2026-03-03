@@ -85,9 +85,9 @@ enum GamificationAction: string
             self::CREATE_META => 'Criou uma meta',
             self::CLOSE_MONTH => 'Fechou o mês',
             self::DAILY_ACTIVITY => 'Atividade diária completa',
-            self::STREAK_3_DAYS => '3 dias consecutivos ativos',
-            self::STREAK_7_DAYS => '7 dias consecutivos ativos',
-            self::STREAK_30_DAYS => '30 dias consecutivos ativos',
+            self::STREAK_3_DAYS => '3 dias ativos',
+            self::STREAK_7_DAYS => '7 dias ativos',
+            self::STREAK_30_DAYS => '30 dias ativos',
             self::POSITIVE_MONTH => 'Mês com saldo positivo',
             self::LEVEL_UP => 'Subiu de nível',
         };

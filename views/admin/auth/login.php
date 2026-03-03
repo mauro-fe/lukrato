@@ -101,13 +101,13 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                                 <form action="<?= BASE_URL ?>login/entrar" method="POST" id="loginForm" novalidate>
                                     <?= csrf_input('login_form') ?>
                                     <div class="field">
-                                        <input type="email" id="email" name="email" placeholder="E-mail" required>
+                                        <input type="email" id="email" name="email" placeholder="E-mail" aria-label="E-mail" required>
                                         <small class="field-error" id="emailError"></small>
                                     </div>
 
                                     <div class="field">
                                         <input type="password" id="password" name="password" placeholder="Senha"
-                                            required>
+                                            aria-label="Senha" required>
                                         <button type="button" class="toggle-password" data-target="password">
                                             <i data-lucide="eye"></i>
                                         </button>
@@ -165,18 +165,18 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                                 <form action="<?= BASE_URL ?>register/criar" method="POST" id="registerForm" novalidate>
                                     <?= csrf_input('register_form') ?>
                                     <div class="field">
-                                        <input type="text" id="name" name="name" placeholder="Nome completo" required>
+                                        <input type="text" id="name" name="name" placeholder="Nome completo" aria-label="Nome completo" required>
                                         <small class="field-error" id="nameError"></small>
                                     </div>
 
                                     <div class="field">
-                                        <input type="email" id="reg_email" name="email" placeholder="E-mail" required>
+                                        <input type="email" id="reg_email" name="email" placeholder="E-mail" aria-label="E-mail" required>
                                         <small class="field-error" id="regEmailError"></small>
                                     </div>
 
                                     <div class="field">
                                         <input type="password" id="reg_password" name="password" placeholder="Senha"
-                                            required>
+                                            aria-label="Senha" required>
                                         <button type="button" class="toggle-password" data-target="reg_password">
                                             <i data-lucide="eye"></i>
                                         </button>
@@ -207,7 +207,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
 
                                     <div class="field">
                                         <input type="password" id="reg_password_confirm" name="password_confirmation"
-                                            placeholder="Confirmar senha" required>
+                                            placeholder="Confirmar senha" aria-label="Confirmar senha" required>
                                         <button type="button" class="toggle-password"
                                             data-target="reg_password_confirm">
                                             <i data-lucide="eye"></i>

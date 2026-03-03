@@ -6,6 +6,7 @@ namespace Application\Services\Auth;
 
 use Application\Models\Usuario;
 use Application\Lib\Auth;
+use Application\Services\Auth\SessionManager;
 use Application\Services\Infrastructure\LogService;
 use Application\Enums\LogCategory;
 use Google_Client;
@@ -197,11 +198,6 @@ class GoogleAuthService
      */
     public function loginUser(Usuario $usuario, array $userInfo): void
     {
-        // Armazena foto do Google na sessão
-        if (!empty($userInfo['picture'])) {
-            $_SESSION['google_user_picture'] = $userInfo['picture'];
-        }
-
         // Marca email como verificado se ainda não estiver (Google verifica o email)
         if (!$usuario->hasVerifiedEmail()) {
             $usuario->markEmailAsVerified();
@@ -210,8 +206,14 @@ class GoogleAuthService
             ]);
         }
 
-        // Usa o AuthService para fazer o login
-        Auth::login($usuario);
+        // Usa SessionManager para login seguro (regenera sessão)
+        $sessionManager = new SessionManager();
+        $sessionManager->createSession($usuario, false);
+
+        // Armazena foto do Google na sessão (após createSession para não ser sobrescrita)
+        if (!empty($userInfo['picture'])) {
+            $_SESSION['google_user_picture'] = $userInfo['picture'];
+        }
 
         LogService::info('Login via Google realizado com sucesso', [
             'user_id' => $usuario->id,
@@ -234,7 +236,8 @@ class GoogleAuthService
                 return false;
             }
 
-            Auth::login($usuario);
+            $sessionManager = new SessionManager();
+            $sessionManager->createSession($usuario, false);
 
             LogService::info('Login automático após registro Google realizado', [
                 'user_id' => $userId,

@@ -17,10 +17,9 @@ initTogglePassword();
 // =====================
 {
     const passwordInput = document.getElementById('password');
-    const strengthBar = document.querySelector('.strength-bar');
-    const strengthText = document.querySelector('.strength-text');
+    const strengthBarInner = document.querySelector('.password-strength-bar');
 
-    if (passwordInput && strengthBar) {
+    if (passwordInput && strengthBarInner) {
         passwordInput.addEventListener('input', () => {
             const val = passwordInput.value;
             let score = 0;
@@ -30,23 +29,19 @@ initTogglePassword();
             if (/[0-9]/.test(val)) score++;
             if (/[^a-zA-Z0-9]/.test(val)) score++;
 
-            strengthBar.classList.remove('weak', 'medium', 'strong');
+            strengthBarInner.classList.remove('weak', 'medium', 'strong');
 
             if (val.length === 0) {
-                strengthBar.style.width = '0';
-                if (strengthText) strengthText.textContent = '';
+                strengthBarInner.style.width = '0';
             } else if (score <= 1) {
-                strengthBar.style.width = '33%';
-                strengthBar.classList.add('weak');
-                if (strengthText) strengthText.textContent = 'Fraca';
+                strengthBarInner.style.width = '33%';
+                strengthBarInner.classList.add('weak');
             } else if (score <= 2) {
-                strengthBar.style.width = '66%';
-                strengthBar.classList.add('medium');
-                if (strengthText) strengthText.textContent = 'Média';
+                strengthBarInner.style.width = '66%';
+                strengthBarInner.classList.add('medium');
             } else {
-                strengthBar.style.width = '100%';
-                strengthBar.classList.add('strong');
-                if (strengthText) strengthText.textContent = 'Forte';
+                strengthBarInner.style.width = '100%';
+                strengthBarInner.classList.add('strong');
             }
         });
     }
@@ -57,33 +52,53 @@ initTogglePassword();
 // =====================
 {
     const form = document.getElementById('resetForm');
-    const errorMsg = document.querySelector('.error-message');
-    const successMsg = document.querySelector('.success-message');
-    const formContainer = document.querySelector('.reset-form');
+    const messageContainer = document.getElementById('messageContainer');
+
+    function showMessage(text, type = 'error') {
+        if (!messageContainer) return;
+        messageContainer.innerHTML = `<div style="padding:12px;border-radius:8px;margin-bottom:16px;font-size:0.9rem;background:${type === 'success' ? 'rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2)'}">${text}</div>`;
+    }
+
+    function clearMessage() {
+        if (messageContainer) messageContainer.innerHTML = '';
+    }
 
     if (form) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-
-            if (errorMsg) { errorMsg.textContent = ''; errorMsg.classList.remove('show'); }
-            if (successMsg) { successMsg.textContent = ''; successMsg.classList.remove('show'); }
+            clearMessage();
 
             const password = document.getElementById('password').value;
-            const confirm = document.getElementById('password_confirm').value;
+            const confirm = document.getElementById('password_confirmation').value;
 
+            // Validação forte: mesmas regras do registro
             if (password.length < 8) {
-                if (errorMsg) {
-                    errorMsg.textContent = 'A senha deve ter pelo menos 8 caracteres.';
-                    errorMsg.classList.add('show');
-                }
+                showMessage('A senha deve ter pelo menos 8 caracteres.');
+                return;
+            }
+
+            if (!/[a-z]/.test(password)) {
+                showMessage('A senha deve conter pelo menos uma letra minúscula.');
+                return;
+            }
+
+            if (!/[A-Z]/.test(password)) {
+                showMessage('A senha deve conter pelo menos uma letra maiúscula.');
+                return;
+            }
+
+            if (!/[0-9]/.test(password)) {
+                showMessage('A senha deve conter pelo menos um número.');
+                return;
+            }
+
+            if (!/[^a-zA-Z0-9]/.test(password)) {
+                showMessage('A senha deve conter pelo menos um caractere especial.');
                 return;
             }
 
             if (password !== confirm) {
-                if (errorMsg) {
-                    errorMsg.textContent = 'As senhas não coincidem.';
-                    errorMsg.classList.add('show');
-                }
+                showMessage('As senhas não coincidem.');
                 return;
             }
 
@@ -106,28 +121,19 @@ initTogglePassword();
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    if (formContainer) formContainer.style.display = 'none';
-                    if (successMsg) {
-                        successMsg.textContent = data.message || 'Senha redefinida com sucesso!';
-                        successMsg.classList.add('show');
-                    }
+                    form.style.display = 'none';
+                    showMessage(data.message || 'Senha redefinida com sucesso!', 'success');
                     createConfetti(200);
                     setTimeout(() => {
                         window.location.href = data.redirect || BASE + 'login';
                     }, 2000);
                 } else {
-                    if (errorMsg) {
-                        errorMsg.textContent = data.message || 'Erro ao redefinir senha.';
-                        errorMsg.classList.add('show');
-                    }
+                    showMessage(data.message || 'Erro ao redefinir senha.');
                     btn.disabled = false;
                     btn.innerHTML = originalHtml;
                 }
             } catch (err) {
-                if (errorMsg) {
-                    errorMsg.textContent = 'Erro de conexão. Tente novamente.';
-                    errorMsg.classList.add('show');
-                }
+                showMessage('Erro de conexão. Tente novamente.');
                 btn.disabled = false;
                 btn.innerHTML = originalHtml;
             }

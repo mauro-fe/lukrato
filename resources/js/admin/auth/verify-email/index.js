@@ -13,6 +13,13 @@ const BASE = getBaseUrl();
 // =====================
 {
     const resendForm = document.getElementById('resendForm');
+    const resendMessage = document.getElementById('resendMessage');
+
+    function showResendMsg(text, type = 'error') {
+        if (!resendMessage) return;
+        resendMessage.textContent = text;
+        resendMessage.className = 'resend-message ' + (type === 'success' ? 'success' : 'error');
+    }
 
     if (resendForm) {
         resendForm.addEventListener('submit', async (e) => {
@@ -25,33 +32,26 @@ const BASE = getBaseUrl();
 
             try {
                 const formData = new FormData(resendForm);
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
                 const response = await fetch(resendForm.action, {
                     method: 'POST',
                     body: formData,
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
                     }
                 });
 
                 const data = await response.json();
 
-                const msg = resendForm.querySelector('.resend-message') ||
-                    document.querySelector('.resend-message');
-
-                if (msg) {
-                    msg.textContent = data.message || (response.ok
-                        ? 'E-mail reenviado com sucesso!'
-                        : 'Erro ao reenviar e-mail.');
-                    msg.className = 'resend-message ' + (response.ok ? 'success' : 'error');
-                }
+                showResendMsg(
+                    data.message || (response.ok ? 'E-mail reenviado com sucesso!' : 'Erro ao reenviar e-mail.'),
+                    response.ok ? 'success' : 'error'
+                );
             } catch (err) {
-                const msg = resendForm.querySelector('.resend-message') ||
-                    document.querySelector('.resend-message');
-                if (msg) {
-                    msg.textContent = 'Erro de conexão. Tente novamente.';
-                    msg.className = 'resend-message error';
-                }
+                showResendMsg('Erro de conexão. Tente novamente.');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalHtml;

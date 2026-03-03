@@ -11,7 +11,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
     <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
 
     <!-- CSRF Meta Tags para renovação automática -->
-    <?= csrf_meta('reset_password_form') ?>
+    <?= csrf_meta('reset_form') ?>
 
     <title>Redefinir Senha - Lukrato</title>
     <!-- Lucide Icons + FA Brands -->
@@ -47,9 +47,11 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
 
                     <form action="<?= BASE_URL ?>resetar-senha" method="POST" novalidate id="resetForm">
                         <?= csrf_input('reset_form') ?>
+                        <input type="hidden" name="token" value="<?= htmlspecialchars($token ?? '', ENT_QUOTES, 'UTF-8') ?>">
                         <div class="field">
                             <input type="password" name="password" id="password"
-                                placeholder="Nova senha (mínimo 8 caracteres)" required minlength="8">
+                                placeholder="Nova senha (mínimo 8 caracteres)" required minlength="8"
+                                aria-label="Nova senha">
                             <button type="button" class="toggle-password" data-target="password">
                                 <i data-lucide="eye"></i>
                             </button>
@@ -64,7 +66,8 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
 
                         <div class="field">
                             <input type="password" name="password_confirmation" id="password_confirmation"
-                                placeholder="Confirmar nova senha" required minlength="8">
+                                placeholder="Confirmar nova senha" required minlength="8"
+                                aria-label="Confirmar nova senha">
                             <button type="button" class="toggle-password" data-target="password_confirmation">
                                 <i data-lucide="eye"></i>
                             </button>

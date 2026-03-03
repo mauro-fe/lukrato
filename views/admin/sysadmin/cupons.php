@@ -2,7 +2,9 @@
 // Header incluído automaticamente pelo framework render() — não duplicar
 ?>
 
-<main class="main-content">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/cupons.css">
+
+<div class="main-content">
     <div class="cupons-container">
         <!-- Botão Voltar -->
         <a href="<?= BASE_URL ?>sysadmin" class="btn-voltar">
@@ -21,7 +23,7 @@
                     <p>Crie e gerencie cupons promocionais para seus clientes</p>
                 </div>
             </div>
-            <button class="btn-criar-cupom" onclick="abrirModalCriarCupom()">
+            <button class="btn-criar-cupom" data-action="abrirModalCriarCupom">
                 <i data-lucide="circle-plus"></i>
                 Criar Novo Cupom
             </button>
@@ -90,9 +92,7 @@
             </div>
         </div>
     </div>
-</main>
-
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/cupons.css">
+</div>
 
 <!-- SweetAlert2 já carregado no header -->
 <div id="modalCupom" class="modal">
@@ -102,7 +102,7 @@
                 <i data-lucide="circle-plus"></i>
                 <span id="modalTitle">Criar Novo Cupom</span>
             </h2>
-            <button class="btn-close" onclick="fecharModalCupom()">×</button>
+            <button class="btn-close" data-action="fecharModalCupom">×</button>
         </div>
         <form id="formCupom">
             <div class="modal-body">
@@ -116,7 +116,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="tipo_desconto">Tipo de Desconto *</label>
-                        <select id="tipo_desconto" name="tipo_desconto" required onchange="atualizarPlaceholder()">
+                        <select id="tipo_desconto" name="tipo_desconto" required data-action="atualizarPlaceholder">
                             <option value="percentual">Percentual (%)</option>
                             <option value="fixo">Valor Fixo (R$)</option>
                         </select>
@@ -164,7 +164,7 @@
                         <div class="elegibilidade-option">
                             <label class="toggle-switch">
                                 <input type="checkbox" id="apenas_primeira_assinatura" name="apenas_primeira_assinatura"
-                                    checked onchange="toggleReativacao()">
+                                    checked data-action="toggleReativacao">
                                 <span class="toggle-slider"></span>
                             </label>
                             <div class="option-text">
@@ -178,7 +178,7 @@
                             <div class="elegibilidade-option">
                                 <label class="toggle-switch small">
                                     <input type="checkbox" id="permite_reativacao" name="permite_reativacao"
-                                        onchange="toggleMesesInatividade()">
+                                        data-action="toggleMesesInatividade">
                                     <span class="toggle-slider"></span>
                                 </label>
                                 <div class="option-text">
@@ -208,7 +208,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="fecharModalCupom()">Cancelar</button>
+                <button type="button" class="btn btn-secondary" data-action="fecharModalCupom">Cancelar</button>
                 <button type="submit" class="btn btn-primary">
                     <i data-lucide="save"></i>
                     Salvar Cupom

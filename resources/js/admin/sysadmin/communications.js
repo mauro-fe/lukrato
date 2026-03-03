@@ -160,7 +160,7 @@ function renderCampaigns(campaigns) {
     }
 
     list.innerHTML = campaigns.map(campaign => `
-        <div class="campaign-item" onclick="showCampaignDetail(${campaign.id})">
+        <div class="campaign-item" data-action="showCampaignDetail" data-campaign-id="${campaign.id}">
             <div class="campaign-icon" style="background-color: ${campaign.color}20; color: ${campaign.color}">
                 <i data-lucide="${lucideIcon(campaign.icon)}"></i>
             </div>
@@ -172,15 +172,18 @@ function renderCampaigns(campaigns) {
                     <span><i data-lucide="calendar"></i> ${campaign.created_at}</span>
                 </div>
                 <div class="campaign-tags">
-                    <span class="tag">${campaign.filters_description}</span>
-                    <span class="tag">${campaign.channels_description}</span>
+                    <span class="tag">${escapeHtml(campaign.filters_description)}</span>
+                    <span class="tag">${escapeHtml(campaign.channels_description)}</span>
                 </div>
             </div>
             <div class="campaign-status" style="background-color: ${campaign.status_badge.color}">
-                ${campaign.status_badge.label}
+                ${escapeHtml(campaign.status_badge.label)}
             </div>
         </div>
     `).join('');
+
+    // Renderizar ícones Lucide nos elementos dinâmicos
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 // Atualizar paginação
@@ -279,6 +282,9 @@ async function showCampaignDetail(id) {
                     </div>
                 </div>
             `;
+
+            // Renderizar ícones Lucide no modal dinâmico
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         } else {
             body.innerHTML = `<div class="text-danger">Erro ao carregar detalhes</div>`;
         }
@@ -387,3 +393,21 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
+
+// ============================================================================
+// EVENT DELEGATION (substitui onclick handlers em módulos Vite)
+// ============================================================================
+
+document.addEventListener('click', (e) => {
+    const el = e.target.closest('[data-action]');
+    if (!el) return;
+
+    const action = el.dataset.action;
+
+    switch (action) {
+        case 'updatePreview': updatePreview(); break;
+        case 'loadCampaigns': loadCampaigns(); break;
+        case 'changePage': changePage(parseInt(el.dataset.delta)); break;
+        case 'showCampaignDetail': showCampaignDetail(parseInt(el.dataset.campaignId)); break;
+    }
+});

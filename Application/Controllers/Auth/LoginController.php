@@ -87,6 +87,8 @@ class LoginController extends BaseController
             return;
         }
 
+        $email = '';
+
         try {
             LogService::info('[LOGIN DEBUG] Validando CSRF');
             // Segurança
@@ -235,6 +237,17 @@ class LoginController extends BaseController
         // Caso especial para conta Google-only
         if (str_contains($message, 'Conta vinculada ao Google')) {
             $this->fail($message, 401, $errors);
+            return;
+        }
+
+        // Caso especial para email não verificado
+        if (!empty($errors['email_not_verified'])) {
+            $_SESSION['unverified_email'] = $errors['user_email'] ?? '';
+            $this->fail(
+                $errors['email'] ?? 'Você precisa verificar seu e-mail antes de fazer login.',
+                403,
+                $errors
+            );
             return;
         }
 

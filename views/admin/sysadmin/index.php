@@ -11,7 +11,7 @@
             <div class="stat-content">
                 <h3 class="stat-value" id="total-users"><?= number_format($metrics['totalUsers'] ?? 0, 0, ',', '.') ?>
                 </h3>
-                <p class="stat-label">Usuarios Totais</p>
+                <p class="stat-label">Usuários Totais</p>
                 <span class="stat-badge positive">
                     <i data-lucide="arrow-up"></i>
                     +<?= number_format($metrics['newToday'] ?? 0, 0, ',', '.') ?> hoje
@@ -29,7 +29,7 @@
                 <p class="stat-label">Admins Ativos</p>
                 <span class="stat-badge success">
                     <i data-lucide="circle-check"></i>
-                    Com permissoes
+                    Com permissões
                 </span>
             </div>
         </div>
@@ -167,8 +167,8 @@
                 <div class="control-header">
                     <i data-lucide="wrench"></i>
                     <div>
-                        <h3>Manutencao e Limpeza</h3>
-                        <p>Ferramentas para saude do servidor</p>
+                        <h3>Manutenção e Limpeza</h3>
+                        <p>Ferramentas para saúde do servidor</p>
                     </div>
                 </div>
                 <div class="control-actions">

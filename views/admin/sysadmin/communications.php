@@ -189,7 +189,7 @@
 
                     <!-- Botão de Envio -->
                     <div class="form-actions">
-                        <button type="button" class="btn btn-preview" onclick="updatePreview()">
+                        <button type="button" class="btn btn-preview" data-action="updatePreview">
                             <i data-lucide="eye"></i> Atualizar Preview
                         </button>
                         <button type="submit" class="btn btn-primary btn-send" id="btnSend">
@@ -205,7 +205,7 @@
             <div class="section-card">
                 <div class="section-header">
                     <h2><i data-lucide="history"></i> Histórico de Campanhas</h2>
-                    <button class="btn-refresh" onclick="loadCampaigns()" title="Atualizar">
+                    <button class="btn-refresh" data-action="loadCampaigns" title="Atualizar">
                         <i data-lucide="refresh-cw"></i>
                     </button>
                 </div>
@@ -219,11 +219,11 @@
 
                 <!-- Pagination -->
                 <div class="pagination-container" id="paginationContainer" style="display: none;">
-                    <button class="btn-page" id="btnPrevPage" onclick="changePage(-1)">
+                    <button class="btn-page" id="btnPrevPage" data-action="changePage" data-delta="-1">
                         <i data-lucide="chevron-left"></i>
                     </button>
                     <span class="page-info" id="pageInfo">Página 1 de 1</span>
-                    <button class="btn-page" id="btnNextPage" onclick="changePage(1)">
+                    <button class="btn-page" id="btnNextPage" data-action="changePage" data-delta="1">
                         <i data-lucide="chevron-right"></i>
                     </button>
                 </div>

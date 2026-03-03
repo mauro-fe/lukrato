@@ -54,15 +54,6 @@ Router::add('GET', '/sysadmin/cupons', 'SysAdmin\\CupomViewController@index', ['
 // SysAdmin - Comunicações e campanhas
 Router::add('GET', '/sysadmin/comunicacoes', 'SysAdmin\\CommunicationController@index', ['auth', 'sysadmin']);
 
-// SysAdmin - Listagem de usuários com filtros
-Router::add('GET', '/sysadmin/users', 'SysAdmin\\UserAdminController@list', ['auth', 'sysadmin']);
-
-// SysAdmin - Listagem de usuários com filtros (rota alternativa)
-Router::add('GET', '/super_admin/users', 'SysAdmin\UserAdminController@list', ['auth', 'sysadmin']);
-
-// SysAdmin - Listagem de usuários com filtros (rota alternativa com hífen)
-Router::add('GET', '/super-admin/users', 'SysAdmin\UserAdminController@list', ['auth', 'sysadmin']);
-
 
 
 // Redirects legados

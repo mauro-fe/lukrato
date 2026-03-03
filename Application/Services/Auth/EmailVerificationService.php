@@ -90,7 +90,7 @@ class EmailVerificationService
 
         // Verifica se o token não expirou (24 horas)
         $sentAt = $user->email_verification_sent_at;
-        if ($sentAt && $sentAt->diffInHours(now()) > 24) {
+        if (!$sentAt || $sentAt->diffInHours(now()) > 24) {
             LogService::warning('[EmailVerification] Token expirado', [
                 'user_id' => $user->id,
                 'sent_at' => $sentAt->toDateTimeString(),

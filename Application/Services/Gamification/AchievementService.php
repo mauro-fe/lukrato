@@ -395,8 +395,24 @@ class AchievementService
 
     private function checkDaysUsing(Usuario $user, int $days): bool
     {
+        // Verificar se a conta existe há pelo menos $days dias
         $createdAt = Carbon::parse($user->created_at);
-        return $createdAt->diffInDays(Carbon::now()) >= $days;
+        $accountAge = $createdAt->diffInDays(Carbon::now());
+        if ($accountAge < $days) {
+            return false;
+        }
+
+        // Para DAYS_30_USING, também verificar atividade real (pelo menos 5 dias com lançamentos)
+        if ($days <= 30) {
+            $activeDays = Lancamento::where('user_id', $user->id)
+                ->selectRaw('DATE(data) as dia')
+                ->groupBy('dia')
+                ->get()
+                ->count();
+            return $activeDays >= 5;
+        }
+
+        return true;
     }
 
     private function checkFirstMeta(int $userId): bool
@@ -448,21 +464,22 @@ class AchievementService
     {
         if (!$user->isPro()) return false;
 
-        // Critérios: 50+ lançamentos, 10+ categorias, streak de 7 dias
+        // Critérios: 50+ lançamentos, 10+ categorias personalizadas, streak de 7 dias
         $launches = Lancamento::where('user_id', $userId)->count();
-        $categories = Categoria::where('user_id', $userId)->count();
+        // Usar mesma lógica de categorias personalizadas de checkTotalCategories
+        $hasEnoughCategories = $this->checkTotalCategories($userId, 10);
         $progress = UserProgress::where('user_id', $userId)->first();
 
-        return $launches >= 50 && $categories >= 10 && $progress && $progress->best_streak >= 7;
+        return $launches >= 50 && $hasEnoughCategories && $progress && $progress->best_streak >= 7;
     }
 
     private function checkEconomistMaster(int $userId, Usuario $user): bool
     {
         if (!$user->isPro()) return false;
 
-        // Critérios: 3 meses com saldo positivo
-        // TODO: Implementar lógica de verificação de múltiplos meses
-        return false;
+        // Critérios: economizar 25% da receita em pelo menos 3 meses
+        // Reutiliza checkConsecutivePositiveMonths para 3 meses + checkSavingsPercentage para 25%
+        return $this->checkConsecutivePositiveMonths($userId, 3) && $this->checkSavingsPercentage($userId, 25);
     }
 
     private function checkMetaAchieved(int $userId, Usuario $user): bool
@@ -594,8 +611,8 @@ class AchievementService
         $consecutiveCount = 0;
         $maxConsecutive = 0;
 
-        // Verificar os últimos 24 meses
-        for ($i = 0; $i < 24; $i++) {
+        // Verificar os últimos 24 meses FECHADOS (excluindo o mês atual)
+        for ($i = 1; $i <= 24; $i++) {
             $month = Carbon::now()->subMonths($i)->format('Y-m');
 
             $receitas = Lancamento::where('user_id', $userId)

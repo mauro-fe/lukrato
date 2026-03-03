@@ -61,6 +61,7 @@ const elements = {
 };
 
 let currentFilter = 'all';
+let cachedAchievements = null; // Cache conquistas para filtro local
 
 // ─── Data Loading ───────────────────────────────────────────────────────────
 
@@ -126,6 +127,9 @@ function updateAchievements(data) {
     const achievements = data.data.achievements;
     const stats = data.data.stats || {};
     const unlockedCount = stats.unlocked_count || achievements.filter(a => a.unlocked).length;
+
+    // Cachear para filtro local (sem re-fetch)
+    cachedAchievements = achievements;
 
     if (elements.achievementsCountCard) {
         elements.achievementsCountCard.textContent = `${unlockedCount}/${achievements.length}`;
@@ -327,13 +331,20 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
         this.classList.add('active');
         currentFilter = this.dataset.filter;
 
-        fetch(`${BASE_URL}api/gamification/achievements`, { credentials: 'same-origin' })
-            .then(r => r.json())
-            .then(data => {
-                if (data.data?.achievements) {
-                    renderAchievements(data.data.achievements);
-                }
-            });
+        // Usar dados cacheados ao invés de re-fetchar da API
+        if (cachedAchievements) {
+            renderAchievements(cachedAchievements);
+        } else {
+            // Fallback: buscar da API se cache não disponível
+            fetch(`${BASE_URL}api/gamification/achievements`, { credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.data?.achievements) {
+                        cachedAchievements = data.data.achievements;
+                        renderAchievements(cachedAchievements);
+                    }
+                });
+        }
     });
 });
 

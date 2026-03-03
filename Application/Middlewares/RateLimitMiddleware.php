@@ -3,6 +3,7 @@
 namespace Application\Middlewares;
 
 use Application\Core\Request;
+use Application\Core\Router;
 use Application\Core\Exceptions\ValidationException;
 
 use Application\Services\Infrastructure\CacheService;
@@ -61,7 +62,13 @@ class RateLimitMiddleware
                 ],
             );
 
-            throw new ValidationException(['rate_limit' => 'Muitas requisições. Por favor, tente novamente em breve.'], 429);
+            // API/AJAX: resposta JSON via exception
+            if ($request->wantsJson() || $request->isAjax()) {
+                throw new ValidationException(['rate_limit' => 'Muitas requisições. Por favor, tente novamente em breve.'], 429);
+            }
+
+            // Web: página HTML de erro 429
+            Router::handleTooManyRequests($request, self::TIME_WINDOW);
         }
 
         // Adiciona a tentativa atual

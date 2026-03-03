@@ -13,6 +13,7 @@ $message = $message ?? 'Por favor, verifique seu email antes de fazer login.';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
+    <?= csrf_meta('verify_email_form') ?>
 
     <title>Verifique seu Email - Lukrato</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -22,7 +23,7 @@ $message = $message ?? 'Por favor, verifique seu email antes de fazer login.';
 
 <body>
     <div class="container">
-        <div class="icon">✉️</div>
+        <div class="icon" aria-hidden="true">✉️</div>
         
         <h1>Verifique seu e-mail</h1>
         
@@ -32,12 +33,12 @@ $message = $message ?? 'Por favor, verifique seu email antes de fazer login.';
 
         <?php if ($email): ?>
         <div class="email-highlight">
-            📧 <?= htmlspecialchars($email) ?>
+            <span aria-hidden="true">📧</span> <?= htmlspecialchars($email) ?>
         </div>
         <?php endif; ?>
 
         <div class="tips">
-            <div class="tips-title">💡 Não encontrou o e-mail?</div>
+            <div class="tips-title"><span aria-hidden="true">💡</span> Não encontrou o e-mail?</div>
             <ul>
                 <li>Verifique sua pasta de spam ou lixo eletrônico</li>
                 <li>Aguarde alguns minutos, pode haver um pequeno atraso</li>
@@ -46,13 +47,14 @@ $message = $message ?? 'Por favor, verifique seu email antes de fazer login.';
         </div>
 
         <form class="resend-form" id="resendForm" method="POST" action="<?= BASE_URL ?>verificar-email/reenviar">
+            <?= csrf_input('verify_email_form') ?>
             <input type="hidden" name="email" value="<?= htmlspecialchars($email) ?>">
-            <button type="submit" class="btn btn-primary" id="resendBtn">
+            <button type="submit" class="btn btn-primary" id="resendBtn" aria-label="Reenviar e-mail de verificação">
                 <span>Reenviar e-mail de verificação</span>
             </button>
         </form>
 
-        <div class="resend-message" id="resendMessage"></div>
+        <div class="resend-message" id="resendMessage" aria-live="polite" role="status"></div>
 
         <a href="<?= BASE_URL ?>login" class="btn btn-outline">
             ← Voltar para o login

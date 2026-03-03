@@ -75,6 +75,7 @@ class GamificationController extends BaseController
                 'is_pro' => $user->isPro(),
                 'streak_protection_available' => $streakInfo['protection_available'],
                 'streak_protection_used' => $streakInfo['protection_used_this_month'],
+                'level_thresholds' => GamificationService::LEVEL_THRESHOLDS,
             ], 'Progresso do usuário');
         } catch (Exception $e) {
             error_log("🎮 [GAMIFICATION] Erro ao buscar progresso: " . $e->getMessage());
@@ -203,6 +204,13 @@ class GamificationController extends BaseController
         $this->requireAuthApi();
 
         try {
+            // Leaderboard é exclusivo para usuários Pro
+            $user = Auth::user();
+            if (!$user || !$user->isPro()) {
+                Response::error('Recurso exclusivo para assinantes Pro', 403);
+                return;
+            }
+
             $topUsers = UserProgress::with('user:id,nome')
                 ->orderBy('total_points', 'desc')
                 ->orderBy('current_level', 'desc')

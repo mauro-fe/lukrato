@@ -29,8 +29,8 @@ class SuperAdminController extends BaseController
         $this->render(
             'admin/sysadmin/index',
             [
-                'pageTitle' => 'Area Restrita do Dono',
-                'subTitle' => 'Conteudo exclusivo para administradores',
+                'pageTitle' => 'Área Restrita do Dono',
+                'subTitle' => 'Conteúdo exclusivo para administradores',
                 'skipPlanLimits' => true,
                 'metrics' => [
                     'totalUsers'  => $totalUsers,

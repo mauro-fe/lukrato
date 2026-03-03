@@ -8,28 +8,14 @@
 require_once dirname(__DIR__) . '/bootstrap.php';
 
 use Application\Models\UserProgress;
+use Application\Services\Gamification\GamificationService;
 use Illuminate\Database\Capsule\Manager as DB;
 
 echo "🔄 Recalculando níveis de gamificação...\n";
 echo str_repeat("=", 60) . "\n\n";
 
-$thresholds = [
-    1 => 0,
-    2 => 300,
-    3 => 500,
-    4 => 700,
-    5 => 1000,
-    6 => 1500,
-    7 => 2200,
-    8 => 3000,
-    9 => 4000,
-    10 => 5500,
-    11 => 7500,
-    12 => 10000,
-    13 => 15000,
-    14 => 25000,
-    15 => 50000,
-];
+// Usar thresholds centralizados do GamificationService (fonte de verdade)
+$thresholds = GamificationService::LEVEL_THRESHOLDS;
 
 $MAX_LEVEL = 15;
 

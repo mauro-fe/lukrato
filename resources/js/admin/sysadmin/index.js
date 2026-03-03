@@ -21,14 +21,34 @@ const BASE_URL = (window.LK?.getBase?.() || '/');
 
 function limparCache() {
     if (window.LKFeedback) {
-        LKFeedback.confirm('Isso ira remover todos os arquivos de cache do sistema.', {
+        LKFeedback.confirm('Isso irá remover todos os arquivos de cache do sistema.', {
             title: 'Limpar Cache?',
             icon: 'question',
             confirmButtonText: 'Sim, limpar!',
             cancelButtonText: 'Cancelar'
-        }).then((result) => {
+        }).then(async (result) => {
             if (result.isConfirmed) {
-                LKFeedback.success('O cache do sistema foi limpo com sucesso.', { toast: true });
+                try {
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+                    const res = await fetch(`${BASE_URL}api/sysadmin/clear-cache`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        credentials: 'include'
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        LKFeedback.success(data.message || 'Cache limpo com sucesso.', { toast: true });
+                    } else {
+                        LKFeedback.error(data.message || 'Erro ao limpar cache.');
+                    }
+                } catch (error) {
+                    console.error('Erro ao limpar cache:', error);
+                    LKFeedback.error('Erro de conexão ao limpar cache.');
+                }
             }
         });
     } else {
@@ -192,8 +212,8 @@ function renderUserTable(users, total, page, perPage) {
                 : `<span class='badge-status free' style='background:#e5e7eb;color:#6b7280;font-weight:500;'><i data-lucide='user'></i> Free</span>`;
             html += `<tr>
                 <td><span class='user-id'>#${u.id}</span></td>
-                <td><div class='user-info'><div class='user-avatar'>${(u.nome || 'U')[0].toUpperCase()}</div><span class='user-name'>${u.nome || '-'}</span></div></td>
-                <td><span class='user-email'>${u.email || '-'}</span></td>
+                <td><div class='user-info'><div class='user-avatar'>${escapeHtml((u.nome || 'U')[0].toUpperCase())}</div><span class='user-name'>${escapeHtml(u.nome || '-')}</span></div></td>
+                <td><span class='user-email'>${escapeHtml(u.email || '-')}</span></td>
                 <td>${planBadge}</td>
                 <td>${u.is_admin == 1 ? `<span class='badge-status admin'><i data-lucide='shield'></i>Admin</span>` : `<span class='badge-status user'><i data-lucide='user'></i>Usuário</span>`}</td>
                 <td><span class='user-date'>${u.created_at ? formatDate(u.created_at) : '-'}</span></td>

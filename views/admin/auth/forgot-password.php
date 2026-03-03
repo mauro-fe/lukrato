@@ -11,7 +11,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
     <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
 
     <!-- CSRF Meta Tags para renovação automática -->
-    <?= csrf_meta('forgot_password_form') ?>
+    <?= csrf_meta('forgot_form') ?>
 
     <title>Recuperar senha - Lukrato</title>
 
@@ -55,7 +55,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
                         <?= csrf_input('forgot_form') ?>
                         <div class="field">
                             <input type="email" name="email" id="email" placeholder="Digite seu e-mail"
-                                autocomplete="email" required>
+                                autocomplete="email" required aria-label="E-mail">
                             <i data-lucide="mail" class="field-icon"></i>
                         </div>
 

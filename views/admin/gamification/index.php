@@ -34,7 +34,7 @@
                 <div class="stat-icon"><i data-lucide="flame"></i></div>
                 <div class="stat-content">
                     <div class="stat-value" id="currentStreakCard">0</div>
-                    <div class="stat-label">Dias Consecutivos</div>
+                    <div class="stat-label">Dias Ativos</div>
                 </div>
             </div>
             <div class="stat-card">

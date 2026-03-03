@@ -39,6 +39,14 @@ function getCsrfToken() {
 
 let cupons = [];
 
+// Helper: escape HTML para prevenir XSS
+function escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
+
 // Carregar cupons ao iniciar
 document.addEventListener('DOMContentLoaded', () => {
     carregarCupons();
@@ -117,26 +125,29 @@ function renderizarCupons() {
 
         return `
                     <tr>
-                        <td><span class="cupom-codigo">${cupom.codigo}</span></td>
-                        <td><span class="desconto-valor">${cupom.desconto_formatado}</span></td>
+                        <td><span class="cupom-codigo">${escapeHtml(cupom.codigo)}</span></td>
+                        <td><span class="desconto-valor">${escapeHtml(cupom.desconto_formatado)}</span></td>
                         <td>${tipoBadge}</td>
-                        <td><i data-lucide="calendar-days" style="margin-right: 0.375rem; opacity: 0.5;"></i>${cupom.valido_ate}</td>
+                        <td><i data-lucide="calendar-days" style="margin-right: 0.375rem; opacity: 0.5;"></i>${escapeHtml(cupom.valido_ate)}</td>
                         <td>${usoBadge}</td>
                         <td>${statusBadge}</td>
                         <td>
-                            <button class="btn-action btn-detalhes-mobile" onclick="verDetalhesMobile(${cupom.id})" title="Ver detalhes">
+                            <button class="btn-action btn-detalhes-mobile" data-action="verDetalhesMobile" data-cupom-id="${cupom.id}" title="Ver detalhes">
                                 <i data-lucide="eye"></i>
                             </button>
-                            <button class="btn-action btn-ver" onclick="verEstatisticas(${cupom.id})" title="Ver estatísticas">
+                            <button class="btn-action btn-ver" data-action="verEstatisticas" data-cupom-id="${cupom.id}" title="Ver estatísticas">
                                 <i data-lucide="bar-chart-3"></i> Ver
                             </button>
-                            <button class="btn-action btn-excluir" onclick="excluirCupom(${cupom.id}, '${cupom.codigo}')" title="Excluir">
+                            <button class="btn-action btn-excluir" data-action="excluirCupom" data-cupom-id="${cupom.id}" data-cupom-codigo="${escapeHtml(cupom.codigo)}" title="Excluir">
                                 <i data-lucide="trash-2"></i> Excluir
                             </button>
                         </td>
                     </tr>
                 `;
     }).join('');
+
+    // Renderizar ícones Lucide nos elementos dinâmicos
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function abrirModalCriarCupom() {
@@ -298,7 +309,7 @@ async function verEstatisticas(cupomId) {
                     '<div style="max-height: 300px; overflow-y: auto; margin-top: 1rem;"><table style="width: 100%; font-size: 0.9rem;"><thead><tr><th style="text-align: left; padding: 0.5rem; border-bottom: 1px solid #ddd;">Usuário</th><th style="text-align: left; padding: 0.5rem; border-bottom: 1px solid #ddd;">Desconto</th><th style="text-align: left; padding: 0.5rem; border-bottom: 1px solid #ddd;">Data</th></tr></thead><tbody>';
                 usos.forEach(uso => {
                     usosHtml +=
-                        `<tr><td style="padding: 0.5rem; border-bottom: 1px solid #eee;">${uso.usuario}<br><small>${uso.email}</small></td><td style="padding: 0.5rem; border-bottom: 1px solid #eee;">${uso.desconto_aplicado}</td><td style="padding: 0.5rem; border-bottom: 1px solid #eee;">${uso.usado_em}</td></tr>`;
+                        `<tr><td style="padding: 0.5rem; border-bottom: 1px solid #eee;">${escapeHtml(uso.usuario)}<br><small>${escapeHtml(uso.email)}</small></td><td style="padding: 0.5rem; border-bottom: 1px solid #eee;">${escapeHtml(uso.desconto_aplicado)}</td><td style="padding: 0.5rem; border-bottom: 1px solid #eee;">${escapeHtml(uso.usado_em)}</td></tr>`;
                 });
                 usosHtml += '</tbody></table></div>';
             } else {
@@ -307,10 +318,10 @@ async function verEstatisticas(cupomId) {
             }
 
             Swal.fire({
-                title: `Estatísticas: ${cupom.codigo}`,
+                title: `Estatísticas: ${escapeHtml(cupom.codigo)}`,
                 html: `
                             <div style="text-align: left;">
-                                <p><strong>Desconto:</strong> ${cupom.desconto_formatado}</p>
+                                <p><strong>Desconto:</strong> ${escapeHtml(cupom.desconto_formatado)}</p>
                                 <p><strong>Usos:</strong> ${cupom.uso_atual} ${cupom.limite_uso > 0 ? '/ ' + cupom.limite_uso : '(ilimitado)'}</p>
                                 <hr style="margin: 1rem 0;">
                                 <p><strong>Total de Desconto Concedido:</strong> R$ ${estatisticas.total_desconto}</p>
@@ -340,12 +351,12 @@ function verDetalhesMobile(cupomId) {
         `${cupom.uso_atual} usos (ilimitado)`;
 
     Swal.fire({
-        title: cupom.codigo,
+        title: escapeHtml(cupom.codigo),
         html: `
             <div style="text-align: left; padding: 1rem;">
                 <div style="margin-bottom: 1rem; padding: 0.75rem; background: rgba(230, 126, 34, 0.1); border-radius: 8px;">
                     <strong style="color: var(--color-primary);">💰 Desconto:</strong><br>
-                    <span style="font-size: 1.5rem; font-weight: bold; color: var(--color-primary);">${cupom.desconto_formatado}</span>
+                    <span style="font-size: 1.5rem; font-weight: bold; color: var(--color-primary);">${escapeHtml(cupom.desconto_formatado)}</span>
                 </div>
 
                 <div style="display: grid; gap: 0.75rem;">
@@ -356,7 +367,7 @@ function verDetalhesMobile(cupomId) {
 
                     <div>
                         <strong>📅 Validade:</strong><br>
-                        <span>${cupom.valido_ate}</span>
+                        <span>${escapeHtml(cupom.valido_ate)}</span>
                     </div>
 
                     <div>
@@ -372,17 +383,17 @@ function verDetalhesMobile(cupomId) {
                     ${cupom.descricao ? `
                     <div>
                         <strong>📝 Descrição:</strong><br>
-                        <span>${cupom.descricao}</span>
+                        <span>${escapeHtml(cupom.descricao)}</span>
                     </div>
                     ` : ''}
                 </div>
 
                 <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd; display: flex; gap: 0.5rem; justify-content: center;">
-                    <button onclick="verEstatisticas(${cupom.id}); Swal.close();" 
+                    <button data-action="verEstatisticasFromSwal" data-cupom-id="${cupom.id}"
                         style="padding: 0.5rem 1rem; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
                         <i data-lucide="bar-chart-3"></i> Ver Estatísticas
                     </button>
-                    <button onclick="excluirCupom(${cupom.id}, '${cupom.codigo}'); Swal.close();" 
+                    <button data-action="excluirCupomFromSwal" data-cupom-id="${cupom.id}" data-cupom-codigo="${escapeHtml(cupom.codigo)}"
                         style="padding: 0.5rem 1rem; background: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
                         <i data-lucide="trash-2"></i> Excluir
                     </button>
@@ -395,3 +406,38 @@ function verDetalhesMobile(cupomId) {
         confirmButtonColor: '#e67e22'
     });
 }
+
+// ============================================================================
+// EVENT DELEGATION (substitui onclick/onchange handlers em módulos Vite)
+// ============================================================================
+
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+
+    const action = btn.dataset.action;
+    const cupomId = btn.dataset.cupomId ? parseInt(btn.dataset.cupomId) : null;
+    const cupomCodigo = btn.dataset.cupomCodigo || '';
+
+    switch (action) {
+        case 'abrirModalCriarCupom': abrirModalCriarCupom(); break;
+        case 'fecharModalCupom': fecharModalCupom(); break;
+        case 'verDetalhesMobile': verDetalhesMobile(cupomId); break;
+        case 'verEstatisticas': verEstatisticas(cupomId); break;
+        case 'excluirCupom': excluirCupom(cupomId, cupomCodigo); break;
+        case 'verEstatisticasFromSwal': Swal.close(); verEstatisticas(cupomId); break;
+        case 'excluirCupomFromSwal': Swal.close(); excluirCupom(cupomId, cupomCodigo); break;
+    }
+});
+
+document.addEventListener('change', (e) => {
+    const el = e.target.closest('[data-action]');
+    if (!el) return;
+
+    const action = el.dataset.action;
+    switch (action) {
+        case 'atualizarPlaceholder': atualizarPlaceholder(); break;
+        case 'toggleReativacao': toggleReativacao(); break;
+        case 'toggleMesesInatividade': toggleMesesInatividade(); break;
+    }
+});

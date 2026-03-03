@@ -512,19 +512,26 @@
             if (data.success && data.data && data.data.pending && data.data.pending.length > 0) {
                 const pending = data.data.pending;
 
-                // Marcar como vistas IMEDIATAMENTE para evitar duplicação em outras abas/páginas
+                // Guardar IDs para marcar como vistas APÓS exibição dos modais
+                // (o markSeen é chamado pelo notifyAchievementUnlocked no .then() de cada modal)
+                // Marcar como vistas apenas para evitar duplicação em outras abas
+                // mas somente após breve delay para garantir que os modais foram criados
                 const achievementIds = pending.map(a => a.id);
-                await markAchievementsSeen(achievementIds);
 
                 // Exibir conquistas sequencialmente usando o sistema de fila
                 if (pending.length === 1) {
-                    // Apenas uma conquista
+                    // Apenas uma conquista - notifyAchievementUnlocked já chama markSeen no .then()
                     window.notifyAchievementUnlocked(pending[0]);
                 } else {
                     // Múltiplas conquistas - usar sistema de fila
                     window.combinedQueue = pending.map(ach => ({ type: 'achievement', data: ach }));
                     showNextQueuedItem();
                 }
+
+                // Marcar como vistas após 3s de segurança (backup caso o modal falhe)
+                setTimeout(() => {
+                    markAchievementsSeen(achievementIds);
+                }, 3000);
             }
         } catch (error) {
             console.error('🎮 [GAMIFICATION] Erro ao verificar conquistas pendentes:', error);

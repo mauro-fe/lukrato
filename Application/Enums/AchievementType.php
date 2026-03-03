@@ -182,6 +182,15 @@ enum AchievementType: string
             self::NEW_YEAR => 'Ano Novo',
             self::WEEKEND_WARRIOR => 'Guerreiro de Fim de Semana',
             self::SPEED_DEMON => 'Velocista',
+
+            // Perfil
+            self::PROFILE_COMPLETE => 'Perfil Completo',
+
+            // Indicação
+            self::FIRST_REFERRAL => 'Primeira Indicação',
+            self::REFERRALS_5 => 'Influenciador',
+            self::REFERRALS_10 => 'Embaixador',
+            self::REFERRALS_25 => 'Lenda',
         };
     }
 
@@ -256,6 +265,15 @@ enum AchievementType: string
             self::NEW_YEAR => 'Faça um lançamento no Ano Novo (01/01)',
             self::WEEKEND_WARRIOR => 'Faça 10 lançamentos em fins de semana',
             self::SPEED_DEMON => 'Faça 5 lançamentos em um único dia',
+
+            // Perfil
+            self::PROFILE_COMPLETE => 'Complete todos os dados do seu perfil',
+
+            // Indicação
+            self::FIRST_REFERRAL => 'Faça sua primeira indicação completada',
+            self::REFERRALS_5 => 'Faça 5 indicações completadas',
+            self::REFERRALS_10 => 'Faça 10 indicações completadas',
+            self::REFERRALS_25 => 'Faça 25 indicações completadas',
         };
     }
 
@@ -330,6 +348,15 @@ enum AchievementType: string
             self::NEW_YEAR => '🎆',
             self::WEEKEND_WARRIOR => '⚔️',
             self::SPEED_DEMON => '🚀',
+
+            // Perfil
+            self::PROFILE_COMPLETE => '👤',
+
+            // Indicação
+            self::FIRST_REFERRAL => '🤝',
+            self::REFERRALS_5 => '👥',
+            self::REFERRALS_10 => '📢',
+            self::REFERRALS_25 => '🏆',
         };
     }
 
@@ -404,6 +431,15 @@ enum AchievementType: string
             self::NEW_YEAR => 100,
             self::WEEKEND_WARRIOR => 50,
             self::SPEED_DEMON => 40,
+
+            // Perfil
+            self::PROFILE_COMPLETE => 50,
+
+            // Indicação
+            self::FIRST_REFERRAL => 75,
+            self::REFERRALS_5 => 200,
+            self::REFERRALS_10 => 400,
+            self::REFERRALS_25 => 1000,
         };
     }
 
