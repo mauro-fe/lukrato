@@ -214,7 +214,7 @@
 
 /* Badge "Recomendado" */
 .plan-card--recommended::after {
-  content: "â­ Recomendado";
+  content: "Recomendado";
   position: absolute;
   top: 20px;
   right: 20px;

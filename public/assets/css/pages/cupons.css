@@ -1,6 +1,4 @@
-/* PÃƒÂ¡gina de Gerenciamento de Cupons - Usando variÃƒÂ¡veis do sistema */
 
-/* BotÃƒÂ£o Voltar */
 .btn-voltar {
   display: inline-flex;
   align-items: center;
@@ -559,7 +557,7 @@
 }
 
 .form-group small::before {
-  content: "Ã¢â€žÂ¹Ã¯Â¸Â";
+  content: "";
   font-size: 0.875rem;
 }
 
@@ -739,7 +737,6 @@
   color: var(--color-text-muted);
 }
 /* ========================================================================== 
-   BOTÃƒÆ’O DE DETALHES MOBILE (apenas visÃƒÂ­vel em mobile)
    ========================================================================== */
 .btn-detalhes-mobile {
   display: none;
@@ -764,7 +761,6 @@
 }
 
 /* ========================================================================== 
-   RESPONSIVO MOBILE - PÃƒÂGINA PRINCIPAL
    ========================================================================== */
 @media (max-width: 1024px) {
   .cupons-header {
@@ -864,12 +860,10 @@
     display: none;
   }
 
-  /* Mostrar botÃƒÂ£o de detalhes apenas no mobile */
   .btn-detalhes-mobile {
     display: inline-flex;
   }
 
-  /* Esconder outros botÃƒÂµes de aÃƒÂ§ÃƒÂ£o no mobile - mostrar apenas o olho */
   .btn-ver,
   .btn-excluir {
     display: none;
@@ -976,7 +970,6 @@
   color: var(--color-text-muted);
 }
 
-/* SeÃƒÂ§ÃƒÂ£o de Elegibilidade */
 .elegibilidade-section {
   background: var(--color-surface-muted);
   border: 1px solid var(--color-card-border);
@@ -1099,8 +1092,6 @@
 .toggle-switch.small input:checked + .toggle-slider:before {
   transform: translateX(18px);
 }
-
-/* Sub-opÃƒÂ§ÃƒÂµes */
 .elegibilidade-suboption {
   margin-top: var(--spacing-3);
   padding-left: var(--spacing-4);

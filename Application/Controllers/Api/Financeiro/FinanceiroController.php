@@ -119,26 +119,22 @@ class FinanceiroController extends BaseController
             ->ativas()
             ->sum('saldo_inicial');
 
-        // 2. Soma das receitas (respeitando afeta_caixa)
+        // 2. Soma das receitas (respeitando afeta_caixa + pago)
         $receitas = (float) Lancamento::where('user_id', $userId)
             ->where('tipo', LancamentoTipo::RECEITA->value)
             ->where('eh_transferencia', 0)
+            ->where('pago', 1)
+            ->where('afeta_caixa', 1)
             ->where('data', '<=', $ate)
-            ->where(function ($q) {
-                $q->where('afeta_caixa', true)
-                    ->orWhereNull('afeta_caixa'); // Backward compatibility
-            })
             ->sum('valor');
 
-        // 3. Soma das despesas (respeitando afeta_caixa)
+        // 3. Soma das despesas (respeitando afeta_caixa + pago)
         $despesas = (float) Lancamento::where('user_id', $userId)
             ->where('tipo', LancamentoTipo::DESPESA->value)
             ->where('eh_transferencia', 0)
+            ->where('pago', 1)
+            ->where('afeta_caixa', 1)
             ->where('data', '<=', $ate)
-            ->where(function ($q) {
-                $q->where('afeta_caixa', true)
-                    ->orWhereNull('afeta_caixa'); // Backward compatibility
-            })
             ->sum('valor');
 
         // Nota: Transferências não afetam o saldo global (entrada em uma conta = saída de outra)

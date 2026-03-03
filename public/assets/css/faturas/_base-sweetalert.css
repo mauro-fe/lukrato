@@ -1,8 +1,3 @@
-/**
- * ============================================================================
- * PARCELAMENTOS - ESTILO MODERNO (Atualizado com novas variÃƒÂ¡veis)
- * ============================================================================
- */
 
 /* ==================== Z-INDEX PARA SWEET ALERT ==================== */
 /* Sweet Alert acima do modal do Bootstrap */
@@ -16,18 +11,15 @@
   z-index: 999999 !important;
 }
 
-/* Backdrop do SweetAlert tambÃƒÂ©m precisa estar acima */
 .swal2-container.swal2-backdrop-show.swal-above-modal {
   z-index: 999998 !important;
   background: var(--color-bg) !important;
 }
 
-/* Garantir que qualquer swal2-container dentro de um modal apareÃƒÂ§a na frente */
 .swal2-container {
   z-index: 999999 !important;
 }
 
-/* Estilo escuro para o popup de ediÃƒÂ§ÃƒÂ£o */
 .swal-dark-popup {
   background: #1e293b !important;
   color: #e2e8f0 !important;
@@ -47,7 +39,6 @@
   overflow: visible !important;
 }
 
-/* FormulÃƒÂ¡rio de ediÃƒÂ§ÃƒÂ£o customizado */
 .swal-edit-form {
   text-align: left;
   padding: 0.5rem 0;

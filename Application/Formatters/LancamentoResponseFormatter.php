@@ -32,6 +32,7 @@ class LancamentoResponseFormatter
             'pago' => (bool)($lancamento->pago ?? true),
             'data_pagamento' => $lancamento->data_pagamento ?? null,
             'parcelamento_id' => (int)($lancamento->parcelamento_id ?? 0) ?: null,
+            'numero_parcela' => $lancamento->numero_parcela ? (int)$lancamento->numero_parcela : null,
             'cartao_credito_id' => (int)($lancamento->cartao_credito_id ?? 0) ?: null,
             'forma_pagamento' => (string)($lancamento->forma_pagamento ?? ''),
             'origem_tipo' => (string)($lancamento->origem_tipo ?? ''),
@@ -57,6 +58,10 @@ class LancamentoResponseFormatter
             'conta_instituicao' => $lancamento->conta?->instituicao ?? '',
             'cartao_nome' => $lancamento->cartaoCredito?->nome_cartao ?? '',
             'cartao_bandeira' => $lancamento->cartaoCredito?->bandeira ?? '',
+            // Totais reais do parcelamento
+            'total_parcelas' => $lancamento->parcelamento?->numero_parcelas ? (int)$lancamento->parcelamento->numero_parcelas : ($lancamento->total_parcelas ? (int)$lancamento->total_parcelas : null),
+            'parcelas_pagas' => $lancamento->parcelamento?->parcelas_pagas !== null ? (int)$lancamento->parcelamento->parcelas_pagas : null,
+            'parcelamento_status' => $lancamento->parcelamento?->status ?? null,
         ];
     }
 

@@ -1,6 +1,4 @@
-﻿/* ============================================================================
-   RELATÃƒÆ’Ã¢â‚¬Å“RIO DE CARTÃƒÆ’Ã¢â‚¬Â¢ES
-   ============================================================================ */
+﻿
 
 .cards-report-container {
   padding: var(--spacing-4);
@@ -284,9 +282,6 @@
   flex-shrink: 0;
 }
 
-/* ============================================================================
-   GRID DE CARTÃƒÆ’Ã¢â‚¬Â¢ES
-   ============================================================================ */
 
 .cards-grid {
   display: grid;
@@ -341,7 +336,6 @@
   border-left: 3px solid #f39c12;
 }
 
-/* Estados de saÃƒÆ’Ã‚Âºde */
 .card-item.critico {
   border-left: 3px solid #e74c3c;
   animation: pulse-warning 2s ease-in-out infinite;
@@ -503,7 +497,6 @@
   }
 }
 
-/* TendÃƒÆ’Ã‚Âªncia compacta */
 .card-trend-compact {
   display: flex;
   justify-content: space-between;
@@ -534,7 +527,6 @@
   color: #2ecc71;
 }
 
-/* Sparkline de tendÃƒÆ’Ã‚Âªncia */
 .card-sparkline {
   padding: var(--spacing-3) var(--spacing-4);
   background: var(--color-bg-secondary);
@@ -667,7 +659,6 @@
   border-color: rgba(52, 152, 219, 0.3);
 }
 
-/* SeÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de saldo compacta */
 .card-balance {
   padding: var(--spacing-4) var(--spacing-4) var(--spacing-3) var(--spacing-4);
 }
@@ -755,7 +746,6 @@
   color: var(--color-text);
 }
 
-/* Barra de utilizaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o compacta */
 .card-usage-new {
   padding: var(--spacing-3) var(--spacing-4);
   background: var(--color-bg-secondary);
@@ -803,7 +793,6 @@
   background: var(--color-text-muted);
 }
 
-/* Cores apenas para estados crÃƒÆ’Ã‚Â­ticos */
 .card-item.critico .usage-fill-new {
   background: linear-gradient(90deg, #e74c3c, #c0392b);
 }
@@ -845,7 +834,6 @@
   color: var(--color-text);
 }
 
-/* PrÃƒÆ’Ã‚Â³ximos meses compactos */
 .card-forecast {
   padding: var(--spacing-3) var(--spacing-4);
   background: var(--color-bg-secondary);
@@ -901,7 +889,6 @@
   color: var(--color-text);
 }
 
-/* Remover estilos antigos que nÃƒÆ’Ã‚Â£o sÃƒÆ’Ã‚Â£o mais usados */
 
 .card-item .card-header {
   display: flex;

@@ -162,13 +162,14 @@ class LogService
 
         $since = now()->subHours($hours);
 
-        $byLevel = ErrorLog::where('created_at', '>=', $since)
+        // Contadores de não-resolvidos por nível (sem filtro de tempo)
+        $byLevel = ErrorLog::whereNull('resolved_at')
             ->selectRaw('level, COUNT(*) as total')
             ->groupBy('level')
             ->pluck('total', 'level')
             ->toArray();
 
-        $byCategory = ErrorLog::where('created_at', '>=', $since)
+        $byCategory = ErrorLog::whereNull('resolved_at')
             ->selectRaw('category, COUNT(*) as total')
             ->groupBy('category')
             ->orderByDesc('total')
@@ -177,7 +178,6 @@ class LogService
             ->toArray();
 
         $unresolved = ErrorLog::whereNull('resolved_at')
-            ->where('level', '!=', 'info')
             ->count();
 
         return [

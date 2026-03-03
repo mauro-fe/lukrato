@@ -1,4 +1,3 @@
-/* ==================== CARTÃƒÆ’O DE CRÃƒâ€°DITO ==================== */
 .credit-card {
   position: relative;
   height: 220px;
@@ -264,7 +263,6 @@
   box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
 }
 
-/* Cores dos cartÃƒÂµes por bandeira */
 .credit-card[data-brand="visa"] {
   background: var(--card-gradient-visa);
 }

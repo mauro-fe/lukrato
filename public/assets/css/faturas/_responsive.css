@@ -71,7 +71,6 @@
     display: inline;
   }
 
-  /* BotÃƒÂ£o Pagar Fatura (modal detalhes) - mobile */
   .btn-pagar-fatura {
     padding: 0.6rem 1rem;
   }
@@ -334,7 +333,6 @@
     display: inline !important;
   }
 
-  /* Ocultar botÃƒÂµes desktop, mostrar botÃƒÂ£o mobile */
   .btn-toggle-parcela {
     display: none !important;
   }
@@ -583,7 +581,6 @@
     padding: var(--spacing-1) var(--spacing-2);
   }
 
-  /* BotÃƒÂµes mobile otimizados */
   .btn-toggle-parcela {
     width: 100%;
     display: flex !important;
@@ -594,7 +591,6 @@
     display: inline-flex !important;
   }
 
-  /* BotÃƒÂµes mobile otimizados */
   .modern-btn {
     padding: var(--spacing-2) var(--spacing-3);
     font-size: var(--font-size-sm);
@@ -916,7 +912,6 @@
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
   }
 
-  /* BotÃƒÂ£o de pagar fatura - garantir que apareÃƒÂ§a */
   .btn-pagar-fatura-completa {
     display: flex !important;
     width: 100%;
@@ -1065,12 +1060,10 @@
     display: inline !important;
   }
 
-  /* Ocultar botÃƒÂµes desktop, mostrar botÃƒÂ£o mobile */
   .btn-toggle-parcela {
     display: none !important;
   }
 
-  /* ExceÃƒÂ§ÃƒÂ£o: mostrar botÃƒÂµes de pagar */
   .btn-toggle-parcela.btn-pagar {
     display: inline-flex !important;
     padding: 6px 10px;
@@ -1118,7 +1111,6 @@
     display: none;
   }
 
-  /* Parcelamento cards especÃƒÂ­ficos */
   .parcelamento-card .parc-card-header {
     display: flex;
     flex-direction: column;
@@ -1270,7 +1262,6 @@
   }
 }
 
-/* OrientaÃƒÂ§ÃƒÂ£o paisagem mobile */
 @media (max-width: 768px) and (orientation: landscape) {
   .modern-modal .modal-dialog {
     margin: var(--spacing-2);
@@ -1546,7 +1537,7 @@
     letter-spacing: 0.02em;
   }
 
-  .parcelas-table tbody td[data-label="AÃƒÂ§ÃƒÂ£o"] {
+  .parcelas-table tbody td[data-label=""] {
     padding-top: var(--spacing-2);
   }
 }

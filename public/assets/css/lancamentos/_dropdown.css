@@ -1,0 +1,170 @@
+/* ============================================================================
+   DROPDOWN 3-DOT MENU
+   ============================================================================
+   Menu de ações unificado para lançamentos (desktop + mobile)
+   ============================================================================ */
+
+.lk-dropdown {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Trigger button (⋮) */
+.lk-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  background: transparent;
+  color: var(--text-secondary, #94a3b8);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.lk-dropdown-trigger:hover {
+  background: var(--glass-bg, rgba(255, 255, 255, 0.06));
+  color: var(--color-text, #e2e8f0);
+}
+
+.lk-dropdown-trigger:active {
+  transform: scale(0.92);
+}
+
+.lk-dropdown-trigger svg,
+.lk-dropdown-trigger i {
+  width: 18px;
+  height: 18px;
+}
+
+/* Dropdown menu panel */
+.lk-dropdown-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 9999;
+  min-width: 200px;
+  padding: 6px 0;
+  background: var(--color-surface, #1e293b);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-md, 10px);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.35),
+    0 2px 10px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+}
+
+.lk-dropdown-menu.open {
+  display: block;
+  animation: lk-dropdown-in 0.15s ease-out;
+}
+
+@keyframes lk-dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Menu items */
+.lk-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 14px;
+  border: none;
+  background: none;
+  color: var(--color-text, #e2e8f0);
+  font-size: 0.82rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.12s ease;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.lk-dropdown-item:hover {
+  background: var(--glass-bg, rgba(255, 255, 255, 0.06));
+}
+
+.lk-dropdown-item svg,
+.lk-dropdown-item i {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+/* Variant colors */
+.lk-dropdown-success {
+  color: var(--color-success, #2ecc71);
+}
+
+.lk-dropdown-success:hover {
+  background: rgba(46, 204, 113, 0.1);
+}
+
+.lk-dropdown-warning {
+  color: var(--color-warning, #f39c12);
+}
+
+.lk-dropdown-warning:hover {
+  background: rgba(243, 156, 18, 0.1);
+}
+
+.lk-dropdown-danger {
+  color: var(--color-danger, #e74c3c);
+}
+
+.lk-dropdown-danger:hover {
+  background: rgba(231, 76, 60, 0.1);
+}
+
+/* Divider */
+.lk-dropdown-divider {
+  height: 1px;
+  margin: 4px 10px;
+  background: var(--glass-border, rgba(255, 255, 255, 0.08));
+}
+
+/* ============================================================================
+   TABLE ROW 3-DOT – keep cell tight
+   ============================================================================ */
+
+td .lk-dropdown {
+  display: flex;
+  justify-content: center;
+}
+
+/* ============================================================================
+   MOBILE CARDS – dropdown inside expanded details
+   ============================================================================ */
+
+.lan-card .lk-dropdown-trigger {
+  width: 36px;
+  height: 36px;
+}
+
+.lan-card .lk-dropdown-menu {
+  min-width: 220px;
+}
+
+/* ============================================================================
+   PARCELAMENTO GROUP ROW – dropdown
+   ============================================================================ */
+
+.parcelamento-grupo .lk-dropdown-trigger {
+  color: var(--color-primary, #e67e22);
+}
+
+.parcelamento-grupo .lk-dropdown-trigger:hover {
+  background: rgba(230, 126, 34, 0.12);
+}

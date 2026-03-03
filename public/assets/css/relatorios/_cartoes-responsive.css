@@ -22,7 +22,6 @@
     font-size: var(--font-size-lg);
   }
 
-  /* Cards de cartÃƒÆ’Ã‚Âµes */
   .cards-grid {
     grid-template-columns: 1fr;
     gap: var(--spacing-4);
@@ -172,7 +171,6 @@
     padding: var(--spacing-2);
   }
 
-  /* TÃƒÆ’Ã‚Â­tulos */
   .page-title {
     font-size: var(--font-size-xl);
   }
@@ -195,7 +193,6 @@
     font-size: 18px;
   }
 
-  /* Cards de cartÃƒÆ’Ã‚Âµes */
   .card-header-gradient {
     flex-direction: column;
     align-items: flex-start;
@@ -244,7 +241,6 @@
     font-size: var(--font-size-base);
   }
 
-  /* Barra de utilizaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o */
   .card-usage-new {
     padding: var(--spacing-2) var(--spacing-3);
   }
@@ -271,8 +267,6 @@
   .installments-value {
     font-size: var(--font-size-base);
   }
-
-  /* PrÃƒÆ’Ã‚Â³ximos meses */
   .card-forecast {
     padding: var(--spacing-2) var(--spacing-3);
   }
@@ -373,7 +367,7 @@
   }
 
   .period-previous::before {
-    content: "ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ ";
+    content: "—";
     margin-right: 4px;
   }
 
@@ -457,7 +451,6 @@
     padding-bottom: var(--spacing-2);
   }
 
-  /* ExportaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o */
   .export-controls {
     flex-direction: column;
     gap: var(--spacing-2);
@@ -543,7 +536,6 @@
     border-radius: var(--radius-md);
   }
 
-  /* TÃƒÆ’Ã‚Â­tulos */
   .page-title {
     font-size: var(--font-size-lg);
   }
@@ -645,7 +637,6 @@
     font-size: var(--font-size-base);
   }
 
-  /* CartÃƒÆ’Ã‚Âµes */
   .card-icon-wrapper {
     width: 36px;
     height: 36px;
@@ -720,14 +711,12 @@
     font-size: var(--font-size-sm);
   }
 
-  /* BotÃƒÆ’Ã‚Âµes */
   .form-select,
   .modern-btn {
     font-size: var(--font-size-sm);
     padding: 8px 12px;
   }
 
-  /* EspaÃƒÆ’Ã‚Â§amentos */
   .controls-row,
   .comparative-grid-new {
     gap: var(--spacing-2);
@@ -837,7 +826,6 @@
   }
 }
 
-/* Smartphones em landscape especÃƒÆ’Ã‚Â­fico */
 @media (min-width: 576px) and (max-width: 896px) and (orientation: landscape) {
   .chart-container {
     min-height: 300px;
@@ -864,7 +852,6 @@
   }
 }
 
-/* Ajuste para iPads especÃƒÆ’Ã‚Â­ficos */
 @media only screen and (min-device-width: 768px) and (max-device-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
   .chart-container {
     min-height: 400px;
@@ -879,7 +866,6 @@
   }
 }
 
-/* Ajuste para iPhone especÃƒÆ’Ã‚Â­ficos (notch devices) */
 @supports (padding: env(safe-area-inset-left)) {
   .rel-page {
     padding-left: max(var(--spacing-2), env(safe-area-inset-left));

@@ -69,9 +69,8 @@ class ComparativesService
         return Lancamento::where('user_id', $this->userId)
             ->whereBetween('data', [$start->toDateString(), $end->toDateString()])
             ->where('eh_transferencia', 0)
-            ->where(function ($q) {
-                $q->where('afeta_caixa', true)->orWhereNull('afeta_caixa');
-            })
+            ->where('pago', 1)
+            ->where('afeta_caixa', 1)
             ->selectRaw('
                 SUM(CASE WHEN tipo = "receita" THEN valor ELSE 0 END) as receitas,
                 SUM(CASE WHEN tipo = "despesa" THEN valor ELSE 0 END) as despesas
@@ -242,13 +241,10 @@ class ComparativesService
             ->where($col('tipo'), 'despesa')
             ->where($col('eh_transferencia'), 0)
             ->where($col('pago'), 1)
-            ->where(function ($q) use ($col) {
-                $q->where($col('afeta_caixa'), true)
-                  ->orWhereNull($col('afeta_caixa'));
-            })
+            ->where($col('afeta_caixa'), 1)
             ->where(function ($q) use ($col) {
                 $q->whereNull($col('origem_tipo'))
-                  ->orWhere($col('origem_tipo'), '!=', 'pagamento_fatura');
+                    ->orWhere($col('origem_tipo'), '!=', 'pagamento_fatura');
             });
     }
 
@@ -264,9 +260,8 @@ class ComparativesService
             $data = Lancamento::where('user_id', $this->userId)
                 ->whereBetween('data', [$mesRef->toDateString(), $mesEnd->toDateString()])
                 ->where('eh_transferencia', 0)
-                ->where(function ($q) {
-                    $q->where('afeta_caixa', true)->orWhereNull('afeta_caixa');
-                })
+                ->where('pago', 1)
+                ->where('afeta_caixa', 1)
                 ->selectRaw('
                     SUM(CASE WHEN tipo = "receita" THEN valor ELSE 0 END) as receitas,
                     SUM(CASE WHEN tipo = "despesa" THEN valor ELSE 0 END) as despesas

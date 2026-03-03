@@ -43,7 +43,7 @@
 }
 
 .lk-checkbox input[type="checkbox"]:checked::after {
-  content: "âœ“";
+  content: "";
   position: absolute;
   color: var(--color-text);
   font-size: 12px;

@@ -101,9 +101,8 @@ class InsightsService
         return Lancamento::where('user_id', $this->userId)
             ->whereBetween('data', [$start->toDateString(), $end->toDateString()])
             ->where('eh_transferencia', 0)
-            ->where(function ($q) {
-                $q->where('afeta_caixa', true)->orWhereNull('afeta_caixa');
-            })
+            ->where('pago', 1)
+            ->where('afeta_caixa', 1)
             ->selectRaw('
                 SUM(CASE WHEN tipo = "receita" THEN valor ELSE 0 END) as receitas,
                 SUM(CASE WHEN tipo = "despesa" THEN valor ELSE 0 END) as despesas
@@ -168,10 +167,12 @@ class InsightsService
     {
         $topCategoria = Lancamento::where('lancamentos.user_id', $this->userId)
             ->where('lancamentos.tipo', 'despesa')
+            ->where('lancamentos.pago', 1)
+            ->where('lancamentos.afeta_caixa', 1)
             ->whereBetween('lancamentos.data', [$this->currentStart->toDateString(), $this->currentEnd->toDateString()])
             ->where(function ($q) {
                 $q->whereNull('lancamentos.origem_tipo')
-                   ->orWhere('lancamentos.origem_tipo', '!=', 'pagamento_fatura');
+                    ->orWhere('lancamentos.origem_tipo', '!=', 'pagamento_fatura');
             })
             ->join('categorias', 'lancamentos.categoria_id', '=', 'categorias.id')
             ->selectRaw('categorias.nome, SUM(lancamentos.valor) as total')
@@ -211,6 +212,7 @@ class InsightsService
         foreach ($cartoes as $cartao) {
             $gasto = Lancamento::where('user_id', $this->userId)
                 ->where('cartao_credito_id', $cartao->id)
+                ->where('pago', 1)
                 ->whereBetween('data', [$this->currentStart->toDateString(), $this->currentEnd->toDateString()])
                 ->sum('valor');
 
@@ -276,11 +278,13 @@ class InsightsService
         foreach ($orcamentos as $orc) {
             $gasto = Lancamento::where('user_id', $this->userId)
                 ->where('tipo', 'despesa')
+                ->where('pago', 1)
+                ->where('afeta_caixa', 1)
                 ->where('categoria_id', $orc->categoria_id)
                 ->whereBetween('data', [$this->currentStart->toDateString(), $this->currentEnd->toDateString()])
                 ->where(function ($q) {
                     $q->whereNull('origem_tipo')
-                       ->orWhere('origem_tipo', '!=', 'pagamento_fatura');
+                        ->orWhere('origem_tipo', '!=', 'pagamento_fatura');
                 })
                 ->sum('valor');
 
@@ -375,6 +379,8 @@ class InsightsService
         $maiorGasto = Lancamento::where('user_id', $this->userId)
             ->where('tipo', 'despesa')
             ->where('eh_transferencia', 0)
+            ->where('pago', 1)
+            ->where('afeta_caixa', 1)
             ->whereBetween('data', [$this->currentStart->toDateString(), $this->currentEnd->toDateString()])
             ->orderByDesc('valor')
             ->first();
@@ -435,6 +441,8 @@ class InsightsService
         $formaPagamento = Lancamento::where('user_id', $this->userId)
             ->where('tipo', 'despesa')
             ->where('eh_transferencia', 0)
+            ->where('pago', 1)
+            ->where('afeta_caixa', 1)
             ->whereBetween('data', [$this->currentStart->toDateString(), $this->currentEnd->toDateString()])
             ->whereNotNull('forma_pagamento')
             ->where('forma_pagamento', '!=', '')
@@ -538,11 +546,13 @@ class InsightsService
         $categorias = Lancamento::where('lancamentos.user_id', $this->userId)
             ->where('lancamentos.tipo', 'despesa')
             ->where('lancamentos.eh_transferencia', 0)
+            ->where('lancamentos.pago', 1)
+            ->where('lancamentos.afeta_caixa', 1)
             ->whereBetween('lancamentos.data', [$this->currentStart->toDateString(), $this->currentEnd->toDateString()])
             ->whereNotNull('lancamentos.categoria_id')
             ->where(function ($q) {
                 $q->whereNull('lancamentos.origem_tipo')
-                   ->orWhere('lancamentos.origem_tipo', '!=', 'pagamento_fatura');
+                    ->orWhere('lancamentos.origem_tipo', '!=', 'pagamento_fatura');
             })
             ->join('categorias', 'lancamentos.categoria_id', '=', 'categorias.id')
             ->selectRaw('categorias.nome, SUM(lancamentos.valor) as total')
@@ -582,6 +592,8 @@ class InsightsService
         $gastosWeekend = Lancamento::where('user_id', $this->userId)
             ->where('tipo', 'despesa')
             ->where('eh_transferencia', 0)
+            ->where('pago', 1)
+            ->where('afeta_caixa', 1)
             ->whereBetween('data', [$this->currentStart->toDateString(), $this->currentEnd->toDateString()])
             ->whereRaw('DAYOFWEEK(data) IN (1, 7)')
             ->sum('valor');
@@ -611,12 +623,16 @@ class InsightsService
         $qtdAtual = Lancamento::where('user_id', $this->userId)
             ->where('tipo', 'despesa')
             ->where('eh_transferencia', 0)
+            ->where('pago', 1)
+            ->where('afeta_caixa', 1)
             ->whereBetween('data', [$this->currentStart->toDateString(), $this->currentEnd->toDateString()])
             ->count();
 
         $qtdAnterior = Lancamento::where('user_id', $this->userId)
             ->where('tipo', 'despesa')
             ->where('eh_transferencia', 0)
+            ->where('pago', 1)
+            ->where('afeta_caixa', 1)
             ->whereBetween('data', [$this->previousStart->toDateString(), $this->previousEnd->toDateString()])
             ->count();
 

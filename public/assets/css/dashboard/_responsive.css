@@ -269,7 +269,6 @@
   }
 }
 
-/* Media query especÃƒÂ­fica para dispositivos muito pequenos (300px - 360px) */
 @media (max-width: 360px) {
   .transaction-card {
     padding: 10px !important;

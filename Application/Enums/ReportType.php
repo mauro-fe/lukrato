@@ -39,6 +39,8 @@ enum ReportType: string
             'por_conta' => self::RECEITAS_DESPESAS_POR_CONTA,
             'resumo'    => self::RESUMO_ANUAL,
             'anual'     => self::RESUMO_ANUAL,
+            'cartoes'   => self::CARTOES_CREDITO,
+            'cartao'    => self::CARTOES_CREDITO,
         ];
 
         $normalized = strtolower(trim($shorthand));

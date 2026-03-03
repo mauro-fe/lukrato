@@ -343,9 +343,9 @@ export const TableManager = {
         // Description cell (clean, no badges)
         let descricaoCell;
         if (isGroup) {
-            const totalParcelas = item._parcelas.length;
-            const parcelasPagas = item._parcelas.filter(p => p.pago).length;
-            const valorParcela = valor / totalParcelas;
+            const totalParcelas = item._totalParcelas || item._parcelas.length;
+            const parcelasPagas = item._parcelasPagas ?? item._parcelas.filter(p => p.pago).length;
+            const valorParcela = totalParcelas > 0 ? valor / item._parcelas.length : 0;
             const percentual = totalParcelas > 0 ? (parcelasPagas / totalParcelas) * 100 : 0;
             descricaoCell = `
                 <td class="td-descricao">
@@ -394,7 +394,19 @@ export const TableManager = {
         const isTransfer = Boolean(item.eh_transferencia);
         const dataPagamentoFormatted = Utils.fmtDate(item.data_pagamento);
         let pagoEmCell;
-        if (isTransfer) {
+        if (isGroup) {
+            // Mostrar status da parcela do mês atual (não o agregado — info já está na descrição)
+            const currentParcela = item._parcelas && item._parcelas[0];
+            const cpIsPago = currentParcela && (currentParcela.pago == 1 || currentParcela.pago === true);
+            const cpDataPag = cpIsPago && currentParcela.data_pagamento ? Utils.fmtDate(currentParcela.data_pagamento) : '';
+            if (cpIsPago && cpDataPag && cpDataPag !== '-') {
+                pagoEmCell = `<td class="td-pago-em"><span class="lk-pago-badge lk-pago-ok"><i data-lucide="circle-check"></i> ${Utils.escapeHtml(cpDataPag)}</span></td>`;
+            } else if (cpIsPago) {
+                pagoEmCell = `<td class="td-pago-em"><span class="lk-pago-badge lk-pago-ok"><i data-lucide="circle-check"></i> Pago</span></td>`;
+            } else {
+                pagoEmCell = `<td class="td-pago-em"><span class="lk-pago-badge lk-pago-pendente"><i data-lucide="clock"></i> Pendente</span></td>`;
+            }
+        } else if (isTransfer) {
             pagoEmCell = `<td class="td-pago-em"><span class="lk-pago-badge lk-pago-transfer"><i data-lucide="repeat"></i> Transf.</span></td>`;
         } else if (isPago && dataPagamentoFormatted && dataPagamentoFormatted !== '-') {
             pagoEmCell = `<td class="td-pago-em"><span class="lk-pago-badge lk-pago-ok"><i data-lucide="circle-check"></i> ${Utils.escapeHtml(dataPagamentoFormatted)}</span></td>`;
@@ -407,8 +419,8 @@ export const TableManager = {
         // Valor cell
         let valorCell;
         if (isGroup) {
-            const totalParcelas = item._parcelas.length;
-            const parcelasPagas = item._parcelas.filter(p => p.pago).length;
+            const totalParcelas = item._totalParcelas || item._parcelas.length;
+            const parcelasPagas = item._parcelasPagas ?? item._parcelas.filter(p => p.pago).length;
             const percentual = totalParcelas > 0 ? (parcelasPagas / totalParcelas) * 100 : 0;
             valorCell = `
                 <td class="td-valor">
@@ -424,7 +436,7 @@ export const TableManager = {
             valorCell = `<td class="td-valor"><span class="valor-cell ${tipoClass}">${Utils.fmtMoney(valor)}</span></td>`;
         }
 
-        // Actions cell (no more eye/view button — expand replaces it)
+        // Actions cell — unified 3-dot dropdown menu for ALL types
         let actionsCell;
         if (isSaldoInicial) {
             actionsCell = '<td class="td-acoes"></td>';
@@ -432,41 +444,61 @@ export const TableManager = {
             const parcelamentoId = String(id).replace('grupo_', '');
             actionsCell = `
                 <td class="td-acoes">
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
+                    <div class="lk-dropdown">
+                        <button class="lk-dropdown-trigger" title="Ações">
                             <i data-lucide="more-vertical"></i>
                         </button>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a class="dropdown-item toggle-parcelas-menu" href="#" data-parcelamento-id="${parcelamentoId}">
-                                    <i data-lucide="list"></i> Ver Parcelas
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <a class="dropdown-item text-danger delete-parcelamento" href="#" data-parcelamento-id="${parcelamentoId}">
-                                    <i data-lucide="trash-2"></i> Cancelar Parcelamento
-                                </a>
-                            </li>
-                        </ul>
+                        <div class="lk-dropdown-menu">
+                            <button class="lk-dropdown-item toggle-parcelas-menu" data-parcelamento-id="${parcelamentoId}">
+                                <i data-lucide="list"></i> Ver Parcelas
+                            </button>
+                            <div class="lk-dropdown-divider"></div>
+                            <button class="lk-dropdown-item lk-dropdown-danger delete-parcelamento" data-parcelamento-id="${parcelamentoId}">
+                                <i data-lucide="trash-2"></i> Cancelar Parcelamento
+                            </button>
+                        </div>
                     </div>
                 </td>`;
         } else {
-            const buttons = [];
-            if (Utils.canEditLancamento(item)) {
-                buttons.push(`<button class="lk-btn ghost" data-action="edit" data-id="${id}" title="Editar"><i data-lucide="pen"></i></button>`);
-            }
             const isPagoAction = Boolean(item.pago);
             const isCanceladoAction = !!item.cancelado_em;
-            if (!isPagoAction && !isCanceladoAction && !isTransfer) {
-                buttons.push(`<button class="lk-btn ghost" data-action="marcar-pago" data-id="${id}" title="Marcar como Pago" style="color:#28a745;"><i data-lucide="circle-check"></i></button>`);
-            }
             const isRecorrenteAction = item.recorrente == 1 || item.recorrente === true;
-            if (isRecorrenteAction && !isCanceladoAction) {
-                buttons.push(`<button class="lk-btn ghost" data-action="cancelar-recorrencia" data-id="${id}" title="Cancelar Recorrência" style="color:#dc3545;"><i data-lucide="x-circle"></i></button>`);
+
+            let menuItems = '';
+
+            // Editar
+            if (Utils.canEditLancamento(item)) {
+                menuItems += `<button class="lk-dropdown-item" data-action="edit" data-id="${id}"><i data-lucide="pen"></i> Editar</button>`;
             }
-            buttons.push(`<button class="lk-btn delete" data-action="delete" data-id="${id}" title="Excluir"><i data-lucide="trash-2"></i></button>`);
-            actionsCell = `<td class="td-acoes"><div class="lk-actions">${buttons.join('')}</div></td>`;
+
+            // Marcar como Pago / Pendente
+            if (!isCanceladoAction && !isTransfer) {
+                if (!isPagoAction) {
+                    menuItems += `<button class="lk-dropdown-item lk-dropdown-success" data-action="marcar-pago" data-id="${id}"><i data-lucide="circle-check"></i> Marcar como Pago</button>`;
+                } else {
+                    menuItems += `<button class="lk-dropdown-item lk-dropdown-warning" data-action="desmarcar-pago" data-id="${id}"><i data-lucide="clock"></i> Marcar como Pendente</button>`;
+                }
+            }
+
+            // Cancelar Recorrência
+            if (isRecorrenteAction && !isCanceladoAction) {
+                menuItems += `<div class="lk-dropdown-divider"></div>`;
+                menuItems += `<button class="lk-dropdown-item lk-dropdown-danger" data-action="cancelar-recorrencia" data-id="${id}"><i data-lucide="x-circle"></i> Cancelar Recorrência</button>`;
+            }
+
+            // Excluir
+            menuItems += `<div class="lk-dropdown-divider"></div>`;
+            menuItems += `<button class="lk-dropdown-item lk-dropdown-danger" data-action="delete" data-id="${id}"><i data-lucide="trash-2"></i> Excluir</button>`;
+
+            actionsCell = `
+                <td class="td-acoes">
+                    <div class="lk-dropdown">
+                        <button class="lk-dropdown-trigger" title="Ações">
+                            <i data-lucide="more-vertical"></i>
+                        </button>
+                        <div class="lk-dropdown-menu">${menuItems}</div>
+                    </div>
+                </td>`;
         }
 
         // Build main row
@@ -662,6 +694,56 @@ export const TableManager = {
      * Handle clicks on table (edit/delete actions)
      */
     handleTableClick(e) {
+        // ─── Dropdown toggle (3-dot menu) ────────────────────────────
+        const dropdownTrigger = e.target.closest('.lk-dropdown-trigger');
+        if (dropdownTrigger) {
+            e.preventDefault();
+            e.stopPropagation();
+            const dropdown = dropdownTrigger.closest('.lk-dropdown');
+            const menu = dropdown?.querySelector('.lk-dropdown-menu');
+            if (!menu) return;
+
+            // Close all other open dropdowns
+            document.querySelectorAll('.lk-dropdown-menu.open').forEach(m => {
+                if (m !== menu) m.classList.remove('open');
+            });
+
+            menu.classList.toggle('open');
+
+            // Position the menu (above or below depending on space)
+            const rect = dropdownTrigger.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            if (spaceBelow < 200) {
+                menu.style.bottom = '100%';
+                menu.style.top = 'auto';
+            } else {
+                menu.style.top = '100%';
+                menu.style.bottom = 'auto';
+            }
+
+            // Auto-close on outside click
+            const closeHandler = (ev) => {
+                if (!dropdown.contains(ev.target)) {
+                    menu.classList.remove('open');
+                    document.removeEventListener('click', closeHandler, true);
+                }
+            };
+            setTimeout(() => document.addEventListener('click', closeHandler, true), 0);
+
+            // Render lucide icons in newly opened menu
+            if (menu.classList.contains('open') && window.lucide) {
+                lucide.createIcons({ nodes: [menu] });
+            }
+            return;
+        }
+
+        // ─── Dropdown item click → close menu ───────────────────────
+        const dropdownItem = e.target.closest('.lk-dropdown-item');
+        if (dropdownItem) {
+            const menu = dropdownItem.closest('.lk-dropdown-menu');
+            if (menu) menu.classList.remove('open');
+        }
+
         const btn = e.target.closest('button[data-action]');
         if (!btn) return;
 
@@ -771,6 +853,39 @@ export const TableManager = {
                 } catch (error) {
                     console.error('Erro ao marcar como pago:', error);
                     Notifications.toast('Erro ao marcar como pago.', 'error');
+                }
+                btn.disabled = false;
+            })();
+        }
+
+        if (action === 'desmarcar-pago') {
+            (async () => {
+                const ok = await Notifications.ask(
+                    'Marcar como pendente?',
+                    'Este lançamento voltará para pendente e não afetará mais o saldo da conta.'
+                );
+                if (!ok) return;
+
+                btn.disabled = true;
+                try {
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+                    const response = await fetch(`${CONFIG.BASE_URL}api/lancamentos/${id}/despagar`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': csrfToken
+                        }
+                    });
+                    if (response.ok) {
+                        Notifications.toast('Lançamento marcado como pendente!');
+                        await Modules.DataManager.load();
+                    } else {
+                        const err = await response.json();
+                        Notifications.toast(err.message || 'Erro ao marcar como pendente.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Erro ao desmarcar como pago:', error);
+                    Notifications.toast('Erro ao desmarcar como pago.', 'error');
                 }
                 btn.disabled = false;
             })();

@@ -1,4 +1,3 @@
-/* Ajustes especÃƒÂ­ficos para pÃƒÂ¡gina de arquivados */
 .cont-page {
   padding: 2rem;
 }
@@ -7,7 +6,6 @@
   min-height: 400px;
 }
 
-/* Sobrescrever estilos de aÃƒÂ§ÃƒÂµes para arquivados */
 .card-actions {
   gap: 0.5rem;
 }

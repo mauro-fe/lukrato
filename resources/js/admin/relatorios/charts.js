@@ -93,29 +93,27 @@ export const ChartManager = {
     },
 
     renderPie(data) {
-        const { labels = [], values = [], details = null } = data;
+        const { labels = [], values = [], details = null, cat_ids = null } = data;
 
         if (!labels.length || !values.some(v => v > 0)) {
             return Modules.UI.showEmptyState();
         }
 
-        // Store details for drill-down (PRO only)
-        STATE.reportDetails = details;
-        STATE.activeDrilldown = null;
-
         // Preparar entradas com cores
+        // Use cat_ids from API (same query as labels) for reliable mapping;
+        // fall back to details label matching if cat_ids unavailable
         let entries = labels
             .map((label, idx) => ({
                 label,
                 value: Number(values[idx]) || 0,
                 color: CONFIG.CHART_COLORS[idx % CONFIG.CHART_COLORS.length],
-                catId: details ? (details[idx]?.cat_id ?? null) : null
+                catId: cat_ids ? (cat_ids[idx] ?? null) : null
             }))
             .filter(e => e.value > 0)
             .sort((a, b) => b.value - a.value);
 
-        // Re-map catId after sorting (match details by label)
-        if (details) {
+        // Re-map catId after sorting when we don't have cat_ids from API
+        if (!cat_ids && details) {
             entries = entries.map(e => {
                 const match = details.find(d => d.label === e.label);
                 return { ...e, catId: match?.cat_id ?? null };
@@ -170,6 +168,10 @@ export const ChartManager = {
         Modules.UI.setContent(html);
         ChartManager.destroy();
 
+        // Store details AFTER destroy() — destroy() clears STATE.reportDetails
+        STATE.reportDetails = details;
+        STATE.activeDrilldown = null;
+
         // Armazenar as entradas processadas para renderizar a lista mobile
         ChartManager._currentEntries = processedEntries;
 
@@ -222,6 +224,13 @@ export const ChartManager = {
                         const entry = processedEntries[globalIdx];
                         if (!entry || entry.isOthers) return;
                         ChartManager.handlePieClick(entry, globalIdx, el, idx);
+                    },
+                    // Cursor pointer on hoverable segments (visual cue for drill-down)
+                    onHover: (event, elements) => {
+                        const target = event.native?.target;
+                        if (target) {
+                            target.style.cursor = elements.length ? 'pointer' : 'default';
+                        }
                     },
                     plugins: {
                         // ===================================================================
@@ -295,7 +304,7 @@ export const ChartManager = {
             const detail = hasDetails && entry.catId != null
                 ? STATE.reportDetails.find(d => d.cat_id === entry.catId)
                 : null;
-            const hasSubcats = detail && detail.subcategories && detail.subcategories.length > 1;
+            const hasSubcats = detail && detail.subcategories && detail.subcategories.filter(s => s.id !== 0).length > 0;
             const chevron = hasSubcats ? `<i data-lucide="chevron-down" class="category-chevron"></i>` : '';
 
             let subcatHTML = '';
@@ -447,6 +456,23 @@ export const ChartManager = {
         const catId = entry.catId;
         const detail = STATE.reportDetails.find(d => d.cat_id === catId);
         if (!detail || !detail.subcategories || detail.subcategories.length === 0) return;
+
+        // If ALL subcategories are just "Outros" (no real subcategoria assigned), show info toast
+        const realSubcats = detail.subcategories.filter(s => s.id !== 0);
+        if (realSubcats.length === 0) {
+            if (window.Swal?.fire) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Sem subcategorias',
+                    text: 'Atribua subcategorias aos seus lançamentos para ver o detalhamento desta categoria.',
+                    confirmButtonText: 'Entendi',
+                    confirmButtonColor: '#f59e0b',
+                    timer: 5000,
+                    timerProgressBar: true
+                });
+            }
+            return;
+        }
 
         // Toggle: clicking same segment again closes drill-down
         if (STATE.activeDrilldown === catId) {

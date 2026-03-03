@@ -442,11 +442,16 @@ async function updateSummaryCards() {
         totalCartoesEl.textContent = formatCurrency(stats.totalCartoes || 0);
     }
 
-    // Atualizar insights se existir na página
-    await updateInsightsSection();
+    // Atualizar insights e comparativos apenas se a seção estiver visível
+    const insightsPanel = document.getElementById('section-insights');
+    if (insightsPanel && insightsPanel.classList.contains('active')) {
+        await updateInsightsSection();
+    }
 
-    // Atualizar comparativos se existir na página
-    await updateComparativesSection();
+    const comparativosPanel = document.getElementById('section-comparativos');
+    if (comparativosPanel && comparativosPanel.classList.contains('active')) {
+        await updateComparativesSection();
+    }
 }
 
 async function updateInsightsSection() {
@@ -1035,7 +1040,8 @@ function renderCardsReport(data) {
                          data-card-id="${card.id || ''}"
                          data-card-nome="${escapeHtml(card.nome)}"
                          data-card-cor="${card.cor || '#E67E22'}"
-                         onclick="if(window.LK_CardDetail?.open) window.LK_CardDetail.open(${card.id || 0}, '${escapeHtml(card.nome)}', '${card.cor || '#E67E22'}', '${STATE.currentMonth}')"
+                         data-card-month="${STATE.currentMonth}"
+                         data-action="open-card-detail"
                          role="button"
                          tabindex="0">
                         <!-- Header -->
@@ -1137,7 +1143,7 @@ function renderCardsReport(data) {
                         ` : ''}
                         
                         <div class="card-footer">
-                            <button class="card-action-btn primary full-width" onclick="event.stopPropagation(); if(window.LK_CardDetail?.open) window.LK_CardDetail.open(${card.id || 0}, '${escapeHtml(card.nome)}', '${card.cor || '#E67E22'}', '${STATE.currentMonth}')" title="Ver relatório detalhado">
+                            <button class="card-action-btn primary full-width" data-action="open-card-detail" data-card-id="${card.id || ''}" data-card-nome="${escapeHtml(card.nome)}" data-card-cor="${card.cor || '#E67E22'}" data-card-month="${STATE.currentMonth}" title="Ver relatório detalhado">
                                 <i data-lucide="eye"></i>
                                 <span>Ver Detalhes</span>
                             </button>
@@ -1250,6 +1256,17 @@ export async function handleExport() {
     } finally {
         exportBtn.disabled = false;
         exportBtn.innerHTML = originalHTML;
+    }
+}
+
+/**
+ * Refresh PRO sections (insights/comparativos) when their tab becomes active.
+ */
+export async function refreshActiveSection(section) {
+    if (section === 'insights') {
+        await updateInsightsSection();
+    } else if (section === 'comparativos') {
+        await updateComparativesSection();
     }
 }
 

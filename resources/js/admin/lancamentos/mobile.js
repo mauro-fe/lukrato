@@ -221,49 +221,35 @@ const MobileCards = {
                 cardBadges += ' <span class="badge" style="font-size:0.6rem;background:#7c3aed;color:white;">💳 Fatura</span>';
             }
 
-            // Botões de ação para desktop/tablet
-            const actionsHtml = `
-                ${Utils.canEditLancamento(item)
-                    ? `<button class="lk-btn ghost lan-card-btn" data-action="edit" data-id="${id}" title="Editar lançamento">
-                           <i data-lucide="pen"></i>
-                       </button>`
-                    : ''
-                }
-                ${!Utils.isSaldoInicial(item)
-                    ? `<button class="lk-btn danger lan-card-btn" data-action="delete" data-id="${id}" title="Excluir lançamento">
-                           <i data-lucide="trash-2"></i>
-                       </button>`
-                    : ''
-                }
-            `.trim();
+            // Menu dropdown 3-dot para ações
+            const canEdit = Utils.canEditLancamento(item);
+            const isSaldoIni = Utils.isSaldoInicial(item);
+            const isPagFatura = item.origem_tipo === 'pagamento_fatura';
 
-            // Para mobile pequeno, sempre gera os botões (com ou sem permissões para garantir que apareçam)
-            let mobileActionsHtml = '';
-            if (isXs) {
-                const canEdit = Utils.canEditLancamento(item);
-                const canDelete = !Utils.isSaldoInicial(item);
-
-                const buttonStyle = 'display: flex !important; visibility: visible !important; opacity: 1 !important; width: 30px !important; height: 36px !important; min-width: 30px !important; min-height: 36px !important; border-radius: 10px !important; padding: 0 !important; margin: 0 2px !important; align-items: center !important; justify-content: center !important; flex: 0 0 auto !important; position: relative !important; z-index: 999 !important;';
-
-                // Se tiver ao menos uma permissão, mostra os botões permitidos
-                if (canEdit || canDelete) {
-                    mobileActionsHtml = `
-                        ${canEdit ? `<button class="lk-btn ghost lan-card-btn" data-action="edit" data-id="${id}" title="Editar lançamento" style="${buttonStyle} background: rgba(230, 126, 34, 0.3) !important; color: #e67e22 !important; border: 1px solid #e67e22 !important;">
-                               <i data-lucide="pen" style="font-size: 0.75rem; color: #e67e22;"></i>
-                           </button>` : ''}
-                        ${canDelete ? `<button class="lk-btn danger lan-card-btn" data-action="delete" data-id="${id}" title="Excluir lançamento" style="${buttonStyle} background: rgba(231, 76, 60, 0.3) !important; color: #e74c3c !important; border: 1px solid #e74c3c !important;">
-                               <i data-lucide="trash-2" style="font-size: 0.75rem; color: #e74c3c;"></i>
-                           </button>` : ''}`.trim();
-                } else {
-                    // Fallback: sempre mostra os botões em telas pequenas
-                    mobileActionsHtml = `<button class="lk-btn ghost lan-card-btn" data-action="edit" data-id="${id}" title="Editar lançamento" style="${buttonStyle} background: rgba(230, 126, 34, 0.3) !important; color: #e67e22 !important; border: 1px solid #e67e22 !important;">
-                               <i data-lucide="pen" style="font-size: 0.75rem; color: #e67e22;"></i>
-                           </button>
-                           <button class="lk-btn danger lan-card-btn" data-action="delete" data-id="${id}" title="Excluir lançamento" style="${buttonStyle} background: rgba(231, 76, 60, 0.3) !important; color: #e74c3c !important; border: 1px solid #e74c3c !important;">
-                               <i data-lucide="trash-2" style="font-size: 0.75rem; color: #e74c3c;"></i>
-                           </button>`.trim();
-                }
+            let menuItems = '';
+            if (canEdit) {
+                menuItems += `<button class="lk-dropdown-item" data-action="edit" data-id="${id}"><i data-lucide="pen"></i> Editar</button>`;
             }
+            if (!isPago && !isTransfer && !isPagFatura && !isSaldoIni) {
+                menuItems += `<button class="lk-dropdown-item lk-dropdown-success" data-action="marcar-pago" data-id="${id}"><i data-lucide="circle-check"></i> Marcar como Pago</button>`;
+            } else if (isPago && !isTransfer && !isPagFatura && !isSaldoIni) {
+                menuItems += `<button class="lk-dropdown-item lk-dropdown-warning" data-action="desmarcar-pago" data-id="${id}"><i data-lucide="circle-x"></i> Marcar como Pendente</button>`;
+            }
+            if (isRecorrente && !isCancelado) {
+                menuItems += `<div class="lk-dropdown-divider"></div>`;
+                menuItems += `<button class="lk-dropdown-item lk-dropdown-warning" data-action="cancelar-recorrencia" data-id="${id}"><i data-lucide="ban"></i> Cancelar Recorrência</button>`;
+            }
+            if (!isSaldoIni) {
+                menuItems += `<div class="lk-dropdown-divider"></div>`;
+                menuItems += `<button class="lk-dropdown-item lk-dropdown-danger" data-action="delete" data-id="${id}"><i data-lucide="trash-2"></i> Excluir</button>`;
+            }
+
+            const dropdownHtml = menuItems ? `
+                <div class="lk-dropdown">
+                    <button class="lk-dropdown-trigger" type="button"><i data-lucide="more-vertical"></i></button>
+                    <div class="lk-dropdown-menu">${menuItems}</div>
+                </div>
+            ` : '';
 
             parts.push(`
                 <article class="lan-card card-item" data-id="${id}" aria-expanded="false">
@@ -322,7 +308,7 @@ const MobileCards = {
                         <div class="lan-card-detail-row card-detail-row actions-row" style="display: flex !important;">
                             <span class="lan-card-detail-label card-detail-label">AÇÕES</span>
                             <span class="lan-card-detail-value card-detail-value actions-slot" style="display: flex !important; gap: 8px;">
-                                ${actionsHtml || '<span style="color: var(--text-secondary); font-size: 0.75rem;">Nenhuma ação disponível</span>'}
+                                ${dropdownHtml || '<span style="color: var(--text-secondary); font-size: 0.75rem;">Nenhuma ação disponível</span>'}
                             </span>
                         </div>
                     </div>
@@ -333,13 +319,6 @@ const MobileCards = {
         DOM.lanCards.innerHTML = parts.join('');
         if (window.lucide) lucide.createIcons();
 
-        // Debug: verificar se os botões foram inseridos no DOM
-        if (isXs) {
-            const actionsRows = document.querySelectorAll('.actions-row');
-            actionsRows.forEach((row, i) => {
-                const buttons = row.querySelectorAll('.lk-btn');
-            });
-        }
         this.updatePager(total, page, totalPages);
         this.updateSortIndicators();
     },
@@ -434,6 +413,53 @@ const MobileCards = {
     handleClick(ev) {
         const target = ev.target;
 
+        // ── Dropdown 3-dot toggle ──
+        const trigger = target.closest('.lk-dropdown-trigger');
+        if (trigger) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            const dropdown = trigger.closest('.lk-dropdown');
+            const menu = dropdown?.querySelector('.lk-dropdown-menu');
+            if (!menu) return;
+
+            // Fecha qualquer outro dropdown aberto
+            document.querySelectorAll('.lk-dropdown-menu.open').forEach(m => {
+                if (m !== menu) m.classList.remove('open');
+            });
+
+            const isOpen = menu.classList.toggle('open');
+            if (isOpen) {
+                // Posiciona acima ou abaixo conforme espaço
+                const rect = trigger.getBoundingClientRect();
+                const spaceBelow = window.innerHeight - rect.bottom;
+                if (spaceBelow < 200) {
+                    menu.style.bottom = '100%';
+                    menu.style.top = 'auto';
+                } else {
+                    menu.style.top = '100%';
+                    menu.style.bottom = 'auto';
+                }
+                if (window.lucide) lucide.createIcons({ nodes: menu.querySelectorAll('[data-lucide]') });
+
+                // Fechar ao clicar fora
+                const closeHandler = (e) => {
+                    if (!dropdown.contains(e.target)) {
+                        menu.classList.remove('open');
+                        document.removeEventListener('click', closeHandler, true);
+                    }
+                };
+                setTimeout(() => document.addEventListener('click', closeHandler, true), 0);
+            }
+            return;
+        }
+
+        // Fechar dropdown ao clicar em um item
+        const dropdownItem = target.closest('.lk-dropdown-item');
+        if (dropdownItem) {
+            const openMenu = dropdownItem.closest('.lk-dropdown-menu');
+            if (openMenu) openMenu.classList.remove('open');
+        }
+
         // Clique nos títulos de ordenação (Data / Valor)
         const sortBtn = target.closest('[data-sort]');
         if (sortBtn) {
@@ -455,8 +481,8 @@ const MobileCards = {
             return;
         }
 
-        // Botões Editar / Excluir
-        const actionBtn = target.closest('.lan-card-btn');
+        // Botões de ação (dropdown items)
+        const actionBtn = target.closest('.lk-dropdown-item');
         if (!actionBtn) return;
 
         const action = actionBtn.dataset.action;
@@ -555,6 +581,38 @@ const MobileCards = {
                     }
                 } catch (error) {
                     Notifications.toast('Erro ao marcar como pago.', 'error');
+                }
+                actionBtn.disabled = false;
+            })();
+        }
+
+        if (action === 'desmarcar-pago') {
+            (async () => {
+                const ok = await Notifications.ask(
+                    'Marcar como pendente?',
+                    'Este lançamento voltará a ser pendente e não afetará o saldo.'
+                );
+                if (!ok) return;
+
+                actionBtn.disabled = true;
+                try {
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+                    const response = await fetch(`${CONFIG.BASE_URL}api/lancamentos/${id}/despagar`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': csrfToken
+                        }
+                    });
+                    if (response.ok) {
+                        Notifications.toast('Lançamento marcado como pendente!');
+                        await Modules.DataManager.load();
+                    } else {
+                        const err = await response.json();
+                        Notifications.toast(err.message || 'Erro ao desmarcar pago.', 'error');
+                    }
+                } catch (error) {
+                    Notifications.toast('Erro ao desmarcar pago.', 'error');
                 }
                 actionBtn.disabled = false;
             })();

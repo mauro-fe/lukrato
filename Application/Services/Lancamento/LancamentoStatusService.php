@@ -42,6 +42,37 @@ class LancamentoStatusService
         $this->lancamentoRepo->update($lancamento->id, [
             'pago'            => 1,
             'data_pagamento'  => date('Y-m-d'),
+            'afeta_caixa'     => 1,
+        ]);
+
+        return $lancamento->fresh();
+    }
+
+    /**
+     * Desmarca um lançamento como pago (volta para pendente).
+     *
+     * @param Lancamento $lancamento
+     * @return Lancamento O lançamento atualizado
+     * @throws \DomainException Se o lançamento não estiver pago
+     */
+    public function desmarcarPago(Lancamento $lancamento): Lancamento
+    {
+        if (!$lancamento->pago) {
+            throw new \DomainException('Lançamento já está pendente.');
+        }
+
+        // Não permitir desmarcar lançamentos de origem fatura/cartão
+        $origensProtegidas = [
+            Lancamento::ORIGEM_PAGAMENTO_FATURA,
+        ];
+        if (in_array($lancamento->origem_tipo, $origensProtegidas, true)) {
+            throw new \DomainException('Este lançamento não pode ser desmarcado como pago.');
+        }
+
+        $this->lancamentoRepo->update($lancamento->id, [
+            'pago'            => 0,
+            'data_pagamento'  => null,
+            'afeta_caixa'     => 0,
         ]);
 
         return $lancamento->fresh();
@@ -59,6 +90,7 @@ class LancamentoStatusService
         return [
             'pago'           => $novoPago ? 1 : 0,
             'data_pagamento' => $novoPago ? date('Y-m-d') : null,
+            'afeta_caixa'    => $novoPago ? 1 : 0,
         ];
     }
 }

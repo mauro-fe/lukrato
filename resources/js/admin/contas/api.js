@@ -159,7 +159,7 @@ export const ContasAPI = {
         const grid = document.getElementById('accountsGrid');
 
         try {
-            showLoading(true);
+            showLoading('Carregando contas...');
 
             const params = new URLSearchParams({
                 with_balances: '1',

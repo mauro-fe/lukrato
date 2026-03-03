@@ -1,13 +1,4 @@
-/* ============================================================================
-   LUKRATO - SISTEMA DE DESIGN
-   ============================================================================
-   Arquivo: variables.css
-   DescriÃƒÂ§ÃƒÂ£o: VariÃƒÂ¡veis CSS, tokens de design e estilos base do sistema
-   ============================================================================ */
 
-/* ============================================================================
-   2. RESET / BASE STYLES
-   ============================================================================ */
 * {
   margin: 0;
   padding: 0;
@@ -100,7 +91,6 @@ h3 {
   overflow: hidden;
 }
 
-/* BotÃƒÂ£o fechar sidebar (mobile) */
 .sidebar-close-btn {
   display: none;
   width: 36px;
@@ -263,7 +253,6 @@ h3 {
     color var(--transition-fast);
 }
 
-/* Lucide SVG icons - branco por padrÃƒÂ£o (sobrescreve cores semÃƒÂ¢nticas do enhancements.css) */
 .sidebar .nav-item svg.lucide,
 .sidebar .nav-item svg[class*="lucide-"] {
   color: #ffffff !important;
@@ -300,7 +289,6 @@ h3 {
   border-left: 3px solid var(--laranja);
 }
 
-/* ÃƒÂcone ativo - cor primÃƒÂ¡ria */
 .sidebar-nav .nav-item.active i,
 .sidebar-nav .nav-item.active svg.lucide,
 .sidebar-nav .nav-item.active svg[class*="lucide-"],
@@ -310,7 +298,6 @@ h3 {
   color: var(--color-primary) !important;
 }
 
-/* Modo claro - ÃƒÂ­cones sempre na cor primÃƒÂ¡ria */
 :root[data-theme="light"] .sidebar .nav-item i,
 :root[data-theme="light"] .sidebar .nav-item svg.lucide,
 :root[data-theme="light"] .sidebar .nav-item svg[class*="lucide-"] {
@@ -729,6 +716,8 @@ body.sidebar-open-mobile .sidebar-backdrop {
 
 /* 15.4 Small Mobile (<=640px) */
 @media (max-width: 640px) {
+}
+
 
 /* 15.5 Extra Small (<=520px) */
 @media (max-width: 520px) {
@@ -829,7 +818,3 @@ body.sidebar-open-mobile .sidebar-backdrop {
 .gap-5 {
   gap: var(--spacing-5);
 }
-
-/* ============================================================================
-   FIM DO ARQUIVO
-   ============================================================================ */

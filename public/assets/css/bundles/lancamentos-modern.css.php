@@ -34,6 +34,8 @@ $modules = [
     '_parcelamento.css',
     '_table-details.css',
     '_table-badges-filters.css',
+    '_dropdown.css',
+    '_parcelas-modal.css',
 ];
 
 $lastModified = 0;

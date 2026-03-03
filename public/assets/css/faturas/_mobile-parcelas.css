@@ -53,7 +53,6 @@
   font-weight: 600;
 }
 
-/* SeÃƒÂ§ÃƒÂ£o de detalhes expandÃƒÂ­vel no card mobile */
 .parcela-card-detalhes {
   padding: var(--spacing-3);
   background: rgba(0, 0, 0, 0.03);
@@ -80,7 +79,6 @@
   max-width: none;
 }
 
-/* BotÃƒÂ£o Ver Detalhes (mobile) */
 .btn-ver-detalhes {
   display: inline-flex;
   align-items: center;

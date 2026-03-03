@@ -2,7 +2,6 @@
    RESPONSIVIDADE - MOBILE FIRST APPROACH
    ============================================================================ */
 
-/* ========== Touch Targets MÃƒÆ’Ã‚Â­nimos (Mobile) ========== */
 @media (max-width: 768px) {
   .tab-btn {
     min-height: 44px;
@@ -74,7 +73,7 @@
     gap: var(--spacing-3);
   }
 }
-/* Removido chave extra que nÃƒÆ’Ã‚Â£o fecha nenhum bloco vÃƒÆ’Ã‚Â¡lido */
+
 
 /* ========== Mobile Grande (min-width: 480px) ========== */
 @media (min-width: 480px) {
@@ -116,7 +115,6 @@
     padding: var(--spacing-2);
     gap: var(--spacing-2);
   }
-  /* Removido chave extra que nÃƒÆ’Ã‚Â£o fecha nenhum bloco vÃƒÆ’Ã‚Â¡lido */
 
   /* ========== Tablet (min-width: 768px) ========== */
   @media (min-width: 768px) {
@@ -191,7 +189,6 @@
   }
 }
 
-/* ========== Desktop Pequeno (min-width: 993px) - GrÃƒÆ’Ã‚Â¡ficos de pizza lado a lado ========== */
 @media (min-width: 993px) {
   .chart-dual {
     grid-template-columns: repeat(2, 1fr);
@@ -368,7 +365,6 @@
   }
 }
 
-/* ========== Telas MÃƒÆ’Ã‚Â©dias/Pequenos Notebooks (1024px - 1335px) ========== */
 @media (min-width: 1024px) and (max-width: 1335px) {
   .rel-page {
     max-width: 100%;
@@ -548,7 +544,6 @@
   }
 }
 
-/* ========== Ajustes especÃƒÆ’Ã‚Â­ficos para Mobile ========== */
 @media (max-width: 768px) {
   .lk-titlebar {
     flex-direction: column;

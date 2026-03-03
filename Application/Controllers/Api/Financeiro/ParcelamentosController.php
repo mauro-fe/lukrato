@@ -71,6 +71,7 @@ class ParcelamentosController
                     'data' => (string)$l->data,
                     'valor' => (float)$l->valor,
                     'pago' => (bool)$l->pago,
+                    'data_pagamento' => $l->data_pagamento ? (string)$l->data_pagamento : null,
                     'descricao' => $l->descricao,
                 ])->toArray(),
             ];
@@ -118,6 +119,7 @@ class ParcelamentosController
                 'data' => (string)$l->data,
                 'valor' => (float)$l->valor,
                 'pago' => (bool)$l->pago,
+                'data_pagamento' => $l->data_pagamento ? (string)$l->data_pagamento : null,
                 'descricao' => $l->descricao,
             ])->toArray(),
         ]);
@@ -261,7 +263,9 @@ class ParcelamentosController
                     'eh_saldo_inicial' => false,
                     'parcelamento_id' => $parcelamento->id,
                     'numero_parcela' => $i,
+                    'total_parcelas' => $numeroParcelas,
                     'pago' => false,
+                    'afeta_caixa' => false,
                     'origem_tipo' => Lancamento::ORIGEM_PARCELAMENTO,
                     // Lembretes
                     'lembrar_antes_segundos' => $lembrarAntesSegundos,

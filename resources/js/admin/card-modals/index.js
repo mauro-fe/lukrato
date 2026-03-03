@@ -172,13 +172,28 @@ let impactChart = null;
 async function openCardDetailModal(cardId, cardName, cardColor, currentMonth) {
     if (!cardId) { console.error('ID do cartão não fornecido'); return; }
 
+    // Find the clicked button and show inline loading
+    const btn = document.querySelector(`[data-action="open-card-detail"][data-card-id="${cardId}"].card-action-btn`);
+    const originalBtnHtml = btn?.innerHTML;
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader-2" class="icon-spin"></i> <span>Carregando...</span>';
+        if (window.lucide) window.lucide.createIcons({ nodes: [btn] });
+    }
+
     try {
         const [year, month] = currentMonth.split('-');
         const params = new URLSearchParams({ mes: month, ano: year });
         const url = `${getBaseUrl()}api/reports/card-details/${cardId}?${params}`;
 
-        const response = await fetch(url, { credentials: 'include' });
-        if (!response.ok) throw new Error('Erro ao carregar detalhes do cartão');
+        // Fetch with timeout (15 seconds)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+        const response = await fetch(url, { credentials: 'include', signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         const responseText = await response.text();
         let data;
@@ -190,13 +205,30 @@ async function openCardDetailModal(cardId, cardName, cardColor, currentMonth) {
         renderCardDetailModal(data.data, cardColor);
     } catch (error) {
         console.error('Erro ao abrir detalhes do cartão:', error);
-        alert('Erro ao carregar relatório detalhado. Tente novamente.');
+        document.body.style.overflow = '';
+        const msg = error.name === 'AbortError'
+            ? 'A requisição demorou demais. Tente novamente.'
+            : 'Não foi possível carregar os detalhes do cartão. Tente novamente.';
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({ icon: 'error', title: 'Erro ao carregar', text: msg, confirmButtonColor: '#e67e22' });
+        }
+    } finally {
+        // Restore button
+        if (btn) {
+            btn.disabled = false;
+            if (originalBtnHtml) btn.innerHTML = originalBtnHtml;
+            if (window.lucide) window.lucide.createIcons({ nodes: [btn] });
+        }
     }
 }
 
 function renderCardDetailModal(data, cardColor) {
+    // Clean up any existing modal first
     const existingModal = document.getElementById('cardDetailModalOverlay');
-    if (existingModal) existingModal.remove();
+    if (existingModal) {
+        existingModal.remove();
+        document.body.style.overflow = '';
+    }
 
     const template = document.getElementById('cardDetailModalTemplate');
     if (!template) { console.error('Template do modal não encontrado'); return; }
@@ -206,14 +238,61 @@ function renderCardDetailModal(data, cardColor) {
     overlay.className = 'card-detail-modal-overlay';
     overlay.appendChild(template.content.cloneNode(true));
 
-    populateTemplate(overlay, data, cardColor);
+    try {
+        populateTemplate(overlay, data, cardColor);
+    } catch (err) {
+        console.error('Erro ao popular o modal:', err);
+        return;
+    }
+
+    // ── Critical: set positioning as INLINE STYLES to prevent CSS conflicts ──
+    Object.assign(overlay.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100vw',
+        height: '100vh',
+        zIndex: '9999999',
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+        overflowY: 'auto',
+        background: 'rgba(0, 0, 0, 0.7)',
+        backdropFilter: 'blur(4px)',
+        WebkitBackdropFilter: 'blur(4px)',
+    });
+
+    // Prevent background scroll while modal is open
+    document.body.style.overflow = 'hidden';
+
     document.body.appendChild(overlay);
 
-    requestAnimationFrame(() => overlay.classList.add('active'));
+    // Scroll overlay to top
+    overlay.scrollTop = 0;
+
+    // Close on overlay background click (not on the modal itself)
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeCardDetailModal();
+    });
+
+    // Close on Escape key
+    const escHandler = (e) => {
+        if (e.key === 'Escape') {
+            closeCardDetailModal();
+            document.removeEventListener('keydown', escHandler);
+        }
+    };
+    document.addEventListener('keydown', escHandler);
 
     setTimeout(() => {
-        renderEvolutionChart(data.evolucao.meses);
-        renderImpactChart(data.impacto_futuro.meses);
+        try {
+            // Render lucide icons inside modal
+            if (window.lucide) window.lucide.createIcons({ nodes: [overlay] });
+            renderEvolutionChart(data.evolucao?.meses);
+            renderImpactChart(data.impacto_futuro?.meses);
+        } catch (err) {
+            console.error('Erro ao renderizar gráficos do modal:', err);
+        }
     }, 100);
 }
 
@@ -275,9 +354,17 @@ function populateTemplate(overlay, data, cardColor) {
 function closeCardDetailModal() {
     const modal = document.getElementById('cardDetailModalOverlay');
     if (!modal) return;
-    modal.classList.remove('active');
+
+    // Fade out animation
+    modal.style.opacity = '0';
+    modal.style.transition = 'opacity 0.25s ease';
+
+    // Restore background scroll
+    document.body.style.overflow = '';
+
     if (evolutionChart) { evolutionChart.destroy(); evolutionChart = null; }
     if (impactChart) { impactChart.destroy(); impactChart = null; }
+
     setTimeout(() => modal.remove(), 300);
 }
 

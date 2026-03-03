@@ -183,6 +183,7 @@ class OnboardingController extends BaseController
                 'categoria_id' => (int) $categoriaId,
                 'conta_id' => (int) $contaId,
                 'pago' => true,
+                'afeta_caixa' => true,
                 'data_pagamento' => date('Y-m-d'),
                 'eh_transferencia' => false,
                 'eh_saldo_inicial' => false,

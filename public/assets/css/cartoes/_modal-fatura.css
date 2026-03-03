@@ -42,7 +42,6 @@
   transform: scale(1) translateY(0);
 }
 
-/* Ã¢â€â‚¬Ã¢â€â‚¬ Header Ã¢â€â‚¬Ã¢â€â‚¬ */
 .modal-fatura-header {
   background: var(--card-accent);
   padding: 0;
@@ -228,14 +227,12 @@
   height: 16px;
 }
 
-/* Ã¢â€â‚¬Ã¢â€â‚¬ Body Ã¢â€â‚¬Ã¢â€â‚¬ */
 .modal-fatura-body {
   padding: 1.5rem;
   overflow-y: auto;
   flex: 1;
 }
 
-/* Ã¢â€â‚¬Ã¢â€â‚¬ Empty state Ã¢â€â‚¬Ã¢â€â‚¬ */
 .fatura-empty {
   text-align: center;
   padding: 3rem 1rem;
@@ -270,7 +267,6 @@
   color: var(--color-text-muted);
 }
 
-/* Ã¢â€â‚¬Ã¢â€â‚¬ Resumo principal (total + vencimento) Ã¢â€â‚¬Ã¢â€â‚¬ */
 .fatura-resumo-principal {
   display: flex;
   justify-content: space-between;
@@ -315,7 +311,6 @@
   line-height: 1;
 }
 
-/* Ã¢â€â‚¬Ã¢â€â‚¬ SeÃƒÂ§ÃƒÂ£o tÃƒÂ­tulos (barra) Ã¢â€â‚¬Ã¢â€â‚¬ */
 .secao-titulo-bar {
   display: flex;
   justify-content: space-between;
@@ -366,7 +361,6 @@
   gap: 0.75rem;
 }
 
-/* Ã¢â€â‚¬Ã¢â€â‚¬ LanÃƒÂ§amentos lista Ã¢â€â‚¬Ã¢â€â‚¬ */
 .lancamentos-lista {
   display: flex;
   flex-direction: column;
@@ -449,7 +443,6 @@
   letter-spacing: 0.5px;
 }
 
-/* Ã¢â€â‚¬Ã¢â€â‚¬ Parcelas pagas Ã¢â€â‚¬Ã¢â€â‚¬ */
 .fatura-parcelas-pagas {
   background: rgba(16, 185, 129, 0.04);
   border: 1px solid rgba(16, 185, 129, 0.12);
@@ -519,7 +512,6 @@
   text-align: right;
 }
 
-/* Ã¢â€â‚¬Ã¢â€â‚¬ BotÃƒÂ£o desfazer Ã¢â€â‚¬Ã¢â€â‚¬ */
 .btn-desfazer-parcela {
   background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
@@ -550,7 +542,6 @@
   height: 13px;
 }
 
-/* Ã¢â€â‚¬Ã¢â€â‚¬ Fatura Totalmente Paga Ã¢â€â‚¬Ã¢â€â‚¬ */
 .fatura-totalmente-paga {
   padding: 0.5rem;
 }
@@ -655,7 +646,6 @@
   height: 14px;
 }
 
-/* Ã¢â€â‚¬Ã¢â€â‚¬ Footer Ã¢â€â‚¬Ã¢â€â‚¬ */
 .modal-fatura-footer {
   display: flex;
   justify-content: space-between;

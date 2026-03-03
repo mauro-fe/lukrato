@@ -50,7 +50,6 @@
   display: inline;
 }
 
-/* BotÃƒÂ£o Pagar Fatura (modal detalhes) */
 .btn-pagar-fatura .btn-text-mobile {
   display: none;
 }
@@ -59,7 +58,6 @@
   display: inline;
 }
 
-/* BotÃƒÂ£o Excluir Fatura */
 .btn-excluir-fatura {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
@@ -89,7 +87,6 @@
   display: inline;
 }
 
-/* BotÃƒÂ£o Reverter Pagamento */
 .btn-reverter-fatura {
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   color: white;
@@ -119,7 +116,6 @@
   display: inline;
 }
 
-/* Grupo de botÃƒÂµes de aÃƒÂ§ÃƒÂ£o do item */
 .btn-group-parcela {
   display: inline-flex;
   gap: 4px;
@@ -128,7 +124,6 @@
   flex-wrap: nowrap;
 }
 
-/* BotÃƒÂµes de aÃƒÂ§ÃƒÂ£o da tabela */
 .btn-toggle-parcela {
   border: none;
   width: 32px;
@@ -183,7 +178,6 @@
   transform: translateY(-1px);
 }
 
-/* BotÃƒÂ£o Excluir Item Individual */
 .btn-excluir-item {
   background: #ef4444;
   color: white;
@@ -206,7 +200,6 @@
   box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
 }
 
-/* BotÃƒÂ£o Editar Item */
 .btn-editar-item {
   background: #f59e0b;
   color: white;
@@ -379,14 +372,12 @@
   color: #fbbf24;
 }
 
-/* Larguras especÃƒÂ­ficas das colunas */
 .parcelas-table th:nth-child(1) {
   width: 50px;
 } /* # */
 .parcelas-table th:nth-child(2) {
   width: auto;
-  min-width: 100px;
-} /* DescriÃƒÂ§ÃƒÂ£o */
+  min-width: 100px;}
 .parcelas-table th:nth-child(3) {
   width: 110px;
 } /* Data Compra */
@@ -395,15 +386,12 @@
 } /* Valor */
 .parcelas-table th:nth-child(5) {
   width: 130px;
-} /* AÃƒÂ§ÃƒÂ£o */
-
-/* CÃƒÂ©lula de descriÃƒÂ§ÃƒÂ£o */
+}
 .parcelas-table .td-descricao {
   text-align: center;
   padding-left: var(--spacing-4);
 }
 
-/* CÃƒÂ©lula de status */
 .parcelas-table .td-status {
   white-space: nowrap;
 }
@@ -428,7 +416,6 @@
   color: #f59e0b;
 }
 
-/* CÃƒÂ©lula de aÃƒÂ§ÃƒÂµes */
 .parcelas-table .td-acoes {
   white-space: nowrap;
 }
@@ -519,7 +506,6 @@
   white-space: nowrap;
 }
 
-/* BotÃƒÂµes de Toggle na AÃƒÂ§ÃƒÂ£o */
 .btn-toggle-parcela {
   padding: var(--spacing-2);
   border: none;
@@ -597,4 +583,3 @@
 .btn-toggle-parcela:active {
   transform: translateY(0);
 }
-

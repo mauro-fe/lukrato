@@ -1,20 +1,21 @@
-﻿/* ============================================================================
-   MODAL DE RELATÃƒÆ’Ã¢â‚¬Å“RIO DETALHADO DE CARTÃƒÆ’Ã†â€™O
-   ============================================================================ */
-
+﻿
 .card-detail-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
   background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
-  z-index: 9999999;
-  display: none;
-  align-items: center;
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 9999999 !important;
+  display: flex;
+  align-items: flex-start;
   justify-content: center;
-  padding: var(--spacing-4);
+  padding: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   animation: fadeIn 0.3s ease;
 }
 
@@ -28,9 +29,11 @@
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-2xl);
   max-width: 1400px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
+  width: calc(100% - 2rem);
+  /* margin:auto centers both axes inside the flex overlay */
+  margin: 1rem auto;
+  max-height: none;
+  flex-shrink: 0;
   box-shadow: var(--shadow-2xl);
   animation: slideUp 0.3s ease;
 }
@@ -199,7 +202,6 @@
   }
 }
 
-/* Grid para os cards de grÃƒÆ’Ã‚Â¡ficos - EvoluÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o Mensal e Impacto Futuro */
 .detail-section-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -552,7 +554,6 @@
   margin: 0;
   font-size: var(--font-size-base);
 }
-/* Status de SaÃƒÆ’Ã‚Âºde do CartÃƒÆ’Ã‚Â£o */
 .card-health-status {
   margin-top: 1rem;
   padding: 0.875rem 1rem;
@@ -623,7 +624,6 @@
   color: var(--color-text);
 }
 
-/* Lista de lanÃƒÆ’Ã‚Â§amentos limpa */
 .lancamentos-list-clean {
   display: flex;
   flex-direction: column;
@@ -736,7 +736,6 @@
   color: var(--color-text);
 }
 
-/* ComparaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o */
 .comparison-box {
   display: flex;
   justify-content: space-between;
@@ -767,7 +766,6 @@
   color: #e74c3c;
 }
 
-/* SeÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o header melhorada */
 .section-badge {
   padding: 4px 12px;
   border-radius: var(--radius-full);
@@ -790,10 +788,6 @@
   opacity: 0.5;
 }
 
-/* ============================================================================
-   RESPONSIVIDADE DO MODAL DE RELATÃƒÆ’Ã¢â‚¬Å“RIO DE CARTÃƒÆ’Ã†â€™O
-   ============================================================================ */
-
 /* Wrapper da tabela de parcelamentos */
 .parcelamentos-table-wrapper {
   display: block;
@@ -801,7 +795,6 @@
   -webkit-overflow-scrolling: touch;
 }
 
-/* Lista mobile de parcelamentos (oculta por padrÃƒÆ’Ã‚Â£o) */
 .parcelamentos-mobile-list {
   display: none;
   flex-direction: column;
@@ -911,7 +904,6 @@
   border-radius: var(--radius-full);
 }
 
-/* Detalhes expandÃƒÆ’Ã‚Â­veis */
 .parcelamento-card-details {
   display: none;
   padding-top: var(--spacing-3);
@@ -985,8 +977,10 @@
     max-width: 100%;
     width: 100%;
     max-height: 95vh;
+    overflow-y: auto;
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
     margin: 0;
+    flex-shrink: 0;
   }
 
   .card-detail-header {
@@ -1056,7 +1050,6 @@
     display: flex;
   }
 
-  /* Ajustes nos lanÃƒÆ’Ã‚Â§amentos */
   .lancamentos-list-clean {
     max-height: 350px;
   }
@@ -1093,14 +1086,12 @@
     font-size: 1.125rem;
   }
 
-  /* ComparaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o */
   .comparison-box {
     flex-direction: column;
     gap: var(--spacing-2);
     text-align: center;
   }
 
-  /* GrÃƒÆ’Ã‚Â¡ficos */
   .detail-chart-container {
     height: 200px !important;
   }
@@ -1143,6 +1134,7 @@
     max-height: 100vh !important;
     max-width: 100% !important;
     width: 100% !important;
+    overflow-y: auto !important;
     border-radius: 16px 16px 0 0 !important;
     margin: 0 !important;
   }
@@ -1269,7 +1261,6 @@
     font-size: 0.7rem !important;
   }
 
-  /* LanÃƒÆ’Ã‚Â§amentos */
   .lancamentos-list-clean {
     max-height: 250px !important;
   }
@@ -1323,7 +1314,6 @@
     font-size: 0.9rem !important;
   }
 
-  /* GrÃƒÆ’Ã‚Â¡ficos */
   .detail-chart-container {
     height: 160px !important;
     padding: 8px !important;

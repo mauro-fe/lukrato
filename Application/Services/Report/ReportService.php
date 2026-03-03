@@ -74,6 +74,8 @@ class ReportService
 
         // PRO: incluir details com subcategorias para drill-down
         if ($includeDetails) {
+            // cat_ids from the same query as labels — reliable 1:1 index mapping
+            $result['cat_ids'] = $data->pluck('cat_id')->map(fn($v) => (int)$v)->values()->all();
             $result['details'] = $this->repository->getCategoryWithSubcategoryTotals($tipo->value, $params);
         }
 
@@ -607,9 +609,6 @@ class ReportService
             // Calcular status de saúde
             $statusSaude = $this->calculateCardHealth($percentual, $faturaAtual, $mediaHistorica);
 
-            $disponivel = max(0, $limite - $faturaAtual);
-            $percentual = $limite > 0 ? ($faturaAtual / $limite) * 100 : 0;
-
             // Gera alertas
             $alertas = [];
 
@@ -841,14 +840,8 @@ class ReportService
             ? round(($diferencaAbsoluta / $faturaAnterior) * 100, 1)
             : 0;
 
-        // STATUS DE SAÚDE (baseado no percentual geral, não apenas do mês)
-        if ($percentualUtilizacaoGeral <= 30) {
-            $statusSaude = ['status' => 'saudavel', 'cor' => '#2ecc71', 'texto' => 'Saudável'];
-        } elseif ($percentualUtilizacaoGeral <= 60) {
-            $statusSaude = ['status' => 'atencao', 'cor' => '#f39c12', 'texto' => 'Atenção'];
-        } else {
-            $statusSaude = ['status' => 'risco', 'cor' => '#e74c3c', 'texto' => 'Risco'];
-        }
+        // STATUS DE SAÚDE (usando mesma lógica da listagem de cartões)
+        $statusSaude = $this->calculateCardHealth($percentualUtilizacaoGeral, $totalFatura, $faturaAnterior);
 
         // 3. PARCELAMENTOS ATIVOS - busca itens de fatura parcelados pendentes
         $itensParcelados = \Application\Models\FaturaCartaoItem::where('user_id', $userId)

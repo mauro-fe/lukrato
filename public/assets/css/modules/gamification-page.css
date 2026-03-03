@@ -958,15 +958,15 @@
   }
 
   .leaderboard-table .rank-cell::before {
-    content: "PosiÃƒÂ§ÃƒÂ£o";
+    content: "";
   }
 
   .leaderboard-table .user-cell::before {
-    content: "UsuÃƒÂ¡rio";
+    content: "";
   }
 
   .leaderboard-table .level-cell::before {
-    content: "NÃƒÂ­vel";
+    content: "";
   }
 
   .leaderboard-table .points-cell::before {

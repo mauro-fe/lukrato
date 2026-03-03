@@ -4,7 +4,7 @@
 }
 
 .table-card .card-title::before {
-  content: "Ã°Å¸â€œâ€¹";
+  content: "";
 }
 
 .table-container {
@@ -160,7 +160,6 @@
   color: var(--color-danger);
 }
 
-/* ==================== AÃƒâ€¡Ãƒâ€¢ES ==================== */
 .actions-cell {
   display: flex;
   gap: var(--spacing-2);

@@ -51,6 +51,7 @@ readonly class CreateLancamentoDTO
             'conta_id_destino' => $this->contaIdDestino,
             'pago' => $this->pago ? 1 : 0,
             'data_pagamento' => $this->pago ? $this->data : null,
+            'afeta_caixa' => $this->pago ? 1 : 0,
             'forma_pagamento' => $this->formaPagamento,
             'recorrente' => $this->recorrente ? 1 : 0,
             'recorrencia_freq' => $this->recorrenciaFreq,

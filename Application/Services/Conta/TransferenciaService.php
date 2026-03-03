@@ -70,6 +70,8 @@ class TransferenciaService
                 'valor'             => $valor,
                 'eh_transferencia'  => 1,
                 'eh_saldo_inicial'  => 0,
+                'pago'              => 1,
+                'afeta_caixa'       => 1,
             ]);
 
             DB::commit();
@@ -91,7 +93,7 @@ class TransferenciaService
     private function validarConta(int $contaId, int $userId): Conta
     {
         $conta = Conta::forUser($userId)->find($contaId);
-        
+
         if (!$conta) {
             throw new ValueError('Conta de origem ou destino inválida.');
         }

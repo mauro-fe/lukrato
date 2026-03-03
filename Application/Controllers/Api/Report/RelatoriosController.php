@@ -108,31 +108,30 @@ class RelatoriosController extends BaseController
             $year = (int)($_GET['year'] ?? date('Y'));
             $month = (int)($_GET['month'] ?? date('m'));
 
+            $this->validateDateParams($year, $month);
+
             $startDate = Carbon::create($year, $month, 1)->startOfMonth();
             $endDate = Carbon::create($year, $month, 1)->endOfMonth();
 
-            // Buscar totais de lançamentos (sem filtrar por pago, respeitando afeta_caixa)
+            // Buscar totais de lançamentos (pago + afeta_caixa)
             $lancamentos = \Application\Models\Lancamento::where('user_id', $userId)
                 ->whereBetween('data', [$startDate->toDateString(), $endDate->toDateString()])
                 ->where('eh_transferencia', 0)
-                ->where(function ($q) {
-                    $q->where('afeta_caixa', true)
-                        ->orWhereNull('afeta_caixa'); // Backward compatibility
-                })
+                ->where('pago', 1)
+                ->where('afeta_caixa', 1)
                 ->selectRaw('
                     SUM(CASE WHEN tipo = "receita" THEN valor ELSE 0 END) as total_receitas,
                     SUM(CASE WHEN tipo = "despesa" THEN valor ELSE 0 END) as total_despesas
                 ')
                 ->first();
 
-            // Buscar lançamentos de cartão no período atual e próximos 3 meses
-            // (para considerar parcelamentos que começam depois mas impactam este mês)
-            $endDateExtended = (clone $endDate)->addMonths(3);
-
-            $totalCartoes = \Application\Models\Lancamento::where('user_id', $userId)
-                ->whereNotNull('cartao_credito_id')
-                ->where('tipo', 'despesa')
-                ->whereBetween('data', [$startDate->toDateString(), $endDateExtended->toDateString()])
+            // Buscar total de faturas de cartão usando FaturaCartaoItem (mesma fonte do relatório de cartões)
+            $totalCartoes = \Application\Models\FaturaCartaoItem::where('user_id', $userId)
+                ->where('mes_referencia', $month)
+                ->where('ano_referencia', $year)
+                ->whereHas('cartaoCredito', function ($q) {
+                    $q->where('ativo', 1);
+                })
                 ->sum('valor');
 
             Response::success([
@@ -141,16 +140,25 @@ class RelatoriosController extends BaseController
                 'saldo' => (float)(($lancamentos->total_receitas ?? 0) - ($lancamentos->total_despesas ?? 0)),
                 'totalCartoes' => (float)($totalCartoes ?? 0)
             ]);
+        } catch (InvalidArgumentException $e) {
+            $this->handleValidationError($e);
         } catch (\Throwable $e) {
-            error_log("Erro no summary: " . $e->getMessage());
-            error_log("Stack trace: " . $e->getTraceAsString());
-            Response::error($e->getMessage(), 500);
+            LogService::error('Erro ao gerar resumo.', [
+                'error' => $e->getMessage(),
+                'user_id' => Auth::id()
+            ]);
+            Response::error('Erro ao gerar resumo.', 500);
         }
     }
 
     private function validateAccess(): void
     {
         $this->requireAuthApi();
+
+        // Release session lock so concurrent AJAX requests don't block
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
 
         $user = Auth::user();
 
@@ -351,9 +359,7 @@ class RelatoriosController extends BaseController
             'user_id' => $this->userId ?? null
         ]);
 
-        Response::error('Erro ao gerar relatório.', 500, [
-            'exception' => $e->getMessage()
-        ]);
+        Response::error('Erro ao gerar relatório.', 500);
     }
 
     /**
@@ -368,13 +374,20 @@ class RelatoriosController extends BaseController
             $year   = (int)($_GET['year'] ?? date('Y'));
             $month  = (int)($_GET['month'] ?? date('m'));
 
+            $this->validateDateParams($year, $month);
+
             $insights = $this->insightsService->generate($userId, $year, $month);
 
             Response::success(['insights' => InsightsService::toArrayList($insights)]);
+        } catch (InvalidArgumentException $e) {
+            $this->handleValidationError($e);
         } catch (\Throwable $e) {
-            error_log("Erro no insights: " . $e->getMessage());
-            error_log("Stack trace: " . $e->getTraceAsString());
-            Response::error($e->getMessage(), 500);
+            LogService::error('Erro ao gerar insights.', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => Auth::id()
+            ]);
+            Response::error('Erro ao gerar insights.', 500);
         }
     }
 
@@ -390,12 +403,20 @@ class RelatoriosController extends BaseController
             $year   = (int)($_GET['year'] ?? date('Y'));
             $month  = (int)($_GET['month'] ?? date('m'));
 
+            $this->validateDateParams($year, $month);
+
             $data = $this->comparativesService->generate($userId, $year, $month);
 
             Response::success($data);
+        } catch (InvalidArgumentException $e) {
+            $this->handleValidationError($e);
         } catch (\Throwable $e) {
-            error_log("Erro no comparatives: " . $e->getMessage());
-            Response::error($e->getMessage(), 500);
+            LogService::error('Erro ao gerar comparativos.', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => Auth::id()
+            ]);
+            Response::error('Erro ao gerar comparativos.', 500);
         }
     }
 
@@ -405,14 +426,10 @@ class RelatoriosController extends BaseController
      */
     public function cardDetails(int $id = 0): void
     {
-        error_log("🔍 cardDetails chamado com ID: $id");
-        error_log("🔍 GET params: " . json_encode($_GET));
-
         try {
             $this->validateAccess();
 
             if ($id <= 0) {
-                error_log("❌ ID inválido: $id");
                 Response::error('ID do cartão inválido', 400);
                 return;
             }
@@ -421,26 +438,37 @@ class RelatoriosController extends BaseController
             $mes = $_GET['mes'] ?? date('m');
             $ano = $_GET['ano'] ?? date('Y');
 
-            error_log("✅ Processando: userId=$userId, cardId=$id, mes=$mes, ano=$ano");
-
             // Validar formato de mês/ano
             if (!preg_match('/^\d{2}$/', $mes) || !preg_match('/^\d{4}$/', $ano)) {
                 Response::error('Formato de mês/ano inválido', 400);
                 return;
             }
 
-            $data = $this->reportService->getCardDetailedReport($userId, $id, $mes, $ano);
+            // Validar range de mês/ano
+            $this->validateDateParams((int)$ano, (int)$mes);
 
-            error_log("✅ Dados recebidos do service: " . json_encode(array_keys($data)));
+            $data = $this->reportService->getCardDetailedReport($userId, $id, $mes, $ano);
 
             Response::success($data);
         } catch (\Exception $e) {
-            error_log("❌ Exception: " . $e->getMessage());
-            error_log("❌ Trace: " . $e->getTraceAsString());
-            Response::error($e->getMessage(), 404);
+            // Cartão não encontrado ou erro de domínio
+            $statusCode = str_contains($e->getMessage(), 'não encontrado') ? 404 : 500;
+            LogService::warning('Erro ao buscar detalhes do cartão.', [
+                'error' => $e->getMessage(),
+                'card_id' => $id,
+                'user_id' => Auth::id()
+            ]);
+            Response::error(
+                $statusCode === 404 ? $e->getMessage() : 'Erro ao gerar relatório detalhado.',
+                $statusCode
+            );
         } catch (\Throwable $e) {
-            error_log("❌ Throwable: " . $e->getMessage());
-            error_log("❌ Trace: " . $e->getTraceAsString());
+            LogService::error('Erro inesperado ao gerar relatório de cartão.', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'card_id' => $id,
+                'user_id' => Auth::id()
+            ]);
             Response::error('Erro interno ao gerar relatório detalhado', 500);
         }
     }

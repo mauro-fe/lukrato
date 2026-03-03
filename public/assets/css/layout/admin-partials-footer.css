@@ -55,6 +55,9 @@
   gap: var(--spacing-3);
   flex-wrap: wrap;
   justify-content: center;
+  width: 100%;
+  padding-inline: var(--spacing-4);
+  box-sizing: border-box;
 }
 
 .footer-copyright {

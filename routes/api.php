@@ -73,9 +73,6 @@ Router::add('GET', '/api/options',                'Api\\Financeiro\\FinanceiroCo
 // ============================================
 
 Router::add('GET', '/api/reports',             'Api\\Report\\RelatoriosController@index',        ['auth']);
-Router::add('GET', '/api/reports/overview',    'Api\\Report\\RelatoriosController@overview',     ['auth']);
-Router::add('GET', '/api/reports/table',       'Api\\Report\\RelatoriosController@table',        ['auth']);
-Router::add('GET', '/api/reports/timeseries',  'Api\\Report\\RelatoriosController@timeseries',   ['auth']);
 Router::add('GET', '/api/reports/summary',     'Api\\Report\\RelatoriosController@summary',      ['auth']);
 Router::add('GET', '/api/reports/insights',    'Api\\Report\\RelatoriosController@insights',     ['auth']);
 Router::add('GET', '/api/reports/comparatives', 'Api\\Report\\RelatoriosController@comparatives', ['auth']);
@@ -94,6 +91,7 @@ Router::add('GET',    '/api/lancamentos/usage',  'Api\\Lancamentos\\UsageControl
 Router::add('GET',    '/api/lancamentos/export', 'Api\\Lancamentos\\ExportController@__invoke',               ['auth', 'ratelimit']);
 Router::add('POST',   '/api/lancamentos/{id}/cancelar-recorrencia', 'Api\\Lancamentos\\CancelarRecorrenciaController@__invoke', ['auth', 'csrf', 'ratelimit']);
 Router::add('PUT',    '/api/lancamentos/{id}/pagar',                'Api\\Lancamentos\\MarcarPagoController@__invoke',          ['auth', 'csrf', 'ratelimit']);
+Router::add('PUT',    '/api/lancamentos/{id}/despagar',              'Api\\Lancamentos\\MarcarPagoController@desmarcar',          ['auth', 'csrf', 'ratelimit']);
 Router::add('GET',    '/api/lancamentos/{id}/fatura-detalhes',      'Api\\Lancamentos\\FaturaDetalhesController@__invoke',      ['auth']);
 
 // Rota para histórico recente de uma conta (alias do index com limit)

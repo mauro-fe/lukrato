@@ -52,7 +52,6 @@
   min-height: 70px !important;
 }
 
-/* ÃƒÂcone colorido ÃƒÂ  esquerda */
 .parcelamentos-grid.list-view .parcelamento-card .parc-card-header {
   flex: 0 0 70px !important;
   width: 70px !important;
@@ -64,11 +63,9 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  /* Cor vem do inline style definido pelo JS baseado na cor do cartÃƒÂ£o */
   border: none !important;
 }
 
-/* Ocultar elementos do header no list-view - mostrar apenas ÃƒÂ­cone */
 .parcelamentos-grid.list-view .parcelamento-card .parc-card-header::before {
   display: none !important;
 }
@@ -110,7 +107,6 @@
   background-position: center !important;
 }
 
-/* Status badge visÃƒÂ­vel na lista - na coluna prÃƒÂ³pria */
 .parcelamentos-grid.list-view
   .parcelamento-card
   .parc-card-header
@@ -231,7 +227,6 @@
   display: none !important;
 }
 
-/* SeÃƒÂ§ÃƒÂ£o de Progresso - visÃƒÂ­vel na lista */
 .parcelamentos-grid.list-view .parcelamento-card .parc-progress-section {
   display: flex !important;
   flex-direction: column !important;
@@ -261,13 +256,11 @@
   transition: width 0.3s ease !important;
 }
 
-/* OCULTAR seÃƒÂ§ÃƒÂµes extras */
 .parcelamentos-grid.list-view .parcelamento-card .fatura-itens-info,
 .parcelamentos-grid.list-view .parcelamento-card .fatura-progresso {
   display: none !important;
 }
 
-/* BotÃƒÂ£o Ver Detalhes */
 .parcelamentos-grid.list-view .parcelamento-card .parc-card-actions {
   display: flex !important;
   flex-direction: row !important;

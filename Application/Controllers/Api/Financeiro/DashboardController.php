@@ -46,6 +46,7 @@ class DashboardController
     {
         return Lancamento::where('user_id', $userId)
             ->where('pago', 1)
+            ->where('afeta_caixa', 1)
             ->where('eh_transferencia', 0);
     }
 

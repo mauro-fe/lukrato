@@ -1,4 +1,3 @@
-/* ==================== BOTÃƒâ€¢ES DE AÃƒâ€¡ÃƒÆ’O NAS PARCELAS ==================== */
 .btn-toggle-parcela {
   display: inline-flex;
   align-items: center;
@@ -49,7 +48,6 @@
   transform: none;
 }
 
-/* Responsivo para botÃƒÂµes */
 @media (max-width: 768px) {
   .btn-toggle-parcela {
     width: 32px;

@@ -475,10 +475,7 @@ class Lancamento extends Model
      */
     public function scopeAfetaCaixa($query)
     {
-        return $query->where(function ($q) {
-            $q->where('afeta_caixa', true)
-                ->orWhereNull('afeta_caixa'); // Backward compatibility
-        });
+        return $query->where('afeta_caixa', 1);
     }
 
     /**

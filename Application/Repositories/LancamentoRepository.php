@@ -483,7 +483,7 @@ class LancamentoRepository extends BaseRepository
         $limit = min((int) ($filters['limit'] ?? 500), 1000);
 
         return $this->query()
-            ->with(['categoria', 'conta', 'cartaoCredito'])
+            ->with(['categoria', 'conta', 'cartaoCredito', 'parcelamento:id,numero_parcelas,parcelas_pagas,status'])
             ->where('user_id', $userId)
             ->whereBetween('data', [$startDate, $endDate])
             ->when($filters['account_id'] ?? null, function ($q, $accId) {
@@ -614,10 +614,7 @@ class LancamentoRepository extends BaseRepository
             ->where('pago', 1)
             ->where('tipo', LancamentoTipo::RECEITA->value)
             ->where('eh_transferencia', 0)
-            ->where(function ($q) {
-                $q->where('afeta_caixa', true)
-                    ->orWhereNull('afeta_caixa'); // Backward compatibility
-            })
+            ->where('afeta_caixa', 1)
             ->whereBetween('data', [$start, $end])
             ->sum('valor');
     }
@@ -638,10 +635,7 @@ class LancamentoRepository extends BaseRepository
             ->where('pago', 1)
             ->where('tipo', LancamentoTipo::DESPESA->value)
             ->where('eh_transferencia', 0)
-            ->where(function ($q) {
-                $q->where('afeta_caixa', true)
-                    ->orWhereNull('afeta_caixa'); // Backward compatibility
-            })
+            ->where('afeta_caixa', 1)
             ->whereBetween('data', [$start, $end])
             ->sum('valor');
     }

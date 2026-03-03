@@ -1,4 +1,3 @@
-/* ==================== GAMIFICAÃƒâ€¡ÃƒÆ’O ==================== */
 .gamification-section {
   backdrop-filter: blur(20px);
   border-radius: 20px;
@@ -130,7 +129,7 @@
 }
 
 .streak-card::before {
-  content: "Ã°Å¸â€Â¥";
+  content: "🔥";
   position: absolute;
   font-size: 140px;
   opacity: 0.06;

@@ -1,11 +1,4 @@
-﻿/* ============================================================================
-   ÃƒÆ’Ã‚ÂREA DE RELATÃƒÆ’Ã¢â‚¬Å“RIO
-   ============================================================================ */
-
-/* ============================================================================
-   CARDS E GRÃƒÆ’Ã‚ÂFICOS
-   ============================================================================ */
-
+﻿
 .lk-card {
   border: 1px solid var(--glass-border);
   background: var(--glass-bg);
@@ -78,7 +71,6 @@
   transform: scale(1.02);
 }
 
-/* Estilos especÃƒÆ’Ã‚Â­ficos para grÃƒÆ’Ã‚Â¡ficos de pizza/doughnut */
 .chart-container-pie {
   min-height: 400px;
   max-height: 650px;
@@ -94,7 +86,6 @@
   max-height: 650px;
 }
 
-/* Estilos especÃƒÆ’Ã‚Â­ficos para grÃƒÆ’Ã‚Â¡ficos de barras */
 .chart-container-bar {
   min-height: 500px;
   max-height: 900px;
@@ -114,7 +105,6 @@
   padding: 0;
 }
 
-/* Estilos especÃƒÆ’Ã‚Â­ficos para grÃƒÆ’Ã‚Â¡ficos de linha */
 .chart-container-line {
   min-height: 500px;
   max-height: 900px;
@@ -134,7 +124,6 @@
   padding: 0;
 }
 
-/* Grid de grÃƒÆ’Ã‚Â¡ficos responsivo - Mobile First */
 .chart-dual {
   display: grid;
   grid-template-columns: 1fr;
@@ -150,11 +139,10 @@
 
 /* ============================================================================
    LISTA DE CATEGORIAS MOBILE
-   PadrÃƒÆ’Ã‚Â£o de apps financeiros profissionais (Nubank, Mobills, Organizze)
    ============================================================================ */
 
 .category-list-mobile {
-  display: block; /* VisÃƒÆ’Ã‚Â­vel no mobile por padrÃƒÆ’Ã‚Â£o */
+  display: block; 
   margin-top: var(--spacing-5);
   padding: 0 var(--spacing-4);
   width: 100%;
@@ -168,8 +156,6 @@
   }
 }
 
-/* AnimaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de entrada suave */
-/* Item individual da lista */
 .category-item {
   display: flex;
   align-items: center;
@@ -214,13 +200,12 @@
   transform: scale(1.15);
 }
 
-/* InformaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes da categoria (nome + valor) */
 .category-info {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-1);
-  min-width: 0; /* Permite truncar texto se necessÃƒÆ’Ã‚Â¡rio */
+  min-width: 0; 
 }
 
 .category-name {
@@ -239,7 +224,6 @@
   letter-spacing: -0.01em;
 }
 
-/* Percentual ÃƒÆ’Ã‚Â  direita com destaque visual */
 .category-percentage {
   font-size: var(--font-size-lg);
   font-weight: 700;
@@ -256,7 +240,6 @@
 }
 
 /* ============================================================================
-   BOTÃƒÆ’Ã†â€™O DE EXPANSÃƒÆ’Ã†â€™O - VER TODAS AS CATEGORIAS
    ============================================================================ */
 
 .category-expand-btn {
@@ -299,7 +282,6 @@
 }
 
 /* ============================================================================
-   CARD EXPANSÃƒÆ’Ã‚ÂVEL - LISTA COMPLETA DE CATEGORIAS
    ============================================================================ */
 
 .category-expandable-card {
@@ -322,13 +304,11 @@
   margin-top: var(--spacing-3);
 }
 
-/* Items dentro do card expansÃƒÆ’Ã‚Â­vel tÃƒÆ’Ã‚Âªm valor visÃƒÆ’Ã‚Â­vel */
 .category-expandable-card .category-value {
   display: block;
 }
 
 /* ============================================================================
-   TEXTO INFORMATIVO - ABAIXO DO BOTÃƒÆ’Ã†â€™O
    ============================================================================ */
 
 .category-info-text {
@@ -351,7 +331,6 @@
   flex-shrink: 0;
 }
 
-/* Dark mode especÃƒÆ’Ã‚Â­fico para lista mobile */
 [data-theme="dark"] .category-list-mobile,
 .dark-mode .category-list-mobile {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);

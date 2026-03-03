@@ -1,4 +1,4 @@
-/* ==================== HISTÃƒâ€œRICO DE FATURAS ==================== */
+
 .historico-faturas {
   padding: 1rem;
 }
@@ -72,7 +72,6 @@
   color: var(--color-text-muted);
 }
 
-/* Dark mode adjustments for histÃƒÂ³rico */
 [data-theme="dark"] .historico-item {
   background: rgba(255, 255, 255, 0.03);
   border-color: rgba(255, 255, 255, 0.05);

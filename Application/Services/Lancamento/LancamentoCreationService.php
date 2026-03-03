@@ -317,6 +317,7 @@ class LancamentoCreationService
             $dadosFilho = $dto->toArray();
             $dadosFilho['data'] = $dataProx->format('Y-m-d');
             $dadosFilho['pago'] = 0;
+            $dadosFilho['afeta_caixa'] = 0;
             $dadosFilho['data_pagamento'] = null;
             $dadosFilho['recorrente'] = 1;
             $dadosFilho['recorrencia_freq'] = $freq->value;
@@ -566,6 +567,7 @@ class LancamentoCreationService
                             'subcategoria_id'    => $pai->subcategoria_id,
                             'conta_id'           => $pai->conta_id,
                             'pago'               => 0,
+                            'afeta_caixa'        => 0,
                             'forma_pagamento'    => $pai->forma_pagamento,
                             'recorrente'         => 1,
                             'recorrencia_freq'   => $pai->recorrencia_freq,

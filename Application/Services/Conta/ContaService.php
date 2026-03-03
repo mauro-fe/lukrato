@@ -25,7 +25,7 @@ class ContaService
     ): array {
         $startTime = microtime(true);
         error_log("[ContaService] listarContas START - userId: $userId, comSaldos: " . ($comSaldos ? 'true' : 'false'));
-        
+
         $query = Conta::forUser($userId)->with('instituicaoFinanceira');
 
         if ($arquivadas) {
@@ -324,6 +324,8 @@ class ContaService
         $transfIn = Lancamento::where('user_id', $userId)
             ->whereIn('conta_id_destino', $contaIds)
             ->where('eh_transferencia', 1)
+            ->where('pago', 1)
+            ->where('afeta_caixa', 1)
             ->where('data', '<=', $dataFim)
             ->selectRaw('conta_id_destino as cid, SUM(valor) as total')
             ->groupBy('cid')
@@ -334,6 +336,8 @@ class ContaService
         $transfOut = Lancamento::where('user_id', $userId)
             ->whereIn('conta_id', $contaIds)
             ->where('eh_transferencia', 1)
+            ->where('pago', 1)
+            ->where('afeta_caixa', 1)
             ->where('data', '<=', $dataFim)
             ->selectRaw('conta_id as cid, SUM(valor) as total')
             ->groupBy('cid')

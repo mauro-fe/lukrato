@@ -13,7 +13,8 @@ import {
     API, UI,
     renderReport, handleExport,
     syncPickerMode, handleTabChange, handleTypeChange,
-    handleAccountChange, onExternalMonthChange, onExternalYearChange
+    handleAccountChange, onExternalMonthChange, onExternalYearChange,
+    refreshActiveSection
 } from './app.js';
 
 // Previne inicialização dupla
@@ -64,6 +65,9 @@ if (window.__LK_REPORTS_LOADED__) {
             }
 
             localStorage.setItem('rel_active_section', section);
+
+            // Carregar dados da seção PRO quando ativada
+            refreshActiveSection(section);
 
             if (window.lucide) {
                 window.lucide.createIcons();
@@ -155,6 +159,34 @@ if (window.__LK_REPORTS_LOADED__) {
         if (exportBtn) {
             exportBtn.addEventListener('click', handleExport);
         }
+
+        // Event delegation: open card detail modal
+        document.addEventListener('click', (e) => {
+            const trigger = e.target.closest('[data-action="open-card-detail"]');
+            if (!trigger) return;
+            e.stopPropagation();
+
+            const cardId = parseInt(trigger.dataset.cardId, 10);
+            const cardNome = trigger.dataset.cardNome || '';
+            const cardCor = trigger.dataset.cardCor || '#E67E22';
+            const cardMonth = trigger.dataset.cardMonth || STATE.currentMonth;
+
+            if (!cardId) return;
+
+            if (window.LK_CardDetail?.open) {
+                window.LK_CardDetail.open(cardId, cardNome, cardCor, cardMonth);
+            } else {
+                console.error('[Relatórios] LK_CardDetail module not loaded');
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        toast: true, position: 'top-end', icon: 'error',
+                        title: 'Módulo de detalhes não carregado',
+                        text: 'Recarregue a página.',
+                        showConfirmButton: false, timer: 3000
+                    });
+                }
+            }
+        });
 
         // Renderização inicial
         syncPickerMode();

@@ -925,15 +925,7 @@ img.zoom-hover:hover {
   }
 }
 
-/* ============================================================================
-   35. LUCIDE ICON COLOR SYSTEM
-   ============================================================================
-   Aplica cores semânticas aos ícones Lucide SVG globalmente.
-   - Inline styles (style="color:...") têm prioridade sobre estas regras.
-   - Ícones dentro de botões herdam a cor do pai (reset abaixo).
-   - Ícones de UI genéricos (chevrons, x, plus, etc.) não são coloridos
-     para herdar do contexto.
-   ============================================================================ */
+
 
 /* --- Reset: ícones dentro de botões herdam a cor do pai --- */
 .btn svg.lucide,

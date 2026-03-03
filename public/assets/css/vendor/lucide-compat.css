@@ -1,19 +1,4 @@
-/* ============================================================================
-   Lucide Icons â€” Estilos de Compatibilidade
-   
-   Substitui Font Awesome com abordagem consistente baseada em SVG inline.
-   Lucide troca <i data-lucide="x"> por <svg class="lucide lucide-x">.
-   
-   PROBLEMA: CSS do projeto inteiro usa seletores como ".btn i", ".nav-item i"
-   etc. para estilizar Ã­cones FA. O SVG nÃ£o bate com esses seletores.
-   SOLUÃ‡ÃƒO: Regra global que faz svg.lucide se comportar como <i> em qualquer
-   contexto, mais overrides especÃ­ficos para os componentes mais usados.
-   ============================================================================ */
 
-/* â”€â”€ BASE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-/* !important necessÃ¡rio: Lucide JS cria SVGs com width="24" height="24"
-   como atributos HTML. Esses atributos conflitam com CSS em produÃ§Ã£o.
-   Sem !important, os valores 24px dos atributos podem vencer. */
 .lucide,
 [data-lucide] {
   display: inline-block;
@@ -30,11 +15,6 @@
   color: inherit;
 }
 
-/* â”€â”€ HERANÃ‡A DE <i> â†’ <svg> â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-/* Regra universal: qualquer lugar que tinha <i> e agora tem <svg.lucide>,
-   o SVG deve herdar font-size, color e min-width do contexto.
-   Isso garante que regras como ".nav-item i { font-size: 18px }" 
-   ainda afetem o Ã­cone, pois width/height: 1em reage ao font-size herdado. */
 svg.lucide {
   font-size: inherit;
   min-width: inherit;
@@ -42,8 +22,7 @@ svg.lucide {
   transition: inherit;
 }
 
-/* â”€â”€ TAMANHOS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-/* Equivalentes aos fa-xs, fa-sm, fa-lg, fa-2x, fa-3x */
+
 .icon-xs {
   width: 0.75em !important;
   height: 0.75em !important;
@@ -107,13 +86,13 @@ svg.lucide {
   height: 48px !important;
 }
 
-/* â”€â”€ FIXED WIDTH (equivalente ao fa-fw) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
 .icon-fw {
   width: 1.25em !important;
   text-align: center;
 }
 
-/* â”€â”€ ANIMAÃ‡Ã•ES (equivalente ao fa-spin, fa-pulse) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
 .icon-spin {
   animation: lucide-spin 1s linear infinite;
 }
@@ -131,8 +110,6 @@ svg.lucide {
   }
 }
 
-/* â”€â”€ ÃCONES EM LABELS DE FORMULÃRIO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-/* Substitui os emojis que estavam em <span class="emoji"> */
 .icon-label {
   width: 16px;
   height: 16px;
@@ -141,10 +118,6 @@ svg.lucide {
   opacity: 0.8;
 }
 
-/* â”€â”€ ÃCONES EM BOTÃ•ES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-/* Nota: SEM margin-right â€” botÃµes usam display:inline-flex + gap */
-/* !important necessÃ¡rio para sobrescrever atributos SVG width="24" height="24"
-   que o Lucide JS adiciona por padrÃ£o em cada <svg> criado. */
 .btn .lucide,
 .btn [data-lucide],
 button .lucide,
@@ -159,7 +132,6 @@ button [data-lucide],
   flex-shrink: 0;
 }
 
-/* â”€â”€ ÃCONES EM NAVS / SIDEBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .nav-link .lucide,
 .sidebar-item .lucide,
 .menu-item .lucide {
@@ -174,7 +146,6 @@ button [data-lucide],
   opacity: 1;
 }
 
-/* â”€â”€ i â†’ svg COMPAT: seletores que antes visavam <i> â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 /* Lucide troca <i> por <svg class="lucide">.
    Adicionamos svg.lucide como seletor alternativo para regras
    que usavam .parent i { ... } no CSS existente do projeto. */
@@ -196,7 +167,6 @@ button [data-lucide],
   color: var(--color-primary) !important;
 }
 
-/* BotÃµes genÃ©ricos â€” universal via attribute selector */
 /* Cobre .btn, .modern-btn, .btn-primary, .icon-btn, .month-nav-btn, etc. */
 /* !important para sobrescrever width="24" height="24" do Lucide JS */
 .btn svg.lucide,
@@ -381,7 +351,6 @@ body.sidebar-collapsed .sidebar .nav-item svg.lucide {
   margin-right: 0.25em;
 }
 
-/* â”€â”€ ÃCONES EM BADGES / CARDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .badge .lucide {
   width: 0.85em;
   height: 0.85em;
@@ -393,13 +362,11 @@ body.sidebar-collapsed .sidebar .nav-item svg.lucide {
   height: 28px;
 }
 
-/* â”€â”€ INDICADORES DE STATUS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .status-icon .lucide {
   width: 14px;
   height: 14px;
 }
 
-/* â”€â”€ COMPATIBILIDADE COM ESTILOS FA EXISTENTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 /* Para CSS que ainda referencia .fa-crown etc. via seletores */
 /* Estes seletores permitem que CSS existente continue funcionando */
 /* enquanto migramos gradualmente */
@@ -414,12 +381,10 @@ body.sidebar-collapsed .sidebar .nav-item svg.lucide {
   animation: lucide-spin 1s linear infinite;
 }
 
-/* â”€â”€ DARK MODE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 [data-theme="dark"] .lucide {
   opacity: 0.95;
 }
 
-/* â”€â”€ TRANSIÃ‡ÃƒO SUAVE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 /* Previne CLS (Cumulative Layout Shift) durante a inicializaÃ§Ã£o */
 [data-lucide]:not(svg) {
   display: inline-block;
@@ -427,7 +392,6 @@ body.sidebar-collapsed .sidebar .nav-item svg.lucide {
   height: 1.15em;
 }
 
-/* â”€â”€ RESPONSIVIDADE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media (max-width: 768px) {
   .icon-label {
     width: 14px !important;

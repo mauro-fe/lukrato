@@ -48,6 +48,15 @@
   );
 }
 
+.lk-pago-parcial {
+  color: var(--color-info, #3b82f6);
+  background: color-mix(
+    in srgb,
+    var(--color-info, #3b82f6) 12%,
+    transparent
+  );
+}
+
 .lk-pago-transfer {
   color: var(--color-info, #3b82f6);
   background: color-mix(in srgb, var(--color-info, #3b82f6) 12%, transparent);

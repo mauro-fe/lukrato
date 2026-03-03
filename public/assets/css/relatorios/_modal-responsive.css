@@ -47,18 +47,14 @@
   }
 }
 
-/* ============================================================================
-   ANIMAÃƒÆ’Ã¢â‚¬Â¡ÃƒÆ’Ã¢â‚¬Â¢ES PARA MOBILE
-   ============================================================================ */
+
 @media (max-width: 768px) {
   .card-detail-modal {
     animation: slideUp 0.3s ease;
   }
 }
 
-/* ============================================================================
-   BLOQUEIO PRO - EXPORTAÃƒÆ’Ã¢â‚¬Â¡ÃƒÆ’Ã†â€™O
-   ============================================================================ */
+
 
 .export-card.pro-locked {
   position: relative;
@@ -94,7 +90,6 @@
   min-height: 100px;
 }
 
-/* Quando bloqueado, o card-body precisa de altura mÃƒÆ’Ã‚Â­nima para o overlay */
 .export-card.pro-locked .card-body {
   min-height: 140px;
 }

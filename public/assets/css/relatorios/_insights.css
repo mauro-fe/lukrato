@@ -9,9 +9,7 @@
   margin-top: var(--spacing-1);
 }
 
-/* ============================================================================
-   INSIGHTS AUTOMÃƒÆ’Ã‚ÂTICOS
-   ============================================================================ */
+
 
 .insights-card {
   margin-bottom: var(--spacing-6);
@@ -374,9 +372,7 @@
   border: 1px solid var(--glass-border);
 }
 
-/* ============================================================================
-   NOVOS COMPARATIVOS ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Grid e Cards
-   ============================================================================ */
+
 
 .comp-duo-grid {
   display: grid;
@@ -396,7 +392,6 @@
   opacity: 0.7;
 }
 
-/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Mini cards (mÃƒÆ’Ã‚Â©dia diÃƒÆ’Ã‚Â¡ria, taxa economia) ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
 
 .comp-mini-card {
   display: flex;
@@ -469,7 +464,6 @@
   height: 14px;
 }
 
-/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Ranking de categorias ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
 
 .cat-comp-list {
   display: flex;
@@ -590,7 +584,6 @@
   height: 13px;
 }
 
-/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ EvoluÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o chart ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
 
 .evolucao-chart-wrapper {
   position: relative;
@@ -598,7 +591,6 @@
   padding: var(--spacing-2);
 }
 
-/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Formas de pagamento ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
 
 .forma-comp-list {
   display: flex;
@@ -688,7 +680,6 @@
   color: var(--color-text-muted);
 }
 
-/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Responsivo novos comparativos ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
 
 @media (max-width: 768px) {
   .comp-duo-grid {

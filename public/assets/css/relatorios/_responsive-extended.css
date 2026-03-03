@@ -1,5 +1,4 @@
-﻿   RESPONSIVIDADE
-   ============================================================================ */
+﻿
 
 @media (max-width: 1270px) {
   .controls-section {
@@ -127,7 +126,6 @@
     min-height: 320px;
   }
 
-  /* ========== RESUMO CONSOLIDADO DE CARTÃƒÆ’Ã¢â‚¬Â¢ES - MOBILE ========== */
   .consolidated-summary {
     padding: var(--spacing-3) !important;
     margin-bottom: var(--spacing-4) !important;
@@ -220,8 +218,6 @@
     min-width: 18px !important;
     flex-shrink: 0 !important;
   }
-
-  /* ========== CARDS INDIVIDUAIS DE CARTÃƒÆ’Ã†â€™O - MOBILE ========== */
   .cards-grid {
     gap: var(--spacing-3) !important;
   }
@@ -303,7 +299,6 @@
   }
 }
 
-/* ========== MOBILE MUITO PEQUENO (max-width: 360px) - CARTÃƒÆ’Ã¢â‚¬Â¢ES ========== */
 @media (max-width: 360px) {
   .rel-page {
     padding: var(--spacing-2) !important;
@@ -649,7 +644,6 @@
   -webkit-overflow-scrolling: touch;
 }
 
-/* Previne seleÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o acidental em grÃƒÆ’Ã‚Â¡ficos touch */
 .chart-container,
 .chart-wrapper,
 canvas {
@@ -719,9 +713,6 @@ canvas {
   }
 }
 
-/* ============================================================================
-   IMPRESSÃƒÆ’Ã†â€™O
-   ============================================================================ */
 
 @media print {
   .lk-controls,

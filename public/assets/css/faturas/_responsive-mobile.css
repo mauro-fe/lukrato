@@ -41,7 +41,6 @@
     grid-template-columns: none !important;
   }
 
-  /* Header compacto no mobile - mostra info do cartÃƒÂ£o */
   .parcelamentos-grid.list-view .parcelamento-card .parc-card-header {
     width: 100% !important;
     min-width: 100% !important;
@@ -137,7 +136,6 @@
     padding: 0.2rem 0.5rem !important;
   }
 
-  /* Ocultar fatura-list-info no mobile pois o header jÃƒÂ¡ mostra */
   .parcelamentos-grid.list-view .parcelamento-card .fatura-list-info {
     display: none !important;
   }
@@ -197,7 +195,6 @@
     color: var(--color-text) !important;
   }
 
-  /* SeÃƒÂ§ÃƒÂ£o de progresso mobile - compacta */
   .parcelamentos-grid.list-view .parcelamento-card .parc-progress-section {
     padding: 0.5rem 1rem 0.75rem !important;
   }
@@ -206,7 +203,6 @@
     font-size: 0.75rem !important;
   }
 
-  /* BotÃƒÂ£o de aÃƒÂ§ÃƒÂ£o - compacto */
   .parcelamentos-grid.list-view .parcelamento-card .parc-card-actions {
     padding: 0 1rem 0.75rem !important;
     width: 100% !important;
@@ -258,7 +254,6 @@
   filter: grayscale(0.3);
 }
 
-/* CabeÃƒÂ§alho do Card - Design Elegante */
 .parc-card-header {
   display: flex;
   justify-content: space-between;
@@ -270,7 +265,6 @@
   min-height: 80px;
 }
 
-/* Efeito de brilho animÃƒÂ¡vel */
 .parc-card-header::before {
   content: "";
   position: absolute;
@@ -527,7 +521,6 @@
   color: #10b981;
 }
 
-/* PrÃƒÂ³xima Parcela */
 .parc-proxima-parcela {
   display: flex;
   align-items: center;
@@ -566,7 +559,6 @@
   color: var(--color-primary);
 }
 
-/* AÃƒÂ§ÃƒÂµes do Card */
 .parc-card-actions {
   display: flex;
   gap: var(--spacing-2);

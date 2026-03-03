@@ -1,10 +1,4 @@
-/**
- * ============================================================================
- * SISTEMA DE CONTAS - ESTILOS
- * ============================================================================
- * Estilos para a pÃƒÂ¡gina de gerenciamento de contas bancÃƒÂ¡rias
- * ============================================================================
- */
+
 
 /* ============================================================================
    LAYOUT PRINCIPAL
@@ -17,9 +11,6 @@
   padding: 0 var(--spacing-4);
 }
 
-/* ============================================================================
-   ESTATÃƒÂSTICAS
-   ============================================================================ */
 
 .stats-grid {
   display: grid;
@@ -211,12 +202,10 @@
   padding: 6px;
 }
 
-/* Ocultar aÃƒÂ§ÃƒÂµes dentro do header em list-view */
 .acc-grid.list-view .account-card .account-actions {
   display: none !important;
 }
 
-/* AÃƒÂ§ÃƒÂµes separadas para list view */
 .account-list-actions {
   display: none;
 }
@@ -305,7 +294,6 @@
   font-size: 0.85rem;
 }
 
-/* Remover hover effect para aÃƒÂ§ÃƒÂµes - jÃƒÂ¡ visÃƒÂ­veis sempre */
 
 /* ============================================================================
    CARD DE CONTA
@@ -447,7 +435,6 @@
   font-weight: 600;
 }
 
-/* AÃƒÂ§ÃƒÂµes */
 .acc-actions {
   display: flex;
   gap: var(--spacing-2);
@@ -573,10 +560,6 @@
   opacity: 1;
 }
 
-/* ============================================================================
-   BOTÃƒâ€¢ES
-   ============================================================================ */
-
 .btn {
   display: inline-flex;
   align-items: center;
@@ -695,9 +678,6 @@
   border-top: 1px solid var(--glass-border);
 }
 
-/* ============================================================================
-   FORMULÃƒÂRIOS
-   ============================================================================ */
 
 .lk-form-grid {
   display: grid;
@@ -750,13 +730,6 @@
   color: var(--color-text);
 }
 
-/* ============================================================================
-   ANIMAÃƒâ€¡Ãƒâ€¢ES
-   ============================================================================ */
-
-/* ============================================================================
-   RESPONSIVIDADE
-   ============================================================================ */
 
 @media (max-width: 1024px) {
   .acc-grid {
@@ -770,7 +743,6 @@
     display: none !important;
   }
 
-  /* Ocultar aÃƒÂ§ÃƒÂµes separadas no mobile (vai aparecer no header) */
   .acc-grid.list-view .account-card .account-list-actions {
     display: none !important;
   }
@@ -1085,7 +1057,6 @@
   }
 }
 
-/* ReduÃƒÂ§ÃƒÂ£o de movimento */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
@@ -1376,7 +1347,6 @@
   }
 }
 
-/* Media query para dispositivos mÃƒÂ³veis pequenos (300-390px) */
 @media (max-width: 390px) {
   .account-card {
     border-radius: 12px;

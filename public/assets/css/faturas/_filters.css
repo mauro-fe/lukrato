@@ -178,14 +178,12 @@
   color: var(--color-primary);
 }
 
-/* OpÃƒÂ§ÃƒÂµes do select */
 .filter-select option {
   padding: var(--spacing-3);
   background: var(--color-surface);
   color: var(--color-text);
 }
 
-/* BotÃƒÂµes de aÃƒÂ§ÃƒÂ£o dos filtros */
 .filters-actions {
   display: flex;
   gap: var(--spacing-3);
