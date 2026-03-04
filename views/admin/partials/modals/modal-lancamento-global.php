@@ -1,5 +1,5 @@
 <!-- Modal Global de Lançamento -->
-<div class="lk-modal-overlay" id="modalLancamentoGlobalOverlay">
+<div class="lk-modal-overlay lk-modal-overlay-lancamento" id="modalLancamentoGlobalOverlay">
     <div class="lk-modal-modern lk-modal-lancamento" onclick="event.stopPropagation()" role="dialog"
         aria-labelledby="modalLancamentoGlobalTitulo">
         <!-- Header com Gradiente -->

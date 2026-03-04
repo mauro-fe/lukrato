@@ -54,6 +54,8 @@ export const ContasLancamento = {
 
         // Mostrar modal
         modalOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
     },
 
     // ── Wizard Step Engine ────────────────────────────────────────────────────

@@ -3,21 +3,31 @@
    ================================================ */
 
 @media (max-width: 480px) {
-  .lk-modal-overlay {
+  .lk-modal-overlay-lancamento {
     padding: 0 !important;
   }
 
-  .lk-modal-lancamento,
-  .lk-modal-modern {
+  .lk-modal-overlay-lancamento .lk-modal-lancamento {
     max-width: 100vw !important;
-    max-height: 100vh !important;
+    width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh !important;
     margin: 0;
     border-radius: 0;
   }
 
-  .lk-modal-lancamento .lk-modal-body-modern {
-    max-height: calc(100vh - 160px);
+  .lk-modal-overlay-lancamento .lk-modal-body-modern {
+    max-height: none;
+    min-height: 0;
     padding: var(--spacing-4);
+    padding-bottom: calc(var(--spacing-4) + 112px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .lk-modal-overlay-lancamento .lk-wizard-nav,
+  .lk-modal-overlay-lancamento .lk-form-actions {
+    margin-left: calc(var(--spacing-4) * -1);
+    margin-right: calc(var(--spacing-4) * -1);
+    margin-bottom: calc(var(--spacing-4) * -1);
   }
 
   .lk-modal-header-gradient {

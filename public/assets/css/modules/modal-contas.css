@@ -4,7 +4,8 @@
    ============================================= */
 
 /* Modal usando variáveis do sistema */
-.lk-modal-overlay {
+#modalContaOverlay.lk-modal-overlay,
+#modalNovaInstituicaoOverlay.lk-modal-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.6);
@@ -17,7 +18,8 @@
     animation: fadeIn 0.3s ease;
 }
 
-.lk-modal-overlay.active {
+#modalContaOverlay.lk-modal-overlay.active,
+#modalNovaInstituicaoOverlay.lk-modal-overlay.active {
     display: flex;
 }
 
@@ -327,7 +329,8 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-    .lk-modal-overlay {
+    #modalContaOverlay.lk-modal-overlay,
+    #modalNovaInstituicaoOverlay.lk-modal-overlay {
         align-items: flex-start;
         padding: 0;
         overflow-y: auto;
