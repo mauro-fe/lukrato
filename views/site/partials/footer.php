@@ -1,8 +1,20 @@
 <?php
 $extraJs = $extraJs ?? [];
 ?>
+<style>
+    .icon-tiktok {
+        color: #000;
+        transition: color 0.3s ease;
+    }
+
+    .icon-tiktok:hover {
+        color: #ffffff !important;
+    }
+</style>
+
 
 </main>
+
 
 <!-- Footer Moderno -->
 <footer class="lk-footer" style="background: #092741 !important; color: #fff;" role="contentinfo" itemscope
@@ -34,7 +46,18 @@ $extraJs = $extraJs ?? [];
                     <a href="https://tiktok.com/@lukrato.oficial" aria-label="Lukrato no TikTok"
                         rel="noopener noreferrer" target="_blank"
                         class="w-11 h-11 bg-white rounded-xl flex items-center justify-center" itemprop="sameAs">
-                        <i data-lucide="music" class="w-5 h-5 text-gray-800" aria-hidden="true"></i>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+                            fill="#000000">
+
+                            <path d="M19.589 6.686a4.793 4.793 0 0 1-2.828-.912 
+           4.778 4.778 0 0 1-1.708-2.163h-3.107v11.59
+           a2.773 2.773 0 1 1-2.773-2.773c.19 0 .377.019.558.056
+           V9.204a6.48 6.48 0 0 0-.558-.024
+           A6.48 6.48 0 1 0 13.9 15.66V9.912
+           a8.19 8.19 0 0 0 4.789 1.53V8.348
+           a4.78 4.78 0 0 0 .9.086V6.686z" />
+
+                        </svg>
                     </a>
                     <!-- <a href="https://facebook.com/lukrato" aria-label="Lukrato no Facebook" rel="noopener noreferrer"
                         target="_blank" class="w-11 h-11 bg-white rounded-xl flex items-center justify-center"
