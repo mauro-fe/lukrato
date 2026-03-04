@@ -23,11 +23,12 @@ $breadcrumbItems = $breadcrumbItems ?? [];
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
 <script>
-(function(){
-    var t=localStorage.getItem('lukrato-theme');
-    if(t!=='light'&&t!=='dark') t='light';
-    document.documentElement.setAttribute('data-theme',t);
-})();
+    (function() {
+        var t = localStorage.getItem('lukrato-theme');
+        if (t !== 'light' && t !== 'dark') t = 'light';
+        document.documentElement.setAttribute('data-theme', t);
+        if (!localStorage.getItem('lukrato-theme')) localStorage.setItem('lukrato-theme', t);
+    })();
 </script>
 
 <head>

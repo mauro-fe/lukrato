@@ -12,7 +12,8 @@ function getTheme() {
     if (saved === 'light' || saved === 'dark') return saved;
     const attr = root.getAttribute('data-theme');
     if (attr === 'light' || attr === 'dark') return attr;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    // Padrão sempre light — não segue prefers-color-scheme do SO
+    return 'light';
 }
 
 function updateToggleIcons(theme) {
@@ -44,7 +45,8 @@ function toggleTheme() {
 
 export function init() {
     const currentTheme = getTheme();
-    updateToggleIcons(currentTheme);
+    // Aplica tema completo (inclusive salva no localStorage) para garantir consistência
+    applyTheme(currentTheme);
 
     document.querySelectorAll('.lk-theme-toggle').forEach(btn => {
         btn.addEventListener('click', toggleTheme);
