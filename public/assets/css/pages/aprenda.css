@@ -1,43 +1,43 @@
 /* ==========================================================================
    Aprenda — Public Blog Pages
-   Landing-page styles using Tailwind utility patterns + custom components
+   Padronizado com variables.css — cores consistentes com a landing page.
+   Dark mode via [data-theme="dark"] (alinhado ao tailwind.config.js).
    ========================================================================== */
 
-/* Hero */
+/* ── Hero ────────────────────────────────────────────────────────────────── */
 .aprenda-hero {
     position: relative;
     overflow: hidden;
-    background: linear-gradient(to bottom, #fff, rgba(255, 237, 213, 0.25), #fff);
+    background: linear-gradient(to bottom, var(--color-surface), var(--lk-accent-soft), var(--color-surface));
 }
 
-:root.dark .aprenda-hero,
-.dark .aprenda-hero {
-    background: linear-gradient(to bottom, rgb(17 24 39), rgb(17 24 39 / 0.9), rgb(17 24 39));
+[data-theme="dark"] .aprenda-hero {
+    background: linear-gradient(to bottom, var(--color-bg), color-mix(in srgb, var(--color-bg) 90%, transparent 10%), var(--color-bg));
 }
 
-/* Category card */
+/* ── Category card ───────────────────────────────────────────────────────── */
 .aprenda-cat-card {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.75rem;
     padding: 1.75rem 1rem;
-    background: #fff;
-    border: 1px solid #e5e7eb;
+    background: var(--color-surface);
+    border: 1px solid var(--color-card-border);
     border-radius: 1rem;
     text-align: center;
     text-decoration: none;
     transition: all 0.3s ease;
 }
 
-.dark .aprenda-cat-card {
-    background: rgb(31 41 55);
-    border-color: rgb(55 65 81);
+[data-theme="dark"] .aprenda-cat-card {
+    background: var(--color-surface);
+    border-color: var(--color-card-border);
 }
 
 .aprenda-cat-card:hover {
-    border-color: var(--color-primary, #f97316);
-    box-shadow: 0 8px 30px rgba(249, 115, 22, 0.12);
+    border-color: var(--color-primary);
+    box-shadow: 0 8px 30px color-mix(in srgb, var(--color-primary) 12%, transparent 88%);
     transform: translateY(-4px);
 }
 
@@ -47,42 +47,42 @@
     justify-content: center;
     width: 3.5rem;
     height: 3.5rem;
-    background: #fff7ed;
+    background: var(--lk-accent-soft);
     border-radius: 0.75rem;
 }
 
-.dark .aprenda-cat-icon {
-    background: rgba(249, 115, 22, 0.12);
+[data-theme="dark"] .aprenda-cat-icon {
+    background: var(--lk-accent-soft);
 }
 
 .aprenda-cat-icon i,
 .aprenda-cat-icon svg {
     width: 1.5rem;
     height: 1.5rem;
-    color: var(--color-primary, #f97316);
+    color: var(--color-primary);
 }
 
-/* Post card */
+/* ── Post card ───────────────────────────────────────────────────────────── */
 .aprenda-post-card {
-    background: #fff;
-    border: 1px solid #e5e7eb;
+    background: var(--color-surface);
+    border: 1px solid var(--color-card-border);
     border-radius: 1rem;
     overflow: hidden;
     transition: all 0.3s ease;
 }
 
-.dark .aprenda-post-card {
-    background: rgb(31 41 55);
-    border-color: rgb(55 65 81);
+[data-theme="dark"] .aprenda-post-card {
+    background: var(--color-surface);
+    border-color: var(--color-card-border);
 }
 
 .aprenda-post-card:hover {
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-lg);
     transform: translateY(-4px);
 }
 
-.dark .aprenda-post-card:hover {
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+[data-theme="dark"] .aprenda-post-card:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
 }
 
 .aprenda-post-card a {
@@ -95,11 +95,11 @@
     width: 100%;
     padding-top: 56.25%; /* 16:9 */
     overflow: hidden;
-    background: #f3f4f6;
+    background: var(--color-surface-muted);
 }
 
-.dark .aprenda-post-img {
-    background: rgb(55 65 81);
+[data-theme="dark"] .aprenda-post-img {
+    background: var(--color-surface-muted);
 }
 
 .aprenda-post-img img {
@@ -130,24 +130,24 @@
     padding: 0.25rem 0.75rem;
     font-size: 0.75rem;
     font-weight: 600;
-    color: var(--color-primary, #f97316);
-    background: #fff7ed;
+    color: var(--color-primary);
+    background: var(--lk-accent-soft);
     border-radius: 9999px;
     margin-bottom: 0.5rem;
     text-decoration: none;
     transition: background 0.2s;
 }
 
-.dark .aprenda-post-cat {
-    background: rgba(249, 115, 22, 0.12);
+[data-theme="dark"] .aprenda-post-cat {
+    background: var(--lk-accent-soft);
 }
 
 .aprenda-post-cat:hover {
-    background: #ffedd5;
+    background: var(--lk-accent-soft-strong);
 }
 
-.dark .aprenda-post-cat:hover {
-    background: rgba(249, 115, 22, 0.2);
+[data-theme="dark"] .aprenda-post-cat:hover {
+    background: var(--lk-accent-soft-strong);
 }
 
 .aprenda-post-meta {
@@ -156,7 +156,7 @@
     gap: 1rem;
     margin-top: 0.75rem;
     font-size: 0.8125rem;
-    color: #9ca3af;
+    color: var(--color-text-muted);
 }
 
 .aprenda-post-meta span {
@@ -165,7 +165,7 @@
     gap: 0.375rem;
 }
 
-/* Pagination */
+/* ── Pagination ──────────────────────────────────────────────────────────── */
 .aprenda-pagination {
     display: flex;
     align-items: center;
@@ -183,28 +183,28 @@
     padding: 0 0.75rem;
     font-size: 0.875rem;
     font-weight: 500;
-    color: #374151;
-    background: #fff;
-    border: 1px solid #e5e7eb;
+    color: var(--color-text);
+    background: var(--color-surface);
+    border: 1px solid var(--color-card-border);
     border-radius: 0.5rem;
     text-decoration: none;
     transition: all 0.2s;
 }
 
-.dark .aprenda-page-btn {
-    color: #d1d5db;
-    background: rgb(31 41 55);
-    border-color: rgb(55 65 81);
+[data-theme="dark"] .aprenda-page-btn {
+    color: var(--color-text-muted);
+    background: var(--color-surface);
+    border-color: var(--color-card-border);
 }
 
 .aprenda-page-btn:hover {
-    border-color: var(--color-primary, #f97316);
-    color: var(--color-primary, #f97316);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
 }
 
 .aprenda-page-active {
-    background: var(--color-primary, #f97316) !important;
-    border-color: var(--color-primary, #f97316) !important;
+    background: var(--color-primary) !important;
+    border-color: var(--color-primary) !important;
     color: #fff !important;
 }
 
@@ -213,57 +213,57 @@
     align-items: center;
     justify-content: center;
     width: 2rem;
-    color: #9ca3af;
+    color: var(--color-text-muted);
     font-size: 0.875rem;
 }
 
-/* Prose — Article content */
+/* ── Prose — Article content ─────────────────────────────────────────────── */
 .aprenda-prose {
     font-size: 1.125rem;
     line-height: 1.8;
-    color: #374151;
+    color: var(--color-text);
 }
 
-.dark .aprenda-prose {
-    color: #d1d5db;
+[data-theme="dark"] .aprenda-prose {
+    color: var(--color-text);
 }
 
 .aprenda-prose h2 {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #111827;
+    color: var(--lk-text-strong);
     margin-top: 2.5rem;
     margin-bottom: 1rem;
     line-height: 1.3;
 }
 
-.dark .aprenda-prose h2 {
-    color: #f9fafb;
+[data-theme="dark"] .aprenda-prose h2 {
+    color: var(--color-text);
 }
 
 .aprenda-prose h3 {
     font-size: 1.375rem;
     font-weight: 600;
-    color: #1f2937;
+    color: var(--lk-text-strong);
     margin-top: 2rem;
     margin-bottom: 0.75rem;
     line-height: 1.4;
 }
 
-.dark .aprenda-prose h3 {
-    color: #f3f4f6;
+[data-theme="dark"] .aprenda-prose h3 {
+    color: var(--color-text);
 }
 
 .aprenda-prose h4 {
     font-size: 1.125rem;
     font-weight: 600;
-    color: #374151;
+    color: var(--lk-text-strong);
     margin-top: 1.5rem;
     margin-bottom: 0.5rem;
 }
 
-.dark .aprenda-prose h4 {
-    color: #e5e7eb;
+[data-theme="dark"] .aprenda-prose h4 {
+    color: var(--color-text);
 }
 
 .aprenda-prose p {
@@ -271,14 +271,18 @@
 }
 
 .aprenda-prose a {
-    color: var(--color-primary, #f97316);
+    color: var(--color-primary);
     text-decoration: underline;
     text-underline-offset: 2px;
     transition: color 0.2s;
 }
 
 .aprenda-prose a:hover {
-    color: #ea580c;
+    color: var(--lk-gradient-end);
+}
+
+[data-theme="dark"] .aprenda-prose a:hover {
+    color: var(--color-warning);
 }
 
 .aprenda-prose ul,
@@ -300,22 +304,22 @@
 }
 
 .aprenda-prose li::marker {
-    color: var(--color-primary, #f97316);
+    color: var(--color-primary);
 }
 
 .aprenda-prose blockquote {
-    border-left: 4px solid var(--color-primary, #f97316);
+    border-left: 4px solid var(--color-primary);
     padding: 1rem 1.5rem;
     margin: 1.5rem 0;
-    background: #fff7ed;
+    background: var(--lk-accent-soft);
     border-radius: 0 0.5rem 0.5rem 0;
     font-style: italic;
     color: #92400e;
 }
 
-.dark .aprenda-prose blockquote {
-    background: rgba(249, 115, 22, 0.08);
-    color: #fbbf24;
+[data-theme="dark"] .aprenda-prose blockquote {
+    background: var(--lk-accent-soft);
+    color: var(--color-warning);
 }
 
 .aprenda-prose img {
@@ -325,9 +329,10 @@
     margin: 1.5rem 0;
 }
 
+/* Code blocks — always dark bg (convention) */
 .aprenda-prose pre {
-    background: #1f2937;
-    color: #e5e7eb;
+    background: #1e293b;
+    color: #e2e8f0;
     padding: 1.25rem;
     border-radius: 0.75rem;
     overflow-x: auto;
@@ -339,14 +344,14 @@
 .aprenda-prose code {
     font-family: 'Fira Code', 'Cascadia Code', monospace;
     font-size: 0.875em;
-    background: #f3f4f6;
+    background: var(--color-surface-muted);
     padding: 0.15rem 0.4rem;
     border-radius: 0.25rem;
     color: #dc2626;
 }
 
-.dark .aprenda-prose code {
-    background: rgb(55 65 81);
+[data-theme="dark"] .aprenda-prose code {
+    background: var(--color-surface-muted);
     color: #fca5a5;
 }
 
@@ -365,38 +370,38 @@
 
 .aprenda-prose th,
 .aprenda-prose td {
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--color-card-border);
     padding: 0.75rem 1rem;
     text-align: left;
 }
 
-.dark .aprenda-prose th,
-.dark .aprenda-prose td {
-    border-color: rgb(55 65 81);
+[data-theme="dark"] .aprenda-prose th,
+[data-theme="dark"] .aprenda-prose td {
+    border-color: var(--color-card-border);
 }
 
 .aprenda-prose th {
-    background: #f9fafb;
+    background: var(--color-surface-muted);
     font-weight: 600;
-    color: #111827;
+    color: var(--lk-text-strong);
 }
 
-.dark .aprenda-prose th {
-    background: rgb(31 41 55);
-    color: #f9fafb;
+[data-theme="dark"] .aprenda-prose th {
+    background: var(--color-surface);
+    color: var(--color-text);
 }
 
 .aprenda-prose hr {
     border: none;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid var(--color-card-border);
     margin: 2rem 0;
 }
 
-.dark .aprenda-prose hr {
-    border-color: rgb(55 65 81);
+[data-theme="dark"] .aprenda-prose hr {
+    border-color: var(--color-card-border);
 }
 
-/* Share buttons */
+/* ── Share buttons ───────────────────────────────────────────────────────── */
 .aprenda-share-btn {
     display: inline-flex;
     align-items: center;
@@ -404,26 +409,26 @@
     width: 2.75rem;
     height: 2.75rem;
     border-radius: 0.75rem;
-    background: #f3f4f6;
-    color: #6b7280;
+    background: var(--color-surface-muted);
+    color: var(--color-text-muted);
     border: none;
     cursor: pointer;
     transition: all 0.2s;
     text-decoration: none;
 }
 
-.dark .aprenda-share-btn {
-    background: rgb(55 65 81);
-    color: #9ca3af;
+[data-theme="dark"] .aprenda-share-btn {
+    background: var(--color-surface-muted);
+    color: var(--color-text-muted);
 }
 
 .aprenda-share-btn:hover {
-    background: var(--color-primary, #f97316);
+    background: var(--color-primary);
     color: #fff;
     transform: translateY(-2px);
 }
 
-/* Line-clamp utility */
+/* ── Utility ─────────────────────────────────────────────────────────────── */
 .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -431,7 +436,7 @@
     overflow: hidden;
 }
 
-/* Responsive */
+/* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
     .aprenda-prose {
         font-size: 1rem;

@@ -397,6 +397,17 @@ export const CartoesUI = {
         // Carregar contas no select PRIMEIRO
         await Modules.API.loadContasSelect();
 
+        // Aplicar cor do cartão no header do modal
+        const modalHeader = modal.querySelector('.modal-header');
+        if (mode === 'edit' && cartaoData) {
+            const cor = cartaoData.cor_cartao ||
+                cartaoData.conta?.instituicao_financeira?.cor_primaria ||
+                Utils.getAccentColor(cartaoData.bandeira);
+            if (modalHeader) modalHeader.style.background = cor;
+        } else {
+            if (modalHeader) modalHeader.style.background = '';
+        }
+
         if (mode === 'edit' && cartaoData) {
             // Modo edição
             titulo.textContent = 'Editar Cartão de Crédito';
@@ -451,6 +462,10 @@ export const CartoesUI = {
             overlay.classList.remove('active');
             document.body.style.overflow = '';
         }
+
+        // Resetar cor do header
+        const modalHeader = document.querySelector('#modalCartao .modal-header');
+        if (modalHeader) modalHeader.style.background = '';
     },
 
     /**

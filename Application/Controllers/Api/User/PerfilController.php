@@ -140,6 +140,24 @@ class PerfilController
                 return;
             }
 
+            // Complexidade (deve espelhar as 5 regras do frontend em perfil/index.js)
+            if (!preg_match('/[a-z]/', $novaSenha)) {
+                Response::validationError(['nova_senha' => 'A senha deve conter pelo menos uma letra minúscula.']);
+                return;
+            }
+            if (!preg_match('/[A-Z]/', $novaSenha)) {
+                Response::validationError(['nova_senha' => 'A senha deve conter pelo menos uma letra maiúscula.']);
+                return;
+            }
+            if (!preg_match('/[0-9]/', $novaSenha)) {
+                Response::validationError(['nova_senha' => 'A senha deve conter pelo menos um número.']);
+                return;
+            }
+            if (!preg_match('/[^a-zA-Z0-9]/', $novaSenha)) {
+                Response::validationError(['nova_senha' => 'A senha deve conter pelo menos um caractere especial.']);
+                return;
+            }
+
             if ($novaSenha !== $confSenha) {
                 Response::validationError(['conf_senha' => 'As senhas não coincidem.']);
                 return;

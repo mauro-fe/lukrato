@@ -34,6 +34,15 @@ export const ContasModal = {
             titulo.textContent = mode === 'edit' ? 'Editar Conta' : 'Nova Conta';
         }
 
+        // Aplicar cor da conta no header do modal
+        const modalHeader = modal.querySelector('.modal-header');
+        if (mode === 'edit' && data) {
+            const cor = data.instituicao_financeira?.cor_primaria || '#667eea';
+            if (modalHeader) modalHeader.style.cssText = 'background: ' + cor + ' !important';
+        } else {
+            if (modalHeader) modalHeader.style.cssText = '';
+        }
+
         // Preencher formulário se for edição
         if (mode === 'edit' && data) {
 
@@ -92,6 +101,10 @@ export const ContasModal = {
 
         // Resetar flag de submissão
         STATE.isSubmitting = false;
+
+        // Resetar cor do header
+        const modalHeader = document.querySelector('#modalConta .modal-header');
+        if (modalHeader) modalHeader.style.cssText = '';
 
         // Limpar formulário após fechar
         setTimeout(() => {

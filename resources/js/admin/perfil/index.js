@@ -175,10 +175,47 @@
 
             // If security tab → password change endpoint
             if (panelId === 'panel-seguranca') {
+                const senhaAtual = document.getElementById('senha_atual')?.value || '';
+                const novaSenha  = document.getElementById('nova_senha')?.value || '';
+                const confSenha  = document.getElementById('conf_senha')?.value || '';
+
+                // ── Client-side validation (mirrors backend rules) ──
+                const pwdErrors = [];
+                if (!senhaAtual || !novaSenha || !confSenha) {
+                    pwdErrors.push('Todos os campos de senha são obrigatórios.');
+                }
+                if (novaSenha.length < 8)          pwdErrors.push('A senha deve ter no mínimo 8 caracteres.');
+                if (!/[a-z]/.test(novaSenha))       pwdErrors.push('A senha deve conter pelo menos uma letra minúscula.');
+                if (!/[A-Z]/.test(novaSenha))       pwdErrors.push('A senha deve conter pelo menos uma letra maiúscula.');
+                if (!/[0-9]/.test(novaSenha))       pwdErrors.push('A senha deve conter pelo menos um número.');
+                if (!/[^a-zA-Z0-9]/.test(novaSenha)) pwdErrors.push('A senha deve conter pelo menos um caractere especial.');
+                if (novaSenha && confSenha && novaSenha !== confSenha) {
+                    pwdErrors.push('As senhas não coincidem.');
+                }
+
+                if (pwdErrors.length > 0) {
+                    // Highlight failing indicators
+                    const strengthPanel = document.getElementById('pwdStrengthProfile');
+                    if (strengthPanel) strengthPanel.classList.add('visible');
+
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Senha não atende aos requisitos',
+                            html: '<ul style="text-align:left;margin:0;padding-left:1.2em">' +
+                                  pwdErrors.map(e => '<li>' + e + '</li>').join('') + '</ul>',
+                            confirmButtonColor: '#e67e22'
+                        });
+                    }
+                    form.classList.remove('form-loading');
+                    if (submitBtn) { submitBtn.innerHTML = originalContent; submitBtn.disabled = false; }
+                    return;
+                }
+
                 const fd = new FormData();
-                fd.append('senha_atual', document.getElementById('senha_atual')?.value || '');
-                fd.append('nova_senha', document.getElementById('nova_senha')?.value || '');
-                fd.append('conf_senha', document.getElementById('conf_senha')?.value || '');
+                fd.append('senha_atual', senhaAtual);
+                fd.append('nova_senha', novaSenha);
+                fd.append('conf_senha', confSenha);
 
                 // Include CSRF token
                 const csrfInput = form.querySelector('input[name="csrf_token"]') || form.querySelector('input[name="_token"]');
@@ -678,6 +715,21 @@
             }
         ];
 
+        var saveBtn = document.getElementById('btn-save-seguranca');
+        var senhaAtualInput = document.getElementById('senha_atual');
+
+        function updateSaveBtn() {
+            if (!saveBtn) return;
+            var val = pwd.value;
+            var allRulesPass = val && rules.every(function(rule) { return rule.test(val); });
+            var match = val && confirm.value && val === confirm.value;
+            var currentFilled = senhaAtualInput && senhaAtualInput.value.length > 0;
+            saveBtn.disabled = !(allRulesPass && match && currentFilled);
+        }
+
+        // Start with button disabled
+        if (saveBtn) saveBtn.disabled = true;
+
         pwd.addEventListener('focus', function() {
             panel.classList.add('visible');
         });
@@ -695,6 +747,7 @@
                     var el = document.getElementById(rule.id);
                     if (el) el.classList.remove('pass');
                 });
+                updateSaveBtn();
                 return;
             }
 
@@ -712,6 +765,7 @@
             levelEl.textContent = levels[score].label;
 
             if (confirm.value) checkMatch();
+            updateSaveBtn();
         });
 
         function checkMatch() {
@@ -719,6 +773,7 @@
             var cVal = confirm.value;
             if (!cVal) {
                 matchEl.classList.remove('visible');
+                updateSaveBtn();
                 return;
             }
             matchEl.classList.add('visible');
@@ -729,10 +784,16 @@
             var text = matchEl.querySelector('.match-text');
             icon.innerHTML = ok ? '<i data-lucide="check"></i>' : '<i data-lucide="x"></i>';
             text.textContent = ok ? 'Senhas coincidem' : 'Senhas não coincidem';
+            updateSaveBtn();
         }
 
         confirm.addEventListener('input', checkMatch);
         pwd.addEventListener('input', function() {
             if (confirm.value) checkMatch();
         });
+
+        // Also track current password field
+        if (senhaAtualInput) {
+            senhaAtualInput.addEventListener('input', updateSaveBtn);
+        }
     })();
