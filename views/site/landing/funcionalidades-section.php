@@ -1,11 +1,11 @@
 <!-- Seção de Funcionalidades -->
-<section id="funcionalidades" class="lk-section-card relative py-16 md:py-24 overflow-hidden bg-gradient-to-b from-gray-50 to-white"
+<section id="funcionalidades" class="relative py-16 md:py-24 overflow-hidden bg-gradient-to-b from-gray-50 to-white"
     aria-labelledby="funcionalidades-titulo">
 
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
         <!-- Header -->
-        <header class="max-w-3xl mx-auto text-center mb-14" data-aos="fade-up">
+        <header class="lk-header-card max-w-3xl mx-auto text-center mb-14" data-aos="fade-up">
             <div class="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 rounded-full mb-4">
                 <i data-lucide="layout-dashboard" class="w-5 h-5 text-primary"></i>
                 <span class="text-sm font-semibold text-primary">Funcionalidades</span>

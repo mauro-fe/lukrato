@@ -1,10 +1,10 @@
 <!-- Seção de Benefícios -->
-<section id="beneficios" class="lk-section-card relative py-16 md:py-24 bg-gradient-to-b from-white to-gray-50"
+<section id="beneficios" class="relative py-16 md:py-24 bg-gradient-to-b from-white to-gray-50"
     aria-labelledby="beneficios-titulo">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
 
         <!-- Header da seção -->
-        <header class="max-w-3xl mx-auto text-center mb-14" data-aos="fade-up">
+        <header class="lk-header-card max-w-3xl mx-auto text-center mb-14" data-aos="fade-up">
             <div class="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 rounded-full mb-4">
                 <i data-lucide="sparkles" class="w-5 h-5 text-primary"></i>
                 <span class="text-sm font-semibold text-primary">Benefícios</span>

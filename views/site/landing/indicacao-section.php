@@ -1,5 +1,5 @@
 <!-- Seção de Indicação -->
-<section id="indicacao" class="lk-section-card relative py-16 md:py-24 bg-white overflow-hidden" aria-labelledby="indicacao-titulo">
+<section id="indicacao" class="relative py-16 md:py-24 bg-white overflow-hidden" aria-labelledby="indicacao-titulo">
     <!-- Background decorations -->
     <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div
@@ -12,7 +12,7 @@
 
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <!-- Header -->
-        <header class="max-w-3xl mx-auto text-center mb-12" data-aos="fade-up">
+        <header class="lk-header-card max-w-3xl mx-auto text-center mb-12" data-aos="fade-up">
             <div class="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 rounded-full mb-4">
                 <span class="text-2xl"><i data-lucide="gift" class="w-6 h-6 text-primary"></i></span>
                 <span class="text-sm font-semibold text-primary">Programa de Indicação</span>

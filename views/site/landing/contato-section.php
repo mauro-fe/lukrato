@@ -1,10 +1,10 @@
 <!-- Seção de Contato -->
-<section id="contato" class="lk-section-card relative py-16 md:py-24 bg-white" x-data="{ activeTab: 'whatsapp' }"
+<section id="contato" class="relative py-16 md:py-24 bg-white" x-data="{ activeTab: 'whatsapp' }"
     aria-labelledby="contato-titulo" itemscope itemtype="https://schema.org/ContactPage">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
 
         <!-- Header -->
-        <header class="max-w-3xl mx-auto text-center mb-12" data-aos="fade-up">
+        <header class="lk-header-card max-w-3xl mx-auto text-center mb-12" data-aos="fade-up">
             <h2 id="contato-titulo" class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
                 Fale com o
                 <span class="bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">

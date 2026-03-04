@@ -1,5 +1,5 @@
 <!-- Seção de Planos -->
-<section id="planos" class="lk-section-card relative py-16 md:py-24 bg-white" aria-labelledby="planos-titulo">
+<section id="planos" class="relative py-16 md:py-24 bg-white" aria-labelledby="planos-titulo">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
 
         <div x-data="{ 
@@ -24,7 +24,7 @@
                 }
             }">
 
-            <header class="max-w-3xl mx-auto text-center mb-12" data-aos="fade-up">
+            <header class="lk-header-card max-w-3xl mx-auto text-center mb-12" data-aos="fade-up">
                 <h2 id="planos-titulo" class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
                     Planos de Controle Financeiro
                     <span class="bg-gradient-to-r from-orange-500 to-orange-700 bg-clip-text text-transparent">
