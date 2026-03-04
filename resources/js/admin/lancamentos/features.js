@@ -147,6 +147,7 @@ export const FilterBadges = {
                 if (field === 'categoria' && DOM.selectCategoria) DOM.selectCategoria.value = '';
                 if (field === 'conta' && DOM.selectConta) DOM.selectConta.value = '';
                 if (field === 'status' && DOM.filtroStatus) DOM.filtroStatus.value = '';
+                document.dispatchEvent(new CustomEvent('lk:custom-select-sync'));
                 DataManager.load();
             });
         });

@@ -66,21 +66,21 @@
                     <div class="export-filters-row">
                         <div class="export-filter-item">
                             <label for="exportConta" class="export-filter-label">Conta</label>
-                            <select id="exportConta" class="modern-select export-select"
+                            <select id="exportConta" class="modern-select export-select" data-lk-custom-select="export"
                                 <?= !$isPro ? 'disabled' : '' ?>>
                                 <option value="">Todas</option>
                             </select>
                         </div>
                         <div class="export-filter-item">
                             <label for="exportCategoria" class="export-filter-label">Categoria</label>
-                            <select id="exportCategoria" class="modern-select export-select"
+                            <select id="exportCategoria" class="modern-select export-select" data-lk-custom-select="export"
                                 <?= !$isPro ? 'disabled' : '' ?>>
                                 <option value="">Todas</option>
                             </select>
                         </div>
                         <div class="export-filter-item">
                             <label for="exportTipo" class="export-filter-label">Tipo</label>
-                            <select id="exportTipo" class="modern-select export-select"
+                            <select id="exportTipo" class="modern-select export-select" data-lk-custom-select="export"
                                 <?= !$isPro ? 'disabled' : '' ?>>
                                 <option value="">Todos</option>
                                 <option value="receita">Receitas</option>
@@ -90,7 +90,7 @@
                     </div>
 
                     <div class="export-actions-group">
-                        <select id="exportFormat" class="modern-select" aria-label="Formato de exportação"
+                        <select id="exportFormat" class="modern-select" data-lk-custom-select="export" aria-label="Formato de exportação"
                             <?= !$isPro ? 'disabled' : '' ?>>
                             <option value="pdf">📄 PDF</option>
                             <option value="excel">📊 Excel (.xlsx)</option>
@@ -107,59 +107,66 @@
         </div>
 
         <!-- BARRA DE FILTROS INLINE -->
-        <div class="lk-filters-bar" data-aos="fade-up" data-aos-delay="200">
-            <div class="lk-filters-row">
-                <div class="lk-filter-search">
-                    <i data-lucide="search" class="lk-filter-search-icon"></i>
-                    <input type="text" id="filtroTexto" class="lk-filter-search-input"
-                        placeholder="Buscar por descrição..." aria-label="Buscar lançamentos">
-                </div>
-
-                <div class="lk-filter-group">
-                    <div class="lk-filter-chip-select">
-                        <i data-lucide="tag"></i>
-                        <select id="filtroTipo" class="lk-filter-native" aria-label="Filtrar por tipo">
-                            <option value="">Tipo</option>
-                            <option value="receita">Receitas</option>
-                            <option value="despesa">Despesas</option>
-                        </select>
-                    </div>
-
-                    <div class="lk-filter-chip-select">
-                        <i data-lucide="folder"></i>
-                        <select id="filtroCategoria" class="lk-filter-native" aria-label="Filtrar por categoria">
-                            <option value="">Categoria</option>
-                            <option value="none">Sem Categoria</option>
-                        </select>
-                    </div>
-
-                    <div class="lk-filter-chip-select">
-                        <i data-lucide="wallet"></i>
-                        <select id="filtroConta" class="lk-filter-native" aria-label="Filtrar por conta">
-                            <option value="">Conta</option>
-                        </select>
-                    </div>
-
-                    <div class="lk-filter-chip-select">
-                        <i data-lucide="circle-check"></i>
-                        <select id="filtroStatus" class="lk-filter-native" aria-label="Filtrar por status">
-                            <option value="">Status</option>
-                            <option value="pago">Pagos</option>
-                            <option value="pendente">Pendentes</option>
-                        </select>
-                    </div>
-                </div>
-
-                <button id="btnLimparFiltros" type="button" class="lk-filter-clear-btn" aria-label="Limpar filtros"
-                    title="Limpar filtros">
-                    <i data-lucide="x"></i>
-                </button>
+        <section class="lk-filters-section" data-aos="fade-up" data-aos-delay="200" aria-label="Filtros de lançamentos">
+            <div class="lk-filters-section-head">
+                <h3 class="lk-filters-title">Filtrar lançamentos</h3>
+                <p class="lk-filters-subtitle">Refine por tipo, categoria, conta e status</p>
             </div>
 
-            <!-- Active filter badges -->
-            <div class="lk-active-filters" id="activeFilterBadges" style="display: none;">
+            <div class="lk-filters-bar">
+                <div class="lk-filters-row">
+                    <div class="lk-filter-search">
+                        <i data-lucide="search" class="lk-filter-search-icon"></i>
+                        <input type="text" id="filtroTexto" class="lk-filter-search-input"
+                            placeholder="Buscar por descrição..." aria-label="Buscar lançamentos">
+                    </div>
+
+                    <div class="lk-filter-group">
+                        <div class="lk-filter-chip-select">
+                            <i data-lucide="tag"></i>
+                            <select id="filtroTipo" class="lk-filter-native" data-lk-custom-select="chip" aria-label="Filtrar por tipo">
+                                <option value="">Tipo</option>
+                                <option value="receita">Receitas</option>
+                                <option value="despesa">Despesas</option>
+                            </select>
+                        </div>
+
+                        <div class="lk-filter-chip-select">
+                            <i data-lucide="folder"></i>
+                            <select id="filtroCategoria" class="lk-filter-native" data-lk-custom-select="chip" aria-label="Filtrar por categoria">
+                                <option value="">Categoria</option>
+                                <option value="none">Sem Categoria</option>
+                            </select>
+                        </div>
+
+                        <div class="lk-filter-chip-select">
+                            <i data-lucide="wallet"></i>
+                            <select id="filtroConta" class="lk-filter-native" data-lk-custom-select="chip" aria-label="Filtrar por conta">
+                                <option value="">Conta</option>
+                            </select>
+                        </div>
+
+                        <div class="lk-filter-chip-select">
+                            <i data-lucide="circle-check"></i>
+                            <select id="filtroStatus" class="lk-filter-native" data-lk-custom-select="chip" aria-label="Filtrar por status">
+                                <option value="">Status</option>
+                                <option value="pago">Pagos</option>
+                                <option value="pendente">Pendentes</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button id="btnLimparFiltros" type="button" class="lk-filter-clear-btn" aria-label="Limpar filtros"
+                        title="Limpar filtros">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+
+                <!-- Active filter badges -->
+                <div class="lk-active-filters" id="activeFilterBadges" style="display: none;">
+                </div>
             </div>
-        </div>
+        </section>
     </div>
 
     <!-- ==================== TABELA MODERNIZADA ==================== -->

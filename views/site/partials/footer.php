@@ -53,8 +53,7 @@ $extraJs = $extraJs ?? [];
             <div class="lk-footer-links">
                 <h3 class="font-bold text-lg mb-5 text-white">Produto</h3>
                 <nav class="flex flex-col gap-3" aria-label="Links do produto">
-                    <a href="<?= BASE_URL ?>/#como-funciona" class="text-white/70"
-                        title="Como funciona o Lukrato">
+                    <a href="<?= BASE_URL ?>/#como-funciona" class="text-white/70" title="Como funciona o Lukrato">
                         <span>Como Funciona</span>
                     </a>
                     <a href="<?= BASE_URL ?>/#funcionalidades" class="text-white/70"
@@ -96,19 +95,24 @@ $extraJs = $extraJs ?? [];
             <div class="lk-footer-links">
                 <h3 class="font-bold text-lg mb-5 text-white">Aprenda</h3>
                 <nav class="flex flex-col gap-3" aria-label="Links educacionais">
-                    <a href="<?= BASE_URL ?>aprenda/categoria/comecar-com-financas" class="text-white/70" title="Artigos sobre como começar com finanças">
+                    <a href="<?= BASE_URL ?>aprenda/categoria/comecar-com-financas" class="text-white/70"
+                        title="Artigos sobre como começar com finanças">
                         <span>Começar com Finanças</span>
                     </a>
-                    <a href="<?= BASE_URL ?>aprenda/categoria/economizar-dinheiro" class="text-white/70" title="Dicas para economizar dinheiro">
+                    <a href="<?= BASE_URL ?>aprenda/categoria/economizar-dinheiro" class="text-white/70"
+                        title="Dicas para economizar dinheiro">
                         <span>Economizar Dinheiro</span>
                     </a>
-                    <a href="<?= BASE_URL ?>aprenda/categoria/investimentos" class="text-white/70" title="Guias de investimentos">
+                    <a href="<?= BASE_URL ?>aprenda/categoria/investimentos" class="text-white/70"
+                        title="Guias de investimentos">
                         <span>Investimentos</span>
                     </a>
-                    <a href="<?= BASE_URL ?>aprenda/categoria/dividas" class="text-white/70" title="Como sair das dívidas">
+                    <a href="<?= BASE_URL ?>aprenda/categoria/dividas" class="text-white/70"
+                        title="Como sair das dívidas">
                         <span>Dívidas</span>
                     </a>
-                    <a href="<?= BASE_URL ?>aprenda/categoria/ferramentas" class="text-white/70" title="Ferramentas financeiras">
+                    <a href="<?= BASE_URL ?>aprenda/categoria/ferramentas" class="text-white/70"
+                        title="Ferramentas financeiras">
                         <span>Ferramentas</span>
                     </a>
                     <a href="<?= BASE_URL ?>aprenda" class="text-white/70" title="Todos os artigos">

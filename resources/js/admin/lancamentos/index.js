@@ -12,6 +12,7 @@ import { debounce } from '../shared/utils.js';
 import { TableManager } from './table.js';
 import { MobileCards } from './mobile.js';
 import { OptionsManager, ModalManager } from './modal.js';
+import { CustomSelectManager } from './custom-select.js';
 import {
     ExportManager,
     FilterBadges,
@@ -223,6 +224,7 @@ const EventListeners = {
             if (DOM.filtroTexto) DOM.filtroTexto.value = '';
             if (DOM.filtroStatus) DOM.filtroStatus.value = '';
             updateChipActiveStates();
+            document.dispatchEvent(new CustomEvent('lk:custom-select-sync'));
             DataManager.load();
         });
 
@@ -281,6 +283,7 @@ const EventListeners = {
 const init = async () => {
     // Populate DOM refs
     initDOM();
+    CustomSelectManager.init();
 
     // Inicializar tabela HTML
     TableManager.init();
@@ -304,6 +307,7 @@ const init = async () => {
 
     // Carregar dados iniciais
     await OptionsManager.loadFilterOptions();
+    CustomSelectManager.syncAll();
     await DataManager.load();
 };
 

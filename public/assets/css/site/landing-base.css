@@ -2778,7 +2778,7 @@ body {
 
 /* Header de seção sem card de fundo */
 .lk-header-card {
-  background: transparent;
+  background: transparent !important ;
   border: 0;
   border-radius: 0;
   padding: 0;
