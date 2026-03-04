@@ -106,6 +106,11 @@ class Application
             return false;
         }
 
+        // Permitir landing page (rota raiz "/")
+        if ($path === '/' || $path === '') {
+            return false;
+        }
+
         // SysAdmin logado pode navegar normalmente
         $user = \Application\Lib\Auth::user();
         if ($user && (int) $user->is_admin === 1) {
