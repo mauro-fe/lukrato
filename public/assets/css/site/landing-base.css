@@ -2627,41 +2627,74 @@ svg {
    and footer (already has dark styling).
    ======================= */
 
+/* ── Bridge de tokens (light + dark) para utilitários usados na landing ── */
+main .text-gray-900 { color: var(--lk-text-strong); }
+main .text-gray-800,
+main .text-gray-700,
+main .text-gray-600,
+main .text-gray-500 { color: var(--lk-text-soft); }
+
+main .bg-white { background-color: var(--lk-surface); }
+main .bg-gray-50,
+main .bg-gray-100 { background-color: var(--lk-surface-alt); }
+main .bg-orange-50 { background-color: var(--lk-accent-soft); }
+main .bg-orange-100 { background-color: var(--lk-accent-soft-strong); }
+
+main .border-gray-200,
+main .border-gray-100 { border-color: var(--color-card-border); }
+main .border-orange-100 { border-color: var(--lk-accent-border); }
+
+main .hover\:bg-gray-50:hover,
+main .hover\:bg-gray-100:hover { background-color: color-mix(in srgb, var(--lk-surface) 92%, black 8%); }
+main .hover\:bg-orange-50:hover { background-color: color-mix(in srgb, var(--lk-accent-soft) 85%, var(--color-primary) 15%); }
+main .hover\:text-gray-900:hover,
+main .hover\:text-gray-600:hover { color: var(--lk-text-strong); }
+main .hover\:border-orange-200:hover { border-color: var(--lk-accent-border-hover); }
+
+main .from-primary,
+main .from-orange-500 { --tw-gradient-from: var(--lk-gradient-start) var(--tw-gradient-from-position); }
+main .to-orange-600,
+main .to-orange-700 { --tw-gradient-to: var(--lk-gradient-end) var(--tw-gradient-to-position); }
+
 /* ── Text Colors ── */
-[data-theme="dark"] main .text-gray-900 { color: #f8f9fa; }
-[data-theme="dark"] main .text-gray-800 { color: #e2e8f0; }
-[data-theme="dark"] main .text-gray-700 { color: #cbd5e1; }
-[data-theme="dark"] main .text-gray-600 { color: #94a3b8; }
-[data-theme="dark"] main .text-gray-500 { color: #94a3b8; }
+[data-theme="dark"] main .text-gray-900 { color: var(--lk-text-strong); }
+[data-theme="dark"] main .text-gray-800 { color: var(--lk-text-soft); }
+[data-theme="dark"] main .text-gray-700 { color: var(--lk-text-soft); }
+[data-theme="dark"] main .text-gray-600 { color: var(--lk-text-soft); }
+[data-theme="dark"] main .text-gray-500 { color: var(--lk-text-soft); }
 
 /* ── Background Colors ── */
-[data-theme="dark"] main .bg-white { background-color: var(--color-surface); }
+[data-theme="dark"] main .bg-white { background-color: var(--lk-surface); }
 [data-theme="dark"] main .bg-white\/80 { background-color: rgba(28, 44, 60, 0.8); }
-[data-theme="dark"] main .bg-gray-50 { background-color: var(--color-bg); }
-[data-theme="dark"] main .bg-gray-100 { background-color: var(--color-surface-muted); }
-[data-theme="dark"] main .bg-orange-50 { background-color: rgba(230, 126, 34, 0.08); }
-[data-theme="dark"] main .bg-orange-100 { background-color: rgba(230, 126, 34, 0.15); }
+[data-theme="dark"] main .bg-gray-50 { background-color: var(--lk-surface-alt); }
+[data-theme="dark"] main .bg-gray-100 { background-color: var(--lk-surface-alt); }
+[data-theme="dark"] main .bg-orange-50 { background-color: var(--lk-accent-soft); }
+[data-theme="dark"] main .bg-orange-100 { background-color: var(--lk-accent-soft-strong); }
 [data-theme="dark"] main .bg-green-100 { background-color: rgba(46, 204, 113, 0.15); }
 
 /* ── Border Colors ── */
 [data-theme="dark"] main .border-gray-200 { border-color: var(--color-card-border); }
 [data-theme="dark"] main .border-gray-100 { border-color: var(--color-card-border); }
 [data-theme="dark"] main .border-white { border-color: var(--color-surface); }
-[data-theme="dark"] main .border-orange-100 { border-color: var(--color-card-border); }
+[data-theme="dark"] main .border-orange-100 { border-color: var(--lk-accent-border); }
 
 /* ── Hover States ── */
 [data-theme="dark"] main .hover\:bg-gray-50:hover,
 [data-theme="dark"] main .hover\:bg-gray-100:hover { background-color: rgba(255, 255, 255, 0.05); }
-[data-theme="dark"] main .hover\:bg-orange-50:hover { background-color: rgba(230, 126, 34, 0.1); }
-[data-theme="dark"] main .hover\:text-gray-900:hover { color: #f8f9fa; }
-[data-theme="dark"] main .hover\:text-gray-600:hover { color: #94a3b8; }
-[data-theme="dark"] main .hover\:border-orange-200:hover { border-color: rgba(230, 126, 34, 0.3); }
+[data-theme="dark"] main .hover\:bg-orange-50:hover { background-color: color-mix(in srgb, var(--lk-accent-soft) 75%, var(--color-primary) 25%); }
+[data-theme="dark"] main .hover\:text-gray-900:hover { color: var(--lk-text-strong); }
+[data-theme="dark"] main .hover\:text-gray-600:hover { color: var(--lk-text-strong); }
+[data-theme="dark"] main .hover\:border-orange-200:hover { border-color: var(--lk-accent-border-hover); }
 
 /* ── Gradient Stops (section backgrounds) ── */
 [data-theme="dark"] main .from-orange-50 { --tw-gradient-from: var(--color-bg) var(--tw-gradient-from-position); }
 [data-theme="dark"] main .from-white { --tw-gradient-from: var(--color-bg) var(--tw-gradient-from-position); }
 [data-theme="dark"] main .from-gray-50 { --tw-gradient-from: var(--color-bg) var(--tw-gradient-from-position); }
 [data-theme="dark"] main .from-green-50 { --tw-gradient-from: var(--color-bg) var(--tw-gradient-from-position); }
+[data-theme="dark"] main .from-orange-500,
+[data-theme="dark"] main .from-primary { --tw-gradient-from: var(--lk-gradient-start) var(--tw-gradient-from-position); }
+[data-theme="dark"] main .to-orange-600,
+[data-theme="dark"] main .to-orange-700 { --tw-gradient-to: var(--lk-gradient-end) var(--tw-gradient-to-position); }
 [data-theme="dark"] main .to-gray-50 { --tw-gradient-to: var(--color-surface) var(--tw-gradient-to-position); }
 [data-theme="dark"] main .to-white { --tw-gradient-to: var(--color-surface) var(--tw-gradient-to-position); }
 [data-theme="dark"] main .to-orange-50\/20 { --tw-gradient-to: var(--color-surface) var(--tw-gradient-to-position); }
@@ -2743,31 +2776,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* =====================================================================
-   Landing — Header cards arredondados (dark mode)
-   Em dark mode, os headers (banner com badge + título + subtítulo)
-   dentro de cada seção ganham fundo, borda sutil e border-radius,
-   criando um card arredondado que quebra o visual "quadradão".
-   ===================================================================== */
-[data-theme="dark"] .lk-header-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
-  padding: 2rem 1.5rem;
-}
-
-@media (min-width: 640px) {
-  [data-theme="dark"] .lk-header-card {
-    border-radius: 24px;
-    padding: 2.5rem 2rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  [data-theme="dark"] .lk-header-card {
-    border-radius: 28px;
-    padding: 3rem 2.5rem;
-  }
+/* Header de seção sem card de fundo */
+.lk-header-card {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
 }
 
 /* FAQ items — padronizar radius para 16px (consistente com demais cards) */

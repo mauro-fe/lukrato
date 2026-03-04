@@ -55,6 +55,8 @@ export default defineConfig({
                 // Site (público)
                 'landing-base': resolve(__dirname, 'resources/js/site/landing-base.js'),
                 'site-card': resolve(__dirname, 'resources/js/site/card/index.js'),
+                // CSS compilado do Tailwind (site público)
+                'site-app': resolve(__dirname, 'resources/css/site/app.css'),
             }
         }
     },

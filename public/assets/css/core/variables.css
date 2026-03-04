@@ -115,6 +115,18 @@
 
   /* accent azul sutil para hover/badges (opcional) */
   --accent-subtle: #e6f0fa;
+
+   /* Landing tokens (fonte de verdade para classes utilitárias da landing) */
+   --lk-text-strong: var(--color-text);
+   --lk-text-soft: var(--color-text-muted);
+   --lk-surface: var(--color-surface);
+   --lk-surface-alt: var(--color-surface-muted);
+   --lk-accent-soft: #fff4ea;
+   --lk-accent-soft-strong: #ffe5cc;
+   --lk-accent-border: rgba(230, 126, 34, 0.22);
+   --lk-accent-border-hover: rgba(230, 126, 34, 0.35);
+   --lk-gradient-start: var(--color-primary);
+   --lk-gradient-end: #c86518;
 }
 
 /* ===============================
@@ -143,4 +155,16 @@
   --glass-bg: rgba(255, 255, 255, 0.06);
   --glass-border: rgba(255, 255, 255, 0.12);
   --ring: rgba(230, 126, 34, 0.22);
+
+   /* Landing tokens (fonte de verdade para classes utilitárias da landing) */
+   --lk-text-strong: var(--color-text);
+   --lk-text-soft: var(--color-text-muted);
+   --lk-surface: var(--color-surface);
+   --lk-surface-alt: var(--color-bg);
+   --lk-accent-soft: rgba(230, 126, 34, 0.08);
+   --lk-accent-soft-strong: rgba(230, 126, 34, 0.15);
+   --lk-accent-border: rgba(230, 126, 34, 0.22);
+   --lk-accent-border-hover: rgba(230, 126, 34, 0.35);
+   --lk-gradient-start: var(--color-primary);
+   --lk-gradient-end: #f39c12;
 }

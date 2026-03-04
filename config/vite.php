@@ -54,6 +54,32 @@ function vite_manifest(): array
 }
 
 /**
+ * Resolve um entry no manifest por chave, chave alternativa ou nome lógico.
+ */
+function vite_find_manifest_entry(string $entry, array $manifest): ?array
+{
+    if (isset($manifest[$entry])) {
+        return $manifest[$entry];
+    }
+
+    $altEntry = 'admin/' . ltrim($entry, '/');
+    if (isset($manifest[$altEntry])) {
+        return $manifest[$altEntry];
+    }
+
+    foreach ($manifest as $value) {
+        $manifestName = $value['name'] ?? null;
+        $manifestNames = $value['names'] ?? [];
+
+        if ($manifestName === $entry || in_array($entry . '.js', $manifestNames, true) || in_array($entry . '.css', $manifestNames, true)) {
+            return $value;
+        }
+    }
+
+    return null;
+}
+
+/**
  * Retorna a URL do asset Vite
  * 
  * @param string $entry Caminho relativo ao resources/js/ (ex: "admin/lancamentos/index.js")
@@ -66,20 +92,21 @@ function vite_asset(string $entry): string
     }
 
     $manifest = vite_manifest();
+    $manifestEntry = vite_find_manifest_entry($entry, $manifest);
 
-    // O entry no manifest usa o caminho relativo ao root do Vite
-    if (isset($manifest[$entry])) {
-        return BASE_URL . 'build/' . $manifest[$entry]['file'];
+    if ($manifestEntry && !empty($manifestEntry['file'])) {
+        return BASE_URL . 'build/' . $manifestEntry['file'];
     }
 
-    // Fallback: tentar com prefixo admin/
-    $altEntry = 'admin/' . $entry;
-    if (isset($manifest[$altEntry])) {
-        return BASE_URL . 'build/' . $manifest[$altEntry]['file'];
+    $normalizedEntry = ltrim(str_replace('\\', '/', $entry), '/');
+    if (!str_contains($normalizedEntry, '..')) {
+        $candidatePath = dirname(__DIR__) . '/public/build/' . $normalizedEntry;
+        if (file_exists($candidatePath)) {
+            return BASE_URL . 'build/' . $normalizedEntry;
+        }
     }
 
-    // Se não encontrou no manifest, retorna o path direto (dev fallback)
-    return BASE_URL . 'build/' . $entry;
+    return '';
 }
 
 /**
@@ -114,7 +141,7 @@ function vite_scripts(string $entry): string
     $html = '';
 
     // Buscar entry no manifest
-    $manifestEntry = $manifest[$entry] ?? null;
+    $manifestEntry = vite_find_manifest_entry($entry, $manifest);
 
     if ($manifestEntry) {
         // CSS imports do chunk
@@ -161,6 +188,10 @@ function vite_scripts(string $entry): string
 function vite_css(string $entry): string
 {
     if (vite_is_dev()) {
+        if (!str_contains($entry, '/')) {
+            return '';
+        }
+
         return sprintf(
             '<link rel="stylesheet" href="%s/%s">' . "\n",
             VITE_DEV_SERVER,
@@ -171,8 +202,8 @@ function vite_css(string $entry): string
     $manifest = vite_manifest();
 
     // Buscar no manifest — Vite usa o path relativo ao root do config
-    // Para CSS entries, o manifest key pode usar caminhos variados
-    $manifestEntry = $manifest[$entry] ?? null;
+    // Para CSS entries, também suportamos lookup por nome lógico
+    $manifestEntry = vite_find_manifest_entry($entry, $manifest);
 
     // Tentar path alternativos
     if (!$manifestEntry) {
@@ -202,10 +233,18 @@ function vite_css(string $entry): string
         }
     }
 
-    // Fallback: tentar path direto
-    return sprintf(
-        '<link rel="stylesheet" href="%sbuild/%s">' . "\n",
-        BASE_URL,
-        $entry
-    );
+    // Fallback seguro: evita apontar para arquivo inexistente (retornaria HTML e erro de MIME)
+    $normalizedEntry = ltrim(str_replace('\\', '/', $entry), '/');
+    if (!str_contains($normalizedEntry, '..')) {
+        $candidatePath = dirname(__DIR__) . '/public/build/' . $normalizedEntry;
+        if (file_exists($candidatePath)) {
+            return sprintf(
+                '<link rel="stylesheet" href="%sbuild/%s">' . "\n",
+                BASE_URL,
+                $normalizedEntry
+            );
+        }
+    }
+
+    return '';
 }

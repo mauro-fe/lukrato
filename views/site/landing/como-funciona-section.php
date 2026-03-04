@@ -3,7 +3,7 @@
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
 
         <!-- Header -->
-        <header class="lk-header-card max-w-3xl mx-auto text-center mb-16" data-aos="fade-up">
+        <TESTE class="lk-header-card max-w-3xl mx-auto text-center mb-16" data-aos="fade-up">
             <div class="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 rounded-full mb-4">
                 <i data-lucide="list-checks" class="w-5 h-5 text-primary"></i>
                 <span class="text-sm font-semibold text-primary">Passo a passo</span>
@@ -17,7 +17,7 @@
             <p class="text-lg sm:text-xl text-gray-600 leading-relaxed">
                 Sem complicação. Cadastre-se, adicione suas contas e comece a ter controle total das suas finanças.
             </p>
-        </header>
+        </TESTE>
 
         <!-- Steps -->
         <div class="max-w-5xl mx-auto">
@@ -29,8 +29,10 @@
 
                 <!-- Passo 1 -->
                 <div class="relative text-center group" data-aos="fade-up" data-aos-delay="0">
-                    <div class="relative z-10 w-24 h-24 bg-white border-2 border-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-md group-hover:shadow-lg group-hover:border-primary/30 transition-all duration-300">
-                        <div class="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-br from-primary to-orange-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-md">
+                    <div
+                        class="relative z-10 w-24 h-24 bg-white border-2 border-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-md group-hover:shadow-lg group-hover:border-primary/30 transition-all duration-300">
+                        <div
+                            class="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-br from-primary to-orange-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-md">
                             1
                         </div>
                         <i data-lucide="user-plus" class="w-10 h-10 text-primary"></i>
@@ -43,8 +45,10 @@
 
                 <!-- Passo 2 -->
                 <div class="relative text-center group" data-aos="fade-up" data-aos-delay="100">
-                    <div class="relative z-10 w-24 h-24 bg-white border-2 border-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-md group-hover:shadow-lg group-hover:border-primary/30 transition-all duration-300">
-                        <div class="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-br from-primary to-orange-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-md">
+                    <div
+                        class="relative z-10 w-24 h-24 bg-white border-2 border-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-md group-hover:shadow-lg group-hover:border-primary/30 transition-all duration-300">
+                        <div
+                            class="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-br from-primary to-orange-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-md">
                             2
                         </div>
                         <i data-lucide="landmark" class="w-10 h-10 text-primary"></i>
@@ -57,8 +61,10 @@
 
                 <!-- Passo 3 -->
                 <div class="relative text-center group" data-aos="fade-up" data-aos-delay="200">
-                    <div class="relative z-10 w-24 h-24 bg-white border-2 border-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-md group-hover:shadow-lg group-hover:border-primary/30 transition-all duration-300">
-                        <div class="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-br from-primary to-orange-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-md">
+                    <div
+                        class="relative z-10 w-24 h-24 bg-white border-2 border-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-md group-hover:shadow-lg group-hover:border-primary/30 transition-all duration-300">
+                        <div
+                            class="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-br from-primary to-orange-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-md">
                             3
                         </div>
                         <i data-lucide="receipt" class="w-10 h-10 text-primary"></i>
@@ -71,8 +77,10 @@
 
                 <!-- Passo 4 -->
                 <div class="relative text-center group" data-aos="fade-up" data-aos-delay="300">
-                    <div class="relative z-10 w-24 h-24 bg-white border-2 border-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-md group-hover:shadow-lg group-hover:border-primary/30 transition-all duration-300">
-                        <div class="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-br from-primary to-orange-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-md">
+                    <div
+                        class="relative z-10 w-24 h-24 bg-white border-2 border-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-md group-hover:shadow-lg group-hover:border-primary/30 transition-all duration-300">
+                        <div
+                            class="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-br from-primary to-orange-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-md">
                             4
                         </div>
                         <i data-lucide="bar-chart-3" class="w-10 h-10 text-primary"></i>
