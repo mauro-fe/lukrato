@@ -177,6 +177,7 @@ if (!function_exists('loadPageJs')) {
             'admin-onboarding-lancamento' => 'admin/onboarding/lancamento.js',
             'admin-sysadmin-communications' => 'admin/sysadmin/communications.js',
             'admin-sysadmin-cupons'     => 'admin/sysadmin/cupons.js',
+            'admin-sysadmin-blog'       => 'admin/sysadmin/blog.js',
         ];
 
         if (isset($viteEntries[$view]) && function_exists('vite_scripts')) {

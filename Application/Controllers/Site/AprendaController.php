@@ -1,0 +1,194 @@
+<?php
+
+namespace Application\Controllers\Site;
+
+use Application\Controllers\BaseController;
+use Application\Models\BlogCategoria;
+use Application\Models\BlogPost;
+use Application\Repositories\BlogPostRepository;
+
+class AprendaController extends BaseController
+{
+    private BlogPostRepository $repo;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->repo = new BlogPostRepository();
+    }
+
+    /**
+     * Hub principal — /aprenda
+     * Mostra categorias e artigos recentes.
+     */
+    public function index(): void
+    {
+        $categorias = BlogCategoria::ordenadas()
+            ->withCount(['postsPublicados as posts_count'])
+            ->get();
+
+        $recentes = BlogPost::publicados()
+            ->recentes()
+            ->with('categoria')
+            ->limit(6)
+            ->get();
+
+        $this->render(
+            'site/aprenda/index',
+            [
+                'pageTitle'       => 'Aprenda sobre Finanças Pessoais | Dicas e Guias Gratuitos | Lukrato',
+                'pageDescription' => 'Artigos educativos sobre finanças pessoais: como organizar finanças pessoais, economizar dinheiro, investir, sair das dívidas e controlar gastos. Guias gratuitos do Lukrato.',
+                'pageKeywords'    => 'finanças pessoais, educação financeira, como economizar dinheiro, controle de gastos, investimentos para iniciantes, como organizar finanças pessoais 2026, planilha de gastos mensais gratuita, dicas financeiras, orçamento pessoal, planejamento financeiro',
+                'canonicalUrl'    => rtrim(BASE_URL, '/') . '/aprenda',
+                'categorias'      => $categorias,
+                'recentes'        => $recentes,
+                'breadcrumbItems' => [
+                    ['label' => 'Início', 'url' => BASE_URL],
+                    ['label' => 'Aprenda', 'url' => null],
+                ],
+            ],
+            'site/partials/header',
+            'site/partials/footer'
+        );
+    }
+
+    /**
+     * Lista artigos de uma categoria — /aprenda/categoria/{slug}
+     */
+    public function categoria($slug): void
+    {
+        $categoria = BlogCategoria::where('slug', $slug)->first();
+
+        if (!$categoria) {
+            http_response_code(404);
+            $this->render('errors/404', [], 'site/partials/header', 'site/partials/footer');
+            return;
+        }
+
+        $page    = max(1, (int) ($_GET['page'] ?? 1));
+        $perPage = 12;
+
+        $result = $this->repo->listByCategoria($categoria->id, $perPage, $page);
+
+        $totalPages = (int) ceil($result['total'] / $perPage);
+
+        $catBaseUrl = rtrim(BASE_URL, '/') . '/aprenda/categoria/' . $categoria->slug;
+
+        $this->render(
+            'site/aprenda/categoria',
+            [
+                'pageTitle'       => $categoria->nome . ' – Guia Completo | Aprenda | Lukrato',
+                'pageDescription' => "Artigos e guias completos sobre {$categoria->nome}. Aprenda sobre finanças pessoais, dicas práticas e estratégias com o Lukrato.",
+                'pageKeywords'    => $this->getCategoryKeywords($categoria->slug),
+                'canonicalUrl'    => $catBaseUrl . ($page > 1 ? '?page=' . $page : ''),
+                'categoria'       => $categoria,
+                'posts'           => $result['items'],
+                'total'           => $result['total'],
+                'page'            => $page,
+                'totalPages'      => $totalPages,
+                'paginationPrev'  => $page > 1 ? $catBaseUrl . ($page > 2 ? '?page=' . ($page - 1) : '') : null,
+                'paginationNext'  => $page < $totalPages ? $catBaseUrl . '?page=' . ($page + 1) : null,
+                'breadcrumbItems' => [
+                    ['label' => 'Início', 'url' => BASE_URL],
+                    ['label' => 'Aprenda', 'url' => rtrim(BASE_URL, '/') . '/aprenda'],
+                    ['label' => $categoria->nome, 'url' => null],
+                ],
+            ],
+            'site/partials/header',
+            'site/partials/footer'
+        );
+    }
+
+    /**
+     * Exibe artigo individual — /aprenda/{slug}
+     */
+    public function show($slug): void
+    {
+        $post = $this->repo->findPublishedBySlug($slug);
+
+        if (!$post) {
+            http_response_code(404);
+            $this->render('errors/404', [], 'site/partials/header', 'site/partials/footer');
+            return;
+        }
+
+        // Artigos relacionados (mesma categoria)
+        $relacionados = $this->repo->findRelated(
+            $post->id,
+            $post->blog_categoria_id,
+            4
+        );
+
+        $this->render(
+            'site/aprenda/show',
+            [
+                'pageTitle'       => $post->effective_meta_title,
+                'pageDescription' => $post->effective_meta_description,
+                'canonicalUrl'    => rtrim(BASE_URL, '/') . '/aprenda/' . $post->slug,
+                'pageImage'       => $post->imagem_capa_url ?? (BASE_URL . 'assets/img/og-image.png'),
+                'pageType'        => 'article',
+                'pageImageAlt'    => $post->titulo,
+                'articlePublishedTime' => $post->published_at?->toIso8601String(),
+                'articleModifiedTime'  => $post->updated_at?->toIso8601String(),
+                'articleSection'       => $post->categoria?->nome,
+                'pageKeywords'    => $this->getArticleKeywords($post),
+                'post'            => $post,
+                'relacionados'    => $relacionados,
+                'breadcrumbItems' => [
+                    ['label' => 'Início', 'url' => BASE_URL],
+                    ['label' => 'Aprenda', 'url' => rtrim(BASE_URL, '/') . '/aprenda'],
+                    ['label' => $post->categoria?->nome ?? 'Artigo', 'url' => $post->categoria ? rtrim(BASE_URL, '/') . '/aprenda/categoria/' . $post->categoria->slug : null],
+                    ['label' => $post->titulo, 'url' => null],
+                ],
+            ],
+            'site/partials/header',
+            'site/partials/footer'
+        );
+    }
+
+    /**
+     * Retorna keywords específicas por categoria.
+     */
+    private function getCategoryKeywords(string $slug): string
+    {
+        $map = [
+            'comecar-com-financas' => 'como organizar finanças pessoais 2026, educação financeira, orçamento pessoal, como começar a controlar gastos, finanças para iniciantes, planejamento financeiro pessoal',
+            'economizar-dinheiro'  => 'como economizar dinheiro, dicas para economizar, planilha de gastos mensais gratuita, reserva de emergência, gastos invisíveis, reduzir despesas',
+            'investimentos'        => 'investimentos para iniciantes, renda fixa, renda variável, tesouro direto, como começar a investir, investir com pouco dinheiro',
+            'dividas'              => 'como sair das dívidas, como controlar gastos do cartão de crédito, negociação de dívidas, cartão de crédito sem dívida, quitar dívidas',
+            'ferramentas'          => 'app de controle financeiro gratuito brasileiro, planilha de gastos mensais gratuita, métodos de controle financeiro, regra 50-30-20, ferramentas finanças pessoais',
+        ];
+
+        return $map[$slug] ?? 'finanças pessoais, controle financeiro, educação financeira';
+    }
+
+    /**
+     * Gera keywords para um artigo individual a partir de seus metadados.
+     */
+    private function getArticleKeywords(BlogPost $post): string
+    {
+        $keywords = [];
+
+        // Adicionar nome da categoria
+        if ($post->categoria) {
+            $keywords[] = mb_strtolower($post->categoria->nome);
+        }
+
+        // Extrair palavras-chave do título (palavras com 4+ letras)
+        $titulo = mb_strtolower($post->titulo);
+        $stopWords = ['como', 'para', 'que', 'com', 'sem', 'seu', 'sua', 'das', 'dos', 'por', 'mais', 'uma', 'não'];
+        $words = preg_split('/\s+/', $titulo);
+        foreach ($words as $word) {
+            $clean = trim($word, '.:,;!?');
+            if (mb_strlen($clean) >= 4 && !in_array($clean, $stopWords)) {
+                $keywords[] = $clean;
+            }
+        }
+
+        // Base keywords sempre presentes
+        $keywords[] = 'finanças pessoais';
+        $keywords[] = 'lukrato';
+
+        return implode(', ', array_unique($keywords));
+    }
+}

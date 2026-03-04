@@ -54,6 +54,9 @@ Router::add('GET', '/sysadmin/cupons', 'SysAdmin\\CupomViewController@index', ['
 // SysAdmin - Comunicações e campanhas
 Router::add('GET', '/sysadmin/comunicacoes', 'SysAdmin\\CommunicationController@index', ['auth', 'sysadmin']);
 
+// SysAdmin - Blog / Aprenda
+Router::add('GET', '/sysadmin/blog', 'SysAdmin\\BlogViewController@index', ['auth', 'sysadmin']);
+
 
 
 // Redirects legados

@@ -151,3 +151,61 @@ function vite_scripts(string $entry): string
 
     return $html;
 }
+
+/**
+ * Gera a tag <link> para um entry point CSS do Vite
+ * 
+ * @param string $entry Caminho relativo (ex: "css/site/app.css" relativo a resources/)
+ * @return string HTML com link tag
+ */
+function vite_css(string $entry): string
+{
+    if (vite_is_dev()) {
+        return sprintf(
+            '<link rel="stylesheet" href="%s/%s">' . "\n",
+            VITE_DEV_SERVER,
+            $entry
+        );
+    }
+
+    $manifest = vite_manifest();
+
+    // Buscar no manifest — Vite usa o path relativo ao root do config
+    // Para CSS entries, o manifest key pode usar caminhos variados
+    $manifestEntry = $manifest[$entry] ?? null;
+
+    // Tentar path alternativos
+    if (!$manifestEntry) {
+        // Tentar com ../ prefix (CSS fica fora do root JS)
+        $altEntry = '../css/' . basename(dirname($entry)) . '/' . basename($entry);
+        $manifestEntry = $manifest[$altEntry] ?? null;
+    }
+    if (!$manifestEntry) {
+        // Buscar por nome do arquivo em qualquer path do manifest
+        foreach ($manifest as $key => $value) {
+            if (str_contains($key, basename($entry))) {
+                $manifestEntry = $value;
+                break;
+            }
+        }
+    }
+
+    if ($manifestEntry) {
+        // Um CSS entry gera um .css file direto
+        $file = $manifestEntry['file'] ?? '';
+        if ($file) {
+            return sprintf(
+                '<link rel="stylesheet" href="%sbuild/%s">' . "\n",
+                BASE_URL,
+                $file
+            );
+        }
+    }
+
+    // Fallback: tentar path direto
+    return sprintf(
+        '<link rel="stylesheet" href="%sbuild/%s">' . "\n",
+        BASE_URL,
+        $entry
+    );
+}

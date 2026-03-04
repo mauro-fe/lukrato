@@ -27,6 +27,14 @@ Router::add('GET', '/termos', 'Site\\LegalController@terms');
 Router::add('GET', '/privacidade', 'Site\\LegalController@privacy');
 Router::add('GET', '/lgpd', 'Site\\LegalController@lgpd');
 
+// BLOG / APRENDA (100% público, SEO)
+Router::add('GET', '/aprenda', 'Site\\AprendaController@index');
+Router::add('GET', '/aprenda/categoria/{slug}', 'Site\\AprendaController@categoria');
+Router::add('GET', '/aprenda/{slug}', 'Site\\AprendaController@show');
+
+// SITEMAP DINÂMICO
+Router::add('GET', '/sitemap.xml', 'Site\\SitemapController@index');
+
 
 
 /* =========================

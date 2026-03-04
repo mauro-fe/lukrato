@@ -8,7 +8,7 @@ $extraJs = $extraJs ?? [];
 <footer class="lk-footer" style="background: #092741 !important; color: #fff;" role="contentinfo" itemscope
     itemtype="https://schema.org/WPFooter">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-12 mb-12">
 
             <!-- Marca -->
             <div class="space-y-4" itemscope itemtype="https://schema.org/Organization">
@@ -88,6 +88,31 @@ $extraJs = $extraJs ?? [];
                     </a>
                     <a href="<?= BASE_URL ?>lgpd" class="text-white/70" title="LGPD e proteção de dados pessoais">
                         <span>LGPD e Proteção de Dados</span>
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Aprenda -->
+            <div class="lk-footer-links">
+                <h3 class="font-bold text-lg mb-5 text-white">Aprenda</h3>
+                <nav class="flex flex-col gap-3" aria-label="Links educacionais">
+                    <a href="<?= BASE_URL ?>aprenda/categoria/comecar-com-financas" class="text-white/70" title="Artigos sobre como começar com finanças">
+                        <span>Começar com Finanças</span>
+                    </a>
+                    <a href="<?= BASE_URL ?>aprenda/categoria/economizar-dinheiro" class="text-white/70" title="Dicas para economizar dinheiro">
+                        <span>Economizar Dinheiro</span>
+                    </a>
+                    <a href="<?= BASE_URL ?>aprenda/categoria/investimentos" class="text-white/70" title="Guias de investimentos">
+                        <span>Investimentos</span>
+                    </a>
+                    <a href="<?= BASE_URL ?>aprenda/categoria/dividas" class="text-white/70" title="Como sair das dívidas">
+                        <span>Dívidas</span>
+                    </a>
+                    <a href="<?= BASE_URL ?>aprenda/categoria/ferramentas" class="text-white/70" title="Ferramentas financeiras">
+                        <span>Ferramentas</span>
+                    </a>
+                    <a href="<?= BASE_URL ?>aprenda" class="text-white/70" title="Todos os artigos">
+                        <span>Ver Todos</span>
                     </a>
                 </nav>
             </div>

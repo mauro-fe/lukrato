@@ -21,15 +21,15 @@
 
                 <!-- Título Principal -->
                 <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                    Organize suas finanças pessoais com
+                    Organize suas Finanças Pessoais de Forma Simples e
                     <span class="bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
-                        simplicidade
+                        Gratuita
                     </span>
                 </h1>
 
                 <!-- Subtítulo -->
                 <p class="text-lg sm:text-xl text-gray-600 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Dashboard inteligente, cartões de crédito, relatórios visuais e controle de lançamentos.
+                    O app brasileiro de controle financeiro gratuito com dashboard inteligente, gestão de cartões de crédito, relatórios visuais e controle de gastos.
                     Tudo em um só lugar, sem complicação.
                 </p>
 

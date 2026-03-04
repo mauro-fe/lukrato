@@ -32,6 +32,7 @@ export default defineConfig({
                 'onboarding-lancamento': resolve(__dirname, 'resources/js/admin/onboarding/lancamento.js'),
                 'sysadmin-communications': resolve(__dirname, 'resources/js/admin/sysadmin/communications.js'),
                 'sysadmin-cupons': resolve(__dirname, 'resources/js/admin/sysadmin/cupons.js'),
+                'sysadmin-blog': resolve(__dirname, 'resources/js/admin/sysadmin/blog.js'),
                 // Auth
                 'auth-login': resolve(__dirname, 'resources/js/admin/auth/login/index.js'),
                 'auth-forgot-password': resolve(__dirname, 'resources/js/admin/auth/forgot-password/index.js'),
@@ -40,6 +41,8 @@ export default defineConfig({
                 // Site (público)
                 'landing-base': resolve(__dirname, 'resources/js/site/landing-base.js'),
                 'site-card': resolve(__dirname, 'resources/js/site/card/index.js'),
+                // CSS compilado do Tailwind (site público)
+                'site-app': resolve(__dirname, 'resources/css/site/app.css'),
             }
         }
     },

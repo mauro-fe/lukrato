@@ -15,23 +15,38 @@ $extraCss  = $extraCss ?? [];
 
 $canonicalUrl = $canonicalUrl ?? rtrim(BASE_URL, '/') . '/';
 
+// Page type (og:type override)
+$pageType = $pageType ?? 'website';
+$pageImageAlt = $pageImageAlt ?? 'Lukrato - Controle Financeiro Pessoal';
+
+// Article OG meta (only for blog posts)
+$articlePublishedTime = $articlePublishedTime ?? null;
+$articleModifiedTime = $articleModifiedTime ?? null;
+$articleSection = $articleSection ?? null;
+
 // Breadcrumb data
 $breadcrumbItems = $breadcrumbItems ?? [];
+
+// Pagination prev/next (for category listing pages)
+$paginationPrev = $paginationPrev ?? null;
+$paginationNext = $paginationNext ?? null;
+
+// Landing-only flag (controls which schemas are rendered)
+$isLandingPage = $isLandingPage ?? false;
 ?>
 
 
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
-<script>
-    (function() {
-        var t = localStorage.getItem('lukrato-theme');
-        if (t !== 'light' && t !== 'dark') t = 'light';
-        document.documentElement.setAttribute('data-theme', t);
-        if (!localStorage.getItem('lukrato-theme')) localStorage.setItem('lukrato-theme', t);
-    })();
-</script>
-
 <head>
+    <script>
+        (function() {
+            var t = localStorage.getItem('lukrato-theme');
+            if (t !== 'light' && t !== 'dark') t = 'light';
+            document.documentElement.setAttribute('data-theme', t);
+            if (!localStorage.getItem('lukrato-theme')) localStorage.setItem('lukrato-theme', t);
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -66,27 +81,44 @@ $breadcrumbItems = $breadcrumbItems ?? [];
 
     <!-- Language -->
     <meta name="language" content="Portuguese">
-    <link rel="alternate" hreflang="pt-br" href="<?= htmlspecialchars($pageUrl) ?>">
+    <link rel="alternate" hreflang="pt-br" href="<?= htmlspecialchars($canonicalUrl) ?>">
 
     <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="<?= htmlspecialchars($pageUrl) ?>">
+    <meta property="og:type" content="<?= htmlspecialchars($pageType) ?>">
+    <meta property="og:url" content="<?= htmlspecialchars($canonicalUrl) ?>">
     <meta property="og:title" content="<?= htmlspecialchars($pageTitle) ?>">
     <meta property="og:description" content="<?= htmlspecialchars($pageDescription) ?>">
     <meta property="og:image" content="<?= htmlspecialchars($pageImage) ?>">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="Lukrato - Controle Financeiro Pessoal">
+    <meta property="og:image:alt" content="<?= htmlspecialchars($pageImageAlt) ?>">
     <meta property="og:site_name" content="Lukrato">
     <meta property="og:locale" content="pt_BR">
+    <?php if ($articlePublishedTime): ?>
+    <meta property="article:published_time" content="<?= htmlspecialchars($articlePublishedTime) ?>">
+    <?php endif; ?>
+    <?php if ($articleModifiedTime): ?>
+    <meta property="article:modified_time" content="<?= htmlspecialchars($articleModifiedTime) ?>">
+    <?php endif; ?>
+    <?php if ($articleSection): ?>
+    <meta property="article:section" content="<?= htmlspecialchars($articleSection) ?>">
+    <?php endif; ?>
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="<?= htmlspecialchars($pageUrl) ?>">
+    <meta name="twitter:url" content="<?= htmlspecialchars($canonicalUrl) ?>">
     <meta name="twitter:title" content="<?= htmlspecialchars($pageTitle) ?>">
     <meta name="twitter:description" content="<?= htmlspecialchars($pageDescription) ?>">
     <meta name="twitter:image" content="<?= htmlspecialchars($pageImage) ?>">
-    <meta name="twitter:image:alt" content="Lukrato - Controle Financeiro Pessoal">
+    <meta name="twitter:image:alt" content="<?= htmlspecialchars($pageImageAlt) ?>">
+
+    <!-- Pagination -->
+    <?php if ($paginationPrev): ?>
+    <link rel="prev" href="<?= htmlspecialchars($paginationPrev) ?>">
+    <?php endif; ?>
+    <?php if ($paginationNext): ?>
+    <link rel="next" href="<?= htmlspecialchars($paginationNext) ?>">
+    <?php endif; ?>
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="<?= BASE_URL ?>assets/img/icone.png">
@@ -98,89 +130,18 @@ $breadcrumbItems = $breadcrumbItems ?? [];
     <meta name="msapplication-TileImage" content="<?= BASE_URL ?>assets/img/icone.png">
 
     <!-- DNS Prefetch & Preconnect -->
-    <link rel="preconnect" href="https://cdn.tailwindcss.com">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <link rel="preconnect" href="https://unpkg.com">
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     <link rel="dns-prefetch" href="https://unpkg.com">
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: ['selector', '[data-theme="dark"]'],
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#e67e22',
-                        secondary: '#2c3e50',
-                        success: '#2ecc71',
-                        warning: '#f39c12',
-                        danger: '#e74c3c',
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Tailwind CSS (compilado via Vite) -->
+    <?= function_exists('vite_css') ? vite_css('../css/site/app.css') : '' ?>
 
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
-    <!-- Style para Alpine.js x-cloak + Preloader anti-FOUC -->
-    <style>
-        [x-cloak] {
-            display: none !important;
-        }
-
-        html,
-        body {
-            overflow-x: hidden;
-            width: 100%;
-            max-width: 100vw;
-            margin: 0;
-            padding: 0;
-        }
-
-        /* Preloader para evitar FOUC (flash de conteúdo sem estilo) */
-        #lk-preloader {
-            position: fixed;
-            inset: 0;
-            z-index: 99999;
-            background: var(--color-bg, #fff);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.4s ease, visibility 0.4s ease;
-        }
-
-        #lk-preloader.hide {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        #lk-preloader img {
-            width: 120px;
-            height: auto;
-            animation: lk-pulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes lk-pulse {
-
-            0%,
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-
-            50% {
-                opacity: 0.7;
-                transform: scale(0.95);
-            }
-        }
-    </style>
 
     <!-- AOS (Animate On Scroll) -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
@@ -200,7 +161,8 @@ $breadcrumbItems = $breadcrumbItems ?? [];
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/vendor/lucide-compat.css">
     <script src="<?= BASE_URL ?>assets/js/lucide.min.js"></script>
 
-    <!-- Schema.org Markup (JSON-LD) - SoftwareApplication -->
+    <?php if ($isLandingPage): ?>
+    <!-- Schema.org Markup (JSON-LD) - SoftwareApplication (landing only) -->
     <script type="application/ld+json">
         {
             "@context": "https://schema.org",
@@ -216,21 +178,13 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                 "availability": "https://schema.org/InStock",
                 "priceValidUntil": "2027-12-31"
             },
-            "aggregateRating": {
-                "@type": "AggregateRating",
-                "ratingValue": "4.9",
-                "bestRating": "5",
-                "worstRating": "1",
-                "ratingCount": "487",
-                "reviewCount": "234"
-            },
             "description": "<?= htmlspecialchars($pageDescription) ?>",
             "url": "<?= htmlspecialchars(BASE_URL) ?>",
             "image": "<?= htmlspecialchars($pageImage) ?>",
             "screenshot": "<?= BASE_URL ?>assets/img/mockups/dashboard.png",
             "softwareVersion": "2.0",
             "datePublished": "2024-01-01",
-            "dateModified": "2026-02-03",
+            "dateModified": "2026-03-04",
             "inLanguage": "pt-BR",
             "provider": {
                 "@type": "Organization",
@@ -241,19 +195,6 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                     "url": "<?= BASE_URL ?>assets/img/logo.png",
                     "width": 180,
                     "height": 64
-                },
-                "contactPoint": {
-                    "@type": "ContactPoint",
-                    "telephone": "+55-44-99950-6302",
-                    "contactType": "Customer Service",
-                    "availableLanguage": ["Portuguese"],
-                    "areaServed": "BR"
-                },
-                "address": {
-                    "@type": "PostalAddress",
-                    "addressLocality": "Campina da Lagoa",
-                    "addressRegion": "PR",
-                    "addressCountry": "BR"
                 }
             },
             "featureList": [
@@ -267,35 +208,6 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                 "Categorização automática de transações",
                 "Dashboard intuitivo",
                 "Exportação de dados"
-            ],
-            "review": [{
-                    "@type": "Review",
-                    "author": {
-                        "@type": "Person",
-                        "name": "João Silva"
-                    },
-                    "datePublished": "2026-01-15",
-                    "reviewBody": "O melhor app de controle financeiro que já usei. Simples e eficiente!",
-                    "reviewRating": {
-                        "@type": "Rating",
-                        "ratingValue": "5",
-                        "bestRating": "5"
-                    }
-                },
-                {
-                    "@type": "Review",
-                    "author": {
-                        "@type": "Person",
-                        "name": "Maria Oliveira"
-                    },
-                    "datePublished": "2026-01-20",
-                    "reviewBody": "Finalmente consegui organizar minhas finanças. Recomendo demais!",
-                    "reviewRating": {
-                        "@type": "Rating",
-                        "ratingValue": "5",
-                        "bestRating": "5"
-                    }
-                }
             ]
         }
     </script>
@@ -345,20 +257,12 @@ $breadcrumbItems = $breadcrumbItems ?? [];
             "name": "Lukrato",
             "alternateName": "Lukrato Controle Financeiro",
             "url": "<?= htmlspecialchars(BASE_URL) ?>",
-            "description": "<?= htmlspecialchars($pageDescription) ?>",
-            "inLanguage": "pt-BR",
-            "potentialAction": {
-                "@type": "SearchAction",
-                "target": {
-                    "@type": "EntryPoint",
-                    "urlTemplate": "<?= htmlspecialchars(BASE_URL) ?>busca?q={search_term_string}"
-                },
-                "query-input": "required name=search_term_string"
-            }
+            "description": "Controle financeiro pessoal simples e gratuito para organizar suas finanças",
+            "inLanguage": "pt-BR"
         }
     </script>
 
-    <!-- Schema.org Markup (JSON-LD) - FAQPage -->
+    <!-- Schema.org Markup (JSON-LD) - FAQPage (landing only) -->
     <script type="application/ld+json">
         {
             "@context": "https://schema.org",
@@ -398,6 +302,7 @@ $breadcrumbItems = $breadcrumbItems ?? [];
             ]
         }
     </script>
+    <?php endif; ?>
 
     <!-- Schema.org Markup (JSON-LD) - BreadcrumbList -->
     <?php if (!empty($breadcrumbItems)): ?>
@@ -409,8 +314,8 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                     <?php foreach ($breadcrumbItems as $index => $item): ?> {
                             "@type": "ListItem",
                             "position": <?= $index + 1 ?>,
-                            "name": "<?= htmlspecialchars($item['name']) ?>",
-                            "item": "<?= htmlspecialchars($item['url']) ?>"
+                            "name": "<?= htmlspecialchars($item['label'] ?? $item['name'] ?? '') ?>",
+                            "item": "<?= htmlspecialchars($item['url'] ?? '') ?>"
                         }
                         <?= ($index < count($breadcrumbItems) - 1) ? ',' : '' ?>
                     <?php endforeach; ?>
@@ -522,6 +427,50 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                             class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-orange-600 group-hover:w-full transition-all duration-300"
                             aria-hidden="true"></span>
                     </a>
+
+                    <!-- Aprenda Dropdown -->
+                    <div class="relative" x-data="{ aprendaOpen: false }" @mouseenter="aprendaOpen = true" @mouseleave="aprendaOpen = false">
+                        <a href="<?= BASE_URL ?>aprenda"
+                            class="relative font-semibold transition-all duration-300 group inline-flex items-center gap-1"
+                            :class="scrolled ? 'text-gray-600 dark:text-gray-300 hover:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-primary'"
+                            aria-label="Aprenda sobre finanças">
+                            Aprenda
+                            <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform duration-200" :class="aprendaOpen ? 'rotate-180' : ''" aria-hidden="true"></i>
+                            <span
+                                class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-orange-600 group-hover:w-full transition-all duration-300"
+                                aria-hidden="true"></span>
+                        </a>
+                        <div x-show="aprendaOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2"
+                            class="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 p-2 z-50"
+                            x-cloak>
+                            <a href="<?= BASE_URL ?>aprenda/categoria/comecar-com-financas" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-orange-50 dark:hover:bg-white/5 transition-colors group/item">
+                                <i data-lucide="rocket" class="w-4 h-4 text-primary" aria-hidden="true"></i>
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover/item:text-primary transition-colors">Começar com Finanças</span>
+                            </a>
+                            <a href="<?= BASE_URL ?>aprenda/categoria/economizar-dinheiro" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-orange-50 dark:hover:bg-white/5 transition-colors group/item">
+                                <i data-lucide="piggy-bank" class="w-4 h-4 text-primary" aria-hidden="true"></i>
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover/item:text-primary transition-colors">Economizar Dinheiro</span>
+                            </a>
+                            <a href="<?= BASE_URL ?>aprenda/categoria/investimentos" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-orange-50 dark:hover:bg-white/5 transition-colors group/item">
+                                <i data-lucide="trending-up" class="w-4 h-4 text-primary" aria-hidden="true"></i>
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover/item:text-primary transition-colors">Investimentos</span>
+                            </a>
+                            <a href="<?= BASE_URL ?>aprenda/categoria/dividas" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-orange-50 dark:hover:bg-white/5 transition-colors group/item">
+                                <i data-lucide="alert-triangle" class="w-4 h-4 text-primary" aria-hidden="true"></i>
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover/item:text-primary transition-colors">Dívidas</span>
+                            </a>
+                            <a href="<?= BASE_URL ?>aprenda/categoria/ferramentas" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-orange-50 dark:hover:bg-white/5 transition-colors group/item">
+                                <i data-lucide="wrench" class="w-4 h-4 text-primary" aria-hidden="true"></i>
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover/item:text-primary transition-colors">Ferramentas</span>
+                            </a>
+                            <div class="border-t border-gray-100 dark:border-gray-700 mt-1 pt-1">
+                                <a href="<?= BASE_URL ?>aprenda" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-orange-50 dark:hover:bg-white/5 transition-colors group/item">
+                                    <i data-lucide="book-open" class="w-4 h-4 text-primary" aria-hidden="true"></i>
+                                    <span class="text-sm font-semibold text-primary">Ver todos os artigos</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </nav>
 
                 <!-- Desktop Actions Premium -->
@@ -645,6 +594,41 @@ $breadcrumbItems = $breadcrumbItems ?? [];
                     class="text-gray-700 dark:text-gray-200 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
                     Contato
                 </a>
+
+                <!-- Aprenda (mobile accordion) -->
+                <div x-data="{ aprendaMobileOpen: false }">
+                    <button @click="aprendaMobileOpen = !aprendaMobileOpen"
+                        class="w-full flex items-center justify-between text-gray-700 dark:text-gray-200 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
+                        <span>Aprenda</span>
+                        <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200" :class="aprendaMobileOpen ? 'rotate-180' : ''" aria-hidden="true"></i>
+                    </button>
+                    <div x-show="aprendaMobileOpen" x-collapse class="ml-4 flex flex-col gap-1 mt-1">
+                        <a href="<?= BASE_URL ?>aprenda/categoria/comecar-com-financas" @click="mobileMenuOpen = false"
+                            class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary py-2 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
+                            Começar com Finanças
+                        </a>
+                        <a href="<?= BASE_URL ?>aprenda/categoria/economizar-dinheiro" @click="mobileMenuOpen = false"
+                            class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary py-2 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
+                            Economizar Dinheiro
+                        </a>
+                        <a href="<?= BASE_URL ?>aprenda/categoria/investimentos" @click="mobileMenuOpen = false"
+                            class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary py-2 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
+                            Investimentos
+                        </a>
+                        <a href="<?= BASE_URL ?>aprenda/categoria/dividas" @click="mobileMenuOpen = false"
+                            class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary py-2 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
+                            Dívidas
+                        </a>
+                        <a href="<?= BASE_URL ?>aprenda/categoria/ferramentas" @click="mobileMenuOpen = false"
+                            class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary py-2 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
+                            Ferramentas
+                        </a>
+                        <a href="<?= BASE_URL ?>aprenda" @click="mobileMenuOpen = false"
+                            class="text-sm text-primary font-semibold py-2 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
+                            Ver todos os artigos
+                        </a>
+                    </div>
+                </div>
             </nav>
 
             <!-- Botões de Ação -->

@@ -220,6 +220,23 @@
                 </div>
             </div>
 
+            <!-- Blog / Aprenda Card -->
+            <div class="control-card">
+                <div class="control-header">
+                    <i data-lucide="book-open" style="color: #f97316;"></i>
+                    <div>
+                        <h3>Blog / Aprenda</h3>
+                        <p>Gerencie artigos educacionais</p>
+                    </div>
+                </div>
+                <div class="control-actions">
+                    <button class="btn-control primary" data-action="navigateTo" data-href="<?= BASE_URL ?>sysadmin/blog">
+                        <i data-lucide="pen-line"></i>
+                        Gerenciar Blog
+                    </button>
+                </div>
+            </div>
+
             <!-- Grant Access Card -->
             <div class="control-card">
                 <div class="control-header">

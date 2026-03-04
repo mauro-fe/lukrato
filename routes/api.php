@@ -331,6 +331,18 @@ Router::add('DELETE', '/api/sysadmin/error-logs/cleanup',       'Api\\Admin\\Sys
 Router::add('POST',   '/api/sysadmin/clear-cache',              'Api\\Admin\\SysAdminController@clearCache',       ['auth', 'sysadmin', 'csrf', 'ratelimit']);
 
 // ============================================
+// BLOG / APRENDA (SYSADMIN)
+// ============================================
+
+Router::add('GET',    '/api/sysadmin/blog/posts',       'SysAdmin\\BlogController@index',      ['auth', 'sysadmin']);
+Router::add('POST',   '/api/sysadmin/blog/posts',       'SysAdmin\\BlogController@store',      ['auth', 'sysadmin', 'csrf', 'ratelimit']);
+Router::add('GET',    '/api/sysadmin/blog/posts/{id}',  'SysAdmin\\BlogController@show',       ['auth', 'sysadmin']);
+Router::add('PUT',    '/api/sysadmin/blog/posts/{id}',  'SysAdmin\\BlogController@update',     ['auth', 'sysadmin', 'csrf', 'ratelimit']);
+Router::add('DELETE', '/api/sysadmin/blog/posts/{id}',  'SysAdmin\\BlogController@delete',     ['auth', 'sysadmin', 'csrf', 'ratelimit']);
+Router::add('POST',   '/api/sysadmin/blog/upload',      'SysAdmin\\BlogController@upload',     ['auth', 'sysadmin', 'csrf', 'ratelimit']);
+Router::add('GET',    '/api/sysadmin/blog/categorias',  'SysAdmin\\BlogController@categorias', ['auth', 'sysadmin']);
+
+// ============================================
 // CAMPANHAS DE MENSAGENS (SYSADMIN)
 // ============================================
 
