@@ -344,8 +344,8 @@ class SchedulerController extends BaseController
 
         // Verifica lançamentos com lembretes pendentes
         $agendamentosPendentes = Lancamento::where(function ($q) {
-                $q->where('canal_email', true)->orWhere('canal_inapp', true);
-            })
+            $q->where('canal_email', true)->orWhere('canal_inapp', true);
+        })
             ->whereNull('notificado_em')
             ->count();
         $agendamentosComEmail = Lancamento::whereNull('notificado_em')
@@ -533,6 +533,24 @@ class SchedulerController extends BaseController
             ];
             LogService::captureException($e, LogCategory::NOTIFICATION, [
                 'action' => 'dispatch_fatura_reminders',
+            ]);
+        }
+
+        // 5. Gerar lançamentos recorrentes (estender horizonte de 3 meses)
+        try {
+            $lancamentoService = new \Application\Services\Lancamento\LancamentoCreationService();
+            $criados = $lancamentoService->estenderRecorrenciasInfinitas(3);
+            $results['tasks']['generate_recurring_lancamentos'] = [
+                'status' => 'success',
+                'result' => ['lancamentos_criados' => $criados],
+            ];
+        } catch (\Throwable $e) {
+            $results['tasks']['generate_recurring_lancamentos'] = [
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ];
+            LogService::captureException($e, LogCategory::AGENDAMENTO, [
+                'action' => 'generate_recurring_lancamentos',
             ]);
         }
 
@@ -1031,5 +1049,47 @@ class SchedulerController extends BaseController
         LogService::info('[Scheduler] Lembretes de fatura processados (runAll)', $stats);
 
         return $stats;
+    }
+
+    /**
+     * Gera lançamentos recorrentes — estende o horizonte de recorrências infinitas.
+     *
+     * GET|POST /api/scheduler/generate-recurring-lancamentos
+     */
+    public function generateRecurringLancamentos(): void
+    {
+        if (!$this->validateSchedulerToken()) {
+            LogService::warning('[Scheduler] Tentativa de acesso não autorizada em generateRecurringLancamentos', [
+                'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            ]);
+            Response::json(['error' => 'Unauthorized'], 401);
+            return;
+        }
+
+        LogService::info('=== [Scheduler] Gerando lançamentos recorrentes ===');
+
+        try {
+            $service = new \Application\Services\Lancamento\LancamentoCreationService();
+            $criados = $service->estenderRecorrenciasInfinitas(3);
+
+            LogService::info('[Scheduler] Lançamentos recorrentes gerados', [
+                'lancamentos_criados' => $criados,
+            ]);
+
+            Response::json([
+                'success' => true,
+                'message' => 'Lançamentos recorrentes gerados com sucesso',
+                'result' => ['lancamentos_criados' => $criados],
+            ]);
+        } catch (\Throwable $e) {
+            LogService::critical('[Scheduler] Erro ao gerar lançamentos recorrentes', [
+                'mensagem' => $e->getMessage(),
+            ]);
+
+            Response::json([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 }
