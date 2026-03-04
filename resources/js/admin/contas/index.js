@@ -31,12 +31,6 @@ const init = async () => {
     // Load initial data
     await ContasAPI.loadInstituicoes();
     await ContasAPI.loadContas();
-
-    // Listen for month changes
-    document.addEventListener('lukrato:month-changed', async () => {
-        STATE.currentMonth = Utils.getCurrentMonth();
-        await ContasAPI.loadContas();
-    });
 };
 
 // Backward compat: expose as window.contasManager with method proxies

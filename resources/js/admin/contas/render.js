@@ -165,13 +165,22 @@ export const ContasRender = {
      */
     updateStats() {
         const totalContas = STATE.contas.length;
-        const saldoTotal = STATE.contas.reduce((sum, c) => sum + (c.saldoAtual ?? 0), 0);
+
+        // Separar contas normais de investimentos
+        const tiposInvestimento = ['conta_investimento'];
+        const contasNormais = STATE.contas.filter(c => !tiposInvestimento.includes(c.tipo_conta));
+        const contasInvest = STATE.contas.filter(c => tiposInvestimento.includes(c.tipo_conta));
+
+        const saldoContas = contasNormais.reduce((sum, c) => sum + (c.saldoAtual ?? 0), 0);
+        const saldoInvest = contasInvest.reduce((sum, c) => sum + (c.saldoAtual ?? 0), 0);
 
         const totalContasEl = document.getElementById('totalContas');
         const saldoTotalEl = document.getElementById('saldoTotal');
+        const saldoInvestEl = document.getElementById('saldoInvestimentos');
 
         if (totalContasEl) totalContasEl.textContent = totalContas;
-        if (saldoTotalEl) saldoTotalEl.textContent = Utils.formatCurrency(saldoTotal);
+        if (saldoTotalEl) saldoTotalEl.textContent = Utils.formatCurrency(saldoContas);
+        if (saldoInvestEl) saldoInvestEl.textContent = Utils.formatCurrency(saldoInvest);
     },
 
     /**

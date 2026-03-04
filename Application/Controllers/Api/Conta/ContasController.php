@@ -54,7 +54,9 @@ class ContasController
             $archived = (int) ($_GET['archived'] ?? 0) === 1;
             $onlyActive = (int) ($_GET['only_active'] ?? ($archived ? 0 : 1)) === 1;
             $withBalances = (int) ($_GET['with_balances'] ?? 0) === 1;
-            $month = trim((string) ($_GET['month'] ?? date('Y-m')));
+            $month = isset($_GET['month']) && trim($_GET['month']) !== ''
+                ? trim($_GET['month'])
+                : null;
 
             $contas = $this->service->listarContas(
                 userId: $userId,

@@ -32,11 +32,6 @@ export const STATE = {
     contas: [],
     categorias: null,
     currentEditId: null,
-    currentMonth: (() => {
-        if (window.LukratoHeader?.getMonth?.()) return window.LukratoHeader.getMonth();
-        const now = new Date();
-        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    })(),
     isSubmitting: false,
     contaSelecionadaLancamento: null,
     isEstornoCartao: false

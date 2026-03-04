@@ -163,7 +163,6 @@ export const ContasAPI = {
 
             const params = new URLSearchParams({
                 with_balances: '1',
-                month: STATE.currentMonth,
                 only_active: '1'
             });
 

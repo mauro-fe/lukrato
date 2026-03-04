@@ -17,7 +17,17 @@
             </div>
             <div>
                 <div class="stat-value" id="saldoTotal" aria-live="polite">R$ 0,00</div>
-                <div class="stat-label">Saldo Total</div>
+                <div class="stat-label">Saldo Contas</div>
+            </div>
+        </div>
+
+        <div class="stat-card" data-aos="flip-right">
+            <div class="stat-icon">
+                <i data-lucide="trending-up" style="color: var(--color-success)"></i>
+            </div>
+            <div>
+                <div class="stat-value" id="saldoInvestimentos" aria-live="polite">R$ 0,00</div>
+                <div class="stat-label">Investimentos</div>
             </div>
         </div>
 

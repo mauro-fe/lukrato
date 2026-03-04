@@ -34,7 +34,6 @@ class ContaService
         $contas = $query->orderBy('created_at', 'desc')->get();
 
         if ($comSaldos && $contas->count() > 0) {
-            $mes = $mes ?? date('Y-m');
             $saldos = $this->calcularSaldos($userId, $contas->pluck('id')->all(), $mes);
 
             return $contas->map(function ($conta) use ($saldos) {
@@ -269,20 +268,23 @@ class ContaService
     /**
      * Calcular saldos das contas
      */
-    private function calcularSaldos(int $userId, array $contaIds, string $mes): array
+    private function calcularSaldos(int $userId, array $contaIds, ?string $mes = null): array
     {
         if (empty($contaIds)) {
             return [];
         }
 
-        // Data final do mês
-        $dt = \DateTime::createFromFormat('Y-m', $mes);
-        if (!$dt || $dt->format('Y-m') !== $mes) {
-            $dt = new \DateTime(date('Y-m') . '-01');
+        // Data final do mês (null = sem limite de data = saldo acumulado total)
+        $dataFim = null;
+        if ($mes !== null) {
+            $dt = \DateTime::createFromFormat('Y-m', $mes);
+            if (!$dt || $dt->format('Y-m') !== $mes) {
+                $dt = new \DateTime(date('Y-m') . '-01');
+            }
+            $dataFim = (new \DateTimeImmutable($dt->format('Y-m-01')))
+                ->modify('last day of this month')
+                ->format('Y-m-d');
         }
-        $dataFim = (new \DateTimeImmutable($dt->format('Y-m-01')))
-            ->modify('last day of this month')
-            ->format('Y-m-d');
 
         // Saldos iniciais (agora do campo da tabela contas)
         $saldosIniciais = Conta::whereIn('id', $contaIds)
@@ -290,51 +292,59 @@ class ContaService
             ->all();
 
         // Receitas - apenas lançamentos pagos que afetam caixa
-        $receitas = Lancamento::where('user_id', $userId)
+        $qReceitas = Lancamento::where('user_id', $userId)
             ->whereIn('conta_id', $contaIds)
             ->where('eh_transferencia', 0)
             ->where('pago', 1)
-            ->where('data', '<=', $dataFim)
             ->where('tipo', 'receita')
-            ->where('afeta_caixa', true)
-            ->selectRaw('conta_id, SUM(valor) as total')
+            ->where('afeta_caixa', true);
+        if ($dataFim !== null) {
+            $qReceitas->where('data', '<=', $dataFim);
+        }
+        $receitas = $qReceitas->selectRaw('conta_id, SUM(valor) as total')
             ->groupBy('conta_id')
             ->pluck('total', 'conta_id')
             ->all();
 
         // Despesas - apenas lançamentos pagos que afetam caixa
-        $despesas = Lancamento::where('user_id', $userId)
+        $qDespesas = Lancamento::where('user_id', $userId)
             ->whereIn('conta_id', $contaIds)
             ->where('eh_transferencia', 0)
             ->where('pago', 1)
-            ->where('data', '<=', $dataFim)
             ->where('tipo', 'despesa')
-            ->where('afeta_caixa', true)
-            ->selectRaw('conta_id, SUM(valor) as total')
+            ->where('afeta_caixa', true);
+        if ($dataFim !== null) {
+            $qDespesas->where('data', '<=', $dataFim);
+        }
+        $despesas = $qDespesas->selectRaw('conta_id, SUM(valor) as total')
             ->groupBy('conta_id')
             ->pluck('total', 'conta_id')
             ->all();
 
         // Transferências recebidas
-        $transfIn = Lancamento::where('user_id', $userId)
+        $qTransfIn = Lancamento::where('user_id', $userId)
             ->whereIn('conta_id_destino', $contaIds)
             ->where('eh_transferencia', 1)
             ->where('pago', 1)
-            ->where('afeta_caixa', 1)
-            ->where('data', '<=', $dataFim)
-            ->selectRaw('conta_id_destino as cid, SUM(valor) as total')
+            ->where('afeta_caixa', 1);
+        if ($dataFim !== null) {
+            $qTransfIn->where('data', '<=', $dataFim);
+        }
+        $transfIn = $qTransfIn->selectRaw('conta_id_destino as cid, SUM(valor) as total')
             ->groupBy('cid')
             ->pluck('total', 'cid')
             ->all();
 
         // Transferências enviadas
-        $transfOut = Lancamento::where('user_id', $userId)
+        $qTransfOut = Lancamento::where('user_id', $userId)
             ->whereIn('conta_id', $contaIds)
             ->where('eh_transferencia', 1)
             ->where('pago', 1)
-            ->where('afeta_caixa', 1)
-            ->where('data', '<=', $dataFim)
-            ->selectRaw('conta_id as cid, SUM(valor) as total')
+            ->where('afeta_caixa', 1);
+        if ($dataFim !== null) {
+            $qTransfOut->where('data', '<=', $dataFim);
+        }
+        $transfOut = $qTransfOut->selectRaw('conta_id as cid, SUM(valor) as total')
             ->groupBy('cid')
             ->pluck('total', 'cid')
             ->all();
