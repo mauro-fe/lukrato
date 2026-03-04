@@ -9,25 +9,6 @@
 
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/aprenda.css">
 
-<!-- Schema.org BreadcrumbList -->
-<script type="application/ld+json">
-<?= json_encode([
-    '@context' => 'https://schema.org',
-    '@type' => 'BreadcrumbList',
-    'itemListElement' => array_map(function ($item, $i) {
-        $entry = [
-            '@type' => 'ListItem',
-            'position' => $i + 1,
-            'name' => $item['label'],
-        ];
-        if (!empty($item['url'])) {
-            $entry['item'] = $item['url'];
-        }
-        return $entry;
-    }, $breadcrumbItems, array_keys($breadcrumbItems)),
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) ?>
-</script>
-
 <!-- Breadcrumbs -->
 <nav aria-label="Breadcrumb" class="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-3">

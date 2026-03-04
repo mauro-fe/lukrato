@@ -57,6 +57,7 @@
                             class="absolute -top-2 -right-1 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">-15%</span>
                     </button>
                 </div>
+            </header>
 
                 <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-16 items-stretch">
 

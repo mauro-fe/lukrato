@@ -2,6 +2,22 @@
  * Contact — Tabs (WhatsApp / E-mail) + form submit with SweetAlert2
  */
 
+/** Lazy-load SweetAlert2 on first use */
+let _swalPromise;
+function loadSwal() {
+    if (window.Swal) return Promise.resolve(window.Swal);
+    if (!_swalPromise) {
+        _swalPromise = new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
+            s.onload = () => resolve(window.Swal);
+            s.onerror = reject;
+            document.head.appendChild(s);
+        });
+    }
+    return _swalPromise;
+}
+
 export function init() {
     /* ── Tab toggle (custom markup) ── */
     const root = document.querySelector('#contato.lk-contact');
@@ -30,9 +46,7 @@ export function init() {
 
     let sending = false;
 
-    const apiUrl = window.APP_BASE_URL
-        ? `${window.APP_BASE_URL}/api/contato/enviar`
-        : 'http://localhost/lukrato/public/api/contato/enviar';
+    const apiUrl = `${window.APP_BASE_URL}/api/contato/enviar`;
 
     /* Phone mask */
     if (whatsappInput) {
@@ -68,6 +82,8 @@ export function init() {
             const okBySuccess = payload?.success === true;
             const message     = payload?.message ?? payload?.data?.message ?? 'Mensagem enviada com sucesso.';
 
+            const Swal = await loadSwal();
+
             if (res.ok && (okByStatus || okBySuccess)) {
                 await Swal.fire({
                     icon: 'success',
@@ -89,12 +105,15 @@ export function init() {
             });
         } catch (err) {
             console.error(err);
-            await Swal.fire({
-                icon: 'error',
-                title: 'Erro de conexão',
-                text: 'Não foi possível enviar sua mensagem agora. Tente novamente.',
-                confirmButtonColor: '#e67e22'
-            });
+            try {
+                const Swal = await loadSwal();
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Erro de conexão',
+                    text: 'Não foi possível enviar sua mensagem agora. Tente novamente.',
+                    confirmButtonColor: '#e67e22'
+                });
+            } catch (_) { /* SweetAlert2 failed to load — fail silently */ }
         } finally {
             sending = false;
             if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = oldBtnText ?? 'Enviar'; }

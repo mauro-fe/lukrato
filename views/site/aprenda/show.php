@@ -9,60 +9,45 @@
 
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/aprenda.css">
 
-<!-- Schema.org BlogPosting + BreadcrumbList -->
+<!-- Schema.org BlogPosting (BreadcrumbList handled by header.php) -->
 <script type="application/ld+json">
 <?php
 $wordCount = str_word_count(strip_tags($post->conteudo));
 $readingMinutes = $post->tempo_leitura ?? max(1, (int) ceil($wordCount / 200));
-echo json_encode([
-    '@context' => 'https://schema.org',
-    '@graph' => [
-        [
-            '@type' => 'BreadcrumbList',
-            'itemListElement' => array_map(function ($item, $i) {
-                $entry = [
-                    '@type' => 'ListItem',
-                    'position' => $i + 1,
-                    'name' => $item['label'],
-                ];
-                if (!empty($item['url'])) {
-                    $entry['item'] = $item['url'];
-                }
-                return $entry;
-            }, $breadcrumbItems, array_keys($breadcrumbItems)),
+echo json_encode(
+    array_filter([
+        '@context' => 'https://schema.org',
+        '@type' => 'BlogPosting',
+        'headline' => $post->titulo,
+        'description' => $post->resumo ?: mb_substr(strip_tags($post->conteudo), 0, 160, 'UTF-8'),
+        'image' => $post->imagem_capa ? rtrim(BASE_URL, '/') . '/' . $post->imagem_capa : null,
+        'datePublished' => $post->published_at?->toIso8601String(),
+        'dateModified' => $post->updated_at?->toIso8601String(),
+        'wordCount' => $wordCount,
+        'timeRequired' => 'PT' . $readingMinutes . 'M',
+        'author' => [
+            '@type' => 'Organization',
+            'name' => 'Lukrato',
+            'url' => rtrim(BASE_URL, '/'),
         ],
-        array_filter([
-            '@type' => 'BlogPosting',
-            'headline' => $post->titulo,
-            'description' => $post->resumo ?: mb_substr(strip_tags($post->conteudo), 0, 160, 'UTF-8'),
-            'image' => $post->imagem_capa ? rtrim(BASE_URL, '/') . '/' . $post->imagem_capa : null,
-            'datePublished' => $post->published_at?->toIso8601String(),
-            'dateModified' => $post->updated_at?->toIso8601String(),
-            'wordCount' => $wordCount,
-            'timeRequired' => 'PT' . $readingMinutes . 'M',
-            'author' => [
-                '@type' => 'Organization',
-                'name' => 'Lukrato',
-                'url' => rtrim(BASE_URL, '/'),
+        'publisher' => [
+            '@type' => 'Organization',
+            'name' => 'Lukrato',
+            'url' => rtrim(BASE_URL, '/'),
+            'logo' => [
+                '@type' => 'ImageObject',
+                'url' => rtrim(BASE_URL, '/') . '/assets/img/logo.png',
             ],
-            'publisher' => [
-                '@type' => 'Organization',
-                'name' => 'Lukrato',
-                'url' => rtrim(BASE_URL, '/'),
-                'logo' => [
-                    '@type' => 'ImageObject',
-                    'url' => rtrim(BASE_URL, '/') . '/assets/img/logo.png',
-                ],
-            ],
-            'mainEntityOfPage' => [
-                '@type' => 'WebPage',
-                '@id' => rtrim(BASE_URL, '/') . '/aprenda/' . $post->slug,
-            ],
-            'articleSection' => $post->categoria?->nome,
-            'inLanguage' => 'pt-BR',
-        ]),
-    ],
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+        ],
+        'mainEntityOfPage' => [
+            '@type' => 'WebPage',
+            '@id' => rtrim(BASE_URL, '/') . '/aprenda/' . $post->slug,
+        ],
+        'articleSection' => $post->categoria?->nome,
+        'inLanguage' => 'pt-BR',
+    ]),
+    JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT
+);
 ?>
 </script>
 

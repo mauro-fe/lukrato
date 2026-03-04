@@ -15,7 +15,7 @@ $extraJs = $extraJs ?? [];
                 <a href="<?= BASE_URL ?>/"
                     class="inline-block hover:opacity-90 transition-all duration-300 hover:scale-105"
                     title="Lukrato - Controle Financeiro Pessoal" aria-label="Ir para página inicial do Lukrato">
-                    <img src="<?= BASE_URL ?>/assets/img/logo.png"
+                    <img src="<?= BASE_URL ?>assets/img/logo.png"
                         alt="Lukrato - Melhor App de Controle Financeiro Pessoal Grátis"
                         title="Lukrato - Sistema de Finanças Pessoais" loading="lazy" width="180" height="56"
                         itemprop="logo">
@@ -163,14 +163,14 @@ $extraJs = $extraJs ?? [];
 
 
 <!-- JS global da landing (menu mobile, scroll suave, etc.) -->
-<script src="<?= BASE_URL ?>/assets/js/csrf-manager.js"></script>
+<script src="<?= BASE_URL ?>assets/js/csrf-manager.js"></script>
 <?= vite_scripts('site/landing-base.js') ?>
 
 <!-- JS específicos da página -->
 <?php foreach ($extraJs as $js): ?>
-    <script src="<?= BASE_URL ?>/assets/js/site/<?= htmlspecialchars($js) ?>.js"></script>
+    <script src="<?= BASE_URL ?>assets/js/site/<?= htmlspecialchars($js) ?>.js"></script>
 <?php endforeach; ?>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- SweetAlert2 loaded on-demand by scripts that need it -->
 <script>
     window.APP_BASE_URL = "<?= rtrim(BASE_URL, '/') ?>";
 </script>

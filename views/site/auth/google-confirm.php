@@ -20,7 +20,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Confirmar Cadastro - <?= $_ENV['APP_NAME'] ?? 'Lukrato' ?></title>
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style.css">
+    <!-- Page is fully self-styled via inline <style> below -->
     <style>
         * {
             margin: 0;

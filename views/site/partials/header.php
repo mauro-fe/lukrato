@@ -7,7 +7,7 @@ $pageDescription = $pageDescription ??
 $pageKeywords = $pageKeywords ??
     'controle financeiro pessoal, aplicativo controle financeiro grátis, controle de gastos, orçamento pessoal, finanças pessoais, como economizar dinheiro, app financeiro, planilha de gastos, gerenciador financeiro, controle de despesas, organizar finanças, planejamento financeiro pessoal, app para controlar gastos, controle financeiro online, sistema financeiro pessoal';
 
-$pageUrl = $pageUrl ?? BASE_URL . ltrim($_SERVER['REQUEST_URI'], '/');
+// $pageUrl removed — unused (canonical handled by $canonicalUrl)
 
 $pageImage = $pageImage ?? BASE_URL . 'assets/img/og-image.png'; // 1200x630px
 
@@ -140,7 +140,8 @@ $isLandingPage = $isLandingPage ?? false;
     <!-- Tailwind CSS (compilado via Vite) -->
     <?= function_exists('vite_css') ? vite_css('../css/site/app.css') : '' ?>
 
-    <!-- Alpine.js -->
+    <!-- Alpine.js + Plugins -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <!-- AOS (Animate On Scroll) -->
@@ -377,7 +378,7 @@ $isLandingPage = $isLandingPage ?? false;
                         title="Lukrato - Organize suas Finanças"
                         class="w-auto max-w-[120px] sm:max-w-none transition-all duration-500 group-hover:scale-105"
                         :class="scrolled ? 'h-7 sm:h-12' : 'h-8 sm:h-14'"
-                        loading="eager" width="180" height="64" onerror="console.error('Logo não carregou:', this.src)">
+                        loading="eager" width="180" height="64" onerror="this.style.display='none'">
                 </a>
 
                 <!-- Desktop Navigation Premium -->

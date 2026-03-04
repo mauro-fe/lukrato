@@ -1,0 +1,298 @@
+/* ============================================================================
+ * LUKRATO — Card / Link-in-Bio Page Styles
+ * ============================================================================ */
+
+:root {
+    --card-primary: #e67e22;
+    --card-primary-dark: #d35400;
+    --card-bg: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    --card-text: #ffffff;
+    --card-text-muted: #94a3b8;
+    --card-surface: rgba(255, 255, 255, 0.06);
+    --card-border: rgba(255, 255, 255, 0.1);
+    --card-radius: 16px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--card-bg);
+    color: var(--card-text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 24px 16px;
+    -webkit-font-smoothing: antialiased;
+}
+
+.container {
+    width: 100%;
+    max-width: 420px;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+
+.card-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.logo-container {
+    margin-bottom: 16px;
+}
+
+.logo {
+    max-width: 140px;
+    height: auto;
+}
+
+.title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.subtitle {
+    color: var(--card-text-muted);
+    font-size: 0.95rem;
+}
+
+/* ── CTA ────────────────────────────────────────────────────────────────── */
+
+.cta-section {
+    margin-bottom: 24px;
+}
+
+.btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 16px;
+    border-radius: var(--card-radius);
+    font-weight: 600;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--card-primary), var(--card-primary-dark));
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(230, 126, 34, 0.35);
+}
+
+.btn-primary:hover {
+    box-shadow: 0 8px 30px rgba(230, 126, 34, 0.5);
+}
+
+/* ── Link Cards ─────────────────────────────────────────────────────────── */
+
+.links-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 32px;
+}
+
+.link-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    background: var(--card-surface);
+    border: 1px solid var(--card-border);
+    border-radius: var(--card-radius);
+    text-decoration: none;
+    color: var(--card-text);
+    transition: background 0.2s, transform 0.15s;
+}
+
+.link-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(4px);
+}
+
+.link-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.link-icon.whatsapp {
+    background: rgba(37, 211, 102, 0.15);
+    color: #25d366;
+}
+
+.link-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.link-content h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.link-content p {
+    font-size: 0.8rem;
+    color: var(--card-text-muted);
+}
+
+.link-arrow {
+    color: var(--card-text-muted);
+    flex-shrink: 0;
+}
+
+/* ── Features ───────────────────────────────────────────────────────────── */
+
+.features-section {
+    margin-bottom: 32px;
+}
+
+.section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 16px;
+    color: var(--card-text-muted);
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.feature-item {
+    background: var(--card-surface);
+    border: 1px solid var(--card-border);
+    border-radius: var(--card-radius);
+    padding: 20px 14px;
+    text-align: center;
+}
+
+.feature-item i,
+.feature-item svg {
+    width: 28px;
+    height: 28px;
+    color: var(--card-primary);
+    margin-bottom: 10px;
+}
+
+.feature-item h4 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.feature-item p {
+    font-size: 0.75rem;
+    color: var(--card-text-muted);
+}
+
+/* ── Social ─────────────────────────────────────────────────────────────── */
+
+.social-section {
+    margin-bottom: 32px;
+    text-align: center;
+}
+
+.social-links {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.social-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #fff;
+    font-size: 1.25rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.social-btn:hover {
+    transform: translateY(-3px);
+}
+
+.social-btn.instagram {
+    background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+}
+
+.social-btn.tiktok {
+    background: #010101;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.social-btn.facebook {
+    background: #1877f2;
+}
+
+.social-btn.twitter {
+    background: #000;
+}
+
+.social-btn.youtube {
+    background: #ff0000;
+}
+
+.social-btn.linkedin {
+    background: #0a66c2;
+}
+
+/* ── Footer ─────────────────────────────────────────────────────────────── */
+
+.card-footer {
+    text-align: center;
+    padding-top: 16px;
+    border-top: 1px solid var(--card-border);
+}
+
+.card-footer p {
+    font-size: 0.75rem;
+    color: var(--card-text-muted);
+    margin-bottom: 8px;
+}
+
+.footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.75rem;
+}
+
+.footer-links a {
+    color: var(--card-text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.footer-links a:hover {
+    color: var(--card-primary);
+}
+
+.footer-links span {
+    color: rgba(255, 255, 255, 0.2);
+}

@@ -7,27 +7,6 @@
 
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/aprenda.css">
 
-<!-- Schema.org BreadcrumbList -->
-<script type="application/ld+json">
-{
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-        {
-            "@type": "ListItem",
-            "position": 1,
-            "name": "Início",
-            "item": "<?= rtrim(BASE_URL, '/') ?>"
-        },
-        {
-            "@type": "ListItem",
-            "position": 2,
-            "name": "Aprenda"
-        }
-    ]
-}
-</script>
-
 <!-- Hero -->
 <section class="aprenda-hero">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-20">
