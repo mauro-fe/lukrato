@@ -1,5 +1,5 @@
 <!-- Seção de Funcionalidades -->
-<section id="funcionalidades" class="relative py-16 md:py-24 overflow-hidden bg-gradient-to-b from-gray-50 to-white"
+<section id="funcionalidades" class="lk-section-card relative py-16 md:py-24 overflow-hidden bg-gradient-to-b from-gray-50 to-white"
     aria-labelledby="funcionalidades-titulo">
 
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">

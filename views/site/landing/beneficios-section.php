@@ -1,5 +1,5 @@
 <!-- Seção de Benefícios -->
-<section id="beneficios" class="relative py-16 md:py-24 bg-gradient-to-b from-white to-gray-50"
+<section id="beneficios" class="lk-section-card relative py-16 md:py-24 bg-gradient-to-b from-white to-gray-50"
     aria-labelledby="beneficios-titulo">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
 
@@ -106,4 +106,3 @@
 
     </div>
 </section>
-

@@ -1,5 +1,5 @@
 <!-- Seção de Contato -->
-<section id="contato" class="relative py-16 md:py-24 bg-white" x-data="{ activeTab: 'whatsapp' }"
+<section id="contato" class="lk-section-card relative py-16 md:py-24 bg-white" x-data="{ activeTab: 'whatsapp' }"
     aria-labelledby="contato-titulo" itemscope itemtype="https://schema.org/ContactPage">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
 

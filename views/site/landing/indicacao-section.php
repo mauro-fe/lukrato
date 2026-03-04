@@ -1,5 +1,5 @@
 <!-- Seção de Indicação -->
-<section id="indicacao" class="relative py-16 md:py-24 bg-white overflow-hidden" aria-labelledby="indicacao-titulo">
+<section id="indicacao" class="lk-section-card relative py-16 md:py-24 bg-white overflow-hidden" aria-labelledby="indicacao-titulo">
     <!-- Background decorations -->
     <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div

@@ -1,5 +1,5 @@
 <!-- Seção de Garantia -->
-<section id="garantia" class="relative py-16 md:py-24 bg-gradient-to-br from-orange-50 via-orange-50/30 to-gray-50">
+<section id="garantia" class="lk-section-card relative py-16 md:py-24 bg-gradient-to-br from-orange-50 via-orange-50/30 to-gray-50">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
 
         <div class="max-w-4xl mx-auto">

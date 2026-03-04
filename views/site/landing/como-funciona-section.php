@@ -1,5 +1,5 @@
 <!-- Seção Como Funciona -->
-<section id="como-funciona" class="relative py-16 md:py-24 bg-white" aria-labelledby="como-funciona-titulo">
+<section id="como-funciona" class="lk-section-card relative py-16 md:py-24 bg-white" aria-labelledby="como-funciona-titulo">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
 
         <!-- Header -->

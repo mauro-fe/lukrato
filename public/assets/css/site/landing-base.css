@@ -2742,3 +2742,35 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* =====================================================================
+   Landing — Seções arredondadas (dark mode)
+   Em dark mode, seções bg-white viram cards escuros sobre fundo mais escuro.
+   Adicionamos border-radius e margens para quebrarem o visual "quadradão".
+   ===================================================================== */
+[data-theme="dark"] .lk-section-card {
+  border-radius: 20px;
+  margin-inline: 0.75rem;
+  margin-block: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  [data-theme="dark"] .lk-section-card {
+    border-radius: 24px;
+    margin-inline: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  [data-theme="dark"] .lk-section-card {
+    border-radius: 28px;
+    margin-inline: 2.5rem;
+    margin-block: 0.75rem;
+  }
+}
+
+/* FAQ items — padronizar radius para 16px (consistente com demais cards) */
+[data-theme="dark"] .lk-faq-item {
+  border-radius: 16px !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
