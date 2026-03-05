@@ -38,38 +38,29 @@ $now = date('Y-m-d H:i:s');
 
 // Garantir categoria "Educação Financeira"
 if (!isset($categorias['educacao-financeira'])) {
-    $categoriaId = DB::table('blog_categorias')->insertGetId([
-        'nome' => 'Educação Financeira',
-        'slug' => 'educacao-financeira',
-        'descricao' => 'Conceitos, fundamentos e hábitos para desenvolver inteligência financeira.',
-        'ordem' => (DB::table('blog_categorias')->max('ordem') ?? 0) + 1,
-        'ativo' => 1,
-        'created_at' => $now ?? date('Y-m-d H:i:s'),
-        'updated_at' => $now ?? date('Y-m-d H:i:s'),
-    ]);
+    try {
+        $categoriaId = DB::table('blog_categorias')->insertGetId([
+            'nome' => 'Educação Financeira',
+            'slug' => 'educacao-financeira',
+            'descricao' => 'Conceitos, fundamentos e hábitos para desenvolver inteligência financeira.',
+            'ordem' => (DB::table('blog_categorias')->max('ordem') ?? 0) + 1,
+            'ativo' => 1,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
 
-    $categorias['educacao-financeira'] = $categoriaId;
-    echo "  ✓ Categoria 'Educação Financeira' criada\n\n";
+        $categorias['educacao-financeira'] = $categoriaId;
+        echo "  ✓ Categoria 'Educação Financeira' criada (id: {$categoriaId})\n\n";
+    } catch (\Exception $e) {
+        echo "  ✗ Erro ao criar categoria: " . $e->getMessage() . "\n\n";
+        exit(1);
+    }
 }
 
 // Verificar se já existem posts
 $existingCount = DB::table('blog_posts')->count();
 if ($existingCount > 0) {
-    $isInteractive = function_exists('stream_isatty') ? @stream_isatty(STDIN) : false;
-
-    echo "  ⚠ Já existem {$existingCount} posts no banco.\n";
-
-    if ($isInteractive) {
-        echo "  Deseja continuar e adicionar mais? (s/n): ";
-        $answer = trim((string) fgets(STDIN));
-        if (strtolower($answer) !== 's') {
-            echo "  Cancelado.\n\n";
-            exit(0);
-        }
-        echo "\n";
-    } else {
-        echo "  ℹ Ambiente não interativo detectado, continuando automaticamente.\n\n";
-    }
+    echo "  ⚠ Já existem {$existingCount} posts no banco. Novos slugs serão inseridos, duplicados pulados.\n\n";
 }
 
 // ════════════════════════════════════════════════════════════════
