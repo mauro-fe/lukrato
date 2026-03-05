@@ -34,6 +34,8 @@ if (empty($categorias)) {
 
 echo "  ✓ " . count($categorias) . " categorias encontradas\n\n";
 
+$now = date('Y-m-d H:i:s');
+
 // Garantir categoria "Educação Financeira"
 if (!isset($categorias['educacao-financeira'])) {
     $categoriaId = DB::table('blog_categorias')->insertGetId([
@@ -53,17 +55,22 @@ if (!isset($categorias['educacao-financeira'])) {
 // Verificar se já existem posts
 $existingCount = DB::table('blog_posts')->count();
 if ($existingCount > 0) {
-    echo "  ⚠ Já existem {$existingCount} posts no banco.\n";
-    echo "  Deseja continuar e adicionar mais? (s/n): ";
-    $answer = trim(fgets(STDIN));
-    if (strtolower($answer) !== 's') {
-        echo "  Cancelado.\n\n";
-        exit(0);
-    }
-    echo "\n";
-}
+    $isInteractive = function_exists('stream_isatty') ? @stream_isatty(STDIN) : false;
 
-$now = date('Y-m-d H:i:s');
+    echo "  ⚠ Já existem {$existingCount} posts no banco.\n";
+
+    if ($isInteractive) {
+        echo "  Deseja continuar e adicionar mais? (s/n): ";
+        $answer = trim((string) fgets(STDIN));
+        if (strtolower($answer) !== 's') {
+            echo "  Cancelado.\n\n";
+            exit(0);
+        }
+        echo "\n";
+    } else {
+        echo "  ℹ Ambiente não interativo detectado, continuando automaticamente.\n\n";
+    }
+}
 
 // ════════════════════════════════════════════════════════════════
 // ARTIGOS
