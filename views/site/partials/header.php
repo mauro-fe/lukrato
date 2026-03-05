@@ -432,7 +432,7 @@ $isLandingPage = $isLandingPage ?? false;
                     <!-- Aprenda Dropdown -->
                     <div class="relative" x-data="{ aprendaOpen: false }" @mouseenter="aprendaOpen = true"
                         @mouseleave="aprendaOpen = false">
-                        <a href="<?= BASE_URL ?>aprenda"
+                        <a href="<?= BASE_URL ?>blog"
                             class="relative font-semibold transition-all duration-300 group inline-flex items-center gap-1"
                             :class="scrolled ? 'text-gray-600 dark:text-gray-300 hover:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-primary'"
                             aria-label="Aprenda sobre finanças">
@@ -452,7 +452,7 @@ $isLandingPage = $isLandingPage ?? false;
                             class="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 p-2 z-50"
                             x-cloak>
                             <?php foreach ($headerBlogCategorias as $cat): ?>
-                            <a href="<?= BASE_URL ?>aprenda/categoria/<?= htmlspecialchars($cat->slug) ?>"
+                            <a href="<?= BASE_URL ?>blog/categoria/<?= htmlspecialchars($cat->slug) ?>"
                                 class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-orange-50 dark:hover:bg-white/5 transition-colors group/item">
                                 <?php if ($cat->icone): ?>
                                 <i data-lucide="<?= htmlspecialchars($cat->icone) ?>" class="w-4 h-4 text-primary"
@@ -463,7 +463,7 @@ $isLandingPage = $isLandingPage ?? false;
                             </a>
                             <?php endforeach; ?>
                             <div class="border-t border-gray-100 dark:border-gray-700 mt-1 pt-1">
-                                <a href="<?= BASE_URL ?>aprenda"
+                                <a href="<?= BASE_URL ?>blog"
                                     class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-orange-50 dark:hover:bg-white/5 transition-colors group/item">
                                     <i data-lucide="book-open" class="w-4 h-4 text-primary" aria-hidden="true"></i>
                                     <span class="text-sm font-semibold text-primary">Ver todos os artigos</span>
@@ -605,13 +605,13 @@ $isLandingPage = $isLandingPage ?? false;
                     </button>
                     <div x-show="aprendaMobileOpen" x-collapse class="ml-4 flex flex-col gap-1 mt-1">
                         <?php foreach ($headerBlogCategorias as $cat): ?>
-                        <a href="<?= BASE_URL ?>aprenda/categoria/<?= htmlspecialchars($cat->slug) ?>"
+                        <a href="<?= BASE_URL ?>blog/categoria/<?= htmlspecialchars($cat->slug) ?>"
                             @click="mobileMenuOpen = false"
                             class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary py-2 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
                             <?= htmlspecialchars($cat->nome) ?>
                         </a>
                         <?php endforeach; ?>
-                        <a href="<?= BASE_URL ?>aprenda" @click="mobileMenuOpen = false"
+                        <a href="<?= BASE_URL ?>blog" @click="mobileMenuOpen = false"
                             class="text-sm text-primary font-semibold py-2 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
                             Ver todos os artigos
                         </a>

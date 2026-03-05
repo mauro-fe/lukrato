@@ -103,7 +103,7 @@ class BlogPost extends Model
      */
     public function getUrlAttribute(): string
     {
-        return rtrim(BASE_URL, '/') . '/aprenda/' . $this->slug;
+        return rtrim(BASE_URL, '/') . '/blog/' . $this->slug;
     }
 
     /**

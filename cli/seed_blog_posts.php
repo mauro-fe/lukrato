@@ -1630,5 +1630,5 @@ echo "════════════════════════�
 
 if ($inserted > 0) {
     echo "  Os artigos estão publicados e acessíveis em:\n";
-    echo "  → /aprenda\n\n";
+    echo "  → /blog\n\n";
 }

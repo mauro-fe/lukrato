@@ -29,7 +29,7 @@ class SitemapController
 
         // ── Hub do blog ──
         $blogHub = [
-            'loc'        => $baseUrl . '/aprenda',
+            'loc'        => $baseUrl . '/blog',
             'changefreq' => 'daily',
             'priority'   => '0.9',
         ];
@@ -39,7 +39,7 @@ class SitemapController
         $categoryEntries = [];
         foreach ($categorias as $cat) {
             $categoryEntries[] = [
-                'loc'        => $baseUrl . '/aprenda/categoria/' . $cat->slug,
+                'loc'        => $baseUrl . '/blog/categoria/' . $cat->slug,
                 'changefreq' => 'weekly',
                 'priority'   => '0.7',
             ];
@@ -54,7 +54,7 @@ class SitemapController
         $postEntries = [];
         foreach ($posts as $post) {
             $entry = [
-                'loc'        => $baseUrl . '/aprenda/' . $post->slug,
+                'loc'        => $baseUrl . '/blog/' . $post->slug,
                 'lastmod'    => $post->updated_at?->toDateString(),
                 'changefreq' => 'monthly',
                 'priority'   => '0.8',

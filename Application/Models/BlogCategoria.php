@@ -69,6 +69,6 @@ class BlogCategoria extends Model
      */
     public function getUrlAttribute(): string
     {
-        return rtrim(BASE_URL, '/') . '/aprenda/categoria/' . $this->slug;
+        return rtrim(BASE_URL, '/') . '/blog/categoria/' . $this->slug;
     }
 }

@@ -18,7 +18,7 @@ class AprendaController extends BaseController
     }
 
     /**
-     * Hub principal — /aprenda
+     * Hub principal — /blog
      * Mostra categorias e artigos recentes.
      */
     public function index(): void
@@ -39,7 +39,7 @@ class AprendaController extends BaseController
                 'pageTitle'       => 'Aprenda sobre Finanças Pessoais | Dicas e Guias Gratuitos | Lukrato',
                 'pageDescription' => 'Artigos educativos sobre finanças pessoais: como organizar finanças pessoais, economizar dinheiro, investir, sair das dívidas e controlar gastos. Guias gratuitos do Lukrato.',
                 'pageKeywords'    => 'finanças pessoais, educação financeira, como economizar dinheiro, controle de gastos, investimentos para iniciantes, como organizar finanças pessoais 2026, planilha de gastos mensais gratuita, dicas financeiras, orçamento pessoal, planejamento financeiro',
-                'canonicalUrl'    => rtrim(BASE_URL, '/') . '/aprenda',
+                'canonicalUrl'    => rtrim(BASE_URL, '/') . '/blog',
                 'categorias'      => $categorias,
                 'recentes'        => $recentes,
                 'breadcrumbItems' => [
@@ -53,7 +53,7 @@ class AprendaController extends BaseController
     }
 
     /**
-     * Lista artigos de uma categoria — /aprenda/categoria/{slug}
+     * Lista artigos de uma categoria — /blog/categoria/{slug}
      */
     public function categoria($slug): void
     {
@@ -72,7 +72,7 @@ class AprendaController extends BaseController
 
         $totalPages = (int) ceil($result['total'] / $perPage);
 
-        $catBaseUrl = rtrim(BASE_URL, '/') . '/aprenda/categoria/' . $categoria->slug;
+        $catBaseUrl = rtrim(BASE_URL, '/') . '/blog/categoria/' . $categoria->slug;
 
         $this->render(
             'site/aprenda/categoria',
@@ -90,7 +90,7 @@ class AprendaController extends BaseController
                 'paginationNext'  => $page < $totalPages ? $catBaseUrl . '?page=' . ($page + 1) : null,
                 'breadcrumbItems' => [
                     ['label' => 'Início', 'url' => BASE_URL],
-                    ['label' => 'Aprenda', 'url' => rtrim(BASE_URL, '/') . '/aprenda'],
+                    ['label' => 'Aprenda', 'url' => rtrim(BASE_URL, '/') . '/blog'],
                     ['label' => $categoria->nome, 'url' => null],
                 ],
             ],
@@ -100,7 +100,7 @@ class AprendaController extends BaseController
     }
 
     /**
-     * Exibe artigo individual — /aprenda/{slug}
+     * Exibe artigo individual — /blog/{slug}
      */
     public function show($slug): void
     {
@@ -124,7 +124,7 @@ class AprendaController extends BaseController
             [
                 'pageTitle'       => $post->effective_meta_title,
                 'pageDescription' => $post->effective_meta_description,
-                'canonicalUrl'    => rtrim(BASE_URL, '/') . '/aprenda/' . $post->slug,
+                'canonicalUrl'    => rtrim(BASE_URL, '/') . '/blog/' . $post->slug,
                 'pageImage'       => $post->imagem_capa_url ?? (BASE_URL . 'assets/img/og-image.png'),
                 'pageType'        => 'article',
                 'pageImageAlt'    => $post->titulo,
@@ -136,8 +136,8 @@ class AprendaController extends BaseController
                 'relacionados'    => $relacionados,
                 'breadcrumbItems' => [
                     ['label' => 'Início', 'url' => BASE_URL],
-                    ['label' => 'Aprenda', 'url' => rtrim(BASE_URL, '/') . '/aprenda'],
-                    ['label' => $post->categoria?->nome ?? 'Artigo', 'url' => $post->categoria ? rtrim(BASE_URL, '/') . '/aprenda/categoria/' . $post->categoria->slug : null],
+                    ['label' => 'Aprenda', 'url' => rtrim(BASE_URL, '/') . '/blog'],
+                    ['label' => $post->categoria?->nome ?? 'Artigo', 'url' => $post->categoria ? rtrim(BASE_URL, '/') . '/blog/categoria/' . $post->categoria->slug : null],
                     ['label' => $post->titulo, 'url' => null],
                 ],
             ],

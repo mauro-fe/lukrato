@@ -28,9 +28,23 @@ Router::add('GET', '/privacidade', 'Site\\LegalController@privacy');
 Router::add('GET', '/lgpd', 'Site\\LegalController@lgpd');
 
 // BLOG / APRENDA (100% público, SEO)
-Router::add('GET', '/aprenda', 'Site\\AprendaController@index');
-Router::add('GET', '/aprenda/categoria/{slug}', 'Site\\AprendaController@categoria');
-Router::add('GET', '/aprenda/{slug}', 'Site\\AprendaController@show');
+Router::add('GET', '/blog', 'Site\\AprendaController@index');
+Router::add('GET', '/blog/categoria/{slug}', 'Site\\AprendaController@categoria');
+Router::add('GET', '/blog/{slug}', 'Site\\AprendaController@show');
+
+// Redirects 301 — URLs antigas /aprenda → /blog
+Router::add('GET', '/aprenda', function () {
+    header('Location: ' . rtrim(BASE_URL, '/') . '/blog', true, 301);
+    exit;
+});
+Router::add('GET', '/aprenda/categoria/{slug}', function ($slug) {
+    header('Location: ' . rtrim(BASE_URL, '/') . '/blog/categoria/' . $slug, true, 301);
+    exit;
+});
+Router::add('GET', '/aprenda/{slug}', function ($slug) {
+    header('Location: ' . rtrim(BASE_URL, '/') . '/blog/' . $slug, true, 301);
+    exit;
+});
 
 // SITEMAP DINÂMICO
 Router::add('GET', '/sitemap.xml', 'Site\\SitemapController@index');
