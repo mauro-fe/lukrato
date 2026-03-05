@@ -42,9 +42,8 @@ if (!isset($categorias['educacao-financeira'])) {
         $categoriaId = DB::table('blog_categorias')->insertGetId([
             'nome' => 'Educação Financeira',
             'slug' => 'educacao-financeira',
-            'descricao' => 'Conceitos, fundamentos e hábitos para desenvolver inteligência financeira.',
+            'icone' => 'graduation-cap',
             'ordem' => (DB::table('blog_categorias')->max('ordem') ?? 0) + 1,
-            'ativo' => 1,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
