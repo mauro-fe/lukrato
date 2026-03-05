@@ -419,23 +419,13 @@ function openModal(mode, post = null) {
             document.getElementById('uploadPlaceholder').style.display = 'none';
         }
 
-        // Set TinyMCE content after init
-        setTimeout(() => {
-            const editor = tinymce.get('conteudo');
-            if (editor) {
-                editor.setContent(post.conteudo || '');
-            }
-        }, 500);
+        initTinyMCE(post.conteudo || '');
     } else {
         title.textContent = 'Novo Artigo';
-        setTimeout(() => {
-            const editor = tinymce.get('conteudo');
-            if (editor) editor.setContent('');
-        }, 500);
+        initTinyMCE('');
     }
 
     modal.classList.add('active');
-    initTinyMCE();
 
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
@@ -448,8 +438,20 @@ function closeModal() {
 }
 
 // ─── TinyMCE ────────────────────────────────────────────────
-function initTinyMCE() {
-    if (tinyMCEInitialized) return;
+function initTinyMCE(initialContent = '') {
+    if (!window.tinymce) {
+        console.error('TinyMCE não carregado (window.tinymce ausente).');
+        if (window.LKFeedback?.error) {
+            LKFeedback.error('Editor de texto indisponível no momento. Recarregue a página.');
+        }
+        return;
+    }
+
+    const existing = tinymce.get('conteudo');
+    if (tinyMCEInitialized && existing) {
+        existing.setContent(initialContent || '');
+        return;
+    }
 
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
@@ -485,17 +487,23 @@ function initTinyMCE() {
         setup: (editor) => {
             editor.on('init', () => {
                 tinyMCEInitialized = true;
+                editor.setContent(initialContent || '');
             });
         },
     });
 }
 
 function destroyTinyMCE() {
+    if (!window.tinymce) {
+        tinyMCEInitialized = false;
+        return;
+    }
+
     const editor = tinymce.get('conteudo');
     if (editor) {
         editor.remove();
-        tinyMCEInitialized = false;
     }
+    tinyMCEInitialized = false;
 }
 
 // ─── Image Upload ───────────────────────────────────────────
@@ -549,7 +557,7 @@ function removeImage() {
 
 // ─── Save Post ──────────────────────────────────────────────
 async function savePost() {
-    const editor = tinymce.get('conteudo');
+    const editor = window.tinymce ? tinymce.get('conteudo') : null;
     const conteudo = editor ? editor.getContent() : '';
 
     const payload = {

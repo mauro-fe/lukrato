@@ -22,11 +22,11 @@ class SecurityHeaders
     {
         $directives = [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://accounts.google.com https://apis.google.com https://challenges.cloudflare.com",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://cdn.tiny.cloud https://accounts.google.com https://apis.google.com https://challenges.cloudflare.com",
             "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://fonts.googleapis.com",
             "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:",
             "img-src 'self' data: https: blob:",
-            "connect-src 'self' https://lukrato.com.br https://www.lukrato.com.br https://cdn.jsdelivr.net https://accounts.google.com https://apis.google.com https://www.googleapis.com https://challenges.cloudflare.com",
+            "connect-src 'self' https://lukrato.com.br https://www.lukrato.com.br https://cdn.jsdelivr.net https://cdn.tiny.cloud https://accounts.google.com https://apis.google.com https://www.googleapis.com https://challenges.cloudflare.com",
             "frame-src 'self' https://accounts.google.com https://challenges.cloudflare.com",
             "object-src 'none'",
             "base-uri 'self'",
