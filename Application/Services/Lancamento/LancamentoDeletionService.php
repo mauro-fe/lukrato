@@ -173,7 +173,7 @@ class LancamentoDeletionService
             return;
         }
 
-        $parcelamento = Parcelamento::find($parcelamentoId);
+        $parcelamento = Parcelamento::forUser($userId)->find($parcelamentoId);
         if ($parcelamento) {
             $parcelamento->numero_parcelas = $restantes;
             $parcelamento->save();
@@ -213,7 +213,7 @@ class LancamentoDeletionService
             ]);
 
             foreach ($faturaIds as $faturaId) {
-                $fatura = Fatura::find($faturaId);
+                $fatura = Fatura::forUser($lancamento->user_id)->find($faturaId);
                 if ($fatura) {
                     $fatura->atualizarStatus();
                 }

@@ -265,7 +265,7 @@ class CartaoFaturaService
 
             // Marcar itens como pagos (apenas os que cabem no valor pago)
             foreach ($itensParaPagar as $itemData) {
-                $item = FaturaCartaoItem::find($itemData['id']);
+                $item = FaturaCartaoItem::forUser($userId)->find($itemData['id']);
                 if (!$item) continue;
 
                 $item->pago = true;
@@ -279,7 +279,7 @@ class CartaoFaturaService
                 }
             }
 
-            $this->atualizarStatusFaturas($faturasAfetadas);
+            $this->atualizarStatusFaturas($faturasAfetadas, $userId);
 
             // Liberar limite do cartão (recalcula baseado nos itens não pagos)
             $cartao->atualizarLimiteDisponivel();
@@ -445,7 +445,7 @@ class CartaoFaturaService
                 $item->save();
             }
 
-            $this->atualizarStatusFaturas($faturasAfetadas);
+            $this->atualizarStatusFaturas($faturasAfetadas, $userId);
 
             // Liberar limite do cartão (recalcula baseado nos itens não pagos)
             $cartao->atualizarLimiteDisponivel();
@@ -530,7 +530,7 @@ class CartaoFaturaService
             $item->save();
 
             if ($faturaId) {
-                $this->atualizarStatusFaturas([$faturaId]);
+                $this->atualizarStatusFaturas([$faturaId], $userId);
             }
 
             // Recalcular limite do cartão baseado nos itens não pagos
@@ -699,7 +699,7 @@ class CartaoFaturaService
                 ->where('pago', true)
                 ->update(['pago' => false, 'data_pagamento' => null]);
 
-            $this->atualizarStatusFaturas($faturasAfetadas);
+            $this->atualizarStatusFaturas($faturasAfetadas, $userId);
 
             foreach ($lancamentosPagamento as $pagamento) {
                 $pagamento->delete();
@@ -867,7 +867,7 @@ class CartaoFaturaService
      */
     private function calcularSaldoConta(int $contaId, int $userId): float
     {
-        $conta = Conta::find($contaId);
+        $conta = Conta::forUser($userId)->find($contaId);
         if (!$conta) {
             return 0;
         }
@@ -914,10 +914,10 @@ class CartaoFaturaService
     /**
      * Atualizar status de múltiplas faturas
      */
-    private function atualizarStatusFaturas(array $faturaIds): void
+    private function atualizarStatusFaturas(array $faturaIds, int $userId): void
     {
         foreach ($faturaIds as $faturaId) {
-            $fatura = Fatura::find($faturaId);
+            $fatura = Fatura::forUser($userId)->find($faturaId);
             if ($fatura) {
                 $fatura->atualizarStatus();
             }

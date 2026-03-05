@@ -105,6 +105,22 @@ abstract class BaseRepository implements RepositoryInterface
     }
 
     /**
+     * Busca registro por ID verificando pertencimento ao usuário.
+     * Usar em vez de find() para models com user_id.
+     *
+     * @param int $id
+     * @param int $userId
+     * @return Model|null
+     */
+    public function findForUser(int $id, int $userId): ?Model
+    {
+        return $this->query()
+            ->where('id', $id)
+            ->where('user_id', $userId)
+            ->first();
+    }
+
+    /**
      * Busca registros com paginação.
      * 
      * @param int $perPage

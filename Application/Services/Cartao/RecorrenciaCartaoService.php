@@ -98,7 +98,7 @@ class RecorrenciaCartaoService
         }
 
         // Buscar cartão
-        $cartao = CartaoCredito::find($itemPai->cartao_credito_id);
+        $cartao = CartaoCredito::forUser($itemPai->user_id)->find($itemPai->cartao_credito_id);
         if (!$cartao || $cartao->arquivado) {
             return 'ignorado';
         }
@@ -276,7 +276,7 @@ class RecorrenciaCartaoService
         $fatura->save();
 
         // Atualizar limite disponível do cartão
-        $this->atualizarLimiteCartao($cartao->id, $itemPai->valor);
+        $this->atualizarLimiteCartao($cartao->id, $itemPai->valor, $itemPai->user_id);
 
         LogService::info("[RECORRENCIA_CARTAO] Item recorrente criado", [
             'item_id' => $item->id,
@@ -334,14 +334,14 @@ class RecorrenciaCartaoService
                 $filho->save();
 
                 // Devolver valor à fatura
-                $fatura = Fatura::find($filho->fatura_id);
+                $fatura = Fatura::forUser($userId)->find($filho->fatura_id);
                 if ($fatura) {
                     $fatura->valor_total -= $filho->valor;
                     $fatura->save();
                 }
 
                 // Devolver limite ao cartão
-                $this->atualizarLimiteCartao($filho->cartao_credito_id, $filho->valor, 'credito');
+                $this->atualizarLimiteCartao($filho->cartao_credito_id, $filho->valor, $userId, 'credito');
             }
 
             DB::commit();
@@ -441,9 +441,9 @@ class RecorrenciaCartaoService
      * Atualizar limite do cartão
      * Recalcula do zero a partir dos itens não pagos para evitar drift
      */
-    private function atualizarLimiteCartao(int $cartaoId, float $valor, string $tipo = 'debito'): void
+    private function atualizarLimiteCartao(int $cartaoId, float $valor, int $userId, string $tipo = 'debito'): void
     {
-        $cartao = CartaoCredito::find($cartaoId);
+        $cartao = CartaoCredito::forUser($userId)->find($cartaoId);
         if (!$cartao) {
             return;
         }

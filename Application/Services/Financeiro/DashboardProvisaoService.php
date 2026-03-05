@@ -129,7 +129,7 @@ class DashboardProvisaoService
 
     public function calcularSaldoConta(int $userId, int $contaId, string $ate): float
     {
-        $conta = Conta::find($contaId);
+        $conta = Conta::forUser($userId)->find($contaId);
         $saldoInicial = (float)($conta->saldo_inicial ?? 0);
 
         $base = Lancamento::where('user_id', $userId)->where('pago', 1)->where('afeta_caixa', 1)->where('data', '<=', $ate)->where('conta_id', $contaId);

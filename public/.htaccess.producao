@@ -38,7 +38,7 @@
     # ==========================================
     # BLOQUEAR ARQUIVOS DE DEBUG/TESTE
     # ==========================================
-    RewriteRule ^(debug-|test-|teste-) - [F,L]
+    RewriteRule ^(debug-|test-|teste-|api/diag) - [F,L]
 
     # ==========================================
     # FORÇAR HTTPS

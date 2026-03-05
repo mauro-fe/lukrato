@@ -87,6 +87,14 @@ class Parcelamento extends Model
     ];
 
     /**
+     * Scope para parcelamentos do usuário
+     */
+    public function scopeForUser($query, int $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    /**
      * Relacionamento com Lançamentos (1:N)
      * Um parcelamento TEM MUITOS lançamentos (as parcelas)
      * CADA PARCELA É UM LANÇAMENTO INDIVIDUAL

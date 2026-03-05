@@ -443,7 +443,7 @@ class FaturaService
 
             // Atualizar status da fatura
             if ($faturaId) {
-                $fatura = Fatura::find($faturaId);
+                $fatura = Fatura::forUser($usuarioId)->find($faturaId);
                 if ($fatura) {
                     // Verificar se ainda tem itens
                     $itensRestantes = FaturaCartaoItem::where('fatura_id', $faturaId)->count();
@@ -589,7 +589,7 @@ class FaturaService
 
             // Atualizar faturas afetadas
             foreach ($faturasAfetadas as $faturaId) {
-                $fatura = Fatura::find($faturaId);
+                $fatura = Fatura::forUser($usuarioId)->find($faturaId);
                 if ($fatura) {
                     $itensRestantes = FaturaCartaoItem::where('fatura_id', $faturaId)->count();
                     if ($itensRestantes === 0) {
@@ -927,7 +927,7 @@ class FaturaService
         // Verificar se o item já tem lançamento vinculado
         if ($item->lancamento_id) {
             // ATUALIZAR lançamento existente (não criar novo!)
-            $lancamento = Lancamento::find($item->lancamento_id);
+            $lancamento = Lancamento::forUser($usuarioId)->find($item->lancamento_id);
             if ($lancamento) {
                 $lancamento->update([
                     'pago' => true,
@@ -985,7 +985,7 @@ class FaturaService
 
         // Atualizar status da fatura
         if ($item->fatura_id) {
-            $fatura = Fatura::find($item->fatura_id);
+            $fatura = Fatura::forUser($usuarioId)->find($item->fatura_id);
             if ($fatura) {
                 $fatura->atualizarStatus();
             }
@@ -1004,7 +1004,7 @@ class FaturaService
 
         // Reverter lançamento se existir (não deletar!)
         if ($item->lancamento_id) {
-            $lancamento = Lancamento::find($item->lancamento_id);
+            $lancamento = Lancamento::forUser($item->user_id)->find($item->lancamento_id);
             if ($lancamento) {
                 // Marcar como não pago e remover efeito no caixa
                 $lancamento->update([
@@ -1032,7 +1032,7 @@ class FaturaService
 
         // Atualizar status da fatura
         if ($item->fatura_id) {
-            $fatura = Fatura::find($item->fatura_id);
+            $fatura = Fatura::forUser($item->user_id)->find($item->fatura_id);
             if ($fatura) {
                 $fatura->atualizarStatus();
             }

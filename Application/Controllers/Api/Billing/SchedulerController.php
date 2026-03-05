@@ -26,9 +26,7 @@ class SchedulerController extends BaseController
      */
     private function validateSchedulerToken(): bool
     {
-        $token = $_SERVER['HTTP_X_SCHEDULER_TOKEN']
-            ?? $_GET['token']
-            ?? null;
+        $token = $_SERVER['HTTP_X_SCHEDULER_TOKEN'] ?? null;
 
         // Tenta $_ENV primeiro, depois getenv() como fallback
         $expectedToken = $_ENV['SCHEDULER_TOKEN'] ?? getenv('SCHEDULER_TOKEN') ?: null;

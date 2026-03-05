@@ -111,6 +111,14 @@ class FaturaCartaoItem extends Model
         return $this->belongsTo(Categoria::class, 'categoria_id');
     }
 
+    /**
+     * Scope para itens do usuário
+     */
+    public function scopeForUser($query, int $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
     // Scopes
     public function scopeDoMesAno($query, int $mes, int $ano)
     {

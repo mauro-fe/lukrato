@@ -147,6 +147,14 @@ class Fatura extends Model
     }
 
     /**
+     * Scope para faturas do usuário
+     */
+    public function scopeForUser($query, int $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    /**
      * Calcula o status atual baseado nas parcelas (sem salvar)
      */
     public function calcularStatus(): string

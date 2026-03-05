@@ -164,7 +164,7 @@ class CartaoCreditoLancamentoService
         $fatura->save();
 
         // Atualizar limite disponível do cartão (reduz limite)
-        $this->atualizarLimiteCartao($cartao->id, $data['valor'], 'debito');
+        $this->atualizarLimiteCartao($cartao->id, $data['valor'], $userId, 'debito');
 
         return $item;
     }
@@ -244,7 +244,7 @@ class CartaoCreditoLancamentoService
         $fatura->save();
 
         // Atualizar limite disponível do cartão
-        $this->atualizarLimiteCartao($cartao->id, $data['valor'], 'debito');
+        $this->atualizarLimiteCartao($cartao->id, $data['valor'], $userId, 'debito');
 
         return $item;
     }
@@ -342,7 +342,7 @@ class CartaoCreditoLancamentoService
 
             // Atualizar limite do cartão apenas na primeira parcela (reduz limite total)
             if ($i === 1) {
-                $this->atualizarLimiteCartao($cartao->id, $valorTotal, 'debito');
+                $this->atualizarLimiteCartao($cartao->id, $valorTotal, $userId, 'debito');
             }
         }
 
@@ -469,9 +469,9 @@ class CartaoCreditoLancamentoService
      * Atualizar limite disponível do cartão
      * Usa o método atualizarLimiteDisponivel() do model que recalcula baseado nos itens não pagos
      */
-    private function atualizarLimiteCartao(int $cartaoId, float $valor, string $operacao): void
+    private function atualizarLimiteCartao(int $cartaoId, float $valor, int $userId, string $operacao): void
     {
-        $cartao = CartaoCredito::find($cartaoId);
+        $cartao = CartaoCredito::forUser($userId)->find($cartaoId);
         if (!$cartao) return;
 
         $limiteAnterior = $cartao->limite_disponivel;
@@ -544,7 +544,7 @@ class CartaoCreditoLancamentoService
                 ->whereNull('cancelado_em')
                 ->where(function ($q) use ($hoje) {
                     $q->where('data_compra', '>', $hoje)
-                      ->orWhere('data_vencimento', '>', $hoje);
+                        ->orWhere('data_vencimento', '>', $hoje);
                 })
                 ->where('pago', false)
                 ->get();
@@ -583,6 +583,7 @@ class CartaoCreditoLancamentoService
                 $this->atualizarLimiteCartao(
                     $parcelamento->cartao_credito_id,
                     $valorDevolver,
+                    $userId,
                     'credito'
                 );
             }

@@ -107,8 +107,8 @@ class UpdateController extends BaseController
         // Buscar nomes das contas para descrição automática
         $descricao = $payload['descricao'] ?? null;
         if ($descricao === null || trim($descricao) === '') {
-            $origem = $contaRepo->find($contaOrigemId);
-            $destino = $contaRepo->find($contaDestinoId);
+            $origem = $contaRepo->findByIdAndUser($contaOrigemId, $userId);
+            $destino = $contaRepo->findByIdAndUser($contaDestinoId, $userId);
             $nomeOrigem = $origem->nome ?? $origem->instituicao ?? 'Conta';
             $nomeDestino = $destino->nome ?? $destino->instituicao ?? 'Conta';
             $descricao = "Transferência: {$nomeOrigem} → {$nomeDestino}";
@@ -123,7 +123,7 @@ class UpdateController extends BaseController
             'descricao'        => mb_substr(trim($descricao), 0, 190),
         ]);
 
-        $updated = $this->lancamentoRepo->find($lancamento->id);
+        $updated = $this->lancamentoRepo->findByIdAndUser($lancamento->id, $userId);
         $updated->loadMissing(['categoria', 'conta', 'subcategoria']);
 
         Response::success(\Application\Formatters\LancamentoResponseFormatter::format($updated));
