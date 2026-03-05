@@ -305,10 +305,11 @@ class LancamentoGlobalManager {
                 } else {
                     if (this.tipoAtual !== 'transferencia') {
                         if (recorrenciaGroup) recorrenciaGroup.style.display = 'block';
-                        if (lembreteGroup) lembreteGroup.style.display = 'block';
                         if (pagoGroup) pagoGroup.style.display = 'block';
                     }
                 }
+
+                this.syncReminderVisibility();
             });
         }
 
@@ -911,6 +912,7 @@ class LancamentoGlobalManager {
         radios.forEach(r => r.checked = r.value === defaultModo);
 
         this.configurarEventosLembrete();
+        this.syncReminderVisibility();
     }
 
     // ── Recurrence Toggles ───────────────────────────────────────────────────
@@ -966,6 +968,48 @@ class LancamentoGlobalManager {
             });
             tempoAviso._lkListenerAdded = true;
         }
+
+        const pagoCheck = document.getElementById('globalLancamentoPago');
+        if (pagoCheck && !pagoCheck._lkListenerAdded) {
+            pagoCheck.addEventListener('change', () => {
+                this.syncReminderVisibility();
+            });
+            pagoCheck._lkListenerAdded = true;
+        }
+    }
+
+    clearReminderFields() {
+        const tempoAviso = document.getElementById('globalLancamentoTempoAviso');
+        const canalInapp = document.getElementById('globalCanalInapp');
+        const canalEmail = document.getElementById('globalCanalEmail');
+        const canaisDiv = document.getElementById('globalCanaisNotificacaoInline');
+
+        if (tempoAviso) tempoAviso.value = '';
+        if (canalInapp) canalInapp.checked = true;
+        if (canalEmail) canalEmail.checked = true;
+        if (canaisDiv) canaisDiv.style.display = 'none';
+    }
+
+    syncReminderVisibility() {
+        const lembreteGroup = document.getElementById('globalLembreteGroup');
+        if (!lembreteGroup) return;
+
+        const tipo = this.tipoAtual;
+        const pago = document.getElementById('globalLancamentoPago')?.checked === true;
+        const cartaoSelecionado = !!document.getElementById('globalLancamentoCartaoCredito')?.value;
+        const formaRecebimento = document.getElementById('globalFormaRecebimento')?.value;
+        const isEstornoCartao = formaRecebimento === 'estorno_cartao';
+
+        const canShowByType = (tipo === 'receita' || tipo === 'despesa');
+        const shouldShow = canShowByType && !pago && !cartaoSelecionado && !isEstornoCartao;
+
+        if (shouldShow) {
+            lembreteGroup.style.display = 'block';
+            return;
+        }
+
+        lembreteGroup.style.display = 'none';
+        this.clearReminderFields();
     }
 
     selecionarTipoAgendamento(tipo) {
@@ -1048,8 +1092,6 @@ class LancamentoGlobalManager {
             if (cartaoSelect) cartaoSelect.value = '';
             if (this.tipoAtual !== 'transferencia') {
                 if (recorrenciaGroup) recorrenciaGroup.style.display = 'block';
-                const lembreteGroup = document.getElementById('globalLembreteGroup');
-                if (lembreteGroup) lembreteGroup.style.display = 'block';
                 const pagoGroup = document.getElementById('globalPagoGroup');
                 if (pagoGroup) pagoGroup.style.display = 'block';
             }
@@ -1061,6 +1103,8 @@ class LancamentoGlobalManager {
             const assinaturaDetalhes = document.getElementById('globalAssinaturaCartaoDetalhes');
             if (assinaturaDetalhes) assinaturaDetalhes.style.display = 'none';
         }
+
+        this.syncReminderVisibility();
     }
 
     selecionarFormaRecebimento(forma) {
@@ -1092,6 +1136,7 @@ class LancamentoGlobalManager {
             if (lembreteGroup) lembreteGroup.style.display = 'none';
             const pagoGroup = document.getElementById('globalPagoGroup');
             if (pagoGroup) pagoGroup.style.display = 'none';
+            this.clearReminderFields();
         } else {
             if (cartaoGroup) { cartaoGroup.classList.remove('active'); cartaoGroup.style.display = 'none'; }
             const cartaoSelect = document.getElementById('globalLancamentoCartaoCredito');
@@ -1100,11 +1145,11 @@ class LancamentoGlobalManager {
             if (parcelamentoGroup) parcelamentoGroup.style.display = 'block';
             const recorrenciaGroup = document.getElementById('globalRecorrenciaGroup');
             if (recorrenciaGroup) recorrenciaGroup.style.display = 'block';
-            const lembreteGroup = document.getElementById('globalLembreteGroup');
-            if (lembreteGroup) lembreteGroup.style.display = 'block';
             const pagoGroup = document.getElementById('globalPagoGroup');
             if (pagoGroup) pagoGroup.style.display = 'block';
         }
+
+        this.syncReminderVisibility();
     }
 
     // ── Validation ───────────────────────────────────────────────────────────
@@ -1277,7 +1322,7 @@ class LancamentoGlobalManager {
             }
 
             const tempoAviso = document.getElementById('globalLancamentoTempoAviso')?.value || '';
-            if (tempoAviso && !dados.cartao_credito_id) {
+            if (tempoAviso && !dados.cartao_credito_id && !dados.pago) {
                 dados.lembrar_antes_segundos = parseInt(tempoAviso);
                 dados.canal_inapp = document.getElementById('globalCanalInapp')?.checked ? '1' : '0';
                 dados.canal_email = document.getElementById('globalCanalEmail')?.checked ? '1' : '0';

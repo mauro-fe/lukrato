@@ -43,6 +43,9 @@ class LancamentoStatusService
             'pago'            => 1,
             'data_pagamento'  => date('Y-m-d'),
             'afeta_caixa'     => 1,
+            'lembrar_antes_segundos' => null,
+            'canal_email'     => 0,
+            'canal_inapp'     => 0,
         ]);
 
         return $lancamento->fresh();
@@ -87,10 +90,18 @@ class LancamentoStatusService
      */
     public function buildPagoPayload(bool $novoPago): array
     {
-        return [
+        $payload = [
             'pago'           => $novoPago ? 1 : 0,
             'data_pagamento' => $novoPago ? date('Y-m-d') : null,
             'afeta_caixa'    => $novoPago ? 1 : 0,
         ];
+
+        if ($novoPago) {
+            $payload['lembrar_antes_segundos'] = null;
+            $payload['canal_email'] = 0;
+            $payload['canal_inapp'] = 0;
+        }
+
+        return $payload;
     }
 }

@@ -110,7 +110,6 @@ const MobileCards = {
         }
 
         const parts = [];
-        const isXs = window.matchMedia('(max-width: 414px)').matches;
 
         // Cabeçalho
         parts.push(`
@@ -133,14 +132,22 @@ const MobileCards = {
 
         for (const item of list) {
             const id = item.id;
+            const isGroup = Boolean(item._isParcelamentoGroup);
+            const groupParcelas = isGroup && Array.isArray(item._parcelas) ? item._parcelas : [];
+            const valorBase = isGroup
+                ? groupParcelas.reduce((sum, p) => sum + (Number(p?.valor || 0)), 0)
+                : Number(item.valor || 0);
             const tipoRaw = String(item.tipo || '').toLowerCase();
             const tipoClass = Utils.getTipoClass(tipoRaw);
             const tipoLabel = tipoRaw
                 ? tipoRaw.charAt(0).toUpperCase() + tipoRaw.slice(1)
                 : '-';
 
-            const valorFmt = Utils.fmtMoney(item.valor);
+            const valorFmt = Utils.fmtMoney(valorBase);
             const dataFmt = Utils.fmtDate(item.data || item.created_at);
+            const horaLanc = item.hora_lancamento || '';
+            const dataMain = horaLanc ? `${dataFmt} • ${horaLanc}` : dataFmt;
+            const dataPagamentoFmt = Utils.fmtDate(item.data_pagamento);
 
             const categoria =
                 item.categoria_nome ??
@@ -176,6 +183,7 @@ const MobileCards = {
             // Status (Pago / Pendente / Transferência)
             const isPago = Boolean(item.pago);
             const isTransfer = Boolean(item.eh_transferencia);
+            const isPagamentoFatura = item.origem_tipo === 'pagamento_fatura';
             let statusClass = '';
             let statusLabel = '';
             let statusLucideIcon = '';
@@ -193,6 +201,27 @@ const MobileCards = {
                 statusLucideIcon = 'clock';
             }
 
+            let pagoEmClass = '';
+            let pagoEmLabel = '';
+            let pagoEmLucideIcon = '';
+            if (isTransfer) {
+                pagoEmClass = 'status-transferencia';
+                pagoEmLabel = 'Transf.';
+                pagoEmLucideIcon = 'repeat';
+            } else if (isPago && dataPagamentoFmt && dataPagamentoFmt !== '-') {
+                pagoEmClass = 'status-pago';
+                pagoEmLabel = dataPagamentoFmt;
+                pagoEmLucideIcon = 'circle-check';
+            } else if (isPago) {
+                pagoEmClass = 'status-pago';
+                pagoEmLabel = 'Pago';
+                pagoEmLucideIcon = 'circle-check';
+            } else {
+                pagoEmClass = 'status-pendente';
+                pagoEmLabel = 'Pendente';
+                pagoEmLucideIcon = 'clock';
+            }
+
             // Badges de recorrência/status para card view
             const isRecorrente = item.recorrente == 1 || item.recorrente === true;
             const isCancelado = !!item.cancelado_em;
@@ -200,25 +229,22 @@ const MobileCards = {
             const hojeCard = new Date();
             hojeCard.setHours(0, 0, 0, 0);
             const isFuturo = !isPago && dataLanc > hojeCard;
+            const temLembrete = Number(item.lembrar_antes_segundos || 0) > 0;
             let cardBadges = '';
             if (isCancelado) {
                 cardBadges += ' <span class="badge bg-secondary" style="font-size:0.6rem;">Cancelado</span>';
             } else if (isRecorrente) {
                 cardBadges += ` <span class="badge bg-info" style="font-size:0.6rem;">${item.recorrencia_freq || 'Recorrente'}</span>`;
             }
-            if (item.canal_email) {
-                cardBadges += ' <span class="badge bg-primary" style="font-size:0.6rem;">✉️ E-mail</span>';
-            }
-            if (item.canal_inapp) {
-                cardBadges += ' <span class="badge bg-secondary" style="font-size:0.6rem;">🔔 InApp</span>';
+            if (temLembrete) {
+                cardBadges += ' <span class="badge bg-primary" style="font-size:0.6rem;">🔔 Lembrete</span>';
             }
             if (isFuturo && !isCancelado) {
                 cardBadges += ' <span class="badge bg-warning text-dark" style="font-size:0.6rem;">Futuro</span>';
             }
 
             // Pagamento de fatura badge para mobile
-            const isPagFaturaMobile = item.origem_tipo === 'pagamento_fatura';
-            if (isPagFaturaMobile) {
+            if (isPagamentoFatura) {
                 cardBadges += ' <span class="badge" style="font-size:0.6rem;background:#7c3aed;color:white;">💳 Fatura</span>';
             }
             // Parcela badge para mobile
@@ -226,19 +252,122 @@ const MobileCards = {
                 cardBadges += ` <span class="badge bg-dark" style="font-size:0.6rem;">📦 ${item.parcela_atual}/${item.total_parcelas}</span>`;
             }
 
+            let lembreteInfo = '-';
+            if (temLembrete) {
+                const segs = parseInt(item.lembrar_antes_segundos, 10);
+                let tempoLabel = '';
+                if (segs >= 604800) tempoLabel = Math.round(segs / 604800) + ' semana(s) antes';
+                else if (segs >= 86400) tempoLabel = Math.round(segs / 86400) + ' dia(s) antes';
+                else if (segs >= 3600) tempoLabel = Math.round(segs / 3600) + ' hora(s) antes';
+                else tempoLabel = Math.round(segs / 60) + ' min antes';
+                const canais = [];
+                if (item.canal_inapp) canais.push('App');
+                if (item.canal_email) canais.push('E-mail');
+                lembreteInfo = `${tempoLabel} · ${canais.join(', ') || 'Nenhum canal'}`;
+            }
+
+            let recorrenciaInfo = '-';
+            if (isRecorrente && !isCancelado) {
+                const freq = item.recorrencia_freq || 'mensal';
+                recorrenciaInfo = freq.charAt(0).toUpperCase() + freq.slice(1);
+                if (item.recorrencia_fim) recorrenciaInfo += ` · até ${Utils.fmtDate(item.recorrencia_fim)}`;
+                else if (item.recorrencia_total) recorrenciaInfo += ` · ${item.recorrencia_total}x`;
+                else recorrenciaInfo += ' · sem fim';
+            }
+
+            const observacao = String(item.observacao || '').trim();
+            const parcelaInfo = item.parcela_atual && item.total_parcelas ? `${item.parcela_atual}/${item.total_parcelas}` : '-';
+            const canceladoEm = isCancelado ? Utils.fmtDate(item.cancelado_em) : '-';
+
+            if (isGroup) {
+                const parcelas = groupParcelas;
+                const totalParcelas = Number(item._totalParcelas || parcelas.length || 0);
+                const parcelasPagas = Number(item._parcelasPagas ?? parcelas.filter(p => Boolean(p.pago)).length);
+                const valorParcela = parcelas.length > 0 ? (valorBase / parcelas.length) : 0;
+                const percentual = totalParcelas > 0 ? Math.round((parcelasPagas / totalParcelas) * 100) : 0;
+                const parcelamentoId = String(id).replace('grupo_', '');
+
+                parts.push(`
+                <article class="lan-card card-item" data-id="${id}" aria-expanded="false">
+                    <div class="lan-card-main card-main">
+                        <span class="lan-card-date card-date">${Utils.escapeHtml(dataMain)}</span>
+                        <span class="lan-card-type card-type">
+                            <span class="badge-tipo ${tipoClass}">
+                                ${Utils.escapeHtml(tipoLabel)}
+                            </span>
+                        </span>
+                        <span class="lan-card-value card-value ${tipoClass}">
+                            ${Utils.escapeHtml(valorFmt)}
+                        </span>
+                    </div>
+
+                    <button class="lan-card-toggle card-toggle" type="button" data-toggle="details" aria-label="Ver detalhes do parcelamento">
+                        <span class="lan-card-toggle-icon card-toggle-icon"><i data-lucide="chevron-right"></i></span>
+                        <span class="detalhes"> Ver detalhes</span>
+                    </button>
+
+                    <div class="lan-card-details card-details">
+                        <div class="lan-card-detail-row card-detail-row is-multiline">
+                            <span class="lan-card-detail-label card-detail-label">Descrição</span>
+                            <span class="lan-card-detail-value card-detail-value">📦 ${Utils.escapeHtml(descricao)}</span>
+                        </div>
+                        <div class="lan-card-detail-row card-detail-row">
+                            <span class="lan-card-detail-label card-detail-label">Categoria</span>
+                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(categoria || '-')}</span>
+                        </div>
+                        <div class="lan-card-detail-row card-detail-row">
+                            <span class="lan-card-detail-label card-detail-label">Conta</span>
+                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(conta || '-')}</span>
+                        </div>
+                        <div class="lan-card-detail-row card-detail-row">
+                            <span class="lan-card-detail-label card-detail-label">Parcelas</span>
+                            <span class="lan-card-detail-value card-detail-value">${parcelasPagas}/${totalParcelas}</span>
+                        </div>
+                        <div class="lan-card-detail-row card-detail-row">
+                            <span class="lan-card-detail-label card-detail-label">Valor Parcela</span>
+                            <span class="lan-card-detail-value card-detail-value">R$ ${Utils.escapeHtml(valorParcela.toFixed(2))}</span>
+                        </div>
+                        <div class="lan-card-detail-row card-detail-row">
+                            <span class="lan-card-detail-label card-detail-label">Progresso</span>
+                            <span class="lan-card-detail-value card-detail-value">${percentual}%</span>
+                        </div>
+                        <div class="lan-card-detail-row card-detail-row actions-row">
+                            <span class="lan-card-detail-label card-detail-label">AÇÕES</span>
+                            <span class="lan-card-detail-value card-detail-value actions-slot" style="display:flex !important;gap:8px;">
+                                <div class="lk-dropdown">
+                                    <button class="lk-dropdown-trigger" type="button"><i data-lucide="more-vertical"></i></button>
+                                    <div class="lk-dropdown-menu">
+                                        <button class="lk-dropdown-item toggle-parcelas-menu" data-parcelamento-id="${parcelamentoId}">
+                                            <i data-lucide="list"></i> Ver Parcelas
+                                        </button>
+                                        <div class="lk-dropdown-divider"></div>
+                                        <button class="lk-dropdown-item lk-dropdown-danger delete-parcelamento" data-parcelamento-id="${parcelamentoId}">
+                                            <i data-lucide="trash-2"></i> Cancelar Parcelamento
+                                        </button>
+                                    </div>
+                                </div>
+                            </span>
+                        </div>
+                    </div>
+                </article>
+            `);
+                continue;
+            }
+
             // Menu dropdown 3-dot para ações
             const canEdit = Utils.canEditLancamento(item);
             const isSaldoIni = Utils.isSaldoInicial(item);
-            const isPagFatura = item.origem_tipo === 'pagamento_fatura';
 
             let menuItems = '';
             if (canEdit) {
                 menuItems += `<button class="lk-dropdown-item" data-action="edit" data-id="${id}"><i data-lucide="pen"></i> Editar</button>`;
             }
-            if (!isPago && !isTransfer && !isPagFatura && !isSaldoIni) {
-                menuItems += `<button class="lk-dropdown-item lk-dropdown-success" data-action="marcar-pago" data-id="${id}"><i data-lucide="circle-check"></i> Marcar como Pago</button>`;
-            } else if (isPago && !isTransfer && !isPagFatura && !isSaldoIni) {
-                menuItems += `<button class="lk-dropdown-item lk-dropdown-warning" data-action="desmarcar-pago" data-id="${id}"><i data-lucide="circle-x"></i> Marcar como Pendente</button>`;
+            if (!isCancelado && !isTransfer && !isSaldoIni) {
+                if (!isPago) {
+                    menuItems += `<button class="lk-dropdown-item lk-dropdown-success" data-action="marcar-pago" data-id="${id}"><i data-lucide="circle-check"></i> Marcar como Pago</button>`;
+                } else {
+                    menuItems += `<button class="lk-dropdown-item lk-dropdown-warning" data-action="desmarcar-pago" data-id="${id}"><i data-lucide="clock"></i> Marcar como Pendente</button>`;
+                }
             }
             if (isRecorrente && !isCancelado) {
                 menuItems += `<div class="lk-dropdown-divider"></div>`;
@@ -259,7 +388,7 @@ const MobileCards = {
             parts.push(`
                 <article class="lan-card card-item" data-id="${id}" aria-expanded="false">
                     <div class="lan-card-main card-main">
-                        <span class="lan-card-date card-date">${Utils.escapeHtml(dataFmt)}</span>
+                        <span class="lan-card-date card-date">${Utils.escapeHtml(dataMain)}</span>
                         <span class="lan-card-type card-type">
                             <span class="badge-tipo ${tipoClass}">
                                 ${Utils.escapeHtml(tipoLabel)}
@@ -292,9 +421,15 @@ const MobileCards = {
                             <span class="lan-card-detail-label card-detail-label">Forma Pgto</span>
                             <span class="lan-card-detail-value card-detail-value">${formaPgto}</span>
                         </div>
-                        <div class="lan-card-detail-row card-detail-row">
+                        <div class="lan-card-detail-row card-detail-row is-badges is-multiline">
                             <span class="lan-card-detail-label card-detail-label">Descrição</span>
                             <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(descricao)}${cardBadges}</span>
+                        </div>
+                        <div class="lan-card-detail-row card-detail-row">
+                            <span class="lan-card-detail-label card-detail-label">Pago Em</span>
+                            <span class="lan-card-detail-value card-detail-value">
+                                <span class="badge-status ${pagoEmClass}"><i data-lucide="${pagoEmLucideIcon}"></i> ${Utils.escapeHtml(pagoEmLabel)}</span>
+                            </span>
                         </div>
                         <div class="lan-card-detail-row card-detail-row">
                             <span class="lan-card-detail-label card-detail-label">Status</span>
@@ -302,7 +437,29 @@ const MobileCards = {
                                 <span class="badge-status ${statusClass}"><i data-lucide="${statusLucideIcon}"></i> ${statusLabel}</span>
                             </span>
                         </div>
-                        ${isPagFaturaMobile ? `
+                        <div class="lan-card-detail-row card-detail-row">
+                            <span class="lan-card-detail-label card-detail-label">Recorrência</span>
+                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(recorrenciaInfo)}</span>
+                        </div>
+                        <div class="lan-card-detail-row card-detail-row">
+                            <span class="lan-card-detail-label card-detail-label">Lembrete</span>
+                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(lembreteInfo)}</span>
+                        </div>
+                        <div class="lan-card-detail-row card-detail-row">
+                            <span class="lan-card-detail-label card-detail-label">Parcela</span>
+                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(parcelaInfo)}</span>
+                        </div>
+                        <div class="lan-card-detail-row card-detail-row">
+                            <span class="lan-card-detail-label card-detail-label">Cancelado em</span>
+                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(canceladoEm)}</span>
+                        </div>
+                        ${observacao ? `
+                        <div class="lan-card-detail-row card-detail-row is-multiline">
+                            <span class="lan-card-detail-label card-detail-label">Observação</span>
+                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(observacao)}</span>
+                        </div>
+                        ` : ''}
+                        ${isPagamentoFatura ? `
                         <div class="lan-card-detail-row card-detail-row" style="justify-content:center;">
                             <button class="btn btn-sm toggle-fatura-detalhes-mobile" data-lancamento-id="${id}" 
                                     style="background:#7c3aed;color:white;font-size:0.75rem;border:none;border-radius:6px;padding:4px 12px;">

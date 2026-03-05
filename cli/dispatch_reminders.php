@@ -29,22 +29,30 @@ try {
         ->whereNotNull('lembrar_antes_segundos')
         ->where('lembrar_antes_segundos', '>', 0)
         ->where(function ($query) {
+            $query->where('canal_email', true)
+                ->orWhere('canal_inapp', true);
+        })
+        ->where(function ($query) {
             $query->whereNull('lembrete_antecedencia_em')
                 ->orWhereNull('notificado_em');
         })
+        ->orderBy('data', 'asc')
         ->get();
 
     $count = count($lancamentos);
     LogService::info("[dispatch_reminders] Lançamentos para processar encontrados: {$count}");
 
     foreach ($lancamentos as $lancamento) {
-        $dataLanc = new \DateTimeImmutable((string)$lancamento->data);
+        $dataLanc = $lancamento->data instanceof \DateTimeInterface
+            ? \DateTimeImmutable::createFromInterface($lancamento->data)
+            : new \DateTimeImmutable((string)$lancamento->data);
         // Use meio-dia como referência (lançamentos têm só data, sem hora)
         $pagamentoTs = $dataLanc->setTime(12, 0)->getTimestamp();
         $leadSeconds = (int)($lancamento->lembrar_antes_segundos ?? 0);
         $reminderTimestamp = $pagamentoTs - $leadSeconds;
         $nowTs = $now->getTimestamp();
         $windowEnd = $windowLimit->getTimestamp();
+        $momentoHorarioChegou = ($pagamentoTs <= $windowEnd);
 
         // Não enviar se a data já passou há mais de 24h
         $limiteAtraso = $nowTs - (24 * 3600);
@@ -65,9 +73,10 @@ try {
         $antecedenciaNaoEnviada = empty($lancamento->lembrete_antecedencia_em);
         $momentoAntecedenciaChegou = ($reminderTimestamp <= $windowEnd);
 
-        if ($temAntecedencia && $antecedenciaNaoEnviada && $momentoAntecedenciaChegou) {
+        if ($temAntecedencia && $antecedenciaNaoEnviada && $momentoAntecedenciaChegou && !$momentoHorarioChegou) {
             $segundosRestantes = $pagamentoTs - $nowTs;
             $tempoRestante = '';
+            $antecedenciaEnviada = false;
             if ($segundosRestantes > 86400) {
                 $dias = floor($segundosRestantes / 86400);
                 $tempoRestante = $dias . ' dia' . ($dias > 1 ? 's' : '');
@@ -88,21 +97,29 @@ try {
             ));
 
             if ($lancamento->canal_inapp) {
-                Notificacao::create([
-                    'user_id' => $lancamento->user_id,
-                    'tipo' => 'lancamento',
-                    'titulo' => 'Lembrete de lançamento',
-                    'mensagem' => sprintf(
-                        'Lembrete: %s (%s) vence em %s (%s).',
-                        $lancamento->descricao,
-                        $lancamento->tipo,
-                        $tempoRestante,
-                        $dataLanc->format('d/m/Y')
-                    ),
-                    'link' => $linkLancamentos,
-                    'lida' => 0,
-                ]);
-                LogService::info("[dispatch_reminders] Notificacao in-app de antecedência criada");
+                try {
+                    Notificacao::create([
+                        'user_id' => $lancamento->user_id,
+                        'tipo' => 'lancamento',
+                        'titulo' => 'Lembrete de lançamento',
+                        'mensagem' => sprintf(
+                            'Lembrete: %s (%s) vence em %s (%s).',
+                            $lancamento->descricao,
+                            $lancamento->tipo,
+                            $tempoRestante,
+                            $dataLanc->format('d/m/Y')
+                        ),
+                        'link' => $linkLancamentos,
+                        'lida' => 0,
+                    ]);
+                    $antecedenciaEnviada = true;
+                    LogService::info("[dispatch_reminders] Notificacao in-app de antecedência criada");
+                } catch (\Throwable $exception) {
+                    LogService::error('[dispatch_reminders] Falha ao criar notificacao in-app de antecedência', [
+                        'erro' => $exception->getMessage(),
+                        'lancamento_id' => $lancamento->id,
+                    ]);
+                }
             }
 
             if ($lancamento->canal_email && $mailService->isConfigured()) {
@@ -110,6 +127,7 @@ try {
                 if ($usuario && !empty($usuario->email)) {
                     try {
                         $mailService->sendLancamentoReminder($lancamento, $usuario, 'antecedencia');
+                        $antecedenciaEnviada = true;
                         LogService::info("[dispatch_reminders] Email de antecedência enviado para {$usuario->email}");
                     } catch (\Throwable $exception) {
                         LogService::error('[dispatch_reminders] Falha ao enviar email de antecedência', [
@@ -120,36 +138,45 @@ try {
                 }
             }
 
-            $lancamento->lembrete_antecedencia_em = $now->format('Y-m-d H:i:s');
-            $enviouAlgo = true;
+            if ($antecedenciaEnviada) {
+                $lancamento->lembrete_antecedencia_em = $now->format('Y-m-d H:i:s');
+                $enviouAlgo = true;
+            }
         }
 
         // ===== LEMBRETE NO DIA =====
         $horarioNaoEnviado = empty($lancamento->notificado_em);
-        $momentoHorarioChegou = ($pagamentoTs <= $windowEnd);
-
         if ($horarioNaoEnviado && $momentoHorarioChegou) {
             LogService::info(sprintf(
                 "[dispatch_reminders] Enviando lembrete NO DIA para lançamento #%d (%s)...",
                 $lancamento->id,
                 $lancamento->descricao
             ));
+            $horarioEnviado = false;
 
             if ($lancamento->canal_inapp) {
-                Notificacao::create([
-                    'user_id' => $lancamento->user_id,
-                    'tipo' => 'lancamento',
-                    'titulo' => 'Lançamento vence hoje!',
-                    'mensagem' => sprintf(
-                        'Atenção: %s (%s) vence hoje! (%s)',
-                        $lancamento->descricao,
-                        $lancamento->tipo,
-                        $dataLanc->format('d/m/Y')
-                    ),
-                    'link' => $linkLancamentos,
-                    'lida' => 0,
-                ]);
-                LogService::info("[dispatch_reminders] Notificacao in-app no dia criada");
+                try {
+                    Notificacao::create([
+                        'user_id' => $lancamento->user_id,
+                        'tipo' => 'lancamento',
+                        'titulo' => 'Lançamento vence hoje!',
+                        'mensagem' => sprintf(
+                            'Atenção: %s (%s) vence hoje! (%s)',
+                            $lancamento->descricao,
+                            $lancamento->tipo,
+                            $dataLanc->format('d/m/Y')
+                        ),
+                        'link' => $linkLancamentos,
+                        'lida' => 0,
+                    ]);
+                    $horarioEnviado = true;
+                    LogService::info("[dispatch_reminders] Notificacao in-app no dia criada");
+                } catch (\Throwable $exception) {
+                    LogService::error('[dispatch_reminders] Falha ao criar notificacao in-app no dia', [
+                        'erro' => $exception->getMessage(),
+                        'lancamento_id' => $lancamento->id,
+                    ]);
+                }
             }
 
             if ($lancamento->canal_email && $mailService->isConfigured()) {
@@ -157,6 +184,7 @@ try {
                 if ($usuario && !empty($usuario->email)) {
                     try {
                         $mailService->sendLancamentoReminder($lancamento, $usuario, 'horario');
+                        $horarioEnviado = true;
                         LogService::info("[dispatch_reminders] Email no dia enviado para {$usuario->email}");
                     } catch (\Throwable $exception) {
                         LogService::error('[dispatch_reminders] Falha ao enviar email no dia', [
@@ -167,8 +195,10 @@ try {
                 }
             }
 
-            $lancamento->notificado_em = $now->format('Y-m-d H:i:s');
-            $enviouAlgo = true;
+            if ($horarioEnviado) {
+                $lancamento->notificado_em = $now->format('Y-m-d H:i:s');
+                $enviouAlgo = true;
+            }
         }
 
         // Salvar alterações se enviou algo

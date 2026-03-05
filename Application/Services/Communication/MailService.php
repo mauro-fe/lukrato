@@ -190,7 +190,7 @@ class MailService implements MailServiceInterface
 
     $content = EmailTemplate::row('Descrição', $titulo);
     $content .= EmailTemplate::row('Tipo', $tipoLanc);
-    $content .= EmailTemplate::row('Data', $dataLancamento);
+    $content .= EmailTemplate::row('Vencimento', $dataLancamento);
     $content .= EmailTemplate::row('Valor', EmailTemplate::badge($valor), false);
 
     if ($lancamento->recorrente) {
@@ -218,7 +218,7 @@ class MailService implements MailServiceInterface
 
     $text = "{$subject}\n"
       . "Tipo: {$tipoLanc}\n"
-      . "Data: {$dataLancamento}\n"
+      . "Vencimento: {$dataLancamento}\n"
       . "Valor: {$valor}\n"
       . ($link !== '#' ? "Painel: {$link}\n\n" : "\n")
       . "Você está recebendo este aviso porque ativou notificações por e-mail na Lukrato.";

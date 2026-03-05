@@ -82,11 +82,15 @@ class SchedulerController extends BaseController
             $baseUrl = defined('BASE_URL')
                 ? rtrim(BASE_URL, '/')
                 : rtrim($_ENV['APP_URL'] ?? '', '/');
-            $linkAgendamentos = $baseUrl ? $baseUrl . '/agendamentos' : null;
+            $linkLancamentos = $baseUrl ? $baseUrl . '/lancamentos' : null;
 
             $mailService = new MailService();
 
             $agendamentos = Lancamento::with(['usuario:id,nome,email'])
+                ->where('pago', 0)
+                ->whereNull('cancelado_em')
+                ->whereNotNull('lembrar_antes_segundos')
+                ->where('lembrar_antes_segundos', '>', 0)
                 ->where(function ($q) {
                     $q->where('canal_email', true)->orWhere('canal_inapp', true);
                 })
@@ -94,6 +98,7 @@ class SchedulerController extends BaseController
                     $query->whereNull('lembrete_antecedencia_em')
                         ->orWhereNull('notificado_em');
                 })
+                ->orderBy('data', 'asc')
                 ->get();
 
             LogService::info("[Scheduler] Agendamentos para processar encontrados: " . count($agendamentos));
@@ -101,15 +106,14 @@ class SchedulerController extends BaseController
             foreach ($agendamentos as $agendamento) {
                 $stats['processados']++;
 
-                $pagamento = $agendamento->data_pagamento instanceof \DateTimeInterface
-                    ? \DateTimeImmutable::createFromInterface($agendamento->data_pagamento)
-                    : new \DateTimeImmutable((string) $agendamento->data_pagamento);
+                $pagamento = $this->resolveReminderBaseDate($agendamento);
 
                 $leadSeconds = (int) ($agendamento->lembrar_antes_segundos ?? 0);
                 $reminderTimestamp = $pagamento->getTimestamp() - $leadSeconds;
                 $windowEnd = $windowLimit->getTimestamp();
                 $nowTs = $now->getTimestamp();
                 $pagamentoTs = $pagamento->getTimestamp();
+                $momentoHorarioChegou = ($pagamentoTs <= $windowEnd);
 
                 // Limite: não enviar se o pagamento já passou há mais de 24 horas
                 $maxAtrasoHoras = 24;
@@ -127,11 +131,13 @@ class SchedulerController extends BaseController
                 $antecedenciaNaoEnviada = empty($agendamento->lembrete_antecedencia_em);
                 $momentoAntecedenciaChegou = ($reminderTimestamp <= $windowEnd);
 
-                if ($temAntecedencia && $antecedenciaNaoEnviada && $momentoAntecedenciaChegou) {
+                // Evita disparar antecedência e horário juntos na mesma execução.
+                if ($temAntecedencia && $antecedenciaNaoEnviada && $momentoAntecedenciaChegou && !$momentoHorarioChegou) {
                     $segundosRestantes = $pagamentoTs - $nowTs;
                     $tempoRestante = $segundosRestantes > 3600
                         ? floor($segundosRestantes / 3600) . ' hora(s)'
                         : floor($segundosRestantes / 60) . ' minuto(s)';
+                    $antecedenciaEnviada = false;
 
                     LogService::info("[Scheduler] Enviando lembrete de ANTECEDÊNCIA para #{$agendamento->id}");
 
@@ -139,18 +145,19 @@ class SchedulerController extends BaseController
                         try {
                             Notificacao::create([
                                 'user_id' => $agendamento->user_id,
-                                'tipo' => 'agendamento',
-                                'titulo' => 'Lembrete de pagamento',
+                                'tipo' => 'lancamento',
+                                'titulo' => 'Lembrete de lançamento',
                                 'mensagem' => sprintf(
                                     'Lembrete: %s vence em %s (%s).',
                                     $agendamento->descricao,
                                     $tempoRestante,
-                                    $pagamento->format('d/m/Y H:i')
+                                    $pagamento->format('d/m/Y')
                                 ),
-                                'link' => $linkAgendamentos,
+                                'link' => $linkLancamentos,
                                 'lida' => 0,
                             ]);
                             $stats['enviados_inapp']++;
+                            $antecedenciaEnviada = true;
                         } catch (\Throwable $e) {
                             $stats['erros'][] = ['tipo' => 'inapp_antecedencia', 'id' => $agendamento->id, 'erro' => $e->getMessage()];
                         }
@@ -162,38 +169,42 @@ class SchedulerController extends BaseController
                             try {
                                 $mailService->sendLancamentoReminder($agendamento, $usuario, 'antecedencia');
                                 $stats['enviados_email']++;
+                                $antecedenciaEnviada = true;
                             } catch (\Throwable $e) {
                                 $stats['erros'][] = ['tipo' => 'email_antecedencia', 'id' => $agendamento->id, 'erro' => $e->getMessage()];
                             }
                         }
                     }
 
-                    $agendamento->lembrete_antecedencia_em = $now->format('Y-m-d H:i:s');
-                    $enviouAlgo = true;
+                    if ($antecedenciaEnviada) {
+                        $agendamento->lembrete_antecedencia_em = $now->format('Y-m-d H:i:s');
+                        $enviouAlgo = true;
+                    }
                 }
 
                 // ===== LEMBRETE NO HORÁRIO =====
                 $horarioNaoEnviado = empty($agendamento->notificado_em);
-                $momentoHorarioChegou = ($pagamentoTs <= $windowEnd);
 
                 if ($horarioNaoEnviado && $momentoHorarioChegou) {
                     LogService::info("[Scheduler] Enviando lembrete NO HORÁRIO para #{$agendamento->id}");
+                    $horarioEnviado = false;
 
                     if ($agendamento->canal_inapp) {
                         try {
                             Notificacao::create([
                                 'user_id' => $agendamento->user_id,
-                                'tipo' => 'agendamento',
-                                'titulo' => 'Pagamento agora!',
+                                'tipo' => 'lancamento',
+                                'titulo' => 'Lançamento vence hoje!',
                                 'mensagem' => sprintf(
-                                    'Atenção: %s vence agora! (%s)',
+                                    'Atenção: %s vence hoje! (%s)',
                                     $agendamento->descricao,
-                                    $pagamento->format('d/m/Y H:i')
+                                    $pagamento->format('d/m/Y')
                                 ),
-                                'link' => $linkAgendamentos,
+                                'link' => $linkLancamentos,
                                 'lida' => 0,
                             ]);
                             $stats['enviados_inapp']++;
+                            $horarioEnviado = true;
                         } catch (\Throwable $e) {
                             $stats['erros'][] = ['tipo' => 'inapp_horario', 'id' => $agendamento->id, 'erro' => $e->getMessage()];
                         }
@@ -205,14 +216,17 @@ class SchedulerController extends BaseController
                             try {
                                 $mailService->sendLancamentoReminder($agendamento, $usuario, 'horario');
                                 $stats['enviados_email']++;
+                                $horarioEnviado = true;
                             } catch (\Throwable $e) {
                                 $stats['erros'][] = ['tipo' => 'email_horario', 'id' => $agendamento->id, 'erro' => $e->getMessage()];
                             }
                         }
                     }
 
-                    $agendamento->notificado_em = $now->format('Y-m-d H:i:s');
-                    $enviouAlgo = true;
+                    if ($horarioEnviado) {
+                        $agendamento->notificado_em = $now->format('Y-m-d H:i:s');
+                        $enviouAlgo = true;
+                    }
                 }
 
                 if ($enviouAlgo) {
@@ -343,15 +357,36 @@ class SchedulerController extends BaseController
         $mailService = new MailService();
 
         // Verifica lançamentos com lembretes pendentes
-        $agendamentosPendentes = Lancamento::where(function ($q) {
-            $q->where('canal_email', true)->orWhere('canal_inapp', true);
-        })
-            ->whereNull('notificado_em')
+        $agendamentosPendentes = Lancamento::where('pago', 0)
+            ->whereNull('cancelado_em')
+            ->whereNotNull('lembrar_antes_segundos')
+            ->where('lembrar_antes_segundos', '>', 0)
+            ->where(function ($q) {
+                $q->where('canal_email', true)->orWhere('canal_inapp', true);
+            })
+            ->where(function ($query) {
+                $query->whereNull('lembrete_antecedencia_em')
+                    ->orWhereNull('notificado_em');
+            })
             ->count();
-        $agendamentosComEmail = Lancamento::whereNull('notificado_em')
+        $agendamentosComEmail = Lancamento::where('pago', 0)
+            ->whereNull('cancelado_em')
+            ->whereNotNull('lembrar_antes_segundos')
+            ->where('lembrar_antes_segundos', '>', 0)
+            ->where(function ($query) {
+                $query->whereNull('lembrete_antecedencia_em')
+                    ->orWhereNull('notificado_em');
+            })
             ->where('canal_email', true)
             ->count();
-        $agendamentosComInapp = Lancamento::whereNull('notificado_em')
+        $agendamentosComInapp = Lancamento::where('pago', 0)
+            ->whereNull('cancelado_em')
+            ->whereNotNull('lembrar_antes_segundos')
+            ->where('lembrar_antes_segundos', '>', 0)
+            ->where(function ($query) {
+                $query->whereNull('lembrete_antecedencia_em')
+                    ->orWhereNull('notificado_em');
+            })
             ->where('canal_inapp', true)
             ->count();
 
@@ -360,18 +395,23 @@ class SchedulerController extends BaseController
         $proximosLembretes = [];
 
         $agendamentos = Lancamento::with(['usuario:id,nome,email'])
+            ->where('pago', 0)
+            ->whereNull('cancelado_em')
+            ->whereNotNull('lembrar_antes_segundos')
+            ->where('lembrar_antes_segundos', '>', 0)
             ->where(function ($q) {
                 $q->where('canal_email', true)->orWhere('canal_inapp', true);
             })
-            ->whereNull('notificado_em')
-            ->orderBy('data_pagamento', 'asc')
+            ->where(function ($query) {
+                $query->whereNull('lembrete_antecedencia_em')
+                    ->orWhereNull('notificado_em');
+            })
+            ->orderBy('data', 'asc')
             ->limit(10)
             ->get();
 
         foreach ($agendamentos as $ag) {
-            $pagamento = $ag->data_pagamento instanceof \DateTimeInterface
-                ? \DateTimeImmutable::createFromInterface($ag->data_pagamento)
-                : new \DateTimeImmutable((string) $ag->data_pagamento);
+            $pagamento = $this->resolveReminderBaseDate($ag);
 
             $leadSeconds = (int) ($ag->lembrar_antes_segundos ?? 0);
             $reminderTime = $pagamento->getTimestamp() - $leadSeconds;
@@ -434,6 +474,19 @@ class SchedulerController extends BaseController
             return 'em_' . round($diff / 3600) . '_horas';
         }
         return 'em_' . round($diff / 86400) . '_dias';
+    }
+
+    /**
+     * Resolve a data-base de vencimento para lembretes de lançamentos.
+     */
+    private function resolveReminderBaseDate(Lancamento $lancamento): \DateTimeImmutable
+    {
+        $baseDate = $lancamento->data instanceof \DateTimeInterface
+            ? \DateTimeImmutable::createFromInterface($lancamento->data)
+            : new \DateTimeImmutable((string) $lancamento->data);
+
+        // Como lançamentos têm apenas data, padroniza no meio-dia para janela de envio.
+        return $baseDate->setTime(12, 0);
     }
 
     /**
@@ -586,11 +639,15 @@ class SchedulerController extends BaseController
         $baseUrl = defined('BASE_URL')
             ? rtrim(BASE_URL, '/')
             : rtrim($_ENV['APP_URL'] ?? '', '/');
-        $linkAgendamentos = $baseUrl ? $baseUrl . '/agendamentos' : null;
+        $linkLancamentos = $baseUrl ? $baseUrl . '/lancamentos' : null;
 
         $mailService = new MailService();
 
         $agendamentos = Lancamento::with(['usuario:id,nome,email'])
+            ->where('pago', 0)
+            ->whereNull('cancelado_em')
+            ->whereNotNull('lembrar_antes_segundos')
+            ->where('lembrar_antes_segundos', '>', 0)
             ->where(function ($q) {
                 $q->where('canal_email', true)->orWhere('canal_inapp', true);
             })
@@ -598,20 +655,20 @@ class SchedulerController extends BaseController
                 $query->whereNull('lembrete_antecedencia_em')
                     ->orWhereNull('notificado_em');
             })
+            ->orderBy('data', 'asc')
             ->get();
 
         foreach ($agendamentos as $agendamento) {
             $stats['processados']++;
 
-            $pagamento = $agendamento->data_pagamento instanceof \DateTimeInterface
-                ? \DateTimeImmutable::createFromInterface($agendamento->data_pagamento)
-                : new \DateTimeImmutable((string) $agendamento->data_pagamento);
+            $pagamento = $this->resolveReminderBaseDate($agendamento);
 
             $leadSeconds = (int) ($agendamento->lembrar_antes_segundos ?? 0);
             $reminderTimestamp = $pagamento->getTimestamp() - $leadSeconds;
             $nowTs = $now->getTimestamp();
             $pagamentoTs = $pagamento->getTimestamp();
             $windowEnd = $windowLimit->getTimestamp();
+            $momentoHorarioChegou = ($pagamentoTs <= $windowEnd);
 
             // Limite: não enviar se o pagamento já passou há mais de 24 horas
             $maxAtrasoHoras = 24;
@@ -629,28 +686,31 @@ class SchedulerController extends BaseController
             $antecedenciaNaoEnviada = empty($agendamento->lembrete_antecedencia_em);
             $momentoAntecedenciaChegou = ($reminderTimestamp <= $windowEnd);
 
-            if ($temAntecedencia && $antecedenciaNaoEnviada && $momentoAntecedenciaChegou) {
+            // Evita disparar antecedência e horário juntos na mesma execução.
+            if ($temAntecedencia && $antecedenciaNaoEnviada && $momentoAntecedenciaChegou && !$momentoHorarioChegou) {
                 $segundosRestantes = $pagamentoTs - $nowTs;
                 $tempoRestante = $segundosRestantes > 3600
                     ? floor($segundosRestantes / 3600) . ' hora(s)'
                     : floor($segundosRestantes / 60) . ' minuto(s)';
+                $antecedenciaEnviada = false;
 
                 if ($agendamento->canal_inapp) {
                     try {
                         Notificacao::create([
                             'user_id' => $agendamento->user_id,
-                            'tipo' => 'agendamento',
-                            'titulo' => 'Lembrete de pagamento',
+                            'tipo' => 'lancamento',
+                            'titulo' => 'Lembrete de lançamento',
                             'mensagem' => sprintf(
                                 'Lembrete: %s vence em %s (%s).',
                                 $agendamento->descricao,
                                 $tempoRestante,
-                                $pagamento->format('d/m/Y H:i')
+                                $pagamento->format('d/m/Y')
                             ),
-                            'link' => $linkAgendamentos,
+                            'link' => $linkLancamentos,
                             'lida' => 0,
                         ]);
                         $stats['enviados_inapp']++;
+                        $antecedenciaEnviada = true;
                     } catch (\Throwable $e) {
                         $stats['erros'][] = ['tipo' => 'inapp_antecedencia', 'id' => $agendamento->id, 'erro' => $e->getMessage()];
                     }
@@ -662,36 +722,40 @@ class SchedulerController extends BaseController
                         try {
                             $mailService->sendLancamentoReminder($agendamento, $usuario, 'antecedencia');
                             $stats['enviados_email']++;
+                            $antecedenciaEnviada = true;
                         } catch (\Throwable $e) {
                             $stats['erros'][] = ['tipo' => 'email_antecedencia', 'id' => $agendamento->id, 'erro' => $e->getMessage()];
                         }
                     }
                 }
 
-                $agendamento->lembrete_antecedencia_em = $now->format('Y-m-d H:i:s');
-                $enviouAlgo = true;
+                if ($antecedenciaEnviada) {
+                    $agendamento->lembrete_antecedencia_em = $now->format('Y-m-d H:i:s');
+                    $enviouAlgo = true;
+                }
             }
 
             // ===== LEMBRETE NO HORÁRIO =====
             $horarioNaoEnviado = empty($agendamento->notificado_em);
-            $momentoHorarioChegou = ($pagamentoTs <= $windowEnd);
 
             if ($horarioNaoEnviado && $momentoHorarioChegou) {
+                $horarioEnviado = false;
                 if ($agendamento->canal_inapp) {
                     try {
                         Notificacao::create([
                             'user_id' => $agendamento->user_id,
-                            'tipo' => 'agendamento',
-                            'titulo' => 'Pagamento agora!',
+                            'tipo' => 'lancamento',
+                            'titulo' => 'Lançamento vence hoje!',
                             'mensagem' => sprintf(
-                                'Atenção: %s vence agora! (%s)',
+                                'Atenção: %s vence hoje! (%s)',
                                 $agendamento->descricao,
-                                $pagamento->format('d/m/Y H:i')
+                                $pagamento->format('d/m/Y')
                             ),
-                            'link' => $linkAgendamentos,
+                            'link' => $linkLancamentos,
                             'lida' => 0,
                         ]);
                         $stats['enviados_inapp']++;
+                        $horarioEnviado = true;
                     } catch (\Throwable $e) {
                         $stats['erros'][] = ['tipo' => 'inapp_horario', 'id' => $agendamento->id, 'erro' => $e->getMessage()];
                     }
@@ -703,14 +767,17 @@ class SchedulerController extends BaseController
                         try {
                             $mailService->sendLancamentoReminder($agendamento, $usuario, 'horario');
                             $stats['enviados_email']++;
+                            $horarioEnviado = true;
                         } catch (\Throwable $e) {
                             $stats['erros'][] = ['tipo' => 'email_horario', 'id' => $agendamento->id, 'erro' => $e->getMessage()];
                         }
                     }
                 }
 
-                $agendamento->notificado_em = $now->format('Y-m-d H:i:s');
-                $enviouAlgo = true;
+                if ($horarioEnviado) {
+                    $agendamento->notificado_em = $now->format('Y-m-d H:i:s');
+                    $enviouAlgo = true;
+                }
             }
 
             if ($enviouAlgo) {
@@ -892,7 +959,13 @@ class SchedulerController extends BaseController
                             . "<p>Não esqueça de efetuar o pagamento para evitar juros e multas.</p>"
                             . ($linkFaturas ? "<p><a href=\"{$linkFaturas}\">Ver minhas faturas</a></p>" : '');
 
-                        $mailService->send($usuario->email, $assunto, $corpo);
+                        $mailService->send(
+                            (string) $usuario->email,
+                            (string) ($usuario->nome ?? ''),
+                            $assunto,
+                            $corpo,
+                            strip_tags($corpo)
+                        );
                     } catch (\Throwable $e) {
                         LogService::error("[Scheduler] Erro ao enviar email fatura: " . $e->getMessage());
                     }
@@ -1035,7 +1108,13 @@ class SchedulerController extends BaseController
                         . "<p>Não esqueça de efetuar o pagamento para evitar juros e multas.</p>"
                         . ($linkFaturas ? "<p><a href=\"{$linkFaturas}\">Ver minhas faturas</a></p>" : '');
 
-                    $mailService->send($usuario->email, $assunto, $corpo);
+                    $mailService->send(
+                        (string) $usuario->email,
+                        (string) ($usuario->nome ?? ''),
+                        $assunto,
+                        $corpo,
+                        strip_tags($corpo)
+                    );
                 } catch (\Throwable $e) {
                     LogService::error("[Scheduler] Erro ao enviar email fatura: " . $e->getMessage());
                 }

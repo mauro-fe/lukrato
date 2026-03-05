@@ -354,6 +354,24 @@
     align-items: center;
   }
 
+  .lan-card-detail-row.is-multiline {
+    align-items: flex-start;
+  }
+
+  .lan-card-detail-row.is-multiline .lan-card-detail-value {
+    text-align: left;
+    justify-content: flex-start;
+    align-items: flex-start;
+    line-height: 1.35;
+  }
+
+  .lan-card-detail-row.is-badges .lan-card-detail-value {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.35rem;
+  }
+
   /* Badge de tipo reutilizando .badge-tipo */
   .lan-card-type .badge-tipo {
     font-size: 0.7rem;
@@ -420,7 +438,9 @@
     color: var(--color-text);
     font-weight: 600;
     font-size: 0.9rem;
-    margin-top: -27px;
+    margin-top: 0;
+    justify-content: flex-start;
+    align-items: flex-start;
   }
 
   .lan-card-type .badge-tipo {
@@ -429,23 +449,7 @@
   }
 }
 
-/* ========================================================================
-   TELAS MAIORES QUE 414px
-   - Ocultar botÃµes de aÃ§Ã£o dentro do "Ver detalhes"
-   ======================================================================== */
-@media (min-width: 415px) {
-  .lan-card-details .lan-card-actions[data-slot="details"] {
-    display: none !important;
-  }
-
-  .lan-card-detail-row.actions-row {
-    display: none !important;
-  }
-
-  .lan-card-detail-value.actions-slot {
-    display: none !important;
-  }
-}
+/* Em mobile/tablet, as ações continuam no bloco de detalhes em todas as larguras. */
 
 /* ========================================================================
    MOBILE PEQUENO (321px - 356px)
@@ -607,7 +611,9 @@
   .lan-card-detail-value {
     font-size: 0.8rem !important;
     word-break: break-word;
-    margin-top: -27px;
+    margin-top: 0 !important;
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
   }
 
   .lan-card-detail-row.actions-row {
@@ -625,8 +631,8 @@
     gap: 0.4rem !important;
     visibility: visible !important;
     opacity: 1 !important;
-    margin-left: -85px;
-    margin-top: 5px;
+    margin-left: 0 !important;
+    margin-top: 0 !important;
   }
 
   .lan-card-detail-value.actions-slot .lk-btn {

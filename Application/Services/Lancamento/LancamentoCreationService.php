@@ -97,6 +97,11 @@ class LancamentoCreationService
             $pago = false;
         }
 
+        // Lançamento já pago não deve manter lembrete ativo.
+        $lembreteAntes = $pago ? null : ($payload['lembrar_antes_segundos'] ?? null);
+        $canalEmail = $pago ? false : (bool) ($payload['canal_email'] ?? false);
+        $canalInapp = $pago ? false : (bool) ($payload['canal_inapp'] ?? false);
+
         $dto = CreateLancamentoDTO::fromRequest($userId, [
             'tipo'                   => $tipoLancamento,
             'data'                   => $payload['data'],
@@ -113,9 +118,9 @@ class LancamentoCreationService
             'recorrencia_freq'       => $payload['recorrencia_freq'] ?? null,
             'recorrencia_fim'        => $payload['recorrencia_fim'] ?? null,
             'recorrencia_total'      => isset($payload['recorrencia_total']) ? (int) $payload['recorrencia_total'] : null,
-            'lembrar_antes_segundos' => $payload['lembrar_antes_segundos'] ?? null,
-            'canal_email'            => (bool) ($payload['canal_email'] ?? false),
-            'canal_inapp'            => (bool) ($payload['canal_inapp'] ?? false),
+            'lembrar_antes_segundos' => $lembreteAntes,
+            'canal_email'            => $canalEmail,
+            'canal_inapp'            => $canalInapp,
         ]);
 
         try {

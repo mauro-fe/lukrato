@@ -433,6 +433,7 @@ export const ContasLancamento = {
 
         // Configure recurrence & reminder events
         ContasLancamento.configurarEventosRecorrencia();
+        ContasLancamento.syncReminderVisibility();
 
         // Navigate to step 2
         ContasLancamento.goToStep(2);
@@ -458,6 +459,49 @@ export const ContasLancamento = {
             });
             tempoAviso._lkListenerAdded = true;
         }
+
+        // Se já está pago, não faz sentido configurar lembrete.
+        const pagoCheckbox = document.getElementById('lancamentoPago');
+        if (pagoCheckbox && !pagoCheckbox._lkListenerAdded) {
+            pagoCheckbox.addEventListener('change', () => {
+                ContasLancamento.syncReminderVisibility();
+            });
+            pagoCheckbox._lkListenerAdded = true;
+        }
+    },
+
+    clearReminderFields() {
+        const tempoAviso = document.getElementById('lancamentoTempoAviso');
+        const canalInapp = document.getElementById('lancamentoCanalInapp');
+        const canalEmail = document.getElementById('lancamentoCanalEmail');
+        const canaisDiv = document.getElementById('canaisNotificacaoInline');
+
+        if (tempoAviso) tempoAviso.value = '';
+        if (canalInapp) canalInapp.checked = true;
+        if (canalEmail) canalEmail.checked = true;
+        if (canaisDiv) canaisDiv.style.display = 'none';
+    },
+
+    syncReminderVisibility() {
+        const lembreteGroup = document.getElementById('lembreteGroup');
+        if (!lembreteGroup) return;
+
+        const tipo = document.getElementById('lancamentoTipo')?.value;
+        const pago = document.getElementById('lancamentoPago')?.checked === true;
+        const cartaoSelecionado = !!document.getElementById('lancamentoCartaoCredito')?.value;
+        const formaRecebimento = document.getElementById('formaRecebimento')?.value;
+        const isEstornoCartao = formaRecebimento === 'estorno_cartao';
+
+        const canShowByType = (tipo === 'receita' || tipo === 'despesa');
+        const shouldShow = canShowByType && !pago && !cartaoSelecionado && !isEstornoCartao;
+
+        if (shouldShow) {
+            lembreteGroup.style.display = 'block';
+            return;
+        }
+
+        lembreteGroup.style.display = 'none';
+        ContasLancamento.clearReminderFields();
     },
 
     /**
@@ -616,12 +660,14 @@ export const ContasLancamento = {
             const tipo = document.getElementById('lancamentoTipo')?.value;
             if (tipo === 'despesa' || tipo === 'receita') {
                 if (recorrenciaGroup) recorrenciaGroup.style.display = 'block';
-                const lembreteGroup = document.getElementById('lembreteGroup');
-                if (lembreteGroup) lembreteGroup.style.display = 'block';
                 const pagoGroup = document.getElementById('pagoGroup');
                 if (pagoGroup) pagoGroup.style.display = 'block';
             }
+
+            ContasLancamento.syncReminderVisibility();
         }
+
+        ContasLancamento.syncReminderVisibility();
     },
 
     /**
@@ -663,6 +709,8 @@ export const ContasLancamento = {
             if (lembreteGroup) lembreteGroup.style.display = 'none';
             const pagoGroup = document.getElementById('pagoGroup');
             if (pagoGroup) pagoGroup.style.display = 'none';
+
+            ContasLancamento.clearReminderFields();
         } else {
             if (cartaoGroup) {
                 cartaoGroup.classList.remove('active');
@@ -676,13 +724,13 @@ export const ContasLancamento = {
             // Restaurar recorrência, lembrete e pago
             const recorrenciaGroup = document.getElementById('recorrenciaGroup');
             if (recorrenciaGroup) recorrenciaGroup.style.display = 'block';
-            const lembreteGroup = document.getElementById('lembreteGroup');
-            if (lembreteGroup) lembreteGroup.style.display = 'block';
             const pagoGroup = document.getElementById('pagoGroup');
             if (pagoGroup) pagoGroup.style.display = 'block';
             // Restaurar parcelamento para receita
             const parcelamentoGroupRec = document.getElementById('parcelamentoGroup');
             if (parcelamentoGroupRec) parcelamentoGroupRec.style.display = 'block';
+
+            ContasLancamento.syncReminderVisibility();
         }
     },
 
@@ -749,6 +797,8 @@ export const ContasLancamento = {
                 recorrenciaGroup.style.display = 'block';
             }
         }
+
+        ContasLancamento.syncReminderVisibility();
     },
 
     /**
@@ -1171,7 +1221,7 @@ export const ContasLancamento = {
 
                 // Campos de lembrete (apenas para lançamentos sem cartão - cartão lembra pela fatura)
                 const tempoAviso = document.getElementById('lancamentoTempoAviso')?.value || '';
-                if (tempoAviso && !cartaoCreditoId) {
+                if (tempoAviso && !cartaoCreditoId && !pagoCheck?.checked) {
                     data.lembrar_antes_segundos = parseInt(tempoAviso);
                     data.canal_inapp = document.getElementById('lancamentoCanalInapp')?.checked ? '1' : '0';
                     data.canal_email = document.getElementById('lancamentoCanalEmail')?.checked ? '1' : '0';
