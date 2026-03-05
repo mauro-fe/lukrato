@@ -96,6 +96,10 @@ class LancamentoCreationService
         if (isset($payload['agendado']) && $payload['agendado']) {
             $pago = false;
         }
+        if (!empty($payload['recorrente'])) {
+            // Recorrências sempre nascem pendentes; o usuário decide o pagamento depois.
+            $pago = false;
+        }
 
         // Lançamento já pago não deve manter lembrete ativo.
         $lembreteAntes = $pago ? null : ($payload['lembrar_antes_segundos'] ?? null);
@@ -261,46 +265,22 @@ class LancamentoCreationService
     // ─── Fluxos internos ───────────────────────────────────
 
     /**
-     * Nova recorrência: cria o lançamento-pai e gera horizonte de filhos futuros.
+     * Nova recorrência: cria apenas o lançamento-pai na data escolhida.
      *
-     * Três modos:
-     * 1. recorrencia_total definido → gera exatamente N ocorrências
-     * 2. recorrencia_fim definida   → gera até essa data
-     * 3. Nenhum (infinita)          → gera até HORIZON_MONTHS à frente (cron estende)
-     *
-     * O cron `generate_recurring_lancamentos.php` estende o horizonte periodicamente.
+     * As próximas ocorrências são geradas pelo cron quando o próximo ciclo vencer.
      */
     private function createRecurring(int $userId, CreateLancamentoDTO $dto, Recorrencia $freq, array $usage): ServiceResultDTO
     {
-        $horizonMonths = 3;
-        $dataBase = new \DateTime($dto->data);
-        $hoje = new \DateTime();
-        $usarTotal = $dto->recorrenciaTotal !== null && $dto->recorrenciaTotal >= 2;
-
-        // Determinar limite
-        if ($usarTotal) {
-            // Modo por quantidade: sem limite de data (o loop controla pela contagem)
-            $limite = null;
-            $maxFilhos = $dto->recorrenciaTotal - 1; // -1 pois o pai já conta
-        } elseif ($dto->recorrenciaFim) {
-            $limite = new \DateTime($dto->recorrenciaFim);
-        } else {
-            $limite = (clone $hoje)->modify("+{$horizonMonths} months");
-        }
-
-        // 1) Criar o lançamento-pai (primeira ocorrência)
+        // 1) Criar o lançamento-pai (primeira ocorrência) sempre como pendente
         $dadosPai = $dto->toArray();
         $dadosPai['recorrente'] = 1;
         $dadosPai['recorrencia_freq'] = $freq->value;
         $dadosPai['recorrencia_fim'] = $dto->recorrenciaFim;
         $dadosPai['recorrencia_total'] = $dto->recorrenciaTotal;
         $dadosPai['origem_tipo'] = \Application\Models\Lancamento::ORIGEM_RECORRENCIA;
-
-        // Se a data é futura, não está pago (a menos que o usuário disse que já pagou)
-        if ($dataBase > $hoje) {
-            $dadosPai['pago'] = 0;
-            $dadosPai['data_pagamento'] = null;
-        }
+        $dadosPai['pago'] = 0;
+        $dadosPai['afeta_caixa'] = 0;
+        $dadosPai['data_pagamento'] = null;
 
         $pai = $this->lancamentoRepo->create($dadosPai);
 
@@ -308,35 +288,7 @@ class LancamentoCreationService
         $pai->recorrencia_pai_id = $pai->id;
         $pai->save();
 
-        // 2) Gerar filhos futuros
-        $filhos = [];
-        $dataProx = clone $dataBase;
-        $freq->advance($dataProx);
-
-        while (true) {
-            // Verificar condição de parada
-            if ($usarTotal && count($filhos) >= $maxFilhos) break;
-            if (!$usarTotal && $limite !== null && $dataProx > $limite) break;
-            if (!$usarTotal && $limite === null) break; // safety
-
-            $dadosFilho = $dto->toArray();
-            $dadosFilho['data'] = $dataProx->format('Y-m-d');
-            $dadosFilho['pago'] = 0;
-            $dadosFilho['afeta_caixa'] = 0;
-            $dadosFilho['data_pagamento'] = null;
-            $dadosFilho['recorrente'] = 1;
-            $dadosFilho['recorrencia_freq'] = $freq->value;
-            $dadosFilho['recorrencia_fim'] = $dto->recorrenciaFim;
-            $dadosFilho['recorrencia_total'] = $dto->recorrenciaTotal;
-            $dadosFilho['recorrencia_pai_id'] = $pai->id;
-            $dadosFilho['origem_tipo'] = \Application\Models\Lancamento::ORIGEM_RECORRENCIA;
-
-            $filhos[] = $this->lancamentoRepo->create($dadosFilho);
-
-            $freq->advance($dataProx);
-        }
-
-        $totalCriados = 1 + count($filhos);
+        $totalCriados = 1;
         $pai->loadMissing(['categoria', 'conta']);
 
         $gamification = $this->triggerGamification($userId, $pai->id);
@@ -344,7 +296,7 @@ class LancamentoCreationService
         $infinita = $dto->recorrenciaFim === null && $dto->recorrenciaTotal === null;
 
         return ServiceResultDTO::ok(
-            "Recorrência criada: {$totalCriados} lançamentos gerados",
+            'Recorrência criada: 1 lançamento pendente. Os próximos serão gerados automaticamente no próximo ciclo.',
             [
                 'lancamento'    => LancamentoResponseFormatter::format($pai),
                 'total_criados' => $totalCriados,
@@ -500,22 +452,19 @@ class LancamentoCreationService
     }
 
     /**
-     * Estende o horizonte de lançamentos recorrentes infinitos.
+     * Gera as próximas ocorrências vencidas de recorrências ativas.
      * Chamado pelo cron `generate_recurring_lancamentos.php`.
      *
-     * @param int $horizonMonths Meses à frente para gerar
+     * @param int $horizonMonths Mantido por compatibilidade (não utilizado)
      * @return int Número de lançamentos criados
      */
     public function estenderRecorrenciasInfinitas(int $horizonMonths = 3): int
     {
-        $limite = (new \DateTime())->modify("+{$horizonMonths} months");
+        $hoje = new \DateTimeImmutable('today');
         $totalCriados = 0;
 
-        // Buscar todos os pais de recorrências infinitas ativas
-        // (nem data fim, nem total definido → recorrência verdadeiramente infinita)
+        // Buscar todos os pais de recorrências ativas
         $pais = \Application\Models\Lancamento::where('recorrente', 1)
-            ->whereNull('recorrencia_fim')
-            ->whereNull('recorrencia_total')
             ->whereNull('cancelado_em')
             ->whereColumn('recorrencia_pai_id', 'id') // é o pai (aponta para si)
             ->get();
@@ -548,47 +497,85 @@ class LancamentoCreationService
                     ? new \DateTime($ultimoFilho->data)
                     : new \DateTime($pai->data);
 
-                // Gerar a partir do dia seguinte ao último
+                // Avançar para o próximo ciclo com base no último lançamento da série.
                 $dataProx = clone $ultimaData;
                 $freq->advance($dataProx);
 
-                while ($dataProx <= $limite) {
-                    // Verificação de duplicata (idempotência)
-                    $jaExiste = \Application\Models\Lancamento::where('recorrencia_pai_id', $pai->id)
-                        ->where('data', $dataProx->format('Y-m-d'))
+                // Ainda não chegou a data do próximo ciclo.
+                if ($dataProx > $hoje) {
+                    DB::commit();
+                    continue;
+                }
+
+                // Recorrência por data fim: não gera além do fim.
+                if ($pai->recorrencia_fim !== null) {
+                    $fim = new \DateTimeImmutable($pai->recorrencia_fim);
+                    if ($dataProx > $fim) {
+                        DB::commit();
+                        continue;
+                    }
+                }
+
+                // Recorrência por quantidade: respeita o total definido.
+                if ($pai->recorrencia_total !== null && $pai->recorrencia_total > 0) {
+                    $totalSerie = \Application\Models\Lancamento::where('recorrencia_pai_id', $pai->id)
                         ->whereNull('cancelado_em')
-                        ->exists();
+                        ->count();
 
-                    if (!$jaExiste) {
-                        $dados = [
-                            'user_id'            => $pai->user_id,
-                            'tipo'               => $pai->tipo,
-                            'data'               => $dataProx->format('Y-m-d'),
-                            'hora_lancamento'    => $pai->hora_lancamento,
-                            'valor'              => $pai->valor,
-                            'descricao'          => $pai->descricao,
-                            'observacao'         => $pai->observacao,
-                            'categoria_id'       => $pai->categoria_id,
-                            'subcategoria_id'    => $pai->subcategoria_id,
-                            'conta_id'           => $pai->conta_id,
-                            'pago'               => 0,
-                            'afeta_caixa'        => 0,
-                            'forma_pagamento'    => $pai->forma_pagamento,
-                            'recorrente'         => 1,
-                            'recorrencia_freq'   => $pai->recorrencia_freq,
-                            'recorrencia_fim'    => null,
-                            'recorrencia_pai_id' => $pai->id,
-                            'origem_tipo'        => \Application\Models\Lancamento::ORIGEM_RECORRENCIA,
-                            'lembrar_antes_segundos' => $pai->lembrar_antes_segundos,
-                            'canal_email'        => $pai->canal_email,
-                            'canal_inapp'        => $pai->canal_inapp,
-                        ];
+                    if ($totalSerie >= (int) $pai->recorrencia_total) {
+                        DB::commit();
+                        continue;
+                    }
+                }
 
+                // Verificação de duplicata (idempotência)
+                $jaExiste = \Application\Models\Lancamento::where('recorrencia_pai_id', $pai->id)
+                    ->where('data', $dataProx->format('Y-m-d'))
+                    ->whereNull('cancelado_em')
+                    ->exists();
+
+                if (!$jaExiste) {
+                    $dados = [
+                        'user_id'            => $pai->user_id,
+                        'tipo'               => $pai->tipo,
+                        'data'               => $dataProx->format('Y-m-d'),
+                        'hora_lancamento'    => $pai->hora_lancamento,
+                        'valor'              => $pai->valor,
+                        'descricao'          => $pai->descricao,
+                        'observacao'         => $pai->observacao,
+                        'categoria_id'       => $pai->categoria_id,
+                        'subcategoria_id'    => $pai->subcategoria_id,
+                        'conta_id'           => $pai->conta_id,
+                        'pago'               => 0,
+                        'afeta_caixa'        => 0,
+                        'data_pagamento'     => null,
+                        'forma_pagamento'    => $pai->forma_pagamento,
+                        'recorrente'         => 1,
+                        'recorrencia_freq'   => $pai->recorrencia_freq,
+                        'recorrencia_fim'    => $pai->recorrencia_fim,
+                        'recorrencia_total'  => $pai->recorrencia_total,
+                        'recorrencia_pai_id' => $pai->id,
+                        'origem_tipo'        => \Application\Models\Lancamento::ORIGEM_RECORRENCIA,
+                        'lembrar_antes_segundos' => $pai->lembrar_antes_segundos,
+                        'canal_email'        => $pai->canal_email,
+                        'canal_inapp'        => $pai->canal_inapp,
+                    ];
+
+                    try {
                         $this->lancamentoRepo->create($dados);
                         $totalCriados++;
+                    } catch (\Throwable $e) {
+                        // Com unique key ativa, corrida concorrente pode bater aqui.
+                        // Se for duplicado, tratamos como idempotente.
+                        if (str_contains(strtolower($e->getMessage()), 'duplicate')) {
+                            LogService::info('[RECORRENCIA] Duplicata evitada por unique key', [
+                                'pai_id' => $pai->id,
+                                'data' => $dataProx->format('Y-m-d'),
+                            ]);
+                        } else {
+                            throw $e;
+                        }
                     }
-
-                    $freq->advance($dataProx);
                 }
 
                 DB::commit();

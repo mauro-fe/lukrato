@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Cron: Estender horizonte de lançamentos recorrentes infinitos.
+ * Cron: Gerar lançamentos recorrentes vencidos.
  *
  * Deve ser executado diariamente (ex: 02:00).
- * Gera lançamentos futuros (com pago=false) para manter um horizonte
- * de 3 meses de recorrências ativas sem data de fim.
+ * Gera apenas o próximo lançamento de cada recorrência quando a data
+ * do ciclo chega, sempre como pendente.
  *
  * Uso:
  *   php cli/generate_recurring_lancamentos.php
@@ -21,7 +21,7 @@ echo "[" . date('Y-m-d H:i:s') . "] Gerando lançamentos recorrentes...\n";
 
 try {
     $service = new LancamentoCreationService();
-    $criados = $service->estenderRecorrenciasInfinitas(3);
+    $criados = $service->estenderRecorrenciasInfinitas();
 
     echo "[" . date('Y-m-d H:i:s') . "] Concluído: {$criados} lançamentos criados.\n";
 } catch (\Throwable $e) {

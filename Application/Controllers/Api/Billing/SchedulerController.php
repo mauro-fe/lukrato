@@ -589,10 +589,10 @@ class SchedulerController extends BaseController
             ]);
         }
 
-        // 5. Gerar lançamentos recorrentes (estender horizonte de 3 meses)
+        // 5. Gerar lançamentos recorrentes vencidos (1 por ciclo quando devido)
         try {
             $lancamentoService = new \Application\Services\Lancamento\LancamentoCreationService();
-            $criados = $lancamentoService->estenderRecorrenciasInfinitas(3);
+            $criados = $lancamentoService->estenderRecorrenciasInfinitas();
             $results['tasks']['generate_recurring_lancamentos'] = [
                 'status' => 'success',
                 'result' => ['lancamentos_criados' => $criados],
@@ -1131,7 +1131,7 @@ class SchedulerController extends BaseController
     }
 
     /**
-     * Gera lançamentos recorrentes — estende o horizonte de recorrências infinitas.
+     * Gera lançamentos recorrentes vencidos.
      *
      * GET|POST /api/scheduler/generate-recurring-lancamentos
      */
@@ -1149,7 +1149,7 @@ class SchedulerController extends BaseController
 
         try {
             $service = new \Application\Services\Lancamento\LancamentoCreationService();
-            $criados = $service->estenderRecorrenciasInfinitas(3);
+            $criados = $service->estenderRecorrenciasInfinitas();
 
             LogService::info('[Scheduler] Lançamentos recorrentes gerados', [
                 'lancamentos_criados' => $criados,

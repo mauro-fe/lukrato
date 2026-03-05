@@ -79,8 +79,11 @@ class RecorrenciaCartaoService
     }
 
     /**
-     * Processar uma recorrência individual
-     * 
+     * Processar uma recorrência individual.
+     *
+     * Gera no máximo 1 item por execução, apenas quando a data do próximo ciclo
+     * já chegou (mesma cadência escolhida na assinatura).
+     *
      * @return string 'criado' | 'ignorado' | 'expirado'
      */
     private function processarRecorrencia(FaturaCartaoItem $itemPai): string
@@ -100,48 +103,71 @@ class RecorrenciaCartaoService
             return 'ignorado';
         }
 
-        // Determinar o mês alvo para geração
-        // Vamos gerar o item para o MÊS ATUAL (se ainda não existe)
-        // e também para o MÊS SEGUINTE (para adiantar a fatura)
-        $agora = now();
-        $mesesAlvo = $this->calcularMesesAlvo($itemPai, $agora);
+        $agora = now()->startOfDay();
+        $freq = Recorrencia::tryFromString($itemPai->recorrencia_freq) ?? Recorrencia::MENSAL;
 
-        $algumCriado = false;
+        // Encontrar o último item gerado (filho ou pai)
+        $ultimoItem = FaturaCartaoItem::where(function ($q) use ($itemPai) {
+            $q->where('recorrencia_pai_id', $itemPai->id)
+                ->orWhere('id', $itemPai->id);
+        })
+            ->whereNull('cancelado_em')
+            ->orderByRaw('ano_referencia DESC, mes_referencia DESC, id DESC')
+            ->first();
 
-        foreach ($mesesAlvo as $alvo) {
-            $mes = $alvo['mes'];
-            $ano = $alvo['ano'];
-
-            // Verificar se já existe item filho (ou o próprio pai) para este mês/ano
-            $jaExiste = FaturaCartaoItem::where('cartao_credito_id', $itemPai->cartao_credito_id)
-                ->where('user_id', $itemPai->user_id)
-                ->where(function ($q) use ($itemPai) {
-                    $q->where('recorrencia_pai_id', $itemPai->id)
-                        ->orWhere('id', $itemPai->id);
-                })
-                ->where('mes_referencia', $mes)
-                ->where('ano_referencia', $ano)
-                ->whereNull('cancelado_em')
-                ->exists();
-
-            if ($jaExiste) {
-                continue;
-            }
-
-            // Verificar se a data alvo está dentro do período da recorrência
-            if ($itemPai->recorrencia_fim !== null) {
-                $dataAlvo = \Carbon\Carbon::createFromDate($ano, $mes, 1);
-                if ($dataAlvo->gt($itemPai->recorrencia_fim)) {
-                    continue;
-                }
-            }
-
-            // Criar o novo item
-            $this->criarItemRecorrente($itemPai, $cartao, $mes, $ano);
-            $algumCriado = true;
+        if (!$ultimoItem) {
+            return 'ignorado';
         }
 
-        return $algumCriado ? 'criado' : 'ignorado';
+        $baseDataCompra = \Carbon\Carbon::parse($ultimoItem->data_compra ?? $itemPai->data_compra)->startOfDay();
+        $proximaDataCompra = $baseDataCompra->copy();
+        $this->avancarPorFrequencia($proximaDataCompra, $freq);
+
+        // Ainda não chegou o ciclo da próxima recorrência.
+        if ($agora->lt($proximaDataCompra)) {
+            return 'ignorado';
+        }
+
+        // Verificar se a recorrência já terminou.
+        if ($itemPai->recorrencia_fim !== null && $proximaDataCompra->gt($itemPai->recorrencia_fim->copy()->startOfDay())) {
+            return 'expirado';
+        }
+
+        $mes = (int)$proximaDataCompra->format('n');
+        $ano = (int)$proximaDataCompra->format('Y');
+
+        // Verificar se já existe item filho (ou o próprio pai) para este mês/ano
+        $jaExiste = FaturaCartaoItem::where('cartao_credito_id', $itemPai->cartao_credito_id)
+            ->where('user_id', $itemPai->user_id)
+            ->where(function ($q) use ($itemPai) {
+                $q->where('recorrencia_pai_id', $itemPai->id)
+                    ->orWhere('id', $itemPai->id);
+            })
+            ->where('mes_referencia', $mes)
+            ->where('ano_referencia', $ano)
+            ->whereNull('cancelado_em')
+            ->exists();
+
+        if ($jaExiste) {
+            return 'ignorado';
+        }
+
+        // Criar apenas o próximo item devido.
+        try {
+            $this->criarItemRecorrente($itemPai, $cartao, $mes, $ano, $proximaDataCompra);
+            return 'criado';
+        } catch (\Throwable $e) {
+            if (str_contains(strtolower($e->getMessage()), 'duplicate')) {
+                LogService::info('[RECORRENCIA_CARTAO] Duplicata evitada por unique key', [
+                    'item_pai_id' => $itemPai->id,
+                    'mes' => $mes,
+                    'ano' => $ano,
+                ]);
+                return 'ignorado';
+            }
+
+            throw $e;
+        }
     }
 
     /**
@@ -208,8 +234,13 @@ class RecorrenciaCartaoService
     /**
      * Criar item de fatura recorrente filho
      */
-    private function criarItemRecorrente(FaturaCartaoItem $itemPai, CartaoCredito $cartao, int $mes, int $ano): FaturaCartaoItem
-    {
+    private function criarItemRecorrente(
+        FaturaCartaoItem $itemPai,
+        CartaoCredito $cartao,
+        int $mes,
+        int $ano,
+        ?\Carbon\Carbon $dataCompra = null
+    ): FaturaCartaoItem {
         // Calcular data de vencimento para este mês
         $ultimoDiaMes = (int)date('t', mktime(0, 0, 0, $mes, 1, $ano));
         $diaVencimento = min($cartao->dia_vencimento, $ultimoDiaMes);
@@ -225,7 +256,7 @@ class RecorrenciaCartaoService
             'lancamento_id' => null,
             'descricao' => $itemPai->descricao,
             'valor' => $itemPai->valor,
-            'data_compra' => now()->format('Y-m-d'),
+            'data_compra' => ($dataCompra ?? now())->format('Y-m-d'),
             'data_vencimento' => $dataVencimento,
             'categoria_id' => $itemPai->categoria_id,
             'parcela_atual' => 1,
@@ -254,6 +285,7 @@ class RecorrenciaCartaoService
             'descricao' => $itemPai->descricao,
             'valor' => $itemPai->valor,
             'mes_ano' => "{$mes}/{$ano}",
+            'data_compra' => ($dataCompra ?? now())->format('Y-m-d'),
         ]);
 
         return $item;

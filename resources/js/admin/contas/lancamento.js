@@ -1299,7 +1299,7 @@ export const ContasLancamento = {
             await Swal.fire({
                 icon: 'success',
                 title: 'Sucesso!',
-                html: `<strong>${tipoTexto}</strong> criada com sucesso!`,
+                html: `<strong>${tipoTexto}</strong> criada com sucesso!<br><small>${result.message || ''}</small>`,
                 timer: 2000,
                 showConfirmButton: false,
                 toast: false,
