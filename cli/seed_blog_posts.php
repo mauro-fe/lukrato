@@ -3,8 +3,8 @@
 /**
  * Seed: Artigos do Blog (Aprenda)
  *
- * Insere 15 artigos educacionais sobre finanças pessoais.
- * 3 artigos por categoria (5 categorias × 3 = 15 posts).
+ * Insere artigos educacionais sobre finanças pessoais.
+ * 3 artigos por categoria.
  *
  * Uso: php cli/seed_blog_posts.php
  */
@@ -33,6 +33,22 @@ if (empty($categorias)) {
 }
 
 echo "  ✓ " . count($categorias) . " categorias encontradas\n\n";
+
+// Garantir categoria "Educação Financeira"
+if (!isset($categorias['educacao-financeira'])) {
+    $categoriaId = DB::table('blog_categorias')->insertGetId([
+        'nome' => 'Educação Financeira',
+        'slug' => 'educacao-financeira',
+        'descricao' => 'Conceitos, fundamentos e hábitos para desenvolver inteligência financeira.',
+        'ordem' => (DB::table('blog_categorias')->max('ordem') ?? 0) + 1,
+        'ativo' => 1,
+        'created_at' => $now ?? date('Y-m-d H:i:s'),
+        'updated_at' => $now ?? date('Y-m-d H:i:s'),
+    ]);
+
+    $categorias['educacao-financeira'] = $categoriaId;
+    echo "  ✓ Categoria 'Educação Financeira' criada\n\n";
+}
 
 // Verificar se já existem posts
 $existingCount = DB::table('blog_posts')->count();
@@ -1442,6 +1458,122 @@ $posts = [
 <p><strong>De forma alguma!</strong> A planilha é excelente para quem está começando, para quem gosta de ter controle total sobre a estrutura e para quem prefere personalizar tudo ao seu modo. O importante é se organizar — a ferramenta é secundária.</p>
 ',
     ],
+
+    // ──────────────────────────────────────────────────────────
+    // CATEGORIA 6: Educação Financeira
+    // ──────────────────────────────────────────────────────────
+
+    [
+        'blog_categoria_id' => $categorias['educacao-financeira'] ?? null,
+        'titulo' => 'Educação Financeira na Prática: 7 Hábitos Que Mudam Sua Vida',
+        'slug' => 'educacao-financeira-na-pratica-7-habitos',
+        'resumo' => 'Veja 7 hábitos simples de educação financeira para aplicar no dia a dia e construir uma relação saudável com o dinheiro.',
+        'meta_title' => 'Educação Financeira na Prática: 7 Hábitos Essenciais | Lukrato',
+        'meta_description' => 'Aprenda 7 hábitos de educação financeira para organizar sua vida financeira, reduzir desperdícios e conquistar tranquilidade.',
+        'tempo_leitura' => 7,
+        'conteudo' => '
+<p>Educação financeira não acontece em um único curso ou livro. Ela é construída em pequenas decisões repetidas ao longo do tempo. A boa notícia: você não precisa de fórmulas complicadas para começar.</p>
+
+<h2>1. Registrar todas as entradas e saídas</h2>
+<p>O que não é medido não é controlado. Anote salário, extras e cada gasto do mês. Esse hábito sozinho já aumenta muito sua clareza financeira.</p>
+
+<h2>2. Definir um teto por categoria</h2>
+<p>Coloque limites realistas para alimentação, transporte, lazer e compras. Sem limite, o gasto cresce sem você perceber.</p>
+
+<h2>3. Revisar o orçamento semanalmente</h2>
+<p>Uma revisão de 10 a 15 minutos por semana evita surpresas no fim do mês e permite corrigir a rota rapidamente.</p>
+
+<h2>4. Pagar-se primeiro</h2>
+<p>Assim que receber, separe uma parte para seus objetivos financeiros. Se deixar para o final do mês, normalmente não sobra.</p>
+
+<h2>5. Diferenciar desejo de necessidade</h2>
+<p>Antes de comprar, pergunte: "Eu preciso disso agora?". Esse filtro reduz compras impulsivas e melhora sua qualidade de consumo.</p>
+
+<h2>6. Ter uma reserva de emergência</h2>
+<p>Sem reserva, qualquer imprevisto vira dívida. Comece com um valor pequeno e mantenha constância todos os meses.</p>
+
+<h2>7. Aprender continuamente</h2>
+<p>Leia sobre finanças, acompanhe conteúdos confiáveis e atualize seus conhecimentos. Educação financeira é um processo contínuo.</p>
+
+<p>Com esses sete hábitos, você cria uma base sólida para crescer financeiramente com mais segurança e autonomia.</p>
+',
+    ],
+
+    [
+        'blog_categoria_id' => $categorias['educacao-financeira'] ?? null,
+        'titulo' => 'Erros de Educação Financeira Que Estão Te Impedindo de Prosperar',
+        'slug' => 'erros-de-educacao-financeira-que-te-impedem-de-prosperar',
+        'resumo' => 'Conheça os erros financeiros mais comuns e veja como corrigi-los para evoluir com consistência.',
+        'meta_title' => 'Erros de Educação Financeira Mais Comuns | Lukrato',
+        'meta_description' => 'Descubra os principais erros de educação financeira e aprenda estratégias para corrigir hábitos que atrasam sua vida financeira.',
+        'tempo_leitura' => 8,
+        'conteudo' => '
+<p>Muitas pessoas não têm problema de renda, mas de comportamento financeiro. Pequenos erros recorrentes comprometem grandes resultados no longo prazo.</p>
+
+<h2>1. Não ter orçamento mensal</h2>
+<p>Sem planejamento, o dinheiro "desaparece". Um orçamento simples já resolve grande parte do problema.</p>
+
+<h2>2. Ignorar gastos pequenos</h2>
+<p>Assinaturas, taxas e compras recorrentes parecem inofensivas, mas somadas podem consumir centenas de reais por mês.</p>
+
+<h2>3. Usar crédito como extensão da renda</h2>
+<p>Cartão de crédito não aumenta seu salário. Se você gasta acima da renda real, cria uma armadilha de juros.</p>
+
+<h2>4. Não acompanhar metas</h2>
+<p>Metas sem acompanhamento viram intenção. Defina objetivo, prazo e valor mensal para medir progresso.</p>
+
+<h2>5. Deixar para investir "quando sobrar"</h2>
+<p>Na prática, quase nunca sobra. O ideal é separar primeiro e viver com o restante.</p>
+
+<h2>6. Comparar seu padrão de vida com o dos outros</h2>
+<p>Decisões financeiras baseadas em comparação tendem a gerar compras desnecessárias e frustração.</p>
+
+<h2>7. Não revisar decisões financeiras</h2>
+<p>Planos mudam. Revisar contratos, assinaturas e orçamento periodicamente evita desperdício e melhora sua eficiência financeira.</p>
+
+<p>Corrigir esses erros é um passo importante para construir estabilidade e prosperidade ao longo do tempo.</p>
+',
+    ],
+
+    [
+        'blog_categoria_id' => $categorias['educacao-financeira'] ?? null,
+        'titulo' => 'Como Ensinar Educação Financeira Para Crianças e Adolescentes',
+        'slug' => 'como-ensinar-educacao-financeira-para-criancas-e-adolescentes',
+        'resumo' => 'Aprenda estratégias práticas para ensinar crianças e adolescentes a lidar com dinheiro desde cedo.',
+        'meta_title' => 'Educação Financeira Para Crianças e Adolescentes | Lukrato',
+        'meta_description' => 'Descubra como ensinar educação financeira para crianças e adolescentes com exemplos práticos, mesada consciente e metas simples.',
+        'tempo_leitura' => 7,
+        'conteudo' => '
+<p>Educação financeira começa em casa. Quanto antes crianças e adolescentes aprendem a lidar com dinheiro, maiores as chances de se tornarem adultos financeiramente conscientes.</p>
+
+<h2>Por que ensinar cedo?</h2>
+<p>Hábitos se formam na infância. Ensinar no início reduz impulsividade, melhora a noção de prioridade e desenvolve responsabilidade.</p>
+
+<h2>1. Fale sobre dinheiro com naturalidade</h2>
+<p>Dinheiro não deve ser tabu. Conversas simples sobre escolhas e prioridades já ajudam muito.</p>
+
+<h2>2. Use a mesada com propósito</h2>
+<p>Mesada não é apenas "dar dinheiro". É um laboratório para aprender planejamento, limites e consequências.</p>
+
+<h2>3. Crie o método dos 3 potes</h2>
+<ul>
+<li><strong>Gastar:</strong> para desejos de curto prazo</li>
+<li><strong>Guardar:</strong> para metas maiores</li>
+<li><strong>Doar:</strong> para estimular consciência social</li>
+</ul>
+
+<h2>4. Transforme metas em algo visual</h2>
+<p>Quadros, termômetros de progresso e listas ajudam os jovens a enxergar evolução e manter motivação.</p>
+
+<h2>5. Ensine a diferença entre preço e valor</h2>
+<p>Preço é quanto custa. Valor é o quanto aquilo realmente importa para você. Esse conceito evita consumo por impulso.</p>
+
+<h2>6. Dê exemplo</h2>
+<p>Crianças aprendem mais com o que observam do que com o que escutam. Demonstrar organização financeira em casa é essencial.</p>
+
+<p>Ao ensinar educação financeira desde cedo, você prepara seus filhos para fazer escolhas mais inteligentes e ter uma vida adulta com mais autonomia.</p>
+',
+    ],
 ];
 
 // ════════════════════════════════════════════════════════════════
@@ -1450,6 +1582,7 @@ $posts = [
 
 $inserted = 0;
 $skipped = 0;
+$totalPosts = count($posts);
 
 foreach ($posts as $i => $post) {
     // Verificar se categoria existe
@@ -1491,7 +1624,7 @@ foreach ($posts as $i => $post) {
 
     $inserted++;
     $num = $i + 1;
-    echo "  ✓ [{$num}/15] {$post['titulo']}\n";
+    echo "  ✓ [{$num}/{$totalPosts}] {$post['titulo']}\n";
 }
 
 echo "\n══════════════════════════════════════════\n";
