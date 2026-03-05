@@ -1,157 +1,273 @@
 <!-- Seção de Gamificação e Conquistas -->
-<section id="gamificacao" class="relative py-16 md:py-24 overflow-hidden bg-gray-50">
+<section id="gamificacao" class="relative py-14 md:py-20 overflow-hidden bg-white">
+    <!-- Background decorativo -->
+    <div class="absolute inset-0 pointer-events-none opacity-30">
+        <div
+            class="absolute top-20 right-20 w-96 h-96 bg-orange-200 rounded-full mix-blend-multiply filter blur-3xl animate-blob">
+        </div>
+        <div
+            class="absolute bottom-20 left-20 w-96 h-96 bg-orange-100 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000">
+        </div>
+        <div
+            class="absolute top-1/2 left-1/2 w-96 h-96 bg-gray-100 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000">
+        </div>
+    </div>
+
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
         <!-- Cabeçalho da Seção -->
-        <header class="lk-header-card max-w-3xl mx-auto text-center mb-14" data-aos="fade-up">
-            <div class="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 rounded-full mb-4">
-                <i data-lucide="gamepad-2" class="w-5 h-5 text-primary"></i>
-                <span class="text-sm font-semibold text-primary">Gamificação</span>
+        <div class="lk-header-card max-w-3xl mx-auto text-center mb-16" data-aos="fade-up">
+            <div
+                class="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full shadow-md mb-6 border border-orange-100">
+                <span class="text-2xl"><i data-lucide="gamepad-2" class="w-6 h-6 text-primary"></i></span>
+                <span class="text-sm font-semibold text-gray-700">Sistema de Gamificação</span>
             </div>
 
-            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-                Organize suas finanças de um jeito
-                <span class="bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
-                    divertido
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+                Transforme organização financeira em
+                <span class="bg-gradient-to-r from-primary via-orange-500 to-orange-600 bg-clip-text text-transparent">
+                    uma jornada divertida
                 </span>
             </h2>
             <p class="text-lg sm:text-xl text-gray-600 leading-relaxed">
-                Ganhe pontos, suba de nível e desbloqueie conquistas enquanto cuida do seu dinheiro.
+                Ganhe pontos, desbloqueie conquistas e suba de nível enquanto organiza suas finanças.
+                Transformamos cada ação em progresso visível!
             </p>
-        </header>
+        </div>
 
-        <!-- Grid: Progresso + Conquistas -->
-        <div class="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto mb-14">
+        <!-- Grid de Features de Gamificação -->
+        <div class="grid lg:grid-cols-2 gap-12 items-center mb-20">
 
-            <!-- Lado Esquerdo: Nível e stats -->
-            <div class="space-y-6" data-aos="fade-up" data-aos-delay="0">
-                <!-- Card de nível -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <div class="flex items-center gap-4 mb-5">
-                        <div class="w-14 h-14 bg-gradient-to-br from-primary to-orange-600 rounded-xl flex items-center justify-center text-white text-xl font-bold">
+            <!-- Lado Esquerdo: Níveis e Progresso -->
+            <div class="space-y-8" data-aos="fade-right">
+                <div class="bg-white rounded-3xl shadow-2xl p-8 border border-gray-100">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div
+                            class="w-16 h-16 bg-gradient-to-br from-primary to-orange-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                             5
                         </div>
                         <div>
-                            <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Nível atual</p>
-                            <h3 class="text-lg font-bold text-gray-900">Organizador Profissional</h3>
+                            <p class="text-sm text-gray-500 font-medium">Seu Nível Atual</p>
+                            <h3 class="text-2xl font-bold text-gray-900">Organizador Profissional</h3>
                         </div>
                     </div>
-                    <div class="mb-3">
-                        <div class="flex justify-between text-sm text-gray-600 mb-1.5">
-                            <span class="font-medium">850 / 1.000 pontos</span>
-                            <span class="text-primary font-semibold">Nível 6</span>
+
+                    <!-- Barra de Progresso -->
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm text-gray-600 mb-2">
+                            <span class="font-semibold">850 / 1.000 pontos</span>
+                            <span class="text-primary font-bold">Próximo: Nível 6</span>
                         </div>
-                        <div class="h-3 bg-gray-100 rounded-full overflow-hidden">
-                            <div class="h-full bg-gradient-to-r from-primary to-orange-600 rounded-full" style="width: 85%"></div>
+                        <div class="h-4 bg-gray-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-primary via-orange-500 to-orange-600 rounded-full transition-all duration-500"
+                                style="width: 85%"></div>
                         </div>
                     </div>
-                    <p class="text-gray-500 text-sm">Faltam <strong class="text-primary">150 pontos</strong> para o próximo nível</p>
+
+                    <p class="text-gray-600 text-sm">
+                        Faltam apenas <strong class="text-primary">150 pontos</strong> para o próximo nível!
+                    </p>
                 </div>
 
-                <!-- Stats Grid -->
-                <div class="grid grid-cols-3 gap-4">
-                    <div class="bg-white rounded-xl border border-gray-100 p-4 text-center">
-                        <div class="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center mx-auto mb-2">
-                            <i data-lucide="star" class="w-5 h-5 text-yellow-500"></i>
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div
+                        class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow border border-gray-100">
+                        <div
+                            class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center mb-3">
+                            <i data-lucide="star" class="text-white text-xl"></i>
                         </div>
-                        <p class="text-xl font-bold text-gray-900">1.450</p>
-                        <p class="text-xs text-gray-500">Pontos</p>
+                        <p class="text-3xl font-bold text-gray-900 mb-1">1.450</p>
+                        <p class="text-sm text-gray-500">Pontos Totais</p>
                     </div>
-                    <div class="bg-white rounded-xl border border-gray-100 p-4 text-center">
-                        <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center mx-auto mb-2">
-                            <i data-lucide="trophy" class="w-5 h-5 text-green-500"></i>
+
+                    <div
+                        class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow border border-gray-100">
+                        <div
+                            class="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center mb-3">
+                            <i data-lucide="trophy" class="text-white text-xl"></i>
                         </div>
-                        <p class="text-xl font-bold text-gray-900">12</p>
-                        <p class="text-xs text-gray-500">Conquistas</p>
+                        <p class="text-3xl font-bold text-gray-900 mb-1">12</p>
+                        <p class="text-sm text-gray-500">Conquistas</p>
                     </div>
-                    <div class="bg-white rounded-xl border border-gray-100 p-4 text-center">
-                        <div class="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center mx-auto mb-2">
-                            <i data-lucide="flame" class="w-5 h-5 text-primary"></i>
+
+                    <div
+                        class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow border border-gray-100">
+                        <div
+                            class="w-12 h-12 bg-gradient-to-br from-primary to-orange-600 rounded-xl flex items-center justify-center mb-3">
+                            <i data-lucide="flame" class="text-white text-xl"></i>
                         </div>
-                        <p class="text-xl font-bold text-gray-900">7</p>
-                        <p class="text-xs text-gray-500">Streak</p>
+                        <p class="text-3xl font-bold text-gray-900 mb-1">7</p>
+                        <p class="text-sm text-gray-500">Dias de Streak</p>
+                    </div>
+
+                    <div
+                        class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow border border-gray-100">
+                        <div
+                            class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center mb-3">
+                            <i data-lucide="line-chart" class="text-white text-xl"></i>
+                        </div>
+                        <p class="text-3xl font-bold text-gray-900 mb-1">15</p>
+                        <p class="text-sm text-gray-500">Níveis Máximos</p>
                     </div>
                 </div>
             </div>
 
             <!-- Lado Direito: Conquistas -->
-            <div class="space-y-4" data-aos="fade-up" data-aos-delay="150">
-                <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2 mb-2">
-                    <i data-lucide="trophy" class="w-5 h-5 text-primary"></i>
-                    Conquistas
-                </h3>
+            <div class="space-y-6" data-aos="fade-left">
+                <h3 class="text-2xl font-bold text-gray-900 mb-6"><i data-lucide="trophy"
+                        class="w-6 h-6 inline-block align-middle text-primary"></i> Conquistas Desbloqueadas</h3>
 
                 <!-- Conquista 1 -->
-                <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-4">
-                    <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-primary to-orange-600 rounded-xl flex items-center justify-center">
-                        <i data-lucide="target" class="w-6 h-6 text-white"></i>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2">
-                            <h4 class="font-semibold text-gray-900 text-sm">Primeiro Passo</h4>
-                            <span class="px-2 py-0.5 bg-green-50 text-green-700 text-xs font-medium rounded-full">Desbloqueada</span>
+                <div
+                    class="group bg-white rounded-2xl shadow-lg p-6 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer border border-gray-100">
+                    <div class="flex items-start gap-4">
+                        <div
+                            class="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-primary to-orange-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform">
+                            <i data-lucide="target" class="w-8 h-8 text-white"></i>
                         </div>
-                        <p class="text-gray-500 text-xs mt-0.5">Criou sua primeira conta · <strong class="text-primary">+50 pts</strong></p>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <h4 class="text-lg font-bold text-gray-900">Primeiro Passo</h4>
+                                <span
+                                    class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Desbloqueada</span>
+                            </div>
+                            <p class="text-gray-600 text-sm mb-2">Criou sua primeira conta no sistema</p>
+                            <div class="flex items-center gap-2 text-primary">
+                                <i data-lucide="star" class="text-sm"></i>
+                                <span class="text-sm font-bold">+50 pontos</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Conquista 2 -->
-                <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-4">
-                    <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center">
-                        <i data-lucide="coins" class="w-6 h-6 text-white"></i>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2">
-                            <h4 class="font-semibold text-gray-900 text-sm">Primeiros Lançamentos</h4>
-                            <span class="px-2 py-0.5 bg-green-50 text-green-700 text-xs font-medium rounded-full">Desbloqueada</span>
+                <div
+                    class="group bg-white rounded-2xl shadow-lg p-6 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer border border-gray-100">
+                    <div class="flex items-start gap-4">
+                        <div
+                            class="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform">
+                            <i data-lucide="coins" class="w-8 h-8 text-white"></i>
                         </div>
-                        <p class="text-gray-500 text-xs mt-0.5">Criou seu primeiro lançamento · <strong class="text-primary">+50 pts</strong></p>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <h4 class="text-lg font-bold text-gray-900">Primeiros Passos nas Finanças</h4>
+                                <span
+                                    class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Desbloqueada</span>
+                            </div>
+                            <p class="text-gray-600 text-sm mb-2">Criou seu primeiro lançamento</p>
+                            <div class="flex items-center gap-2 text-primary">
+                                <i data-lucide="star" class="text-sm"></i>
+                                <span class="text-sm font-bold">+50 pontos</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Conquista 3 -->
-                <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-4">
-                    <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center">
-                        <i data-lucide="flame" class="w-6 h-6 text-white"></i>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2">
-                            <h4 class="font-semibold text-gray-900 text-sm">Consistência é Tudo</h4>
-                            <span class="px-2 py-0.5 bg-green-50 text-green-700 text-xs font-medium rounded-full">Desbloqueada</span>
+                <div
+                    class="group bg-white rounded-2xl shadow-lg p-6 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer border border-gray-100">
+                    <div class="flex items-start gap-4">
+                        <div
+                            class="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform">
+                            <i data-lucide="flame" class="w-8 h-8 text-white"></i>
                         </div>
-                        <p class="text-gray-500 text-xs mt-0.5">Streak de 7 dias seguidos · <strong class="text-primary">+100 pts</strong></p>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <h4 class="text-lg font-bold text-gray-900">Consistência é Tudo</h4>
+                                <span
+                                    class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Desbloqueada</span>
+                            </div>
+                            <p class="text-gray-600 text-sm mb-2">Manteve um streak de 7 dias seguidos</p>
+                            <div class="flex items-center gap-2 text-primary">
+                                <i data-lucide="star" class="text-sm"></i>
+                                <span class="text-sm font-bold">+100 pontos</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Conquista Bloqueada -->
-                <div class="bg-gray-50 rounded-xl border border-dashed border-gray-200 p-4 flex items-center gap-4 opacity-50">
-                    <div class="flex-shrink-0 w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center">
-                        <i data-lucide="lock" class="w-6 h-6 text-gray-400"></i>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2">
-                            <h4 class="font-semibold text-gray-500 text-sm">Mestre das Finanças</h4>
-                            <span class="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs font-medium rounded-full">Bloqueada</span>
+                <div
+                    class="group bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-6 hover:border-orange-200 transition-all duration-300 opacity-60">
+                    <div class="flex items-start gap-4">
+                        <div
+                            class="flex-shrink-0 w-16 h-16 bg-gray-300 rounded-2xl flex items-center justify-center text-3xl">
+                            <i data-lucide="lock" class="w-8 h-8 text-gray-500"></i>
                         </div>
-                        <p class="text-gray-400 text-xs mt-0.5">Complete 30 lançamentos · +200 pts</p>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <h4 class="text-lg font-bold text-gray-500">Mestre das Finanças</h4>
+                                <span
+                                    class="px-2 py-1 bg-gray-200 text-gray-600 text-xs font-bold rounded-full">Bloqueada</span>
+                            </div>
+                            <p class="text-gray-500 text-sm mb-2">Complete 30 lançamentos</p>
+                            <div class="flex items-center gap-2 text-gray-400">
+                                <i data-lucide="star" class="text-sm"></i>
+                                <span class="text-sm font-bold">+200 pontos</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
         </div>
 
-        <!-- Bottom CTA strip -->
-        <div class="max-w-3xl mx-auto" data-aos="fade-up">
-            <div class="bg-gradient-to-r from-primary to-orange-600 rounded-2xl p-6 sm:p-8 text-white flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div>
-                    <h3 class="text-xl font-bold mb-1">Comece sua jornada financeira</h3>
-                    <p class="text-white/80 text-sm">Ganhe pontos e conquistas enquanto organiza suas finanças.</p>
+        <!-- Seção de Benefícios -->
+        <div class="max-w-5xl mx-auto" data-aos="fade-up">
+            <div
+                class="bg-gradient-to-r from-primary via-orange-500 to-orange-600 rounded-3xl shadow-2xl p-8 sm:p-12 text-white">
+                <div class="text-center mb-8">
+                    <h3 class="text-3xl sm:text-4xl font-bold mb-4">
+                        Como isso ajuda você a crescer
+                    </h3>
+                    <p class="text-lg text-white/90">
+                        Transformamos tarefas financeiras em uma experiência motivadora e recompensadora
+                    </p>
                 </div>
-                <a href="<?= BASE_URL ?>login"
-                    class="inline-flex items-center justify-center px-6 py-3 bg-white text-primary font-bold rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex-shrink-0">
-                    Começar grátis
-                    <i data-lucide="arrow-right" class="ml-2 w-5 h-5"></i>
-                </a>
+
+                <div class="grid sm:grid-cols-3 gap-6">
+                    <div class="text-center">
+                        <div
+                            class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <i data-lucide="rocket" class="text-4xl"></i>
+                        </div>
+                        <h4 class="text-xl font-bold mb-2">Motivação Extra</h4>
+                        <p class="text-white/80 text-sm">
+                            Cada ação te aproxima de novas conquistas e recompensas
+                        </p>
+                    </div>
+
+                    <div class="text-center">
+                        <div
+                            class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <i data-lucide="line-chart" class="text-4xl"></i>
+                        </div>
+                        <h4 class="text-xl font-bold mb-2">Progresso Visível</h4>
+                        <p class="text-white/80 text-sm">
+                            Veja sua evolução através de níveis, pontos e conquistas
+                        </p>
+                    </div>
+
+                    <div class="text-center">
+                        <div
+                            class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <i data-lucide="trophy" class="text-4xl"></i>
+                        </div>
+                        <h4 class="text-xl font-bold mb-2">Hábitos Positivos</h4>
+                        <p class="text-white/80 text-sm">
+                            Crie consistência e mantenha sua organização financeira em dia
+                        </p>
+                    </div>
+                </div>
+
+                <div class="text-center mt-10">
+                    <a href="<?= BASE_URL ?>login"
+                        class="inline-flex items-center justify-center px-8 py-4 text-lg font-bold bg-white text-primary rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
+                        Começar minha jornada
+                        <i data-lucide="arrow-right" class="ml-3"></i>
+                    </a>
+                </div>
             </div>
         </div>
 
