@@ -35,6 +35,27 @@ let editingPostId = null;
 let filterDebounce = null;
 let tinyMCEInitialized = false;
 
+function showConteudoFallback(message) {
+    const textarea = document.getElementById('conteudo');
+    if (!textarea) return;
+
+    // Remove editor wrappers in inconsistent states and force native textarea fallback.
+    const wrappers = document.querySelectorAll('.tox-tinymce');
+    wrappers.forEach((el) => el.remove());
+
+    textarea.style.display = 'block';
+    textarea.style.visibility = 'visible';
+    textarea.style.opacity = '1';
+    textarea.style.minHeight = '260px';
+    if (!textarea.getAttribute('rows')) {
+        textarea.setAttribute('rows', '12');
+    }
+
+    if (message && window.LKFeedback?.error) {
+        LKFeedback.error(message);
+    }
+}
+
 // ─── Helpers ────────────────────────────────────────────────
 function escapeHtml(str) {
     if (!str) return '';
@@ -439,11 +460,14 @@ function closeModal() {
 
 // ─── TinyMCE ────────────────────────────────────────────────
 function initTinyMCE(initialContent = '') {
+    const textarea = document.getElementById('conteudo');
+    if (!textarea) return;
+
+    textarea.value = initialContent || '';
+
     if (!window.tinymce) {
         console.error('TinyMCE não carregado (window.tinymce ausente).');
-        if (window.LKFeedback?.error) {
-            LKFeedback.error('Editor de texto indisponível no momento. Recarregue a página.');
-        }
+        showConteudoFallback('Editor de texto indisponível no momento. Recarregue a página.');
         return;
     }
 
@@ -455,42 +479,55 @@ function initTinyMCE(initialContent = '') {
 
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
-    tinymce.init({
-        selector: '#conteudo',
-        height: 400,
-        language: 'pt_BR',
-        skin: isDark ? 'oxide-dark' : 'oxide',
-        content_css: isDark ? 'dark' : 'default',
-        plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount',
-        toolbar: 'undo redo | styles | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code fullscreen | removeformat help',
-        menubar: 'file edit view insert format tools table help',
-        branding: false,
-        promotion: false,
-        statusbar: true,
-        resize: true,
-        content_style: `
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                font-size: 16px;
-                line-height: 1.7;
-                color: ${isDark ? '#e0e0e0' : '#333'};
-                max-width: 100%;
-                padding: 16px;
+    try {
+        tinymce.init({
+            selector: '#conteudo',
+            height: 400,
+            skin: isDark ? 'oxide-dark' : 'oxide',
+            content_css: isDark ? 'dark' : 'default',
+            plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount',
+            toolbar: 'undo redo | styles | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code fullscreen | removeformat help',
+            menubar: 'file edit view insert format tools table help',
+            branding: false,
+            promotion: false,
+            statusbar: true,
+            resize: true,
+            content_style: `
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    font-size: 16px;
+                    line-height: 1.7;
+                    color: ${isDark ? '#e0e0e0' : '#333'};
+                    max-width: 100%;
+                    padding: 16px;
+                }
+                h1, h2, h3, h4 { margin-top: 1.5em; margin-bottom: 0.5em; }
+                p { margin-bottom: 1em; }
+                img { max-width: 100%; height: auto; border-radius: 8px; }
+                blockquote { border-left: 4px solid #e67e22; padding-left: 16px; margin: 1em 0; color: #666; }
+                code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+                pre { background: #f4f4f4; padding: 16px; border-radius: 8px; overflow-x: auto; }
+            `,
+            setup: (editor) => {
+                editor.on('init', () => {
+                    tinyMCEInitialized = true;
+                    editor.setContent(initialContent || '');
+                });
+            },
+        });
+
+        setTimeout(() => {
+            const editor = tinymce.get('conteudo');
+            if (!editor) {
+                tinyMCEInitialized = false;
+                showConteudoFallback('Editor avançado indisponível. Use o campo de texto simples.');
             }
-            h1, h2, h3, h4 { margin-top: 1.5em; margin-bottom: 0.5em; }
-            p { margin-bottom: 1em; }
-            img { max-width: 100%; height: auto; border-radius: 8px; }
-            blockquote { border-left: 4px solid #e67e22; padding-left: 16px; margin: 1em 0; color: #666; }
-            code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
-            pre { background: #f4f4f4; padding: 16px; border-radius: 8px; overflow-x: auto; }
-        `,
-        setup: (editor) => {
-            editor.on('init', () => {
-                tinyMCEInitialized = true;
-                editor.setContent(initialContent || '');
-            });
-        },
-    });
+        }, 1200);
+    } catch (error) {
+        console.error('Falha ao inicializar TinyMCE:', error);
+        tinyMCEInitialized = false;
+        showConteudoFallback('Falha ao carregar editor avançado. Use o campo de texto simples.');
+    }
 }
 
 function destroyTinyMCE() {
@@ -558,7 +595,9 @@ function removeImage() {
 // ─── Save Post ──────────────────────────────────────────────
 async function savePost() {
     const editor = window.tinymce ? tinymce.get('conteudo') : null;
-    const conteudo = editor ? editor.getContent() : '';
+    const conteudo = editor
+        ? editor.getContent()
+        : (document.getElementById('conteudo')?.value || '');
 
     const payload = {
         titulo: document.getElementById('titulo').value.trim(),

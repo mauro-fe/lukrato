@@ -612,6 +612,11 @@
     transition: var(--transition-normal);
 }
 
+/* Keep native content field usable if TinyMCE fails to initialize. */
+#conteudo {
+    min-height: 260px;
+}
+
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
