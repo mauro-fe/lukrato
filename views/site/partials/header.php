@@ -1,4 +1,5 @@
 <?php
+$headerBlogCategorias = $headerBlogCategorias ?? [];
 $pageTitle = $pageTitle ?? 'Lukrato – Controle Financeiro Pessoal Simples e Inteligente | Grátis';
 
 $pageDescription = $pageDescription ??
@@ -41,12 +42,12 @@ $isLandingPage = $isLandingPage ?? false;
 
 <head>
     <script>
-        (function() {
-            var t = localStorage.getItem('lukrato-theme');
-            if (t !== 'light' && t !== 'dark') t = 'light';
-            document.documentElement.setAttribute('data-theme', t);
-            if (!localStorage.getItem('lukrato-theme')) localStorage.setItem('lukrato-theme', t);
-        })();
+    (function() {
+        var t = localStorage.getItem('lukrato-theme');
+        if (t !== 'light' && t !== 'dark') t = 'light';
+        document.documentElement.setAttribute('data-theme', t);
+        if (!localStorage.getItem('lukrato-theme')) localStorage.setItem('lukrato-theme', t);
+    })();
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -96,13 +97,13 @@ $isLandingPage = $isLandingPage ?? false;
     <meta property="og:site_name" content="Lukrato">
     <meta property="og:locale" content="pt_BR">
     <?php if ($articlePublishedTime): ?>
-        <meta property="article:published_time" content="<?= htmlspecialchars($articlePublishedTime) ?>">
+    <meta property="article:published_time" content="<?= htmlspecialchars($articlePublishedTime) ?>">
     <?php endif; ?>
     <?php if ($articleModifiedTime): ?>
-        <meta property="article:modified_time" content="<?= htmlspecialchars($articleModifiedTime) ?>">
+    <meta property="article:modified_time" content="<?= htmlspecialchars($articleModifiedTime) ?>">
     <?php endif; ?>
     <?php if ($articleSection): ?>
-        <meta property="article:section" content="<?= htmlspecialchars($articleSection) ?>">
+    <meta property="article:section" content="<?= htmlspecialchars($articleSection) ?>">
     <?php endif; ?>
 
     <!-- Twitter -->
@@ -115,10 +116,10 @@ $isLandingPage = $isLandingPage ?? false;
 
     <!-- Pagination -->
     <?php if ($paginationPrev): ?>
-        <link rel="prev" href="<?= htmlspecialchars($paginationPrev) ?>">
+    <link rel="prev" href="<?= htmlspecialchars($paginationPrev) ?>">
     <?php endif; ?>
     <?php if ($paginationNext): ?>
-        <link rel="next" href="<?= htmlspecialchars($paginationNext) ?>">
+    <link rel="next" href="<?= htmlspecialchars($paginationNext) ?>">
     <?php endif; ?>
 
     <!-- Favicon -->
@@ -154,7 +155,7 @@ $isLandingPage = $isLandingPage ?? false;
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/site/modal-override.css">
 
     <?php foreach ($extraCss as $css): ?>
-        <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/site/<?= htmlspecialchars($css) ?>.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/site/<?= htmlspecialchars($css) ?>.css">
     <?php endforeach; ?>
 
     <!-- Lucide Icons + FA Brands (para ícones de marca) -->
@@ -164,177 +165,177 @@ $isLandingPage = $isLandingPage ?? false;
     <script src="<?= BASE_URL ?>assets/js/lucide.min.js"></script>
 
     <?php if ($isLandingPage): ?>
-        <!-- Schema.org Markup (JSON-LD) - SoftwareApplication (landing only) -->
-        <script type="application/ld+json">
-            {
-                "@context": "https://schema.org",
-                "@type": "SoftwareApplication",
-                "name": "Lukrato",
-                "applicationCategory": "FinanceApplication",
-                "applicationSubCategory": "PersonalFinance",
-                "operatingSystem": "Web-based",
-                "offers": {
-                    "@type": "Offer",
-                    "price": "0",
-                    "priceCurrency": "BRL",
-                    "availability": "https://schema.org/InStock",
-                    "priceValidUntil": "2027-12-31"
-                },
-                "description": "<?= htmlspecialchars($pageDescription) ?>",
-                "url": "<?= htmlspecialchars(BASE_URL) ?>",
-                "image": "<?= htmlspecialchars($pageImage) ?>",
-                "screenshot": "<?= BASE_URL ?>assets/img/mockups/dashboard.png",
-                "softwareVersion": "2.0",
-                "datePublished": "2024-01-01",
-                "dateModified": "2026-03-04",
-                "inLanguage": "pt-BR",
-                "provider": {
-                    "@type": "Organization",
-                    "name": "Lukrato",
-                    "url": "<?= htmlspecialchars(BASE_URL) ?>",
-                    "logo": {
-                        "@type": "ImageObject",
-                        "url": "<?= BASE_URL ?>assets/img/logo.png",
-                        "width": 180,
-                        "height": 64
-                    }
-                },
-                "featureList": [
-                    "Controle de gastos mensais",
-                    "Planejamento de orçamento pessoal",
-                    "Acompanhamento de despesas e receitas",
-                    "Metas financeiras personalizadas",
-                    "Relatórios e gráficos detalhados",
-                    "Lembretes de contas a pagar",
-                    "Gestão de cartões de crédito",
-                    "Categorização automática de transações",
-                    "Dashboard intuitivo",
-                    "Exportação de dados"
-                ]
+    <!-- Schema.org Markup (JSON-LD) - SoftwareApplication (landing only) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Lukrato",
+        "applicationCategory": "FinanceApplication",
+        "applicationSubCategory": "PersonalFinance",
+        "operatingSystem": "Web-based",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "BRL",
+            "availability": "https://schema.org/InStock",
+            "priceValidUntil": "2027-12-31"
+        },
+        "description": "<?= htmlspecialchars($pageDescription) ?>",
+        "url": "<?= htmlspecialchars(BASE_URL) ?>",
+        "image": "<?= htmlspecialchars($pageImage) ?>",
+        "screenshot": "<?= BASE_URL ?>assets/img/mockups/dashboard.png",
+        "softwareVersion": "2.0",
+        "datePublished": "2024-01-01",
+        "dateModified": "2026-03-04",
+        "inLanguage": "pt-BR",
+        "provider": {
+            "@type": "Organization",
+            "name": "Lukrato",
+            "url": "<?= htmlspecialchars(BASE_URL) ?>",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "<?= BASE_URL ?>assets/img/logo.png",
+                "width": 180,
+                "height": 64
             }
-        </script>
+        },
+        "featureList": [
+            "Controle de gastos mensais",
+            "Planejamento de orçamento pessoal",
+            "Acompanhamento de despesas e receitas",
+            "Metas financeiras personalizadas",
+            "Relatórios e gráficos detalhados",
+            "Lembretes de contas a pagar",
+            "Gestão de cartões de crédito",
+            "Categorização automática de transações",
+            "Dashboard intuitivo",
+            "Exportação de dados"
+        ]
+    }
+    </script>
 
-        <!-- Schema.org Markup (JSON-LD) - Organization -->
-        <script type="application/ld+json">
+    <!-- Schema.org Markup (JSON-LD) - Organization -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Lukrato",
+        "alternateName": "Lukrato - Controle Financeiro",
+        "url": "<?= htmlspecialchars(BASE_URL) ?>",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "<?= BASE_URL ?>assets/img/logo.png",
+            "width": 180,
+            "height": 64
+        },
+        "description": "Controle financeiro pessoal simples e gratuito para organizar suas finanças",
+        "foundingDate": "2024",
+        "sameAs": [
+            "https://www.instagram.com/lukrato.oficial/"
+        ],
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+55-44-99950-6302",
+            "contactType": "Customer Service",
+            "availableLanguage": ["Portuguese"],
+            "areaServed": "BR",
+            "email": "lukratosistema@gmail.com"
+        },
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Campina da Lagoa",
+            "addressRegion": "PR",
+            "postalCode": "87345-000",
+            "addressCountry": "BR"
+        }
+    }
+    </script>
+
+    <!-- Schema.org Markup (JSON-LD) - WebSite -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Lukrato",
+        "alternateName": "Lukrato Controle Financeiro",
+        "url": "<?= htmlspecialchars(BASE_URL) ?>",
+        "description": "Controle financeiro pessoal simples e gratuito para organizar suas finanças",
+        "inLanguage": "pt-BR"
+    }
+    </script>
+
+    <!-- Schema.org Markup (JSON-LD) - FAQPage (landing only) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [{
+                "@type": "Question",
+                "name": "O Lukrato é gratuito?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Sim! O Lukrato oferece um plano gratuito com funcionalidades essenciais para controle financeiro pessoal. Você pode começar a usar sem cartão de crédito e evoluir para o plano Pro quando quiser mais recursos."
+                }
+            },
             {
-                "@context": "https://schema.org",
-                "@type": "Organization",
-                "name": "Lukrato",
-                "alternateName": "Lukrato - Controle Financeiro",
-                "url": "<?= htmlspecialchars(BASE_URL) ?>",
-                "logo": {
-                    "@type": "ImageObject",
-                    "url": "<?= BASE_URL ?>assets/img/logo.png",
-                    "width": 180,
-                    "height": 64
-                },
-                "description": "Controle financeiro pessoal simples e gratuito para organizar suas finanças",
-                "foundingDate": "2024",
-                "sameAs": [
-                    "https://www.instagram.com/lukrato.oficial/"
-                ],
-                "contactPoint": {
-                    "@type": "ContactPoint",
-                    "telephone": "+55-44-99950-6302",
-                    "contactType": "Customer Service",
-                    "availableLanguage": ["Portuguese"],
-                    "areaServed": "BR",
-                    "email": "lukratosistema@gmail.com"
-                },
-                "address": {
-                    "@type": "PostalAddress",
-                    "addressLocality": "Campina da Lagoa",
-                    "addressRegion": "PR",
-                    "postalCode": "87345-000",
-                    "addressCountry": "BR"
+                "@type": "Question",
+                "name": "Como o Lukrato me ajuda a organizar minhas finanças?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "O Lukrato permite registrar suas receitas e despesas, acompanhar seus gastos por categoria, gerenciar cartões de crédito, criar agendamentos de contas e visualizar relatórios detalhados do seu dinheiro."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Meus dados ficam seguros no Lukrato?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Sim, seus dados são protegidos com criptografia e seguimos todas as normas da LGPD (Lei Geral de Proteção de Dados). Seus dados financeiros são privados e nunca compartilhados com terceiros."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Posso cancelar minha assinatura a qualquer momento?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Sim! Não há fidelidade. Você pode cancelar sua assinatura Pro a qualquer momento diretamente pelo painel, sem burocracia."
                 }
             }
-        </script>
-
-        <!-- Schema.org Markup (JSON-LD) - WebSite -->
-        <script type="application/ld+json">
-            {
-                "@context": "https://schema.org",
-                "@type": "WebSite",
-                "name": "Lukrato",
-                "alternateName": "Lukrato Controle Financeiro",
-                "url": "<?= htmlspecialchars(BASE_URL) ?>",
-                "description": "Controle financeiro pessoal simples e gratuito para organizar suas finanças",
-                "inLanguage": "pt-BR"
-            }
-        </script>
-
-        <!-- Schema.org Markup (JSON-LD) - FAQPage (landing only) -->
-        <script type="application/ld+json">
-            {
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                "mainEntity": [{
-                        "@type": "Question",
-                        "name": "O Lukrato é gratuito?",
-                        "acceptedAnswer": {
-                            "@type": "Answer",
-                            "text": "Sim! O Lukrato oferece um plano gratuito com funcionalidades essenciais para controle financeiro pessoal. Você pode começar a usar sem cartão de crédito e evoluir para o plano Pro quando quiser mais recursos."
-                        }
-                    },
-                    {
-                        "@type": "Question",
-                        "name": "Como o Lukrato me ajuda a organizar minhas finanças?",
-                        "acceptedAnswer": {
-                            "@type": "Answer",
-                            "text": "O Lukrato permite registrar suas receitas e despesas, acompanhar seus gastos por categoria, gerenciar cartões de crédito, criar agendamentos de contas e visualizar relatórios detalhados do seu dinheiro."
-                        }
-                    },
-                    {
-                        "@type": "Question",
-                        "name": "Meus dados ficam seguros no Lukrato?",
-                        "acceptedAnswer": {
-                            "@type": "Answer",
-                            "text": "Sim, seus dados são protegidos com criptografia e seguimos todas as normas da LGPD (Lei Geral de Proteção de Dados). Seus dados financeiros são privados e nunca compartilhados com terceiros."
-                        }
-                    },
-                    {
-                        "@type": "Question",
-                        "name": "Posso cancelar minha assinatura a qualquer momento?",
-                        "acceptedAnswer": {
-                            "@type": "Answer",
-                            "text": "Sim! Não há fidelidade. Você pode cancelar sua assinatura Pro a qualquer momento diretamente pelo painel, sem burocracia."
-                        }
-                    }
-                ]
-            }
-        </script>
+        ]
+    }
+    </script>
     <?php endif; ?>
 
     <!-- Schema.org Markup (JSON-LD) - BreadcrumbList -->
     <?php if (!empty($breadcrumbItems)): ?>
-        <script type="application/ld+json">
-            {
-                "@context": "https://schema.org",
-                "@type": "BreadcrumbList",
-                "itemListElement": [
-                    <?php foreach ($breadcrumbItems as $index => $item): ?> {
-                            "@type": "ListItem",
-                            "position": <?= $index + 1 ?>,
-                            "name": "<?= htmlspecialchars($item['label'] ?? $item['name'] ?? '') ?>",
-                            "item": "<?= htmlspecialchars($item['url'] ?? '') ?>"
-                        }
-                        <?= ($index < count($breadcrumbItems) - 1) ? ',' : '' ?>
-                    <?php endforeach; ?>
-                ]
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            <?php foreach ($breadcrumbItems as $index => $item): ?> {
+                "@type": "ListItem",
+                "position": <?= $index + 1 ?>,
+                "name": "<?= htmlspecialchars($item['label'] ?? $item['name'] ?? '') ?>",
+                "item": "<?= htmlspecialchars($item['url'] ?? '') ?>"
             }
-        </script>
+            <?= ($index < count($breadcrumbItems) - 1) ? ',' : '' ?>
+            <?php endforeach; ?>
+        ]
+    }
+    </script>
     <?php endif; ?>
 
     <script>
-        // Inicializar AOS quando a página carregar
-        document.addEventListener('DOMContentLoaded', function() {
-            AOS.init({
-                duration: 800,
-                once: true,
-                offset: 100
-            });
+    // Inicializar AOS quando a página carregar
+    document.addEventListener('DOMContentLoaded', function() {
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
         });
+    });
     </script>
 
 </head>
@@ -345,26 +346,26 @@ $isLandingPage = $isLandingPage ?? false;
         <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Carregando Lukrato..." width="120" height="42">
     </div>
     <script>
-        // Esconde o preloader assim que o DOM e Tailwind estiverem prontos
-        (function() {
-            function hidePreloader() {
-                var p = document.getElementById('lk-preloader');
-                if (p) {
-                    p.classList.add('hide');
-                    setTimeout(function() {
-                        p.remove();
-                    }, 500);
-                }
+    // Esconde o preloader assim que o DOM e Tailwind estiverem prontos
+    (function() {
+        function hidePreloader() {
+            var p = document.getElementById('lk-preloader');
+            if (p) {
+                p.classList.add('hide');
+                setTimeout(function() {
+                    p.remove();
+                }, 500);
             }
-            // Aguarda o DOMContentLoaded + pequeno delay para Tailwind processar
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', function() {
-                    setTimeout(hidePreloader, 150);
-                });
-            } else {
+        }
+        // Aguarda o DOMContentLoaded + pequeno delay para Tailwind processar
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(hidePreloader, 150);
-            }
-        })();
+            });
+        } else {
+            setTimeout(hidePreloader, 150);
+        }
+    })();
     </script>
 
     <!-- Header Premium -->
@@ -450,38 +451,17 @@ $isLandingPage = $isLandingPage ?? false;
                             x-transition:leave-end="opacity-0 -translate-y-2"
                             class="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 p-2 z-50"
                             x-cloak>
-                            <a href="<?= BASE_URL ?>aprenda/categoria/comecar-com-financas"
+                            <?php foreach ($headerBlogCategorias as $cat): ?>
+                            <a href="<?= BASE_URL ?>aprenda/categoria/<?= htmlspecialchars($cat->slug) ?>"
                                 class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-orange-50 dark:hover:bg-white/5 transition-colors group/item">
-                                <i data-lucide="rocket" class="w-4 h-4 text-primary" aria-hidden="true"></i>
+                                <?php if ($cat->icone): ?>
+                                <i data-lucide="<?= htmlspecialchars($cat->icone) ?>" class="w-4 h-4 text-primary"
+                                    aria-hidden="true"></i>
+                                <?php endif; ?>
                                 <span
-                                    class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover/item:text-primary transition-colors">Começar
-                                    com Finanças</span>
+                                    class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover/item:text-primary transition-colors"><?= htmlspecialchars($cat->nome) ?></span>
                             </a>
-                            <a href="<?= BASE_URL ?>aprenda/categoria/economizar-dinheiro"
-                                class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-orange-50 dark:hover:bg-white/5 transition-colors group/item">
-                                <i data-lucide="piggy-bank" class="w-4 h-4 text-primary" aria-hidden="true"></i>
-                                <span
-                                    class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover/item:text-primary transition-colors">Economizar
-                                    Dinheiro</span>
-                            </a>
-                            <a href="<?= BASE_URL ?>aprenda/categoria/investimentos"
-                                class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-orange-50 dark:hover:bg-white/5 transition-colors group/item">
-                                <i data-lucide="trending-up" class="w-4 h-4 text-primary" aria-hidden="true"></i>
-                                <span
-                                    class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover/item:text-primary transition-colors">Investimentos</span>
-                            </a>
-                            <a href="<?= BASE_URL ?>aprenda/categoria/dividas"
-                                class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-orange-50 dark:hover:bg-white/5 transition-colors group/item">
-                                <i data-lucide="alert-triangle" class="w-4 h-4 text-primary" aria-hidden="true"></i>
-                                <span
-                                    class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover/item:text-primary transition-colors">Dívidas</span>
-                            </a>
-                            <a href="<?= BASE_URL ?>aprenda/categoria/ferramentas"
-                                class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-orange-50 dark:hover:bg-white/5 transition-colors group/item">
-                                <i data-lucide="wrench" class="w-4 h-4 text-primary" aria-hidden="true"></i>
-                                <span
-                                    class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover/item:text-primary transition-colors">Ferramentas</span>
-                            </a>
+                            <?php endforeach; ?>
                             <div class="border-t border-gray-100 dark:border-gray-700 mt-1 pt-1">
                                 <a href="<?= BASE_URL ?>aprenda"
                                     class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-orange-50 dark:hover:bg-white/5 transition-colors group/item">
@@ -540,24 +520,24 @@ $isLandingPage = $isLandingPage ?? false;
     </header>
 
     <script>
-        (function() {
-            const bar = document.getElementById('scrollProgressBar');
-            let ticking = false;
-            window.addEventListener('scroll', function() {
-                if (!ticking) {
-                    requestAnimationFrame(function() {
-                        const scrollTop = window.scrollY;
-                        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-                        const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
-                        bar.style.width = progress + '%';
-                        ticking = false;
-                    });
-                    ticking = true;
-                }
-            }, {
-                passive: true
-            });
-        })();
+    (function() {
+        const bar = document.getElementById('scrollProgressBar');
+        let ticking = false;
+        window.addEventListener('scroll', function() {
+            if (!ticking) {
+                requestAnimationFrame(function() {
+                    const scrollTop = window.scrollY;
+                    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                    const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+                    bar.style.width = progress + '%';
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        }, {
+            passive: true
+        });
+    })();
     </script>
 
     <!-- Mobile Menu Backdrop -->
@@ -624,26 +604,13 @@ $isLandingPage = $isLandingPage ?? false;
                             :class="aprendaMobileOpen ? 'rotate-180' : ''" aria-hidden="true"></i>
                     </button>
                     <div x-show="aprendaMobileOpen" x-collapse class="ml-4 flex flex-col gap-1 mt-1">
-                        <a href="<?= BASE_URL ?>aprenda/categoria/comecar-com-financas" @click="mobileMenuOpen = false"
+                        <?php foreach ($headerBlogCategorias as $cat): ?>
+                        <a href="<?= BASE_URL ?>aprenda/categoria/<?= htmlspecialchars($cat->slug) ?>"
+                            @click="mobileMenuOpen = false"
                             class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary py-2 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
-                            Começar com Finanças
+                            <?= htmlspecialchars($cat->nome) ?>
                         </a>
-                        <a href="<?= BASE_URL ?>aprenda/categoria/economizar-dinheiro" @click="mobileMenuOpen = false"
-                            class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary py-2 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
-                            Economizar Dinheiro
-                        </a>
-                        <a href="<?= BASE_URL ?>aprenda/categoria/investimentos" @click="mobileMenuOpen = false"
-                            class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary py-2 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
-                            Investimentos
-                        </a>
-                        <a href="<?= BASE_URL ?>aprenda/categoria/dividas" @click="mobileMenuOpen = false"
-                            class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary py-2 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
-                            Dívidas
-                        </a>
-                        <a href="<?= BASE_URL ?>aprenda/categoria/ferramentas" @click="mobileMenuOpen = false"
-                            class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary py-2 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
-                            Ferramentas
-                        </a>
+                        <?php endforeach; ?>
                         <a href="<?= BASE_URL ?>aprenda" @click="mobileMenuOpen = false"
                             class="text-sm text-primary font-semibold py-2 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
                             Ver todos os artigos

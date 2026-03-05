@@ -9,6 +9,7 @@ use Application\Core\Request;
 use Application\Services\Infrastructure\LogService;
 use Application\Services\Infrastructure\CacheService;
 use Application\Models\Telefone;
+use Application\Models\BlogCategoria;
 use Throwable;
 
 abstract class BaseController
@@ -78,6 +79,11 @@ abstract class BaseController
             $data = $this->injectAdminLayoutData($data);
         }
 
+        // Auto-inject site layout variables when using site header
+        if ($header === 'site/partials/header') {
+            $data = $this->injectSiteLayoutData($data);
+        }
+
         $view = new View($viewPath, $data);
         if ($header) $view->setHeader($header);
         if ($footer) $view->setFooter($footer);
@@ -142,6 +148,14 @@ abstract class BaseController
             $data['supportDdd']   = $telefoneModel?->ddd?->codigo ?? '';
         }
 
+        return $data;
+    }
+
+    private function injectSiteLayoutData(array $data): array
+    {
+        if (!isset($data['headerBlogCategorias'])) {
+            $data['headerBlogCategorias'] = BlogCategoria::ordenadas()->get();
+        }
         return $data;
     }
 
