@@ -104,6 +104,11 @@ class MetaRepository extends BaseRepository
             $meta->status = Meta::STATUS_CONCLUIDA;
         }
 
+        // Reverter se caiu abaixo do alvo (metas vinculadas a conta)
+        if ($meta->valor_atual < $meta->valor_alvo && $meta->status === Meta::STATUS_CONCLUIDA && $meta->conta_id) {
+            $meta->status = Meta::STATUS_ATIVA;
+        }
+
         return $meta->save();
     }
 }

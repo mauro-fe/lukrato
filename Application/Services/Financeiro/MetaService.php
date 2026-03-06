@@ -80,8 +80,8 @@ class MetaService
 
         $meta->update($data);
 
-        // Auto-concluir se atingiu o alvo
-        if ($meta->valor_atual >= $meta->valor_alvo && $meta->status === Meta::STATUS_ATIVA) {
+        // Auto-concluir se atingiu o alvo (apenas metas sem conta vinculada)
+        if (!$meta->conta_id && $meta->valor_atual >= $meta->valor_alvo && $meta->status === Meta::STATUS_ATIVA) {
             $meta->update(['status' => Meta::STATUS_CONCLUIDA]);
         }
 
@@ -126,15 +126,22 @@ class MetaService
      */
     public function resumo(int $userId): array
     {
-        $metas = $this->repo->findByUser($userId, Meta::STATUS_ATIVA);
+        // Sincronizar saldos de todas as metas vinculadas a contas antes de calcular
+        $todasMetas = $this->repo->findByUser($userId);
+        foreach ($todasMetas as $meta) {
+            $this->syncContaSaldo($meta, $userId);
+        }
 
-        $totalAlvo = $metas->sum('valor_alvo');
-        $totalAtual = $metas->sum('valor_atual');
-        $atrasadas = $metas->filter(fn(Meta $m) => $m->isAtrasada())->count();
-        $proximaConcluir = $metas->sortByDesc('progresso')->first();
+        // Recarregar após sync (status pode ter mudado)
+        $ativas = $this->repo->findByUser($userId, Meta::STATUS_ATIVA);
+
+        $totalAlvo = $ativas->sum('valor_alvo');
+        $totalAtual = $ativas->sum('valor_atual');
+        $atrasadas = $ativas->filter(fn(Meta $m) => $m->isAtrasada())->count();
+        $proximaConcluir = $ativas->sortByDesc('progresso')->first();
 
         return [
-            'total_metas'       => $metas->count(),
+            'total_metas'       => $ativas->count(),
             'total_alvo'        => round($totalAlvo, 2),
             'total_atual'       => round($totalAtual, 2),
             'progresso_geral'   => $totalAlvo > 0 ? round(($totalAtual / $totalAlvo) * 100, 1) : 0,
@@ -271,6 +278,11 @@ class MetaService
             // Auto-concluir se atingiu o alvo
             if ($saldo >= $meta->valor_alvo && $meta->status === Meta::STATUS_ATIVA) {
                 $meta->update(['status' => Meta::STATUS_CONCLUIDA]);
+            }
+
+            // Reverter para ativa se saldo caiu abaixo do alvo (meta vinculada a conta)
+            if ($saldo < $meta->valor_alvo && $meta->status === Meta::STATUS_CONCLUIDA) {
+                $meta->update(['status' => Meta::STATUS_ATIVA]);
             }
         }
 
