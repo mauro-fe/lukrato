@@ -55,6 +55,7 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
     <!-- Core -->
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/variables.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/animations.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/_loading-states.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/components.css">
 
     <!-- Layout -->
@@ -130,7 +131,7 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
     <?php loadPageJs(); ?>
 </head>
 
-<body>
+<body<?php if (!empty($showMonthSelector)) echo ' class="has-month-bar"'; ?>>
     <div id="lkPageTransitionOverlay" aria-hidden="true"></div>
 
     <!-- ============================================================================
@@ -194,7 +195,7 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
             <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>"
                 <?= $aria('lancamentos') ?> title="lançamentos">
                 <i data-lucide="layers"></i>
-                <span>lançamentos</span>
+                <span>Lançamentos</span>
             </a>
 
 

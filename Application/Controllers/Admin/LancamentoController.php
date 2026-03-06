@@ -22,6 +22,7 @@ class LancamentoController extends BaseController
                 'pageTitle' => 'Lançamentos',
                 'subTitle' => 'Gerencie seus lançamentos',
                 'isPro' => $isPro,
+                'showMonthSelector' => true,
             ],
             'admin/partials/header',
             'admin/partials/footer'

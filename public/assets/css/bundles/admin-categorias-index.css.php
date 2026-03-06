@@ -17,6 +17,7 @@ $modules = [
     '_suggestions.css',
     '_edit-modal-picker.css',
     '_grid-categorias.css',
+    '_toolbar.css',
     '_card-individual.css',
     '_orcamento-inline.css',
     '_responsive-base.css',

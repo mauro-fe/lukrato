@@ -9,25 +9,32 @@
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/aprenda.css">
 
 <!-- Hero -->
-<section class="aprenda-hero">
+<section class="aprenda-hero mt-6">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-20">
         <div class="text-center max-w-3xl mx-auto" data-aos="fade-up">
-            <div class="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 dark:bg-white/10 border border-orange-100 dark:border-white/20 rounded-full mb-6">
+            <div
+                class="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 dark:bg-white/10 border border-orange-100 dark:border-white/20 rounded-full mb-6">
                 <i data-lucide="book-open" class="w-4 h-4 text-primary" aria-hidden="true"></i>
                 <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Educação Financeira</span>
             </div>
             <h1 class="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white leading-tight mb-4">
                 Aprenda sobre
-                <span class="bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">Finanças Pessoais</span>
+                <span class="bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">Finanças
+                    Pessoais</span>
             </h1>
             <p class="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                Artigos práticos para você organizar seu dinheiro, economizar mais, investir melhor e conquistar sua liberdade financeira.
+                Artigos práticos para você organizar seu dinheiro, economizar mais, investir melhor e conquistar sua
+                liberdade financeira.
             </p>
         </div>
     </div>
     <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div class="absolute top-20 left-10 w-96 h-96 bg-orange-100 dark:bg-orange-900/20 rounded-full filter blur-3xl opacity-30"></div>
-        <div class="absolute bottom-20 right-10 w-80 h-80 bg-gray-100 dark:bg-gray-800/30 rounded-full filter blur-3xl opacity-40"></div>
+        <div
+            class="absolute top-20 left-10 w-96 h-96 bg-orange-100 dark:bg-orange-900/20 rounded-full filter blur-3xl opacity-30">
+        </div>
+        <div
+            class="absolute bottom-20 right-10 w-80 h-80 bg-gray-100 dark:bg-gray-800/30 rounded-full filter blur-3xl opacity-40">
+        </div>
     </div>
 </section>
 
@@ -37,7 +44,8 @@
         <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white text-center mb-10" data-aos="fade-up">
             Explore por Categoria
         </h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6" data-aos="fade-up" data-aos-delay="100">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6" data-aos="fade-up"
+            data-aos-delay="100">
             <?php foreach ($categorias as $cat): ?>
                 <a href="<?= rtrim(BASE_URL, '/') ?>/blog/categoria/<?= htmlspecialchars($cat->slug) ?>"
                     class="aprenda-cat-card group">
@@ -70,12 +78,12 @@
                             <?php if ($post->imagem_capa): ?>
                                 <div class="aprenda-post-img">
                                     <img src="<?= rtrim(BASE_URL, '/') ?>/<?= htmlspecialchars($post->imagem_capa) ?>"
-                                        alt="<?= htmlspecialchars($post->titulo) ?>"
-                                        loading="lazy" width="400" height="225">
+                                        alt="<?= htmlspecialchars($post->titulo) ?>" loading="lazy" width="400" height="225">
                                 </div>
                             <?php else: ?>
                                 <div class="aprenda-post-img aprenda-post-img-empty">
-                                    <i data-lucide="file-text" class="w-12 h-12 text-gray-300 dark:text-gray-600" aria-hidden="true"></i>
+                                    <i data-lucide="file-text" class="w-12 h-12 text-gray-300 dark:text-gray-600"
+                                        aria-hidden="true"></i>
                                 </div>
                             <?php endif; ?>
 
@@ -85,7 +93,8 @@
                                         <?= htmlspecialchars($post->categoria->nome) ?>
                                     </span>
                                 <?php endif; ?>
-                                <h3 class="text-lg font-bold text-gray-900 dark:text-white group-hover:text-primary transition-colors line-clamp-2">
+                                <h3
+                                    class="text-lg font-bold text-gray-900 dark:text-white group-hover:text-primary transition-colors line-clamp-2">
                                     <?= htmlspecialchars($post->titulo) ?>
                                 </h3>
                                 <?php if ($post->resumo): ?>
@@ -95,10 +104,12 @@
                                 <?php endif; ?>
                                 <div class="aprenda-post-meta">
                                     <?php if ($post->tempo_leitura): ?>
-                                        <span><i data-lucide="clock" class="w-3.5 h-3.5" aria-hidden="true"></i> <?= $post->tempo_leitura ?> min de leitura</span>
+                                        <span><i data-lucide="clock" class="w-3.5 h-3.5" aria-hidden="true"></i>
+                                            <?= $post->tempo_leitura ?> min de leitura</span>
                                     <?php endif; ?>
                                     <?php if ($post->published_at): ?>
-                                        <span><i data-lucide="calendar" class="w-3.5 h-3.5" aria-hidden="true"></i> <?= $post->published_at->format('d/m/Y') ?></span>
+                                        <span><i data-lucide="calendar" class="w-3.5 h-3.5" aria-hidden="true"></i>
+                                            <?= $post->published_at->format('d/m/Y') ?></span>
                                     <?php endif; ?>
                                 </div>
                             </div>

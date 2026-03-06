@@ -23,6 +23,7 @@ class RelatoriosController extends BaseController
                 'pageTitle' => 'Relatórios',
                 'subTitle' => 'Análise detalhada das suas finanças',
                 'isPro' => $isPro,
+                'showMonthSelector' => true,
             ],
             'admin/partials/header',
             'admin/partials/footer'

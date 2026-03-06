@@ -39,7 +39,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0;
-    background: var(--glass-bg);
+    background: var(--color-bg);
     backdrop-filter: var(--glass-backdrop);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-md);

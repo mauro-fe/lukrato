@@ -370,6 +370,7 @@ class CategoriaRepository extends BaseRepository
                         ->orWhere('user_id', $userId);
                 })->orderBy('nome');
             }])
+            ->orderBy('ordem')
             ->orderBy('nome')
             ->get();
     }
@@ -396,8 +397,24 @@ class CategoriaRepository extends BaseRepository
                         ->orWhere('user_id', $userId);
                 })->orderBy('nome');
             }])
+            ->orderBy('ordem')
             ->orderBy('nome')
             ->get();
+    }
+
+    /**
+     * Reordena categorias de um usuário.
+     * Recebe um array de IDs na ordem desejada.
+     */
+    public function reorderForUser(int $userId, array $orderedIds): void
+    {
+        foreach ($orderedIds as $index => $id) {
+            $this->query()
+                ->where('id', (int) $id)
+                ->where('user_id', $userId)
+                ->whereNull('parent_id')
+                ->update(['ordem' => $index]);
+        }
     }
 
     /**

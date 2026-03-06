@@ -6,7 +6,6 @@
 <section class="lan-page">
     <!-- ==================== HEADER MODERNIZADO ==================== -->
     <div class="lan-header-modern">
-        <?php include BASE_PATH . '/views/admin/partials/header-mes.php'; ?>
 
         <!-- CARD DE EXPORTAÇÃO -->
         <div class="modern-card export-card <?= !$isPro ? 'pro-locked' : '' ?>" data-aos="fade-up" data-aos-delay="100">

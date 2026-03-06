@@ -43,7 +43,7 @@
 }
 
 .profile-section {
-  margin-top: 50px;
+  margin-top: 50px !important;
   background: var(--glass-bg);
   backdrop-filter: var(--glass-backdrop);
   border: 1px solid var(--glass-border);

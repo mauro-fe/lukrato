@@ -41,9 +41,9 @@
         <div class="lk-card">
             <div class="acc-grid" id="archivedGrid" aria-live="polite" aria-busy="false">
                 <!-- Skeleton loader inicial -->
-                <div class="acc-skeleton" aria-hidden="true"></div>
-                <div class="acc-skeleton" aria-hidden="true"></div>
-                <div class="acc-skeleton" aria-hidden="true"></div>
+                <div class="lk-skeleton lk-skeleton--card" aria-hidden="true"></div>
+                <div class="lk-skeleton lk-skeleton--card" aria-hidden="true"></div>
+                <div class="lk-skeleton lk-skeleton--card" aria-hidden="true"></div>
             </div>
         </div>
     </div>

@@ -18,7 +18,7 @@ class LancamentoResponseFormatter
     {
         return [
             'id' => (int)$lancamento->id,
-            'data' => (string)$lancamento->data,
+            'data' => $lancamento->data?->format('Y-m-d'),
             'hora_lancamento' => $lancamento->hora_lancamento ?? null,
             'tipo' => (string)$lancamento->tipo,
             'valor' => (float)$lancamento->valor,

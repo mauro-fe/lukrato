@@ -71,12 +71,9 @@
 
         <div class="achievements-grid" id="achievementsGridPage">
             <!-- Loading state -->
-            <div class="lk-loading-state" id="achievementsLoading"
-                style="grid-column:1/-1;text-align:center;padding:2rem;">
-                <div class="spinner-border" role="status" style="width:2rem;height:2rem;color:var(--color-primary);">
-                    <span class="visually-hidden">Carregando...</span>
-                </div>
-                <p style="margin:1rem 0 0;color:var(--color-text-muted);font-size:0.9rem;">Carregando conquistas...</p>
+            <div class="lk-loading-state" id="achievementsLoading" style="grid-column:1/-1;">
+                <i data-lucide="loader-2"></i>
+                <p>Carregando conquistas...</p>
             </div>
         </div>
     </section>
@@ -86,11 +83,9 @@
         <h2><i data-lucide="history"></i> Histórico Recente</h2>
         <div class="history-list" id="pointsHistory">
             <!-- Loading state -->
-            <div class="lk-loading-state" style="text-align:center;padding:2rem;">
-                <div class="spinner-border" role="status" style="width:2rem;height:2rem;color:var(--color-primary);">
-                    <span class="visually-hidden">Carregando...</span>
-                </div>
-                <p style="margin:1rem 0 0;color:var(--color-text-muted);font-size:0.9rem;">Carregando histórico...</p>
+            <div class="lk-loading-state">
+                <i data-lucide="loader-2"></i>
+                <p>Carregando histórico...</p>
             </div>
         </div>
     </section>
@@ -103,11 +98,9 @@
             <!-- Ranking para usuários PRO -->
             <div class="leaderboard-container" id="leaderboardContainer">
                 <!-- Loading state -->
-                <div class="lk-loading-state" style="text-align:center;padding:2rem;">
-                    <div class="spinner-border" role="status" style="width:2rem;height:2rem;color:var(--color-primary);">
-                        <span class="visually-hidden">Carregando...</span>
-                    </div>
-                    <p style="margin:1rem 0 0;color:var(--color-text-muted);font-size:0.9rem;">Carregando ranking...</p>
+                <div class="lk-loading-state">
+                    <i data-lucide="loader-2"></i>
+                    <p>Carregando ranking...</p>
                 </div>
             </div>
         <?php else: ?>

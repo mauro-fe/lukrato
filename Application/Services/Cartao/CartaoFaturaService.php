@@ -744,20 +744,18 @@ class CartaoFaturaService
                     $mesVenc = (int) $dataHoje->format('n');
                     $anoVenc = (int) $dataHoje->format('Y');
 
-                    $dataVencimento = \DateTime::createFromFormat(
-                        'Y-n-j',
-                        "{$anoVenc}-{$mesVenc}-{$cartao->dia_vencimento}"
-                    );
-
-                    if (!$dataVencimento) {
-                        continue;
-                    }
+                    $diaReal = min($cartao->dia_vencimento, (int) date('t', mktime(0, 0, 0, $mesVenc, 1, $anoVenc)));
+                    $dataVencimento = new \DateTime("{$anoVenc}-{$mesVenc}-{$diaReal}");
 
                     // Se vencimento já passou neste mês, vai para o próximo
                     if ($dataVencimento < $dataHoje) {
-                        $dataVencimento->modify('+1 month');
-                        $mesVenc = (int) $dataVencimento->format('n');
-                        $anoVenc = (int) $dataVencimento->format('Y');
+                        $mesVenc++;
+                        if ($mesVenc > 12) {
+                            $mesVenc = 1;
+                            $anoVenc++;
+                        }
+                        $diaReal = min($cartao->dia_vencimento, (int) date('t', mktime(0, 0, 0, $mesVenc, 1, $anoVenc)));
+                        $dataVencimento = new \DateTime("{$anoVenc}-{$mesVenc}-{$diaReal}");
                     }
 
                     if ($dataVencimento <= $dataLimite && $dataVencimento >= $dataHoje) {

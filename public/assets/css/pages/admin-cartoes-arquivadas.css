@@ -91,19 +91,6 @@
   padding: 1rem;
 }
 
-.acc-skeleton {
-  height: 140px;
-  background: linear-gradient(
-    90deg,
-    var(--color-surface-muted) 0%,
-    color-mix(in srgb, var(--color-surface-muted) 90%, white) 50%,
-    var(--color-surface-muted) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
-  border-radius: var(--radius-lg);
-}
-
 .cartao-card {
   background: var(--color-surface);
   border: 1px solid var(--color-card-border);

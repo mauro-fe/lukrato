@@ -100,8 +100,17 @@
         </div>
     </div>
 
-    <!-- ==================== SELETOR DE MÊS (padrão Lukrato) ==================== -->
-    <?php include BASE_PATH . '/views/admin/partials/header-mes.php'; ?>
+    <!-- ==================== BUSCA ==================== -->
+    <div class="cat-toolbar">
+        <div class="cat-search-wrapper">
+            <i data-lucide="search" class="cat-search-icon"></i>
+            <input type="text" id="catSearchInput" class="cat-search-input"
+                placeholder="Buscar categoria ou subcategoria..." autocomplete="off" />
+            <button type="button" id="catSearchClear" class="cat-search-clear d-none" title="Limpar busca">
+                <i data-lucide="x"></i>
+            </button>
+        </div>
+    </div>
 
     <!-- ==================== CATEGORIAS SEPARADAS POR TIPO ==================== -->
     <div class="categories-grid">

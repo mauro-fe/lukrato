@@ -463,23 +463,6 @@
 }
 
 /* ============================================================================
-   SKELETON LOADER
-   ============================================================================ */
-
-.acc-skeleton {
-  height: 200px;
-  border-radius: var(--radius-lg);
-  background: linear-gradient(
-    90deg,
-    var(--color-surface-muted) 25%,
-    color-mix(in srgb, var(--color-surface-muted) 80%, #fff) 37%,
-    var(--color-surface-muted) 63%
-  );
-  background-size: 400% 100%;
-  animation: accShimmer 1.4s ease-in-out infinite;
-}
-
-/* ============================================================================
    ESTADOS VAZIOS E ERROS
    ============================================================================ */
 
@@ -1242,15 +1225,6 @@
 
 .btn-new-transaction:active {
   transform: translateY(0);
-}
-
-/* Skeleton Loader */
-.acc-skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 16px;
-  height: 240px;
 }
 
 /* Toast Notifications */

@@ -126,7 +126,9 @@ export function renderAccordionPanel(categoriaId) {
  */
 async function toggleAccordion(categoriaId) {
     const panel = document.getElementById(`subcat-panel-${categoriaId}`);
-    const btn = document.querySelector(`[data-expand-cat="${categoriaId}"]`);
+    const btn = document.querySelector(`button.expand[data-expand-cat="${categoriaId}"]`);
+    const card = panel?.closest('.cat-card');
+    const preview = card?.querySelector('.subcat-preview');
     if (!panel) return;
 
     const isOpen = STATE.expandedCategorias.has(categoriaId);
@@ -138,6 +140,7 @@ async function toggleAccordion(categoriaId) {
         panel.setAttribute('aria-hidden', 'true');
         btn?.classList.remove('is-open');
         btn?.setAttribute('aria-expanded', 'false');
+        if (preview) preview.style.display = '';
     } else {
         // Abrir — lazy-load
         STATE.expandedCategorias.add(categoriaId);
@@ -145,6 +148,7 @@ async function toggleAccordion(categoriaId) {
         panel.setAttribute('aria-hidden', 'false');
         btn?.classList.add('is-open');
         btn?.setAttribute('aria-expanded', 'true');
+        if (preview) preview.style.display = 'none';
 
         // Fetch se não estiver em cache
         if (!STATE.subcategoriasCache[categoriaId]) {
@@ -283,9 +287,9 @@ async function handleAddSubcategoriaInline(categoriaId) {
 }
 
 /**
- * Edita subcategoria a partir do accordion (SweetAlert prompt).
+ * Edita subcategoria inline — transforma o nome em input editável.
  */
-async function handleEditSubcategoriaInCard(subcatId) {
+function handleEditSubcategoriaInCard(subcatId) {
     // Encontrar a categoria pai
     let parentId = null;
     for (const [catId, subs] of Object.entries(STATE.subcategoriasCache)) {
@@ -294,26 +298,69 @@ async function handleEditSubcategoriaInCard(subcatId) {
     if (!parentId) return;
 
     const sub = STATE.subcategoriasCache[parentId]?.find(s => s.id === subcatId);
-    if (!sub || !sub.user_id) return; // não pode editar subcategorias globais
+    if (!sub || !sub.user_id) return;
 
-    const { value: nome } = await Swal.fire({
-        title: 'Editar subcategoria',
-        input: 'text',
-        inputLabel: 'Nome',
-        inputValue: sub.nome,
-        showCancelButton: true,
-        confirmButtonText: 'Salvar',
-        cancelButtonText: 'Cancelar',
-        inputValidator: (v) => {
-            if (!v || v.trim().length < 2) return 'Nome deve ter pelo menos 2 caracteres';
-        }
-    });
+    // Já está editando esta subcategoria?
+    if (STATE.editingSubcatId === subcatId) return;
+    STATE.editingSubcatId = subcatId;
 
-    if (!nome) return;
+    const row = document.querySelector(`.subcat-item[data-subcat-id="${subcatId}"]`);
+    if (!row) return;
+
+    const nameEl = row.querySelector('.subcat-item-name');
+    const actionsEl = row.querySelector('.subcat-item-actions');
+    if (!nameEl) return;
+
+    // Replace name with input
+    const oldName = sub.nome;
+    nameEl.outerHTML = `
+        <input type="text" class="form-control form-control-sm subcat-edit-input"
+               data-edit-subcat-input="${subcatId}" value="${escapeHtml(oldName)}"
+               maxlength="100" autofocus />`;
+
+    // Replace actions with save/cancel
+    if (actionsEl) {
+        actionsEl.outerHTML = `
+            <div class="subcat-item-actions subcat-edit-actions" style="opacity:1">
+                <button type="button" class="subcat-btn save" data-save-subcat="${subcatId}" title="Salvar">
+                    <i data-lucide="check"></i>
+                </button>
+                <button type="button" class="subcat-btn cancel" data-cancel-subcat="${subcatId}" title="Cancelar">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>`;
+    }
+
+    Utils.processNewIcons();
+    const input = row.querySelector(`[data-edit-subcat-input="${subcatId}"]`);
+    if (input) {
+        input.focus();
+        input.select();
+    }
+}
+
+/**
+ * Salva edição inline da subcategoria.
+ */
+async function saveInlineEdit(subcatId) {
+    const input = document.querySelector(`[data-edit-subcat-input="${subcatId}"]`);
+    const nome = (input?.value || '').trim();
+    if (!nome || nome.length < 2) {
+        toastError('Nome deve ter pelo menos 2 caracteres');
+        input?.focus();
+        return;
+    }
+
+    let parentId = null;
+    for (const [catId, subs] of Object.entries(STATE.subcategoriasCache)) {
+        if (subs.find(s => s.id === subcatId)) { parentId = Number(catId); break; }
+    }
+    if (!parentId) { cancelInlineEdit(subcatId); return; }
 
     try {
-        await apiUpdateSubcategoria(subcatId, { nome: nome.trim() });
+        await apiUpdateSubcategoria(subcatId, { nome });
         toastSuccess('Subcategoria atualizada!');
+        STATE.editingSubcatId = null;
         delete STATE.subcategoriasCache[parentId];
         await fetchSubcategorias(parentId);
         refreshSubcategoriasList(parentId);
@@ -321,6 +368,18 @@ async function handleEditSubcategoriaInCard(subcatId) {
     } catch (err) {
         toastError(err.message);
     }
+}
+
+/**
+ * Cancela edição inline — re-renderiza a lista.
+ */
+function cancelInlineEdit(subcatId) {
+    let parentId = null;
+    for (const [catId, subs] of Object.entries(STATE.subcategoriasCache)) {
+        if (subs.find(s => s.id === subcatId)) { parentId = Number(catId); break; }
+    }
+    STATE.editingSubcatId = null;
+    if (parentId) refreshSubcategoriasList(parentId);
 }
 
 /**
@@ -438,6 +497,20 @@ export function initSubcategoriaEvents() {
         el.dataset.subcatEventsAttached = '1';
 
         el.addEventListener('click', (e) => {
+            // Save inline edit
+            const saveBtn = e.target.closest('[data-save-subcat]');
+            if (saveBtn) {
+                e.stopPropagation();
+                saveInlineEdit(Number(saveBtn.dataset.saveSubcat));
+                return;
+            }
+            // Cancel inline edit
+            const cancelBtn = e.target.closest('[data-cancel-subcat]');
+            if (cancelBtn) {
+                e.stopPropagation();
+                cancelInlineEdit(Number(cancelBtn.dataset.cancelSubcat));
+                return;
+            }
             // Expand button
             const expandBtn = e.target.closest('[data-expand-cat]');
             if (expandBtn) {
@@ -483,8 +556,20 @@ export function initSubcategoriaEvents() {
             }
         });
 
-        // Enter key on inline nome input
+        // Enter key on inline nome input + inline edit input
         el.addEventListener('keydown', (e) => {
+            // Inline edit save/cancel
+            const editInput = e.target.closest('[data-edit-subcat-input]');
+            if (editInput) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    saveInlineEdit(Number(editInput.dataset.editSubcatInput));
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    cancelInlineEdit(Number(editInput.dataset.editSubcatInput));
+                }
+                return;
+            }
             const inlineInput = e.target.closest('[data-inline-subcat-nome]');
             if (inlineInput && e.key === 'Enter') {
                 e.preventDefault();
@@ -504,6 +589,17 @@ export function initSubcategoriaEvents() {
                 filterInlineIcons(Number(iconSearch.dataset.inlineIconSearch), iconSearch.value);
             }
         });
+
+        // Keyboard: Enter/Space on .cat-card-main to expand
+        el.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                const main = e.target.closest('.cat-card-main[data-expand-cat]');
+                if (main) {
+                    e.preventDefault();
+                    toggleAccordion(Number(main.dataset.expandCat));
+                }
+            }
+        }, true);
     });
 }
 

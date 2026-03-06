@@ -65,9 +65,9 @@
             <div class="table-header">
                 <h2><i data-lucide="list"></i> Lista de Cupons</h2>
             </div>
-            <div id="loading" class="loading">
-                <i data-lucide="loader-2" class="icon-spin"></i>
-                Carregando cupons...
+            <div id="loading" class="lk-loading-state">
+                <i data-lucide="loader-2"></i>
+                <p>Carregando cupons...</p>
             </div>
             <table class="cupons-table" id="cuponsTable" style="display: none;">
                 <thead>

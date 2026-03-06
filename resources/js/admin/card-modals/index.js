@@ -59,7 +59,7 @@ function renderLancamentos(lancamentos) {
                     ${escapeHtml(lanc.descricao)}
                     ${lanc.eh_parcelado ? `<span class="parcela-tag">${lanc.parcela_info}</span>` : ''}
                 </div>
-                <div class="lancamento-date">${new Date(lanc.data).toLocaleDateString('pt-BR')}</div>
+                <div class="lancamento-date">${new Date(lanc.data.split(' ')[0] + 'T00:00:00').toLocaleDateString('pt-BR')}</div>
             </div>
             <div class="lancamento-amount">${formatCurrency(lanc.valor)}</div>
         </div>

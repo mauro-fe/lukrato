@@ -35,7 +35,6 @@
 </div>
 
 <section class="modern-dashboard">
-    <?php include BASE_PATH . '/views/admin/partials/header-mes.php'; ?>
 
     <!-- Gamificação -->
     <section class="gamification-section" data-aos="fade-up" data-aos-duration="500">
@@ -92,12 +91,12 @@
                 </div>
                 <div class="badges-grid" id="badgesGrid">
                     <!-- Preenchido via JS -->
-                    <div class="badge-skeleton"></div>
-                    <div class="badge-skeleton"></div>
-                    <div class="badge-skeleton"></div>
-                    <div class="badge-skeleton"></div>
-                    <div class="badge-skeleton"></div>
-                    <div class="badge-skeleton"></div>
+                    <div class="lk-skeleton lk-skeleton--badge"></div>
+                    <div class="lk-skeleton lk-skeleton--badge"></div>
+                    <div class="lk-skeleton lk-skeleton--badge"></div>
+                    <div class="lk-skeleton lk-skeleton--badge"></div>
+                    <div class="lk-skeleton lk-skeleton--badge"></div>
+                    <div class="lk-skeleton lk-skeleton--badge"></div>
                 </div>
             </div>
         </div>
@@ -339,12 +338,8 @@
                     <tr class="lk-loading-row">
                         <td colspan="7" style="text-align:center;padding:2rem 1rem;">
                             <div class="lk-loading-state">
-                                <div class="spinner-border" role="status"
-                                    style="width:2rem;height:2rem;color:var(--color-primary);">
-                                    <span class="visually-hidden">Carregando...</span>
-                                </div>
-                                <p style="margin:0.75rem 0 0;color:var(--color-text-muted);font-size:0.85rem;">
-                                    Carregando transações...</p>
+                                <i data-lucide="loader-2"></i>
+                                <p>Carregando transações...</p>
                             </div>
                         </td>
                     </tr>

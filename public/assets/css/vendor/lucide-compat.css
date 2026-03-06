@@ -17,7 +17,7 @@
 
 svg.lucide {
   font-size: inherit;
-  min-width: inherit;
+  min-width: auto;
   text-align: inherit;
   transition: inherit;
 }

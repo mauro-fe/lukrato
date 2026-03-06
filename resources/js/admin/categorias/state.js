@@ -48,9 +48,27 @@ export const STATE = {
     subcategoriaEmEdicao: null,      // subcategoria sendo editada no modal
     editSubcategoriaIcon: '',        // ícone selecionado no form de subcategoria (modal)
     inlineSubcategoriaIcon: {},      // { [categoriaId]: iconName } — ícone selecionado no form inline
+    filterQuery: '',                   // texto de busca para filtrar categorias/subcategorias
+    editingSubcatId: null,             // ID da subcategoria sendo editada inline
 };
 
 // ─── Available Icons (grouped by context / search label) ─────────────────────
+
+export const ICON_GROUPS = [
+    { label: 'Casa & Moradia', icons: ['house', 'building-2', 'key', 'sofa'] },
+    { label: 'Alimentação', icons: ['utensils', 'coffee', 'apple', 'wine', 'pizza', 'sandwich', 'beef', 'cookie', 'cup-soda'] },
+    { label: 'Transporte', icons: ['car', 'bus', 'bike', 'plane', 'fuel', 'train-front'] },
+    { label: 'Contas & Serviços', icons: ['lightbulb', 'droplets', 'flame', 'wifi', 'smartphone', 'tv', 'receipt'] },
+    { label: 'Saúde', icons: ['heart-pulse', 'pill', 'stethoscope', 'dumbbell', 'activity'] },
+    { label: 'Educação', icons: ['graduation-cap', 'book-open', 'pencil', 'library'] },
+    { label: 'Trabalho & Renda', icons: ['briefcase', 'laptop', 'building', 'wallet', 'banknote', 'piggy-bank', 'landmark', 'calculator'] },
+    { label: 'Investimentos', icons: ['trending-up', 'bar-chart-3', 'coins', 'bitcoin'] },
+    { label: 'Lazer', icons: ['clapperboard', 'music', 'gamepad-2', 'palette', 'camera', 'headphones', 'ticket'] },
+    { label: 'Compras', icons: ['shopping-cart', 'shopping-bag', 'shirt', 'scissors', 'gem', 'gift'] },
+    { label: 'Finanças', icons: ['credit-card', 'percent', 'shield-check', 'calendar-check', 'pie-chart'] },
+    { label: 'Família & Pessoal', icons: ['baby', 'dog', 'cat', 'heart', 'church', 'users'] },
+    { label: 'Outros', icons: ['trophy', 'wrench', 'zap', 'star', 'tag', 'archive', 'package', 'map-pin', 'globe', 'umbrella', 'cigarette', 'bed'] },
+];
 
 export const AVAILABLE_ICONS = [
     // Casa & Moradia

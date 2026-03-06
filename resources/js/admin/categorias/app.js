@@ -14,6 +14,7 @@ import {
     Modules,
     Utils,
     AVAILABLE_ICONS,
+    ICON_GROUPS,
     SUGGESTIONS,
     ICON_MAP,
     ICON_COLORS,
@@ -52,6 +53,13 @@ async function loadCategorias() {
             STATE.categorias = result.categorias;
         } else {
             STATE.categorias = [];
+        }
+
+        // Pre-populate subcategoria cache from eager-loaded data
+        for (const cat of STATE.categorias) {
+            if (Array.isArray(cat.subcategorias)) {
+                STATE.subcategoriasCache[cat.id] = cat.subcategorias;
+            }
         }
 
         // Não renderizar aqui — loadAll() faz após ambas cargas
@@ -156,8 +164,16 @@ function showError(message) {
  * Renderizar categorias na tela
  */
 function renderCategorias() {
-    const receitas = STATE.categorias.filter(c => c.tipo === 'receita' || c.tipo === 'ambas');
-    const despesas = STATE.categorias.filter(c => c.tipo === 'despesa' || c.tipo === 'ambas');
+    const q = (STATE.filterQuery || '').toLowerCase().trim();
+
+    let receitas = STATE.categorias.filter(c => c.tipo === 'receita' || c.tipo === 'ambas');
+    let despesas = STATE.categorias.filter(c => c.tipo === 'despesa' || c.tipo === 'ambas');
+
+    // Aplicar filtro de busca
+    if (q) {
+        receitas = filterCategoriasWithQuery(receitas, q);
+        despesas = filterCategoriasWithQuery(despesas, q);
+    }
 
     // Atualizar contadores
     document.getElementById('receitasCount').textContent = receitas.length;
@@ -185,6 +201,20 @@ function renderCategorias() {
 
     // Processar ícones Lucide APENAS nos elementos <i> não processados
     Utils.processNewIcons();
+}
+
+/**
+ * Filtrar categorias por query de busca.
+ * Retorna categorias cujo nome ou subcategorias contenham a query.
+ */
+function filterCategoriasWithQuery(categorias, query) {
+    return categorias.filter(cat => {
+        const nameMatch = cat.nome.toLowerCase().includes(query);
+        if (nameMatch) return true;
+        // Verificar subcategorias no cache
+        const subs = STATE.subcategoriasCache[cat.id] || cat.subcategorias || [];
+        return subs.some(sub => sub.nome.toLowerCase().includes(query));
+    });
 }
 
 /**
@@ -225,15 +255,46 @@ function renderCategoriaItem(categoria, tipo) {
         }
     }
 
+    // Preview chips de subcategorias (mostrar até 3 quando fechado)
+    const subs = STATE.subcategoriasCache[categoria.id] || categoria.subcategorias || [];
+    const isExpanded = STATE.expandedCategorias.has(categoria.id);
+    let previewHtml = '';
+    if (!isExpanded && subs.length > 0) {
+        const previewSubs = subs.slice(0, 3);
+        const remaining = subs.length - previewSubs.length;
+        previewHtml = `
+            <div class="subcat-preview" data-expand-cat="${categoria.id}">
+                ${previewSubs.map(sub => {
+            const sIcon = sub.icone || 'tag';
+            const sColor = ICON_COLORS[sIcon] || '#94a3b8';
+            return `<span class="subcat-chip" title="${escapeHtml(sub.nome)}"><i data-lucide="${sIcon}" style="color:${sColor}"></i>${escapeHtml(sub.nome)}</span>`;
+        }).join('')}
+                ${remaining > 0 ? `<span class="subcat-chip more">+${remaining}</span>` : ''}
+            </div>`;
+    }
+
     return `
         <div class="cat-card ${tipo}" data-id="${categoria.id}">
             <div class="cat-card-header">
-                <div class="cat-card-icon ${tipo}">
-                    ${iconHtml}
-                </div>
-                <span class="cat-card-name">${escapeHtml(displayName)}</span>
-                <div class="cat-card-actions">
+                <div class="cat-card-main" data-expand-cat="${categoria.id}" role="button" tabindex="0"
+                     title="Ver subcategorias">
+                    <div class="cat-card-icon ${tipo}">
+                        ${iconHtml}
+                    </div>
+                    <span class="cat-card-name">${escapeHtml(displayName)}</span>
                     ${SubcategoriasModule.renderExpandButton(categoria.id)}
+                </div>
+                <div class="cat-card-actions">
+                    <button type="button" class="cat-card-btn reorder" 
+                            onclick="categoriasManager.moveCategoria(${categoria.id}, 'up')"
+                            title="Mover para cima">
+                        <i data-lucide="chevron-up"></i>
+                    </button>
+                    <button type="button" class="cat-card-btn reorder" 
+                            onclick="categoriasManager.moveCategoria(${categoria.id}, 'down')"
+                            title="Mover para baixo">
+                        <i data-lucide="chevron-down"></i>
+                    </button>
                     <button type="button" class="cat-card-btn edit" 
                             onclick="categoriasManager.editarCategoria(${categoria.id})"
                             title="Editar">
@@ -246,6 +307,7 @@ function renderCategoriaItem(categoria, tipo) {
                     </button>` : ''}
                 </div>
             </div>
+            ${previewHtml}
             ${budgetHtml}
             ${SubcategoriasModule.renderAccordionPanel(categoria.id)}
         </div>
@@ -335,17 +397,49 @@ function renderSuggestions() {
 // =========================================================================
 
 /**
- * Renderizar grid de ícones em um container
+ * Retorna os ícones usados recentemente (localStorage).
+ */
+function getRecentIcons() {
+    try {
+        return JSON.parse(localStorage.getItem('lk_recent_icons') || '[]').slice(0, 8);
+    } catch { return []; }
+}
+
+function pushRecentIcon(iconName) {
+    const recent = getRecentIcons().filter(n => n !== iconName);
+    recent.unshift(iconName);
+    localStorage.setItem('lk_recent_icons', JSON.stringify(recent.slice(0, 8)));
+}
+
+/**
+ * Renderizar grid de ícones agrupados em um container
  */
 function renderIconGrid(containerId, onSelect) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    container.innerHTML = AVAILABLE_ICONS.map(icon => `
-        <button type="button" class="icon-pick-item" data-icon="${icon.name}" title="${icon.name}">
-            <i data-lucide="${icon.name}"></i>
-        </button>
-    `).join('');
+    let html = '';
+
+    // Recentes
+    const recent = getRecentIcons();
+    if (recent.length > 0) {
+        html += `<div class="icon-group-label">Recentes</div><div class="icon-group-grid">`;
+        html += recent.map(name =>
+            `<button type="button" class="icon-pick-item" data-icon="${name}" title="${name}"><i data-lucide="${name}"></i></button>`
+        ).join('');
+        html += `</div>`;
+    }
+
+    // Grupos
+    for (const group of ICON_GROUPS) {
+        html += `<div class="icon-group-label">${group.label}</div><div class="icon-group-grid">`;
+        html += group.icons.map(name =>
+            `<button type="button" class="icon-pick-item" data-icon="${name}" title="${name}"><i data-lucide="${name}"></i></button>`
+        ).join('');
+        html += `</div>`;
+    }
+
+    container.innerHTML = html;
 
     // Event delegation (apenas uma vez por container)
     if (!container._lkDelegated) {
@@ -374,6 +468,7 @@ function toggleIconPicker() {
     }
 
     drawer.classList.toggle('open');
+    toggleIconPickerBackdrop(drawer.classList.contains('open'));
     if (drawer.classList.contains('open')) {
         const input = document.getElementById('iconSearchInput');
         if (input) { input.value = ''; input.focus(); }
@@ -388,6 +483,22 @@ function toggleIconPicker() {
 function closeIconPicker() {
     const drawer = document.getElementById('iconPickerDrawer');
     if (drawer) drawer.classList.remove('open');
+    toggleIconPickerBackdrop(false);
+}
+
+/**
+ * Backdrop (mobile bottom-sheet)
+ */
+function toggleIconPickerBackdrop(show) {
+    let bd = document.getElementById('iconPickerBackdrop');
+    if (show && !bd) {
+        bd = document.createElement('div');
+        bd.id = 'iconPickerBackdrop';
+        bd.className = 'icon-picker-backdrop';
+        bd.addEventListener('click', closeIconPicker);
+        document.body.appendChild(bd);
+    }
+    if (bd) bd.classList.toggle('show', show);
 }
 
 /**
@@ -396,14 +507,9 @@ function closeIconPicker() {
 function selectIcon(iconName) {
     STATE.selectedIcon = iconName;
     document.getElementById('catIcone').value = iconName;
-
-    // Atualizar preview
     updateIconPreview(iconName);
-
-    // Highlight
     highlightSelectedIcon('iconPickerGrid', iconName);
-
-    // Fechar picker
+    pushRecentIcon(iconName);
     closeIconPicker();
 }
 
@@ -445,15 +551,22 @@ function filterIcons(query) {
     if (!container) return;
     const q = query.toLowerCase().trim();
 
-    container.querySelectorAll('.icon-pick-item').forEach(item => {
-        if (!q) {
-            item.style.display = '';
-            return;
+    container.querySelectorAll('.icon-group-grid').forEach(grid => {
+        let visibleCount = 0;
+        grid.querySelectorAll('.icon-pick-item').forEach(item => {
+            if (!q) { item.style.display = ''; visibleCount++; return; }
+            const iconName = item.dataset.icon;
+            const iconData = AVAILABLE_ICONS.find(i => i.name === iconName);
+            const searchText = `${iconName} ${iconData?.label || ''}`.toLowerCase();
+            const visible = searchText.includes(q);
+            item.style.display = visible ? '' : 'none';
+            if (visible) visibleCount++;
+        });
+        const label = grid.previousElementSibling;
+        if (label?.classList.contains('icon-group-label')) {
+            label.style.display = visibleCount > 0 || !q ? '' : 'none';
         }
-        const iconName = item.dataset.icon;
-        const iconData = AVAILABLE_ICONS.find(i => i.name === iconName);
-        const searchText = `${iconName} ${iconData?.label || ''}`.toLowerCase();
-        item.style.display = searchText.includes(q) ? '' : 'none';
+        grid.style.display = visibleCount > 0 || !q ? '' : 'none';
     });
 }
 
@@ -484,17 +597,15 @@ function selectEditIcon(iconName) {
     STATE.editSelectedIcon = iconName;
     document.getElementById('editCategoriaIcone').value = iconName;
 
-    // Atualizar preview
     const preview = document.getElementById('editIconPreview');
     if (preview) {
         preview.innerHTML = `<i data-lucide="${iconName}"></i>`;
         Utils.processNewIcons();
     }
 
-    // Highlight
     highlightSelectedIcon('editIconPickerGrid', iconName);
+    pushRecentIcon(iconName);
 
-    // Fechar panel
     const panel = document.getElementById('editIconPickerPanel');
     if (panel) panel.classList.add('d-none');
 }
@@ -504,16 +615,62 @@ function filterEditIcons(query) {
     if (!container) return;
     const q = query.toLowerCase().trim();
 
-    container.querySelectorAll('.icon-pick-item').forEach(item => {
-        if (!q) {
-            item.style.display = '';
-            return;
+    container.querySelectorAll('.icon-group-grid').forEach(grid => {
+        let visibleCount = 0;
+        grid.querySelectorAll('.icon-pick-item').forEach(item => {
+            if (!q) { item.style.display = ''; visibleCount++; return; }
+            const iconName = item.dataset.icon;
+            const iconData = AVAILABLE_ICONS.find(i => i.name === iconName);
+            const searchText = `${iconName} ${iconData?.label || ''}`.toLowerCase();
+            const visible = searchText.includes(q);
+            item.style.display = visible ? '' : 'none';
+            if (visible) visibleCount++;
+        });
+        const label = grid.previousElementSibling;
+        if (label?.classList.contains('icon-group-label')) {
+            label.style.display = visibleCount > 0 || !q ? '' : 'none';
         }
-        const iconName = item.dataset.icon;
-        const iconData = AVAILABLE_ICONS.find(i => i.name === iconName);
-        const searchText = `${iconName} ${iconData?.label || ''}`.toLowerCase();
-        item.style.display = searchText.includes(q) ? '' : 'none';
+        grid.style.display = visibleCount > 0 || !q ? '' : 'none';
     });
+}
+
+// =========================================================================
+// REORDER — Move categorias up/down
+// =========================================================================
+
+async function moveCategoria(categoriaId, direction) {
+    const tipo = STATE.categorias.find(c => c.id === categoriaId)?.tipo;
+    if (!tipo) return;
+
+    const listId = tipo === 'receita' ? 'receitasList' : 'despesasList';
+    const container = document.getElementById(listId);
+    if (!container) return;
+
+    const cards = [...container.querySelectorAll('.cat-card[data-id]')];
+    const idx = cards.findIndex(c => Number(c.dataset.id) === categoriaId);
+    if (idx < 0) return;
+    if (direction === 'up' && idx === 0) return;
+    if (direction === 'down' && idx === cards.length - 1) return;
+
+    // Swap in DOM for immediate feedback
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (direction === 'up') {
+        container.insertBefore(cards[idx], cards[swapIdx]);
+    } else {
+        container.insertBefore(cards[swapIdx], cards[idx]);
+    }
+
+    // Collect new order of IDs
+    const newIds = [...container.querySelectorAll('.cat-card[data-id]')].map(c => Number(c.dataset.id));
+
+    // API call (best-effort, non-blocking)
+    try {
+        await fetch(`${CONFIG.API_URL}categorias/reorder`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': Utils.getCsrfToken() },
+            body: JSON.stringify({ ids: newIds }),
+        });
+    } catch { /* silent fail — order persists on next reload */ }
 }
 
 // =========================================================================
@@ -927,6 +1084,33 @@ export const EventListeners = {
         renderSuggestions();
         Utils.processNewIcons();
 
+        // ── Search / Filter ──────────────────────────────────────────────
+        const searchInput = document.getElementById('catSearchInput');
+        const searchClear = document.getElementById('catSearchClear');
+        let _searchTimer = null;
+
+        if (searchInput) {
+            searchInput.addEventListener('input', () => {
+                clearTimeout(_searchTimer);
+                _searchTimer = setTimeout(() => {
+                    STATE.filterQuery = searchInput.value;
+                    if (searchClear) searchClear.classList.toggle('d-none', !searchInput.value);
+                    renderCategorias();
+                    SubcategoriasModule.initSubcategoriaEvents();
+                }, 200);
+            });
+        }
+
+        if (searchClear) {
+            searchClear.addEventListener('click', () => {
+                if (searchInput) searchInput.value = '';
+                STATE.filterQuery = '';
+                searchClear.classList.add('d-none');
+                renderCategorias();
+                SubcategoriasModule.initSubcategoriaEvents();
+            });
+        }
+
         // Escutar mudança de mês do header global
         document.addEventListener('lukrato:month-changed', (e) => {
             const ym = e.detail?.month; // "2026-02"
@@ -955,6 +1139,7 @@ export const CategoriasManager = {
     editarCategoria,
     excluirCategoria,
     editarOrcamento,
+    moveCategoria,
 
     // Expose for programmatic access
     loadAll,

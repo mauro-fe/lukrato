@@ -859,10 +859,10 @@ export const ContasAPI = {
                 const tipoIcon = l.tipo === 'receita' ? 'arrow-down' : l.tipo === 'despesa' ? 'arrow-up' : 'arrow-left-right';
                 const sinal = l.tipo === 'receita' ? '+' : '-';
                 const valorFormatado = Utils.formatCurrency(Math.abs(l.valor));
-                const dataFormatada = new Date(l.data + 'T00:00:00').toLocaleDateString('pt-BR', {
-                    day: '2-digit',
-                    month: 'short'
-                });
+                const dataStr = (l.data || '').split(' ')[0];
+                const dataFormatada = dataStr
+                    ? new Date(dataStr + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
+                    : '';
 
                 return `
                     <div class="lk-historico-item lk-historico-${tipoClass}">

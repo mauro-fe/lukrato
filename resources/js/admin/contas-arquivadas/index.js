@@ -280,9 +280,9 @@ async function handleHardDelete(id, nome = '') {
 async function load() {
     try {
         grid.innerHTML = `
-            <div class="acc-skeleton"></div>
-            <div class="acc-skeleton"></div>
-            <div class="acc-skeleton"></div>`;
+            <div class="lk-skeleton lk-skeleton--card"></div>
+            <div class="lk-skeleton lk-skeleton--card"></div>
+            <div class="lk-skeleton lk-skeleton--card"></div>`;
 
         const ym = new Date().toISOString().slice(0, 7);
         const res = await fetchAPI(`contas?archived=1&with_balances=1&month=${ym}`);

@@ -331,6 +331,15 @@ class LancamentoGlobalManager {
                 e.preventDefault();
                 this.salvarLancamento();
             });
+
+            // Interceptar Enter nos inputs para avançar etapa em vez de submeter o form
+            form.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    this.nextStep();
+                }
+            });
         }
 
         // Data e hora padrão
@@ -488,6 +497,16 @@ class LancamentoGlobalManager {
 
         this.renderProgress();
 
+        // Compactar info da conta e esconder select nos steps 2+
+        const contaInfo = document.getElementById('globalContaInfo');
+        if (contaInfo) {
+            contaInfo.classList.toggle('lk-conta-info--compact', n > 1);
+        }
+        const contaSelectGroup = document.getElementById('globalContaSelect')?.closest('.lk-form-group');
+        if (contaSelectGroup) {
+            contaSelectGroup.classList.toggle('lk-conta-select--hidden', n > 1);
+        }
+
         // Scroll modal body to top
         const body = document.querySelector('#modalLancamentoGlobalOverlay .lk-modal-body-modern');
         if (body) body.scrollTop = 0;
@@ -527,6 +546,7 @@ class LancamentoGlobalManager {
     }
 
     skipAndSave() {
+        if (!this.validarFormulario()) return;
         this.salvarLancamento();
     }
 
@@ -1154,6 +1174,17 @@ class LancamentoGlobalManager {
 
     // ── Validation ───────────────────────────────────────────────────────────
     validarFormulario() {
+        if (!this.tipoAtual) {
+            Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione o tipo de lançamento', customClass: { container: 'swal-above-modal' } });
+            return false;
+        }
+
+        const contaId = document.getElementById('globalContaSelect')?.value;
+        if (!contaId) {
+            Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione a conta', customClass: { container: 'swal-above-modal' } });
+            return false;
+        }
+
         const descricao = document.getElementById('globalLancamentoDescricao')?.value.trim() || '';
         const valor = parseMoney(document.getElementById('globalLancamentoValor')?.value);
         const data = document.getElementById('globalLancamentoData')?.value || '';

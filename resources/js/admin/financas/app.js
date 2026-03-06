@@ -793,7 +793,7 @@ export const FinancasApp = {
     async openSugestoes() {
         FinancasApp.openModal('modalSugestoes');
         const list = document.getElementById('sugestoesList');
-        list.innerHTML = '<div class="loading-state"><i data-lucide="loader-2" class="icon-spin"></i><p>Analisando seu histórico...</p></div>';
+        list.innerHTML = '<div class="lk-loading-state"><i data-lucide="loader-2"></i><p>Analisando seu histórico...</p></div>';
         if (window.lucide) lucide.createIcons();
 
         try {
@@ -1143,7 +1143,7 @@ export const FinancasApp = {
     async openTemplates() {
         FinancasApp.openModal('modalTemplates');
         const grid = document.getElementById('templatesGrid');
-        grid.innerHTML = '<div class="loading-state"><i data-lucide="loader-2" class="icon-spin"></i><p>Carregando templates...</p></div>';
+        grid.innerHTML = '<div class="lk-loading-state"><i data-lucide="loader-2"></i><p>Carregando templates...</p></div>';
         if (window.lucide) lucide.createIcons();
 
         try {

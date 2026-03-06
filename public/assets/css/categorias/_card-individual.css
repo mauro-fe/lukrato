@@ -134,3 +134,35 @@
   color: var(--color-danger);
 }
 
+.cat-card-btn.reorder {
+  width: 24px;
+  height: 24px;
+  font-size: 11px;
+}
+.cat-card-btn.reorder:hover {
+  background: color-mix(in srgb, var(--color-text-muted) 15%, transparent);
+  color: var(--color-text);
+}
+
+/* ── Clickable main area (expand trigger) ── */
+.cat-card-main {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-height: 44px;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  padding: 4px 6px;
+  margin: -4px -6px;
+  transition: background 0.15s ease;
+}
+.cat-card-main:hover {
+  background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+}
+.cat-card-main:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+

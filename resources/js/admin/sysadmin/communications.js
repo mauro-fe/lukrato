@@ -106,8 +106,8 @@ async function updatePreview() {
 async function loadCampaigns(page = 1) {
     const list = document.getElementById('campaignsList');
     list.innerHTML = `
-        <div class="loading-state">
-            <i data-lucide="loader-2" class="icon-spin"></i>
+        <div class="lk-loading-state">
+            <i data-lucide="loader-2"></i>
             <span>Carregando campanhas...</span>
         </div>
     `;

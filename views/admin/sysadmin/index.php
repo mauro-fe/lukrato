@@ -361,9 +361,9 @@
 
         <!-- Error Logs Table -->
         <div class="error-logs-table-wrapper" id="errorLogsTableWrapper">
-            <div class="error-logs-loading">
-                <i data-lucide="loader-2" class="icon-spin"></i>
-                <span>Carregando logs...</span>
+            <div class="lk-loading-state">
+                <i data-lucide="loader-2"></i>
+                <p>Carregando logs...</p>
             </div>
         </div>
     </div>

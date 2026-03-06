@@ -140,10 +140,11 @@ Router::add('DELETE', '/api/contas/{id}',              'Api\\Conta\\ContasContro
 // CATEGORIAS (REST)
 // ============================================
 
-Router::add('GET',    '/api/categorias',     'Api\\Categoria\\CategoriaController@index',  ['auth']);
-Router::add('POST',   '/api/categorias',     'Api\\Categoria\\CategoriaController@store',  ['auth', 'csrf', 'ratelimit']);
-Router::add('PUT',    '/api/categorias/{id}', 'Api\\Categoria\\CategoriaController@update', ['auth', 'csrf', 'ratelimit']);
-Router::add('DELETE', '/api/categorias/{id}', 'Api\\Categoria\\CategoriaController@delete', ['auth', 'csrf', 'ratelimit']);
+Router::add('GET',    '/api/categorias',          'Api\\Categoria\\CategoriaController@index',   ['auth']);
+Router::add('POST',   '/api/categorias',          'Api\\Categoria\\CategoriaController@store',   ['auth', 'csrf', 'ratelimit']);
+Router::add('PUT',    '/api/categorias/reorder',   'Api\\Categoria\\CategoriaController@reorder', ['auth', 'csrf', 'ratelimit']);
+Router::add('PUT',    '/api/categorias/{id}',      'Api\\Categoria\\CategoriaController@update',  ['auth', 'csrf', 'ratelimit']);
+Router::add('DELETE', '/api/categorias/{id}',      'Api\\Categoria\\CategoriaController@delete',  ['auth', 'csrf', 'ratelimit']);
 
 // ============================================
 // SUBCATEGORIAS (REST)

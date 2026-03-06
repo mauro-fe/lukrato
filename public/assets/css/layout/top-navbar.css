@@ -404,6 +404,136 @@ body.sidebar-collapsed .top-navbar {
 }
 
 /* ===================================================================
+   MONTH SELECTOR IN NAVBAR
+   =================================================================== */
+
+/* Desktop: inline between title and actions, centered */
+.top-navbar-month {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Reset the <header> wrapper from header-mes.php */
+.top-navbar-month .dash-lk-header {
+  all: unset;
+  display: flex;
+  align-items: center;
+}
+
+.top-navbar-month .header-left {
+  all: unset;
+  display: flex;
+  align-items: center;
+}
+
+.top-navbar-month .month-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.top-navbar-month .lk-period,
+.top-navbar-month .lk-year-picker {
+  height: 34px;
+}
+
+.top-navbar-month .month-nav-btn {
+  width: 32px;
+  height: 34px;
+}
+
+.top-navbar-month .month-dropdown-btn {
+  font-size: 0.8rem;
+  padding: 0 var(--spacing-2);
+  height: 34px;
+}
+
+/* ===================================================================
+   MONTH SELECTOR — MOBILE SUB-BAR
+   =================================================================== */
+
+@media (max-width: 992px) {
+  /* Move month selector below navbar as a sub-bar */
+  .top-navbar-month {
+    position: fixed;
+    top: 60px; /* matches navbar height at this breakpoint */
+    left: 0;
+    right: 0;
+    height: 44px;
+    z-index: 998;
+    justify-content: center;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-backdrop);
+    -webkit-backdrop-filter: var(--glass-backdrop);
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  /* Increase content padding when month bar is present */
+  body.has-month-bar .content-wrapper {
+    padding-top: 104px; /* 60 + 44 */
+  }
+}
+
+@media (max-width: 768px) {
+  .top-navbar-month {
+    top: 56px;
+    height: 42px;
+  }
+
+  body.has-month-bar .content-wrapper {
+    padding-top: 98px; /* 56 + 42 */
+  }
+
+  .top-navbar-month .month-nav-btn {
+    width: 30px;
+    height: 32px;
+  }
+
+  .top-navbar-month .month-dropdown-btn {
+    font-size: 0.75rem;
+    height: 32px;
+  }
+
+  .top-navbar-month .lk-period,
+  .top-navbar-month .lk-year-picker {
+    height: 32px;
+  }
+}
+
+@media (max-width: 640px) {
+  .top-navbar-month {
+    top: 50px;
+    height: 40px;
+  }
+
+  body.has-month-bar .content-wrapper {
+    padding-top: 90px; /* 50 + 40 */
+  }
+
+  .top-navbar-month .month-nav-btn {
+    width: 28px;
+    height: 30px;
+  }
+
+  .top-navbar-month .month-dropdown-btn {
+    font-size: 0.7rem;
+    height: 30px;
+    padding: 0 6px;
+  }
+
+  .top-navbar-month .lk-period,
+  .top-navbar-month .lk-year-picker {
+    height: 30px;
+  }
+
+  .top-navbar-month .month-selector {
+    gap: 4px;
+  }
+}
+
+/* ===================================================================
    ADJUST CONTENT FOR TOP NAVBAR
    =================================================================== */
 

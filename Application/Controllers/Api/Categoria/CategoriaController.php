@@ -240,4 +240,26 @@ class CategoriaController extends BaseController
             'unlinked_lancamentos' => $lancamentosCount,
         ]);
     }
+
+    /**
+     * Reordena categorias do usuário.
+     * Espera { ids: [1, 3, 2, ...] }
+     */
+    public function reorder(): void
+    {
+        $this->requireAuthApi();
+        $payload = $this->getRequestPayload();
+
+        $ids = $payload['ids'] ?? null;
+        if (!is_array($ids) || empty($ids)) {
+            Response::error('Lista de IDs é obrigatória.', 422);
+            return;
+        }
+
+        // Sanitizar: apenas inteiros
+        $ids = array_map('intval', $ids);
+
+        $this->categoriaRepo->reorderForUser($this->userId, $ids);
+        Response::success(['reordered' => true]);
+    }
 }

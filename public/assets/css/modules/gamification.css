@@ -509,23 +509,6 @@
   opacity: 0.8;
 }
 
-.badge-skeleton {
-  height: 80px;
-  background: linear-gradient(90deg, #f3f4f6 0%, #e5e7eb 50%, #f3f4f6 100%);
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s infinite;
-  border-radius: 12px;
-}
-
-@keyframes skeleton-loading {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
 /* ===== MINI STATS ===== */
 .stats-row {
   display: grid;

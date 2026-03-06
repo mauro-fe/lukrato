@@ -244,6 +244,8 @@ class CartaoCredito extends Model
             $anoProximo = $anoAtual;
         }
 
-        return sprintf('%04d-%02d-%02d', $anoProximo, $mesProximo, $this->dia_vencimento);
+        $diaReal = min($this->dia_vencimento, (int) date('t', mktime(0, 0, 0, $mesProximo, 1, $anoProximo)));
+
+        return sprintf('%04d-%02d-%02d', $anoProximo, $mesProximo, $diaReal);
     }
 }

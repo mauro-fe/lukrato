@@ -211,8 +211,8 @@
                 </div>
 
                 <div class="campaigns-list" id="campaignsList">
-                    <div class="loading-state">
-                        <i data-lucide="loader-2" class="icon-spin"></i>
+                    <div class="lk-loading-state">
+                        <i data-lucide="loader-2"></i>
                         <span>Carregando campanhas...</span>
                     </div>
                 </div>
@@ -249,4 +249,3 @@
         </div>
     </div>
 </div>
-

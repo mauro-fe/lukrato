@@ -15,7 +15,8 @@ class CategoriaController extends BaseController
             'admin/categorias/index',
             [
                 'pageTitle' => 'Categorias',
-                'subTitle' => 'Crie e gerencie suas categorias de Receitas e Despesas'
+                'subTitle' => 'Crie e gerencie suas categorias de Receitas e Despesas',
+                'showMonthSelector' => true,
             ],
             'admin/partials/header',
             'admin/partials/footer'

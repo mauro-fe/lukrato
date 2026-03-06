@@ -247,19 +247,12 @@ export const UI = {
         if (area) {
             area.setAttribute('aria-busy', 'true');
             area.innerHTML = `
-                <div class="skeleton-chart" aria-label="Carregando relatório">
-                    <div class="skeleton-chart-bars">
-                        <div class="skeleton-bar"></div>
-                        <div class="skeleton-bar"></div>
-                        <div class="skeleton-bar"></div>
-                        <div class="skeleton-bar"></div>
-                        <div class="skeleton-bar"></div>
-                        <div class="skeleton-bar"></div>
-                    </div>
-                    <div class="skeleton-line medium" style="margin-top: var(--spacing-4);"></div>
-                    <div class="skeleton-line short"></div>
+                <div class="lk-loading-state">
+                    <i data-lucide="loader-2"></i>
+                    <p>Carregando relatório...</p>
                 </div>
             `;
+            if (window.lucide) lucide.createIcons();
         }
     },
 

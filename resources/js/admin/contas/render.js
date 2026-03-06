@@ -192,9 +192,9 @@ export const ContasRender = {
 
         if (show) {
             grid.innerHTML = `
-                <div class="acc-skeleton"></div>
-                <div class="acc-skeleton"></div>
-                <div class="acc-skeleton"></div>
+                <div class="lk-skeleton lk-skeleton--card"></div>
+                <div class="lk-skeleton lk-skeleton--card"></div>
+                <div class="lk-skeleton lk-skeleton--card"></div>
             `;
         }
     }

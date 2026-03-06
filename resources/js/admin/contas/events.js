@@ -133,6 +133,15 @@ export const ContasEvents = {
                 Modules.Lancamento.handleLancamentoSubmit(e.target);
             });
 
+            // Interceptar Enter nos inputs para avançar etapa em vez de submeter o form
+            newFormLancamento.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    Modules.Lancamento.nextStep();
+                }
+            });
+
             // Re-aplicar máscara de dinheiro após clonar
             ContasMoneyMask.setupLancamentoMoneyMask();
         }

@@ -143,6 +143,12 @@ export const ContasLancamento = {
 
         ContasLancamento.renderProgress();
 
+        // Compactar info da conta nos steps 2+
+        const contaInfo = document.querySelector('#modalLancamentoOverlay .lk-conta-info');
+        if (contaInfo) {
+            contaInfo.classList.toggle('lk-conta-info--compact', n > 1);
+        }
+
         // Scroll modal body to top
         const body = document.querySelector('#modalLancamentoOverlay .lk-modal-body-modern');
         if (body) body.scrollTop = 0;
@@ -176,8 +182,82 @@ export const ContasLancamento = {
     },
 
     skipAndSave() {
+        if (!ContasLancamento.validarFormularioCompleto()) return;
         const form = document.getElementById('formLancamento');
         if (form) form.requestSubmit();
+    },
+
+    validarFormularioCompleto() {
+        const tipo = ContasLancamento._tipoAtual;
+        if (!tipo) {
+            Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione o tipo de lançamento', customClass: { container: 'swal-above-modal' } });
+            return false;
+        }
+
+        const descricao = document.getElementById('lancamentoDescricao')?.value.trim() || '';
+        const valor = Utils.parseMoneyInput(document.getElementById('lancamentoValor')?.value || '0');
+        const data = document.getElementById('lancamentoData')?.value || '';
+
+        if (!descricao) {
+            Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe a descrição', customClass: { container: 'swal-above-modal' } });
+            return false;
+        }
+        if (!valor || valor <= 0) {
+            Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe um valor válido', customClass: { container: 'swal-above-modal' } });
+            return false;
+        }
+        if (!data) {
+            Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe a data', customClass: { container: 'swal-above-modal' } });
+            return false;
+        }
+
+        if (tipo === 'transferencia') {
+            const contaDest = document.getElementById('lancamentoContaDestino')?.value;
+            if (!contaDest) {
+                Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione a conta de destino', customClass: { container: 'swal-above-modal' } });
+                return false;
+            }
+        }
+
+        if (tipo === 'despesa') {
+            const cartaoId = document.getElementById('lancamentoCartaoCredito')?.value;
+            if (cartaoId && STATE.cartoes && Array.isArray(STATE.cartoes)) {
+                const cartao = STATE.cartoes.find(c => c.id == cartaoId);
+                if (cartao) {
+                    const limiteDisponivel = parseFloat(cartao.limite_disponivel || 0);
+                    if (valor > limiteDisponivel) {
+                        Swal.fire({
+                            icon: 'error', title: 'Limite Insuficiente',
+                            html: `<p>O valor (${Utils.formatCurrency(valor)}) excede o limite disponível.</p><p><strong>Limite:</strong> ${Utils.formatCurrency(limiteDisponivel)}</p>`,
+                            confirmButtonText: 'Entendi', customClass: { container: 'swal-above-modal' }
+                        });
+                        return false;
+                    }
+                }
+            }
+        }
+
+        const parcelado = document.getElementById('parceladoCheck')?.checked;
+        if (parcelado) {
+            const totalParcelas = parseInt(document.getElementById('totalParcelas')?.value) || 0;
+            if (totalParcelas < 2 || totalParcelas > 48) {
+                Swal.fire({ icon: 'warning', title: 'Atenção', text: 'O número de parcelas deve ser entre 2 e 48', customClass: { container: 'swal-above-modal' } });
+                return false;
+            }
+        }
+        const recorrente = document.getElementById('recorrenteCheck')?.checked;
+        if (recorrente) {
+            const modo = document.querySelector('input[name="recorrencia_modo"]:checked')?.value;
+            if (modo === 'quantidade') {
+                const total = parseInt(document.getElementById('recorrenciaTotal')?.value) || 0;
+                if (total < 2 || total > 120) {
+                    Swal.fire({ icon: 'warning', title: 'Atenção', text: 'A quantidade de repetições deve ser entre 2 e 120', customClass: { container: 'swal-above-modal' } });
+                    return false;
+                }
+            }
+        }
+
+        return true;
     },
 
     validateCurrentStep() {
@@ -1032,6 +1112,10 @@ export const ContasLancamento = {
      */
     async handleLancamentoSubmit(form) {
         if (STATE.isSubmitting) {
+            return;
+        }
+
+        if (!ContasLancamento.validarFormularioCompleto()) {
             return;
         }
 

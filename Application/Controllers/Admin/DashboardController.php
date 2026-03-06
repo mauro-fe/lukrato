@@ -18,6 +18,7 @@ class DashboardController extends BaseController
         $data = [
             'pageTitle' => 'Dashboard',
             'showOnboardingCongrats' => $showOnboardingCongrats,
+            'showMonthSelector' => true,
         ];
 
         $this->render(

@@ -45,3 +45,37 @@
   font-weight: 700;
 }
 
+/* ── Estado compacto (steps 2-5) ── */
+.lk-conta-info {
+  transition: padding 0.2s ease, margin-bottom 0.2s ease;
+}
+
+.lk-conta-info--compact {
+  padding: var(--spacing-2) var(--spacing-3);
+  margin-bottom: var(--spacing-3);
+}
+
+.lk-conta-info--compact .lk-conta-badge {
+  font-size: var(--font-size-sm);
+  gap: var(--spacing-2);
+}
+
+.lk-conta-info--compact .lk-conta-badge i {
+  width: 24px;
+  height: 24px;
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-xs, 4px);
+}
+
+.lk-conta-info--compact .lk-conta-saldo {
+  font-size: var(--font-size-sm);
+}
+
+.lk-conta-info--compact .lk-conta-saldo strong {
+  font-size: var(--font-size-base);
+}
+
+.lk-conta-select--hidden {
+  display: none !important;
+}
+

@@ -43,9 +43,9 @@
     <div class="cartoes-container" data-aos="fade-up">
         <div class="cartoes-grid" id="archivedGrid" aria-live="polite" aria-busy="false">
             <!-- Skeleton loader inicial -->
-            <div class="card-skeleton" aria-hidden="true"></div>
-            <div class="card-skeleton" aria-hidden="true"></div>
-            <div class="card-skeleton" aria-hidden="true"></div>
+            <div class="lk-skeleton lk-skeleton--card" aria-hidden="true"></div>
+            <div class="lk-skeleton lk-skeleton--card" aria-hidden="true"></div>
+            <div class="lk-skeleton lk-skeleton--card" aria-hidden="true"></div>
         </div>
     </div>
 </div>

@@ -114,9 +114,9 @@
     <div class="cartoes-container" id="cartoesContainer">
         <div class="cartoes-grid" id="cartoesGrid">
             <!-- Skeleton Loading -->
-            <div class="card-skeleton"></div>
-            <div class="card-skeleton"></div>
-            <div class="card-skeleton"></div>
+            <div class="lk-skeleton lk-skeleton--card"></div>
+            <div class="lk-skeleton lk-skeleton--card"></div>
+            <div class="lk-skeleton lk-skeleton--card"></div>
         </div>
 
         <!-- Empty State -->

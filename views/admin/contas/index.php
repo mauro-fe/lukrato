@@ -77,9 +77,9 @@
             </div>
             <div class="acc-grid" id="accountsGrid" aria-live="polite" aria-busy="true">
                 <!-- Skeleton loader inicial -->
-                <div class="acc-skeleton" aria-hidden="true"></div>
-                <div class="acc-skeleton" aria-hidden="true"></div>
-                <div class="acc-skeleton" aria-hidden="true"></div>
+                <div class="lk-skeleton lk-skeleton--card" aria-hidden="true"></div>
+                <div class="lk-skeleton lk-skeleton--card" aria-hidden="true"></div>
+                <div class="lk-skeleton lk-skeleton--card" aria-hidden="true"></div>
             </div>
             <!-- Fallback caso JS não carregue -->
             <noscript>

@@ -3,9 +3,6 @@
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/bundles/admin-relatorios-relatorios.css.php?v=<?= time() ?>">
 
 <div class="rel-page">
-    <!-- ==================== NAVEGAÇÃO DE MÊS ==================== -->
-    <?php include BASE_PATH . '/views/admin/partials/header-mes.php'; ?>
-
     <!-- ==================== CARDS DE RESUMO RÁPIDO ==================== -->
     <div class="quick-stats-grid">
         <div class="stat-card stat-receitas" title="Total de entradas financeiras registradas neste mês" tabindex="0">
@@ -228,8 +225,8 @@
         <!-- Área de Relatório / Gráfico -->
         <div class="modern-card report-card">
             <div class="report-area" id="reportArea">
-                <div class="loading-state">
-                    <div class="spinner"></div>
+                <div class="lk-loading-state">
+                    <i data-lucide="loader-2"></i>
                     <p>Carregando relatório...</p>
                 </div>
             </div>
@@ -268,8 +265,8 @@
                     </div>
                 <?php else: ?>
                     <div id="insightsContainer" class="insights-grid">
-                        <div class="loading-state">
-                            <div class="spinner"></div>
+                        <div class="lk-loading-state">
+                            <i data-lucide="loader-2"></i>
                             <p>Analisando seus dados...</p>
                         </div>
                     </div>
@@ -310,8 +307,8 @@
                     </div>
                 <?php else: ?>
                     <div id="comparativesContainer" class="comparatives-container">
-                        <div class="loading-state">
-                            <div class="spinner"></div>
+                        <div class="lk-loading-state">
+                            <i data-lucide="loader-2"></i>
                             <p>Carregando comparativos...</p>
                         </div>
                     </div>
@@ -321,11 +318,9 @@
     </div>
 
     <!-- ==================== LOADING ==================== -->
-    <div id="loadingParcelamentos" class="loading-container" style="display: none;">
-        <div class="loading-spinner">
-            <i data-lucide="loader-2" class="icon-spin"></i>
-            <p>Carregando faturas...</p>
-        </div>
+    <div id="loadingParcelamentos" class="lk-loading-state" style="display: none;">
+        <i data-lucide="loader-2"></i>
+        <p>Carregando faturas...</p>
     </div>
 </div>
 

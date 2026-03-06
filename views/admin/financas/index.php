@@ -2,9 +2,6 @@
 
 <section class="fin-page">
 
-    <!-- ==================== SELETOR DE MÊS (compartilhado) ==================== -->
-    <?php include BASE_PATH . '/views/admin/partials/header-mes.php'; ?>
-
     <!-- ==================== CARDS RESUMO: ORÇAMENTOS ==================== -->
     <div class="fin-summary-grid" id="summaryOrcamentos" data-aos="fade-up">
         <!-- Saúde Financeira -->
@@ -165,8 +162,8 @@
 
         <!-- Grid de orçamentos -->
         <div class="orcamentos-grid" id="orcamentosGrid">
-            <div class="loading-state">
-                <i data-lucide="loader-2" class="animate-spin"></i>
+            <div class="lk-loading-state">
+                <i data-lucide="loader-2"></i>
                 <p>Carregando orçamentos...</p>
             </div>
         </div>
@@ -214,8 +211,8 @@
 
         <!-- Grid de metas -->
         <div class="metas-grid" id="metasGrid">
-            <div class="loading-state">
-                <i data-lucide="loader-2" class="animate-spin"></i>
+            <div class="lk-loading-state">
+                <i data-lucide="loader-2"></i>
                 <p>Carregando metas...</p>
             </div>
         </div>
@@ -312,8 +309,8 @@
                 Você pode ajustar os valores antes de aplicar.
             </p>
             <div class="sugestoes-list" id="sugestoesList">
-                <div class="loading-state">
-                    <i data-lucide="loader-2" class="animate-spin"></i>
+                <div class="lk-loading-state">
+                    <i data-lucide="loader-2"></i>
                     <p>Analisando seu histórico...</p>
                 </div>
             </div>
@@ -442,8 +439,8 @@
         <div class="fin-modal-body">
             <p class="fin-modal-desc">Escolha um template para criar sua meta rapidamente.</p>
             <div class="templates-grid" id="templatesGrid">
-                <div class="loading-state">
-                    <i data-lucide="loader-2" class="animate-spin"></i>
+                <div class="lk-loading-state">
+                    <i data-lucide="loader-2"></i>
                     <p>Carregando templates...</p>
                 </div>
             </div>

@@ -44,37 +44,6 @@
   opacity: 1;
 }
 
-/* Skeleton loader melhorado */
-.card-skeleton {
-  position: relative;
-  overflow: hidden;
-}
-
-.card-skeleton::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.4),
-    transparent
-  );
-  animation: skeleton-wave 1.5s infinite;
-}
-
-@keyframes skeleton-wave {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 100%;
-  }
-}
-
 /* Dark mode */
 [data-theme="dark"] .error-state {
   background: rgba(231, 76, 60, 0.1);

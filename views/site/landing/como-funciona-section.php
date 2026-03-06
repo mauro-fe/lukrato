@@ -3,7 +3,7 @@
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
 
         <!-- Header -->
-        <TESTE class="lk-header-card max-w-3xl mx-auto text-center mb-16" data-aos="fade-up">
+        <header class="lk-header-card max-w-3xl mx-auto text-center mb-16" data-aos="fade-up">
             <div class="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 rounded-full mb-4">
                 <i data-lucide="list-checks" class="w-5 h-5 text-primary"></i>
                 <span class="text-sm font-semibold text-primary">Passo a passo</span>
@@ -17,7 +17,7 @@
             <p class="text-lg sm:text-xl text-gray-600 leading-relaxed">
                 Sem complicação. Cadastre-se, adicione suas contas e comece a ter controle total das suas finanças.
             </p>
-        </TESTE>
+        </header>
 
         <!-- Steps -->
         <div class="max-w-5xl mx-auto">

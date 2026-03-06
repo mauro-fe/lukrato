@@ -1229,23 +1229,6 @@
     margin-left: 100px !important;
   }
 
-  /* Loading ultra compacto */
-  .loading-container {
-    padding: 16px 8px;
-  }
-
-  .loading-spinner {
-    padding: 16px;
-  }
-
-  .loading-spinner i {
-    font-size: 24px;
-  }
-
-  .loading-spinner p {
-    font-size: 11px;
-  }
-
   /* Ajustes de largura */
   .filters-modern,
   .parc-card,

@@ -385,15 +385,6 @@
   border: 1px solid rgba(220, 53, 69, 0.35);
 }
 
-/* skeleton */
-.acc-skeleton {
-  height: 140px;
-  border-radius: 14px;
-  background: linear-gradient(90deg, #1b1e26 25%, #222635 37%, #1b1e26 63%);
-  background-size: 400% 100%;
-  animation: accShimmer 1.2s infinite;
-}
-
 /* ===== Animations ===== */
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
