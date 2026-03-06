@@ -32,7 +32,7 @@ body {
   line-height: 1.5;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
-header {
+.header-navbar {
   background-color: var(--color-bg) !important;
 }
 

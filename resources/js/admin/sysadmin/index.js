@@ -86,13 +86,13 @@ function updateMaintenanceButton() {
     if (maintenanceActive) {
         btn.className = 'btn-control success';
         icon.setAttribute('data-lucide', 'circle-check');
-        icon.className = '';
+        icon.removeAttribute('class');
         if (window.lucide) lucide.createIcons({ nodes: [icon] });
         text.textContent = 'Desativar Manutenção (ATIVO)';
     } else {
         btn.className = 'btn-control danger';
         icon.setAttribute('data-lucide', 'wrench');
-        icon.className = '';
+        icon.removeAttribute('class');
         if (window.lucide) lucide.createIcons({ nodes: [icon] });
         text.textContent = 'Ativar Modo Manutenção';
     }
@@ -1057,16 +1057,69 @@ document.addEventListener('click', (e) => {
         case 'openRevokeAccessModal': openRevokeAccessModal(); break;
         case 'confirmCleanupLogs': confirmCleanupLogs(); break;
         case 'navigateTo': window.location.href = btn.dataset.href; break;
-        case 'scrollTo':
-            document.getElementById(btn.dataset.target)?.scrollIntoView({ behavior: 'smooth' });
-            e.preventDefault();
-            break;
+        case 'switchTab': switchTab(btn.dataset.tab); e.preventDefault(); break;
     }
+});
+
+// ============================================================================
+// TAB NAVIGATION
+// ============================================================================
+
+const VALID_TABS = ['dashboard', 'controle', 'usuarios', 'logs'];
+const sysadminTabs = document.querySelectorAll('.sysadmin-tab');
+const sysadminPanels = document.querySelectorAll('.sysadmin-tab-panel');
+let chartsInitialized = false;
+
+function switchTab(tabId) {
+    if (!VALID_TABS.includes(tabId)) return;
+
+    sysadminTabs.forEach(t => {
+        const isActive = t.dataset.tab === tabId;
+        t.classList.toggle('active', isActive);
+        t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+    sysadminPanels.forEach(p => {
+        p.classList.toggle('active', p.id === `panel-${tabId}`);
+    });
+
+    // Persist tab preference
+    try { localStorage.setItem('sysadmin_tab', tabId); } catch (e) { }
+    history.replaceState(null, '', `#${tabId}`);
+
+    // Resize charts when switching to dashboard (Chart.js + hidden canvas fix)
+    if (tabId === 'dashboard') {
+        [usersByDayChart, userDistributionChart, subscriptionsByGatewayChart].forEach(c => {
+            if (c) c.resize();
+        });
+    }
+}
+
+// Tab click handlers
+sysadminTabs.forEach(tab => {
+    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
 });
 
 // ============================================================================
 // INITIALIZATION
 // ============================================================================
+
+// Restore active tab from URL hash or localStorage
+(function initTab() {
+    const hash = location.hash.replace('#', '');
+    let initial = 'dashboard';
+
+    if (hash && VALID_TABS.includes(hash)) {
+        initial = hash;
+    } else {
+        try {
+            const stored = localStorage.getItem('sysadmin_tab');
+            if (stored && VALID_TABS.includes(stored)) initial = stored;
+        } catch (e) { }
+    }
+
+    if (initial !== 'dashboard') switchTab(initial);
+})();
 
 // User filters form
 if (userFiltersForm) {

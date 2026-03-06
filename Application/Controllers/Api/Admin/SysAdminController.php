@@ -12,6 +12,7 @@ use Application\Services\Infrastructure\MaintenanceService;
 use Application\Services\Infrastructure\LogService;
 use Application\Enums\LogCategory;
 use Application\Enums\LogLevel;
+use Application\Validators\PasswordStrengthValidator;
 use Carbon\Carbon;
 use Exception;
 
@@ -488,8 +489,9 @@ class SysAdminController extends BaseController
             // Atualizar senha se fornecida
             if (!empty($payload['senha'])) {
                 $senha = trim($payload['senha']);
-                if (strlen($senha) < 6) {
-                    Response::error('Senha deve ter pelo menos 6 caracteres', 400);
+                $passwordErrors = PasswordStrengthValidator::validate($senha);
+                if (!empty($passwordErrors)) {
+                    Response::error(implode(' ', $passwordErrors), 400);
                     return;
                 }
                 $targetUser->senha = $senha; // O mutator fará o hash

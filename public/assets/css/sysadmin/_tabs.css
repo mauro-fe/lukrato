@@ -1,0 +1,108 @@
+/* ============================================================================
+ * SYSADMIN TABS - Navigation by tabs (same pattern as profile page)
+ * ============================================================================ */
+
+.sysadmin-tabs {
+    display: flex;
+    gap: var(--spacing-1);
+    margin-bottom: var(--spacing-6);
+    border-bottom: 2px solid var(--glass-border);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.sysadmin-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.sysadmin-tab {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-3) var(--spacing-5);
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--color-text-muted);
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+    margin-bottom: -2px;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    font-family: var(--font-primary);
+}
+
+.sysadmin-tab .tab-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sysadmin-tab .tab-icon .lucide,
+.sysadmin-tab .tab-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.sysadmin-tab:hover {
+    color: var(--color-text);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.sysadmin-tab.active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+}
+
+.sysadmin-tab.tab-danger.active {
+    color: #e74c3c;
+    border-bottom-color: #e74c3c;
+}
+
+.sysadmin-tab-panel {
+    display: none;
+    animation: sysadminTabFadeIn 0.3s ease;
+}
+
+.sysadmin-tab-panel.active {
+    display: block;
+}
+
+@keyframes sysadminTabFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile: show only icons */
+@media (max-width: 768px) {
+    .sysadmin-tab {
+        padding: var(--spacing-2) var(--spacing-3);
+        font-size: var(--font-size-xs);
+    }
+
+    .sysadmin-tab .tab-label {
+        display: none;
+    }
+
+    .sysadmin-tab .tab-icon {
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .sysadmin-tab .tab-icon .lucide,
+    .sysadmin-tab .tab-icon svg {
+        width: 20px;
+        height: 20px;
+    }
+}

@@ -530,9 +530,6 @@ export const TableManager = {
         // Build detail chips
         let detailChips = '';
         detailChips += `<div class="lk-detail-chip"><i data-lucide="wallet"></i><span class="lk-detail-label">Conta</span><span class="lk-detail-value">${Utils.escapeHtml(conta)}</span></div>`;
-        if (dataPagamentoFormatted && dataPagamentoFormatted !== '-') {
-            detailChips += `<div class="lk-detail-chip"><i data-lucide="calendar-check"></i><span class="lk-detail-label">Pago em</span><span class="lk-detail-value">${Utils.escapeHtml(dataPagamentoFormatted)}</span></div>`;
-        }
         if (formaPgto && formaPgto !== '-') {
             detailChips += `<div class="lk-detail-chip"><i data-lucide="banknote"></i><span class="lk-detail-label">Pagamento</span><span class="lk-detail-value">${formaPgto}</span></div>`;
         }

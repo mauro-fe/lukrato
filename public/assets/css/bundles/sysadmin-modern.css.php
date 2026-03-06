@@ -11,6 +11,7 @@ $cssDir = __DIR__ . '/../sysadmin';
 
 $modules = [
     '_base.css',
+    '_tabs.css',
     '_stats-grid.css',
     '_control-section.css',
     '_table-section.css',

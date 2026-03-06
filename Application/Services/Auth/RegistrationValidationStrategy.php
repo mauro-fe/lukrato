@@ -6,6 +6,7 @@ namespace Application\Services\Auth;
 use Application\DTO\Auth\RegistrationDTO;
 use Application\DTO\Auth\CredentialsDTO;
 use Application\Models\Usuario;
+use Application\Validators\PasswordStrengthValidator;
 use GUMP;
 
 class RegistrationValidationStrategy extends AbstractValidationStrategy
@@ -68,23 +69,9 @@ class RegistrationValidationStrategy extends AbstractValidationStrategy
             return; // O GUMP já trata o required
         }
 
-        $missing = [];
-
-        if (!preg_match('/[a-z]/', $senha)) {
-            $missing[] = 'uma letra minúscula';
-        }
-        if (!preg_match('/[A-Z]/', $senha)) {
-            $missing[] = 'uma letra maiúscula';
-        }
-        if (!preg_match('/[0-9]/', $senha)) {
-            $missing[] = 'um número';
-        }
-        if (!preg_match('/[^a-zA-Z0-9]/', $senha)) {
-            $missing[] = 'um caractere especial (!@#$%&*)';
-        }
-
-        if (!empty($missing)) {
-            $this->addError('password', 'A senha deve conter: ' . implode(', ', $missing) . '.');
+        $errors = PasswordStrengthValidator::validate($senha);
+        foreach ($errors as $error) {
+            $this->addError('password', $error);
         }
     }
 

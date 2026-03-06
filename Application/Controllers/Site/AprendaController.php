@@ -119,6 +119,12 @@ class AprendaController extends BaseController
             4
         );
 
+        // Layout variant: 'sidebar' or 'bottom' (default)
+        $allowedLayouts = ['sidebar', 'bottom'];
+        $layout = in_array($_GET['layout'] ?? '', $allowedLayouts, true)
+            ? $_GET['layout']
+            : 'bottom';
+
         $this->render(
             'site/aprenda/show',
             [
@@ -134,6 +140,7 @@ class AprendaController extends BaseController
                 'pageKeywords'    => $this->getArticleKeywords($post),
                 'post'            => $post,
                 'relacionados'    => $relacionados,
+                'relatedLayout'   => $layout,
                 'breadcrumbItems' => [
                     ['label' => 'Início', 'url' => BASE_URL],
                     ['label' => 'Aprenda', 'url' => rtrim(BASE_URL, '/') . '/blog'],

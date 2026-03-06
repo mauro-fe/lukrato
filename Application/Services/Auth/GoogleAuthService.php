@@ -11,6 +11,7 @@ use Application\Services\Infrastructure\LogService;
 use Application\Enums\LogCategory;
 use Google_Client;
 use Google\Service\Oauth2;
+use Application\Validators\PasswordStrengthValidator;
 use Exception;
 use RuntimeException;
 
@@ -131,7 +132,7 @@ class GoogleAuthService
     private function createUserFromGoogle(array $userInfo, string $referralCode = ''): Usuario
     {
         // Gera senha aleatória forte que passa na validação (maiúscula, minúscula, número, especial)
-        $randomPassword = bin2hex(random_bytes(12)) . 'A1@x';
+        $randomPassword = PasswordStrengthValidator::generateSecureRandom(32);
 
         $registerData = [
             'name' => $userInfo['name'] ?: strtok($userInfo['email'], '@'),

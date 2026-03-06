@@ -8,6 +8,7 @@ use Application\Contracts\Auth\PasswordResetNotificationInterface;
 use Application\Core\Exceptions\ValidationException;
 use Application\Models\PasswordReset;
 use Application\Models\Usuario;
+use Application\Validators\PasswordStrengthValidator;
 use DateTimeImmutable;
 
 class PasswordResetService
@@ -91,24 +92,9 @@ class PasswordResetService
             throw new ValidationException(['password_confirmation' => 'Senhas não conferem.']);
         }
 
-        if (strlen($newPass) < 8) {
-            throw new ValidationException(['password' => 'A senha deve ter ao menos 8 caracteres.']);
-        }
-
-        if (!preg_match('/[a-z]/', $newPass)) {
-            throw new ValidationException(['password' => 'A senha deve conter pelo menos uma letra minúscula.']);
-        }
-
-        if (!preg_match('/[A-Z]/', $newPass)) {
-            throw new ValidationException(['password' => 'A senha deve conter pelo menos uma letra maiúscula.']);
-        }
-
-        if (!preg_match('/[0-9]/', $newPass)) {
-            throw new ValidationException(['password' => 'A senha deve conter pelo menos um número.']);
-        }
-
-        if (!preg_match('/[^a-zA-Z0-9]/', $newPass)) {
-            throw new ValidationException(['password' => 'A senha deve conter pelo menos um caractere especial.']);
+        $passwordErrors = PasswordStrengthValidator::validate($newPass);
+        if (!empty($passwordErrors)) {
+            throw new ValidationException(['password' => implode(' ', $passwordErrors)]);
         }
 
         $reset = $this->repository->findValidToken($token);

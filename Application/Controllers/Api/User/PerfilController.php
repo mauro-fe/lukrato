@@ -11,6 +11,7 @@ use Application\Validators\PerfilValidator;
 use Application\Providers\PerfilControllerFactory;
 use Application\Services\Infrastructure\LogService;
 use Application\Enums\LogCategory;
+use Application\Validators\PasswordStrengthValidator;
 use Throwable;
 
 
@@ -135,26 +136,9 @@ class PerfilController
                 return;
             }
 
-            if (strlen($novaSenha) < 8) {
-                Response::validationError(['nova_senha' => 'A nova senha deve ter no mínimo 8 caracteres.']);
-                return;
-            }
-
-            // Complexidade (deve espelhar as 5 regras do frontend em perfil/index.js)
-            if (!preg_match('/[a-z]/', $novaSenha)) {
-                Response::validationError(['nova_senha' => 'A senha deve conter pelo menos uma letra minúscula.']);
-                return;
-            }
-            if (!preg_match('/[A-Z]/', $novaSenha)) {
-                Response::validationError(['nova_senha' => 'A senha deve conter pelo menos uma letra maiúscula.']);
-                return;
-            }
-            if (!preg_match('/[0-9]/', $novaSenha)) {
-                Response::validationError(['nova_senha' => 'A senha deve conter pelo menos um número.']);
-                return;
-            }
-            if (!preg_match('/[^a-zA-Z0-9]/', $novaSenha)) {
-                Response::validationError(['nova_senha' => 'A senha deve conter pelo menos um caractere especial.']);
+            $passwordErrors = PasswordStrengthValidator::validate($novaSenha);
+            if (!empty($passwordErrors)) {
+                Response::validationError(['nova_senha' => implode(' ', $passwordErrors)]);
                 return;
             }
 
