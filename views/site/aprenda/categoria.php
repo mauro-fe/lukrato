@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/aprenda.css">
 
 <!-- Breadcrumbs -->
-<nav aria-label="Breadcrumb" class="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
+<nav aria-label="Breadcrumb" class="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700" style="padding-top: 5rem;">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <ol class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
             <?php foreach ($breadcrumbItems as $i => $item): ?>

@@ -105,11 +105,14 @@ class ErrorHandler
                 "\n" . $e->getTraceAsString()
         );
 
+        $errorId = bin2hex(random_bytes(8));
+        error_log("[error_id:{$errorId}] {$e->getMessage()} in {$e->getFile()}:{$e->getLine()}");
+
         if ($this->isAjaxRequest()) {
             $this->sendJsonError([
                 'status' => 'error',
                 'message' => 'Erro inesperado no servidor.',
-                'details' => $e->getMessage()
+                'error_id' => $errorId,
             ]);
         } else {
             http_response_code(500);

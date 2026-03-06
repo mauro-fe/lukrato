@@ -54,7 +54,7 @@
 </script>
 
 <!-- Breadcrumbs -->
-<nav aria-label="Breadcrumb" class="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
+<nav aria-label="Breadcrumb" class="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700" style="padding-top: 5rem;">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <ol class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 flex-wrap">
             <?php foreach ($breadcrumbItems as $i => $item): ?>
@@ -90,7 +90,8 @@
                         </a>
                     <?php endif; ?>
 
-                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white leading-tight mb-4">
+                    <h1
+                        class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white leading-tight mb-4">
                         <?= htmlspecialchars($post->titulo) ?>
                     </h1>
 
@@ -123,8 +124,8 @@
                 <?php if ($post->imagem_capa): ?>
                     <figure class="mb-10" data-aos="fade-up">
                         <img src="<?= rtrim(BASE_URL, '/') ?>/<?= htmlspecialchars($post->imagem_capa) ?>"
-                            alt="<?= htmlspecialchars($post->titulo) ?>" class="w-full rounded-2xl shadow-lg" loading="eager"
-                            width="800" height="450">
+                            alt="<?= htmlspecialchars($post->titulo) ?>" class="w-full rounded-2xl shadow-lg"
+                            loading="eager" width="800" height="450">
                     </figure>
                 <?php endif; ?>
 
@@ -186,11 +187,11 @@
                         <div class="aprenda-sidebar-list">
                             <?php foreach ($relacionados as $i => $rel): ?>
                                 <a href="<?= rtrim(BASE_URL, '/') ?>/blog/<?= htmlspecialchars($rel->slug) ?>"
-                                    class="aprenda-sidebar-item"
-                                    data-track="related-click" data-variant="sidebar" data-position="<?= $i ?>">
+                                    class="aprenda-sidebar-item" data-track="related-click" data-variant="sidebar"
+                                    data-position="<?= $i ?>">
                                     <?php if ($rel->imagem_capa): ?>
-                                        <img src="<?= rtrim(BASE_URL, '/') ?>/<?= htmlspecialchars($rel->imagem_capa) ?>"
-                                            alt="" class="aprenda-sidebar-thumb" loading="lazy" width="64" height="64">
+                                        <img src="<?= rtrim(BASE_URL, '/') ?>/<?= htmlspecialchars($rel->imagem_capa) ?>" alt=""
+                                            class="aprenda-sidebar-thumb" loading="lazy" width="64" height="64">
                                     <?php else: ?>
                                         <div class="aprenda-sidebar-thumb aprenda-sidebar-thumb-empty">
                                             <i data-lucide="file-text" class="w-5 h-5" aria-hidden="true"></i>

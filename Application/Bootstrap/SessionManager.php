@@ -20,7 +20,7 @@ class SessionManager
     private function getSessionConfig(): array
     {
         $secure = $this->isSecureConnection();
-        $domain = $_SERVER['HTTP_HOST'] ?? '';
+        $domain = $this->getValidDomain();
 
         return [
             'lifetime' => 0,
@@ -30,6 +30,28 @@ class SessionManager
             'httponly' => true,
             'samesite' => 'Lax'
         ];
+    }
+
+    private function getValidDomain(): string
+    {
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+        $host = strtolower(explode(':', $host)[0]);
+
+        $allowed = array_filter(array_map(
+            'trim',
+            explode(',', $_ENV['ALLOWED_DOMAINS'] ?? 'lukrato.com.br,www.lukrato.com.br')
+        ));
+
+        if (in_array($host, $allowed, true)) {
+            return $host;
+        }
+
+        // Em desenvolvimento, aceitar localhost
+        if (($_ENV['APP_ENV'] ?? 'production') === 'development' && ($host === 'localhost' || str_starts_with($host, '127.'))) {
+            return $host;
+        }
+
+        return '';
     }
 
     private function isSecureConnection(): bool

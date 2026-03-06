@@ -6,6 +6,7 @@ namespace Application\Services\Lancamento;
 
 use Application\Models\Lancamento;
 use Application\Repositories\LancamentoRepository;
+use Illuminate\Database\Capsule\Manager as DB;
 
 /**
  * Service para transições de estado de lançamentos (pago/não pago).
@@ -39,14 +40,16 @@ class LancamentoStatusService
             throw new \DomainException('Lançamento cancelado não pode ser marcado como pago.');
         }
 
-        $this->lancamentoRepo->update($lancamento->id, [
-            'pago'            => 1,
-            'data_pagamento'  => date('Y-m-d'),
-            'afeta_caixa'     => 1,
-            'lembrar_antes_segundos' => null,
-            'canal_email'     => 0,
-            'canal_inapp'     => 0,
-        ]);
+        DB::transaction(function () use ($lancamento) {
+            $this->lancamentoRepo->update($lancamento->id, [
+                'pago'            => 1,
+                'data_pagamento'  => date('Y-m-d'),
+                'afeta_caixa'     => 1,
+                'lembrar_antes_segundos' => null,
+                'canal_email'     => 0,
+                'canal_inapp'     => 0,
+            ]);
+        });
 
         return $lancamento->fresh();
     }
@@ -72,11 +75,13 @@ class LancamentoStatusService
             throw new \DomainException('Este lançamento não pode ser desmarcado como pago.');
         }
 
-        $this->lancamentoRepo->update($lancamento->id, [
-            'pago'            => 0,
-            'data_pagamento'  => null,
-            'afeta_caixa'     => 0,
-        ]);
+        DB::transaction(function () use ($lancamento) {
+            $this->lancamentoRepo->update($lancamento->id, [
+                'pago'            => 0,
+                'data_pagamento'  => null,
+                'afeta_caixa'     => 0,
+            ]);
+        });
 
         return $lancamento->fresh();
     }

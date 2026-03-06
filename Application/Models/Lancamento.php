@@ -3,6 +3,7 @@
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Model Lancamento - Fonte única da verdade financeira
@@ -79,6 +80,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Lancamento extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'lancamentos';
     public $timestamps = true;
 
@@ -149,7 +152,7 @@ class Lancamento extends Model
         'data'              => 'date:Y-m-d',
         'data_pagamento'    => 'date:Y-m-d',
         'data_competencia'  => 'date:Y-m-d',
-        'valor'             => 'float',
+        'valor'             => 'decimal:2',
         'eh_transferencia'  => 'bool',
         'eh_saldo_inicial'  => 'bool',
         'cartao_credito_id' => 'int',

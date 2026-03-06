@@ -21,6 +21,11 @@ abstract class BaseRepository implements RepositoryInterface
     protected Model $model;
 
     /**
+     * Relacionamentos para eager loading na próxima query.
+     */
+    protected array $eagerLoad = [];
+
+    /**
      * Retorna o nome da classe do model.
      * 
      * @return string
@@ -37,13 +42,33 @@ abstract class BaseRepository implements RepositoryInterface
     }
 
     /**
+     * Define relacionamentos para eager loading na próxima query.
+     *
+     * @param array $relations
+     * @return static
+     */
+    public function with(array $relations): static
+    {
+        $this->eagerLoad = $relations;
+        return $this;
+    }
+
+    /**
      * Cria uma nova query builder instance.
+     * Aplica eager loading se definido.
      * 
      * @return Builder
      */
     protected function query(): Builder
     {
-        return $this->model->newQuery();
+        $query = $this->model->newQuery();
+
+        if (!empty($this->eagerLoad)) {
+            $query->with($this->eagerLoad);
+            $this->eagerLoad = [];
+        }
+
+        return $query;
     }
 
     /**

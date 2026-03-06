@@ -13,6 +13,7 @@ use Application\Repositories\ParcelamentoRepository;
 use Application\Enums\LogCategory;
 use Application\Support\FaturaHelper;
 use Application\Services\Infrastructure\LogService;
+use Illuminate\Database\Capsule\Manager as DB;
 
 /**
  * Service responsável pela exclusão de lançamentos.
@@ -47,23 +48,25 @@ class LancamentoDeletionService
      */
     public function delete(Lancamento $lancamento, int $userId, string $scope = 'single'): array
     {
-        // Se for um pagamento de fatura, reverter os itens antes de excluir
-        if ($lancamento->origem_tipo === 'pagamento_fatura' && $lancamento->cartao_credito_id) {
-            $this->reverterPagamentoFatura($lancamento);
-        }
+        return DB::transaction(function () use ($lancamento, $userId, $scope) {
+            // Se for um pagamento de fatura, reverter os itens antes de excluir
+            if ($lancamento->origem_tipo === 'pagamento_fatura' && $lancamento->cartao_credito_id) {
+                $this->reverterPagamentoFatura($lancamento);
+            }
 
-        // Recorrência (all/future)
-        if ($scope !== 'single' && $lancamento->recorrente && $lancamento->recorrencia_pai_id) {
-            return $this->deleteRecorrencia($lancamento, $userId, $scope);
-        }
+            // Recorrência (all/future)
+            if ($scope !== 'single' && $lancamento->recorrente && $lancamento->recorrencia_pai_id) {
+                return $this->deleteRecorrencia($lancamento, $userId, $scope);
+            }
 
-        // Parcelamento (all/future)
-        if ($scope !== 'single' && $lancamento->parcelamento_id) {
-            return $this->deleteParcelamento($lancamento, $userId, $scope);
-        }
+            // Parcelamento (all/future)
+            if ($scope !== 'single' && $lancamento->parcelamento_id) {
+                return $this->deleteParcelamento($lancamento, $userId, $scope);
+            }
 
-        // Exclusão simples
-        return $this->deleteSingle($lancamento, $userId);
+            // Exclusão simples
+            return $this->deleteSingle($lancamento, $userId);
+        });
     }
 
     /**

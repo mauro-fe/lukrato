@@ -32,6 +32,7 @@ class LancamentoRepository extends BaseRepository
     public function findByUser(int $userId): Collection
     {
         return $this->query()
+            ->with(['categoria', 'conta', 'cartaoCredito'])
             ->where('user_id', $userId)
             ->orderBy('data', 'desc')
             ->orderBy('id', 'desc')
@@ -50,6 +51,7 @@ class LancamentoRepository extends BaseRepository
         [$year, $monthNum] = explode('-', $month);
 
         return $this->query()
+            ->with(['categoria', 'conta', 'cartaoCredito'])
             ->where('user_id', $userId)
             ->whereYear('data', (int)$year)
             ->whereMonth('data', (int)$monthNum)
@@ -69,6 +71,7 @@ class LancamentoRepository extends BaseRepository
     public function findByPeriod(int $userId, string $startDate, string $endDate): Collection
     {
         return $this->query()
+            ->with(['categoria', 'conta', 'cartaoCredito'])
             ->where('user_id', $userId)
             ->whereBetween('data', [$startDate, $endDate])
             ->orderBy('data', 'desc')
@@ -86,6 +89,7 @@ class LancamentoRepository extends BaseRepository
     public function findByAccount(int $userId, int $contaId): Collection
     {
         return $this->query()
+            ->with(['categoria', 'conta', 'cartaoCredito'])
             ->where('user_id', $userId)
             ->where(function ($query) use ($contaId) {
                 $query->where('conta_id', $contaId)
@@ -105,6 +109,7 @@ class LancamentoRepository extends BaseRepository
     public function findByCategory(int $userId, int $categoriaId): Collection
     {
         return $this->query()
+            ->with(['categoria', 'conta', 'cartaoCredito'])
             ->where('user_id', $userId)
             ->where('categoria_id', $categoriaId)
             ->orderBy('data', 'desc')
@@ -121,6 +126,7 @@ class LancamentoRepository extends BaseRepository
     public function findByType(int $userId, LancamentoTipo $tipo): Collection
     {
         return $this->query()
+            ->with(['categoria', 'conta', 'cartaoCredito'])
             ->where('user_id', $userId)
             ->where('tipo', $tipo->value)
             ->orderBy('data', 'desc')

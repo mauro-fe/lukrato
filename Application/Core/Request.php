@@ -16,12 +16,14 @@ class Request
     private readonly string $method;
     private readonly array $headers;
     private readonly ?array $json;
+    private readonly string $rawInput;
 
     public function __construct()
     {
         $this->method  = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
         $this->headers = $this->normalizeHeaders(getallheaders() ?: []);
         $this->files   = $_FILES ?? [];
+        $this->rawInput = file_get_contents('php://input') ?: '';
 
         $this->parseData();
     }
@@ -35,7 +37,7 @@ class Request
         $contentType = $this->contentType();
 
         if (str_contains($contentType, 'application/json')) {
-            $raw = file_get_contents('php://input') ?: '';
+            $raw = $this->rawInput;
             if ($raw) {
                 try {
                     $decoded = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
@@ -50,7 +52,7 @@ class Request
             if ($this->isPost()) {
                 $body = $_POST ?? [];
             } else {
-                $raw = file_get_contents('php://input') ?: '';
+                $raw = $this->rawInput;
                 parse_str($raw, $parsed);
                 if (is_array($parsed)) $body = $parsed;
             }
@@ -61,7 +63,7 @@ class Request
         $this->body = $body;
         $this->json = $json;
 
-
+        // Body tem prioridade sobre query para evitar injeção via URL params
         $this->data = array_merge($this->query, $this->body);
     }
 
@@ -233,17 +235,28 @@ class Request
 
     public function ip(): string
     {
-        $keys = ['HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP', 'REMOTE_ADDR'];
-        foreach ($keys as $key) {
-            if (!empty($_SERVER[$key])) {
-                foreach (explode(',', $_SERVER[$key]) as $ip) {
-                    $ip = trim($ip);
-                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-                        return $ip;
+        $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+
+        $trustedProxies = array_filter(array_map(
+            'trim',
+            explode(',', $_ENV['TRUSTED_PROXIES'] ?? '')
+        ));
+
+        // Só aceitar headers de proxy se a requisição vier de um proxy confiável
+        if (!empty($trustedProxies) && in_array($remoteAddr, $trustedProxies, true)) {
+            $forwardedHeaders = ['HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP'];
+            foreach ($forwardedHeaders as $key) {
+                if (!empty($_SERVER[$key])) {
+                    foreach (explode(',', $_SERVER[$key]) as $ip) {
+                        $ip = trim($ip);
+                        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                            return $ip;
+                        }
                     }
                 }
             }
         }
-        return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+
+        return $remoteAddr;
     }
 }

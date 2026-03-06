@@ -60,7 +60,7 @@ if (!$useRedis) {
     $sessionPath = BASE_PATH . '/storage/sessions';
 
     if (!is_dir($sessionPath)) {
-        @mkdir($sessionPath, 0755, true);
+        @mkdir($sessionPath, 0700, true);
     }
 
     ini_set('session.save_handler', 'files');
