@@ -1065,7 +1065,7 @@ document.addEventListener('click', (e) => {
 // TAB NAVIGATION
 // ============================================================================
 
-const VALID_TABS = ['dashboard', 'controle', 'usuarios', 'logs'];
+const VALID_TABS = ['dashboard', 'controle', 'usuarios', 'logs', 'ia'];
 const sysadminTabs = document.querySelectorAll('.sysadmin-tab');
 const sysadminPanels = document.querySelectorAll('.sysadmin-tab-panel');
 let chartsInitialized = false;

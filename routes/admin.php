@@ -56,7 +56,8 @@ Router::add('GET', '/sysadmin/comunicacoes', 'SysAdmin\\CommunicationController@
 
 // SysAdmin - Blog / Aprenda
 Router::add('GET', '/sysadmin/blog', 'SysAdmin\\BlogViewController@index', ['auth', 'sysadmin']);
-
+// SysAdmin - Assistente IA
+Router::add('GET', '/sysadmin/ai', 'SysAdmin\AiViewController@index', ['auth', 'sysadmin']);
 
 
 // Redirects legados
