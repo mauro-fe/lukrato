@@ -19,14 +19,19 @@ class AiViewController extends BaseController
             return;
         }
 
+        $provider = strtolower($_ENV['AI_PROVIDER'] ?? 'openai');
+        $model = $provider === 'ollama'
+            ? ($_ENV['OLLAMA_MODEL'] ?? 'gemma3:1b')
+            : ($_ENV['AI_MODEL'] ?? 'gpt-4o-mini');
+
         $this->render(
             'admin/sysadmin/ai',
             [
                 'pageTitle'      => 'Assistente IA - SysAdmin',
                 'subTitle'       => 'Chat e ferramentas de inteligência artificial',
                 'skipPlanLimits' => true,
-                'aiProvider'     => strtoupper($_ENV['AI_PROVIDER'] ?? 'openai'),
-                'aiModel'        => $_ENV['AI_MODEL'] ?? 'gpt-4o-mini',
+                'aiProvider'     => strtoupper($provider),
+                'aiModel'        => $model,
             ],
             'admin/partials/header',
             'admin/partials/footer'

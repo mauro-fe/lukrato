@@ -468,18 +468,24 @@
         const statusDot = document.getElementById('statusDot');
         const statusText = document.getElementById('statusText');
 
-        const BASE = (window.BASE_URL || '/');
+        const BASE = (window.BASE_URL || document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
         let isLoading = false;
 
         // ── status do serviço Python ────────────────────────────────
         async function checkServiceHealth() {
             try {
                 const res = await fetch(`${BASE}api/sysadmin/ai/health-proxy`, {
-                    signal: AbortSignal.timeout(5000),
-                }).catch(() => null);
-
-                // fallback: se não tiver proxy, tenta o chat com um ping
-                setStatus(true, 'Online');
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    signal: AbortSignal.timeout(8000),
+                });
+                const data = await res.json();
+                if (data.success) {
+                    setStatus(true, 'Online');
+                } else {
+                    setStatus(false, 'Offline');
+                }
             } catch {
                 setStatus(false, 'Offline');
             }
@@ -545,23 +551,34 @@
                     body: JSON.stringify({
                         message
                     }),
-                    signal: AbortSignal.timeout(20000),
+                    signal: AbortSignal.timeout(120000),
                 });
 
-                const data = await res.json();
-
                 typingEl.remove();
+
+                if (!res.ok) {
+                    let errMsg = `Erro HTTP ${res.status}`;
+                    try {
+                        const errData = await res.json();
+                        errMsg = errData.message || errData.errors?.csrf_token || errMsg;
+                    } catch {}
+                    appendMessage('ai', errMsg);
+                    return;
+                }
+
+                const data = await res.json();
 
                 if (data.success && data.data?.response) {
                     appendMessage('ai', data.data.response);
                     setStatus(true, 'Online');
                 } else {
                     appendMessage('ai', data.message || 'O assistente não retornou uma resposta.');
-                    setStatus(false, 'Erro');
                 }
             } catch (err) {
                 typingEl.remove();
-                appendMessage('ai',
+                const isTimeout = err?.name === 'TimeoutError';
+                appendMessage('ai', isTimeout ?
+                    'A resposta demorou demais. O modelo local pode estar sobrecarregado — tente novamente.' :
                     'Não foi possível conectar ao assistente de IA. Verifique se o serviço Python está rodando na porta 8002.'
                 );
                 setStatus(false, 'Offline');

@@ -24,7 +24,7 @@ class OllamaProvider implements AIProvider
         $this->internalToken = $_ENV['AI_INTERNAL_TOKEN'] ?? '';
 
         $this->client = new Client([
-            'timeout'         => 60, // Ollama local pode ser mais lento
+            'timeout'         => 120, // Ollama local pode ser mais lento com contexto
             'connect_timeout' => 5,
         ]);
     }
@@ -42,7 +42,7 @@ class OllamaProvider implements AIProvider
             'headers' => $this->headers(),
             'json'    => [
                 'message'  => $prompt,
-                'context'  => $context,
+                'context'  => empty($context) ? new \stdClass() : $context,
                 'provider' => 'ollama',
             ],
         ]);

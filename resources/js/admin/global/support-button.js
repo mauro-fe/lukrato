@@ -236,3 +236,7 @@ function sendSupportMessage(data) {
             });
         });
 }
+
+// ─── Expor no escopo global para uso via onclick inline ─────────────────────
+window.openSupportModal = openSupportModal;
+window.sendSupportMessage = sendSupportMessage;

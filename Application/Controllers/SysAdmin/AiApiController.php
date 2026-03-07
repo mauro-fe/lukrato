@@ -8,6 +8,8 @@ use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Services\AI\AIService;
+use Application\Services\AI\SystemContextService;
+use GuzzleHttp\Client;
 
 class AiApiController extends BaseController
 {
@@ -15,6 +17,34 @@ class AiApiController extends BaseController
     {
         $user = Auth::user();
         return $user && $user->is_admin == 1;
+    }
+
+    /**
+     * GET /api/sysadmin/ai/health-proxy
+     */
+    public function healthProxy(): void
+    {
+        $this->requireAuthApi();
+
+        if (!$this->isAdmin()) {
+            Response::error('Acesso negado', 403);
+            return;
+        }
+
+        $serviceUrl = rtrim($_ENV['AI_SERVICE_URL'] ?? 'http://127.0.0.1:8002', '/');
+
+        try {
+            $client = new Client(['timeout' => 5, 'connect_timeout' => 3]);
+            $res    = $client->get("{$serviceUrl}/health");
+            $data   = json_decode($res->getBody()->getContents(), true);
+
+            Response::success($data ?? ['status' => 'ok']);
+        } catch (\Throwable $e) {
+            Response::json([
+                'success' => false,
+                'message' => 'Serviço Python offline',
+            ], 503);
+        }
     }
 
     /**
@@ -44,6 +74,9 @@ class AiApiController extends BaseController
             Response::error('Mensagem muito longa (máximo 2000 caracteres)', 422);
             return;
         }
+
+        $systemContext = (new SystemContextService())->gather();
+        $context = array_merge($systemContext, $context);
 
         $ai       = new AIService();
         $response = $ai->chat($message, $context);

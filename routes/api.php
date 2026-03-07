@@ -346,9 +346,10 @@ Router::add('GET',    '/api/sysadmin/blog/categorias',  'SysAdmin\\BlogControlle
 // ============================================// IA (SYSADMIN)
 // ============================================
 
-Router::add('POST', '/api/sysadmin/ai/chat',             'SysAdmin\AiApiController@chat',            ['auth', 'sysadmin', 'csrf', 'ratelimit']);
-Router::add('POST', '/api/sysadmin/ai/suggest-category', 'SysAdmin\AiApiController@suggestCategory',  ['auth', 'sysadmin', 'ratelimit']);
-Router::add('POST', '/api/sysadmin/ai/analyze-spending', 'SysAdmin\AiApiController@analyzeSpending',  ['auth', 'sysadmin', 'csrf', 'ratelimit']);
+Router::add('GET',  '/api/sysadmin/ai/health-proxy',    'SysAdmin\\AiApiController@healthProxy',     ['auth', 'sysadmin']);
+Router::add('POST', '/api/sysadmin/ai/chat',             'SysAdmin\\AiApiController@chat',            ['auth', 'sysadmin', 'csrf', 'ratelimit']);
+Router::add('POST', '/api/sysadmin/ai/suggest-category', 'SysAdmin\\AiApiController@suggestCategory',  ['auth', 'sysadmin', 'ratelimit']);
+Router::add('POST', '/api/sysadmin/ai/analyze-spending', 'SysAdmin\\AiApiController@analyzeSpending',  ['auth', 'sysadmin', 'csrf', 'ratelimit']);
 
 // ============================================// CAMPANHAS DE MENSAGENS (SYSADMIN)
 // ============================================
