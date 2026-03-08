@@ -58,38 +58,39 @@ class CustomerService
     public function ensureAsaasCustomer(Usuario $usuario, AsaasService $asaas, array $holderInfo = []): void
     {
         $customerData = $this->buildCustomerData($usuario, $holderInfo);
-        
+
         // Fallback: usar CPF do formulário se não tiver no banco
         $cpf = $customerData->cpf ?: ($holderInfo['cpfCnpj'] ?? null);
         $phone = $customerData->mobilePhone ?: ($holderInfo['mobilePhone'] ?? null);
         $cep = $customerData->postalCode ?: ($holderInfo['postalCode'] ?? null);
 
-        // Se já tem cliente no Asaas, verifica se precisa atualizar o CPF
+        // Se já tem cliente no Asaas, verifica se ainda é válido e atualiza se necessário
         if (!empty($usuario->external_customer_id) && $usuario->gateway === 'asaas') {
-            // Se temos CPF, garante que está atualizado no Asaas
-            if ($cpf) {
-                try {
-                    $existingCustomer = $asaas->getCustomer($usuario->external_customer_id);
-                    
-                    // Se o cliente no Asaas não tem CPF, atualiza
-                    if (empty($existingCustomer['cpfCnpj'])) {
-                        $updatePayload = ['cpfCnpj' => $cpf];
-                        
-                        if ($phone) {
-                            $updatePayload['mobilePhone'] = $phone;
-                        }
-                        if ($cep) {
-                            $updatePayload['postalCode'] = $cep;
-                            $updatePayload['addressNumber'] = $customerData->addressNumber ?? 'S/N';
-                        }
-                        
-                        $asaas->updateCustomer($usuario->external_customer_id, $updatePayload);
+            try {
+                $existingCustomer = $asaas->getCustomer($usuario->external_customer_id);
+
+                // Cliente existe no Asaas — atualizar CPF se necessário
+                if ($cpf && empty($existingCustomer['cpfCnpj'])) {
+                    $updatePayload = ['cpfCnpj' => $cpf];
+
+                    if ($phone) {
+                        $updatePayload['mobilePhone'] = $phone;
                     }
-                } catch (\Throwable $e) {
-                    // Log mas não falha - cliente já existe
+                    if ($cep) {
+                        $updatePayload['postalCode'] = $cep;
+                        $updatePayload['addressNumber'] = $customerData->addressNumber ?? 'S/N';
+                    }
+
+                    $asaas->updateCustomer($usuario->external_customer_id, $updatePayload);
                 }
+                return;
+            } catch (\Throwable $e) {
+                // Customer inválido no Asaas — limpar e recriar abaixo
+                error_log("⚠️ [CUSTOMER] Customer {$usuario->external_customer_id} inválido no Asaas para user {$usuario->id}. Recriando...");
+                $usuario->external_customer_id = null;
+                $usuario->gateway = null;
+                $usuario->save();
             }
-            return;
         }
 
         $payload = [
