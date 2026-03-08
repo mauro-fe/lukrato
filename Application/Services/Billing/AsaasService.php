@@ -5,6 +5,7 @@ namespace Application\Services\Billing;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Application\Services\Infrastructure\CircuitBreakerService;
+use Application\Core\Exceptions\ClientErrorException;
 use Application\Enums\LogLevel;
 use Application\Enums\LogCategory;
 use Application\Services\Infrastructure\LogService;
@@ -79,17 +80,23 @@ class AsaasService
 
             $statusCode = $response->getStatusCode();
             $rawBody    = (string) $response->getBody();
-            $data       = json_decode($rawBody, true);
 
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                LogService::persist(
-                    LogLevel::ERROR,
-                    LogCategory::PAYMENT,
-                    'Resposta inválida do Asaas (JSON)',
-                    ['status' => $statusCode, 'body' => $rawBody],
-                );
+            // Tratar body vazio (ex: 404 sem corpo)
+            if (trim($rawBody) === '') {
+                $data = null;
+            } else {
+                $data = json_decode($rawBody, true);
 
-                throw new \RuntimeException('Resposta inesperada do Asaas. Tente novamente em instantes.');
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    LogService::persist(
+                        LogLevel::ERROR,
+                        LogCategory::PAYMENT,
+                        'Resposta inválida do Asaas (JSON)',
+                        ['status' => $statusCode, 'body' => $rawBody],
+                    );
+
+                    throw new \RuntimeException('Resposta inesperada do Asaas. Tente novamente em instantes.');
+                }
             }
 
             if ($statusCode >= 200 && $statusCode < 300) {
@@ -99,20 +106,25 @@ class AsaasService
             // Formato de erro padrão do Asaas
             $message = $data['errors'][0]['description']
                 ?? $data['message']
-                ?? 'Erro desconhecido na API do Asaas';
+                ?? 'Erro desconhecido na API do Asaas (HTTP ' . $statusCode . ')';
 
-            if (class_exists(LogService::class)) {
-                LogService::persist(
-                    LogLevel::ERROR,
-                    LogCategory::PAYMENT,
-                    'Erro retornado do Asaas',
-                    [
-                        'status'  => $statusCode,
-                        'message' => $message,
-                        'uri'     => $uri,
-                        'method'  => $method,
-                    ],
-                );
+            $logLevel = ($statusCode >= 500) ? LogLevel::ERROR : LogLevel::WARNING;
+
+            LogService::persist(
+                $logLevel,
+                LogCategory::PAYMENT,
+                'Erro retornado do Asaas',
+                [
+                    'status'  => $statusCode,
+                    'message' => $message,
+                    'uri'     => $uri,
+                    'method'  => $method,
+                ],
+            );
+
+            // 4xx = erro do cliente (não deve afetar o Circuit Breaker)
+            if ($statusCode >= 400 && $statusCode < 500) {
+                throw new ClientErrorException($statusCode, $message);
             }
 
             throw new \RuntimeException($message);

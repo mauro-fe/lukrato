@@ -3,6 +3,7 @@
 namespace Application\Services\Infrastructure;
 
 use Application\Services\Infrastructure\LogService;
+use Application\Core\Exceptions\ClientErrorException;
 use Application\Enums\LogLevel;
 use Application\Enums\LogCategory;
 
@@ -157,6 +158,9 @@ class CircuitBreakerService
             $result = $callback();
             $this->recordSuccess();
             return $result;
+        } catch (ClientErrorException $e) {
+            // Erros 4xx são do cliente, não do serviço — não contabilizar como falha
+            throw $e;
         } catch (\Throwable $e) {
             $this->recordFailure($e);
             throw $e;
