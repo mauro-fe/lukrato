@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI;
 
+use Application\Lib\Auth;
 use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\Providers\OllamaProvider;
 use Application\Services\AI\Providers\OpenAIProvider;
@@ -46,9 +47,13 @@ class AIService
      */
     public function chat(string $prompt, array $context = []): string
     {
+        $start = microtime(true);
         try {
-            return $this->provider->chat($prompt, $context);
+            $response = $this->provider->chat($prompt, $context);
+            $this->logInteraction('chat', $prompt, $response, $start);
+            return $response;
         } catch (Throwable $e) {
+            $this->logInteraction('chat', $prompt, null, $start, $e->getMessage());
             LogService::error('[AIService] chat() falhou', [
                 'error'    => $e->getMessage(),
                 'provider' => $_ENV['AI_PROVIDER'] ?? 'openai',
@@ -63,9 +68,13 @@ class AIService
      */
     public function suggestCategory(string $description, array $availableCategories = []): ?string
     {
+        $start = microtime(true);
         try {
-            return $this->provider->suggestCategory($description, $availableCategories);
+            $result = $this->provider->suggestCategory($description, $availableCategories);
+            $this->logInteraction('suggest_category', $description, $result, $start);
+            return $result;
         } catch (Throwable $e) {
+            $this->logInteraction('suggest_category', $description, null, $start, $e->getMessage());
             LogService::error('[AIService] suggestCategory() falhou', [
                 'error'       => $e->getMessage(),
                 'description' => $description,
@@ -82,15 +91,57 @@ class AIService
      */
     public function analyzeSpending(array $data, string $period = 'último mês'): array
     {
+        $start = microtime(true);
+        $promptText = "Análise de gastos — período: {$period}";
         try {
-            return $this->provider->analyzeSpending($data, $period);
+            $result = $this->provider->analyzeSpending($data, $period);
+            $this->logInteraction('analyze_spending', $promptText, json_encode($result, JSON_UNESCAPED_UNICODE), $start);
+            return $result;
         } catch (Throwable $e) {
+            $this->logInteraction('analyze_spending', $promptText, null, $start, $e->getMessage());
             LogService::error('[AIService] analyzeSpending() falhou', [
                 'error'  => $e->getMessage(),
                 'period' => $period,
             ]);
 
             return [];
+        }
+    }
+
+    // ─── Logging ───────────────────────────────────────────────
+
+    private function logInteraction(string $type, string $prompt, ?string $response, float $startTime, ?string $error = null): void
+    {
+        try {
+            $elapsed = (int) round((microtime(true) - $startTime) * 1000);
+            $providerName = strtolower($_ENV['AI_PROVIDER'] ?? 'openai');
+            $model = ($this->provider instanceof OpenAIProvider)
+                ? $this->provider->getModel()
+                : ($providerName === 'ollama' ? ($_ENV['OLLAMA_MODEL'] ?? 'llama3') : ($_ENV['OPENAI_MODEL'] ?? 'gpt-4o-mini'));
+
+            $meta = ($this->provider instanceof OpenAIProvider)
+                ? $this->provider->getLastMeta()
+                : [];
+
+            $user = Auth::user();
+            $userId = $user?->id;
+
+            AiLogService::log([
+                'user_id'           => $userId,
+                'type'              => $type,
+                'prompt'            => $prompt,
+                'response'          => $error ? null : $response,
+                'provider'          => $providerName,
+                'model'             => $model,
+                'tokens_prompt'     => $meta['tokens_prompt'] ?? null,
+                'tokens_completion' => $meta['tokens_completion'] ?? null,
+                'tokens_total'      => $meta['tokens_total'] ?? null,
+                'response_time_ms'  => $elapsed,
+                'success'           => $error === null,
+                'error_message'     => $error,
+            ]);
+        } catch (Throwable) {
+            // Nunca deixar logging quebrar o fluxo principal
         }
     }
 }

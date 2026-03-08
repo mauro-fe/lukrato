@@ -47,7 +47,7 @@ class LancamentosCollector implements ContextCollectorInterface
                 'lancamentos.recorrente',
                 'categorias.nome as categoria',
                 'contas.nome as conta',
-                'cartoes_credito.nome as cartao'
+                'cartoes_credito.nome_cartao as cartao'
             )
             ->orderByDesc('lancamentos.data')
             ->orderByDesc('lancamentos.id')

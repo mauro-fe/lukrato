@@ -444,12 +444,49 @@
 
                 <hr class="divider">
 
+                <!-- Quota inline -->
+                <div id="sideQuota">
+                    <div class="status-row">
+                        <span><i data-lucide="gauge" style="width:12px;height:12px;vertical-align:middle;margin-right:.2rem;"></i> Quota</span>
+                        <span id="sideQuotaStatus" style="font-weight:600;font-size:.7rem;">Verificando...</span>
+                    </div>
+                    <div id="sideQuotaDetails" style="display:none;">
+                        <div style="margin:.4rem 0 .2rem;font-size:.7rem;color:var(--color-text-muted);">Requisições</div>
+                        <div style="background:var(--color-surface-muted);border-radius:999px;height:6px;overflow:hidden;">
+                            <div id="sideReqBar" style="height:100%;border-radius:999px;width:0%;background:var(--color-success);transition:width .4s ease;"></div>
+                        </div>
+                        <div style="font-size:.65rem;color:var(--color-text-muted);margin-top:.15rem;"><strong id="sideReqVal">—</strong></div>
+
+                        <div style="margin:.4rem 0 .2rem;font-size:.7rem;color:var(--color-text-muted);">Tokens</div>
+                        <div style="background:var(--color-surface-muted);border-radius:999px;height:6px;overflow:hidden;">
+                            <div id="sideTokBar" style="height:100%;border-radius:999px;width:0%;background:var(--color-success);transition:width .4s ease;"></div>
+                        </div>
+                        <div style="font-size:.65rem;color:var(--color-text-muted);margin-top:.15rem;"><strong id="sideTokVal">—</strong></div>
+                    </div>
+                    <div id="sideQuotaMsg" style="display:none;font-size:.7rem;color:var(--color-danger);margin-top:.3rem;word-break:break-word;"></div>
+                </div>
+
+                <hr class="divider">
+
                 <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);line-height:1.5;">
                     <strong>Endpoints disponíveis:</strong><br>
                     <code style="font-size:.75rem;">POST /api/sysadmin/ai/chat</code><br>
                     <code style="font-size:.75rem;">POST /api/sysadmin/ai/suggest-category</code><br>
                     <code style="font-size:.75rem;">POST /api/sysadmin/ai/analyze-spending</code>
                 </div>
+            </div>
+
+            <!-- Últimas Interações -->
+            <div class="side-card">
+                <h3><i data-lucide="file-text" style="color:var(--blue-600);width:16px;height:16px;"></i> Últimas Interações</h3>
+                <div id="recentLogs" style="display:flex;flex-direction:column;gap:.4rem;">
+                    <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);text-align:center;padding:.5rem 0;">Carregando...</div>
+                </div>
+                <hr class="divider">
+                <a href="<?= BASE_URL ?>sysadmin/ai/logs" style="display:flex;align-items:center;justify-content:center;gap:.4rem;font-size:var(--font-size-xs);font-weight:600;color:var(--blue-600);text-decoration:none;">
+                    <i data-lucide="external-link" style="width:13px;height:13px;"></i>
+                    Ver todos os logs
+                </a>
             </div>
 
         </div>
@@ -616,6 +653,121 @@
 
         // ── init ────────────────────────────────────────────────────
         checkServiceHealth();
+        loadSideQuota();
+        loadRecentLogs();
         inputEl.focus();
     })();
+
+    // ── Side Quota ──────────────────────────────────────────────
+    async function loadSideQuota() {
+        const BASE = (window.BASE_URL || document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
+        const statusEl = document.getElementById('sideQuotaStatus');
+        const detailsEl = document.getElementById('sideQuotaDetails');
+        const msgEl = document.getElementById('sideQuotaMsg');
+        if (!statusEl) return;
+
+        function fmtN(n) {
+            return (n || 0).toLocaleString('pt-BR');
+        }
+
+        function barCol(pct) {
+            if (pct > 50) return 'var(--color-success)';
+            if (pct > 20) return 'var(--color-warning)';
+            return 'var(--color-danger)';
+        }
+
+        try {
+            const res = await fetch(`${BASE}api/sysadmin/ai/quota`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                signal: AbortSignal.timeout(15000),
+            });
+            const json = await res.json();
+            const d = json.data;
+            if (!d) {
+                statusEl.textContent = 'Erro';
+                return;
+            }
+
+            const labels = {
+                active: 'Ativo',
+                quota_exceeded: 'Quota Excedida',
+                invalid_key: 'Chave Inválida',
+                error: 'Erro'
+            };
+            const colors = {
+                active: 'var(--color-success)',
+                quota_exceeded: 'var(--color-danger)',
+                invalid_key: 'var(--color-danger)',
+                error: 'var(--color-warning)'
+            };
+
+            statusEl.textContent = labels[d.status] || d.status;
+            statusEl.style.color = colors[d.status] || '';
+
+            if (d.status === 'active') {
+                detailsEl.style.display = '';
+
+                const reqPct = d.requests_limit > 0 ? (d.requests_remaining / d.requests_limit * 100) : 0;
+                document.getElementById('sideReqBar').style.width = reqPct + '%';
+                document.getElementById('sideReqBar').style.background = barCol(reqPct);
+                document.getElementById('sideReqVal').textContent = fmtN(d.requests_remaining) + ' / ' + fmtN(d.requests_limit);
+
+                const tokPct = d.tokens_limit > 0 ? (d.tokens_remaining / d.tokens_limit * 100) : 0;
+                document.getElementById('sideTokBar').style.width = tokPct + '%';
+                document.getElementById('sideTokBar').style.background = barCol(tokPct);
+                document.getElementById('sideTokVal').textContent = fmtN(d.tokens_remaining) + ' / ' + fmtN(d.tokens_limit);
+            }
+
+            if (d.message && d.status !== 'active') {
+                msgEl.textContent = d.message;
+                msgEl.style.display = '';
+            }
+        } catch {
+            statusEl.textContent = 'Erro';
+            statusEl.style.color = 'var(--color-danger)';
+        }
+    }
+
+    // ── Recent logs sidebar ─────────────────────────────────────
+    async function loadRecentLogs() {
+        const BASE = (window.BASE_URL || document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
+        const container = document.getElementById('recentLogs');
+        if (!container) return;
+
+        try {
+            const res = await fetch(`${BASE}api/sysadmin/ai/logs/summary?hours=24`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            const json = await res.json();
+            if (!json.success || !json.data.recentes?.length) {
+                container.innerHTML = '<div style="font-size:var(--font-size-xs);color:var(--color-text-muted);text-align:center;padding:.5rem 0;">Nenhuma interação recente</div>';
+                return;
+            }
+
+            const typeLabels = {
+                chat: 'Chat',
+                suggest_category: 'Sugestão',
+                analyze_spending: 'Análise'
+            };
+            let html = '';
+            json.data.recentes.forEach(log => {
+                const d = new Date(log.created_at);
+                const time = d.toLocaleTimeString('pt-BR', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                const label = typeLabels[log.type] || log.type;
+                const statusColor = log.success ? 'var(--color-success)' : 'var(--color-danger)';
+                html += `<div class="status-row"><span style="display:flex;align-items:center;gap:.3rem;"><span class="dot" style="background:${statusColor};"></span>${label}</span><span>${log.tokens_total || '—'} tok · ${time}</span></div>`;
+            });
+            html += `<div class="status-row" style="margin-top:.25rem;"><span>Total (24h)</span><span style="font-weight:600;">${json.data.total} chamadas</span></div>`;
+            container.innerHTML = html;
+        } catch {
+            container.innerHTML = '<div style="font-size:var(--font-size-xs);color:var(--color-text-muted);text-align:center;padding:.5rem 0;">Erro ao carregar</div>';
+        }
+    }
 </script>

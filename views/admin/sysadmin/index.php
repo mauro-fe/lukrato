@@ -448,6 +448,11 @@
                 <i data-lucide="external-link" style="width:16px;height:16px;"></i>
                 Abrir Assistente IA
             </a>
+            <a href="<?= BASE_URL ?>sysadmin/ai/logs" style="display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1.5rem;background:transparent;color:#7c3aed;border:1px solid #7c3aed;border-radius:.625rem;text-decoration:none;font-weight:600;font-size:.9rem;transition:background .15s,color .15s;"
+                onmouseover="this.style.background='#7c3aed';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#7c3aed'">
+                <i data-lucide="file-text" style="width:16px;height:16px;"></i>
+                Logs da IA
+            </a>
             <div style="display:flex;gap:1.5rem;flex-wrap:wrap;justify-content:center;margin-top:.5rem;">
                 <div style="text-align:center;">
                     <div style="font-size:1.4rem;font-weight:700;color:#7c3aed;">3</div>

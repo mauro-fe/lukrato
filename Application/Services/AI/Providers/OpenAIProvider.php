@@ -21,6 +21,8 @@ class OpenAIProvider implements AIProvider
     private Client $client;
     private string $apiKey;
     private string $model;
+    private array $lastMeta = [];
+    private array $lastRateLimits = [];
 
     public function __construct()
     {
@@ -32,6 +34,23 @@ class OpenAIProvider implements AIProvider
             'timeout'         => 30,
             'connect_timeout' => 10,
         ]);
+    }
+
+    // ─── Metadata ──────────────────────────────────────────────
+
+    public function getLastMeta(): array
+    {
+        return $this->lastMeta;
+    }
+
+    public function getLastRateLimits(): array
+    {
+        return $this->lastRateLimits;
+    }
+
+    public function getModel(): string
+    {
+        return $this->model;
     }
 
     // ─── Internals ─────────────────────────────────────────────
@@ -62,7 +81,26 @@ class OpenAIProvider implements AIProvider
             'json'    => $body,
         ]);
 
-        return json_decode($response->getBody()->getContents(), true);
+        // Capturar rate limits dos headers
+        $this->lastRateLimits = [
+            'requests_limit'     => (int) ($response->getHeaderLine('x-ratelimit-limit-requests') ?: 0),
+            'requests_remaining' => (int) ($response->getHeaderLine('x-ratelimit-remaining-requests') ?: 0),
+            'tokens_limit'       => (int) ($response->getHeaderLine('x-ratelimit-limit-tokens') ?: 0),
+            'tokens_remaining'   => (int) ($response->getHeaderLine('x-ratelimit-remaining-tokens') ?: 0),
+            'reset_requests'     => $response->getHeaderLine('x-ratelimit-reset-requests') ?: null,
+            'reset_tokens'       => $response->getHeaderLine('x-ratelimit-reset-tokens') ?: null,
+        ];
+
+        $result = json_decode($response->getBody()->getContents(), true);
+
+        $usage = $result['usage'] ?? [];
+        $this->lastMeta = [
+            'tokens_prompt'     => $usage['prompt_tokens'] ?? null,
+            'tokens_completion' => $usage['completion_tokens'] ?? null,
+            'tokens_total'      => $usage['total_tokens'] ?? null,
+        ];
+
+        return $result;
     }
 
     // ─── AIProvider ────────────────────────────────────────────
