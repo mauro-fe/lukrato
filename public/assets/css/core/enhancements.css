@@ -150,6 +150,8 @@ button:not(:disabled):not(.theme-toggle):not(.lkh-modal-close):not(
     var(--color-primary),
     color-mix(in srgb, var(--color-primary) 85%, #000)
   );
+    color: var(--color-text);
+
   border: none;
   box-shadow: 0 4px 12px
     color-mix(in srgb, var(--color-primary) 30%, transparent);

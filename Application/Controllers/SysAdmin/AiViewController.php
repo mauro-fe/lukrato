@@ -22,7 +22,7 @@ class AiViewController extends BaseController
         $provider = strtolower($_ENV['AI_PROVIDER'] ?? 'openai');
         $model = $provider === 'ollama'
             ? ($_ENV['OLLAMA_MODEL'] ?? 'gemma3:1b')
-            : ($_ENV['AI_MODEL'] ?? 'gpt-4o-mini');
+            : ($_ENV['OPENAI_MODEL'] ?? 'gpt-4o-mini');
 
         $this->render(
             'admin/sysadmin/ai',

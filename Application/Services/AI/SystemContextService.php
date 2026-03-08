@@ -5,13 +5,19 @@ declare(strict_types=1);
 namespace Application\Services\AI;
 
 use Application\Services\AI\Collectors\AssinaturasCollector;
+use Application\Services\AI\Collectors\CategoriasCollector;
 use Application\Services\AI\Collectors\ContasCollector;
+use Application\Services\AI\Collectors\FaturasCollector;
 use Application\Services\AI\Collectors\FinanceiroCollector;
+use Application\Services\AI\Collectors\LancamentosCollector;
 use Application\Services\AI\Collectors\GamificacaoCollector;
+use Application\Services\AI\Collectors\LogsCollector;
 use Application\Services\AI\Collectors\MarketingCollector;
 use Application\Services\AI\Collectors\MetasOrcamentosCollector;
 use Application\Services\AI\Collectors\PlataformaCollector;
+use Application\Services\AI\Collectors\SegurancaCollector;
 use Application\Services\AI\Collectors\UsuariosCollector;
+use Application\Services\AI\Collectors\WebhooksCollector;
 use Application\Services\AI\DTO\ContextPeriod;
 use Application\Services\AI\Interfaces\ContextCollectorInterface;
 
@@ -27,13 +33,26 @@ class SystemContextService
     public function __construct()
     {
         $this->collectors = [
+            // Dados core
             new UsuariosCollector(),
             new FinanceiroCollector(),
+            new LancamentosCollector(),
             new ContasCollector(),
+            new FaturasCollector(),
+            new CategoriasCollector(),
+
+            // Negócio
             new AssinaturasCollector(),
             new MetasOrcamentosCollector(),
             new GamificacaoCollector(),
             new MarketingCollector(),
+
+            // Operacional
+            new LogsCollector(),
+            new WebhooksCollector(),
+            new SegurancaCollector(),
+
+            // Plataforma
             new PlataformaCollector(),
         ];
     }

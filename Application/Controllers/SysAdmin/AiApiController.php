@@ -31,6 +31,23 @@ class AiApiController extends BaseController
             return;
         }
 
+        $provider = strtolower($_ENV['AI_PROVIDER'] ?? 'openai');
+
+        if ($provider === 'openai') {
+            $hasKey = !empty($_ENV['OPENAI_API_KEY']);
+            $model  = $_ENV['OPENAI_MODEL'] ?? 'gpt-4o-mini';
+
+            Response::success([
+                'status'   => $hasKey ? 'ok' : 'error',
+                'service'  => 'lukrato-ai',
+                'provider' => 'openai',
+                'model'    => $model,
+                'message'  => $hasKey ? 'OpenAI configurada' : 'OPENAI_API_KEY não configurada',
+            ]);
+            return;
+        }
+
+        // Fallback para serviço Python (Ollama)
         $serviceUrl = rtrim($_ENV['AI_SERVICE_URL'] ?? 'http://127.0.0.1:8002', '/');
 
         try {

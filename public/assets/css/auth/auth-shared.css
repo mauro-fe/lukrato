@@ -405,7 +405,7 @@ main.lukrato-auth {
 .btn-primary {
     width: 100%;
     background: linear-gradient(135deg, var(--orange), var(--orange-strong));
-    color: #101417;
+       color: var(--color-text);
     border: none;
     border-radius: 14px;
     padding: 18px;

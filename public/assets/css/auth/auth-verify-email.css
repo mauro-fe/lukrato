@@ -115,7 +115,7 @@ h1 {
 
 .btn-primary {
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    color: #fff;
+        color: var(--color-text);
     box-shadow: 0 4px 14px rgba(230, 126, 34, 0.4);
 }
 

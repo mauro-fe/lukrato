@@ -430,7 +430,7 @@
                     Serviço</h3>
 
                 <div class="status-row">
-                    <span><span class="dot yellow" id="statusDot"></span> Serviço Python</span>
+                    <span><span class="dot yellow" id="statusDot"></span> Serviço IA</span>
                     <span id="statusText" style="font-weight:600;">Verificando...</span>
                 </div>
                 <div class="status-row">
@@ -471,7 +471,7 @@
         const BASE = (window.BASE_URL || document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
         let isLoading = false;
 
-        // ── status do serviço Python ────────────────────────────────
+        // ── status do serviço IA ────────────────────────────────────
         async function checkServiceHealth() {
             try {
                 const res = await fetch(`${BASE}api/sysadmin/ai/health-proxy`, {
@@ -579,7 +579,7 @@
                 const isTimeout = err?.name === 'TimeoutError';
                 appendMessage('ai', isTimeout ?
                     'A resposta demorou demais. O modelo local pode estar sobrecarregado — tente novamente.' :
-                    'Não foi possível conectar ao assistente de IA. Verifique se o serviço Python está rodando na porta 8002.'
+                    'Não foi possível conectar ao assistente de IA. Verifique a configuração da OPENAI_API_KEY no .env.'
                 );
                 setStatus(false, 'Offline');
             } finally {
