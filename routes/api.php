@@ -352,6 +352,12 @@ Router::add('POST', '/api/ai/suggest-category',    'Api\\AI\\UserAiController@su
 Router::add('POST', '/api/ai/analyze',             'Api\\AI\\UserAiController@analyze',            ['auth', 'csrf', 'ratelimit']);
 Router::add('POST', '/api/ai/extract-transaction', 'Api\\AI\\UserAiController@extractTransaction', ['auth', 'csrf', 'ratelimit']);
 
+// WhatsApp — Vínculo de telefone
+Router::add('POST', '/api/whatsapp/link',   'Api\\AI\\WhatsAppLinkController@requestLink',  ['auth', 'csrf', 'ratelimit']);
+Router::add('POST', '/api/whatsapp/verify', 'Api\\AI\\WhatsAppLinkController@verify',       ['auth', 'csrf', 'ratelimit']);
+Router::add('POST', '/api/whatsapp/unlink', 'Api\\AI\\WhatsAppLinkController@unlink',       ['auth', 'csrf', 'ratelimit']);
+Router::add('GET',  '/api/whatsapp/status', 'Api\\AI\\WhatsAppLinkController@status',       ['auth']);
+
 // ============================================// IA (SYSADMIN)
 // ============================================
 

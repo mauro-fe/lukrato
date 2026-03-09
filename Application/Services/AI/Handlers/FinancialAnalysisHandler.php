@@ -7,8 +7,8 @@ namespace Application\Services\AI\Handlers;
 use Application\DTO\AI\AIRequestDTO;
 use Application\DTO\AI\AIResponseDTO;
 use Application\Enums\AI\IntentType;
-use Application\Services\AI\AIService;
 use Application\Services\AI\Analysis\FinancialAnalysisPreprocessor;
+use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\PromptBuilder;
 use Application\Services\Infrastructure\CacheService;
 
@@ -19,10 +19,16 @@ use Application\Services\Infrastructure\CacheService;
 class FinancialAnalysisHandler implements AIHandlerInterface
 {
     private CacheService $cache;
+    private ?AIProvider $provider = null;
 
     public function __construct()
     {
         $this->cache = new CacheService();
+    }
+
+    public function setProvider(AIProvider $provider): void
+    {
+        $this->provider = $provider;
     }
 
     public function supports(IntentType $intent): bool
@@ -59,8 +65,7 @@ class FinancialAnalysisHandler implements AIHandlerInterface
             }
 
             // Chamar LLM com dados agregados
-            $ai = new AIService();
-            $result = $ai->analyzeSpending($aggregatedData, $period);
+            $result = $this->provider->analyzeSpending($aggregatedData, $period);
 
             if (empty($result)) {
                 return AIResponseDTO::fail(

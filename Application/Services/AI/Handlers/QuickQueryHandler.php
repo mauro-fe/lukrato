@@ -11,7 +11,7 @@ use Application\Models\Lancamento;
 use Application\Models\Conta;
 use Application\Models\CartaoCredito;
 use Application\Models\Categoria;
-use Application\Services\AI\AIService;
+use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\ContextCompressor;
 use Application\Services\AI\PromptBuilder;
 use Carbon\Carbon;
@@ -19,12 +19,18 @@ use Illuminate\Database\Capsule\Manager as DB;
 
 /**
  * Handler para consultas rápidas respondíveis com dados pré-computados.
- * Tenta resolvercom SQL direto antes de recorrer ao LLM.
+ * Tenta resolver com SQL direto antes de recorrer ao LLM.
  *
  * Exemplos: "Quanto gastei este mês?", "Qual meu saldo?", "Quantos lançamentos tenho?"
  */
 class QuickQueryHandler implements AIHandlerInterface
 {
+    private ?AIProvider $provider = null;
+
+    public function setProvider(AIProvider $provider): void
+    {
+        $this->provider = $provider;
+    }
     /**
      * Mapeamento de padrões para métodos de resolução direta.
      *
@@ -37,6 +43,10 @@ class QuickQueryHandler implements AIHandlerInterface
         'quantos?\s+lançamento|quantos?\s+transaç|quantos?\s+registro' => 'getCountLancamentos',
         'quantos?\s+conta|quantas?\s+conta'                         => 'getCountContas',
         'quantos?\s+cart[ãa]o|quantos?\s+cartao'                    => 'getCountCartoes',
+        'gastos?\s+do\s+m[eê]s|despesas?\s+do\s+m[eê]s'            => 'getTotalDespesas',
+        'maior\s+gasto|gasto\s+mais\s+caro|maior\s+despesa'        => 'getMaiorGasto',
+        'menor\s+gasto|gasto\s+mais\s+barato|menor\s+despesa'      => 'getMenorGasto',
+        'm[eé]dia\s+(de\s+)?(gasto|despesa)|gasto\s+m[eé]dio'      => 'getMediaDespesas',
     ];
 
     /**
@@ -84,6 +94,7 @@ class QuickQueryHandler implements AIHandlerInterface
 
         // Fallback: delegar para o ChatHandler com contexto
         $chatHandler = new ChatHandler();
+        $chatHandler->setProvider($this->provider);
         return $chatHandler->handle($request);
     }
 
@@ -236,6 +247,103 @@ class QuickQueryHandler implements AIHandlerInterface
         return [
             'message' => "💳 Você tem **{$count} cartão(ões) de crédito ativo(s)**.",
             'data'    => ['count' => $count],
+        ];
+    }
+
+    private function getMaiorGasto(?int $userId): ?array
+    {
+        $query = Lancamento::query()
+            ->where('tipo', 'despesa')
+            ->whereNull('cancelado_em')
+            ->whereMonth('data', now()->month)
+            ->whereYear('data', now()->year);
+
+        if ($userId !== null) {
+            $query->where('user_id', $userId);
+        }
+
+        $lancamento = $query->orderByDesc('valor')->first(['descricao', 'valor', 'data']);
+
+        if (!$lancamento) {
+            return [
+                'message' => "📊 Nenhuma despesa registrada este mês.",
+                'data'    => [],
+            ];
+        }
+
+        $formatted = 'R$ ' . number_format((float) $lancamento->valor, 2, ',', '.');
+
+        return [
+            'message' => "🔝 A maior despesa do mês é **{$lancamento->descricao}** — **{$formatted}** em " . Carbon::parse($lancamento->data)->translatedFormat('d/m') . ".",
+            'data'    => [
+                'descricao' => $lancamento->descricao,
+                'valor'     => (float) $lancamento->valor,
+                'data'      => $lancamento->data,
+                'formatted' => $formatted,
+            ],
+        ];
+    }
+
+    private function getMenorGasto(?int $userId): ?array
+    {
+        $query = Lancamento::query()
+            ->where('tipo', 'despesa')
+            ->whereNull('cancelado_em')
+            ->where('valor', '>', 0)
+            ->whereMonth('data', now()->month)
+            ->whereYear('data', now()->year);
+
+        if ($userId !== null) {
+            $query->where('user_id', $userId);
+        }
+
+        $lancamento = $query->orderBy('valor')->first(['descricao', 'valor', 'data']);
+
+        if (!$lancamento) {
+            return [
+                'message' => "📊 Nenhuma despesa registrada este mês.",
+                'data'    => [],
+            ];
+        }
+
+        $formatted = 'R$ ' . number_format((float) $lancamento->valor, 2, ',', '.');
+
+        return [
+            'message' => "🔻 A menor despesa do mês é **{$lancamento->descricao}** — **{$formatted}** em " . Carbon::parse($lancamento->data)->translatedFormat('d/m') . ".",
+            'data'    => [
+                'descricao' => $lancamento->descricao,
+                'valor'     => (float) $lancamento->valor,
+                'data'      => $lancamento->data,
+                'formatted' => $formatted,
+            ],
+        ];
+    }
+
+    private function getMediaDespesas(?int $userId): ?array
+    {
+        $query = Lancamento::query()
+            ->where('tipo', 'despesa')
+            ->whereNull('cancelado_em')
+            ->whereMonth('data', now()->month)
+            ->whereYear('data', now()->year);
+
+        if ($userId !== null) {
+            $query->where('user_id', $userId);
+        }
+
+        $avg   = (float) $query->avg('valor');
+        $count = (int) $query->count();
+
+        $formatted = 'R$ ' . number_format($avg, 2, ',', '.');
+
+        return [
+            'message' => "📐 A média das suas **{$count} despesas** este mês é **{$formatted}**.",
+            'data'    => [
+                'media'     => $avg,
+                'count'     => $count,
+                'formatted' => $formatted,
+                'period'    => now()->translatedFormat('F/Y'),
+            ],
         ];
     }
 

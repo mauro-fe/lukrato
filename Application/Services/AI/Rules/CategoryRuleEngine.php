@@ -19,7 +19,7 @@ class CategoryRuleEngine
     private const RULE_MAP = [
         // ─── Transporte ─────────────────────────────────
         'uber(?!\s*eats)'                       => ['Transporte', 'Uber'],
-        '\b99\b|noventa\s*e\s*nove|99app|99taxi' => ['Transporte', '99'],
+        '\b99\b|noventa\s*e\s*nove|99app|99pop|99taxi' => ['Transporte', '99'],
         'cabify'                                 => ['Transporte', 'Cabify'],
         'taxi|táxi'                              => ['Transporte', 'Táxi'],
         'combustível|combustivel|gasolina|álcool|alcool|etanol|diesel|posto|shell|ipiranga|br\s*distribuidora' => ['Transporte', 'Combustível'],
@@ -88,6 +88,18 @@ class CategoryRuleEngine
 
         // ─── Serviços Públicos ──────────────────────────
         'imposto|taxa|tributo|darf|gru|guia|multa' => ['Serviços Públicos', null],
+
+        // ─── Pets ───────────────────────────────────────
+        'pet\s*shop|ração|racao|veterinário|veterinario|banho\s*(e\s*tosa)?|petz|cobasi' => ['Pets', null],
+
+        // ─── Cuidados Pessoais ──────────────────────────
+        'cabeleireir|salão|salao|barbearia|manicure|estética|estetica|depilação|depilacao|sobrancelha' => ['Cuidados Pessoais', null],
+
+        // ─── Presentes ──────────────────────────────────
+        'presente|gift|aniversário|aniversario' => ['Presentes', null],
+
+        // ─── Filhos / Educação Infantil ─────────────────
+        'creche|berçário|bercario|babá|baba|escola\s*infantil|maternal' => ['Educação', 'Educação Infantil'],
     ];
 
     /**

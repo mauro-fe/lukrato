@@ -7,7 +7,7 @@ namespace Application\Services\AI\Handlers;
 use Application\DTO\AI\AIRequestDTO;
 use Application\DTO\AI\AIResponseDTO;
 use Application\Enums\AI\IntentType;
-use Application\Services\AI\AIService;
+use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\ContextCompressor;
 use Application\Services\AI\PromptBuilder;
 use Application\Services\AI\PromptOptimizer;
@@ -18,6 +18,13 @@ use Application\Services\AI\PromptOptimizer;
  */
 class ChatHandler implements AIHandlerInterface
 {
+    private ?AIProvider $provider = null;
+
+    public function setProvider(AIProvider $provider): void
+    {
+        $this->provider = $provider;
+    }
+
     public function supports(IntentType $intent): bool
     {
         return $intent === IntentType::CHAT;
@@ -33,14 +40,8 @@ class ChatHandler implements AIHandlerInterface
                 $context = PromptOptimizer::optimize($context);
             }
 
-            // Selecionar prompt baseado no canal
-            $systemPrompt = $request->isAdmin()
-                ? PromptBuilder::chatSystem($context)
-                : PromptBuilder::userChatSystem($context);
-
-            // Chamar LLM via AIService
-            $ai = new AIService();
-            $response = $ai->chat($request->message, $context);
+            // Chamar LLM via provider
+            $response = $this->provider->chat($request->message, $context);
 
             // Checar se é resposta de fallback
             if (str_contains($response, 'indisponível no momento')) {

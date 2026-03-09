@@ -20,6 +20,10 @@ if (!defined('APP_ENV') || APP_ENV !== 'production') {
     Router::add('GET', '/api/webhook/asaas', 'Api\\Billing\\AsaasWebhookController@test');
 }
 
+// WhatsApp (Meta Cloud API)
+Router::add('GET',  '/api/webhook/whatsapp', 'Api\\AI\\WhatsAppWebhookController@verify');
+Router::add('POST', '/api/webhook/whatsapp', 'Api\\AI\\WhatsAppWebhookController@receive');
+
 /**
  * ============================================
  * SCHEDULER / CRON JOBS VIA HTTP

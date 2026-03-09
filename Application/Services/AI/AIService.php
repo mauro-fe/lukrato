@@ -60,13 +60,20 @@ class AIService
 
     private function registerHandlers(): void
     {
-        $this->handlers = [
+        $handlers = [
             IntentType::CHAT->value                => new ChatHandler(),
             IntentType::QUICK_QUERY->value         => new QuickQueryHandler(),
             IntentType::CATEGORIZE->value          => new CategorizationHandler(),
             IntentType::EXTRACT_TRANSACTION->value => new TransactionExtractorHandler(),
             IntentType::ANALYZE->value             => new FinancialAnalysisHandler(),
         ];
+
+        // Injetar provider em cada handler (evita instanciação circular)
+        foreach ($handlers as $handler) {
+            $handler->setProvider($this->provider);
+        }
+
+        $this->handlers = $handlers;
     }
 
     // ─── Pipeline Principal ─────────────────────────────────

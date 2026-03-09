@@ -8,7 +8,7 @@ use Application\DTO\AI\AIRequestDTO;
 use Application\DTO\AI\AIResponseDTO;
 use Application\Enums\AI\IntentType;
 use Application\Models\Categoria;
-use Application\Services\AI\AIService;
+use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\PromptBuilder;
 use Application\Services\AI\Rules\CategoryRuleEngine;
 use Application\Services\Infrastructure\CacheService;
@@ -20,10 +20,16 @@ use Application\Services\Infrastructure\CacheService;
 class CategorizationHandler implements AIHandlerInterface
 {
     private CacheService $cache;
+    private ?AIProvider $provider = null;
 
     public function __construct()
     {
         $this->cache = new CacheService();
+    }
+
+    public function setProvider(AIProvider $provider): void
+    {
+        $this->provider = $provider;
     }
 
     public function supports(IntentType $intent): bool
@@ -87,8 +93,7 @@ class CategorizationHandler implements AIHandlerInterface
                 $categories = PromptBuilder::defaultCategories();
             }
 
-            $ai = new AIService();
-            $suggested = $ai->suggestCategory($description, $categories);
+            $suggested = $this->provider->suggestCategory($description, $categories);
 
             if ($suggested === null) {
                 return AIResponseDTO::fail(
