@@ -83,4 +83,14 @@ class OllamaProvider implements AIProvider
 
         return json_decode($response->getBody()->getContents(), true) ?? [];
     }
+
+    public function getModel(): string
+    {
+        return $_ENV['OLLAMA_MODEL'] ?? 'ollama';
+    }
+
+    public function getLastMeta(): array
+    {
+        return [];
+    }
 }

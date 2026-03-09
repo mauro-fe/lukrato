@@ -26,4 +26,14 @@ interface AIProvider
      * @return array           ['insights' => string[], 'resumo' => string]
      */
     public function analyzeSpending(array $data, string $period = 'último mês'): array;
+
+    /**
+     * Retorna o nome do modelo em uso.
+     */
+    public function getModel(): string;
+
+    /**
+     * Retorna metadados da última chamada (tokens_prompt, tokens_completion, tokens_total).
+     */
+    public function getLastMeta(): array;
 }

@@ -113,12 +113,28 @@ class AIService
             $this->logDispatch($request, $response, $intent, microtime(true) - $start);
 
             return $response;
-
         } catch (Throwable $e) {
+            $elapsedErr = microtime(true) - $start;
+
             LogService::error('AIService.dispatch', [
                 'error'   => $e->getMessage(),
                 'intent'  => isset($intent) ? $intent->value : 'unknown',
                 'user_id' => $request->userId,
+            ]);
+
+            AiLogService::log([
+                'user_id'          => $request->userId,
+                'type'             => isset($intent) ? $intent->value : 'chat',
+                'prompt'           => mb_substr($request->message, 0, 5000),
+                'response'         => null,
+                'provider'         => $_ENV['AI_PROVIDER'] ?? 'openai',
+                'model'            => $this->provider->getModel(),
+                'tokens_prompt'    => 0,
+                'tokens_completion' => 0,
+                'tokens_total'     => 0,
+                'response_time_ms' => (int) round($elapsedErr * 1000),
+                'success'          => false,
+                'error_message'    => mb_substr($e->getMessage(), 0, 1000),
             ]);
 
             return AIResponseDTO::fail(
@@ -139,6 +155,8 @@ class AIService
         IntentType $intent,
         float $elapsed
     ): void {
+        $elapsedMs = (int) round($elapsed * 1000);
+
         LogService::info('ai.dispatch', [
             'intent'     => $intent->value,
             'channel'    => $request->channel->value,
@@ -146,7 +164,26 @@ class AIService
             'cached'     => $response->cached,
             'source'     => $response->source,
             'tokens'     => $response->tokensUsed,
-            'elapsed_ms' => round($elapsed * 1000, 2),
+            'elapsed_ms' => $elapsedMs,
+        ]);
+
+        // Persistir no ai_logs para a página de logs do sysadmin
+        $meta  = $this->provider->getLastMeta();
+        $model = $this->provider->getModel();
+
+        AiLogService::log([
+            'user_id'          => $request->userId,
+            'type'             => $intent->value,
+            'prompt'           => mb_substr($request->message, 0, 5000),
+            'response'         => mb_substr($response->message, 0, 10000),
+            'provider'         => $_ENV['AI_PROVIDER'] ?? 'openai',
+            'model'            => $model,
+            'tokens_prompt'    => $meta['tokens_prompt'] ?? 0,
+            'tokens_completion' => $meta['tokens_completion'] ?? 0,
+            'tokens_total'     => $meta['tokens_total'] ?? $response->tokensUsed,
+            'response_time_ms' => $elapsedMs,
+            'success'          => $response->success,
+            'error_message'    => $response->success ? null : $response->message,
         ]);
     }
 
