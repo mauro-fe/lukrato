@@ -352,6 +352,14 @@ Router::add('POST', '/api/ai/suggest-category',    'Api\\AI\\UserAiController@su
 Router::add('POST', '/api/ai/analyze',             'Api\\AI\\UserAiController@analyze',            ['auth', 'csrf', 'ratelimit']);
 Router::add('POST', '/api/ai/extract-transaction', 'Api\\AI\\UserAiController@extractTransaction', ['auth', 'csrf', 'ratelimit']);
 
+// IA — Quota e Conversas
+Router::add('GET',    '/api/ai/quota',                        'Api\\AI\\UserAiController@getQuota',            ['auth']);
+Router::add('GET',    '/api/ai/conversations',                'Api\\AI\\UserAiController@listConversations',   ['auth']);
+Router::add('POST',   '/api/ai/conversations',                'Api\\AI\\UserAiController@createConversation',  ['auth', 'csrf', 'ratelimit']);
+Router::add('GET',    '/api/ai/conversations/{id}/messages',  'Api\\AI\\UserAiController@getMessages',         ['auth']);
+Router::add('POST',   '/api/ai/conversations/{id}/messages',  'Api\\AI\\UserAiController@sendMessage',         ['auth', 'csrf', 'ratelimit', 'ai.quota']);
+Router::add('DELETE', '/api/ai/conversations/{id}',           'Api\\AI\\UserAiController@deleteConversation',  ['auth', 'csrf', 'ratelimit']);
+
 // WhatsApp — Vínculo de telefone
 Router::add('POST', '/api/whatsapp/link',   'Api\\AI\\WhatsAppLinkController@requestLink',  ['auth', 'csrf', 'ratelimit']);
 Router::add('POST', '/api/whatsapp/verify', 'Api\\AI\\WhatsAppLinkController@verify',       ['auth', 'csrf', 'ratelimit']);

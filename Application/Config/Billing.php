@@ -26,6 +26,7 @@ return [
             'max_cartoes'           => 1,    // Apenas 1 cartão de crédito
             'max_metas'             => 2,    // Apenas 2 metas financeiras
             'max_orcamentos'        => 5,    // Apenas 5 orçamentos por categoria
+            'ai_messages_per_month' => 0,    // Sem acesso à IA
         ],
 
         'pro' => [
@@ -37,6 +38,19 @@ return [
             'max_cartoes'           => null, // ilimitado
             'max_metas'             => null, // ilimitado
             'max_orcamentos'        => null, // ilimitado
+            'ai_messages_per_month' => 100,  // 100 mensagens IA/mês
+        ],
+
+        'ultra' => [
+            'lancamentos_per_month' => null, // ilimitado
+            'max_contas'            => null, // ilimitado
+            'max_categorias_custom' => null, // ilimitado
+            'max_subcategorias_custom' => null, // ilimitado
+            'historico_meses'       => null, // ilimitado
+            'max_cartoes'           => null, // ilimitado
+            'max_metas'             => null, // ilimitado
+            'max_orcamentos'        => null, // ilimitado
+            'ai_messages_per_month' => null, // ilimitado
         ],
 
     ],
@@ -71,6 +85,15 @@ return [
             '<a href="/billing" class="alert-link fw-bold">Faça upgrade agora</a>',
 
         'upgrade_cta' => '🚀 Lukrato Pro: lançamentos ilimitados + relatórios avançados + exportação PDF/Excel!',
+
+        'ai_limit' => 'Você atingiu o limite de {limit} mensagens com IA este mês. ' .
+            'Faça upgrade para o Ultra e tenha IA ilimitada.',
+
+        'ai_blocked' => '🤖 O assistente IA está disponível a partir do plano Pro. ' .
+            'Faça upgrade para conversar com a IA.',
+
+        'ai_quota_warning' => '⚠️ Você usou {used} de {limit} mensagens com IA este mês. ' .
+            'Restam {remaining}.',
 
         'contas_limit' => 'Você atingiu o limite de {limit} contas no plano gratuito. ' .
             'Faça upgrade para adicionar contas ilimitadas.',
@@ -114,6 +137,7 @@ return [
         'lancamentos'  => '💰 Registre suas transações sem preocupações',
         'dashboard'    => '📈 Dashboard avançado com insights personalizados',
         'default'      => '🚀 Desbloqueie todo o potencial do Lukrato',
+        'ai_chat'      => '🤖 Assistente IA: tire dúvidas sobre suas finanças',
     ],
 
     /*
@@ -143,6 +167,7 @@ return [
             'suporte_prioritario'     => false,
             'reminders_email'         => false,   // Sem lembretes por email
             'metas_financeiras'       => true,    // Limitado a 2
+            'ai_chat'                 => false,   // Sem chatbot IA
         ],
 
         'pro' => [
@@ -161,6 +186,26 @@ return [
             'suporte_prioritario'     => true,
             'reminders_email'         => true,
             'metas_financeiras'       => true,
+            'ai_chat'                 => true,
+        ],
+
+        'ultra' => [
+            'reports'                 => true,
+            'relatorios_basicos'      => true,
+            'relatorios_avancados'    => true,
+            'exportacao_pdf'          => true,
+            'exportacao_excel'        => true,
+            'categorias_personalizadas' => true,
+            'multiplas_contas'        => true,
+            'notificacoes'            => true,
+            'recorrencias'            => true,
+            'anexos_comprovantes'     => true,
+            'dashboard_avancado'      => true,
+            'backup_dados'            => true,
+            'suporte_prioritario'     => true,
+            'reminders_email'         => true,
+            'metas_financeiras'       => true,
+            'ai_chat'                 => true,
         ],
 
     ],

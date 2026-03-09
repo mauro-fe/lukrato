@@ -117,7 +117,12 @@ abstract class BaseController
         $data['username']       = $data['username'] ?? ($currentUser?->nome ?? 'usuario');
         $data['isSysAdmin']     = $data['isSysAdmin'] ?? (((int)($currentUser?->is_admin ?? 0)) === 1);
         $data['isPro']          = $isPro;
-        $data['planLabel']      = $data['planLabel'] ?? ($isPro ? 'PRO' : 'FREE');
+        $data['planTier']       = $data['planTier'] ?? ($currentUser && method_exists($currentUser, 'planTier') ? $currentUser->planTier() : 'free');
+        $data['planLabel']      = $data['planLabel'] ?? match ($data['planTier']) {
+            'ultra' => 'ULTRA',
+            'pro'   => 'PRO',
+            default => 'FREE',
+        };
         $data['showUpgradeCTA'] = $data['showUpgradeCTA'] ?? (!$isPro);
 
         // Theme

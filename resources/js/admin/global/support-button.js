@@ -1,242 +1,376 @@
 /**
  * ============================================================================
- * LUKRATO — Support Button
+ * LUKRATO — Support Button + AI Chat Panel
  * ============================================================================
- * Modal de suporte via SweetAlert2 com envio de mensagens.
- * Extraído de: views/admin/partials/botao-suporte.php
+ * Painel flutuante com abas: Suporte (formulário) e Assistente IA (chat).
+ * HTML: views/admin/partials/botao-suporte.php
+ * CSS:  public/assets/css/modules/support-button.css
  * ============================================================================
  */
+(function () {
+    'use strict';
 
-/**
- * Abre o modal de suporte com dados do usuário.
- * @param {HTMLElement} triggerEl - Elemento que disparou o modal (contém data attributes).
- */
-function openSupportModal(triggerEl) {
-    const name = triggerEl?.dataset.supportName || 'Usuário';
-    const email = triggerEl?.dataset.supportEmail || '';
-    const telefone = triggerEl?.dataset.supportTel || '';
-    const codigo = triggerEl?.dataset.supportCod || '';
-
-    Swal.fire({
-        title: '<i data-lucide="headphones" style="color: var(--color-primary); font-size: 26px; margin-right: 8px;"></i> Fale com o Suporte',
-        html: `
-            <div class="lk-support-info">
-                <div class="lk-support-info-label">Enviando como:</div>
-                <div class="lk-support-info-name">${name}</div>
-                ${email ? `<div class="lk-support-info-email"><i data-lucide="mail"></i> ${email}</div>` : ''}
-                ${telefone ? `
-                    <div class="lk-support-info-tel">
-                        <i data-lucide="phone"></i> (${codigo}) ${telefone}
-                    </div>
-                ` : ''}
-            </div>
-
-            <div class="lk-preference-label">
-                <i data-lucide="reply"></i>
-                Como prefere receber o retorno?
-            </div>
-            <div class="lk-contact-preference">
-                <label class="lk-radio">
-                    <input type="radio" name="retorno" value="whatsapp">
-                    <span class="whats"><i class="fab fa-whatsapp" style="width: 0 !important;height: 0 !important;"></i>WhatsApp</span>
-                </label>
-
-                <label class="lk-radio">
-                    <input type="radio" name="retorno" value="email" checked>
-                    <span><i data-lucide="mail"></i>E-mail</span>
-                </label>
-            </div>
-
-            <textarea id="support-message"
-                class="swal2-textarea"
-                placeholder="Descreva sua dúvida, problema ou sugestão com detalhes... Retornaremos o mais breve possível! 😊"></textarea>
-        `,
-        showCancelButton: true,
-        confirmButtonText: '<i data-lucide="send"></i> Enviar Mensagem',
-        cancelButtonText: '<i data-lucide="x"></i> Cancelar',
-        showCloseButton: true,
-        customClass: {
-            popup: 'lk-support-modal'
-        },
-        width: '600px',
-        didOpen: () => {
-            const textarea = document.getElementById('support-message');
-
-            // Foca automaticamente no textarea
-            textarea.focus();
-
-            // Animação de digitação
-            textarea.addEventListener('keydown', function () {
-                this.style.transform = 'scale(1.01)';
-                setTimeout(() => {
-                    this.style.transform = 'scale(1)';
-                }, 100);
-            });
-
-            // Efeito visual nos radio buttons
-            const radios = document.querySelectorAll('.lk-radio');
-            radios.forEach(radio => {
-                radio.addEventListener('click', function () {
-                    radios.forEach(r => r.style.animation = 'none');
-                    this.style.animation = 'scaleIn 0.3s ease-out';
-                    setTimeout(() => {
-                        this.style.animation = '';
-                    }, 300);
-                });
-            });
-        },
-        preConfirm: () => {
-            const msg = document.getElementById("support-message").value.trim();
-            const retorno = document.querySelector('input[name="retorno"]:checked')?.value;
-
-            if (!msg) {
-                Swal.showValidationMessage("✍️ Por favor, escreva uma mensagem para continuarmos!");
-                return false;
-            }
-
-            if (msg.length < 10) {
-                Swal.showValidationMessage("📝 A mensagem precisa ter pelo menos 10 caracteres para nos ajudar melhor!");
-                return false;
-            }
-
-            if (!retorno) {
-                Swal.showValidationMessage("📱 Por favor, selecione como prefere receber o retorno!");
-                return false;
-            }
-
-            return { message: msg, retorno: retorno };
-        }
-    }).then(result => {
-        if (!result.isConfirmed) return;
-        sendSupportMessage(result.value);
-    });
-}
-
-/**
- * Envia a mensagem de suporte via API.
- * @param {object} data - Objeto com { message, retorno }.
- */
-function sendSupportMessage(data) {
-    const baseUrl = (document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/$/, '');
-
-    // Mensagens motivacionais para o loading
-    const loadingMessages = [
-        '✨ Conectando você com nosso time...',
-        '📨 Preparando sua mensagem...',
-        '🚀 Estamos quase lá...'
-    ];
-    let messageIndex = 0;
-
-    const loadingInterval = setInterval(() => {
-        messageIndex = (messageIndex + 1) % loadingMessages.length;
-        const loadingText = document.querySelector('.swal2-html-container');
-        if (loadingText) {
-            loadingText.innerHTML =
-                `<p style="color: var(--color-text-muted); font-size: var(--font-size-base); animation: fadeInUp 0.3s ease-out;">${loadingMessages[messageIndex]}</p>`;
-        }
-    }, 1500);
-
-    Swal.fire({
-        title: '✨ Enviando sua mensagem',
-        html: `<p style="color: var(--color-text-muted); font-size: var(--font-size-base);">${loadingMessages[0]}</p>`,
-        allowOutsideClick: false,
-        didOpen: () => { Swal.showLoading(); },
-        customClass: { popup: 'lk-support-modal' }
+    // ── Config ─────────────────────────────────────────────────
+    const BASE = (window.BASE_URL || document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
+    const CSRF = () => document.querySelector('meta[name="csrf-token"]')?.content || '';
+    const HEADERS = () => ({
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': CSRF(),
     });
 
-    fetch(`${baseUrl}/api/suporte/enviar`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-    })
-        .then(r => r.json())
-        .then(response => {
-            clearInterval(loadingInterval);
+    // ── DOM Elements ───────────────────────────────────────────
+    const toggleBtn = document.getElementById('lkSupportToggle');
+    const panel = document.getElementById('lkChatPanel');
+    const closeBtn = document.getElementById('lkChatClose');
+    const tabSupport = document.getElementById('tabSupport');
+    const tabAI = document.getElementById('tabAI');
+    const panelSupport = document.getElementById('panelSupport');
+    const panelAI = document.getElementById('panelAI');
 
-            if (response.success) {
-                const retornoIcon = data.retorno === 'whatsapp'
-                    ? '<i class="fab fa-whatsapp"></i>'
-                    : '<i data-lucide="mail" style="color: var(--color-primary);"></i>';
+    // Support form
+    const supportMsg = document.getElementById('supportPanelMessage');
+    const btnSend = document.getElementById('btnSendSupport');
 
-                Swal.fire({
-                    icon: "success",
-                    title: "🎉 Mensagem enviada com sucesso!",
-                    html: `
-                        <div style="text-align: center;">
-                            <p style="color: var(--color-text); font-size: var(--font-size-base); margin-bottom: 1rem;">
-                                ${response.message || "Recebemos sua mensagem!"}
-                            </p>
-                            <div style="padding: 1rem; background: var(--glass-bg); border-radius: var(--radius-md); border: 1px solid var(--glass-border); backdrop-filter: var(--glass-backdrop);">
-                                <p style="color: var(--color-text-muted); font-size: var(--font-size-sm); margin: 0 0 0.5rem 0;">
-                                    ${retornoIcon} Você receberá retorno via <strong style="color: var(--color-primary);">${data.retorno === 'whatsapp' ? 'WhatsApp' : 'E-mail'}</strong>
-                                </p>
-                                <p style="color: var(--color-text-muted); font-size: var(--font-size-sm); margin: 0;">
-                                    ⏰ Responderemos em até <strong style="color: var(--color-primary);">24h úteis</strong>
-                                </p>
-                            </div>
-                        </div>
-                    `,
-                    confirmButtonText: '👍 Entendido',
-                    customClass: { popup: 'lk-support-modal' },
-                    timer: 6000,
-                    timerProgressBar: true
-                });
+    // AI chat (may not exist for free tier)
+    const aiMessages = document.getElementById('aiMessages');
+    const aiInput = document.getElementById('aiChatInput');
+    const aiSendBtn = document.getElementById('aiChatSend');
+    const aiQuotaBar = document.getElementById('aiQuotaBar');
+    const aiQuotaText = document.getElementById('aiQuotaText');
+    const aiEmpty = document.getElementById('aiEmpty');
+
+    if (!toggleBtn || !panel) return;
+
+    const planTier = toggleBtn.dataset.planTier || 'free';
+    let currentConvId = null;
+    let aiLoading = false;
+
+    // ── Panel Toggle ───────────────────────────────────────────
+    toggleBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        const isOpen = panel.classList.toggle('open');
+        if (isOpen) {
+            refreshIcons();
+            if (planTier !== 'free' && !currentConvId) {
+                loadOrCreateConversation();
+            }
+        }
+    });
+
+    closeBtn.addEventListener('click', function () {
+        panel.classList.remove('open');
+    });
+
+    // Close on outside click
+    document.addEventListener('click', function (e) {
+        if (panel.classList.contains('open') &&
+            !panel.contains(e.target) &&
+            !toggleBtn.contains(e.target)) {
+            panel.classList.remove('open');
+        }
+    });
+
+    // ── Tab Switching ──────────────────────────────────────────
+    function switchTab(tab) {
+        const tabs = [tabSupport, tabAI];
+        const panels = [panelSupport, panelAI];
+        const idx = tab === 'ai' ? 1 : 0;
+
+        tabs.forEach((t, i) => {
+            t.classList.toggle('active', i === idx);
+        });
+        panels.forEach((p, i) => {
+            p.classList.toggle('active', i === idx);
+        });
+
+        if (tab === 'ai' && planTier !== 'free') {
+            if (!currentConvId) loadOrCreateConversation();
+            if (aiInput) aiInput.focus();
+        }
+    }
+
+    tabSupport.addEventListener('click', () => switchTab('support'));
+    tabAI.addEventListener('click', () => switchTab('ai'));
+
+    // ════════════════════════════════════════════════════════════
+    //  SUPPORT FORM
+    // ════════════════════════════════════════════════════════════
+    if (btnSend && supportMsg) {
+        btnSend.addEventListener('click', sendSupportMessage);
+    }
+
+    async function sendSupportMessage() {
+        const msg = supportMsg.value.trim();
+        const retorno = document.querySelector('input[name="retorno-panel"]:checked')?.value || 'email';
+
+        if (!msg) {
+            showToast('Por favor, escreva uma mensagem.', 'warning');
+            supportMsg.focus();
+            return;
+        }
+        if (msg.length < 10) {
+            showToast('A mensagem precisa ter pelo menos 10 caracteres.', 'warning');
+            supportMsg.focus();
+            return;
+        }
+
+        btnSend.disabled = true;
+        btnSend.innerHTML = '<i data-lucide="loader" style="width:14px;height:14px;" class="animate-spin"></i> Enviando...';
+        refreshIcons();
+
+        try {
+            const res = await fetch(`${BASE}api/suporte/enviar`, {
+                method: 'POST',
+                headers: HEADERS(),
+                body: JSON.stringify({ message: msg, retorno }),
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                supportMsg.value = '';
+                const canal = retorno === 'whatsapp' ? 'WhatsApp' : 'E-mail';
+                showToast(`Mensagem enviada! Retornaremos via ${canal} em até 24h.`, 'success');
             } else {
-                Swal.fire({
-                    icon: "error",
-                    title: "😕 Ops! Algo deu errado",
-                    html: `
-                        <p style="color: var(--color-text-muted); font-size: var(--font-size-base);">
-                            ${response.message || "Não conseguimos enviar sua mensagem."}
-                        </p>
-                        <p style="color: var(--color-text-muted); font-size: var(--font-size-sm); margin-top: 1rem;">
-                            💡 Tente novamente ou entre em contato por outro canal.
-                        </p>
-                    `,
-                    confirmButtonText: '🔄 Tentar novamente',
-                    showCancelButton: true,
-                    cancelButtonText: 'Fechar',
-                    customClass: { popup: 'lk-support-modal' }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        document.querySelector('.lk-support-button').click();
-                    }
-                });
+                showToast(data.message || 'Erro ao enviar mensagem.', 'error');
             }
-        })
-        .catch(() => {
-            clearInterval(loadingInterval);
+        } catch {
+            showToast('Erro de conexão. Tente novamente.', 'error');
+        } finally {
+            btnSend.disabled = false;
+            btnSend.innerHTML = '<i data-lucide="send" style="width:14px;height:14px;"></i> Enviar Mensagem';
+            refreshIcons();
+        }
+    }
 
-            Swal.fire({
-                icon: "error",
-                title: "🔌 Erro de conexão",
-                html: `
-                    <p style="color: var(--color-text-muted); font-size: var(--font-size-base);">
-                        Não conseguimos conectar ao servidor.
-                    </p>
-                    <div style="margin-top: 1rem; padding: 1rem; background: var(--glass-bg); border-radius: var(--radius-md); text-align: left; backdrop-filter: var(--glass-backdrop); border: 1px solid var(--glass-border);">
-                        <p style="color: var(--color-text); font-size: var(--font-size-sm); margin: 0 0 0.75rem 0; font-weight: 600;">
-                            <i data-lucide="lightbulb" style="color: var(--color-primary);"></i> Possíveis soluções:
-                        </p>
-                        <ul style="color: var(--color-text-muted); font-size: var(--font-size-sm); margin: 0; padding-left: 1.5rem; line-height: 1.6;">
-                            <li>Verifique sua conexão com a internet</li>
-                            <li>Tente recarregar a página</li>
-                            <li>Entre em contato diretamente por email</li>
-                        </ul>
-                    </div>
-                `,
-                confirmButtonText: '🔄 Tentar novamente',
-                showCancelButton: true,
-                cancelButtonText: 'Fechar',
-                customClass: { popup: 'lk-support-modal' }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    sendSupportMessage(data);
+    // ════════════════════════════════════════════════════════════
+    //  AI CHAT
+    // ════════════════════════════════════════════════════════════
+    if (planTier === 'free' || !aiMessages) {
+        // Free tier — no AI chat logic needed
+    } else {
+        // Wire up AI events
+        if (aiInput) {
+            aiInput.addEventListener('input', function () {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+            });
+
+            aiInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendAIMessage();
                 }
             });
-        });
-}
+        }
 
-// ─── Expor no escopo global para uso via onclick inline ─────────────────────
-window.openSupportModal = openSupportModal;
-window.sendSupportMessage = sendSupportMessage;
+        if (aiSendBtn) {
+            aiSendBtn.addEventListener('click', sendAIMessage);
+        }
+    }
+
+    // ── Load or create a conversation ──────────────────────────
+    async function loadOrCreateConversation() {
+        try {
+            const res = await fetch(`${BASE}api/ai/conversations`, { headers: HEADERS() });
+            const data = await res.json();
+
+            if (data.success && data.data?.length > 0) {
+                // Use the most recent conversation
+                currentConvId = data.data[0].id;
+                await loadMessages(currentConvId);
+            } else {
+                await createConversation();
+            }
+            loadQuota();
+        } catch {
+            appendAIMessage('assistant', 'Não foi possível conectar ao assistente. Tente novamente.');
+        }
+    }
+
+    async function createConversation() {
+        try {
+            const res = await fetch(`${BASE}api/ai/conversations`, {
+                method: 'POST',
+                headers: HEADERS(),
+            });
+            const data = await res.json();
+            if (data.success && data.data?.id) {
+                currentConvId = data.data.id;
+            }
+        } catch {
+            // Silent — will retry next time
+        }
+    }
+
+    async function loadMessages(convId) {
+        try {
+            const res = await fetch(`${BASE}api/ai/conversations/${encodeURIComponent(convId)}/messages`, {
+                headers: HEADERS(),
+            });
+            const data = await res.json();
+
+            if (data.success && data.data?.length > 0) {
+                clearMessages();
+                data.data.forEach(m => {
+                    appendAIMessage(m.role, m.content);
+                });
+            }
+        } catch {
+            // Keep empty state
+        }
+    }
+
+    // ── Send AI message ────────────────────────────────────────
+    async function sendAIMessage() {
+        if (!aiInput || aiLoading) return;
+        const message = aiInput.value.trim();
+        if (!message || !currentConvId) return;
+
+        aiLoading = true;
+        if (aiSendBtn) aiSendBtn.disabled = true;
+        aiInput.value = '';
+        aiInput.style.height = 'auto';
+
+        appendAIMessage('user', message);
+        const typingEl = appendAIMessage('assistant', '● ● ●', true);
+
+        try {
+            const res = await fetch(`${BASE}api/ai/conversations/${encodeURIComponent(currentConvId)}/messages`, {
+                method: 'POST',
+                headers: HEADERS(),
+                body: JSON.stringify({ message }),
+                signal: AbortSignal.timeout(120000),
+            });
+
+            if (typingEl) typingEl.remove();
+
+            if (res.status === 429) {
+                appendAIMessage('assistant', 'Você atingiu o limite de mensagens do mês. Faça upgrade para continuar usando o assistente.');
+                updateQuotaDisplay(0, true);
+                return;
+            }
+
+            if (res.status === 403) {
+                appendAIMessage('assistant', 'Seu plano não inclui acesso ao assistente IA. Faça upgrade para desbloquear.');
+                return;
+            }
+
+            if (!res.ok) {
+                let errMsg = `Erro ${res.status}`;
+                try { const ed = await res.json(); errMsg = ed.message || errMsg; } catch { }
+                appendAIMessage('assistant', errMsg);
+                return;
+            }
+
+            const data = await res.json();
+
+            if (data.success && data.data?.content) {
+                appendAIMessage('assistant', data.data.content);
+            } else {
+                appendAIMessage('assistant', data.message || 'Sem resposta do assistente.');
+            }
+
+            // Refresh quota after message
+            loadQuota();
+        } catch (err) {
+            if (typingEl) typingEl.remove();
+            const isTimeout = err?.name === 'TimeoutError';
+            appendAIMessage('assistant', isTimeout
+                ? 'A resposta demorou demais. Tente novamente em alguns instantes.'
+                : 'Erro de conexão com o assistente.');
+        } finally {
+            aiLoading = false;
+            if (aiSendBtn) aiSendBtn.disabled = false;
+            if (aiInput) aiInput.focus();
+        }
+    }
+
+    // ── Render AI message ──────────────────────────────────────
+    function appendAIMessage(role, text, isTyping = false) {
+        if (aiEmpty) aiEmpty.style.display = 'none';
+
+        const wrap = document.createElement('div');
+        wrap.className = `lk-ai-msg ${role}${isTyping ? ' typing' : ''}`;
+
+        const icon = role === 'assistant' ? 'bot' : 'user';
+        wrap.innerHTML = `
+            <div class="avatar"><i data-lucide="${icon}" style="width:14px;height:14px;"></i></div>
+            <div class="bubble">${formatText(text)}</div>`;
+
+        aiMessages.appendChild(wrap);
+        aiMessages.scrollTop = aiMessages.scrollHeight;
+        refreshIcons();
+        return wrap;
+    }
+
+    function clearMessages() {
+        if (!aiMessages) return;
+        aiMessages.innerHTML = '';
+    }
+
+    function formatText(text) {
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n/g, '<br>');
+    }
+
+    // ── Quota ──────────────────────────────────────────────────
+    async function loadQuota() {
+        if (!aiQuotaText || planTier === 'ultra') return;
+
+        try {
+            const res = await fetch(`${BASE}api/ai/quota`, { headers: HEADERS() });
+            const data = await res.json();
+
+            if (data.success && data.data) {
+                const q = data.data;
+                if (q.unlimited) {
+                    if (aiQuotaBar) aiQuotaBar.style.display = 'none';
+                } else {
+                    const remaining = q.remaining ?? 0;
+                    const limit = q.limit ?? 100;
+                    updateQuotaDisplay(remaining, remaining <= 0, limit);
+                }
+            }
+        } catch {
+            // Silent
+        }
+    }
+
+    function updateQuotaDisplay(remaining, exhausted, limit) {
+        if (!aiQuotaText) return;
+        if (exhausted) {
+            aiQuotaText.className = 'quota-danger';
+            aiQuotaText.textContent = `Limite atingido (${limit || 0} msgs/mês)`;
+            if (aiInput) aiInput.disabled = true;
+            if (aiSendBtn) aiSendBtn.disabled = true;
+        } else {
+            const pct = limit ? (remaining / limit * 100) : 100;
+            aiQuotaText.className = pct <= 20 ? 'quota-warn' : '';
+            aiQuotaText.textContent = `${remaining} de ${limit} mensagens restantes`;
+        }
+    }
+
+    // ── Helpers ────────────────────────────────────────────────
+    function refreshIcons() {
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function showToast(msg, type) {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: type,
+                title: msg,
+                showConfirmButton: false,
+                timer: 4000,
+                timerProgressBar: true,
+            });
+        }
+    }
+})();

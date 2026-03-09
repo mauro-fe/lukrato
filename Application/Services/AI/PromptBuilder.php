@@ -12,6 +12,11 @@ class PromptBuilder
 {
     public static function chatSystem(array $context = []): string
     {
+        // Redirecionar para prompt de usuário quando for chat de usuário
+        if (!empty($context['_user_mode'])) {
+            return self::userChatSystem($context);
+        }
+
         $base = <<<'PROMPT'
 Você é o assistente de IA do Lukrato, com acesso completo a dados e métricas do sistema. Atua como co-administrador, ajudando a monitorar, analisar e tomar decisões.
 
@@ -44,6 +49,45 @@ PROMPT;
             $base .= "\n\n═══ DADOS REAIS DO SISTEMA LUKRATO ═══\n";
             $base .= self::formatContext($context);
             $base .= "\n═══ FIM DOS DADOS ═══";
+        }
+
+        return $base;
+    }
+
+    public static function userChatSystem(array $context = []): string
+    {
+        $base = <<<'PROMPT'
+Você é o assistente financeiro pessoal do Lukrato. Ajuda o usuário a entender suas finanças, tirar dúvidas e receber insights sobre seus gastos, receitas, metas e orçamentos.
+
+REGRAS:
+1. Sempre português brasileiro, tom amigável e prático.
+2. Use SOMENTE dados do contexto. NUNCA invente valores.
+3. Se um dado não está no contexto, diga que não tem acesso a essa informação no momento.
+4. Dê dicas práticas e acionáveis de finanças pessoais.
+5. Respostas curtas e diretas, a menos que o usuário peça detalhes.
+6. Use negrito e bullet points para respostas longas.
+7. Nunca revele dados técnicos internos do sistema.
+8. Para assuntos fora de finanças pessoais, redirecione educadamente.
+PROMPT;
+
+        // Histórico de conversa
+        $history = $context['conversation_history'] ?? [];
+        unset($context['_user_mode'], $context['conversation_history']);
+
+        if (!empty($context)) {
+            $base .= "\n\n═══ DADOS FINANCEIROS DO USUÁRIO ═══\n";
+            $base .= self::formatContext($context);
+            $base .= "\n═══ FIM DOS DADOS ═══";
+        }
+
+        if (!empty($history)) {
+            $base .= "\n\n═══ HISTÓRICO DA CONVERSA ═══\n";
+            foreach ($history as $msg) {
+                $role = ($msg['role'] ?? 'user') === 'assistant' ? 'Assistente' : 'Usuário';
+                $content = $msg['content'] ?? '';
+                $base .= "{$role}: {$content}\n";
+            }
+            $base .= "═══ FIM DO HISTÓRICO ═══";
         }
 
         return $base;
@@ -90,44 +134,6 @@ Forneça uma análise financeira útil com:
 Responda APENAS em JSON com o formato exato:
 {"insights": ["insight 1", "insight 2", "insight 3"], "resumo": "resumo em 2 frases aqui"}
 PROMPT;
-    }
-
-    /**
-     * System prompt para chat do usuário (assistente financeiro pessoal).
-     * Mais restrito que o chatSystem() — acessa apenas dados do próprio usuário.
-     */
-    public static function userChatSystem(array $context = []): string
-    {
-        $base = <<<'PROMPT'
-Você é o assistente financeiro pessoal do Lukrato. Ajuda o usuário a entender suas finanças, controlar gastos e tomar melhores decisões financeiras.
-
-ÁREAS DE ACESSO:
-- Receitas e despesas do usuário
-- Saldos das contas bancárias
-- Cartões de crédito e faturas
-- Categorias de gastos
-- Metas e orçamentos pessoais
-- Lançamentos recentes e recorrências
-- Gamificação (nível, pontos, streak)
-
-REGRAS:
-1. Sempre português brasileiro, claro e prático.
-2. Use SOMENTE números do contexto. NUNCA invente dados.
-3. Se um dado não está no contexto, diga explicitamente.
-4. Ao comparar períodos, calcule variações percentuais.
-5. Alertas proativos: orçamentos estourados, cartões >70%, lançamentos vencidos.
-6. Sugira ações concretas para melhorar a saúde financeira.
-7. Use negrito e emojis para respostas longas.
-8. Seja conciso — o usuário quer respostas diretas.
-PROMPT;
-
-        if (!empty($context)) {
-            $base .= "\n\n═══ SEUS DADOS FINANCEIROS ═══\n";
-            $base .= self::formatContext($context);
-            $base .= "\n═══ FIM DOS DADOS ═══";
-        }
-
-        return $base;
     }
 
     /**

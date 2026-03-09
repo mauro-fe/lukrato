@@ -67,7 +67,7 @@ class Usuario extends Model
         'email_verification_sent_at' => 'datetime',
         'email_verification_reminder_sent_at' => 'datetime',
     ];
-    protected $appends = ['primeiro_nome', 'plan_renews_at', 'is_pro', 'is_gratuito', 'onboarding_completed'];
+    protected $appends = ['primeiro_nome', 'plan_renews_at', 'is_pro', 'is_gratuito', 'is_ultra', 'plan_tier', 'onboarding_completed'];
 
     use SoftDeletes;
 
@@ -106,6 +106,14 @@ class Usuario extends Model
     public function getIsGratuitoAttribute(): bool
     {
         return $this->isGratuito();
+    }
+    public function getIsUltraAttribute(): bool
+    {
+        return $this->isUltra();
+    }
+    public function getPlanTierAttribute(): string
+    {
+        return $this->planTier();
     }
 
     public function getOnboardingCompletedAttribute(): bool
@@ -382,6 +390,19 @@ class Usuario extends Model
     public function isGratuito(): bool
     {
         return in_array($this->planoAtual()?->code, ['free', 'gratuito', null], true);
+    }
+
+    public function isUltra(): bool
+    {
+        return $this->isPro() && strtolower((string) ($this->planoAtual()?->code ?? '')) === 'ultra';
+    }
+
+    /**
+     * Retorna o tier do plano: 'free', 'pro' ou 'ultra'
+     */
+    public function planTier(): string
+    {
+        return FeatureGate::planTier($this);
     }
 
     public function getPlanRenewsAtAttribute(): ?string
