@@ -33,6 +33,8 @@ export default defineConfig({
                 'sysadmin-communications': resolve(__dirname, 'resources/js/admin/sysadmin/communications.js'),
                 'sysadmin-cupons': resolve(__dirname, 'resources/js/admin/sysadmin/cupons.js'),
                 'sysadmin-blog': resolve(__dirname, 'resources/js/admin/sysadmin/blog.js'),
+                'sysadmin-ai': resolve(__dirname, 'resources/js/admin/sysadmin/ai-chat.js'),
+                'sysadmin-ai-logs': resolve(__dirname, 'resources/js/admin/sysadmin/ai-logs.js'),
                 // Auth
                 'auth-login': resolve(__dirname, 'resources/js/admin/auth/login/index.js'),
                 'auth-forgot-password': resolve(__dirname, 'resources/js/admin/auth/forgot-password/index.js'),

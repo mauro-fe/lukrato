@@ -179,6 +179,8 @@ if (!function_exists('loadPageJs')) {
             'admin-sysadmin-communications' => 'admin/sysadmin/communications.js',
             'admin-sysadmin-cupons'     => 'admin/sysadmin/cupons.js',
             'admin-sysadmin-blog'       => 'admin/sysadmin/blog.js',
+            'admin-sysadmin-ai'         => 'admin/sysadmin/ai-chat.js',
+            'admin-sysadmin-ai-logs'    => 'admin/sysadmin/ai-logs.js',
         ];
 
         if (isset($viteEntries[$view]) && function_exists('vite_scripts')) {
