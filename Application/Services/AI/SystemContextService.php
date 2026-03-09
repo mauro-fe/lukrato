@@ -63,11 +63,12 @@ class SystemContextService
         ];
     }
 
-    public function gather(): array
+    public function gather(?int $userId = null): array
     {
-        $cacheKey = 'ai:system_context:' . date('Y-m-d-H') . ':' . (int) (date('i') / 5);
+        $scope    = $userId ? "user:{$userId}" : 'admin';
+        $cacheKey = "ai:system_context:{$scope}:" . date('Y-m-d-H') . ':' . (int) (date('i') / 5);
 
-        return $this->cache->remember($cacheKey, self::CACHE_TTL, function () {
+        return $this->cache->remember($cacheKey, self::CACHE_TTL, function () use ($userId) {
             $period = new ContextPeriod();
 
             $context = [
@@ -77,7 +78,7 @@ class SystemContextService
             ];
 
             foreach ($this->collectors as $collector) {
-                $context = array_merge($context, $collector->collect($period));
+                $context = array_merge($context, $collector->collect($period, $userId));
             }
 
             return $context;

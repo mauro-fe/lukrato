@@ -10,8 +10,13 @@ use Application\Services\AI\Interfaces\ContextCollectorInterface;
 
 class UsuariosCollector implements ContextCollectorInterface
 {
-    public function collect(ContextPeriod $period): array
+    public function collect(ContextPeriod $period, ?int $userId = null): array
     {
+        // Dados globais de usuários são admin-only
+        if ($userId !== null) {
+            return [];
+        }
+
         $total        = Usuario::count();
         $admins       = Usuario::where('is_admin', 1)->count();
         $novosMes     = Usuario::whereBetween('created_at', [$period->inicioMes, $period->fimMes])->count();

@@ -12,24 +12,27 @@ use Illuminate\Database\Capsule\Manager as DB;
 
 class MetasOrcamentosCollector implements ContextCollectorInterface
 {
-    public function collect(ContextPeriod $period): array
+    public function collect(ContextPeriod $period, ?int $userId = null): array
     {
         return [
-            'metas'      => $this->metas(),
-            'orcamentos' => $this->orcamentos($period),
+            'metas'      => $this->metas($userId),
+            'orcamentos' => $this->orcamentos($period, $userId),
         ];
     }
 
-    private function metas(): array
+    private function metas(?int $userId): array
     {
-        $ativas     = Meta::where('status', 'ativa')->count();
-        $concluidas = Meta::where('status', 'concluida')->count();
-        $pausadas   = Meta::where('status', 'pausada')->count();
+        $base = Meta::query();
+        if ($userId) $base->where('user_id', $userId);
 
-        $totalAlvo  = round((float) Meta::where('status', 'ativa')->sum('valor_alvo'), 2);
-        $totalAtual = round((float) Meta::where('status', 'ativa')->sum('valor_atual'), 2);
+        $ativas     = (clone $base)->where('status', 'ativa')->count();
+        $concluidas = (clone $base)->where('status', 'concluida')->count();
+        $pausadas   = (clone $base)->where('status', 'pausada')->count();
 
-        $porTipo = Meta::where('status', 'ativa')
+        $totalAlvo  = round((float) (clone $base)->where('status', 'ativa')->sum('valor_alvo'), 2);
+        $totalAtual = round((float) (clone $base)->where('status', 'ativa')->sum('valor_atual'), 2);
+
+        $porTipo = (clone $base)->where('status', 'ativa')
             ->select('tipo', DB::raw('COUNT(*) as qtd'), DB::raw('SUM(valor_alvo) as alvo'), DB::raw('SUM(valor_atual) as atual'))
             ->groupBy('tipo')
             ->get()
@@ -52,9 +55,10 @@ class MetasOrcamentosCollector implements ContextCollectorInterface
         ];
     }
 
-    private function orcamentos(ContextPeriod $p): array
+    private function orcamentos(ContextPeriod $p, ?int $userId): array
     {
         $orcamentos  = OrcamentoCategoria::where('mes', $p->mesNum)->where('ano', $p->anoNum);
+        if ($userId) $orcamentos->where('user_id', $userId);
         $total       = $orcamentos->count();
         $limiteTotal = round((float) (clone $orcamentos)->sum('valor_limite'), 2);
 

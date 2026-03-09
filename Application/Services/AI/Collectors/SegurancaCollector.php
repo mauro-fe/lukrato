@@ -12,8 +12,10 @@ use Illuminate\Database\Capsule\Manager as DB;
 
 class SegurancaCollector implements ContextCollectorInterface
 {
-    public function collect(ContextPeriod $period): array
+    public function collect(ContextPeriod $period, ?int $userId = null): array
     {
+        if ($userId !== null) return [];
+
         $resetsSemana  = PasswordReset::where('created_at', '>=', $period->now->copy()->subWeek())->count();
         $resetsUsados  = PasswordReset::whereNotNull('used_at')->count();
         $resetsTotal   = PasswordReset::count();

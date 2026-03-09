@@ -11,25 +11,28 @@ use Illuminate\Database\Capsule\Manager as DB;
 
 class FinanceiroCollector implements ContextCollectorInterface
 {
-    public function collect(ContextPeriod $period): array
+    public function collect(ContextPeriod $period, ?int $userId = null): array
     {
         return [
-            'financeiro'       => $this->resumoMensal($period),
-            'categorias'       => $this->topCategorias($period),
-            'lancamentos_status' => $this->statusLancamentos($period),
-            'evolucao_6_meses' => $this->evolucaoSeisMeses($period),
+            'financeiro'         => $this->resumoMensal($period, $userId),
+            'top_categorias_gasto' => $this->topCategorias($period, $userId),
+            'lancamentos_status' => $this->statusLancamentos($period, $userId),
+            'evolucao_6_meses' => $this->evolucaoSeisMeses($period, $userId),
         ];
     }
 
-    private function resumoMensal(ContextPeriod $p): array
+    private function resumoMensal(ContextPeriod $p, ?int $userId): array
     {
-        $receitasMes    = (float) Lancamento::where('tipo', 'receita')->whereBetween('data', [$p->inicioMes, $p->fimMes])->sum('valor');
-        $despesasMes    = (float) Lancamento::where('tipo', 'despesa')->whereBetween('data', [$p->inicioMes, $p->fimMes])->sum('valor');
-        $receitasMesAnt = (float) Lancamento::where('tipo', 'receita')->whereBetween('data', [$p->inicioMesAnterior, $p->fimMesAnterior])->sum('valor');
-        $despesasMesAnt = (float) Lancamento::where('tipo', 'despesa')->whereBetween('data', [$p->inicioMesAnterior, $p->fimMesAnterior])->sum('valor');
+        $query = Lancamento::query();
+        if ($userId) $query->where('user_id', $userId);
 
-        $totalLanc    = Lancamento::whereBetween('data', [$p->inicioMes, $p->fimMes])->count();
-        $totalLancAnt = Lancamento::whereBetween('data', [$p->inicioMesAnterior, $p->fimMesAnterior])->count();
+        $receitasMes    = (float) (clone $query)->where('tipo', 'receita')->whereBetween('data', [$p->inicioMes, $p->fimMes])->sum('valor');
+        $despesasMes    = (float) (clone $query)->where('tipo', 'despesa')->whereBetween('data', [$p->inicioMes, $p->fimMes])->sum('valor');
+        $receitasMesAnt = (float) (clone $query)->where('tipo', 'receita')->whereBetween('data', [$p->inicioMesAnterior, $p->fimMesAnterior])->sum('valor');
+        $despesasMesAnt = (float) (clone $query)->where('tipo', 'despesa')->whereBetween('data', [$p->inicioMesAnterior, $p->fimMesAnterior])->sum('valor');
+
+        $totalLanc    = (clone $query)->whereBetween('data', [$p->inicioMes, $p->fimMes])->count();
+        $totalLancAnt = (clone $query)->whereBetween('data', [$p->inicioMesAnterior, $p->fimMesAnterior])->count();
 
         return [
             'receitas_mes_atual'             => round($receitasMes, 2),
@@ -47,13 +50,16 @@ class FinanceiroCollector implements ContextCollectorInterface
         ];
     }
 
-    private function topCategorias(ContextPeriod $p): array
+    private function topCategorias(ContextPeriod $p, ?int $userId): array
     {
-        return DB::table('lancamentos')
+        $query = DB::table('lancamentos')
             ->join('categorias', 'lancamentos.categoria_id', '=', 'categorias.id')
             ->whereBetween('lancamentos.data', [$p->inicioMes, $p->fimMes])
-            ->where('lancamentos.tipo', 'despesa')
-            ->select('categorias.nome', DB::raw('SUM(lancamentos.valor) as total'), DB::raw('COUNT(*) as qtd'))
+            ->where('lancamentos.tipo', 'despesa');
+        if ($userId) $query->where('lancamentos.user_id', $userId);
+        if ($userId) $query->where('lancamentos.user_id', $userId);
+
+        return $query->select('categorias.nome', DB::raw('SUM(lancamentos.valor) as total'), DB::raw('COUNT(*) as qtd'))
             ->groupBy('categorias.nome')
             ->orderByDesc('total')
             ->limit(10)
@@ -65,12 +71,15 @@ class FinanceiroCollector implements ContextCollectorInterface
             ])->toArray();
     }
 
-    private function statusLancamentos(ContextPeriod $p): array
+    private function statusLancamentos(ContextPeriod $p, ?int $userId): array
     {
-        $pagosMes     = Lancamento::where('pago', 1)->whereBetween('data', [$p->inicioMes, $p->fimMes])->count();
-        $pendentesMes = Lancamento::where('pago', 0)->whereNull('cancelado_em')->whereBetween('data', [$p->inicioMes, $p->fimMes])->count();
-        $vencidos     = Lancamento::where('pago', 0)->whereNull('cancelado_em')->where('data', '<', $p->hoje)->count();
-        $valorVencido = round((float) Lancamento::where('pago', 0)->whereNull('cancelado_em')->where('data', '<', $p->hoje)->sum('valor'), 2);
+        $base = Lancamento::query();
+        if ($userId) $base->where('user_id', $userId);
+
+        $pagosMes     = (clone $base)->where('pago', 1)->whereBetween('data', [$p->inicioMes, $p->fimMes])->count();
+        $pendentesMes = (clone $base)->where('pago', 0)->whereNull('cancelado_em')->whereBetween('data', [$p->inicioMes, $p->fimMes])->count();
+        $vencidos     = (clone $base)->where('pago', 0)->whereNull('cancelado_em')->where('data', '<', $p->hoje)->count();
+        $valorVencido = round((float) (clone $base)->where('pago', 0)->whereNull('cancelado_em')->where('data', '<', $p->hoje)->sum('valor'), 2);
 
         return [
             'pagos_mes'      => $pagosMes,
@@ -81,7 +90,7 @@ class FinanceiroCollector implements ContextCollectorInterface
         ];
     }
 
-    private function evolucaoSeisMeses(ContextPeriod $p): array
+    private function evolucaoSeisMeses(ContextPeriod $p, ?int $userId): array
     {
         $meses = [];
         for ($i = 5; $i >= 0; $i--) {
@@ -89,8 +98,11 @@ class FinanceiroCollector implements ContextCollectorInterface
             $inicio = $date->copy()->startOfMonth()->toDateString();
             $fim    = $date->copy()->endOfMonth()->toDateString();
 
-            $receitas = round((float) Lancamento::where('tipo', 'receita')->whereBetween('data', [$inicio, $fim])->sum('valor'), 2);
-            $despesas = round((float) Lancamento::where('tipo', 'despesa')->whereBetween('data', [$inicio, $fim])->sum('valor'), 2);
+            $baseQ = Lancamento::query();
+            if ($userId) $baseQ->where('user_id', $userId);
+
+            $receitas = round((float) (clone $baseQ)->where('tipo', 'receita')->whereBetween('data', [$inicio, $fim])->sum('valor'), 2);
+            $despesas = round((float) (clone $baseQ)->where('tipo', 'despesa')->whereBetween('data', [$inicio, $fim])->sum('valor'), 2);
 
             $meses[] = [
                 'mes'      => $date->translatedFormat('M/Y'),

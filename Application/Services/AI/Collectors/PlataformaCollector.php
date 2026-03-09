@@ -9,7 +9,7 @@ use Application\Services\AI\Interfaces\ContextCollectorInterface;
 
 class PlataformaCollector implements ContextCollectorInterface
 {
-    public function collect(ContextPeriod $period): array
+    public function collect(ContextPeriod $period, ?int $userId = null): array
     {
         return [
             'plataforma' => [

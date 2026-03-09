@@ -11,22 +11,29 @@ use Illuminate\Database\Capsule\Manager as DB;
 
 class AssinaturasCollector implements ContextCollectorInterface
 {
-    public function collect(ContextPeriod $period): array
+    public function collect(ContextPeriod $period, ?int $userId = null): array
     {
-        $total  = AssinaturaUsuario::count();
-        $ativas = AssinaturaUsuario::where('status', AssinaturaUsuario::ST_ACTIVE)->count();
+        $base = AssinaturaUsuario::query();
+        if ($userId) $base->where('user_id', $userId);
 
-        $porPlano = DB::table('assinaturas_usuarios')
+        $total  = (clone $base)->count();
+        $ativas = (clone $base)->where('status', AssinaturaUsuario::ST_ACTIVE)->count();
+
+        $porPlanoQuery = DB::table('assinaturas_usuarios')
             ->join('planos', 'assinaturas_usuarios.plano_id', '=', 'planos.id')
-            ->where('assinaturas_usuarios.status', 'active')
-            ->select('planos.nome', DB::raw('COUNT(*) as total'))
+            ->where('assinaturas_usuarios.status', 'active');
+        if ($userId) $porPlanoQuery->where('assinaturas_usuarios.user_id', $userId);
+
+        $porPlano = $porPlanoQuery->select('planos.nome', DB::raw('COUNT(*) as total'))
             ->groupBy('planos.nome')
             ->get();
 
-        $mrr = (int) DB::table('assinaturas_usuarios')
+        $mrrQuery = DB::table('assinaturas_usuarios')
             ->join('planos', 'assinaturas_usuarios.plano_id', '=', 'planos.id')
-            ->where('assinaturas_usuarios.status', 'active')
-            ->sum('planos.preco_centavos');
+            ->where('assinaturas_usuarios.status', 'active');
+        if ($userId) $mrrQuery->where('assinaturas_usuarios.user_id', $userId);
+
+        $mrr = (int) $mrrQuery->sum('planos.preco_centavos');
 
         return [
             'assinaturas' => [

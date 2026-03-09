@@ -6,6 +6,7 @@ namespace Application\Services\AI\Collectors;
 
 use Application\Models\BlogPost;
 use Application\Models\Cupom;
+use Application\Models\CupomUsado;
 use Application\Models\Indicacao;
 use Application\Models\MessageCampaign;
 use Application\Models\Notification;
@@ -15,8 +16,10 @@ use Illuminate\Database\Capsule\Manager as DB;
 
 class MarketingCollector implements ContextCollectorInterface
 {
-    public function collect(ContextPeriod $period): array
+    public function collect(ContextPeriod $period, ?int $userId = null): array
     {
+        if ($userId !== null) return [];
+
         return [
             'indicacoes'   => $this->indicacoes(),
             'notificacoes' => $this->notificacoes(),
@@ -78,10 +81,27 @@ class MarketingCollector implements ContextCollectorInterface
 
     private function cupons(): array
     {
+        $totalUsados = CupomUsado::count();
+
+        $topCupons = DB::table('cupons_usados')
+            ->join('cupons', 'cupons_usados.cupom_id', '=', 'cupons.id')
+            ->select('cupons.codigo', DB::raw('COUNT(*) as usos'), DB::raw('SUM(cupons_usados.desconto_aplicado) as desconto_total'))
+            ->groupBy('cupons.codigo')
+            ->orderByDesc('usos')
+            ->limit(5)
+            ->get()
+            ->map(fn($r) => [
+                'codigo'         => $r->codigo,
+                'usos'           => (int) $r->usos,
+                'desconto_total' => round((float) $r->desconto_total, 2),
+            ])->toArray();
+
         return [
-            'total'      => Cupom::count(),
-            'ativos'     => Cupom::where('ativo', 1)->count(),
-            'total_usos' => (int) Cupom::sum('uso_atual'),
+            'total'           => Cupom::count(),
+            'ativos'          => Cupom::where('ativo', 1)->count(),
+            'total_usos'      => (int) Cupom::sum('uso_atual'),
+            'redemptions'     => $totalUsados,
+            'top_cupons_usados' => $topCupons,
         ];
     }
 

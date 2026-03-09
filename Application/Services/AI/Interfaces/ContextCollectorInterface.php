@@ -15,7 +15,9 @@ interface ContextCollectorInterface
     /**
      * Coleta dados agregados (read-only) para enriquecer o contexto da IA.
      *
+     * @param ContextPeriod $period Período de referência
+     * @param int|null      $userId ID do usuário (null = visão admin global)
      * @return array<string, mixed> Associativo ['chave' => dados]
      */
-    public function collect(ContextPeriod $period): array;
+    public function collect(ContextPeriod $period, ?int $userId = null): array;
 }

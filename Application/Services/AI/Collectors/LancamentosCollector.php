@@ -11,28 +11,35 @@ use Illuminate\Database\Capsule\Manager as DB;
 
 class LancamentosCollector implements ContextCollectorInterface
 {
-    public function collect(ContextPeriod $period): array
+    public function collect(ContextPeriod $period, ?int $userId = null): array
     {
-        return [
-            'lancamentos_recentes'     => $this->recentes($period),
-            'lancamentos_por_tipo'     => $this->porTipo($period),
-            'lancamentos_por_forma'    => $this->porFormaPagamento($period),
-            'lancamentos_vencidos'     => $this->vencidos($period),
-            'recorrencias_ativas'      => $this->recorrencias($period),
-            'lancamentos_por_usuario'  => $this->porUsuario($period),
+        $result = [
+            'lancamentos_recentes'     => $this->recentes($period, $userId),
+            'lancamentos_por_tipo'     => $this->porTipo($period, $userId),
+            'lancamentos_por_forma'    => $this->porFormaPagamento($period, $userId),
+            'lancamentos_vencidos'     => $this->vencidos($period, $userId),
+            'recorrencias_ativas'      => $this->recorrencias($period, $userId),
         ];
+
+        // Visão por usuário só faz sentido para admin
+        if ($userId === null) {
+            $result['lancamentos_por_usuario'] = $this->porUsuario($period);
+        }
+
+        return $result;
     }
 
     /**
      * Últimos 30 lançamentos com detalhes completos (descrição, valor, categoria, conta, etc.)
      */
-    private function recentes(ContextPeriod $p): array
+    private function recentes(ContextPeriod $p, ?int $userId): array
     {
         return DB::table('lancamentos')
             ->leftJoin('categorias', 'lancamentos.categoria_id', '=', 'categorias.id')
             ->leftJoin('contas', 'lancamentos.conta_id', '=', 'contas.id')
             ->leftJoin('cartoes_credito', 'lancamentos.cartao_credito_id', '=', 'cartoes_credito.id')
             ->whereNull('lancamentos.deleted_at')
+            ->when($userId, fn($q) => $q->where('lancamentos.user_id', $userId))
             ->select(
                 'lancamentos.descricao',
                 'lancamentos.valor',
@@ -86,10 +93,11 @@ class LancamentosCollector implements ContextCollectorInterface
     /**
      * Distribuição de lançamentos do mês por tipo (receita, despesa, transferência)
      */
-    private function porTipo(ContextPeriod $p): array
+    private function porTipo(ContextPeriod $p, ?int $userId): array
     {
         return DB::table('lancamentos')
             ->whereNull('deleted_at')
+            ->when($userId, fn($q) => $q->where('user_id', $userId))
             ->whereBetween('data', [$p->inicioMes, $p->fimMes])
             ->select(
                 'tipo',
@@ -108,10 +116,11 @@ class LancamentosCollector implements ContextCollectorInterface
     /**
      * Distribuição por forma de pagamento no mês
      */
-    private function porFormaPagamento(ContextPeriod $p): array
+    private function porFormaPagamento(ContextPeriod $p, ?int $userId): array
     {
         return DB::table('lancamentos')
             ->whereNull('deleted_at')
+            ->when($userId, fn($q) => $q->where('user_id', $userId))
             ->whereBetween('data', [$p->inicioMes, $p->fimMes])
             ->whereNotNull('forma_pagamento')
             ->select(
@@ -132,12 +141,13 @@ class LancamentosCollector implements ContextCollectorInterface
     /**
      * Lançamentos vencidos não pagos (top 15 mais recentes com detalhes)
      */
-    private function vencidos(ContextPeriod $p): array
+    private function vencidos(ContextPeriod $p, ?int $userId): array
     {
         return DB::table('lancamentos')
             ->leftJoin('categorias', 'lancamentos.categoria_id', '=', 'categorias.id')
             ->whereNull('lancamentos.deleted_at')
             ->whereNull('lancamentos.cancelado_em')
+            ->when($userId, fn($q) => $q->where('lancamentos.user_id', $userId))
             ->where('lancamentos.pago', 0)
             ->where('lancamentos.data', '<', $p->hoje)
             ->select(
@@ -162,12 +172,13 @@ class LancamentosCollector implements ContextCollectorInterface
     /**
      * Recorrências ativas (lançamentos pai) com frequência e valores
      */
-    private function recorrencias(ContextPeriod $p): array
+    private function recorrencias(ContextPeriod $p, ?int $userId): array
     {
         return DB::table('lancamentos')
             ->leftJoin('categorias', 'lancamentos.categoria_id', '=', 'categorias.id')
             ->whereNull('lancamentos.deleted_at')
             ->whereNull('lancamentos.cancelado_em')
+            ->when($userId, fn($q) => $q->where('lancamentos.user_id', $userId))
             ->where('lancamentos.recorrente', 1)
             ->whereNull('lancamentos.recorrencia_pai_id')
             ->select(

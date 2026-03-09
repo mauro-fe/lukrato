@@ -11,8 +11,10 @@ use Illuminate\Database\Capsule\Manager as DB;
 
 class WebhooksCollector implements ContextCollectorInterface
 {
-    public function collect(ContextPeriod $period): array
+    public function collect(ContextPeriod $period, ?int $userId = null): array
     {
+        if ($userId !== null) return [];
+
         $total     = LogWebhookCobranca::count();
         $ultimas24 = LogWebhookCobranca::where('created_at', '>=', $period->now->copy()->subDay())->count();
         $semana    = LogWebhookCobranca::where('created_at', '>=', $period->now->copy()->subWeek())->count();

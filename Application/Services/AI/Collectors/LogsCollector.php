@@ -11,8 +11,10 @@ use Illuminate\Database\Capsule\Manager as DB;
 
 class LogsCollector implements ContextCollectorInterface
 {
-    public function collect(ContextPeriod $period): array
+    public function collect(ContextPeriod $period, ?int $userId = null): array
     {
+        if ($userId !== null) return [];
+
         $total        = ErrorLog::count();
         $naoResolvido = ErrorLog::whereNull('resolved_at')->count();
 

@@ -18,31 +18,33 @@ class ContextCompressor
      */
     private const KEYWORD_MAP = [
         // Financeiro
-        'receita|despesa|saldo|gasto|financeiro|dinheiro|economi|lucro|prejuízo|variação' => ['financeiro', 'lancamentos_status', 'evolucao_6_meses'],
-        'lançamento|lancamento|transação|transacao|pagamento|pendente|vencido' => ['financeiro', 'lancamentos', 'lancamentos_status'],
-        'categoria|subcategoria|classificar|classificação' => ['categorias', 'financeiro'],
+        'receita|despesa|saldo|gasto|financeiro|dinheiro|economi|lucro|prejuízo|variação' => ['financeiro', 'top_categorias_gasto', 'lancamentos_status', 'evolucao_6_meses'],
+        'lançamento|lancamento|transação|transacao|pagamento|pendente|vencido' => ['financeiro', 'lancamentos_recentes', 'lancamentos_por_tipo', 'lancamentos_por_forma', 'lancamentos_vencidos', 'lancamentos_por_usuario', 'lancamentos_status'],
+        'categoria|subcategoria|classificar|classificação' => ['categorias', 'top_categorias_gasto', 'financeiro'],
         'cartão|cartao|crédito|credito|fatura|limite|parcela' => ['cartoes_credito', 'faturas', 'parcelas'],
         'conta|banco|bancária|bancaria|instituição|poupança|corrente' => ['contas'],
         'meta|objetivo|orçamento|orcamento|budget|estourado' => ['metas', 'orcamentos'],
-        'recorrência|recorrencia|fixa|fixo|mensal|semanal' => ['recorrencias'],
+        'recorrência|recorrencia|fixa|fixo|mensal|semanal' => ['recorrencias', 'recorrencias_ativas'],
         // Usuários
         'usuário|usuario|user|crescimento|cadastro|onboarding|verificação' => ['usuarios'],
         // Assinaturas
-        'assinatura|plano|premium|pro|mrr|receita recorrente|cupom|cupons' => ['assinaturas'],
+        'assinatura|plano|premium|pro|mrr|receita recorrente' => ['assinaturas'],
+        // Cupons
+        'cupom|cupons|desconto|voucher' => ['cupons', 'assinaturas'],
         // Gamificação
         'gamificação|gamificacao|nível|nivel|ponto|streak|conquista|achievement' => ['gamificacao'],
         // Marketing
-        'marketing|indicação|indicacao|referral|notificação|notificacao|campanha|blog' => ['marketing'],
+        'marketing|indicação|indicacao|referral|notificação|notificacao|campanha|blog' => ['indicacoes', 'notificacoes', 'campanhas', 'cupons', 'blog'],
         // Segurança
         'segurança|seguranca|senha|reset|ip|login|google' => ['seguranca'],
         // Logs / Sistema
-        'erro|log|saúde|saude|sistema|health|critical|warning' => ['logs_sistema'],
+        'erro|log|saúde|saude|sistema|health|critical|warning' => ['logs_sistema', 'plataforma'],
         // Webhooks
-        'webhook|pagamento online|stripe|provedor' => ['webhooks'],
+        'webhook|pagamento online|stripe|provedor' => ['webhooks_cobranca'],
     ];
 
     /** Chaves que sempre são incluídas (metadados leves). */
-    private const ALWAYS_INCLUDE = ['data_atual', 'mes_atual', 'dia_da_semana'];
+    private const ALWAYS_INCLUDE = ['data_atual', 'mes_atual', 'dia_da_semana', 'plataforma'];
 
     /** Expressões que indicam que o usuário quer uma visão geral. */
     private const GENERIC_PATTERNS = [
