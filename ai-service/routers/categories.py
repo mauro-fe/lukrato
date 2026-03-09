@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List
-import openai
+import httpx
 
 from config import settings
 
@@ -37,31 +37,36 @@ async def suggest_category(req: CategoryRequest):
         f'Responda SOMENTE com o nome exato de uma categoria. Sem ponto final, sem explicação.'
     )
 
-    if provider == "openai":
-        if not settings.openai_api_key:
-            raise HTTPException(status_code=503, detail="OPENAI_API_KEY não configurada")
+    if provider != "ollama":
+        raise HTTPException(status_code=400, detail=f"Provider '{provider}' não suportado. Use o endpoint PHP para OpenAI.")
 
-        client = openai.AsyncOpenAI(api_key=settings.openai_api_key)
-        try:
-            completion = await client.chat.completions.create(
-                model=settings.ai_model,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "Você classifica lançamentos financeiros em categorias. Responda apenas com o nome da categoria.",
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            resp = await client.post(
+                f"{settings.ollama_base_url}/api/chat",
+                json={
+                    "model": settings.ollama_model,
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": "Você classifica lançamentos financeiros em categorias. Responda apenas com o nome da categoria.",
+                        },
+                        {"role": "user", "content": prompt},
+                    ],
+                    "stream": False,
+                    "options": {
+                        "temperature": 0.1,
+                        "num_predict": 20,
+                        "num_ctx": 2048,
                     },
-                    {"role": "user", "content": prompt},
-                ],
-                temperature=0.1,
-                max_tokens=20,
+                },
             )
-            suggested = completion.choices[0].message.content.strip().rstrip(".")
-            # Retorna null se a IA inventou uma categoria fora da lista
+            resp.raise_for_status()
+            data = resp.json()
+            suggested = data["message"]["content"].strip().rstrip(".")
             category = suggested if suggested in categories else None
-            return CategoryResponse(category=category, provider="openai")
-
-        except openai.APIError as e:
-            raise HTTPException(status_code=502, detail=f"Erro OpenAI: {str(e)}")
-
-    else:
-        raise HTTPException(status_code=400, detail=f"Provider '{provider}' não suportado")
+            return CategoryResponse(category=category, provider="ollama")
+    except httpx.ConnectError:
+        raise HTTPException(status_code=503, detail="Ollama não está rodando")
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Erro Ollama: {str(e)}")

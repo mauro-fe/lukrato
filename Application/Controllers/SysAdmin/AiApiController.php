@@ -8,8 +8,10 @@ use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Services\AI\AIService;
+use Application\Services\AI\ContextCompressor;
 use Application\Services\AI\Providers\OpenAIProvider;
 use Application\Services\AI\SystemContextService;
+use Application\Services\Infrastructure\CacheService;
 use GuzzleHttp\Client;
 
 class AiApiController extends BaseController
@@ -67,7 +69,7 @@ class AiApiController extends BaseController
 
     /**
      * GET /api/sysadmin/ai/quota
-     * Faz uma chamada mínima à OpenAI para retornar os rate limits atuais.
+     * Retorna rate limits cacheados da OpenAI. Se não houver cache, faz chamada mínima.
      */
     public function quota(): void
     {
@@ -94,6 +96,29 @@ class AiApiController extends BaseController
             return;
         }
 
+        $model = $_ENV['OPENAI_MODEL'] ?? 'gpt-4o-mini';
+
+        // Tentar ler do cache primeiro (salvo pelo OpenAIProvider após cada chamada real)
+        $cache = new CacheService();
+        $cached = $cache->get('ai:openai_rate_limits');
+
+        if (is_array($cached) && !empty($cached['requests_limit'])) {
+            Response::success([
+                'provider'            => 'openai',
+                'model'               => $model,
+                'status'              => 'active',
+                'requests_limit'      => $cached['requests_limit'] ?? 0,
+                'requests_remaining'  => $cached['requests_remaining'] ?? 0,
+                'tokens_limit'        => $cached['tokens_limit'] ?? 0,
+                'tokens_remaining'    => $cached['tokens_remaining'] ?? 0,
+                'reset_requests'      => $cached['reset_requests'] ?? null,
+                'reset_tokens'        => $cached['reset_tokens'] ?? null,
+                'source'              => 'cache',
+            ]);
+            return;
+        }
+
+        // Fallback: chamada mínima à API
         try {
             $client = new Client([
                 'base_uri'        => 'https://api.openai.com/v1/',
@@ -101,9 +126,6 @@ class AiApiController extends BaseController
                 'connect_timeout' => 5,
             ]);
 
-            $model = $_ENV['OPENAI_MODEL'] ?? 'gpt-4o-mini';
-
-            // Chamada mínima: 1 token de resposta
             $response = $client->post('chat/completions', [
                 'headers' => [
                     'Authorization' => "Bearer {$apiKey}",
@@ -119,18 +141,24 @@ class AiApiController extends BaseController
             $body = json_decode($response->getBody()->getContents(), true);
             $usage = $body['usage'] ?? [];
 
-            Response::success([
-                'provider'            => 'openai',
-                'model'               => $model,
-                'status'              => 'active',
+            $rateLimits = [
                 'requests_limit'      => (int) ($response->getHeaderLine('x-ratelimit-limit-requests') ?: 0),
                 'requests_remaining'  => (int) ($response->getHeaderLine('x-ratelimit-remaining-requests') ?: 0),
                 'tokens_limit'        => (int) ($response->getHeaderLine('x-ratelimit-limit-tokens') ?: 0),
                 'tokens_remaining'    => (int) ($response->getHeaderLine('x-ratelimit-remaining-tokens') ?: 0),
                 'reset_requests'      => $response->getHeaderLine('x-ratelimit-reset-requests') ?: null,
                 'reset_tokens'        => $response->getHeaderLine('x-ratelimit-reset-tokens') ?: null,
-                'test_tokens_used'    => $usage['total_tokens'] ?? 0,
-            ]);
+            ];
+
+            $cache->set('ai:openai_rate_limits', $rateLimits, 300);
+
+            Response::success(array_merge([
+                'provider'         => 'openai',
+                'model'            => $model,
+                'status'           => 'active',
+                'test_tokens_used' => $usage['total_tokens'] ?? 0,
+                'source'           => 'api',
+            ], $rateLimits));
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             $status = $e->getResponse()->getStatusCode();
             $errBody = json_decode($e->getResponse()->getBody()->getContents(), true);
@@ -146,7 +174,7 @@ class AiApiController extends BaseController
                 'success' => true,
                 'data'    => [
                     'provider' => 'openai',
-                    'model'    => $_ENV['OPENAI_MODEL'] ?? 'gpt-4o-mini',
+                    'model'    => $model,
                     'status'   => $code,
                     'message'  => $errMsg,
                     'requests_limit'     => 0,
@@ -193,7 +221,10 @@ class AiApiController extends BaseController
         } catch (\Throwable) {
             $systemContext = [];
         }
-        $context = array_merge($systemContext, $context);
+        $context = ContextCompressor::compress(
+            array_merge($systemContext, $context),
+            $message
+        );
 
         $ai       = new AIService();
         $response = $ai->chat($message, $context);

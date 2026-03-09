@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Application\Services\AI\Providers;
 
 use Application\Services\AI\Contracts\AIProvider;
+use Application\Services\AI\PromptBuilder;
 use GuzzleHttp\Client;
 
 /**
@@ -20,7 +21,7 @@ class OllamaProvider implements AIProvider
 
     public function __construct()
     {
-        $this->serviceUrl    = rtrim($_ENV['AI_SERVICE_URL'] ?? 'http://localhost:8001', '/');
+        $this->serviceUrl    = rtrim($_ENV['AI_SERVICE_URL'] ?? 'http://localhost:8002', '/');
         $this->internalToken = $_ENV['AI_INTERNAL_TOKEN'] ?? '';
 
         $this->client = new Client([
@@ -41,9 +42,10 @@ class OllamaProvider implements AIProvider
         $response = $this->client->post("{$this->serviceUrl}/chat", [
             'headers' => $this->headers(),
             'json'    => [
-                'message'  => $prompt,
-                'context'  => empty($context) ? new \stdClass() : $context,
-                'provider' => 'ollama',
+                'message'       => $prompt,
+                'context'       => empty($context) ? new \stdClass() : $context,
+                'system_prompt' => PromptBuilder::chatSystem($context),
+                'provider'      => 'ollama',
             ],
         ]);
 

@@ -20,18 +20,24 @@ use Application\Services\AI\Collectors\UsuariosCollector;
 use Application\Services\AI\Collectors\WebhooksCollector;
 use Application\Services\AI\DTO\ContextPeriod;
 use Application\Services\AI\Interfaces\ContextCollectorInterface;
+use Application\Services\Infrastructure\CacheService;
 
 /**
  * Orquestra a coleta de metricas do sistema para o contexto da IA.
  * Delega cada dominio a um Collector especializado (SRP / Open-Closed).
+ * Resultado cacheado por 5 minutos para evitar 14 queries SQL por mensagem.
  */
 class SystemContextService
 {
+    private const CACHE_TTL = 300; // 5 minutos
+
     /** @var ContextCollectorInterface[] */
     private array $collectors;
+    private CacheService $cache;
 
     public function __construct()
     {
+        $this->cache = new CacheService();
         $this->collectors = [
             // Dados core
             new UsuariosCollector(),
@@ -59,18 +65,22 @@ class SystemContextService
 
     public function gather(): array
     {
-        $period = new ContextPeriod();
+        $cacheKey = 'ai:system_context:' . date('Y-m-d-H') . ':' . (int) (date('i') / 5);
 
-        $context = [
-            'data_atual'    => $period->dataFormatada,
-            'mes_atual'     => $period->mesAtual,
-            'dia_da_semana' => $period->diaDaSemana,
-        ];
+        return $this->cache->remember($cacheKey, self::CACHE_TTL, function () {
+            $period = new ContextPeriod();
 
-        foreach ($this->collectors as $collector) {
-            $context = array_merge($context, $collector->collect($period));
-        }
+            $context = [
+                'data_atual'    => $period->dataFormatada,
+                'mes_atual'     => $period->mesAtual,
+                'dia_da_semana' => $period->diaDaSemana,
+            ];
 
-        return $context;
+            foreach ($this->collectors as $collector) {
+                $context = array_merge($context, $collector->collect($period));
+            }
+
+            return $context;
+        });
     }
 }

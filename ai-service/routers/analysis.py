@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List
-import openai
+import httpx
 import json
 
 from config import settings
@@ -49,34 +49,43 @@ Forneça uma análise financeira útil com:
 Responda APENAS em JSON com o formato exato:
 {{"insights": ["insight 1", "insight 2", "insight 3"], "resumo": "resumo em 2 frases aqui"}}"""
 
-    if provider == "openai":
-        if not settings.openai_api_key:
-            raise HTTPException(status_code=503, detail="OPENAI_API_KEY não configurada")
+    if provider != "ollama":
+        raise HTTPException(status_code=400, detail=f"Provider '{provider}' não suportado. Use o endpoint PHP para OpenAI.")
 
-        client = openai.AsyncOpenAI(api_key=settings.openai_api_key)
-        try:
-            completion = await client.chat.completions.create(
-                model=settings.ai_model,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "Você é um analista financeiro especializado. Sempre retorne JSON válido no formato solicitado.",
+    try:
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            resp = await client.post(
+                f"{settings.ollama_base_url}/api/chat",
+                json={
+                    "model": settings.ollama_model,
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": "Você é um analista financeiro especializado. Sempre retorne JSON válido no formato solicitado.",
+                        },
+                        {"role": "user", "content": prompt},
+                    ],
+                    "stream": False,
+                    "format": "json",
+                    "options": {
+                        "temperature": 0.3,
+                        "num_predict": 800,
+                        "num_ctx": 4096,
                     },
-                    {"role": "user", "content": prompt},
-                ],
-                temperature=0.3,
-                max_tokens=800,
-                response_format={"type": "json_object"},
+                },
             )
-            result = json.loads(completion.choices[0].message.content)
+            resp.raise_for_status()
+            data = resp.json()
+            content = data["message"]["content"]
+            result = json.loads(content)
             return AnalysisResponse(
                 insights=result.get("insights", []),
                 resumo=result.get("resumo", ""),
-                provider="openai",
+                provider="ollama",
             )
-        except openai.APIError as e:
-            raise HTTPException(status_code=502, detail=f"Erro OpenAI: {str(e)}")
-        except json.JSONDecodeError:
-            raise HTTPException(status_code=502, detail="Resposta da IA não é um JSON válido")
-    else:
-        raise HTTPException(status_code=400, detail=f"Provider '{provider}' não suportado para análise")
+    except httpx.ConnectError:
+        raise HTTPException(status_code=503, detail="Ollama não está rodando")
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=502, detail="Resposta do Ollama não é um JSON válido")
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Erro Ollama: {str(e)}")

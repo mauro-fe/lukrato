@@ -42,11 +42,11 @@ class AiLogService
         }
 
         if (!empty($filters['search'])) {
-            $term = $filters['search'];
+            $term = '%' . $filters['search'] . '%';
             $query->where(function ($q) use ($term) {
-                $q->where('prompt', 'LIKE', "%{$term}%")
-                    ->orWhere('response', 'LIKE', "%{$term}%")
-                    ->orWhere('error_message', 'LIKE', "%{$term}%");
+                $q->where('prompt', 'LIKE', $term)
+                    ->orWhere('response', 'LIKE', $term)
+                    ->orWhere('error_message', 'LIKE', $term);
             });
         }
 

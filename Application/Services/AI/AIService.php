@@ -8,6 +8,7 @@ use Application\Lib\Auth;
 use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\Providers\OllamaProvider;
 use Application\Services\AI\Providers\OpenAIProvider;
+use Application\Services\Infrastructure\CacheService;
 use Application\Services\Infrastructure\LogService;
 use Throwable;
 
@@ -26,10 +27,12 @@ use Throwable;
 class AIService
 {
     private AIProvider $provider;
+    private CacheService $cache;
 
     public function __construct(?AIProvider $provider = null)
     {
         $this->provider = $provider ?? $this->resolveProvider();
+        $this->cache = new CacheService();
     }
 
     private function resolveProvider(): AIProvider
@@ -65,13 +68,25 @@ class AIService
 
     /**
      * Sugestão de categoria. Retorna null silenciosamente em caso de falha.
+     * Resultados são cacheados por 24h para descrições idênticas.
      */
     public function suggestCategory(string $description, array $availableCategories = []): ?string
     {
+        $cacheKey = 'ai:cat:' . md5(mb_strtolower(trim($description)));
+        $cached = $this->cache->get($cacheKey);
+        if ($cached !== null) {
+            return is_string($cached) ? $cached : null;
+        }
+
         $start = microtime(true);
         try {
             $result = $this->provider->suggestCategory($description, $availableCategories);
             $this->logInteraction('suggest_category', $description, $result, $start);
+
+            if ($result !== null) {
+                $this->cache->set($cacheKey, $result, 86400); // 24h
+            }
+
             return $result;
         } catch (Throwable $e) {
             $this->logInteraction('suggest_category', $description, null, $start, $e->getMessage());

@@ -1,13 +1,49 @@
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+import httpx
+import logging
 
 from config import settings
 from routers import chat, analysis, categories
 
+logger = logging.getLogger("lukrato-ai")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Verifica conectividade com Ollama ao iniciar o serviço."""
+    if settings.ai_provider == "ollama":
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                resp = await client.get(f"{settings.ollama_base_url}/api/tags")
+                resp.raise_for_status()
+                models = [m["name"] for m in resp.json().get("models", [])]
+                logger.info(f"Ollama conectado. Modelos disponíveis: {models}")
+                if settings.ollama_model not in models:
+                    base_model = settings.ollama_model.split(":")[0]
+                    matching = [m for m in models if m.startswith(base_model)]
+                    if not matching:
+                        logger.warning(
+                            f"Modelo '{settings.ollama_model}' não encontrado no Ollama. "
+                            f"Disponíveis: {models}"
+                        )
+        except httpx.ConnectError:
+            logger.warning(
+                f"Ollama não está rodando em {settings.ollama_base_url}. "
+                "O serviço vai iniciar, mas as requisições vão falhar."
+            )
+        except Exception as e:
+            logger.warning(f"Erro ao verificar Ollama: {e}")
+    yield
+
+
 app = FastAPI(
     title="Lukrato AI Service",
     version="1.0.0",
-    docs_url="/docs" if True else None,  # desabilite em produção
+    docs_url="/docs" if settings.debug else None,
+    redoc_url="/redoc" if settings.debug else None,
+    lifespan=lifespan,
 )
 
 # Só aceita requisições de localhost (PHP roda localmente)

@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     # Segurança: PHP passa esse token no header Authorization
     ai_internal_token: str = ""
 
+    # Debug (desabilita docs em produção)
+    debug: bool = True
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 

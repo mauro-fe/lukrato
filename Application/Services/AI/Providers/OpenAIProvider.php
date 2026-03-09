@@ -6,6 +6,7 @@ namespace Application\Services\AI\Providers;
 
 use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\PromptBuilder;
+use Application\Services\Infrastructure\CacheService;
 use GuzzleHttp\Client;
 
 /**
@@ -100,6 +101,13 @@ class OpenAIProvider implements AIProvider
             'tokens_total'      => $usage['total_tokens'] ?? null,
         ];
 
+        // Persistir rate limits em cache para o endpoint quota()
+        try {
+            (new CacheService())->set('ai:openai_rate_limits', $this->lastRateLimits, 300);
+        } catch (\Throwable) {
+            // Silencioso
+        }
+
         return $result;
     }
 
@@ -114,7 +122,7 @@ class OpenAIProvider implements AIProvider
         $result = $this->completions([
             ['role' => 'system', 'content' => PromptBuilder::chatSystem($context)],
             ['role' => 'user',   'content' => $prompt],
-        ], temperature: 0.7, maxTokens: 2000);
+        ], temperature: 0.7, maxTokens: 1500);
 
         return $result['choices'][0]['message']['content'] ?? '';
     }
@@ -134,7 +142,67 @@ class OpenAIProvider implements AIProvider
 
         $suggested = trim($result['choices'][0]['message']['content'] ?? '', " \t\n\r\0\x0B.");
 
-        return in_array($suggested, $categories, true) ? $suggested : null;
+        // Exact match
+        if (in_array($suggested, $categories, true)) {
+            return $suggested;
+        }
+
+        // Fuzzy match: find closest category by similarity
+        return self::fuzzyMatch($suggested, $categories);
+    }
+
+    /**
+     * Fuzzy match: retorna a categoria mais próxima se a similaridade for >= 70%.
+     */
+    private static function fuzzyMatch(string $suggested, array $categories): ?string
+    {
+        $bestMatch = null;
+        $bestScore = 0;
+        $normalizedSuggested = mb_strtolower(self::removeAccents($suggested));
+
+        foreach ($categories as $category) {
+            $normalizedCategory = mb_strtolower(self::removeAccents($category));
+
+            similar_text($normalizedSuggested, $normalizedCategory, $percent);
+
+            if ($percent > $bestScore && $percent >= 70.0) {
+                $bestScore = $percent;
+                $bestMatch = $category;
+            }
+        }
+
+        return $bestMatch;
+    }
+
+    private static function removeAccents(string $str): string
+    {
+        $map = [
+            'á' => 'a',
+            'à' => 'a',
+            'ã' => 'a',
+            'â' => 'a',
+            'ä' => 'a',
+            'é' => 'e',
+            'è' => 'e',
+            'ê' => 'e',
+            'ë' => 'e',
+            'í' => 'i',
+            'ì' => 'i',
+            'î' => 'i',
+            'ï' => 'i',
+            'ó' => 'o',
+            'ò' => 'o',
+            'õ' => 'o',
+            'ô' => 'o',
+            'ö' => 'o',
+            'ú' => 'u',
+            'ù' => 'u',
+            'û' => 'u',
+            'ü' => 'u',
+            'ç' => 'c',
+            'ñ' => 'n',
+        ];
+        return strtr(mb_strtolower($str), $map);
     }
 
     public function analyzeSpending(array $data, string $period = 'último mês'): array
