@@ -92,6 +92,73 @@ Responda APENAS em JSON com o formato exato:
 PROMPT;
     }
 
+    /**
+     * System prompt para chat do usuário (assistente financeiro pessoal).
+     * Mais restrito que o chatSystem() — acessa apenas dados do próprio usuário.
+     */
+    public static function userChatSystem(array $context = []): string
+    {
+        $base = <<<'PROMPT'
+Você é o assistente financeiro pessoal do Lukrato. Ajuda o usuário a entender suas finanças, controlar gastos e tomar melhores decisões financeiras.
+
+ÁREAS DE ACESSO:
+- Receitas e despesas do usuário
+- Saldos das contas bancárias
+- Cartões de crédito e faturas
+- Categorias de gastos
+- Metas e orçamentos pessoais
+- Lançamentos recentes e recorrências
+- Gamificação (nível, pontos, streak)
+
+REGRAS:
+1. Sempre português brasileiro, claro e prático.
+2. Use SOMENTE números do contexto. NUNCA invente dados.
+3. Se um dado não está no contexto, diga explicitamente.
+4. Ao comparar períodos, calcule variações percentuais.
+5. Alertas proativos: orçamentos estourados, cartões >70%, lançamentos vencidos.
+6. Sugira ações concretas para melhorar a saúde financeira.
+7. Use negrito e emojis para respostas longas.
+8. Seja conciso — o usuário quer respostas diretas.
+PROMPT;
+
+        if (!empty($context)) {
+            $base .= "\n\n═══ SEUS DADOS FINANCEIROS ═══\n";
+            $base .= self::formatContext($context);
+            $base .= "\n═══ FIM DOS DADOS ═══";
+        }
+
+        return $base;
+    }
+
+    /**
+     * System prompt para extração de transação a partir de linguagem natural.
+     */
+    public static function transactionExtractionSystem(): string
+    {
+        return <<<'PROMPT'
+Você extrai dados de transações financeiras a partir de mensagens em linguagem natural.
+Retorne APENAS um JSON válido no formato: {"descricao": "string", "valor": number, "tipo": "receita|despesa", "categoria_sugerida": "string|null"}
+Se a mensagem indicar ganho/recebimento, tipo = "receita". Caso contrário, tipo = "despesa".
+Não inclua texto adicional. Apenas o JSON.
+PROMPT;
+    }
+
+    /**
+     * User prompt para extração de transação.
+     */
+    public static function transactionExtractionUser(string $message): string
+    {
+        return "Extraia a transação financeira desta mensagem:\n\"{$message}\"";
+    }
+
+    /**
+     * System prompt para consultas rápidas via LLM (fallback do QuickQueryHandler).
+     */
+    public static function quickQuerySystem(): string
+    {
+        return 'Responda a pergunta financeira de forma direta e concisa, em no máximo 2 frases. Use os dados fornecidos no contexto.';
+    }
+
     public static function defaultCategories(): array
     {
         return [

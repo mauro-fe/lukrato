@@ -343,6 +343,15 @@ Router::add('DELETE', '/api/sysadmin/blog/posts/{id}',  'SysAdmin\\BlogControlle
 Router::add('POST',   '/api/sysadmin/blog/upload',      'SysAdmin\\BlogController@upload',     ['auth', 'sysadmin', 'csrf', 'ratelimit']);
 Router::add('GET',    '/api/sysadmin/blog/categorias',  'SysAdmin\\BlogController@categorias', ['auth', 'sysadmin']);
 
+// ============================================
+// IA (USUÁRIO)
+// ============================================
+
+Router::add('POST', '/api/ai/chat',                'Api\\AI\\UserAiController@chat',               ['auth', 'csrf', 'ratelimit']);
+Router::add('POST', '/api/ai/suggest-category',    'Api\\AI\\UserAiController@suggestCategory',    ['auth', 'ratelimit']);
+Router::add('POST', '/api/ai/analyze',             'Api\\AI\\UserAiController@analyze',            ['auth', 'csrf', 'ratelimit']);
+Router::add('POST', '/api/ai/extract-transaction', 'Api\\AI\\UserAiController@extractTransaction', ['auth', 'csrf', 'ratelimit']);
+
 // ============================================// IA (SYSADMIN)
 // ============================================
 
