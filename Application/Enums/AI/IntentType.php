@@ -25,6 +25,12 @@ enum IntentType: string
     /** Consulta rápida respondível com dados pré-computados */
     case QUICK_QUERY = 'quick_query';
 
+    /** Criação de entidade (lançamento, meta, orçamento, categoria) */
+    case CREATE_ENTITY = 'create_entity';
+
+    /** Confirmação ou rejeição de ação pendente */
+    case CONFIRM_ACTION = 'confirm_action';
+
     /**
      * Retorna todos os valores possíveis do enum.
      */

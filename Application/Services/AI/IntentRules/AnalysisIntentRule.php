@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\IntentRules;
 
+use Application\DTO\AI\IntentResult;
 use Application\Enums\AI\IntentType;
 
 /**
@@ -28,13 +29,13 @@ class AnalysisIntentRule implements IntentRuleInterface
         'resumo\s+(financ|do\s+m[eê]s|mensal)',
     ];
 
-    public function match(string $message, bool $isWhatsApp = false): ?IntentType
+    public function match(string $message, bool $isWhatsApp = false): ?IntentResult
     {
         $normalized = mb_strtolower(trim($message));
 
         foreach (self::PATTERNS as $pattern) {
             if (preg_match('/' . $pattern . '/iu', $normalized)) {
-                return IntentType::ANALYZE;
+                return IntentResult::medium(IntentType::ANALYZE, 0.8);
             }
         }
 

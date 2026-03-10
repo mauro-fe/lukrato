@@ -72,6 +72,9 @@ class QuickQueryHandler implements AIHandlerInterface
     {
         $message = mb_strtolower(trim($request->message));
 
+        // Extrair período da mensagem
+        $period = $this->extractPeriod($message);
+
         // Tentar resolução direta (0 tokens)
         $patterns = $request->isAdmin()
             ? array_merge(self::QUERY_PATTERNS, self::ADMIN_PATTERNS)
@@ -81,7 +84,7 @@ class QuickQueryHandler implements AIHandlerInterface
             if (preg_match('/' . $pattern . '/iu', $message)) {
                 if (method_exists($this, $method)) {
                     try {
-                        $result = $this->$method($request->userId);
+                        $result = $this->$method($request->userId, $period);
                         if ($result !== null) {
                             return AIResponseDTO::fromComputed(
                                 $result['message'],
@@ -102,15 +105,83 @@ class QuickQueryHandler implements AIHandlerInterface
         return $chatHandler->handle($request);
     }
 
+    // ─── Extração de período ─────────────────────────────────
+
+    /**
+     * Extrai mês/ano da mensagem do usuário.
+     * Retorna [month, year] ou null para usar o mês atual.
+     */
+    private function extractPeriod(string $message): ?array
+    {
+        $months = [
+            'janeiro' => 1,
+            'fevereiro' => 2,
+            'março' => 3,
+            'marco' => 3,
+            'abril' => 4,
+            'maio' => 5,
+            'junho' => 6,
+            'julho' => 7,
+            'agosto' => 8,
+            'setembro' => 9,
+            'outubro' => 10,
+            'novembro' => 11,
+            'dezembro' => 12,
+        ];
+
+        // "mês passado" / "mes anterior"
+        if (preg_match('/m[eê]s\s+(passado|anterior)/iu', $message)) {
+            $prev = now()->subMonth();
+            return [(int) $prev->month, (int) $prev->year];
+        }
+
+        // "último trimestre" / "trimestre passado"
+        if (preg_match('/(último|ultimo)\s+trimestre|trimestre\s+passado/iu', $message)) {
+            return null; // Trimestre requer lógica mais complexa; cai para LLM
+        }
+
+        // Nome de mês explícito (ex: "janeiro", "em março", "março 2025")
+        foreach ($months as $name => $num) {
+            if (preg_match('/\b' . $name . '\b(?:\s+(?:de\s+)?(\d{4}))?/iu', $message, $m)) {
+                $year = !empty($m[1]) ? (int) $m[1] : (int) now()->year;
+                return [$num, $year];
+            }
+        }
+
+        return null; // Mês atual (padrão)
+    }
+
+    /**
+     * Retorna mês e ano para queries, considerando período extraído.
+     */
+    private function getPeriodValues(?array $period): array
+    {
+        if ($period !== null) {
+            return [$period[0], $period[1]];
+        }
+        return [(int) now()->month, (int) now()->year];
+    }
+
+    private function getPeriodLabel(?array $period): string
+    {
+        if ($period !== null) {
+            return Carbon::createFromDate($period[1], $period[0], 1)->translatedFormat('F/Y');
+        }
+        return now()->translatedFormat('F/Y');
+    }
+
     // ─── Resolvedores de consulta direta ─────────────────────
 
-    private function getTotalDespesas(?int $userId): ?array
+    private function getTotalDespesas(?int $userId, ?array $period = null): ?array
     {
+        [$month, $year] = $this->getPeriodValues($period);
+        $label = $this->getPeriodLabel($period);
+
         $query = Lancamento::query()
             ->where('tipo', 'despesa')
             ->whereNull('cancelado_em')
-            ->whereMonth('data', now()->month)
-            ->whereYear('data', now()->year);
+            ->whereMonth('data', $month)
+            ->whereYear('data', $year);
 
         if ($userId !== null) {
             $query->where('user_id', $userId);
@@ -122,23 +193,26 @@ class QuickQueryHandler implements AIHandlerInterface
         $formatted = 'R$ ' . number_format($total, 2, ',', '.');
 
         return [
-            'message' => "📊 Este mês você tem **{$count} despesas** totalizando **{$formatted}**.",
+            'message' => "📊 Em {$label} você tem **{$count} despesas** totalizando **{$formatted}**.",
             'data'    => [
                 'total'     => $total,
                 'count'     => $count,
                 'formatted' => $formatted,
-                'period'    => now()->translatedFormat('F/Y'),
+                'period'    => $label,
             ],
         ];
     }
 
-    private function getTotalReceitas(?int $userId): ?array
+    private function getTotalReceitas(?int $userId, ?array $period = null): ?array
     {
+        [$month, $year] = $this->getPeriodValues($period);
+        $label = $this->getPeriodLabel($period);
+
         $query = Lancamento::query()
             ->where('tipo', 'receita')
             ->whereNull('cancelado_em')
-            ->whereMonth('data', now()->month)
-            ->whereYear('data', now()->year);
+            ->whereMonth('data', $month)
+            ->whereYear('data', $year);
 
         if ($userId !== null) {
             $query->where('user_id', $userId);
@@ -150,17 +224,17 @@ class QuickQueryHandler implements AIHandlerInterface
         $formatted = 'R$ ' . number_format($total, 2, ',', '.');
 
         return [
-            'message' => "💰 Este mês você tem **{$count} receitas** totalizando **{$formatted}**.",
+            'message' => "💰 Em {$label} você tem **{$count} receitas** totalizando **{$formatted}**.",
             'data'    => [
                 'total'     => $total,
                 'count'     => $count,
                 'formatted' => $formatted,
-                'period'    => now()->translatedFormat('F/Y'),
+                'period'    => $label,
             ],
         ];
     }
 
-    private function getSaldo(?int $userId): ?array
+    private function getSaldo(?int $userId, ?array $period = null): ?array
     {
         $query = Conta::query()->where('ativo', true);
         if ($userId !== null) {
@@ -205,12 +279,15 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
-    private function getCountLancamentos(?int $userId): ?array
+    private function getCountLancamentos(?int $userId, ?array $period = null): ?array
     {
+        [$month, $year] = $this->getPeriodValues($period);
+        $label = $this->getPeriodLabel($period);
+
         $query = Lancamento::query()
             ->whereNull('cancelado_em')
-            ->whereMonth('data', now()->month)
-            ->whereYear('data', now()->year);
+            ->whereMonth('data', $month)
+            ->whereYear('data', $year);
 
         if ($userId !== null) {
             $query->where('user_id', $userId);
@@ -219,12 +296,12 @@ class QuickQueryHandler implements AIHandlerInterface
         $count = (int) $query->count();
 
         return [
-            'message' => "📋 Você tem **{$count} lançamentos** registrados este mês.",
-            'data'    => ['count' => $count, 'period' => now()->translatedFormat('F/Y')],
+            'message' => "📋 Você tem **{$count} lançamentos** registrados em {$label}.",
+            'data'    => ['count' => $count, 'period' => $label],
         ];
     }
 
-    private function getCountContas(?int $userId): ?array
+    private function getCountContas(?int $userId, ?array $period = null): ?array
     {
         $query = Conta::query()->where('ativo', true);
         if ($userId !== null) {
@@ -239,7 +316,7 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
-    private function getCountCartoes(?int $userId): ?array
+    private function getCountCartoes(?int $userId, ?array $period = null): ?array
     {
         $query = CartaoCredito::query()->where('ativo', true);
         if ($userId !== null) {
@@ -254,13 +331,16 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
-    private function getMaiorGasto(?int $userId): ?array
+    private function getMaiorGasto(?int $userId, ?array $period = null): ?array
     {
+        [$month, $year] = $this->getPeriodValues($period);
+        $label = $this->getPeriodLabel($period);
+
         $query = Lancamento::query()
             ->where('tipo', 'despesa')
             ->whereNull('cancelado_em')
-            ->whereMonth('data', now()->month)
-            ->whereYear('data', now()->year);
+            ->whereMonth('data', $month)
+            ->whereYear('data', $year);
 
         if ($userId !== null) {
             $query->where('user_id', $userId);
@@ -270,7 +350,7 @@ class QuickQueryHandler implements AIHandlerInterface
 
         if (!$lancamento) {
             return [
-                'message' => "📊 Nenhuma despesa registrada este mês.",
+                'message' => "📊 Nenhuma despesa registrada em {$label}.",
                 'data'    => [],
             ];
         }
@@ -278,7 +358,7 @@ class QuickQueryHandler implements AIHandlerInterface
         $formatted = 'R$ ' . number_format((float) $lancamento->valor, 2, ',', '.');
 
         return [
-            'message' => "🔝 A maior despesa do mês é **{$lancamento->descricao}** — **{$formatted}** em " . Carbon::parse($lancamento->data)->translatedFormat('d/m') . ".",
+            'message' => "🔝 A maior despesa de {$label} é **{$lancamento->descricao}** — **{$formatted}** em " . Carbon::parse($lancamento->data)->translatedFormat('d/m') . ".",
             'data'    => [
                 'descricao' => $lancamento->descricao,
                 'valor'     => (float) $lancamento->valor,
@@ -288,14 +368,17 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
-    private function getMenorGasto(?int $userId): ?array
+    private function getMenorGasto(?int $userId, ?array $period = null): ?array
     {
+        [$month, $year] = $this->getPeriodValues($period);
+        $label = $this->getPeriodLabel($period);
+
         $query = Lancamento::query()
             ->where('tipo', 'despesa')
             ->whereNull('cancelado_em')
             ->where('valor', '>', 0)
-            ->whereMonth('data', now()->month)
-            ->whereYear('data', now()->year);
+            ->whereMonth('data', $month)
+            ->whereYear('data', $year);
 
         if ($userId !== null) {
             $query->where('user_id', $userId);
@@ -305,7 +388,7 @@ class QuickQueryHandler implements AIHandlerInterface
 
         if (!$lancamento) {
             return [
-                'message' => "📊 Nenhuma despesa registrada este mês.",
+                'message' => "📊 Nenhuma despesa registrada em {$label}.",
                 'data'    => [],
             ];
         }
@@ -313,7 +396,7 @@ class QuickQueryHandler implements AIHandlerInterface
         $formatted = 'R$ ' . number_format((float) $lancamento->valor, 2, ',', '.');
 
         return [
-            'message' => "🔻 A menor despesa do mês é **{$lancamento->descricao}** — **{$formatted}** em " . Carbon::parse($lancamento->data)->translatedFormat('d/m') . ".",
+            'message' => "🔻 A menor despesa de {$label} é **{$lancamento->descricao}** — **{$formatted}** em " . Carbon::parse($lancamento->data)->translatedFormat('d/m') . ".",
             'data'    => [
                 'descricao' => $lancamento->descricao,
                 'valor'     => (float) $lancamento->valor,
@@ -323,13 +406,16 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
-    private function getMediaDespesas(?int $userId): ?array
+    private function getMediaDespesas(?int $userId, ?array $period = null): ?array
     {
+        [$month, $year] = $this->getPeriodValues($period);
+        $label = $this->getPeriodLabel($period);
+
         $query = Lancamento::query()
             ->where('tipo', 'despesa')
             ->whereNull('cancelado_em')
-            ->whereMonth('data', now()->month)
-            ->whereYear('data', now()->year);
+            ->whereMonth('data', $month)
+            ->whereYear('data', $year);
 
         if ($userId !== null) {
             $query->where('user_id', $userId);
@@ -341,19 +427,19 @@ class QuickQueryHandler implements AIHandlerInterface
         $formatted = 'R$ ' . number_format($avg, 2, ',', '.');
 
         return [
-            'message' => "📐 A média das suas **{$count} despesas** este mês é **{$formatted}**.",
+            'message' => "📐 A média das suas **{$count} despesas** em {$label} é **{$formatted}**.",
             'data'    => [
                 'media'     => $avg,
                 'count'     => $count,
                 'formatted' => $formatted,
-                'period'    => now()->translatedFormat('F/Y'),
+                'period'    => $label,
             ],
         ];
     }
 
     // ─── Admin queries ──────────────────────────────────────
 
-    private function getCountUsuarios(?int $userId): ?array
+    private function getCountUsuarios(?int $userId, ?array $period = null): ?array
     {
         $total = (int) DB::table('usuarios')->whereNull('deleted_at')->count();
         $newThisMonth = (int) DB::table('usuarios')
@@ -367,7 +453,7 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
-    private function getMRR(?int $userId): ?array
+    private function getMRR(?int $userId, ?array $period = null): ?array
     {
         $mrr = (float) DB::table('assinaturas_usuarios')
             ->join('planos', 'assinaturas_usuarios.plano_id', '=', 'planos.id')
@@ -391,7 +477,7 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
-    private function getCriticalErrors(?int $userId): ?array
+    private function getCriticalErrors(?int $userId, ?array $period = null): ?array
     {
         $count = (int) DB::table('error_logs')
             ->where('level', 'critical')
@@ -416,7 +502,7 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
-    private function getRegistrosSemana(?int $userId): ?array
+    private function getRegistrosSemana(?int $userId, ?array $period = null): ?array
     {
         $count = (int) DB::table('usuarios')
             ->whereNull('deleted_at')
@@ -429,7 +515,7 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
-    private function getCountCategorias(?int $userId): ?array
+    private function getCountCategorias(?int $userId, ?array $period = null): ?array
     {
         $query = Categoria::query();
         if ($userId !== null) {
@@ -447,7 +533,7 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
-    private function getLimiteCartoes(?int $userId): ?array
+    private function getLimiteCartoes(?int $userId, ?array $period = null): ?array
     {
         $query = CartaoCredito::query()->where('ativo', true);
         if ($userId !== null) {
@@ -475,14 +561,14 @@ class QuickQueryHandler implements AIHandlerInterface
             'message' => "💳 Limite total: **{$fmtTotal}** | Disponível: **{$fmtDisp}** | Uso: **{$pctUsado}%** em {$cartoes->count()} cartão(ões).",
             'data'    => [
                 'limite_total'     => (float) $total,
-                'limite_disponivel'=> (float) $disponivel,
+                'limite_disponivel' => (float) $disponivel,
                 'pct_usado'        => $pctUsado,
                 'count'            => $cartoes->count(),
             ],
         ];
     }
 
-    private function getContasAPagar(?int $userId): ?array
+    private function getContasAPagar(?int $userId, ?array $period = null): ?array
     {
         $query = Lancamento::query()
             ->where('tipo', 'despesa')

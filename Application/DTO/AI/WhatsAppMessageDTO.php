@@ -55,11 +55,11 @@ readonly class WhatsAppMessageDTO
 
         return new self(
             waMessageId: $msg['id'] ?? '',
-            fromPhone:   $fromPhone,
-            type:        $type,
-            body:        $body,
+            fromPhone: $fromPhone,
+            type: $type,
+            body: $body,
             displayName: $name,
-            rawPayload:  $entry,
+            rawPayload: $entry,
         );
     }
 
@@ -86,8 +86,15 @@ readonly class WhatsAppMessageDTO
         $normalized = mb_strtolower(trim($this->body));
 
         return in_array($normalized, [
-            'sim', 's', 'confirmar', 'ok', 'yes', 'confirm_yes',
-            'não', 'nao', 'n', 'cancelar', 'cancel', 'confirm_no',
+            'sim',
+            'confirmar',
+            'yes',
+            'confirm_yes',
+            'não',
+            'nao',
+            'cancelar',
+            'cancel',
+            'confirm_no',
         ], true);
     }
 
@@ -99,7 +106,10 @@ readonly class WhatsAppMessageDTO
         $normalized = mb_strtolower(trim($this->body));
 
         return in_array($normalized, [
-            'sim', 's', 'confirmar', 'ok', 'yes', 'confirm_yes',
+            'sim',
+            'confirmar',
+            'yes',
+            'confirm_yes',
         ], true);
     }
 }

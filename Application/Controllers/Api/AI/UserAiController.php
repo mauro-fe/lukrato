@@ -11,6 +11,7 @@ use Application\Enums\AI\AIChannel;
 use Application\Enums\AI\IntentType;
 use Application\Models\AiChatMessage;
 use Application\Models\AiConversation;
+use Application\Models\PendingAiAction;
 use Application\Services\AI\AIQuotaService;
 use Application\Services\AI\AIService;
 use Application\Services\AI\Context\UserContextBuilder;
@@ -340,6 +341,7 @@ class UserAiController extends BaseController
 
         $context['conversation_history'] = $history;
         $context['_user_mode'] = true;
+        $context['conversation_id'] = $conversation->id;
 
         // Dispatch pela pipeline de IA
         $ai = new AIService();
@@ -388,8 +390,89 @@ class UserAiController extends BaseController
                 ],
                 'source'  => $response->source,
                 'cached'  => $response->cached,
+                'ai_data' => $response->data,
             ],
         ], $response->success ? 200 : 503);
+    }
+
+    /**
+     * POST /api/ai/actions/{id}/confirm
+     * Confirma uma ação pendente de IA.
+     */
+    public function confirmAction(int $id): void
+    {
+        $this->requireAuthApi();
+
+        $pending = PendingAiAction::where('id', $id)
+            ->where('user_id', $this->userId)
+            ->where('status', 'awaiting_confirm')
+            ->first();
+
+        if (!$pending) {
+            Response::json(['success' => false, 'message' => 'Ação não encontrada ou já processada.'], 404);
+            return;
+        }
+
+        if ($pending->isExpired()) {
+            $pending->markExpired();
+            Response::json(['success' => false, 'message' => 'Ação expirada. Inicie o processo novamente.'], 410);
+            return;
+        }
+
+        // Injetar conta_id no payload se enviado pelo frontend
+        $body = $this->getRequestPayload();
+        $contaId = isset($body['conta_id']) ? (int) $body['conta_id'] : null;
+        if ($contaId !== null && $contaId > 0) {
+            $payload = $pending->payload;
+            $payload['conta_id'] = $contaId;
+            $pending->payload = $payload;
+            $pending->save();
+        }
+
+        // Dispatch confirmação via pipeline
+        $ai = new AIService();
+        $request = new AIRequestDTO(
+            userId: $this->userId,
+            message: 'sim',
+            intent: IntentType::CONFIRM_ACTION,
+            channel: AIChannel::WEB,
+        );
+
+        $response = $ai->dispatch($request);
+
+        Response::json([
+            'success' => $response->success,
+            'data'    => [
+                'message' => $response->message,
+                'ai_data' => $response->data,
+            ],
+        ], $response->success ? 200 : 422);
+    }
+
+    /**
+     * POST /api/ai/actions/{id}/reject
+     * Rejeita/cancela uma ação pendente de IA.
+     */
+    public function rejectAction(int $id): void
+    {
+        $this->requireAuthApi();
+
+        $pending = PendingAiAction::where('id', $id)
+            ->where('user_id', $this->userId)
+            ->where('status', 'awaiting_confirm')
+            ->first();
+
+        if (!$pending) {
+            Response::json(['success' => false, 'message' => 'Ação não encontrada ou já processada.'], 404);
+            return;
+        }
+
+        $pending->reject();
+
+        Response::json([
+            'success' => true,
+            'data'    => ['message' => 'Ação cancelada com sucesso.'],
+        ]);
     }
 
     /**

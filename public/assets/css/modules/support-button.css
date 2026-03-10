@@ -1025,6 +1025,89 @@
     font-style: italic;
 }
 
+/* ── AI Confirmation Buttons ────────────────────────────── */
+.lk-ai-confirm-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 6px 12px 6px 42px;
+    margin-bottom: 6px;
+}
+
+.lk-ai-confirm-btn-group {
+    display: flex;
+    gap: 8px;
+}
+
+.lk-ai-account-select {
+    appearance: none;
+    padding: 7px 30px 7px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    font-size: 12px;
+    background: var(--color-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 10px center;
+    color: var(--color-text);
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+    width: 100%;
+    max-width: 220px;
+}
+
+.lk-ai-account-select:focus {
+    outline: none;
+    border-color: var(--color-primary, #6366f1);
+}
+
+.lk-ai-account-select.lk-ai-select-error {
+    border-color: #ef4444;
+    animation: lk-shake 0.3s ease;
+}
+
+@keyframes lk-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+.lk-ai-confirm-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+.lk-ai-confirm-btn.confirm {
+    background: rgba(34, 197, 94, 0.15);
+    border-color: rgba(34, 197, 94, 0.4);
+    color: #22c55e;
+}
+
+.lk-ai-confirm-btn.confirm:hover:not(:disabled) {
+    background: rgba(34, 197, 94, 0.25);
+}
+
+.lk-ai-confirm-btn.reject {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #ef4444;
+}
+
+.lk-ai-confirm-btn.reject:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.25);
+}
+
+.lk-ai-confirm-btn:disabled {
+    cursor: not-allowed;
+}
+
 /* ── AI Input Area ──────────────────────────────────────── */
 .lk-ai-input-area {
     border-top: 1px solid var(--glass-border);

@@ -26,6 +26,8 @@ class AnalysisResponse(BaseModel):
     insights: List[str]
     resumo: str
     provider: str
+    tokens_prompt: Optional[int] = None
+    tokens_completion: Optional[int] = None
 
 
 @router.post("/spending", response_model=AnalysisResponse)
@@ -78,10 +80,20 @@ Responda APENAS em JSON com o formato exato:
             data = resp.json()
             content = data["message"]["content"]
             result = json.loads(content)
+
+            insights = result.get("insights", [])
+            if not isinstance(insights, list):
+                insights = [str(insights)]
+            resumo = result.get("resumo", "")
+            if not isinstance(resumo, str):
+                resumo = str(resumo)
+
             return AnalysisResponse(
-                insights=result.get("insights", []),
-                resumo=result.get("resumo", ""),
+                insights=insights,
+                resumo=resumo,
                 provider="ollama",
+                tokens_prompt=data.get("prompt_eval_count"),
+                tokens_completion=data.get("eval_count"),
             )
     except httpx.ConnectError:
         raise HTTPException(status_code=503, detail="Ollama não está rodando")

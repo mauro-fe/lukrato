@@ -21,6 +21,8 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     response: str
     provider: str
+    tokens_prompt: Optional[int] = None
+    tokens_completion: Optional[int] = None
 
 
 def _build_fallback_prompt(context: dict) -> str:
@@ -98,6 +100,8 @@ async def chat(req: ChatRequest):
             return ChatResponse(
                 response=content,
                 provider="ollama",
+                tokens_prompt=data.get("prompt_eval_count"),
+                tokens_completion=data.get("eval_count"),
             )
     except httpx.ConnectError:
         raise HTTPException(status_code=503, detail="Ollama não está rodando em localhost:11434")

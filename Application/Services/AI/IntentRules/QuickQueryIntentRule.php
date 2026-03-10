@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\IntentRules;
 
+use Application\DTO\AI\IntentResult;
 use Application\Enums\AI\IntentType;
 
 /**
@@ -46,13 +47,13 @@ class QuickQueryIntentRule implements IntentRuleInterface
         'crescimento.*usu[áa]rio|assinante',
     ];
 
-    public function match(string $message, bool $isWhatsApp = false): ?IntentType
+    public function match(string $message, bool $isWhatsApp = false): ?IntentResult
     {
         $normalized = mb_strtolower(trim($message));
 
         foreach (self::PATTERNS as $pattern) {
             if (preg_match('/' . $pattern . '/iu', $normalized)) {
-                return IntentType::QUICK_QUERY;
+                return IntentResult::medium(IntentType::QUICK_QUERY, 0.8);
             }
         }
 

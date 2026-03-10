@@ -175,7 +175,7 @@ class CategorizationHandler implements AIHandlerInterface
                 $allCats = $query->get();
                 foreach ($allCats as $c) {
                     similar_text(mb_strtolower($c->nome), mb_strtolower($suggested), $percent);
-                    if ($percent >= 70) {
+                    if ($percent >= 85) {
                         $cat = $c;
                         $result['categoria'] = $c->nome;
                         break;

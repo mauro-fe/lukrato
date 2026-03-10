@@ -152,7 +152,7 @@ class OpenAIProvider implements AIProvider
     }
 
     /**
-     * Fuzzy match: retorna a categoria mais próxima se a similaridade for >= 70%.
+     * Fuzzy match: retorna a categoria mais próxima se a similaridade for >= 85%.
      */
     private static function fuzzyMatch(string $suggested, array $categories): ?string
     {
@@ -165,7 +165,7 @@ class OpenAIProvider implements AIProvider
 
             similar_text($normalizedSuggested, $normalizedCategory, $percent);
 
-            if ($percent > $bestScore && $percent >= 70.0) {
+            if ($percent > $bestScore && $percent >= 85.0) {
                 $bestScore = $percent;
                 $bestMatch = $category;
             }

@@ -12,7 +12,11 @@
 
     // ── Config ─────────────────────────────────────────────────
     const BASE = (window.BASE_URL || document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
-    const CSRF = () => document.querySelector('meta[name="csrf-token"]')?.content || '';
+    const CSRF = () => {
+        const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+        if (!token) console.warn('[Lukrato AI] CSRF token não encontrado. Requisições podem falhar.');
+        return token;
+    };
     const HEADERS = () => ({
         'Content-Type': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
@@ -221,13 +225,15 @@
 
             if (data.success && data.data?.length > 0) {
                 // Use the most recent conversation
-                currentConvId = data.data[0].id;
+                const sorted = data.data.sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
+                currentConvId = sorted[0].id;
                 await loadMessages(currentConvId);
             } else {
                 await createConversation();
             }
             loadQuota();
-        } catch {
+        } catch (e) {
+            console.error('[Lukrato AI] Falha ao carregar conversas:', e);
             appendAIMessage('assistant', 'Não foi possível conectar ao assistente. Tente novamente.');
         }
     }
@@ -242,8 +248,8 @@
             if (data.success && data.data?.id) {
                 currentConvId = data.data.id;
             }
-        } catch {
-            // Silent — will retry next time
+        } catch (e) {
+            console.error('[Lukrato AI] Falha ao criar conversa:', e);
         }
     }
 
@@ -260,8 +266,8 @@
                     appendAIMessage(m.role, m.content);
                 });
             }
-        } catch {
-            // Keep empty state
+        } catch (e) {
+            console.error('[Lukrato AI] Falha ao carregar mensagens:', e);
         }
     }
 
@@ -315,6 +321,12 @@
 
             if (data.success && content) {
                 appendAIMessage('assistant', content);
+
+                // Verificar se há ação de confirmação pendente
+                const aiData = data.data?.ai_data;
+                if (aiData?.action === 'confirm' && aiData?.pending_id) {
+                    appendConfirmationButtons(aiData.pending_id, aiData.accounts || []);
+                }
             } else {
                 appendAIMessage('assistant', data.message || 'Sem resposta do assistente.');
             }
@@ -366,6 +378,89 @@
             .replace(/\n/g, '<br>');
     }
 
+    // ── Confirmation Buttons ───────────────────────────────────
+    function appendConfirmationButtons(pendingId, accounts) {
+        const wrap = document.createElement('div');
+        wrap.className = 'lk-ai-confirm-actions';
+
+        let selectHtml = '';
+        if (accounts.length > 1) {
+            const opts = accounts.map(a =>
+                `<option value="${a.id}">${a.nome}</option>`
+            ).join('');
+            selectHtml = `
+                <select class="lk-ai-account-select">
+                    <option value="" disabled selected>Selecione a conta</option>
+                    ${opts}
+                </select>`;
+        }
+
+        wrap.innerHTML = `
+            ${selectHtml}
+            <div class="lk-ai-confirm-btn-group">
+                <button class="lk-ai-confirm-btn confirm" data-id="${pendingId}">
+                    <i data-lucide="check" style="width:14px;height:14px;"></i> Confirmar
+                </button>
+                <button class="lk-ai-confirm-btn reject" data-id="${pendingId}">
+                    <i data-lucide="x" style="width:14px;height:14px;"></i> Cancelar
+                </button>
+            </div>`;
+
+        aiMessages.appendChild(wrap);
+        aiMessages.scrollTop = aiMessages.scrollHeight;
+        refreshIcons();
+
+        wrap.querySelector('.confirm').addEventListener('click', () => handleConfirmAction(pendingId, wrap));
+        wrap.querySelector('.reject').addEventListener('click', () => handleRejectAction(pendingId, wrap));
+    }
+
+    async function handleConfirmAction(pendingId, btnWrap) {
+        const select = btnWrap.querySelector('.lk-ai-account-select');
+        if (select && !select.value) {
+            select.classList.add('lk-ai-select-error');
+            select.focus();
+            return;
+        }
+
+        disableConfirmButtons(btnWrap);
+        const body = {};
+        if (select?.value) body.conta_id = Number(select.value);
+
+        try {
+            const res = await fetch(`${BASE}api/ai/actions/${encodeURIComponent(pendingId)}/confirm`, {
+                method: 'POST',
+                headers: HEADERS(),
+                body: JSON.stringify(body),
+            });
+            const data = await res.json();
+            btnWrap.remove();
+            appendAIMessage('assistant', data.data?.message || (data.success ? '✅ Ação confirmada!' : '⚠️ Erro ao confirmar.'));
+        } catch {
+            btnWrap.remove();
+            appendAIMessage('assistant', 'Erro de conexão ao confirmar ação.');
+        }
+    }
+
+    async function handleRejectAction(pendingId, btnWrap) {
+        disableConfirmButtons(btnWrap);
+        try {
+            const res = await fetch(`${BASE}api/ai/actions/${encodeURIComponent(pendingId)}/reject`, {
+                method: 'POST',
+                headers: HEADERS(),
+            });
+            const data = await res.json();
+            btnWrap.remove();
+            appendAIMessage('assistant', data.data?.message || '❌ Ação cancelada.');
+        } catch {
+            btnWrap.remove();
+            appendAIMessage('assistant', 'Erro de conexão ao cancelar ação.');
+        }
+    }
+
+    function disableConfirmButtons(wrap) {
+        wrap.querySelectorAll('button').forEach(btn => { btn.disabled = true; btn.style.opacity = '0.5'; });
+    }
+
     // ── Quota ──────────────────────────────────────────────────
     async function loadQuota() {
         if (!aiQuotaText || planTier === 'ultra') return;
@@ -385,7 +480,7 @@
                 }
             }
         } catch {
-            // Silent
+            // Silent quota load failure
         }
     }
 

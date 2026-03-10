@@ -6,6 +6,7 @@ namespace Application\Controllers\SysAdmin;
 
 use Application\Controllers\BaseController;
 use Application\Core\Response;
+use Application\DTO\AI\AIRequestDTO;
 use Application\Lib\Auth;
 use Application\Services\AI\AIService;
 use Application\Services\AI\AiLogService;
@@ -264,15 +265,19 @@ class AiApiController extends BaseController
         $ai = new AIService();
 
         try {
-            $response = $ai->chat($message, $context);
-            $this->logLegacyAiCall('chat', $message, $response, true, $start, null, $ai);
+            $request = AIRequestDTO::adminChat($message, $context);
+            $aiResponse = $ai->dispatch($request);
+
+            if (!$aiResponse->success) {
+                Response::error($aiResponse->message, 500);
+                return;
+            }
         } catch (\Throwable $e) {
-            $this->logLegacyAiCall('chat', $message, null, false, $start, $e->getMessage(), $ai);
             Response::error('Erro ao processar chat de IA: ' . $e->getMessage(), 500);
             return;
         }
 
-        Response::success(['response' => $response]);
+        Response::success(['response' => $aiResponse->message]);
     }
 
     /**

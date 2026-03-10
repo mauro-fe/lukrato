@@ -22,7 +22,10 @@ class CategoryRequest(BaseModel):
 
 class CategoryResponse(BaseModel):
     category: Optional[str]
+    raw_suggestion: Optional[str] = None
     provider: str
+    tokens_prompt: Optional[int] = None
+    tokens_completion: Optional[int] = None
 
 
 @router.post("/category", response_model=CategoryResponse)
@@ -65,7 +68,13 @@ async def suggest_category(req: CategoryRequest):
             data = resp.json()
             suggested = data["message"]["content"].strip().rstrip(".")
             category = suggested if suggested in categories else None
-            return CategoryResponse(category=category, provider="ollama")
+            return CategoryResponse(
+                category=category,
+                raw_suggestion=suggested,
+                provider="ollama",
+                tokens_prompt=data.get("prompt_eval_count"),
+                tokens_completion=data.get("eval_count"),
+            )
     except httpx.ConnectError:
         raise HTTPException(status_code=503, detail="Ollama não está rodando")
     except Exception as e:

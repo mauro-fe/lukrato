@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\IntentRules;
 
+use Application\DTO\AI\IntentResult;
 use Application\Enums\AI\IntentType;
 
 /**
@@ -25,13 +26,13 @@ class CategorizationIntentRule implements IntentRuleInterface
         'que\s+tipo\s+de\s+(gasto|despesa|receita)',
     ];
 
-    public function match(string $message, bool $isWhatsApp = false): ?IntentType
+    public function match(string $message, bool $isWhatsApp = false): ?IntentResult
     {
         $normalized = mb_strtolower(trim($message));
 
         foreach (self::PATTERNS as $pattern) {
             if (preg_match('/' . $pattern . '/iu', $normalized)) {
-                return IntentType::CATEGORIZE;
+                return IntentResult::medium(IntentType::CATEGORIZE, 0.75);
             }
         }
 

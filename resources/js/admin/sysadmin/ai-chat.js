@@ -41,6 +41,8 @@
             style.getPropertyValue('--color-danger').trim();
     }
 
+    const MAX_DOM_MESSAGES = 200;
+
     // ── renderizar mensagem ─────────────────────────────────────
     function appendMessage(role, text, isTyping = false) {
         if (emptyEl) emptyEl.remove();
@@ -54,6 +56,12 @@
             <div class="bubble">${formatText(text)}</div>`;
 
         messagesEl.appendChild(wrap);
+
+        // Evitar memory leak: limitar mensagens no DOM
+        while (messagesEl.children.length > MAX_DOM_MESSAGES) {
+            messagesEl.removeChild(messagesEl.firstChild);
+        }
+
         messagesEl.scrollTop = messagesEl.scrollHeight;
 
         if (typeof lucide !== 'undefined') lucide.createIcons();

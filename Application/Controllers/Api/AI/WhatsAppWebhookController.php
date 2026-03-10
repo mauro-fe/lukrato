@@ -19,6 +19,7 @@ use Application\Services\AI\WhatsApp\WhatsAppUserResolver;
 use Application\Services\Infrastructure\LogService;
 use Application\Enums\LogLevel;
 use Application\Enums\LogCategory;
+use Illuminate\Database\Capsule\Manager as DB;
 
 /**
  * Controller para o webhook do WhatsApp (Meta Cloud API).
@@ -167,7 +168,7 @@ class WhatsAppWebhookController extends BaseController
             $this->whatsapp->sendText(
                 $dto->fromPhone,
                 "Olá! Você ainda não vinculou seu WhatsApp ao Lukrato.\n\n"
-                . "Acesse seu painel em lukrato.com → Configurações → WhatsApp para vincular."
+                    . "Acesse seu painel em lukrato.com → Configurações → WhatsApp para vincular."
             );
             $msgRecord->markIgnored();
             return;
@@ -193,41 +194,43 @@ class WhatsAppWebhookController extends BaseController
         \Application\Models\Usuario $user,
         WhatsAppMessage $msgRecord,
     ): void {
-        // Buscar transação pendente mais recente do usuário
-        $pending = PendingWhatsAppTransaction::query()
-            ->where('user_id', $user->id)
-            ->awaiting()
-            ->orderByDesc('created_at')
-            ->first();
+        // Usar transação com lock para evitar duplicatas por webhooks concorrentes
+        DB::transaction(function () use ($dto, $user, $msgRecord) {
+            $pending = PendingWhatsAppTransaction::query()
+                ->where('user_id', $user->id)
+                ->awaiting()
+                ->orderByDesc('created_at')
+                ->lockForUpdate()
+                ->first();
 
-        if ($pending === null) {
-            $this->whatsapp->sendText(
-                $dto->fromPhone,
-                "Não encontrei nenhuma transação pendente de confirmação."
-            );
-            $msgRecord->markProcessed('confirmation_no_pending');
-            return;
-        }
+            if ($pending === null) {
+                $this->whatsapp->sendText(
+                    $dto->fromPhone,
+                    "Não encontrei nenhuma transação pendente de confirmação."
+                );
+                $msgRecord->markProcessed('confirmation_no_pending');
+                return;
+            }
 
-        if ($dto->isAffirmative()) {
-            // Criar lançamento real
-            $lancamento = $this->createLancamento($pending, $user);
-            $pending->confirm();
+            if ($dto->isAffirmative()) {
+                $lancamento = $this->createLancamento($pending, $user);
+                $pending->confirm();
 
-            $formatted = 'R$ ' . number_format($pending->valor, 2, ',', '.');
-            $this->whatsapp->sendText(
-                $dto->fromPhone,
-                "✅ Lançamento registrado!\n\n"
-                . "📝 {$pending->descricao}\n"
-                . "💰 {$formatted}\n"
-                . ($pending->categoria_nome ? "📁 {$pending->categoria_nome}" : '')
-            );
-            $msgRecord->markProcessed('transaction_confirmed');
-        } else {
-            $pending->reject();
-            $this->whatsapp->sendText($dto->fromPhone, "❌ Transação cancelada.");
-            $msgRecord->markProcessed('transaction_rejected');
-        }
+                $formatted = 'R$ ' . number_format($pending->valor, 2, ',', '.');
+                $this->whatsapp->sendText(
+                    $dto->fromPhone,
+                    "✅ Lançamento registrado!\n\n"
+                        . "📝 {$pending->descricao}\n"
+                        . "💰 {$formatted}\n"
+                        . ($pending->categoria_nome ? "📁 {$pending->categoria_nome}" : '')
+                );
+                $msgRecord->markProcessed('transaction_confirmed');
+            } else {
+                $pending->reject();
+                $this->whatsapp->sendText($dto->fromPhone, "❌ Transação cancelada.");
+                $msgRecord->markProcessed('transaction_rejected');
+            }
+        });
     }
 
     /**

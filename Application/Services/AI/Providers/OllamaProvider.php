@@ -18,6 +18,7 @@ class OllamaProvider implements AIProvider
     private Client $client;
     private string $serviceUrl;
     private string $internalToken;
+    private array $lastMeta = [];
 
     public function __construct()
     {
@@ -25,7 +26,7 @@ class OllamaProvider implements AIProvider
         $this->internalToken = $_ENV['AI_INTERNAL_TOKEN'] ?? '';
 
         $this->client = new Client([
-            'timeout'         => 120, // Ollama local pode ser mais lento com contexto
+            'timeout'         => 120,
             'connect_timeout' => 5,
         ]);
     }
@@ -50,6 +51,7 @@ class OllamaProvider implements AIProvider
         ]);
 
         $data = json_decode($response->getBody()->getContents(), true);
+        $this->extractMeta($data);
         return $data['response'] ?? '';
     }
 
@@ -67,6 +69,7 @@ class OllamaProvider implements AIProvider
         ]);
 
         $data = json_decode($response->getBody()->getContents(), true);
+        $this->extractMeta($data);
         return $data['category'] ?? null;
     }
 
@@ -81,7 +84,19 @@ class OllamaProvider implements AIProvider
             ],
         ]);
 
-        return json_decode($response->getBody()->getContents(), true) ?? [];
+        $result = json_decode($response->getBody()->getContents(), true) ?? [];
+        $this->extractMeta($result);
+        return $result;
+    }
+
+    private function extractMeta(array $data): void
+    {
+        $this->lastMeta = [
+            'tokens_prompt'     => $data['prompt_eval_count'] ?? $data['tokens_prompt'] ?? 0,
+            'tokens_completion' => $data['eval_count'] ?? $data['tokens_completion'] ?? 0,
+            'tokens_total'      => ($data['prompt_eval_count'] ?? $data['tokens_prompt'] ?? 0)
+                + ($data['eval_count'] ?? $data['tokens_completion'] ?? 0),
+        ];
     }
 
     public function getModel(): string
@@ -91,6 +106,6 @@ class OllamaProvider implements AIProvider
 
     public function getLastMeta(): array
     {
-        return [];
+        return $this->lastMeta;
     }
 }

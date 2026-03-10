@@ -340,7 +340,8 @@ class Lancamento extends Model
             $s = str_replace(',', '.', $s);
             $v = is_numeric($s) ? (float)$s : 0.0;
         }
-        $this->attributes['valor'] = (float)$v;
+        // Armazenar como string para evitar deprecation do BigNumber::of() com float
+        $this->attributes['valor'] = number_format((float)$v, 2, '.', '');
     }
 
     public function sinal(): int

@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Application\Services\AI;
 
+use Application\DTO\AI\IntentResult;
 use Application\Enums\AI\IntentType;
 use Application\Services\AI\IntentRules\AnalysisIntentRule;
 use Application\Services\AI\IntentRules\CategorizationIntentRule;
+use Application\Services\AI\IntentRules\ConfirmationIntentRule;
+use Application\Services\AI\IntentRules\EntityCreationIntentRule;
 use Application\Services\AI\IntentRules\IntentRuleInterface;
 use Application\Services\AI\IntentRules\QuickQueryIntentRule;
 use Application\Services\AI\IntentRules\TransactionIntentRule;
@@ -15,14 +18,11 @@ use Application\Services\Infrastructure\CacheService;
 /**
  * Detecta a intenção do usuário a partir da mensagem.
  *
- * Pipeline de regras (0 tokens):
- *  1. TransactionIntentRule  → detecta lançamentos financeiros
- *  2. QuickQueryIntentRule   → detecta consultas respondíveis com SQL
- *  3. AnalysisIntentRule     → detecta pedidos de análise/insights
- *  4. CategorizationIntentRule → detecta pedidos de categorização
- *  5. Fallback               → IntentType::CHAT
+ * Pipeline de regras (0 tokens) com IntentConfidence:
+ *  Coleta todos os matches, retorna o de maior confidence.
+ *  Se confidence < 0.6 → AIService redireciona para ChatHandler.
  *
- * Adicionar novos intents: criar classe IntentRule e registrar em registerRules().
+ * Intents efêmeros (CONFIRM_ACTION, CREATE_ENTITY) não são cacheados.
  */
 class IntentRouter
 {
@@ -31,19 +31,29 @@ class IntentRouter
 
     private CacheService $cache;
 
+    private ConfirmationIntentRule $confirmationRule;
+
+    /** Intents que dependem de estado e não devem ser cacheados */
+    private const EPHEMERAL_INTENTS = [
+        IntentType::CONFIRM_ACTION,
+        IntentType::CREATE_ENTITY,
+    ];
+
     public function __construct()
     {
         $this->cache = new CacheService();
+        $this->confirmationRule = new ConfirmationIntentRule();
         $this->registerRules();
     }
 
     /**
      * Registra as regras na ordem de prioridade.
-     * A ordem importa: o primeiro match vence.
      */
     private function registerRules(): void
     {
         $this->rules = [
+            $this->confirmationRule,
+            new EntityCreationIntentRule(),
             new TransactionIntentRule(),
             new QuickQueryIntentRule(),
             new AnalysisIntentRule(),
@@ -53,11 +63,14 @@ class IntentRouter
 
     /**
      * Detecta o intent a partir da mensagem do usuário.
-     * Percorre as regras registradas em ordem; se nenhuma matchou, retorna CHAT.
+     * Coleta todos os matches com confidence, retorna o melhor.
      */
-    public function detect(string $message, bool $isWhatsApp = false): IntentType
+    public function detect(string $message, bool $isWhatsApp = false, ?int $userId = null): IntentResult
     {
         $normalized = mb_strtolower(trim($message));
+
+        // Injetar userId na ConfirmationIntentRule
+        $this->confirmationRule->setUserId($userId);
 
         // Verificar cache de intent para mensagens similares
         $cacheKey = 'ai:intent:' . md5($normalized);
@@ -65,21 +78,33 @@ class IntentRouter
         if ($cached !== null) {
             $intent = IntentType::tryFrom($cached);
             if ($intent !== null) {
-                return $intent;
+                return IntentResult::high($intent, ['source' => 'cache']);
             }
         }
 
-        // Percorrer regras registradas (0 tokens)
+        // Coletar todos os matches com confidence
+        $matches = [];
         foreach ($this->rules as $rule) {
             $detected = $rule->match($normalized, $isWhatsApp);
             if ($detected !== null) {
-                $this->cache->set($cacheKey, $detected->value, 86400);
-                return $detected;
+                $matches[] = $detected;
             }
         }
 
-        // Default: conversa geral
-        return IntentType::CHAT;
+        if (empty($matches)) {
+            return IntentResult::low(IntentType::CHAT, 0.5, ['source' => 'fallback']);
+        }
+
+        // Escolher match com maior confidence
+        usort($matches, fn(IntentResult $a, IntentResult $b) => $b->confidence <=> $a->confidence);
+        $best = $matches[0];
+
+        // Só cachear intents não-efêmeros
+        if (!in_array($best->intent, self::EPHEMERAL_INTENTS, true)) {
+            $this->cache->set($cacheKey, $best->intent->value, 86400);
+        }
+
+        return $best;
     }
 
     /**

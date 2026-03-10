@@ -6,12 +6,15 @@ namespace Application\Services\AI;
 
 use Application\DTO\AI\AIRequestDTO;
 use Application\DTO\AI\AIResponseDTO;
+use Application\DTO\AI\IntentResult;
 use Application\Enums\AI\AIChannel;
 use Application\Enums\AI\IntentType;
 use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\Handlers\AIHandlerInterface;
 use Application\Services\AI\Handlers\CategorizationHandler;
 use Application\Services\AI\Handlers\ChatHandler;
+use Application\Services\AI\Handlers\ConfirmationHandler;
+use Application\Services\AI\Handlers\EntityCreationHandler;
 use Application\Services\AI\Handlers\FinancialAnalysisHandler;
 use Application\Services\AI\Handlers\QuickQueryHandler;
 use Application\Services\AI\Handlers\TransactionExtractorHandler;
@@ -66,6 +69,8 @@ class AIService
             IntentType::CATEGORIZE->value          => new CategorizationHandler(),
             IntentType::EXTRACT_TRANSACTION->value => new TransactionExtractorHandler(),
             IntentType::ANALYZE->value             => new FinancialAnalysisHandler(),
+            IntentType::CREATE_ENTITY->value       => new EntityCreationHandler(),
+            IntentType::CONFIRM_ACTION->value      => new ConfirmationHandler(),
         ];
 
         // Injetar provider em cada handler (evita instanciação circular)
@@ -90,11 +95,23 @@ class AIService
 
         try {
             // 1. Detectar intent se não vier explícito
-            $intent = $request->intent
-                ?? $this->intentRouter->detect(
+            if ($request->intent !== null) {
+                $intent = $request->intent;
+                $confidence = 1.0;
+            } else {
+                $intentResult = $this->intentRouter->detect(
                     $request->message,
-                    $request->channel === AIChannel::WHATSAPP
+                    $request->channel === AIChannel::WHATSAPP,
+                    $request->userId
                 );
+                $intent = $intentResult->intent;
+                $confidence = $intentResult->confidence;
+
+                // Se confidence abaixo do threshold, redirecionar para ChatHandler
+                if (!$intentResult->isConfident()) {
+                    $intent = IntentType::CHAT;
+                }
+            }
 
             // 2. Resolver handler
             $handler = $this->resolveHandler($intent);
@@ -109,8 +126,8 @@ class AIService
             // 3. Executar handler
             $response = $handler->handle($request);
 
-            // 4. Log
-            $this->logDispatch($request, $response, $intent, microtime(true) - $start);
+            // 4. Log (inclui confidence para debug)
+            $this->logDispatch($request, $response, $intent, microtime(true) - $start, $confidence ?? 1.0);
 
             return $response;
         } catch (Throwable $e) {
@@ -153,12 +170,14 @@ class AIService
         AIRequestDTO $request,
         AIResponseDTO $response,
         IntentType $intent,
-        float $elapsed
+        float $elapsed,
+        float $confidence = 1.0
     ): void {
         $elapsedMs = (int) round($elapsed * 1000);
 
         LogService::info('ai.dispatch', [
             'intent'     => $intent->value,
+            'confidence' => $confidence,
             'channel'    => $request->channel->value,
             'user_id'    => $request->userId,
             'cached'     => $response->cached,
@@ -189,18 +208,18 @@ class AIService
     }
 
     /**
-     * Mantém compatibilidade com o schema atual de ai_logs.type.
-     * O banco foi criado com enum legado e pode rejeitar intents novas.
+     * Converte IntentType para o valor correspondente no enum da tabela ai_logs.
      */
     private function normalizeLogType(IntentType $intent): string
     {
         return match ($intent) {
-            IntentType::CATEGORIZE => 'suggest_category',
-            IntentType::ANALYZE => 'analyze_spending',
-            // Intents novas sem tipo dedicado no schema atual caem em chat
-            IntentType::EXTRACT_TRANSACTION,
-            IntentType::QUICK_QUERY,
-            IntentType::CHAT => 'chat',
+            IntentType::CATEGORIZE          => 'suggest_category',
+            IntentType::ANALYZE             => 'analyze_spending',
+            IntentType::EXTRACT_TRANSACTION => 'extract_transaction',
+            IntentType::QUICK_QUERY         => 'quick_query',
+            IntentType::CREATE_ENTITY       => 'create_entity',
+            IntentType::CONFIRM_ACTION      => 'confirm_action',
+            IntentType::CHAT                => 'chat',
         };
     }
 
