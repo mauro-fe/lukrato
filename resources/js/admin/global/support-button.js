@@ -328,8 +328,8 @@
 
                 // Verificar se há ação de confirmação pendente
                 const aiData = data.data?.ai_data;
-                if ((aiData?.action === 'confirm' || aiData?.action === 'needs_account') && aiData?.pending_id) {
-                    appendConfirmationButtons(aiData.pending_id, aiData.accounts || []);
+                if (aiData?.action === 'confirm' && aiData?.pending_id) {
+                    appendConfirmationButtons(aiData);
                 }
             } else {
                 appendAIMessage('assistant', data.message || 'Sem resposta do assistente.');
@@ -383,24 +383,42 @@
     }
 
     // ── Confirmation Buttons ───────────────────────────────────
-    function appendConfirmationButtons(pendingId, accounts) {
+    function appendConfirmationButtons(aiData) {
+        const pendingId = aiData.pending_id;
+        const accounts = aiData.accounts || [];
+        const categories = aiData.categories || [];
+        const selectedContaId = aiData.selected_conta_id;
+        const selectedCategoriaId = aiData.selected_categoria_id;
+
         const wrap = document.createElement('div');
         wrap.className = 'lk-ai-confirm-actions';
 
-        let selectHtml = '';
+        let accountSelectHtml = '';
         if (accounts.length > 1) {
             const opts = accounts.map(a =>
-                `<option value="${a.id}">${a.nome}</option>`
+                `<option value="${a.id}"${a.id === selectedContaId ? ' selected' : ''}>${a.nome}</option>`
             ).join('');
-            selectHtml = `
+            accountSelectHtml = `
                 <select class="lk-ai-account-select">
-                    <option value="" disabled selected>Selecione a conta</option>
                     ${opts}
                 </select>`;
         }
 
+        let categorySelectHtml = '';
+        if (categories.length > 0) {
+            const catOpts = categories.map(c =>
+                `<option value="${c.id}"${c.id === selectedCategoriaId ? ' selected' : ''}>${c.nome}</option>`
+            ).join('');
+            categorySelectHtml = `
+                <select class="lk-ai-category-select">
+                    <option value="">Sem categoria</option>
+                    ${catOpts}
+                </select>`;
+        }
+
         wrap.innerHTML = `
-            ${selectHtml}
+            ${accountSelectHtml}
+            ${categorySelectHtml}
             <div class="lk-ai-confirm-btn-group">
                 <button class="lk-ai-confirm-btn confirm" data-id="${pendingId}">
                     <i data-lucide="check" style="width:14px;height:14px;"></i> Confirmar
@@ -419,16 +437,14 @@
     }
 
     async function handleConfirmAction(pendingId, btnWrap) {
-        const select = btnWrap.querySelector('.lk-ai-account-select');
-        if (select && !select.value) {
-            select.classList.add('lk-ai-select-error');
-            select.focus();
-            return;
-        }
-
         disableConfirmButtons(btnWrap);
         const body = {};
-        if (select?.value) body.conta_id = Number(select.value);
+
+        const accountSelect = btnWrap.querySelector('.lk-ai-account-select');
+        if (accountSelect?.value) body.conta_id = Number(accountSelect.value);
+
+        const categorySelect = btnWrap.querySelector('.lk-ai-category-select');
+        if (categorySelect?.value) body.categoria_id = Number(categorySelect.value);
 
         try {
             const res = await fetch(`${BASE}api/ai/actions/${encodeURIComponent(pendingId)}/confirm`, {

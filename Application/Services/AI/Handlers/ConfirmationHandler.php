@@ -89,7 +89,7 @@ class ConfirmationHandler implements AIHandlerInterface
         $payload    = $pending->payload;
         $actionType = $pending->action_type;
 
-        // Se lancamento sem conta_id, tentar auto-preencher (cartão de crédito não precisa de conta)
+        // Se lancamento sem conta_id, auto-preencher com primeira conta (cartão de crédito não precisa)
         $isCartao = ($payload['forma_pagamento'] ?? null) === 'cartao_credito';
         if ($actionType === 'create_lancamento' && empty($payload['conta_id']) && !$isCartao) {
             $contaRepo = new ContaRepository();
@@ -104,23 +104,10 @@ class ConfirmationHandler implements AIHandlerInterface
                 );
             }
 
-            if ($contas->count() === 1) {
-                $payload['conta_id'] = $contas->first()->id;
-                $pending->payload = $payload;
-                $pending->save();
-            } else {
-                // Múltiplas contas — precisa selecionar via botão
-                $contasList = $contas->map(fn($c) => [
-                    'id'   => $c->id,
-                    'nome' => $c->nome,
-                ])->values()->toArray();
-
-                return AIResponseDTO::fromRule(
-                    '⚠️ Você tem mais de uma conta. Por favor, selecione a conta no menu acima e clique em **Confirmar**.',
-                    ['action' => 'needs_account', 'pending_id' => $pending->id, 'accounts' => $contasList],
-                    IntentType::CONFIRM_ACTION
-                );
-            }
+            // Auto-preencher com primeira conta (usuário já teve chance de trocar no dropdown)
+            $payload['conta_id'] = $contas->first()->id;
+            $pending->payload = $payload;
+            $pending->save();
         }
 
         // Resolver categoria_sugerida → categoria_id se ainda não resolvido

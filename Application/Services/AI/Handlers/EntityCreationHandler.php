@@ -8,6 +8,7 @@ use Application\DTO\AI\AIRequestDTO;
 use Application\DTO\AI\AIResponseDTO;
 use Application\Enums\AI\IntentType;
 use Application\Models\CartaoCredito;
+use Application\Models\Conta;
 use Application\Models\PendingAiAction;
 use Application\Repositories\ContaRepository;
 use Application\Services\AI\Contracts\AIProvider;
@@ -201,6 +202,7 @@ class EntityCreationHandler implements AIHandlerInterface
         // Para lancamento, buscar contas do usuário (e cartões se forma_pagamento = cartão)
         $accountsList = [];
         $cardsList = [];
+        $categoriesList = [];
         if ($entityType === 'lancamento') {
             $contaRepo = new ContaRepository();
             $contas = $contaRepo->findActive($userId);
@@ -216,7 +218,8 @@ class EntityCreationHandler implements AIHandlerInterface
                         IntentType::CREATE_ENTITY
                     );
                 }
-                if ($contas->count() === 1) {
+                // Auto-selecionar primeira conta (usuário pode trocar no dropdown)
+                if (empty($extracted['conta_id'])) {
                     $extracted['conta_id'] = $contas->first()->id;
                 }
                 $accountsList = $contas->map(fn($c) => ['id' => $c->id, 'nome' => $c->nome])->values()->toArray();
@@ -243,6 +246,18 @@ class EntityCreationHandler implements AIHandlerInterface
                     ])->values()->toArray();
                 }
             }
+
+            // Buscar categorias do usuário para dropdown opcional
+            $tipoLanc = $extracted['tipo'] ?? 'despesa';
+            $categorias = Categoria::where(function ($q) use ($userId) {
+                    $q->whereNull('user_id')->orWhere('user_id', $userId);
+                })
+                ->where(function ($q) use ($tipoLanc) {
+                    $q->where('tipo', $tipoLanc)->orWhere('tipo', 'ambas');
+                })
+                ->orderBy('nome')
+                ->get();
+            $categoriesList = $categorias->map(fn($c) => ['id' => $c->id, 'nome' => $c->nome])->values()->toArray();
         }
 
         // Criar PendingAiAction para confirmação
@@ -268,9 +283,14 @@ class EntityCreationHandler implements AIHandlerInterface
 
         if (!empty($accountsList)) {
             $responseData['accounts'] = $accountsList;
+            $responseData['selected_conta_id'] = $extracted['conta_id'] ?? null;
         }
         if (!empty($cardsList)) {
             $responseData['cards'] = $cardsList;
+        }
+        if (!empty($categoriesList)) {
+            $responseData['categories'] = $categoriesList;
+            $responseData['selected_categoria_id'] = $extracted['categoria_id'] ?? null;
         }
 
         return AIResponseDTO::fromRule(
@@ -863,6 +883,14 @@ class EntityCreationHandler implements AIHandlerInterface
             $lines[] = "📝 Descrição: {$desc}";
             $lines[] = "📅 Data: {$dataFormatted}";
 
+            // Mostrar categoria se resolvida
+            if (!empty($d['categoria_id'])) {
+                $catNome = Categoria::find($d['categoria_id'])?->nome;
+                if ($catNome) {
+                    $lines[] = "📂 Categoria: **{$catNome}**";
+                }
+            }
+
             // Calcular fatura de destino se tiver cartao_credito_id
             if (!empty($d['cartao_credito_id'])) {
                 $faturaInfo = $this->calcFaturaDestino($d['cartao_credito_id'], $d['data'] ?? date('Y-m-d'));
@@ -895,6 +923,22 @@ class EntityCreationHandler implements AIHandlerInterface
                 default          => ucfirst($fp),
             };
             $lines[] = "💳 Pagamento: {$fpLabel}";
+        }
+
+        // Mostrar categoria se resolvida
+        if (!empty($d['categoria_id'])) {
+            $catNome = Categoria::find($d['categoria_id'])?->nome;
+            if ($catNome) {
+                $lines[] = "📂 Categoria: **{$catNome}**";
+            }
+        }
+
+        // Mostrar conta se selecionada
+        if (!empty($d['conta_id'])) {
+            $conta = Conta::find($d['conta_id']);
+            if ($conta) {
+                $lines[] = "🏦 Conta: **{$conta->nome}**";
+            }
         }
 
         return implode("\n", $lines);

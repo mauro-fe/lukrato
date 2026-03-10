@@ -427,12 +427,24 @@ class UserAiController extends BaseController
             return;
         }
 
-        // Injetar conta_id no payload se enviado pelo frontend
+        // Injetar conta_id e/ou categoria_id no payload se enviados pelo frontend
         $body = $this->getRequestPayload();
+        $payload = $pending->payload;
+        $changed = false;
+
         $contaId = isset($body['conta_id']) ? (int) $body['conta_id'] : null;
         if ($contaId !== null && $contaId > 0) {
-            $payload = $pending->payload;
             $payload['conta_id'] = $contaId;
+            $changed = true;
+        }
+
+        $categoriaId = isset($body['categoria_id']) ? (int) $body['categoria_id'] : null;
+        if ($categoriaId !== null && $categoriaId > 0) {
+            $payload['categoria_id'] = $categoriaId;
+            $changed = true;
+        }
+
+        if ($changed) {
             $pending->payload = $payload;
             $pending->save();
         }
