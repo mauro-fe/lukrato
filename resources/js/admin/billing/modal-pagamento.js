@@ -595,16 +595,17 @@ document.querySelectorAll('.plan-billing-toggle').forEach((group) => {
             buttons.forEach(x => x.classList.remove('is-active'));
             b.classList.add('is-active');
 
-            const proPriceElement = document.getElementById('planProPrice');
-            if (proPriceElement) {
-                const basePrice = Number(proPriceElement.dataset.basePrice || 0);
+            const card = group.closest('.plan-card');
+            const priceElement = card ? card.querySelector('.plan-card__price') : null;
+            if (priceElement) {
+                const basePrice = Number(priceElement.dataset.basePrice || 0);
                 const months = Number(b.dataset.months || 1);
                 const discount = Number(b.dataset.discount || 0);
                 const total = calcTotal(basePrice, months, discount);
                 const period = cycleLabel(months);
 
-                const priceValueElement = proPriceElement.querySelector('.plan-card__price-value');
-                const pricePeriodElement = proPriceElement.querySelector('.plan-card__price-period');
+                const priceValueElement = priceElement.querySelector('.plan-card__price-value');
+                const pricePeriodElement = priceElement.querySelector('.plan-card__price-period');
 
                 if (priceValueElement) {
                     priceValueElement.style.animation = 'none';

@@ -10,16 +10,32 @@ $supportDdd   = $supportDdd   ?? '';
 $planTier     = $planTier     ?? 'free';
 ?>
 
-<!-- Botão flutuante -->
-<a href="#" class="lk-support-button" title="Suporte & Assistente IA"
-    data-support-name="<?= htmlspecialchars($supportName, ENT_QUOTES, 'UTF-8') ?>"
-    data-support-email="<?= htmlspecialchars($supportEmail, ENT_QUOTES, 'UTF-8') ?>"
-    data-support-tel="<?= htmlspecialchars($supportTel, ENT_QUOTES, 'UTF-8') ?>"
-    data-support-cod="<?= htmlspecialchars($supportDdd, ENT_QUOTES, 'UTF-8') ?>"
-    data-plan-tier="<?= htmlspecialchars($planTier, ENT_QUOTES, 'UTF-8') ?>"
-    id="lkSupportToggle">
-    <i data-lucide="headphones"></i>
-</a>
+<!-- FAB Speed Dial Container -->
+<div class="lk-fab-container" id="lkFabContainer">
+    <!-- Mini-botão: Assistente IA (mais longe do botão principal) -->
+    <a href="#" class="lk-fab-item" data-action="ai" id="fabItemAI">
+        <span class="lk-fab-label">Assistente IA</span>
+        <span class="lk-fab-icon">
+            <i data-lucide="bot"></i>
+        </span>
+    </a>
+    <!-- Mini-botão: Suporte (mais perto do botão principal) -->
+    <a href="#" class="lk-fab-item" data-action="support" id="fabItemSupport">
+        <span class="lk-fab-label">Fale com o Suporte</span>
+        <span class="lk-fab-icon">
+            <i data-lucide="headphones"></i>
+        </span>
+    </a>
+    <!-- Botão principal (fica embaixo de tudo) -->
+    <a href="#" class="lk-support-button" title="Suporte & Assistente IA"
+        data-support-name="<?= htmlspecialchars($supportName, ENT_QUOTES, 'UTF-8') ?>"
+        data-support-email="<?= htmlspecialchars($supportEmail, ENT_QUOTES, 'UTF-8') ?>"
+        data-support-tel="<?= htmlspecialchars($supportTel, ENT_QUOTES, 'UTF-8') ?>"
+        data-support-cod="<?= htmlspecialchars($supportDdd, ENT_QUOTES, 'UTF-8') ?>"
+        data-plan-tier="<?= htmlspecialchars($planTier, ENT_QUOTES, 'UTF-8') ?>" id="lkSupportToggle">
+        <i data-lucide="message-square"></i>
+    </a>
+</div>
 
 <!-- Painel flutuante com abas -->
 <div class="lk-chat-panel" id="lkChatPanel">
@@ -45,9 +61,11 @@ $planTier     = $planTier     ?? 'free';
         <div class="lk-support-form-panel">
             <div class="lk-support-info">
                 <div class="lk-support-info-label">Enviando como:</div>
-                <div class="lk-support-info-name" id="sfName"><?= htmlspecialchars($supportName, ENT_QUOTES, 'UTF-8') ?></div>
+                <div class="lk-support-info-name" id="sfName"><?= htmlspecialchars($supportName, ENT_QUOTES, 'UTF-8') ?>
+                </div>
                 <?php if ($supportEmail): ?>
-                    <div class="lk-support-info-email"><i data-lucide="mail"></i> <?= htmlspecialchars($supportEmail, ENT_QUOTES, 'UTF-8') ?></div>
+                    <div class="lk-support-info-email"><i data-lucide="mail"></i>
+                        <?= htmlspecialchars($supportEmail, ENT_QUOTES, 'UTF-8') ?></div>
                 <?php endif; ?>
             </div>
 
@@ -58,7 +76,8 @@ $planTier     = $planTier     ?? 'free';
             <div class="lk-contact-preference">
                 <label class="lk-radio">
                     <input type="radio" name="retorno-panel" value="whatsapp">
-                    <span class="whats"><i class="fab fa-whatsapp" style="width:0!important;height:0!important;"></i>WhatsApp</span>
+                    <span class="whats"><i class="fab fa-whatsapp"
+                            style="width:0!important;height:0!important;"></i>WhatsApp</span>
                 </label>
                 <label class="lk-radio">
                     <input type="radio" name="retorno-panel" value="email" checked>
@@ -66,10 +85,8 @@ $planTier     = $planTier     ?? 'free';
                 </label>
             </div>
 
-            <textarea id="supportPanelMessage"
-                class="lk-chat-textarea"
-                placeholder="Descreva sua dúvida, problema ou sugestão... 😊"
-                rows="4"></textarea>
+            <textarea id="supportPanelMessage" class="lk-chat-textarea"
+                placeholder="Descreva sua dúvida, problema ou sugestão... 😊" rows="4"></textarea>
 
             <button class="lk-chat-send-support" id="btnSendSupport">
                 <i data-lucide="send" style="width:14px;height:14px;"></i>
@@ -91,7 +108,7 @@ $planTier     = $planTier     ?? 'free';
                         <i data-lucide="zap" style="width:16px;height:16px;"></i>
                         Fazer Upgrade para Pro
                     </a>
-                    <span class="lk-ai-upgrade-hint">A partir de R$ 19,90/mês</span>
+                    <span class="lk-ai-upgrade-hint">A partir de R$ 14,90/mês</span>
                 </div>
             </div>
         <?php else: ?>
@@ -111,7 +128,8 @@ $planTier     = $planTier     ?? 'free';
                     </div>
                 <?php endif; ?>
                 <div class="lk-ai-input-row">
-                    <textarea id="aiChatInput" class="lk-ai-textarea" placeholder="Digite sua pergunta..." rows="1"></textarea>
+                    <textarea id="aiChatInput" class="lk-ai-textarea" placeholder="Digite sua pergunta..."
+                        rows="1"></textarea>
                     <button class="lk-ai-send-btn" id="aiChatSend">
                         <i data-lucide="send" style="width:16px;height:16px;"></i>
                     </button>

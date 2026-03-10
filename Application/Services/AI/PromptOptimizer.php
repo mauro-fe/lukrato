@@ -11,19 +11,20 @@ namespace Application\Services\AI;
 class PromptOptimizer
 {
     /** Tamanho máximo de arrays de listagem */
-    private const MAX_ARRAY_SIZE = 15;
+    private const MAX_ARRAY_SIZE = 10;
 
     /** Tamanho máximo de sub-arrays (ex: top_categorias) */
-    private const MAX_SUB_ARRAY_SIZE = 10;
+    private const MAX_SUB_ARRAY_SIZE = 8;
 
     /** Chaves cujos arrays devem ser limitados */
     private const TRUNCATABLE_KEYS = [
-        'lancamentos_recentes'    => 15,
-        'lancamentos_vencidos'    => 10,
-        'recorrencias_ativas'     => 10,
-        'lancamentos_por_usuario' => 5,
-        'top_categorias_gasto'    => 8,
-        'evolucao_6_meses'        => 6,
+        'lancamentos_recentes'    => 8,
+        'lancamentos_vencidos'    => 5,
+        'recorrencias_ativas'     => 5,
+        'lancamentos_por_usuario' => 3,
+        'top_categorias_gasto'    => 5,
+        'evolucao_6_meses'        => 4,
+        'lancamentos_por_forma'   => 5,
     ];
 
     /**

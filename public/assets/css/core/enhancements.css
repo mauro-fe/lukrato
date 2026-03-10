@@ -444,14 +444,14 @@ textarea:focus {
 
 a:not(.btn):not(.lk-upgrade-btn):not(.top-nav-btn):not(.logout-btn):not(
     .nav-item
-  ):not(.logo) {
+  ):not(.logo):not(.lk-fab-item):not(.lk-support-button) {
   position: relative;
   color: var(--color-primary);
   text-decoration: none;
   transition: all 0.3s ease;
 }
 
-a:not(.btn):not(.lk-upgrade-btn):not(.lk-support-button):not(.top-nav-btn):not(
+a:not(.btn):not(.lk-upgrade-btn):not(.lk-support-button):not(.lk-fab-item):not(.top-nav-btn):not(
     .logout-btn
   ):not(.nav-item):not(.logo)::after {
   content: "";
@@ -460,11 +460,10 @@ a:not(.btn):not(.lk-upgrade-btn):not(.lk-support-button):not(.top-nav-btn):not(
   left: 0;
   width: 0;
   height: 2px;
-  background: var(--color-primary);
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-a:not(.btn):not(.lk-upgrade-btn):not(.lk-support-button):not(.top-nav-btn):not(
+a:not(.btn):not(.lk-upgrade-btn):not(.lk-support-button):not(.lk-fab-item):not(.top-nav-btn):not(
     .logout-btn
   ):not(.nav-item):not(.logo):hover::after {
   width: 100%;

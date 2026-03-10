@@ -321,13 +321,21 @@ class UserAiController extends BaseController
 
         $context = ContextCompressor::compress($context, $message);
 
-        // Incluir últimas mensagens como histórico de conversa
+        // Incluir últimas mensagens como histórico de conversa (5 msgs = equilíbrio custo/contexto)
         $history = $conversation->messages()
             ->orderBy('created_at', 'desc')
-            ->limit(10)
+            ->limit(5)
             ->get(['role', 'content'])
             ->reverse()
             ->values()
+            ->map(function ($msg) {
+                $item = $msg->toArray();
+                // Truncar respostas longas do assistant para economizar tokens
+                if (($item['role'] ?? '') === 'assistant' && mb_strlen($item['content'] ?? '') > 300) {
+                    $item['content'] = mb_substr($item['content'], 0, 300) . '…';
+                }
+                return $item;
+            })
             ->toArray();
 
         $context['conversation_history'] = $history;

@@ -14,19 +14,19 @@ return [
     'limits' => [
 
         'free' => [
-            'lancamentos_per_month' => 30,   // Limite mensal de lançamentos
-            'warning_at'            => 15,   // Aviso suave quando atingir 50% (15/30)
-            'warning_medium_at'     => 24,   // Aviso médio quando atingir 80% (24/30)
-            'warning_critical_at'   => 27,   // Aviso crítico quando atingir 90% (27/30)
-            'grace_extra'           => 5,    // Lançamentos extras de cortesia após limite
+            'lancamentos_per_month' => 100,  // Limite mensal de lançamentos
+            'warning_at'            => 50,   // Aviso suave quando atingir 50% (50/100)
+            'warning_medium_at'     => 80,   // Aviso médio quando atingir 80% (80/100)
+            'warning_critical_at'   => 90,   // Aviso crítico quando atingir 90% (90/100)
+            'grace_extra'           => 10,   // Lançamentos extras de cortesia após limite
             'max_contas'            => 2,    // Máximo de contas bancárias
-            'max_categorias_custom' => 10,   // Máximo de categorias personalizadas
-            'max_subcategorias_custom' => 20, // Máximo de subcategorias personalizadas
+            'max_categorias_custom' => 15,   // Máximo de categorias personalizadas
+            'max_subcategorias_custom' => 30, // Máximo de subcategorias personalizadas
             'historico_meses'       => 3,    // Apenas 3 meses de histórico visível
             'max_cartoes'           => 1,    // Apenas 1 cartão de crédito
-            'max_metas'             => 2,    // Apenas 2 metas financeiras
-            'max_orcamentos'        => 5,    // Apenas 5 orçamentos por categoria
-            'ai_messages_per_month' => 0,    // Sem acesso à IA
+            'max_metas'             => 3,    // Até 3 metas financeiras
+            'max_orcamentos'        => 3,    // Até 3 orçamentos por categoria
+            'ai_messages_per_month' => 5,    // 5 sugestões IA/mês (degustação)
         ],
 
         'pro' => [
@@ -38,7 +38,7 @@ return [
             'max_cartoes'           => null, // ilimitado
             'max_metas'             => null, // ilimitado
             'max_orcamentos'        => null, // ilimitado
-            'ai_messages_per_month' => 100,  // 100 mensagens IA/mês
+            'ai_messages_per_month' => null, // ilimitado
         ],
 
         'ultra' => [
@@ -86,11 +86,14 @@ return [
 
         'upgrade_cta' => '🚀 Lukrato Pro: lançamentos ilimitados + relatórios avançados + exportação PDF/Excel!',
 
-        'ai_limit' => 'Você atingiu o limite de {limit} mensagens com IA este mês. ' .
-            'Faça upgrade para o Ultra e tenha IA ilimitada.',
+        'ai_limit' => 'Você atingiu o limite de {limit} sugestões com IA este mês. ' .
+            'Faça upgrade para o Pro e tenha IA ilimitada!',
 
-        'ai_blocked' => '🤖 O assistente IA está disponível a partir do plano Pro. ' .
-            'Faça upgrade para conversar com a IA.',
+        'ai_blocked' => '🤖 Você usou suas 5 sugestões de IA gratuitas este mês. ' .
+            'Faça upgrade para o Pro e tenha IA ilimitada!',
+
+        'ultra_feature_blocked' => '⚡ Este recurso é exclusivo do plano Ultra. ' .
+            'Faça upgrade para desbloquear análise financeira com IA, insights automáticos e previsão de saldo.',
 
         'ai_quota_warning' => '⚠️ Você usou {used} de {limit} mensagens com IA este mês. ' .
             'Restam {remaining}.',
@@ -128,16 +131,19 @@ return [
     */
 
     'contextual_messages' => [
-        'relatorios'   => '📊 Análises completas e exportação com o Pro',
-        'cartoes'      => '💳 Gerencie todos os seus cartões de crédito',
-        'contas'       => '🏦 Organize todas as suas contas bancárias',
-        'agendamentos' => '⏰ Lembretes automáticos por email e notificações',
-        'metas'        => '🎯 Crie metas ilimitadas e acompanhe seu progresso',
-        'categorias'   => '🏷️ Personalize suas categorias sem limites',
-        'lancamentos'  => '💰 Registre suas transações sem preocupações',
-        'dashboard'    => '📈 Dashboard avançado com insights personalizados',
-        'default'      => '🚀 Desbloqueie todo o potencial do Lukrato',
-        'ai_chat'      => '🤖 Assistente IA: tire dúvidas sobre suas finanças',
+        'relatorios'          => '📊 Análises completas e exportação com o Pro',
+        'cartoes'             => '💳 Gerencie todos os seus cartões de crédito',
+        'contas'              => '🏦 Organize todas as suas contas bancárias',
+        'agendamentos'        => '⏰ Lembretes automáticos por email e notificações',
+        'metas'               => '🎯 Crie metas ilimitadas e acompanhe seu progresso',
+        'categorias'          => '🏷️ Personalize suas categorias sem limites',
+        'lancamentos'         => '💰 Registre suas transações sem preocupações',
+        'dashboard'           => '📈 Dashboard avançado com insights personalizados',
+        'default'             => '🚀 Desbloqueie todo o potencial do Lukrato',
+        'ai_chat'             => '🤖 Assistente IA: tire dúvidas sobre suas finanças',
+        'analise_ia'          => '🧠 Análise financeira com IA exclusiva do Ultra',
+        'insights_automaticos' => '💡 Insights automáticos sobre seus gastos com o Ultra',
+        'previsao_saldo'      => '📈 Previsão de saldo inteligente exclusiva do Ultra',
     ],
 
     /*
@@ -157,7 +163,7 @@ return [
             'relatorios_avancados'    => false,
             'exportacao_pdf'          => false,
             'exportacao_excel'        => false,
-            'categorias_personalizadas' => true,  // Limitado a 10
+            'categorias_personalizadas' => true,  // Limitado a 15
             'multiplas_contas'        => true,    // Limitado a 2
             'notificacoes'            => true,
             'recorrencias'            => true,    // Básico
@@ -166,8 +172,12 @@ return [
             'backup_dados'            => false,   // Sem backup
             'suporte_prioritario'     => false,
             'reminders_email'         => false,   // Sem lembretes por email
-            'metas_financeiras'       => true,    // Limitado a 2
-            'ai_chat'                 => false,   // Sem chatbot IA
+            'metas_financeiras'       => true,    // Limitado a 3
+            'ai_chat'                 => true,    // Degustação: 5 sugestões/mês
+            'analise_financeira_ia'   => false,   // Exclusivo Ultra
+            'insights_automaticos'    => false,   // Exclusivo Ultra
+            'previsao_saldo'          => false,   // Exclusivo Ultra
+            'chat_financeiro_ia'      => false,   // Exclusivo Ultra
         ],
 
         'pro' => [
@@ -187,6 +197,10 @@ return [
             'reminders_email'         => true,
             'metas_financeiras'       => true,
             'ai_chat'                 => true,
+            'analise_financeira_ia'   => false,   // Exclusivo Ultra
+            'insights_automaticos'    => false,   // Exclusivo Ultra
+            'previsao_saldo'          => false,   // Exclusivo Ultra
+            'chat_financeiro_ia'      => false,   // Exclusivo Ultra
         ],
 
         'ultra' => [
@@ -206,6 +220,10 @@ return [
             'reminders_email'         => true,
             'metas_financeiras'       => true,
             'ai_chat'                 => true,
+            'analise_financeira_ia'   => true,    // Exclusivo Ultra
+            'insights_automaticos'    => true,    // Exclusivo Ultra
+            'previsao_saldo'          => true,    // Exclusivo Ultra
+            'chat_financeiro_ia'      => true,    // Exclusivo Ultra
         ],
 
     ],

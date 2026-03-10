@@ -8,6 +8,7 @@ use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Services\AI\AIService;
+use Application\Services\AI\AiLogService;
 use Application\Services\AI\ContextCompressor;
 use Application\Services\AI\Providers\OpenAIProvider;
 use Application\Services\AI\SystemContextService;
@@ -16,6 +17,38 @@ use GuzzleHttp\Client;
 
 class AiApiController extends BaseController
 {
+    private function logLegacyAiCall(
+        string $type,
+        string $prompt,
+        ?string $response,
+        bool $success,
+        float $start,
+        ?string $errorMessage,
+        AIService $ai
+    ): void {
+        try {
+            $provider = $ai->getProvider();
+            $meta = $provider->getLastMeta();
+
+            AiLogService::log([
+                'user_id'           => $this->userId,
+                'type'              => $type,
+                'prompt'            => mb_substr($prompt, 0, 5000),
+                'response'          => $response !== null ? mb_substr($response, 0, 10000) : null,
+                'provider'          => $_ENV['AI_PROVIDER'] ?? 'openai',
+                'model'             => $provider->getModel(),
+                'tokens_prompt'     => $meta['tokens_prompt'] ?? 0,
+                'tokens_completion' => $meta['tokens_completion'] ?? 0,
+                'tokens_total'      => $meta['tokens_total'] ?? 0,
+                'response_time_ms'  => (int) round((microtime(true) - $start) * 1000),
+                'success'           => $success,
+                'error_message'     => $success ? null : mb_substr((string) ($errorMessage ?? 'Erro desconhecido'), 0, 1000),
+            ]);
+        } catch (\Throwable) {
+            // Nunca interromper a resposta da API por falha de logging
+        }
+    }
+
     private function isAdmin(): bool
     {
         $user = Auth::user();
@@ -216,6 +249,8 @@ class AiApiController extends BaseController
             return;
         }
 
+        $start = microtime(true);
+
         try {
             $systemContext = (new SystemContextService())->gather();
         } catch (\Throwable) {
@@ -226,8 +261,16 @@ class AiApiController extends BaseController
             $message
         );
 
-        $ai       = new AIService();
-        $response = $ai->chat($message, $context);
+        $ai = new AIService();
+
+        try {
+            $response = $ai->chat($message, $context);
+            $this->logLegacyAiCall('chat', $message, $response, true, $start, null, $ai);
+        } catch (\Throwable $e) {
+            $this->logLegacyAiCall('chat', $message, null, false, $start, $e->getMessage(), $ai);
+            Response::error('Erro ao processar chat de IA: ' . $e->getMessage(), 500);
+            return;
+        }
 
         Response::success(['response' => $response]);
     }
@@ -255,8 +298,25 @@ class AiApiController extends BaseController
             return;
         }
 
-        $ai       = new AIService();
-        $category = $ai->suggestCategory($description, $categories);
+        $start = microtime(true);
+        $ai = new AIService();
+
+        try {
+            $category = $ai->suggestCategory($description, $categories);
+            $this->logLegacyAiCall(
+                'suggest_category',
+                $description,
+                $category,
+                true,
+                $start,
+                null,
+                $ai
+            );
+        } catch (\Throwable $e) {
+            $this->logLegacyAiCall('suggest_category', $description, null, false, $start, $e->getMessage(), $ai);
+            Response::error('Erro ao sugerir categoria: ' . $e->getMessage(), 500);
+            return;
+        }
 
         Response::json(['category' => $category]);
     }
@@ -284,8 +344,30 @@ class AiApiController extends BaseController
             return;
         }
 
-        $ai     = new AIService();
-        $result = $ai->analyzeSpending($lancamentos, $period);
+        $start = microtime(true);
+        $ai = new AIService();
+
+        try {
+            $result = $ai->analyzeSpending($lancamentos, $period);
+        } catch (\Throwable $e) {
+            $this->logLegacyAiCall('analyze_spending', "period={$period}", null, false, $start, $e->getMessage(), $ai);
+            Response::error('Erro ao gerar análise de gastos: ' . $e->getMessage(), 500);
+            return;
+        }
+
+        $resultPreview = is_array($result)
+            ? json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+            : null;
+
+        $this->logLegacyAiCall(
+            'analyze_spending',
+            "period={$period}",
+            $resultPreview,
+            !empty($result),
+            $start,
+            empty($result) ? 'Análise indisponível' : null,
+            $ai
+        );
 
         if (empty($result)) {
             Response::json([

@@ -233,6 +233,14 @@ class NotificacaoController extends BaseController
                 session_start();
             }
 
+            // Lê e limpa alertas ignorados da sessão, depois libera o lock
+            // para permitir requisições paralelas
+            $alertasIgnorados = $this->limparAlertasExpirados($_SESSION['alertas_ignorados'] ?? []);
+            $_SESSION['alertas_ignorados'] = $alertasIgnorados;
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_write_close();
+            }
+
             // Conta notificações não lidas do banco
             $qtd = Notificacao::where('user_id', $userId)
                 ->where('lida', false)
@@ -245,10 +253,6 @@ class NotificacaoController extends BaseController
 
                 $alertasVencimento = $faturaService->verificarVencimentosProximos($userId);
                 $alertasLimite = $cartaoService->verificarLimitesBaixos($userId);
-
-                // Recupera e limpa alertas ignorados
-                $alertasIgnorados = $this->limparAlertasExpirados($_SESSION['alertas_ignorados'] ?? []);
-                $_SESSION['alertas_ignorados'] = $alertasIgnorados;
 
                 // Conta apenas alertas não ignorados
                 foreach ($alertasVencimento as $alerta) {
@@ -438,6 +442,11 @@ class NotificacaoController extends BaseController
     public function getReferralRewards(): void
     {
         $this->requireAuthApi();
+
+        // Liberar lock da sessão para permitir requisições paralelas
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
 
         try {
             // Busca notificações de referral não lidas

@@ -489,17 +489,24 @@ function deleteUser(userId) {
 }
 
 // ============================================================================
-// GRANT / REVOKE PRO ACCESS
+// GRANT / REVOKE PREMIUM ACCESS (Pro / Ultra)
 // ============================================================================
 
 function openGrantAccessModal() {
     Swal.fire({
-        title: '<i data-lucide="crown"></i> Liberar Acesso PRO',
+        title: '<i data-lucide="crown"></i> Liberar Acesso Premium',
         html: `
             <div class="swal-form-layout">
                 <div class="swal-form-group">
                     <label><i data-lucide="user"></i> Email ou ID do Usuário</label>
                     <input type="text" id="grantUserId" class="swal2-input" placeholder="Digite o email ou ID">
+                </div>
+                <div class="swal-form-group">
+                    <label><i data-lucide="gem"></i> Plano</label>
+                    <select id="grantPlanType" class="swal2-select">
+                        <option value="pro">Pro (R$ 14,90/mês)</option>
+                        <option value="ultra">Ultra (R$ 39,90/mês)</option>
+                    </select>
                 </div>
                 <div class="swal-form-group">
                     <label><i data-lucide="calendar-days"></i> Período</label>
@@ -536,34 +543,37 @@ function openGrantAccessModal() {
             const period = document.getElementById('grantPeriod').value;
             const customDays = document.getElementById('customDays').value;
 
+            const planType = document.getElementById('grantPlanType').value;
+
             if (!userId) { Swal.showValidationMessage('Por favor, informe o email ou ID do usuário'); return false; }
             let days = period;
             if (period === 'custom') {
                 if (!customDays || customDays < 1) { Swal.showValidationMessage('Por favor, informe um número válido de dias'); return false; }
                 days = customDays;
             }
-            return { userId, days };
+            return { userId, days, planType };
         }
     }).then((result) => {
-        if (result.isConfirmed) grantProAccess(result.value.userId, result.value.days);
+        if (result.isConfirmed) grantAccess(result.value.userId, result.value.days, result.value.planType);
     });
 }
 
-async function grantProAccess(userId, days) {
+async function grantAccess(userId, days, planType) {
     try {
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         const response = await fetch(`${BASE_URL}api/sysadmin/grant-access`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
             credentials: 'same-origin',
-            body: JSON.stringify({ userId, days })
+            body: JSON.stringify({ userId, days, planType })
         });
         const data = await response.json();
 
         if (response.ok && data.success) {
+            const planName = data.data.planName || planType.toUpperCase();
             Swal.fire({
                 icon: 'success', title: 'Acesso Liberado!',
-                html: `<p><strong>${data.data.userName}</strong> agora tem acesso PRO por <strong>${days} dias</strong>.</p><p class="text-muted text-sm">Válido até: <strong>${data.data.expiresAt}</strong></p>`,
+                html: `<p><strong>${data.data.userName}</strong> agora tem acesso <strong>${planName}</strong> por <strong>${days} dias</strong>.</p><p class="text-muted text-sm">Válido até: <strong>${data.data.expiresAt}</strong></p>`,
                 confirmButtonColor: '#f97316'
             }).then(() => location.reload());
         } else {
@@ -577,7 +587,7 @@ async function grantProAccess(userId, days) {
 
 function openRevokeAccessModal() {
     Swal.fire({
-        title: '<i data-lucide="ban"></i> Remover Acesso PRO',
+        title: '<i data-lucide="ban"></i> Remover Acesso Premium',
         html: `
             <div class="swal-form-layout">
                 <div class="swal-form-group">
@@ -585,7 +595,7 @@ function openRevokeAccessModal() {
                     <input type="text" id="revokeUserId" class="swal2-input" placeholder="Digite o email ou ID">
                 </div>
                 <div class="swal-alert-box danger">
-                    <p><i data-lucide="triangle-alert"></i> <strong>Atenção:</strong> Esta ação irá cancelar imediatamente o acesso PRO do usuário.</p>
+                    <p><i data-lucide="triangle-alert"></i> <strong>Atenção:</strong> Esta ação irá cancelar imediatamente o acesso premium do usuário.</p>
                 </div>
             </div>
         `,
@@ -618,7 +628,7 @@ async function revokeProAccess(userId) {
         if (response.ok && data.success) {
             Swal.fire({
                 icon: 'success', title: 'Acesso Removido!',
-                html: `<p>O acesso PRO de <strong>${data.data.userName}</strong> foi removido com sucesso.</p><p class="text-muted text-sm">${data.data.subscriptionsCanceled} assinatura(s) cancelada(s).</p>`,
+                html: `<p>O acesso premium de <strong>${data.data.userName}</strong> foi removido com sucesso.</p><p class="text-muted text-sm">${data.data.subscriptionsCanceled} assinatura(s) cancelada(s).</p>`,
                 confirmButtonColor: '#ef4444'
             }).then(() => location.reload());
         } else {

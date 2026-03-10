@@ -490,11 +490,18 @@
                                 <i data-lucide="info" aria-hidden="true"></i>
                             </button>
                         </label>
-                        <div class="lk-select-wrapper">
-                            <select id="globalLancamentoCategoria" name="categoria_id" class="lk-select">
-                                <option value="">Sem categoria</option>
-                            </select>
-                            <i data-lucide="chevron-down" class="lk-select-icon"></i>
+                        <div class="lk-ai-category-row">
+                            <div class="lk-select-wrapper" style="flex:1">
+                                <select id="globalLancamentoCategoria" name="categoria_id" class="lk-select">
+                                    <option value="">Sem categoria</option>
+                                </select>
+                                <i data-lucide="chevron-down" class="lk-select-icon"></i>
+                            </div>
+                            <button type="button" class="lk-btn-ai-suggest" id="btnGlobalAiSuggestCategoria"
+                                onclick="lancamentoGlobalManager.sugerirCategoriaIA()"
+                                title="Sugerir categoria com IA">
+                                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                            </button>
                         </div>
                     </div>
 

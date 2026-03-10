@@ -81,8 +81,9 @@ $currentPlanCode = $currentPlanCode ?? ($user?->planoAtual()?->code ?? null);
 
                 $isCurrentPlan = $currentPlanCode && strcasecmp($plan['code'], $currentPlanCode) === 0;
                 $isFreePlan = $priceCents === 0;
+                $isPaidPlan = $priceCents > 0;
                 $isRecommended = !empty($meta['destaque']) || !empty($meta['highlight']) ||
-                    strcasecmp($plan['code'], 'pro') === 0;
+                    strcasecmp($plan['code'], 'ultra') === 0;
 
                 $ctaLabel = trim($meta['cta_label'] ?? ($isFreePlan ? 'Plano gratuito' : 'Assinar agora'));
 
@@ -90,7 +91,7 @@ $currentPlanCode = $currentPlanCode ?? ($user?->planoAtual()?->code ?? null);
                 if ($isRecommended) $cardClasses[] = 'plan-card--recommended';
                 if ($isCurrentPlan) $cardClasses[] = 'plan-card--active';
 
-                $buttonId = strcasecmp($plan['code'], 'pro') === 0 ? 'btnAssinar' : null;
+                $buttonId = $isPaidPlan ? 'btnAssinar' . ucfirst(strtolower($plan['code'])) : null;
                 $renewDate = $subscriptionStatus['renews_at'] ?? null;
                 ?>
 
@@ -120,7 +121,7 @@ $currentPlanCode = $currentPlanCode ?? ($user?->planoAtual()?->code ?? null);
                     </p>
 
                     <!-- Preço -->
-                    <div class="plan-card__price" <?= strcasecmp($plan['code'], 'pro') === 0 ? 'id="planProPrice"' : '' ?>
+                    <div class="plan-card__price" <?= $isPaidPlan ? 'id="planPrice' . ucfirst(strtolower($plan['code'])) . '"' : '' ?>
                         data-base-price="<?= number_format($priceValue, 2, '.', '') ?>"
                         aria-label="<?= $priceCents > 0 ? 'Preço: ' . number_format($priceValue, 2, ',', '.') . ' por ' . $intervalLabel : 'Plano gratuito' ?>">
                         <?php if ($priceCents > 0): ?>
@@ -251,8 +252,8 @@ $currentPlanCode = $currentPlanCode ?? ($user?->planoAtual()?->code ?? null);
                             <span><?= htmlspecialchars($ctaLabel) ?></span>
                         </button>
                     <?php else: ?>
-                        <?php if (strcasecmp($plan['code'], 'pro') === 0): ?>
-                            <div class="plan-billing-toggle" role="group" aria-label="Período de cobrança do Pro">
+                        <?php if ($isPaidPlan): ?>
+                            <div class="plan-billing-toggle" role="group" aria-label="Período de cobrança">
                                 <button type="button" class="plan-billing-toggle__btn is-active" data-cycle="monthly" data-months="1"
                                     data-discount="0">
                                     <span>Mensal</span>

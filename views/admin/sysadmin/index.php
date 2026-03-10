@@ -271,8 +271,8 @@
                     <div class="control-header">
                         <i data-lucide="gift"></i>
                         <div>
-                            <h3>Liberar Acesso PRO</h3>
-                            <p>Conceda acesso premium temporário</p>
+                            <h3>Liberar Acesso Premium</h3>
+                            <p>Conceda acesso Pro ou Ultra temporário</p>
                         </div>
                     </div>
                     <div class="control-actions">
@@ -288,8 +288,8 @@
                     <div class="control-header">
                         <i data-lucide="ban"></i>
                         <div>
-                            <h3>Remover Acesso PRO</h3>
-                            <p>Revogue o acesso premium de um usuário</p>
+                            <h3>Remover Acesso Premium</h3>
+                            <p>Revogue o acesso Pro ou Ultra de um usuário</p>
                         </div>
                     </div>
                     <div class="control-actions">

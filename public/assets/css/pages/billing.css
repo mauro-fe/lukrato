@@ -212,9 +212,9 @@
   opacity: 1;
 }
 
-/* Badge "Recomendado" */
+/* Badge "Mais Escolhido" */
 .plan-card--recommended::after {
-  content: "Recomendado";
+  content: "Mais Escolhido";
   position: absolute;
   top: 20px;
   right: 20px;

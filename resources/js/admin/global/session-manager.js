@@ -137,7 +137,9 @@
                 const data = await response.json();
                 return { ok: response.ok, status: response.status, data };
             } catch (error) {
-                console.error('[SessionManager] API Error:', error);
+                if (!(error instanceof TypeError && error.message.includes('NetworkError'))) {
+                    console.error('[SessionManager] API Error:', error);
+                }
                 return { ok: false, status: 0, data: null, error };
             }
         }

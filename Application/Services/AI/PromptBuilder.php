@@ -46,9 +46,8 @@ REGRAS:
 PROMPT;
 
         if (!empty($context)) {
-            $base .= "\n\n═══ DADOS REAIS DO SISTEMA LUKRATO ═══\n";
+            $base .= "\n\n[DADOS DO SISTEMA]\n";
             $base .= self::formatContext($context);
-            $base .= "\n═══ FIM DOS DADOS ═══";
         }
 
         return $base;
@@ -75,19 +74,17 @@ PROMPT;
         unset($context['_user_mode'], $context['conversation_history']);
 
         if (!empty($context)) {
-            $base .= "\n\n═══ DADOS FINANCEIROS DO USUÁRIO ═══\n";
+            $base .= "\n\n[DADOS FINANCEIROS]\n";
             $base .= self::formatContext($context);
-            $base .= "\n═══ FIM DOS DADOS ═══";
         }
 
         if (!empty($history)) {
-            $base .= "\n\n═══ HISTÓRICO DA CONVERSA ═══\n";
+            $base .= "\n\n[HISTÓRICO]\n";
             foreach ($history as $msg) {
-                $role = ($msg['role'] ?? 'user') === 'assistant' ? 'Assistente' : 'Usuário';
+                $role = ($msg['role'] ?? 'user') === 'assistant' ? 'IA' : 'Usr';
                 $content = $msg['content'] ?? '';
                 $base .= "{$role}: {$content}\n";
             }
-            $base .= "═══ FIM DO HISTÓRICO ═══";
         }
 
         return $base;
@@ -190,6 +187,36 @@ PROMPT;
         $prefix = str_repeat('  ', $indent);
 
         foreach ($ctx as $key => $value) {
+            // Compactar lançamentos: apenas campos essenciais em linha única
+            if (in_array($key, ['lancamentos_recentes', 'lancamentos_vencidos'], true) && is_array($value)) {
+                $lines[] = "{$prefix}{$key}:";
+                foreach ($value as $item) {
+                    if (is_array($item)) {
+                        $desc  = mb_substr((string) ($item['descricao'] ?? $item['description'] ?? '?'), 0, 40);
+                        $valor = $item['valor'] ?? $item['value'] ?? '?';
+                        $tipo  = $item['tipo'] ?? $item['type'] ?? '?';
+                        $data  = $item['data'] ?? $item['date'] ?? '';
+                        $pago  = isset($item['pago']) ? ($item['pago'] ? 'S' : 'N') : '';
+                        $lines[] = "{$prefix}  - {$desc} | R\${$valor} | {$tipo} | {$data}" . ($pago !== '' ? " | pg:{$pago}" : '');
+                    }
+                }
+                continue;
+            }
+
+            // Compactar recorrências
+            if ($key === 'recorrencias_ativas' && is_array($value)) {
+                $lines[] = "{$prefix}{$key}:";
+                foreach ($value as $item) {
+                    if (is_array($item)) {
+                        $desc  = mb_substr((string) ($item['descricao'] ?? '?'), 0, 35);
+                        $valor = $item['valor'] ?? '?';
+                        $freq  = $item['frequencia'] ?? $item['frequency'] ?? '';
+                        $lines[] = "{$prefix}  - {$desc} | R\${$valor}" . ($freq ? " | {$freq}" : '');
+                    }
+                }
+                continue;
+            }
+
             $label = ucwords(str_replace('_', ' ', $key));
 
             if (is_array($value) && !array_is_list($value)) {
@@ -199,7 +226,7 @@ PROMPT;
                 $lines[] = "{$prefix}{$label}:";
                 foreach ($value as $item) {
                     if (is_array($item)) {
-                        $parts   = array_map(fn($k, $v) => "{$k}: {$v}", array_keys($item), array_values($item));
+                        $parts   = array_map(fn($k, $v) => "{$k}:{$v}", array_keys($item), array_values($item));
                         $lines[] = "{$prefix}  - " . implode(', ', $parts);
                     } else {
                         $lines[] = "{$prefix}  - {$item}";

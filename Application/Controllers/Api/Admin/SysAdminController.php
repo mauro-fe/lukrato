@@ -91,6 +91,7 @@ class SysAdminController extends BaseController
             $payload = $this->getRequestPayload();
             $userIdOrEmail = $payload['userId'] ?? null;
             $days = (int)($payload['days'] ?? 0);
+            $planType = $payload['planType'] ?? 'pro';
 
             // Validações
             if (empty($userIdOrEmail)) {
@@ -100,6 +101,18 @@ class SysAdminController extends BaseController
 
             if ($days < 1) {
                 Response::error('Número de dias inválido', 400);
+                return;
+            }
+
+            if (!in_array($planType, ['pro', 'ultra'], true)) {
+                Response::error('Tipo de plano inválido. Use "pro" ou "ultra".', 400);
+                return;
+            }
+
+            // Resolver plano pelo código
+            $plano = Plano::where('code', $planType)->first();
+            if (!$plano) {
+                Response::error('Plano não encontrado no sistema', 500);
                 return;
             }
 
@@ -121,9 +134,11 @@ class SysAdminController extends BaseController
 
             $expiresAt = Carbon::now()->addDays($days);
 
+            $planLabel = strtoupper($planType);
+
             if ($existingSubscription) {
                 // Atualizar assinatura existente
-                $existingSubscription->plano_id = 2; // Garantir que é plano PRO
+                $existingSubscription->plano_id = $plano->id;
                 $existingSubscription->status = AssinaturaUsuario::ST_ACTIVE;
                 $existingSubscription->renova_em = $expiresAt;
                 $existingSubscription->cancelada_em = null;
@@ -132,7 +147,7 @@ class SysAdminController extends BaseController
                 // Criar nova assinatura
                 AssinaturaUsuario::create([
                     'user_id' => $targetUser->id,
-                    'plano_id' => 2, // ID do plano PRO
+                    'plano_id' => $plano->id,
                     'gateway' => 'admin',
                     'status' => AssinaturaUsuario::ST_ACTIVE,
                     'renova_em' => $expiresAt,
@@ -143,15 +158,17 @@ class SysAdminController extends BaseController
             }
 
             // Log da ação
-            error_log("🎁 [SYSADMIN] Acesso PRO liberado por {$user->nome} (ID {$user->id}) para {$targetUser->nome} (ID {$targetUser->id}) por {$days} dias");
+            error_log("🎁 [SYSADMIN] Acesso {$planLabel} liberado por {$user->nome} (ID {$user->id}) para {$targetUser->nome} (ID {$targetUser->id}) por {$days} dias");
 
             Response::success([
                 'userId' => $targetUser->id,
                 'userName' => $targetUser->nome,
                 'userEmail' => $targetUser->email,
+                'planType' => $planType,
+                'planName' => $plano->nome,
                 'days' => $days,
                 'expiresAt' => $expiresAt->format('d/m/Y H:i'),
-            ], 'Acesso PRO liberado com sucesso');
+            ], "Acesso {$planLabel} liberado com sucesso");
         } catch (Exception $e) {
             error_log("🚨 [SYSADMIN] Erro ao liberar acesso: " . $e->getMessage());
             Response::error('Erro ao processar solicitação: ' . $e->getMessage(), 500);
@@ -160,7 +177,7 @@ class SysAdminController extends BaseController
 
     /**
      * POST /api/sysadmin/revoke-access
-     * Remover acesso PRO de um usuário
+     * Remover acesso premium de um usuário
      */
     public function revokeAccess(): void
     {
@@ -200,7 +217,7 @@ class SysAdminController extends BaseController
                 ->get();
 
             if ($activeSubscriptions->isEmpty()) {
-                Response::error('Usuário não possui assinatura PRO ativa', 400);
+                Response::error('Usuário não possui assinatura premium ativa', 400);
                 return;
             }
 
@@ -213,14 +230,14 @@ class SysAdminController extends BaseController
             }
 
             // Log da ação
-            error_log("🚫 [SYSADMIN] Acesso PRO removido por {$user->nome} (ID {$user->id}) de {$targetUser->nome} (ID {$targetUser->id})");
+            error_log("🚫 [SYSADMIN] Acesso premium removido por {$user->nome} (ID {$user->id}) de {$targetUser->nome} (ID {$targetUser->id})");
 
             Response::success([
                 'userId' => $targetUser->id,
                 'userName' => $targetUser->nome,
                 'userEmail' => $targetUser->email,
                 'subscriptionsCanceled' => $activeSubscriptions->count(),
-            ], 'Acesso PRO removido com sucesso');
+            ], 'Acesso premium removido com sucesso');
         } catch (Exception $e) {
             error_log("🚨 [SYSADMIN] Erro ao remover acesso: " . $e->getMessage());
             Response::error('Erro ao processar solicitação: ' . $e->getMessage(), 500);

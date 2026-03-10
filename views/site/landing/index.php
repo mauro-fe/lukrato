@@ -15,6 +15,8 @@
 
 <?php include __DIR__ . '/funcionalidades-section.php'; ?>
 
+<?php include __DIR__ . '/ai-section.php'; ?>
+
 <?php include __DIR__ . '/gallery-modal-section.php'; ?>
 
 <?php include __DIR__ . '/beneficios-section.php'; ?>

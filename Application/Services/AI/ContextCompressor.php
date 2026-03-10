@@ -46,6 +46,9 @@ class ContextCompressor
     /** Chaves que sempre são incluídas (metadados leves). */
     private const ALWAYS_INCLUDE = ['data_atual', 'mes_atual', 'dia_da_semana', 'plataforma'];
 
+    /** Contexto mínimo para queries genéricas (saudações, testes, etc.) */
+    private const MINIMAL_CONTEXT = ['data_atual', 'mes_atual', 'dia_da_semana', 'plataforma', 'financeiro'];
+
     /** Expressões que indicam que o usuário quer uma visão geral. */
     private const GENERIC_PATTERNS = [
         'como está|como esta|visão geral|resumo|executivo|overview|tudo|geral|dashboard|painel|status do sistema',
@@ -77,9 +80,15 @@ class ContextCompressor
             }
         }
 
-        // Se nenhuma keyword matchou, retorna tudo (safe fallback)
+        // Se nenhuma keyword matchou, retorna apenas contexto mínimo (economia de ~60% tokens)
         if (empty($relevantKeys)) {
-            return $fullContext;
+            $minimal = [];
+            foreach ($fullContext as $key => $value) {
+                if (in_array($key, self::MINIMAL_CONTEXT, true)) {
+                    $minimal[$key] = $value;
+                }
+            }
+            return $minimal;
         }
 
         $relevantKeys = array_unique(array_merge(self::ALWAYS_INCLUDE, $relevantKeys));

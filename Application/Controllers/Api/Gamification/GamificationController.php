@@ -137,6 +137,11 @@ class GamificationController extends BaseController
     {
         $this->requireAuthApi();
 
+        // Liberar lock da sessão para permitir requisições paralelas
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         try {
             $pendingAchievements = UserAchievement::with('achievement')
                 ->where('user_id', $this->userId)

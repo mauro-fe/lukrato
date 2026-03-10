@@ -348,7 +348,9 @@
                         this.loadList();
                     }
                 } catch (e) {
-                    if (e.message && !e.message.includes('500')) {
+                    if (e instanceof TypeError && e.message.includes('NetworkError')) {
+                        // Silencia erros de rede transitórios
+                    } else if (e.message && !e.message.includes('500')) {
                         console.warn('Falha ao atualizar contagem:', e.message);
                     }
                 } finally {

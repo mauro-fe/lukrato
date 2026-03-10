@@ -180,7 +180,11 @@
                 const typeLabel = {
                     chat: 'Chat',
                     suggest_category: 'Sugestão',
-                    analyze_spending: 'Análise'
+                    analyze_spending: 'Análise',
+                    categorize: 'Categorização',
+                    analyze: 'Análise (novo)',
+                    quick_query: 'Consulta Rápida',
+                    extract_transaction: 'Extração'
                 }[log.type] || log.type;
                 const rowId = `expand-${pg}-${i}`;
 

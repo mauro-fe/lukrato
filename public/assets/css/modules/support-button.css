@@ -4,13 +4,22 @@
    =================================================================== */
 
 /* ===================================================================
-   BOTÃO FLUTUANTE
+   FAB CONTAINER (Speed Dial)
    =================================================================== */
-.lk-support-button {
+.lk-fab-container {
     position: fixed !important;
     bottom: 24px !important;
     right: 24px !important;
-    left: auto !important;
+    z-index: 9999 !important;
+    width: 64px;
+    height: 64px;
+}
+
+/* ===================================================================
+   BOTÃO FLUTUANTE (principal)
+   =================================================================== */
+.lk-support-button {
+    position: relative !important;
     width: 64px;
     height: 64px;
     background: linear-gradient(135deg, var(--color-primary) 0%, #d35400 100%);
@@ -22,11 +31,11 @@
     font-size: 26px;
     box-shadow: none !important;
     transition: all var(--transition-normal);
-    z-index: 9999 !important;
     cursor: pointer;
     border: none;
     text-decoration: none;
     overflow: visible !important;
+    flex-shrink: 0;
     animation: pulse-support 3s ease-in-out infinite;
 }
 
@@ -48,10 +57,8 @@
 }
 
 .lk-support-button:hover {
-    transform: translateY(-4px) scale(1.05) rotate(-5deg);
     box-shadow: 0 5px 20px rgba(230, 126, 34, 0.45);
     background: linear-gradient(135deg, #d35400 0%, var(--color-primary) 100%);
-    animation: none;
 }
 
 .lk-support-button:active {
@@ -59,43 +66,148 @@
 }
 
 .lk-support-button i {
-    animation: headset-bounce 2s ease-in-out infinite;
     color: white !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.lk-support-button:hover i {
-    animation: headset-wiggle 0.5s ease-in-out;
+/* Rotate + to × when speed dial is open/hovered */
+.lk-fab-container:hover > .lk-support-button i,
+.lk-fab-container.open > .lk-support-button i {
+    transform: rotate(45deg);
 }
 
 /* ===================================================================
-   TOOLTIP ANIMADO
+   FAB SPEED DIAL — Mini-botões
    =================================================================== */
-.lk-support-button::after {
-    content: '\1F4AC Fale com o suporte' !important;
-    position: absolute !important;
-    right: 100% !important;
-    top: 50% !important;
-    margin-right: 12px !important;
-    transform: translateY(-50%) translateX(10px) !important;
-    background: var(--color-surface) !important;
-    color: var(--color-text) !important;
-    padding: 0.75rem 1.25rem !important;
-    border-radius: var(--radius-md) !important;
-    font-size: var(--font-size-sm) !important;
-    font-weight: 600 !important;
-    white-space: nowrap !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-    box-shadow: var(--shadow-lg) !important;
-    border: 2px solid var(--color-primary) !important;
-    transition: all var(--transition-normal) !important;
-    font-family: var(--font-primary) !important;
-    z-index: 10000 !important;
+.lk-fab-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    justify-content: flex-end;
 }
 
-.lk-support-button:hover::after {
-    opacity: 1 !important;
-    transform: translateY(-50%) translateX(0) !important;
+/* AI button: sobe (acima do botão principal) */
+.lk-fab-item[data-action="ai"] {
+    bottom: calc(100% + 12px);
+    right: 0;
+    flex-direction: row;
+    transform: scale(0.4) translateY(20px);
+}
+
+/* Support button: vai para a esquerda do botão principal */
+.lk-fab-item[data-action="support"] {
+    right: calc(100% + 12px);
+    bottom: 0;
+    flex-direction: row;
+    transform: scale(0.4) translateX(20px);
+}
+
+/* Stagger: Support appears first, AI appears second */
+.lk-fab-item[data-action="ai"]      { transition-delay: 50ms; }
+.lk-fab-item[data-action="support"] { transition-delay: 0ms; }
+
+/* Visible state — hover (desktop) or .open (mobile/JS) */
+.lk-fab-container:hover .lk-fab-item,
+.lk-fab-container.open .lk-fab-item {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.lk-fab-container:hover .lk-fab-item[data-action="ai"],
+.lk-fab-container.open .lk-fab-item[data-action="ai"] {
+    transform: scale(1) translateY(0);
+}
+
+.lk-fab-container:hover .lk-fab-item[data-action="support"],
+.lk-fab-container.open .lk-fab-item[data-action="support"] {
+    transform: scale(1) translateX(0);
+}
+
+.lk-fab-container:hover .lk-fab-item[data-action="ai"]       { transition-delay: 50ms; }
+.lk-fab-container:hover .lk-fab-item[data-action="support"]  { transition-delay: 0ms; }
+.lk-fab-container.open .lk-fab-item[data-action="ai"]        { transition-delay: 50ms; }
+.lk-fab-container.open .lk-fab-item[data-action="support"]   { transition-delay: 0ms; }
+
+/* Icon circle */
+.lk-fab-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all var(--transition-fast);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.lk-fab-item[data-action="support"] .lk-fab-icon {
+    background: linear-gradient(135deg, var(--color-primary) 0%, #d35400 100%);
+    color: #fff;
+}
+
+.lk-fab-item[data-action="ai"] .lk-fab-icon {
+    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+    color: #fff;
+}
+
+.lk-fab-icon i {
+    width: 20px;
+    height: 20px;
+    color: #fff !important;
+}
+
+.lk-fab-item:hover .lk-fab-icon {
+    transform: scale(1.1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Label */
+.lk-fab-label {
+    background: var(--color-surface);
+    color: var(--color-text);
+    padding: 0.5rem 0.85rem;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--glass-border);
+    font-family: var(--font-primary);
+    opacity: 0;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    pointer-events: none;
+}
+
+/* Label do botão de IA (acima): tooltip à esquerda do ícone */
+.lk-fab-item[data-action="ai"] .lk-fab-label {
+    transform: translateX(8px);
+}
+.lk-fab-item[data-action="ai"]:hover .lk-fab-label {
+    transform: translateX(0);
+}
+
+/* Label do botão de suporte (à esquerda): tooltip acima do ícone */
+.lk-fab-item[data-action="support"] .lk-fab-label {
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    margin-bottom: 6px;
+    transform: translateY(4px);
+}
+.lk-fab-item[data-action="support"]:hover .lk-fab-label {
+    transform: translateY(0);
+}
+
+/* Ambos: mostrar label no hover */
+.lk-fab-item:hover .lk-fab-label {
+    opacity: 1;
 }
 
 /* ===================================================================
@@ -296,7 +408,7 @@
     animation: fadeInUp 0.4s ease-out 0.15s backwards;
 }
 
-.lk-radio {
+.lk-contact-preference .lk-radio {
     background: var(--glass-bg);
     backdrop-filter: var(--glass-backdrop);
     border-radius: var(--radius-md);
@@ -309,19 +421,21 @@
     user-select: none;
     flex: 1;
     padding: var(--spacing-1);
+    position: relative;
+    opacity: 1;
 }
 
-.lk-radio:hover {
+.lk-contact-preference .lk-radio:hover {
     border-color: var(--color-primary);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(230, 126, 34, 0.2);
 }
 
-.lk-radio input {
+.lk-contact-preference .lk-radio input {
     display: none;
 }
 
-.lk-radio span {
+.lk-contact-preference .lk-radio span {
     color: var(--color-text);
     font-weight: 600;
     display: flex;
@@ -331,27 +445,27 @@
     justify-content: center;
 }
 
-.lk-radio .whats {
+.lk-contact-preference .lk-radio .whats {
     gap: 1rem;
 }
 
-.lk-radio i {
+.lk-contact-preference .lk-radio i {
     color: var(--color-text-muted);
     font-size: 1.1rem;
     transition: all var(--transition-fast);
 }
 
 /* Estado marcado */
-.lk-radio input:checked + span {
+.lk-contact-preference .lk-radio input:checked + span {
     color: var(--color-primary);
 }
 
-.lk-radio input:checked ~ i,
-.lk-radio:has(input:checked) i {
+.lk-contact-preference .lk-radio input:checked ~ i,
+.lk-contact-preference .lk-radio:has(input:checked) i {
     color: var(--color-primary);
 }
 
-.lk-radio:has(input:checked) {
+.lk-contact-preference .lk-radio:has(input:checked) {
     background: linear-gradient(135deg, rgba(230, 126, 34, 0.1), rgba(211, 84, 0, 0.05));
     border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
@@ -454,16 +568,39 @@
    RESPONSIVO
    =================================================================== */
 @media (max-width: 768px) {
+    .lk-fab-container {
+        bottom: 20px !important;
+        right: 16px !important;
+        width: 48px;
+        height: 48px;
+    }
+
     .lk-support-button {
         width: 48px !important;
         height: 48px !important;
         font-size: 20px !important;
-        bottom: 20px !important;
-        right: 16px !important;
     }
 
-    .lk-support-button::after {
-        display: none !important;
+    .lk-fab-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .lk-fab-icon i {
+        width: 18px;
+        height: 18px;
+    }
+
+    .lk-fab-label {
+        display: none;
+    }
+
+    .lk-fab-item[data-action="ai"] {
+        bottom: calc(100% + 10px);
+    }
+
+    .lk-fab-item[data-action="support"] {
+        right: calc(100% + 10px);
     }
 
     .swal2-popup.lk-support-modal {
@@ -501,7 +638,7 @@
         gap: 0.75rem !important;
     }
 
-    .lk-radio {
+    .lk-contact-preference .lk-radio {
         padding: 0.75rem !important;
         min-height: 48px !important;
     }
@@ -526,12 +663,35 @@
 }
 
 @media (max-width: 576px) {
+    .lk-fab-container {
+        bottom: 18px !important;
+        right: 12px !important;
+        width: 44px;
+        height: 44px;
+    }
+
     .lk-support-button {
         width: 44px !important;
         height: 44px !important;
         font-size: 18px !important;
-        bottom: 18px !important;
-        right: 12px !important;
+    }
+
+    .lk-fab-icon {
+        width: 36px;
+        height: 36px;
+    }
+
+    .lk-fab-icon i {
+        width: 16px;
+        height: 16px;
+    }
+
+    .lk-fab-item[data-action="ai"] {
+        bottom: calc(100% + 8px);
+    }
+
+    .lk-fab-item[data-action="support"] {
+        right: calc(100% + 8px);
     }
 
     .swal2-popup.lk-support-modal {

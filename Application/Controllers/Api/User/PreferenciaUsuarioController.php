@@ -5,7 +5,7 @@ namespace Application\Controllers\Api\User;
 use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Models\Usuario;
-use Application\Services\Infrastructure\LogService; 
+use Application\Services\Infrastructure\LogService;
 use Throwable;
 
 enum ThemePreference: string
@@ -17,7 +17,7 @@ enum ThemePreference: string
 
 class PreferenciaUsuarioController extends BaseController
 {
-  
+
     private function getPayloadValue(string $key): mixed
     {
         $value = $this->getPost($key);
@@ -106,6 +106,11 @@ class PreferenciaUsuarioController extends BaseController
         try {
             $this->requireAuth();
 
+            // Liberar lock da sessão para permitir requisições paralelas
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_write_close();
+            }
+
             $user = Usuario::find($this->userId);
             if (!$user) {
                 Response::error('Usuário não encontrado.', 404);
@@ -133,7 +138,7 @@ class PreferenciaUsuarioController extends BaseController
             if ($isBirthday) {
                 // Calcula idade
                 $age = (int) $today->diff($birthDate)->y;
-                
+
                 // Pega primeiro nome
                 $nameParts = explode(' ', trim($user->nome));
                 $firstName = $nameParts[0] ?? 'Você';

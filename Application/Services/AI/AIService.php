@@ -124,7 +124,7 @@ class AIService
 
             AiLogService::log([
                 'user_id'          => $request->userId,
-                'type'             => isset($intent) ? $intent->value : 'chat',
+                'type'             => isset($intent) ? $this->normalizeLogType($intent) : 'chat',
                 'prompt'           => mb_substr($request->message, 0, 5000),
                 'response'         => null,
                 'provider'         => $_ENV['AI_PROVIDER'] ?? 'openai',
@@ -170,10 +170,11 @@ class AIService
         // Persistir no ai_logs para a página de logs do sysadmin
         $meta  = $this->provider->getLastMeta();
         $model = $this->provider->getModel();
+        $logType = $this->normalizeLogType($intent);
 
         AiLogService::log([
             'user_id'          => $request->userId,
-            'type'             => $intent->value,
+            'type'             => $logType,
             'prompt'           => mb_substr($request->message, 0, 5000),
             'response'         => mb_substr($response->message, 0, 10000),
             'provider'         => $_ENV['AI_PROVIDER'] ?? 'openai',
@@ -185,6 +186,22 @@ class AIService
             'success'          => $response->success,
             'error_message'    => $response->success ? null : $response->message,
         ]);
+    }
+
+    /**
+     * Mantém compatibilidade com o schema atual de ai_logs.type.
+     * O banco foi criado com enum legado e pode rejeitar intents novas.
+     */
+    private function normalizeLogType(IntentType $intent): string
+    {
+        return match ($intent) {
+            IntentType::CATEGORIZE => 'suggest_category',
+            IntentType::ANALYZE => 'analyze_spending',
+            // Intents novas sem tipo dedicado no schema atual caem em chat
+            IntentType::EXTRACT_TRANSACTION,
+            IntentType::QUICK_QUERY,
+            IntentType::CHAT => 'chat',
+        };
     }
 
     // ─── Métodos Legados (Retrocompatibilidade) ─────────────

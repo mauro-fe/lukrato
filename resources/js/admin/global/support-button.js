@@ -20,6 +20,7 @@
     });
 
     // ── DOM Elements ───────────────────────────────────────────
+    const fabContainer = document.getElementById('lkFabContainer');
     const toggleBtn = document.getElementById('lkSupportToggle');
     const panel = document.getElementById('lkChatPanel');
     const closeBtn = document.getElementById('lkChatClose');
@@ -27,6 +28,8 @@
     const tabAI = document.getElementById('tabAI');
     const panelSupport = document.getElementById('panelSupport');
     const panelAI = document.getElementById('panelAI');
+    const fabItemSupport = document.getElementById('fabItemSupport');
+    const fabItemAI = document.getElementById('fabItemAI');
 
     // Support form
     const supportMsg = document.getElementById('supportPanelMessage');
@@ -40,34 +43,75 @@
     const aiQuotaText = document.getElementById('aiQuotaText');
     const aiEmpty = document.getElementById('aiEmpty');
 
-    if (!toggleBtn || !panel) return;
+    if (!toggleBtn || !panel || !fabContainer) return;
 
     const planTier = toggleBtn.dataset.planTier || 'free';
     let currentConvId = null;
     let aiLoading = false;
+    const isTouchDevice = () => 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
-    // ── Panel Toggle ───────────────────────────────────────────
+    // ── Speed Dial helpers ─────────────────────────────────────
+    function closeFab() {
+        fabContainer.classList.remove('open');
+    }
+
+    function openPanel(tab) {
+        closeFab();
+        switchTab(tab);
+        panel.classList.add('open');
+        refreshIcons();
+        if (tab === 'ai' && planTier !== 'free' && !currentConvId) {
+            loadOrCreateConversation();
+        }
+    }
+
+    // ── FAB main button (toggle speed dial on mobile / click) ──
     toggleBtn.addEventListener('click', function (e) {
         e.preventDefault();
-        const isOpen = panel.classList.toggle('open');
-        if (isOpen) {
-            refreshIcons();
-            if (planTier !== 'free' && !currentConvId) {
-                loadOrCreateConversation();
-            }
+        e.stopPropagation();
+        if (panel.classList.contains('open')) {
+            panel.classList.remove('open');
+            return;
         }
+        fabContainer.classList.toggle('open');
+        refreshIcons();
     });
+
+    // ── Mini-button: Suporte ───────────────────────────────────
+    if (fabItemSupport) {
+        fabItemSupport.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            openPanel('support');
+        });
+    }
+
+    // ── Mini-button: Assistente IA ─────────────────────────────
+    if (fabItemAI) {
+        fabItemAI.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            openPanel('ai');
+        });
+    }
 
     closeBtn.addEventListener('click', function () {
         panel.classList.remove('open');
+        closeFab();
     });
 
     // Close on outside click
     document.addEventListener('click', function (e) {
+        // Close panel if open and click outside
         if (panel.classList.contains('open') &&
             !panel.contains(e.target) &&
-            !toggleBtn.contains(e.target)) {
+            !fabContainer.contains(e.target)) {
             panel.classList.remove('open');
+        }
+        // Close speed dial if open and click outside
+        if (fabContainer.classList.contains('open') &&
+            !fabContainer.contains(e.target)) {
+            closeFab();
         }
     });
 
@@ -265,8 +309,12 @@
 
             const data = await res.json();
 
-            if (data.success && data.data?.content) {
-                appendAIMessage('assistant', data.data.content);
+            const content = data.data?.assistant_message?.content
+                || data.data?.content
+                || data.data?.response;
+
+            if (data.success && content) {
+                appendAIMessage('assistant', content);
             } else {
                 appendAIMessage('assistant', data.message || 'Sem resposta do assistente.');
             }

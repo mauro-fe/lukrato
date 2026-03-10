@@ -142,14 +142,16 @@ const BASE_URL = getBaseUrl();
             });
             if (!result.isConfirmed) return;
 
-            const assinarBtn = document.getElementById('btnAssinar');
+            const btnId = 'btnAssinar' + planCode.charAt(0).toUpperCase() + planCode.slice(1).toLowerCase();
+            const assinarBtn = document.getElementById(btnId);
             if (assinarBtn) {
                 assinarBtn.click();
             } else if (typeof window.openBillingModal === 'function') {
-                const proPriceEl = document.getElementById('planProPrice');
-                const monthlyBase = proPriceEl ? Number(proPriceEl.dataset.basePrice || 0) : 14.90;
+                const priceEl = document.querySelector(`[data-plan-code="${planCode}"] [data-base-price]`) ||
+                    document.getElementById('planProPrice');
+                const monthlyBase = priceEl ? Number(priceEl.dataset.basePrice || 0) : 14.90;
                 window.openBillingModal({
-                    planId, planCode, planName: 'Lukrato PRO',
+                    planId, planCode, planName: `Lukrato ${planCode.toUpperCase()}`,
                     monthlyBase, cycle: 'monthly', months: 1, discount: 0
                 });
             } else {

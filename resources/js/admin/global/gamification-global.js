@@ -77,7 +77,7 @@
     function playAchievementSound() {
         try {
             // Obter base URL dinamicamente
-            const baseUrl = window.BASE_URL || '/lukrato/public/';
+            const baseUrl = window.BASE_URL || window.LK?.getBase?.() || '/';
             const audio = new Audio(baseUrl + 'assets/audio/success-fanfare-trumpets-6185.mp3');
             audio.volume = 0.5;
             audio.play().catch(err => {
@@ -497,7 +497,7 @@
         isCheckingPending = true;
 
         try {
-            const baseUrl = window.BASE_URL || '/lukrato/public/';
+            const baseUrl = window.BASE_URL || window.LK?.getBase?.() || '/';
             const response = await fetch(`${baseUrl}api/gamification/achievements/pending`, {
                 credentials: 'same-origin'
             });
@@ -534,6 +534,7 @@
                 }, 3000);
             }
         } catch (error) {
+            if (error instanceof TypeError && error.message.includes('NetworkError')) return;
             console.error('🎮 [GAMIFICATION] Erro ao verificar conquistas pendentes:', error);
         } finally {
             isCheckingPending = false;
@@ -548,7 +549,7 @@
      */
     async function markAchievementsSeen(achievementIds) {
         try {
-            const baseUrl = window.BASE_URL || '/lukrato/public/';
+            const baseUrl = window.BASE_URL || window.LK?.getBase?.() || '/';
 
             // Obter CSRF token
             const csrfMeta = document.querySelector('meta[name="csrf-token"]');
@@ -580,7 +581,7 @@
         isCheckingReferralRewards = true;
 
         try {
-            const baseUrl = window.BASE_URL || '/lukrato/public/';
+            const baseUrl = window.BASE_URL || window.LK?.getBase?.() || '/';
             const response = await fetch(`${baseUrl}api/notificacoes/referral-rewards`, {
                 credentials: 'same-origin'
             });
@@ -605,6 +606,7 @@
                 await markReferralRewardsSeen(ids);
             }
         } catch (error) {
+            if (error instanceof TypeError && error.message.includes('NetworkError')) return;
             console.error('🎁 [REFERRAL] Erro ao verificar recompensas:', error);
         } finally {
             isCheckingReferralRewards = false;
@@ -668,7 +670,7 @@
      */
     async function markReferralRewardsSeen(ids) {
         try {
-            const baseUrl = window.BASE_URL || '/lukrato/public/';
+            const baseUrl = window.BASE_URL || window.LK?.getBase?.() || '/';
             const csrfMeta = document.querySelector('meta[name="csrf-token"]');
             const csrfToken = csrfMeta ? csrfMeta.content : '';
 

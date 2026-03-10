@@ -47,8 +47,15 @@ class SessionController
             session_start();
         }
 
-        // Verifica se usuário está logado (apenas pela sessão, sem validar timeout)
+        // Lê todos os dados necessários da sessão de uma vez
         $userId = $_SESSION['user_id'] ?? null;
+        $lastActivity = $_SESSION['last_activity'] ?? time();
+        $isRemembered = !empty($_SESSION['remember_me']);
+
+        // Liberar lock da sessão para permitir requisições paralelas
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
 
         if (!$userId) {
             Response::json([
@@ -66,7 +73,6 @@ class SessionController
         $sessionLifetime = $this->getSessionLifetime();
 
         // Calcula tempo restante da sessão (usa last_activity como no Auth)
-        $lastActivity = $_SESSION['last_activity'] ?? time();
         $sessionAge = time() - $lastActivity;
         $remainingTime = max(0, $sessionLifetime - $sessionAge);
 
@@ -83,7 +89,6 @@ class SessionController
 
         // Busca dados do usuário apenas se a sessão ainda é válida ou pode renovar
         $userName = 'Usuário';
-        $isRemembered = !empty($_SESSION['remember_me']);
         if ($canRenew) {
             $user = Auth::user();
             if ($user) {

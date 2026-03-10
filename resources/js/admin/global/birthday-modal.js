@@ -5,16 +5,16 @@
  * Usa localStorage para não repetir no mesmo dia.
  */
 
-(function() {
+(function () {
     'use strict';
 
     const BirthdayModal = {
         storageKey: 'lukrato_birthday_shown',
-        
+
         /**
          * Inicializa o sistema de aniversário
          */
-        init: function() {
+        init: function () {
             // Aguarda DOM estar pronto
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', () => this.checkBirthday());
@@ -27,7 +27,7 @@
         /**
          * Verifica se hoje é aniversário do usuário
          */
-        checkBirthday: async function() {
+        checkBirthday: async function () {
             try {
                 // Verifica se já mostrou hoje
                 if (this.wasShownToday()) {
@@ -47,23 +47,25 @@
                 if (!response.ok) return;
 
                 const data = await response.json();
-                
+
                 if (data.success && data.data?.is_birthday) {
                     this.showModal(data.data);
                     this.markAsShown();
                 }
             } catch (error) {
-                console.error('[BirthdayModal] Erro ao verificar aniversário:', error);
+                if (!(error instanceof TypeError && error.message.includes('NetworkError'))) {
+                    console.error('[BirthdayModal] Erro ao verificar aniversário:', error);
+                }
             }
         },
 
         /**
          * Verifica se o modal já foi mostrado hoje
          */
-        wasShownToday: function() {
+        wasShownToday: function () {
             const stored = localStorage.getItem(this.storageKey);
             if (!stored) return false;
-            
+
             const today = new Date().toISOString().split('T')[0];
             return stored === today;
         },
@@ -71,7 +73,7 @@
         /**
          * Marca que o modal foi mostrado hoje
          */
-        markAsShown: function() {
+        markAsShown: function () {
             const today = new Date().toISOString().split('T')[0];
             localStorage.setItem(this.storageKey, today);
         },
@@ -79,10 +81,10 @@
         /**
          * Exibe o modal de aniversário
          */
-        showModal: function(userData) {
+        showModal: function (userData) {
             const firstName = userData.first_name || 'Você';
             const age = userData.age || '';
-            
+
             // Criar HTML do modal
             const modalHtml = `
                 <div class="birthday-modal-overlay" id="birthdayModalOverlay">
@@ -130,7 +132,7 @@
 
             // Inserir no DOM
             document.body.insertAdjacentHTML('beforeend', modalHtml);
-            
+
             // Ativar com pequeno delay para animação
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
@@ -145,7 +147,7 @@
         /**
          * Fecha o modal
          */
-        close: function() {
+        close: function () {
             const overlay = document.getElementById('birthdayModalOverlay');
             if (overlay) {
                 overlay.classList.remove('active');
@@ -156,10 +158,10 @@
         /**
          * Ação do botão "Celebrar!" - mais confetti e fecha
          */
-        celebrate: function() {
+        celebrate: function () {
             // Mais confetti!
             this.triggerConfetti(true);
-            
+
             // Fecha após animação
             setTimeout(() => this.close(), 1500);
         },
@@ -167,7 +169,7 @@
         /**
          * Dispara efeito de confetti
          */
-        triggerConfetti: function(intense = false) {
+        triggerConfetti: function (intense = false) {
             if (typeof confetti !== 'function') return;
 
             const defaults = {

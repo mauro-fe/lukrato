@@ -83,6 +83,9 @@ window.contasManager = {
     nextStep: () => ContasLancamento.nextStep(),
     prevStep: () => ContasLancamento.prevStep(),
     skipAndSave: () => ContasLancamento.skipAndSave(),
+
+    // ── IA ───────────────────────────────────────────────────────────────
+    sugerirCategoriaIA: () => ContasLancamento.sugerirCategoriaIA(),
 };
 
 // Guard + bootstrap

@@ -47,6 +47,10 @@ class QuickQueryHandler implements AIHandlerInterface
         'maior\s+gasto|gasto\s+mais\s+caro|maior\s+despesa'        => 'getMaiorGasto',
         'menor\s+gasto|gasto\s+mais\s+barato|menor\s+despesa'      => 'getMenorGasto',
         'm[eé]dia\s+(de\s+)?(gasto|despesa)|gasto\s+m[eé]dio'      => 'getMediaDespesas',
+        'quantas?\s+categori|total.*categori'                       => 'getCountCategorias',
+        'limite.*cart[ãa]o|cart[ãa]o.*limite|limite.*cr[eé]dito'    => 'getLimiteCartoes',
+        'contas?\s+a\s+pagar|pendente|vencid'                       => 'getContasAPagar',
+        'receitas?\s+do\s+m[eê]s|ganhos?\s+do\s+m[eê]s'            => 'getTotalReceitas',
     ];
 
     /**
@@ -422,6 +426,88 @@ class QuickQueryHandler implements AIHandlerInterface
         return [
             'message' => "📈 **{$count} novos usuários** se cadastraram esta semana.",
             'data'    => ['count' => $count, 'period' => 'semana_atual'],
+        ];
+    }
+
+    private function getCountCategorias(?int $userId): ?array
+    {
+        $query = Categoria::query();
+        if ($userId !== null) {
+            $query->where(function ($q) use ($userId) {
+                $q->whereNull('user_id')->orWhere('user_id', $userId);
+            });
+        }
+
+        $total  = (int) $query->count();
+        $custom = $userId ? (int) Categoria::where('user_id', $userId)->count() : 0;
+
+        return [
+            'message' => "🏷️ Você tem **{$total} categorias** disponíveis" . ($custom > 0 ? " ({$custom} personalizadas)" : "") . ".",
+            'data'    => ['total' => $total, 'custom' => $custom],
+        ];
+    }
+
+    private function getLimiteCartoes(?int $userId): ?array
+    {
+        $query = CartaoCredito::query()->where('ativo', true);
+        if ($userId !== null) {
+            $query->where('user_id', $userId);
+        }
+
+        $cartoes = $query->get(['nome', 'limite_total', 'limite_disponivel']);
+
+        if ($cartoes->isEmpty()) {
+            return [
+                'message' => "💳 Nenhum cartão de crédito ativo cadastrado.",
+                'data'    => [],
+            ];
+        }
+
+        $total = $cartoes->sum('limite_total');
+        $disponivel = $cartoes->sum('limite_disponivel');
+        $usado = $total - $disponivel;
+        $pctUsado = $total > 0 ? round(($usado / $total) * 100) : 0;
+
+        $fmtTotal = 'R$ ' . number_format((float) $total, 2, ',', '.');
+        $fmtDisp  = 'R$ ' . number_format((float) $disponivel, 2, ',', '.');
+
+        return [
+            'message' => "💳 Limite total: **{$fmtTotal}** | Disponível: **{$fmtDisp}** | Uso: **{$pctUsado}%** em {$cartoes->count()} cartão(ões).",
+            'data'    => [
+                'limite_total'     => (float) $total,
+                'limite_disponivel'=> (float) $disponivel,
+                'pct_usado'        => $pctUsado,
+                'count'            => $cartoes->count(),
+            ],
+        ];
+    }
+
+    private function getContasAPagar(?int $userId): ?array
+    {
+        $query = Lancamento::query()
+            ->where('tipo', 'despesa')
+            ->where('pago', false)
+            ->whereNull('cancelado_em')
+            ->where('data', '<=', now()->endOfMonth());
+
+        if ($userId !== null) {
+            $query->where('user_id', $userId);
+        }
+
+        $count = (int) $query->count();
+        $total = (float) $query->sum('valor');
+        $vencidas = (int) (clone $query)->where('data', '<', now()->startOfDay())->count();
+
+        $formatted = 'R$ ' . number_format($total, 2, ',', '.');
+
+        $msg = "📋 Você tem **{$count} contas a pagar** este mês, totalizando **{$formatted}**.";
+        if ($vencidas > 0) {
+            $msg .= " ⚠️ **{$vencidas} já vencida(s)!**";
+        }
+
+        return [
+            'message' => $msg,
+            'data'    => ['count' => $count, 'total' => $total, 'vencidas' => $vencidas, 'formatted' => $formatted],
         ];
     }
 }

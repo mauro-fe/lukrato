@@ -246,7 +246,11 @@
             const typeLabels = {
                 chat: 'Chat',
                 suggest_category: 'Sugestão',
-                analyze_spending: 'Análise'
+                analyze_spending: 'Análise',
+                categorize: 'Categorização',
+                analyze: 'Análise (novo)',
+                quick_query: 'Consulta Rápida',
+                extract_transaction: 'Extração'
             };
             let html = '';
             json.data.recentes.forEach(log => {

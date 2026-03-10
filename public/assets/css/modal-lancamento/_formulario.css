@@ -129,6 +129,51 @@ input.lk-input.lk-input-with-prefix {
   transform: translateY(-50%) rotate(180deg);
 }
 
+/* AI Category Suggest Row */
+.lk-ai-category-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lk-btn-ai-suggest {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: var(--radius-lg, 0.75rem);
+  background: linear-gradient(135deg, #f9f5ff 0%, #fef3c7 100%);
+  color: var(--color-primary, #e67e22);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lk-btn-ai-suggest:hover {
+  background: linear-gradient(135deg, #e67e22 0%, #f59e0b 100%);
+  color: #fff;
+  border-color: var(--color-primary, #e67e22);
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(230, 126, 34, 0.3);
+}
+
+.lk-btn-ai-suggest:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.lk-btn-ai-suggest.loading {
+  animation: lk-ai-pulse 1s ease-in-out infinite;
+}
+
+@keyframes lk-ai-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
 .lk-helper-text {
   display: block;
   margin-top: var(--spacing-2);

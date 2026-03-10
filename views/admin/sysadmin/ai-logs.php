@@ -88,6 +88,10 @@
             <option value="chat">Chat</option>
             <option value="suggest_category">Sugestão Categoria</option>
             <option value="analyze_spending">Análise Gastos</option>
+            <option value="categorize">Categorização</option>
+            <option value="analyze">Análise (novo fluxo)</option>
+            <option value="quick_query">Consulta Rápida</option>
+            <option value="extract_transaction">Extração de Transação</option>
         </select>
         <select id="filterSuccess">
             <option value="">Todos os status</option>
