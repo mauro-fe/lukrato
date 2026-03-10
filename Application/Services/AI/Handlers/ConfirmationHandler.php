@@ -89,8 +89,9 @@ class ConfirmationHandler implements AIHandlerInterface
         $payload    = $pending->payload;
         $actionType = $pending->action_type;
 
-        // Se lancamento sem conta_id, tentar auto-preencher
-        if ($actionType === 'create_lancamento' && empty($payload['conta_id'])) {
+        // Se lancamento sem conta_id, tentar auto-preencher (cartão de crédito não precisa de conta)
+        $isCartao = ($payload['forma_pagamento'] ?? null) === 'cartao_credito';
+        if ($actionType === 'create_lancamento' && empty($payload['conta_id']) && !$isCartao) {
             $contaRepo = new ContaRepository();
             $contas = $contaRepo->findActive($userId);
 
