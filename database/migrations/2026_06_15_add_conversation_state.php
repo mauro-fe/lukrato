@@ -10,31 +10,40 @@ declare(strict_types=1);
  * state_data: JSON com dados parciais do fluxo ativo
  */
 
-require_once __DIR__ . '/../../bootstrap.php';
-
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Capsule\Manager as DB;
 
-$tableName = 'ai_conversations';
+return new class
+{
+    public function up(): void
+    {
+        $tableName = 'ai_conversations';
+        $schema = DB::schema();
 
-echo "=== Migração: Adicionar state/state_data em {$tableName} ===" . PHP_EOL;
+        if (!$schema->hasTable($tableName)) {
+            echo "❌ Tabela {$tableName} não existe.\n";
+            return;
+        }
 
-$schema = DB::schema();
+        if ($schema->hasColumn($tableName, 'state')) {
+            echo "⚠️  Coluna 'state' já existe em {$tableName}. Pulando.\n";
+            return;
+        }
 
-if (!$schema->hasTable($tableName)) {
-    echo "❌ Tabela {$tableName} não existe. Execute a migração de criação primeiro." . PHP_EOL;
-    exit(1);
-}
+        $schema->table($tableName, function (Blueprint $table) {
+            $table->string('state', 30)->default('idle')->after('titulo');
+            $table->json('state_data')->nullable()->after('state');
+            $table->index('state');
+        });
 
-if ($schema->hasColumn($tableName, 'state')) {
-    echo "⚠️  Coluna 'state' já existe em {$tableName}. Pulando." . PHP_EOL;
-} else {
-    $schema->table($tableName, function (Blueprint $table) {
-        $table->string('state', 30)->default('idle')->after('titulo');
-        $table->json('state_data')->nullable()->after('state');
-        $table->index('state');
-    });
-    echo "✅ Colunas 'state' e 'state_data' adicionadas com sucesso." . PHP_EOL;
-}
+        echo "✅ Colunas 'state' e 'state_data' adicionadas.\n";
+    }
 
-echo "=== Migração concluída ===" . PHP_EOL;
+    public function down(): void
+    {
+        DB::schema()->table('ai_conversations', function (Blueprint $table) {
+            $table->dropIndex(['state']);
+            $table->dropColumn(['state', 'state_data']);
+        });
+    }
+};

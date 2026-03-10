@@ -14,7 +14,7 @@ return new class
         }
 
         Capsule::schema()->table('usuarios', function ($table) {
-            $table->string('whatsapp_phone', 20)->nullable()->after('telefone');
+            $table->string('whatsapp_phone', 20)->nullable()->after('email');
             $table->boolean('whatsapp_verified')->default(false)->after('whatsapp_phone');
 
             $table->unique('whatsapp_phone');
