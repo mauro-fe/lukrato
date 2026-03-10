@@ -12,6 +12,7 @@ use Application\Models\PendingAiAction;
 use Application\Models\WhatsAppMessage;
 use Application\Repositories\ContaRepository;
 use Application\Services\AI\AIService;
+use Application\Services\AI\AIQuotaService;
 use Application\Services\AI\Actions\ActionRegistry;
 use Application\Services\AI\Rules\CategoryRuleEngine;
 use Application\Services\AI\TransactionDetectorService;
@@ -308,6 +309,19 @@ class WhatsAppWebhookController extends BaseController
             return;
         }
 
+        // Verificar quota de chat antes de consumir IA
+        if (!AIQuotaService::hasQuotaRemaining($user, 'chat')) {
+            $usage = AIQuotaService::getUsage($user);
+            $limit = $usage['chat']['limit'] ?? 5;
+            $this->whatsapp->sendText(
+                $dto->fromPhone,
+                "🤖 Você usou suas {$limit} mensagens de IA gratuitas este mês. "
+                    . "Faça upgrade para o Pro e tenha IA ilimitada: https://lukrato.com/billing"
+            );
+            $msgRecord->markProcessed('quota_exceeded');
+            return;
+        }
+
         // Delegar para AIService como qualquer outro canal
         $ai = new AIService();
 
@@ -399,5 +413,4 @@ class WhatsAppWebhookController extends BaseController
 
         $msgRecord->markProcessed('transaction_pending');
     }
-
 }

@@ -97,44 +97,37 @@ $planTier     = $planTier     ?? 'free';
 
     <!-- Aba: Assistente IA -->
     <div class="lk-chat-body lk-tab-content" id="panelAI">
-        <?php if ($planTier === 'free'): ?>
-            <!-- Overlay de upgrade para free -->
-            <div class="lk-ai-upgrade-overlay" id="aiUpgradeOverlay">
-                <div class="lk-ai-upgrade-content">
-                    <i data-lucide="sparkles" style="width:48px;height:48px;color:var(--color-primary);"></i>
-                    <h3>Assistente IA</h3>
-                    <p>Converse com a IA sobre suas finanças, tire dúvidas e receba insights personalizados.</p>
-                    <a href="/billing" class="lk-ai-upgrade-btn">
-                        <i data-lucide="zap" style="width:16px;height:16px;"></i>
-                        Fazer Upgrade para Pro
-                    </a>
-                    <span class="lk-ai-upgrade-hint">A partir de R$ 14,90/mês</span>
+        <!-- Chat de IA (disponível para todos os planos) -->
+        <div class="lk-ai-chat-area" id="aiChatArea">
+            <div class="lk-ai-messages" id="aiMessages">
+                <div class="lk-ai-empty" id="aiEmpty">
+                    <i data-lucide="bot" style="width:36px;height:36px;color:var(--color-primary);opacity:0.5;"></i>
+                    <p>Olá! Sou seu assistente financeiro.<br>Como posso ajudar?</p>
                 </div>
             </div>
-        <?php else: ?>
-            <!-- Chat de IA -->
-            <div class="lk-ai-chat-area" id="aiChatArea">
-                <div class="lk-ai-messages" id="aiMessages">
-                    <div class="lk-ai-empty" id="aiEmpty">
-                        <i data-lucide="bot" style="width:36px;height:36px;color:var(--color-primary);opacity:0.5;"></i>
-                        <p>Olá! Sou seu assistente financeiro.<br>Como posso ajudar?</p>
-                    </div>
+        </div>
+        <div class="lk-ai-input-area">
+            <?php if ($planTier !== 'ultra'): ?>
+                <div class="lk-ai-quota-bar" id="aiQuotaBar">
+                    <span id="aiQuotaText">Carregando...</span>
                 </div>
+            <?php endif; ?>
+            <!-- Overlay inline de upgrade (hidden por padrão, mostrado via JS quando quota esgota) -->
+            <div class="lk-ai-exhausted-overlay" id="aiExhaustedOverlay" style="display:none;">
+                <i data-lucide="lock" style="width:18px;height:18px;color:var(--color-primary);"></i>
+                <span>Você usou suas 5 mensagens gratuitas este mês.</span>
+                <a href="/billing" class="lk-ai-upgrade-btn lk-ai-upgrade-btn--sm">
+                    <i data-lucide="zap" style="width:14px;height:14px;"></i>
+                    Fazer Upgrade para Pro
+                </a>
             </div>
-            <div class="lk-ai-input-area">
-                <?php if ($planTier === 'pro'): ?>
-                    <div class="lk-ai-quota-bar" id="aiQuotaBar">
-                        <span id="aiQuotaText">Carregando...</span>
-                    </div>
-                <?php endif; ?>
-                <div class="lk-ai-input-row">
-                    <textarea id="aiChatInput" class="lk-ai-textarea" placeholder="Digite sua pergunta..."
-                        rows="1"></textarea>
-                    <button class="lk-ai-send-btn" id="aiChatSend">
-                        <i data-lucide="send" style="width:16px;height:16px;"></i>
-                    </button>
-                </div>
+            <div class="lk-ai-input-row" id="aiInputRow">
+                <textarea id="aiChatInput" class="lk-ai-textarea" placeholder="Digite sua pergunta..."
+                    rows="1"></textarea>
+                <button class="lk-ai-send-btn" id="aiChatSend">
+                    <i data-lucide="send" style="width:16px;height:16px;"></i>
+                </button>
             </div>
-        <?php endif; ?>
+        </div>
     </div>
 </div>

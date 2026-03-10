@@ -26,7 +26,8 @@ return [
             'max_cartoes'           => 1,    // Apenas 1 cartão de crédito
             'max_metas'             => 3,    // Até 3 metas financeiras
             'max_orcamentos'        => 3,    // Até 3 orçamentos por categoria
-            'ai_messages_per_month' => 5,    // 5 sugestões IA/mês (degustação)
+            'ai_messages_per_month' => 5,    // 5 mensagens chat IA/mês (degustação)
+            'ai_categorization_per_month' => 5, // 5 sugestões de categoria IA/mês (degustação)
         ],
 
         'pro' => [
@@ -39,6 +40,7 @@ return [
             'max_metas'             => null, // ilimitado
             'max_orcamentos'        => null, // ilimitado
             'ai_messages_per_month' => null, // ilimitado
+            'ai_categorization_per_month' => null, // ilimitado
         ],
 
         'ultra' => [
@@ -51,6 +53,7 @@ return [
             'max_metas'             => null, // ilimitado
             'max_orcamentos'        => null, // ilimitado
             'ai_messages_per_month' => null, // ilimitado
+            'ai_categorization_per_month' => null, // ilimitado
         ],
 
     ],
@@ -89,8 +92,11 @@ return [
         'ai_limit' => 'Você atingiu o limite de {limit} sugestões com IA este mês. ' .
             'Faça upgrade para o Pro e tenha IA ilimitada!',
 
-        'ai_blocked' => '🤖 Você usou suas 5 sugestões de IA gratuitas este mês. ' .
+        'ai_blocked' => '🤖 Você usou suas 5 mensagens de IA gratuitas este mês. ' .
             'Faça upgrade para o Pro e tenha IA ilimitada!',
+
+        'ai_categorization_blocked' => '🏷️ Você usou suas 5 sugestões de categoria com IA gratuitas este mês. ' .
+            'Faça upgrade para o Pro e tenha sugestões ilimitadas!',
 
         'ultra_feature_blocked' => '⚡ Este recurso é exclusivo do plano Ultra. ' .
             'Faça upgrade para desbloquear análise financeira com IA, insights automáticos e previsão de saldo.',

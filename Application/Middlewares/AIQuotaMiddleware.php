@@ -7,18 +7,19 @@ namespace Application\Middlewares;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Services\AI\AIQuotaService;
+use Application\Services\Plan\FeatureGate;
 
 /**
  * Middleware que verifica quota de IA antes de processar requisições.
  * Aplicar nas rotas /api/ai/* que consomem mensagens de IA.
  *
+ * Detecta automaticamente o bucket (chat vs categorization) pela URI:
+ *  - /api/ai/suggest-category → bucket "categorization"
+ *  - demais endpoints          → bucket "chat"
+ *
  * Retorna:
  * - 403 se o plano não tem a feature ai_chat habilitada → upgrade_required
- * - 429 se a quota mensal de mensagens foi esgotada → quota_exceeded
- *
- * Nota: Free tem ai_chat=true com limite de 5 msgs/mês (degustação).
- *       Pro tem ai_chat=true com limite ilimitado.
- *       Ultra tem ai_chat=true com limite ilimitado.
+ * - 429 se a quota mensal do bucket foi esgotada → quota_exceeded
  */
 final class AIQuotaMiddleware
 {
@@ -41,16 +42,31 @@ final class AIQuotaMiddleware
             exit;
         }
 
-        // Quota mensal esgotada (free=5/mês, pro/ultra=ilimitado)
-        if (!AIQuotaService::hasQuotaRemaining($user)) {
+        // Detectar bucket pela URI
+        $uri    = $_SERVER['REQUEST_URI'] ?? '';
+        $bucket = str_contains($uri, 'suggest-category') ? 'categorization' : 'chat';
+
+        // Quota mensal esgotada
+        if (!AIQuotaService::hasQuotaRemaining($user, $bucket)) {
             $usage = AIQuotaService::getUsage($user);
+            $tier  = FeatureGate::planTier($user);
+
+            $bucketData = $bucket === 'categorization'
+                ? $usage['categorization']
+                : $usage['chat'];
+
+            $upgradeTarget = $tier === 'free' ? 'pro' : 'ultra';
+            $bucketLabel   = $bucket === 'categorization'
+                ? 'sugestões de categoria com IA'
+                : 'mensagens com IA';
 
             Response::json([
                 'success'        => false,
                 'quota_exceeded' => true,
-                'upgrade_to'     => 'ultra',
+                'bucket'         => $bucket,
+                'upgrade_to'     => $upgradeTarget,
                 'usage'          => $usage,
-                'message'        => "Você atingiu o limite de {$usage['limit']} mensagens com IA este mês. Faça upgrade para o Ultra e tenha IA ilimitada.",
+                'message'        => "Você atingiu o limite de {$bucketData['limit']} {$bucketLabel} este mês. Faça upgrade para o " . ucfirst($upgradeTarget) . " e tenha IA ilimitada.",
             ], 429);
             exit;
         }

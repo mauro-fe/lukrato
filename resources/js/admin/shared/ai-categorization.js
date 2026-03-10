@@ -64,7 +64,7 @@ export async function sugerirCategoriaIA(opts) {
             return;
         }
         if (resp.status === 429) {
-            notify('Limite de uso da IA atingido. Tente novamente amanhã', 'warning');
+            notify('Você usou suas 5 sugestões de categoria gratuitas este mês. Faça upgrade para o Pro para sugestões ilimitadas.', 'warning');
             return;
         }
 

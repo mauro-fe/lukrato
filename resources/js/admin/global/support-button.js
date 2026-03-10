@@ -64,7 +64,7 @@
         switchTab(tab);
         panel.classList.add('open');
         refreshIcons();
-        if (tab === 'ai' && planTier !== 'free' && !currentConvId) {
+        if (tab === 'ai' && !currentConvId) {
             loadOrCreateConversation();
         }
     }
@@ -132,7 +132,7 @@
             p.classList.toggle('active', i === idx);
         });
 
-        if (tab === 'ai' && planTier !== 'free') {
+        if (tab === 'ai') {
             if (!currentConvId) loadOrCreateConversation();
             if (aiInput) aiInput.focus();
         }
@@ -194,9 +194,7 @@
     // ════════════════════════════════════════════════════════════
     //  AI CHAT
     // ════════════════════════════════════════════════════════════
-    if (planTier === 'free' || !aiMessages) {
-        // Free tier — no AI chat logic needed
-    } else {
+    if (aiMessages) {
         // Wire up AI events
         if (aiInput) {
             aiInput.addEventListener('input', function () {
@@ -300,7 +298,8 @@
             if (typingEl) typingEl.remove();
 
             if (res.status === 429) {
-                appendAIMessage('assistant', 'Você atingiu o limite de mensagens do mês. Faça upgrade para continuar usando o assistente.');
+                appendAIMessage('assistant', 'Você usou suas 5 mensagens de IA gratuitas este mês. <a href="/billing" style="color:var(--color-primary);font-weight:600;">Faça upgrade para o Pro</a> e tenha IA ilimitada.');
+                showExhaustedOverlay();
                 updateQuotaDisplay(0, true);
                 return;
             }
@@ -482,6 +481,9 @@
     }
 
     // ── Quota ──────────────────────────────────────────────────
+    const aiExhaustedOverlay = document.getElementById('aiExhaustedOverlay');
+    const aiInputRow = document.getElementById('aiInputRow');
+
     async function loadQuota() {
         if (!aiQuotaText || planTier === 'ultra') return;
 
@@ -490,13 +492,19 @@
             const data = await res.json();
 
             if (data.success && data.data) {
-                const q = data.data;
-                if (q.unlimited) {
+                const chat = data.data.chat;
+                if (!chat || chat.unlimited) {
                     if (aiQuotaBar) aiQuotaBar.style.display = 'none';
+                    hideExhaustedOverlay();
                 } else {
-                    const remaining = q.remaining ?? 0;
-                    const limit = q.limit ?? 100;
+                    const remaining = chat.remaining ?? 0;
+                    const limit = chat.limit ?? 5;
                     updateQuotaDisplay(remaining, remaining <= 0, limit);
+                    if (remaining <= 0) {
+                        showExhaustedOverlay();
+                    } else {
+                        hideExhaustedOverlay();
+                    }
                 }
             }
         } catch {
@@ -518,6 +526,16 @@
             if (aiInput) aiInput.disabled = false;
             if (aiSendBtn) aiSendBtn.disabled = false;
         }
+    }
+
+    function showExhaustedOverlay() {
+        if (aiExhaustedOverlay) aiExhaustedOverlay.style.display = 'flex';
+        if (aiInputRow) aiInputRow.style.display = 'none';
+    }
+
+    function hideExhaustedOverlay() {
+        if (aiExhaustedOverlay) aiExhaustedOverlay.style.display = 'none';
+        if (aiInputRow) aiInputRow.style.display = '';
     }
 
     // ── Helpers ────────────────────────────────────────────────

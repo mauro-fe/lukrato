@@ -197,6 +197,7 @@ class UserAiController extends BaseController
     /**
      * GET /api/ai/quota
      * Retorna o uso de IA do usuário no mês corrente.
+     * Resposta com buckets separados: chat e categorization.
      */
     public function getQuota(): void
     {
