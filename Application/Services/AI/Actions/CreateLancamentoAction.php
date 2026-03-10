@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Actions;
 
-use Application\Services\LancamentoCreationService;
+use Application\Services\Lancamento\LancamentoCreationService;
 
 class CreateLancamentoAction implements ActionInterface
 {

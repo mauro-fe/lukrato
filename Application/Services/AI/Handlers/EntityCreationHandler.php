@@ -13,7 +13,9 @@ use Application\Repositories\ContaRepository;
 use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\ConversationStateService;
 use Application\Services\AI\IntentRules\EntityCreationIntentRule;
+use Application\Services\AI\Rules\CategoryRuleEngine;
 use Application\Services\AI\Schemas\EntitySchemas;
+use Application\Models\Categoria;
 use Application\Validators\CategoriaValidator;
 use Application\Validators\LancamentoValidator;
 use Application\Validators\MetaValidator;
@@ -176,6 +178,11 @@ class EntityCreationHandler implements AIHandlerInterface
     private function proceedToConfirmation(array $extracted, string $entityType, int $userId, AIRequestDTO $request): AIResponseDTO
     {
         $conversationId = $request->context['conversation_id'] ?? null;
+
+        // Resolver categoria_sugerida → categoria_id (a IA extrai nome, precisamos do ID)
+        if ($entityType === 'lancamento' && empty($extracted['categoria_id'])) {
+            $extracted = $this->resolveCategoria($extracted, $userId);
+        }
 
         // Validar com os validators (para lancamento, pular validação de conta_id — será adicionado na confirmação)
         $errors = $this->validate($extracted, $entityType, $userId);
@@ -485,6 +492,40 @@ class EntityCreationHandler implements AIHandlerInterface
         $message = preg_replace('/\bmil\s*(?:reais|conto[s]?|pila[s]?)?\b/iu', '1000', $message);
 
         return $message;
+    }
+
+    /**
+     * Resolve categoria_sugerida (string) para categoria_id (int).
+     * Usa CategoryRuleEngine (padrões aprendidos) e fallback por nome no banco.
+     */
+    private function resolveCategoria(array $data, int $userId): array
+    {
+        // 1. Tentar via CategoryRuleEngine (regras aprendidas + globais)
+        $descricao = $data['descricao'] ?? '';
+        if ($descricao !== '') {
+            $match = CategoryRuleEngine::match($descricao, $userId);
+            if ($match !== null && !empty($match['categoria_id'])) {
+                $data['categoria_id'] = (int) $match['categoria_id'];
+                if (!empty($match['subcategoria_id'])) {
+                    $data['subcategoria_id'] = (int) $match['subcategoria_id'];
+                }
+                return $data;
+            }
+        }
+
+        // 2. Fallback: buscar por nome sugerido pela IA no banco
+        $sugerida = $data['categoria_sugerida'] ?? null;
+        if ($sugerida !== null && $sugerida !== '') {
+            $categoria = Categoria::where('user_id', $userId)
+                ->whereRaw('LOWER(nome) LIKE ?', ['%' . mb_strtolower(trim($sugerida)) . '%'])
+                ->first();
+            if ($categoria) {
+                $data['categoria_id'] = $categoria->id;
+                return $data;
+            }
+        }
+
+        return $data;
     }
 
     /**

@@ -192,7 +192,7 @@ class LancamentoCreationService
     /**
      * Processa compra com cartão de crédito (despesa)
      */
-    public function createCartaoExpense(int $userId, CreateLancamentoDTO $dto, array $payload, int $cartaoCreditoId, int $categoriaId, array $usage): ServiceResultDTO
+    public function createCartaoExpense(int $userId, CreateLancamentoDTO $dto, array $payload, int $cartaoCreditoId, ?int $categoriaId, array $usage): ServiceResultDTO
     {
         $resultado = $this->cartaoService->criarLancamentoCartao($userId, [
             'cartao_credito_id' => $cartaoCreditoId,

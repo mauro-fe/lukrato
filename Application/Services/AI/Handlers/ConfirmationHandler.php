@@ -9,6 +9,7 @@ use Application\DTO\AI\AIResponseDTO;
 use Application\Enums\AI\IntentType;
 use Application\Models\PendingAiAction;
 use Application\Repositories\ContaRepository;
+use Application\Models\Categoria;
 use Application\Services\AI\Actions\ActionRegistry;
 use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\IntentRules\ConfirmationIntentRule;
@@ -118,6 +119,35 @@ class ConfirmationHandler implements AIHandlerInterface
                     ['action' => 'needs_account', 'pending_id' => $pending->id, 'accounts' => $contasList],
                     IntentType::CONFIRM_ACTION
                 );
+            }
+        }
+
+        // Resolver categoria_sugerida → categoria_id se ainda não resolvido
+        if ($actionType === 'create_lancamento' && empty($payload['categoria_id'])) {
+            $descricao = $payload['descricao'] ?? '';
+            if ($descricao !== '') {
+                $match = CategoryRuleEngine::match($descricao, $userId);
+                if ($match !== null && !empty($match['categoria_id'])) {
+                    $payload['categoria_id'] = (int) $match['categoria_id'];
+                    if (!empty($match['subcategoria_id'])) {
+                        $payload['subcategoria_id'] = (int) $match['subcategoria_id'];
+                    }
+                }
+            }
+            if (empty($payload['categoria_id'])) {
+                $sugerida = $payload['categoria_sugerida'] ?? null;
+                if ($sugerida !== null && $sugerida !== '') {
+                    $categoria = Categoria::where('user_id', $userId)
+                        ->whereRaw('LOWER(nome) LIKE ?', ['%' . mb_strtolower(trim($sugerida)) . '%'])
+                        ->first();
+                    if ($categoria) {
+                        $payload['categoria_id'] = $categoria->id;
+                    }
+                }
+            }
+            if (!empty($payload['categoria_id'])) {
+                $pending->payload = $payload;
+                $pending->save();
             }
         }
 
