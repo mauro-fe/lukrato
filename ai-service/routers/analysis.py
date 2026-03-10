@@ -32,6 +32,9 @@ class AnalysisResponse(BaseModel):
 
 @router.post("/spending", response_model=AnalysisResponse)
 async def analyze_spending(req: AnalysisRequest):
+    if not req.lancamentos:
+        raise HTTPException(status_code=422, detail="Lista de lançamentos vazia. Nada para analisar.")
+
     provider = req.provider or settings.ai_provider
 
     data_text = json.dumps(

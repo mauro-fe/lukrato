@@ -74,7 +74,7 @@ export async function sugerirCategoriaIA(opts) {
             const select = document.getElementById(categoriaSelectId);
             if (!select) return;
 
-            const categoryId   = data.data.category_id;
+            const categoryId = data.data.category_id;
             const categoryName = data.data.category;
             let matched = false;
 
@@ -132,24 +132,30 @@ export async function sugerirCategoriaIA(opts) {
  */
 function _applySub(subcategoriaSelectId, subcategoriaGroupId, subcatId) {
     // O change no select de categoria dispara a population assíncrona das subcategorias.
-    // Aguardamos um curto intervalo para que o DOM seja atualizado.
-    setTimeout(() => {
+    // Pollar até que a option esteja disponível (max 3s) para não depender de timing fixo.
+    let attempts = 0;
+    const maxAttempts = 30;
+    const interval = setInterval(() => {
+        attempts++;
         const subSelect = document.getElementById(subcategoriaSelectId);
-        if (!subSelect) return;
+        if (!subSelect) { clearInterval(interval); return; }
 
-        const optById = subSelect.querySelector(`option[value="${subcatId}"]`);
-        if (optById) {
-            subSelect.value = String(subcatId);
-            subSelect.dispatchEvent(new Event('change'));
-        }
+        const opt = Array.from(subSelect.options).find(o => String(o.value) === String(subcatId));
+        if (opt || attempts >= maxAttempts) {
+            clearInterval(interval);
+            if (opt) {
+                subSelect.value = String(subcatId);
+                subSelect.dispatchEvent(new Event('change'));
+            }
 
-        // Garantir que o grupo de subcategoria esteja visível
-        if (subcategoriaGroupId) {
-            const group = document.getElementById(subcategoriaGroupId);
-            if (group) {
-                group.style.display = '';
-                group.classList.remove('d-none');
+            // Garantir que o grupo de subcategoria esteja visível
+            if (subcategoriaGroupId) {
+                const group = document.getElementById(subcategoriaGroupId);
+                if (group) {
+                    group.style.display = '';
+                    group.classList.remove('d-none');
+                }
             }
         }
-    }, 400);
+    }, 100);
 }

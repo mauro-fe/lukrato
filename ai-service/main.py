@@ -56,6 +56,15 @@ app.add_middleware(
 
 
 @app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Log de requests para debug."""
+    logger.info(f"{request.method} {request.url.path}")
+    response = await call_next(request)
+    logger.info(f"{request.method} {request.url.path} -> {response.status_code}")
+    return response
+
+
+@app.middleware("http")
 async def verify_internal_token(request: Request, call_next):
     """Garante que só o PHP local possa chamar este serviço."""
     if request.url.path == "/health":

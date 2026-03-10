@@ -104,6 +104,12 @@ class ConversationStateService
         $stateData['missing_fields'] = $stillMissing;
         $stateData['attempts']       = ($stateData['attempts'] ?? 0) + 1;
 
+        // Limite de tentativas para evitar loop infinito
+        if ($stateData['attempts'] >= 5) {
+            self::clearState($conversationId);
+            return ['complete' => false, 'data' => $partial, 'missing' => $stillMissing, 'aborted' => true];
+        }
+
         // Se coleta completa, limpar estado
         if (empty($stillMissing)) {
             self::clearState($conversationId);
@@ -178,8 +184,13 @@ class ConversationStateService
 
         // Tentar ordinal ("primeiro", "segundo", "último")
         $ordinals = [
-            'primeir' => 0, 'segund' => 1, 'terceir' => 2,
-            'quart' => 3, 'quint' => 4, 'últim' => -1, 'ultim' => -1,
+            'primeir' => 0,
+            'segund' => 1,
+            'terceir' => 2,
+            'quart' => 3,
+            'quint' => 4,
+            'últim' => -1,
+            'ultim' => -1,
         ];
         foreach ($ordinals as $prefix => $index) {
             if (str_contains($normalized, $prefix)) {

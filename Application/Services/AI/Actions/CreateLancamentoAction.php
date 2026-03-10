@@ -37,8 +37,7 @@ class CreateLancamentoAction implements ActionInterface
         if ($isCartao) {
             $cartaoNome = $payload['_cartao_nome'] ?? 'cartão de crédito';
             $parcelaInfo = '';
-            if (!empty($payload['eh_parcelado']) && !empty($payload['total_parcelas'])) {
-                $parcelas = (int) $payload['total_parcelas'];
+            if (!empty($payload['eh_parcelado']) && ($parcelas = (int) ($payload['total_parcelas'] ?? 0)) > 0) {
                 $valorParcela = (float) ($payload['valor'] ?? 0) / $parcelas;
                 $parcelaFmt = 'R$ ' . number_format($valorParcela, 2, ',', '.');
                 $parcelaInfo = " ({$parcelas}x de {$parcelaFmt})";

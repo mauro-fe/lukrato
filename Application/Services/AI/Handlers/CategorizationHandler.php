@@ -173,12 +173,13 @@ class CategorizationHandler implements AIHandlerInterface
             // Tentar fuzzy match
             if (!$cat) {
                 $allCats = $query->get();
+                $bestScore = 0;
                 foreach ($allCats as $c) {
                     similar_text(mb_strtolower($c->nome), mb_strtolower($suggested), $percent);
-                    if ($percent >= 85) {
+                    if ($percent >= 85 && $percent > $bestScore) {
+                        $bestScore = $percent;
                         $cat = $c;
                         $result['categoria'] = $c->nome;
-                        break;
                     }
                 }
             }

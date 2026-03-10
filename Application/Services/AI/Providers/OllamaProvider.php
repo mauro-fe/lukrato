@@ -108,4 +108,54 @@ class OllamaProvider implements AIProvider
     {
         return $this->lastMeta;
     }
+
+    public function chatWithTools(string $prompt, array $tools, array $options = []): ?array
+    {
+        // Ollama não suporta function calling nativo.
+        // Fallback: enviar prompt pedindo JSON estruturado e parsear a resposta.
+        $toolNames = array_map(fn($t) => $t['function']['name'] ?? 'unknown', $tools);
+        $toolSchemas = array_map(fn($t) => json_encode($t['function']['parameters'] ?? [], JSON_UNESCAPED_UNICODE), $tools);
+
+        $systemPrompt = $options['system_prompt']
+            ?? 'Você é um assistente financeiro. Extraia as informações e retorne APENAS um JSON válido.';
+
+        $schemaHint = '';
+        foreach ($tools as $i => $tool) {
+            $fname = $tool['function']['name'] ?? 'unknown';
+            $fdesc = $tool['function']['description'] ?? '';
+            $fparams = json_encode($tool['function']['parameters'] ?? [], JSON_UNESCAPED_UNICODE);
+            $schemaHint .= "\nFunção: {$fname}\nDescrição: {$fdesc}\nSchema dos parâmetros: {$fparams}\n";
+        }
+
+        $fullPrompt = $systemPrompt
+            . "\n\nRetorne APENAS um JSON com os campos extraídos conforme o schema abaixo. Sem texto adicional."
+            . $schemaHint
+            . "\n\nMensagem do usuário: " . $prompt;
+
+        try {
+            $response = $this->client->post("{$this->serviceUrl}/chat", [
+                'headers' => $this->headers(),
+                'json'    => [
+                    'message'       => $fullPrompt,
+                    'context'       => new \stdClass(),
+                    'system_prompt' => 'Responda APENAS com JSON válido, sem markdown, sem explicações.',
+                    'provider'      => 'ollama',
+                ],
+            ]);
+
+            $data = json_decode($response->getBody()->getContents(), true);
+            $this->extractMeta($data);
+
+            $content = trim($data['response'] ?? '');
+
+            // Remover possíveis blocos markdown ```json ... ```
+            $content = preg_replace('/^```(?:json)?\s*/i', '', $content);
+            $content = preg_replace('/\s*```$/', '', $content);
+
+            $parsed = json_decode($content, true);
+            return is_array($parsed) ? $parsed : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
 }

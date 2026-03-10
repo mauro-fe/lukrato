@@ -108,9 +108,14 @@ class ConfirmationHandler implements AIHandlerInterface
                 $pending->save();
             } else {
                 // Múltiplas contas — precisa selecionar via botão
+                $contasList = $contas->map(fn($c) => [
+                    'id'   => $c->id,
+                    'nome' => $c->nome,
+                ])->values()->toArray();
+
                 return AIResponseDTO::fromRule(
                     '⚠️ Você tem mais de uma conta. Por favor, selecione a conta no menu acima e clique em **Confirmar**.',
-                    ['action' => 'needs_account', 'pending_id' => $pending->id],
+                    ['action' => 'needs_account', 'pending_id' => $pending->id, 'accounts' => $contasList],
                     IntentType::CONFIRM_ACTION
                 );
             }

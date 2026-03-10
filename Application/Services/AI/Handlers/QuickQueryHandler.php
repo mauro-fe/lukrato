@@ -71,6 +71,11 @@ class QuickQueryHandler implements AIHandlerInterface
     public function handle(AIRequestDTO $request): AIResponseDTO
     {
         $message = mb_strtolower(trim($request->message));
+        $userId  = $request->userId;
+
+        if ($userId === null) {
+            return AIResponseDTO::fail('Usuário não identificado.', IntentType::QUICK_QUERY);
+        }
 
         // Extrair período da mensagem
         $period = $this->extractPeriod($message);
@@ -174,18 +179,18 @@ class QuickQueryHandler implements AIHandlerInterface
 
     private function getTotalDespesas(?int $userId, ?array $period = null): ?array
     {
+        if ($userId === null) return null;
+
         [$month, $year] = $this->getPeriodValues($period);
         $label = $this->getPeriodLabel($period);
 
         $query = Lancamento::query()
+            ->where('user_id', $userId)
             ->where('tipo', 'despesa')
+            ->where('pago', true)
             ->whereNull('cancelado_em')
             ->whereMonth('data', $month)
             ->whereYear('data', $year);
-
-        if ($userId !== null) {
-            $query->where('user_id', $userId);
-        }
 
         $total = (float) $query->sum('valor');
         $count = (int) $query->count();
@@ -205,18 +210,18 @@ class QuickQueryHandler implements AIHandlerInterface
 
     private function getTotalReceitas(?int $userId, ?array $period = null): ?array
     {
+        if ($userId === null) return null;
+
         [$month, $year] = $this->getPeriodValues($period);
         $label = $this->getPeriodLabel($period);
 
         $query = Lancamento::query()
+            ->where('user_id', $userId)
             ->where('tipo', 'receita')
+            ->where('pago', true)
             ->whereNull('cancelado_em')
             ->whereMonth('data', $month)
             ->whereYear('data', $year);
-
-        if ($userId !== null) {
-            $query->where('user_id', $userId);
-        }
 
         $total = (float) $query->sum('valor');
         $count = (int) $query->count();
@@ -236,10 +241,10 @@ class QuickQueryHandler implements AIHandlerInterface
 
     private function getSaldo(?int $userId, ?array $period = null): ?array
     {
-        $query = Conta::query()->where('ativo', true);
-        if ($userId !== null) {
-            $query->where('user_id', $userId);
-        }
+        if ($userId === null) return null;
+
+        $query = Conta::query()->where('ativo', true)
+            ->where('user_id', $userId);
 
         $contas = $query->get(['id', 'nome', 'saldo_inicial']);
 
@@ -281,17 +286,16 @@ class QuickQueryHandler implements AIHandlerInterface
 
     private function getCountLancamentos(?int $userId, ?array $period = null): ?array
     {
+        if ($userId === null) return null;
+
         [$month, $year] = $this->getPeriodValues($period);
         $label = $this->getPeriodLabel($period);
 
         $query = Lancamento::query()
+            ->where('user_id', $userId)
             ->whereNull('cancelado_em')
             ->whereMonth('data', $month)
             ->whereYear('data', $year);
-
-        if ($userId !== null) {
-            $query->where('user_id', $userId);
-        }
 
         $count = (int) $query->count();
 
@@ -303,10 +307,10 @@ class QuickQueryHandler implements AIHandlerInterface
 
     private function getCountContas(?int $userId, ?array $period = null): ?array
     {
-        $query = Conta::query()->where('ativo', true);
-        if ($userId !== null) {
-            $query->where('user_id', $userId);
-        }
+        if ($userId === null) return null;
+
+        $query = Conta::query()->where('ativo', true)
+            ->where('user_id', $userId);
 
         $count = (int) $query->count();
 
@@ -318,10 +322,10 @@ class QuickQueryHandler implements AIHandlerInterface
 
     private function getCountCartoes(?int $userId, ?array $period = null): ?array
     {
-        $query = CartaoCredito::query()->where('ativo', true);
-        if ($userId !== null) {
-            $query->where('user_id', $userId);
-        }
+        if ($userId === null) return null;
+
+        $query = CartaoCredito::query()->where('ativo', true)
+            ->where('user_id', $userId);
 
         $count = (int) $query->count();
 
@@ -333,18 +337,17 @@ class QuickQueryHandler implements AIHandlerInterface
 
     private function getMaiorGasto(?int $userId, ?array $period = null): ?array
     {
+        if ($userId === null) return null;
+
         [$month, $year] = $this->getPeriodValues($period);
         $label = $this->getPeriodLabel($period);
 
         $query = Lancamento::query()
+            ->where('user_id', $userId)
             ->where('tipo', 'despesa')
             ->whereNull('cancelado_em')
             ->whereMonth('data', $month)
             ->whereYear('data', $year);
-
-        if ($userId !== null) {
-            $query->where('user_id', $userId);
-        }
 
         $lancamento = $query->orderByDesc('valor')->first(['descricao', 'valor', 'data']);
 
@@ -370,19 +373,18 @@ class QuickQueryHandler implements AIHandlerInterface
 
     private function getMenorGasto(?int $userId, ?array $period = null): ?array
     {
+        if ($userId === null) return null;
+
         [$month, $year] = $this->getPeriodValues($period);
         $label = $this->getPeriodLabel($period);
 
         $query = Lancamento::query()
+            ->where('user_id', $userId)
             ->where('tipo', 'despesa')
             ->whereNull('cancelado_em')
             ->where('valor', '>', 0)
             ->whereMonth('data', $month)
             ->whereYear('data', $year);
-
-        if ($userId !== null) {
-            $query->where('user_id', $userId);
-        }
 
         $lancamento = $query->orderBy('valor')->first(['descricao', 'valor', 'data']);
 
@@ -408,18 +410,17 @@ class QuickQueryHandler implements AIHandlerInterface
 
     private function getMediaDespesas(?int $userId, ?array $period = null): ?array
     {
+        if ($userId === null) return null;
+
         [$month, $year] = $this->getPeriodValues($period);
         $label = $this->getPeriodLabel($period);
 
         $query = Lancamento::query()
+            ->where('user_id', $userId)
             ->where('tipo', 'despesa')
             ->whereNull('cancelado_em')
             ->whereMonth('data', $month)
             ->whereYear('data', $year);
-
-        if ($userId !== null) {
-            $query->where('user_id', $userId);
-        }
 
         $avg   = (float) $query->avg('valor');
         $count = (int) $query->count();
@@ -441,6 +442,7 @@ class QuickQueryHandler implements AIHandlerInterface
 
     private function getCountUsuarios(?int $userId, ?array $period = null): ?array
     {
+        // Admin queries requerem isAdmin() no request (verificado em handle())
         $total = (int) DB::table('usuarios')->whereNull('deleted_at')->count();
         $newThisMonth = (int) DB::table('usuarios')
             ->whereNull('deleted_at')
@@ -517,12 +519,12 @@ class QuickQueryHandler implements AIHandlerInterface
 
     private function getCountCategorias(?int $userId, ?array $period = null): ?array
     {
-        $query = Categoria::query();
-        if ($userId !== null) {
-            $query->where(function ($q) use ($userId) {
+        if ($userId === null) return null;
+
+        $query = Categoria::query()
+            ->where(function ($q) use ($userId) {
                 $q->whereNull('user_id')->orWhere('user_id', $userId);
             });
-        }
 
         $total  = (int) $query->count();
         $custom = $userId ? (int) Categoria::where('user_id', $userId)->count() : 0;
@@ -535,10 +537,10 @@ class QuickQueryHandler implements AIHandlerInterface
 
     private function getLimiteCartoes(?int $userId, ?array $period = null): ?array
     {
-        $query = CartaoCredito::query()->where('ativo', true);
-        if ($userId !== null) {
-            $query->where('user_id', $userId);
-        }
+        if ($userId === null) return null;
+
+        $query = CartaoCredito::query()->where('ativo', true)
+            ->where('user_id', $userId);
 
         $cartoes = $query->get(['nome', 'limite_total', 'limite_disponivel']);
 
@@ -570,15 +572,14 @@ class QuickQueryHandler implements AIHandlerInterface
 
     private function getContasAPagar(?int $userId, ?array $period = null): ?array
     {
+        if ($userId === null) return null;
+
         $query = Lancamento::query()
+            ->where('user_id', $userId)
             ->where('tipo', 'despesa')
             ->where('pago', false)
             ->whereNull('cancelado_em')
             ->where('data', '<=', now()->endOfMonth());
-
-        if ($userId !== null) {
-            $query->where('user_id', $userId);
-        }
 
         $count = (int) $query->count();
         $total = (float) $query->sum('valor');

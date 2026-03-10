@@ -220,7 +220,7 @@
     // ── Load or create a conversation ──────────────────────────
     async function loadOrCreateConversation() {
         try {
-            const res = await fetch(`${BASE}api/ai/conversations`, { headers: HEADERS() });
+            const res = await fetch(`${BASE}api/ai/conversations`, { headers: HEADERS(), signal: AbortSignal.timeout(15000) });
             const data = await res.json();
 
             if (data.success && data.data?.length > 0) {
@@ -275,7 +275,11 @@
     async function sendAIMessage() {
         if (!aiInput || aiLoading) return;
         const message = aiInput.value.trim();
-        if (!message || !currentConvId) return;
+        if (!message) return;
+        if (!currentConvId) {
+            appendAIMessage('assistant', 'Não foi possível iniciar a conversa. Recarregue a página e tente novamente.');
+            return;
+        }
 
         aiLoading = true;
         if (aiSendBtn) aiSendBtn.disabled = true;
@@ -324,7 +328,7 @@
 
                 // Verificar se há ação de confirmação pendente
                 const aiData = data.data?.ai_data;
-                if (aiData?.action === 'confirm' && aiData?.pending_id) {
+                if ((aiData?.action === 'confirm' || aiData?.action === 'needs_account') && aiData?.pending_id) {
                     appendConfirmationButtons(aiData.pending_id, aiData.accounts || []);
                 }
             } else {
@@ -495,6 +499,8 @@
             const pct = limit ? (remaining / limit * 100) : 100;
             aiQuotaText.className = pct <= 20 ? 'quota-warn' : '';
             aiQuotaText.textContent = `${remaining} de ${limit} mensagens restantes`;
+            if (aiInput) aiInput.disabled = false;
+            if (aiSendBtn) aiSendBtn.disabled = false;
         }
     }
 

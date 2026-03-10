@@ -76,11 +76,11 @@ readonly class AIResponseDTO
     // ─── Helpers ────────────────────────────────────────────
 
     /**
-     * Retorna se a resposta usou tokens (chamou LLM).
+     * Retorna se a resposta usou LLM (chamou provedor de IA).
      */
     public function usedLLM(): bool
     {
-        return $this->source === 'llm' && $this->tokensUsed > 0;
+        return $this->source === 'llm';
     }
 
     /**
