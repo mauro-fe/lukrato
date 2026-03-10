@@ -28,6 +28,7 @@ class LancamentoGlobalManager {
         this.eventosConfigurados = false;
         this.salvando = false;
         this.isEstornoCartao = false;
+        this._dataLoaded = false;
 
         // Wizard state
         this.currentStep = 1;
@@ -76,6 +77,7 @@ class LancamentoGlobalManager {
                 let cartoesData = dataCartoes.cartoes || dataCartoes.data || dataCartoes;
                 this.cartoes = Array.isArray(cartoesData) ? cartoesData : [];
             }
+            this._dataLoaded = true;
         } catch (error) {
             console.error('Erro ao carregar dados:', error);
         }
@@ -760,8 +762,16 @@ class LancamentoGlobalManager {
             return;
         }
 
-        if (this.categorias.length === 0 || this.cartoes.length === 0) {
+        if (!this._dataLoaded) {
             await this.carregarDados();
+        }
+
+        // Restaurar seleção da conta no select após possível re-fetch
+        if (this.contaSelecionada) {
+            const select = document.getElementById('globalContaSelect');
+            if (select && select.value !== String(this.contaSelecionada.id)) {
+                select.value = this.contaSelecionada.id;
+            }
         }
 
         this.tipoAtual = tipo;
@@ -1048,11 +1058,11 @@ class LancamentoGlobalManager {
      */
     async sugerirCategoriaIA() {
         await _sugerirCategoriaIA({
-            descricaoInputId:      'globalLancamentoDescricao',
-            categoriaSelectId:     'globalLancamentoCategoria',
-            subcategoriaSelectId:  'globalLancamentoSubcategoria',
-            subcategoriaGroupId:   'globalSubcategoriaGroup',
-            btnId:                 'btnGlobalAiSuggestCategoria',
+            descricaoInputId: 'globalLancamentoDescricao',
+            categoriaSelectId: 'globalLancamentoCategoria',
+            subcategoriaSelectId: 'globalLancamentoSubcategoria',
+            subcategoriaGroupId: 'globalSubcategoriaGroup',
+            btnId: 'btnGlobalAiSuggestCategoria',
             notify: (msg, type) => {
                 const icons = { success: 'success', warning: 'warning', error: 'error' };
                 Swal.fire({
@@ -1203,7 +1213,7 @@ class LancamentoGlobalManager {
             return false;
         }
 
-        const contaId = document.getElementById('globalContaSelect')?.value;
+        const contaId = this.contaSelecionada?.id || document.getElementById('globalContaSelect')?.value;
         if (!contaId) {
             Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione a conta', customClass: { container: 'swal-above-modal' } });
             return false;

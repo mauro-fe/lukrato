@@ -105,6 +105,16 @@ class Auth
         $_SESSION['admin_username'] = $adminUsername;
 
         unset($_SESSION['usuario_cache'], $_SESSION['admin_cache']);
+
+        // Cookie de longa duração para identificar usuário que já logou
+        $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+        setcookie('lukrato_known_user', '1', [
+            'expires'  => time() + 86400 * 30,
+            'path'     => '/',
+            'secure'   => $secure,
+            'httponly'  => true,
+            'samesite' => 'Lax',
+        ]);
     }
 
     public static function logout(): void

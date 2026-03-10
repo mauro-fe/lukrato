@@ -21,24 +21,53 @@ class AuthMiddleware
 {
     /**
      * Verifica se o usuário está logado.
-     * Se não estiver → responde com 404 idêntico ao de rota inexistente (stealth).
+     * Se não estiver e já fez login antes → redireciona para login.
+     * Se nunca logou → responde com 404 (stealth).
      */
     public static function handle(Request $request): void
     {
-        // Usuário não está logado → stealth 404
+        // Usuário não está logado
         if (!Auth::isLoggedIn()) {
             Auth::logout();
-            Router::handleNotFound($request);
-            return; // handleNotFound chama exit, mas por segurança
+            self::redirectOrStealth($request);
+            return;
         }
 
-        // Sessão expirada por inatividade → stealth 404
+        // Sessão expirada por inatividade → redireciona para login
         if (!Auth::checkActivity()) {
             Auth::logout();
-            Router::handleNotFound($request);
+            self::redirectToLogin($request);
             return;
         }
 
         // Usuário logado e sessão ativa → requisição continua normalmente
+    }
+
+    /**
+     * Se o usuário já fez login antes (cookie presente), redireciona para login.
+     * Caso contrário, mostra 404 stealth.
+     */
+    private static function redirectOrStealth(Request $request): void
+    {
+        if (!empty($_COOKIE['lukrato_known_user'])) {
+            self::redirectToLogin($request);
+            return;
+        }
+
+        Router::handleNotFound($request);
+    }
+
+    /**
+     * Redireciona para a página de login (JSON 401 para API/AJAX).
+     */
+    private static function redirectToLogin(Request $request): void
+    {
+        if ($request->wantsJson() || $request->isAjax()) {
+            \Application\Core\Response::unauthorized('Sessão expirada');
+            return;
+        }
+
+        header('Location: ' . BASE_URL . 'login');
+        exit;
     }
 }
