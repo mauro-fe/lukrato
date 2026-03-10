@@ -348,7 +348,7 @@ Router::add('GET',    '/api/sysadmin/blog/categorias',  'SysAdmin\\BlogControlle
 // ============================================
 
 Router::add('POST', '/api/ai/chat',                'Api\\AI\\UserAiController@chat',               ['auth', 'csrf', 'ratelimit', 'ai.quota']);
-Router::add('POST', '/api/ai/suggest-category',    'Api\\AI\\UserAiController@suggestCategory',    ['auth', 'ratelimit', 'ai.quota']);
+Router::add('POST', '/api/ai/suggest-category',    'Api\\AI\\UserAiController@suggestCategory',    ['auth', 'csrf', 'ratelimit', 'ai.quota']);
 Router::add('POST', '/api/ai/analyze',             'Api\\AI\\UserAiController@analyze',            ['auth', 'csrf', 'ratelimit', 'ai.quota']);
 Router::add('POST', '/api/ai/extract-transaction', 'Api\\AI\\UserAiController@extractTransaction', ['auth', 'csrf', 'ratelimit', 'ai.quota']);
 

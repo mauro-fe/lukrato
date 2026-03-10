@@ -36,4 +36,15 @@ interface AIProvider
      * Retorna metadados da última chamada (tokens_prompt, tokens_completion, tokens_total).
      */
     public function getLastMeta(): array;
+
+    /**
+     * Chat with function calling / tools support (structured output).
+     * Returns the parsed arguments from the tool call, or null if no tool was called.
+     *
+     * @param string $prompt    User message
+     * @param array  $tools     Array of tool definitions (OpenAI function calling format)
+     * @param array  $options   Extra options: temperature, max_tokens, system_prompt
+     * @return array|null       Parsed tool call arguments, or null
+     */
+    public function chatWithTools(string $prompt, array $tools, array $options = []): ?array;
 }

@@ -9,6 +9,7 @@ use Application\DTO\Requests\UpdateLancamentoDTO;
 use Application\Formatters\LancamentoResponseFormatter;
 use Application\Models\Lancamento;
 use Application\Repositories\LancamentoRepository;
+use Application\Services\AI\Rules\CategoryRuleEngine;
 use Application\Validators\LancamentoValidator;
 
 /**
@@ -90,6 +91,17 @@ class LancamentoUpdateService
         }
 
         $this->lancamentoRepo->update($lancamento->id, $updateData);
+
+        // Aprender categorização quando o usuário muda a categoria de um lançamento
+        if ($categoriaChanged && $categoriaId && !empty($lancamento->descricao)) {
+            CategoryRuleEngine::learn(
+                $userId,
+                $lancamento->descricao,
+                $categoriaId,
+                $subcategoriaId,
+                'correction'
+            );
+        }
 
         $lancamento = $this->lancamentoRepo->find($lancamento->id);
         $lancamento->loadMissing(['categoria', 'conta', 'subcategoria']);

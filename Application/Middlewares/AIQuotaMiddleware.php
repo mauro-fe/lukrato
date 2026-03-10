@@ -13,8 +13,12 @@ use Application\Services\AI\AIQuotaService;
  * Aplicar nas rotas /api/ai/* que consomem mensagens de IA.
  *
  * Retorna:
- * - 403 se o plano não permite IA (free) → upgrade_required
- * - 429 se a quota mensal foi esgotada (pro) → quota_exceeded
+ * - 403 se o plano não tem a feature ai_chat habilitada → upgrade_required
+ * - 429 se a quota mensal de mensagens foi esgotada → quota_exceeded
+ *
+ * Nota: Free tem ai_chat=true com limite de 5 msgs/mês (degustação).
+ *       Pro tem ai_chat=true com limite ilimitado.
+ *       Ultra tem ai_chat=true com limite ilimitado.
  */
 final class AIQuotaMiddleware
 {
@@ -26,7 +30,7 @@ final class AIQuotaMiddleware
             exit;
         }
 
-        // Plano não permite IA (free)
+        // Feature ai_chat desabilitada no plano
         if (!AIQuotaService::canUseAI($user)) {
             Response::json([
                 'success'          => false,
@@ -37,7 +41,7 @@ final class AIQuotaMiddleware
             exit;
         }
 
-        // Quota mensal esgotada (pro com limite)
+        // Quota mensal esgotada (free=5/mês, pro/ultra=ilimitado)
         if (!AIQuotaService::hasQuotaRemaining($user)) {
             $usage = AIQuotaService::getUsage($user);
 

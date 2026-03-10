@@ -64,7 +64,7 @@ class OpenAIProvider implements AIProvider
         ];
     }
 
-    private function completions(array $messages, float $temperature = 0.7, int $maxTokens = 2000, bool $jsonMode = false): array
+    private function completions(array $messages, float $temperature = 0.7, int $maxTokens = 2000, bool $jsonMode = false, array $tools = [], ?string $toolChoice = null): array
     {
         $body = [
             'model'       => $this->model,
@@ -75,6 +75,14 @@ class OpenAIProvider implements AIProvider
 
         if ($jsonMode) {
             $body['response_format'] = ['type' => 'json_object'];
+        }
+
+        // Function calling / tools support
+        if (!empty($tools)) {
+            $body['tools'] = $tools;
+            if ($toolChoice !== null) {
+                $body['tool_choice'] = $toolChoice === 'auto' ? 'auto' : ['type' => 'function', 'function' => ['name' => $toolChoice]];
+            }
         }
 
         $response = $this->client->post('chat/completions', [
@@ -223,5 +231,51 @@ class OpenAIProvider implements AIProvider
             'insights' => $parsed['insights'] ?? [],
             'resumo'   => $parsed['resumo'] ?? '',
         ];
+    }
+
+    /**
+     * Chat with function calling (structured output).
+     * Sends tools and forces the LLM to call the specified function.
+     * Returns parsed arguments or null on failure.
+     */
+    public function chatWithTools(string $prompt, array $tools, array $options = []): ?array
+    {
+        if (empty($this->apiKey)) {
+            throw new \RuntimeException('OPENAI_API_KEY não configurada');
+        }
+
+        $systemPrompt = $options['system_prompt'] ?? 'Você é um assistente financeiro. Extraia as informações da mensagem do usuário e chame a função apropriada.';
+        $temperature  = $options['temperature'] ?? 0.1;
+        $maxTokens    = $options['max_tokens'] ?? 500;
+
+        // Auto-detect tool choice: if only 1 tool, force it
+        $toolChoice = $options['tool_choice'] ?? null;
+        if ($toolChoice === null && count($tools) === 1) {
+            $toolChoice = $tools[0]['function']['name'];
+        }
+
+        $result = $this->completions(
+            messages: [
+                ['role' => 'system', 'content' => $systemPrompt],
+                ['role' => 'user',   'content' => $prompt],
+            ],
+            temperature: $temperature,
+            maxTokens: $maxTokens,
+            tools: $tools,
+            toolChoice: $toolChoice,
+        );
+
+        // Extract tool call from response
+        $message = $result['choices'][0]['message'] ?? [];
+        $toolCalls = $message['tool_calls'] ?? [];
+
+        if (empty($toolCalls)) {
+            return null;
+        }
+
+        $args = $toolCalls[0]['function']['arguments'] ?? '';
+        $parsed = json_decode($args, true);
+
+        return is_array($parsed) ? $parsed : null;
     }
 }

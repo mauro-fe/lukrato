@@ -39,6 +39,11 @@ final class FeatureGate
             return 'pro';
         }
 
+        // Fallback: código desconhecido cai para free
+        if ($code !== '' && $code !== 'free' && $code !== 'gratuito') {
+            error_log("[FeatureGate] Código de plano desconhecido '{$code}' para user #{$u->id} — fallback para 'free'");
+        }
+
         return 'free';
     }
 

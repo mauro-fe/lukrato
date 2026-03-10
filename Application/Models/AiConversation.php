@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property int    $id
  * @property int    $user_id
  * @property string|null $titulo
+ * @property string $state          idle|collecting_entity|awaiting_selection
+ * @property array|null $state_data  Dados parciais do fluxo multi-turno ativo
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  */
@@ -23,12 +25,19 @@ class AiConversation extends Model
     protected $fillable = [
         'user_id',
         'titulo',
+        'state',
+        'state_data',
     ];
 
     protected $casts = [
         'user_id'    => 'int',
+        'state_data' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+    ];
+
+    protected $attributes = [
+        'state' => 'idle',
     ];
 
     public function usuario()

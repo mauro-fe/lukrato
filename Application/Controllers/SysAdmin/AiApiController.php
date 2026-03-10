@@ -136,7 +136,7 @@ class AiApiController extends BaseController
         $cache = new CacheService();
         $cached = $cache->get('ai:openai_rate_limits');
 
-        if (is_array($cached) && !empty($cached['requests_limit'])) {
+        if (is_array($cached) && array_key_exists('requests_limit', $cached)) {
             Response::success([
                 'provider'            => 'openai',
                 'model'               => $model,
@@ -205,7 +205,7 @@ class AiApiController extends BaseController
             };
 
             Response::json([
-                'success' => true,
+                'success' => false,
                 'data'    => [
                     'provider' => 'openai',
                     'model'    => $model,

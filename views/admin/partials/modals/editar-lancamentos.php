@@ -44,7 +44,14 @@
                         </div>
                         <div class="col-md-6">
                             <label for="editLancCategoria" class="form-label">Categoria</label>
-                            <select class="form-select form-select-sm" id="editLancCategoria"></select>
+                            <div class="d-flex align-items-center gap-1">
+                                <select class="form-select form-select-sm" id="editLancCategoria" style="flex:1"></select>
+                                <button type="button" class="lk-btn-ai-suggest" id="btnEditAiSuggestCategoria"
+                                    onclick="window._editLancSugerirCategoriaIA()"
+                                    title="Sugerir categoria com IA">
+                                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="row g-3 mt-1 subcategoria-select-group" id="editSubcategoriaGroup">

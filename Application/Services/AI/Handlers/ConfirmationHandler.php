@@ -12,6 +12,7 @@ use Application\Repositories\ContaRepository;
 use Application\Services\AI\Actions\ActionRegistry;
 use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\IntentRules\ConfirmationIntentRule;
+use Application\Services\AI\Rules\CategoryRuleEngine;
 
 /**
  * Handler para confirmar ou rejeitar ações pendentes de IA (PendingAiAction).
@@ -139,6 +140,17 @@ class ConfirmationHandler implements AIHandlerInterface
             }
 
             $pending->confirm();
+
+            // Aprender categorização quando o usuário confirma um lançamento
+            if ($actionType === 'create_lancamento' && !empty($payload['descricao']) && !empty($payload['categoria_id'])) {
+                CategoryRuleEngine::learn(
+                    $userId,
+                    $payload['descricao'],
+                    (int) $payload['categoria_id'],
+                    !empty($payload['subcategoria_id']) ? (int) $payload['subcategoria_id'] : null,
+                    'confirmed'
+                );
+            }
 
             return AIResponseDTO::fromRule(
                 "✅ {$result->message}",

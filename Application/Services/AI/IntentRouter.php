@@ -12,6 +12,7 @@ use Application\Services\AI\IntentRules\ConfirmationIntentRule;
 use Application\Services\AI\IntentRules\EntityCreationIntentRule;
 use Application\Services\AI\IntentRules\IntentRuleInterface;
 use Application\Services\AI\IntentRules\QuickQueryIntentRule;
+use Application\Services\AI\IntentRules\SmartFallbackRule;
 use Application\Services\AI\IntentRules\TransactionIntentRule;
 use Application\Services\Infrastructure\CacheService;
 
@@ -39,6 +40,9 @@ class IntentRouter
         IntentType::CREATE_ENTITY,
     ];
 
+    /** States that indicate an active multi-turn flow */
+    private const ACTIVE_STATES = ['collecting_entity', 'awaiting_selection'];
+
     public function __construct()
     {
         $this->cache = new CacheService();
@@ -58,6 +62,7 @@ class IntentRouter
             new QuickQueryIntentRule(),
             new AnalysisIntentRule(),
             new CategorizationIntentRule(),
+            new SmartFallbackRule(),        // Prioridade 7: captura transações que escaparam dos rules acima
         ];
     }
 
@@ -65,9 +70,32 @@ class IntentRouter
      * Detecta o intent a partir da mensagem do usuário.
      * Coleta todos os matches com confidence, retorna o melhor.
      */
-    public function detect(string $message, bool $isWhatsApp = false, ?int $userId = null): IntentResult
+    public function detect(string $message, bool $isWhatsApp = false, ?int $userId = null, ?int $conversationId = null): IntentResult
     {
         $normalized = mb_strtolower(trim($message));
+
+        // Check active multi-turn flow FIRST (highest priority)
+        if ($conversationId !== null) {
+            $state = ConversationStateService::getState($conversationId);
+            if (in_array($state['state'], self::ACTIVE_STATES, true)) {
+                // If state expired, clear it and proceed normally
+                if (ConversationStateService::isExpired($conversationId)) {
+                    ConversationStateService::clearState($conversationId);
+                } else {
+                    // Check if user wants to cancel
+                    if (preg_match('/\b(cancel|cancela|parar?|desist|sair|deixa\s*pra\s*l[áa]|esquece)\b/iu', $normalized)) {
+                        ConversationStateService::clearState($conversationId);
+                        return IntentResult::high(IntentType::CHAT, ['source' => 'cancel_flow', 'cancelled' => true]);
+                    }
+
+                    // Route to CREATE_ENTITY to continue the multi-turn flow
+                    return IntentResult::high(IntentType::CREATE_ENTITY, [
+                        'source' => 'multi_turn',
+                        'conversation_state' => $state['state'],
+                    ]);
+                }
+            }
+        }
 
         // Injetar userId na ConfirmationIntentRule
         $this->confirmationRule->setUserId($userId);

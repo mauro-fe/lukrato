@@ -39,13 +39,13 @@
                 signal: AbortSignal.timeout(15000),
             });
             const json = await res.json();
-            if (!json.success && !json.data) {
+            // Suportar tanto success:true (cache/api) quanto success:false (401/429 da OpenAI)
+            const d = json.data;
+            if (!d) {
                 badge.className = 'quota-status-badge error';
                 badge.textContent = json.message || 'Erro';
                 return;
             }
-
-            const d = json.data;
             const statusLabels = {
                 active: 'Ativo',
                 quota_exceeded: 'Quota Excedida',
@@ -283,4 +283,7 @@
     loadSummary();
     loadQuota();
     loadLogs(1);
+
+    // Auto-refresh quota a cada 60s
+    setInterval(loadQuota, 60000);
 })();

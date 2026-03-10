@@ -7,10 +7,13 @@ namespace Application\Services\AI\Handlers;
 use Application\DTO\AI\AIRequestDTO;
 use Application\DTO\AI\AIResponseDTO;
 use Application\Enums\AI\IntentType;
+use Application\Models\CartaoCredito;
 use Application\Models\PendingAiAction;
 use Application\Repositories\ContaRepository;
 use Application\Services\AI\Contracts\AIProvider;
+use Application\Services\AI\ConversationStateService;
 use Application\Services\AI\IntentRules\EntityCreationIntentRule;
+use Application\Services\AI\Schemas\EntitySchemas;
 use Application\Validators\CategoriaValidator;
 use Application\Validators\LancamentoValidator;
 use Application\Validators\MetaValidator;
@@ -21,6 +24,14 @@ use Application\Validators\SubcategoriaValidator;
  * Handler para criação de entidades financeiras via IA.
  *
  * Pipeline: Regex extraction (0 tokens) → LLM fallback → Validação → PendingAiAction → Confirmação
+ *
+ * Suporta:
+ *  - Lançamento normal (despesa/receita em conta)
+ *  - Lançamento em cartão de crédito (vai para fatura)
+ *  - Lançamento parcelado (múltiplos itens na fatura)
+ *  - Meta financeira
+ *  - Orçamento mensal
+ *  - Categoria / Subcategoria
  */
 class EntityCreationHandler implements AIHandlerInterface
 {
@@ -45,6 +56,59 @@ class EntityCreationHandler implements AIHandlerInterface
             return AIResponseDTO::fail('Usuário não identificado.', IntentType::CREATE_ENTITY);
         }
 
+        $conversationId = $request->context['conversation_id'] ?? null;
+
+        // ─── Multi-turn: continue active collection flow ────────
+        if ($conversationId !== null) {
+            $convState = ConversationStateService::getState($conversationId);
+
+            // If we're in 'awaiting_selection', try to resolve the selection
+            if ($convState['state'] === 'awaiting_selection') {
+                $resolved = ConversationStateService::resolveSelection($conversationId, $message);
+                if ($resolved !== null) {
+                    // Selection resolved — proceed with complete data
+                    // The resolved array contains the merged pending_data + selected option
+                    $entityType = $convState['data']['pending_data']['_entity_type'] ?? 'lancamento';
+                    unset($resolved['_entity_type']);
+                    return $this->proceedToConfirmation($resolved, $entityType, $userId, $request);
+                }
+                // Could not resolve — ask again
+                return AIResponseDTO::fromRule(
+                    "Não entendi a seleção. Por favor, escolha uma das opções acima (digite o número ou o nome).",
+                    ['action' => 'selection_retry'],
+                    IntentType::CREATE_ENTITY
+                );
+            }
+
+            // If we're in 'collecting_entity', extract new data and merge
+            if ($convState['state'] === 'collecting_entity') {
+                $entityType = $convState['data']['entity_type'] ?? 'lancamento';
+                $newData = $this->extractByRegex($message, $entityType);
+
+                // Also try to extract single field values (user might just type "150" for valor)
+                $newData = $this->extractSingleFieldAnswer($message, $convState['data']['missing_fields'] ?? [], $newData);
+
+                $result = ConversationStateService::updateEntityCollection($conversationId, $newData);
+
+                if ($result['complete']) {
+                    // All fields collected! Proceed to confirmation
+                    if ($entityType === 'lancamento') {
+                        $result['data'] = $this->resolveCartaoCredito($result['data'], $message, $userId);
+                    }
+                    return $this->proceedToConfirmation($result['data'], $entityType, $userId, $request);
+                }
+
+                // Still missing fields — ask next question
+                $question = ConversationStateService::getNextQuestion($result['missing'], $entityType);
+                return AIResponseDTO::fromRule(
+                    $question,
+                    ['action' => 'collecting', 'missing' => $result['missing'], 'entity_type' => $entityType],
+                    IntentType::CREATE_ENTITY
+                );
+            }
+        }
+
+        // ─── Normal flow: detect entity type and extract ────────
         $entityType = EntityCreationIntentRule::detectEntityType($message);
 
         if (!$entityType) {
@@ -57,15 +121,41 @@ class EntityCreationHandler implements AIHandlerInterface
         // Extrair dados via regex primeiro (0 tokens)
         $extracted = $this->extractByRegex($message, $entityType);
 
+        // Para lançamento, tentar resolver cartão de crédito se mencionado
+        if ($entityType === 'lancamento') {
+            $extracted = $this->resolveCartaoCredito($extracted, $message, $userId);
+        }
+
         // Se faltam campos obrigatórios, tentar LLM
         $missing = $this->getMissingFields($extracted, $entityType);
         if (!empty($missing) && $this->provider) {
             $extracted = $this->extractWithAI($message, $entityType, $extracted);
             $missing = $this->getMissingFields($extracted, $entityType);
+
+            // Re-resolver cartão após extração com LLM (pode ter extraído nome_cartao)
+            if ($entityType === 'lancamento') {
+                $extracted = $this->resolveCartaoCredito($extracted, $message, $userId);
+            }
         }
 
-        // Se ainda faltam campos obrigatórios, pedir ao usuário
+        // Se ainda faltam campos obrigatórios, iniciar coleta multi-turno
         if (!empty($missing)) {
+            if ($conversationId !== null) {
+                ConversationStateService::startEntityCollection(
+                    $conversationId,
+                    $entityType,
+                    $extracted,
+                    $missing
+                );
+                $question = ConversationStateService::getNextQuestion($missing, $entityType);
+                return AIResponseDTO::fromRule(
+                    $question,
+                    ['action' => 'collecting', 'missing' => $missing, 'entity_type' => $entityType],
+                    IntentType::CREATE_ENTITY
+                );
+            }
+
+            // No conversation context (e.g., WhatsApp without session) — ask all at once
             $labels = $this->getFieldLabels($entityType);
             $missingLabels = array_map(fn($f) => $labels[$f] ?? $f, $missing);
 
@@ -75,6 +165,17 @@ class EntityCreationHandler implements AIHandlerInterface
                 IntentType::CREATE_ENTITY
             );
         }
+
+        return $this->proceedToConfirmation($extracted, $entityType, $userId, $request);
+    }
+
+    /**
+     * Procede com validação e criação de PendingAiAction para confirmação.
+     * Extraído do handle() para ser reutilizado pelo fluxo multi-turno.
+     */
+    private function proceedToConfirmation(array $extracted, string $entityType, int $userId, AIRequestDTO $request): AIResponseDTO
+    {
+        $conversationId = $request->context['conversation_id'] ?? null;
 
         // Validar com os validators (para lancamento, pular validação de conta_id — será adicionado na confirmação)
         $errors = $this->validate($extracted, $entityType, $userId);
@@ -90,25 +191,51 @@ class EntityCreationHandler implements AIHandlerInterface
             );
         }
 
-        // Para lancamento, buscar contas do usuário
+        // Para lancamento, buscar contas do usuário (e cartões se forma_pagamento = cartão)
         $accountsList = [];
+        $cardsList = [];
         if ($entityType === 'lancamento') {
             $contaRepo = new ContaRepository();
             $contas = $contaRepo->findActive($userId);
 
-            if ($contas->isEmpty()) {
-                return AIResponseDTO::fromRule(
-                    '⚠️ Você precisa ter pelo menos uma conta cadastrada para criar lançamentos.',
-                    ['action' => 'no_accounts'],
-                    IntentType::CREATE_ENTITY
-                );
+            // Cartão de crédito não precisa de conta (vai direto pra fatura)
+            $isCartao = ($extracted['forma_pagamento'] ?? null) === 'cartao_credito';
+
+            if (!$isCartao) {
+                if ($contas->isEmpty()) {
+                    return AIResponseDTO::fromRule(
+                        '⚠️ Você precisa ter pelo menos uma conta cadastrada para criar lançamentos.',
+                        ['action' => 'no_accounts'],
+                        IntentType::CREATE_ENTITY
+                    );
+                }
+                if ($contas->count() === 1) {
+                    $extracted['conta_id'] = $contas->first()->id;
+                }
+                $accountsList = $contas->map(fn($c) => ['id' => $c->id, 'nome' => $c->nome])->values()->toArray();
             }
 
-            if ($contas->count() === 1) {
-                $extracted['conta_id'] = $contas->first()->id;
+            // Se é cartão mas ainda não tem cartao_credito_id, listar cartões para seleção
+            if ($isCartao && empty($extracted['cartao_credito_id'])) {
+                $cartoes = CartaoCredito::where('user_id', $userId)->where('ativo', true)->get();
+                if ($cartoes->isEmpty()) {
+                    return AIResponseDTO::fromRule(
+                        '⚠️ Você não tem nenhum cartão de crédito cadastrado. Cadastre um cartão primeiro para registrar compras no crédito.',
+                        ['action' => 'no_cards'],
+                        IntentType::CREATE_ENTITY
+                    );
+                }
+                if ($cartoes->count() === 1) {
+                    $extracted['cartao_credito_id'] = $cartoes->first()->id;
+                } else {
+                    $cardsList = $cartoes->map(fn($c) => [
+                        'id'   => $c->id,
+                        'nome' => $c->nome_cartao,
+                        'bandeira' => $c->bandeira,
+                        'ultimos_digitos' => $c->ultimos_digitos,
+                    ])->values()->toArray();
+                }
             }
-
-            $accountsList = $contas->map(fn($c) => ['id' => $c->id, 'nome' => $c->nome])->values()->toArray();
         }
 
         // Criar PendingAiAction para confirmação
@@ -135,6 +262,9 @@ class EntityCreationHandler implements AIHandlerInterface
         if (!empty($accountsList)) {
             $responseData['accounts'] = $accountsList;
         }
+        if (!empty($cardsList)) {
+            $responseData['cards'] = $cardsList;
+        }
 
         return AIResponseDTO::fromRule(
             $preview . "\n\n**Deseja confirmar a criação?** Responda **sim** para confirmar ou **não** para cancelar.",
@@ -144,6 +274,74 @@ class EntityCreationHandler implements AIHandlerInterface
     }
 
     // ─── Regex extractors ───────────────────────────────────────
+
+    /**
+     * Tenta extrair um valor direto quando o usuário responde uma pergunta específica.
+     * Ex: perguntamos "Qual o valor?" e o usuário responde "150" ou "R$ 200".
+     */
+    private function extractSingleFieldAnswer(string $message, array $missingFields, array $existing): array
+    {
+        if (empty($missingFields)) {
+            return $existing;
+        }
+
+        $msg = trim($message);
+        $firstMissing = $missingFields[0];
+
+        // Se a mensagem é curta e temos só 1 campo faltando, tentar interpretar como resposta direta
+        if (mb_strlen($msg) <= 80) {
+            switch ($firstMissing) {
+                case 'valor':
+                case 'valor_alvo':
+                case 'valor_limite':
+                    $normalized = $this->normalizeColloquialValues($msg);
+                    if (preg_match('/R?\$?\s*(\d{1,3}(?:\.\d{3})*[,\.]\d{2}|\d+(?:[,\.]\d{1,2})?)/iu', $normalized, $m)) {
+                        $valor = str_replace('.', '', $m[1]);
+                        $valor = str_replace(',', '.', $valor);
+                        $existing[$firstMissing] = (float) $valor;
+                    }
+                    break;
+
+                case 'descricao':
+                case 'titulo':
+                case 'nome':
+                    // Qualquer texto >2 chars serve como descrição/título/nome
+                    if (mb_strlen($msg) >= 2 && mb_strlen($msg) <= 150) {
+                        $existing[$firstMissing] = $msg;
+                    }
+                    break;
+
+                case 'tipo':
+                    if (preg_match('/\b(receita|ganho|entrada|receb)\b/iu', $msg)) {
+                        $existing['tipo'] = 'receita';
+                    } elseif (preg_match('/\b(despesa|gasto|saíd|said|pag)\b/iu', $msg)) {
+                        $existing['tipo'] = 'despesa';
+                    } elseif (preg_match('/\b(transfer[eê]ncia|transferencia)\b/iu', $msg)) {
+                        $existing['tipo'] = 'transferencia';
+                    } elseif (preg_match('/\bambas?\b/iu', $msg)) {
+                        $existing['tipo'] = 'ambas';
+                    }
+                    break;
+
+                case 'data':
+                    if (preg_match('/\bhoje\b/iu', $msg)) {
+                        $existing['data'] = date('Y-m-d');
+                    } elseif (preg_match('/\bamanh[ãa]\b/iu', $msg)) {
+                        $existing['data'] = date('Y-m-d', strtotime('+1 day'));
+                    } elseif (preg_match('/\bontem\b/iu', $msg)) {
+                        $existing['data'] = date('Y-m-d', strtotime('-1 day'));
+                    } elseif (preg_match('/(\d{1,2})\s*[\/\-]\s*(\d{1,2})(?:\s*[\/\-]\s*(\d{2,4}))?/u', $msg, $m)) {
+                        $day = str_pad($m[1], 2, '0', STR_PAD_LEFT);
+                        $month = str_pad($m[2], 2, '0', STR_PAD_LEFT);
+                        $year = isset($m[3]) ? (strlen($m[3]) === 2 ? '20' . $m[3] : $m[3]) : date('Y');
+                        $existing['data'] = "{$year}-{$month}-{$day}";
+                    }
+                    break;
+            }
+        }
+
+        return $existing;
+    }
 
     private function extractByRegex(string $message, string $entityType): array
     {
@@ -162,17 +360,31 @@ class EntityCreationHandler implements AIHandlerInterface
         $data = [];
 
         // tipo: receita ou despesa
-        if (preg_match('/\b(receita|ganho|sal[áa]rio|renda|entrada)\b/iu', $message)) {
+        if (preg_match('/\b(receita|ganho|sal[áa]rio|renda|entrada|receb[ei]|ganhei)\b/iu', $message)) {
             $data['tipo'] = 'receita';
         } else {
             $data['tipo'] = 'despesa';
         }
 
+        // Normalizar valores coloquiais antes de extrair
+        $msgNorm = $this->normalizeColloquialValues($message);
+
         // valor: R$ 100, 100 reais, 1.500,00, etc.
-        if (preg_match('/R?\$?\s*(\d{1,3}(?:\.\d{3})*[,\.]\d{2}|\d+(?:[,\.]\d{1,2})?)\s*(?:reais)?/iu', $message, $m)) {
+        if (preg_match('/R?\$?\s*(\d{1,3}(?:\.\d{3})*[,\.]\d{2}|\d+(?:[,\.]\d{1,2})?)\s*(?:reais|conto[s]?|pila[s]?)?/iu', $msgNorm, $m)) {
             $valor = str_replace('.', '', $m[1]);
             $valor = str_replace(',', '.', $valor);
             $data['valor'] = (float) $valor;
+        }
+
+        // forma_pagamento
+        $data = array_merge($data, $this->extractFormaPagamento($message));
+
+        // parcelamento
+        $data = array_merge($data, $this->extractParcelamento($message));
+
+        // Se tem parcelamento, forçar cartão de crédito
+        if (!empty($data['eh_parcelado']) && empty($data['forma_pagamento'])) {
+            $data['forma_pagamento'] = 'cartao_credito';
         }
 
         // data: hoje, amanhã, DD/MM, DD/MM/YYYY
@@ -191,11 +403,12 @@ class EntityCreationHandler implements AIHandlerInterface
             $data['data'] = date('Y-m-d');
         }
 
-        // descricao: tenta extrair "de <descricao>" ou texto após valor
+        // descricao: tenta extrair "de <descricao>" ou texto significativo
         if (preg_match('/\b(?:de|do|da|para|com|no|na)\s+(.{3,60})$/iu', $message, $m)) {
             $desc = trim($m[1]);
-            // Remover partes que são data ou valor
-            $desc = preg_replace('/\b(?:hoje|amanh[ãa]|ontem|\d{1,2}\/\d{1,2}(?:\/\d{2,4})?|R?\$?\s*[\d.,]+\s*reais?)\b/iu', '', $desc);
+            // Remover partes que são data, valor, cartão ou parcelamento
+            $desc = preg_replace('/\b(?:hoje|amanh[ãa]|ontem|\d{1,2}\/\d{1,2}(?:\/\d{2,4})?|R?\$?\s*[\d.,]+\s*(?:reais|conto[s]?|pila[s]?)?)\b/iu', '', $desc);
+            $desc = preg_replace('/\b(?:cart[ãa]o|cr[ée]dito|d[ée]bito|em\s+\d{1,2}\s*x|\d{1,2}\s*x|parcela[s]?|parcelado?|nubank|inter|ita[úu]|bradesco|santander|c6)\b/iu', '', $desc);
             $desc = trim($desc, " \t\n\r\0\x0B,.");
             if (mb_strlen($desc) >= 3) {
                 $data['descricao'] = mb_substr($desc, 0, 190);
@@ -205,23 +418,158 @@ class EntityCreationHandler implements AIHandlerInterface
         return $data;
     }
 
+    /**
+     * Extrai forma de pagamento da mensagem.
+     */
+    private function extractFormaPagamento(string $message): array
+    {
+        $normalized = mb_strtolower($message);
+
+        // Cartão de crédito (verificar débito primeiro pois é mais específico)
+        if (preg_match('/\b(?:d[ée]bito|no\s+d[ée]bito|cart[ãa]o\s+(?:de\s+)?d[ée]bito)\b/iu', $normalized)) {
+            return ['forma_pagamento' => 'cartao_debito'];
+        }
+        if (preg_match('/\b(?:cart[ãa]o|cr[ée]dito|no\s+cart[ãa]o|no\s+cr[ée]dito|parcelei|parcelo)\b/iu', $normalized)) {
+            return ['forma_pagamento' => 'cartao_credito'];
+        }
+        if (preg_match('/\b(?:pix|mandei\s+pix|fiz\s+pix|via\s+pix)\b/iu', $normalized)) {
+            return ['forma_pagamento' => 'pix'];
+        }
+        if (preg_match('/\b(?:boleto|guia|darf|gru)\b/iu', $normalized)) {
+            return ['forma_pagamento' => 'boleto'];
+        }
+        if (preg_match('/\b(?:dinheiro|cash|esp[ée]cie|em\s+m[ãa]os)\b/iu', $normalized)) {
+            return ['forma_pagamento' => 'dinheiro'];
+        }
+
+        return [];
+    }
+
+    /**
+     * Extrai informação de parcelamento.
+     */
+    private function extractParcelamento(string $message): array
+    {
+        // "em 12x" / "12 vezes" / "parcelei em 6" / "6x de 150"
+        $patterns = [
+            '/(?:em\s+)?(\d{1,2})\s*x\b/iu',
+            '/(\d{1,2})\s*(?:vezes|parcelas?)\b/iu',
+            '/parcel(?:ei|ado|ar|o)\s+(?:em\s+)?(\d{1,2})/iu',
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $message, $m)) {
+                $parcelas = (int) $m[1];
+                if ($parcelas >= 2 && $parcelas <= 48) {
+                    return [
+                        'eh_parcelado'   => true,
+                        'total_parcelas' => $parcelas,
+                    ];
+                }
+            }
+        }
+
+        return [];
+    }
+
+    /**
+     * Normaliza valores coloquiais: "1k" → "1000", "mil reais" → "1000"
+     */
+    private function normalizeColloquialValues(string $message): string
+    {
+        $message = preg_replace_callback('/(\d+(?:[.,]\d+)?)\s*k\b/iu', function ($m) {
+            $val = (float) str_replace(',', '.', $m[1]);
+            return (string) ($val * 1000);
+        }, $message);
+
+        $message = preg_replace('/\bmil\s*(?:reais|conto[s]?|pila[s]?)?\b/iu', '1000', $message);
+
+        return $message;
+    }
+
+    /**
+     * Tenta resolver o cartão de crédito mencionado na mensagem.
+     * Se o usuário disse "no nubank" e tem um cartão Nubank, auto-preenche cartao_credito_id.
+     */
+    private function resolveCartaoCredito(array $data, string $message, int $userId): array
+    {
+        // Se não é cartão de crédito, não precisa resolver
+        if (($data['forma_pagamento'] ?? null) !== 'cartao_credito') {
+            return $data;
+        }
+
+        // Se já tem cartao_credito_id, não precisa resolver
+        if (!empty($data['cartao_credito_id'])) {
+            return $data;
+        }
+
+        // Tentar detectar nome do cartão na mensagem
+        $cardNamePattern = '/(?:no|na|do|da|pelo|pela)\s+(nubank|inter|ita[úu]|itau|bradesco|santander|bb|banco\s*do\s*brasil|sicredi|sicoob|c6|c6\s*bank|original|bmg|pan|neon|next|will|digio|picpay|pagbank|mercado\s*pago|ame|stone|safra|caixa|banrisul|btg)/iu';
+
+        $cardName = null;
+        if (preg_match($cardNamePattern, $message, $m)) {
+            $cardName = trim($m[1]);
+        }
+
+        // Buscar cartões ativos do usuário
+        $cartoes = CartaoCredito::where('user_id', $userId)
+            ->where('ativo', true)
+            ->get();
+
+        if ($cartoes->isEmpty()) {
+            return $data;
+        }
+
+        // Se tem só 1 cartão, auto-preencher
+        if ($cartoes->count() === 1) {
+            $data['cartao_credito_id'] = $cartoes->first()->id;
+            $data['_cartao_nome'] = $cartoes->first()->nome_cartao;
+            return $data;
+        }
+
+        // Se detectou nome, tentar match por nome do cartão
+        if ($cardName !== null) {
+            $cardNameLower = mb_strtolower($cardName);
+            foreach ($cartoes as $cartao) {
+                if (str_contains(mb_strtolower($cartao->nome_cartao), $cardNameLower)) {
+                    $data['cartao_credito_id'] = $cartao->id;
+                    $data['_cartao_nome'] = $cartao->nome_cartao;
+                    return $data;
+                }
+            }
+        }
+
+        // Não conseguiu resolver — será pedido ao usuário (via cards list na confirmação ou multi-turno)
+        return $data;
+    }
+
     private function extractMeta(string $message): array
     {
         $data = [];
 
-        // valor: R$ 5000, 5000 reais, etc.
-        if (preg_match('/R?\$?\s*(\d{1,3}(?:\.\d{3})*[,\.]\d{2}|\d+(?:[,\.]\d{1,2})?)\s*(?:reais)?/iu', $message, $m)) {
+        // Normalizar valores coloquiais
+        $msgNorm = $this->normalizeColloquialValues($message);
+
+        // valor: R$ 5000, 5000 reais, 10k, etc.
+        if (preg_match('/R?\$?\s*(\d{1,3}(?:\.\d{3})*[,\.]\d{2}|\d+(?:[,\.]\d{1,2})?)\s*(?:reais|conto[s]?|pila[s]?)?/iu', $msgNorm, $m)) {
             $valor = str_replace('.', '', $m[1]);
             $valor = str_replace(',', '.', $valor);
             $data['valor_alvo'] = (float) $valor;
         }
 
-        // titulo: "meta de <titulo>", "meta para <titulo>"
+        // titulo: "meta de <titulo>", "meta para <titulo>", "quero juntar X pra <titulo>"
         if (preg_match('/meta\s+(?:de|para|pra)\s+(.{3,100})/iu', $message, $m)) {
             $titulo = trim($m[1]);
-            // Limpar valor do título
-            $titulo = preg_replace('/\b(?:R?\$?\s*[\d.,]+\s*(?:reais)?)\b/iu', '', $titulo);
+            $titulo = preg_replace('/\b(?:R?\$?\s*[\d.,]+\s*(?:reais|conto[s]?|pila[s]?)?)\b/iu', '', $titulo);
             $titulo = preg_replace('/\b(?:de|no valor|com valor|at[eé])\s*$/iu', '', $titulo);
+            $titulo = trim($titulo, " \t\n\r\0\x0B,.");
+            if (mb_strlen($titulo) >= 2) {
+                $data['titulo'] = mb_substr($titulo, 0, 150);
+            }
+        } elseif (preg_match('/(?:juntar|economizar|guardar|poupar)\s+(?:R?\$?\s*[\d.,kK]+\s*(?:reais|conto[s]?|pila[s]?)?\s+)?(?:pra|para|pro)\s+(.{3,100})/iu', $message, $m)) {
+            // "quero juntar 10k pra uma viagem"
+            $titulo = trim($m[1]);
+            $titulo = preg_replace('/\b(?:R?\$?\s*[\d.,]+\s*(?:reais)?)\b/iu', '', $titulo);
             $titulo = trim($titulo, " \t\n\r\0\x0B,.");
             if (mb_strlen($titulo) >= 2) {
                 $data['titulo'] = mb_substr($titulo, 0, 150);
@@ -235,8 +583,11 @@ class EntityCreationHandler implements AIHandlerInterface
     {
         $data = [];
 
+        // Normalizar valores coloquiais
+        $msgNorm = $this->normalizeColloquialValues($message);
+
         // valor_limite
-        if (preg_match('/R?\$?\s*(\d{1,3}(?:\.\d{3})*[,\.]\d{2}|\d+(?:[,\.]\d{1,2})?)\s*(?:reais)?/iu', $message, $m)) {
+        if (preg_match('/R?\$?\s*(\d{1,3}(?:\.\d{3})*[,\.]\d{2}|\d+(?:[,\.]\d{1,2})?)\s*(?:reais|conto[s]?|pila[s]?)?/iu', $msgNorm, $m)) {
             $valor = str_replace('.', '', $m[1]);
             $valor = str_replace(',', '.', $valor);
             $data['valor_limite'] = (float) $valor;
@@ -290,7 +641,6 @@ class EntityCreationHandler implements AIHandlerInterface
         // nome: "categoria <nome>", after tipo
         if (preg_match('/categoria\s+(.{2,60})/iu', $message, $m)) {
             $nome = trim($m[1]);
-            // Limpar tipo e outras keywords
             $nome = preg_replace('/\b(?:tipo|de\s+(?:receita|despesa|transferencia|ambas))\b/iu', '', $nome);
             $nome = preg_replace('/\b(?:receita|despesa|transferencia|ambas)\b/iu', '', $nome);
             $nome = trim($nome, " \t\n\r\0\x0B,.");
@@ -324,18 +674,34 @@ class EntityCreationHandler implements AIHandlerInterface
     private function extractWithAI(string $message, string $entityType, array $partial): array
     {
         try {
+            // Try function calling first (structured output, guaranteed valid JSON)
+            $schema = EntitySchemas::forEntity($entityType);
+            if ($schema !== null) {
+                $result = $this->provider->chatWithTools(
+                    "Extraia os dados de criação de {$entityType} desta mensagem do usuário brasileiro:\n\"{$message}\"",
+                    [$schema],
+                    [
+                        'temperature'   => 0.1,
+                        'max_tokens'    => 300,
+                        'system_prompt' => "Você é um assistente financeiro brasileiro. Extraia os dados da mensagem e chame a função apropriada. Hoje é " . date('Y-m-d') . ". Valor monetário em BRL.",
+                    ]
+                );
+
+                if ($result !== null) {
+                    // Merge: regex has priority (already extracted)
+                    return array_merge($result, $partial);
+                }
+            }
+
+            // Fallback: free-text JSON extraction
             $prompt = $this->buildExtractionPrompt($message, $entityType, $partial);
-            $response = $this->provider->chat($prompt, [], [
-                'temperature' => 0.1,
-                'max_tokens'  => 300,
-            ]);
+            $response = $this->provider->chat($prompt, []);
 
             $json = $this->parseJsonResponse($response);
             if ($json === null) {
                 return $partial;
             }
 
-            // Merge: regex has priority (already extracted)
             return array_merge($json, $partial);
         } catch (\Throwable) {
             return $partial;
@@ -345,7 +711,7 @@ class EntityCreationHandler implements AIHandlerInterface
     private function buildExtractionPrompt(string $message, string $entityType, array $partial): string
     {
         $fields = match ($entityType) {
-            'lancamento'   => 'tipo (receita/despesa), data (YYYY-MM-DD), valor (number), descricao (string)',
+            'lancamento'   => 'tipo (receita/despesa), data (YYYY-MM-DD), valor (number), descricao (string), forma_pagamento (pix/cartao_credito/cartao_debito/dinheiro/boleto/null), eh_parcelado (bool), total_parcelas (number/null), nome_cartao (string/null)',
             'meta'         => 'titulo (string), valor_alvo (number)',
             'orcamento'    => 'categoria_id (number), valor_limite (number), mes (1-12), ano (YYYY)',
             'categoria'    => 'nome (string), tipo (receita/despesa/transferencia/ambas)',
@@ -429,13 +795,103 @@ class EntityCreationHandler implements AIHandlerInterface
 
     private function previewLancamento(array $d): string
     {
-        $icon = ($d['tipo'] ?? 'despesa') === 'receita' ? '💰' : '💸';
+        $isCartao = ($d['forma_pagamento'] ?? null) === 'cartao_credito';
         $tipo = ucfirst($d['tipo'] ?? 'despesa');
-        $valor = 'R$ ' . number_format((float) ($d['valor'] ?? 0), 2, ',', '.');
+        $valor = (float) ($d['valor'] ?? 0);
         $desc = $d['descricao'] ?? 'Sem descrição';
         $dataFormatted = isset($d['data']) ? date('d/m/Y', strtotime($d['data'])) : date('d/m/Y');
 
-        return "{$icon} **{$tipo}**: {$desc}\n📅 Data: {$dataFormatted}\n💵 Valor: {$valor}";
+        if ($isCartao) {
+            // Preview de compra no cartão de crédito
+            $cartaoNome = $d['_cartao_nome'] ?? 'Cartão de Crédito';
+            $icon = '💳';
+
+            $lines = ["{$icon} **Compra no Cartão**: {$cartaoNome}"];
+
+            if (!empty($d['eh_parcelado']) && !empty($d['total_parcelas'])) {
+                $parcelas = (int) $d['total_parcelas'];
+                $valorParcela = $valor / $parcelas;
+                $valorParcelaFmt = 'R$ ' . number_format($valorParcela, 2, ',', '.');
+                $valorTotalFmt = 'R$ ' . number_format($valor, 2, ',', '.');
+                $lines[] = "💵 Valor: **{$valorTotalFmt}** ({$parcelas}x de {$valorParcelaFmt})";
+            } else {
+                $valorFmt = 'R$ ' . number_format($valor, 2, ',', '.');
+                $lines[] = "💵 Valor: **{$valorFmt}** (à vista)";
+            }
+
+            $lines[] = "📝 Descrição: {$desc}";
+            $lines[] = "📅 Data: {$dataFormatted}";
+
+            // Calcular fatura de destino se tiver cartao_credito_id
+            if (!empty($d['cartao_credito_id'])) {
+                $faturaInfo = $this->calcFaturaDestino($d['cartao_credito_id'], $d['data'] ?? date('Y-m-d'));
+                if ($faturaInfo) {
+                    $lines[] = "📋 Vai para a fatura de **{$faturaInfo}**";
+                }
+            }
+
+            return implode("\n", $lines);
+        }
+
+        // Preview de lançamento normal
+        $icon = ($d['tipo'] ?? 'despesa') === 'receita' ? '💰' : '💸';
+        $valorFmt = 'R$ ' . number_format($valor, 2, ',', '.');
+
+        $lines = ["{$icon} **{$tipo}**: {$desc}"];
+        $lines[] = "📅 Data: {$dataFormatted}";
+        $lines[] = "💵 Valor: {$valorFmt}";
+
+        // Mostrar forma de pagamento se detectada
+        $fp = $d['forma_pagamento'] ?? null;
+        if ($fp && $fp !== 'cartao_credito') {
+            $fpLabel = match ($fp) {
+                'pix'            => 'PIX',
+                'cartao_debito'  => 'Cartão de Débito',
+                'dinheiro'       => 'Dinheiro',
+                'boleto'         => 'Boleto',
+                'deposito'       => 'Depósito',
+                'transferencia'  => 'Transferência',
+                default          => ucfirst($fp),
+            };
+            $lines[] = "💳 Pagamento: {$fpLabel}";
+        }
+
+        return implode("\n", $lines);
+    }
+
+    /**
+     * Calcula em qual fatura mês/ano a compra cairá, baseado no dia_fechamento do cartão.
+     */
+    private function calcFaturaDestino(int $cartaoId, string $dataCompra): ?string
+    {
+        try {
+            $cartao = CartaoCredito::find($cartaoId);
+            if (!$cartao || !$cartao->dia_fechamento) {
+                return null;
+            }
+
+            $data = new \DateTime($dataCompra);
+            $diaCompra = (int) $data->format('d');
+            $mesCompra = (int) $data->format('m');
+            $anoCompra = (int) $data->format('Y');
+
+            // Se a compra é ANTES do dia de fechamento, vai para a fatura do mês atual
+            // Se é DEPOIS do fechamento, vai para a fatura do próximo mês
+            if ($diaCompra > $cartao->dia_fechamento) {
+                $mesCompra++;
+                if ($mesCompra > 12) {
+                    $mesCompra = 1;
+                    $anoCompra++;
+                }
+            }
+
+            $meses = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+            return $meses[$mesCompra] . '/' . $anoCompra;
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     private function previewMeta(array $d): string
@@ -483,6 +939,7 @@ class EntityCreationHandler implements AIHandlerInterface
                 'data' => 'Data',
                 'valor' => 'Valor',
                 'descricao' => 'Descrição',
+                'cartao_credito_id' => 'Cartão de crédito',
             ],
             'meta' => [
                 'titulo' => 'Título',
@@ -506,9 +963,9 @@ class EntityCreationHandler implements AIHandlerInterface
     private function getExample(string $entityType): string
     {
         return match ($entityType) {
-            'lancamento'   => '"criar despesa de R$ 150 de conta de luz hoje"',
-            'meta'         => '"criar meta de viagem de R$ 5.000"',
-            'orcamento'    => '"criar orçamento de R$ 800 para alimentação"',
+            'lancamento'   => '"criar despesa de R$ 150 de conta de luz hoje" ou "comprei geladeira no nubank por 1500 em 10x"',
+            'meta'         => '"criar meta de viagem de R$ 5.000" ou "quero juntar 10k pra um carro"',
+            'orcamento'    => '"criar orçamento de R$ 800 para alimentação" ou "não quero gastar mais de 500 com lazer"',
             'categoria'    => '"criar categoria Pets tipo despesa"',
             'subcategoria' => '"criar subcategoria Ração"',
             default        => '',

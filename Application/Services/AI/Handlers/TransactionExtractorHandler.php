@@ -8,6 +8,7 @@ use Application\DTO\AI\AIRequestDTO;
 use Application\DTO\AI\AIResponseDTO;
 use Application\Enums\AI\AIChannel;
 use Application\Enums\AI\IntentType;
+use Application\Models\CartaoCredito;
 use Application\Models\PendingAiAction;
 use Application\Repositories\ContaRepository;
 use Application\Services\AI\Contracts\AIProvider;
@@ -19,7 +20,11 @@ use Application\Services\AI\TransactionDetectorService;
  * Handler para extração de transações financeiras a partir de linguagem natural.
  * Usado principalmente no WhatsApp: "gastei 40 no uber", "ifood 32.50", "salário 5000".
  *
- * Pipeline: TransactionDetectorService (regex, 0 tokens) → LLM fallback.
+ * Agora suporta cartão de crédito e parcelamento:
+ *   "parcelei geladeira no nubank 1500 em 12x"  → cria FaturaCartaoItem
+ *   "comprei roupa no crédito 200"               → cria FaturaCartaoItem
+ *
+ * Pipeline: TransactionDetectorService (regex, 0 tokens) → LLM fallback → CartaoCredito resolve → PendingAiAction.
  */
 class TransactionExtractorHandler implements AIHandlerInterface
 {
@@ -60,6 +65,11 @@ class TransactionExtractorHandler implements AIHandlerInterface
                 'subcategoria_id'  => $category['subcategoria_id'] ?? null,
                 'confidence'       => 'rule',
             ]);
+
+            // Resolver cartão de crédito se mencionado
+            if ($request->userId) {
+                $result = $this->resolveCartaoCredito($result, $message, $request->userId);
+            }
 
             return $this->buildResponse($result, $request, 'rule');
         }
@@ -117,6 +127,11 @@ class TransactionExtractorHandler implements AIHandlerInterface
 
             $data['confidence'] = 'ai';
 
+            // Resolver cartão de crédito se mencionado
+            if ($request->userId) {
+                $data = $this->resolveCartaoCredito($data, $message, $request->userId);
+            }
+
             return $this->buildResponse($data, $request, 'llm');
         } catch (\Throwable $e) {
             return AIResponseDTO::fail(
@@ -124,6 +139,65 @@ class TransactionExtractorHandler implements AIHandlerInterface
                 IntentType::EXTRACT_TRANSACTION,
             );
         }
+    }
+
+    /**
+     * Resolve cartão de crédito mencionado na mensagem.
+     * Se o usuário disse "no nubank" e tem um cartão Nubank, auto-preenche cartao_credito_id.
+     */
+    private function resolveCartaoCredito(array $data, string $message, int $userId): array
+    {
+        $fp = $data['forma_pagamento'] ?? null;
+
+        // Se forma_pagamento não é cartao_credito, não precisa resolver
+        if ($fp !== 'cartao_credito') {
+            return $data;
+        }
+
+        // Se já tem cartao_credito_id, não precisa resolver
+        if (!empty($data['cartao_credito_id'])) {
+            return $data;
+        }
+
+        // Buscar cartões ativos do usuário
+        $cartoes = CartaoCredito::where('user_id', $userId)
+            ->where('ativo', true)
+            ->get();
+
+        if ($cartoes->isEmpty()) {
+            return $data;
+        }
+
+        // Se tem só 1 cartão, auto-preencher
+        if ($cartoes->count() === 1) {
+            $data['cartao_credito_id'] = $cartoes->first()->id;
+            $data['_cartao_nome'] = $cartoes->first()->nome_cartao;
+            return $data;
+        }
+
+        // Tentar detectar nome na mensagem
+        $nomeCartao = $data['nome_cartao'] ?? null;
+        if ($nomeCartao === null) {
+            // Tentar regex na mensagem
+            $cardPattern = '/(?:no|na|do|da|pelo|pela)\s+(nubank|inter|ita[úu]|itau|bradesco|santander|bb|banco\s*do\s*brasil|sicredi|sicoob|c6|c6\s*bank|original|bmg|pan|neon|next|will|digio|picpay|pagbank|mercado\s*pago|ame|stone|safra|caixa|banrisul|btg)/iu';
+            if (preg_match($cardPattern, $message, $m)) {
+                $nomeCartao = trim($m[1]);
+            }
+        }
+
+        if ($nomeCartao !== null) {
+            $nomeCartaoLower = mb_strtolower($nomeCartao);
+            foreach ($cartoes as $cartao) {
+                if (str_contains(mb_strtolower($cartao->nome_cartao), $nomeCartaoLower)) {
+                    $data['cartao_credito_id'] = $cartao->id;
+                    $data['_cartao_nome'] = $cartao->nome_cartao;
+                    return $data;
+                }
+            }
+        }
+
+        // Múltiplos cartões e não conseguiu resolver — será pedido ao usuário na confirmação
+        return $data;
     }
 
     /**
@@ -153,21 +227,55 @@ class TransactionExtractorHandler implements AIHandlerInterface
         if ($request->channel === AIChannel::WEB && $request->userId) {
             $conversationId = $request->context['conversation_id'] ?? null;
 
-            // Buscar contas ativas do usuário para seleção
-            $contaRepo = new ContaRepository();
-            $contas = $contaRepo->findActive($request->userId);
+            $isCartao = ($result['forma_pagamento'] ?? null) === 'cartao_credito';
 
-            if ($contas->isEmpty()) {
-                return AIResponseDTO::fromRule(
-                    '⚠️ Você precisa ter pelo menos uma conta cadastrada para registrar lançamentos.',
-                    ['action' => 'no_accounts'],
-                    IntentType::EXTRACT_TRANSACTION
-                );
+            // Buscar contas ativas — cartão de crédito não precisa de conta
+            $accountsList = [];
+            $cardsList = [];
+
+            if (!$isCartao) {
+                $contaRepo = new ContaRepository();
+                $contas = $contaRepo->findActive($request->userId);
+
+                if ($contas->isEmpty()) {
+                    return AIResponseDTO::fromRule(
+                        '⚠️ Você precisa ter pelo menos uma conta cadastrada para registrar lançamentos.',
+                        ['action' => 'no_accounts'],
+                        IntentType::EXTRACT_TRANSACTION
+                    );
+                }
+
+                // Se tem apenas 1 conta, auto-preencher no payload
+                if ($contas->count() === 1) {
+                    $result['conta_id'] = $contas->first()->id;
+                }
+
+                $accountsList = $contas->map(fn($c) => ['id' => $c->id, 'nome' => $c->nome])->values()->toArray();
             }
 
-            // Se tem apenas 1 conta, auto-preencher no payload
-            if ($contas->count() === 1) {
-                $result['conta_id'] = $contas->first()->id;
+            // Se é cartão mas sem cartao_credito_id, enviar lista de cartões para seleção
+            if ($isCartao && empty($result['cartao_credito_id'])) {
+                $cartoes = CartaoCredito::where('user_id', $request->userId)->where('ativo', true)->get();
+                if ($cartoes->isEmpty()) {
+                    return AIResponseDTO::fromRule(
+                        '⚠️ Você não tem nenhum cartão de crédito cadastrado. Cadastre um cartão primeiro.',
+                        ['action' => 'no_cards'],
+                        IntentType::EXTRACT_TRANSACTION
+                    );
+                }
+                if ($cartoes->count() === 1) {
+                    $result['cartao_credito_id'] = $cartoes->first()->id;
+                    $result['_cartao_nome'] = $cartoes->first()->nome_cartao;
+                    // Refresh confirmation text with card name
+                    $confirmText = $this->formatConfirmation($result);
+                } else {
+                    $cardsList = $cartoes->map(fn($c) => [
+                        'id'   => $c->id,
+                        'nome' => $c->nome_cartao,
+                        'bandeira' => $c->bandeira,
+                        'ultimos_digitos' => $c->ultimos_digitos,
+                    ])->values()->toArray();
+                }
             }
 
             $pending = PendingAiAction::create([
@@ -179,13 +287,17 @@ class TransactionExtractorHandler implements AIHandlerInterface
                 'expires_at'      => now()->addMinutes(10),
             ]);
 
-            $accountsList = $contas->map(fn($c) => ['id' => $c->id, 'nome' => $c->nome])->values()->toArray();
-
             $responseData = array_merge($result, [
                 'action'     => 'confirm',
                 'pending_id' => $pending->id,
-                'accounts'   => $accountsList,
             ]);
+
+            if (!empty($accountsList)) {
+                $responseData['accounts'] = $accountsList;
+            }
+            if (!empty($cardsList)) {
+                $responseData['cards'] = $cardsList;
+            }
 
             $confirmText .= "\n\n**Deseja confirmar?** Responda **sim** ou **não**.";
 
@@ -201,16 +313,48 @@ class TransactionExtractorHandler implements AIHandlerInterface
     }
 
     /**
-     * Formata mensagem de confirmação.
+     * Formata mensagem de confirmação com suporte a cartão de crédito e parcelamento.
      */
     private function formatConfirmation(array $data): string
     {
-        $tipo   = ($data['tipo'] ?? 'despesa') === 'receita' ? '💰 Receita' : '💸 Despesa';
-        $valor  = 'R$ ' . number_format($data['valor'] ?? 0, 2, ',', '.');
-        $desc   = $data['descricao'] ?? 'Sem descrição';
-        $cat    = $data['categoria'] ?? null;
+        $isCartao = ($data['forma_pagamento'] ?? null) === 'cartao_credito';
+        $valor    = (float) ($data['valor'] ?? 0);
+        $desc     = $data['descricao'] ?? 'Sem descrição';
+        $cat      = $data['categoria'] ?? null;
 
-        $msg = "{$tipo}: **{$desc}** — **{$valor}**";
+        if ($isCartao) {
+            $cartaoNome = $data['_cartao_nome'] ?? 'Cartão de Crédito';
+
+            if (!empty($data['eh_parcelado']) && !empty($data['total_parcelas'])) {
+                $parcelas = (int) $data['total_parcelas'];
+                $valorParcela = $valor / $parcelas;
+                $valorFmt = 'R$ ' . number_format($valor, 2, ',', '.');
+                $parcelaFmt = 'R$ ' . number_format($valorParcela, 2, ',', '.');
+                $msg = "💳 **{$desc}** — **{$valorFmt}** ({$parcelas}x de {$parcelaFmt}) no {$cartaoNome}";
+            } else {
+                $valorFmt = 'R$ ' . number_format($valor, 2, ',', '.');
+                $msg = "💳 **{$desc}** — **{$valorFmt}** no {$cartaoNome}";
+            }
+        } else {
+            $tipo = ($data['tipo'] ?? 'despesa') === 'receita' ? '💰 Receita' : '💸 Despesa';
+            $valorFmt = 'R$ ' . number_format($valor, 2, ',', '.');
+            $msg = "{$tipo}: **{$desc}** — **{$valorFmt}**";
+
+            // Mostrar forma de pagamento se detectada
+            $fp = $data['forma_pagamento'] ?? null;
+            if ($fp && !in_array($fp, ['cartao_credito', null])) {
+                $fpLabel = match ($fp) {
+                    'pix'            => 'via PIX',
+                    'cartao_debito'  => 'no débito',
+                    'dinheiro'       => 'em dinheiro',
+                    'boleto'         => 'via boleto',
+                    default          => '',
+                };
+                if ($fpLabel) {
+                    $msg .= " {$fpLabel}";
+                }
+            }
+        }
 
         if ($cat) {
             $sub = $data['subcategoria'] ?? null;

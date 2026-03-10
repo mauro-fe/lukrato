@@ -102,7 +102,8 @@ class AIService
                 $intentResult = $this->intentRouter->detect(
                     $request->message,
                     $request->channel === AIChannel::WHATSAPP,
-                    $request->userId
+                    $request->userId,
+                    $request->context['conversation_id'] ?? null
                 );
                 $intent = $intentResult->intent;
                 $confidence = $intentResult->confidence;

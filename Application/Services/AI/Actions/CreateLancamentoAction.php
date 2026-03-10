@@ -32,9 +32,24 @@ class CreateLancamentoAction implements ActionInterface
 
         $desc  = $payload['descricao'] ?? 'Sem descrição';
         $valor = 'R$ ' . number_format((float) ($payload['valor'] ?? 0), 2, ',', '.');
+        $isCartao = ($payload['forma_pagamento'] ?? null) === 'cartao_credito';
+
+        if ($isCartao) {
+            $cartaoNome = $payload['_cartao_nome'] ?? 'cartão de crédito';
+            $parcelaInfo = '';
+            if (!empty($payload['eh_parcelado']) && !empty($payload['total_parcelas'])) {
+                $parcelas = (int) $payload['total_parcelas'];
+                $valorParcela = (float) ($payload['valor'] ?? 0) / $parcelas;
+                $parcelaFmt = 'R$ ' . number_format($valorParcela, 2, ',', '.');
+                $parcelaInfo = " ({$parcelas}x de {$parcelaFmt})";
+            }
+            $msg = "💳 Compra registrada no {$cartaoNome}: **{$desc}** — **{$valor}**{$parcelaInfo}";
+        } else {
+            $msg = "✅ Lançamento criado: **{$desc}** — **{$valor}**";
+        }
 
         return ActionResult::ok(
-            "Lançamento criado: **{$desc}** — **{$valor}**",
+            $msg,
             $result->data ?? []
         );
     }

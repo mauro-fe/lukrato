@@ -14,6 +14,7 @@ import { formatMoneyInput } from '../shared/utils.js';
 import { getBaseUrl, getCSRFToken } from '../shared/api.js';
 import { applyMoneyMask } from '../shared/money-mask.js';
 import { refreshIcons } from '../shared/ui.js';
+import { sugerirCategoriaIA as _sugerirCategoriaIA } from '../shared/ai-categorization.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 class LancamentoGlobalManager {
@@ -1046,61 +1047,23 @@ class LancamentoGlobalManager {
      * Sugerir categoria usando IA com base na descrição do lançamento
      */
     async sugerirCategoriaIA() {
-        const descricao = document.getElementById('globalLancamentoDescricao')?.value.trim() || '';
-        if (descricao.length < 2) {
-            Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Digite uma descrição primeiro', customClass: { container: 'swal-above-modal' } });
-            return;
-        }
-
-        const btn = document.getElementById('btnGlobalAiSuggestCategoria');
-        if (btn) {
-            btn.disabled = true;
-            btn.classList.add('loading');
-        }
-
-        try {
-            const base = getBaseUrl();
-            const csrf = getCSRFToken();
-            const resp = await fetch(`${base}api/ai/suggest-category`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrf,
-                },
-                body: JSON.stringify({ description: descricao }),
-            });
-
-            const data = await resp.json();
-            if (data.success && data.data?.category) {
-                const select = document.getElementById('globalLancamentoCategoria');
-                if (select) {
-                    const categoryName = data.data.category;
-                    let matched = false;
-                    for (const opt of select.options) {
-                        if (opt.text.trim().toLowerCase() === categoryName.toLowerCase()) {
-                            select.value = opt.value;
-                            select.dispatchEvent(new Event('change'));
-                            matched = true;
-                            break;
-                        }
-                    }
-                    if (matched) {
-                        Swal.fire({ icon: 'success', title: 'IA', text: `Categoria sugerida: ${categoryName}`, timer: 2000, showConfirmButton: false, customClass: { container: 'swal-above-modal' } });
-                    } else {
-                        Swal.fire({ icon: 'warning', title: 'IA', text: `IA sugeriu "${categoryName}", mas não encontrada nas suas categorias`, customClass: { container: 'swal-above-modal' } });
-                    }
-                }
-            } else {
-                Swal.fire({ icon: 'warning', title: 'IA', text: 'Não foi possível sugerir uma categoria', customClass: { container: 'swal-above-modal' } });
-            }
-        } catch (e) {
-            Swal.fire({ icon: 'error', title: 'Erro', text: 'Erro ao sugerir categoria', customClass: { container: 'swal-above-modal' } });
-        } finally {
-            if (btn) {
-                btn.disabled = false;
-                btn.classList.remove('loading');
-            }
-        }
+        await _sugerirCategoriaIA({
+            descricaoInputId:      'globalLancamentoDescricao',
+            categoriaSelectId:     'globalLancamentoCategoria',
+            subcategoriaSelectId:  'globalLancamentoSubcategoria',
+            subcategoriaGroupId:   'globalSubcategoriaGroup',
+            btnId:                 'btnGlobalAiSuggestCategoria',
+            notify: (msg, type) => {
+                const icons = { success: 'success', warning: 'warning', error: 'error' };
+                Swal.fire({
+                    icon: icons[type] || 'info',
+                    title: type === 'error' ? 'Erro' : 'IA',
+                    text: msg,
+                    ...(type === 'success' ? { timer: 2000, showConfirmButton: false } : {}),
+                    customClass: { container: 'swal-above-modal' },
+                });
+            },
+        });
     }
 
     // ── Forma de Pagamento / Recebimento ─────────────────────────────────────

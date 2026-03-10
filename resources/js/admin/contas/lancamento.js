@@ -12,6 +12,7 @@ import { CONFIG, STATE, Utils, Modules } from './state.js';
 import { refreshIcons } from '../shared/ui.js';
 import { setupMoneyMask, setMoneyValue, getMoneyValue, applyMoneyMask } from '../shared/money-mask.js';
 import { calcularRecorrenciaFim } from '../shared/utils.js';
+import { sugerirCategoriaIA as _sugerirCategoriaIA } from '../shared/ai-categorization.js';
 
 // ─── ContasLancamento ────────────────────────────────────────────────────────
 
@@ -645,60 +646,14 @@ export const ContasLancamento = {
      * Sugerir categoria usando IA com base na descrição do lançamento
      */
     async sugerirCategoriaIA() {
-        const descricao = document.getElementById('lancamentoDescricao')?.value.trim() || '';
-        if (descricao.length < 2) {
-            Utils.showToast('Digite uma descrição primeiro', 'warning');
-            return;
-        }
-
-        const btn = document.getElementById('btnAiSuggestCategoria');
-        if (btn) {
-            btn.disabled = true;
-            btn.classList.add('loading');
-        }
-
-        try {
-            const csrfToken = await Utils.getCSRFToken();
-            const resp = await fetch(`${CONFIG.API_URL}/ai/suggest-category`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken,
-                },
-                body: JSON.stringify({ description: descricao }),
-            });
-
-            const data = await resp.json();
-            if (data.success && data.data?.category) {
-                const select = document.getElementById('lancamentoCategoria');
-                if (select) {
-                    const categoryName = data.data.category;
-                    let matched = false;
-                    for (const opt of select.options) {
-                        if (opt.text.trim().toLowerCase() === categoryName.toLowerCase()) {
-                            select.value = opt.value;
-                            select.dispatchEvent(new Event('change'));
-                            matched = true;
-                            break;
-                        }
-                    }
-                    if (matched) {
-                        Utils.showToast(`Categoria sugerida: ${categoryName}`, 'success');
-                    } else {
-                        Utils.showToast(`IA sugeriu "${categoryName}", mas não encontrada nas suas categorias`, 'warning');
-                    }
-                }
-            } else {
-                Utils.showToast('Não foi possível sugerir uma categoria', 'warning');
-            }
-        } catch (e) {
-            Utils.showToast('Erro ao sugerir categoria', 'error');
-        } finally {
-            if (btn) {
-                btn.disabled = false;
-                btn.classList.remove('loading');
-            }
-        }
+        await _sugerirCategoriaIA({
+            descricaoInputId:      'lancamentoDescricao',
+            categoriaSelectId:     'lancamentoCategoria',
+            subcategoriaSelectId:  'lancamentoSubcategoria',
+            subcategoriaGroupId:   'subcategoriaGroup',
+            btnId:                 'btnAiSuggestCategoria',
+            notify: (msg, type) => Utils.showToast(msg, type),
+        });
     },
 
     /**

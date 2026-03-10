@@ -3,6 +3,7 @@
  */
 
 import { CONFIG, DOM, STATE, Utils, MoneyMask, Notifications, Modules } from './state.js';
+import { sugerirCategoriaIA as _sugerirCategoriaIA } from '../shared/ai-categorization.js';
 
 // ============================================================================
 // GERENCIAMENTO DE OPÇÕES (SELECTS)
@@ -221,6 +222,23 @@ const ModalManager = {
             return STATE.modalEditLanc;
         }
         return null;
+    },
+
+    /**
+     * Sugerir categoria usando IA no modal de edição
+     */
+    sugerirCategoriaIA: async () => {
+        await _sugerirCategoriaIA({
+            descricaoInputId:      'editLancDescricao',
+            categoriaSelectId:     'editLancCategoria',
+            subcategoriaSelectId:  'editLancSubcategoria',
+            subcategoriaGroupId:   'editSubcategoriaGroup',
+            btnId:                 'btnEditAiSuggestCategoria',
+            notify: (msg, type) => {
+                const iconMap = { success: 'success', warning: 'warning', error: 'error' };
+                Notifications.toast(msg, iconMap[type] || 'info');
+            },
+        });
     },
 
     clearLancAlert: () => {
@@ -626,5 +644,8 @@ const ModalManager = {
 
 Modules.OptionsManager = OptionsManager;
 Modules.ModalManager = ModalManager;
+
+// Expor sugerirCategoriaIA para onclick inline do modal de edição
+window._editLancSugerirCategoriaIA = ModalManager.sugerirCategoriaIA;
 
 export { OptionsManager, ModalManager };

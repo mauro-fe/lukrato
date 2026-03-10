@@ -100,9 +100,17 @@ class UserAiController extends BaseController
 
         $response = $ai->dispatch($request);
 
+        // Normaliza chaves para inglês (frontend espera 'category', 'subcategory', etc.)
+        $d = $response->data;
         Response::json([
             'success' => $response->success,
-            'data'    => $response->data,
+            'data'    => [
+                'category'        => $d['categoria']       ?? null,
+                'subcategory'     => $d['subcategoria']    ?? null,
+                'category_id'     => $d['categoria_id']    ?? null,
+                'subcategory_id'  => $d['subcategoria_id'] ?? null,
+                'confidence'      => $d['confidence']      ?? null,
+            ],
             'source'  => $response->source,
         ]);
     }

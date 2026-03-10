@@ -8,11 +8,12 @@ use Application\Controllers\BaseController;
 use Application\DTO\AI\AIRequestDTO;
 use Application\DTO\AI\WhatsAppMessageDTO;
 use Application\Enums\AI\AIChannel;
-use Application\Enums\AI\IntentType;
-use Application\Models\Lancamento;
-use Application\Models\PendingWhatsAppTransaction;
+use Application\Models\PendingAiAction;
 use Application\Models\WhatsAppMessage;
+use Application\Repositories\ContaRepository;
 use Application\Services\AI\AIService;
+use Application\Services\AI\Actions\ActionRegistry;
+use Application\Services\AI\Rules\CategoryRuleEngine;
 use Application\Services\AI\TransactionDetectorService;
 use Application\Services\AI\WhatsApp\WhatsAppService;
 use Application\Services\AI\WhatsApp\WhatsAppUserResolver;
@@ -188,15 +189,15 @@ class WhatsAppWebhookController extends BaseController
 
     /**
      * Trata resposta Sim/Não a uma transação pendente.
+     * Unificado: usa PendingAiAction + ActionRegistry (mesmo pipeline do web chat).
      */
     private function handleConfirmationReply(
         WhatsAppMessageDTO $dto,
         \Application\Models\Usuario $user,
         WhatsAppMessage $msgRecord,
     ): void {
-        // Usar transação com lock para evitar duplicatas por webhooks concorrentes
         DB::transaction(function () use ($dto, $user, $msgRecord) {
-            $pending = PendingWhatsAppTransaction::query()
+            $pending = PendingAiAction::query()
                 ->where('user_id', $user->id)
                 ->awaiting()
                 ->orderByDesc('created_at')
@@ -213,18 +214,76 @@ class WhatsAppWebhookController extends BaseController
             }
 
             if ($dto->isAffirmative()) {
-                $lancamento = $this->createLancamento($pending, $user);
-                $pending->confirm();
+                // Executar via ActionRegistry (mesmo caminho do web chat)
+                $actionRegistry = new ActionRegistry();
+                $action = $actionRegistry->resolve($pending->action_type);
 
-                $formatted = 'R$ ' . number_format($pending->valor, 2, ',', '.');
-                $this->whatsapp->sendText(
-                    $dto->fromPhone,
-                    "✅ Lançamento registrado!\n\n"
-                        . "📝 {$pending->descricao}\n"
-                        . "💰 {$formatted}\n"
-                        . ($pending->categoria_nome ? "📁 {$pending->categoria_nome}" : '')
-                );
-                $msgRecord->markProcessed('transaction_confirmed');
+                if ($action === null) {
+                    $pending->reject();
+                    $this->whatsapp->sendText($dto->fromPhone, "⚠️ Tipo de ação desconhecido.");
+                    $msgRecord->markProcessed('confirmation_unknown_action');
+                    return;
+                }
+
+                $payload = $pending->payload;
+
+                // Auto-selecionar conta se não definida
+                if ($pending->action_type === 'create_lancamento' && empty($payload['conta_id'])) {
+                    $contaRepo = new ContaRepository();
+                    $contas = $contaRepo->findActive($user->id);
+
+                    if ($contas->isEmpty()) {
+                        $pending->reject();
+                        $this->whatsapp->sendText(
+                            $dto->fromPhone,
+                            "⚠️ Você precisa ter pelo menos uma conta cadastrada no Lukrato para registrar lançamentos."
+                        );
+                        $msgRecord->markProcessed('confirmation_no_account');
+                        return;
+                    }
+
+                    // WhatsApp: auto-seleciona a primeira conta ativa
+                    $payload['conta_id'] = $contas->first()->id;
+                    $pending->update(['payload' => $payload]);
+                }
+
+                try {
+                    $result = $action->execute($user->id, $payload);
+
+                    if (!$result->success) {
+                        $pending->reject();
+                        $this->whatsapp->sendText($dto->fromPhone, "⚠️ {$result->message}");
+                        $msgRecord->markProcessed('confirmation_failed');
+                        return;
+                    }
+
+                    $pending->confirm();
+
+                    // Aprender categorização
+                    if (!empty($payload['descricao']) && !empty($payload['categoria_id'])) {
+                        CategoryRuleEngine::learn(
+                            $user->id,
+                            $payload['descricao'],
+                            (int) $payload['categoria_id'],
+                            !empty($payload['subcategoria_id']) ? (int) $payload['subcategoria_id'] : null,
+                            'confirmed'
+                        );
+                    }
+
+                    $formatted = 'R$ ' . number_format((float) ($payload['valor'] ?? 0), 2, ',', '.');
+                    $catStr = !empty($payload['categoria_nome']) ? "\n📁 {$payload['categoria_nome']}" : '';
+                    $this->whatsapp->sendText(
+                        $dto->fromPhone,
+                        "✅ Lançamento registrado!\n\n"
+                            . "📝 {$payload['descricao']}\n"
+                            . "💰 {$formatted}{$catStr}"
+                    );
+                    $msgRecord->markProcessed('transaction_confirmed');
+                } catch (\Throwable $e) {
+                    $pending->reject();
+                    $this->whatsapp->sendText($dto->fromPhone, "⚠️ Erro ao registrar: " . $e->getMessage());
+                    $msgRecord->markProcessed('confirmation_error');
+                }
             } else {
                 $pending->reject();
                 $this->whatsapp->sendText($dto->fromPhone, "❌ Transação cancelada.");
@@ -265,7 +324,8 @@ class WhatsAppWebhookController extends BaseController
     }
 
     /**
-     * Transação detectada → criar pendente + pedir confirmação com botões.
+     * Transação detectada → criar PendingAiAction + pedir confirmação com botões.
+     * Unificado: usa PendingAiAction (mesmo modelo do web chat) com TTL de 24h.
      */
     private function handleTransactionExtraction(
         WhatsAppMessageDTO $dto,
@@ -273,26 +333,45 @@ class WhatsAppWebhookController extends BaseController
         array $extracted,
         WhatsAppMessage $msgRecord,
     ): void {
-        // Categorizar via rule engine
-        $category = \Application\Services\AI\Rules\CategoryRuleEngine::match(
+        // Categorizar via rule engine (agora inclui regras personalizadas do usuário)
+        $category = CategoryRuleEngine::match(
             $extracted['descricao'],
             $user->id,
         );
 
-        // Criar registro pendente
-        $pending = PendingWhatsAppTransaction::create([
-            'user_id'            => $user->id,
-            'wa_message_id'      => $dto->waMessageId,
-            'descricao'          => $extracted['descricao'],
-            'valor'              => $extracted['valor'],
-            'tipo'               => $extracted['tipo'],
-            'data'               => $extracted['data'],
-            'categoria_id'       => $category['categoria_id'] ?? null,
-            'subcategoria_id'    => $category['subcategoria_id'] ?? null,
-            'categoria_nome'     => $category['categoria'] ?? null,
-            'subcategoria_nome'  => $category['subcategoria'] ?? null,
-            'status'             => 'awaiting_confirm',
-            'expires_at'         => now()->addHours(24),
+        // Montar payload unificado (mesmo formato do EntityCreationHandler)
+        $payload = [
+            'descricao'        => $extracted['descricao'],
+            'valor'            => $extracted['valor'],
+            'tipo'             => $extracted['tipo'],
+            'data'             => $extracted['data'],
+            'categoria_id'     => $category['categoria_id'] ?? null,
+            'subcategoria_id'  => $category['subcategoria_id'] ?? null,
+            'categoria_nome'   => $category['categoria'] ?? null,
+            'subcategoria_nome' => $category['subcategoria'] ?? null,
+            'origem'           => 'whatsapp',
+            'pago'             => true,
+        ];
+
+        // Incluir forma_pagamento e parcelamento se detectados
+        if (!empty($extracted['forma_pagamento'])) {
+            $payload['forma_pagamento'] = $extracted['forma_pagamento'];
+        }
+        if (!empty($extracted['eh_parcelado'])) {
+            $payload['eh_parcelado'] = $extracted['eh_parcelado'];
+            $payload['total_parcelas'] = $extracted['total_parcelas'] ?? null;
+        }
+        if (!empty($extracted['nome_cartao'])) {
+            $payload['nome_cartao'] = $extracted['nome_cartao'];
+        }
+
+        // Criar PendingAiAction (unificado) com TTL de 24h para WhatsApp
+        PendingAiAction::create([
+            'user_id'     => $user->id,
+            'action_type' => 'create_lancamento',
+            'payload'     => $payload,
+            'status'      => 'awaiting_confirm',
+            'expires_at'  => now()->addHours(24),
         ]);
 
         // Montar texto de confirmação
@@ -321,21 +400,4 @@ class WhatsAppWebhookController extends BaseController
         $msgRecord->markProcessed('transaction_pending');
     }
 
-    /**
-     * Cria o lançamento real a partir de uma transação pendente confirmada.
-     */
-    private function createLancamento(PendingWhatsAppTransaction $pending, \Application\Models\Usuario $user): Lancamento
-    {
-        return Lancamento::create([
-            'user_id'          => $user->id,
-            'descricao'        => $pending->descricao,
-            'valor'            => $pending->valor,
-            'tipo'             => $pending->tipo,
-            'data'             => $pending->data,
-            'categoria_id'     => $pending->categoria_id,
-            'subcategoria_id'  => $pending->subcategoria_id,
-            'pago'             => true,
-            'origem'           => 'whatsapp',
-        ]);
-    }
 }
