@@ -439,7 +439,7 @@
 
     <!-- Tab: Integrações -->
     <div class="profile-tab-panel" id="panel-integracoes" role="tabpanel" aria-labelledby="tab-integracoes">
-        <!-- WhatsApp -->
+        <!-- WhatsApp (oculto temporariamente — API ainda não disponível)
         <div class="profile-section">
             <div class="section-header">
                 <div class="section-icon" style="background:#22c55e"><i data-lucide="message-circle" style="color:white"></i></div>
@@ -455,7 +455,6 @@
                     <span class="status-text">Carregando...</span>
                 </div>
 
-                <!-- Estado: Não vinculado -->
                 <div class="integration-action" id="whatsapp-not-linked" style="display:none">
                     <div class="form-row cols-1">
                         <div class="form-group">
@@ -471,7 +470,6 @@
                     </button>
                 </div>
 
-                <!-- Estado: Aguardando verificação -->
                 <div class="integration-action" id="whatsapp-verify" style="display:none">
                     <p class="integration-instructions" id="whatsapp-verify-msg"></p>
                     <div class="form-row cols-1">
@@ -485,7 +483,6 @@
                     </button>
                 </div>
 
-                <!-- Estado: Vinculado -->
                 <div class="integration-action" id="whatsapp-linked" style="display:none">
                     <p class="integration-linked-info">
                         <i data-lucide="check-circle" style="color:#22c55e;width:18px;height:18px;vertical-align:middle"></i>
@@ -497,6 +494,7 @@
                 </div>
             </div>
         </div>
+        fim WhatsApp oculto -->
 
         <!-- Telegram -->
         <div class="profile-section">

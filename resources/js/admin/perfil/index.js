@@ -800,7 +800,7 @@
     });
 
     // Load integration statuses
-    loadWhatsAppStatus();
+    if (document.getElementById('whatsapp-card')) loadWhatsAppStatus();
     loadTelegramStatus();
     loadProfile();
 })();

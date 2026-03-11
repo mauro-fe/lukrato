@@ -18,12 +18,12 @@
                 </span>
             </h2>
             <p class="text-lg sm:text-xl text-gray-600 leading-relaxed">
-                A IA do Lukrato entende suas finanças e te ajuda a tomar decisões mais inteligentes — sem planilha, sem complicação.
+                Converse com a IA do Lukrato para tirar dúvidas, criar lançamentos e gerenciar suas finanças — pelo chat na plataforma ou direto no Telegram.
             </p>
         </header>
 
         <!-- Grid de cards IA -->
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto mb-12">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-2 gap-6 lg:gap-8 max-w-5xl mx-auto mb-12">
 
             <!-- Card 1 - Assistente IA -->
             <article class="group bg-white rounded-2xl p-7 shadow-sm border border-gray-100 hover:shadow-lg hover:border-orange-100 transition-all duration-300"
@@ -34,8 +34,8 @@
                 </div>
                 <h3 class="font-bold text-lg text-gray-900 mb-2">Assistente financeiro IA</h3>
                 <p class="text-gray-600 text-sm leading-relaxed">
-                    Converse com a IA e tire dúvidas sobre seus gastos, saldo, faturas e metas.
-                    Pergunte em linguagem natural e receba respostas instantâneas.
+                    Crie lançamentos, tire dúvidas sobre seus gastos, saldo, faturas e metas.
+                    Mande uma mensagem como "almoço 35" e a IA registra tudo pra você.
                 </p>
             </article>
 
@@ -67,6 +67,20 @@
                 </p>
             </article>
 
+            <!-- Card 4 - Chatbot no Telegram -->
+            <article class="group bg-white rounded-2xl p-7 shadow-sm border border-gray-100 hover:shadow-lg hover:border-orange-100 transition-all duration-300"
+                data-aos="fade-up" data-aos-delay="300">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center text-white mb-5"
+                    aria-hidden="true">
+                    <i data-lucide="send" class="w-6 h-6"></i>
+                </div>
+                <h3 class="font-bold text-lg text-gray-900 mb-2">Chatbot no Telegram</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    Lance despesas e receitas direto pelo Telegram.
+                    Vincule sua conta, mande "netflix 55.90" e o bot registra automaticamente.
+                </p>
+            </article>
+
         </div>
 
         <!-- Destaque / CTA -->
@@ -85,7 +99,7 @@
                     <div class="text-center md:text-left flex-1">
                         <h3 class="text-2xl md:text-3xl font-bold mb-2">IA disponível em todos os planos</h3>
                         <p class="text-orange-100 text-base md:text-lg leading-relaxed">
-                            Experimente grátis com 5 mensagens por mês. No plano Pro, use até 100 mensagens e desbloqueie todo o potencial da inteligência artificial.
+                            Experimente grátis com 5 mensagens por mês. No plano Pro, use até 100 mensagens — pelo chat na plataforma ou direto no Telegram.
                         </p>
                     </div>
                     <div class="flex-shrink-0">
