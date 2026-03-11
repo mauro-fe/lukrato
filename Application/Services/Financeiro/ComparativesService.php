@@ -8,6 +8,7 @@ use Carbon\Carbon;
 class ComparativesService
 {
     private int $userId;
+    private ?int $accountId = null;
     private Carbon $currentStart;
     private Carbon $currentEnd;
     private Carbon $previousMonthStart;
@@ -25,9 +26,10 @@ class ComparativesService
     /**
      * Gera todos os dados comparativos para o usuário/período
      */
-    public function generate(int $userId, int $year, int $month): array
+    public function generate(int $userId, int $year, int $month, ?int $accountId = null): array
     {
         $this->userId = $userId;
+        $this->accountId = $accountId;
         $this->initPeriods($year, $month);
         $this->loadBaseData();
 
@@ -66,16 +68,50 @@ class ComparativesService
 
     private function queryPeriodTotals(Carbon $start, Carbon $end): object
     {
-        return Lancamento::where('user_id', $this->userId)
+        $query = Lancamento::where('user_id', $this->userId)
             ->whereBetween('data', [$start->toDateString(), $end->toDateString()])
-            ->where('eh_transferencia', 0)
             ->where('pago', 1)
-            ->where('afeta_caixa', 1)
-            ->selectRaw('
-                SUM(CASE WHEN tipo = "receita" THEN valor ELSE 0 END) as receitas,
-                SUM(CASE WHEN tipo = "despesa" THEN valor ELSE 0 END) as despesas
-            ')
-            ->first();
+            ->where('afeta_caixa', 1);
+
+        if ($this->accountId !== null) {
+            $accountId = $this->accountId;
+            $query->where(function ($q) use ($accountId) {
+                $q->where('conta_id', $accountId)
+                    ->orWhere(function ($q2) use ($accountId) {
+                        $q2->where('eh_transferencia', 1)
+                            ->where('conta_id_destino', $accountId);
+                    });
+            });
+
+            $query->selectRaw('
+                SUM(CASE
+                    WHEN eh_transferencia = 1 THEN
+                        CASE
+                            WHEN conta_id_destino = ? THEN valor
+                            ELSE 0
+                        END
+                    WHEN tipo = "receita" THEN valor
+                    ELSE 0
+                END) as receitas,
+                SUM(CASE
+                    WHEN eh_transferencia = 1 THEN
+                        CASE
+                            WHEN conta_id = ? AND conta_id_destino != ? THEN valor
+                            ELSE 0
+                        END
+                    WHEN tipo = "despesa" THEN valor
+                    ELSE 0
+                END) as despesas
+            ', [$accountId, $accountId, $accountId]);
+        } else {
+            $query->where('eh_transferencia', 0)
+                ->selectRaw('
+                    SUM(CASE WHEN tipo = "receita" THEN valor ELSE 0 END) as receitas,
+                    SUM(CASE WHEN tipo = "despesa" THEN valor ELSE 0 END) as despesas
+                ');
+        }
+
+        return $query->first();
     }
 
     // ─── Comparativos ──────────────────────────────────────
@@ -237,7 +273,7 @@ class ComparativesService
     {
         $col = fn(string $c) => $alias ? "{$alias}.{$c}" : $c;
 
-        return Lancamento::where($col('user_id'), $this->userId)
+        $query = Lancamento::where($col('user_id'), $this->userId)
             ->where($col('tipo'), 'despesa')
             ->where($col('eh_transferencia'), 0)
             ->where($col('pago'), 1)
@@ -246,6 +282,12 @@ class ComparativesService
                 $q->whereNull($col('origem_tipo'))
                     ->orWhere($col('origem_tipo'), '!=', 'pagamento_fatura');
             });
+
+        if ($this->accountId !== null) {
+            $query->where($col('conta_id'), $this->accountId);
+        }
+
+        return $query;
     }
 
     /** Evolução dos últimos 6 meses */
@@ -257,16 +299,43 @@ class ComparativesService
             $mesRef = (clone $this->currentStart)->subMonths($i);
             $mesEnd = (clone $mesRef)->endOfMonth();
 
-            $data = Lancamento::where('user_id', $this->userId)
+            $query = Lancamento::where('user_id', $this->userId)
                 ->whereBetween('data', [$mesRef->toDateString(), $mesEnd->toDateString()])
-                ->where('eh_transferencia', 0)
                 ->where('pago', 1)
-                ->where('afeta_caixa', 1)
-                ->selectRaw('
-                    SUM(CASE WHEN tipo = "receita" THEN valor ELSE 0 END) as receitas,
-                    SUM(CASE WHEN tipo = "despesa" THEN valor ELSE 0 END) as despesas
-                ')
-                ->first();
+                ->where('afeta_caixa', 1);
+
+            if ($this->accountId !== null) {
+                $accountId = $this->accountId;
+                $query->where(function ($q) use ($accountId) {
+                    $q->where('conta_id', $accountId)
+                        ->orWhere(function ($q2) use ($accountId) {
+                            $q2->where('eh_transferencia', 1)
+                                ->where('conta_id_destino', $accountId);
+                        });
+                });
+
+                $data = $query->selectRaw('
+                    SUM(CASE
+                        WHEN eh_transferencia = 1 THEN
+                            CASE WHEN conta_id_destino = ? THEN valor ELSE 0 END
+                        WHEN tipo = "receita" THEN valor
+                        ELSE 0
+                    END) as receitas,
+                    SUM(CASE
+                        WHEN eh_transferencia = 1 THEN
+                            CASE WHEN conta_id = ? AND conta_id_destino != ? THEN valor ELSE 0 END
+                        WHEN tipo = "despesa" THEN valor
+                        ELSE 0
+                    END) as despesas
+                ', [$accountId, $accountId, $accountId])->first();
+            } else {
+                $data = $query->where('eh_transferencia', 0)
+                    ->selectRaw('
+                        SUM(CASE WHEN tipo = "receita" THEN valor ELSE 0 END) as receitas,
+                        SUM(CASE WHEN tipo = "despesa" THEN valor ELSE 0 END) as despesas
+                    ')
+                    ->first();
+            }
 
             $r = (float)($data->receitas ?? 0);
             $d = (float)($data->despesas ?? 0);
@@ -372,13 +441,18 @@ class ComparativesService
 
     private function queryPaymentMethods(Carbon $start, Carbon $end)
     {
-        return Lancamento::where('user_id', $this->userId)
+        $query = Lancamento::where('user_id', $this->userId)
             ->where('tipo', 'despesa')
             ->where('eh_transferencia', 0)
             ->whereBetween('data', [$start->toDateString(), $end->toDateString()])
             ->whereNotNull('forma_pagamento')
-            ->where('forma_pagamento', '!=', '')
-            ->selectRaw('forma_pagamento, COUNT(*) as qtd, SUM(valor) as total')
+            ->where('forma_pagamento', '!=', '');
+
+        if ($this->accountId !== null) {
+            $query->where('conta_id', $this->accountId);
+        }
+
+        return $query->selectRaw('forma_pagamento, COUNT(*) as qtd, SUM(valor) as total')
             ->groupBy('forma_pagamento')
             ->orderByDesc('total')
             ->get();

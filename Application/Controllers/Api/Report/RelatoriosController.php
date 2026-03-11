@@ -402,10 +402,11 @@ class RelatoriosController extends BaseController
             $userId = Auth::id();
             $year   = (int)($_GET['year'] ?? date('Y'));
             $month  = (int)($_GET['month'] ?? date('m'));
+            $accountId = $this->resolveAccountId();
 
             $this->validateDateParams($year, $month);
 
-            $data = $this->comparativesService->generate($userId, $year, $month);
+            $data = $this->comparativesService->generate($userId, $year, $month, $accountId);
 
             Response::success($data);
         } catch (InvalidArgumentException $e) {

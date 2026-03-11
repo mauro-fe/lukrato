@@ -242,11 +242,15 @@ export const API = {
 
     async fetchComparatives() {
         const [year, month] = STATE.currentMonth.split('-');
+        const params = new URLSearchParams({ year, month });
+        if (STATE.currentAccount) {
+            params.set('account_id', STATE.currentAccount);
+        }
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT);
         try {
             const response = await fetch(
-                `${CONFIG.BASE_URL}api/reports/comparatives?year=${year}&month=${month}`,
+                `${CONFIG.BASE_URL}api/reports/comparatives?${params}`,
                 {
                     credentials: 'include',
                     headers: { 'Accept': 'application/json' },
