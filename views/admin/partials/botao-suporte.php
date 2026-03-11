@@ -97,6 +97,13 @@ $planTier     = $planTier     ?? 'free';
 
     <!-- Aba: Assistente IA -->
     <div class="lk-chat-body lk-tab-content" id="panelAI">
+        <!-- Barra de ações do chat IA -->
+        <div class="lk-ai-toolbar">
+            <button class="lk-ai-new-conv-btn" id="aiNewConversation" title="Iniciar nova conversa">
+                <i data-lucide="message-square-plus" style="width:14px;height:14px;"></i>
+                Nova Conversa
+            </button>
+        </div>
         <!-- Chat de IA (disponível para todos os planos) -->
         <div class="lk-ai-chat-area" id="aiChatArea">
             <div class="lk-ai-messages" id="aiMessages">

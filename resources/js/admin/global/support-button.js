@@ -100,9 +100,27 @@
     }
 
     closeBtn.addEventListener('click', function () {
+        // Fechar = encerrar conversa (próxima abertura cria nova)
+        currentConvId = null;
+        clearMessages();
+        if (aiEmpty) aiEmpty.style.display = '';
         panel.classList.remove('open');
         closeFab();
     });
+
+    // ── Botão Nova Conversa ────────────────────────────────────
+    const aiNewConvBtn = document.getElementById('aiNewConversation');
+    if (aiNewConvBtn) {
+        aiNewConvBtn.addEventListener('click', async function () {
+            if (aiLoading) return;
+            currentConvId = null;
+            clearMessages();
+            if (aiEmpty) aiEmpty.style.display = '';
+            await createConversation();
+            if (aiInput) aiInput.focus();
+            loadQuota();
+        });
+    }
 
     // Close on outside click
     document.addEventListener('click', function (e) {
