@@ -9,9 +9,12 @@ class CacheService
 {
     private ?PredisClient $redis = null;
     private bool $enabled = false;
+    private string $fileCacheDir;
 
     public function __construct()
     {
+        $this->fileCacheDir = ($_ENV['STORAGE_PATH'] ?? dirname(__DIR__, 2) . '/storage') . '/cache';
+
         // Carrega configurações do ENV...
         $this->enabled = ($_ENV['REDIS_ENABLED'] ?? 'false') === 'true';
 
@@ -39,13 +42,63 @@ class CacheService
         } catch (\Throwable $e) {
             $this->enabled = false;
             $this->redis = null;
-            error_log('[CacheService] Redis indisponível: ' . $e->getMessage());
+            error_log('[CacheService] Redis indisponível, usando file cache fallback: ' . $e->getMessage());
         }
     }
 
     public function isEnabled(): bool
     {
         return $this->enabled && $this->redis !== null;
+    }
+
+    // ── File-based cache fallback ──────────────────────────────
+
+    private function fileCachePath(string $key): string
+    {
+        return $this->fileCacheDir . '/' . sha1($key) . '.cache';
+    }
+
+    private function fileSet(string $key, mixed $value, int $ttl): bool
+    {
+        if (!is_dir($this->fileCacheDir)) {
+            mkdir($this->fileCacheDir, 0755, true);
+        }
+        $payload = json_encode([
+            'expires' => time() + $ttl,
+            'value'   => $value,
+        ], JSON_THROW_ON_ERROR);
+        return file_put_contents($this->fileCachePath($key), $payload, LOCK_EX) !== false;
+    }
+
+    private function fileGet(string $key, mixed $default = null): mixed
+    {
+        $path = $this->fileCachePath($key);
+        if (!file_exists($path)) {
+            return $default;
+        }
+        $raw = file_get_contents($path);
+        if ($raw === false) {
+            return $default;
+        }
+        $data = json_decode($raw, true);
+        if (!is_array($data) || !isset($data['expires'], $data['value'])) {
+            @unlink($path);
+            return $default;
+        }
+        if ($data['expires'] < time()) {
+            @unlink($path);
+            return $default;
+        }
+        return $data['value'];
+    }
+
+    private function fileForget(string $key): bool
+    {
+        $path = $this->fileCachePath($key);
+        if (file_exists($path)) {
+            return @unlink($path);
+        }
+        return false;
     }
 
     /**
@@ -99,7 +152,7 @@ class CacheService
 
     public function set(string $key, mixed $value, int $ttl = 300): bool
     {
-        if (!$this->isEnabled()) return false;
+        if (!$this->isEnabled()) return $this->fileSet($key, $value, $ttl);
         try {
             // Prefer JSON for safety. If value is not JSON-serializable, fall back
             // to a restricted unserialize-safe format.
@@ -121,7 +174,7 @@ class CacheService
 
     public function get(string $key, mixed $default = null): mixed
     {
-        if (!$this->isEnabled()) return $default;
+        if (!$this->isEnabled()) return $this->fileGet($key, $default);
         try {
             $raw = $this->redis->get($key);
             if ($raw === null) return $default;
@@ -168,7 +221,7 @@ class CacheService
 
     public function forget(string $key): bool
     {
-        if (!$this->isEnabled()) return false;
+        if (!$this->isEnabled()) return $this->fileForget($key);
         try {
             return (int) $this->redis->del([$key]) > 0;
         } catch (\Throwable $e) {
