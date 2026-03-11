@@ -338,7 +338,7 @@ main.lukrato-auth::before {
 }
 
 .card[data-active="register"].captcha-visible .flip-inner {
-  min-height: 750px;
+  min-height: 900px;
 }
 
 .card[data-active="register"].captcha-visible {

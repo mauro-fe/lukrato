@@ -74,6 +74,8 @@ class Usuario extends Model
 
     use SoftDeletes;
 
+    /** @var AssinaturaUsuario|null|false  false = not loaded yet */
+    private $cachedAssinatura = false;
 
     public function setSenhaAttribute($value): void
     {
@@ -192,9 +194,22 @@ class Usuario extends Model
     }
 
 
+    protected function resolvedAssinatura(): ?AssinaturaUsuario
+    {
+        if ($this->cachedAssinatura === false) {
+            $this->cachedAssinatura = $this->assinaturaAtiva()->with('plano')->first();
+        }
+        return $this->cachedAssinatura;
+    }
+
+    public function clearAssinaturaCache(): void
+    {
+        $this->cachedAssinatura = false;
+    }
+
     public function planoAtual()
     {
-        return $this->assinaturaAtiva()->with('plano')->first()?->plano;
+        return $this->resolvedAssinatura()?->plano;
     }
 
     /**
@@ -302,12 +317,6 @@ class Usuario extends Model
                 $u->data_nascimento = $ts ? date('Y-m-d', $ts) : null;
             }
 
-            if ($u->isDirty('senha')) {
-                $raw = (string) $u->senha;
-                if ($raw !== '' && !self::valueLooksHashed($raw)) {
-                    $u->attributes['senha'] = password_hash($raw, PASSWORD_BCRYPT);
-                }
-            }
         });
     }
 
@@ -335,7 +344,7 @@ class Usuario extends Model
 
     public function isPro(): bool
     {
-        $assinatura = $this->assinaturaAtiva()->with('plano')->first();
+        $assinatura = $this->resolvedAssinatura();
 
         if (!$assinatura) {
             return false;
@@ -392,12 +401,12 @@ class Usuario extends Model
 
     public function isGratuito(): bool
     {
-        return in_array($this->planoAtual()?->code, ['free', 'gratuito', null], true);
+        return !$this->isPro();
     }
 
     public function isUltra(): bool
     {
-        return $this->isPro() && strtolower((string) ($this->planoAtual()?->code ?? '')) === 'ultra';
+        return $this->isPro() && strtolower((string) ($this->resolvedAssinatura()?->plano?->code ?? '')) === 'ultra';
     }
 
     /**
@@ -410,8 +419,7 @@ class Usuario extends Model
 
     public function getPlanRenewsAtAttribute(): ?string
     {
-        $ass = $this->assinaturaAtiva()->first();
-        return $ass?->renova_em?->format('Y-m-d H:i:s');
+        return $this->resolvedAssinatura()?->renova_em?->format('Y-m-d H:i:s');
     }
 
     public function podeAcessar(string $feature): bool

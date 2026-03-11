@@ -9,6 +9,7 @@ use Application\Services\Auth\EmailVerificationService;
 use Application\Middlewares\CsrfMiddleware;
 use Application\Models\Usuario;
 use Application\Core\Response;
+use Application\Core\Exceptions\ValidationException;
 use Application\Services\Infrastructure\LogService;
 
 /**
@@ -54,8 +55,12 @@ class EmailVerificationController extends BaseController
      */
     public function resend(): void
     {
-        // Valida CSRF
-        CsrfMiddleware::handle($this->request, 'verify_email_form');
+        // Valida CSRF — aceita token da página de verificação OU do login
+        try {
+            CsrfMiddleware::handle($this->request, 'verify_email_form');
+        } catch (ValidationException) {
+            CsrfMiddleware::handle($this->request, 'login_form');
+        }
 
         $isAjax = $this->request->isAjax();
 
