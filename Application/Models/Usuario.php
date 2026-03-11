@@ -55,6 +55,8 @@ class Usuario extends Model
         'registration_ip',
         'last_login_ip',
         'support_code',
+        'telegram_chat_id',
+        'telegram_verified',
     ];
 
     protected $hidden = ['senha', 'password', 'email_verification_token'];
@@ -66,6 +68,7 @@ class Usuario extends Model
         'email_verified_at' => 'datetime',
         'email_verification_sent_at' => 'datetime',
         'email_verification_reminder_sent_at' => 'datetime',
+        'telegram_verified' => 'boolean',
     ];
     protected $appends = ['primeiro_nome', 'plan_renews_at', 'is_pro', 'is_gratuito', 'is_ultra', 'plan_tier', 'onboarding_completed'];
 

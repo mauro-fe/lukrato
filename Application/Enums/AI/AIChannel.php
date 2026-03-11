@@ -19,6 +19,9 @@ enum AIChannel: string
     /** Chamada programática via API */
     case API = 'api';
 
+    /** Mensagem via Telegram Bot */
+    case TELEGRAM = 'telegram';
+
     /** Dashboard do sysadmin */
     case ADMIN = 'admin';
 
@@ -30,6 +33,7 @@ enum AIChannel: string
         return match ($this) {
             self::WEB       => 1500,
             self::WHATSAPP  => 300,
+            self::TELEGRAM  => 300,
             self::API       => 1500,
             self::ADMIN     => 2000,
         };

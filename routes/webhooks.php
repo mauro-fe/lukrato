@@ -24,6 +24,9 @@ if (!defined('APP_ENV') || APP_ENV !== 'production') {
 Router::add('GET',  '/api/webhook/whatsapp', 'Api\\AI\\WhatsAppWebhookController@verify');
 Router::add('POST', '/api/webhook/whatsapp', 'Api\\AI\\WhatsAppWebhookController@receive');
 
+// Telegram (Bot API)
+Router::add('POST', '/api/webhook/telegram', 'Api\\AI\\TelegramWebhookController@receive');
+
 /**
  * ============================================
  * SCHEDULER / CRON JOBS VIA HTTP

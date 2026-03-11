@@ -370,6 +370,11 @@ Router::add('POST', '/api/whatsapp/verify', 'Api\\AI\\WhatsAppLinkController@ver
 Router::add('POST', '/api/whatsapp/unlink', 'Api\\AI\\WhatsAppLinkController@unlink',       ['auth', 'csrf', 'ratelimit']);
 Router::add('GET',  '/api/whatsapp/status', 'Api\\AI\\WhatsAppLinkController@status',       ['auth']);
 
+// Telegram — Vínculo de conta
+Router::add('POST', '/api/telegram/link',   'Api\\AI\\TelegramLinkController@requestLink',  ['auth', 'csrf', 'ratelimit']);
+Router::add('POST', '/api/telegram/unlink', 'Api\\AI\\TelegramLinkController@unlink',       ['auth', 'csrf', 'ratelimit']);
+Router::add('GET',  '/api/telegram/status', 'Api\\AI\\TelegramLinkController@status',       ['auth']);
+
 // ============================================// IA (SYSADMIN)
 // ============================================
 
