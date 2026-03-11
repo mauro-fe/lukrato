@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -30,11 +32,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $created_by
  * @property string $status
  * @property \Carbon\Carbon|null $sent_at
+ * @property \Carbon\Carbon|null $scheduled_at
+ * @property int|null $cupom_id
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * 
  * @property-read Usuario $creator
+ * @property-read Cupom|null $cupom
  * @property-read \Illuminate\Database\Eloquent\Collection|Notification[] $notifications
+ * @property-read bool $is_scheduled
  *
  * @method static \Illuminate\Database\Eloquent\Builder where(string $column, $operator = null, $value = null, string $boolean = 'and')
  * @method static \Illuminate\Database\Eloquent\Model|null find(int|string $id)
@@ -85,8 +91,10 @@ class MessageCampaign extends Model
         'emails_failed',
         'notifications_read',
         'created_by',
+        'cupom_id',
         'status',
         'sent_at',
+        'scheduled_at',
     ];
 
     protected $casts = [
@@ -98,7 +106,9 @@ class MessageCampaign extends Model
         'emails_failed' => 'integer',
         'notifications_read' => 'integer',
         'created_by' => 'integer',
+        'cupom_id' => 'integer',
         'sent_at' => 'datetime',
+        'scheduled_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -109,6 +119,14 @@ class MessageCampaign extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'created_by');
+    }
+
+    /**
+     * Cupom vinculado à campanha (opcional)
+     */
+    public function cupom(): BelongsTo
+    {
+        return $this->belongsTo(Cupom::class, 'cupom_id');
     }
 
     /**
@@ -237,10 +255,24 @@ class MessageCampaign extends Model
     }
 
     /**
+     * Verifica se a campanha é agendada (draft com scheduled_at)
+     */
+    public function getIsScheduledAttribute(): bool
+    {
+        return $this->status === self::STATUS_DRAFT && $this->scheduled_at !== null;
+    }
+
+    /**
      * Retorna badge de status
      */
     public function getStatusBadgeAttribute(): array
     {
+        // Status especial para campanhas agendadas
+        if ($this->is_scheduled) {
+            $label = 'Agendada ' . $this->scheduled_at->format('d/m H:i');
+            return ['label' => $label, 'color' => '#6366f1', 'icon' => 'clock'];
+        }
+
         return match ($this->status) {
             self::STATUS_DRAFT => ['label' => 'Rascunho', 'color' => '#6b7280'],
             self::STATUS_SENDING => ['label' => 'Enviando...', 'color' => '#f59e0b'],
@@ -257,6 +289,16 @@ class MessageCampaign extends Model
     public function scopeSent($query)
     {
         return $query->whereIn('status', [self::STATUS_SENT, self::STATUS_PARTIAL]);
+    }
+
+    /**
+     * Scope: Campanhas agendadas prontas para envio
+     */
+    public function scopeReadyToSend(Builder $query): Builder
+    {
+        return $query->where('status', self::STATUS_DRAFT)
+            ->whereNotNull('scheduled_at')
+            ->where('scheduled_at', '<=', Carbon::now());
     }
 
     /**

@@ -6,6 +6,7 @@ use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Models\Cupom;
 use Application\Models\CupomUsado;
+use Application\Models\AssinaturaUsuario;
 use Application\Lib\Auth;
 use Illuminate\Database\Capsule\Manager as DB;
 
@@ -39,12 +40,12 @@ class CupomController extends BaseController
     private function atualizarCuponsExpirados(): void
     {
         try {
-            $hoje = date('Y-m-d');
+            $agora = date('Y-m-d H:i:s');
 
-            // Atualizar cupons que venceram (data menor que hoje e ainda ativos)
+            // Atualizar cupons que venceram (valido_ate é DATETIME — comparar com precisão)
             Cupom::where('ativo', 1)
                 ->whereNotNull('valido_ate')
-                ->where('valido_ate', '<', $hoje)
+                ->where('valido_ate', '<', $agora)
                 ->update(['ativo' => 0]);
 
             // Atualizar cupons que atingiram o limite de uso
@@ -261,17 +262,7 @@ class CupomController extends BaseController
                 return;
             }
 
-            // Verificar se o usuário já usou este cupom
-            $user = Auth::user();
-            $jaUsou = CupomUsado::where('cupom_id', $cupom->id)
-                ->where('usuario_id', $user->id)
-                ->exists();
-
-            if ($jaUsou) {
-                Response::error('Você já utilizou este cupom anteriormente', 400);
-                return;
-            }
-
+            // Verificar validade antes de verificar uso (mensagem mais precisa)
             if (!$cupom->isValid()) {
                 $motivo = 'Cupom inválido';
 
@@ -284,6 +275,24 @@ class CupomController extends BaseController
                 }
 
                 Response::error($motivo, 400);
+                return;
+            }
+
+            // Verificar se o usuário já usou este cupom
+            $user = Auth::user();
+            $jaUsou = CupomUsado::where('cupom_id', $cupom->id)
+                ->where('usuario_id', $user->id)
+                ->exists();
+
+            if ($jaUsou) {
+                Response::error('Você já utilizou este cupom anteriormente', 400);
+                return;
+            }
+
+            // Verificar elegibilidade (primeira assinatura / win-back)
+            $elegibilidadeErro = $this->verificarElegibilidade($user, $cupom);
+            if ($elegibilidadeErro) {
+                Response::error($elegibilidadeErro, 400);
                 return;
             }
 
@@ -302,6 +311,65 @@ class CupomController extends BaseController
             error_log("Erro ao validar cupom: " . $e->getMessage());
             Response::error('Erro ao validar cupom: ' . $e->getMessage(), 500);
         }
+    }
+
+    /**
+     * Verifica elegibilidade do usuário para usar o cupom (primeira assinatura / win-back)
+     * Retorna null se elegível, ou string com mensagem de erro
+     */
+    private function verificarElegibilidade($user, Cupom $cupom): ?string
+    {
+        // Buscar assinaturas efetivas (que realmente foram pagas)
+        $assinaturasEfetivas = AssinaturaUsuario::where('user_id', $user->id)
+            ->where('gateway', 'asaas')
+            ->whereIn('status', [
+                AssinaturaUsuario::ST_ACTIVE,
+                AssinaturaUsuario::ST_CANCELED,
+                AssinaturaUsuario::ST_EXPIRED,
+                AssinaturaUsuario::ST_PAST_DUE,
+                AssinaturaUsuario::ST_PAUSED,
+            ]);
+
+        // Sem assinatura anterior = novo cliente, pode usar qualquer cupom
+        if (!$assinaturasEfetivas->exists()) {
+            return null;
+        }
+
+        // Usuário já foi assinante — verificar se cupom permite reativação
+        if ($cupom->permite_reativacao ?? false) {
+            $mesesInatividade = $cupom->meses_inatividade_reativacao ?? 3;
+
+            // Se tem assinatura ativa agora, não pode usar cupom de win-back
+            $temAtiva = AssinaturaUsuario::where('user_id', $user->id)
+                ->where('gateway', 'asaas')
+                ->where('status', AssinaturaUsuario::ST_ACTIVE)
+                ->exists();
+
+            if ($temAtiva) {
+                return 'Você já possui uma assinatura ativa.';
+            }
+
+            // Verificar última assinatura cancelada/expirada
+            $ultimaAssinatura = AssinaturaUsuario::where('user_id', $user->id)
+                ->where('gateway', 'asaas')
+                ->whereIn('status', [AssinaturaUsuario::ST_CANCELED, AssinaturaUsuario::ST_EXPIRED])
+                ->orderBy('updated_at', 'desc')
+                ->first();
+
+            if ($ultimaAssinatura) {
+                $dataRef = $ultimaAssinatura->cancelada_em ?? $ultimaAssinatura->updated_at;
+                $mesesDesde = now()->diffInMonths($dataRef);
+
+                if ($mesesDesde >= $mesesInatividade) {
+                    return null; // Win-back elegível
+                }
+
+                return "Este cupom é válido para ex-assinantes inativos há pelo menos {$mesesInatividade} meses.";
+            }
+        }
+
+        // Cupom sem permissão de reativação e usuário já foi assinante
+        return 'Este cupom é válido apenas para a primeira assinatura.';
     }
 
     /**

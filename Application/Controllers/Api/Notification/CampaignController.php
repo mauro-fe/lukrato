@@ -7,8 +7,10 @@ namespace Application\Controllers\Api\Notification;
 use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Lib\Auth;
+use Application\Models\Cupom;
 use Application\Models\MessageCampaign;
 use Application\Services\Communication\NotificationService;
+use Carbon\Carbon;
 use Exception;
 
 /**
@@ -108,6 +110,19 @@ class CampaignController extends BaseController
             $link = !empty($payload['link']) ? trim($payload['link']) : null;
             $linkText = !empty($payload['link_text']) ? trim($payload['link_text']) : null;
 
+            // Validar URL do link (prevenir protocolos maliciosos)
+            if ($link !== null) {
+                if (!filter_var($link, FILTER_VALIDATE_URL)) {
+                    Response::error('O link informado não é uma URL válida', 400);
+                    return;
+                }
+                $scheme = parse_url($link, PHP_URL_SCHEME);
+                if (!in_array(strtolower($scheme), ['http', 'https'])) {
+                    Response::error('O link deve usar protocolo http ou https', 400);
+                    return;
+                }
+            }
+
             // Filtros
             $filters = [
                 'plan' => $payload['filters']['plan'] ?? 'all',
@@ -119,6 +134,24 @@ class CampaignController extends BaseController
                     ? (bool) $payload['filters']['email_verified']
                     : null,
             ];
+
+            // Validar valores dos filtros
+            $validPlans = ['all', 'free', 'pro'];
+            if (!in_array($filters['plan'], $validPlans)) {
+                Response::error('Filtro de plano inválido', 400);
+                return;
+            }
+
+            $validStatuses = ['all', 'active', 'inactive'];
+            if (!in_array($filters['status'], $validStatuses)) {
+                Response::error('Filtro de status inválido', 400);
+                return;
+            }
+
+            if ($filters['days_inactive'] !== null && ($filters['days_inactive'] < 1 || $filters['days_inactive'] > 365)) {
+                Response::error('Dias de inatividade deve estar entre 1 e 365', 400);
+                return;
+            }
 
             // Validar que pelo menos um canal está selecionado
             if (!$sendNotification && !$sendEmail) {
@@ -133,6 +166,33 @@ class CampaignController extends BaseController
                 return;
             }
 
+            // Agendamento (opcional)
+            $scheduledAt = null;
+            if (!empty($payload['scheduled_at'])) {
+                try {
+                    $scheduledDate = Carbon::parse($payload['scheduled_at']);
+                    if ($scheduledDate->lte(Carbon::now())) {
+                        Response::error('A data de agendamento deve ser no futuro', 400);
+                        return;
+                    }
+                    $scheduledAt = $scheduledDate->format('Y-m-d H:i:s');
+                } catch (\Exception $e) {
+                    Response::error('Data de agendamento inválida', 400);
+                    return;
+                }
+            }
+
+            // Cupom vinculado (opcional)
+            $cupomId = null;
+            if (!empty($payload['cupom_id'])) {
+                $cupom = Cupom::find((int) $payload['cupom_id']);
+                if (!$cupom || !$cupom->isValid()) {
+                    Response::error('Cupom inválido ou expirado', 400);
+                    return;
+                }
+                $cupomId = $cupom->id;
+            }
+
             // Criar e enviar campanha
             $campaign = $this->notificationService->sendCampaign(
                 $admin->id,
@@ -143,19 +203,32 @@ class CampaignController extends BaseController
                 $sendNotification,
                 $sendEmail,
                 $link,
-                $linkText
+                $linkText,
+                $scheduledAt,
+                $cupomId
             );
 
-            error_log("📢 [CAMPAIGN] Campanha #{$campaign->id} enviada por {$admin->nome} (ID: {$admin->id}) - {$campaign->total_recipients} destinatários");
+            if ($scheduledAt) {
+                error_log("📅 [CAMPAIGN] Campanha #{$campaign->id} agendada por {$admin->nome} (ID: {$admin->id}) para {$scheduledAt}");
 
-            Response::success([
-                'campaign_id' => $campaign->id,
-                'title' => $campaign->title,
-                'total_recipients' => $campaign->total_recipients,
-                'emails_sent' => $campaign->emails_sent,
-                'emails_failed' => $campaign->emails_failed,
-                'status' => $campaign->status,
-            ], 'Campanha enviada com sucesso');
+                Response::success([
+                    'campaign_id' => $campaign->id,
+                    'title' => $campaign->title,
+                    'status' => $campaign->status,
+                    'scheduled_at' => $campaign->scheduled_at->format('d/m/Y H:i'),
+                ], 'Campanha agendada com sucesso');
+            } else {
+                error_log("📢 [CAMPAIGN] Campanha #{$campaign->id} enviada por {$admin->nome} (ID: {$admin->id}) - {$campaign->total_recipients} destinatários");
+
+                Response::success([
+                    'campaign_id' => $campaign->id,
+                    'title' => $campaign->title,
+                    'total_recipients' => $campaign->total_recipients,
+                    'emails_sent' => $campaign->emails_sent,
+                    'emails_failed' => $campaign->emails_failed,
+                    'status' => $campaign->status,
+                ], 'Campanha enviada com sucesso');
+            }
         } catch (Exception $e) {
             error_log("[CampaignController] Erro ao criar campanha: " . $e->getMessage());
             Response::error('Erro ao enviar campanha: ' . $e->getMessage(), 500);
@@ -254,7 +327,7 @@ class CampaignController extends BaseController
         }
 
         try {
-            $campaign = MessageCampaign::with('creator:id,nome,email')->find($id);
+            $campaign = MessageCampaign::with(['creator:id,nome,email', 'cupom:id,codigo,tipo_desconto,valor_desconto'])->find($id);
 
             if (!$campaign) {
                 Response::error('Campanha não encontrada', 404);
@@ -283,6 +356,13 @@ class CampaignController extends BaseController
                 'email_success_rate' => $campaign->email_success_rate,
                 'status' => $campaign->status,
                 'status_badge' => $campaign->status_badge,
+                'is_scheduled' => $campaign->is_scheduled,
+                'scheduled_at' => $campaign->scheduled_at?->format('d/m/Y H:i'),
+                'cupom' => $campaign->cupom ? [
+                    'id' => $campaign->cupom->id,
+                    'codigo' => $campaign->cupom->codigo,
+                    'desconto_formatado' => $campaign->cupom->getDescontoFormatado(),
+                ] : null,
                 'creator' => [
                     'id' => $campaign->creator->id ?? null,
                     'nome' => $campaign->creator->nome ?? 'Sistema',
@@ -294,6 +374,51 @@ class CampaignController extends BaseController
         } catch (Exception $e) {
             error_log("[CampaignController] Erro ao obter campanha: " . $e->getMessage());
             Response::error('Erro ao obter campanha: ' . $e->getMessage(), 500);
+        }
+    }
+
+    // =========================================================================
+    // AGENDAMENTO
+    // =========================================================================
+
+    /**
+     * POST /api/campaigns/{id}/cancel
+     * Cancela uma campanha agendada (status draft com scheduled_at)
+     */
+    public function cancelScheduled(int $id): void
+    {
+        $this->requireAuthApi();
+
+        if (!$this->requireAdmin()) {
+            return;
+        }
+
+        try {
+            $campaign = MessageCampaign::find($id);
+
+            if (!$campaign) {
+                Response::error('Campanha não encontrada', 404);
+                return;
+            }
+
+            if (!$campaign->is_scheduled) {
+                Response::error('Esta campanha não está agendada', 400);
+                return;
+            }
+
+            $campaign->status = MessageCampaign::STATUS_FAILED;
+            $campaign->scheduled_at = null;
+            $campaign->save();
+
+            error_log("❌ [CAMPAIGN] Campanha agendada #{$campaign->id} cancelada");
+
+            Response::success([
+                'campaign_id' => $campaign->id,
+                'status' => $campaign->status,
+            ], 'Campanha agendada cancelada com sucesso');
+        } catch (Exception $e) {
+            error_log("[CampaignController] Erro ao cancelar campanha: " . $e->getMessage());
+            Response::error('Erro ao cancelar campanha: ' . $e->getMessage(), 500);
         }
     }
 

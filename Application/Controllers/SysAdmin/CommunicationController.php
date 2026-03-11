@@ -6,6 +6,7 @@ namespace Application\Controllers\SysAdmin;
 
 use Application\Controllers\BaseController;
 use Application\Lib\Auth;
+use Application\Models\Cupom;
 use Application\Models\MessageCampaign;
 use Application\Services\Communication\NotificationService;
 
@@ -38,6 +39,15 @@ class CommunicationController extends BaseController
         $statusOptions = MessageCampaign::getStatusOptions();
         $inactiveDaysOptions = MessageCampaign::getInactiveDaysOptions();
 
+        // Cupons ativos para vincular à campanha
+        $cuponsAtivos = Cupom::where('ativo', true)
+            ->where(function ($q) {
+                $q->whereNull('valido_ate')
+                    ->orWhere('valido_ate', '>', now());
+            })
+            ->orderBy('codigo')
+            ->get();
+
         $this->render(
             'admin/sysadmin/communications',
             [
@@ -49,6 +59,7 @@ class CommunicationController extends BaseController
                 'planOptions' => $planOptions,
                 'statusOptions' => $statusOptions,
                 'inactiveDaysOptions' => $inactiveDaysOptions,
+                'cuponsAtivos' => $cuponsAtivos,
             ],
             'admin/partials/header',
             'admin/partials/footer'

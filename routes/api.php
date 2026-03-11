@@ -395,6 +395,7 @@ Router::add('GET',  '/api/campaigns/options',        'Api\\Notification\\Campaig
 Router::add('GET',  '/api/campaigns/birthdays',      'Api\\Notification\\CampaignController@birthdays',    ['auth', 'sysadmin']);
 Router::add('POST', '/api/campaigns/birthdays/send', 'Api\\Notification\\CampaignController@sendBirthdays', ['auth', 'sysadmin', 'csrf', 'ratelimit']);
 Router::add('GET',  '/api/campaigns/{id}',           'Api\\Notification\\CampaignController@show',         ['auth', 'sysadmin']);
+Router::add('POST', '/api/campaigns/{id}/cancel',    'Api\\Notification\\CampaignController@cancelScheduled', ['auth', 'sysadmin', 'csrf', 'ratelimit']);
 
 // ============================================
 // NOTIFICAÇÕES (USUÁRIO)

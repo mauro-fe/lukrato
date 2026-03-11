@@ -31,6 +31,7 @@ class NotificationService
 {
     private MailService $mailService;
     private LoggerInterface $logger;
+    private ?array $cachedProUserIds = null;
 
     public function __construct(?MailService $mailService = null, ?LoggerInterface $logger = null)
     {
@@ -164,7 +165,9 @@ class NotificationService
         bool $sendNotification = true,
         bool $sendEmail = false,
         ?string $link = null,
-        ?string $linkText = null
+        ?string $linkText = null,
+        ?string $scheduledAt = null,
+        ?int $cupomId = null
     ): MessageCampaign {
         // Validar admin
         $admin = Usuario::find($adminId);
@@ -172,7 +175,32 @@ class NotificationService
             throw new Exception('Apenas administradores podem enviar campanhas.');
         }
 
-        // Criar campanha
+        // Se agendada, criar como draft e retornar sem enviar
+        if ($scheduledAt) {
+            $campaign = MessageCampaign::create([
+                'title' => $title,
+                'message' => $message,
+                'link' => $link,
+                'link_text' => $linkText,
+                'type' => $type,
+                'filters' => $filters,
+                'send_notification' => $sendNotification,
+                'send_email' => $sendEmail,
+                'created_by' => $adminId,
+                'cupom_id' => $cupomId,
+                'status' => MessageCampaign::STATUS_DRAFT,
+                'scheduled_at' => $scheduledAt,
+            ]);
+
+            $this->logger->info('[NotificationService] Campanha agendada', [
+                'campaign_id' => $campaign->id,
+                'scheduled_at' => $scheduledAt,
+            ]);
+
+            return $campaign;
+        }
+
+        // Criar campanha para envio imediato
         $campaign = MessageCampaign::create([
             'title' => $title,
             'message' => $message,
@@ -183,6 +211,7 @@ class NotificationService
             'send_notification' => $sendNotification,
             'send_email' => $sendEmail,
             'created_by' => $adminId,
+            'cupom_id' => $cupomId,
             'status' => MessageCampaign::STATUS_SENDING,
         ]);
 
@@ -192,12 +221,20 @@ class NotificationService
             'filters' => $filters,
         ]);
 
+        return $this->executeCampaignSend($campaign);
+    }
+
+    /**
+     * Executa o envio efetivo de uma campanha (usado por envio imediato e agendado)
+     */
+    public function executeCampaignSend(MessageCampaign $campaign): MessageCampaign
+    {
         try {
-            // Buscar usuários que correspondem aos filtros
-            $users = $this->getUsersByFilters($filters);
-            $totalRecipients = count($users);
+            // Contar destinatários primeiro (query leve)
+            $totalRecipients = $this->countUsersByFilters($campaign->filters ?? []);
 
             $campaign->total_recipients = $totalRecipients;
+            $campaign->status = MessageCampaign::STATUS_SENDING;
             $campaign->save();
 
             if ($totalRecipients === 0) {
@@ -215,35 +252,47 @@ class NotificationService
             $emailsSent = 0;
             $emailsFailed = 0;
 
-            // Processar cada usuário
-            foreach ($users as $user) {
-                // Criar notificação interna
-                if ($sendNotification) {
-                    $this->createNotification(
-                        $user->id,
-                        $title,
-                        $message,
-                        $type,
-                        $link,
-                        $campaign->id
-                    );
-                }
+            // Carregar cupom vinculado (se houver)
+            $cupom = $campaign->cupom_id ? $campaign->cupom : null;
 
-                // Enviar email
-                if ($sendEmail && !empty($user->email)) {
-                    try {
-                        $this->sendCampaignEmail($user, $campaign);
-                        $emailsSent++;
-                    } catch (Exception $e) {
-                        $emailsFailed++;
-                        $this->logger->error('[NotificationService] Falha ao enviar email', [
-                            'campaign_id' => $campaign->id,
-                            'user_id' => $user->id,
-                            'error' => $e->getMessage(),
-                        ]);
-                    }
-                }
+            // Acrescentar info do cupom à mensagem da notificação
+            $notificationMessage = $campaign->message;
+            if ($cupom) {
+                $notificationMessage .= "\n\nUse o cupom {$cupom->codigo} para ganhar {$cupom->getDescontoFormatado()} de desconto!";
             }
+
+            // Processar em lotes para evitar estouro de memória
+            $this->buildFilteredUsersQuery($campaign->filters ?? [])
+                ->chunk(200, function ($users) use ($campaign, $cupom, $notificationMessage, &$emailsSent, &$emailsFailed) {
+                    foreach ($users as $user) {
+                        // Criar notificação interna
+                        if ($campaign->send_notification) {
+                            $this->createNotification(
+                                $user->id,
+                                $campaign->title,
+                                $notificationMessage,
+                                $campaign->type,
+                                $campaign->link,
+                                $campaign->id
+                            );
+                        }
+
+                        // Enviar email
+                        if ($campaign->send_email && !empty($user->email)) {
+                            try {
+                                $this->sendCampaignEmail($user, $campaign);
+                                $emailsSent++;
+                            } catch (Exception $e) {
+                                $emailsFailed++;
+                                $this->logger->error('[NotificationService] Falha ao enviar email', [
+                                    'campaign_id' => $campaign->id,
+                                    'user_id' => $user->id,
+                                    'error' => $e->getMessage(),
+                                ]);
+                            }
+                        }
+                    }
+                });
 
             // Atualizar estatísticas
             $campaign->emails_sent = $emailsSent;
@@ -276,11 +325,49 @@ class NotificationService
     }
 
     /**
+     * Processa campanhas agendadas cujo horário já chegou
+     */
+    public function processScheduledCampaigns(): array
+    {
+        $stats = ['processed' => 0, 'sent' => 0, 'failed' => 0];
+
+        $campaigns = MessageCampaign::readyToSend()->get();
+
+        foreach ($campaigns as $campaign) {
+            $stats['processed']++;
+            try {
+                $this->executeCampaignSend($campaign);
+                $stats['sent']++;
+
+                $this->logger->info('[NotificationService] Campanha agendada enviada', [
+                    'campaign_id' => $campaign->id,
+                ]);
+            } catch (Exception $e) {
+                $stats['failed']++;
+                $this->logger->error('[NotificationService] Falha na campanha agendada', [
+                    'campaign_id' => $campaign->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return $stats;
+    }
+
+    /**
      * Busca usuários que correspondem aos filtros
      * 
      * @return Usuario[]
      */
     public function getUsersByFilters(array $filters): array
+    {
+        return $this->buildFilteredUsersQuery($filters)->get()->all();
+    }
+
+    /**
+     * Constrói a query filtrada de usuários (reutilizável por get e count)
+     */
+    private function buildFilteredUsersQuery(array $filters): Builder
     {
         $query = Usuario::query()
             ->whereNull('deleted_at')
@@ -289,51 +376,40 @@ class NotificationService
         // Filtro por plano
         $plan = $filters['plan'] ?? 'all';
         if ($plan === 'free') {
-            // Usuários sem assinatura ativa PRO
             $proUserIds = $this->getProUserIds();
-            $query->whereNotIn('id', $proUserIds);
+            if (!empty($proUserIds)) {
+                $query->whereNotIn('id', $proUserIds);
+            }
         } elseif ($plan === 'pro') {
-            // Usuários com assinatura ativa PRO
             $proUserIds = $this->getProUserIds();
-            $query->whereIn('id', $proUserIds);
+            if (empty($proUserIds)) {
+                $query->whereRaw('1 = 0'); // Nenhum usuário PRO
+            } else {
+                $query->whereIn('id', $proUserIds);
+            }
         }
 
-        // Filtro por status de atividade (baseado em last_activity_date do UserProgress)
+        // Filtro por status de atividade (LEFT JOIN com user_progress)
         $status = $filters['status'] ?? 'all';
         $daysInactive = $filters['days_inactive'] ?? null;
 
         if ($status === 'inactive' || $daysInactive) {
-            $days = $daysInactive ?: 30; // Default: 30 dias
-            $cutoffDate = Carbon::now()->subDays($days);
+            $days = $daysInactive ?: 30;
+            $cutoffDate = Carbon::now()->subDays($days)->toDateTimeString();
 
-            // Subquery para usuários inativos
-            $inactiveUserIds = UserProgress::where('last_activity_date', '<', $cutoffDate)
-                ->orWhereNull('last_activity_date')
-                ->pluck('user_id')
-                ->toArray();
-
-            // Incluir também usuários sem registro em UserProgress
-            $usersWithProgress = UserProgress::pluck('user_id')->toArray();
-            $usersWithoutProgress = Usuario::whereNotIn('id', $usersWithProgress)
-                ->pluck('id')
-                ->toArray();
-
-            $allInactiveIds = array_unique(array_merge($inactiveUserIds, $usersWithoutProgress));
-
-            if ($status === 'inactive') {
-                $query->whereIn('id', $allInactiveIds);
-            } else {
-                // Apenas filtro de dias inativos
-                $query->whereIn('id', $allInactiveIds);
-            }
+            // Usuários inativos: sem registro em user_progress OU last_activity_date < cutoff
+            $query->leftJoin('user_progress', 'usuarios.id', '=', 'user_progress.user_id')
+                ->where(function ($q) use ($cutoffDate) {
+                    $q->whereNull('user_progress.user_id')
+                        ->orWhereNull('user_progress.last_activity_date')
+                        ->orWhere('user_progress.last_activity_date', '<', $cutoffDate);
+                })
+                ->select('usuarios.*');
         } elseif ($status === 'active') {
-            // Usuários com atividade recente (últimos 7 dias por padrão)
-            $cutoffDate = Carbon::now()->subDays(7);
-            $activeUserIds = UserProgress::where('last_activity_date', '>=', $cutoffDate)
-                ->pluck('user_id')
-                ->toArray();
-
-            $query->whereIn('id', $activeUserIds);
+            $cutoffDate = Carbon::now()->subDays(7)->toDateTimeString();
+            $query->join('user_progress', 'usuarios.id', '=', 'user_progress.user_id')
+                ->where('user_progress.last_activity_date', '>=', $cutoffDate)
+                ->select('usuarios.*');
         }
 
         // Filtro por email verificado
@@ -344,29 +420,34 @@ class NotificationService
             $query->whereNull('email_verified_at');
         }
 
-        // Excluir admins (não enviar campanhas para eles)
+        // Excluir admins
         $query->where(function ($q) {
             $q->where('is_admin', '!=', 1)
                 ->orWhereNull('is_admin');
         });
 
-        return $query->get()->all();
+        return $query;
     }
 
     /**
-     * Retorna IDs de usuários com plano PRO ativo
+     * Retorna IDs de usuários com plano PRO ativo (com memoização)
      */
     private function getProUserIds(): array
     {
+        if ($this->cachedProUserIds !== null) {
+            return $this->cachedProUserIds;
+        }
+
         // Buscar o ID do plano PRO para não confundir com assinaturas do plano free
         $proPlan = Plano::where('code', 'pro')->first();
 
         if (!$proPlan) {
             $this->logger->warning('[NotificationService] Plano PRO não encontrado');
+            $this->cachedProUserIds = [];
             return [];
         }
 
-        return AssinaturaUsuario::where('plano_id', $proPlan->id)
+        $this->cachedProUserIds = AssinaturaUsuario::where('plano_id', $proPlan->id)
             ->whereIn('status', [
                 AssinaturaUsuario::ST_ACTIVE,
                 AssinaturaUsuario::ST_CANCELED // Ainda ativa até data de expiração
@@ -375,6 +456,8 @@ class NotificationService
             ->pluck('user_id')
             ->unique()
             ->toArray();
+
+        return $this->cachedProUserIds;
     }
 
     /**
@@ -382,7 +465,7 @@ class NotificationService
      */
     public function countUsersByFilters(array $filters): int
     {
-        return count($this->getUsersByFilters($filters));
+        return $this->buildFilteredUsersQuery($filters)->count();
     }
 
     /**
@@ -406,6 +489,17 @@ class NotificationService
         if (!empty($campaign->link)) {
             $buttonText = $campaign->link_text ?: 'Saiba mais';
             $content .= EmailTemplate::button($buttonText, $campaign->link);
+        }
+
+        // Adicionar bloco de cupom se vinculado
+        $cupom = $campaign->cupom_id ? $campaign->cupom : null;
+        if ($cupom) {
+            $cupomCode = htmlspecialchars($cupom->codigo, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $cupomDesconto = htmlspecialchars($cupom->getDescontoFormatado(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $content .= '<div style="margin: 20px 0; padding: 16px; background: linear-gradient(135deg, #f59e0b15, #f59e0b08); border: 2px dashed #f59e0b; border-radius: 12px; text-align: center;">'
+                . '<p style="margin: 0 0 8px; font-size: 14px; color: #6b7280;">Use o cupom abaixo e ganhe <strong>' . $cupomDesconto . ' de desconto</strong>:</p>'
+                . '<p style="margin: 0; font-size: 24px; font-weight: 700; color: #f59e0b; letter-spacing: 2px; font-family: monospace;">' . $cupomCode . '</p>'
+                . '</div>';
         }
 
         // Determinar cor do header baseado no tipo
@@ -439,6 +533,7 @@ class NotificationService
 
         $text = "{$campaign->title}\n\n"
             . "{$campaign->message}\n\n"
+            . ($cupom ? "Cupom: {$cupom->codigo} ({$cupom->getDescontoFormatado()} de desconto)\n\n" : '')
             . ($campaign->link ? "Acesse: {$campaign->link}\n\n" : '')
             . "Equipe Lukrato";
 
@@ -488,6 +583,8 @@ class NotificationService
                     'emails_failed' => $campaign->emails_failed,
                     'status' => $campaign->status,
                     'status_badge' => $campaign->status_badge,
+                    'is_scheduled' => $campaign->is_scheduled,
+                    'scheduled_at' => $campaign->scheduled_at?->format('d/m/Y H:i'),
                     'creator_name' => $campaign->creator->nome ?? 'Sistema',
                     'sent_at' => $campaign->sent_at?->format('d/m/Y H:i'),
                     'created_at' => $campaign->created_at->format('d/m/Y H:i'),

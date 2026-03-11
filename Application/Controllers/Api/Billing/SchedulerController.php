@@ -296,6 +296,12 @@ class SchedulerController extends BaseController
                     'description' => 'Processa assinaturas expiradas',
                     'recommended_interval' => '1 hora',
                 ],
+                [
+                    'name' => 'dispatch-scheduled-campaigns',
+                    'endpoint' => '/api/scheduler/dispatch-scheduled-campaigns',
+                    'description' => 'Processa campanhas agendadas prontas para envio',
+                    'recommended_interval' => '5 minutos',
+                ],
             ],
         ]);
     }
@@ -488,6 +494,46 @@ class SchedulerController extends BaseController
     }
 
     /**
+     * Processa campanhas agendadas cujo horário já chegou
+     * 
+     * GET/POST /api/scheduler/dispatch-scheduled-campaigns
+     */
+    public function dispatchScheduledCampaigns(): void
+    {
+        if (!$this->validateSchedulerToken()) {
+            LogService::warning('[Scheduler] Tentativa de acesso não autorizada', [
+                'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            ]);
+            Response::json(['error' => 'Unauthorized'], 401);
+            return;
+        }
+
+        LogService::info('=== [Scheduler] Processando campanhas agendadas ===');
+
+        try {
+            $notificationService = new \Application\Services\Communication\NotificationService();
+            $result = $notificationService->processScheduledCampaigns();
+
+            LogService::info('[Scheduler] Campanhas agendadas processadas', $result);
+
+            Response::json([
+                'success' => true,
+                'message' => 'Campanhas agendadas processadas',
+                'result' => $result,
+            ]);
+        } catch (\Throwable $e) {
+            LogService::critical('[Scheduler] Erro ao processar campanhas agendadas', [
+                'mensagem' => $e->getMessage(),
+            ]);
+
+            Response::json([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Executa todas as tarefas do cron em uma única chamada
      * 
      * GET /api/rota-do-cron
@@ -602,6 +648,24 @@ class SchedulerController extends BaseController
             ];
             LogService::captureException($e, LogCategory::AGENDAMENTO, [
                 'action' => 'generate_recurring_lancamentos',
+            ]);
+        }
+
+        // 6. Processar campanhas agendadas
+        try {
+            $notificationService = new \Application\Services\Communication\NotificationService();
+            $campaignResult = $notificationService->processScheduledCampaigns();
+            $results['tasks']['dispatch_scheduled_campaigns'] = [
+                'status' => 'success',
+                'result' => $campaignResult,
+            ];
+        } catch (\Throwable $e) {
+            $results['tasks']['dispatch_scheduled_campaigns'] = [
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ];
+            LogService::captureException($e, LogCategory::NOTIFICATION, [
+                'action' => 'dispatch_scheduled_campaigns',
             ]);
         }
 

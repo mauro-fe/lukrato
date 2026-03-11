@@ -187,6 +187,51 @@
                         </label>
                     </div>
 
+                    <!-- Cupom Vinculado (opcional) -->
+                    <div class="form-section-title">
+                        <i data-lucide="ticket"></i> Cupom Promocional (opcional)
+                    </div>
+
+                    <div class="form-group">
+                        <label for="campaignCupom">
+                            <i data-lucide="tag"></i> Vincular Cupom
+                        </label>
+                        <select id="campaignCupom" name="cupom_id" class="form-control">
+                            <option value="">Nenhum cupom</option>
+                            <?php if (!empty($cuponsAtivos)): ?>
+                                <?php foreach ($cuponsAtivos as $cupom): ?>
+                                    <option value="<?= $cupom->id ?>">
+                                        <?= htmlspecialchars($cupom->codigo) ?> (<?= $cupom->getDescontoFormatado() ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </select>
+                        <small class="form-help">O código do cupom será incluído no e-mail/notificação</small>
+                    </div>
+
+                    <!-- Agendamento -->
+                    <div class="form-section-title">
+                        <i data-lucide="clock"></i> Agendamento
+                    </div>
+
+                    <div class="form-group">
+                        <label class="channel-option schedule-toggle">
+                            <input type="checkbox" id="scheduleEnabled" name="schedule_enabled">
+                            <span class="channel-box">
+                                <i data-lucide="calendar-clock"></i>
+                                <span>Agendar envio para depois</span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="form-group schedule-datetime" id="scheduleDateTimeGroup" style="display: none;">
+                        <label for="scheduledAt">
+                            <i data-lucide="calendar"></i> Data e Hora do Envio
+                        </label>
+                        <input type="datetime-local" id="scheduledAt" name="scheduled_at" class="form-control"
+                            min="<?= date('Y-m-d\TH:i', strtotime('+5 minutes')) ?>">
+                    </div>
+
                     <!-- Botão de Envio -->
                     <div class="form-actions">
                         <button type="button" class="btn btn-preview" data-action="updatePreview">

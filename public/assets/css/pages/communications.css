@@ -713,3 +713,58 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================
+ * Scheduling & Coupon Enhancements
+ * ============================================ */
+
+.communications-page .schedule-toggle {
+  margin-bottom: 0;
+}
+
+.communications-page .schedule-datetime {
+  margin-top: var(--spacing-2);
+}
+
+.communications-page .schedule-datetime input[type="datetime-local"] {
+  color-scheme: dark;
+}
+
+.communications-page .form-help {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: var(--spacing-1);
+}
+
+.communications-page .campaign-actions-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+.communications-page .btn-cancel-schedule {
+  background: none;
+  border: 1px solid var(--color-danger, #ef4444);
+  color: var(--color-danger, #ef4444);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-1) var(--spacing-2);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  transition: all var(--transition-fast);
+}
+
+.communications-page .btn-cancel-schedule:hover {
+  background: var(--color-danger, #ef4444);
+  color: white;
+}
+
+.communications-page .campaign-status i {
+  width: 12px;
+  height: 12px;
+}

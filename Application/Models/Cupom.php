@@ -86,12 +86,12 @@ class Cupom extends Model
     }
 
     /**
-     * Incrementa o uso do cupom
+     * Incrementa o uso do cupom (operação atômica)
      */
     public function incrementarUso(): void
     {
-        $this->uso_atual++;
-        $this->save();
+        static::where('id', $this->id)->increment('uso_atual');
+        $this->refresh();
     }
 
     /**
@@ -105,9 +105,15 @@ class Cupom extends Model
     /**
      * Busca cupom por código (case insensitive)
      */
-    public static function findByCodigo(string $codigo): ?self
+    public static function findByCodigo(string $codigo, bool $lockForUpdate = false): ?self
     {
-        return self::whereRaw('UPPER(codigo) = ?', [strtoupper($codigo)])->first();
+        $query = self::whereRaw('UPPER(codigo) = ?', [strtoupper($codigo)]);
+
+        if ($lockForUpdate) {
+            $query->lockForUpdate();
+        }
+
+        return $query->first();
     }
 
     /**

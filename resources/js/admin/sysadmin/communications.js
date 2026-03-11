@@ -66,6 +66,25 @@ function setupFormListeners() {
         });
     });
 
+    // Toggle de agendamento
+    const scheduleCheckbox = document.getElementById('scheduleEnabled');
+    const scheduleDateGroup = document.getElementById('scheduleDateTimeGroup');
+    const btnSend = document.getElementById('btnSend');
+
+    scheduleCheckbox?.addEventListener('change', () => {
+        const isScheduled = scheduleCheckbox.checked;
+        scheduleDateGroup.style.display = isScheduled ? 'block' : 'none';
+        if (isScheduled) {
+            btnSend.innerHTML = '<i data-lucide="calendar-clock"></i> Agendar Campanha';
+            document.getElementById('scheduledAt').required = true;
+        } else {
+            btnSend.innerHTML = '<i data-lucide="send"></i> Enviar Campanha';
+            document.getElementById('scheduledAt').required = false;
+            document.getElementById('scheduledAt').value = '';
+        }
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    });
+
     // Form submit
     document.getElementById('campaignForm')?.addEventListener('submit', handleFormSubmit);
 }
@@ -170,14 +189,18 @@ function renderCampaigns(campaigns) {
                     <span><i data-lucide="users"></i> ${campaign.total_recipients}</span>
                     <span><i data-lucide="eye"></i> ${campaign.read_rate}%</span>
                     <span><i data-lucide="calendar"></i> ${campaign.created_at}</span>
+                    ${campaign.scheduled_at ? `<span><i data-lucide="clock"></i> ${campaign.scheduled_at}</span>` : ''}
                 </div>
                 <div class="campaign-tags">
                     <span class="tag">${escapeHtml(campaign.filters_description)}</span>
                     <span class="tag">${escapeHtml(campaign.channels_description)}</span>
                 </div>
             </div>
-            <div class="campaign-status" style="background-color: ${campaign.status_badge.color}">
-                ${escapeHtml(campaign.status_badge.label)}
+            <div class="campaign-actions-col">
+                <div class="campaign-status" style="background-color: ${campaign.status_badge.color}">
+                    ${campaign.status_badge.icon ? `<i data-lucide="${campaign.status_badge.icon}"></i> ` : ''}${escapeHtml(campaign.status_badge.label)}
+                </div>
+                ${campaign.is_scheduled ? `<button class="btn-cancel-schedule" data-action="cancelScheduled" data-campaign-id="${campaign.id}" title="Cancelar agendamento"><i data-lucide="x-circle"></i></button>` : ''}
             </div>
         </div>
     `).join('');
@@ -317,13 +340,25 @@ async function handleFormSubmit(e) {
         return;
     }
 
+    // Verificar agendamento
+    const isScheduled = document.getElementById('scheduleEnabled').checked;
+    const scheduledAt = isScheduled ? document.getElementById('scheduledAt').value : null;
+
+    if (isScheduled && !scheduledAt) {
+        LKFeedback.warning('Selecione a data e hora para o agendamento.');
+        return;
+    }
+
     // Confirmar envio
     const recipientCount = document.getElementById('recipientCount').textContent;
     const channelText = [sendNotification ? 'Notificação' : '', sendEmail ? 'E-mail' : ''].filter(Boolean).join(' + ');
-    const result = await LKFeedback.confirm(`Você está prestes a enviar uma campanha para ${recipientCount} usuários. Canais: ${channelText}`, {
-        title: 'Confirmar envio?',
+    const confirmMsg = isScheduled
+        ? `Campanha será agendada para ${new Date(scheduledAt).toLocaleString('pt-BR')}.\nDestinatários estimados: ${recipientCount}. Canais: ${channelText}`
+        : `Você está prestes a enviar uma campanha para ${recipientCount} usuários. Canais: ${channelText}`;
+    const result = await LKFeedback.confirm(confirmMsg, {
+        title: isScheduled ? 'Confirmar agendamento?' : 'Confirmar envio?',
         icon: 'question',
-        confirmButtonText: 'Sim, enviar!',
+        confirmButtonText: isScheduled ? 'Sim, agendar!' : 'Sim, enviar!',
         cancelButtonText: 'Cancelar'
     });
 
@@ -331,7 +366,9 @@ async function handleFormSubmit(e) {
 
     // Enviar
     btn.disabled = true;
-    btn.innerHTML = '<i data-lucide="loader-2" class="icon-spin"></i> Enviando...';
+    btn.innerHTML = isScheduled
+        ? '<i data-lucide="loader-2" class="icon-spin"></i> Agendando...'
+        : '<i data-lucide="loader-2" class="icon-spin"></i> Enviando...';
     try {
         const payload = {
             title: title,
@@ -341,6 +378,8 @@ async function handleFormSubmit(e) {
             link_text: document.getElementById('campaignLinkText').value || null,
             send_notification: sendNotification,
             send_email: sendEmail,
+            cupom_id: document.getElementById('campaignCupom')?.value || null,
+            scheduled_at: scheduledAt || null,
             filters: {
                 plan: document.getElementById('filterPlan').value,
                 status: document.getElementById('filterStatus').value,
@@ -364,12 +403,19 @@ async function handleFormSubmit(e) {
         const data = await response.json();
 
         if (data.success) {
-            LKFeedback.success(`${data.data.total_recipients} usuários receberão sua mensagem.${data.data.emails_sent > 0 ? ` E-mails enviados: ${data.data.emails_sent}` : ''}${data.data.emails_failed > 0 ? ` E-mails com falha: ${data.data.emails_failed}` : ''}`, { toast: true });
+            if (data.data.scheduled_at) {
+                LKFeedback.success(`Campanha agendada para ${data.data.scheduled_at}.`, { toast: true });
+            } else {
+                LKFeedback.success(`${data.data.total_recipients} usuários receberão sua mensagem.${data.data.emails_sent > 0 ? ` E-mails enviados: ${data.data.emails_sent}` : ''}${data.data.emails_failed > 0 ? ` E-mails com falha: ${data.data.emails_failed}` : ''}`, { toast: true });
+            }
 
             // Limpar formulário
             document.getElementById('campaignForm').reset();
             document.getElementById('titleCount').textContent = '0';
             document.getElementById('sendNotification').checked = true;
+            document.getElementById('scheduleEnabled').checked = false;
+            document.getElementById('scheduleDateTimeGroup').style.display = 'none';
+            btn.innerHTML = '<i data-lucide="send"></i> Enviar Campanha';
 
             // Atualizar lista
             loadCampaigns();
@@ -395,6 +441,46 @@ function escapeHtml(text) {
 }
 
 // ============================================================================
+// CANCELAMENTO DE CAMPANHA AGENDADA
+// ============================================================================
+
+async function cancelScheduled(id) {
+    const result = await LKFeedback.confirm('Deseja cancelar esta campanha agendada?', {
+        title: 'Cancelar agendamento?',
+        icon: 'warning',
+        confirmButtonText: 'Sim, cancelar',
+        cancelButtonText: 'Não'
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+        const response = await fetch(`${BASE}api/campaigns/${id}/cancel`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-Token': csrfToken
+            },
+            credentials: 'same-origin'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            LKFeedback.success('Campanha agendada cancelada.', { toast: true });
+            loadCampaigns();
+        } else {
+            LKFeedback.error(data.message || 'Erro ao cancelar campanha.');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        LKFeedback.error('Erro de conexão ao cancelar campanha.');
+    }
+}
+
+// ============================================================================
 // EVENT DELEGATION (substitui onclick handlers em módulos Vite)
 // ============================================================================
 
@@ -409,5 +495,9 @@ document.addEventListener('click', (e) => {
         case 'loadCampaigns': loadCampaigns(); break;
         case 'changePage': changePage(parseInt(el.dataset.delta)); break;
         case 'showCampaignDetail': showCampaignDetail(parseInt(el.dataset.campaignId)); break;
+        case 'cancelScheduled':
+            e.stopPropagation();
+            cancelScheduled(parseInt(el.dataset.campaignId));
+            break;
     }
 });

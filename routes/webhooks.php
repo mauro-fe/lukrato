@@ -49,6 +49,8 @@ Router::add('GET',  '/api/scheduler/process-expired-subscriptions', 'Api\\Billin
 Router::add('POST', '/api/scheduler/process-expired-subscriptions', 'Api\\Billing\\SchedulerController@processExpiredSubscriptions');
 Router::add('GET',  '/api/scheduler/generate-recurring-lancamentos', 'Api\\Billing\\SchedulerController@generateRecurringLancamentos');
 Router::add('POST', '/api/scheduler/generate-recurring-lancamentos', 'Api\\Billing\\SchedulerController@generateRecurringLancamentos');
+Router::add('GET',  '/api/scheduler/dispatch-scheduled-campaigns', 'Api\\Billing\\SchedulerController@dispatchScheduledCampaigns');
+Router::add('POST', '/api/scheduler/dispatch-scheduled-campaigns', 'Api\\Billing\\SchedulerController@dispatchScheduledCampaigns');
 
 // Rota única para executar todas as tarefas do cron
 Router::add('GET',  '/api/rota-do-cron', 'Api\\Billing\\SchedulerController@runAll');

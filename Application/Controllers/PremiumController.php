@@ -534,7 +534,7 @@ class PremiumController extends BaseController
             $valorOriginal = $total;
 
             if ($dto->couponCode) {
-                $cupom = \Application\Models\Cupom::findByCodigo($dto->couponCode);
+                $cupom = \Application\Models\Cupom::findByCodigo($dto->couponCode, lockForUpdate: true);
 
                 if (!$cupom) {
                     throw new \RuntimeException('Cupom não encontrado.');
