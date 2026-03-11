@@ -21,7 +21,7 @@ class PdfExportService implements ReportExporterInterface
         }
 
         $options = new Options();
-        $options->setIsRemoteEnabled(true);
+        $options->setIsRemoteEnabled(false);
         $options->setDefaultFont('DejaVu Sans');
         $options->setIsHtml5ParserEnabled(true);
         $options->setChroot(realpath(__DIR__ . '/../../../'));

@@ -282,7 +282,7 @@ class ReportRepository
             ->where('l.pago', 1)
             ->whereBetween('l.data', [$params->start, $params->end])
             ->where(fn($w) => $this->applyAccountTransactionFilter($w))
-            ->where(fn($q) => $q->whereNull('l.user_id')->orWhere('l.user_id', $params->userId));
+            ->where('l.user_id', $params->userId);
     }
 
     private function applyAccountTransactionFilter(QueryBuilder $query): void
@@ -331,12 +331,11 @@ class ReportRepository
     {
         $column = $this->sanitizeColumn($tableAlias, 'user_id');
 
-        return $query->where(function (QueryBuilder $q) use ($userId, $column) {
-            $q->whereNull($column);
-            if ($userId !== null) {
-                $q->orWhere($column, $userId);
-            }
-        });
+        if ($userId !== null) {
+            return $query->where($column, $userId);
+        }
+
+        return $query->whereNull($column);
     }
 
     private function applyAccountFilter(QueryBuilder $query, ?int $accountId, bool $includeTransfers): QueryBuilder

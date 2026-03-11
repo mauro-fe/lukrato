@@ -315,6 +315,10 @@ class DashboardProvisaoService
             }
             $grouped[$cid]['total'] += (float) $item->valor;
             $grouped[$cid]['itens']++;
+            // Manter a data de vencimento mais recente do grupo
+            if ($item->data_vencimento > $grouped[$cid]['data_vencimento']) {
+                $grouped[$cid]['data_vencimento'] = $item->data_vencimento;
+            }
         }
         return $grouped;
     }

@@ -408,11 +408,11 @@ class OrcamentoService
 
         if (count(array_filter($gastos)) < 2) return 'insuficiente';
 
-        $ultimos = array_values(array_filter($gastos));
-        if (count($ultimos) < 2) return 'estavel';
+        // Usar todos os meses (incluindo zeros) para cálculo correto de tendência
+        if (count($gastos) < 2) return 'estavel';
 
-        $ultimo = end($ultimos);
-        $penultimo = prev($ultimos);
+        $ultimo = $gastos[count($gastos) - 1];
+        $penultimo = $gastos[count($gastos) - 2];
 
         if ($penultimo == 0) return 'estavel';
 

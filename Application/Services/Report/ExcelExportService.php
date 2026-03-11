@@ -293,11 +293,11 @@ class ExcelExportService implements ReportExporterInterface
             return null;
         }
 
-        if (!preg_match('/^R\$\s*(-?[\d.]+,\d{2})$/', trim($value), $matches)) {
+        if (!preg_match('/^R\$\s*(-?\s*[\d.]+,\d{2})$/', trim($value), $matches)) {
             return null;
         }
 
-        $raw = str_replace('.', '', $matches[1]);
+        $raw = str_replace(['.', ' '], '', $matches[1]);
         $raw = str_replace(',', '.', $raw);
 
         return (float) $raw;

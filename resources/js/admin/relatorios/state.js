@@ -27,6 +27,9 @@ export const CONFIG = {
         '#9B59B6', '#1ABC9C', '#E74C3C', '#3498DB'
     ],
 
+    /** Default timeout for API requests (ms) */
+    FETCH_TIMEOUT: 30000,
+
     VIEWS: {
         CATEGORY: 'category',
         BALANCE: 'balance',
@@ -73,6 +76,25 @@ export const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, fun
 
     return replacements[match] ?? match;
 });
+
+/**
+ * Validate a hex color string. Returns safe fallback if invalid.
+ */
+export function safeColor(color, fallback = '#cccccc') {
+    return /^#[0-9A-Fa-f]{6}$/.test(color) ? color : fallback;
+}
+
+/**
+ * Get a chart color by index, generating new ones via HSL rotation when the
+ * fixed palette is exhausted.
+ */
+export function getChartColor(index) {
+    if (index < CONFIG.CHART_COLORS.length) {
+        return CONFIG.CHART_COLORS[index];
+    }
+    const hue = (index * 137.508) % 360; // golden-angle spread
+    return `hsl(${Math.round(hue)}, 65%, 50%)`;
+}
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
 

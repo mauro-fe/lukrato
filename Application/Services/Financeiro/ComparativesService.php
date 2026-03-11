@@ -333,6 +333,8 @@ class ComparativesService
             'estorno_cartao'  => 'Estorno',
         ];
 
+        $formatPaymentName = fn(string $key): string => $nomeForma[$key] ?? ucfirst(str_replace('_', ' ', $key));
+
         $formasCurrent  = $this->queryPaymentMethods($this->currentStart, $this->currentEnd);
         $formasPrevious = $this->queryPaymentMethods($this->previousMonthStart, $this->previousMonthEnd);
 
@@ -340,7 +342,7 @@ class ComparativesService
         foreach ($formasCurrent as $f) {
             $key = $f->forma_pagamento;
             $map[$key] = [
-                'nome'         => $nomeForma[$key] ?? ucfirst($key),
+                'nome'         => $formatPaymentName($key),
                 'atual'        => round((float)$f->total, 2),
                 'atual_qtd'    => (int)$f->qtd,
                 'anterior'     => 0,
@@ -352,7 +354,7 @@ class ComparativesService
             $key = $f->forma_pagamento;
             if (!isset($map[$key])) {
                 $map[$key] = [
-                    'nome'         => $nomeForma[$key] ?? ucfirst($key),
+                    'nome'         => $formatPaymentName($key),
                     'atual'        => 0,
                     'atual_qtd'    => 0,
                     'anterior'     => 0,

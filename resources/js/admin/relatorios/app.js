@@ -10,7 +10,7 @@
 import {
     CONFIG, STATE, Utils, Modules,
     PAYWALL_MESSAGE, TYPE_OPTIONS, YEARLY_VIEWS,
-    escapeHtml, computeInitialMonth
+    escapeHtml, computeInitialMonth, safeColor, getChartColor
 } from './state.js';
 import { ChartManager } from './charts.js';
 
@@ -38,7 +38,7 @@ async function showRestrictionAlert(message) {
     if (window.Swal?.fire) {
         const result = await Swal.fire({
             title: 'Recurso exclusivo',
-            html: escapeHtml(text),
+            text: text,
             icon: 'info',
             showCancelButton: true,
             confirmButtonText: 'Assinar plano Pro',
@@ -86,6 +86,20 @@ async function handleRestrictedAccess(response) {
     return false;
 }
 
+function showErrorToast(message) {
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: message,
+            showConfirmButton: false,
+            timer: 4000,
+            timerProgressBar: true
+        });
+    }
+}
+
 // ─── API ─────────────────────────────────────────────────────────────────────
 
 export const API = {
@@ -100,11 +114,17 @@ export const API = {
             params.set('account_id', STATE.currentAccount);
         }
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT);
+
         try {
             const response = await fetch(`${CONFIG.BASE_URL}api/reports?${params}`, {
                 credentials: 'include',
-                headers: { 'Accept': 'application/json' }
+                headers: { 'Accept': 'application/json' },
+                signal: controller.signal
             });
+
+            clearTimeout(timeoutId);
 
             if (await handleRestrictedAccess(response)) {
                 return null;
@@ -117,7 +137,11 @@ export const API = {
             const json = await response.json();
             return json.data || json;
         } catch (error) {
+            clearTimeout(timeoutId);
             console.error('Error fetching report data:', error);
+            showErrorToast(error.name === 'AbortError'
+                ? 'A requisição demorou demais. Tente novamente.'
+                : 'Erro ao carregar relatório. Verifique sua conexão.');
             return { labels: [], values: [] };
         }
     },
@@ -150,14 +174,19 @@ export const API = {
 
     async fetchSummaryStats() {
         const [year, month] = STATE.currentMonth.split('-');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT);
         try {
             const response = await fetch(
                 `${CONFIG.BASE_URL}api/reports/summary?year=${year}&month=${month}`,
                 {
                     credentials: 'include',
-                    headers: { 'Accept': 'application/json' }
+                    headers: { 'Accept': 'application/json' },
+                    signal: controller.signal
                 }
             );
+
+            clearTimeout(timeoutId);
 
             if (await handleRestrictedAccess(response)) {
                 return {
@@ -173,6 +202,7 @@ export const API = {
             const json = await response.json();
             return json.data || json;
         } catch (error) {
+            clearTimeout(timeoutId);
             console.error('Error fetching summary stats:', error);
             return {
                 totalReceitas: 0,
@@ -185,21 +215,26 @@ export const API = {
 
     async fetchInsights() {
         const [year, month] = STATE.currentMonth.split('-');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT);
         try {
             const response = await fetch(
                 `${CONFIG.BASE_URL}api/reports/insights?year=${year}&month=${month}`,
                 {
                     credentials: 'include',
-                    headers: { 'Accept': 'application/json' }
+                    headers: { 'Accept': 'application/json' },
+                    signal: controller.signal
                 }
             );
 
+            clearTimeout(timeoutId);
             if (await handleRestrictedAccess(response)) return { insights: [] };
             if (!response.ok) throw new Error('Failed to fetch insights');
 
             const json = await response.json();
             return json.data || json;
         } catch (error) {
+            clearTimeout(timeoutId);
             console.error('Error fetching insights:', error);
             return { insights: [] };
         }
@@ -207,21 +242,26 @@ export const API = {
 
     async fetchComparatives() {
         const [year, month] = STATE.currentMonth.split('-');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT);
         try {
             const response = await fetch(
                 `${CONFIG.BASE_URL}api/reports/comparatives?year=${year}&month=${month}`,
                 {
                     credentials: 'include',
-                    headers: { 'Accept': 'application/json' }
+                    headers: { 'Accept': 'application/json' },
+                    signal: controller.signal
                 }
             );
 
+            clearTimeout(timeoutId);
             if (await handleRestrictedAccess(response)) return null;
             if (!response.ok) throw new Error('Failed to fetch comparatives');
 
             const json = await response.json();
             return json.data || json;
         } catch (error) {
+            clearTimeout(timeoutId);
             console.error('Error fetching comparatives:', error);
             return null;
         }
@@ -1027,12 +1067,14 @@ function renderCardsReport(data) {
             ${resumoHTML}
             
             <div class="cards-grid">
-                ${data.cards && data.cards.length > 0 ? data.cards.map(card => `
+                ${data.cards && data.cards.length > 0 ? data.cards.map(card => {
+                    const cardColor = safeColor(card.cor, '#E67E22');
+                    return `
                     <div class="card-item ${card.status_saude.status}" 
-                         style="--card-color: ${card.cor || '#E67E22'}; cursor: pointer;"
+                         style="--card-color: ${cardColor}; cursor: pointer;"
                          data-card-id="${card.id || ''}"
                          data-card-nome="${escapeHtml(card.nome)}"
-                         data-card-cor="${card.cor || '#E67E22'}"
+                         data-card-cor="${cardColor}"
                          data-card-month="${STATE.currentMonth}"
                          data-action="open-card-detail"
                          role="button"
@@ -1040,7 +1082,7 @@ function renderCardsReport(data) {
                         <!-- Header -->
                         <div class="card-header-gradient">
                             <div class="card-brand">
-                                <div class="card-icon-wrapper" style="background: linear-gradient(135deg, ${card.cor || '#E67E22'}, ${card.cor || '#E67E22'}99);">
+                                <div class="card-icon-wrapper" style="background: linear-gradient(135deg, ${cardColor}, ${cardColor}99);">
                                     <i data-lucide="credit-card" style="color: white"></i>
                                 </div>
                                 <div class="card-info">
@@ -1136,13 +1178,13 @@ function renderCardsReport(data) {
                         ` : ''}
                         
                         <div class="card-footer">
-                            <button class="card-action-btn primary full-width" data-action="open-card-detail" data-card-id="${card.id || ''}" data-card-nome="${escapeHtml(card.nome)}" data-card-cor="${card.cor || '#E67E22'}" data-card-month="${STATE.currentMonth}" title="Ver relatório detalhado">
+                            <button class="card-action-btn primary full-width" data-action="open-card-detail" data-card-id="${card.id || ''}" data-card-nome="${escapeHtml(card.nome)}" data-card-cor="${cardColor}" data-card-month="${STATE.currentMonth}" title="Ver relatório detalhado">
                                 <i data-lucide="eye"></i>
                                 <span>Ver Detalhes</span>
                             </button>
                         </div>
                     </div>
-                `).join('') : `
+                `;}).join('') : `
                     <div class="empty-state">
                         <div class="empty-icon">
                             <i data-lucide="credit-card"></i>

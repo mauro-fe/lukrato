@@ -421,7 +421,9 @@ class ReportService
             $ultimos3 = array_slice($historicoMeses, -3);
             $valores = array_column($ultimos3, 'valor');
 
-            if ($valores[2] > $valores[1] && $valores[1] > $valores[0]) {
+            if (count($valores) < 3) {
+                // Dados insuficientes para análise de tendência
+            } elseif ($valores[2] > $valores[1] && $valores[1] > $valores[0]) {
                 // Evita divisão por zero
                 $valorBase = max($valores[0], 0.01);
                 $variacao = (($valores[2] - $valores[0]) / $valorBase) * 100;
@@ -458,7 +460,7 @@ class ReportService
         }
 
         // Insight de parcelamentos
-        if (isset($cardData['parcelamentos']) && $cardData['parcelamentos']['ativos'] > 0) {
+        if (isset($cardData['parcelamentos']) && $cardData['parcelamentos']['ativos'] > 0 && ($cardData['limite'] ?? 0) > 0) {
             $totalComprometido = $cardData['parcelamentos']['valor_total'];
             $qtdParcelas = $cardData['parcelamentos']['ativos'];
             $percentualComprometido = ($totalComprometido / $cardData['limite']) * 100;

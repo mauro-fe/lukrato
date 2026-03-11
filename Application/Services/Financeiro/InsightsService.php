@@ -349,7 +349,7 @@ class InsightsService
                     value: (float) ($meta->valor_alvo - $meta->valor_atual),
                     percentage: $progresso,
                 );
-                return;
+                continue;
             }
 
             if ($meta->data_prazo) {
@@ -367,7 +367,7 @@ class InsightsService
                         ),
                         percentage: $progresso,
                     );
-                    return;
+                    continue;
                 }
             }
         }
