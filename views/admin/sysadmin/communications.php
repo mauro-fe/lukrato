@@ -24,7 +24,8 @@
                 <i data-lucide="send"></i>
             </div>
             <div class="stat-content">
-                <h3 class="stat-value" id="statTotalCampaigns"><?= number_format($stats['total_campaigns'] ?? 0, 0, ',', '.') ?></h3>
+                <h3 class="stat-value" id="statTotalCampaigns">
+                    <?= number_format($stats['total_campaigns'] ?? 0, 0, ',', '.') ?></h3>
                 <p class="stat-label">Campanhas Enviadas</p>
             </div>
         </div>
@@ -34,7 +35,8 @@
                 <i data-lucide="bell"></i>
             </div>
             <div class="stat-content">
-                <h3 class="stat-value" id="statTotalNotifications"><?= number_format($stats['total_notifications'] ?? 0, 0, ',', '.') ?></h3>
+                <h3 class="stat-value" id="statTotalNotifications">
+                    <?= number_format($stats['total_notifications'] ?? 0, 0, ',', '.') ?></h3>
                 <p class="stat-label">Notificações Criadas</p>
             </div>
         </div>
@@ -44,7 +46,8 @@
                 <i data-lucide="eye"></i>
             </div>
             <div class="stat-content">
-                <h3 class="stat-value" id="statReadRate"><?= number_format($stats['read_rate'] ?? 0, 1, ',', '.') ?>%</h3>
+                <h3 class="stat-value" id="statReadRate"><?= number_format($stats['read_rate'] ?? 0, 1, ',', '.') ?>%
+                </h3>
                 <p class="stat-label">Taxa de Leitura</p>
             </div>
         </div>
@@ -54,7 +57,8 @@
                 <i data-lucide="calendar-days"></i>
             </div>
             <div class="stat-content">
-                <h3 class="stat-value" id="statCampaignsMonth"><?= number_format($stats['campaigns_last_month'] ?? 0, 0, ',', '.') ?></h3>
+                <h3 class="stat-value" id="statCampaignsMonth">
+                    <?= number_format($stats['campaigns_last_month'] ?? 0, 0, ',', '.') ?></h3>
                 <p class="stat-label">Campanhas (30 dias)</p>
             </div>
         </div>
@@ -81,9 +85,9 @@
                         </label>
                         <select id="campaignType" name="type" class="form-control" required>
                             <?php foreach ($typeOptions as $value => $label): ?>
-                                <option value="<?= $value ?>" <?= $value === 'promo' ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($label) ?>
-                                </option>
+                            <option value="<?= $value ?>" <?= $value === 'promo' ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($label) ?>
+                            </option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -94,8 +98,7 @@
                             <i data-lucide="heading"></i> Título
                         </label>
                         <input type="text" id="campaignTitle" name="title" class="form-control"
-                            placeholder="Ex: Você está aproveitando o máximo do Lukrato?"
-                            maxlength="255" required>
+                            placeholder="Ex: Você está aproveitando o máximo do Lukrato?" maxlength="255" required>
                         <div class="char-count"><span id="titleCount">0</span>/255</div>
                     </div>
 
@@ -115,7 +118,7 @@
                         </label>
                         <div class="input-group">
                             <input type="url" id="campaignLink" name="link" class="form-control"
-                                placeholder="https://lukrato.com/billing">
+                                placeholder="https://lukrato.com.br/billing">
                             <input type="text" id="campaignLinkText" name="link_text" class="form-control link-text"
                                 placeholder="Texto do botão">
                         </div>
@@ -134,7 +137,7 @@
                             </label>
                             <select id="filterPlan" name="filters[plan]" class="form-control filter-input">
                                 <?php foreach ($planOptions as $value => $label): ?>
-                                    <option value="<?= $value ?>"><?= htmlspecialchars($label) ?></option>
+                                <option value="<?= $value ?>"><?= htmlspecialchars($label) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -146,7 +149,7 @@
                             </label>
                             <select id="filterStatus" name="filters[status]" class="form-control filter-input">
                                 <?php foreach ($statusOptions as $value => $label): ?>
-                                    <option value="<?= $value ?>"><?= htmlspecialchars($label) ?></option>
+                                <option value="<?= $value ?>"><?= htmlspecialchars($label) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -156,9 +159,10 @@
                             <label for="filterDaysInactive">
                                 <i data-lucide="calendar-x"></i> Inatividade
                             </label>
-                            <select id="filterDaysInactive" name="filters[days_inactive]" class="form-control filter-input">
+                            <select id="filterDaysInactive" name="filters[days_inactive]"
+                                class="form-control filter-input">
                                 <?php foreach ($inactiveDaysOptions as $value => $label): ?>
-                                    <option value="<?= $value ?? '' ?>"><?= htmlspecialchars($label) ?></option>
+                                <option value="<?= $value ?? '' ?>"><?= htmlspecialchars($label) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -199,11 +203,11 @@
                         <select id="campaignCupom" name="cupom_id" class="form-control">
                             <option value="">Nenhum cupom</option>
                             <?php if (!empty($cuponsAtivos)): ?>
-                                <?php foreach ($cuponsAtivos as $cupom): ?>
-                                    <option value="<?= $cupom->id ?>">
-                                        <?= htmlspecialchars($cupom->codigo) ?> (<?= $cupom->getDescontoFormatado() ?>)
-                                    </option>
-                                <?php endforeach; ?>
+                            <?php foreach ($cuponsAtivos as $cupom): ?>
+                            <option value="<?= $cupom->id ?>">
+                                <?= htmlspecialchars($cupom->codigo) ?> (<?= $cupom->getDescontoFormatado() ?>)
+                            </option>
+                            <?php endforeach; ?>
                             <?php endif; ?>
                         </select>
                         <small class="form-help">O código do cupom será incluído no e-mail/notificação</small>

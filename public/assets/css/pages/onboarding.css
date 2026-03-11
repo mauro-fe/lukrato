@@ -298,6 +298,10 @@
             position: relative;
         }
 
+        .lk-select-wrapper.open {
+            z-index: 100;
+        }
+
         .lk-select-search {
             width: 100%;
             padding: 12px var(--spacing-4);
@@ -343,7 +347,7 @@
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-md);
             box-shadow: var(--shadow-lg);
-            z-index: 100;
+            z-index: 9999;
             display: none;
         }
 
@@ -585,7 +589,12 @@
 
         /* ───── Form entrance animation ───── */
         .lk-onboarding-form .lk-form-group {
-            animation: obFormIn 0.4s ease-out both;
+            animation: obFormIn 0.4s ease-out backwards;
+        }
+
+        .lk-form-group:has(.lk-select-wrapper.open) {
+            z-index: 10;
+            position: relative;
         }
 
         .lk-onboarding-form .lk-form-group:nth-child(1) { animation-delay: 0.05s; }

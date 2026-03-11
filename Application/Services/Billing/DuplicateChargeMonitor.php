@@ -223,7 +223,7 @@ class DuplicateChargeMonitor
                 if (function_exists('mail')) {
                     mail($adminEmail, $subject, $body, [
                         'Content-Type' => 'text/html; charset=UTF-8',
-                        'From' => 'noreply@lukrato.com',
+                        'From' => 'noreply@lukrato.com.br',
                     ]);
                 }
             } catch (\Throwable $e) {

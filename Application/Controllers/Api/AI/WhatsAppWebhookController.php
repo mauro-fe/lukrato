@@ -170,7 +170,7 @@ class WhatsAppWebhookController extends BaseController
             $this->whatsapp->sendText(
                 $dto->fromPhone,
                 "Olá! Você ainda não vinculou seu WhatsApp ao Lukrato.\n\n"
-                    . "Acesse seu painel em lukrato.com → Configurações → WhatsApp para vincular."
+                    . "Acesse seu painel em lukrato.com.br → Configurações → WhatsApp para vincular."
             );
             $msgRecord->markIgnored();
             return;
@@ -316,7 +316,7 @@ class WhatsAppWebhookController extends BaseController
             $this->whatsapp->sendText(
                 $dto->fromPhone,
                 "🤖 Você usou suas {$limit} mensagens de IA gratuitas este mês. "
-                    . "Faça upgrade para o Pro e tenha IA ilimitada: https://lukrato.com/billing"
+                    . "Faça upgrade para o Pro e tenha IA ilimitada: https://lukrato.com.br/billing"
             );
             $msgRecord->markProcessed('quota_exceeded');
             return;

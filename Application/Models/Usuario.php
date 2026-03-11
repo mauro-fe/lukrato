@@ -316,7 +316,6 @@ class Usuario extends Model
                 $ts = strtotime((string)$u->data_nascimento);
                 $u->data_nascimento = $ts ? date('Y-m-d', $ts) : null;
             }
-
         });
     }
 

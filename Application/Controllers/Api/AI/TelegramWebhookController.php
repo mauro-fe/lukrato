@@ -157,7 +157,7 @@ class TelegramWebhookController extends BaseController
             $this->telegram->sendText(
                 $dto->chatId,
                 "Olá! Você ainda não vinculou seu Telegram ao Lukrato.\n\n"
-                    . "Acesse seu painel em lukrato.com → Perfil → Telegram para gerar um código de verificação."
+                    . "Acesse seu painel em lukrato.com.br → Perfil → Telegram para gerar um código de verificação."
             );
             $msgRecord->markIgnored();
             return;
@@ -198,7 +198,7 @@ class TelegramWebhookController extends BaseController
                     "👋 Olá{$name}! Eu sou o bot do <b>Lukrato</b>.\n\n"
                         . "📱 Com este bot você pode registrar receitas e despesas diretamente pelo Telegram.\n\n"
                         . "🔗 Para começar, vincule sua conta:\n"
-                        . "1. Acesse <b>lukrato.com</b> → Perfil → Telegram\n"
+                        . "1. Acesse <b>lukrato.com.br</b> → Perfil → Telegram\n"
                         . "2. Clique em \"Vincular Telegram\"\n"
                         . "3. Envie o código de 6 dígitos aqui\n\n"
                         . "Pronto! Depois é só mandar mensagens como:\n"
@@ -232,7 +232,7 @@ class TelegramWebhookController extends BaseController
                 } else {
                     $this->telegram->sendText(
                         $dto->chatId,
-                        "🔗 Para vincular, acesse lukrato.com → Perfil → Telegram e gere um código.\n"
+                        "🔗 Para vincular, acesse lukrato.com.br → Perfil → Telegram e gere um código.\n"
                             . "Depois, envie o código de 6 dígitos aqui."
                     );
                 }
@@ -290,7 +290,7 @@ class TelegramWebhookController extends BaseController
         if ($user === null) {
             $this->telegram->sendText(
                 $dto->chatId,
-                "❌ Código inválido ou expirado. Gere um novo código em lukrato.com → Perfil → Telegram."
+                "❌ Código inválido ou expirado. Gere um novo código em lukrato.com.br → Perfil → Telegram."
             );
             $msgRecord->markProcessed('verification_failed');
             return;
@@ -436,7 +436,7 @@ class TelegramWebhookController extends BaseController
             $this->telegram->sendText(
                 $dto->chatId,
                 "🤖 Você usou suas {$limit} mensagens de IA gratuitas este mês. "
-                    . "Faça upgrade para o Pro e tenha IA ilimitada: https://lukrato.com/billing"
+                    . "Faça upgrade para o Pro e tenha IA ilimitada: https://lukrato.com.br/billing"
             );
             $msgRecord->markProcessed('quota_exceeded');
             return;
