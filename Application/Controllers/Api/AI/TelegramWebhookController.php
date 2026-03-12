@@ -16,7 +16,10 @@ use Application\Services\AI\AIService;
 use Application\Services\AI\AIQuotaService;
 use Application\Services\AI\Actions\ActionRegistry;
 use Application\Services\AI\ConversationStateService;
+use Application\Services\AI\Context\UserContextBuilder;
+use Application\Services\AI\ContextCompressor;
 use Application\Services\AI\Rules\CategoryRuleEngine;
+use Application\Models\AiChatMessage;
 use Application\Services\AI\TransactionDetectorService;
 use Application\Services\AI\Telegram\TelegramResponseFormatter;
 use Application\Services\AI\Telegram\TelegramService;
@@ -623,10 +626,42 @@ class TelegramWebhookController extends BaseController
         // Obter/criar conversa do Telegram (para multi-turn e contexto)
         $conversation = $this->getOrCreateConversation($user->id);
 
-        // Montar contexto com conversation_id (essencial para multi-turn)
-        $context = [
+        // Salvar mensagem do usuário
+        AiChatMessage::create([
             'conversation_id' => $conversation->id,
-        ];
+            'role'            => 'user',
+            'content'         => $dto->body,
+        ]);
+
+        // Coletar contexto financeiro do usuário
+        try {
+            $contextBuilder = new UserContextBuilder();
+            $context = $contextBuilder->build($user->id);
+        } catch (\Throwable) {
+            $context = [];
+        }
+
+        $context = ContextCompressor::compress($context, $dto->body);
+
+        // Incluir últimas mensagens como histórico de conversa
+        $history = $conversation->messages()
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get(['role', 'content'])
+            ->reverse()
+            ->values()
+            ->map(function ($msg) {
+                $item = $msg->toArray();
+                if (($item['role'] ?? '') === 'assistant' && mb_strlen($item['content'] ?? '') > 300) {
+                    $item['content'] = mb_substr($item['content'], 0, 300) . '…';
+                }
+                return $item;
+            })
+            ->toArray();
+
+        $context['conversation_history'] = $history;
+        $context['_user_mode'] = true;
+        $context['conversation_id'] = $conversation->id;
 
         // Delegar para AIService com pipeline completa (IntentRouter → Handler)
         $ai = new AIService();
@@ -639,6 +674,18 @@ class TelegramWebhookController extends BaseController
         );
 
         $response = $ai->dispatch($request);
+
+        // Salvar resposta do assistente
+        AiChatMessage::create([
+            'conversation_id' => $conversation->id,
+            'role'            => 'assistant',
+            'content'         => $response->message,
+            'tokens_used'     => $response->tokensUsed ?: null,
+            'intent'          => $response->intent?->value,
+        ]);
+
+        // Atualizar updated_at da conversa
+        $conversation->touch();
 
         // Tratar resposta baseada no tipo de ação retornada
         $this->sendAiResponse($dto->chatId, $response, $msgRecord);
