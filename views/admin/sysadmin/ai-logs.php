@@ -92,6 +92,16 @@
             <option value="analyze">Análise (novo fluxo)</option>
             <option value="quick_query">Consulta Rápida</option>
             <option value="extract_transaction">Extração de Transação</option>
+            <option value="create_entity">Criação de Entidade</option>
+            <option value="confirm_action">Confirmação</option>
+        </select>
+        <select id="filterChannel">
+            <option value="">Todos os canais</option>
+            <option value="web">🌐 Web Chat</option>
+            <option value="telegram">✈️ Telegram</option>
+            <option value="whatsapp">💬 WhatsApp</option>
+            <option value="api">🔌 API</option>
+            <option value="admin">🛡️ Admin</option>
         </select>
         <select id="filterSuccess">
             <option value="">Todos os status</option>
@@ -117,16 +127,17 @@
             <thead>
                 <tr>
                     <th>Data</th>
+                    <th>Canal</th>
                     <th>Tipo</th>
                     <th>Prompt</th>
-                    <th>Tokens</th>
-                    <th>Tempo</th>
+                    <th class="col-tokens">Tokens</th>
+                    <th class="col-time">Tempo</th>
                     <th>Status</th>
                 </tr>
             </thead>
             <tbody id="logsBody">
                 <tr>
-                    <td colspan="6">
+                    <td colspan="7">
                         <div class="logs-empty"><i data-lucide="loader"></i> Carregando...</div>
                     </td>
                 </tr>

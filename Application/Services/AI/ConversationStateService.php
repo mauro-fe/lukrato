@@ -272,6 +272,9 @@ class ConversationStateService
             'subcategoria' => [
                 'nome' => 'Qual o **nome** da subcategoria?',
             ],
+            'conta' => [
+                'nome' => 'Qual o **nome** da conta? (ex: "Nubank", "Conta Itaú")',
+            ],
             default => [],
         };
 

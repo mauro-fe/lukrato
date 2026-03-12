@@ -136,12 +136,14 @@
             per_page: 20
         });
         const type = document.getElementById('filterType').value;
+        const channel = document.getElementById('filterChannel').value;
         const success = document.getElementById('filterSuccess').value;
         const dateFrom = document.getElementById('filterDateFrom').value;
         const dateTo = document.getElementById('filterDateTo').value;
         const search = document.getElementById('filterSearch').value.trim();
 
         if (type) params.set('type', type);
+        if (channel) params.set('channel', channel);
         if (success !== '') params.set('success', success);
         if (dateFrom) params.set('date_from', dateFrom);
         if (dateTo) params.set('date_to', dateTo);
@@ -157,7 +159,7 @@
             });
             const json = await res.json();
             if (!json.success) {
-                body.innerHTML = `<tr><td colspan="6"><div class="logs-empty">Erro ao carregar logs</div></td></tr>`;
+                body.innerHTML = `<tr><td colspan="7"><div class="logs-empty">Erro ao carregar logs</div></td></tr>`;
                 return;
             }
 
@@ -169,7 +171,7 @@
             } = json.data;
 
             if (!data.length) {
-                body.innerHTML = `<tr><td colspan="6"><div class="logs-empty"><i data-lucide="inbox"></i> Nenhum log encontrado</div></td></tr>`;
+                body.innerHTML = `<tr><td colspan="7"><div class="logs-empty"><i data-lucide="inbox"></i> Nenhum log encontrado</div></td></tr>`;
                 document.getElementById('pagination').innerHTML = '';
                 if (typeof lucide !== 'undefined') lucide.createIcons();
                 return;
@@ -184,20 +186,32 @@
                     categorize: 'Categorização',
                     analyze: 'Análise (novo)',
                     quick_query: 'Consulta Rápida',
-                    extract_transaction: 'Extração'
+                    extract_transaction: 'Extração',
+                    create_entity: 'Criação',
+                    confirm_action: 'Confirmação'
                 }[log.type] || log.type;
+
+                const channelInfo = {
+                    web: { label: 'Web', icon: '🌐' },
+                    telegram: { label: 'Telegram', icon: '✈️' },
+                    whatsapp: { label: 'WhatsApp', icon: '💬' },
+                    api: { label: 'API', icon: '🔌' },
+                    admin: { label: 'Admin', icon: '🛡️' },
+                }[log.channel] || { label: log.channel || 'web', icon: '🌐' };
+
                 const rowId = `expand-${pg}-${i}`;
 
                 html += `<tr class="log-row" data-expand="${rowId}">
                     <td style="white-space:nowrap;">${fmtDate(log.created_at)}</td>
+                    <td><span class="badge-channel ${esc(log.channel || 'web')}">${channelInfo.icon} ${esc(channelInfo.label)}</span></td>
                     <td><span class="badge-type ${esc(log.type)}">${esc(typeLabel)}</span></td>
                     <td><div class="prompt-preview" title="Clique para expandir">${esc((log.prompt || '').substring(0, 100))}</div></td>
-                    <td>${log.tokens_total ? fmtNumber(log.tokens_total) : '—'}</td>
-                    <td>${log.response_time_ms ? fmtNumber(log.response_time_ms) + 'ms' : '—'}</td>
+                    <td class="col-tokens">${log.tokens_total ? fmtNumber(log.tokens_total) : '—'}</td>
+                    <td class="col-time">${log.response_time_ms ? fmtNumber(log.response_time_ms) + 'ms' : '—'}</td>
                     <td><span class="badge-status ${log.success ? 'ok' : 'fail'}">${log.success ? 'OK' : 'Erro'}</span></td>
                 </tr>
                 <tr class="expand-row" id="${rowId}">
-                    <td colspan="6">
+                    <td colspan="7">
                         <div class="expand-content">
                             <div>
                                 <div class="label">Prompt</div>
@@ -209,6 +223,7 @@
                             </div>
                         </div>
                         <div style="margin-top:.75rem;font-size:.75rem;color:var(--color-text-muted);display:flex;gap:1.5rem;flex-wrap:wrap;">
+                            <span><strong>Canal:</strong> ${esc(log.channel || 'web')}</span>
                             <span><strong>Provider:</strong> ${esc(log.provider)}</span>
                             <span><strong>Model:</strong> ${esc(log.model)}</span>
                             <span><strong>Tokens (in/out):</strong> ${log.tokens_prompt ?? '—'} / ${log.tokens_completion ?? '—'}</span>
@@ -239,7 +254,7 @@
 
             if (typeof lucide !== 'undefined') lucide.createIcons();
         } catch {
-            body.innerHTML = `<tr><td colspan="6"><div class="logs-empty">Erro de conexão</div></td></tr>`;
+            body.innerHTML = `<tr><td colspan="7"><div class="logs-empty">Erro de conexão</div></td></tr>`;
         }
     }
 

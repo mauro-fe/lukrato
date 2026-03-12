@@ -182,7 +182,47 @@ class EntitySchemas
             'meta'         => self::meta(),
             'orcamento'    => self::orcamento(),
             'categoria'    => self::categoria(),
+            'conta'        => self::conta(),
             default        => null,
         };
+    }
+
+    /**
+     * Schema para extração de conta bancária.
+     */
+    public static function conta(): array
+    {
+        return [
+            'type' => 'function',
+            'function' => [
+                'name' => 'create_conta',
+                'description' => 'Cria uma conta bancária/financeira extraída da mensagem do usuário brasileiro.',
+                'strict' => true,
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'nome' => [
+                            'type' => 'string',
+                            'description' => 'Nome da conta. Ex: "Nubank", "Conta Itaú", "Carteira".',
+                        ],
+                        'instituicao' => [
+                            'type' => ['string', 'null'],
+                            'description' => 'Nome da instituição financeira (banco). Ex: "Nubank", "Itaú", "Bradesco". null se não mencionado.',
+                        ],
+                        'tipo_conta' => [
+                            'type' => 'string',
+                            'enum' => ['conta_corrente', 'conta_poupanca', 'carteira', 'investimento', 'outro'],
+                            'description' => 'Tipo da conta. Padrão: conta_corrente.',
+                        ],
+                        'saldo_inicial' => [
+                            'type' => 'number',
+                            'description' => 'Saldo inicial em reais (BRL). Padrão: 0.',
+                        ],
+                    ],
+                    'required' => ['nome', 'instituicao', 'tipo_conta', 'saldo_inicial'],
+                    'additionalProperties' => false,
+                ],
+            ],
+        ];
     }
 }

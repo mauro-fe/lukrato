@@ -46,6 +46,12 @@ class EntityCreationIntentRule implements IntentRuleInterface
         // Categoria (antes de lancamento para evitar match com "tipo despesa")
         'categoria'  => 'categoria',
 
+        // Conta bancária (antes de lancamento para evitar match com "conta de luz")
+        'conta' => 'conta\s+(?:banc[áa]ria|corrente|poupan[çc]a|no\s+banco|do\s+banco|digital)'
+            . '|conta\s+(?:no|do|da|na)\s+(?:nubank|inter|ita[úu]|itau|bradesco|santander|bb|banco\s*do\s*brasil|sicredi|sicoob|c6|neon|next|pagbank|picpay|mercado\s*pago|caixa|banrisul|safra|btg|original)'
+            . '|abrir\s+conta|nova\s+conta|adicionar\s+(?:banco|conta)|criar\s+(?:banco|conta)|cadastrar\s+(?:banco|conta)'
+            . '|\bcarteira\b(?!\s+de\s+(?:cr[ée]dito|motorista))',
+
         // Lançamento / despesa / receita / cartão de crédito
         'lancamento' => 'lan[çc]amento|gasto|despesa|receita|conta\s+(?:a\s+pagar|de\s+luz|de\s+[áa]gua)|pagamento'
             . '|fatura|boleto|parcela|presta[çc][ãa]o|mensalidade|pix|transfer[eê]ncia'

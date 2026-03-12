@@ -20,6 +20,7 @@ class ActionRegistry
             'create_orcamento'    => new CreateOrcamentoAction(),
             'create_categoria'    => new CreateCategoriaAction(),
             'create_subcategoria' => new CreateSubcategoriaAction(),
+            'create_conta'        => new CreateContaAction(),
         ];
     }
 

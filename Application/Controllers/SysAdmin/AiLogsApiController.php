@@ -31,6 +31,7 @@ class AiLogsApiController extends BaseController
 
         $filters = [
             'type'      => $_GET['type'] ?? null,
+            'channel'   => $_GET['channel'] ?? null,
             'success'   => $_GET['success'] ?? '',
             'search'    => $_GET['search'] ?? null,
             'date_from' => $_GET['date_from'] ?? null,

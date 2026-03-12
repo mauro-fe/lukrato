@@ -37,6 +37,10 @@ class AiLogService
             $query->where('type', $filters['type']);
         }
 
+        if (!empty($filters['channel'])) {
+            $query->where('channel', $filters['channel']);
+        }
+
         if (isset($filters['success']) && $filters['success'] !== '') {
             $query->where('success', (bool) $filters['success']);
         }

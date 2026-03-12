@@ -459,6 +459,17 @@
         flex-direction: column;
     }
 
+    .filters-bar select,
+    .filters-bar input {
+        width: 100%;
+    }
+
+    .filters-bar .btn-filter,
+    .filters-bar .btn-cleanup {
+        width: 100%;
+        text-align: center;
+    }
+
     .filters-bar .btn-cleanup {
         margin-left: 0;
     }
@@ -466,4 +477,105 @@
     .quota-grid {
         grid-template-columns: 1fr 1fr;
     }
+
+    .logs-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .logs-header .header-content h1 {
+        font-size: var(--font-size-xl);
+    }
+
+    .logs-table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .logs-table {
+        min-width: 600px;
+    }
+
+    .col-tokens,
+    .col-time {
+        display: none;
+    }
+
+    .pagination {
+        flex-wrap: wrap;
+        gap: .4rem;
+    }
+
+    .pagination button {
+        padding: .5rem 1rem;
+        min-height: 44px;
+    }
+
+    .prompt-preview {
+        max-width: 160px;
+    }
+
+    .metric-card {
+        padding: .8rem .75rem;
+    }
+
+    .metric-card .metric-value {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: .5rem;
+    }
+
+    .metric-card .metric-label {
+        font-size: .6rem;
+    }
+
+    .quota-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .prompt-preview {
+        max-width: 120px;
+    }
+}
+
+/* Channel badges */
+.badge-channel {
+    display: inline-flex;
+    align-items: center;
+    gap: .25rem;
+    padding: .15rem .5rem;
+    border-radius: 999px;
+    font-size: .7rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-channel.web {
+    background: rgba(95, 151, 238, .12);
+    color: var(--blue-600);
+}
+
+.badge-channel.telegram {
+    background: rgba(0, 136, 204, .12);
+    color: #0088cc;
+}
+
+.badge-channel.whatsapp {
+    background: rgba(37, 211, 102, .12);
+    color: #128c7e;
+}
+
+.badge-channel.api {
+    background: rgba(124, 58, 237, .12);
+    color: #7c3aed;
+}
+
+.badge-channel.admin {
+    background: rgba(245, 158, 11, .12);
+    color: #d97706;
 }

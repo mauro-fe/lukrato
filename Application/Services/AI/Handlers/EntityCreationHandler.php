@@ -18,6 +18,7 @@ use Application\Services\AI\Rules\CategoryRuleEngine;
 use Application\Services\AI\Schemas\EntitySchemas;
 use Application\Models\Categoria;
 use Application\Validators\CategoriaValidator;
+use Application\Validators\ContaValidator;
 use Application\Validators\LancamentoValidator;
 use Application\Validators\MetaValidator;
 use Application\Validators\OrcamentoValidator;
@@ -116,7 +117,7 @@ class EntityCreationHandler implements AIHandlerInterface
 
         if (!$entityType) {
             return AIResponseDTO::fail(
-                'Não consegui identificar o que você quer criar. Tente: "criar lançamento", "criar meta", "criar orçamento", "criar categoria" ou "criar subcategoria".',
+                'Não consegui identificar o que você quer criar. Tente: "criar lançamento", "criar meta", "criar orçamento", "criar categoria", "criar subcategoria" ou "criar conta".',
                 IntentType::CREATE_ENTITY
             );
         }
@@ -250,8 +251,8 @@ class EntityCreationHandler implements AIHandlerInterface
             // Buscar categorias do usuário para dropdown opcional
             $tipoLanc = $extracted['tipo'] ?? 'despesa';
             $categorias = Categoria::where(function ($q) use ($userId) {
-                    $q->whereNull('user_id')->orWhere('user_id', $userId);
-                })
+                $q->whereNull('user_id')->orWhere('user_id', $userId);
+            })
                 ->where(function ($q) use ($tipoLanc) {
                     $q->where('tipo', $tipoLanc)->orWhere('tipo', 'ambas');
                 })
@@ -378,6 +379,7 @@ class EntityCreationHandler implements AIHandlerInterface
             'orcamento'    => $this->extractOrcamento($message),
             'categoria'    => $this->extractCategoria($message),
             'subcategoria' => $this->extractSubcategoria($message),
+            'conta'        => $this->extractConta($message),
             default        => [],
         };
     }
@@ -730,6 +732,81 @@ class EntityCreationHandler implements AIHandlerInterface
         return $data;
     }
 
+    private function extractConta(string $message): array
+    {
+        $data = [];
+
+        // Detectar instituição/banco
+        $bancos = [
+            'nubank'             => 'Nubank',
+            'inter'              => 'Inter',
+            'ita[úu]|itau'       => 'Itaú',
+            'bradesco'           => 'Bradesco',
+            'santander'          => 'Santander',
+            'banco\s*do\s*brasil|bb' => 'Banco do Brasil',
+            'caixa'              => 'Caixa',
+            'sicredi'            => 'Sicredi',
+            'sicoob'             => 'Sicoob',
+            'c6|c6\s*bank'       => 'C6 Bank',
+            'neon'               => 'Neon',
+            'next'               => 'Next',
+            'pagbank'            => 'PagBank',
+            'picpay'             => 'PicPay',
+            'mercado\s*pago'     => 'Mercado Pago',
+            'banrisul'           => 'Banrisul',
+            'safra'              => 'Safra',
+            'btg'                => 'BTG',
+            'original'           => 'Original',
+            'will'               => 'Will Bank',
+            'digio'              => 'Digio',
+        ];
+
+        foreach ($bancos as $pattern => $label) {
+            if (preg_match('/\b(?:' . $pattern . ')\b/iu', $message)) {
+                $data['instituicao'] = $label;
+                $data['nome'] = $label;
+                break;
+            }
+        }
+
+        // Tipo de conta
+        if (preg_match('/\b(?:poupan[çc]a)\b/iu', $message)) {
+            $data['tipo_conta'] = 'conta_poupanca';
+        } elseif (preg_match('/\b(?:corrente)\b/iu', $message)) {
+            $data['tipo_conta'] = 'conta_corrente';
+        } elseif (preg_match('/\b(?:carteira|dinheiro|cash)\b/iu', $message)) {
+            $data['tipo_conta'] = 'carteira';
+        } elseif (preg_match('/\b(?:investimento|cdb|tesouro|a[çc][ãa]o|a[çc][oõ]es|fundo)\b/iu', $message)) {
+            $data['tipo_conta'] = 'investimento';
+        } else {
+            $data['tipo_conta'] = 'conta_corrente';
+        }
+
+        // Saldo inicial com normalização
+        $msgNorm = $this->normalizeColloquialValues($message);
+        if (preg_match('/(?:saldo|com)\s+(?:de\s+)?R?\$?\s*(\d{1,3}(?:\.\d{3})*[,\.]\d{2}|\d+(?:[,\.]\d{1,2})?)/iu', $msgNorm, $m)) {
+            $valor = str_replace('.', '', $m[1]);
+            $valor = str_replace(',', '.', $valor);
+            $data['saldo_inicial'] = (float) $valor;
+        } else {
+            $data['saldo_inicial'] = 0.0;
+        }
+
+        // Nome customizado — "conta <nome>"
+        if (empty($data['nome'])) {
+            if (preg_match('/conta\s+(?:banc[áa]ria\s+)?(?:no|do|da|na)?\s*(.{2,50})/iu', $message, $m)) {
+                $nome = trim($m[1]);
+                $nome = preg_replace('/\b(?:corrente|poupan[çc]a|com\s+saldo|saldo|R?\$?\s*[\d.,]+)\b/iu', '', $nome);
+                $nome = trim($nome, " \t\n\r\0\x0B,.");
+                if (mb_strlen($nome) >= 2) {
+                    $data['nome'] = mb_substr($nome, 0, 100);
+                }
+            }
+        }
+
+        return $data;
+    }
+
     // ─── LLM fallback ───────────────────────────────────────────
 
     private function extractWithAI(string $message, string $entityType, array $partial): array
@@ -777,6 +854,7 @@ class EntityCreationHandler implements AIHandlerInterface
             'orcamento'    => 'categoria_id (number), valor_limite (number), mes (1-12), ano (YYYY)',
             'categoria'    => 'nome (string), tipo (receita/despesa/transferencia/ambas)',
             'subcategoria' => 'nome (string)',
+            'conta'        => 'nome (string), instituicao (string/null), tipo_conta (conta_corrente/conta_poupanca/carteira/investimento/outro), saldo_inicial (number)',
             default => '',
         };
 
@@ -808,6 +886,7 @@ class EntityCreationHandler implements AIHandlerInterface
             'orcamento'    => ['valor_limite'],
             'categoria'    => ['nome', 'tipo'],
             'subcategoria' => ['nome'],
+            'conta'        => ['nome'],
             default        => [],
         };
 
@@ -829,6 +908,7 @@ class EntityCreationHandler implements AIHandlerInterface
             'orcamento'    => $this->validateOrcamento($data),
             'categoria'    => CategoriaValidator::validateCreate($data),
             'subcategoria' => SubcategoriaValidator::validateCreate($data),
+            'conta'        => ContaValidator::validateCreate($data),
             default        => [],
         };
     }
@@ -850,6 +930,7 @@ class EntityCreationHandler implements AIHandlerInterface
             'orcamento'    => $this->previewOrcamento($data),
             'categoria'    => $this->previewCategoria($data),
             'subcategoria' => $this->previewSubcategoria($data),
+            'conta'        => $this->previewConta($data),
             default        => '📋 Entidade a ser criada.',
         };
     }
@@ -970,8 +1051,21 @@ class EntityCreationHandler implements AIHandlerInterface
                 }
             }
 
-            $meses = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-                       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            $meses = [
+                '',
+                'Janeiro',
+                'Fevereiro',
+                'Março',
+                'Abril',
+                'Maio',
+                'Junho',
+                'Julho',
+                'Agosto',
+                'Setembro',
+                'Outubro',
+                'Novembro',
+                'Dezembro'
+            ];
 
             return $meses[$mesCompra] . '/' . $anoCompra;
         } catch (\Throwable) {
@@ -1004,6 +1098,29 @@ class EntityCreationHandler implements AIHandlerInterface
         return "📂 **Subcategoria**: {$d['nome']}";
     }
 
+    private function previewConta(array $d): string
+    {
+        $nome = $d['nome'] ?? 'Conta';
+        $instituicao = $d['instituicao'] ?? '';
+        $tipoConta = match ($d['tipo_conta'] ?? 'conta_corrente') {
+            'conta_corrente' => 'Conta Corrente',
+            'conta_poupanca' => 'Poupança',
+            'carteira'       => 'Carteira',
+            'investimento'   => 'Investimento',
+            default          => ucfirst($d['tipo_conta'] ?? 'outro'),
+        };
+        $saldo = 'R$ ' . number_format((float) ($d['saldo_inicial'] ?? 0), 2, ',', '.');
+
+        $lines = ["🏦 **Conta**: {$nome}"];
+        if ($instituicao) {
+            $lines[] = "🏛️ Instituição: {$instituicao}";
+        }
+        $lines[] = "📋 Tipo: {$tipoConta}";
+        $lines[] = "💰 Saldo inicial: {$saldo}";
+
+        return implode("\n", $lines);
+    }
+
     private function getEntityLabel(string $entityType): string
     {
         return match ($entityType) {
@@ -1012,6 +1129,7 @@ class EntityCreationHandler implements AIHandlerInterface
             'orcamento'    => 'um orçamento',
             'categoria'    => 'uma categoria',
             'subcategoria' => 'uma subcategoria',
+            'conta'        => 'uma conta bancária',
             default        => 'uma entidade',
         };
     }
@@ -1041,6 +1159,12 @@ class EntityCreationHandler implements AIHandlerInterface
             'subcategoria' => [
                 'nome' => 'Nome',
             ],
+            'conta' => [
+                'nome' => 'Nome da conta',
+                'instituicao' => 'Banco/Instituição',
+                'tipo_conta' => 'Tipo (corrente/poupança/carteira)',
+                'saldo_inicial' => 'Saldo inicial',
+            ],
             default => [],
         };
     }
@@ -1053,6 +1177,7 @@ class EntityCreationHandler implements AIHandlerInterface
             'orcamento'    => '"criar orçamento de R$ 800 para alimentação" ou "não quero gastar mais de 500 com lazer"',
             'categoria'    => '"criar categoria Pets tipo despesa"',
             'subcategoria' => '"criar subcategoria Ração"',
+            'conta'        => '"criar conta no Nubank" ou "adicionar conta corrente no Itaú com saldo de 500"',
             default        => '',
         };
     }
