@@ -15,6 +15,7 @@ class AiLog extends Model
     protected $fillable = [
         'user_id',
         'type',
+        'channel',
         'prompt',
         'response',
         'provider',
@@ -29,6 +30,7 @@ class AiLog extends Model
 
     protected $casts = [
         'user_id'           => 'int',
+        'channel'           => 'string',
         'tokens_prompt'     => 'int',
         'tokens_completion' => 'int',
         'tokens_total'      => 'int',

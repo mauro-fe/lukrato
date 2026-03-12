@@ -69,7 +69,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
             <section class="login-left">
                 <div class="brand">
                     <div class="imagem-logo" aria-label="Lukrato">
-                        <img src="<?= ASSETS_URL ?>assets/img/logo-top.png" alt="Lukrato">
+                        <img src="<?= ASSETS_URL ?>img/logo-top.png" alt="Lukrato">
                     </div>
                 </div>
 

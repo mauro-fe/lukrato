@@ -195,6 +195,7 @@ class AIService
         AiLogService::log([
             'user_id'          => $request->userId,
             'type'             => $logType,
+            'channel'          => $request->channel->value,
             'prompt'           => mb_substr($request->message, 0, 5000),
             'response'         => mb_substr($response->message, 0, 10000),
             'provider'         => $_ENV['AI_PROVIDER'] ?? 'openai',
