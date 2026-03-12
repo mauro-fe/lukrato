@@ -14,6 +14,9 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
+    <?php if (!empty($intended)): ?>
+        <meta name="intended-redirect" content="<?= htmlspecialchars($intended, ENT_QUOTES, 'UTF-8') ?>">
+    <?php endif; ?>
 
     <!-- CSRF Meta Tags para renovação automática -->
     <?= csrf_meta('login_form') ?>

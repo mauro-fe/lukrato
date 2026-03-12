@@ -73,9 +73,14 @@ class GoogleCallbackController extends BaseController
             // Realiza login
             $this->googleAuthService->loginUser($usuario, $userInfo);
 
-            // Redireciona
+            // Redireciona para intended URL ou dashboard
+            $intended = $_SESSION['login_intended'] ?? '';
+            unset($_SESSION['login_intended']);
+
             if ($isNew) {
                 $this->redirect('dashboard?welcome=1');
+            } elseif ($intended !== '' && preg_match('#^[a-zA-Z0-9/_\-]+$#', $intended)) {
+                $this->redirect($intended);
             } else {
                 $this->redirect('dashboard');
             }
@@ -139,6 +144,9 @@ class GoogleCallbackController extends BaseController
                 'picture' => $pendingUser['picture'] ?? null,
             ];
             $this->googleAuthService->loginUser($usuario, $userInfo);
+
+            // Limpa intended (conta nova vai para welcome)
+            unset($_SESSION['login_intended']);
 
             LogService::info('Conta criada via Google após confirmação', [
                 'user_id' => $usuario->id,

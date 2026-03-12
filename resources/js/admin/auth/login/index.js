@@ -546,7 +546,7 @@ function clearErrors(form) {
                             icon: 'warning',
                             title: 'E-mail não verificado',
                             html: `<p>${data.errors.email || 'Você precisa verificar seu e-mail antes de fazer login.'}</p>` +
-                                  `<p style="margin-top:8px;font-size:0.9rem;color:#888;">Verifique sua caixa de entrada e spam.</p>`,
+                                `<p style="margin-top:8px;font-size:0.9rem;color:#888;">Verifique sua caixa de entrada e spam.</p>`,
                             showCancelButton: true,
                             confirmButtonText: 'Reenviar e-mail',
                             cancelButtonText: 'OK',
@@ -624,7 +624,10 @@ function clearErrors(form) {
                 // Login OK: limpa contador de falhas
                 TurnstileManager.clearLoginFailures();
 
-                const redirectUrl = data?.redirect || BASE + 'dashboard';
+                // Prioridade: intended (da meta tag) > redirect do servidor > dashboard
+                const intendedMeta = document.querySelector('meta[name="intended-redirect"]');
+                const intended = intendedMeta?.content || '';
+                const redirectUrl = (intended ? BASE + intended : null) || data?.redirect || BASE + 'dashboard';
                 setTimeout(() => { window.location.href = redirectUrl; }, 800);
 
             } catch (error) {

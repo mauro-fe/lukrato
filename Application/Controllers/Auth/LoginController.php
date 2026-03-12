@@ -59,6 +59,14 @@ class LoginController extends BaseController
         $ip = $this->request->ip() ?? 'unknown';
         $requireCaptcha = $this->turnstile->shouldRequireCaptcha($ip);
 
+        // Captura URL intended (para redirect pós-login)
+        $intended = self::sanitizeIntended($_GET['intended'] ?? '');
+
+        // Salva na sessão para o Google OAuth poder usar
+        if ($intended !== '') {
+            $_SESSION['login_intended'] = $intended;
+        }
+
         $this->render('admin/auth/login', [
             'error' => $errorMessage,
             'registerErrorMessage' => $errorMessage,
@@ -69,7 +77,28 @@ class LoginController extends BaseController
             'csrf_token' => CsrfMiddleware::generateToken('login_form'),
             'require_captcha' => $requireCaptcha,
             'turnstile_site_key' => TurnstileService::isEnabled() ? TURNSTILE_SITE_KEY : '',
+            'intended' => $intended,
         ]);
+    }
+
+    /**
+     * Sanitiza o parâmetro intended para prevenir open redirect.
+     * Aceita apenas paths relativos com caracteres seguros.
+     */
+    private static function sanitizeIntended(string $raw): string
+    {
+        $path = trim($raw, '/ ');
+
+        if ($path === '' || $path === 'login') {
+            return '';
+        }
+
+        // Somente caracteres alfanuméricos, /, -, _
+        if (!preg_match('#^[a-zA-Z0-9/_\-]+$#', $path)) {
+            return '';
+        }
+
+        return $path;
     }
 
 
