@@ -14,7 +14,8 @@
             <!-- Conteúdo Principal -->
             <article class="text-center lg:text-left space-y-6" data-aos="fade-up">
                 <!-- Badge -->
-                <div class="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 border border-orange-100 rounded-full">
+                <div
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 border border-orange-100 rounded-full">
                     <i data-lucide="shield-check" class="w-4 h-4 text-primary" aria-hidden="true"></i>
                     <span class="text-sm font-medium text-gray-700">100% gratuito para começar</span>
                 </div>
@@ -29,7 +30,8 @@
 
                 <!-- Subtítulo -->
                 <p class="text-lg sm:text-xl text-gray-600 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    O app brasileiro de controle financeiro gratuito com dashboard inteligente, gestão de cartões de crédito, relatórios visuais e controle de gastos.
+                    O app brasileiro de controle financeiro gratuito com dashboard inteligente, gestão de cartões de
+                    crédito, relatórios visuais e controle de gastos.
                     Tudo em um só lugar, sem complicação.
                 </p>
 
@@ -39,7 +41,8 @@
                         class="group inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 hover:scale-[1.02] transition-all duration-300"
                         title="Criar conta gratuita no Lukrato" aria-label="Começar a usar o Lukrato gratuitamente">
                         Começar grátis agora
-                        <i data-lucide="arrow-right" class="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" aria-hidden="true"></i>
+                        <i data-lucide="arrow-right" class="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform"
+                            aria-hidden="true"></i>
                     </a>
 
                     <a href="#como-funciona"
@@ -82,7 +85,7 @@
                 <div class="absolute -bottom-4 -left-2 sm:-left-4 bg-white rounded-xl shadow-lg border border-gray-100 p-3"
                     aria-hidden="true" data-aos="fade-up" data-aos-delay="400">
                     <div class="flex items-center gap-2">
-                        <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                             <i data-lucide="trending-up" class="w-5 h-5 text-green-600"></i>
                         </div>
                         <div>
@@ -96,7 +99,7 @@
                 <div class="absolute -top-4 -right-2 sm:-right-4 bg-white rounded-xl shadow-lg border border-gray-100 p-3"
                     aria-hidden="true" data-aos="fade-up" data-aos-delay="500">
                     <div class="flex items-center gap-2">
-                        <div class="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                             <i data-lucide="piggy-bank" class="w-5 h-5 text-primary"></i>
                         </div>
                         <div>
@@ -106,7 +109,8 @@
                     </div>
                 </div>
 
-                <figcaption class="sr-only">Dashboard do aplicativo Lukrato para controle financeiro pessoal</figcaption>
+                <figcaption class="sr-only">Dashboard do aplicativo Lukrato para controle financeiro pessoal
+                </figcaption>
             </figure>
         </div>
     </div>

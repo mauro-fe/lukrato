@@ -79,7 +79,7 @@ export function init() {
                         <h4>Usamos cookies</h4>
                         <p>
                             Para melhorar sua experiência e analisar o uso do site.
-                            <a href="${baseUrl}politica-de-privacidade">Saiba mais</a>
+                            <a href="${baseUrl}/privacidade">Saiba mais</a>
                         </p>
                         <div class="cookie-buttons">
                             <button id="cookieAccept" class="btn-accept">Aceitar</button>
