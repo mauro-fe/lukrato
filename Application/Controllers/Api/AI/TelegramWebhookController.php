@@ -8,14 +8,17 @@ use Application\Controllers\BaseController;
 use Application\DTO\AI\AIRequestDTO;
 use Application\DTO\AI\TelegramMessageDTO;
 use Application\Enums\AI\AIChannel;
+use Application\Models\AiConversation;
 use Application\Models\PendingAiAction;
 use Application\Models\TelegramMessage;
 use Application\Repositories\ContaRepository;
 use Application\Services\AI\AIService;
 use Application\Services\AI\AIQuotaService;
 use Application\Services\AI\Actions\ActionRegistry;
+use Application\Services\AI\ConversationStateService;
 use Application\Services\AI\Rules\CategoryRuleEngine;
 use Application\Services\AI\TransactionDetectorService;
+use Application\Services\AI\Telegram\TelegramResponseFormatter;
 use Application\Services\AI\Telegram\TelegramService;
 use Application\Services\AI\Telegram\TelegramUserResolver;
 use Application\Services\Infrastructure\LogService;
@@ -165,13 +168,25 @@ class TelegramWebhookController extends BaseController
 
         $msgRecord->update(['user_id' => $user->id]);
 
-        // Verificar se é resposta de confirmação a uma transação pendente
+        // Callback: seleção de conta (select_conta_X)
+        if ($dto->isAccountSelection()) {
+            $this->handleAccountSelection($dto, $user, $msgRecord);
+            return;
+        }
+
+        // Callback: seleção de opção genérica (select_option_X)
+        if ($dto->isOptionSelection()) {
+            $this->handleOptionSelection($dto, $user, $msgRecord);
+            return;
+        }
+
+        // Callback: confirmação sim/não
         if ($dto->isConfirmationReply()) {
             $this->handleConfirmationReply($dto, $user, $msgRecord);
             return;
         }
 
-        // Processar como mensagem normal via AIService
+        // Processar como mensagem normal via AIService (pipeline completa)
         $this->handleNormalMessage($dto, $user, $msgRecord);
     }
 
@@ -196,14 +211,19 @@ class TelegramWebhookController extends BaseController
                 $this->telegram->sendText(
                     $dto->chatId,
                     "👋 Olá{$name}! Eu sou o bot do <b>Lukrato</b>.\n\n"
-                        . "📱 Com este bot você pode registrar receitas e despesas diretamente pelo Telegram.\n\n"
+                        . "📱 Com este bot você pode:\n"
+                        . "• Registrar receitas e despesas\n"
+                        . "• Consultar saldos e gastos\n"
+                        . "• Analisar suas finanças\n"
+                        . "• Criar metas e orçamentos\n\n"
                         . "🔗 Para começar, vincule sua conta:\n"
                         . "1. Acesse <b>lukrato.com.br</b> → Perfil → Telegram\n"
                         . "2. Clique em \"Vincular Telegram\"\n"
                         . "3. Envie o código de 6 dígitos aqui\n\n"
                         . "Pronto! Depois é só mandar mensagens como:\n"
                         . "💬 <i>\"almoco 35\"</i>\n"
-                        . "💬 <i>\"recebi salário 5000\"</i>"
+                        . "💬 <i>\"quanto gastei este mês?\"</i>\n"
+                        . "💬 <i>\"analisa meus gastos\"</i>"
                 );
                 $msgRecord->markProcessed('command_start');
                 break;
@@ -212,12 +232,25 @@ class TelegramWebhookController extends BaseController
                 $this->telegram->sendText(
                     $dto->chatId,
                     "📖 <b>Como usar o Lukrato Bot</b>\n\n"
-                        . "💬 Envie uma mensagem descrevendo a transação:\n"
+                        . "💬 <b>Registrar transações:</b>\n"
                         . "• <i>\"almoco 35\"</i> → despesa de R$ 35\n"
                         . "• <i>\"uber 22.50\"</i> → despesa de R$ 22,50\n"
                         . "• <i>\"recebi salário 5000\"</i> → receita de R$ 5.000\n"
-                        . "• <i>\"netflix 55.90 cartão nubank\"</i> → no cartão\n\n"
-                        . "✅ Eu vou identificar o valor, tipo e categoria automaticamente.\n"
+                        . "• <i>\"netflix 55.90 cartão nubank\"</i> → no cartão\n"
+                        . "• <i>\"parcelei geladeira 1500 em 12x\"</i> → parcelado\n\n"
+                        . "📊 <b>Consultar finanças:</b>\n"
+                        . "• <i>\"quanto gastei este mês?\"</i>\n"
+                        . "• <i>\"qual meu saldo?\"</i>\n"
+                        . "• <i>\"maior gasto do mês?\"</i>\n"
+                        . "• <i>\"quantos lançamentos tenho?\"</i>\n\n"
+                        . "📈 <b>Análise inteligente:</b>\n"
+                        . "• <i>\"analisa meus gastos\"</i>\n"
+                        . "• <i>\"como estão minhas finanças?\"</i>\n\n"
+                        . "🎯 <b>Criar metas e orçamentos:</b>\n"
+                        . "• <i>\"criar meta de 5000 para viagem\"</i>\n"
+                        . "• <i>\"orçamento de 800 para alimentação\"</i>\n"
+                        . "• <i>\"nova categoria Lazer\"</i>\n\n"
+                        . "⚙️ <b>Comandos:</b>\n"
                         . "🔗 /vincular - Vincular conta\n"
                         . "❌ /desvincular - Desvincular conta\n"
                         . "📊 /status - Ver status do vínculo"
@@ -348,12 +381,11 @@ class TelegramWebhookController extends BaseController
 
                 $payload = $pending->payload;
 
-                // Auto-selecionar conta se não definida
+                // Seleção inteligente de conta para lançamentos
                 if ($pending->action_type === 'create_lancamento' && empty($payload['conta_id'])) {
-                    $contaRepo = new ContaRepository();
-                    $contas = $contaRepo->findActive($user->id);
+                    $resolved = $this->resolveAccount($user, $payload);
 
-                    if ($contas->isEmpty()) {
+                    if ($resolved === null) {
                         $pending->reject();
                         $this->telegram->sendText(
                             $dto->chatId,
@@ -363,8 +395,14 @@ class TelegramWebhookController extends BaseController
                         return;
                     }
 
-                    // Telegram: auto-seleciona a primeira conta ativa
-                    $payload['conta_id'] = $contas->first()->id;
+                    // Se retornou array de contas → precisa escolher
+                    if (is_array($resolved) && isset($resolved['needs_selection'])) {
+                        $this->sendAccountSelectionButtons($dto->chatId, $resolved['contas']);
+                        $msgRecord->markProcessed('awaiting_account_selection');
+                        return;
+                    }
+
+                    $payload['conta_id'] = $resolved;
                     $pending->update(['payload' => $payload]);
                 }
 
@@ -414,7 +452,139 @@ class TelegramWebhookController extends BaseController
     }
 
     /**
-     * Trata mensagem normal: detectar intent, processar, responder.
+     * Trata seleção de conta via botão inline (callback: select_conta_X).
+     */
+    private function handleAccountSelection(
+        TelegramMessageDTO $dto,
+        \Application\Models\Usuario $user,
+        TelegramMessage $msgRecord,
+    ): void {
+        $contaId = $dto->getSelectedAccountId();
+
+        if ($contaId === null) {
+            $this->telegram->sendText($dto->chatId, "⚠️ Seleção inválida.");
+            $msgRecord->markProcessed('account_selection_invalid');
+            return;
+        }
+
+        // Verificar que a conta pertence ao usuário
+        $contaRepo = new ContaRepository();
+        $conta = $contaRepo->findByIdAndUser($contaId, $user->id);
+
+        if ($conta === null) {
+            $this->telegram->sendText($dto->chatId, "⚠️ Conta não encontrada.");
+            $msgRecord->markProcessed('account_selection_not_found');
+            return;
+        }
+
+        DB::transaction(function () use ($dto, $user, $conta, $msgRecord) {
+            $pending = PendingAiAction::query()
+                ->where('user_id', $user->id)
+                ->awaiting()
+                ->orderByDesc('created_at')
+                ->lockForUpdate()
+                ->first();
+
+            if ($pending === null) {
+                $this->telegram->sendText($dto->chatId, "⚠️ Nenhuma ação pendente encontrada.");
+                $msgRecord->markProcessed('account_selection_no_pending');
+                return;
+            }
+
+            $payload = $pending->payload;
+            $payload['conta_id'] = $conta->id;
+            $pending->update(['payload' => $payload]);
+
+            // Executar a ação com a conta selecionada
+            $actionRegistry = new ActionRegistry();
+            $action = $actionRegistry->resolve($pending->action_type);
+
+            if ($action === null) {
+                $pending->reject();
+                $this->telegram->sendText($dto->chatId, "⚠️ Tipo de ação desconhecido.");
+                $msgRecord->markProcessed('account_selection_unknown_action');
+                return;
+            }
+
+            try {
+                $result = $action->execute($user->id, $payload);
+
+                if (!$result->success) {
+                    $pending->reject();
+                    $this->telegram->sendText($dto->chatId, "⚠️ {$result->message}");
+                    $msgRecord->markProcessed('account_selection_failed');
+                    return;
+                }
+
+                $pending->confirm();
+
+                if (!empty($payload['descricao']) && !empty($payload['categoria_id'])) {
+                    CategoryRuleEngine::learn(
+                        $user->id,
+                        $payload['descricao'],
+                        (int) $payload['categoria_id'],
+                        !empty($payload['subcategoria_id']) ? (int) $payload['subcategoria_id'] : null,
+                        'confirmed'
+                    );
+                }
+
+                $formatted = 'R$ ' . number_format((float) ($payload['valor'] ?? 0), 2, ',', '.');
+                $catStr = !empty($payload['categoria_nome']) ? "\n📁 {$payload['categoria_nome']}" : '';
+                $this->telegram->sendText(
+                    $dto->chatId,
+                    "✅ Lançamento registrado na conta <b>{$conta->nome}</b>!\n\n"
+                        . "📝 {$payload['descricao']}\n"
+                        . "💰 {$formatted}{$catStr}"
+                );
+                $msgRecord->markProcessed('account_selected_confirmed');
+            } catch (\Throwable $e) {
+                $pending->reject();
+                $this->telegram->sendText($dto->chatId, "⚠️ Erro ao registrar: " . $e->getMessage());
+                $msgRecord->markProcessed('account_selection_error');
+            }
+        });
+    }
+
+    /**
+     * Trata seleção de opção genérica via botão inline (multi-turn: select_option_X).
+     * Usado para seleção de cartão, categoria, etc. no fluxo multi-turn.
+     */
+    private function handleOptionSelection(
+        TelegramMessageDTO $dto,
+        \Application\Models\Usuario $user,
+        TelegramMessage $msgRecord,
+    ): void {
+        $optionIndex = $dto->getSelectedOptionIndex();
+
+        if ($optionIndex === null) {
+            $this->telegram->sendText($dto->chatId, "⚠️ Seleção inválida.");
+            $msgRecord->markProcessed('option_selection_invalid');
+            return;
+        }
+
+        // Buscar conversa ativa do Telegram para este usuário
+        $conversation = $this->getOrCreateConversation($user->id);
+
+        // Usar ConversationStateService para resolver a seleção
+        // O índice do botão (1-based) é passado como mensagem textual
+        $resolved = ConversationStateService::resolveSelection(
+            $conversation->id,
+            (string) ($optionIndex + 1)  // 0-based → 1-based
+        );
+
+        if ($resolved === null) {
+            $this->telegram->sendText($dto->chatId, "⚠️ Opção inválida ou expirada. Tente novamente.");
+            $msgRecord->markProcessed('option_selection_failed');
+            return;
+        }
+
+        // Continuar o fluxo normal com os dados resolvidos (re-dispatch via AI)
+        $this->handleNormalMessage($dto, $user, $msgRecord);
+    }
+
+    /**
+     * Trata mensagem normal: pipeline completa de IA com IntentRouter.
+     * Detecta: Quick Queries, Análise, Transações, Metas, Orçamentos, Chat...
      */
     private function handleNormalMessage(
         TelegramMessageDTO $dto,
@@ -430,31 +600,92 @@ class TelegramWebhookController extends BaseController
         }
 
         // Verificar quota de chat antes de consumir IA
+        // Quick Queries (0 tokens) e regras não consomem quota — a verificação
+        // é feita antes do dispatch, mas o handler pode retornar 'computed' ou 'rule'
+        // sem ter consumido tokens. O AIService já não cobra quota nesses casos.
         if (!AIQuotaService::hasQuotaRemaining($user, 'chat')) {
-            $usage = AIQuotaService::getUsage($user);
-            $limit = $usage['chat']['limit'] ?? 5;
-            $this->telegram->sendText(
-                $dto->chatId,
-                "🤖 Você usou suas {$limit} mensagens de IA gratuitas este mês. "
-                    . "Faça upgrade para o Pro e tenha IA ilimitada: https://lukrato.com.br/billing"
-            );
-            $msgRecord->markProcessed('quota_exceeded');
-            return;
+            // Verificar se é uma quick query (0 tokens) — essas devem funcionar sem quota
+            $isQuickQuery = $this->looksLikeQuickQuery($dto->body);
+
+            if (!$isQuickQuery) {
+                $usage = AIQuotaService::getUsage($user);
+                $limit = $usage['chat']['limit'] ?? 5;
+                $this->telegram->sendText(
+                    $dto->chatId,
+                    "🤖 Você usou suas {$limit} mensagens de IA gratuitas este mês. "
+                        . "Faça upgrade para o Pro e tenha IA ilimitada: https://lukrato.com.br/billing"
+                );
+                $msgRecord->markProcessed('quota_exceeded');
+                return;
+            }
         }
 
-        // Delegar para AIService como qualquer outro canal
+        // Obter/criar conversa do Telegram (para multi-turn e contexto)
+        $conversation = $this->getOrCreateConversation($user->id);
+
+        // Montar contexto com conversation_id (essencial para multi-turn)
+        $context = [
+            'conversation_id' => $conversation->id,
+        ];
+
+        // Delegar para AIService com pipeline completa (IntentRouter → Handler)
         $ai = new AIService();
 
-        $request = AIRequestDTO::chat(
+        $request = new AIRequestDTO(
             userId: $user->id,
             message: $dto->body,
+            context: $context,
             channel: AIChannel::TELEGRAM,
         );
 
         $response = $ai->dispatch($request);
 
-        $this->telegram->sendText($dto->chatId, $response->message);
-        $msgRecord->markProcessed($response->intent?->value ?? 'chat');
+        // Tratar resposta baseada no tipo de ação retornada
+        $this->sendAiResponse($dto->chatId, $response, $msgRecord);
+    }
+
+    /**
+     * Envia resposta da IA para o Telegram, tratando diferentes tipos de retorno.
+     */
+    private function sendAiResponse(
+        string $chatId,
+        \Application\DTO\AI\AIResponseDTO $response,
+        TelegramMessage $msgRecord,
+    ): void {
+        $intent = $response->intent?->value ?? 'chat';
+
+        // Verificar se a resposta precisa de confirmação (PendingAiAction criado)
+        if (!empty($response->data['pending_action_id'])) {
+            // Enviar com botões Sim/Não
+            $chunks = TelegramResponseFormatter::format($response->message);
+            $lastIndex = count($chunks) - 1;
+
+            foreach ($chunks as $i => $chunk) {
+                if ($i === $lastIndex) {
+                    $this->telegram->sendConfirmationButtons($chatId, $chunk);
+                } else {
+                    $this->telegram->sendText($chatId, $chunk);
+                }
+            }
+            $msgRecord->markProcessed($intent . '_pending');
+            return;
+        }
+
+        // Verificar se a resposta tem opções para seleção (awaiting_selection)
+        if (!empty($response->data['options']) && ($response->data['action'] ?? '') === 'awaiting_selection') {
+            $this->sendSelectionButtons($chatId, $response->message, $response->data['options']);
+            $msgRecord->markProcessed($intent . '_awaiting_selection');
+            return;
+        }
+
+        // Resposta normal — formatar e enviar (com split se necessário)
+        $chunks = TelegramResponseFormatter::format($response->message);
+
+        foreach ($chunks as $chunk) {
+            $this->telegram->sendText($chatId, $chunk);
+        }
+
+        $msgRecord->markProcessed($intent);
     }
 
     /**
@@ -531,5 +762,197 @@ class TelegramWebhookController extends BaseController
         );
 
         $msgRecord->markProcessed('transaction_pending');
+    }
+
+    // ─── Helper Methods ───────────────────────────────────────
+
+    /**
+     * Obtém ou cria uma AiConversation para o Telegram do usuário.
+     * Reutiliza a conversa ativa mais recente (criada nas últimas 24h) para manter contexto.
+     */
+    private function getOrCreateConversation(int $userId): AiConversation
+    {
+        // Buscar conversa recente do Telegram (últimas 24h)
+        $conversation = AiConversation::where('user_id', $userId)
+            ->where('titulo', 'Telegram')
+            ->where('updated_at', '>=', now()->subHours(24))
+            ->orderByDesc('updated_at')
+            ->first();
+
+        if ($conversation !== null) {
+            return $conversation;
+        }
+
+        // Criar nova conversa
+        return AiConversation::create([
+            'user_id' => $userId,
+            'titulo'  => 'Telegram',
+        ]);
+    }
+
+    /**
+     * Resolve a conta para um lançamento de forma inteligente.
+     *
+     * @return int|array|null  int=conta_id, array=['needs_selection'=>true, 'contas'=>...], null=sem contas
+     */
+    private function resolveAccount(\Application\Models\Usuario $user, array $payload): int|array|null
+    {
+        $contaRepo = new ContaRepository();
+        $contas = $contaRepo->findActive($user->id);
+
+        if ($contas->isEmpty()) {
+            return null;
+        }
+
+        // 1 conta → auto-selecionar
+        if ($contas->count() === 1) {
+            return $contas->first()->id;
+        }
+
+        // Tentar match por nome de banco mencionado na transação
+        $nomeCartao = $payload['nome_cartao'] ?? null;
+        $descricao = mb_strtolower($payload['descricao'] ?? '');
+
+        if ($nomeCartao !== null) {
+            $nomeCartaoLower = mb_strtolower($nomeCartao);
+
+            foreach ($contas as $conta) {
+                // Match por nome da conta
+                if (str_contains(mb_strtolower($conta->nome), $nomeCartaoLower)) {
+                    return $conta->id;
+                }
+                // Match por campo instituição
+                if ($conta->instituicao && str_contains(mb_strtolower($conta->instituicao), $nomeCartaoLower)) {
+                    return $conta->id;
+                }
+                // Match por instituição financeira vinculada
+                if ($conta->instituicaoFinanceira && str_contains(
+                    mb_strtolower($conta->instituicaoFinanceira->nome ?? ''),
+                    $nomeCartaoLower
+                )) {
+                    return $conta->id;
+                }
+            }
+        }
+
+        // Tentar match pela descrição da transação
+        if ($descricao !== '') {
+            foreach ($contas as $conta) {
+                $nomeLower = mb_strtolower($conta->nome);
+                if (str_contains($descricao, $nomeLower) || str_contains($nomeLower, $descricao)) {
+                    return $conta->id;
+                }
+            }
+        }
+
+        // Múltiplas contas, sem match → pedir seleção
+        return [
+            'needs_selection' => true,
+            'contas' => $contas,
+        ];
+    }
+
+    /**
+     * Envia botões inline para seleção de conta.
+     */
+    private function sendAccountSelectionButtons(string $chatId, $contas): void
+    {
+        $rows = [];
+        $row = [];
+
+        foreach ($contas as $conta) {
+            $label = $conta->nome;
+            if ($conta->instituicaoFinanceira) {
+                $label .= " ({$conta->instituicaoFinanceira->nome})";
+            }
+
+            $row[] = [
+                'text' => "🏦 {$label}",
+                'callback_data' => "select_conta_{$conta->id}",
+            ];
+
+            // Máximo 2 botões por linha para legibilidade
+            if (count($row) >= 2) {
+                $rows[] = $row;
+                $row = [];
+            }
+        }
+
+        if (!empty($row)) {
+            $rows[] = $row;
+        }
+
+        // Adicionar botão de cancelar
+        $rows[] = [['text' => '❌ Cancelar', 'callback_data' => 'confirm_no']];
+
+        $this->telegram->sendInlineKeyboard(
+            $chatId,
+            "🏦 Em qual conta deseja registrar?",
+            $rows,
+        );
+    }
+
+    /**
+     * Envia botões inline para seleção de opções (multi-turn: cartão, categoria, etc).
+     */
+    private function sendSelectionButtons(string $chatId, string $text, array $options): void
+    {
+        $rows = [];
+
+        foreach ($options as $i => $option) {
+            $label = $option['nome'] ?? $option['name'] ?? $option['titulo'] ?? "Opção " . ($i + 1);
+            $rows[] = [[
+                'text' => $label,
+                'callback_data' => "select_option_{$i}",
+            ]];
+        }
+
+        // Adicionar botão de cancelar
+        $rows[] = [['text' => '❌ Cancelar', 'callback_data' => 'confirm_no']];
+
+        $chunks = TelegramResponseFormatter::format($text);
+        $lastIndex = count($chunks) - 1;
+
+        foreach ($chunks as $j => $chunk) {
+            if ($j === $lastIndex) {
+                $this->telegram->sendInlineKeyboard($chatId, $chunk, $rows);
+            } else {
+                $this->telegram->sendText($chatId, $chunk);
+            }
+        }
+    }
+
+    /**
+     * Verifica rapidamente se a mensagem parece uma quick query (0 tokens).
+     * Usado para permitir quick queries mesmo sem quota de IA.
+     */
+    private function looksLikeQuickQuery(string $message): bool
+    {
+        $normalized = mb_strtolower(trim($message));
+
+        $patterns = [
+            'quanto gastei',
+            'quanto recebi',
+            'qual meu saldo',
+            'quanto tenho',
+            'saldo atual',
+            'total despesa',
+            'total receita',
+            'quantos lancamento',
+            'quantas transac',
+            'maior gasto',
+            'menor gasto',
+            'ultima transac',
+            'último lancamento',
+            'ultimo lancamento',
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (str_contains($normalized, $pattern)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

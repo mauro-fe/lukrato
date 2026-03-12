@@ -120,6 +120,48 @@ readonly class TelegramMessageDTO
     }
 
     /**
+     * Verifica se é callback de seleção de conta (select_conta_X).
+     */
+    public function isAccountSelection(): bool
+    {
+        return $this->type === 'callback_query'
+            && str_starts_with($this->body, 'select_conta_');
+    }
+
+    /**
+     * Extrai o ID da conta selecionada via callback.
+     */
+    public function getSelectedAccountId(): ?int
+    {
+        if (!$this->isAccountSelection()) {
+            return null;
+        }
+        $id = substr($this->body, strlen('select_conta_'));
+        return is_numeric($id) ? (int) $id : null;
+    }
+
+    /**
+     * Verifica se é callback de seleção de opção genérica (select_option_X).
+     */
+    public function isOptionSelection(): bool
+    {
+        return $this->type === 'callback_query'
+            && str_starts_with($this->body, 'select_option_');
+    }
+
+    /**
+     * Extrai o índice da opção selecionada via callback.
+     */
+    public function getSelectedOptionIndex(): ?int
+    {
+        if (!$this->isOptionSelection()) {
+            return null;
+        }
+        $idx = substr($this->body, strlen('select_option_'));
+        return is_numeric($idx) ? (int) $idx : null;
+    }
+
+    /**
      * Retorna true se a resposta é afirmativa.
      */
     public function isAffirmative(): bool

@@ -68,17 +68,29 @@ class TelegramService
         string $yesData = 'confirm_yes',
         string $noData = 'confirm_no',
     ): bool {
+        return $this->sendInlineKeyboard($chatId, $bodyText, [
+            [
+                ['text' => '✅ Sim', 'callback_data' => $yesData],
+                ['text' => '❌ Não', 'callback_data' => $noData],
+            ],
+        ]);
+    }
+
+    /**
+     * Envia mensagem com teclado inline dinâmico.
+     *
+     * @param string $chatId
+     * @param string $text
+     * @param array  $rows  Array de rows, cada row é array de ['text' => ..., 'callback_data' => ...]
+     */
+    public function sendInlineKeyboard(string $chatId, string $text, array $rows): bool
+    {
         return $this->request('sendMessage', [
             'chat_id'      => $chatId,
-            'text'         => mb_substr($bodyText, 0, 4096),
+            'text'         => mb_substr($text, 0, 4096),
             'parse_mode'   => 'HTML',
             'reply_markup' => [
-                'inline_keyboard' => [
-                    [
-                        ['text' => '✅ Sim', 'callback_data' => $yesData],
-                        ['text' => '❌ Não', 'callback_data' => $noData],
-                    ],
-                ],
+                'inline_keyboard' => $rows,
             ],
         ]);
     }
