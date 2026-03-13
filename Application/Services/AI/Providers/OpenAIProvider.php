@@ -146,7 +146,7 @@ class OpenAIProvider implements AIProvider
         $result = $this->completions([
             ['role' => 'system', 'content' => PromptBuilder::categorySystem()],
             ['role' => 'user',   'content' => PromptBuilder::categoryUser($description, $categories)],
-        ], temperature: 0.1, maxTokens: 20);
+        ], temperature: 0.1, maxTokens: 40);
 
         $suggested = trim($result['choices'][0]['message']['content'] ?? '', " \t\n\r\0\x0B.");
 

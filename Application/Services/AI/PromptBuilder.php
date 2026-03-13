@@ -124,7 +124,7 @@ PROMPT;
 
     public static function categorySystem(): string
     {
-        return 'Você classifica lançamentos financeiros em categorias. Responda apenas com o nome da categoria.';
+        return 'Você classifica lançamentos financeiros em categorias e subcategorias. Responda com "Categoria" ou "Categoria > Subcategoria". Nada mais.';
     }
 
     public static function categoryUser(string $description, array $categories): string
@@ -132,13 +132,14 @@ PROMPT;
         $list = implode(', ', $categories);
 
         return <<<PROMPT
-Classifique o lançamento financeiro abaixo em UMA das categorias da lista.
+Classifique o lançamento financeiro abaixo usando a lista de categorias.
 
 Descrição: "{$description}"
 
-Categorias: {$list}
+Categorias disponíveis: {$list}
 
-Responda SOMENTE com o nome exato de uma categoria. Sem ponto final, sem explicação.
+Se houver uma subcategoria adequada (formato "Categoria > Subcategoria"), use-a. Caso contrário, use apenas a categoria principal.
+Responda SOMENTE com o nome exato como aparece na lista. Sem ponto final, sem explicação.
 PROMPT;
     }
 

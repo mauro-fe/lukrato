@@ -9,6 +9,7 @@ use Application\DTO\AI\AIResponseDTO;
 use Application\Enums\AI\IntentType;
 use Application\Models\Categoria;
 use Application\Services\AI\Contracts\AIProvider;
+use Application\Services\AI\Helpers\UserCategoryLoader;
 use Application\Services\AI\PromptBuilder;
 use Application\Services\AI\Rules\CategoryRuleEngine;
 use Application\Services\Infrastructure\CacheService;
@@ -82,11 +83,11 @@ class CategorizationHandler implements AIHandlerInterface
     private function resolveWithAI(string $description, AIRequestDTO $request): AIResponseDTO
     {
         try {
-            // Buscar categorias do usuário
+            // Buscar categorias do usuário (com subcategorias)
             $categories = $request->meta('categories', []);
 
-            if (empty($categories)) {
-                $categories = $this->getUserCategories($request->userId);
+            if (empty($categories) && $request->userId) {
+                $categories = UserCategoryLoader::load($request->userId);
             }
 
             if (empty($categories)) {
@@ -102,7 +103,7 @@ class CategorizationHandler implements AIHandlerInterface
                 );
             }
 
-            // Tentar resolver IDs
+            // Tentar resolver IDs (com suporte a "Categoria > Subcategoria")
             $result = $this->resolveResult($suggested, $request->userId);
 
             // Cachear resultado
@@ -123,35 +124,24 @@ class CategorizationHandler implements AIHandlerInterface
     }
 
     /**
-     * Busca nomes das categorias do usuário.
-     */
-    private function getUserCategories(?int $userId): array
-    {
-        if ($userId === null) {
-            return [];
-        }
-
-        try {
-            return Categoria::query()
-                ->whereNull('parent_id')
-                ->where(function ($q) use ($userId) {
-                    $q->whereNull('user_id')->orWhere('user_id', $userId);
-                })
-                ->pluck('nome')
-                ->toArray();
-        } catch (\Throwable) {
-            return [];
-        }
-    }
-
-    /**
      * Resolve o nome sugerido pelo LLM em IDs reais.
+     * Suporta formatos: "Categoria" ou "Categoria > Subcategoria".
      */
     private function resolveResult(string $suggested, ?int $userId): array
     {
+        // Parsear formato "Categoria > Subcategoria"
+        $categoriaNome = $suggested;
+        $subcategoriaNome = null;
+
+        if (str_contains($suggested, '>')) {
+            $parts = array_map('trim', explode('>', $suggested, 2));
+            $categoriaNome = $parts[0];
+            $subcategoriaNome = $parts[1] ?? null;
+        }
+
         $result = [
-            'categoria'       => $suggested,
-            'subcategoria'    => null,
+            'categoria'       => $categoriaNome,
+            'subcategoria'    => $subcategoriaNome,
             'categoria_id'    => null,
             'subcategoria_id' => null,
             'confidence'      => 'ai',
@@ -168,14 +158,14 @@ class CategorizationHandler implements AIHandlerInterface
             }
 
             // Tentar match exato primeiro
-            $cat = (clone $query)->where('nome', $suggested)->first();
+            $cat = (clone $query)->where('nome', $categoriaNome)->first();
 
             // Tentar fuzzy match
             if (!$cat) {
                 $allCats = $query->get();
                 $bestScore = 0;
                 foreach ($allCats as $c) {
-                    similar_text(mb_strtolower($c->nome), mb_strtolower($suggested), $percent);
+                    similar_text(mb_strtolower($c->nome), mb_strtolower($categoriaNome), $percent);
                     if ($percent >= 85 && $percent > $bestScore) {
                         $bestScore = $percent;
                         $cat = $c;
@@ -186,6 +176,34 @@ class CategorizationHandler implements AIHandlerInterface
 
             if ($cat) {
                 $result['categoria_id'] = $cat->id;
+
+                // Resolver subcategoria se informada
+                if ($subcategoriaNome !== null) {
+                    $sub = Categoria::query()
+                        ->where('parent_id', $cat->id)
+                        ->where('nome', $subcategoriaNome)
+                        ->first();
+
+                    // Fuzzy match para subcategoria
+                    if (!$sub) {
+                        $allSubs = Categoria::query()
+                            ->where('parent_id', $cat->id)
+                            ->get();
+                        $bestScore = 0;
+                        foreach ($allSubs as $s) {
+                            similar_text(mb_strtolower($s->nome), mb_strtolower($subcategoriaNome), $percent);
+                            if ($percent >= 85 && $percent > $bestScore) {
+                                $bestScore = $percent;
+                                $sub = $s;
+                                $result['subcategoria'] = $s->nome;
+                            }
+                        }
+                    }
+
+                    if ($sub) {
+                        $result['subcategoria_id'] = $sub->id;
+                    }
+                }
             }
         } catch (\Throwable) {
             // Falha silenciosa

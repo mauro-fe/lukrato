@@ -7,7 +7,9 @@ from config import settings
 
 router = APIRouter()
 
-DEFAULT_CATEGORIES = [
+# Fallback genérico — usado apenas quando nenhuma categoria é passada pelo caller.
+# O PHP deve sempre enviar available_categories com as categorias reais do usuário.
+_FALLBACK_CATEGORIES = [
     "Alimentação", "Transporte", "Moradia", "Saúde", "Educação",
     "Lazer", "Vestuário", "Investimentos", "Salário", "Freelance",
     "Assinaturas", "Serviços Públicos", "Outros",
@@ -31,13 +33,15 @@ class CategoryResponse(BaseModel):
 @router.post("/category", response_model=CategoryResponse)
 async def suggest_category(req: CategoryRequest):
     provider = req.provider or settings.ai_provider
-    categories = req.available_categories or DEFAULT_CATEGORIES
+    categories = req.available_categories or _FALLBACK_CATEGORIES
 
     prompt = (
-        f'Classifique o lançamento financeiro abaixo em UMA das categorias da lista.\n\n'
+        f'Classifique o lançamento financeiro abaixo usando a lista de categorias.\n\n'
         f'Descrição: "{req.description}"\n\n'
-        f'Categorias: {", ".join(categories)}\n\n'
-        f'Responda SOMENTE com o nome exato de uma categoria. Sem ponto final, sem explicação.'
+        f'Categorias disponíveis: {", ".join(categories)}\n\n'
+        f'Se houver uma subcategoria adequada (formato "Categoria > Subcategoria"), use-a. '
+        f'Caso contrário, use apenas a categoria principal.\n'
+        f'Responda SOMENTE com o nome exato como aparece na lista. Sem ponto final, sem explicação.'
     )
 
     if provider != "ollama":
@@ -52,14 +56,14 @@ async def suggest_category(req: CategoryRequest):
                     "messages": [
                         {
                             "role": "system",
-                            "content": "Você classifica lançamentos financeiros em categorias. Responda apenas com o nome da categoria.",
+                            "content": "Você classifica lançamentos financeiros em categorias e subcategorias. Responda com \"Categoria\" ou \"Categoria > Subcategoria\". Nada mais.",
                         },
                         {"role": "user", "content": prompt},
                     ],
                     "stream": False,
                     "options": {
                         "temperature": 0.1,
-                        "num_predict": 20,
+                        "num_predict": 40,
                         "num_ctx": 2048,
                     },
                 },
@@ -67,7 +71,13 @@ async def suggest_category(req: CategoryRequest):
             resp.raise_for_status()
             data = resp.json()
             suggested = data["message"]["content"].strip().rstrip(".")
+            # Match exato ou fuzzy (a IA pode retornar "Categoria > Subcategoria")
             category = suggested if suggested in categories else None
+            if not category:
+                # Tentar match pela categoria raiz (parte antes do ">")
+                root = suggested.split(">")[0].strip() if ">" in suggested else None
+                if root and root in categories:
+                    category = suggested
             return CategoryResponse(
                 category=category,
                 raw_suggestion=suggested,

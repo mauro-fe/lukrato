@@ -13,6 +13,7 @@ use Application\DTO\Requests\UpdateCategoriaDTO;
 use Application\Validators\CategoriaValidator;
 use Application\Services\Gamification\GamificationService;
 use Application\Services\Plan\PlanLimitService;
+use Application\Services\AI\Helpers\UserCategoryLoader;
 use Exception;
 use ValueError;
 
@@ -124,6 +125,8 @@ class CategoriaController extends BaseController
             'categoria' => $categoria->fresh(),
             'gamification' => $gamificationResult,
         ], 'Categoria criada com sucesso', 201);
+
+        UserCategoryLoader::invalidate($this->userId);
     }
 
 
@@ -176,6 +179,8 @@ class CategoriaController extends BaseController
         }
 
         Response::success($categoria->fresh());
+
+        UserCategoryLoader::invalidate($this->userId);
     }
 
 
@@ -234,6 +239,9 @@ class CategoriaController extends BaseController
         }
 
         $categoria->delete();
+
+        UserCategoryLoader::invalidate($this->userId);
+
         Response::success([
             'deleted' => true,
             'removed_subcategorias' => $subcategoriasCount,

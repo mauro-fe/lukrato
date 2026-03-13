@@ -18,6 +18,8 @@ use Application\Models\UserCategoryRule;
  */
 class CategoryRuleEngine
 {
+    /** Cache em memória para evitar queries repetidas no mesmo request. */
+    private static array $resolveCache = [];
     /**
      * Mapeamento de padrões regex para [categoria, subcategoria].
      * As chaves são regex (case-insensitive) e os valores são arrays [nome_categoria, nome_subcategoria|null].
@@ -285,11 +287,46 @@ class CategoryRuleEngine
 
         // Stopwords em pt-BR
         $stopwords = [
-            'de', 'do', 'da', 'dos', 'das', 'em', 'no', 'na', 'nos', 'nas',
-            'um', 'uma', 'uns', 'umas', 'o', 'a', 'os', 'as', 'para', 'por',
-            'com', 'sem', 'que', 'se', 'ou', 'ao', 'e', 'mais', 'pra', 'pro',
-            'meu', 'minha', 'meus', 'minhas', 'seu', 'sua',
-            'paguei', 'gastei', 'comprei', 'recebi', // verbos de ação genéricos
+            'de',
+            'do',
+            'da',
+            'dos',
+            'das',
+            'em',
+            'no',
+            'na',
+            'nos',
+            'nas',
+            'um',
+            'uma',
+            'uns',
+            'umas',
+            'o',
+            'a',
+            'os',
+            'as',
+            'para',
+            'por',
+            'com',
+            'sem',
+            'que',
+            'se',
+            'ou',
+            'ao',
+            'e',
+            'mais',
+            'pra',
+            'pro',
+            'meu',
+            'minha',
+            'meus',
+            'minhas',
+            'seu',
+            'sua',
+            'paguei',
+            'gastei',
+            'comprei',
+            'recebi', // verbos de ação genéricos
         ];
 
         // Filtrar stopwords e tokens muito curtos
@@ -308,9 +345,17 @@ class CategoryRuleEngine
 
     /**
      * Resolve IDs da categoria e subcategoria no banco de dados.
+     * Usa fuzzy match quando o nome exato não é encontrado para o usuário.
+     * Resultados são cacheados em memória dentro do mesmo request.
      */
     private static function resolveIds(string $categoriaNome, ?string $subcategoriaNome, ?int $userId): array
     {
+        $cacheKey = ($userId ?? 0) . ':' . $categoriaNome . ':' . ($subcategoriaNome ?? '');
+
+        if (isset(self::$resolveCache[$cacheKey])) {
+            return self::$resolveCache[$cacheKey];
+        }
+
         $result = ['categoria_id' => null, 'subcategoria_id' => null];
 
         try {
@@ -327,6 +372,46 @@ class CategoryRuleEngine
 
             $categoria = $query->first();
 
+            // Fuzzy match se nome exato não encontrado
+            if (!$categoria && $userId !== null) {
+                $allCats = Categoria::query()
+                    ->whereNull('parent_id')
+                    ->where(function ($q) use ($userId) {
+                        $q->whereNull('user_id')->orWhere('user_id', $userId);
+                    })
+                    ->get();
+
+                $bestScore = 0;
+                foreach ($allCats as $c) {
+                    similar_text(mb_strtolower($c->nome), mb_strtolower($categoriaNome), $percent);
+                    if ($percent >= 80 && $percent > $bestScore) {
+                        $bestScore = $percent;
+                        $categoria = $c;
+                    }
+                }
+
+                // Tentar como subcategoria (ex: RULE_MAP diz "Eletrônicos", usuário tem "Compras > Eletrônicos")
+                if (!$categoria) {
+                    $subMatch = Categoria::query()
+                        ->whereNotNull('parent_id')
+                        ->where('nome', 'LIKE', $categoriaNome)
+                        ->where(function ($q) use ($userId) {
+                            $q->whereNull('user_id')->orWhere('user_id', $userId);
+                        })
+                        ->first();
+
+                    if ($subMatch && $subMatch->parent_id) {
+                        $parentCat = Categoria::find($subMatch->parent_id);
+                        if ($parentCat) {
+                            $result['categoria_id'] = $parentCat->id;
+                            $result['subcategoria_id'] = $subMatch->id;
+                            self::$resolveCache[$cacheKey] = $result;
+                            return $result;
+                        }
+                    }
+                }
+            }
+
             if ($categoria) {
                 $result['categoria_id'] = $categoria->id;
 
@@ -337,6 +422,21 @@ class CategoryRuleEngine
                         ->where('nome', 'LIKE', $subcategoriaNome)
                         ->first();
 
+                    // Fuzzy match para subcategoria
+                    if (!$sub) {
+                        $allSubs = Categoria::query()
+                            ->where('parent_id', $categoria->id)
+                            ->get();
+                        $bestScore = 0;
+                        foreach ($allSubs as $s) {
+                            similar_text(mb_strtolower($s->nome), mb_strtolower($subcategoriaNome), $percent);
+                            if ($percent >= 80 && $percent > $bestScore) {
+                                $bestScore = $percent;
+                                $sub = $s;
+                            }
+                        }
+                    }
+
                     if ($sub) {
                         $result['subcategoria_id'] = $sub->id;
                     }
@@ -346,6 +446,7 @@ class CategoryRuleEngine
             // Falha silenciosa — retorna IDs null, os nomes ainda são úteis
         }
 
+        self::$resolveCache[$cacheKey] = $result;
         return $result;
     }
 

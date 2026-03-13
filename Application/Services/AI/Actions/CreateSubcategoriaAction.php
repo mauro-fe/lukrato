@@ -7,6 +7,7 @@ namespace Application\Services\AI\Actions;
 use Application\DTO\Requests\CreateSubcategoriaDTO;
 use Application\Models\Categoria;
 use Application\Services\Categoria\SubcategoriaService;
+use Application\Services\AI\Helpers\UserCategoryLoader;
 
 class CreateSubcategoriaAction implements ActionInterface
 {
@@ -36,6 +37,8 @@ class CreateSubcategoriaAction implements ActionInterface
         ]);
 
         $sub = $service->create($dto);
+
+        UserCategoryLoader::invalidate($userId);
 
         return ActionResult::ok(
             "Subcategoria **{$payload['nome']}** criada em **{$parent->nome}**!",

@@ -10,6 +10,7 @@ use Application\DTO\Requests\CreateSubcategoriaDTO;
 use Application\DTO\Requests\UpdateSubcategoriaDTO;
 use Application\Services\Categoria\SubcategoriaService;
 use Application\Validators\SubcategoriaValidator;
+use Application\Services\AI\Helpers\UserCategoryLoader;
 
 /**
  * Controller REST para subcategorias.
@@ -93,6 +94,8 @@ class SubcategoriaController extends BaseController
             Response::success([
                 'subcategoria' => $subcategoria->fresh(),
             ], 'Subcategoria criada com sucesso', 201);
+
+            UserCategoryLoader::invalidate($this->userId);
         } catch (\DomainException $e) {
             $code = str_contains($e->getMessage(), 'Limite') ? 403 : 409;
             Response::error($e->getMessage(), $code);
@@ -125,6 +128,8 @@ class SubcategoriaController extends BaseController
             $dto = UpdateSubcategoriaDTO::fromRequest($payload);
             $subcategoria = $this->service->update($id, $dto, $this->userId);
 
+            UserCategoryLoader::invalidate($this->userId);
+
             Response::success($subcategoria);
         } catch (\DomainException $e) {
             $code = str_contains($e->getMessage(), 'não encontrada') ? 404 : 409;
@@ -149,6 +154,9 @@ class SubcategoriaController extends BaseController
 
         try {
             $this->service->delete($id, $this->userId);
+
+            UserCategoryLoader::invalidate($this->userId);
+
             Response::success(['deleted' => true], 'Subcategoria excluída com sucesso');
         } catch (\DomainException $e) {
             Response::error($e->getMessage(), 404);

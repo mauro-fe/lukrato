@@ -6,6 +6,7 @@ namespace Application\Services\AI\Actions;
 
 use Application\DTO\Requests\CreateCategoriaDTO;
 use Application\Repositories\CategoriaRepository;
+use Application\Services\AI\Helpers\UserCategoryLoader;
 
 class CreateCategoriaAction implements ActionInterface
 {
@@ -27,6 +28,8 @@ class CreateCategoriaAction implements ActionInterface
         ]);
 
         $categoria = $repo->create($dto->toArray());
+
+        UserCategoryLoader::invalidate($userId);
 
         return ActionResult::ok(
             "Categoria **{$nome}** ({$tipo}) criada com sucesso!",

@@ -12,6 +12,7 @@ use Application\Models\CartaoCredito;
 use Application\Models\PendingAiAction;
 use Application\Repositories\ContaRepository;
 use Application\Services\AI\Contracts\AIProvider;
+use Application\Services\AI\Helpers\UserCategoryLoader;
 use Application\Services\AI\PromptBuilder;
 use Application\Services\AI\Rules\CategoryRuleEngine;
 use Application\Services\AI\TransactionDetectorService;
@@ -84,7 +85,16 @@ class TransactionExtractorHandler implements AIHandlerInterface
     private function extractWithAI(string $message, AIRequestDTO $request): AIResponseDTO
     {
         try {
+            // Incluir categorias do usuário no prompt para melhor sugestão
             $userPrompt = PromptBuilder::transactionExtractionUser($message);
+
+            if ($request->userId) {
+                $userCategories = UserCategoryLoader::load($request->userId);
+                if (!empty($userCategories)) {
+                    $catList = implode(', ', $userCategories);
+                    $userPrompt .= "\n\nCategorias disponíveis do usuário: {$catList}";
+                }
+            }
 
             // Usar chat com contexto mínimo (o prompt de extração é injetado pelo provider)
             $response = $this->provider->chat($userPrompt, []);

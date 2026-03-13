@@ -63,7 +63,7 @@ class EntitySchemas
                         ],
                         'categoria_sugerida' => [
                             'type' => ['string', 'null'],
-                            'description' => 'Categoria sugerida: Alimentação, Transporte, Moradia, Saúde, Educação, Lazer, Assinaturas, Vestuário, Salário, Investimentos, etc. null se incerto.',
+                            'description' => 'Categoria sugerida para o lançamento. Pode ser "Categoria" ou "Categoria > Subcategoria". null se incerto.',
                         ],
                     ],
                     'required' => ['tipo', 'valor', 'descricao', 'data', 'forma_pagamento', 'eh_parcelado', 'total_parcelas', 'nome_cartao', 'categoria_sugerida'],
