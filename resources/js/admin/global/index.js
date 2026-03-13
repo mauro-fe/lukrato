@@ -43,7 +43,13 @@ import '../shared/aviso-lancamentos.js'; // Usage banner (plano free)
 import './soft-ui-dashboard.js';   // Scrollbar, navbar, sidebar, dark mode theme
 import './theme-toggle.js';        // Dark/light toggle (top-navbar)
 
-// ─── 6. Partials extraídos (notificações, header, suporte) ─────────────────
+// ─── 6. Avatar Global ────────────────────────────────────────────────────────
+import './avatar-global.js';       // Navbar + sidebar avatar (window.__LK_updateGlobalAvatars)
+
+// ─── 7. Partials extraídos (notificações, header, suporte) ─────────────────
 import './notification-manager.js'; // NotificationManager + lkNotify (bell.php)
 import './month-picker.js';         // LukratoHeader month/year nav (header-mes.php)
 import './support-button.js';       // openSupportModal / sendSupportMessage (botao-suporte.php)
+
+// ─── 8. User Feedback Collector ─────────────────────────────────────────────
+import './feedback-collector.js';   // Micro feedback, NPS, sugestao, AI feedback (window.LKUserFeedback)

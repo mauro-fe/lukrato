@@ -24,6 +24,7 @@ $modules = [
     '_user-modal-responsive.css',
     '_analytics.css',
     '_error-logs.css',
+    '_feedback.css',
 ];
 
 $lastModified = 0;

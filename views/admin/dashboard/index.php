@@ -301,7 +301,7 @@
         <h2 class="chart-title">Evolução Financeira</h2>
         <div class="chart-wrapper">
             <div class="chart-loading" id="chartLoading"></div>
-            <canvas id="evolutionChart" role="img" aria-label="Gráfico de evolução do saldo"></canvas>
+            <div id="evolutionChart" role="img" aria-label="Gráfico de evolução do saldo"></div>
         </div>
     </section>
 

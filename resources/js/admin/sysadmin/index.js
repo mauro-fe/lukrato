@@ -9,7 +9,7 @@
  * - User CRUD (table, filters, pagination, view, edit, delete)
  * - Grant/Revoke PRO access
  * - Error logs real-time monitoring
- * - Stats charts (Chart.js)
+ * - Stats charts (ApexCharts)
  * ============================================================================
  */
 
@@ -212,7 +212,7 @@ function renderUserTable(users, total, page, perPage) {
                 : `<span class='badge-status free' style='background:#e5e7eb;color:#6b7280;font-weight:500;'><i data-lucide='user'></i> Free</span>`;
             html += `<tr>
                 <td><span class='user-id'>#${u.id}</span></td>
-                <td><div class='user-info'><div class='user-avatar'>${escapeHtml((u.nome || 'U')[0].toUpperCase())}</div><span class='user-name'>${escapeHtml(u.nome || '-')}</span></div></td>
+                <td><div class='user-info'><div class='user-avatar'>${u.avatar ? `<img src="${escapeHtml(u.avatar)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : escapeHtml((u.nome || 'U')[0].toUpperCase())}</div><span class='user-name'>${escapeHtml(u.nome || '-')}</span></div></td>
                 <td><span class='user-email'>${escapeHtml(u.email || '-')}</span></td>
                 <td>${planBadge}</td>
                 <td>${u.is_admin == 1 ? `<span class='badge-status admin'><i data-lucide='shield'></i>Admin</span>` : `<span class='badge-status user'><i data-lucide='user'></i>Usuário</span>`}</td>
@@ -330,7 +330,7 @@ function viewUser(userId) {
                 html: `
                     <div class="user-details-modal">
                         <div class="user-header-info">
-                            <div class="user-avatar-large">${(user.nome || 'U')[0].toUpperCase()}</div>
+                            <div class="user-avatar-large">${user.avatar ? `<img src="${user.avatar}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : (user.nome || 'U')[0].toUpperCase()}</div>
                             <div class="user-main-info">
                                 <h3>${user.nome || 'Sem nome'}</h3>
                                 <p>${user.email || 'Sem email'}</p>
@@ -947,57 +947,74 @@ function renderCharts(charts) {
     const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
     const textColor = isDarkMode ? '#e2e8f0' : '#1e293b';
     const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    const themeMode = isDarkMode ? 'dark' : 'light';
 
     // Line Chart - Users by Day
-    const usersByDayCtx = document.getElementById('usersByDayChart')?.getContext('2d');
-    if (usersByDayCtx) {
-        if (usersByDayChart) usersByDayChart.destroy();
+    const usersByDayEl = document.getElementById('usersByDayChart');
+    if (usersByDayEl) {
+        if (usersByDayChart) { usersByDayChart.destroy(); usersByDayChart = null; }
         const labels = Object.keys(charts.usersByDay).map(date => new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }));
         const values = Object.values(charts.usersByDay);
 
-        usersByDayChart = new Chart(usersByDayCtx, {
-            type: 'line',
-            data: {
-                labels,
-                datasets: [{
-                    label: 'Novos Usuários', data: values, borderColor: chartColors.primary,
-                    backgroundColor: 'rgba(249, 115, 22, 0.1)', borderWidth: 3, fill: true, tension: 0.4,
-                    pointBackgroundColor: chartColors.primary, pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false }, tooltip: { backgroundColor: isDarkMode ? '#1e293b' : '#fff', titleColor: textColor, bodyColor: textColor, borderColor: gridColor, borderWidth: 1, padding: 12, displayColors: false } },
-                scales: { x: { grid: { color: gridColor }, ticks: { color: textColor, maxRotation: 45 } }, y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor, stepSize: 1 } } }
-            }
+        usersByDayChart = new ApexCharts(usersByDayEl, {
+            chart: { type: 'area', height: '100%', toolbar: { show: false }, background: 'transparent', fontFamily: 'Inter, Arial, sans-serif' },
+            series: [{ name: 'Novos Usuários', data: values }],
+            xaxis: { categories: labels, labels: { style: { colors: textColor }, rotateAlways: false, rotate: -45 }, axisBorder: { show: false }, axisTicks: { show: false } },
+            yaxis: { min: 0, forceNiceScale: true, labels: { style: { colors: textColor } } },
+            colors: [chartColors.primary],
+            stroke: { curve: 'smooth', width: 3 },
+            fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05, stops: [0, 100] } },
+            markers: { size: 4, colors: [chartColors.primary], strokeColors: '#fff', strokeWidth: 2, hover: { size: 6 } },
+            grid: { borderColor: gridColor, strokeDashArray: 4 },
+            tooltip: { theme: themeMode },
+            legend: { show: false },
+            dataLabels: { enabled: false },
+            theme: { mode: themeMode },
         });
+        usersByDayChart.render();
     }
 
     // Doughnut Chart - User Distribution
-    const userDistCtx = document.getElementById('userDistributionChart')?.getContext('2d');
-    if (userDistCtx) {
-        if (userDistributionChart) userDistributionChart.destroy();
-        userDistributionChart = new Chart(userDistCtx, {
-            type: 'doughnut',
-            data: { labels: Object.keys(charts.userDistribution), datasets: [{ data: Object.values(charts.userDistribution), backgroundColor: [chartColors.primary, chartColors.gray], borderWidth: 0, hoverOffset: 10 }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: textColor, padding: 20, usePointStyle: true } } }, cutout: '60%' }
+    const userDistEl = document.getElementById('userDistributionChart');
+    if (userDistEl) {
+        if (userDistributionChart) { userDistributionChart.destroy(); userDistributionChart = null; }
+        userDistributionChart = new ApexCharts(userDistEl, {
+            chart: { type: 'donut', height: '100%', background: 'transparent', fontFamily: 'Inter, Arial, sans-serif' },
+            series: Object.values(charts.userDistribution),
+            labels: Object.keys(charts.userDistribution),
+            colors: [chartColors.primary, chartColors.gray],
+            stroke: { width: 0 },
+            plotOptions: { pie: { donut: { size: '60%' }, expandOnClick: true } },
+            legend: { position: 'bottom', labels: { colors: textColor }, markers: { shape: 'circle' } },
+            dataLabels: { enabled: false },
+            tooltip: { theme: themeMode },
+            theme: { mode: themeMode },
         });
+        userDistributionChart.render();
     }
 
     // Doughnut Chart - Subscriptions by Gateway
-    const gatewayCtx = document.getElementById('subscriptionsByGatewayChart')?.getContext('2d');
-    if (gatewayCtx) {
-        if (subscriptionsByGatewayChart) subscriptionsByGatewayChart.destroy();
+    const gatewayEl = document.getElementById('subscriptionsByGatewayChart');
+    if (gatewayEl) {
+        if (subscriptionsByGatewayChart) { subscriptionsByGatewayChart.destroy(); subscriptionsByGatewayChart = null; }
         const gatewayLabels = Object.keys(charts.subscriptionsByGateway);
         const gatewayValues = Object.values(charts.subscriptionsByGateway);
         if (gatewayLabels.length === 0) { gatewayLabels.push('Nenhum'); gatewayValues.push(0); }
         const gatewayColors = gatewayLabels.map((_, i) => [chartColors.success, chartColors.secondary, chartColors.purple, chartColors.pink, chartColors.warning][i % 5]);
 
-        subscriptionsByGatewayChart = new Chart(gatewayCtx, {
-            type: 'doughnut',
-            data: { labels: gatewayLabels.map(l => l.charAt(0).toUpperCase() + l.slice(1)), datasets: [{ data: gatewayValues, backgroundColor: gatewayColors, borderWidth: 0, hoverOffset: 10 }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: textColor, padding: 20, usePointStyle: true } } }, cutout: '60%' }
+        subscriptionsByGatewayChart = new ApexCharts(gatewayEl, {
+            chart: { type: 'donut', height: '100%', background: 'transparent', fontFamily: 'Inter, Arial, sans-serif' },
+            series: gatewayValues,
+            labels: gatewayLabels.map(l => l.charAt(0).toUpperCase() + l.slice(1)),
+            colors: gatewayColors,
+            stroke: { width: 0 },
+            plotOptions: { pie: { donut: { size: '60%' }, expandOnClick: true } },
+            legend: { position: 'bottom', labels: { colors: textColor }, markers: { shape: 'circle' } },
+            dataLabels: { enabled: false },
+            tooltip: { theme: themeMode },
+            theme: { mode: themeMode },
         });
+        subscriptionsByGatewayChart.render();
     }
 }
 
@@ -1039,6 +1056,187 @@ function getTimeAgo(dateStr) {
 }
 
 // ============================================================================
+// FEEDBACK ADMIN
+// ============================================================================
+
+let feedbackCurrentPage = 1;
+let feedbackStatsLoaded = false;
+
+async function loadFeedbackStats() {
+    try {
+        const res = await fetch(`${BASE_URL}api/sysadmin/feedback/stats`, { credentials: 'same-origin' });
+        const json = await res.json();
+        const data = json.data ?? json;
+
+        // NPS
+        const nps = data.nps ?? {};
+        const scoreEl = document.getElementById('npsScoreValue');
+        if (scoreEl) {
+            scoreEl.textContent = nps.total > 0 ? nps.score : '--';
+            scoreEl.style.color = nps.score >= 50 ? '#10b981' : nps.score >= 0 ? '#f59e0b' : '#ef4444';
+        }
+        setText('npsPromoters', nps.promoters ?? 0);
+        setText('npsPassives', nps.passives ?? 0);
+        setText('npsDetractors', nps.detractors ?? 0);
+
+        // Stats by tipo
+        const byTipo = data.by_tipo ?? {};
+        const tipoMap = {
+            acao: { count: 'statFbAcao', avg: 'statFbAcaoAvg' },
+            assistente_ia: { count: 'statFbIa', avg: 'statFbIaAvg' },
+            nps: { count: 'statFbNps', avg: 'statFbNpsAvg' },
+            sugestao: { count: 'statFbSugestao', avg: 'statFbSugestaoAvg' },
+        };
+
+        for (const [tipo, ids] of Object.entries(tipoMap)) {
+            const stat = byTipo[tipo];
+            setText(ids.count, stat?.total ?? 0);
+            setText(ids.avg, stat?.avg_rating != null ? `Media: ${parseFloat(stat.avg_rating).toFixed(1)}` : '--');
+        }
+
+        if (window.lucide) lucide.createIcons();
+    } catch (err) {
+        console.error('Erro ao carregar stats de feedback:', err);
+    }
+}
+
+function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+}
+
+async function loadFeedbackList(page = 1) {
+    feedbackCurrentPage = page;
+    const wrapper = document.getElementById('feedbackTableWrapper');
+    if (!wrapper) return;
+
+    wrapper.innerHTML = '<div class="feedback-empty"><i data-lucide="loader-2"></i><p>Carregando feedbacks...</p></div>';
+    if (window.lucide) lucide.createIcons({ nodes: [wrapper] });
+
+    try {
+        const tipo = document.getElementById('feedbackFilterTipo')?.value || '';
+        const perPage = document.getElementById('feedbackPerPage')?.value || '15';
+
+        let url = `${BASE_URL}api/sysadmin/feedback?page=${page}&per_page=${perPage}`;
+        if (tipo) url += `&tipo_feedback=${encodeURIComponent(tipo)}`;
+
+        const res = await fetch(url, { credentials: 'same-origin' });
+        const json = await res.json();
+        const data = json.data ?? json;
+
+        renderFeedbackTable(data);
+    } catch (err) {
+        wrapper.innerHTML = '<div class="feedback-empty"><p>Erro ao carregar feedbacks</p></div>';
+        console.error('Erro ao carregar feedbacks:', err);
+    }
+}
+
+function renderFeedbackTable(data) {
+    const wrapper = document.getElementById('feedbackTableWrapper');
+    if (!wrapper) return;
+
+    const items = data.items ?? [];
+
+    if (items.length === 0) {
+        wrapper.innerHTML = '<div class="feedback-empty"><i data-lucide="message-square"></i><p>Nenhum feedback encontrado</p></div>';
+        if (window.lucide) lucide.createIcons({ nodes: [wrapper] });
+        return;
+    }
+
+    const tipoLabels = {
+        acao: 'Micro Feedback',
+        assistente_ia: 'Assistente IA',
+        nps: 'NPS',
+        sugestao: 'Sugestao',
+    };
+
+    const rows = items.map(f => {
+        const tipoBadge = `<span class="feedback-tipo-badge tipo-${f.tipo_feedback}">${tipoLabels[f.tipo_feedback] || f.tipo_feedback}</span>`;
+
+        let ratingHtml = '-';
+        if (f.rating !== null && f.rating !== undefined) {
+            if (f.tipo_feedback === 'nps') {
+                const cls = f.rating >= 9 ? 'promoter' : f.rating >= 7 ? 'passive' : 'detractor';
+                ratingHtml = `<span class="feedback-rating-nps ${cls}">${f.rating}</span>`;
+            } else if (f.tipo_feedback === 'sugestao') {
+                ratingHtml = `<span class="feedback-rating-stars">${'★'.repeat(f.rating)}${'☆'.repeat(5 - f.rating)}</span>`;
+            } else if (f.tipo_feedback === 'acao') {
+                ratingHtml = `<span class="feedback-rating-thumbs">${f.rating === 1 ? '👍' : '👎'}</span>`;
+            } else if (f.tipo_feedback === 'assistente_ia') {
+                ratingHtml = `<span class="feedback-rating-thumbs">${f.rating === 2 ? '👍' : f.rating === 1 ? '😐' : '👎'}</span>`;
+            }
+        }
+
+        const comment = f.comentario
+            ? `<span class="feedback-comment-cell" title="${escHtml(f.comentario)}">${escHtml(f.comentario)}</span>`
+            : '<span style="color:var(--color-text-muted,#64748b);">-</span>';
+
+        const date = f.created_at ? new Date(f.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
+
+        return `<tr>
+            <td>${tipoBadge}</td>
+            <td>${escHtml(f.user_nome ?? '-')}</td>
+            <td>${ratingHtml}</td>
+            <td>${escHtml(f.contexto ?? '-')}</td>
+            <td>${comment}</td>
+            <td style="white-space:nowrap;font-size:0.75rem;">${date}</td>
+        </tr>`;
+    }).join('');
+
+    wrapper.innerHTML = `
+        <table class="feedback-table">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Usuario</th>
+                    <th>Rating</th>
+                    <th>Contexto</th>
+                    <th>Comentario</th>
+                    <th>Data</th>
+                </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+        </table>
+        ${renderFeedbackPagination(data.page ?? 1, data.totalPages ?? 1, data.total ?? 0)}
+    `;
+
+    if (window.lucide) lucide.createIcons({ nodes: [wrapper] });
+}
+
+function renderFeedbackPagination(page, totalPages, total) {
+    if (totalPages <= 1) return `<div class="feedback-pagination"><span>${total} feedback(s)</span></div>`;
+
+    let html = '<div class="feedback-pagination">';
+    html += `<button ${page <= 1 ? 'disabled' : ''} data-action="feedbackGoToPage" data-page="${page - 1}"><i data-lucide="chevron-left"></i></button>`;
+
+    const start = Math.max(1, page - 2);
+    const end = Math.min(totalPages, page + 2);
+
+    for (let i = start; i <= end; i++) {
+        html += `<button class="${i === page ? 'active' : ''}" data-action="feedbackGoToPage" data-page="${i}">${i}</button>`;
+    }
+
+    html += `<button ${page >= totalPages ? 'disabled' : ''} data-action="feedbackGoToPage" data-page="${page + 1}"><i data-lucide="chevron-right"></i></button>`;
+    html += `<span>${total} feedback(s)</span>`;
+    html += '</div>';
+    return html;
+}
+
+function exportFeedback() {
+    const tipo = document.getElementById('feedbackFilterTipo')?.value || '';
+    let url = `${BASE_URL}api/sysadmin/feedback/export`;
+    if (tipo) url += `?tipo_feedback=${encodeURIComponent(tipo)}`;
+    window.open(url, '_blank');
+}
+
+function escHtml(str) {
+    if (!str) return '';
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+}
+
+// ============================================================================
 // EVENT DELEGATION (substitui onclick handlers)
 // ============================================================================
 
@@ -1068,6 +1266,9 @@ document.addEventListener('click', (e) => {
         case 'confirmCleanupLogs': confirmCleanupLogs(); break;
         case 'navigateTo': window.location.href = btn.dataset.href; break;
         case 'switchTab': switchTab(btn.dataset.tab); e.preventDefault(); break;
+        case 'loadFeedbackStats': loadFeedbackStats(); loadFeedbackList(); break;
+        case 'feedbackGoToPage': loadFeedbackList(page); break;
+        case 'exportFeedback': exportFeedback(); break;
     }
 });
 
@@ -1075,7 +1276,7 @@ document.addEventListener('click', (e) => {
 // TAB NAVIGATION
 // ============================================================================
 
-const VALID_TABS = ['dashboard', 'controle', 'usuarios', 'logs', 'ia'];
+const VALID_TABS = ['dashboard', 'controle', 'usuarios', 'logs', 'ia', 'feedback'];
 const sysadminTabs = document.querySelectorAll('.sysadmin-tab');
 const sysadminPanels = document.querySelectorAll('.sysadmin-tab-panel');
 let chartsInitialized = false;
@@ -1097,11 +1298,18 @@ function switchTab(tabId) {
     try { localStorage.setItem('sysadmin_tab', tabId); } catch (e) { }
     history.replaceState(null, '', `#${tabId}`);
 
-    // Resize charts when switching to dashboard (Chart.js + hidden canvas fix)
+    // Resize charts when switching to dashboard (ApexCharts + hidden container fix)
     if (tabId === 'dashboard') {
         [usersByDayChart, userDistributionChart, subscriptionsByGatewayChart].forEach(c => {
-            if (c) c.resize();
+            if (c) c.render();
         });
+    }
+
+    // Lazy-load feedback data on first visit
+    if (tabId === 'feedback' && !feedbackStatsLoaded) {
+        feedbackStatsLoaded = true;
+        loadFeedbackStats();
+        loadFeedbackList();
     }
 }
 
@@ -1150,6 +1358,16 @@ if (errorLogsFiltersForm) {
     });
 }
 
+// Feedback filters form
+const feedbackFiltersForm = document.getElementById('feedbackFilters');
+if (feedbackFiltersForm) {
+    feedbackFiltersForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        feedbackCurrentPage = 1;
+        loadFeedbackList();
+    });
+}
+
 // Auto-refresh toggle
 const autoRefreshToggle = document.getElementById('errorLogsAutoRefresh');
 if (autoRefreshToggle) {
@@ -1164,8 +1382,8 @@ fetchUsers(1);
 loadErrorLogs(1);
 startErrorLogsAutoRefresh();
 
-if (typeof Chart !== 'undefined') {
+if (typeof ApexCharts !== 'undefined') {
     loadStats();
 } else {
-    console.warn('Chart.js não disponível — verifique carregamento no header.php');
+    console.warn('ApexCharts não disponível — verifique carregamento no header.php');
 }

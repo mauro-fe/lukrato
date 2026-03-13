@@ -51,7 +51,7 @@ export const DOM = {
     despesasValue: document.getElementById('despesasValue'),
     saldoMesValue: document.getElementById('saldoMesValue'),
 
-    chartCanvas: document.getElementById('evolutionChart'),
+    chartContainer: document.getElementById('evolutionChart'),
     chartLoading: document.getElementById('chartLoading'),
 
     tableBody: document.getElementById('transactionsTableBody'),

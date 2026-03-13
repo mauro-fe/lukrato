@@ -18,13 +18,6 @@ function formatCurrency(value) {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value) || 0);
 }
 
-function hexToRgba(hex, alpha = 0.1) {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
 function getCssVar(name, fallback = '') {
     try {
         const value = getComputedStyle(document.documentElement).getPropertyValue(name);
@@ -369,47 +362,94 @@ function closeCardDetailModal() {
 }
 
 function renderEvolutionChart(meses) {
-    const canvas = document.getElementById('evolutionChart');
-    if (!canvas) return;
-    if (evolutionChart) evolutionChart.destroy();
+    const el = document.getElementById('evolutionChart');
+    if (!el) return;
+    if (evolutionChart) { evolutionChart.destroy(); evolutionChart = null; }
 
-    evolutionChart = new Chart(canvas.getContext('2d'), {
-        type: 'line',
-        data: {
-            labels: meses.map(m => m.mes),
-            datasets: [{ label: 'Fatura', data: meses.map(m => m.valor), borderColor: '#E67E22', backgroundColor: hexToRgba('#E67E22', 0.1), fill: true, tension: 0.4, pointRadius: 4, pointHoverRadius: 6 }]
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textMuted = getCssVar('--color-text-muted', '#999');
+    const gridColor = getCssVar('--glass-border', 'rgba(255,255,255,0.1)');
+
+    evolutionChart = new ApexCharts(el, {
+        chart: {
+            type: 'area',
+            height: 260,
+            toolbar: { show: false },
+            background: 'transparent',
+            fontFamily: 'Inter, Arial, sans-serif',
         },
-        options: {
-            responsive: true, maintainAspectRatio: true,
-            plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => formatCurrency(ctx.parsed.y) } } },
-            scales: {
-                y: { beginAtZero: true, ticks: { color: getCssVar('--color-text-muted'), callback: v => formatCurrency(v) }, grid: { color: getCssVar('--glass-border') } },
-                x: { ticks: { color: getCssVar('--color-text-muted') }, grid: { display: false } }
-            }
-        }
+        series: [{ name: 'Fatura', data: meses.map(m => m.valor) }],
+        xaxis: {
+            categories: meses.map(m => m.mes),
+            labels: { style: { colors: textMuted } },
+            axisBorder: { show: false },
+            axisTicks: { show: false },
+        },
+        yaxis: {
+            min: 0,
+            labels: {
+                style: { colors: textMuted },
+                formatter: v => formatCurrency(v),
+            },
+        },
+        colors: ['#E67E22'],
+        stroke: { curve: 'smooth', width: 2.5 },
+        fill: {
+            type: 'gradient',
+            gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05, stops: [0, 100] },
+        },
+        markers: { size: 4, hover: { size: 6 } },
+        grid: { borderColor: gridColor, strokeDashArray: 4, xaxis: { lines: { show: false } } },
+        tooltip: { theme: isDark ? 'dark' : 'light', y: { formatter: v => formatCurrency(v) } },
+        legend: { show: false },
+        dataLabels: { enabled: false },
+        theme: { mode: isDark ? 'dark' : 'light' },
     });
+    evolutionChart.render();
 }
 
 function renderImpactChart(meses) {
-    const canvas = document.getElementById('impactChart');
-    if (!canvas) return;
-    if (impactChart) impactChart.destroy();
+    const el = document.getElementById('impactChart');
+    if (!el) return;
+    if (impactChart) { impactChart.destroy(); impactChart = null; }
 
-    impactChart = new Chart(canvas.getContext('2d'), {
-        type: 'bar',
-        data: {
-            labels: meses.map(m => m.mes),
-            datasets: [{ label: 'Projeção', data: meses.map(m => m.valor), backgroundColor: '#3498DB', borderRadius: 6 }]
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textMuted = getCssVar('--color-text-muted', '#999');
+    const gridColor = getCssVar('--glass-border', 'rgba(255,255,255,0.1)');
+
+    impactChart = new ApexCharts(el, {
+        chart: {
+            type: 'bar',
+            height: 260,
+            toolbar: { show: false },
+            background: 'transparent',
+            fontFamily: 'Inter, Arial, sans-serif',
         },
-        options: {
-            responsive: true, maintainAspectRatio: true,
-            plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => formatCurrency(ctx.parsed.y) } } },
-            scales: {
-                y: { beginAtZero: true, ticks: { color: getCssVar('--color-text-muted'), callback: v => formatCurrency(v) }, grid: { color: getCssVar('--glass-border') } },
-                x: { ticks: { color: getCssVar('--color-text-muted') }, grid: { display: false } }
-            }
-        }
+        series: [{ name: 'Projeção', data: meses.map(m => m.valor) }],
+        xaxis: {
+            categories: meses.map(m => m.mes),
+            labels: { style: { colors: textMuted } },
+            axisBorder: { show: false },
+            axisTicks: { show: false },
+        },
+        yaxis: {
+            min: 0,
+            labels: {
+                style: { colors: textMuted },
+                formatter: v => formatCurrency(v),
+            },
+        },
+        colors: ['#3498DB'],
+        plotOptions: {
+            bar: { borderRadius: 6, columnWidth: '55%' },
+        },
+        grid: { borderColor: gridColor, strokeDashArray: 4, xaxis: { lines: { show: false } } },
+        tooltip: { theme: isDark ? 'dark' : 'light', y: { formatter: v => formatCurrency(v) } },
+        legend: { show: false },
+        dataLabels: { enabled: false },
+        theme: { mode: isDark ? 'dark' : 'light' },
     });
+    impactChart.render();
 }
 
 // ─── Expose globally (used by PHP onclick handlers) ─────────────────────────

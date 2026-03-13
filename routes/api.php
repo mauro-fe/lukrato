@@ -45,6 +45,8 @@ Router::add('GET',  '/api/perfil', 'Api\\User\\PerfilController@show',   ['auth'
 Router::add('POST', '/api/perfil', 'Api\\User\\PerfilController@update', ['auth', 'csrf', 'ratelimit']);
 Router::add('POST', '/api/perfil/senha', 'Api\\User\\PerfilController@updatePassword', ['auth', 'csrf', 'ratelimit_strict']);
 Router::add('POST', '/api/perfil/tema', 'Api\\User\\PerfilController@updateTheme', ['auth', 'csrf', 'ratelimit']);
+Router::add('POST', '/api/perfil/avatar', 'Api\\User\\PerfilController@uploadAvatar', ['auth', 'csrf', 'ratelimit']);
+Router::add('DELETE', '/api/perfil/avatar', 'Api\\User\\PerfilController@removeAvatar', ['auth', 'csrf', 'ratelimit']);
 Router::add('DELETE', '/api/perfil/delete', 'Api\\User\\PerfilController@delete', ['auth', 'csrf', 'ratelimit_strict']);
 
 // ============================================
@@ -331,6 +333,11 @@ Router::add('DELETE', '/api/sysadmin/error-logs/cleanup',       'Api\\Admin\\Sys
 // Cache Management (SysAdmin)
 Router::add('POST',   '/api/sysadmin/clear-cache',              'Api\\Admin\\SysAdminController@clearCache',       ['auth', 'sysadmin', 'csrf', 'ratelimit']);
 
+// Feedback (SysAdmin)
+Router::add('GET', '/api/sysadmin/feedback',        'Api\\Admin\\FeedbackAdminController@index',  ['auth', 'sysadmin']);
+Router::add('GET', '/api/sysadmin/feedback/stats',  'Api\\Admin\\FeedbackAdminController@stats',  ['auth', 'sysadmin']);
+Router::add('GET', '/api/sysadmin/feedback/export', 'Api\\Admin\\FeedbackAdminController@export', ['auth', 'sysadmin']);
+
 // ============================================
 // BLOG / APRENDA (SYSADMIN)
 // ============================================
@@ -431,3 +438,11 @@ Router::add('GET', '/api/referral/validate', 'Api\\Referral\\ReferralController@
 Router::add('GET', '/api/referral/stats',    'Api\\Referral\\ReferralController@getStats',    ['auth']);
 Router::add('GET', '/api/referral/code',     'Api\\Referral\\ReferralController@getCode',     ['auth']);
 Router::add('GET', '/api/referral/ranking',  'Api\\Referral\\ReferralController@getRanking',  ['auth']);
+
+// ============================================
+// FEEDBACK (USUÁRIO)
+// ============================================
+
+Router::add('POST', '/api/feedback',           'Api\\Feedback\\FeedbackController@store',    ['auth', 'csrf', 'ratelimit']);
+Router::add('GET',  '/api/feedback/check-nps', 'Api\\Feedback\\FeedbackController@checkNps', ['auth']);
+Router::add('GET',  '/api/feedback/can-micro', 'Api\\Feedback\\FeedbackController@canMicro', ['auth']);

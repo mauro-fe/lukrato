@@ -213,6 +213,14 @@ class PerfilService
             // Endereços
             $this->enderecoRepo->deletePrincipal($userId);
 
+            // Deletar arquivo de avatar se existir
+            if ($user->avatar) {
+                $avatarPath = rtrim($_SERVER['DOCUMENT_ROOT'] ?? '', '/') . '/' . $user->avatar;
+                if (is_file($avatarPath)) {
+                    @unlink($avatarPath);
+                }
+            }
+
             // Por fim, deletar o usuário
             $this->usuarioRepo->delete($userId);
         });

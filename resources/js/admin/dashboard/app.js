@@ -444,7 +444,7 @@ export const Renderers = {
     },
 
     renderChart: async (month) => {
-        if (!DOM.chartCanvas || typeof Chart === 'undefined') return;
+        if (!DOM.chartContainer || typeof ApexCharts === 'undefined') return;
 
         if (DOM.chartLoading) {
             DOM.chartLoading.style.display = 'flex';
@@ -462,105 +462,74 @@ export const Renderers = {
                 result.status === 'fulfilled' ? Number(result.value?.resultado || 0) : 0
             );
 
-            const ctx = DOM.chartCanvas.getContext('2d');
-
-            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-            gradient.addColorStop(0, 'rgba(230, 126, 34, 0.35)');
-            gradient.addColorStop(1, 'rgba(230, 126, 34, 0.05)');
-
-            const chartData = {
-                labels,
-                datasets: [{
-                    label: 'Resultado do Mês',
-                    data,
-                    borderColor: '#E67E22',
-                    backgroundColor: gradient,
-                    borderWidth: 3,
-                    pointBackgroundColor: '#E67E22',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    pointRadius: 5,
-                    pointHoverRadius: 7,
-                    fill: true,
-                    tension: 0.35
-                }]
-            };
-
             const {
-                axisColor,
-                yTickColor,
                 xTickColor,
+                yTickColor,
                 gridColor,
-                tooltipBg,
-                tooltipColor,
-                labelColor
+                isLightTheme
             } = getThemeColors();
 
-            const options = {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    mode: 'index',
-                    intersect: false
-                },
-                plugins: {
-                    legend: {
-                        display: false,
-                        labels: {
-                            color: labelColor
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: tooltipBg,
-                        titleColor: tooltipColor,
-                        bodyColor: tooltipColor,
-                        padding: 12,
-                        titleFont: {
-                            size: 14,
-                            weight: 'bold'
-                        },
-                        bodyFont: {
-                            size: 13
-                        },
-                        callbacks: {
-                            label: (context) => {
-                                return `Resultado: ${Utils.money(context.parsed.y)}`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: gridColor,
-                            drawBorder: false
-                        },
-                        ticks: {
-                            color: yTickColor,
-                            callback: (value) => Utils.money(value)
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        },
-                        ticks: {
-                            color: xTickColor
-                        }
-                    }
-                }
-            };
+            const themeMode = isLightTheme ? 'light' : 'dark';
 
             if (STATE.chartInstance) {
                 STATE.chartInstance.destroy();
+                STATE.chartInstance = null;
             }
 
-            STATE.chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: chartData,
-                options
+            STATE.chartInstance = new ApexCharts(DOM.chartContainer, {
+                chart: {
+                    type: 'area',
+                    height: 300,
+                    toolbar: { show: false },
+                    background: 'transparent',
+                    fontFamily: 'Inter, Arial, sans-serif',
+                },
+                series: [{ name: 'Resultado do Mês', data }],
+                xaxis: {
+                    categories: labels,
+                    labels: { style: { colors: xTickColor } },
+                    axisBorder: { show: false },
+                    axisTicks: { show: false },
+                },
+                yaxis: {
+                    min: 0,
+                    labels: {
+                        style: { colors: yTickColor },
+                        formatter: (value) => Utils.money(value),
+                    },
+                },
+                colors: ['#E67E22'],
+                stroke: { curve: 'smooth', width: 3 },
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shadeIntensity: 1,
+                        opacityFrom: 0.35,
+                        opacityTo: 0.05,
+                        stops: [0, 100],
+                    },
+                },
+                markers: {
+                    size: 5,
+                    colors: ['#E67E22'],
+                    strokeColors: '#fff',
+                    strokeWidth: 2,
+                    hover: { size: 7 },
+                },
+                grid: {
+                    borderColor: gridColor,
+                    strokeDashArray: 4,
+                    xaxis: { lines: { show: false } },
+                },
+                tooltip: {
+                    theme: themeMode,
+                    y: { formatter: (v) => `Resultado: ${Utils.money(v)}` },
+                },
+                legend: { show: false },
+                dataLabels: { enabled: false },
+                theme: { mode: themeMode },
             });
+            STATE.chartInstance.render();
         } catch (err) {
             console.error('Erro ao renderizar gráfico:', err);
         } finally {

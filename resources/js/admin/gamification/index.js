@@ -239,10 +239,13 @@ function updateLeaderboard(data) {
             : user.position === 2 ? '<i data-lucide="medal" style="color:#94a3b8;"></i>'
                 : user.position === 3 ? '<i data-lucide="medal" style="color:#d97706;"></i>' : '';
         const nomeCurto = (user.user_name || '').trim().split(' ').slice(0, 2).join(' ');
+        const avatarHtml = user.avatar
+            ? `<img src="${escapeHtml(user.avatar)}" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;margin-right:8px;vertical-align:middle;">`
+            : `<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--color-primary),#ea580c);color:#fff;font-size:12px;font-weight:700;margin-right:8px;vertical-align:middle;">${escapeHtml((nomeCurto || 'U')[0].toUpperCase())}</span>`;
         return `
                         <tr class="${rankClass}">
                             <td class="rank-cell">${rankIcon} ${user.position}º</td>
-                            <td class="user-cell"><div class="user-info"><strong>${escapeHtml(nomeCurto)}</strong></div></td>
+                            <td class="user-cell"><div class="user-info">${avatarHtml}<strong>${escapeHtml(nomeCurto)}</strong></div></td>
                             <td class="level-cell"><span class="level-badge">Nível ${user.current_level}</span></td>
                             <td class="points-cell"><strong>${user.total_points}</strong> pts</td>
                         </tr>

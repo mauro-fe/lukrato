@@ -148,7 +148,7 @@
     }
 
     /* ===================================================================
-     DESKTOP: Esconder lista mobile e mostrar legendas do Chart.js
+     DESKTOP: Esconder lista mobile e mostrar legendas dos gráficos
      A partir de 768px, voltamos ao comportamento desktop tradicional
      =================================================================== */
     .category-list-mobile {

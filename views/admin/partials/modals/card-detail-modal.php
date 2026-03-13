@@ -75,7 +75,7 @@
                     </div>
 
                     <div class="detail-chart-container">
-                        <canvas id="evolutionChart"></canvas>
+                        <div id="evolutionChart"></div>
                     </div>
 
                     <p style="text-align: center; margin-top: 1rem; color: var(--color-text-muted);">
@@ -91,7 +91,7 @@
                     </div>
 
                     <div class="detail-chart-container">
-                        <canvas id="impactChart"></canvas>
+                        <div id="impactChart"></div>
                     </div>
 
 

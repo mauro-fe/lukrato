@@ -2,6 +2,18 @@
 
 <div class="profile-page">
     <div class="profile-header">
+        <!-- Avatar Upload -->
+        <div class="profile-avatar-wrapper">
+            <div class="profile-avatar" id="profileAvatar">
+                <span class="avatar-initials" id="avatarInitials"><?= mb_substr($topNavFirstName ?: 'U', 0, 1) ?></span>
+                <img class="avatar-img" id="avatarImg" src="" alt="Foto de perfil" style="display:none">
+            </div>
+            <button type="button" class="avatar-edit-btn" id="avatarEditBtn" title="Alterar foto de perfil">
+                <i data-lucide="camera"></i>
+            </button>
+            <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/webp" hidden>
+        </div>
+
         <div class="profile-header-top">
             <h1 class="profile-title">Meu Perfil</h1>
 

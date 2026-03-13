@@ -2,64 +2,31 @@
  * ============================================================================
  * LUKRATO — Relatórios / Charts
  * ============================================================================
- * Chart.js plugin, chart rendering (pie/doughnut, line, bar).
+ * ApexCharts chart rendering (donut, area/line, bar).
  * Registers ChartManager on Modules for cross-module access.
  * ============================================================================
  */
 
 import { CONFIG, STATE, Utils, Modules } from './state.js';
 
-// Local aliases (keep method bodies identical to original)
+// Local aliases
 const formatCurrency = (v) => Utils.formatCurrency(v);
-const hexToRgba = (h, a) => Utils.hexToRgba(h, a);
 const escapeHtml = (v) => String(v ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m] || m));
 
-// ─── Doughnut Labels Plugin ──────────────────────────────────────────────────
+// ─── Theme helpers ──────────────────────────────────────────────────────────
 
-const DoughnutLabelsPlugin = {
-    id: 'lkDoughnutLabels',
-    afterDatasetDraw(chart, args, pluginOptions) {
-        const meta = chart.getDatasetMeta(args.index);
-        if (!meta || meta.type !== 'doughnut') return;
-
-        const dataset = chart.data.datasets?.[args.index];
-        const data = dataset?.data || [];
-        const options = pluginOptions || {};
-        const total = Number.isFinite(options.total)
-            ? Number(options.total)
-            : data.reduce((sum, value) => sum + (Number(value) || 0), 0);
-        if (!total) return;
-
-        const color = options.color || '#fff';
-        const minPercentage = options.minPercentage ?? 0;
-        const fontSize = options.font?.size || 12;
-        const fontWeight = options.font?.weight || 'bold';
-        const fontFamily = options.font?.family || 'Inter, Arial, sans-serif';
-
-        const ctx = chart.ctx;
-        ctx.save();
-        ctx.fillStyle = color;
-        ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-
-        meta.data.forEach((element, index) => {
-            const value = Number(data[index]) || 0;
-            if (!value) return;
-
-            const percentage = (value / total) * 100;
-            if (percentage < minPercentage) return;
-
-            const label = `${percentage.toFixed(percentage >= 10 ? 0 : 1)}%`;
-            const { x, y } = element.tooltipPosition();
-            ctx.fillText(label, x, y);
-        });
-
-        ctx.restore();
-    }
-};
-
-Chart.register(DoughnutLabelsPlugin);
+function _getTheme() {
+    const isLight = (document.documentElement.getAttribute('data-theme') || '').toLowerCase() === 'light'
+        || Utils.isLightTheme?.();
+    return {
+        isLight,
+        mode: isLight ? 'light' : 'dark',
+        textColor: isLight ? '#2c3e50' : '#ffffff',
+        textMuted: isLight ? '#6c757d' : 'rgba(255, 255, 255, 0.7)',
+        gridColor: isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.05)',
+        surfaceColor: getComputedStyle(document.documentElement).getPropertyValue('--color-surface').trim(),
+    };
+}
 
 // ─── Chart Manager ───────────────────────────────────────────────────────────
 
@@ -88,8 +55,9 @@ export const ChartManager = {
         const textColor = getComputedStyle(document.documentElement)
             .getPropertyValue('--color-text').trim();
 
-        Chart.defaults.color = textColor;
-        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+        window.Apex = window.Apex || {};
+        window.Apex.chart = { foreColor: textColor, fontFamily: 'Inter, Arial, sans-serif' };
+        window.Apex.grid = { borderColor: 'rgba(255, 255, 255, 0.1)' };
     },
 
     renderPie(data) {
@@ -100,8 +68,6 @@ export const ChartManager = {
         }
 
         // Preparar entradas com cores
-        // Use cat_ids from API (same query as labels) for reliable mapping;
-        // fall back to details label matching if cat_ids unavailable
         let entries = labels
             .map((label, idx) => ({
                 label,
@@ -125,8 +91,6 @@ export const ChartManager = {
         // ===================================================================
         // LÓGICA MOBILE: TOP 5 + OUTROS
         // ===================================================================
-        // Aplicar agrupamento "Top 5 + Outros" APENAS no mobile
-        // Isso mantém o gráfico limpo e profissional em telas pequenas
         let processedEntries = entries;
         if (isMobile && entries.length > 5) {
             const top5 = entries.slice(0, 5);
@@ -138,7 +102,7 @@ export const ChartManager = {
                 {
                     label: 'Outros',
                     value: othersTotal,
-                    color: '#95a5a6', // Cor neutra para "Outros"
+                    color: '#95a5a6',
                     isOthers: true
                 }
             ];
@@ -156,7 +120,7 @@ export const ChartManager = {
                 <div class="chart-dual">
                     ${chunks.map((_, idx) => `
                         <div class="chart-wrapper chart-wrapper-pie">
-                            <canvas id="chart${idx}"></canvas>
+                            <div id="chart${idx}"></div>
                         </div>
                     `).join('')}
                 </div>
@@ -168,11 +132,10 @@ export const ChartManager = {
         Modules.UI.setContent(html);
         ChartManager.destroy();
 
-        // Store details AFTER destroy() — destroy() clears STATE.reportDetails
+        // Store details AFTER destroy()
         STATE.reportDetails = details;
         STATE.activeDrilldown = null;
 
-        // Armazenar as entradas processadas para renderizar a lista mobile
         ChartManager._currentEntries = processedEntries;
 
         const type = Utils.getActiveCategoryType();
@@ -184,102 +147,80 @@ export const ChartManager = {
         };
         const title = titleMap[type] || 'Distribuição por Categoria';
 
+        const theme = _getTheme();
+
         // Track cumulative offset for multi-chunk indexing
         let chunkOffset = 0;
 
         STATE.chart = chunks.map((chunk, idx) => {
-            const canvas = document.getElementById(`chart${idx}`);
-            const isLightTheme = (document.documentElement.getAttribute('data-theme') || '').toLowerCase() === 'light'
-                || Utils.isLightTheme();
-            const labelColor = isLightTheme ? '#2c3e50' : '#ffffff';
+            const el = document.getElementById(`chart${idx}`);
+            if (!el) return null;
+
             const chunkTotal = chunk.reduce((sum, item) => sum + item.value, 0);
             const currentChunkOffset = chunkOffset;
             chunkOffset += chunk.length;
 
-            const chart = new Chart(canvas, {
-                type: 'doughnut',
-                data: {
-                    labels: chunk.map(e => e.label),
-                    datasets: [{
-                        data: chunk.map(e => e.value),
-                        backgroundColor: chunk.map(e => e.color),
-                        borderWidth: 2,
-                        borderColor: getComputedStyle(document.documentElement)
-                            .getPropertyValue('--color-surface').trim(),
-                        offset: chunk.map(() => 0),
-                        hoverOffset: 8
-                    }]
+            const chart = new ApexCharts(el, {
+                chart: {
+                    type: 'donut',
+                    height: '100%',
+                    background: 'transparent',
+                    fontFamily: 'Inter, Arial, sans-serif',
+                    events: {
+                        dataPointSelection: (event, chartContext, config) => {
+                            const globalIdx = currentChunkOffset + config.dataPointIndex;
+                            const entry = processedEntries[globalIdx];
+                            if (!entry || entry.isOthers) return;
+                            ChartManager.handlePieClick(entry, globalIdx, config.dataPointIndex, idx);
+                        },
+                        dataPointMouseEnter: (event) => {
+                            if (event.target) event.target.style.cursor = 'pointer';
+                        },
+                        dataPointMouseLeave: (event) => {
+                            if (event.target) event.target.style.cursor = 'default';
+                        },
+                    },
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '60%',
-                    // ===================================================================
-                    // CLICK HANDLER: Drill-down into subcategories (PRO)
-                    // ===================================================================
-                    onClick: (event, elements) => {
-                        if (!elements.length) return;
-                        const el = elements[0];
-                        const globalIdx = currentChunkOffset + el.index;
-                        const entry = processedEntries[globalIdx];
-                        if (!entry || entry.isOthers) return;
-                        ChartManager.handlePieClick(entry, globalIdx, el, idx);
+                series: chunk.map(e => e.value),
+                labels: chunk.map(e => e.label),
+                colors: chunk.map(e => e.color),
+                stroke: { width: 2, colors: [theme.surfaceColor] },
+                plotOptions: {
+                    pie: {
+                        donut: { size: '60%' },
+                        expandOnClick: true,
                     },
-                    // Cursor pointer on hoverable segments (visual cue for drill-down)
-                    onHover: (event, elements) => {
-                        const target = event.native?.target;
-                        if (target) {
-                            target.style.cursor = elements.length ? 'pointer' : 'default';
-                        }
+                },
+                legend: {
+                    show: !isMobile,
+                    position: 'bottom',
+                    labels: { colors: theme.textColor },
+                    markers: { shape: 'circle' },
+                },
+                title: {
+                    text: chunks.length > 1 ? `${title} - Parte ${idx + 1}` : title,
+                    align: 'center',
+                    style: { fontSize: '14px', fontWeight: 'bold', color: theme.textColor },
+                },
+                tooltip: {
+                    theme: theme.mode,
+                    y: {
+                        formatter: (val) => {
+                            const pct = chunkTotal > 0 ? ((val / chunkTotal) * 100).toFixed(1) : '0';
+                            return `${formatCurrency(val)} (${pct}%)`;
+                        },
                     },
-                    plugins: {
-                        // ===================================================================
-                        // MOBILE: Esconder legendas para visual limpo
-                        // Desktop: Mostrar legendas na parte inferior
-                        // ===================================================================
-                        legend: {
-                            display: !isMobile,
-                            position: 'bottom'
-                        },
-                        title: {
-                            display: true,
-                            text: chunks.length > 1 ? `${title} - Parte ${idx + 1}` : title
-                        },
-                        // ===================================================================
-                        // TOOLTIP PROFISSIONAL
-                        // Exibe: Nome da categoria + Valor em R$ + Percentual
-                        // ===================================================================
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            titleColor: '#fff',
-                            bodyColor: '#fff',
-                            padding: 12,
-                            cornerRadius: 8,
-                            displayColors: true,
-                            callbacks: {
-                                label: (context) => {
-                                    const label = context.label || '';
-                                    const value = formatCurrency(context.parsed);
-                                    const percentage = ((context.parsed / chunkTotal) * 100).toFixed(1);
-                                    return `${label}: ${value} (${percentage}%)`;
-                                }
-                            }
-                        },
-                        // ===================================================================
-                        // PERCENTUAIS NO GRÁFICO
-                        // Desativados em mobile e desktop para visual limpo
-                        // ===================================================================
-                        lkDoughnutLabels: false
-                    }
-                }
+                },
+                dataLabels: { enabled: false },
+                theme: { mode: theme.mode },
             });
+            chart.render();
 
             return chart;
         });
 
         // ===================================================================
         // RENDERIZAR LISTA DE CATEGORIAS (MOBILE ONLY)
-        // Lista vertical profissional abaixo do gráfico
         // ===================================================================
         if (isMobile) {
             ChartManager.renderMobileCategoryList(processedEntries);
@@ -288,8 +229,6 @@ export const ChartManager = {
 
     /**
      * Renderiza a lista de categorias para mobile com expansão
-     * UX: Visual clean - apenas botão + lista expansível
-     * Inclui drill-down de subcategorias (PRO)
      */
     renderMobileCategoryList(entries) {
         const container = document.getElementById('categoryListMobile');
@@ -298,7 +237,6 @@ export const ChartManager = {
         const total = entries.reduce((sum, item) => sum + item.value, 0);
         const hasDetails = !!STATE.reportDetails && window.IS_PRO;
 
-        // Todas as categorias dentro do card expansível
         const allCategoriesHTML = entries.map((entry, idx) => {
             const percentage = ((entry.value / total) * 100).toFixed(1);
             const detail = hasDetails && entry.catId != null
@@ -346,7 +284,6 @@ export const ChartManager = {
             `;
         }).join('');
 
-        // HTML final: apenas botão + card expansível + texto informativo
         container.innerHTML = `
             <button class="category-expand-btn" id="expandCategoriesBtn" aria-expanded="false">
                 <span>Ver todas as categorias</span>
@@ -362,10 +299,8 @@ export const ChartManager = {
         `;
         if (window.lucide) lucide.createIcons();
 
-        // Adicionar listener ao botão de expansão
         ChartManager.setupExpandToggle();
 
-        // Setup mobile subcategory accordion toggles
         if (hasDetails) {
             ChartManager.setupMobileSubcatToggles();
         }
@@ -409,14 +344,12 @@ export const ChartManager = {
             const isExpanded = btn.getAttribute('aria-expanded') === 'true';
 
             if (isExpanded) {
-                // Recolher
                 card.style.maxHeight = '0px';
                 card.setAttribute('aria-hidden', 'true');
                 btn.setAttribute('aria-expanded', 'false');
                 btn.querySelector('span').textContent = 'Ver todas as categorias';
                 btn.querySelector('i').style.transform = 'rotate(0deg)';
             } else {
-                // Expandir
                 card.style.maxHeight = card.scrollHeight + 'px';
                 card.setAttribute('aria-hidden', 'false');
                 btn.setAttribute('aria-expanded', 'true');
@@ -429,7 +362,7 @@ export const ChartManager = {
     /**
      * Handle click on a doughnut segment: toggle subcategory drill-down
      */
-    handlePieClick(entry, globalIdx, element, chartIdx) {
+    handlePieClick(entry, globalIdx, dataPointIndex, chartIdx) {
         // PRO check
         if (!window.IS_PRO) {
             if (window.Swal?.fire) {
@@ -457,7 +390,6 @@ export const ChartManager = {
         const detail = STATE.reportDetails.find(d => d.cat_id === catId);
         if (!detail || !detail.subcategories || detail.subcategories.length === 0) return;
 
-        // If ALL subcategories are just "Outros" (no real subcategoria assigned), show info toast
         const realSubcats = detail.subcategories.filter(s => s.id !== 0);
         if (realSubcats.length === 0) {
             if (window.Swal?.fire) {
@@ -482,32 +414,10 @@ export const ChartManager = {
 
         STATE.activeDrilldown = catId;
 
-        // Highlight clicked segment (offset it)
-        ChartManager._resetAllSegmentOffsets();
-        if (Array.isArray(STATE.chart) && STATE.chart[chartIdx]) {
-            const ds = STATE.chart[chartIdx].data.datasets[0];
-            if (ds.offset) {
-                ds.offset[element.index] = 14;
-                STATE.chart[chartIdx].update('none');
-            }
-        }
+        // ApexCharts handles segment highlight via toggleDataPointSelection
+        // The expandOnClick option already provides visual highlight
 
         ChartManager.renderSubcategoryDrilldown(detail, entry.color);
-    },
-
-    /**
-     * Reset offset on all chart segments
-     */
-    _resetAllSegmentOffsets() {
-        if (!Array.isArray(STATE.chart)) return;
-        STATE.chart.forEach(c => {
-            if (!c) return;
-            const ds = c.data.datasets[0];
-            if (ds.offset) {
-                ds.offset = ds.offset.map(() => 0);
-                c.update('none');
-            }
-        });
     },
 
     /**
@@ -515,7 +425,6 @@ export const ChartManager = {
      */
     closeDrilldown() {
         STATE.activeDrilldown = null;
-        ChartManager._resetAllSegmentOffsets();
 
         const panel = document.getElementById('subcategoryDrilldown');
         if (panel) {
@@ -559,7 +468,7 @@ export const ChartManager = {
         const isMobile = window.innerWidth < 768;
         const miniChartHTML = !isMobile ? `
             <div class="drilldown-mini-chart">
-                <canvas id="drilldownMiniChart"></canvas>
+                <div id="drilldownMiniChart"></div>
             </div>
         ` : '';
 
@@ -605,52 +514,38 @@ export const ChartManager = {
      * Render mini doughnut inside the drill-down panel
      */
     _renderDrilldownMiniChart(subcategories, shades) {
-        const canvas = document.getElementById('drilldownMiniChart');
-        if (!canvas) return;
+        const el = document.getElementById('drilldownMiniChart');
+        if (!el) return;
 
-        // Destroy any existing mini chart
         if (ChartManager._drilldownChart) {
             ChartManager._drilldownChart.destroy();
             ChartManager._drilldownChart = null;
         }
 
-        ChartManager._drilldownChart = new Chart(canvas, {
-            type: 'doughnut',
-            data: {
-                labels: subcategories.map(s => s.label),
-                datasets: [{
-                    data: subcategories.map(s => s.total),
-                    backgroundColor: shades,
-                    borderWidth: 2,
-                    borderColor: getComputedStyle(document.documentElement)
-                        .getPropertyValue('--color-surface').trim()
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                cutout: '55%',
-                plugins: {
-                    legend: { display: false },
-                    title: { display: false },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        titleColor: '#fff',
-                        bodyColor: '#fff',
-                        padding: 10,
-                        cornerRadius: 8,
-                        callbacks: {
-                            label: (ctx) => {
-                                const total = subcategories.reduce((s, sc) => s + sc.total, 0);
-                                const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : '0';
-                                return `${ctx.label}: ${formatCurrency(ctx.parsed)} (${pct}%)`;
-                            }
-                        }
+        const theme = _getTheme();
+        const totalValue = subcategories.reduce((s, sc) => s + sc.total, 0);
+
+        ChartManager._drilldownChart = new ApexCharts(el, {
+            chart: { type: 'donut', height: '100%', background: 'transparent', fontFamily: 'Inter, Arial, sans-serif' },
+            series: subcategories.map(s => s.total),
+            labels: subcategories.map(s => s.label),
+            colors: shades,
+            stroke: { width: 2, colors: [theme.surfaceColor] },
+            plotOptions: { pie: { donut: { size: '55%' } } },
+            legend: { show: false },
+            tooltip: {
+                theme: theme.mode,
+                y: {
+                    formatter: (val) => {
+                        const pct = totalValue > 0 ? ((val / totalValue) * 100).toFixed(1) : '0';
+                        return `${formatCurrency(val)} (${pct}%)`;
                     },
-                    lkDoughnutLabels: false
-                }
-            }
+                },
+            },
+            dataLabels: { enabled: false },
+            theme: { mode: theme.mode },
         });
+        ChartManager._drilldownChart.render();
     },
 
     _drilldownChart: null,
@@ -663,7 +558,7 @@ export const ChartManager = {
         Modules.UI.setContent(`
             <div class="chart-container chart-container-line">
                 <div class="chart-wrapper chart-wrapper-line">
-                    <canvas id="chart0"></canvas>
+                    <div id="chart0"></div>
                 </div>
             </div>
         `);
@@ -672,75 +567,50 @@ export const ChartManager = {
 
         const color = getComputedStyle(document.documentElement)
             .getPropertyValue('--color-primary').trim();
-        const isLightTheme = (document.documentElement.getAttribute('data-theme') || '').toLowerCase() === 'light'
-            || Utils.isLightTheme();
-        const yTickColor = isLightTheme ? '#000' : '#fff';
+        const theme = _getTheme();
 
-        STATE.chart = new Chart(document.getElementById('chart0'), {
-            type: 'line',
-            data: {
-                labels,
-                datasets: [{
-                    label: 'Saldo Diário',
-                    data: values.map(Number),
-                    borderColor: color,
-                    backgroundColor: hexToRgba(color, 0.2),
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4
-                }]
+        const chart = new ApexCharts(document.getElementById('chart0'), {
+            chart: {
+                type: 'area',
+                height: 380,
+                toolbar: { show: false },
+                background: 'transparent',
+                fontFamily: 'Inter, Arial, sans-serif',
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                aspectRatio: 1.8,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 15,
-                            font: { size: 12 }
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: 'Evolução do Saldo Mensal',
-                        font: { size: 16, weight: 'bold' },
-                        padding: { top: 10, bottom: 20 }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: (context) => formatCurrency(context.parsed.y)
-                        }
-                    }
+            series: [{ name: 'Saldo Diário', data: values.map(Number) }],
+            xaxis: {
+                categories: labels,
+                labels: { style: { fontSize: '11px' } },
+                axisBorder: { show: false },
+                axisTicks: { show: false },
+            },
+            yaxis: {
+                min: 0,
+                labels: {
+                    style: { colors: theme.isLight ? '#000' : '#fff', fontSize: '11px' },
+                    formatter: (value) => formatCurrency(value),
                 },
-                layout: {
-                    padding: {
-                        top: 20,
-                        bottom: 20,
-                        left: 10,
-                        right: 10
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            color: yTickColor,
-                            font: { size: 11 },
-                            padding: 8,
-                            callback: (value) => formatCurrency(value)
-                        }
-                    },
-                    x: {
-                        ticks: {
-                            font: { size: 11 },
-                            padding: 5
-                        }
-                    }
-                }
-            }
+            },
+            colors: [color],
+            stroke: { curve: 'smooth', width: 2.5 },
+            fill: {
+                type: 'gradient',
+                gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05, stops: [0, 100] },
+            },
+            markers: { size: 4, hover: { size: 6 } },
+            grid: { borderColor: theme.gridColor, strokeDashArray: 4 },
+            tooltip: { theme: theme.mode, y: { formatter: (v) => formatCurrency(v) } },
+            legend: { position: 'bottom', labels: { colors: theme.textColor } },
+            title: {
+                text: 'Evolução do Saldo Mensal',
+                align: 'center',
+                style: { fontSize: '16px', fontWeight: 'bold', color: theme.textColor },
+            },
+            dataLabels: { enabled: false },
+            theme: { mode: theme.mode },
         });
+        chart.render();
+        STATE.chart = chart;
     },
 
     renderBar(data) {
@@ -751,7 +621,7 @@ export const ChartManager = {
         Modules.UI.setContent(`
             <div class="chart-container chart-container-bar">
                 <div class="chart-wrapper chart-wrapper-bar">
-                    <canvas id="chart0"></canvas>
+                    <div id="chart0"></div>
                 </div>
             </div>
         `);
@@ -760,107 +630,59 @@ export const ChartManager = {
 
         const colorSuccess = Utils.getCssVar('--color-success', '#2ecc71');
         const colorDanger = Utils.getCssVar('--color-danger', '#e74c3c');
-        const isLightTheme = (document.documentElement.getAttribute('data-theme') || '').toLowerCase() === 'light'
-            || Utils.isLightTheme();
-        const axisColor = isLightTheme
-            ? Utils.getCssVar('--color-primary', '#e67e22')
-            : 'rgba(255, 255, 255, 0.7)';
-        const yTickColor = isLightTheme ? '#000' : '#fff';
-        const gridColor = isLightTheme
-            ? 'rgba(0, 0, 0, 0.08)'
-            : 'rgba(255, 255, 255, 0.05)';
-        const xTickColor = isLightTheme
-            ? Utils.getCssVar('--color-text-muted', '#6c757d')
-            : 'rgba(255, 255, 255, 0.7)';
+        const theme = _getTheme();
 
-        STATE.chart = new Chart(document.getElementById('chart0'), {
-            type: 'bar',
-            data: {
-                labels,
-                datasets: [
-                    {
-                        label: 'Receitas',
-                        data: receitas.map(Number),
-                        backgroundColor: hexToRgba(colorSuccess, 0.6),
-                        borderColor: colorSuccess,
-                        borderWidth: 2
-                    },
-                    {
-                        label: 'Despesas',
-                        data: despesas.map(Number),
-                        backgroundColor: hexToRgba(colorDanger, 0.6),
-                        borderColor: colorDanger,
-                        borderWidth: 2
-                    }
-                ]
+        const chartTitle = STATE.currentView === CONFIG.VIEWS.ACCOUNTS
+            ? 'Receitas x Despesas por Conta'
+            : STATE.currentView === CONFIG.VIEWS.ANNUAL_SUMMARY
+                ? 'Resumo Anual por Mês'
+                : 'Receitas x Despesas';
+
+        const chart = new ApexCharts(document.getElementById('chart0'), {
+            chart: {
+                type: 'bar',
+                height: 380,
+                toolbar: { show: false },
+                background: 'transparent',
+                fontFamily: 'Inter, Arial, sans-serif',
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                aspectRatio: 1.5,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 15,
-                            font: { size: 12 }
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: STATE.currentView === CONFIG.VIEWS.ACCOUNTS
-                            ? 'Receitas x Despesas por Conta'
-                            : STATE.currentView === CONFIG.VIEWS.ANNUAL_SUMMARY
-                                ? 'Resumo Anual por Mês'
-                                : 'Receitas x Despesas',
-                        font: { size: 16, weight: 'bold' },
-                        padding: { top: 10, bottom: 20 }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: (context) => {
-                                const label = context.dataset.label || '';
-                                const value = formatCurrency(context.parsed.y);
-                                return `${label}: ${value}`;
-                            }
-                        }
-                    }
+            series: [
+                { name: 'Receitas', data: receitas.map(Number) },
+                { name: 'Despesas', data: despesas.map(Number) },
+            ],
+            xaxis: {
+                categories: labels,
+                labels: { style: { colors: theme.textMuted, fontSize: '11px' } },
+                axisBorder: { show: false },
+                axisTicks: { show: false },
+            },
+            yaxis: {
+                min: 0,
+                labels: {
+                    style: { colors: theme.isLight ? '#000' : '#fff', fontSize: '11px' },
+                    formatter: (value) => formatCurrency(value),
                 },
-                layout: {
-                    padding: {
-                        top: 20,
-                        bottom: 20,
-                        left: 10,
-                        right: 10
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: gridColor,
-                            drawBorder: false
-                        },
-                        ticks: {
-                            color: yTickColor,
-                            font: { size: 11 },
-                            padding: 8,
-                            callback: (value) => formatCurrency(value)
-                        }
-                    },
-                    x: {
-                        ticks: {
-                            color: xTickColor,
-                            font: { size: 11 },
-                            padding: 5
-                        },
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
-            }
+            },
+            colors: [colorSuccess, colorDanger],
+            plotOptions: { bar: { borderRadius: 6, columnWidth: '55%' } },
+            grid: { borderColor: theme.gridColor, strokeDashArray: 4, xaxis: { lines: { show: false } } },
+            tooltip: {
+                theme: theme.mode,
+                shared: true,
+                intersect: false,
+                y: { formatter: (v) => formatCurrency(v) },
+            },
+            legend: { position: 'bottom', labels: { colors: theme.textColor }, markers: { shape: 'circle' } },
+            title: {
+                text: chartTitle,
+                align: 'center',
+                style: { fontSize: '16px', fontWeight: 'bold', color: theme.textColor },
+            },
+            dataLabels: { enabled: false },
+            theme: { mode: theme.mode },
         });
+        chart.render();
+        STATE.chart = chart;
     }
 };
 

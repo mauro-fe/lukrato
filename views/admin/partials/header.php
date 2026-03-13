@@ -84,6 +84,7 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/modal-meses.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/aviso-lancamentos.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/support-button.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/feedback-collector.css?v=<?= time() ?>">
 
     <!-- Page-specific CSS (auto-detected) -->
     <?php loadPageCss(); ?>
@@ -99,7 +100,7 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
          ============================================================================ -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- ============================================================================
@@ -121,7 +122,8 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
             isPro: <?= json_encode(!$showUpgradeCTA) ?>,
             isSysAdmin: <?= json_encode($isSysAdmin) ?>,
             userId: <?= json_encode($currentUser?->id ?? null) ?>,
-            username: <?= json_encode($username) ?>
+            username: <?= json_encode($username) ?>,
+            userAvatar: <?= json_encode($currentUser?->avatar ? rtrim(BASE_URL, '/') . '/' . $currentUser->avatar : '') ?>
         };
     </script>
 
@@ -232,7 +234,9 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
         <div class="sidebar-footer">
             <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil') ?>" <?= $aria('perfil') ?>
                 title="Perfil">
-                <i data-lucide="circle-user"></i>
+                <div class="sidebar-avatar" id="sidebarAvatar">
+                    <span class="avatar-initials-xs"><?= mb_substr($topNavFirstName ?? $username ?? 'U', 0, 1) ?></span>
+                </div>
                 <span>Perfil</span>
             </a>
             <?php if ($isSysAdmin): ?>

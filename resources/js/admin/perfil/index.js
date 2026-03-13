@@ -83,6 +83,152 @@
         return digits.substring(0, 5) + '-' + digits.substring(5, 8);
     }
 
+    // ============================================
+    // AVATAR UPLOAD / REMOVE
+    // ============================================
+    const avatarImg = document.getElementById('avatarImg');
+    const avatarInitials = document.getElementById('avatarInitials');
+    const avatarEditBtn = document.getElementById('avatarEditBtn');
+    const avatarInput = document.getElementById('avatarInput');
+
+    function updateAvatarDisplay(avatarUrl, nome) {
+        if (avatarUrl) {
+            if (avatarImg) {
+                avatarImg.src = avatarUrl;
+                avatarImg.style.display = 'block';
+            }
+            if (avatarInitials) avatarInitials.style.display = 'none';
+        } else {
+            if (avatarImg) {
+                avatarImg.src = '';
+                avatarImg.style.display = 'none';
+            }
+            if (avatarInitials) {
+                avatarInitials.textContent = (nome || 'U').charAt(0).toUpperCase();
+                avatarInitials.style.display = '';
+            }
+        }
+        // Atualizar avatares globais (navbar + sidebar)
+        if (window.__LK_updateGlobalAvatars) {
+            window.__LK_updateGlobalAvatars(avatarUrl);
+        }
+    }
+
+    function getCsrf() {
+        return form?.querySelector('input[name="csrf_token"]')?.value
+            || document.querySelector('meta[name="csrf-token"]')?.content || '';
+    }
+
+    if (avatarEditBtn && avatarInput) {
+        avatarEditBtn.addEventListener('click', () => {
+            // Se já tem avatar, pergunta se quer trocar ou remover
+            if (avatarImg && avatarImg.style.display !== 'none' && avatarImg.src) {
+                if (window.Swal) {
+                    Swal.fire({
+                        title: 'Foto de perfil',
+                        text: 'O que deseja fazer?',
+                        showDenyButton: true,
+                        showCancelButton: true,
+                        confirmButtonText: 'Trocar foto',
+                        denyButtonText: 'Remover foto',
+                        cancelButtonText: 'Cancelar',
+                        confirmButtonColor: '#e67e22',
+                        denyButtonColor: '#ef4444',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            avatarInput.click();
+                        } else if (result.isDenied) {
+                            removeAvatar();
+                        }
+                    });
+                } else {
+                    avatarInput.click();
+                }
+            } else {
+                avatarInput.click();
+            }
+        });
+
+        avatarInput.addEventListener('change', async () => {
+            const file = avatarInput.files?.[0];
+            if (!file) return;
+
+            // Validação client-side
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                if (window.Swal) Swal.fire({ icon: 'error', title: 'Tipo inválido', text: 'Use JPEG, PNG ou WebP.', confirmButtonColor: '#e74c3c' });
+                avatarInput.value = '';
+                return;
+            }
+            if (file.size > 2 * 1024 * 1024) {
+                if (window.Swal) Swal.fire({ icon: 'error', title: 'Arquivo muito grande', text: 'O tamanho máximo é 2MB.', confirmButtonColor: '#e74c3c' });
+                avatarInput.value = '';
+                return;
+            }
+
+            const fd = new FormData();
+            fd.append('avatar', file);
+            fd.append('csrf_token', getCsrf());
+
+            // Loading state
+            if (avatarEditBtn) avatarEditBtn.disabled = true;
+
+            try {
+                const res = await fetch(`${API}perfil/avatar`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: fd,
+                    headers: { 'Accept': 'application/json' }
+                });
+                const j = await res.json().catch(() => null);
+
+                if (!res.ok || j?.status !== 'success') {
+                    throw new Error(j?.message || 'Falha ao enviar foto.');
+                }
+
+                updateAvatarDisplay(j.data?.avatar, fieldNome?.value);
+
+                if (window.Swal) {
+                    Swal.fire({ icon: 'success', title: 'Foto atualizada!', timer: 1500, showConfirmButton: false });
+                }
+            } catch (err) {
+                console.error('Erro ao enviar avatar:', err);
+                if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: err.message, confirmButtonColor: '#e74c3c' });
+            } finally {
+                avatarInput.value = '';
+                if (avatarEditBtn) avatarEditBtn.disabled = false;
+            }
+        });
+    }
+
+    async function removeAvatar() {
+        try {
+            const res = await fetch(`${API}perfil/avatar`, {
+                method: 'DELETE',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRF-Token': getCsrf(),
+                },
+            });
+            const j = await res.json().catch(() => null);
+
+            if (!res.ok || j?.status !== 'success') {
+                throw new Error(j?.message || 'Falha ao remover foto.');
+            }
+
+            updateAvatarDisplay('', fieldNome?.value);
+
+            if (window.Swal) {
+                Swal.fire({ icon: 'success', title: 'Foto removida', timer: 1500, showConfirmButton: false });
+            }
+        } catch (err) {
+            console.error('Erro ao remover avatar:', err);
+            if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: err.message, confirmButtonColor: '#e74c3c' });
+        }
+    }
+
     async function loadProfile() {
         if (!form) return;
         try {
@@ -103,6 +249,9 @@
 
             if (fieldNome) fieldNome.value = user.nome || '';
             if (fieldEmail) fieldEmail.value = user.email || '';
+
+            // Avatar
+            updateAvatarDisplay(user.avatar, user.nome);
 
             // Código de suporte
             const supportCodeField = document.getElementById('support_code');

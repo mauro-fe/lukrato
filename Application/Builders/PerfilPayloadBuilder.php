@@ -42,7 +42,7 @@ class PerfilPayloadBuilder
             'support_code' => (string) ($user->support_code ?? ''),
             'nome' => (string) ($user->nome ?? ''),
             'email' => (string) ($user->email ?? ''),
-            'avatar' => (string) ($user->avatar ?? ''),
+            'avatar' => $user->avatar ? (rtrim(BASE_URL, '/') . '/' . $user->avatar) : '',
             'data_nascimento' => $this->dateFormatter->normalize($user->data_nascimento),
             'sexo' => $this->mapSexoToOption($sexo?->nm_sexo),
             'cpf' => $this->documentFormatter->formatCpf($cpf),

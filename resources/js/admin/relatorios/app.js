@@ -18,7 +18,6 @@ import { ChartManager } from './charts.js';
 
 const formatCurrency = (v) => Utils.formatCurrency(v);
 const formatMonthLabel = (m) => Utils.formatMonthLabel(m);
-const hexToRgba = (h, a) => Utils.hexToRgba(h, a);
 const isYearlyView = (v) => Utils.isYearlyView(v);
 const getReportType = () => Utils.getReportType();
 const getActiveCategoryType = () => Utils.getActiveCategoryType();
@@ -654,87 +653,69 @@ function renderEvolucao(evolucao) {
                 <span class="comp-subtitle">Receitas, despesas e saldo ao longo do tempo</span>
             </div>
             <div class="evolucao-chart-wrapper">
-                <canvas id="evolucaoMiniChart" height="220"></canvas>
+                <div id="evolucaoMiniChart" style="min-height:220px;"></div>
             </div>
         </div>
     `;
 }
 
+let _evolucaoChartInstance = null;
+
 function renderEvolucaoChart(evolucao) {
     if (!evolucao || evolucao.length === 0) return;
-    const canvas = document.getElementById('evolucaoMiniChart');
-    if (!canvas) return;
+    const el = document.getElementById('evolucaoMiniChart');
+    if (!el) return;
 
-    const ctx = canvas.getContext('2d');
     const labels = evolucao.map(e => e.label);
     const style = getComputedStyle(document.documentElement);
     const textColor = style.getPropertyValue('--color-text-muted').trim() || '#999';
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const themeMode = isDark ? 'dark' : 'light';
 
-    if (canvas._chartInstance) canvas._chartInstance.destroy();
+    if (_evolucaoChartInstance) { _evolucaoChartInstance.destroy(); _evolucaoChartInstance = null; }
 
-    canvas._chartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels,
-            datasets: [
-                {
-                    label: 'Receitas',
-                    data: evolucao.map(e => e.receitas),
-                    backgroundColor: 'rgba(46, 204, 113, 0.7)',
-                    borderRadius: 6,
-                    barPercentage: 0.6,
-                },
-                {
-                    label: 'Despesas',
-                    data: evolucao.map(e => e.despesas),
-                    backgroundColor: 'rgba(231, 76, 60, 0.7)',
-                    borderRadius: 6,
-                    barPercentage: 0.6,
-                },
-                {
-                    label: 'Saldo',
-                    type: 'line',
-                    data: evolucao.map(e => e.saldo),
-                    borderColor: '#3498db',
-                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                    tension: 0.4,
-                    borderWidth: 2.5,
-                    pointRadius: 4,
-                    pointBackgroundColor: '#3498db',
-                    fill: true,
-                }
-            ]
+    _evolucaoChartInstance = new ApexCharts(el, {
+        chart: {
+            type: 'line',
+            height: 260,
+            stacked: false,
+            toolbar: { show: false },
+            background: 'transparent',
+            fontFamily: 'Inter, Arial, sans-serif',
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: { color: textColor, padding: 16, usePointStyle: true, pointStyle: 'circle' }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: (ctx) => `${ctx.dataset.label}: ${formatCurrency(ctx.parsed.y)}`
-                    }
-                }
+        series: [
+            { name: 'Receitas', type: 'column', data: evolucao.map(e => e.receitas) },
+            { name: 'Despesas', type: 'column', data: evolucao.map(e => e.despesas) },
+            { name: 'Saldo', type: 'area', data: evolucao.map(e => e.saldo) },
+        ],
+        xaxis: {
+            categories: labels,
+            labels: { style: { colors: textColor } },
+            axisBorder: { show: false },
+            axisTicks: { show: false },
+        },
+        yaxis: {
+            labels: {
+                style: { colors: textColor },
+                formatter: (v) => formatCurrency(v),
             },
-            scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { color: textColor }
-                },
-                y: {
-                    grid: { color: 'rgba(128,128,128,0.1)' },
-                    ticks: {
-                        color: textColor,
-                        callback: (v) => formatCurrency(v)
-                    }
-                }
-            }
-        }
+        },
+        colors: ['rgba(46, 204, 113, 0.85)', 'rgba(231, 76, 60, 0.85)', '#3498db'],
+        stroke: { width: [0, 0, 2.5], curve: 'smooth' },
+        fill: { opacity: [0.85, 0.85, 0.1] },
+        plotOptions: { bar: { borderRadius: 6, columnWidth: '55%' } },
+        grid: { borderColor: 'rgba(128,128,128,0.1)', strokeDashArray: 4, xaxis: { lines: { show: false } } },
+        tooltip: {
+            theme: themeMode,
+            shared: true,
+            intersect: false,
+            y: { formatter: (v) => formatCurrency(v) },
+        },
+        legend: { position: 'bottom', labels: { colors: textColor }, markers: { shape: 'circle' } },
+        dataLabels: { enabled: false },
+        theme: { mode: themeMode },
     });
+    _evolucaoChartInstance.render();
 }
 
 // ── Média diária ────────────────────────────────────────

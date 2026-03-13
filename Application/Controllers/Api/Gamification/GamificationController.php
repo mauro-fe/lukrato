@@ -216,16 +216,18 @@ class GamificationController extends BaseController
                 return;
             }
 
-            $topUsers = UserProgress::with('user:id,nome')
+            $topUsers = UserProgress::with('user:id,nome,avatar')
                 ->orderBy('total_points', 'desc')
                 ->orderBy('current_level', 'desc')
                 ->limit(10)
                 ->get()
                 ->map(function ($progress, $index) {
+                    $avatar = $progress->user->avatar ?? null;
                     return [
                         'position' => $index + 1,
                         'user_id' => $progress->user_id,
                         'user_name' => $progress->user->nome ?? 'Usuário',
+                        'avatar' => $avatar ? rtrim(BASE_URL, '/') . '/' . $avatar : '',
                         'total_points' => $progress->total_points,
                         'current_level' => $progress->current_level,
                         'best_streak' => $progress->best_streak,

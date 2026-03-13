@@ -210,6 +210,132 @@ class PerfilController
         }
     }
 
+    public function uploadAvatar(): void
+    {
+        try {
+            $user = Auth::user();
+            if (!$user) {
+                Response::error('Não autenticado', 401);
+                return;
+            }
+
+            if (empty($_FILES['avatar']) || $_FILES['avatar']['error'] !== UPLOAD_ERR_OK) {
+                Response::error('Nenhuma imagem enviada ou erro no upload', 400);
+                return;
+            }
+
+            $file = $_FILES['avatar'];
+
+            // Validar tipo MIME
+            $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $mime  = $finfo->file($file['tmp_name']);
+
+            if (!in_array($mime, $allowedMimes)) {
+                Response::error('Tipo de arquivo não permitido. Use JPEG, PNG ou WebP.', 400);
+                return;
+            }
+
+            // Validar tamanho (max 2MB)
+            $maxSize = 2 * 1024 * 1024;
+            if ($file['size'] > $maxSize) {
+                Response::error('A imagem não pode ter mais de 2MB.', 400);
+                return;
+            }
+
+            // Criar diretório se não existe
+            $uploadDir = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/assets/uploads/avatars';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            // Carregar imagem com GD
+            $sourceImage = match ($mime) {
+                'image/jpeg' => imagecreatefromjpeg($file['tmp_name']),
+                'image/png'  => imagecreatefrompng($file['tmp_name']),
+                'image/webp' => imagecreatefromwebp($file['tmp_name']),
+                default      => false,
+            };
+
+            if (!$sourceImage) {
+                Response::error('Erro ao processar imagem', 500);
+                return;
+            }
+
+            // Redimensionar para 256x256 (crop quadrado centralizado)
+            $srcW = imagesx($sourceImage);
+            $srcH = imagesy($sourceImage);
+            $size = min($srcW, $srcH);
+            $srcX = (int) (($srcW - $size) / 2);
+            $srcY = (int) (($srcH - $size) / 2);
+
+            $resized = imagecreatetruecolor(256, 256);
+            imagecopyresampled($resized, $sourceImage, 0, 0, $srcX, $srcY, 256, 256, $size, $size);
+            imagedestroy($sourceImage);
+
+            // Deletar avatar antigo se existir
+            if ($user->avatar) {
+                $oldPath = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/' . $user->avatar;
+                if (is_file($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+
+            // Salvar como WebP
+            $filename = 'avatar_' . $user->id . '_' . uniqid() . '.webp';
+            $filepath = $uploadDir . '/' . $filename;
+            imagewebp($resized, $filepath, 85);
+            imagedestroy($resized);
+
+            // Atualizar no banco
+            $relativePath = 'assets/uploads/avatars/' . $filename;
+            $user->avatar = $relativePath;
+            $user->save();
+
+            Response::success([
+                'message' => 'Foto de perfil atualizada!',
+                'avatar'  => rtrim(BASE_URL, '/') . '/' . $relativePath,
+            ]);
+        } catch (Throwable $e) {
+            LogService::captureException($e, LogCategory::AUTH, [
+                'action' => 'upload_avatar',
+                'user_id' => Auth::user()?->id,
+            ]);
+            Response::error('Erro ao enviar foto de perfil', 500);
+        }
+    }
+
+    public function removeAvatar(): void
+    {
+        try {
+            $user = Auth::user();
+            if (!$user) {
+                Response::error('Não autenticado', 401);
+                return;
+            }
+
+            if ($user->avatar) {
+                $filePath = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/' . $user->avatar;
+                if (is_file($filePath)) {
+                    @unlink($filePath);
+                }
+                $user->avatar = null;
+                $user->save();
+            }
+
+            Response::success([
+                'message' => 'Foto de perfil removida',
+                'avatar'  => '',
+            ]);
+        } catch (Throwable $e) {
+            LogService::captureException($e, LogCategory::AUTH, [
+                'action' => 'remove_avatar',
+                'user_id' => Auth::user()?->id,
+            ]);
+            Response::error('Erro ao remover foto de perfil', 500);
+        }
+    }
+
     public function delete(): void
     {
         try {

@@ -64,6 +64,9 @@ $currentBreadcrumbs = $currentBreadcrumbs ?? [];
         <div class="top-navbar-actions">
             <!-- User Info -->
             <div class="user-info">
+                <a href="<?= BASE_URL ?>perfil" class="top-nav-avatar" id="topNavAvatar" title="Ir para o perfil">
+                    <span class="avatar-initials-sm"><?= mb_substr($topNavFirstName ?: 'U', 0, 1) ?></span>
+                </a>
                 <span class="greeting">Olá, <a href="<?= BASE_URL ?>perfil" class="greeting-name"
                         title="Ir para o perfil"><strong><?= $topNavFirstName ?: 'usuário' ?></strong></a></span>
                 <a href="<?= BASE_URL ?>billing" class="plan-badge <?= $isPro ? 'pro' : 'free' ?>"

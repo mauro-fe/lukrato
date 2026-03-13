@@ -53,7 +53,7 @@
   transition: transform 0.3s ease;
 }
 
-/* Wrapper para garantir responsividade do Chart.js */
+/* Wrapper para garantir responsividade dos gráficos */
 .chart-wrapper {
   position: relative;
   width: 100%;
