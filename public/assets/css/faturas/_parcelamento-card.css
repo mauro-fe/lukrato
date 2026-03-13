@@ -22,7 +22,7 @@
 .parcelamento-card .cartao-numero {
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
-  font-family: "Courier New", monospace;
+  font-family: var(--font-mono);
 }
 
 .parcelamento-card .fatura-periodo {

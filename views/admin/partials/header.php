@@ -52,6 +52,10 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
     <!-- ============================================================================
          STYLES INTERNOS
          ============================================================================ -->
+    <!-- Fonts (self-hosted) -->
+    <link rel="preload" href="<?= BASE_URL ?>assets/fonts/inter-latin-400.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/fonts.css">
+
     <!-- Core -->
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/variables.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/animations.css">

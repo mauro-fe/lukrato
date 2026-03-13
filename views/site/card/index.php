@@ -7,13 +7,13 @@
     <meta name="description" content="Lukrato - Controle suas finanças de forma inteligente e simples">
     <meta name="theme-color" content="#e67e22">
     <title>Lukrato - Links</title>
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/fonts.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/variables.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/card.css">
     <!-- Lucide Icons + FA Brands -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/brands.min.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/vendor/lucide-compat.css">
     <script src="<?= BASE_URL ?>assets/js/lucide.min.js"></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>

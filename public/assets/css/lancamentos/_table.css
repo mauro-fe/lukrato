@@ -296,7 +296,7 @@
 .lk-table tbody td.td-valor {
   text-align: right;
   font-weight: 700;
-  font-family: "JetBrains Mono", "Fira Code", "SF Mono", monospace;
+  font-family: var(--font-mono);
   font-size: 0.9rem;
 }
 

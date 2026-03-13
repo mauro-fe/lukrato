@@ -236,7 +236,7 @@
   font-weight: 700;
   font-size: var(--font-size-lg);
   color: var(--color-text);
-  font-family: "Courier New", monospace;
+  font-family: var(--font-mono);
   letter-spacing: 1px;
 }
 

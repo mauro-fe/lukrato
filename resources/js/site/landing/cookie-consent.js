@@ -31,7 +31,7 @@ export function init() {
                     box-shadow: 0 10px 40px rgba(0,0,0,.15), 0 0 0 1px rgba(0,0,0,.05);
                     padding: 16px;
                     z-index: 9999;
-                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                    font-family: var(--font-primary);
                     animation: cookieSlideIn .4s ease-out;
                 }
                 @media (min-width: 480px) {

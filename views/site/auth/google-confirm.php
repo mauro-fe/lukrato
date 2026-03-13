@@ -20,7 +20,8 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Confirmar Cadastro - <?= $_ENV['APP_NAME'] ?? 'Lukrato' ?></title>
-    <!-- Page is fully self-styled via inline <style> below -->
+    <link rel="stylesheet" href="<?= rtrim(BASE_URL, '/') ?>/assets/css/core/fonts.css">
+    <link rel="stylesheet" href="<?= rtrim(BASE_URL, '/') ?>/assets/css/core/variables.css">
     <style>
         * {
             margin: 0;
@@ -29,7 +30,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: var(--font-primary);
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             min-height: 100vh;
             display: flex;

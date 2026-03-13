@@ -16,7 +16,8 @@ $message = $message ?? 'Por favor, verifique seu email antes de fazer login.';
     <?= csrf_meta('verify_email_form') ?>
 
     <title>Verifique seu Email - Lukrato</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<?= rtrim(BASE_URL, '/') ?>/assets/css/core/fonts.css">
+    <link rel="stylesheet" href="<?= rtrim(BASE_URL, '/') ?>/assets/css/core/variables.css">
 
     <?php loadPageCss('auth-verify-email'); ?>
 </head>

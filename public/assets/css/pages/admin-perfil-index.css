@@ -486,7 +486,7 @@
   background: var(--color-bg) !important;
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: var(--font-size-base);
   color: var(--color-text-primary);
   letter-spacing: 2px;

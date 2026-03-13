@@ -342,7 +342,7 @@
 }
 
 .aprenda-prose code {
-    font-family: 'Fira Code', 'Cascadia Code', monospace;
+    font-family: var(--font-mono);
     font-size: 0.875em;
     background: var(--color-surface-muted);
     padding: 0.15rem 0.4rem;

@@ -328,7 +328,7 @@
 .parc-card-header .header-cartao-numero {
   font-size: 0.875rem;
   color: rgba(255, 255, 255, 0.85);
-  font-family: "Consolas", "Monaco", monospace;
+  font-family: var(--font-mono);
   letter-spacing: 0.1em;
 }
 

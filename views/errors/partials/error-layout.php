@@ -93,7 +93,7 @@ if ($_errorStandalone): ?>
     <meta name="robots" content="noindex, nofollow">
     <title><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?></title>
     <link rel="icon" type="image/png" sizes="32x32" href="<?= $base ?>assets/img/icone.png">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<?= $base ?>assets/css/core/fonts.css">
     <link rel="stylesheet" href="<?= $base ?>assets/css/core/variables.css">
     <link rel="stylesheet" href="<?= $base ?>assets/css/pages/errors.css">
 </head>

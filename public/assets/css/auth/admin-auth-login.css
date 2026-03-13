@@ -27,13 +27,7 @@
 html,
 body {
   height: 100%;
-  font-family:
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    Roboto,
-    Ubuntu,
-    sans-serif;
+  font-family: var(--font-primary);
   background: #092741;
   color: var(--text);
 }

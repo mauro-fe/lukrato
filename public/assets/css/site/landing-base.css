@@ -17,14 +17,7 @@ html {
 body {
   margin: 0;
   padding: 0;
-  font-family: var(
-    --font-sans,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif
-  );
+  font-family: var(--font-primary);
   background: var(--color-bg, #fff);
   color: var(--color-text, #1f2937);
   -webkit-font-smoothing: antialiased;
@@ -1317,10 +1310,7 @@ svg {
 
 .lk-section-header h2 {
   margin: 0 0 12px;
-  font-family: var(
-    --font-primary,
-    var(--font-sans, system-ui, -apple-system, "Segoe UI", sans-serif)
-  );
+  font-family: var(--font-primary);
   font-size: clamp(1.55rem, 2.6vw, 2.2rem);
   line-height: 1.15;
   letter-spacing: -0.02em;

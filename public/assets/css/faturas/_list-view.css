@@ -156,7 +156,7 @@
   .list-cartao-numero {
   font-size: 0.75rem !important;
   color: var(--color-text-muted) !important;
-  font-family: monospace !important;
+  font-family: var(--font-mono) !important;
 }
 
 .parcelamentos-grid.list-view

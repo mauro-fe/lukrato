@@ -13,6 +13,10 @@ module.exports = {
                 success: '#2ecc71',
                 warning: '#f39c12',
                 danger: '#e74c3c',
+            },
+            fontFamily: {
+                sans: ['Inter', '"Segoe UI"', 'system-ui', '-apple-system', 'sans-serif'],
+                mono: ['"JetBrains Mono"', '"Fira Code"', '"SF Mono"', '"Cascadia Code"', '"Consolas"', 'monospace'],
             }
         }
     },

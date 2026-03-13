@@ -34,7 +34,7 @@ const DoughnutLabelsPlugin = {
         const minPercentage = options.minPercentage ?? 0;
         const fontSize = options.font?.size || 12;
         const fontWeight = options.font?.weight || 'bold';
-        const fontFamily = options.font?.family || 'Arial, sans-serif';
+        const fontFamily = options.font?.family || 'Inter, Arial, sans-serif';
 
         const ctx = chart.ctx;
         ctx.save();

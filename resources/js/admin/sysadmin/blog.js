@@ -494,7 +494,7 @@ function initTinyMCE(initialContent = '') {
             resize: true,
             content_style: `
                 body {
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                     font-size: 16px;
                     line-height: 1.7;
                     color: ${isDark ? '#e0e0e0' : '#333'};

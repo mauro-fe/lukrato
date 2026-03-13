@@ -153,6 +153,10 @@ $isLandingPage = $isLandingPage ?? false;
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
+    <!-- Fonts (self-hosted) -->
+    <link rel="preload" href="<?= BASE_URL ?>assets/fonts/inter-latin-400.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/fonts.css">
+
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/variables.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/site/landing-base.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/site/modal-override.css">

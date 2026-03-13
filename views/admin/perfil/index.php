@@ -92,7 +92,7 @@
                             Código de Suporte</label>
                         <div style="display:flex;align-items:center;gap:8px;">
                             <input class="form-input" id="support_code" type="text" readonly
-                                style="font-family:'JetBrains Mono',monospace;font-weight:600;letter-spacing:1.5px;color:var(--color-primary);background:var(--color-bg-secondary);cursor:default;max-width:220px;"
+                                style="font-family:var(--font-mono);font-weight:600;letter-spacing:1.5px;color:var(--color-primary);background:var(--color-bg-secondary);cursor:default;max-width:220px;"
                                 value="Carregando...">
                             <button type="button" class="btn-copy-support" id="btn-copy-support" onclick="copySupportCode()"
                                 title="Copiar código"
@@ -528,7 +528,7 @@
                         <p class="integration-instructions">Envie este código para o bot:</p>
                         <div style="display:flex;align-items:center;gap:8px;margin:12px 0">
                             <input class="form-input" id="telegram-code-display" type="text" readonly
-                                style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.5rem;text-align:center;letter-spacing:4px;max-width:200px;color:var(--color-primary);background:var(--color-bg-secondary)">
+                                style="font-family:var(--font-mono);font-weight:700;font-size:1.5rem;text-align:center;letter-spacing:4px;max-width:200px;color:var(--color-primary);background:var(--color-bg-secondary)">
                             <button type="button" class="btn-copy-support" id="btn-copy-telegram-code" title="Copiar código"
                                 style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;background:var(--color-bg);cursor:pointer;color:var(--color-text-muted);transition:all .2s;">
                                 <i data-lucide="copy"></i>
