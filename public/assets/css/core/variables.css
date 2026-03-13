@@ -48,7 +48,7 @@
   --shadow-xl: 0 20px 30px rgba(0, 0, 0, 0.14);
 
   /* Layout */
-  --sidebar-width: 280px;
+  --sidebar-width: 250px;
   --header-height: 80px;
   --container-padding: var(--spacing-6);
 
