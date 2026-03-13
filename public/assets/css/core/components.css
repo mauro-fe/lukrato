@@ -545,8 +545,13 @@
 .fab-container {
   position: fixed !important;
   bottom: 24px !important;
-  left: 24px !important;
+  left: calc(var(--sidebar-width) + 24px) !important;
   z-index: 9998 !important;
+  transition: left var(--transition-fast, 0.25s);
+}
+
+body.sidebar-collapsed .fab-container {
+  left: calc(var(--sidebar-collapsed-width) + 24px) !important;
 }
 
 /* Botão Principal */
@@ -753,6 +758,12 @@
 }
 
 /* Responsivo */
+@media (max-width: 992px) {
+  .fab-container {
+    left: 24px !important;
+  }
+}
+
 @media (max-width: 768px) {
   .fab-container {
     bottom: 20px !important;
