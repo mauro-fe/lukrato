@@ -175,7 +175,7 @@ class NotificationService
             throw new Exception('Apenas administradores podem enviar campanhas.');
         }
 
-        // Se agendada, criar como draft e retornar sem enviar
+        // Se agendada, criar como scheduled e retornar sem enviar
         if ($scheduledAt) {
             $campaign = MessageCampaign::create([
                 'title' => $title,
@@ -188,7 +188,7 @@ class NotificationService
                 'send_email' => $sendEmail,
                 'created_by' => $adminId,
                 'cupom_id' => $cupomId,
-                'status' => MessageCampaign::STATUS_DRAFT,
+                'status' => MessageCampaign::STATUS_SCHEDULED,
                 'scheduled_at' => $scheduledAt,
             ]);
 
@@ -329,8 +329,25 @@ class NotificationService
      */
     public function processScheduledCampaigns(): array
     {
-        $stats = ['processed' => 0, 'sent' => 0, 'failed' => 0];
+        $stats = ['processed' => 0, 'sent' => 0, 'failed' => 0, 'stuck_recovered' => 0];
 
+        // Recuperar campanhas presas em "sending" por mais de 10 minutos
+        $stuckCampaigns = MessageCampaign::where('status', MessageCampaign::STATUS_SENDING)
+            ->where('updated_at', '<', Carbon::now()->subMinutes(10))
+            ->get();
+
+        foreach ($stuckCampaigns as $stuck) {
+            $stuck->status = MessageCampaign::STATUS_FAILED;
+            $stuck->save();
+            $stats['stuck_recovered']++;
+
+            $this->logger->warning('[NotificationService] Campanha presa em sending recuperada', [
+                'campaign_id' => $stuck->id,
+                'updated_at' => $stuck->updated_at?->toDateTimeString(),
+            ]);
+        }
+
+        // Processar campanhas agendadas cujo horário já chegou
         $campaigns = MessageCampaign::readyToSend()->get();
 
         foreach ($campaigns as $campaign) {
@@ -584,6 +601,9 @@ class NotificationService
                     'status' => $campaign->status,
                     'status_badge' => $campaign->status_badge,
                     'is_scheduled' => $campaign->is_scheduled,
+                    'was_scheduled' => $campaign->was_scheduled,
+                    'send_email' => $campaign->send_email,
+                    'send_notification' => $campaign->send_notification,
                     'scheduled_at' => $campaign->scheduled_at?->format('d/m/Y H:i'),
                     'creator_name' => $campaign->creator->nome ?? 'Sistema',
                     'sent_at' => $campaign->sent_at?->format('d/m/Y H:i'),

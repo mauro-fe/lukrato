@@ -406,7 +406,7 @@ class CampaignController extends BaseController
                 return;
             }
 
-            $campaign->status = MessageCampaign::STATUS_FAILED;
+            $campaign->status = MessageCampaign::STATUS_CANCELLED;
             $campaign->scheduled_at = null;
             $campaign->save();
 

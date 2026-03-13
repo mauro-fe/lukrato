@@ -419,32 +419,44 @@
    CAMPAIGNS LIST
    ================================================ */
 .communications-page .campaigns-list {
-  max-height: 600px;
+  max-height: 700px;
   overflow-y: auto;
+  padding: var(--spacing-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
 }
 
-.communications-page .loading-state,
-.communications-page .communications-page .loading-state i,
-.communications-page /* Campaign Item */
-.communications-page .campaign-item {
+/* ================================================
+   CAMPAIGN CARD (Modern)
+   ================================================ */
+.communications-page .campaign-card {
+  background: var(--glass-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-card-border);
+  border-left: 3px solid var(--campaign-color, var(--color-primary));
+  cursor: pointer;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.communications-page .campaign-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border-color: var(--campaign-color, var(--color-primary));
+}
+
+.communications-page .campaign-card-header {
   display: flex;
   align-items: center;
   gap: var(--spacing-4);
-  background-color: var(--color-bg);
   padding: var(--spacing-4) var(--spacing-5);
-  border-bottom: 1px solid var(--color-card-border);
-  cursor: pointer;
-  transition: background var(--transition-fast);
-}
-
-.communications-page .campaign-item:last-child {
-  border-bottom: none;
 }
 
 .communications-page .campaign-icon {
   width: 44px;
   height: 44px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -459,7 +471,7 @@
 
 .communications-page .campaign-title {
   font-size: var(--font-size-base);
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-text);
   margin: 0 0 var(--spacing-1) 0;
   white-space: nowrap;
@@ -477,32 +489,203 @@
 .communications-page .campaign-meta span {
   display: flex;
   align-items: center;
-  gap: var(--spacing-1);
+  gap: 3px;
 }
 
+.communications-page .campaign-meta span i {
+  width: 12px;
+  height: 12px;
+}
+
+.communications-page .campaign-status-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+/* Status Badge — Pill style */
+.communications-page .campaign-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.communications-page .campaign-status-badge i {
+  width: 14px;
+  height: 14px;
+}
+
+/* Card Footer */
+.communications-page .campaign-card-footer {
+  padding: 0 var(--spacing-5) var(--spacing-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+/* Tags */
 .communications-page .campaign-tags {
   display: flex;
   gap: var(--spacing-2);
-  margin-top: var(--spacing-2);
   flex-wrap: wrap;
 }
 
 .communications-page .tag {
-  font-size: var(--font-size-xs);
-  padding: var(--spacing-1) var(--spacing-2);
+  font-size: 11px;
+  padding: 3px 8px;
   background: var(--glass-bg);
+  border: 1px solid var(--color-card-border);
   border-radius: 4px;
+  color: var(--color-text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.communications-page .tag i {
+  width: 11px;
+  height: 11px;
+  opacity: 0.6;
+}
+
+/* Timeline (in card) */
+.communications-page .campaign-timeline {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  padding: var(--spacing-2) var(--spacing-3);
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+}
+
+.communications-page .timeline-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.communications-page .timeline-step i {
+  width: 12px;
+  height: 12px;
+}
+
+.communications-page .timeline-step.done {
+  color: var(--color-success);
+  font-weight: 500;
+}
+
+.communications-page .timeline-step.cancelled {
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+.communications-page .timeline-arrow {
+  opacity: 0.4;
+}
+
+.communications-page .timeline-arrow i {
+  width: 12px;
+  height: 12px;
+}
+
+/* Email Progress Bar — Mini */
+.communications-page .campaign-email-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.communications-page .progress-bar-mini {
+  flex: 0 0 auto;
+  width: 120px;
+  height: 4px;
+  background: rgba(239, 68, 68, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+  display: flex;
+}
+
+.communications-page .progress-fill.success {
+  background: var(--color-success);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.communications-page .progress-label {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.communications-page .progress-label i {
+  width: 12px;
+  height: 12px;
+}
+
+/* Empty State */
+.communications-page .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-8) var(--spacing-6);
+  text-align: center;
+}
+
+.communications-page .empty-state .empty-state-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(230, 126, 34, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--spacing-4);
+}
+
+.communications-page .empty-state .empty-state-icon i {
+  width: 32px;
+  height: 32px;
+  color: var(--color-primary);
+}
+
+.communications-page .empty-state h3 {
+  color: var(--color-text);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  margin: 0 0 var(--spacing-2);
+}
+
+.communications-page .empty-state p {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+/* Loading */
+.communications-page .lk-loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-8);
   color: var(--color-text-muted);
 }
 
-.communications-page .campaign-status {
-  padding: var(--spacing-1) var(--spacing-3);
-  border-radius: 6px;
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  color: white;
-  text-transform: uppercase;
-  flex-shrink: 0;
+.communications-page .lk-loading-state i {
+  animation: spin 1s linear infinite;
 }
 
 /* Pagination */
@@ -579,8 +762,14 @@
   margin-bottom: var(--spacing-6);
 }
 
-.campaign-detail .detail-header i {
+.campaign-detail .detail-header > i {
   font-size: var(--font-size-2xl);
+  flex-shrink: 0;
+}
+
+.campaign-detail .detail-header > div:first-of-type {
+  flex: 1;
+  min-width: 0;
 }
 
 .campaign-detail .detail-header h4 {
@@ -590,6 +779,94 @@
 
 .campaign-detail .detail-creator {
   font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.campaign-detail .detail-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  border: 1px solid;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.campaign-detail .detail-status-badge i {
+  width: 14px;
+  height: 14px;
+}
+
+/* Detail Timeline */
+.campaign-detail .detail-timeline {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  margin-bottom: var(--spacing-6);
+  padding: var(--spacing-4);
+  background: var(--glass-bg);
+  border-radius: var(--radius-sm);
+  position: relative;
+}
+
+.campaign-detail .detail-timeline::before {
+  content: '';
+  position: absolute;
+  top: 28px;
+  left: 28px;
+  right: 28px;
+  height: 2px;
+  background: var(--color-card-border);
+  z-index: 0;
+}
+
+.campaign-detail .timeline-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+  position: relative;
+  z-index: 1;
+}
+
+.campaign-detail .timeline-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-card-border);
+  border: 2px solid var(--color-bg);
+}
+
+.campaign-detail .timeline-item.active .timeline-dot {
+  background: var(--color-primary);
+}
+
+.campaign-detail .timeline-item.done .timeline-dot {
+  background: var(--color-success);
+}
+
+.campaign-detail .timeline-item.cancelled .timeline-dot {
+  background: var(--color-text-muted);
+}
+
+.campaign-detail .timeline-content {
+  text-align: center;
+}
+
+.campaign-detail .timeline-label {
+  display: block;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.campaign-detail .timeline-date {
+  display: block;
+  font-size: 11px;
   color: var(--color-text-muted);
 }
 
@@ -640,6 +917,7 @@
   background: var(--glass-bg);
   border-radius: var(--radius-sm);
   text-align: center;
+  border: 1px solid var(--color-card-border);
 }
 
 .campaign-detail .detail-stats .stat-label {
@@ -653,6 +931,85 @@
   font-size: var(--font-size-xl);
   font-weight: 600;
   color: var(--color-text);
+}
+
+.campaign-detail .detail-stats .stat-value small {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.campaign-detail .detail-stats .stat-value.text-danger {
+  color: #ef4444;
+}
+
+/* Email Progress Bar — Detail */
+.campaign-detail .detail-email-progress {
+  margin-bottom: var(--spacing-6);
+  padding: var(--spacing-4);
+  background: var(--glass-bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-card-border);
+}
+
+.campaign-detail .detail-email-progress .progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-2);
+}
+
+.campaign-detail .detail-email-progress .progress-header span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.campaign-detail .detail-email-progress .progress-header i {
+  width: 14px;
+  height: 14px;
+}
+
+.campaign-detail .progress-bar-detail {
+  height: 8px;
+  background: rgba(239, 68, 68, 0.15);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: var(--spacing-2);
+}
+
+.campaign-detail .progress-bar-detail .progress-fill.success {
+  height: 100%;
+  background: var(--color-success);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.campaign-detail .detail-email-progress .progress-legend {
+  display: flex;
+  gap: var(--spacing-4);
+  font-size: 11px;
+}
+
+.campaign-detail .detail-email-progress .legend-success {
+  color: var(--color-success);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.campaign-detail .detail-email-progress .legend-fail {
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.campaign-detail .detail-email-progress .progress-legend i {
+  width: 12px;
+  height: 12px;
 }
 
 .campaign-detail .detail-meta {
@@ -669,13 +1026,6 @@
   gap: var(--spacing-2);
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
-}
-
-.campaign-detail .detail-meta .status-badge {
-  padding: var(--spacing-1) var(--spacing-3);
-  border-radius: 6px;
-  font-weight: 500;
-  color: white;
 }
 
 /* ================================================
@@ -712,6 +1062,58 @@
   .campaign-detail .detail-stats {
     grid-template-columns: 1fr;
   }
+
+  /* Campaign card responsive */
+  .communications-page .campaign-card-header {
+    flex-wrap: wrap;
+  }
+
+  .communications-page .campaign-status-col {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--spacing-2);
+    border-top: 1px solid var(--color-card-border);
+    margin-top: var(--spacing-2);
+  }
+
+  .communications-page .campaign-meta {
+    flex-wrap: wrap;
+    gap: var(--spacing-2);
+  }
+
+  .communications-page .campaign-timeline {
+    flex-wrap: wrap;
+  }
+
+  .campaign-detail .detail-header {
+    flex-wrap: wrap;
+  }
+
+  .campaign-detail .detail-status-badge {
+    width: 100%;
+    justify-content: center;
+    margin-top: var(--spacing-2);
+  }
+
+  .campaign-detail .detail-timeline {
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+
+  .campaign-detail .detail-timeline::before {
+    display: none;
+  }
+
+  .campaign-detail .timeline-item {
+    flex-direction: row;
+    gap: var(--spacing-3);
+  }
+
+  .campaign-detail .timeline-content {
+    text-align: left;
+  }
 }
 
 /* ============================================
@@ -737,14 +1139,6 @@
   margin-top: var(--spacing-1);
 }
 
-.communications-page .campaign-actions-col {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: var(--spacing-2);
-  flex-shrink: 0;
-}
-
 .communications-page .btn-cancel-schedule {
   background: none;
   border: 1px solid var(--color-danger, #ef4444);
@@ -764,7 +1158,12 @@
   color: white;
 }
 
-.communications-page .campaign-status i {
-  width: 12px;
-  height: 12px;
+/* Spin animation */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.icon-spin {
+  animation: spin 1s linear infinite;
 }

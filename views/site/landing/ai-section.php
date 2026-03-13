@@ -18,7 +18,7 @@
                 </span>
             </h2>
             <p class="text-lg sm:text-xl text-gray-600 leading-relaxed">
-                Converse com a IA do Lukrato para tirar dúvidas, criar lançamentos e gerenciar suas finanças — pelo chat na plataforma ou direto no Telegram.
+                Converse com a IA do Lukrato para tirar dúvidas, criar lançamentos e gerenciar suas finanças — pelo chat na plataforma, WhatsApp ou Telegram.
             </p>
         </header>
 
@@ -67,16 +67,16 @@
                 </p>
             </article>
 
-            <!-- Card 4 - Chatbot no Telegram -->
+            <!-- Card 4 - Chatbot no WhatsApp e Telegram -->
             <article class="group bg-white rounded-2xl p-7 shadow-sm border border-gray-100 hover:shadow-lg hover:border-orange-100 transition-all duration-300"
                 data-aos="fade-up" data-aos-delay="300">
-                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center text-white mb-5"
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white mb-5"
                     aria-hidden="true">
-                    <i data-lucide="send" class="w-6 h-6"></i>
+                    <i data-lucide="message-circle" class="w-6 h-6"></i>
                 </div>
-                <h3 class="font-bold text-lg text-gray-900 mb-2">Chatbot no Telegram</h3>
+                <h3 class="font-bold text-lg text-gray-900 mb-2">Chatbot no WhatsApp e Telegram</h3>
                 <p class="text-gray-600 text-sm leading-relaxed">
-                    Lance despesas e receitas direto pelo Telegram.
+                    Lance despesas e receitas direto pelo WhatsApp ou Telegram.
                     Vincule sua conta, mande "netflix 55.90" e o bot registra automaticamente.
                 </p>
             </article>
@@ -99,7 +99,7 @@
                     <div class="text-center md:text-left flex-1">
                         <h3 class="text-2xl md:text-3xl font-bold mb-2">IA disponível em todos os planos</h3>
                         <p class="text-orange-100 text-base md:text-lg leading-relaxed">
-                            Experimente grátis com 5 mensagens por mês. No plano Pro, use até 100 mensagens — pelo chat na plataforma ou direto no Telegram.
+                            Experimente grátis com 5 mensagens por mês. No plano Pro, use até 100 mensagens — pelo chat na plataforma, WhatsApp ou Telegram.
                         </p>
                     </div>
                     <div class="flex-shrink-0">

@@ -54,10 +54,12 @@ class MessageCampaign extends Model
 
     // Status da campanha
     public const STATUS_DRAFT = 'draft';
+    public const STATUS_SCHEDULED = 'scheduled';
     public const STATUS_SENDING = 'sending';
     public const STATUS_SENT = 'sent';
     public const STATUS_FAILED = 'failed';
     public const STATUS_PARTIAL = 'partial';
+    public const STATUS_CANCELLED = 'cancelled';
 
     // Tipos (mesmos do Notification)
     public const TYPE_INFO = 'info';
@@ -255,11 +257,19 @@ class MessageCampaign extends Model
     }
 
     /**
-     * Verifica se a campanha é agendada (draft com scheduled_at)
+     * Verifica se a campanha é agendada
      */
     public function getIsScheduledAttribute(): bool
     {
-        return $this->status === self::STATUS_DRAFT && $this->scheduled_at !== null;
+        return $this->status === self::STATUS_SCHEDULED;
+    }
+
+    /**
+     * Verifica se a campanha foi originalmente agendada (já enviada ou não)
+     */
+    public function getWasScheduledAttribute(): bool
+    {
+        return $this->scheduled_at !== null;
     }
 
     /**
@@ -267,19 +277,25 @@ class MessageCampaign extends Model
      */
     public function getStatusBadgeAttribute(): array
     {
-        // Status especial para campanhas agendadas
-        if ($this->is_scheduled) {
+        // Campanha agendada pendente
+        if ($this->status === self::STATUS_SCHEDULED) {
             $label = 'Agendada ' . $this->scheduled_at->format('d/m H:i');
             return ['label' => $label, 'color' => '#6366f1', 'icon' => 'clock'];
         }
 
+        // Campanha enviada que era agendada — mostrar info extra
+        if ($this->status === self::STATUS_SENT && $this->scheduled_at) {
+            return ['label' => 'Enviada', 'color' => '#10b981', 'icon' => 'circle-check'];
+        }
+
         return match ($this->status) {
-            self::STATUS_DRAFT => ['label' => 'Rascunho', 'color' => '#6b7280'],
-            self::STATUS_SENDING => ['label' => 'Enviando...', 'color' => '#f59e0b'],
-            self::STATUS_SENT => ['label' => 'Enviada', 'color' => '#10b981'],
-            self::STATUS_FAILED => ['label' => 'Falhou', 'color' => '#ef4444'],
-            self::STATUS_PARTIAL => ['label' => 'Parcial', 'color' => '#f97316'],
-            default => ['label' => 'Desconhecido', 'color' => '#6b7280'],
+            self::STATUS_DRAFT => ['label' => 'Rascunho', 'color' => '#6b7280', 'icon' => 'file-edit'],
+            self::STATUS_SENDING => ['label' => 'Enviando...', 'color' => '#f59e0b', 'icon' => 'loader-2'],
+            self::STATUS_SENT => ['label' => 'Enviada', 'color' => '#10b981', 'icon' => 'circle-check'],
+            self::STATUS_FAILED => ['label' => 'Falhou', 'color' => '#ef4444', 'icon' => 'circle-x'],
+            self::STATUS_PARTIAL => ['label' => 'Parcial', 'color' => '#f97316', 'icon' => 'alert-triangle'],
+            self::STATUS_CANCELLED => ['label' => 'Cancelada', 'color' => '#6b7280', 'icon' => 'ban'],
+            default => ['label' => 'Desconhecido', 'color' => '#6b7280', 'icon' => 'help-circle'],
         };
     }
 
@@ -296,7 +312,7 @@ class MessageCampaign extends Model
      */
     public function scopeReadyToSend(Builder $query): Builder
     {
-        return $query->where('status', self::STATUS_DRAFT)
+        return $query->where('status', self::STATUS_SCHEDULED)
             ->whereNotNull('scheduled_at')
             ->where('scheduled_at', '<=', Carbon::now());
     }

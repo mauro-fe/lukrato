@@ -59,6 +59,9 @@ $isLandingPage = $isLandingPage ?? false;
     <meta name="description" content="<?= htmlspecialchars($pageDescription) ?>">
     <meta name="keywords" content="<?= htmlspecialchars($pageKeywords) ?>">
     <meta name="author" content="Lukrato">
+
+    <!-- Facebook Domain Verification (WhatsApp Business API) -->
+    <meta name="facebook-domain-verification" content="<?= htmlspecialchars($_ENV['FACEBOOK_DOMAIN_VERIFICATION'] ?? '') ?>">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">

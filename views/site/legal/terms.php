@@ -287,6 +287,9 @@
             <p>
                 O Lukrato é uma ferramenta de organização financeira pessoal. O uso deve
                 ser feito de forma lícita, responsável e de acordo com a legislação vigente.
+                O sistema pode ser acessado pela plataforma web, e também por integrações
+                com serviços de mensageria como <strong>WhatsApp</strong> e <strong>Telegram</strong>,
+                que permitem registrar lançamentos financeiros via chatbot com inteligência artificial.
             </p>
 
             <h2>3. Conta e Segurança</h2>
@@ -308,14 +311,25 @@
                 As informações exibidas servem apenas como apoio à organização financeira.
             </p>
 
-            <h2>6. Privacidade e Proteção de Dados</h2>
+            <h2>6. Integração com WhatsApp e Telegram</h2>
+            <p>
+                O Lukrato oferece integração opcional com <strong>WhatsApp</strong> (via API oficial
+                do WhatsApp Business da Meta) e <strong>Telegram</strong> para registro de lançamentos
+                por mensagem. Ao vincular seu número, você concorda que suas mensagens enviadas
+                ao chatbot serão processadas por inteligência artificial para identificar
+                transações financeiras. Você pode desvincular seu número a qualquer momento
+                pelas configurações da conta. O uso dessas integrações está sujeito também
+                aos termos de serviço das respectivas plataformas (Meta e Telegram).
+            </p>
+
+            <h2>7. Privacidade e Proteção de Dados</h2>
             <p>
                 O tratamento de dados pessoais segue a legislação vigente (LGPD).
                 Para mais informações, consulte nossa
                 <a href="<?= BASE_URL ?>privacidade">Política de Privacidade</a>.
             </p>
 
-            <h2>7. Alterações e Contato</h2>
+            <h2>8. Alterações e Contato</h2>
             <p>
                 Estes Termos podem ser atualizados a qualquer momento. Em caso de dúvidas,
                 entre em contato pelo e-mail
