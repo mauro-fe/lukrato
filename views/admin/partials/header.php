@@ -156,80 +156,76 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
 
         <!-- Menu de Navegação -->
         <nav class="sidebar-nav">
-            <!-- Dashboard -->
-            <a href="<?= BASE_URL ?>dashboard" class="nav-item <?= $active('dashboard') ?>" <?= $aria('dashboard') ?>
-                title="Dashboard">
-                <i data-lucide="home"></i>
-                <span>Dashboard</span>
-            </a>
 
-            <!-- Contas -->
-            <a href="<?= BASE_URL ?>contas" class="nav-item <?= $active('contas') ?>" <?= $aria('contas') ?>
-                title="Contas">
-                <i data-lucide="landmark"></i>
-                <span>Contas</span>
-            </a>
+            <!-- Grupo: Principal -->
+            <div class="sidebar-nav-group">
+                <span class="sidebar-nav-label">Principal</span>
+                <a href="<?= BASE_URL ?>dashboard" class="nav-item <?= $active('dashboard') ?>" <?= $aria('dashboard') ?>
+                    title="Dashboard">
+                    <i data-lucide="home"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
 
-            <!-- Cartões -->
-            <a href="<?= BASE_URL ?>cartoes" class="nav-item <?= $active('cartoes') ?>" <?= $aria('cartoes') ?>
-                title="Cartões de Crédito">
-                <i data-lucide="credit-card"></i>
-                <span>Cartões</span>
-            </a>
+            <!-- Grupo: Financeiro -->
+            <div class="sidebar-nav-group">
+                <span class="sidebar-nav-label">Financeiro</span>
+                <a href="<?= BASE_URL ?>contas" class="nav-item <?= $active('contas') ?>" <?= $aria('contas') ?>
+                    title="Contas">
+                    <i data-lucide="landmark"></i>
+                    <span>Contas</span>
+                </a>
+                <a href="<?= BASE_URL ?>cartoes" class="nav-item <?= $active('cartoes') ?>" <?= $aria('cartoes') ?>
+                    title="Cartões de Crédito">
+                    <i data-lucide="credit-card"></i>
+                    <span>Cartões</span>
+                </a>
+                <a href="<?= BASE_URL ?>faturas" class="nav-item <?= $active('faturas') ?>" <?= $aria('faturas') ?>
+                    title="Faturas de Cartão">
+                    <i data-lucide="file-text"></i>
+                    <span>Faturas</span>
+                </a>
+                <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>"
+                    <?= $aria('lancamentos') ?> title="Lançamentos">
+                    <i data-lucide="layers"></i>
+                    <span>Lançamentos</span>
+                </a>
+            </div>
 
-            <!-- Faturas de Cartão -->
-            <a href="<?= BASE_URL ?>faturas" class="nav-item <?= $active('faturas') ?>" <?= $aria('faturas') ?>
-                title="Faturas de Cartão">
-                <i data-lucide="file-text"></i>
-                <span>Faturas</span>
-            </a>
+            <!-- Grupo: Gestão -->
+            <div class="sidebar-nav-group">
+                <span class="sidebar-nav-label">Gestão</span>
+                <a href="<?= BASE_URL ?>categorias" class="nav-item <?= $active('categorias') ?>" <?= $aria('categorias') ?>
+                    title="Categorias">
+                    <i data-lucide="tags"></i>
+                    <span>Categorias</span>
+                </a>
+                <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios') ?>" <?= $aria('relatorios') ?>
+                    title="Relatórios">
+                    <i data-lucide="pie-chart"></i>
+                    <span>Relatórios</span>
+                </a>
+                <a href="<?= BASE_URL ?>financas" class="nav-item <?= $active('financas') ?>" <?= $aria('financas') ?>
+                    title="Finanças">
+                    <i data-lucide="wallet"></i>
+                    <span>Finanças</span>
+                </a>
+            </div>
 
-            <!-- Categorias -->
-            <a href="<?= BASE_URL ?>categorias" class="nav-item <?= $active('categorias') ?>" <?= $aria('categorias') ?>
-                title="Categorias">
-                <i data-lucide="tags"></i>
-                <span>Categorias</span>
-            </a>
+            <!-- Grupo: Extras -->
+            <div class="sidebar-nav-group">
+                <span class="sidebar-nav-label">Extras</span>
+                <a href="<?= BASE_URL ?>gamification" class="nav-item <?= $active('gamification') ?>"
+                    <?= $aria('gamification') ?> title="Gamificação">
+                    <i data-lucide="trophy"></i>
+                    <span>Conquistas</span>
+                </a>
+            </div>
 
-            <!-- Lançamentos -->
-            <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>"
-                <?= $aria('lancamentos') ?> title="lançamentos">
-                <i data-lucide="layers"></i>
-                <span>Lançamentos</span>
-            </a>
+        </nav>
 
-
-            <!-- Relatórios -->
-            <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios') ?>" <?= $aria('relatorios') ?>
-                title="Relatórios">
-                <i data-lucide="pie-chart"></i>
-                <span>Relatórios</span>
-            </a>
-
-            <!-- Finanças -->
-            <a href="<?= BASE_URL ?>financas" class="nav-item <?= $active('financas') ?>" <?= $aria('financas') ?>
-                title="Finanças">
-                <i data-lucide="wallet"></i>
-                <span>Finanças</span>
-            </a>
-
-            <!-- Agendamentos removido - unificado em lançamentos -->
-
-            <!-- Gamificação -->
-            <a href="<?= BASE_URL ?>gamification" class="nav-item <?= $active('gamification') ?>"
-                <?= $aria('gamification') ?> title="Gamificação">
-                <i data-lucide="trophy"></i>
-                <span>Conquistas</span>
-            </a>
-
-            <!-- Investimentos -->
-            <!-- <a href="<?= BASE_URL ?>investimentos" class="nav-item <?= $active('investimentos') ?>"
-                <?= $aria('investimentos') ?> title="Investimentos">
-                <i data-lucide="line-chart" aria-hidden="true"></i>
-                <span>Investimentos</span>
-            </a> -->
-
-            <!-- Perfil -->
+        <!-- Rodapé da Sidebar -->
+        <div class="sidebar-footer">
             <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil') ?>" <?= $aria('perfil') ?>
                 title="Perfil">
                 <i data-lucide="circle-user"></i>
@@ -242,14 +238,10 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                     <span>SysAdmin</span>
                 </a>
             <?php endif; ?>
-
-            <!-- Sair -->
             <a id="btn-logout" class="nav-item" href="<?= BASE_URL ?>logout" title="Sair">
                 <i data-lucide="log-out"></i>
                 <span>Sair</span>
             </a>
-
-            <!-- CTA Upgrade Pro -->
             <?php if ($showUpgradeCTA): ?>
                 <div class="sidebar-pro-cta">
                     <a href="<?= BASE_URL ?>billing" class="sidebar-pro-btn">
@@ -258,7 +250,7 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                     </a>
                 </div>
             <?php endif; ?>
-        </nav>
+        </div>
     </aside>
 
     <!-- ================ BOTÃO TOGGLE SIDEBAR ======================== -->
