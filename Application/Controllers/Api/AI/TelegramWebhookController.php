@@ -702,7 +702,8 @@ class TelegramWebhookController extends BaseController
         $intent = $response->intent?->value ?? 'chat';
 
         // Verificar se a resposta precisa de confirmação (PendingAiAction criado)
-        if (!empty($response->data['pending_action_id'])) {
+        $pendingId = $response->data['pending_id'] ?? $response->data['pending_action_id'] ?? null;
+        if (!empty($pendingId)) {
             // Enviar com botões Sim/Não
             $chunks = TelegramResponseFormatter::format($response->message);
             $lastIndex = count($chunks) - 1;
