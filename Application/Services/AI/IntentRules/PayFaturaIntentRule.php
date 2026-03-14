@@ -19,11 +19,11 @@ class PayFaturaIntentRule implements IntentRuleInterface
      * Exigem verbo de pagamento (pagar/quitar) + contexto de fatura/cartão.
      */
     private const PATTERNS = [
-        '/(?:pagar?|quitar?|pago|quitei)\s+(?:a\s+)?fatura/iu',
-        '/(?:pagar?|quitar?)\s+(?:o\s+)?cart[ãa]o/iu',
-        '/quero\s+pagar?\s+(?:a\s+)?fatura/iu',
-        '/quero\s+quitar?\s+(?:a\s+)?fatura/iu',
-        '/(?:pagar?|quitar?)\s+(?:a\s+)?fatura\s+(?:do|da|de)\s+/iu',
+        '/(?:pagar?|quitar?|pago|quitei)\s+(?:(?:a|minha|essa|esta|aquela|uma)\s+)?fatura/iu',
+        '/(?:pagar?|quitar?)\s+(?:(?:o|meu|esse|este|aquele|um)\s+)?cart[ãa]o/iu',
+        '/quero\s+pagar?\s+(?:(?:a|minha|essa|esta)\s+)?fatura/iu',
+        '/quero\s+quitar?\s+(?:(?:a|minha|essa|esta)\s+)?fatura/iu',
+        '/(?:pagar?|quitar?)\s+(?:(?:a|minha|essa|esta)\s+)?fatura\s+(?:do|da|de)\s+/iu',
     ];
 
     /**

@@ -109,6 +109,10 @@ return [
     ['paga a fatura do cartão', 'pay_fatura', 0.7, [], 'Pagar cartão informal'],
     ['quitar fatura do itaú', 'pay_fatura', 0.7, [], 'Quitar fatura banco'],
     ['pagar cartão', 'pay_fatura', 0.7, [], 'Pagar cartão curto'],
+    ['quero pagar minha fatura', 'pay_fatura', 0.7, [], 'Pagar fatura c/ possessivo minha'],
+    ['pagar minha fatura do nubank', 'pay_fatura', 0.7, [], 'Pagar fatura possessivo + banco'],
+    ['quero quitar minha fatura', 'pay_fatura', 0.7, [], 'Quitar fatura c/ possessivo'],
+    ['pagar meu cartão', 'pay_fatura', 0.7, [], 'Pagar cartão c/ possessivo meu'],
 
     // ════════════════════════════════════════════════════════════════
     // CREATE_ENTITY — Criação explícita de entidades
