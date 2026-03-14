@@ -25,11 +25,11 @@ return new class
 
         $schema->create($tableName, function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
+            $table->unsignedInteger('user_id');
             $table->string('pattern', 200)->comment('Palavra-chave ou regex do padrão detectado');
             $table->string('normalized_pattern', 200)->comment('Padrão normalizado (lowercase, sem acentos) para busca rápida');
-            $table->unsignedBigInteger('categoria_id');
-            $table->unsignedBigInteger('subcategoria_id')->nullable();
+            $table->unsignedInteger('categoria_id');
+            $table->unsignedInteger('subcategoria_id')->nullable();
             $table->unsignedInteger('usage_count')->default(1)->comment('Quantas vezes este padrão foi usado/confirmado');
             $table->enum('source', ['correction', 'confirmed', 'manual'])->default('correction')
                 ->comment('correction=usuário corrigiu sugestão, confirmed=usuário confirmou, manual=criação manual');

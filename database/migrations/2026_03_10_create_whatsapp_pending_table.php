@@ -16,7 +16,7 @@ return new class
         Capsule::schema()->create('whatsapp_pending', function ($table) {
             $table->id();
 
-            $table->unsignedBigInteger('user_id')->index();
+            $table->unsignedInteger('user_id')->index();
             $table->string('wa_message_id', 100)->unique()->comment('ID da mensagem original no Meta');
 
             // Dados da transação extraída
@@ -26,8 +26,8 @@ return new class
             $table->date('data');
 
             // Categoria sugerida (pode ser null se rule engine não encontrou)
-            $table->unsignedBigInteger('categoria_id')->nullable();
-            $table->unsignedBigInteger('subcategoria_id')->nullable();
+            $table->unsignedInteger('categoria_id')->nullable();
+            $table->unsignedInteger('subcategoria_id')->nullable();
             $table->string('categoria_nome', 100)->nullable();
             $table->string('subcategoria_nome', 100)->nullable();
 

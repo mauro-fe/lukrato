@@ -31,6 +31,9 @@ enum IntentType: string
     /** Confirmação ou rejeição de ação pendente */
     case CONFIRM_ACTION = 'confirm_action';
 
+    /** Pagamento de fatura de cartão */
+    case PAY_FATURA = 'pay_fatura';
+
     /**
      * Retorna todos os valores possíveis do enum.
      */

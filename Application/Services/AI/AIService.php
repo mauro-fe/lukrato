@@ -17,6 +17,7 @@ use Application\Services\AI\Handlers\ConfirmationHandler;
 use Application\Services\AI\Handlers\EntityCreationHandler;
 use Application\Services\AI\Handlers\FinancialAnalysisHandler;
 use Application\Services\AI\Handlers\QuickQueryHandler;
+use Application\Services\AI\Handlers\PayFaturaHandler;
 use Application\Services\AI\Handlers\TransactionExtractorHandler;
 use Application\Services\AI\Providers\OllamaProvider;
 use Application\Services\AI\Providers\OpenAIProvider;
@@ -71,6 +72,7 @@ class AIService
             IntentType::ANALYZE->value             => new FinancialAnalysisHandler(),
             IntentType::CREATE_ENTITY->value       => new EntityCreationHandler(),
             IntentType::CONFIRM_ACTION->value      => new ConfirmationHandler(),
+            IntentType::PAY_FATURA->value          => new PayFaturaHandler(),
         ];
 
         // Injetar provider em cada handler (evita instanciação circular)
@@ -224,6 +226,7 @@ class AIService
             IntentType::QUICK_QUERY         => 'quick_query',
             IntentType::CREATE_ENTITY       => 'create_entity',
             IntentType::CONFIRM_ACTION      => 'confirm_action',
+            IntentType::PAY_FATURA          => 'pay_fatura',
             IntentType::CHAT                => 'chat',
         };
     }

@@ -19,7 +19,7 @@ return new class
             $table->string('tg_update_id', 50)->unique()->comment('Idempotency: Telegram update_id');
             $table->string('tg_message_id', 50)->index()->comment('Telegram message_id dentro do chat');
             $table->string('chat_id', 50)->index();
-            $table->unsignedBigInteger('user_id')->nullable()->index();
+            $table->unsignedInteger('user_id')->nullable()->index();
 
             $table->enum('direction', ['incoming', 'outgoing'])->default('incoming');
             $table->enum('type', ['text', 'callback_query', 'command', 'unknown'])->default('text');

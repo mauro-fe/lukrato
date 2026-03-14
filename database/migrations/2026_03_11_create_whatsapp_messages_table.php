@@ -18,7 +18,7 @@ return new class
 
             $table->string('wa_message_id', 100)->unique()->comment('Idempotency: Meta message ID');
             $table->string('from_phone', 20)->index();
-            $table->unsignedBigInteger('user_id')->nullable()->index();
+            $table->unsignedInteger('user_id')->nullable()->index();
 
             $table->enum('direction', ['incoming', 'outgoing'])->default('incoming');
             $table->enum('type', ['text', 'interactive', 'status', 'unknown'])->default('text');

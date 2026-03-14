@@ -11,6 +11,7 @@ use Application\Services\AI\IntentRules\CategorizationIntentRule;
 use Application\Services\AI\IntentRules\ConfirmationIntentRule;
 use Application\Services\AI\IntentRules\EntityCreationIntentRule;
 use Application\Services\AI\IntentRules\IntentRuleInterface;
+use Application\Services\AI\IntentRules\PayFaturaIntentRule;
 use Application\Services\AI\IntentRules\QuickQueryIntentRule;
 use Application\Services\AI\IntentRules\SmartFallbackRule;
 use Application\Services\AI\IntentRules\TransactionIntentRule;
@@ -40,6 +41,7 @@ class IntentRouter
     private const EPHEMERAL_INTENTS = [
         IntentType::CONFIRM_ACTION,
         IntentType::CREATE_ENTITY,
+        IntentType::PAY_FATURA,
     ];
 
     /** States that indicate an active multi-turn flow */
@@ -60,11 +62,12 @@ class IntentRouter
         $this->rules = [
             $this->confirmationRule,
             new EntityCreationIntentRule(),
+            new PayFaturaIntentRule(),
             new TransactionIntentRule(),
             new QuickQueryIntentRule(),
             new AnalysisIntentRule(),
             new CategorizationIntentRule(),
-            new SmartFallbackRule(),        // Prioridade 7: captura transações que escaparam dos rules acima
+            new SmartFallbackRule(),        // Prioridade 8: captura transações que escaparam dos rules acima
         ];
     }
 

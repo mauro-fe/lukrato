@@ -21,6 +21,7 @@ class ActionRegistry
             'create_categoria'    => new CreateCategoriaAction(),
             'create_subcategoria' => new CreateSubcategoriaAction(),
             'create_conta'        => new CreateContaAction(),
+            'pay_fatura'          => new PayFaturaAction(),
         ];
     }
 

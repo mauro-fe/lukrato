@@ -18,7 +18,7 @@ return new class
 
         $schema->create('feedbacks', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
+            $table->unsignedInteger('user_id');
             $table->enum('tipo_feedback', ['acao', 'assistente_ia', 'nps', 'sugestao']);
             $table->string('contexto', 100)->nullable();
             $table->tinyInteger('rating')->nullable();

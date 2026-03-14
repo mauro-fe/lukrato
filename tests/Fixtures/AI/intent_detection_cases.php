@@ -101,6 +101,16 @@ return [
     ['proxima fatura', 'quick_query', 0.7, [], 'Próxima fatura'],
 
     // ════════════════════════════════════════════════════════════════
+    // PAY_FATURA — Pagamento de fatura de cartão
+    // ════════════════════════════════════════════════════════════════
+
+    ['pagar fatura do nubank', 'pay_fatura', 0.7, [], 'Pagar fatura específica'],
+    ['quero pagar a fatura', 'pay_fatura', 0.7, [], 'Pagar fatura genérica'],
+    ['paga a fatura do cartão', 'pay_fatura', 0.7, [], 'Pagar cartão informal'],
+    ['quitar fatura do itaú', 'pay_fatura', 0.7, [], 'Quitar fatura banco'],
+    ['pagar cartão', 'pay_fatura', 0.7, [], 'Pagar cartão curto'],
+
+    // ════════════════════════════════════════════════════════════════
     // CREATE_ENTITY — Criação explícita de entidades
     // ════════════════════════════════════════════════════════════════
 

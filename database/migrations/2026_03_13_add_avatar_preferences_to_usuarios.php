@@ -24,17 +24,22 @@ return new class
             return;
         }
 
-        $schema->table('usuarios', function ($table) use ($hasFocusX, $hasFocusY, $hasZoom) {
+        $schema->table('usuarios', function ($table) use ($hasFocusX, $hasFocusY, $hasZoom, $schema) {
+            $hasAvatar = $schema->hasColumn('usuarios', 'avatar');
+
             if (!$hasFocusX) {
-                $table->unsignedTinyInteger('avatar_focus_x')->default(50)->after('avatar');
+                $col = $table->unsignedTinyInteger('avatar_focus_x')->default(50);
+                if ($hasAvatar) $col->after('avatar');
             }
 
             if (!$hasFocusY) {
-                $table->unsignedTinyInteger('avatar_focus_y')->default(50)->after('avatar_focus_x');
+                $col = $table->unsignedTinyInteger('avatar_focus_y')->default(50);
+                if ($hasFocusX || $hasAvatar) $col->after($hasFocusX ? 'avatar_focus_x' : 'avatar');
             }
 
             if (!$hasZoom) {
-                $table->decimal('avatar_zoom', 4, 2)->default(1.00)->after('avatar_focus_y');
+                $col = $table->decimal('avatar_zoom', 4, 2)->default(1.00);
+                if ($hasFocusY || $hasAvatar) $col->after($hasFocusY ? 'avatar_focus_y' : 'avatar');
             }
         });
 
