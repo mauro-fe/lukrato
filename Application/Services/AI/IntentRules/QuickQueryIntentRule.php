@@ -53,6 +53,12 @@ class QuickQueryIntentRule implements IntentRuleInterface
         // Listar
         '(?:lista|listar|mostra|mostrar)\s+(?:meus?|minhas?)?\s*(?:gastos?|despesas?|receitas?|lan[çc]amentos?)',
 
+        // Faturas de cartão
+        'fatura.*cart[ãa]o|cart[ãa]o.*fatura|valor.*fatura|fatura.*valor',
+        'quanto\s+(?:eu\s+)?devo\s+(?:no|do)\s+(?:cart[ãa]o|nubank|inter|ita[úu]|bradesco|santander|c6|next|bb)',
+        'fatura\s+(?:do|da|de)\s+(?:nubank|inter|ita[úu]|itau|bradesco|santander|c6|next|bb)',
+        'itens?\s+(?:da|de)\s+fatura|(?:o\s+que|oq)\s+(?:tem|t[áa])\s+na\s+fatura',
+
         // Próxima fatura / contas a pagar
         'pr[óo]xima\s+fatura|contas?\s+a\s+pagar|contas?\s+(?:em\s+)?atraso',
         'quanto\s+(?:eu\s+)?devo',

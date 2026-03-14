@@ -90,6 +90,16 @@ return [
     ['média de gasto', 'quick_query', 0.7, [], 'Média'],
     ['quanto sobrou esse mês', 'quick_query', 0.7, [], 'Sobra mensal'],
 
+    // Faturas de cartão
+    ['qual o valor da fatura', 'quick_query', 0.7, [], 'Fatura valor genérico'],
+    ['fatura do nubank', 'quick_query', 0.7, [], 'Fatura cartão específico'],
+    ['quanto devo no cartão', 'quick_query', 0.7, [], 'Dívida cartão'],
+    ['quanto devo no nubank', 'quick_query', 0.7, [], 'Dívida cartão específico'],
+    ['itens da fatura', 'quick_query', 0.7, [], 'Itens fatura'],
+    ['o que tem na fatura', 'quick_query', 0.7, [], 'Itens fatura informal'],
+    ['fatura do cartão esse mês', 'quick_query', 0.7, [], 'Fatura período'],
+    ['proxima fatura', 'quick_query', 0.7, [], 'Próxima fatura'],
+
     // ════════════════════════════════════════════════════════════════
     // CREATE_ENTITY — Criação explícita de entidades
     // ════════════════════════════════════════════════════════════════

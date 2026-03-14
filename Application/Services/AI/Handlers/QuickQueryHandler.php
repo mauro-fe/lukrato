@@ -10,6 +10,7 @@ use Application\Enums\AI\IntentType;
 use Application\Models\Lancamento;
 use Application\Models\Conta;
 use Application\Models\CartaoCredito;
+use Application\Models\FaturaCartaoItem;
 use Application\Models\Categoria;
 use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\ContextCompressor;
@@ -27,6 +28,7 @@ use Illuminate\Database\Capsule\Manager as DB;
 class QuickQueryHandler implements AIHandlerInterface
 {
     private ?AIProvider $provider = null;
+    private ?string $lastMessage = null;
 
     public function setProvider(AIProvider $provider): void
     {
@@ -51,6 +53,12 @@ class QuickQueryHandler implements AIHandlerInterface
         'm[eé]dia\s+(de\s+)?(gasto|despesa)|gasto\s+m[eé]dio'              => 'getMediaDespesas',
         'quantas?\s+categori|total.*categori'                               => 'getCountCategorias',
         'limite.*cart[ãa]o|cart[ãa]o.*limite|limite.*cr[eé]dito'            => 'getLimiteCartoes',
+        // Faturas de cartão (antes de contas a pagar para prioridade)
+        'fatura.*cart[ãa]o|cart[ãa]o.*fatura|valor.*fatura|fatura.*valor|pr[óo]xima\s+fatura' => 'getFaturaAtual',
+        'quanto\s+devo\s+(?:no|do)\s+(?:cart[ãa]o|nubank|inter|ita[úu]|bradesco|santander|c6|next|bb)' => 'getFaturaCartaoEspecifico',
+        'fatura\s+(?:do|da|de)\s+(?:nubank|inter|ita[úu]|itau|bradesco|santander|c6|next|bb)' => 'getFaturaCartaoEspecifico',
+        'itens?\s+(?:da|de)\s+fatura|(?:o\s+que|oq)\s+(?:tem|t[áa])\s+na\s+fatura' => 'getItensFatura',
+
         'contas?\s+a\s+pagar|pendente|vencid'                               => 'getContasAPagar',
         'receitas?\s+do\s+m[eê]s|ganhos?\s+do\s+m[eê]s'                    => 'getTotalReceitas',
         'quanto\s+(?:eu\s+)?devo|d[ií]vida'                                => 'getContasAPagar',
@@ -76,6 +84,7 @@ class QuickQueryHandler implements AIHandlerInterface
     {
         $message = mb_strtolower(trim($request->message));
         $userId  = $request->userId;
+        $this->lastMessage = $message;
 
         if ($userId === null) {
             return AIResponseDTO::fail('Usuário não identificado.', IntentType::QUICK_QUERY);
@@ -459,6 +468,205 @@ class QuickQueryHandler implements AIHandlerInterface
                 'period'    => $label,
             ],
         ];
+    }
+
+    // ─── Resolvedores de fatura de cartão ─────────────────────
+
+    private function getFaturaAtual(?int $userId, ?array $period = null): ?array
+    {
+        if ($userId === null) return null;
+
+        [$month, $year] = $this->getPeriodValues($period);
+        $label = $this->getPeriodLabel($period);
+
+        $itens = FaturaCartaoItem::forUser($userId)
+            ->doMesAno($month, $year)
+            ->whereNull('cancelado_em')
+            ->get(['cartao_credito_id', 'valor', 'pago']);
+
+        if ($itens->isEmpty()) {
+            return [
+                'message' => "💳 Nenhum item na fatura de {$label}.",
+                'data'    => ['total' => 0, 'period' => $label],
+            ];
+        }
+
+        $total = (float) $itens->sum('valor');
+        $pendente = (float) $itens->where('pago', false)->sum('valor');
+        $pago = (float) $itens->where('pago', true)->sum('valor');
+
+        $fmtTotal = 'R$ ' . number_format($total, 2, ',', '.');
+        $fmtPendente = 'R$ ' . number_format($pendente, 2, ',', '.');
+        $fmtPago = 'R$ ' . number_format($pago, 2, ',', '.');
+
+        // Agrupar por cartão
+        $cartaoIds = $itens->pluck('cartao_credito_id')->unique()->values()->toArray();
+        $cartoes = CartaoCredito::whereIn('id', $cartaoIds)->pluck('nome_cartao', 'id');
+
+        $porCartao = [];
+        foreach ($itens->groupBy('cartao_credito_id') as $cartaoId => $group) {
+            $nome = $cartoes[$cartaoId] ?? 'Cartão #' . $cartaoId;
+            $porCartao[$nome] = 'R$ ' . number_format((float) $group->sum('valor'), 2, ',', '.');
+        }
+
+        $detalhes = implode(' | ', array_map(fn($n, $v) => "{$n}: {$v}", array_keys($porCartao), $porCartao));
+        $qtdCartoes = count($porCartao);
+
+        $msg = "💳 Suas faturas de {$label}: **{$fmtTotal}** total | **{$fmtPendente}** pendente | **{$fmtPago}** pago em {$qtdCartoes} cartão(ões).";
+        if ($qtdCartoes > 1) {
+            $msg .= "\nDetalhes: {$detalhes}";
+        }
+
+        return [
+            'message' => $msg,
+            'data'    => [
+                'total'     => $total,
+                'pendente'  => $pendente,
+                'pago'      => $pago,
+                'por_cartao' => $porCartao,
+                'period'    => $label,
+            ],
+        ];
+    }
+
+    private function getFaturaCartaoEspecifico(?int $userId, ?array $period = null): ?array
+    {
+        if ($userId === null) return null;
+
+        $nomeCartao = $this->extractCartaoName($this->lastMessage ?? '');
+        if ($nomeCartao === null) {
+            return $this->getFaturaAtual($userId, $period);
+        }
+
+        $cartao = CartaoCredito::where('user_id', $userId)
+            ->where('ativo', true)
+            ->where('nome_cartao', 'LIKE', "%{$nomeCartao}%")
+            ->first();
+
+        if (!$cartao) {
+            return $this->getFaturaAtual($userId, $period);
+        }
+
+        [$month, $year] = $this->getPeriodValues($period);
+        $label = $this->getPeriodLabel($period);
+
+        $itens = FaturaCartaoItem::forUser($userId)
+            ->where('cartao_credito_id', $cartao->id)
+            ->doMesAno($month, $year)
+            ->whereNull('cancelado_em')
+            ->get(['valor', 'pago', 'data_vencimento']);
+
+        if ($itens->isEmpty()) {
+            return [
+                'message' => "💳 Nenhum item na fatura do **{$cartao->nome_cartao}** em {$label}.",
+                'data'    => ['cartao' => $cartao->nome_cartao, 'total' => 0, 'period' => $label],
+            ];
+        }
+
+        $total = (float) $itens->sum('valor');
+        $pendente = (float) $itens->where('pago', false)->sum('valor');
+        $pago = (float) $itens->where('pago', true)->sum('valor');
+        $count = $itens->count();
+
+        $fmtTotal = 'R$ ' . number_format($total, 2, ',', '.');
+        $fmtPendente = 'R$ ' . number_format($pendente, 2, ',', '.');
+        $fmtPago = 'R$ ' . number_format($pago, 2, ',', '.');
+
+        $vencimento = $cartao->dia_vencimento ? "Vence dia {$cartao->dia_vencimento}" : '';
+
+        $msg = "💳 Fatura do **{$cartao->nome_cartao}** em {$label}: **{$fmtTotal}** | Pendente: **{$fmtPendente}** | Pago: **{$fmtPago}** ({$count} itens)";
+        if ($vencimento) {
+            $msg .= " — {$vencimento}";
+        }
+
+        return [
+            'message' => $msg,
+            'data'    => [
+                'cartao'   => $cartao->nome_cartao,
+                'total'    => $total,
+                'pendente' => $pendente,
+                'pago'     => $pago,
+                'count'    => $count,
+                'period'   => $label,
+            ],
+        ];
+    }
+
+    private function getItensFatura(?int $userId, ?array $period = null): ?array
+    {
+        if ($userId === null) return null;
+
+        [$month, $year] = $this->getPeriodValues($period);
+        $label = $this->getPeriodLabel($period);
+
+        $itens = FaturaCartaoItem::forUser($userId)
+            ->doMesAno($month, $year)
+            ->whereNull('cancelado_em')
+            ->orderByDesc('valor')
+            ->limit(5)
+            ->with('cartaoCredito:id,nome_cartao')
+            ->get(['id', 'descricao', 'valor', 'cartao_credito_id', 'pago']);
+
+        if ($itens->isEmpty()) {
+            return [
+                'message' => "📋 Nenhum item na fatura de {$label}.",
+                'data'    => ['itens' => [], 'period' => $label],
+            ];
+        }
+
+        $lines = [];
+        foreach ($itens as $i => $item) {
+            $num = $i + 1;
+            $fmtValor = 'R$ ' . number_format((float) $item->valor, 2, ',', '.');
+            $nomeCartao = $item->cartaoCredito->nome_cartao ?? 'Cartão';
+            $status = $item->pago ? '✅' : '⏳';
+            $lines[] = "{$num}. {$item->descricao} — {$fmtValor} ({$nomeCartao}) {$status}";
+        }
+
+        $msg = "📋 Maiores itens da fatura de {$label}:\n" . implode("\n", $lines);
+
+        return [
+            'message' => $msg,
+            'data'    => [
+                'itens'  => $itens->toArray(),
+                'period' => $label,
+            ],
+        ];
+    }
+
+    /**
+     * Extrai nome do cartão/banco da mensagem do usuário.
+     */
+    private function extractCartaoName(string $message): ?string
+    {
+        $banks = [
+            'nubank'          => 'nubank',
+            'inter'           => 'inter',
+            'ita[úu]'         => 'itaú',
+            'itau'            => 'itaú',
+            'bradesco'        => 'bradesco',
+            'santander'       => 'santander',
+            'c6'              => 'c6',
+            'next'            => 'next',
+            'bb'              => 'banco do brasil',
+            'banco\s+do\s+brasil' => 'banco do brasil',
+            'caixa'           => 'caixa',
+            'original'        => 'original',
+            'neon'            => 'neon',
+            'picpay'          => 'picpay',
+            'mercado\s+pago'  => 'mercado pago',
+            'will'            => 'will',
+            'xp'              => 'xp',
+        ];
+
+        $normalized = mb_strtolower(trim($message));
+        foreach ($banks as $pattern => $name) {
+            if (preg_match('/\b' . $pattern . '\b/iu', $normalized)) {
+                return $name;
+            }
+        }
+
+        return null;
     }
 
     // ─── Admin queries ──────────────────────────────────────
