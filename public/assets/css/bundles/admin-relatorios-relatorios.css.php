@@ -35,6 +35,9 @@ $modules = [
     '_insights.css',
     '_cartoes-credito.css',
 
+    // Overview
+    '_overview.css',
+
     // Subcategory drill-down
     '_subcategory-drilldown.css',
 

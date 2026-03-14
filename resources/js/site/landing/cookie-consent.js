@@ -26,7 +26,7 @@ export function init() {
                     left: 16px;
                     right: 16px;
                     max-width: 380px;
-                    background: white;
+                    background: var(--color-bg);
                     border-radius: 16px;
                     box-shadow: 0 10px 40px rgba(0,0,0,.15), 0 0 0 1px rgba(0,0,0,.05);
                     padding: 16px;
@@ -40,7 +40,7 @@ export function init() {
                 #cookieBannerInner .cookie-content { display: flex; align-items: flex-start; gap: 12px; }
                 #cookieBannerInner .cookie-icon {
                     width: 36px; height: 36px;
-                    background: linear-gradient(135deg, #f97316, #ea580c);
+                    background: var(--color-primary);
                     border-radius: 10px;
                     display: flex; align-items: center; justify-content: center;
                     flex-shrink: 0; font-size: 18px;
@@ -49,26 +49,26 @@ export function init() {
                     #cookieBannerInner .cookie-icon { width: 40px; height: 40px; font-size: 20px; }
                 }
                 #cookieBannerInner .cookie-text { flex: 1; min-width: 0; }
-                #cookieBannerInner h4 { margin: 0 0 4px; font-size: 14px; font-weight: 600; color: #1e293b; }
+                #cookieBannerInner h4 { margin: 0 0 4px; font-size: 14px; font-weight: 600; color: var(--color-text); }
                 @media (min-width: 480px) { #cookieBannerInner h4 { font-size: 15px; margin-bottom: 6px; } }
-                #cookieBannerInner p { margin: 0 0 12px; font-size: 12px; color: #64748b; line-height: 1.5; }
+                #cookieBannerInner p { margin: 0 0 12px; font-size: 12px; color: var(--color-text); line-height: 1.5; }
                 @media (min-width: 480px) { #cookieBannerInner p { font-size: 13px; margin-bottom: 14px; } }
-                #cookieBannerInner a { color: #f97316; text-decoration: underline; }
+                #cookieBannerInner a { color: var(--color-primary); text-decoration: underline; }
                 #cookieBannerInner .cookie-buttons { display: flex; gap: 8px; }
                 #cookieBannerInner .btn-accept {
                     flex: 1; padding: 10px 14px;
-                    background: linear-gradient(135deg, #f97316, #ea580c);
+                    background: var(--color-primary);
                     color: white; border: none; border-radius: 8px;
                     font-size: 13px; font-weight: 600; cursor: pointer;
                     transition: all .2s ease;
                 }
                 #cookieBannerInner .btn-accept:hover { transform: scale(1.02); }
                 #cookieBannerInner .btn-decline {
-                    padding: 10px 14px; background: #f1f5f9; color: #64748b;
-                    border: none; border-radius: 8px; font-size: 13px; font-weight: 500;
+                    padding: 10px 14px; background: var(--glass-bg); color:var(--color-text);
+                    border: 1px solid var(--color-primary); border-radius: 8px; font-size: 13px; font-weight: 500;
                     cursor: pointer; transition: all .2s ease;
                 }
-                #cookieBannerInner .btn-decline:hover { background: #e2e8f0; }
+                #cookieBannerInner .btn-decline:hover { background: var(--color-surface); }
             </style>
             <div id="cookieBannerInner">
                 <div class="cookie-content">

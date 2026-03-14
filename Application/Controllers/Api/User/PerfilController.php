@@ -47,6 +47,10 @@ class PerfilController
                 return;
             }
 
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_write_close();
+            }
+
             $perfil = $this->perfilService->obterPerfil($user->id);
 
             if (!$perfil) {
@@ -244,38 +248,23 @@ class PerfilController
             }
 
             // Criar diretório se não existe
-            $uploadDir = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/assets/uploads/avatars';
+            $uploadDir = BASE_PATH . '/public/assets/uploads/avatars';
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0755, true);
             }
 
-            // Carregar imagem com GD
-            $sourceImage = match ($mime) {
-                'image/jpeg' => imagecreatefromjpeg($file['tmp_name']),
-                'image/png'  => imagecreatefrompng($file['tmp_name']),
-                'image/webp' => imagecreatefromwebp($file['tmp_name']),
-                default      => false,
-            };
+            $sourceImage = $this->createSourceAvatarImage($mime, $file['tmp_name']);
 
             if (!$sourceImage) {
                 Response::error('Erro ao processar imagem', 500);
                 return;
             }
 
-            // Redimensionar para 256x256 (crop quadrado centralizado)
-            $srcW = imagesx($sourceImage);
-            $srcH = imagesy($sourceImage);
-            $size = min($srcW, $srcH);
-            $srcX = (int) (($srcW - $size) / 2);
-            $srcY = (int) (($srcH - $size) / 2);
-
-            $resized = imagecreatetruecolor(256, 256);
-            imagecopyresampled($resized, $sourceImage, 0, 0, $srcX, $srcY, 256, 256, $size, $size);
-            imagedestroy($sourceImage);
+            $preparedImage = $this->prepareAvatarImage($sourceImage, $mime, $file['tmp_name']);
 
             // Deletar avatar antigo se existir
             if ($user->avatar) {
-                $oldPath = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/' . $user->avatar;
+                $oldPath = BASE_PATH . '/public/' . $user->avatar;
                 if (is_file($oldPath)) {
                     @unlink($oldPath);
                 }
@@ -284,17 +273,25 @@ class PerfilController
             // Salvar como WebP
             $filename = 'avatar_' . $user->id . '_' . uniqid() . '.webp';
             $filepath = $uploadDir . '/' . $filename;
-            imagewebp($resized, $filepath, 85);
-            imagedestroy($resized);
+            if (!imagewebp($preparedImage, $filepath, 85)) {
+                imagedestroy($preparedImage);
+                Response::error('Nao foi possivel salvar a foto de perfil.', 500);
+                return;
+            }
+            imagedestroy($preparedImage);
 
             // Atualizar no banco
             $relativePath = 'assets/uploads/avatars/' . $filename;
             $user->avatar = $relativePath;
+            $user->avatar_focus_x = 50;
+            $user->avatar_focus_y = 50;
+            $user->avatar_zoom = 1.00;
             $user->save();
 
             Response::success([
                 'message' => 'Foto de perfil atualizada!',
                 'avatar'  => rtrim(BASE_URL, '/') . '/' . $relativePath,
+                'avatar_settings' => $this->buildAvatarSettings($user),
             ]);
         } catch (Throwable $e) {
             LogService::captureException($e, LogCategory::AUTH, [
@@ -315,17 +312,21 @@ class PerfilController
             }
 
             if ($user->avatar) {
-                $filePath = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/' . $user->avatar;
+                $filePath = BASE_PATH . '/public/' . $user->avatar;
                 if (is_file($filePath)) {
                     @unlink($filePath);
                 }
                 $user->avatar = null;
+                $user->avatar_focus_x = 50;
+                $user->avatar_focus_y = 50;
+                $user->avatar_zoom = 1.00;
                 $user->save();
             }
 
             Response::success([
                 'message' => 'Foto de perfil removida',
                 'avatar'  => '',
+                'avatar_settings' => $this->buildAvatarSettings($user),
             ]);
         } catch (Throwable $e) {
             LogService::captureException($e, LogCategory::AUTH, [
@@ -334,6 +335,135 @@ class PerfilController
             ]);
             Response::error('Erro ao remover foto de perfil', 500);
         }
+    }
+
+    public function updateAvatarPreferences(): void
+    {
+        try {
+            $user = Auth::user();
+            if (!$user) {
+                Response::error('Nao autenticado', 401);
+                return;
+            }
+
+            $payload = $_POST;
+
+            if ($payload === []) {
+                $rawInput = file_get_contents('php://input');
+                if ($rawInput) {
+                    $decoded = json_decode($rawInput, true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        $payload = $decoded;
+                    }
+                }
+            }
+
+            $user->avatar_focus_x = $this->clampAvatarFocus($payload['position_x'] ?? 50);
+            $user->avatar_focus_y = $this->clampAvatarFocus($payload['position_y'] ?? 50);
+            $user->avatar_zoom = $this->clampAvatarZoom($payload['zoom'] ?? 1);
+            $user->save();
+
+            Response::success([
+                'message' => 'Enquadramento da foto atualizado.',
+                'avatar_settings' => $this->buildAvatarSettings($user),
+            ]);
+        } catch (Throwable $e) {
+            LogService::captureException($e, LogCategory::AUTH, [
+                'action' => 'update_avatar_preferences',
+                'user_id' => Auth::user()?->id,
+            ]);
+            Response::error('Erro ao atualizar o enquadramento da foto.', 500);
+        }
+    }
+
+    private function buildAvatarSettings(object $user): array
+    {
+        return [
+            'position_x' => $this->clampAvatarFocus($user->avatar_focus_x ?? 50),
+            'position_y' => $this->clampAvatarFocus($user->avatar_focus_y ?? 50),
+            'zoom' => $this->clampAvatarZoom($user->avatar_zoom ?? 1),
+        ];
+    }
+
+    private function clampAvatarFocus(mixed $value): int
+    {
+        return max(0, min(100, (int) round((float) $value)));
+    }
+
+    private function clampAvatarZoom(mixed $value): float
+    {
+        return max(1.0, min(2.0, round((float) $value, 2)));
+    }
+
+    private function createSourceAvatarImage(string $mime, string $tmpPath)
+    {
+        $image = match ($mime) {
+            'image/jpeg' => @imagecreatefromjpeg($tmpPath),
+            'image/png'  => @imagecreatefrompng($tmpPath),
+            'image/webp' => @imagecreatefromwebp($tmpPath),
+            default      => false,
+        };
+
+        if ($image && in_array($mime, ['image/png', 'image/webp'], true)) {
+            imagealphablending($image, true);
+            imagesavealpha($image, true);
+        }
+
+        return $image;
+    }
+
+    private function prepareAvatarImage($sourceImage, string $mime, string $tmpPath)
+    {
+        $orientedImage = $this->normalizeAvatarOrientation($sourceImage, $mime, $tmpPath);
+
+        $sourceWidth = imagesx($orientedImage);
+        $sourceHeight = imagesy($orientedImage);
+
+        if ($sourceWidth <= 0 || $sourceHeight <= 0) {
+            return $orientedImage;
+        }
+
+        $maxEdge = 1024;
+        $scale = min($maxEdge / $sourceWidth, $maxEdge / $sourceHeight, 1);
+        $targetWidth = max(1, (int) round($sourceWidth * $scale));
+        $targetHeight = max(1, (int) round($sourceHeight * $scale));
+
+        if ($targetWidth === $sourceWidth && $targetHeight === $sourceHeight) {
+            return $orientedImage;
+        }
+
+        $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
+        imagealphablending($canvas, false);
+        imagesavealpha($canvas, true);
+        $transparent = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
+        imagefilledrectangle($canvas, 0, 0, $targetWidth, $targetHeight, $transparent);
+        imagecopyresampled($canvas, $orientedImage, 0, 0, 0, 0, $targetWidth, $targetHeight, $sourceWidth, $sourceHeight);
+        imagedestroy($orientedImage);
+
+        return $canvas;
+    }
+
+    private function normalizeAvatarOrientation($image, string $mime, string $tmpPath)
+    {
+        if ($mime !== 'image/jpeg' || !function_exists('exif_read_data')) {
+            return $image;
+        }
+
+        $exif = @exif_read_data($tmpPath);
+        $orientation = (int) ($exif['Orientation'] ?? 1);
+
+        $rotated = match ($orientation) {
+            3 => imagerotate($image, 180, 0),
+            6 => imagerotate($image, -90, 0),
+            8 => imagerotate($image, 90, 0),
+            default => $image,
+        };
+
+        if ($rotated !== $image) {
+            imagedestroy($image);
+        }
+
+        return $rotated ?: $image;
     }
 
     public function delete(): void

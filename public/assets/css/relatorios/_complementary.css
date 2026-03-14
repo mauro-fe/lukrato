@@ -149,6 +149,50 @@
   padding: var(--spacing-2);
   scrollbar-width: thin;
   scrollbar-color: var(--color-primary) transparent;
+  align-items: stretch;
+}
+
+/* Tab Groups — Monthly / Annual */
+.tab-group {
+  display: flex;
+  gap: var(--spacing-2);
+  position: relative;
+  padding-top: 18px;
+}
+
+.tab-group[data-group-label]::before {
+  content: attr(data-group-label);
+  position: absolute;
+  top: 0;
+  left: var(--spacing-2);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  font-weight: 700;
+  opacity: 0.6;
+  white-space: nowrap;
+}
+
+.tab-separator {
+  width: 1px;
+  align-self: stretch;
+  background: var(--glass-border);
+  margin: var(--spacing-2) var(--spacing-1);
+  flex-shrink: 0;
+  margin-top: 18px;
+}
+
+/* Compact Export Button */
+.btn-compact-export {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-4);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  border-radius: var(--radius-lg);
 }
 
 .tabs-container::-webkit-scrollbar {

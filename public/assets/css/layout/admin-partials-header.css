@@ -121,23 +121,6 @@ h3 {
   }
 }
 
-.close-sidebar-btn {
-  display: none;
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: transparent;
-  color: var(--color-primary);
-  font-size: 1.25rem;
-  cursor: pointer;
-  border-radius: var(--radius-md);
-  transition: all 0.2s ease;
-  z-index: 10;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-}
-
 .close-sidebar-btn:hover {
   background: color-mix(in srgb, var(--color-primary) 15%, transparent);
   transform: scale(1.1);
@@ -280,6 +263,7 @@ h3 {
   margin: 1px var(--spacing-3);
 }
 
+
 .sidebar .nav-item i {
   font-size: var(--font-size-lg);
   min-width: 20px;
@@ -368,6 +352,7 @@ h3 {
 /* 5.5 Sidebar Collapsed State */
 body.sidebar-collapsed .sidebar {
   width: var(--sidebar-collapsed-width);
+
 }
 
 body.sidebar-collapsed .sidebar .nav-item {

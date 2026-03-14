@@ -24,6 +24,9 @@ class NotificacaoController extends BaseController
                 session_start();
             }
 
+            // Liberar lock da sessão para permitir requisições paralelas
+            session_write_close();
+
             // Busca notificações do banco
             $itens = Notificacao::where('user_id', $userId)
                 ->orderBy('created_at', 'desc')

@@ -74,7 +74,7 @@ if (window.__LK_REPORTS_LOADED__) {
             }
         };
 
-        const proLockedSections = ['insights', 'comparativos'];
+        const proLockedSections = ['comparativos'];
 
         document.querySelectorAll('.rel-section-tab').forEach(tab => {
             tab.addEventListener('click', () => {
@@ -105,10 +105,13 @@ if (window.__LK_REPORTS_LOADED__) {
         if (savedSection && document.getElementById('section-' + savedSection)) {
             // Não restaurar aba PRO-locked para free users
             if (!window.IS_PRO && proLockedSections.includes(savedSection)) {
-                switchSection('relatorios');
+                switchSection('overview');
             } else {
                 switchSection(savedSection);
             }
+        } else {
+            // Default: overview
+            switchSection('overview');
         }
 
         const reportType = document.getElementById('reportType');

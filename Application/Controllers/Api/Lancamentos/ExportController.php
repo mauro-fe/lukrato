@@ -27,6 +27,10 @@ class ExportController extends BaseController
             return;
         }
 
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         $user = Usuario::find($userId);
         if (!$user || !$user->isPro()) {
             Response::error('Exportação de lançamentos é um recurso exclusivo do plano PRO.', 403);

@@ -171,7 +171,6 @@ class LukratoFetch {
                 }
 
                 if (!response.ok) {
-                    console.error(`🌐 [LukratoFetch] Resposta não-ok: ${response.status}`);
                     const errorData = await response.json().catch(() => ({}));
                     throw new Error(errorData.message || `Erro ${response.status}`);
                 }
@@ -189,14 +188,13 @@ class LukratoFetch {
                 clearTimeout(timeoutId);
                 lastError = error;
 
-                console.error(`🌐 [LukratoFetch] ERRO na tentativa ${attempt + 1}:`, error);
-                console.error(`🌐 [LukratoFetch] Error name: ${error.name}`);
-                console.error(`🌐 [LukratoFetch] Error message: ${error.message}`);
-
                 // Se foi cancelado por timeout
                 if (error.name === 'AbortError') {
                     console.warn(`[LukratoFetch] Timeout na tentativa ${attempt + 1}/${maxRetries + 1}: ${url}`);
                     lastError = new Error('A requisição demorou muito. Tente novamente.');
+                } else if (attempt === 0) {
+                    // Só loga no primeiro erro, retries são silenciosos
+                    console.warn(`[LukratoFetch] Erro: ${url}`, error.message);
                 }
 
                 // Se ainda pode tentar

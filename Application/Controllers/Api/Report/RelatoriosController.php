@@ -113,32 +113,48 @@ class RelatoriosController extends BaseController
             $startDate = Carbon::create($year, $month, 1)->startOfMonth();
             $endDate = Carbon::create($year, $month, 1)->endOfMonth();
 
-            // Buscar totais de lançamentos (pago + afeta_caixa)
-            $lancamentos = \Application\Models\Lancamento::where('user_id', $userId)
-                ->whereBetween('data', [$startDate->toDateString(), $endDate->toDateString()])
+            // Período anterior para comparação de tendências
+            $prevStart = (clone $startDate)->subMonth()->startOfMonth();
+            $prevEnd = (clone $startDate)->subMonth()->endOfMonth();
+
+            $lancamentoQuery = fn(Carbon $start, Carbon $end) =>
+            \Application\Models\Lancamento::where('user_id', $userId)
+                ->whereBetween('data', [$start->toDateString(), $end->toDateString()])
                 ->where('eh_transferencia', 0)
                 ->where('pago', 1)
                 ->where('afeta_caixa', 1)
                 ->selectRaw('
-                    SUM(CASE WHEN tipo = "receita" THEN valor ELSE 0 END) as total_receitas,
-                    SUM(CASE WHEN tipo = "despesa" THEN valor ELSE 0 END) as total_despesas
-                ')
+                        SUM(CASE WHEN tipo = "receita" THEN valor ELSE 0 END) as total_receitas,
+                        SUM(CASE WHEN tipo = "despesa" THEN valor ELSE 0 END) as total_despesas
+                    ')
                 ->first();
 
-            // Buscar total de faturas de cartão usando FaturaCartaoItem (mesma fonte do relatório de cartões)
-            $totalCartoes = \Application\Models\FaturaCartaoItem::where('user_id', $userId)
-                ->where('mes_referencia', $month)
-                ->where('ano_referencia', $year)
+            $cartaoQuery = fn(int $m, int $y) =>
+            \Application\Models\FaturaCartaoItem::where('user_id', $userId)
+                ->where('mes_referencia', $m)
+                ->where('ano_referencia', $y)
                 ->whereHas('cartaoCredito', function ($q) {
                     $q->where('ativo', 1);
                 })
                 ->sum('valor');
 
+            // Mês atual
+            $lancamentos = $lancamentoQuery($startDate, $endDate);
+            $totalCartoes = $cartaoQuery($month, $year);
+
+            // Mês anterior (para trend badges)
+            $prevLancamentos = $lancamentoQuery($prevStart, $prevEnd);
+            $prevCartoes = $cartaoQuery($prevStart->month, $prevStart->year);
+
             Response::success([
                 'totalReceitas' => (float)($lancamentos->total_receitas ?? 0),
                 'totalDespesas' => (float)($lancamentos->total_despesas ?? 0),
                 'saldo' => (float)(($lancamentos->total_receitas ?? 0) - ($lancamentos->total_despesas ?? 0)),
-                'totalCartoes' => (float)($totalCartoes ?? 0)
+                'totalCartoes' => (float)($totalCartoes ?? 0),
+                'prevReceitas' => (float)($prevLancamentos->total_receitas ?? 0),
+                'prevDespesas' => (float)($prevLancamentos->total_despesas ?? 0),
+                'prevSaldo' => (float)(($prevLancamentos->total_receitas ?? 0) - ($prevLancamentos->total_despesas ?? 0)),
+                'prevCartoes' => (float)($prevCartoes ?? 0),
             ]);
         } catch (InvalidArgumentException $e) {
             $this->handleValidationError($e);
@@ -360,6 +376,42 @@ class RelatoriosController extends BaseController
         ]);
 
         Response::error('Erro ao gerar relatório.', 500);
+    }
+
+    /**
+     * Teaser de insights (max 3) — acessível para todos os usuários autenticados.
+     * Retorna uma amostra limitada de insights para conversão PLG.
+     */
+    public function insightsTeaser(): void
+    {
+        try {
+            $this->requireAuthApi();
+
+            $userId = Auth::id();
+            $year   = (int)($_GET['year'] ?? date('Y'));
+            $month  = (int)($_GET['month'] ?? date('m'));
+
+            $this->validateDateParams($year, $month);
+
+            $allInsights = $this->insightsService->generate($userId, $year, $month);
+            $teaser = array_slice($allInsights, 0, 3);
+
+            $user = $this->getCurrentUser();
+
+            Response::success([
+                'insights'   => InsightsService::toArrayList($teaser),
+                'totalCount' => count($allInsights),
+                'isTeaser'   => !($user && $user->isPro()),
+            ]);
+        } catch (InvalidArgumentException $e) {
+            $this->handleValidationError($e);
+        } catch (\Throwable $e) {
+            LogService::error('Erro ao gerar insights teaser.', [
+                'error' => $e->getMessage(),
+                'user_id' => Auth::id()
+            ]);
+            Response::error('Erro ao gerar insights.', 500);
+        }
     }
 
     /**

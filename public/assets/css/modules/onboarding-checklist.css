@@ -339,3 +339,89 @@
         padding: 12px;
     }
 }
+
+/* ─── GAMIFICATION POINTS ────────────────────────────────────────────── */
+
+.lk-checklist-item-points {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-left: auto;
+    min-width: 70px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.lk-checklist-item .points-earned {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+    padding: 4px 10px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    animation: points-earned-animation 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.lk-checklist-item .points-pending {
+    color: var(--color-text-muted);
+    background: rgba(0, 0, 0, 0.05);
+    padding: 4px 10px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+@keyframes points-earned-animation {
+    0% {
+        transform: scale(0.5) translateY(20px);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+.lk-checklist-complete-points {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-top: 12px;
+    animation: bounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes bounce {
+    0% {
+        transform: scale(0) translateY(-20px);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.15);
+    }
+    100% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Destaque quando item é completado */
+.lk-checklist-item.done {
+    animation: item-completed 0.5s ease-out;
+}
+
+@keyframes item-completed {
+    0% {
+        transform: scale(0.95);
+        background: rgba(var(--color-primary-rgb, 230, 126, 34), 0.1);
+    }
+    100% {
+        transform: scale(1);
+        background: transparent;
+    }
+}

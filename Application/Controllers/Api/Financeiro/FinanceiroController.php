@@ -59,6 +59,10 @@ class FinanceiroController extends BaseController
     {
         $uid = Auth::id();
 
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         try {
             $req = new Request();
             $month = $req->get('month') ?? $_GET['month'] ?? date('Y-m');
@@ -147,6 +151,10 @@ class FinanceiroController extends BaseController
     {
         $uid = Auth::id();
 
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         try {
             $req = new Request();
             $month = $req->get('month') ?? $_GET['month'] ?? date('Y-m');
@@ -193,6 +201,10 @@ class FinanceiroController extends BaseController
     public function options(): void
     {
         $uid = Auth::id();
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
 
         try {
             $baseCatsQuery = fn(string $tipo) => Categoria::where(function (Builder $q) use ($uid) {

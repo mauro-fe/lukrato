@@ -378,7 +378,7 @@ function renderEvolutionChart(meses) {
             background: 'transparent',
             fontFamily: 'Inter, Arial, sans-serif',
         },
-        series: [{ name: 'Fatura', data: meses.map(m => m.valor) }],
+        series: [{ name: 'Fatura', data: meses.map(m => Number(m.valor) || 0) }],
         xaxis: {
             categories: meses.map(m => m.mes),
             labels: { style: { colors: textMuted } },
@@ -425,7 +425,7 @@ function renderImpactChart(meses) {
             background: 'transparent',
             fontFamily: 'Inter, Arial, sans-serif',
         },
-        series: [{ name: 'Projeção', data: meses.map(m => m.valor) }],
+        series: [{ name: 'Projeção', data: meses.map(m => Number(m.valor) || 0) }],
         xaxis: {
             categories: meses.map(m => m.mes),
             labels: { style: { colors: textMuted } },

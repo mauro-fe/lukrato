@@ -29,6 +29,10 @@ class FaturaDetalhesController extends BaseController
             return;
         }
 
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         $lancamento = $this->lancamentoRepo->findByIdAndUser($id, $userId);
         if (!$lancamento) {
             Response::error('Lancamento nao encontrado', 404);

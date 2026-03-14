@@ -16,7 +16,7 @@
 .top-navbar {
   position: fixed;
   top: 0;
-  left: 280px;
+  left: 200px;
   right: 0;
   height: 70px;
   background: var(--glass-bg);

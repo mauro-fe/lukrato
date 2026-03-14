@@ -91,6 +91,13 @@
     const avatarEditBtn = document.getElementById('avatarEditBtn');
     const avatarInput = document.getElementById('avatarInput');
 
+    if (avatarImg) {
+        avatarImg.addEventListener('error', () => {
+            avatarImg.style.display = 'none';
+            if (avatarInitials) avatarInitials.style.display = '';
+        });
+    }
+
     function updateAvatarDisplay(avatarUrl, nome) {
         if (avatarUrl) {
             if (avatarImg) {
@@ -100,15 +107,15 @@
             if (avatarInitials) avatarInitials.style.display = 'none';
         } else {
             if (avatarImg) {
-                avatarImg.src = '';
                 avatarImg.style.display = 'none';
+                avatarImg.removeAttribute('src');
             }
             if (avatarInitials) {
                 avatarInitials.textContent = (nome || 'U').charAt(0).toUpperCase();
                 avatarInitials.style.display = '';
             }
         }
-        // Atualizar avatares globais (navbar + sidebar)
+
         if (window.__LK_updateGlobalAvatars) {
             window.__LK_updateGlobalAvatars(avatarUrl);
         }

@@ -1,0 +1,244 @@
+/**
+ * Dashboard Greeting Styles
+ */
+
+.dashboard-greeting {
+  background: var(--glass-bg);
+  border: 1px solid var(--color-card-border);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Decorative background */
+.dashboard-greeting::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -30%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(
+    circle,
+    rgba(var(--color-primary-rgb), 0.1) 0%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.greeting-content {
+  position: relative;
+  z-index: 1;
+}
+
+.greeting-title {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.greeting-emoji {
+  display: inline-block;
+  font-size: 2.5rem;
+  line-height: 1;
+  animation: greeting-pulse 2s ease-in-out infinite;
+}
+
+@keyframes greeting-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+.greeting-subtitle {
+  margin: 0.75rem 0 0;
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  min-height: 1.5rem;
+  transition: all var(--transition-normal);
+}
+
+/* ========== INSIGHT SECTION ========== */
+.greeting-insight {
+  position: relative;
+  z-index: 1;
+  padding: 1.25rem;
+  background: rgba(var(--color-primary-rgb), 0.08);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.12);
+  border-radius: 12px;
+  transition: all var(--transition-normal);
+}
+
+.insight-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.insight-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: rgba(var(--color-primary-rgb), 0.12);
+  flex-shrink: 0;
+  color: var(--color-primary);
+  transition: all var(--transition-normal);
+}
+
+.greeting-insight:hover .insight-icon {
+  background: rgba(var(--color-primary-rgb), 0.2);
+  transform: scale(1.1);
+}
+
+.insight-text {
+  flex: 1;
+}
+
+.insight-message {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* ========== SKELETON ========== */
+.insight-skeleton {
+  animation: pulse-skeleton 1.5s ease-in-out infinite;
+}
+
+.skeleton-line {
+  height: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+@keyframes pulse-skeleton {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1024px) {
+  .dashboard-greeting {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .greeting-title {
+    font-size: 1.75rem;
+  }
+
+  .greeting-emoji {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-greeting {
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .dashboard-greeting::before {
+    width: 300px;
+    height: 300px;
+    top: -40%;
+    right: -20%;
+  }
+
+  .greeting-title {
+    font-size: 1.5rem;
+  }
+
+  .greeting-emoji {
+    font-size: 1.75rem;
+  }
+
+  .greeting-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .greeting-insight {
+    padding: 1rem;
+  }
+
+  .insight-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .insight-message {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-greeting {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .greeting-title {
+    font-size: 1.25rem;
+  }
+
+  .greeting-emoji {
+    font-size: 1.5rem;
+  }
+
+  .greeting-subtitle {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+  }
+
+  .greeting-insight {
+    padding: 0.875rem;
+  }
+
+  .insight-content {
+    gap: 0.75rem;
+  }
+
+  .insight-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .insight-message {
+    font-size: 0.85rem;
+  }
+}

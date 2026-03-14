@@ -45,6 +45,10 @@ class ParcelamentosController
             return;
         }
 
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         $status = $_GET['status'] ?? null;
         $parcelamentos = $status
             ? $this->parcelamentoRepo->findByStatus($userId, $status)
@@ -90,6 +94,10 @@ class ParcelamentosController
         if (!$userId) {
             Response::error('Não autenticado', 401);
             return;
+        }
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
         }
 
         $p = $this->parcelamentoRepo->findWithLancamentos($id);

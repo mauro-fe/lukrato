@@ -26,6 +26,10 @@ class ReferralController extends BaseController
     {
         $this->requireAuthApi();
 
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         try {
             $user = Auth::user();
 
@@ -81,6 +85,10 @@ class ReferralController extends BaseController
     {
         $this->requireAuthApi();
 
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         try {
             $user = Auth::user();
 
@@ -105,6 +113,10 @@ class ReferralController extends BaseController
     public function getRanking(): void
     {
         $this->requireAuthApi();
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
 
         try {
             $limit = min(intval($_GET['limit'] ?? 10), 50);

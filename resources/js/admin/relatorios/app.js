@@ -145,6 +145,27 @@ export const API = {
         }
     },
 
+    async fetchReportDataForType(type) {
+        const params = new URLSearchParams({
+            type,
+            year: STATE.currentMonth.split('-')[0],
+            month: STATE.currentMonth.split('-')[1]
+        });
+
+        try {
+            const response = await fetch(`${CONFIG.BASE_URL}api/reports?${params}`, {
+                credentials: 'include',
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (!response.ok) return null;
+            const json = await response.json();
+            return json.data || json;
+        } catch {
+            return null;
+        }
+    },
+
     async fetchAccounts() {
         try {
             const response = await fetch(`${CONFIG.BASE_URL}api/contas`, {
@@ -236,6 +257,32 @@ export const API = {
             clearTimeout(timeoutId);
             console.error('Error fetching insights:', error);
             return { insights: [] };
+        }
+    },
+
+    async fetchInsightsTeaser() {
+        const [year, month] = STATE.currentMonth.split('-');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT);
+        try {
+            const response = await fetch(
+                `${CONFIG.BASE_URL}api/reports/insights-teaser?year=${year}&month=${month}`,
+                {
+                    credentials: 'include',
+                    headers: { 'Accept': 'application/json' },
+                    signal: controller.signal
+                }
+            );
+
+            clearTimeout(timeoutId);
+            if (!response.ok) throw new Error('Failed to fetch insights teaser');
+
+            const json = await response.json();
+            return json.data || json;
+        } catch (error) {
+            clearTimeout(timeoutId);
+            console.error('Error fetching insights teaser:', error);
+            return { insights: [], totalCount: 0, isTeaser: true };
         }
     },
 
@@ -362,11 +409,6 @@ export const UI = {
         if (accountWrapper) {
             accountWrapper.classList.remove('hidden');
         }
-
-        const exportType = document.getElementById('exportType');
-        if (exportType) {
-            exportType.value = getReportType();
-        }
     },
 
     syncTypeSelect() {
@@ -453,6 +495,115 @@ export async function renderReport() {
         default:
             showEmptyState();
     }
+
+    renderChartInsight(data);
+}
+
+// ─── Trend Badge Helper ─────────────────────────────────────────────────────
+
+function updateTrendBadge(elementId, current, previous, invertColors = false) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+
+    if (!previous || previous === 0) {
+        el.innerHTML = '';
+        el.className = 'stat-trend';
+        return;
+    }
+
+    const pctChange = ((current - previous) / Math.abs(previous)) * 100;
+    const absChange = Math.abs(pctChange).toFixed(1);
+
+    if (Math.abs(pctChange) < 0.5) {
+        el.className = 'stat-trend trend-neutral';
+        el.textContent = '— Sem alteração';
+    } else {
+        const isUp = pctChange > 0;
+        const isPositive = invertColors ? !isUp : isUp;
+        el.className = `stat-trend ${isPositive ? 'trend-positive' : 'trend-negative'}`;
+        const arrow = isUp ? '↑' : '↓';
+        el.textContent = `${arrow} ${absChange}% vs mês anterior`;
+    }
+}
+
+// ─── Chart Insight Annotation ───────────────────────────────────────────────
+
+function renderChartInsight(data) {
+    const existing = document.querySelector('.chart-insight-line');
+    if (existing) existing.remove();
+
+    if (!data) return;
+
+    let insightText = '';
+    const view = STATE.currentView;
+
+    switch (view) {
+        case CONFIG.VIEWS.CATEGORY:
+        case CONFIG.VIEWS.ANNUAL_CATEGORY: {
+            if (!data.labels || !data.values || data.values.length === 0) break;
+            const total = data.values.reduce((s, v) => s + Number(v), 0);
+            if (total > 0) {
+                const maxIdx = data.values.reduce((mi, v, i, a) => Number(v) > Number(a[mi]) ? i : mi, 0);
+                const pct = ((Number(data.values[maxIdx]) / total) * 100).toFixed(0);
+                insightText = `${data.labels[maxIdx]} lidera com ${pct}% dos gastos (${formatCurrency(data.values[maxIdx])})`;
+            }
+            break;
+        }
+        case CONFIG.VIEWS.BALANCE: {
+            if (!data.labels || !data.values || data.values.length === 0) break;
+            const vals = data.values.map(Number);
+            const minVal = Math.min(...vals);
+            const minIdx = vals.indexOf(minVal);
+            insightText = `Menor saldo: ${formatCurrency(minVal)} em ${data.labels[minIdx]}`;
+            break;
+        }
+        case CONFIG.VIEWS.COMPARISON: {
+            if (!data.receitas || !data.despesas) break;
+            const rec = data.receitas.map(Number);
+            const desp = data.despesas.map(Number);
+            const goodDays = rec.filter((r, i) => r > (desp[i] || 0)).length;
+            insightText = `Em ${goodDays} de ${rec.length} dias, receitas superaram despesas`;
+            break;
+        }
+        case CONFIG.VIEWS.ACCOUNTS: {
+            if (!data.labels || !data.despesas || data.despesas.length === 0) break;
+            const desp = data.despesas.map(Number);
+            const maxIdx = desp.reduce((mi, v, i, a) => v > a[mi] ? i : mi, 0);
+            insightText = `Maior gasto: ${data.labels[maxIdx]} com ${formatCurrency(desp[maxIdx])} em despesas`;
+            break;
+        }
+        case CONFIG.VIEWS.EVOLUTION: {
+            if (!data.values || data.values.length < 2) break;
+            const vals = data.values.map(Number);
+            const first = vals[0];
+            const last = vals[vals.length - 1];
+            const direction = last > first ? 'tendência de alta' : last < first ? 'tendência de queda' : 'estável';
+            insightText = `Evolução nos últimos 12 meses: ${direction}`;
+            break;
+        }
+        case CONFIG.VIEWS.ANNUAL_SUMMARY: {
+            if (!data.labels || !data.receitas || data.receitas.length === 0) break;
+            const rec = data.receitas.map(Number);
+            const desp = data.despesas.map(Number);
+            const saldos = rec.map((r, i) => r - (desp[i] || 0));
+            const bestIdx = saldos.reduce((mi, v, i, a) => v > a[mi] ? i : mi, 0);
+            const worstIdx = saldos.reduce((mi, v, i, a) => v < a[mi] ? i : mi, 0);
+            insightText = `Melhor mês: ${data.labels[bestIdx]}. Pior mês: ${data.labels[worstIdx]}`;
+            break;
+        }
+    }
+
+    if (!insightText) return;
+
+    const reportArea = document.getElementById('reportArea');
+    if (!reportArea) return;
+
+    const div = document.createElement('div');
+    div.className = 'chart-insight-line';
+    div.innerHTML = `<i data-lucide="sparkles"></i> <span>${escapeHtml(insightText)}</span>`;
+    reportArea.appendChild(div);
+
+    if (window.lucide) lucide.createIcons();
 }
 
 async function updateSummaryCards() {
@@ -478,7 +629,18 @@ async function updateSummaryCards() {
         totalCartoesEl.textContent = formatCurrency(stats.totalCartoes || 0);
     }
 
-    // Atualizar insights e comparativos apenas se a seção estiver visível
+    // Trend badges (receitas/saldo: up=good, despesas/cartoes: up=bad)
+    updateTrendBadge('trendReceitas', stats.totalReceitas, stats.prevReceitas, false);
+    updateTrendBadge('trendDespesas', stats.totalDespesas, stats.prevDespesas, true);
+    updateTrendBadge('trendSaldo', stats.saldo, stats.prevSaldo, false);
+    updateTrendBadge('trendCartoes', stats.totalCartoes, stats.prevCartoes, true);
+
+    // Atualizar seções visíveis
+    const overviewPanel = document.getElementById('section-overview');
+    if (overviewPanel && overviewPanel.classList.contains('active')) {
+        await updateOverviewSection();
+    }
+
     const insightsPanel = document.getElementById('section-insights');
     if (insightsPanel && insightsPanel.classList.contains('active')) {
         await updateInsightsSection();
@@ -494,7 +656,14 @@ async function updateInsightsSection() {
     const insightsContainer = document.getElementById('insightsContainer');
     if (!insightsContainer) return;
 
-    const data = await API.fetchInsights();
+    // PRO: full insights; Free: teaser (max 3)
+    let data;
+    if (window.IS_PRO) {
+        data = await API.fetchInsights();
+    } else {
+        data = await API.fetchInsightsTeaser();
+    }
+
     if (!data || !data.insights || data.insights.length === 0) {
         insightsContainer.innerHTML = '<p class="empty-message">Nenhum insight disponível no momento</p>';
         return;
@@ -511,7 +680,6 @@ async function updateInsightsSection() {
         'calendar-check': 'calendar-check', 'calendar': 'calendar',
         'crown': 'crown', 'trophy': 'trophy', 'leaf': 'leaf',
         'shield-alt': 'shield', 'money-bill-wave': 'banknote',
-        // Novos ícones (já Lucide nativos)
         'trending-up': 'trending-up', 'trending-down': 'trending-down',
         'shield-alert': 'shield-alert', 'gauge': 'gauge',
         'target': 'target', 'clock': 'clock',
@@ -522,6 +690,7 @@ async function updateInsightsSection() {
         'file-text': 'file-text', 'piggy-bank': 'piggy-bank',
         'banknote': 'banknote'
     };
+
     const insightsHTML = data.insights.map(insight => {
         const lucideIcon = faToLucide[insight.icon] || insight.icon;
         return `
@@ -538,6 +707,185 @@ async function updateInsightsSection() {
     }).join('');
 
     insightsContainer.innerHTML = insightsHTML;
+
+    // Free users: append teaser overlay with upgrade CTA
+    if (!window.IS_PRO && data.isTeaser) {
+        const remaining = Math.max(0, (data.totalCount || 0) - data.insights.length);
+        const remainingLabel = remaining > 0
+            ? `Desbloqueie mais ${remaining} insights com PRO`
+            : 'Desbloqueie todos os insights com PRO';
+
+        insightsContainer.insertAdjacentHTML('beforeend', `
+            <div class="insights-teaser-overlay">
+                <div class="teaser-blur-mask"></div>
+                <div class="teaser-cta">
+                    <i data-lucide="crown"></i>
+                    <h4>${remainingLabel}</h4>
+                    <p>Tenha uma visão completa da sua saúde financeira com análises detalhadas.</p>
+                    <a href="${CONFIG.BASE_URL}billing" class="btn-upgrade-cta">
+                        <i data-lucide="crown"></i> Fazer Upgrade
+                    </a>
+                </div>
+            </div>
+        `);
+    }
+
+    if (window.lucide) lucide.createIcons();
+}
+
+// ─── Overview Section ───────────────────────────────────────────────────────
+
+let overviewCharts = [];
+
+async function updateOverviewSection() {
+    const pulseEl = document.getElementById('overviewPulse');
+    const insightsEl = document.getElementById('overviewInsights');
+    const catChartEl = document.getElementById('overviewCategoryChart');
+    const compChartEl = document.getElementById('overviewComparisonChart');
+
+    // Destroy previous mini charts
+    overviewCharts.forEach(c => { try { c.destroy(); } catch {} });
+    overviewCharts = [];
+
+    // Fetch data in parallel
+    const [stats, insightsData, categoryData, comparisonData] = await Promise.all([
+        API.fetchSummaryStats(),
+        API.fetchInsightsTeaser(),
+        API.fetchReportDataForType('despesas_por_categoria'),
+        API.fetchReportDataForType('receitas_despesas_diario'),
+    ]);
+
+    // 1. Monthly Pulse
+    if (pulseEl) {
+        const saldo = stats.saldo || 0;
+        const saldoColor = saldo >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+        const saldoStatus = saldo >= 0 ? 'positivo' : 'negativo';
+        let pulseHTML = `
+            <p class="pulse-text">
+                Neste mês você recebeu <strong>${formatCurrency(stats.totalReceitas)}</strong>
+                e gastou <strong>${formatCurrency(stats.totalDespesas)}</strong>.
+                Seu saldo é <strong style="color:${saldoColor}">${saldoStatus} em ${formatCurrency(Math.abs(saldo))}</strong>.
+        `;
+        if (stats.totalCartoes > 0) {
+            pulseHTML += ` Faturas de cartões somam <strong>${formatCurrency(stats.totalCartoes)}</strong>.`;
+        }
+        pulseHTML += '</p>';
+        pulseEl.innerHTML = pulseHTML;
+    }
+
+    // 2. Top Insights
+    if (insightsEl) {
+        if (insightsData?.insights?.length > 0) {
+            const faToLucide = {
+                'arrow-trend-up': 'trending-up', 'arrow-trend-down': 'trending-down',
+                'exclamation-triangle': 'triangle-alert', 'check-circle': 'circle-check',
+                'shield-alert': 'shield-alert', 'gauge': 'gauge', 'target': 'target',
+                'receipt': 'receipt', 'calculator': 'calculator', 'layers': 'layers',
+                'piggy-bank': 'piggy-bank', 'pie-chart': 'pie-chart',
+                'calendar-range': 'calendar-range', 'calendar-clock': 'calendar-clock',
+                'credit-card': 'credit-card', 'trending-up': 'trending-up',
+                'trending-down': 'trending-down', 'list-plus': 'list-plus',
+                'list-minus': 'list-minus', 'banknote': 'banknote', 'clock': 'clock'
+            };
+            insightsEl.innerHTML = insightsData.insights.map(insight => {
+                const icon = faToLucide[insight.icon] || insight.icon;
+                return `
+                <div class="insight-card insight-${insight.type}">
+                    <div class="insight-icon"><i data-lucide="${icon}"></i></div>
+                    <div class="insight-content">
+                        <h4>${escapeHtml(insight.title)}</h4>
+                        <p>${escapeHtml(insight.message)}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        } else {
+            insightsEl.innerHTML = '<p class="empty-message">Nenhum insight disponível no momento</p>';
+        }
+    }
+
+    // 3. Mini Category Donut
+    if (catChartEl && categoryData?.labels?.length > 0) {
+        catChartEl.innerHTML = '';
+        const topN = 5;
+        let labels = categoryData.labels.slice(0, topN);
+        let values = categoryData.values.slice(0, topN).map(Number);
+        if (categoryData.labels.length > topN) {
+            const otherSum = categoryData.values.slice(topN).reduce((s, v) => s + Number(v), 0);
+            labels.push('Outros');
+            values.push(otherSum);
+        }
+
+        const miniDonut = new ApexCharts(catChartEl, {
+            chart: { type: 'donut', height: 220, background: 'transparent' },
+            series: values,
+            labels: labels,
+            colors: ['#E67E22', '#2C3E50', '#2ECC71', '#F39C12', '#9B59B6', '#1ABC9C'],
+            legend: { position: 'bottom', fontSize: '11px', labels: { colors: 'var(--color-text-muted)' } },
+            dataLabels: { enabled: false },
+            plotOptions: { pie: { donut: { size: '60%' } } },
+            stroke: { show: false },
+            tooltip: {
+                y: { formatter: (v) => formatCurrency(v) }
+            }
+        });
+        miniDonut.render();
+        overviewCharts.push(miniDonut);
+    } else if (catChartEl) {
+        catChartEl.innerHTML = '<p class="empty-message" style="padding:var(--spacing-6)">Sem dados de categorias</p>';
+    }
+
+    // 4. Mini Comparison Bar
+    if (compChartEl && comparisonData?.labels?.length > 0) {
+        compChartEl.innerHTML = '';
+        const rec = (comparisonData.receitas || []).map(Number);
+        const desp = (comparisonData.despesas || []).map(Number);
+        // Aggregate into weeks for a cleaner mini chart
+        const weekLabels = [];
+        const weekRec = [];
+        const weekDesp = [];
+        const chunkSize = 7;
+        for (let i = 0; i < comparisonData.labels.length; i += chunkSize) {
+            const weekNum = Math.floor(i / chunkSize) + 1;
+            weekLabels.push(`Sem ${weekNum}`);
+            weekRec.push(rec.slice(i, i + chunkSize).reduce((s, v) => s + v, 0));
+            weekDesp.push(desp.slice(i, i + chunkSize).reduce((s, v) => s + v, 0));
+        }
+
+        const miniBar = new ApexCharts(compChartEl, {
+            chart: { type: 'bar', height: 220, background: 'transparent', toolbar: { show: false } },
+            series: [
+                { name: 'Receitas', data: weekRec },
+                { name: 'Despesas', data: weekDesp }
+            ],
+            colors: ['#2ECC71', '#E74C3C'],
+            xaxis: {
+                categories: weekLabels,
+                labels: { style: { colors: 'var(--color-text-muted)', fontSize: '11px' } },
+                axisBorder: { show: false },
+                axisTicks: { show: false }
+            },
+            yaxis: {
+                labels: {
+                    style: { fontSize: '10px' },
+                    formatter: (v) => formatCurrency(v)
+                }
+            },
+            plotOptions: { bar: { columnWidth: '60%', borderRadius: 4 } },
+            dataLabels: { enabled: false },
+            legend: { position: 'bottom', fontSize: '11px', labels: { colors: 'var(--color-text-muted)' } },
+            grid: { borderColor: 'rgba(255,255,255,0.05)' },
+            tooltip: {
+                shared: true,
+                intersect: false,
+                y: { formatter: (v) => formatCurrency(v) }
+            }
+        });
+        miniBar.render();
+        overviewCharts.push(miniBar);
+    } else if (compChartEl) {
+        compChartEl.innerHTML = '<p class="empty-message" style="padding:var(--spacing-6)">Sem dados de movimentação</p>';
+    }
+
     if (window.lucide) lucide.createIcons();
 }
 
@@ -1053,8 +1401,8 @@ function renderCardsReport(data) {
             
             <div class="cards-grid">
                 ${data.cards && data.cards.length > 0 ? data.cards.map(card => {
-                    const cardColor = safeColor(card.cor, '#E67E22');
-                    return `
+        const cardColor = safeColor(card.cor, '#E67E22');
+        return `
                     <div class="card-item ${card.status_saude.status}" 
                          style="--card-color: ${cardColor}; cursor: pointer;"
                          data-card-id="${card.id || ''}"
@@ -1169,7 +1517,8 @@ function renderCardsReport(data) {
                             </button>
                         </div>
                     </div>
-                `;}).join('') : `
+                `;
+    }).join('') : `
                     <div class="empty-state">
                         <div class="empty-icon">
                             <i data-lucide="credit-card"></i>
@@ -1187,20 +1536,61 @@ function renderCardsReport(data) {
 // ─── Export ──────────────────────────────────────────────────────────────────
 
 export async function handleExport() {
+    if (!window.IS_PRO) {
+        return showRestrictionAlert('Exportação de relatórios é exclusiva do plano PRO.');
+    }
+
+    const currentType = getReportType() || 'despesas_por_categoria';
+
+    const { value: formValues } = await Swal.fire({
+        title: 'Exportar Relatório',
+        html: `
+            <div style="text-align:left;display:flex;flex-direction:column;gap:12px;padding-top:8px;">
+                <label style="font-weight:600;font-size:0.85rem;color:var(--color-text-muted);">Tipo de Relatório</label>
+                <select id="swalExportType" class="swal2-select" style="width:100%;font-size:0.9rem;">
+                    <option value="despesas_por_categoria" ${currentType === 'despesas_por_categoria' ? 'selected' : ''}>Despesas por Categoria</option>
+                    <option value="receitas_por_categoria" ${currentType === 'receitas_por_categoria' ? 'selected' : ''}>Receitas por Categoria</option>
+                    <option value="saldo_mensal" ${currentType === 'saldo_mensal' ? 'selected' : ''}>Saldo Diário</option>
+                    <option value="receitas_despesas_diario" ${currentType === 'receitas_despesas_diario' ? 'selected' : ''}>Receitas x Despesas Diário</option>
+                    <option value="evolucao_12m" ${currentType === 'evolucao_12m' ? 'selected' : ''}>Evolução 12 Meses</option>
+                    <option value="receitas_despesas_por_conta" ${currentType === 'receitas_despesas_por_conta' ? 'selected' : ''}>Receitas x Despesas por Conta</option>
+                    <option value="cartoes_credito" ${currentType === 'cartoes_credito' ? 'selected' : ''}>Relatório de Cartões</option>
+                    <option value="resumo_anual" ${currentType === 'resumo_anual' ? 'selected' : ''}>Resumo Anual</option>
+                    <option value="despesas_anuais_por_categoria" ${currentType === 'despesas_anuais_por_categoria' ? 'selected' : ''}>Despesas Anuais por Categoria</option>
+                    <option value="receitas_anuais_por_categoria" ${currentType === 'receitas_anuais_por_categoria' ? 'selected' : ''}>Receitas Anuais por Categoria</option>
+                </select>
+                <label style="font-weight:600;font-size:0.85rem;color:var(--color-text-muted);">Formato</label>
+                <select id="swalExportFormat" class="swal2-select" style="width:100%;font-size:0.9rem;">
+                    <option value="pdf">PDF</option>
+                    <option value="excel">Excel (.xlsx)</option>
+                </select>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Exportar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#e67e22',
+        preConfirm: () => ({
+            type: document.getElementById('swalExportType').value,
+            format: document.getElementById('swalExportFormat').value
+        })
+    });
+
+    if (!formValues) return;
+
     const exportBtn = document.getElementById('exportBtn');
-    if (!exportBtn) return;
-
-    const originalHTML = exportBtn.innerHTML;
-
-    exportBtn.disabled = true;
-    exportBtn.innerHTML = `
-        <div class="spinner" style="width: 1rem; height: 1rem; border-width: 2px;"></div>
-        <span>Exportando...</span>
-    `;
+    const originalHTML = exportBtn ? exportBtn.innerHTML : '';
+    if (exportBtn) {
+        exportBtn.disabled = true;
+        exportBtn.innerHTML = `
+            <div class="spinner" style="width: 1rem; height: 1rem; border-width: 2px;"></div>
+            <span>Exportando...</span>
+        `;
+    }
 
     try {
-        const type = document.getElementById('exportType')?.value || 'despesas_por_categoria';
-        const format = document.getElementById('exportFormat')?.value || 'pdf';
+        const type = formValues.type;
+        const format = formValues.format;
 
         const params = new URLSearchParams({
             type,
@@ -1245,7 +1635,6 @@ export async function handleExport() {
         link.remove();
         URL.revokeObjectURL(url);
 
-        // Toast de sucesso
         if (typeof Swal !== 'undefined') {
             Swal.fire({
                 toast: true,
@@ -1274,16 +1663,24 @@ export async function handleExport() {
             alert(error.message || 'Erro ao exportar relatório. Tente novamente.');
         }
     } finally {
-        exportBtn.disabled = false;
-        exportBtn.innerHTML = originalHTML;
+        if (exportBtn) {
+            exportBtn.disabled = false;
+            exportBtn.innerHTML = originalHTML;
+        }
     }
 }
 
 /**
- * Refresh PRO sections (insights/comparativos) when their tab becomes active.
+ * Refresh sections when their tab becomes active.
  */
 export async function refreshActiveSection(section) {
-    if (section === 'insights') {
+    if (section === 'overview') {
+        await updateOverviewSection();
+    } else if (section === 'relatorios') {
+        // Re-render chart — it may have been initially drawn while the panel
+        // was display:none (overview is the default), causing 0px measurements.
+        await renderReport();
+    } else if (section === 'insights') {
         await updateInsightsSection();
     } else if (section === 'comparativos') {
         await updateComparativesSection();

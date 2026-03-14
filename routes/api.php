@@ -46,6 +46,7 @@ Router::add('POST', '/api/perfil', 'Api\\User\\PerfilController@update', ['auth'
 Router::add('POST', '/api/perfil/senha', 'Api\\User\\PerfilController@updatePassword', ['auth', 'csrf', 'ratelimit_strict']);
 Router::add('POST', '/api/perfil/tema', 'Api\\User\\PerfilController@updateTheme', ['auth', 'csrf', 'ratelimit']);
 Router::add('POST', '/api/perfil/avatar', 'Api\\User\\PerfilController@uploadAvatar', ['auth', 'csrf', 'ratelimit']);
+Router::add('POST', '/api/perfil/avatar/preferences', 'Api\\User\\PerfilController@updateAvatarPreferences', ['auth', 'csrf', 'ratelimit']);
 Router::add('DELETE', '/api/perfil/avatar', 'Api\\User\\PerfilController@removeAvatar', ['auth', 'csrf', 'ratelimit']);
 Router::add('DELETE', '/api/perfil/delete', 'Api\\User\\PerfilController@delete', ['auth', 'csrf', 'ratelimit_strict']);
 
@@ -69,6 +70,8 @@ Router::add('GET', '/api/dashboard/metrics',      'Api\\Financeiro\\FinanceiroCo
 Router::add('GET', '/api/dashboard/transactions', 'Api\\Financeiro\\DashboardController@transactions',  ['auth']);
 Router::add('GET', '/api/dashboard/comparativo-competencia', 'Api\\Financeiro\\DashboardController@comparativoCompetenciaCaixa', ['auth']);
 Router::add('GET', '/api/dashboard/provisao',     'Api\\Financeiro\\DashboardController@provisao',       ['auth']);
+Router::add('GET', '/api/dashboard/health-score', 'Api\\Financeiro\\DashboardController@healthScore',    ['auth']);
+Router::add('GET', '/api/dashboard/greeting-insight', 'Api\\Financeiro\\DashboardController@greetingInsight', ['auth']);
 Router::add('GET', '/api/options',                'Api\\Financeiro\\FinanceiroController@options',      ['auth']);
 
 // ============================================
@@ -78,6 +81,7 @@ Router::add('GET', '/api/options',                'Api\\Financeiro\\FinanceiroCo
 Router::add('GET', '/api/reports',             'Api\\Report\\RelatoriosController@index',        ['auth']);
 Router::add('GET', '/api/reports/summary',     'Api\\Report\\RelatoriosController@summary',      ['auth']);
 Router::add('GET', '/api/reports/insights',    'Api\\Report\\RelatoriosController@insights',     ['auth']);
+Router::add('GET', '/api/reports/insights-teaser', 'Api\\Report\\RelatoriosController@insightsTeaser', ['auth']);
 Router::add('GET', '/api/reports/comparatives', 'Api\\Report\\RelatoriosController@comparatives', ['auth']);
 Router::add('GET', '/api/reports/card-details/{id}', 'Api\\Report\\RelatoriosController@cardDetails', ['auth']);
 Router::add('GET', '/api/reports/export',      'Api\\Report\\RelatoriosController@export',       ['auth', 'ratelimit']);

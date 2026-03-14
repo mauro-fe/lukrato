@@ -2,53 +2,26 @@
    FEEDBACK COLLECTOR - Widgets globais de feedback do usuario
    ================================================================= */
 
-/* --- Botao Fixo de Sugestao (bottom-left) --- */
-.lk-feedback-suggestion-btn {
-    position: fixed;
-    bottom: 24px;
-    left: 24px;
-    z-index: 9990;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 18px;
-    background: var(--glass-bg, rgba(255,255,255,0.12));
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border, rgba(255,255,255,0.15));
-    border-radius: var(--radius-md, 12px);
-    color: var(--color-text, #e2e8f0);
-    font-size: 0.8rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all var(--transition-normal, 0.3s) ease;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-    opacity: 0.85;
+/* --- Botao Sugestao (sidebar footer item) --- */
+#sidebarSuggestionBtn {
+    color: var(--color-text-muted, #94a3b8);
+    transition: color var(--transition-fast, 0.15s) ease;
 }
 
-.lk-feedback-suggestion-btn:hover {
-    opacity: 1;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 24px rgba(0,0,0,0.25);
-    border-color: var(--color-primary, #e67e22);
-}
-
-.lk-feedback-suggestion-btn svg {
-    width: 16px;
-    height: 16px;
+#sidebarSuggestionBtn:hover {
     color: var(--color-primary, #e67e22);
 }
 
-/* Hide label on mobile, show only icon */
-@media (max-width: 768px) {
-    .lk-feedback-suggestion-btn {
-        bottom: 16px;
-        left: 16px;
-        padding: 10px;
-    }
-    .lk-feedback-suggestion-btn .lk-feedback-suggestion-label {
-        display: none;
-    }
+#sidebarSuggestionBtn svg,
+#sidebarSuggestionBtn i {
+    color: var(--color-primary, #e67e22);
+    opacity: 0.7;
+    transition: opacity var(--transition-fast, 0.15s) ease;
+}
+
+#sidebarSuggestionBtn:hover svg,
+#sidebarSuggestionBtn:hover i {
+    opacity: 1;
 }
 
 /* --- Micro Feedback Widget (floating) --- */
@@ -303,6 +276,178 @@
     filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.4));
 }
 
+/* --- Suggestion Modal (lk-swal-suggestion) --- */
+.lk-swal-suggestion.swal2-popup {
+    max-width: 460px !important;
+    padding: 28px 32px !important;
+}
+
+.lk-swal-suggestion .swal2-title {
+    font-size: 1.15rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 0 !important;
+}
+
+.lk-swal-suggestion .swal2-html-container {
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: left !important;
+    overflow: visible !important;
+}
+
+.lk-sg-modal {
+    text-align: left;
+}
+
+.lk-sg-subtitle {
+    font-size: 0.82rem;
+    color: var(--color-text-muted, #94a3b8);
+    margin: 4px 0 20px;
+    text-align: center;
+}
+
+.lk-sg-section {
+    margin-bottom: 16px;
+}
+
+.lk-sg-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-muted, #94a3b8);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+}
+
+.lk-sg-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.lk-sg-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 14px;
+    border: 1px solid var(--glass-border, rgba(255,255,255,0.12));
+    border-radius: 20px;
+    background: var(--color-surface-muted, rgba(255,255,255,0.05));
+    color: var(--color-text, #e2e8f0);
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.lk-sg-chip svg,
+.lk-sg-chip i {
+    width: 14px;
+    height: 14px;
+    opacity: 0.6;
+}
+
+.lk-sg-chip:hover {
+    border-color: var(--color-primary, #e67e22);
+    color: var(--color-primary, #e67e22);
+}
+
+.lk-sg-chip:hover svg,
+.lk-sg-chip:hover i {
+    opacity: 1;
+}
+
+.lk-sg-chip.active {
+    background: var(--color-primary, #e67e22);
+    border-color: var(--color-primary, #e67e22);
+    color: #fff;
+}
+
+.lk-sg-chip.active svg,
+.lk-sg-chip.active i {
+    opacity: 1;
+    color: #fff;
+}
+
+.lk-swal-suggestion .lk-star-rating {
+    justify-content: flex-start;
+    gap: 4px;
+    margin: 0;
+}
+
+.lk-swal-suggestion .lk-star-rating__star {
+    width: 28px;
+    height: 28px;
+}
+
+.lk-sg-textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 10px 12px;
+    border: 1px solid var(--glass-border, rgba(255,255,255,0.12));
+    border-radius: var(--radius-sm, 8px);
+    background: var(--color-surface-muted, rgba(255,255,255,0.04));
+    color: var(--color-text, #e2e8f0);
+    font-size: 0.82rem;
+    font-family: inherit;
+    resize: vertical;
+    transition: border-color 0.15s ease;
+}
+
+.lk-sg-textarea::placeholder {
+    color: var(--color-text-muted, #64748b);
+}
+
+.lk-sg-textarea:focus {
+    outline: none;
+    border-color: var(--color-primary, #e67e22);
+    box-shadow: 0 0 0 3px var(--ring, rgba(230,126,34,0.22));
+}
+
+.lk-swal-suggestion .swal2-actions {
+    margin-top: 8px !important;
+    gap: 8px;
+}
+
+.lk-swal-suggestion .swal2-confirm {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 6px;
+    border-radius: 8px !important;
+    padding: 10px 20px !important;
+    font-weight: 600 !important;
+    font-size: 0.82rem !important;
+}
+
+.lk-swal-suggestion .swal2-confirm svg {
+    width: 14px;
+    height: 14px;
+}
+
+.lk-swal-suggestion .swal2-cancel {
+    border-radius: 8px !important;
+    padding: 10px 20px !important;
+    font-size: 0.82rem !important;
+    background: transparent !important;
+    color: var(--color-text-muted, #94a3b8) !important;
+    border: 1px solid var(--glass-border, rgba(255,255,255,0.12)) !important;
+}
+
+.lk-swal-suggestion .swal2-cancel:hover {
+    background: var(--color-surface-muted, rgba(255,255,255,0.05)) !important;
+}
+
+/* Light theme overrides for suggestion modal */
+[data-theme="light"] .lk-sg-textarea {
+    background: var(--color-bg, #f8fafc);
+}
+
+[data-theme="light"] .lk-sg-chip {
+    background: rgba(0,0,0,0.04);
+    border-color: rgba(0,0,0,0.1);
+}
+
 /* --- AI Feedback (inline bar) --- */
 .lk-ai-feedback {
     display: flex;
@@ -359,11 +504,6 @@
 [data-theme="light"] .lk-micro-feedback__comment textarea,
 [data-theme="light"] .lk-nps-comment textarea {
     background: var(--color-bg, #f8fafc);
-}
-
-[data-theme="light"] .lk-feedback-suggestion-btn {
-    background: var(--glass-bg, rgba(255,255,255,0.8));
-    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
 }
 
 /* --- Responsive --- */

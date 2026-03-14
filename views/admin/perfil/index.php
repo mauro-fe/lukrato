@@ -3,10 +3,11 @@
 <div class="profile-page">
     <div class="profile-header">
         <!-- Avatar Upload -->
+        <?php $avatarUrl = $currentUser?->avatar ? rtrim(BASE_URL, '/') . '/' . $currentUser->avatar : ''; ?>
         <div class="profile-avatar-wrapper">
             <div class="profile-avatar" id="profileAvatar">
-                <span class="avatar-initials" id="avatarInitials"><?= mb_substr($topNavFirstName ?: 'U', 0, 1) ?></span>
-                <img class="avatar-img" id="avatarImg" src="" alt="Foto de perfil" style="display:none">
+                <span class="avatar-initials" id="avatarInitials" <?= $avatarUrl ? 'style="display:none"' : '' ?>><?= mb_substr($topNavFirstName ?: 'U', 0, 1) ?></span>
+                <img class="avatar-img" id="avatarImg" src="<?= htmlspecialchars($avatarUrl) ?>" alt="Foto de perfil" <?= $avatarUrl ? '' : 'style="display:none"' ?>>
             </div>
             <button type="button" class="avatar-edit-btn" id="avatarEditBtn" title="Alterar foto de perfil">
                 <i data-lucide="camera"></i>

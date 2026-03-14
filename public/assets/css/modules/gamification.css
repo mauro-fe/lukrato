@@ -27,11 +27,11 @@
   gap: 0.75rem;
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text-primary, #1f2937);
+  color: var(--color-text);
 }
 
 .gamification-title i {
-  color: var(--primary-color, #6366f1);
+  color: var(--color-primary);
 }
 
 .pro-badge {
@@ -54,17 +54,13 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: linear-gradient(
-    135deg,
-    var(--primary-color, #6366f1) 0%,
-    var(--secondary-color, #818cf8) 100%
-  );
+  background: var(--gradient-primary);
   color: white;
   padding: 0.75rem 1.25rem;
   border-radius: 30px;
   font-weight: 600;
   font-size: 1rem;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
   transition:
     transform 0.3s ease,
     box-shadow 0.3s ease;
@@ -72,7 +68,7 @@
 
 .level-badge:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 6px 16px rgba(var(--color-primary-rgb), 0.4);
 }
 
 /* ===== BARRA DE PROGRESSO DE NÃVEL ===== */
@@ -89,7 +85,7 @@
 
 .level-progress-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.15);
 }
 
 .level-progress-header {
@@ -116,14 +112,14 @@
   width: 18px;
   height: 18px;
   flex-shrink: 0;
-  color: var(--primary-color, #6366f1);
+  color: var(--color-primary);
 }
 
 .level-progress-points {
   font-size: 0.9rem;
   font-weight: 700;
-  color: var(--primary-color, #6366f1);
-  background: rgba(99, 102, 241, 0.1);
+  color: var(--color-primary);
+  background: rgba(var(--color-primary-rgb), 0.1);
   padding: 0.25rem 0.75rem;
   border-radius: 12px;
   white-space: nowrap;
@@ -133,7 +129,7 @@
 .level-progress-bar-container {
   width: 100%;
   height: 14px;
-  background: rgba(99, 102, 241, 0.08);
+  background: rgba(var(--color-primary-rgb), 0.08);
   border-radius: 20px;
   overflow: hidden;
   position: relative;
@@ -302,8 +298,8 @@
 
 /* ===== PROGRESS CARD ===== */
 .progress-card {
-  background: var(--card-bg, #fff);
-  border: 2px solid var(--border-color, #e5e7eb);
+  background: var(--color-card-bg, #fff);
+  border: 2px solid var(--color-card-border, #e5e7eb);
   border-radius: 16px;
   padding: 1.5rem;
   transition:
@@ -328,23 +324,23 @@
   align-items: center;
   gap: 0.5rem;
   font-weight: 600;
-  color: var(--text-primary, #1f2937);
+  color: var(--color-text);
 }
 
 .progress-title i {
-  color: var(--primary-color, #6366f1);
+  color: var(--color-primary);
 }
 
 .progress-percentage {
   font-weight: 700;
   font-size: 1.25rem;
-  color: var(--primary-color, #6366f1);
+  color: var(--color-primary);
 }
 
 .progress-bar-container {
   width: 100%;
   height: 10px;
-  background: var(--bg-secondary, #f3f4f6);
+  background: var(--color-surface-muted, #f3f4f6);
   border-radius: 20px;
   overflow: hidden;
   margin-bottom: 0.75rem;
@@ -363,7 +359,7 @@
 
 .progress-text {
   font-size: 0.85rem;
-  color: var(--text-secondary, #6b7280);
+  color: var(--color-text-muted, #6b7280);
 }
 
 /* ===== BADGES CARD ===== */
@@ -541,7 +537,7 @@
 
 .stat-mini-label {
   font-size: 0.85rem;
-  color: var(--text-secondary, #6b7280);
+  color: var(--color-text-muted, #6b7280);
   font-weight: 500;
 }
 
@@ -617,7 +613,7 @@
 /* ===== MODALS ===== */
 .achievement-modal .achievement-description {
   font-size: 1rem;
-  color: var(--text-secondary, #6b7280);
+  color: var(--color-text-muted, #6b7280);
   margin-bottom: 1rem;
 }
 

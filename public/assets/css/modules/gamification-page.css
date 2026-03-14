@@ -487,7 +487,7 @@
   z-index: 1;
   margin: 0 0 32px;
   font-size: 16px;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   max-width: 500px;
   margin-left: auto;
   margin-right: auto;

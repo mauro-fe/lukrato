@@ -39,6 +39,10 @@ class GamificationController extends BaseController
     {
         $this->requireAuthApi();
 
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         try {
             $progress = UserProgress::where('user_id', $this->userId)->first();
             $user = Auth::user();
@@ -91,6 +95,10 @@ class GamificationController extends BaseController
     public function getAchievements(): void
     {
         $this->requireAuthApi();
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
 
         try {
             $user = Auth::user();
@@ -208,6 +216,10 @@ class GamificationController extends BaseController
     {
         $this->requireAuthApi();
 
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         try {
             // Leaderboard é exclusivo para usuários Pro
             $user = Auth::user();
@@ -265,6 +277,10 @@ class GamificationController extends BaseController
     {
         $this->requireAuthApi();
 
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         try {
             $user = Auth::user();
 
@@ -305,6 +321,10 @@ class GamificationController extends BaseController
     public function getHistory(): void
     {
         $this->requireAuthApi();
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
 
         try {
             $limit = (int)($_GET['limit'] ?? 10);

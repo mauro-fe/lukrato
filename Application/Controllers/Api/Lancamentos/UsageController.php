@@ -25,6 +25,10 @@ class UsageController extends BaseController
             return;
         }
 
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         $month = $_GET['month'] ?? date('Y-m');
         if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $month)) {
             Response::validationError(['month' => 'Formato invalido (YYYY-MM)']);

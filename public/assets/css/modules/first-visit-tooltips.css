@@ -24,16 +24,16 @@
 
 /* Tooltip Content */
 .fvt-tooltip-content {
-    background: var(--card-bg, #ffffff);
+    background: var(--color-card-bg, #ffffff);
     border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-lg), 0 0 0 1px var(--color-card-border, rgba(0, 0, 0, 0.05));
     padding: 16px;
     position: relative;
 }
 
 [data-theme="dark"] .fvt-tooltip-content {
-    background: var(--card-bg, #1e293b);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    background: var(--color-card-bg, #1c2c3c);
+    box-shadow: var(--shadow-lg), 0 0 0 1px var(--color-card-border, rgba(255, 255, 255, 0.1));
 }
 
 /* Header */
@@ -50,7 +50,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--primary-color, #6366f1) 0%, var(--primary-dark, #4f46e5) 100%);
+    background: linear-gradient(135deg, var(--color-primary, #e67e22) 0%, #cf6d1b 100%);
     color: white;
     border-radius: 8px;
     font-size: 14px;
@@ -60,11 +60,11 @@
     flex: 1;
     font-weight: 600;
     font-size: 15px;
-    color: var(--text-color, #1e293b);
+    color: var(--color-text, #0f172a);
 }
 
 [data-theme="dark"] .fvt-title {
-    color: var(--text-color, #f1f5f9);
+    color: var(--color-text, #f8f9fa);
 }
 
 .fvt-pro-tag {
@@ -86,32 +86,32 @@
     justify-content: center;
     background: transparent;
     border: none;
-    color: var(--text-muted, #94a3b8);
+    color: var(--color-text-muted, #94a3b8);
     cursor: pointer;
     border-radius: 6px;
     transition: all 0.2s ease;
 }
 
 .fvt-close:hover {
-    background: var(--hover-bg, #f1f5f9);
-    color: var(--text-color, #1e293b);
+    background: var(--color-surface-muted, #f1f5f9);
+    color: var(--color-text, #0f172a);
 }
 
 [data-theme="dark"] .fvt-close:hover {
-    background: var(--hover-bg, #334155);
-    color: var(--text-color, #f1f5f9);
+    background: var(--color-bg, #213245);
+    color: var(--color-text, #f8f9fa);
 }
 
 /* Message */
 .fvt-message {
     font-size: 13px;
     line-height: 1.5;
-    color: var(--text-muted, #64748b);
+    color: var(--color-text-muted, #64748b);
     margin: 0 0 12px 0;
 }
 
 [data-theme="dark"] .fvt-message {
-    color: var(--text-muted, #94a3b8);
+    color: var(--color-text-muted, #bdc3c7);
 }
 
 /* Footer */
@@ -120,16 +120,16 @@
     align-items: center;
     justify-content: space-between;
     padding-top: 12px;
-    border-top: 1px solid var(--border-color, #e2e8f0);
+    border-top: 1px solid var(--color-card-border, rgba(0, 0, 0, 0.05));
 }
 
 [data-theme="dark"] .fvt-footer {
-    border-top-color: var(--border-color, #334155);
+    border-top-color: var(--color-card-border, rgba(255, 255, 255, 0.1));
 }
 
 .fvt-hint {
     font-size: 11px;
-    color: var(--text-muted, #94a3b8);
+    color: var(--color-text-muted, #94a3b8);
     display: flex;
     align-items: center;
     gap: 4px;
@@ -141,7 +141,7 @@
 }
 
 .fvt-got-it {
-    background: var(--primary-color, #6366f1);
+    background: var(--color-primary, #e67e22);
     color: white;
     border: none;
     padding: 6px 14px;
@@ -153,7 +153,8 @@
 }
 
 .fvt-got-it:hover {
-    background: var(--primary-dark, #4f46e5);
+    background: var(--color-primary, #e67e22);
+    filter: brightness(0.85);
     transform: translateY(-1px);
 }
 
@@ -162,13 +163,13 @@
     position: absolute;
     width: 12px;
     height: 12px;
-    background: var(--card-bg, #ffffff);
+    background: var(--color-card-bg, #ffffff);
     transform: rotate(45deg);
     box-shadow: -2px -2px 4px rgba(0, 0, 0, 0.05);
 }
 
 [data-theme="dark"] .fvt-arrow {
-    background: var(--card-bg, #1e293b);
+    background: var(--color-card-bg, #1c2c3c);
 }
 
 /* Arrow positions */
@@ -209,7 +210,7 @@
     content: '';
     position: absolute;
     inset: -4px;
-    border: 2px dashed var(--primary-color, #6366f1);
+    border: 2px dashed var(--color-primary, #e67e22);
     border-radius: inherit;
     pointer-events: none;
     animation: fvt-border-dance 0.5s linear infinite;
@@ -217,10 +218,10 @@
 
 @keyframes fvt-pulse {
     0%, 100% {
-        box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+        box-shadow: 0 0 0 0 rgba(230, 126, 34, 0.4);
     }
     50% {
-        box-shadow: 0 0 0 8px rgba(99, 102, 241, 0);
+        box-shadow: 0 0 0 8px rgba(230, 126, 34, 0);
     }
 }
 

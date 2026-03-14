@@ -1,0 +1,155 @@
+/* =====================================================================
+   CELEBRATION ANIMATIONS CSS
+   Estilos para toasts, modals e popups de celebração
+   ===================================================================== */
+
+/* Achievement Popup */
+.achievement-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.5);
+  opacity: 0;
+  z-index: 99998;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.achievement-popup.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.achievement-card {
+  background: linear-gradient(135deg,
+    var(--color-primary),
+    #f39c12
+  );
+  border-radius: 20px;
+  padding: 32px 24px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(230, 126, 34, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  max-width: 300px;
+  backdrop-filter: blur(20px);
+}
+
+.achievement-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  display: block;
+  animation: bounce-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.achievement-title {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  opacity: 0.9;
+}
+
+.achievement-name {
+  color: white;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+}
+
+@keyframes bounce-in {
+  0% {
+    transform: scale(0) rotate(-180deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2) rotate(10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+
+/* Spin animation para FAB */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Bounce animation */
+@keyframes fab-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+/* Pulse glow effect */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(230, 126, 34, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(230, 126, 34, 0.8);
+  }
+}
+
+/* Sweet Alert customizations */
+.swal2-title {
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.swal2-html-container {
+  font-size: 15px;
+  color: var(--color-text-muted);
+}
+
+.swal2-confirm {
+  background: linear-gradient(135deg, var(--color-primary), #f39c12);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  padding: 12px 32px;
+  transition: all 0.3s ease;
+}
+
+.swal2-confirm:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 24px rgba(230, 126, 34, 0.4);
+}
+
+.swal2-confirm:active {
+  transform: scale(0.95);
+}
+
+/* FadeInUp animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Shake animation */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+.shake {
+  animation: shake 0.5s ease-in-out;
+}

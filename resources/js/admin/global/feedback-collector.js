@@ -246,75 +246,98 @@
     // ========================================================================
 
     function initSuggestionButton() {
-        // Don't add if already exists
-        if (document.querySelector('.lk-feedback-suggestion-btn')) return;
+        const btn = document.getElementById('sidebarSuggestionBtn');
+        if (!btn) return;
 
-        const btn = document.createElement('button');
-        btn.className = 'lk-feedback-suggestion-btn';
-        btn.setAttribute('aria-label', 'Enviar sugestao');
-        btn.innerHTML = `
-            <i data-lucide="message-circle"></i>
-            <span class="lk-feedback-suggestion-label">Sugestao</span>
-        `;
-
-        btn.addEventListener('click', showSuggestionModal);
-        document.body.appendChild(btn);
-
-        // Init lucide icon
-        if (window.lucide) {
-            lucide.createIcons({ nodes: [btn] });
-        }
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            showSuggestionModal();
+        });
     }
 
     function showSuggestionModal() {
         if (typeof Swal === 'undefined') return;
 
         let selectedRating = 0;
+        let selectedType = null;
 
-        const stars = Array.from({ length: 5 }, (_, i) => {
-            const n = i + 1;
-            return `<svg class="lk-star-rating__star" data-star="${n}" xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
-        }).join('');
+        const isDark = (document.documentElement.getAttribute('data-theme') || 'dark') === 'dark';
+        const swalTheme = {
+            background: isDark ? '#1e293b' : '#ffffff',
+            color: isDark ? '#f1f5f9' : '#1e293b',
+            confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#e67e22',
+        };
+
+        const types = [
+            { id: 'sugestao', label: 'Sugestão', icon: 'lightbulb' },
+            { id: 'critica',  label: 'Crítica',  icon: 'alert-triangle' },
+            { id: 'elogio',   label: 'Elogio',   icon: 'heart' },
+            { id: 'bug',      label: 'Bug',       icon: 'bug' },
+        ];
+
+        const typeChips = types.map(t =>
+            `<button type="button" class="lk-sg-chip" data-type="${t.id}"><i data-lucide="${t.icon}"></i>${t.label}</button>`
+        ).join('');
+
+        const stars = Array.from({ length: 5 }, (_, i) =>
+            `<svg class="lk-star-rating__star" data-star="${i + 1}" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`
+        ).join('');
 
         Swal.fire({
-            title: 'Enviar Sugestao',
+            title: 'Envie seu feedback',
             html: `
-                <div style="text-align:center;">
-                    <p style="font-size:0.85rem;color:var(--color-text-muted,#94a3b8);margin-bottom:8px;">
-                        Como voce avalia o Lukrato?
-                    </p>
-                    <div class="lk-star-rating">${stars}</div>
-                    <textarea id="lkSuggestionText" placeholder="Escreva sua sugestao, critica ou elogio..."
-                        maxlength="2000" rows="4"
-                        style="width:100%;margin-top:12px;padding:10px 12px;border:1px solid var(--glass-border,rgba(255,255,255,0.15));border-radius:8px;background:var(--color-bg,#0f172a);color:var(--color-text,#e2e8f0);font-size:0.8rem;font-family:inherit;resize:vertical;"></textarea>
+                <div class="lk-sg-modal">
+                    <p class="lk-sg-subtitle">Sua opinião nos ajuda a melhorar o Lukrato.</p>
+                    <div class="lk-sg-section">
+                        <label class="lk-sg-label">Tipo</label>
+                        <div class="lk-sg-chips">${typeChips}</div>
+                    </div>
+                    <div class="lk-sg-section">
+                        <label class="lk-sg-label">Avaliação</label>
+                        <div class="lk-star-rating">${stars}</div>
+                    </div>
+                    <div class="lk-sg-section">
+                        <label class="lk-sg-label" for="lkSuggestionText">Mensagem</label>
+                        <textarea id="lkSuggestionText" class="lk-sg-textarea" placeholder="Descreva sua sugestão, crítica ou elogio..." maxlength="2000" rows="4"></textarea>
+                    </div>
                 </div>
             `,
             showConfirmButton: true,
-            confirmButtonText: 'Enviar',
-            confirmButtonColor: '#e67e22',
+            confirmButtonText: '<i data-lucide="send"></i> Enviar feedback',
             showCancelButton: true,
             cancelButtonText: 'Cancelar',
+            ...swalTheme,
+            customClass: {
+                popup: 'lk-swal-popup lk-swal-suggestion',
+            },
             preConfirm: () => {
                 const comment = document.getElementById('lkSuggestionText')?.value?.trim() || null;
-                if (selectedRating === 0 && !comment) {
-                    Swal.showValidationMessage('Selecione uma nota ou escreva algo');
+                if (selectedRating === 0 && !comment && !selectedType) {
+                    Swal.showValidationMessage('Preencha pelo menos um campo');
                     return false;
                 }
-                return { rating: selectedRating || null, comment };
+                return { rating: selectedRating || null, comment, type: selectedType };
             },
             didOpen: () => {
                 const popup = Swal.getPopup();
+                if (window.lucide) lucide.createIcons({ nodes: [popup] });
+
+                // Type chip selection
+                popup.querySelectorAll('.lk-sg-chip').forEach(chip => {
+                    chip.addEventListener('click', () => {
+                        popup.querySelectorAll('.lk-sg-chip').forEach(c => c.classList.remove('active'));
+                        chip.classList.add('active');
+                        selectedType = chip.dataset.type;
+                    });
+                });
+
+                // Star rating
                 popup.querySelectorAll('.lk-star-rating__star').forEach(star => {
                     star.addEventListener('click', () => {
                         selectedRating = parseInt(star.dataset.star);
                         popup.querySelectorAll('.lk-star-rating__star').forEach((s, idx) => {
-                            if (idx < selectedRating) {
-                                s.classList.add('active');
-                                s.style.fill = 'currentColor';
-                            } else {
-                                s.classList.remove('active');
-                                s.style.fill = 'none';
-                            }
+                            s.classList.toggle('active', idx < selectedRating);
+                            s.style.fill = idx < selectedRating ? 'currentColor' : 'none';
                         });
                     });
 
@@ -335,15 +358,15 @@
         }).then(async (result) => {
             if (result.isConfirmed && result.value) {
                 const ok = await postFeedback({
-                    tipo_feedback: 'sugestao',
+                    tipo_feedback: result.value.type || 'sugestao',
                     rating: result.value.rating,
                     comentario: result.value.comment,
                 });
 
                 if (ok && typeof LK?.toast?.success === 'function') {
-                    LK.toast.success('Obrigado pela sugestao!');
+                    LK.toast.success('Obrigado pelo feedback!');
                 } else if (!ok && typeof LK?.toast?.error === 'function') {
-                    LK.toast.error('Limite de sugestoes atingido hoje.');
+                    LK.toast.error('Limite de feedback atingido hoje.');
                 }
             }
         });

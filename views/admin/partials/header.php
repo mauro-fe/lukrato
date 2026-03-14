@@ -53,7 +53,6 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
          STYLES INTERNOS
          ============================================================================ -->
     <!-- Fonts (self-hosted) -->
-    <link rel="preload" href="<?= BASE_URL ?>assets/fonts/inter-latin-400.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/fonts.css">
 
     <!-- Core -->
@@ -100,7 +99,7 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
          ============================================================================ -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.54.1"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- ============================================================================
@@ -123,7 +122,12 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
             isSysAdmin: <?= json_encode($isSysAdmin) ?>,
             userId: <?= json_encode($currentUser?->id ?? null) ?>,
             username: <?= json_encode($username) ?>,
-            userAvatar: <?= json_encode($currentUser?->avatar ? rtrim(BASE_URL, '/') . '/' . $currentUser->avatar : '') ?>
+            userAvatar: <?= json_encode($currentUser?->avatar ? rtrim(BASE_URL, '/') . '/' . $currentUser->avatar : '') ?>,
+            userAvatarSettings: <?= json_encode([
+                'position_x' => max(0, min(100, (int) ($currentUser?->avatar_focus_x ?? 50))),
+                'position_y' => max(0, min(100, (int) ($currentUser?->avatar_focus_y ?? 50))),
+                'zoom' => max(1, min(2, round((float) ($currentUser?->avatar_zoom ?? 1), 2))),
+            ]) ?>
         };
     </script>
 
@@ -246,6 +250,10 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                     <span>SysAdmin</span>
                 </a>
             <?php endif; ?>
+            <a href="#" class="nav-item" id="sidebarSuggestionBtn" title="Enviar sugestão">
+                <i data-lucide="message-circle"></i>
+                <span>Sugestão</span>
+            </a>
             <a id="btn-logout" class="nav-item" href="<?= BASE_URL ?>logout" title="Sair">
                 <i data-lucide="log-out"></i>
                 <span>Sair</span>

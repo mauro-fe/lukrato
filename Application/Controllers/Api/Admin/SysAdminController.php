@@ -65,6 +65,10 @@ class SysAdminController extends BaseController
     {
         $this->requireAuthApi();
 
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         Response::json([
             'success' => true,
             'active' => MaintenanceService::isActive(),
@@ -252,6 +256,10 @@ class SysAdminController extends BaseController
     {
         $this->requireAuthApi();
 
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         try {
             $user = \Application\Lib\Auth::user();
 
@@ -367,6 +375,10 @@ class SysAdminController extends BaseController
     public function getUser(int $id): void
     {
         $this->requireAuthApi();
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
 
         try {
             $user = \Application\Lib\Auth::user();
@@ -596,6 +608,10 @@ class SysAdminController extends BaseController
     {
         $this->requireAuthApi();
 
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         try {
             $user = \Application\Lib\Auth::user();
 
@@ -745,6 +761,10 @@ class SysAdminController extends BaseController
     {
         $this->requireAuthApi();
 
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         $resolvedParam = $_GET['resolved'] ?? null;
         $resolved = null;
         if ($resolvedParam !== null && $resolvedParam !== '') {
@@ -781,6 +801,10 @@ class SysAdminController extends BaseController
     public function errorLogsSummary(): void
     {
         $this->requireAuthApi();
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
 
         $hours = max(1, (int) ($_GET['hours'] ?? 24));
 

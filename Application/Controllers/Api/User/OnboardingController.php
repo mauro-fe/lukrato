@@ -304,7 +304,7 @@ class OnboardingController extends BaseController
 
     /**
      * GET /api/onboarding/checklist
-     * Retorna status da checklist de primeiros passos
+     * Retorna status da checklist de primeiros passos (expandida para 8 items com pontos)
      */
     public function checklist(): void
     {
@@ -322,70 +322,119 @@ class OnboardingController extends BaseController
             $hasOrcamento    = OrcamentoCategoria::where('user_id', $userId)->exists();
             $hasAgendamento  = Lancamento::where('user_id', $userId)->where('recorrente', true)->exists();
 
+            // Novos items (expandidos)
+            $hasCustomCategory = $categoriasCount > 0; // Categoria customizada (além das padrões)
+            $explorouHealthScore = false; // TODO: Track health score views
+
             $items = [
+                // TIER 1: Fundamentais (precisa fazer)
                 [
-                    'key'         => 'lancamentos',
-                    'label'       => 'Adicionar mais lançamentos',
-                    'description' => 'Registre pelo menos 3 transações',
-                    'icon'        => 'plus',
-                    'color'       => '#22c55e',
-                    'href'        => 'lancamentos',
-                    'done'        => $lancamentosCount >= 3,
+                    'key'         => 'primeira_transacao',
+                    'label'       => 'Adicionar primeira transação',
+                    'description' => 'Registre seu primeiro lançamento',
+                    'icon'        => 'plus-circle',
+                    'color'       => '#10b981',
+                    'href'        => 'lancamentos?tipo=receita',
+                    'done'        => $lancamentosCount >= 1,
+                    'points'      => 25,  // Pontos de gamificação
+                    'priority'    => 1,   // Ordem de exibição
                 ],
                 [
-                    'key'         => 'categorias',
-                    'label'       => 'Criar uma categoria',
-                    'description' => 'Personalize suas categorias de gastos',
+                    'key'         => 'segunda_transacao',
+                    'label'       => 'Adicionar segunda transação',
+                    'description' => 'Construa o hábito',
+                    'icon'        => 'plus-circle',
+                    'color'       => '#3b82f6',
+                    'href'        => 'lancamentos',
+                    'done'        => $lancamentosCount >= 2,
+                    'points'      => 25,
+                    'priority'    => 2,
+                ],
+
+                // TIER 2: Importantes (melhor funcionamento)
+                [
+                    'key'         => 'explorar_health_score',
+                    'label'       => 'Explorar Health Score',
+                    'description' => 'Entenda sua saúde financeira',
+                    'icon'        => 'heart-handshake',
+                    'color'       => '#ec4899',
+                    'href'        => 'dashboard#health-score',
+                    'done'        => $explorouHealthScore, // Será atualizado via JS
+                    'points'      => 10,
+                    'priority'    => 3,
+                ],
+                [
+                    'key'         => 'categoria_customizada',
+                    'label'       => 'Criar categoria customizada',
+                    'description' => 'Personalize suas categorias',
                     'icon'        => 'tags',
                     'color'       => '#8b5cf6',
                     'href'        => 'categorias',
-                    'done'        => $categoriasCount > 19,
+                    'done'        => $hasCustomCategory,
+                    'points'      => 20,
+                    'priority'    => 4,
                 ],
+
+                // TIER 3: Avançados (mais features)
                 [
                     'key'         => 'meta',
-                    'label'       => 'Criar uma meta',
-                    'description' => 'Defina um objetivo financeiro',
+                    'label'       => 'Definir meta mensal',
+                    'description' => 'Estabeleça um objetivo de poupança',
                     'icon'        => 'target',
-                    'color'       => '#3b82f6',
+                    'color'       => '#06b6d4',
                     'href'        => 'financas',
                     'done'        => $hasMeta,
+                    'points'      => 15,
+                    'priority'    => 5,
+                ],
+                [
+                    'key'         => 'conta_conectada',
+                    'label'       => 'Adicionar segunda conta/cartão',
+                    'description' => 'Tenha visão completa do seu dinheiro',
+                    'icon'        => 'wallet',
+                    'color'       => '#f59e0b',
+                    'href'        => 'contas',
+                    'done'        => $contasCount >= 2,
+                    'points'      => 50,
+                    'priority'    => 6,
                 ],
                 [
                     'key'         => 'orcamento',
-                    'label'       => 'Definir orçamentos',
+                    'label'       => 'Configurar orçamentos',
                     'description' => 'Controle seus gastos por categoria',
                     'icon'        => 'pie-chart',
-                    'color'       => '#f59e0b',
+                    'color'       => '#f97316',
                     'href'        => 'financas',
                     'done'        => $hasOrcamento,
+                    'points'      => 20,
+                    'priority'    => 7,
                 ],
                 [
-                    'key'         => 'conta',
-                    'label'       => 'Adicionar outra conta',
-                    'description' => 'Tenha visão completa do seu dinheiro',
-                    'icon'        => 'wallet',
-                    'color'       => '#06b6d4',
-                    'href'        => 'contas',
-                    'done'        => $contasCount >= 2,
-                ],
-                [
-                    'key'         => 'agendamento',
-                    'label'       => 'Criar lançamento recorrente',
-                    'description' => 'Automatize lançamentos que se repetem',
-                    'icon'        => 'calendar-check',
-                    'color'       => '#ec4899',
-                    'href'        => 'agendamentos',
-                    'done'        => $hasAgendamento,
+                    'key'         => 'convidar_amigo',
+                    'label'       => 'Convidar amigo (Referral)',
+                    'description' => 'Compartilhe o Lukrato e ganhe bônus',
+                    'icon'        => 'share-2',
+                    'color'       => '#f43f5e',
+                    'href'        => 'perfil?tab=referral',
+                    'done'        => false, // TODO: Track referrals
+                    'points'      => 100,  // Maior recompensa
+                    'priority'    => 8,
                 ],
             ];
 
+            // Sort by priority
+            usort($items, fn($a, $b) => $a['priority'] <=> $b['priority']);
+
             $doneCount = count(array_filter($items, fn($i) => $i['done']));
+            $totalPoints = array_sum(array_map(fn($i) => $i['done'] ? $i['points'] : 0, $items));
 
             Response::success([
                 'items'        => $items,
                 'done_count'   => $doneCount,
                 'total'        => count($items),
                 'all_complete' => $doneCount === count($items),
+                'total_points' => $totalPoints,  // Pontos já ganhos
+                'potential_points' => array_sum(array_column($items, 'points')), // Total possível
             ]);
         } catch (Throwable $e) {
             $this->failAndLog($e, 'Erro ao buscar checklist do onboarding');

@@ -43,6 +43,11 @@ class PerfilPayloadBuilder
             'nome' => (string) ($user->nome ?? ''),
             'email' => (string) ($user->email ?? ''),
             'avatar' => $user->avatar ? (rtrim(BASE_URL, '/') . '/' . $user->avatar) : '',
+            'avatar_settings' => [
+                'position_x' => max(0, min(100, (int) ($user->avatar_focus_x ?? 50))),
+                'position_y' => max(0, min(100, (int) ($user->avatar_focus_y ?? 50))),
+                'zoom' => max(1, min(2, round((float) ($user->avatar_zoom ?? 1), 2))),
+            ],
             'data_nascimento' => $this->dateFormatter->normalize($user->data_nascimento),
             'sexo' => $this->mapSexoToOption($sexo?->nm_sexo),
             'cpf' => $this->documentFormatter->formatCpf($cpf),

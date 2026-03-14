@@ -31,6 +31,10 @@ class FaturasController
         try {
             $usuarioId = $this->getAuthenticatedUserId();
 
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_write_close();
+            }
+
             // Sanitizar e validar parâmetros de entrada
             $cartaoId = $this->getIntOrNull($_GET['cartao_id'] ?? null);
             $status = $this->sanitizeString($_GET['status'] ?? null);
@@ -89,6 +93,10 @@ class FaturasController
     {
         try {
             $usuarioId = $this->getAuthenticatedUserId();
+
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_write_close();
+            }
 
             // Validar ID
             if ($id <= 0) {

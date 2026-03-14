@@ -1,0 +1,235 @@
+/* =====================================================================
+   FLOATING ACTION BUTTON (FAB)
+   Componente acionável flutuante para "Adicionar Transação"
+   ===================================================================== */
+
+.fab-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  font-family: var(--font-primary);
+}
+
+/* Main FAB Button */
+.fab-main {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary) 0%, #f39c12 100%);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(230, 126, 34, 0.4);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+  color: white;
+  font-size: 28px;
+}
+
+.fab-main:hover {
+  transform: scale(1.12);
+  box-shadow: 0 12px 32px rgba(230, 126, 34, 0.6);
+}
+
+.fab-main:active {
+  transform: scale(0.95);
+}
+
+/* Pulsing animation effect */
+.fab-main::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: fab-pulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes fab-pulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0;
+  }
+}
+
+.fab-icon {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Menu Items (expandable) */
+.fab-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.fab-container.expanded .fab-menu {
+  max-height: 500px;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+
+.fab-item {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-size: 24px;
+  position: relative;
+}
+
+.fab-item:hover {
+  transform: scale(1.1);
+  background: linear-gradient(135deg, var(--color-primary) 0%, #f39c12 100%);
+  color: white;
+  box-shadow: 0 8px 20px rgba(230, 126, 34, 0.3);
+}
+
+.fab-item:active {
+  transform: scale(0.95);
+}
+
+/* Label tooltip ao lado */
+.fab-label {
+  position: absolute;
+  right: 72px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  padding: 8px 16px;
+  border-radius: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(8px);
+  transition: all 0.2s ease;
+  pointer-events: none;
+  font-size: 13px;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.fab-item:hover .fab-label {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Overlay Backdrop (when FAB expanded) */
+.fab-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0);
+  z-index: 998;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.fab-container.expanded + .fab-backdrop {
+  background: rgba(0, 0, 0, 0.3);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: all;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+  .fab-container {
+    bottom: 20px;
+    right: 16px;
+  }
+
+  .fab-main {
+    width: 56px;
+    height: 56px;
+    font-size: 24px;
+  }
+
+  .fab-item {
+    width: 52px;
+    height: 52px;
+    font-size: 20px;
+  }
+
+  .fab-label {
+    right: 68px;
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+}
+
+/* First-time user emphasis */
+.fab-container.first-time .fab-main {
+  animation: fab-bounce 1s ease-in-out infinite;
+}
+
+@keyframes fab-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* Celebration animation */
+.fab-celebrating .fab-main {
+  animation: fab-celebrate 0.6s ease-out;
+}
+
+@keyframes fab-celebrate {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Success state */
+.fab-success .fab-main {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}

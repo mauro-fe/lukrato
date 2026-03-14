@@ -22,7 +22,7 @@
   --font-size-xl: 1.25rem;
   --font-size-2xl: 1.5rem;
   --font-size-3xl: 1.875rem;
-  --sidebar-collapsed-width: 100px;
+  --sidebar-collapsed-width: 80px;
   /* largura quando recolhida (só ícones) */
 
   /* Espaçamento */
@@ -48,7 +48,7 @@
   --shadow-xl: 0 20px 30px rgba(0, 0, 0, 0.14);
 
   /* Layout */
-  --sidebar-width: 250px;
+  --sidebar-width: 200px;
   --header-height: 80px;
   --container-padding: var(--spacing-6);
 
@@ -59,6 +59,22 @@
   --transition-fast: 0.15s ease;
   --transition-normal: 0.3s ease;
   --transition-slow: 0.5s ease;
+  --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Tokens extras de espaçamento */
+  --spacing-7: 1.75rem;
+  --spacing-10: 2.5rem;
+
+  /* Radius extras */
+  --radius-full: 999px;
+
+  /* z-index system */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+  --z-tooltip: 600;
 
   /* Paleta azul utilitária (opcional) */
   --blue-50: #f0f5ff;
@@ -79,6 +95,10 @@
    =============================== */
 :root[data-theme="light"] {
   --color-primary: #e67e22;
+  --color-primary-rgb: 230, 126, 34;
+  --color-primary-hover: #d35400;
+  --color-secondary-hover: #1a252f;
+  --gradient-primary: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
   --laranja: var(--color-primary);
   /* laranja vibrante */
   --color-secondary: #2c3e50;
@@ -135,6 +155,10 @@
    =============================== */
 :root[data-theme="dark"] {
   --color-primary: #e67e22;
+  --color-primary-rgb: 230, 126, 34;
+  --color-primary-hover: #d35400;
+  --color-secondary-hover: #5dade2;
+  --gradient-primary: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
   --laranja: var(--color-primary);
   --color-secondary: #3498db;
   --color-success: #2ecc71;
@@ -168,4 +192,18 @@
    --lk-accent-border-hover: rgba(230, 126, 34, 0.35);
    --lk-gradient-start: var(--color-primary);
    --lk-gradient-end: #f39c12;
+}
+
+/* ===============================
+   ACESSIBILIDADE: Reduced Motion
+   =============================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

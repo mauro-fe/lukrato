@@ -35,6 +35,10 @@ class PlanController
             return;
         }
 
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         try {
             $summary = $this->limitService->getLimitsSummary($userId);
 
@@ -80,6 +84,10 @@ class PlanController
             return;
         }
 
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         $isPro = $this->limitService->isPro($userId);
         $features = $this->limitService->getFeatures($userId);
 
@@ -104,6 +112,10 @@ class PlanController
         if (!$userId) {
             Response::json(['error' => 'Não autenticado'], 401);
             return;
+        }
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
         }
 
         $result = match ($resource) {
@@ -139,6 +151,10 @@ class PlanController
         if (!$userId) {
             Response::json(['error' => 'Não autenticado'], 401);
             return;
+        }
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
         }
 
         $restriction = $this->limitService->getHistoryRestriction($userId);

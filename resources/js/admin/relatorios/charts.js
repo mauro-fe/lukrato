@@ -28,6 +28,30 @@ function _getTheme() {
     };
 }
 
+function _sanitizeSeries(values = []) {
+    return values.map((value) => {
+        const numericValue = Number(value);
+        return Number.isFinite(numericValue) ? numericValue : 0;
+    });
+}
+
+function _resolveCartesianChartHeight(el, fallback = 380) {
+    const container = el?.closest('.chart-container') || el?.parentElement;
+    const computed = container ? getComputedStyle(container) : null;
+    const explicitHeight = computed ? Number.parseFloat(computed.height) : Number.NaN;
+    const minHeight = computed ? Number.parseFloat(computed.minHeight) : Number.NaN;
+    const rectHeight = container?.getBoundingClientRect?.().height ?? Number.NaN;
+    const paddingY = computed
+        ? (Number.parseFloat(computed.paddingTop) || 0) + (Number.parseFloat(computed.paddingBottom) || 0)
+        : 0;
+    const viewportFallback = window.innerWidth < 768 ? 320 : fallback;
+
+    const rawHeight = [explicitHeight, rectHeight, minHeight, viewportFallback]
+        .find((value) => Number.isFinite(value) && value > 0) ?? viewportFallback;
+
+    return Math.max(260, Math.round(rawHeight - paddingY));
+}
+
 // ─── Chart Manager ───────────────────────────────────────────────────────────
 
 export const ChartManager = {
@@ -551,7 +575,7 @@ export const ChartManager = {
     _drilldownChart: null,
 
     renderLine(data) {
-        const { labels = [], values = [] } = data;
+        const { labels = [], values = [] } = { ...data, values: _sanitizeSeries(data?.values) };
 
         if (!labels.length) return Modules.UI.showEmptyState();
 
@@ -568,14 +592,19 @@ export const ChartManager = {
         const color = getComputedStyle(document.documentElement)
             .getPropertyValue('--color-primary').trim();
         const theme = _getTheme();
+        const chartEl = document.getElementById('chart0');
+        const chartHeight = _resolveCartesianChartHeight(chartEl, 420);
 
-        const chart = new ApexCharts(document.getElementById('chart0'), {
+        const chart = new ApexCharts(chartEl, {
             chart: {
                 type: 'area',
-                height: 380,
+                height: chartHeight,
                 toolbar: { show: false },
                 background: 'transparent',
                 fontFamily: 'Inter, Arial, sans-serif',
+                parentHeightOffset: 0,
+                redrawOnParentResize: true,
+                redrawOnWindowResize: true,
             },
             series: [{ name: 'Saldo Diário', data: values.map(Number) }],
             xaxis: {
@@ -585,7 +614,6 @@ export const ChartManager = {
                 axisTicks: { show: false },
             },
             yaxis: {
-                min: 0,
                 labels: {
                     style: { colors: theme.isLight ? '#000' : '#fff', fontSize: '11px' },
                     formatter: (value) => formatCurrency(value),
@@ -614,7 +642,15 @@ export const ChartManager = {
     },
 
     renderBar(data) {
-        const { labels = [], receitas = [], despesas = [] } = data;
+        const {
+            labels = [],
+            receitas = [],
+            despesas = []
+        } = {
+            ...data,
+            receitas: _sanitizeSeries(data?.receitas),
+            despesas: _sanitizeSeries(data?.despesas)
+        };
 
         if (!labels.length) return Modules.UI.showEmptyState();
 
@@ -631,6 +667,8 @@ export const ChartManager = {
         const colorSuccess = Utils.getCssVar('--color-success', '#2ecc71');
         const colorDanger = Utils.getCssVar('--color-danger', '#e74c3c');
         const theme = _getTheme();
+        const chartEl = document.getElementById('chart0');
+        const chartHeight = _resolveCartesianChartHeight(chartEl, 420);
 
         const chartTitle = STATE.currentView === CONFIG.VIEWS.ACCOUNTS
             ? 'Receitas x Despesas por Conta'
@@ -638,13 +676,16 @@ export const ChartManager = {
                 ? 'Resumo Anual por Mês'
                 : 'Receitas x Despesas';
 
-        const chart = new ApexCharts(document.getElementById('chart0'), {
+        const chart = new ApexCharts(chartEl, {
             chart: {
                 type: 'bar',
-                height: 380,
+                height: chartHeight,
                 toolbar: { show: false },
                 background: 'transparent',
                 fontFamily: 'Inter, Arial, sans-serif',
+                parentHeightOffset: 0,
+                redrawOnParentResize: true,
+                redrawOnWindowResize: true,
             },
             series: [
                 { name: 'Receitas', data: receitas.map(Number) },
@@ -657,7 +698,6 @@ export const ChartManager = {
                 axisTicks: { show: false },
             },
             yaxis: {
-                min: 0,
                 labels: {
                     style: { colors: theme.isLight ? '#000' : '#fff', fontSize: '11px' },
                     formatter: (value) => formatCurrency(value),

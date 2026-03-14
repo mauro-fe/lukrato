@@ -1,0 +1,123 @@
+/* ============================================================================
+   OVERVIEW SECTION — Financial Intelligence Dashboard
+   ============================================================================ */
+
+.overview-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
+}
+
+/* Monthly Pulse */
+ .card-body {
+  padding: var(--spacing-4) var(--spacing-5);
+}
+
+.pulse-text {
+  font-size: var(--font-size-base);
+  line-height: 1.8;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.pulse-text strong {
+  font-weight: 700;
+}
+
+/* Top Insights in Overview */
+.overview-insights-card .card-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-4);
+}
+
+/* Mini Charts Row */
+.overview-charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-5);
+}
+
+.overview-mini-chart {
+  padding: var(--spacing-4);
+}
+
+.overview-mini-chart h4 {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-3);
+}
+
+.overview-mini-chart h4 svg {
+  width: 16px;
+  height: 16px;
+  color: var(--color-primary);
+}
+
+.mini-chart-container {
+  min-height: 220px;
+}
+
+/* PRO CTA Banner */
+.overview-pro-cta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-5);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(217, 119, 6, 0.04));
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: var(--radius-xl);
+}
+
+.overview-pro-cta > i,
+.overview-pro-cta > svg {
+  width: 32px;
+  height: 32px;
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.overview-pro-cta h4 {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-1);
+}
+
+.overview-pro-cta p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.overview-pro-cta .btn-upgrade-cta {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .overview-charts-row {
+    grid-template-columns: 1fr;
+  }
+
+  .overview-pro-cta {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--spacing-3);
+  }
+
+  .overview-pro-cta .btn-upgrade-cta {
+    margin-left: 0;
+  }
+
+  .overview-insights-card .card-body {
+    grid-template-columns: 1fr;
+  }
+}

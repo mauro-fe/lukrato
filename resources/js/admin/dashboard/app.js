@@ -480,6 +480,7 @@ export const Renderers = {
                 chart: {
                     type: 'area',
                     height: 300,
+                    width: '100%',
                     toolbar: { show: false },
                     background: 'transparent',
                     fontFamily: 'Inter, Arial, sans-serif',
@@ -492,7 +493,6 @@ export const Renderers = {
                     axisTicks: { show: false },
                 },
                 yaxis: {
-                    min: 0,
                     labels: {
                         style: { colors: yTickColor },
                         formatter: (value) => Utils.money(value),

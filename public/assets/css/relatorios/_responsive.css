@@ -1,4 +1,4 @@
-﻿/* ============================================================================
+/* ============================================================================
    RESPONSIVIDADE - MOBILE FIRST APPROACH
    ============================================================================ */
 
@@ -34,38 +34,19 @@
   .chart-container {
     padding: var(--spacing-3);
     min-height: 280px;
-    max-height: 400px;
-  }
-
-  .chart-container canvas {
-    max-height: 320px !important;
   }
 
   .chart-wrapper {
     max-width: 350px;
-    max-height: 380px;
-    max-height: 480px;
-  }
-
-  .chart-container-pie canvas {
-    max-height: 420px !important;
-    min-height: 350px !important;
   }
 
   .chart-wrapper-pie {
     max-width: 420px;
-    max-height: 350px;
   }
 
   .chart-container-bar,
   .chart-container-line {
     min-height: 280px;
-    max-height: 420px;
-  }
-
-  .chart-container-bar canvas,
-  .chart-container-line canvas {
-    max-height: 350px !important;
   }
 
   .chart-dual {
@@ -89,16 +70,10 @@
   .chart-container {
     padding: var(--spacing-4);
     min-height: 320px;
-    max-height: 420px;
-  }
-
-  .chart-container canvas {
-    max-height: 350px !important;
   }
 
   .chart-wrapper {
     max-width: 400px;
-    max-height: 400px;
   }
 
   .chart-dual {
@@ -106,67 +81,44 @@
     gap: var(--spacing-4);
   }
 
-  .export-controls {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-
   .tabs {
     padding: var(--spacing-2);
     gap: var(--spacing-2);
   }
+}
 
-  /* ========== Tablet (min-width: 768px) ========== */
-  @media (min-width: 768px) {
-    .rel-page {
-      padding: var(--spacing-4);
-    }
-
-    .lk-titlebar {
-      flex-direction: row;
-      align-items: center;
-      margin-bottom: var(--spacing-5);
-    }
-
-    .lk-t {
-      font-size: var(--font-size-3xl);
-    }
-
-    .export-card {
-      padding: var(--spacing-5);
-    }
-
-    .lk-card {
-      margin: var(--spacing-4) var(--spacing-5);
-      padding: var(--spacing-5);
-    }
-
-    .chart-container {
-      padding: var(--spacing-5);
-      min-height: 360px;
-      max-height: 460px;
-    }
-
-    /* ===================================================================
-     DESKTOP: Esconder lista mobile e mostrar legendas dos gráficos
-     A partir de 768px, voltamos ao comportamento desktop tradicional
-     =================================================================== */
-    .category-list-mobile {
-      display: none;
-    }
+/* ========== Tablet (min-width: 768px) ========== */
+@media (min-width: 768px) {
+  .rel-page {
+    padding: var(--spacing-4);
   }
 
-  .chart-container canvas {
-    max-height: 380px !important;
+  .lk-titlebar {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: var(--spacing-5);
+  }
+
+  .lk-t {
+    font-size: var(--font-size-3xl);
+  }
+
+  .lk-card {
+    margin: var(--spacing-4) var(--spacing-5);
+    padding: var(--spacing-5);
+  }
+
+  .chart-container {
+    padding: var(--spacing-5);
+    min-height: 380px;
   }
 
   .chart-wrapper {
     max-width: 450px;
-    max-height: 450px;
   }
 
   .chart-dual {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(2, 1fr);
     gap: var(--spacing-5);
   }
 
@@ -187,8 +139,13 @@
     font-size: var(--font-size-lg);
     min-width: 180px;
   }
+
+  .category-list-mobile {
+    display: none;
+  }
 }
 
+/* ========== Small Desktop (min-width: 993px) ========== */
 @media (min-width: 993px) {
   .chart-dual {
     grid-template-columns: repeat(2, 1fr);
@@ -197,12 +154,97 @@
 
   .chart-container-pie {
     min-height: 420px;
-    max-height: 550px;
   }
 
   .chart-wrapper-pie {
     max-width: 500px;
-    max-height: 500px;
+  }
+}
+
+/* ========== Mid-Desktop (1024px–1335px) ========== */
+@media (min-width: 1024px) and (max-width: 1335px) {
+  .rel-page {
+    max-width: 100%;
+    padding: var(--spacing-4);
+  }
+
+  .quick-stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-4);
+  }
+
+  .stat-card {
+    padding: var(--spacing-4);
+    min-height: 100px;
+  }
+
+  .stat-icon {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 20px !important;
+  }
+
+  .stat-content .stat-label {
+    font-size: var(--font-size-sm);
+  }
+
+  .stat-content .stat-value {
+    font-size: var(--font-size-xl);
+  }
+
+  .chart-container {
+    min-height: 450px;
+  }
+}
+
+/* ========== Desktop (min-width: 1280px) ========== */
+@media (min-width: 1280px) {
+  .rel-page {
+    padding: var(--spacing-6);
+  }
+
+  .lk-card {
+    margin: var(--spacing-6) var(--spacing-8);
+    padding: var(--spacing-7);
+  }
+
+  .chart-container {
+    padding: var(--spacing-7);
+    min-height: 500px;
+  }
+
+  .chart-wrapper {
+    max-width: 600px;
+  }
+
+  .chart-container-pie {
+    min-height: 480px;
+  }
+
+  .chart-wrapper-pie {
+    max-width: 580px;
+  }
+
+  .chart-container-bar,
+  .chart-container-line {
+    min-height: 500px;
+    padding: var(--spacing-5);
+  }
+
+  .chart-wrapper-bar,
+  .chart-wrapper-line {
+    width: 100%;
+    max-width: none;
+    padding: 0;
+  }
+
+  .chart-dual {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-7);
+  }
+
+  .chart-dual .chart-container {
+    min-height: 480px;
   }
 }
 
@@ -233,46 +275,26 @@
   }
 
   .chart-container {
-    min-height: 380px;
-    max-height: 480px;
+    min-height: 500px;
     padding: var(--spacing-5);
-  }
-
-  .chart-container canvas {
-    max-height: 420px !important;
   }
 
   .chart-wrapper {
     max-width: 500px;
-    max-height: 500px;
   }
 
   .chart-container-pie {
-    min-height: 400px;
-    max-height: 500px;
-  }
-
-  .chart-container-pie canvas {
-    max-height: 450px !important;
+    min-height: 480px;
   }
 
   .chart-wrapper-pie {
     max-width: 500px;
-    max-height: 500px;
   }
 
   .chart-container-bar,
   .chart-container-line {
-    min-height: 450px;
-    max-height: 550px;
+    min-height: 500px;
     padding: var(--spacing-4);
-  }
-
-  .chart-container-bar canvas,
-  .chart-container-line canvas {
-    max-height: 500px !important;
-    min-height: 400px !important;
-    width: 100% !important;
   }
 
   .chart-wrapper-bar,
@@ -288,120 +310,7 @@
   }
 
   .chart-dual .chart-container {
-    min-height: 360px;
-  }
-}
-
-/* ========== Desktop (min-width: 1280px) ========== */
-@media (min-width: 1280px) {
-  .rel-page {
-    padding: var(--spacing-6);
-  }
-
-  .lk-card {
-    margin: var(--spacing-6) var(--spacing-8);
-    padding: var(--spacing-7);
-  }
-
-  .chart-container {
-    padding: var(--spacing-7);
-    min-height: 600px;
-    max-height: 850px;
-  }
-
-  .chart-container canvas {
-    max-height: 750px !important;
-    min-height: 500px !important;
-  }
-
-  .chart-wrapper {
-    max-width: 600px;
-    max-height: 600px;
-  }
-
-  .chart-container-pie {
-    min-height: 500px;
-    max-height: 650px;
-  }
-
-  .chart-container-pie canvas {
-    max-height: 580px !important;
-    min-height: 450px !important;
-  }
-
-  .chart-wrapper-pie {
-    max-width: 580px;
-    max-height: 580px;
-  }
-
-  .chart-container-bar,
-  .chart-container-line {
-    min-height: 600px;
-    max-height: 850px;
-    padding: var(--spacing-5);
-  }
-
-  .chart-container-bar canvas,
-  .chart-container-line canvas {
-    max-height: 750px !important;
-    min-height: 500px !important;
-    width: 100% !important;
-  }
-
-  .chart-wrapper-bar,
-  .chart-wrapper-line {
-    width: 100%;
-    max-width: none;
-    padding: 0;
-  }
-
-  .chart-dual {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-7);
-  }
-
-  .chart-dual .chart-container {
-    min-height: 580px;
-  }
-}
-
-@media (min-width: 1024px) and (max-width: 1335px) {
-  .rel-page {
-    max-width: 100%;
-    padding: var(--spacing-4);
-  }
-
-  .quick-stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-4);
-  }
-
-  .stat-card {
-    padding: var(--spacing-4);
-    min-height: 100px;
-  }
-
-  .stat-icon {
-    width: 52px !important;
-    height: 52px !important;
-    font-size: 24px !important;
-  }
-
-  .stat-content .stat-label {
-    font-size: var(--font-size-sm);
-  }
-
-  .stat-content .stat-value {
-    font-size: var(--font-size-xl);
-  }
-
-  .chart-container {
-    min-height: 350px;
-    max-height: 450px;
-  }
-
-  .chart-container canvas {
-    max-height: 400px !important;
+    min-height: 400px;
   }
 }
 
@@ -420,48 +329,26 @@
   }
 
   .chart-container {
-    min-height: 650px;
-    max-height: 900px;
+    min-height: 550px;
     padding: var(--spacing-8);
-  }
-
-  .chart-container canvas {
-    max-height: 800px !important;
-    min-height: 550px !important;
   }
 
   .chart-wrapper {
     max-width: 550px;
-    max-height: 550px;
   }
 
   .chart-container-pie {
-    min-height: 550px;
-    max-height: 700px;
-  }
-
-  .chart-container-pie canvas {
-    max-height: 620px !important;
-    min-height: 480px !important;
+    min-height: 500px;
   }
 
   .chart-wrapper-pie {
     max-width: 550px;
-    max-height: 550px;
   }
 
   .chart-container-bar,
   .chart-container-line {
-    min-height: 650px;
-    max-height: 900px;
+    min-height: 550px;
     padding: var(--spacing-6);
-  }
-
-  .chart-container-bar canvas,
-  .chart-container-line canvas {
-    max-height: 800px !important;
-    min-height: 550px !important;
-    width: 100% !important;
   }
 
   .chart-wrapper-bar,
@@ -477,55 +364,33 @@
   }
 
   .chart-dual .chart-container {
-    min-height: 620px;
+    min-height: 500px;
   }
 }
 
 /* ========== Telas Muito Grandes (min-width: 1600px) ========== */
 @media (min-width: 1600px) {
   .chart-container {
-    min-height: 700px;
-    max-height: 950px;
+    min-height: 600px;
     padding: var(--spacing-8);
-  }
-
-  .chart-container canvas {
-    max-height: 850px !important;
-    min-height: 600px !important;
   }
 
   .chart-wrapper {
     max-width: 580px;
-    max-height: 580px;
   }
 
   .chart-container-pie {
-    min-height: 600px;
-    max-height: 750px;
-  }
-
-  .chart-container-pie canvas {
-    max-height: 650px !important;
-    min-height: 500px !important;
+    min-height: 550px;
   }
 
   .chart-wrapper-pie {
     max-width: 580px;
-    max-height: 580px;
   }
 
   .chart-container-bar,
   .chart-container-line {
-    min-height: 700px;
-    max-height: 950px;
+    min-height: 600px;
     padding: var(--spacing-6);
-  }
-
-  .chart-container-bar canvas,
-  .chart-container-line canvas {
-    max-height: 850px !important;
-    min-height: 600px !important;
-    width: 100% !important;
   }
 
   .chart-wrapper-bar,
@@ -540,10 +405,11 @@
   }
 
   .chart-dual .chart-container {
-    min-height: 650px;
+    min-height: 550px;
   }
 }
 
+/* ========== Max-width overrides (mobile) ========== */
 @media (max-width: 768px) {
   .lk-titlebar {
     flex-direction: column;

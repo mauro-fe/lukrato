@@ -1,4 +1,7 @@
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/onboarding-checklist.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/floating-action-button.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/progressive-disclosure.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/celebration-animations.css">
 
 <?php if (!empty($showOnboardingCongrats)): ?>
     <script>
@@ -315,6 +318,16 @@
             </div>
             <h3>Nenhum lançamento encontrado</h3>
             <p>Comece adicionando sua primeira transação para acompanhar suas finanças</p>
+            <div class="empty-actions" style="display: flex; gap: 12px; margin-top: 20px; justify-content: center; flex-wrap: wrap;">
+                <button class="btn-primary" onclick="if (window.fab) { window.fab.open(); } else { window.location.href = window.BASE_URL + 'lancamentos?tipo=receita'; }" style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="plus" style="width:16px;height:16px;"></i>
+                    Adicionar Lançamento
+                </button>
+            </div>
+            <p class="empty-hint" style="margin-top: 12px; font-size: 12px; color: var(--color-text-muted); display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <i data-lucide="lightbulb" style="width:14px;height:14px;"></i>
+                Dica: Use o botão flutuante no canto inferior direito 👉
+            </p>
         </div>
 
         <!-- Cards Mobile -->
@@ -348,6 +361,14 @@
         </div>
     </section>
 </section>
+
+<!-- Sprint 2: Health Score and Greeting Components -->
+<?= vite_scripts('admin/dashboard/health-score.js') ?>
+<?= vite_scripts('admin/dashboard/greeting.js') ?>
+<?= vite_scripts('admin/dashboard/sprint2-loader.js') ?>
+<?= vite_scripts('admin/dashboard/floating-action-button.js') ?>
+<?= vite_scripts('admin/dashboard/progressive-disclosure.js') ?>
+<?= vite_scripts('admin/dashboard/celebration.js') ?>
 
 <!-- Gamification Dashboard JS (Vite) -->
 <?= vite_scripts('admin/gamification-dashboard/index.js') ?>
