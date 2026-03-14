@@ -111,7 +111,8 @@ class IntentRouter
         $this->confirmationRule->setUserId($userId);
 
         // Verificar cache de intent para mensagens similares
-        $cacheKey = 'ai:intent:' . md5($normalized);
+        $cacheScope = $isWhatsApp ? 'whatsapp' : 'default';
+        $cacheKey = 'ai:intent:' . $cacheScope . ':' . md5($normalized);
         $cached = $this->cache->get($cacheKey);
         if ($cached !== null) {
             $intent = IntentType::tryFrom($cached);
@@ -122,10 +123,13 @@ class IntentRouter
 
         // Coletar todos os matches com confidence
         $matches = [];
-        foreach ($this->rules as $rule) {
+        foreach ($this->rules as $priority => $rule) {
             $detected = $rule->match($normalized, $isWhatsApp);
             if ($detected !== null) {
-                $matches[] = $detected;
+                $matches[] = [
+                    'priority' => $priority,
+                    'result'   => $detected,
+                ];
             }
         }
 
@@ -133,9 +137,17 @@ class IntentRouter
             return IntentResult::low(IntentType::CHAT, 0.5, ['source' => 'fallback']);
         }
 
-        // Escolher match com maior confidence
-        usort($matches, fn(IntentResult $a, IntentResult $b) => $b->confidence <=> $a->confidence);
-        $best = $matches[0];
+        // Escolher match com maior confidence; em empate, respeitar a ordem de prioridade.
+        usort($matches, function (array $left, array $right): int {
+            $confidenceComparison = $right['result']->confidence <=> $left['result']->confidence;
+
+            if ($confidenceComparison !== 0) {
+                return $confidenceComparison;
+            }
+
+            return $left['priority'] <=> $right['priority'];
+        });
+        $best = $matches[0]['result'];
 
         // Só cachear intents não-efêmeros
         if (!in_array($best->intent, self::EPHEMERAL_INTENTS, true)) {

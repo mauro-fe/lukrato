@@ -151,6 +151,14 @@ class IntentRulesRegressionTest extends TestCase
         }
     }
 
+    public function testQuickQuerySupportsAbbreviatedHighestSpendQuestion(): void
+    {
+        $result = $this->quickQueryRule->match('oq eu gasto mais');
+
+        $this->assertNotNull($result);
+        $this->assertEquals(IntentType::QUICK_QUERY, $result->intent);
+    }
+
     // ═══════════════════════════════════════════════════════════════
     // AnalysisIntentRule
     // ═══════════════════════════════════════════════════════════════
@@ -188,6 +196,13 @@ class IntentRulesRegressionTest extends TestCase
             $result = $this->analysisRule->match($msg);
             $this->assertNull($result, "Analysis should NOT match: '{$msg}'");
         }
+    }
+
+    public function testAnalysisRejectsOffTopicForecast(): void
+    {
+        $result = $this->analysisRule->match('qual a previsão do tempo');
+
+        $this->assertNull($result);
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -341,6 +356,13 @@ class IntentRulesRegressionTest extends TestCase
         $this->assertNull(EntityCreationIntentRule::detectEntityType('quanto tenho'));
     }
 
+    public function testEntityTypeDetectsGenericLimitBudget(): void
+    {
+        $type = EntityCreationIntentRule::detectEntityType('estabelecer limite de 2000 para lazer');
+
+        $this->assertEquals('orcamento', $type);
+    }
+
     // ═══════════════════════════════════════════════════════════════
     // Cross-rule: conflitos entre regras
     // ═══════════════════════════════════════════════════════════════
@@ -363,6 +385,15 @@ class IntentRulesRegressionTest extends TestCase
                 '"criar despesa..." → EntityCreation deve ganhar de Transaction'
             );
         }
+    }
+
+    public function testQuickQueryCountDoesNotBecomeEntityCreation(): void
+    {
+        $entityRule = new EntityCreationIntentRule();
+
+        $result = $entityRule->match('quantos lançamentos tenho');
+
+        $this->assertNull($result);
     }
 
     public function testQueryVsAnalysis(): void

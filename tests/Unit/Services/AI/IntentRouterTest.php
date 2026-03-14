@@ -129,6 +129,27 @@ class IntentRouterTest extends TestCase
         $this->assertTrue($result->isConfident());
     }
 
+    public function testContagemDeLancamentosDetectaQuickQuery(): void
+    {
+        $result = $this->router->detect('quantos lançamentos tenho', false, 1);
+
+        $this->assertEquals(IntentType::QUICK_QUERY, $result->intent);
+    }
+
+    public function testAbbreviatedHighestSpendQuestionDetectsQuickQuery(): void
+    {
+        $result = $this->router->detect('oq eu gasto mais', false, 1);
+
+        $this->assertEquals(IntentType::QUICK_QUERY, $result->intent);
+    }
+
+    public function testWeatherForecastFallsBackToChat(): void
+    {
+        $result = $this->router->detect('qual a previsão do tempo', false, 1);
+
+        $this->assertEquals(IntentType::CHAT, $result->intent);
+    }
+
     // ─── Ephemeral intents NÃO cacheiam ────────────────────────
 
     public function testEphemeralIntentsSkipCache(): void

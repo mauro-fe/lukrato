@@ -26,12 +26,6 @@ class PayFaturaIntentRule implements IntentRuleInterface
         '/(?:pagar?|quitar?)\s+(?:(?:a|minha|essa|esta)\s+)?fatura\s+(?:do|da|de)\s+/iu',
     ];
 
-    /**
-     * Guard: mensagens com valor numérico explícito são transações, não pagamento de fatura.
-     * Ex: "fatura de 800 do nubank" → extract_transaction
-     */
-    private const HAS_MONETARY_VALUE = '/\b(?:r\$\s*)?\d+(?:[.,]\d+)?\b.*(?:fatura|cart[ãa]o)|(?:fatura|cart[ãa]o).*\b(?:de\s+)?(?:r\$\s*)?\d+(?:[.,]\d+)?\b/iu';
-
     public function match(string $message, bool $isWhatsApp = false): ?IntentResult
     {
         // Remove formatação básica de markdown se for WhatsApp
