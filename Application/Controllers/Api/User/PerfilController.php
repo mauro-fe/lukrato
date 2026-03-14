@@ -262,15 +262,7 @@ class PerfilController
 
             $preparedImage = $this->prepareAvatarImage($sourceImage, $mime, $file['tmp_name']);
 
-            // Deletar avatar antigo se existir
-            if ($user->avatar) {
-                $oldPath = BASE_PATH . '/public/' . $user->avatar;
-                if (is_file($oldPath)) {
-                    @unlink($oldPath);
-                }
-            }
-
-            // Salvar como WebP
+            // Salvar como WebP (ANTES de deletar o antigo para não perder em caso de falha)
             $filename = 'avatar_' . $user->id . '_' . uniqid() . '.webp';
             $filepath = $uploadDir . '/' . $filename;
             if (!imagewebp($preparedImage, $filepath, 85)) {
@@ -279,6 +271,15 @@ class PerfilController
                 return;
             }
             imagedestroy($preparedImage);
+
+            // Deletar avatar antigo APÓS salvar o novo com sucesso
+            $oldAvatarPath = $user->avatar;
+            if ($oldAvatarPath) {
+                $oldPath = BASE_PATH . '/public/' . $oldAvatarPath;
+                if (is_file($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
 
             // Atualizar no banco
             $relativePath = 'assets/uploads/avatars/' . $filename;
