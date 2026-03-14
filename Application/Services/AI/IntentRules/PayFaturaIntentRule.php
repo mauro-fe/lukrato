@@ -34,10 +34,17 @@ class PayFaturaIntentRule implements IntentRuleInterface
 
     public function match(string $message, bool $isWhatsApp = false): ?IntentResult
     {
+        // Remove formatação básica de markdown se for WhatsApp
+        if ($isWhatsApp) {
+            $message = str_replace(['*', '_', '~'], '', $message);
+        }
+
         $normalized = mb_strtolower(trim($message));
 
-        // Guard: se tem valor monetário, é transação, não pagamento
-        if (preg_match(self::HAS_MONETARY_VALUE, $normalized)) {
+        // Guard aprimorado: foca em valores com centavos ou precedidos por R$
+        // para não confundir "fatura de 2025" (ano) com "fatura de 2025" (valor)
+        $hasValue = preg_match('/(?:r\$\s*\d+)|(?:\d+[.,]\d{2})/iu', $normalized);
+        if ($hasValue && preg_match('/fatura|cart[ãa]o/iu', $normalized)) {
             return null;
         }
 

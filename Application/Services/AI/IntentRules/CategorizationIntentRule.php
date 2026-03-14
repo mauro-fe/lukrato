@@ -18,12 +18,12 @@ use Application\Enums\AI\IntentType;
 class CategorizationIntentRule implements IntentRuleInterface
 {
     private const PATTERNS = [
-        'categori[za]',
-        'classific',
-        'qual.*categoria',
-        'suger.*categoria',
+        'categori[za](r|ção|a)?',
+        '(classificar|classifica|classificou)\s+(o\s+)?(gasto|lançamento|item|despesa)',
+        'qual\s+(é\s+)?a\s+categoria',
+        'sugerir\s+categoria',
         'subcategoria',
-        'que\s+tipo\s+de\s+(gasto|despesa|receita)',
+        'que\s+tipo\s+de\s+(gasto|despesa|receita|compra)',
     ];
 
     public function match(string $message, bool $isWhatsApp = false): ?IntentResult
