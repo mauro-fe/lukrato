@@ -25,11 +25,30 @@ class TransactionIntentRule implements IntentRuleInterface
 {
     /**
      * Verbos que indicam registro de transação.
+     * Cobre: passado, presente, gerúndio, 3ª pessoa, perífrases e gírias BR.
      */
     private const VERB_PATTERN =
-    'gastei|paguei|pago|recebi|ganhei|comprei|vendi|transferi|depositei'
-    . '|torrei|larguei|meti|soltei|botei|investi|emprestei|devolvi'
-    . '|mandei\s+pix|fiz\s+pix|parcelei|parcelo';
+    // Passado 1ª pessoa (mais comum)
+    'gastei|paguei|comprei|vendi|transferi|depositei|investi|emprestei|devolvi'
+        . '|torrei|larguei|meti|soltei|botei|raspei|queimei|detonei|estourei'
+        . '|sacou|saquei|cobrou|cobraram|debitou|debitaram'
+        // Presente / infinitivo
+        . '|pago|gasto|parcelo'
+        // 3ª pessoa passado (ele/ela)
+        . '|gastou|pagou|comprou|vendeu|transferiu|custou'
+        // Gerúndio / perifrástico
+        . '|gastando|pagando|comprando|vendendo'
+        // Perífrases verbais (muito comuns em BR informal)
+        . '|acabei\s+de\s+(?:pagar|gastar|comprar)|fui\s+(?:pagar|comprar)'
+        . '|to\s+(?:pagando|gastando|devendo)|vou\s+(?:pagar|gastar|comprar)'
+        // PIX
+        . '|mandei\s+pix|fiz\s+pix|recebi\s+(?:um\s+)?pix'
+        // Parcelamento
+        . '|parcelei|parcelo'
+        // Recebimento / entrada
+        . '|recebi|ganhei|entrou|caiu(?:\s+na\s+conta|\s+o\s+pix)?|depositaram'
+        // Expressões com "deu" + valor
+        . '|deu\s+(?:r?\$?\s*)?\d';
 
     /**
      * Padrão simples: "descrição valor" (ex: "uber 32", "ifood 45.90")
@@ -61,9 +80,21 @@ class TransactionIntentRule implements IntentRuleInterface
     private const COLLOQUIAL_VALUE_PATTERN =
     '/(?:\d+\s*k\b|\bmil\s*(?:reais)?|\d+\s*(?:conto[s]?|pila[s]?|real|reais))/iu';
 
+    /**
+     * Contextos não-monetários: número + contexto que claramente não é dinheiro.
+     * Ex: "rua 5", "página 3", "3 episódios", "andar 2", "sala 10"
+     */
+    private const NON_MONETARY_CONTEXT =
+    '/(?:\b(?:rua|p[áa]gina|ep[ií]s[óo]dio|cap[íi]tulo|andar|sala|quarto|bloco|apt|apartamento|turma|fase|n[ií]vel|vers[ãa]o|temporada|parte|volume|edi[çc][ãa]o|item|numeros?|n[úu]mero|nota)\s+\d|\b\d+\s*(?:epis[óo]dios?|cap[íi]tulos?|p[áa]ginas?|andares?|horas?|minutos?|segundos?|dias?|meses?|anos?|vezes|pessoas?|amigos?|gatos?|cachorros?))\b/iu';
+
     public function match(string $message, bool $isWhatsApp = false): ?IntentResult
     {
         $normalized = mb_strtolower(trim($message));
+
+        // Excluir contextos onde números claramente não são valores monetários
+        if (preg_match(self::NON_MONETARY_CONTEXT, $normalized)) {
+            return null;
+        }
 
         // WhatsApp: mensagens curtas com número são quase sempre transações
         if ($isWhatsApp && mb_strlen($normalized) <= 100) {

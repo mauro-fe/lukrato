@@ -19,11 +19,25 @@ class FloatingActionButton {
   }
 
   init() {
+    this.hideOldFab();
     this.render();
     this.attachEventListeners();
 
     if (this.config.firstTime) {
       this.activateFirstTimeMode();
+    }
+  }
+
+  /**
+   * Esconde o FAB antigo (botao-lancamento.php) para evitar duplicação
+   */
+  hideOldFab() {
+    const oldFab = document.getElementById('fabButton');
+    if (oldFab) {
+      const oldContainer = oldFab.closest('.fab-container');
+      if (oldContainer) {
+        oldContainer.style.display = 'none';
+      }
     }
   }
 
@@ -150,12 +164,12 @@ class FloatingActionButton {
     if (!this.container) return;
     this.container.classList.add('first-time');
 
-    // Mostrar tooltip
+    // Mostrar tooltip ancorado ao FAB
     const tooltip = document.createElement('div');
     tooltip.style.cssText = `
-      position: fixed;
-      bottom: 100px;
-      right: 24px;
+      position: absolute;
+      bottom: 76px;
+      right: 0;
       background: var(--glass-bg);
       border: 1px solid var(--glass-border);
       padding: 12px 16px;
@@ -179,7 +193,7 @@ class FloatingActionButton {
       </div>
     `;
 
-    document.body.appendChild(tooltip);
+    this.container.appendChild(tooltip);
 
     // Remover tooltip após 8 segundos
     setTimeout(() => {

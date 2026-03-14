@@ -294,9 +294,50 @@
         }
     });
 
+    // ── Quality Metrics ──
+    async function loadQualityMetrics() {
+        try {
+            const resp = await fetch(`${BASE}api/sysadmin/ai/logs/quality`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const json = await resp.json();
+            if (!json.success) return;
+            const d = json.data;
+
+            const el = (id) => document.getElementById(id);
+            el('metricLowConf').textContent = d.low_confidence_rate + '%';
+            el('metricFallback').textContent = d.fallback_to_chat_rate + '%';
+
+            // Intent distribution
+            const intentEl = el('intentDistribution');
+            if (d.intent_distribution && Object.keys(d.intent_distribution).length) {
+                intentEl.innerHTML = Object.entries(d.intent_distribution)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([k, v]) => `<div style="display:flex;justify-content:space-between;"><span>${k}</span><strong>${v}</strong></div>`)
+                    .join('');
+            } else {
+                intentEl.innerHTML = '<span style="color:var(--text-muted);">Sem dados</span>';
+            }
+
+            // Errors by handler
+            const errEl = el('errorsByHandler');
+            if (d.error_by_handler && Object.keys(d.error_by_handler).length) {
+                errEl.innerHTML = Object.entries(d.error_by_handler)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([k, v]) => `<div style="display:flex;justify-content:space-between;"><span>${k}</span><strong style="color:var(--color-error);">${v}</strong></div>`)
+                    .join('');
+            } else {
+                errEl.innerHTML = '<span style="color:var(--color-success);">Nenhum erro</span>';
+            }
+        } catch (e) {
+            console.warn('Quality metrics load failed:', e);
+        }
+    }
+
     // ── Init ──
     loadSummary();
     loadQuota();
+    loadQualityMetrics();
     loadLogs(1);
 
     // Auto-refresh quota a cada 60s

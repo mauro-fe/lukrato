@@ -4,6 +4,10 @@
   overflow: hidden;
 }
 
+.empty-icon {
+  color: var(--color-text) !important;
+}
+
 .kpi-card::before {
   content: "";
   position: absolute;

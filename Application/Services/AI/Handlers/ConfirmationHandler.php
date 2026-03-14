@@ -14,6 +14,7 @@ use Application\Services\AI\Actions\ActionRegistry;
 use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\IntentRules\ConfirmationIntentRule;
 use Application\Services\AI\Rules\CategoryRuleEngine;
+use Application\Services\Infrastructure\LogService;
 
 /**
  * Handler para confirmar ou rejeitar ações pendentes de IA (PendingAiAction).
@@ -70,8 +71,13 @@ class ConfirmationHandler implements AIHandlerInterface
             );
         }
 
-        // Rejeição
-        if (!ConfirmationIntentRule::isAffirmative($message)) {
+        // Confirmação
+        if (ConfirmationIntentRule::isAffirmative($message)) {
+            return $this->executeCreation($pending, $userId);
+        }
+
+        // Rejeição explícita
+        if (ConfirmationIntentRule::isNegative($message)) {
             $pending->reject();
             return AIResponseDTO::fromRule(
                 '❌ Ação cancelada com sucesso.',
@@ -80,8 +86,12 @@ class ConfirmationHandler implements AIHandlerInterface
             );
         }
 
-        // Confirmação — executar a criação via Action Layer
-        return $this->executeCreation($pending, $userId);
+        // Ambíguo — pedir clarificação ao invés de rejeitar silenciosamente
+        return AIResponseDTO::fromRule(
+            'Não entendi. Quer confirmar o registro? Responda **sim** ou **não**.',
+            ['action' => 'clarify', 'pending_id' => $pending->id],
+            IntentType::CONFIRM_ACTION
+        );
     }
 
     private function executeCreation(PendingAiAction $pending, int $userId): AIResponseDTO
@@ -188,8 +198,10 @@ class ConfirmationHandler implements AIHandlerInterface
                 IntentType::CONFIRM_ACTION
             );
         } catch (\Throwable $e) {
+            LogService::warning('ConfirmationHandler.executeCreation', ['error' => $e->getMessage()]);
+
             return AIResponseDTO::fail(
-                '⚠️ Erro ao criar: ' . $e->getMessage(),
+                'Erro ao criar o registro. Tente novamente.',
                 IntentType::CONFIRM_ACTION
             );
         }

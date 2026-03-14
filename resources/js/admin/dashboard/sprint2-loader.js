@@ -7,7 +7,8 @@
 function injectStyles() {
   const styles = [
     '/assets/css/pages/admin-dashboard/health-score.css',
-    '/assets/css/pages/admin-dashboard/greeting.css'
+    '/assets/css/pages/admin-dashboard/greeting.css',
+    '/assets/css/pages/admin-dashboard/health-score-insights.css'
   ];
 
   styles.forEach(href => {
@@ -26,7 +27,7 @@ function waitForComponents() {
   return new Promise((resolve) => {
     let attempts = 0;
     const check = setInterval(() => {
-      if (window.HealthScoreWidget && window.DashboardGreeting) {
+      if (window.HealthScoreWidget && window.DashboardGreeting && window.HealthScoreInsights && window.FinanceOverview) {
         clearInterval(check);
         resolve();
       }
@@ -66,7 +67,6 @@ function initDashboardComponents() {
 
     const greeting = new window.DashboardGreeting();
     greeting.render();
-    greeting.loadInsight();
   }
 
   // Health Score Component
@@ -85,6 +85,36 @@ function initDashboardComponents() {
     const healthScore = new window.HealthScoreWidget();
     healthScore.render();
     healthScore.load();
+
+    // Health Score Insights — container separado, fora do card
+    if (typeof window.HealthScoreInsights !== 'undefined') {
+      const insightsDiv = document.createElement('div');
+      insightsDiv.id = 'healthScoreInsights';
+      insightsDiv.className = 'health-score-insights-section';
+      healthDiv.insertAdjacentElement('afterend', insightsDiv);
+      window.healthScoreInsights = new window.HealthScoreInsights();
+    }
+  }
+
+  // Finance Overview (Orçamento + Metas)
+  if (typeof window.FinanceOverview !== 'undefined') {
+    const foDiv = document.createElement('div');
+    foDiv.id = 'financeOverviewContainer';
+
+    // Insere após insights, ou após health score, ou antes de provisão
+    const insightsEl = document.getElementById('healthScoreInsights');
+    const provisao = dashboard.querySelector('.provisao-section');
+    if (insightsEl) {
+      insightsEl.insertAdjacentElement('afterend', foDiv);
+    } else if (provisao) {
+      provisao.insertAdjacentElement('beforebegin', foDiv);
+    } else {
+      dashboard.appendChild(foDiv);
+    }
+
+    const fo = new window.FinanceOverview();
+    fo.render();
+    fo.load();
   }
 
   // Atualiza ícones

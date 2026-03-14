@@ -44,6 +44,6 @@ noscript + .cat-page,
 .fa-circle-plus,
 [data-lucide="circle-plus"],
 .lucide-circle-plus {
-  color: var(--color-primary);
+  color: var(--color-text);
 }
 

@@ -23,6 +23,7 @@ use Application\Validators\LancamentoValidator;
 use Application\Validators\MetaValidator;
 use Application\Validators\OrcamentoValidator;
 use Application\Validators\SubcategoriaValidator;
+use Application\Services\AI\NLP\NumberNormalizer;
 
 /**
  * Handler para criação de entidades financeiras via IA.
@@ -356,8 +357,12 @@ class EntityCreationHandler implements AIHandlerInterface
                         $existing['data'] = date('Y-m-d');
                     } elseif (preg_match('/\bamanh[ãa]\b/iu', $msg)) {
                         $existing['data'] = date('Y-m-d', strtotime('+1 day'));
+                    } elseif (preg_match('/\banteontem\b/iu', $msg)) {
+                        $existing['data'] = date('Y-m-d', strtotime('-2 days'));
                     } elseif (preg_match('/\bontem\b/iu', $msg)) {
                         $existing['data'] = date('Y-m-d', strtotime('-1 day'));
+                    } elseif (preg_match('/\b(?:semana\s+passada)\b/iu', $msg)) {
+                        $existing['data'] = date('Y-m-d', strtotime('last monday'));
                     } elseif (preg_match('/(\d{1,2})\s*[\/\-]\s*(\d{1,2})(?:\s*[\/\-]\s*(\d{2,4}))?/u', $msg, $m)) {
                         $day = str_pad($m[1], 2, '0', STR_PAD_LEFT);
                         $month = str_pad($m[2], 2, '0', STR_PAD_LEFT);
@@ -416,13 +421,31 @@ class EntityCreationHandler implements AIHandlerInterface
             $data['forma_pagamento'] = 'cartao_credito';
         }
 
-        // data: hoje, amanhã, DD/MM, DD/MM/YYYY
+        // data: hoje, amanhã, ontem, anteontem, dias da semana, DD/MM, DD/MM/YYYY
         if (preg_match('/\bhoje\b/iu', $message)) {
             $data['data'] = date('Y-m-d');
         } elseif (preg_match('/\bamanh[ãa]\b/iu', $message)) {
             $data['data'] = date('Y-m-d', strtotime('+1 day'));
+        } elseif (preg_match('/\banteontem\b/iu', $message)) {
+            $data['data'] = date('Y-m-d', strtotime('-2 days'));
         } elseif (preg_match('/\bontem\b/iu', $message)) {
             $data['data'] = date('Y-m-d', strtotime('-1 day'));
+        } elseif (preg_match('/\b(?:semana\s+passada)\b/iu', $message)) {
+            $data['data'] = date('Y-m-d', strtotime('last monday'));
+        } elseif (preg_match('/\b(segunda|ter[çc]a|quarta|quinta|sexta|s[áa]bado|sabado|domingo)(?:\s+(?:passad[ao]|[úu]ltim[ao]))?\b/iu', $message, $dm)) {
+            $dayMap = [
+                'segunda' => 'last monday',
+                'terça' => 'last tuesday',
+                'terca' => 'last tuesday',
+                'quarta' => 'last wednesday',
+                'quinta' => 'last thursday',
+                'sexta' => 'last friday',
+                'sábado' => 'last saturday',
+                'sabado' => 'last saturday',
+                'domingo' => 'last sunday',
+            ];
+            $dayKey = mb_strtolower($dm[1]);
+            $data['data'] = date('Y-m-d', strtotime($dayMap[$dayKey] ?? 'today'));
         } elseif (preg_match('/(\d{1,2})\s*[\/\-]\s*(\d{1,2})(?:\s*[\/\-]\s*(\d{2,4}))?/u', $message, $m)) {
             $day = str_pad($m[1], 2, '0', STR_PAD_LEFT);
             $month = str_pad($m[2], 2, '0', STR_PAD_LEFT);
@@ -502,18 +525,13 @@ class EntityCreationHandler implements AIHandlerInterface
     }
 
     /**
-     * Normaliza valores coloquiais: "1k" → "1000", "mil reais" → "1000"
+    /**
+     * Normaliza valores coloquiais.
+     * Delega para NumberNormalizer que corrige "2 mil" → "2000", "duzentos" → "200", etc.
      */
     private function normalizeColloquialValues(string $message): string
     {
-        $message = preg_replace_callback('/(\d+(?:[.,]\d+)?)\s*k\b/iu', function ($m) {
-            $val = (float) str_replace(',', '.', $m[1]);
-            return (string) ($val * 1000);
-        }, $message);
-
-        $message = preg_replace('/\bmil\s*(?:reais|conto[s]?|pila[s]?)?\b/iu', '1000', $message);
-
-        return $message;
+        return NumberNormalizer::normalize($message);
     }
 
     /**

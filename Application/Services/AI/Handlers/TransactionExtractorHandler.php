@@ -16,6 +16,7 @@ use Application\Services\AI\Helpers\UserCategoryLoader;
 use Application\Services\AI\PromptBuilder;
 use Application\Services\AI\Rules\CategoryRuleEngine;
 use Application\Services\AI\TransactionDetectorService;
+use Application\Services\Infrastructure\LogService;
 
 /**
  * Handler para extração de transações financeiras a partir de linguagem natural.
@@ -80,7 +81,7 @@ class TransactionExtractorHandler implements AIHandlerInterface
     }
 
     /**
-     * Extração via LLM quando regex falha.
+     * Extração via LLM com function calling (structured output) quando regex falha.
      */
     private function extractWithAI(string $message, AIRequestDTO $request): AIResponseDTO
     {
@@ -96,11 +97,16 @@ class TransactionExtractorHandler implements AIHandlerInterface
                 }
             }
 
-            // Usar chat com contexto mínimo (o prompt de extração é injetado pelo provider)
-            $response = $this->provider->chat($userPrompt, []);
-
-            // Tentar parsear JSON da resposta
-            $data = $this->parseJsonResponse($response);
+            // Usar function calling para output estruturado garantido
+            $data = $this->provider->chatWithTools(
+                $userPrompt,
+                [\Application\Services\AI\Schemas\EntitySchemas::lancamento()],
+                [
+                    'system_prompt' => PromptBuilder::transactionExtractionSystem(),
+                    'temperature'   => 0.1,
+                    'max_tokens'    => 500,
+                ]
+            );
 
             if ($data === null) {
                 return AIResponseDTO::fail(
@@ -144,6 +150,10 @@ class TransactionExtractorHandler implements AIHandlerInterface
 
             return $this->buildResponse($data, $request, 'llm');
         } catch (\Throwable $e) {
+            LogService::warning('TransactionExtractorHandler.extractWithAI', [
+                'error' => $e->getMessage(),
+            ]);
+
             return AIResponseDTO::fail(
                 'Erro ao processar a transação. Tente novamente.',
                 IntentType::EXTRACT_TRANSACTION,
@@ -212,14 +222,36 @@ class TransactionExtractorHandler implements AIHandlerInterface
 
     /**
      * Tenta parsear JSON de uma resposta da IA.
+     * Suporta JSON aninhado e limpa artefatos de markdown.
      */
     private function parseJsonResponse(string $response): ?array
     {
-        // Tentar extrair JSON da resposta (pode ter texto ao redor)
-        if (preg_match('/\{[^}]+\}/s', $response, $match)) {
-            $data = json_decode($match[0], true);
-            if (is_array($data) && isset($data['descricao'])) {
-                return $data;
+        // 1. Limpar blocos markdown ```json ... ```
+        $cleaned = preg_replace('/```(?:json)?\s*([\s\S]*?)```/', '$1', $response);
+        $cleaned = trim($cleaned);
+
+        // 2. Tentar decodificar diretamente
+        $data = json_decode($cleaned, true);
+        if (is_array($data) && isset($data['descricao'])) {
+            return $data;
+        }
+
+        // 3. Extrair JSON com suporte a aninhamento (brace counting)
+        $start = strpos($cleaned, '{');
+        if ($start !== false) {
+            $depth = 0;
+            $len = strlen($cleaned);
+            for ($i = $start; $i < $len; $i++) {
+                if ($cleaned[$i] === '{') $depth++;
+                if ($cleaned[$i] === '}') $depth--;
+                if ($depth === 0) {
+                    $jsonStr = substr($cleaned, $start, $i - $start + 1);
+                    $data = json_decode($jsonStr, true);
+                    if (is_array($data) && isset($data['descricao'])) {
+                        return $data;
+                    }
+                    break;
+                }
             }
         }
 

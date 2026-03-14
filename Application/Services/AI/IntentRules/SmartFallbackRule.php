@@ -27,20 +27,22 @@ class SmartFallbackRule implements IntentRuleInterface
      * Palavras-chave financeiras que indicam transação quando combinadas com número.
      */
     private const FINANCIAL_KEYWORDS =
-    'reais|conto[s]?|pila[s]?|real|r\$'
-    . '|pix|boleto|fatura|parcela|cart[ãa]o|cr[ée]dito|d[ée]bito'
-    . '|uber|ifood|i\s*food|rappi|mercado|supermercado|farmácia|farmacia'
-    . '|gasolina|combustível|combustivel|posto|estacionamento'
-    . '|aluguel|condomínio|condominio|luz|[áa]gua|energia|internet|telefone'
-    . '|restaurante|almo[çc]o|jantar|padaria|lanche|café|cafeteria'
-    . '|academia|médico|medico|dentista|farmácia|farmacia'
-    . '|netflix|spotify|disney|hbo|globoplay'
-    . '|salário|salario|freela|freelance|mesada|renda'
-    . '|escola|faculdade|curso|livro'
-    . '|viagem|hotel|passagem|cinema|show|ingresso'
-    . '|roupa|sapato|tênis|tenis|shopping'
-    . '|pet|veterinário|veterinario|ra[çc][ãa]o'
-    . '|presente|aniversário|aniversario';
+    'reais|conto[s]?|pila[s]?|real|r\$|paus|mangos?'
+        . '|pix|boleto|fatura|parcela|cart[ãa]o|cr[ée]dito|d[ée]bito'
+        . '|uber|99|cabify|ifood|i\s*food|rappi|mercado|supermercado|farmácia|farmacia'
+        . '|gasolina|combustível|combustivel|posto|estacionamento'
+        . '|aluguel|condomínio|condominio|luz|[áa]gua|energia|internet|telefone'
+        . '|restaurante|almo[çc]o|jantar|padaria|lanche|café|cafeteria'
+        . '|academia|médico|medico|dentista'
+        . '|netflix|spotify|disney|hbo|globoplay|amazon|prime'
+        . '|salário|salario|freela|freelance|mesada|renda'
+        . '|escola|faculdade|curso|livro'
+        . '|viagem|hotel|passagem|cinema|show|ingresso'
+        . '|roupa|sapato|tênis|tenis|shopping|shein|shopee|magalu|magazine|casas\s*bahia'
+        . '|pet|veterinário|veterinario|ra[çc][ãa]o'
+        . '|presente|aniversário|aniversario'
+        . '|rachar|dividir|vaquinha|multa|taxa|juros|iof'
+        . '|mercado\s*livre|aliexpress';
 
     /**
      * Padrão de valor numérico (com ou sem R$).
@@ -54,13 +56,25 @@ class SmartFallbackRule implements IntentRuleInterface
     private const COLLOQUIAL_PATTERN =
     '/(?:uns?\s+\d+|\d+\s*k\b|\bmil\s*(?:reais)?)/iu';
 
+    /**
+     * Contextos não-monetários: número + contexto que claramente não é dinheiro.
+     * Ex: "rua 5", "3 episódios", "página 3", "andar 2"
+     */
+    private const NON_MONETARY_CONTEXT =
+    '/(?:\b(?:rua|p[áa]gina|ep[ií]s[óo]dio|cap[íi]tulo|andar|sala|quarto|bloco|apt|apartamento|turma|fase|n[ií]vel|vers[ãa]o|temporada|parte|volume|edi[çc][ãa]o|item|numeros?|n[úu]mero|nota)\s+\d|\b\d+\s*(?:epis[óo]dios?|cap[íi]tulos?|p[áa]ginas?|andares?|horas?|minutos?|segundos?|dias?|meses?|anos?|vezes|pessoas?|amigos?|gatos?|cachorros?))\b/iu';
+
     public function match(string $message, bool $isWhatsApp = false): ?IntentResult
     {
         $normalized = mb_strtolower(trim($message));
         $length = mb_strlen($normalized);
 
-        // Só para mensagens de 5-150 chars (nem muito curta, nem muito longa)
-        if ($length < 5 || $length > 150) {
+        // Só para mensagens de 5-250 chars (nem muito curta, nem muito longa)
+        if ($length < 5 || $length > 250) {
+            return null;
+        }
+
+        // Excluir contextos onde números claramente não são valores monetários
+        if (preg_match(self::NON_MONETARY_CONTEXT, $normalized)) {
             return null;
         }
 
@@ -75,9 +89,13 @@ class SmartFallbackRule implements IntentRuleInterface
             return null;
         }
 
-        // Evitar conflito com perguntas (começam com "quanto", "qual", "como", "quando")
+        // Evitar conflito com perguntas puras (sem valor financeiro)
+        // Perguntas com valor como "como paguei 200 de internet?" devem passar
         if (preg_match('/^(?:quanto|qual|como|quando|onde|quem|por\s*que|porque)\b/iu', $normalized)) {
-            return null;
+            // Mas se contém verbo de transação + valor, é transação disfarçada de pergunta
+            if (!preg_match('/(?:gastei|paguei|comprei|recebi|cobrou|custou)\s+.*\d/iu', $normalized)) {
+                return null;
+            }
         }
 
         // Evitar conflito com confirmações

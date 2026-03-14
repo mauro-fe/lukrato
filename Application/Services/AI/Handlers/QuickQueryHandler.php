@@ -14,6 +14,7 @@ use Application\Models\Categoria;
 use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\ContextCompressor;
 use Application\Services\AI\PromptBuilder;
+use Application\Services\Infrastructure\LogService;
 use Carbon\Carbon;
 use Illuminate\Database\Capsule\Manager as DB;
 
@@ -37,20 +38,23 @@ class QuickQueryHandler implements AIHandlerInterface
      * @var array<string, string>
      */
     private const QUERY_PATTERNS = [
-        'quanto\s+(gastei|gasto)|total\s+(de\s+)?(gasto|despesa)'   => 'getTotalDespesas',
-        'quanto\s+(recebi|ganho)|total\s+(de\s+)?receita'           => 'getTotalReceitas',
-        'saldo\s+(atual|total|geral)|quanto\s+(tenho|sobrou|falta)' => 'getSaldo',
-        'quantos?\s+lançamento|quantos?\s+transaç|quantos?\s+registro' => 'getCountLancamentos',
-        'quantos?\s+conta|quantas?\s+conta'                         => 'getCountContas',
-        'quantos?\s+cart[ãa]o|quantos?\s+cartao'                    => 'getCountCartoes',
-        'gastos?\s+do\s+m[eê]s|despesas?\s+do\s+m[eê]s'            => 'getTotalDespesas',
-        'maior\s+gasto|gasto\s+mais\s+caro|maior\s+despesa'        => 'getMaiorGasto',
-        'menor\s+gasto|gasto\s+mais\s+barato|menor\s+despesa'      => 'getMenorGasto',
-        'm[eé]dia\s+(de\s+)?(gasto|despesa)|gasto\s+m[eé]dio'      => 'getMediaDespesas',
-        'quantas?\s+categori|total.*categori'                       => 'getCountCategorias',
-        'limite.*cart[ãa]o|cart[ãa]o.*limite|limite.*cr[eé]dito'    => 'getLimiteCartoes',
-        'contas?\s+a\s+pagar|pendente|vencid'                       => 'getContasAPagar',
-        'receitas?\s+do\s+m[eê]s|ganhos?\s+do\s+m[eê]s'            => 'getTotalReceitas',
+        'quanto\s+(gastei|gasto|paguei)|total\s+(de\s+)?(gasto|despesa)'   => 'getTotalDespesas',
+        'quanto\s+(recebi|ganho|ganhei)|total\s+(de\s+)?receita'           => 'getTotalReceitas',
+        'saldo\s+(atual|total|geral)|quanto\s+(tenho|sobrou|falta|sobra)|to\s+com\s+quanto' => 'getSaldo',
+        'me\s+(?:diz|fala|mostra|conta)\s+(?:o\s+)?(?:meu\s+)?saldo'      => 'getSaldo',
+        'quantos?\s+lan[çc]amento|quantos?\s+transa[çc]|quantos?\s+registro' => 'getCountLancamentos',
+        'quantos?\s+conta|quantas?\s+conta'                                 => 'getCountContas',
+        'quantos?\s+cart[ãa]o|quantos?\s+cartao'                            => 'getCountCartoes',
+        'gastos?\s+do\s+m[eê]s|despesas?\s+do\s+m[eê]s'                    => 'getTotalDespesas',
+        'maior\s+gasto|gasto\s+mais\s+caro|maior\s+despesa'                => 'getMaiorGasto',
+        'menor\s+gasto|gasto\s+mais\s+barato|menor\s+despesa'              => 'getMenorGasto',
+        'm[eé]dia\s+(de\s+)?(gasto|despesa)|gasto\s+m[eé]dio'              => 'getMediaDespesas',
+        'quantas?\s+categori|total.*categori'                               => 'getCountCategorias',
+        'limite.*cart[ãa]o|cart[ãa]o.*limite|limite.*cr[eé]dito'            => 'getLimiteCartoes',
+        'contas?\s+a\s+pagar|pendente|vencid'                               => 'getContasAPagar',
+        'receitas?\s+do\s+m[eê]s|ganhos?\s+do\s+m[eê]s'                    => 'getTotalReceitas',
+        'quanto\s+(?:eu\s+)?devo|d[ií]vida'                                => 'getContasAPagar',
+        'sobr(?:ou|ando|a)\s+quanto|quanto\s+(?:ta\s+)?sobr'               => 'getSaldo',
     ];
 
     /**
@@ -97,7 +101,8 @@ class QuickQueryHandler implements AIHandlerInterface
                                 IntentType::QUICK_QUERY,
                             );
                         }
-                    } catch (\Throwable) {
+                    } catch (\Throwable $e) {
+                        LogService::warning('QuickQueryHandler.handle', ['error' => $e->getMessage()]);
                         // Falha na resolução direta, cair para LLM
                     }
                 }
@@ -120,18 +125,30 @@ class QuickQueryHandler implements AIHandlerInterface
     {
         $months = [
             'janeiro' => 1,
+            'jan' => 1,
             'fevereiro' => 2,
+            'fev' => 2,
             'março' => 3,
             'marco' => 3,
+            'mar' => 3,
             'abril' => 4,
+            'abr' => 4,
             'maio' => 5,
+            'mai' => 5,
             'junho' => 6,
+            'jun' => 6,
             'julho' => 7,
+            'jul' => 7,
             'agosto' => 8,
+            'ago' => 8,
             'setembro' => 9,
+            'set' => 9,
             'outubro' => 10,
+            'out' => 10,
             'novembro' => 11,
+            'nov' => 11,
             'dezembro' => 12,
+            'dez' => 12,
         ];
 
         // "mês passado" / "mes anterior"
@@ -140,14 +157,20 @@ class QuickQueryHandler implements AIHandlerInterface
             return [(int) $prev->month, (int) $prev->year];
         }
 
+        // "ano passado"
+        if (preg_match('/ano\s+(passado|anterior)/iu', $message)) {
+            // Retorna null — cai para LLM que pode lidar com ano inteiro
+            return null;
+        }
+
         // "último trimestre" / "trimestre passado"
         if (preg_match('/(último|ultimo)\s+trimestre|trimestre\s+passado/iu', $message)) {
             return null; // Trimestre requer lógica mais complexa; cai para LLM
         }
 
-        // Nome de mês explícito (ex: "janeiro", "em março", "março 2025")
+        // Nome de mês explícito (ex: "janeiro", "em março", "março 2025", "jan", "fev")
         foreach ($months as $name => $num) {
-            if (preg_match('/\b' . $name . '\b(?:\s+(?:de\s+)?(\d{4}))?/iu', $message, $m)) {
+            if (preg_match('/\b' . preg_quote($name, '/') . '\b(?:\s+(?:de\s+)?(\d{4}))?/iu', $message, $m)) {
                 $year = !empty($m[1]) ? (int) $m[1] : (int) now()->year;
                 return [$num, $year];
             }

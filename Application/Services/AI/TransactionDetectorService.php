@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Services\AI;
 
+use Application\Services\AI\NLP\NumberNormalizer;
+
 /**
  * Serviço de detecção e extração de transações financeiras a partir de texto.
  *
@@ -34,7 +36,8 @@ class TransactionDetectorService
         '/(?:comprei|gastei)\s+(.+?)\s+(?:no\s+(?:cart[ãa]o|cr[ée]dito|d[ée]bito))\s*(?:por\s+)?(?:r\$\s*)?(\d+[\.,]?\d*)/iu',
 
         // "gastei 40 no uber" / "paguei 32.50 de luz" / "comprei 120 de mercado" / "torrei 200 no shopping"
-        '/(?:gastei|paguei|pago|comprei|torrei|larguei|meti|soltei|botei)\s+(?:r\$\s*)?(\d+[\.,]?\d*)\s*(?:conto[s]?|pila[s]?|reais)?\s+(?:no|na|de|em|com|pro|pra|para)?\s*(.+)/iu',
+        // Agora cobre mais verbos: custou, cobrou, pagou, gastou, etc.
+        '/(?:gastei|paguei|pago|comprei|torrei|larguei|meti|soltei|botei|raspei|queimei|detonei|estourei|custou|cobrou|pagou|gastou|comprou|saquei|sacou)\s+(?:r\$\s*)?(\d[\d.,]*)\s*(?:conto[s]?|pila[s]?|reais)?\s+(?:no|na|de|em|com|pro|pra|para)?\s*(.+)/iu',
 
         // "recebi 5000 de salário" / "ganhei 1500 freelance"
         '/(?:recebi|ganhei|entrou)\s+(?:r\$\s*)?(\d+[\.,]?\d*)\s*(?:conto[s]?|pila[s]?|reais)?\s+(?:de|do|da|em|com)?\s*(.+)/iu',
@@ -65,9 +68,21 @@ class TransactionDetectorService
      * Keywords que indicam receita.
      */
     private const INCOME_KEYWORDS = [
-        'recebi', 'ganhei', 'entrou', 'salário', 'salario', 'freelance', 'freela',
-        'rendimento', 'dividendo', 'reembolso', 'devolução', 'devolvido', 'mesada',
-        'aluguel recebido', 'renda',
+        'recebi',
+        'ganhei',
+        'entrou',
+        'salário',
+        'salario',
+        'freelance',
+        'freela',
+        'rendimento',
+        'dividendo',
+        'reembolso',
+        'devolução',
+        'devolvido',
+        'mesada',
+        'aluguel recebido',
+        'renda',
     ];
 
     /**
@@ -139,20 +154,11 @@ class TransactionDetectorService
 
     /**
      * Normaliza valores coloquiais no texto antes da extração.
-     * "1k" → "1000", "2k" → "2000", "mil reais" → "1000"
+     * Delega para NumberNormalizer que corrige "2 mil" → "2000", "duzentos" → "200", etc.
      */
     private static function normalizeColloquialValues(string $message): string
     {
-        // "1k" → "1000", "2.5k" → "2500"
-        $message = preg_replace_callback('/(\d+(?:[.,]\d+)?)\s*k\b/iu', function ($m) {
-            $val = (float) str_replace(',', '.', $m[1]);
-            return (string) ($val * 1000);
-        }, $message);
-
-        // "mil reais" → "1000", "mil conto" → "1000"
-        $message = preg_replace('/\bmil\s*(?:reais|conto[s]?|pila[s]?)?\b/iu', '1000', $message);
-
-        return $message;
+        return NumberNormalizer::normalize($message);
     }
 
     /**
@@ -296,7 +302,7 @@ class TransactionDetectorService
             'descricao' => $descricao,
             'valor'     => $valor,
             'tipo'      => $tipo,
-            'data'      => date('Y-m-d'),
+            'data'      => self::detectDate($normalized),
         ];
     }
 
@@ -332,7 +338,7 @@ class TransactionDetectorService
             'descricao'      => $descricao,
             'valor'          => $valor,
             'tipo'           => 'despesa',
-            'data'           => date('Y-m-d'),
+            'data'           => self::detectDate($normalized),
             'eh_parcelado'   => true,
             'total_parcelas' => $parcelas,
         ];
@@ -359,7 +365,7 @@ class TransactionDetectorService
             'descricao'        => $descricao,
             'valor'            => $valor,
             'tipo'             => 'despesa',
-            'data'             => date('Y-m-d'),
+            'data'             => self::detectDate($normalized),
             'forma_pagamento'  => 'cartao_credito',
         ];
     }
@@ -385,7 +391,7 @@ class TransactionDetectorService
             'descricao' => $descricao,
             'valor'     => $valor,
             'tipo'      => 'despesa',
-            'data'      => date('Y-m-d'),
+            'data'      => self::detectDate($normalized),
         ];
     }
 
@@ -410,35 +416,18 @@ class TransactionDetectorService
             'descricao'       => $descricao,
             'valor'           => $valor,
             'tipo'            => 'despesa',
-            'data'            => date('Y-m-d'),
+            'data'            => self::detectDate($normalized),
             'forma_pagamento' => 'pix',
         ];
     }
 
     /**
      * Parseia string de valor para float.
+     * Delega para NumberNormalizer::parseValue() para consistência.
      */
     private static function parseValue(string $raw): float
     {
-        // Remover R$, espaços, sufixos coloquiais
-        $clean = preg_replace('/[rR]\$\s*/', '', $raw);
-        $clean = preg_replace('/\s*(conto[s]?|pila[s]?|reais|real)\s*/iu', '', $clean);
-        $clean = trim($clean);
-
-        // Detectar formato: se tem ponto E vírgula, ponto é milhar
-        if (str_contains($clean, '.') && str_contains($clean, ',')) {
-            $clean = str_replace('.', '', $clean);  // remove milhar
-            $clean = str_replace(',', '.', $clean);  // vírgula → ponto decimal
-        } elseif (str_contains($clean, ',')) {
-            $clean = str_replace(',', '.', $clean);  // vírgula → ponto decimal
-        }
-        // Se só tem ponto com 1-2 dígitos depois → já é decimal
-        // Se só tem ponto com 3+ dígitos depois → é milhar
-        elseif (preg_match('/\.(\d{3,})$/', $clean)) {
-            $clean = str_replace('.', '', $clean);
-        }
-
-        return (float) $clean;
+        return NumberNormalizer::parseValue($raw);
     }
 
     /**
@@ -446,6 +435,15 @@ class TransactionDetectorService
      */
     private static function detectType(string $message): string
     {
+        // Negation overrides income keywords: "nao recebi" = NOT income
+        if (
+            preg_match('/\bn[ãa]o\s+(?:recebi|ganhei|entrou|depositaram)/iu', $message)
+            || preg_match('/ainda\s+n[ãa]o\s+(?:recebi|ganhei)/iu', $message)
+            || preg_match('/n[ãa]o\s+(?:veio|caiu|entrou)/iu', $message)
+        ) {
+            return 'despesa';
+        }
+
         foreach (self::INCOME_KEYWORDS as $keyword) {
             if (str_contains($message, $keyword)) {
                 return 'receita';
@@ -453,5 +451,19 @@ class TransactionDetectorService
         }
 
         return 'despesa';
+    }
+
+    /**
+     * Detecta data relativa na mensagem.
+     */
+    private static function detectDate(string $message): string
+    {
+        if (preg_match('/\bontem\b/iu', $message)) {
+            return date('Y-m-d', strtotime('-1 day'));
+        }
+        if (preg_match('/\banteontem\b/iu', $message)) {
+            return date('Y-m-d', strtotime('-2 days'));
+        }
+        return date('Y-m-d');
     }
 }

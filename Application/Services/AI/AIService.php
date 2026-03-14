@@ -193,19 +193,22 @@ class AIService
         $logType = $this->normalizeLogType($intent);
 
         AiLogService::log([
-            'user_id'          => $request->userId,
-            'type'             => $logType,
-            'channel'          => $request->channel->value,
-            'prompt'           => mb_substr($request->message, 0, 5000),
-            'response'         => mb_substr($response->message, 0, 10000),
-            'provider'         => $_ENV['AI_PROVIDER'] ?? 'openai',
-            'model'            => $model,
-            'tokens_prompt'    => $meta['tokens_prompt'] ?? 0,
+            'user_id'           => $request->userId,
+            'type'              => $logType,
+            'channel'           => $request->channel->value,
+            'prompt'            => mb_substr($request->message, 0, 5000),
+            'response'          => mb_substr($response->message, 0, 10000),
+            'provider'          => $_ENV['AI_PROVIDER'] ?? 'openai',
+            'model'             => $model,
+            'tokens_prompt'     => $meta['tokens_prompt'] ?? 0,
             'tokens_completion' => $meta['tokens_completion'] ?? 0,
-            'tokens_total'     => $meta['tokens_total'] ?? $response->tokensUsed,
-            'response_time_ms' => $elapsedMs,
-            'success'          => $response->success,
-            'error_message'    => $response->success ? null : $response->message,
+            'tokens_total'      => $meta['tokens_total'] ?? $response->tokensUsed,
+            'response_time_ms'  => $elapsedMs,
+            'success'           => $response->success,
+            'error_message'     => $response->success ? null : $response->message,
+            'source'            => $response->source,
+            'confidence'        => $confidence,
+            'prompt_version'    => $this->resolvePromptVersion($intent),
         ]);
     }
 
@@ -222,6 +225,21 @@ class AIService
             IntentType::CREATE_ENTITY       => 'create_entity',
             IntentType::CONFIRM_ACTION      => 'confirm_action',
             IntentType::CHAT                => 'chat',
+        };
+    }
+
+    /**
+     * Resolve a versão do prompt usado para este intent.
+     */
+    private function resolvePromptVersion(IntentType $intent): ?string
+    {
+        return match ($intent) {
+            IntentType::CHAT                => PromptBuilder::getVersion('user_chat_system'),
+            IntentType::CATEGORIZE          => PromptBuilder::getVersion('category_system'),
+            IntentType::ANALYZE             => PromptBuilder::getVersion('analysis_system'),
+            IntentType::EXTRACT_TRANSACTION => PromptBuilder::getVersion('transaction_extraction'),
+            IntentType::QUICK_QUERY         => PromptBuilder::getVersion('quick_query_system'),
+            default                         => null,
         };
     }
 

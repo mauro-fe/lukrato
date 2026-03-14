@@ -124,10 +124,10 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
             username: <?= json_encode($username) ?>,
             userAvatar: <?= json_encode($currentUser?->avatar ? rtrim(BASE_URL, '/') . '/' . $currentUser->avatar : '') ?>,
             userAvatarSettings: <?= json_encode([
-                'position_x' => max(0, min(100, (int) ($currentUser?->avatar_focus_x ?? 50))),
-                'position_y' => max(0, min(100, (int) ($currentUser?->avatar_focus_y ?? 50))),
-                'zoom' => max(1, min(2, round((float) ($currentUser?->avatar_zoom ?? 1), 2))),
-            ]) ?>
+                                    'position_x' => max(0, min(100, (int) ($currentUser?->avatar_focus_x ?? 50))),
+                                    'position_y' => max(0, min(100, (int) ($currentUser?->avatar_focus_y ?? 50))),
+                                    'zoom' => max(1, min(2, round((float) ($currentUser?->avatar_zoom ?? 1), 2))),
+                                ]) ?>
         };
     </script>
 
@@ -170,8 +170,8 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
             <!-- Grupo: Principal -->
             <div class="sidebar-nav-group">
                 <span class="sidebar-nav-label">Principal</span>
-                <a href="<?= BASE_URL ?>dashboard" class="nav-item <?= $active('dashboard') ?>" <?= $aria('dashboard') ?>
-                    title="Dashboard">
+                <a href="<?= BASE_URL ?>dashboard" class="nav-item <?= $active('dashboard') ?>"
+                    <?= $aria('dashboard') ?> title="Dashboard">
                     <i data-lucide="home"></i>
                     <span>Dashboard</span>
                 </a>
@@ -205,13 +205,13 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
             <!-- Grupo: Gestão -->
             <div class="sidebar-nav-group">
                 <span class="sidebar-nav-label">Gestão</span>
-                <a href="<?= BASE_URL ?>categorias" class="nav-item <?= $active('categorias') ?>" <?= $aria('categorias') ?>
-                    title="Categorias">
+                <a href="<?= BASE_URL ?>categorias" class="nav-item <?= $active('categorias') ?>"
+                    <?= $aria('categorias') ?> title="Categorias">
                     <i data-lucide="tags"></i>
                     <span>Categorias</span>
                 </a>
-                <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios') ?>" <?= $aria('relatorios') ?>
-                    title="Relatórios">
+                <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios') ?>"
+                    <?= $aria('relatorios') ?> title="Relatórios">
                     <i data-lucide="pie-chart"></i>
                     <span>Relatórios</span>
                 </a>

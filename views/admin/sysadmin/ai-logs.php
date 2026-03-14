@@ -52,6 +52,40 @@
         </div>
     </div>
 
+    <!-- Quality Metrics -->
+    <div class="quality-section" id="qualitySection" style="margin-bottom: 1.5rem;">
+        <h2
+            style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="activity" style="width:18px;height:18px;color:var(--orange-500, #e67e22);"></i>
+            Qualidade da IA
+        </h2>
+        <div class="metrics-grid">
+            <div class="metric-card warning">
+                <div class="metric-value" id="metricLowConf">—</div>
+                <div class="metric-label">Low Confidence Rate</div>
+            </div>
+            <div class="metric-card warning">
+                <div class="metric-value" id="metricFallback">—</div>
+                <div class="metric-label">Fallback to Chat</div>
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+            <div class="metric-card" style="padding: 1rem;">
+                <div class="metric-label" style="margin-bottom: 0.75rem; font-weight: 600;">Distribuição de Intents
+                </div>
+                <div id="intentDistribution" style="font-size: 0.8rem; line-height: 1.8;">
+                    <span style="color: var(--text-muted);">Carregando...</span>
+                </div>
+            </div>
+            <div class="metric-card" style="padding: 1rem;">
+                <div class="metric-label" style="margin-bottom: 0.75rem; font-weight: 600;">Erros por Handler</div>
+                <div id="errorsByHandler" style="font-size: 0.8rem; line-height: 1.8;">
+                    <span style="color: var(--text-muted);">Carregando...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Quota OpenAI -->
     <div class="quota-section" id="quotaSection">
         <h2>

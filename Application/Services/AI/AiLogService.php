@@ -16,10 +16,16 @@ class AiLogService
         'gpt-4-turbo' => ['input' => 10.00, 'output' => 30.00],
     ];
 
+    /** Cache estático para evitar hasTable() a cada chamada */
+    private static ?bool $tableExists = null;
+
     public static function log(array $data): ?AiLog
     {
         try {
-            if (!DB::schema()->hasTable('ai_logs')) {
+            if (self::$tableExists === null) {
+                self::$tableExists = DB::schema()->hasTable('ai_logs');
+            }
+            if (!self::$tableExists) {
                 return null;
             }
 
@@ -110,7 +116,8 @@ class AiLogService
             $estimatedCost += ((int) $row->outp / 1_000_000) * $pricing['output'];
         }
 
-        $recentes = AiLog::orderByDesc('created_at')
+        $recentes = AiLog::where('created_at', '>=', $since)
+            ->orderByDesc('created_at')
             ->limit(5)
             ->get(['id', 'type', 'tokens_total', 'response_time_ms', 'success', 'created_at'])
             ->toArray();
@@ -126,6 +133,85 @@ class AiLogService
             'avg_time_ms'    => $avgTime,
             'by_type'        => $byType,
             'recentes'       => $recentes,
+        ];
+    }
+
+    /**
+     * Métricas de qualidade semântica da IA.
+     * Separa sucesso técnico de qualidade real do pipeline.
+     */
+    public static function qualityMetrics(int $hours = 24): array
+    {
+        $since = now()->subHours($hours);
+        $total = AiLog::where('created_at', '>=', $since)->count();
+
+        if ($total === 0) {
+            return [
+                'period_hours'         => $hours,
+                'total'                => 0,
+                'low_confidence_rate'  => 0.0,
+                'fallback_to_chat_rate' => 0.0,
+                'intent_distribution'  => [],
+                'error_by_handler'     => [],
+                'source_distribution'  => [],
+                'avg_response_time_by_type' => [],
+            ];
+        }
+
+        // Taxa de fallback para chat (indica que regras não capturaram o intent)
+        $chatFallback = AiLog::where('created_at', '>=', $since)
+            ->where('type', 'chat')
+            ->count();
+
+        // Distribuição por intent/type
+        $intentDist = AiLog::where('created_at', '>=', $since)
+            ->select('type', DB::raw('COUNT(*) as qtd'))
+            ->groupBy('type')
+            ->get()
+            ->mapWithKeys(fn($r) => [$r->type => (int) $r->qtd])
+            ->toArray();
+
+        // Erros por handler/type
+        $errorsByHandler = AiLog::where('created_at', '>=', $since)
+            ->where('success', false)
+            ->select('type', DB::raw('COUNT(*) as qtd'))
+            ->groupBy('type')
+            ->get()
+            ->mapWithKeys(fn($r) => [$r->type => (int) $r->qtd])
+            ->toArray();
+
+        // Distribuição por source (rule, llm, cache, computed)
+        $sourceDist = AiLog::where('created_at', '>=', $since)
+            ->whereNotNull('source')
+            ->select('source', DB::raw('COUNT(*) as qtd'))
+            ->groupBy('source')
+            ->get()
+            ->mapWithKeys(fn($r) => [$r->source => (int) $r->qtd])
+            ->toArray();
+
+        // Tempo médio de resposta por tipo
+        $avgTimeByType = AiLog::where('created_at', '>=', $since)
+            ->select('type', DB::raw('AVG(response_time_ms) as avg_ms'))
+            ->groupBy('type')
+            ->get()
+            ->mapWithKeys(fn($r) => [$r->type => (int) $r->avg_ms])
+            ->toArray();
+
+        // Low confidence: respostas com confidence abaixo de 0.6 (do metadata)
+        $lowConfCount = AiLog::where('created_at', '>=', $since)
+            ->where('confidence', '<', 0.6)
+            ->where('confidence', '>', 0)
+            ->count();
+
+        return [
+            'period_hours'              => $hours,
+            'total'                     => $total,
+            'low_confidence_rate'       => round(($lowConfCount / $total) * 100, 1),
+            'fallback_to_chat_rate'     => round(($chatFallback / $total) * 100, 1),
+            'intent_distribution'       => $intentDist,
+            'error_by_handler'          => $errorsByHandler,
+            'source_distribution'       => $sourceDist,
+            'avg_response_time_by_type' => $avgTimeByType,
         ];
     }
 

@@ -7,7 +7,7 @@
  * evitando múltiplas requisições HTTP dos @import.
  */
 
-$cssDir = __DIR__ . '/../dashboard';
+$cssDir = __DIR__ . '/../pages/admin-dashboard';
 
 $modules = [
     '_modern-dashboard.css',
@@ -20,6 +20,17 @@ $modules = [
     '_print.css',
     '_provisao.css',
     '_light-theme.css',
+    'greeting.css',
+    'health-score.css',
+    'health-score-insights.css',
+    'celebration-animations.css',
+    'progressive-disclosure.css',
+    'floating-action-button.css',
+    'finance-overview.css',
+    'onboarding-checklist.css'
+
+
+
 ];
 
 $lastModified = 0;

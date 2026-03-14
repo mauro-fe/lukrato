@@ -82,4 +82,29 @@ class AiLogsApiController extends BaseController
             'message' => "Removidos {$deleted} registros com mais de {$days} dias.",
         ]);
     }
+
+    /**
+     * GET /api/sysadmin/ai/logs/quality
+     *
+     * Métricas de qualidade semântica da IA:
+     * - low_confidence_rate: % de respostas com confidence < 0.6
+     * - fallback_to_chat_rate: % de chamadas caindo no ChatHandler
+     * - intent_distribution: distribuição por tipo de intent
+     * - error_by_handler: erros agrupados por handler
+     * - source_distribution: rule vs llm vs cache vs computed
+     * - avg_response_time_by_type: latência por handler
+     */
+    public function quality(): void
+    {
+        $this->requireAuthApi();
+
+        if (!$this->isAdmin()) {
+            Response::error('Acesso negado', 403);
+            return;
+        }
+
+        $hours = max(1, (int) ($_GET['hours'] ?? 24));
+
+        Response::success(AiLogService::qualityMetrics($hours));
+    }
 }

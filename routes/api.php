@@ -71,6 +71,7 @@ Router::add('GET', '/api/dashboard/transactions', 'Api\\Financeiro\\DashboardCon
 Router::add('GET', '/api/dashboard/comparativo-competencia', 'Api\\Financeiro\\DashboardController@comparativoCompetenciaCaixa', ['auth']);
 Router::add('GET', '/api/dashboard/provisao',     'Api\\Financeiro\\DashboardController@provisao',       ['auth']);
 Router::add('GET', '/api/dashboard/health-score', 'Api\\Financeiro\\DashboardController@healthScore',    ['auth']);
+Router::add('GET', '/api/dashboard/health-score/insights', 'Api\\Financeiro\\DashboardController@healthScoreInsights', ['auth']);
 Router::add('GET', '/api/dashboard/greeting-insight', 'Api\\Financeiro\\DashboardController@greetingInsight', ['auth']);
 Router::add('GET', '/api/options',                'Api\\Financeiro\\FinanceiroController@options',      ['auth']);
 
@@ -396,8 +397,9 @@ Router::add('POST', '/api/sysadmin/ai/suggest-category', 'SysAdmin\\AiApiControl
 Router::add('POST', '/api/sysadmin/ai/analyze-spending', 'SysAdmin\\AiApiController@analyzeSpending',  ['auth', 'sysadmin', 'csrf', 'ratelimit']);
 
 // AI Logs (SysAdmin)
-Router::add('GET',    '/api/sysadmin/ai/logs',         'SysAdmin\\AiLogsApiController@index',   ['auth', 'sysadmin']);
+Router::add('GET',    '/api/sysadmin/ai/logs',          'SysAdmin\\AiLogsApiController@index',   ['auth', 'sysadmin']);
 Router::add('GET',    '/api/sysadmin/ai/logs/summary',  'SysAdmin\\AiLogsApiController@summary', ['auth', 'sysadmin']);
+Router::add('GET',    '/api/sysadmin/ai/logs/quality',  'SysAdmin\\AiLogsApiController@quality', ['auth', 'sysadmin']);
 Router::add('DELETE', '/api/sysadmin/ai/logs/cleanup',  'SysAdmin\\AiLogsApiController@cleanup', ['auth', 'sysadmin', 'csrf', 'ratelimit']);
 
 // ============================================// CAMPANHAS DE MENSAGENS (SYSADMIN)

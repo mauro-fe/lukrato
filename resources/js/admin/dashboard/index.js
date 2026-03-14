@@ -7,6 +7,13 @@
  * ============================================================================
  */
 
+import './greeting.js';
+import './health-score.js';
+import './health-score-insights.js';
+import './finance-overview.js';
+import './progressive-disclosure.js';
+import './celebration.js';
+import './sprint2-loader.js';
 import { Modules } from './state.js';
 import { DashboardManager, EventListeners } from './app.js';
 import { initOnboardingChecklist } from './onboarding.js';

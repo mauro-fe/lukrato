@@ -14,10 +14,13 @@ use Application\Repositories\ContaRepository;
 use Application\Services\AI\AIService;
 use Application\Services\AI\AIQuotaService;
 use Application\Services\AI\Actions\ActionRegistry;
+use Application\Services\AI\NLP\NumberNormalizer;
+use Application\Services\AI\NLP\TextNormalizer;
 use Application\Services\AI\Rules\CategoryRuleEngine;
 use Application\Services\AI\TransactionDetectorService;
 use Application\Services\AI\WhatsApp\WhatsAppService;
 use Application\Services\AI\WhatsApp\WhatsAppUserResolver;
+use Application\Services\AI\IntentRules\ConfirmationIntentRule;
 use Application\Services\Infrastructure\LogService;
 use Application\Enums\LogLevel;
 use Application\Enums\LogCategory;
@@ -228,7 +231,7 @@ class WhatsAppWebhookController extends BaseController
 
                 $payload = $pending->payload;
 
-                // Auto-selecionar conta se não definida
+                // Auto-selecionar conta: buscar match por nome do banco na mensagem
                 if ($pending->action_type === 'create_lancamento' && empty($payload['conta_id'])) {
                     $contaRepo = new ContaRepository();
                     $contas = $contaRepo->findActive($user->id);
@@ -243,8 +246,19 @@ class WhatsAppWebhookController extends BaseController
                         return;
                     }
 
-                    // WhatsApp: auto-seleciona a primeira conta ativa
-                    $payload['conta_id'] = $contas->first()->id;
+                    // Smart account resolution: match pelo nome do banco/cartão no payload
+                    $selectedConta = $contas->first();
+                    $nomeCartao = mb_strtolower($payload['nome_cartao'] ?? '');
+                    if ($nomeCartao !== '' && $contas->count() > 1) {
+                        foreach ($contas as $conta) {
+                            if (str_contains(mb_strtolower($conta->nome), $nomeCartao)) {
+                                $selectedConta = $conta;
+                                break;
+                            }
+                        }
+                    }
+
+                    $payload['conta_id'] = $selectedConta->id;
                     $pending->update(['payload' => $payload]);
                 }
 
@@ -295,17 +309,36 @@ class WhatsAppWebhookController extends BaseController
 
     /**
      * Trata mensagem normal: detectar intent, processar, responder.
+     * Normaliza texto e números antes do processamento.
      */
     private function handleNormalMessage(
         WhatsAppMessageDTO $dto,
         \Application\Models\Usuario $user,
         WhatsAppMessage $msgRecord,
     ): void {
+        // Pré-processar: expandir abreviações WhatsApp e normalizar números BR
+        $normalizedBody = TextNormalizer::normalize($dto->body);
+        $normalizedBody = NumberNormalizer::normalize($normalizedBody);
+
         // Tentar extração de transação primeiro (regex, 0 tokens)
-        $extracted = TransactionDetectorService::extract($dto->body);
+        $extracted = TransactionDetectorService::extract($normalizedBody);
 
         if ($extracted !== null) {
             $this->handleTransactionExtraction($dto, $user, $extracted, $msgRecord);
+            return;
+        }
+
+        // Quick query bypass: zero-token queries não devem ser bloqueadas por quota
+        if ($this->looksLikeQuickQuery($normalizedBody)) {
+            $ai = new AIService();
+            $request = AIRequestDTO::chat(
+                userId: $user->id,
+                message: $normalizedBody,
+                channel: AIChannel::WHATSAPP,
+            );
+            $response = $ai->dispatch($request);
+            $this->whatsapp->sendText($dto->fromPhone, $response->message);
+            $msgRecord->markProcessed($response->intent?->value ?? 'quick_query');
             return;
         }
 
@@ -327,7 +360,7 @@ class WhatsAppWebhookController extends BaseController
 
         $request = AIRequestDTO::chat(
             userId: $user->id,
-            message: $dto->body,
+            message: $normalizedBody,
             channel: AIChannel::WHATSAPP,
         );
 
@@ -335,6 +368,47 @@ class WhatsAppWebhookController extends BaseController
 
         $this->whatsapp->sendText($dto->fromPhone, $response->message);
         $msgRecord->markProcessed($response->intent?->value ?? 'chat');
+    }
+
+    /**
+     * Verificação rápida se a mensagem parece ser uma consulta zero-token.
+     * Permite bypass de quota para queries que não consomem LLM.
+     */
+    private function looksLikeQuickQuery(string $message): bool
+    {
+        $lower = mb_strtolower($message);
+        $patterns = [
+            'quanto gastei',
+            'quanto recebi',
+            'quanto ganhei',
+            'quanto tenho',
+            'qual meu saldo',
+            'meu saldo',
+            'quanto sobrou',
+            'quanto falta',
+            'quantos lancamento',
+            'quantas conta',
+            'quantos cartao',
+            'quantos cartão',
+            'maior gasto',
+            'menor gasto',
+            'media de gasto',
+            'média de gasto',
+            'contas a pagar',
+            'quanto devo',
+            'quanto sobrando',
+            'me fala meu saldo',
+            'me diz quanto',
+            'mostra meu saldo',
+        ];
+
+        foreach ($patterns as $p) {
+            if (str_contains($lower, $p)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

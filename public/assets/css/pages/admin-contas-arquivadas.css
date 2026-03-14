@@ -489,7 +489,7 @@
 
     /* Ícone do empty state - adapta ao tema */
     .empty-icon {
-        color: white !important;
+        color: var(--color-text) !important;
     }
 
     [data-theme="light"] .empty-icon {

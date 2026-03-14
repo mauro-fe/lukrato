@@ -14,6 +14,8 @@ use Application\Services\AI\IntentRules\IntentRuleInterface;
 use Application\Services\AI\IntentRules\QuickQueryIntentRule;
 use Application\Services\AI\IntentRules\SmartFallbackRule;
 use Application\Services\AI\IntentRules\TransactionIntentRule;
+use Application\Services\AI\NLP\NumberNormalizer;
+use Application\Services\AI\NLP\TextNormalizer;
 use Application\Services\Infrastructure\CacheService;
 
 /**
@@ -72,7 +74,12 @@ class IntentRouter
      */
     public function detect(string $message, bool $isWhatsApp = false, ?int $userId = null, ?int $conversationId = null): IntentResult
     {
-        $normalized = mb_strtolower(trim($message));
+        // Normalizar texto: expandir abreviações WhatsApp, limpar pontuação
+        $preprocessed = TextNormalizer::normalize($message);
+        // Normalizar números: "2 mil" → "2000", "duzentos" → "200", etc.
+        $preprocessed = NumberNormalizer::normalize($preprocessed);
+
+        $normalized = mb_strtolower(trim($preprocessed));
 
         // Check active multi-turn flow FIRST (highest priority)
         if ($conversationId !== null) {
@@ -106,7 +113,7 @@ class IntentRouter
         if ($cached !== null) {
             $intent = IntentType::tryFrom($cached);
             if ($intent !== null) {
-                return IntentResult::high($intent, ['source' => 'cache']);
+                return IntentResult::medium($intent, 0.95, ['source' => 'cache']);
             }
         }
 

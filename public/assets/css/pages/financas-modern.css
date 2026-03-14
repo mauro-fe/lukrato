@@ -899,7 +899,7 @@
   height: 80px;
   background: color-mix(in srgb, var(--color-primary) 10%, transparent);
   font-size: 2rem;
-  color: var(--color-primary);
+  color: var(--color-text);
   box-shadow: none;
 }
 

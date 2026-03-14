@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Application\Repositories;
 
 use Application\Models\Lancamento;
+use Application\Models\Conta;
 use Application\Models\FaturaCartaoItem;
 use Application\Enums\LancamentoTipo;
 use Illuminate\Database\Eloquent\Collection;
@@ -675,6 +676,73 @@ class LancamentoRepository extends BaseRepository
         return $query->orderBy('data', 'desc')
             ->orderBy('id', 'desc')
             ->get();
+    }
+
+    /**
+     * Obter resumo financeiro do mês para Health Score e Insights.
+     *
+     * @param int $userId
+     * @param string $month Formato: Y-m
+     * @return array{receitas: float, despesas: float, count: int, categories: int, saldo_atual: float}
+     */
+    public function getResumoMes(int $userId, string $month): array
+    {
+        [$year, $monthNum] = explode('-', $month);
+        $year = (int) $year;
+        $monthNum = (int) $monthNum;
+
+        $baseQuery = fn() => $this->query()
+            ->where('user_id', $userId)
+            ->where('eh_transferencia', 0)
+            ->where('eh_saldo_inicial', 0)
+            ->whereYear('data', $year)
+            ->whereMonth('data', $monthNum);
+
+        $receitas = (float) $baseQuery()
+            ->where('tipo', LancamentoTipo::RECEITA->value)
+            ->sum('valor');
+
+        $despesas = (float) $baseQuery()
+            ->where('tipo', LancamentoTipo::DESPESA->value)
+            ->sum('valor');
+
+        $count = $baseQuery()->count();
+
+        $categories = (int) $baseQuery()
+            ->whereNotNull('categoria_id')
+            ->distinct('categoria_id')
+            ->count('categoria_id');
+
+        // Saldo atual = saldo inicial das contas + receitas pagas - despesas pagas (caixa)
+        $saldosIniciais = (float) Conta::forUser($userId)
+            ->ativas()
+            ->sum('saldo_inicial');
+
+        $receitasCaixa = (float) $this->query()
+            ->where('user_id', $userId)
+            ->where('tipo', LancamentoTipo::RECEITA->value)
+            ->where('eh_transferencia', 0)
+            ->where('pago', 1)
+            ->where('afeta_caixa', 1)
+            ->sum('valor');
+
+        $despesasCaixa = (float) $this->query()
+            ->where('user_id', $userId)
+            ->where('tipo', LancamentoTipo::DESPESA->value)
+            ->where('eh_transferencia', 0)
+            ->where('pago', 1)
+            ->where('afeta_caixa', 1)
+            ->sum('valor');
+
+        $saldoAtual = $saldosIniciais + $receitasCaixa - $despesasCaixa;
+
+        return [
+            'receitas'    => $receitas,
+            'despesas'    => $despesas,
+            'count'       => $count,
+            'categories'  => $categories,
+            'saldo_atual' => $saldoAtual,
+        ];
     }
 
     /**

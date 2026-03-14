@@ -3,10 +3,12 @@
    Componente acionável flutuante para "Adicionar Transação"
    ===================================================================== */
 
-.fab-container {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
+/* Override do .fab-container global (components.css usa !important com left:) */
+#fabContainer.fab-container {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  left: auto !important;
   z-index: 999;
   display: flex;
   flex-direction: column;
@@ -174,9 +176,9 @@
 
 /* Mobile Adjustments */
 @media (max-width: 768px) {
-  .fab-container {
-    bottom: 20px;
-    right: 16px;
+  #fabContainer.fab-container {
+    bottom: 20px !important;
+    right: 16px !important;
   }
 
   .fab-main {

@@ -13,6 +13,7 @@ use Application\Services\AI\Helpers\UserCategoryLoader;
 use Application\Services\AI\PromptBuilder;
 use Application\Services\AI\Rules\CategoryRuleEngine;
 use Application\Services\Infrastructure\CacheService;
+use Application\Services\Infrastructure\LogService;
 
 /**
  * Handler para sugestão automática de categoria/subcategoria.
@@ -116,8 +117,10 @@ class CategorizationHandler implements AIHandlerInterface
 
             return AIResponseDTO::fromLLM($msg, $result, IntentType::CATEGORIZE);
         } catch (\Throwable $e) {
+            LogService::warning('CategorizationHandler.resolveWithAI', ['error' => $e->getMessage()]);
+
             return AIResponseDTO::fail(
-                'Erro ao sugerir categoria: ' . $e->getMessage(),
+                'Erro ao sugerir categoria. Tente novamente.',
                 IntentType::CATEGORIZE,
             );
         }
@@ -205,8 +208,8 @@ class CategorizationHandler implements AIHandlerInterface
                     }
                 }
             }
-        } catch (\Throwable) {
-            // Falha silenciosa
+        } catch (\Throwable $e) {
+            LogService::warning('CategorizationHandler.resolveResult', ['error' => $e->getMessage()]);
         }
 
         return $result;

@@ -155,6 +155,8 @@ button:not(:disabled):not(.theme-toggle):not(.lkh-modal-close):not(
   border: none;
   box-shadow: 0 4px 12px
     color-mix(in srgb, var(--color-primary) 30%, transparent);
+    padding: var(--spacing-2) var(--spacing-4); 
+    border-radius: var(--radius-md);
 }
 
 .btn-primary:hover:not(#btnNovoCartao):not(#btnNovaConta):not(
@@ -524,7 +526,7 @@ a:not(.btn):not(.lk-upgrade-btn):not(.lk-support-button):not(.lk-fab-item):not(.
   justify-content: center;
   margin: 0 auto 2rem;
   font-size: 3rem;
-  color: white;
+  color: var(--color-text) !important;
   box-shadow: 0 8px 24px rgba(230, 126, 34, 0.3);
   animation: float 3s ease-in-out infinite;
   position: relative;

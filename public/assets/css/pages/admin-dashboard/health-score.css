@@ -1,307 +1,244 @@
 /**
- * Health Score Widget Styles
- * Componente circular que exibe saúde financeira
+ * Health Score Widget — Compact Modern Design
  */
 
 .health-score-widget {
   background: var(--glass-bg);
   border: 1px solid var(--color-card-border);
   border-radius: 16px;
-  padding: 1.5rem;
+  padding: 1.25rem 1.5rem;
   margin-bottom: 1.5rem;
   box-shadow: var(--shadow-sm);
-  transition: all var(--transition-normal);
+  transition: box-shadow var(--transition-normal);
 }
 
 .health-score-widget:hover {
-  transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }
 
-.health-score-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: start;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--color-card-border);
-}
-
-.health-score-title {
+/* ========== MAIN LAYOUT (gauge | info) ========== */
+.hs-main {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--color-text);
+  gap: 1.5rem;
 }
 
-.health-score-subtitle {
-  margin: 0.25rem 0 0;
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
+/* ========== GAUGE ========== */
+.hs-gauge-area {
+  flex-shrink: 0;
+  width: 96px;
+  height: 96px;
 }
 
-.health-score-body {
-  display: grid;
-  grid-template-columns: 1fr 1.5fr;
-  gap: 2rem;
-  align-items: center;
-}
-
-/* ========== GAUGE SVG ========== */
-.health-score-gauge-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  position: relative;
-}
-
-.health-score-gauge {
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
-}
-
-.gauge-bg {
-  fill: var(--color-surface-muted);
-  opacity: 0.3;
-}
-
-.gauge-progress {
-  fill: none;
-  stroke: var(--gradient-primary);
-  stroke-width: 8;
-  stroke-linecap: round;
+.hs-gauge {
+  width: 96px;
+  height: 96px;
   transform: rotate(-90deg);
-  transform-origin: 100px 100px;
-  stroke-dasharray: 565;
-  stroke-dashoffset: calc(565 - (565 * var(--score, 0) / var(--total, 100)));
+}
+
+.hs-gauge-track {
+  fill: none;
+  stroke: var(--color-surface-muted);
+  stroke-width: 7;
+  opacity: 0.5;
+}
+
+.hs-gauge-fill {
+  fill: none;
+  stroke: url(#gaugeGrad);
+  stroke-width: 7;
+  stroke-linecap: round;
   transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.gauge-center-content {
+.hs-gauge-value {
+  transform: rotate(90deg);
+  transform-origin: 60px 60px;
   text-anchor: middle;
-  pointer-events: none;
-}
-
-.gauge-value {
-  font-size: 3rem;
+  font-size: 1.75rem;
   font-weight: 800;
   fill: var(--color-text);
-  dominant-baseline: central;
+  dominant-baseline: auto;
 }
 
-.gauge-label {
-  font-size: 1rem;
+.hs-gauge-label {
+  transform: rotate(90deg);
+  transform-origin: 60px 60px;
+  text-anchor: middle;
+  font-size: 0.6rem;
+  font-weight: 500;
   fill: var(--color-text-muted);
-  dominant-baseline: central;
-  font-weight: 500;
+  dominant-baseline: auto;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-/* ========== STATUS INDICATOR ========== */
-.health-score-indicator {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: var(--color-surface-muted);
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  transition: all var(--transition-normal);
-  min-width: 160px;
-  justify-content: center;
-}
-
-.health-score-indicator.status-excellent {
-  background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.health-score-indicator.status-good {
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
-}
-
-.health-score-indicator.status-warning {
-  background: rgba(245, 158, 11, 0.1);
-  color: #f59e0b;
-  border: 1px solid rgba(245, 158, 11, 0.2);
-}
-
-.health-score-indicator.status-critical {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
-}
-
-.health-score-indicator.status-error {
-  background: var(--color-surface-muted);
-  color: var(--color-text-muted);
-  border: 1px solid var(--color-card-border);
-}
-
-.indicator-dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: currentColor;
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.2);
-  }
-}
-
-/* ========== BREAKDOWN ========== */
-.health-score-breakdown {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.breakdown-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem;
-  background: var(--color-surface-muted);
-  border-radius: 8px;
-  transition: all var(--transition-fast);
-}
-
-.breakdown-item:hover {
-  background: var(--color-bg);
-  transform: translateX(2px);
-}
-
-.breakdown-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  flex-shrink: 0;
-}
-
-.breakdown-content {
+/* ========== INFO AREA ========== */
+.hs-info {
   flex: 1;
+  min-width: 0;
+}
+
+.hs-title-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
-.breakdown-label {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-  font-weight: 500;
-}
-
-.breakdown-value {
+.hs-title {
+  margin: 0;
   font-size: 0.95rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text);
 }
 
-.breakdown-value.color-success {
-  color: #10b981;
-}
-
-.breakdown-value.color-warning {
-  color: #f59e0b;
-}
-
-.breakdown-value.color-danger {
-  color: #ef4444;
-}
-
-.breakdown-value.color-muted {
+/* ========== STATUS BADGE ========== */
+.hs-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--color-surface-muted);
   color: var(--color-text-muted);
 }
 
+.hs-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: hs-pulse 2s ease-in-out infinite;
+}
+
+@keyframes hs-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.hs-badge--excellent {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+}
+
+.hs-badge--good {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+}
+
+.hs-badge--warning {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+}
+
+.hs-badge--critical {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+.hs-badge--error {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+}
+
+/* ========== METRICS BREAKDOWN ========== */
+.hs-breakdown {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.hs-metric {
+  flex: 1;
+  text-align: center;
+}
+
+.hs-metric-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--color-card-border);
+  flex-shrink: 0;
+}
+
+.hs-metric-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+}
+
+.hs-metric-value {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.hs-metric-value.color-success { color: #10b981; }
+.hs-metric-value.color-warning { color: #f59e0b; }
+.hs-metric-value.color-danger { color: #ef4444; }
+.hs-metric-value.color-muted { color: var(--color-text-muted); }
+
 /* ========== RESPONSIVE ========== */
-@media (max-width: 768px) {
-  .health-score-body {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .health-score-gauge {
-    transform: scale(0.85);
-  }
-
-  .health-score-breakdown {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-
-  .breakdown-item {
-    flex: 1;
-    min-width: 160px;
+@media (max-width: 640px) {
+  .hs-main {
     flex-direction: column;
-    gap: 0.5rem;
     text-align: center;
   }
 
-  .breakdown-content {
+  .hs-title-row {
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    gap: 0.5rem;
   }
 
-  .breakdown-label {
-    font-size: 0.8rem;
+  .hs-gauge-area {
+    width: 80px;
+    height: 80px;
   }
 
-  .breakdown-value {
-    font-size: 0.9rem;
+  .hs-gauge {
+    width: 80px;
+    height: 80px;
+  }
+
+  .hs-gauge-value {
+    font-size: 1.5rem;
   }
 }
 
 @media (max-width: 480px) {
   .health-score-widget {
     padding: 1rem;
-    margin-bottom: 1rem;
   }
 
-  .health-score-header {
-    margin-bottom: 1rem;
-    padding-bottom: 0.75rem;
+  .hs-breakdown {
+    gap: 0;
   }
 
-  .health-score-title {
-    font-size: 1rem;
+  .hs-metric-label {
+    font-size: 0.65rem;
   }
 
-  .health-score-gauge {
-    transform: scale(0.7);
+  .hs-metric-value {
+    font-size: 0.8rem;
   }
+}
 
-  .gauge-value {
-    font-size: 2.5rem;
-  }
+/* ─── HEALTH SCORE INSIGHTS SECTION (standalone, abaixo do card) ───── */
 
-  .breakdown-item {
-    padding: 0.75rem;
-  }
+.health-score-insights-section {
+  margin-bottom: 1.5rem;
+}
 
-  .indicator-dot {
-    width: 6px;
-    height: 6px;
-  }
+.health-score-insights-section:empty {
+  display: none;
 }

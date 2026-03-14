@@ -1,7 +1,6 @@
 /**
  * Financial Health Score Component
- * Exibe um gauge circular mostrando a saúde financeira do usuário (0-100)
- * Calcula baseado em: taxa de poupança, consistência, diversificação, saldo positivo
+ * Gauge compacto + métricas de lançamentos, orçamento e metas
  */
 
 class HealthScoreWidget {
@@ -12,78 +11,54 @@ class HealthScoreWidget {
     this.animationDuration = 1200;
   }
 
-  /**
-   * Renderiza o widget HTML
-   */
   render() {
     if (!this.container) return;
 
+    const circumference = 339.29;
+
     this.container.innerHTML = `
       <div class="health-score-widget" data-aos="fade-up" data-aos-duration="500">
-        <div class="health-score-header">
-          <div>
-            <h3 class="health-score-title">
-              <i data-lucide="heart-handshake" style="width:20px;height:20px;"></i>
-              Saúde Financeira
-            </h3>
-            <p class="health-score-subtitle">Seu score de bem-estar financeiro</p>
-          </div>
-        </div>
-
-        <div class="health-score-body">
-          <div class="health-score-gauge-wrapper">
-            <svg class="health-score-gauge" viewBox="0 0 200 200" width="200" height="200">
-              <!-- Background circle -->
-              <circle cx="100" cy="100" r="90" class="gauge-bg" />
-              <!-- Progress circle -->
-              <circle
-                cx="100"
-                cy="100"
-                r="90"
-                class="gauge-progress"
-                style="--score: 0; --total: ${this.maxScore};"
+        <div class="hs-main">
+          <div class="hs-gauge-area">
+            <svg class="hs-gauge" viewBox="0 0 120 120">
+              <defs>
+                <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#e67e22"/>
+                  <stop offset="100%" stop-color="#f39c12"/>
+                </linearGradient>
+              </defs>
+              <circle cx="60" cy="60" r="54" class="hs-gauge-track"/>
+              <circle cx="60" cy="60" r="54" class="hs-gauge-fill"
                 id="gaugeCircle"
+                stroke-dasharray="${circumference}"
+                stroke-dashoffset="${circumference}"
               />
-              <!-- Center content -->
-              <g class="gauge-center-content">
-                <text x="100" y="95" class="gauge-value" id="gaugeValue">0</text>
-                <text x="100" y="110" class="gauge-label">/100</text>
-              </g>
+              <text x="60" y="56" class="hs-gauge-value" id="gaugeValue">0</text>
+              <text x="60" y="72" class="hs-gauge-label">de 100</text>
             </svg>
-            <div class="health-score-indicator" id="healthIndicator">
-              <span class="indicator-dot"></span>
-              <span class="indicator-text">Carregando...</span>
-            </div>
           </div>
-
-          <div class="health-score-breakdown">
-            <div class="breakdown-item">
-              <div class="breakdown-icon" style="color: #10b981;">
-                <i data-lucide="piggy-bank" style="width:16px;height:16px;"></i>
-              </div>
-              <div class="breakdown-content">
-                <span class="breakdown-label">Taxa de Poupança</span>
-                <span class="breakdown-value" id="savingsRate">--%</span>
+          <div class="hs-info">
+            <div class="hs-title-row">
+              <h3 class="hs-title">Saúde Financeira</h3>
+              <div class="hs-badge" id="healthIndicator">
+                <span class="hs-badge-dot"></span>
+                <span class="hs-badge-text">Carregando</span>
               </div>
             </div>
-
-            <div class="breakdown-item">
-              <div class="breakdown-icon" style="color: #3b82f6;">
-                <i data-lucide="check-circle" style="width:16px;height:16px;"></i>
+            <div class="hs-breakdown">
+              <div class="hs-metric">
+                <span class="hs-metric-label">Lançamentos</span>
+                <span class="hs-metric-value" id="hsLancamentos">--</span>
               </div>
-              <div class="breakdown-content">
-                <span class="breakdown-label">Consistência</span>
-                <span class="breakdown-value" id="consistency">--</span>
+              <div class="hs-metric-divider"></div>
+              <div class="hs-metric">
+                <span class="hs-metric-label">Orçamento</span>
+                <span class="hs-metric-value" id="hsOrcamento">--</span>
               </div>
-            </div>
-
-            <div class="breakdown-item">
-              <div class="breakdown-icon" style="color: #f59e0b;">
-                <i data-lucide="layers" style="width:16px;height:16px;"></i>
-              </div>
-              <div class="breakdown-content">
-                <span class="breakdown-label">Diversificação</span>
-                <span class="breakdown-value" id="diversification">--</span>
+              <div class="hs-metric-divider"></div>
+              <div class="hs-metric">
+                <span class="hs-metric-label">Metas</span>
+                <span class="hs-metric-value" id="hsMetas">--</span>
               </div>
             </div>
           </div>
@@ -91,12 +66,10 @@ class HealthScoreWidget {
       </div>
     `;
 
+    this.circumference = circumference;
     this.updateIcons();
   }
 
-  /**
-   * Carrega dados da API e atualiza o widget
-   */
   async load() {
     try {
       const response = await fetch(`${window.BASE_URL || '/'}api/dashboard/health-score`);
@@ -111,51 +84,36 @@ class HealthScoreWidget {
       console.error('Error loading health score:', error);
       this.showError();
     }
+
+    if (!this._listeningDataChanged) {
+      this._listeningDataChanged = true;
+      document.addEventListener('lukrato:data-changed', () => this.load());
+    }
   }
 
-  /**
-   * Atualiza o score e anima a mudança
-   */
   updateScore(data) {
-    const {
-      score = 50,
-      savingsRate = 0,
-      consistency = 'Ótima',
-      categories = 0,
-    } = data;
+    const { score = 0 } = data;
 
-    // Anima o gauge circular
     this.animateGauge(score);
-
-    // Atualiza breakdown
-    this.updateBreakdown({
-      savingsRate,
-      consistency,
-      categories,
-    });
-
-    // Atualiza indicador de status
+    this.updateBreakdown(data);
     this.updateStatusIndicator(score);
   }
 
-  /**
-   * Anima o gauge SVG do score
-   */
   animateGauge(targetScore) {
     const circle = document.getElementById('gaugeCircle');
     const valueText = document.getElementById('gaugeValue');
     if (!circle || !valueText) return;
 
+    const circumference = this.circumference || 339.29;
     let currentScore = 0;
     const increment = targetScore / (this.animationDuration / 16);
 
     const animate = () => {
       currentScore += increment;
-      if (currentScore >= targetScore) {
-        currentScore = targetScore;
-      }
+      if (currentScore >= targetScore) currentScore = targetScore;
 
-      circle.style.setProperty('--score', Math.round(currentScore));
+      const offset = circumference - (circumference * currentScore / this.maxScore);
+      circle.setAttribute('stroke-dashoffset', offset);
       valueText.textContent = Math.round(currentScore);
 
       if (currentScore < targetScore) {
@@ -166,107 +124,103 @@ class HealthScoreWidget {
     animate();
   }
 
-  /**
-   * Atualiza a breakdown de fatores
-   */
   updateBreakdown(data) {
-    const savingsEl = document.getElementById('savingsRate');
-    const consistencyEl = document.getElementById('consistency');
-    const diversificationEl = document.getElementById('diversification');
+    const lancEl = document.getElementById('hsLancamentos');
+    const orcEl = document.getElementById('hsOrcamento');
+    const metasEl = document.getElementById('hsMetas');
 
-    if (savingsEl) {
-      savingsEl.textContent = `${Math.round(data.savingsRate)}%`;
-      savingsEl.className = 'breakdown-value ' + this.getColorClass(data.savingsRate, 'savings');
+    // Lançamentos do mês
+    if (lancEl) {
+      const count = data.lancamentos ?? 0;
+      lancEl.textContent = `${count} este mês`;
+      if (count >= 10) {
+        lancEl.className = 'hs-metric-value color-success';
+      } else if (count >= 5) {
+        lancEl.className = 'hs-metric-value color-warning';
+      } else {
+        lancEl.className = 'hs-metric-value color-muted';
+      }
     }
 
-    if (consistencyEl) {
-      consistencyEl.textContent = data.consistency;
-      consistencyEl.className = 'breakdown-value ' + this.getColorClass(data.consistency, 'consistency');
+    // Orçamento: X de Y no limite
+    if (orcEl) {
+      const total = data.orcamentos ?? 0;
+      const ok = data.orcamentos_ok ?? 0;
+      if (total === 0) {
+        orcEl.textContent = 'Não definido';
+        orcEl.className = 'hs-metric-value color-muted';
+      } else {
+        orcEl.textContent = `${ok}/${total} no limite`;
+        if (ok === total) {
+          orcEl.className = 'hs-metric-value color-success';
+        } else if (ok >= total / 2) {
+          orcEl.className = 'hs-metric-value color-warning';
+        } else {
+          orcEl.className = 'hs-metric-value color-danger';
+        }
+      }
     }
 
-    if (diversificationEl) {
-      diversificationEl.textContent = `${data.categories} categoria${data.categories !== 1 ? 's' : ''}`;
-      diversificationEl.className = 'breakdown-value ' + this.getColorClass(data.categories, 'categories');
+    // Metas ativas
+    if (metasEl) {
+      const ativas = data.metas_ativas ?? 0;
+      const concluidas = data.metas_concluidas ?? 0;
+      if (ativas === 0) {
+        metasEl.textContent = 'Nenhuma';
+        metasEl.className = 'hs-metric-value color-muted';
+      } else if (concluidas > 0) {
+        metasEl.textContent = `${ativas} ativa${ativas !== 1 ? 's' : ''} · ${concluidas} concluída${concluidas !== 1 ? 's' : ''}`;
+        metasEl.className = 'hs-metric-value color-success';
+      } else {
+        metasEl.textContent = `${ativas} ativa${ativas !== 1 ? 's' : ''}`;
+        metasEl.className = 'hs-metric-value color-warning';
+      }
     }
   }
 
-  /**
-   * Atualiza o indicador de status baseado no score
-   */
   updateStatusIndicator(score) {
     const indicator = document.getElementById('healthIndicator');
     if (!indicator) return;
 
-    let status, message, color;
+    let status, label;
 
     if (score >= 70) {
       status = 'excellent';
-      message = '✨ Excelente!';
-      color = '#10b981';
+      label = 'Excelente';
     } else if (score >= 50) {
       status = 'good';
-      message = '👍 No caminho certo';
-      color = '#3b82f6';
+      label = 'Bom';
     } else if (score >= 30) {
       status = 'warning';
-      message = '⚠️ Precisa de atenção';
-      color = '#f59e0b';
+      label = 'Atenção';
     } else {
       status = 'critical';
-      message = '🚨 Crítico';
-      color = '#ef4444';
+      label = 'Crítico';
     }
 
-    indicator.className = `health-score-indicator status-${status}`;
+    indicator.className = `hs-badge hs-badge--${status}`;
     indicator.innerHTML = `
-      <span class="indicator-dot" style="background: ${color};"></span>
-      <span class="indicator-text">${message}</span>
+      <span class="hs-badge-dot"></span>
+      <span class="hs-badge-text">${label}</span>
     `;
   }
 
-  /**
-   * Retorna classe de cor baseada em valores
-   */
-  getColorClass(value, type) {
-    if (type === 'savings') {
-      if (value >= 20) return 'color-success';
-      if (value >= 10) return 'color-warning';
-      return 'color-danger';
-    } else if (type === 'consistency') {
-      if (value === 'Excelente' || value === 'Ótima') return 'color-success';
-      if (value === 'Boa') return 'color-warning';
-      return 'color-danger';
-    } else if (type === 'categories') {
-      if (value >= 5) return 'color-success';
-      if (value >= 3) return 'color-warning';
-      return 'color-muted';
-    }
-    return '';
-  }
-
-  /**
-   * Atualiza os ícones com lucide
-   */
   updateIcons() {
     if (typeof window.lucide !== 'undefined') {
       window.lucide.createIcons();
     }
   }
 
-  /**
-   * Mostra erro na UI
-   */
   showError() {
     const indicator = document.getElementById('healthIndicator');
     if (indicator) {
-      indicator.className = 'health-score-indicator status-error';
+      indicator.className = 'hs-badge hs-badge--error';
       indicator.innerHTML = `
-        <span class="indicator-dot" style="background: #6b7280;"></span>
-        <span class="indicator-text">Erro ao carregar</span>
+        <span class="hs-badge-dot"></span>
+        <span class="hs-badge-text">Erro</span>
       `;
     }
   }
 }
 
-// Export para uso em otro lugar
 window.HealthScoreWidget = HealthScoreWidget;

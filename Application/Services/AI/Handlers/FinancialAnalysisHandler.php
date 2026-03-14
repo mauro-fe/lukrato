@@ -11,6 +11,7 @@ use Application\Services\AI\Analysis\FinancialAnalysisPreprocessor;
 use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\PromptBuilder;
 use Application\Services\Infrastructure\CacheService;
+use Application\Services\Infrastructure\LogService;
 
 /**
  * Handler para análise financeira com insights estruturados.
@@ -87,6 +88,8 @@ class FinancialAnalysisHandler implements AIHandlerInterface
                 IntentType::ANALYZE,
             );
         } catch (\Throwable $e) {
+            LogService::warning('FinancialAnalysisHandler.handle', ['error' => $e->getMessage()]);
+
             return AIResponseDTO::fail(
                 'Erro ao gerar análise financeira.',
                 IntentType::ANALYZE,

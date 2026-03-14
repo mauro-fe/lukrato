@@ -26,6 +26,9 @@ class AiLog extends Model
         'response_time_ms',
         'success',
         'error_message',
+        'source',
+        'confidence',
+        'prompt_version',
     ];
 
     protected $casts = [
@@ -36,6 +39,7 @@ class AiLog extends Model
         'tokens_total'      => 'int',
         'response_time_ms'  => 'int',
         'success'           => 'bool',
+        'confidence'        => 'float',
         'created_at'        => 'datetime',
     ];
 

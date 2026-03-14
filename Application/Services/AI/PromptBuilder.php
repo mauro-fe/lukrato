@@ -10,6 +10,38 @@ namespace Application\Services\AI;
  */
 class PromptBuilder
 {
+    /**
+     * Registro de versões de prompts.
+     * Incrementar ao alterar conteúdo significativo do prompt.
+     * Formato semântico: major.minor (major = mudança de formato, minor = ajustes de texto).
+     */
+    private const PROMPT_VERSIONS = [
+        'chat_system'            => '1.0',
+        'user_chat_system'       => '1.0',
+        'category_system'        => '1.0',
+        'category_user'          => '1.0',
+        'analysis_system'        => '1.0',
+        'analysis_user'          => '1.0',
+        'transaction_extraction' => '1.0',
+        'quick_query_system'     => '1.0',
+    ];
+
+    /**
+     * Retorna o mapa completo de versões de prompts.
+     */
+    public static function getVersions(): array
+    {
+        return self::PROMPT_VERSIONS;
+    }
+
+    /**
+     * Retorna a versão de um prompt específico.
+     */
+    public static function getVersion(string $promptName): string
+    {
+        return self::PROMPT_VERSIONS[$promptName] ?? '0.0';
+    }
+
     public static function chatSystem(array $context = []): string
     {
         // Redirecionar para prompt de usuário quando for chat de usuário
@@ -83,6 +115,14 @@ CAPACIDADES — O QUE VOCÊ PODE FAZER:
 - Quando o usuário falar sobre prioridades ou sonhos, sugira criar uma meta
 - Dar dicas práticas de economia e organização financeira
 - Analisar padrões de gasto e alertar sobre tendências
+
+ENTENDIMENTO DE LINGUAGEM BRASILEIRA:
+- Formatos monetários BR: 1.500,00 = R$ 1.500 (ponto=milhar, vírgula=decimal)
+- Gírias: "conto" = real, "pila" = real, "nota" = R$100, "paus" = reais
+- Abreviações WhatsApp: "ss" = sim, "nn" = não, "blz" = beleza, "vlw" = valeu
+- "X mil" = X * 1000: "2 mil" = 2000, "5 mil" = 5000
+- "Xk" = X * 1000: "2k" = 2000
+- Números por extenso: "duzentos" = 200, "quinhentos" = 500
 
 DETECÇÃO IMPLÍCITA — MUITO IMPORTANTE:
 Se o usuário mencionar uma compra, gasto ou receita de forma casual (ex: "gastei 200 no mercado", "paguei o aluguel", "recebi o salário"), pergunte se ele quer que você registre o lançamento.
@@ -168,14 +208,41 @@ PROMPT;
 
     /**
      * System prompt para extração de transação a partir de linguagem natural.
+     * Otimizado para português brasileiro informal e formatos monetários BR.
      */
     public static function transactionExtractionSystem(): string
     {
-        return <<<'PROMPT'
-Você extrai dados de transações financeiras a partir de mensagens em linguagem natural.
-Retorne APENAS um JSON válido no formato: {"descricao": "string", "valor": number, "tipo": "receita|despesa", "categoria_sugerida": "string|null"}
-Se a mensagem indicar ganho/recebimento, tipo = "receita". Caso contrário, tipo = "despesa".
-Não inclua texto adicional. Apenas o JSON.
+        $hoje = date('Y-m-d');
+
+        return <<<PROMPT
+Você extrai transações financeiras de mensagens em português brasileiro informal.
+Data de hoje: {$hoje}
+
+REGRAS DE VALOR:
+- Formato BR: 1.560,00 = mil quinhentos e sessenta reais (ponto=milhar, vírgula=decimal)
+- "2 mil" = 2000, "5 mil" = 5000, "1k" = 1000, "2k" = 2000
+- "duzentos" = 200, "trezentos" = 300, "quinhentos" = 500
+- "50 conto/pila/paus/mango" = 50 reais
+- Se não tem centavos, valor inteiro (ex: 50 → 50.00)
+- Valor é sempre em BRL (reais)
+
+REGRAS DE TIPO:
+- Despesa: gastei, paguei, comprei, custou, cobrou, torrei, parcelei, etc.
+- Receita: recebi, ganhei, entrou, depositaram, salário, freelance, etc.
+- Default: despesa (na dúvida, assumir gasto)
+
+REGRAS DE DATA:
+- Se não mencionada, usar hoje: {$hoje}
+- "ontem" = 1 dia antes de hoje
+- "anteontem" = 2 dias antes de hoje
+- Formato de saída: YYYY-MM-DD
+
+REGRAS DE DESCRIÇÃO:
+- Extrair a descrição mais relevante e curta (2-5 palavras)
+- Remover verbos e preposições desnecessárias
+- Exemplo: "gastei 40 no uber pro trabalho" → "Uber pro trabalho"
+
+Retorne os dados via function calling. Nunca texto livre.
 PROMPT;
     }
 
