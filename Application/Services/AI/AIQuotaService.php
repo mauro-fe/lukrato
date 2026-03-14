@@ -13,19 +13,14 @@ use Carbon\Carbon;
  * Serviço de controle de quotas de IA por plano.
  *
  * Dois buckets independentes:
- *  - chat: mensagens de chat, análise, extração (ai_logs.type IN chat, analyze_spending, extract_transaction)
- *  - categorization: sugestão de categoria (ai_logs.type = suggest_category)
+ *  - chat: qualquer operação de IA fora da categorização que tenha consumido LLM
+ *  - categorization: sugestão de categoria com consumo efetivo de LLM
  *
- * Contagem via tabela ai_logs (unifica web + WhatsApp + API).
+ * Contagem via tabela ai_logs (unifica web + canais externos), considerando apenas
+ * execuções bem-sucedidas com `source = llm` ou `tokens_total > 0`.
  */
 final class AIQuotaService
 {
-    /** Tipos de ai_logs que contam no bucket "chat" */
-    private const CHAT_TYPES = ['chat', 'analyze_spending', 'extract_transaction'];
-
-    /** Tipos de ai_logs que contam no bucket "categorization" */
-    private const CATEGORIZATION_TYPES = ['suggest_category'];
-
     /**
      * Verifica se o plano do usuário permite acesso ao chat de IA.
      */
@@ -105,12 +100,21 @@ final class AIQuotaService
     private static function getMonthlyUsageByType(int $userId, string $bucket): int
     {
         $startOfMonth = Carbon::now()->startOfMonth();
-        $types = $bucket === 'categorization' ? self::CATEGORIZATION_TYPES : self::CHAT_TYPES;
-
-        return (int) AiLog::where('user_id', $userId)
-            ->whereIn('type', $types)
+        $query = AiLog::where('user_id', $userId)
             ->where('success', true)
-            ->where('created_at', '>=', $startOfMonth)
-            ->count();
+            ->where('created_at', '>=', $startOfMonth);
+
+        if ($bucket === 'categorization') {
+            $query->where('type', 'suggest_category');
+        } else {
+            $query->where('type', '!=', 'suggest_category');
+        }
+
+        $query->where(function ($q) {
+            $q->where('source', 'llm')
+                ->orWhere('tokens_total', '>', 0);
+        });
+
+        return (int) $query->count();
     }
 }

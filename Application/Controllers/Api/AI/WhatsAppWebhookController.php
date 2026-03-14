@@ -17,10 +17,10 @@ use Application\Services\AI\Actions\ActionRegistry;
 use Application\Services\AI\NLP\NumberNormalizer;
 use Application\Services\AI\NLP\TextNormalizer;
 use Application\Services\AI\Rules\CategoryRuleEngine;
+use Application\Services\AI\Security\AIRateLimiter;
 use Application\Services\AI\TransactionDetectorService;
 use Application\Services\AI\WhatsApp\WhatsAppService;
 use Application\Services\AI\WhatsApp\WhatsAppUserResolver;
-use Application\Services\AI\IntentRules\ConfirmationIntentRule;
 use Application\Services\Infrastructure\LogService;
 use Application\Enums\LogLevel;
 use Application\Enums\LogCategory;
@@ -33,12 +33,15 @@ use Illuminate\Database\Capsule\Manager as DB;
  *  GET  /api/webhook/whatsapp  → Verificação do webhook (hub.challenge)
  *  POST /api/webhook/whatsapp  → Recepção de mensagens
  *
- * Padrão: SEMPRE retorna 200 para a Meta, independente de erro interno.
+ * Padrão: webhooks válidos retornam 200; assinaturas inválidas recebem 403.
  * Idempotência: via whatsapp_messages.wa_message_id (UNIQUE).
  * Canal: WhatsApp é tratado como "mais um canal" → usa AIService.dispatch() normalmente.
  */
 class WhatsAppWebhookController extends BaseController
 {
+    private const SENDER_LIMIT = 30;
+    private const SENDER_WINDOW_SECONDS = 60;
+
     private WhatsAppService $whatsapp;
 
     public function __construct()
@@ -82,14 +85,29 @@ class WhatsAppWebhookController extends BaseController
 
     /**
      * Recebe mensagens do WhatsApp.
-     * SEMPRE retorna 200 para a Meta.
+     * Webhooks válidos retornam 200 para a Meta; assinaturas inválidas recebem 403.
      */
     public function receive(): void
     {
         $rawBody = file_get_contents('php://input');
+        $rawBody = is_string($rawBody) ? $rawBody : '';
+
+        if (!$this->isValidWebhookSignature($rawBody)) {
+            LogService::persist(
+                LogLevel::WARNING,
+                LogCategory::WEBHOOK,
+                'WhatsApp webhook signature inválida',
+                ['ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'],
+            );
+
+            http_response_code(403);
+            echo 'Forbidden';
+            return;
+        }
+
         $payload = json_decode($rawBody, true);
 
-        // Sempre 200 para a Meta
+        // Meta recebe 200 apenas para webhooks válidos
         http_response_code(200);
 
         if (!is_array($payload)) {
@@ -163,6 +181,11 @@ class WhatsAppWebhookController extends BaseController
      */
     private function processMessage(WhatsAppMessageDTO $dto, WhatsAppMessage $msgRecord): void
     {
+        if (!$this->allowIncomingSender($dto->fromPhone, $dto->waMessageId)) {
+            $msgRecord->markIgnored();
+            return;
+        }
+
         // 1. Marcar como lida
         $this->whatsapp->markAsRead($dto->waMessageId);
 
@@ -328,20 +351,6 @@ class WhatsAppWebhookController extends BaseController
             return;
         }
 
-        // Quick query bypass: zero-token queries não devem ser bloqueadas por quota
-        if ($this->looksLikeQuickQuery($normalizedBody)) {
-            $ai = new AIService();
-            $request = AIRequestDTO::chat(
-                userId: $user->id,
-                message: $normalizedBody,
-                channel: AIChannel::WHATSAPP,
-            );
-            $response = $ai->dispatch($request);
-            $this->whatsapp->sendText($dto->fromPhone, $response->message);
-            $msgRecord->markProcessed($response->intent?->value ?? 'quick_query');
-            return;
-        }
-
         // Verificar quota de chat antes de consumir IA
         if (!AIQuotaService::hasQuotaRemaining($user, 'chat')) {
             $usage = AIQuotaService::getUsage($user);
@@ -368,47 +377,6 @@ class WhatsAppWebhookController extends BaseController
 
         $this->whatsapp->sendText($dto->fromPhone, $response->message);
         $msgRecord->markProcessed($response->intent?->value ?? 'chat');
-    }
-
-    /**
-     * Verificação rápida se a mensagem parece ser uma consulta zero-token.
-     * Permite bypass de quota para queries que não consomem LLM.
-     */
-    private function looksLikeQuickQuery(string $message): bool
-    {
-        $lower = mb_strtolower($message);
-        $patterns = [
-            'quanto gastei',
-            'quanto recebi',
-            'quanto ganhei',
-            'quanto tenho',
-            'qual meu saldo',
-            'meu saldo',
-            'quanto sobrou',
-            'quanto falta',
-            'quantos lancamento',
-            'quantas conta',
-            'quantos cartao',
-            'quantos cartão',
-            'maior gasto',
-            'menor gasto',
-            'media de gasto',
-            'média de gasto',
-            'contas a pagar',
-            'quanto devo',
-            'quanto sobrando',
-            'me fala meu saldo',
-            'me diz quanto',
-            'mostra meu saldo',
-        ];
-
-        foreach ($patterns as $p) {
-            if (str_contains($lower, $p)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -486,5 +454,39 @@ class WhatsAppWebhookController extends BaseController
         );
 
         $msgRecord->markProcessed('transaction_pending');
+    }
+
+    private function isValidWebhookSignature(string $rawBody): bool
+    {
+        $appSecret = WhatsAppService::getAppSecret();
+        if ($appSecret === '') {
+            return true;
+        }
+
+        $signature = (string) ($_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '');
+        if ($signature === '' || !str_starts_with($signature, 'sha256=')) {
+            return false;
+        }
+
+        $expected = 'sha256=' . hash_hmac('sha256', $rawBody, $appSecret);
+        return hash_equals($expected, $signature);
+    }
+
+    private function allowIncomingSender(string $sender, ?string $messageId = null): bool
+    {
+        $limiter = new AIRateLimiter();
+
+        return $limiter->allow(
+            scope: 'webhook_sender',
+            bucket: 'whatsapp',
+            identifier: $sender,
+            maxAttempts: self::SENDER_LIMIT,
+            windowSeconds: self::SENDER_WINDOW_SECONDS,
+            context: [
+                'channel' => 'whatsapp',
+                'sender' => $sender,
+                'message_id' => $messageId,
+            ],
+        );
     }
 }

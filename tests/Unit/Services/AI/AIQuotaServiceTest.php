@@ -7,163 +7,182 @@ namespace Tests\Unit\Services\AI;
 use Application\Models\Usuario;
 use Application\Services\AI\AIQuotaService;
 use Application\Services\Plan\FeatureGate;
-use PHPUnit\Framework\TestCase;
+use Carbon\Carbon;
+use Illuminate\Database\Capsule\Manager as Capsule;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use PHPUnit\Framework\TestCase;
 
 /**
- * Testes para o sistema de quota de IA por plano.
- *
- * Verifica:
- * - canUseAI() retorna true/false conforme a feature ai_chat do plano
- * - hasQuotaRemaining() respeita limites por plano
- * - getUsage() retorna estrutura correta por tier
+ * Regressões da quota de IA por plano e por consumo real de LLM.
  */
 class AIQuotaServiceTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
-    private function skipIfNoDb(): void
+    /** @var int[] */
+    private array $cleanupUserIds = [];
+
+    protected function tearDown(): void
     {
-        try {
-            \Illuminate\Database\Capsule\Manager::connection()->getPdo();
-        } catch (\Throwable) {
-            $this->markTestSkipped('Requer conexão com banco de dados');
+        foreach ($this->cleanupUserIds as $userId) {
+            try {
+                Capsule::table('ai_logs')->where('user_id', $userId)->delete();
+            } catch (\Throwable) {
+            }
         }
+
+        $this->cleanupUserIds = [];
+
+        parent::tearDown();
     }
 
-    // ─── canUseAI ──────────────────────────────────────────
-
-    public function testCanUseAIReturnsTrueForFreeUser(): void
+    public function testCanUseAIReturnsTrueForSupportedPlans(): void
     {
-        // Billing.php: free.ai_chat = true (degustação com 5 msgs)
-        $user = $this->createUserMock('free');
-
-        // canUseAI depende de FeatureGate::allows que lê Billing.php
-        // Free tem ai_chat=true na config
-        $result = AIQuotaService::canUseAI($user);
-        $this->assertTrue($result, 'Free user deve ter ai_chat=true (degustação)');
+        $this->assertTrue(AIQuotaService::canUseAI($this->createUserMock('free')));
+        $this->assertTrue(AIQuotaService::canUseAI($this->createUserMock('pro')));
+        $this->assertTrue(AIQuotaService::canUseAI($this->createUserMock('ultra')));
     }
 
-    public function testCanUseAIReturnsTrueForProUser(): void
+    public function testPaidPlansHaveUnlimitedQuota(): void
     {
-        $user = $this->createUserMock('pro');
-        $this->assertTrue(AIQuotaService::canUseAI($user));
+        $this->assertTrue(AIQuotaService::hasQuotaRemaining($this->createUserMock('pro')));
+        $this->assertTrue(AIQuotaService::hasQuotaRemaining($this->createUserMock('ultra')));
     }
 
-    public function testCanUseAIReturnsTrueForUltraUser(): void
+    public function testFreeUserHasQuotaWhenThereIsNoCountedUsage(): void
     {
-        $user = $this->createUserMock('ultra');
-        $this->assertTrue(AIQuotaService::canUseAI($user));
+        $this->requireAiLogsSchema();
+
+        $user = $this->createUserMock('free', $this->newUserId());
+
+        $this->assertTrue(AIQuotaService::hasQuotaRemaining($user));
     }
 
-    // ─── hasQuotaRemaining ─────────────────────────────────
-
-    public function testProUserHasUnlimitedQuota(): void
+    public function testGetUsageReturnsBucketedStructure(): void
     {
-        $user = $this->createUserMock('pro');
+        $this->requireAiLogsSchema();
 
-        // Pro: ai_messages_per_month = null (ilimitado)
-        // limit() retorna null → hasQuotaRemaining retorna true
-        $result = AIQuotaService::hasQuotaRemaining($user);
-        $this->assertTrue($result, 'Pro user deve ter quota ilimitada');
+        $usage = AIQuotaService::getUsage($this->createUserMock('pro'));
+
+        $this->assertSame(['plan', 'can_use', 'chat', 'categorization'], array_keys($usage));
+        $this->assertArrayHasKey('used', $usage['chat']);
+        $this->assertArrayHasKey('limit', $usage['chat']);
+        $this->assertArrayHasKey('remaining', $usage['chat']);
+        $this->assertArrayHasKey('unlimited', $usage['chat']);
+        $this->assertArrayHasKey('percentage', $usage['chat']);
+        $this->assertArrayHasKey('used', $usage['categorization']);
+        $this->assertArrayHasKey('limit', $usage['categorization']);
+        $this->assertArrayHasKey('remaining', $usage['categorization']);
+        $this->assertArrayHasKey('unlimited', $usage['categorization']);
+        $this->assertArrayHasKey('percentage', $usage['categorization']);
     }
 
-    public function testUltraUserHasUnlimitedQuota(): void
+    public function testGetUsageForProReturnsUnlimitedBuckets(): void
     {
-        $user = $this->createUserMock('ultra');
-        $result = AIQuotaService::hasQuotaRemaining($user);
-        $this->assertTrue($result, 'Ultra user deve ter quota ilimitada');
-    }
+        $this->requireAiLogsSchema();
 
-    public function testFreeUserQuotaCheckRequiresDb(): void
-    {
-        $this->skipIfNoDb();
+        $usage = AIQuotaService::getUsage($this->createUserMock('pro'));
 
-        $user = $this->createUserMock('free');
-        // Com DB, sem mensagens, deve ter quota restante (0 < 5)
-        $result = AIQuotaService::hasQuotaRemaining($user);
-        $this->assertTrue($result, 'Free user com 0 msgs deve ter quota restante');
-    }
-
-    // ─── getUsage ──────────────────────────────────────────
-
-    public function testGetUsageForProReturnsUnlimited(): void
-    {
-        $this->skipIfNoDb();
-
-        $user = $this->createUserMock('pro');
-        $usage = AIQuotaService::getUsage($user);
-
-        $this->assertIsArray($usage);
-        $this->assertEquals('pro', $usage['plan']);
+        $this->assertSame('pro', $usage['plan']);
         $this->assertTrue($usage['can_use']);
-        $this->assertTrue($usage['unlimited']);
-        $this->assertNull($usage['limit']);
-        $this->assertNull($usage['remaining']);
+        $this->assertTrue($usage['chat']['unlimited']);
+        $this->assertNull($usage['chat']['limit']);
+        $this->assertNull($usage['chat']['remaining']);
+        $this->assertTrue($usage['categorization']['unlimited']);
+        $this->assertNull($usage['categorization']['limit']);
+        $this->assertNull($usage['categorization']['remaining']);
     }
 
-    public function testGetUsageForUltraReturnsUnlimited(): void
+    public function testGetUsageForFreeReturnsLimitedBuckets(): void
     {
-        $this->skipIfNoDb();
+        $this->requireAiLogsSchema();
 
-        $user = $this->createUserMock('ultra');
-        $usage = AIQuotaService::getUsage($user);
+        $usage = AIQuotaService::getUsage($this->createUserMock('free'));
 
-        $this->assertIsArray($usage);
-        $this->assertEquals('ultra', $usage['plan']);
-        $this->assertTrue($usage['unlimited']);
-    }
-
-    public function testGetUsageForFreeReturnsLimited(): void
-    {
-        $this->skipIfNoDb();
-
-        $user = $this->createUserMock('free');
-        $usage = AIQuotaService::getUsage($user);
-
-        $this->assertIsArray($usage);
-        $this->assertEquals('free', $usage['plan']);
+        $this->assertSame('free', $usage['plan']);
         $this->assertTrue($usage['can_use']);
-        $this->assertFalse($usage['unlimited']);
-        $this->assertEquals(5, $usage['limit']);
-        $this->assertIsInt($usage['used']);
-        $this->assertIsInt($usage['remaining']);
+        $this->assertFalse($usage['chat']['unlimited']);
+        $this->assertSame(5, $usage['chat']['limit']);
+        $this->assertIsInt($usage['chat']['used']);
+        $this->assertIsInt($usage['chat']['remaining']);
+        $this->assertFalse($usage['categorization']['unlimited']);
+        $this->assertSame(5, $usage['categorization']['limit']);
     }
 
-    // ─── getUsage structure ────────────────────────────────
-
-    public function testGetUsageReturnsExpectedKeys(): void
+    public function testChatBucketCountsOnlySuccessfulLlmOrTokenUsage(): void
     {
-        $this->skipIfNoDb();
+        $this->requireAiLogsSchema();
 
-        $user = $this->createUserMock('pro');
+        $userId = $this->newUserId();
+        $user = $this->createUserMock('free', $userId);
+
+        $this->insertAiLog($userId, [
+            'type' => 'chat',
+            'source' => 'llm',
+            'tokens_total' => 32,
+            'success' => true,
+        ]);
+        $this->insertAiLog($userId, [
+            'type' => 'chat',
+            'source' => 'rule',
+            'tokens_total' => 0,
+            'success' => true,
+        ]);
+        $this->insertAiLog($userId, [
+            'type' => 'chat',
+            'source' => 'computed',
+            'tokens_total' => 11,
+            'success' => true,
+        ]);
+        $this->insertAiLog($userId, [
+            'type' => 'chat',
+            'source' => 'llm',
+            'tokens_total' => 19,
+            'success' => false,
+        ]);
+        $this->insertAiLog($userId, [
+            'type' => 'suggest_category',
+            'source' => 'llm',
+            'tokens_total' => 7,
+            'success' => true,
+        ]);
+
         $usage = AIQuotaService::getUsage($user);
 
-        $expectedKeys = ['plan', 'can_use', 'used', 'limit', 'remaining', 'unlimited', 'percentage'];
-        foreach ($expectedKeys as $key) {
-            $this->assertArrayHasKey($key, $usage, "Chave '{$key}' deve existir no getUsage()");
+        $this->assertSame(2, $usage['chat']['used']);
+        $this->assertSame(1, $usage['categorization']['used']);
+        $this->assertTrue(AIQuotaService::hasQuotaRemaining($user, 'chat'));
+    }
+
+    public function testFreeUserRunsOutOfQuotaAfterFiveCountedChatCalls(): void
+    {
+        $this->requireAiLogsSchema();
+
+        $userId = $this->newUserId();
+        $user = $this->createUserMock('free', $userId);
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->insertAiLog($userId, [
+                'type' => 'chat',
+                'source' => 'llm',
+                'tokens_total' => 20 + $i,
+                'success' => true,
+            ]);
         }
+
+        $usage = AIQuotaService::getUsage($user);
+
+        $this->assertSame(5, $usage['chat']['used']);
+        $this->assertSame(0, $usage['chat']['remaining']);
+        $this->assertFalse(AIQuotaService::hasQuotaRemaining($user, 'chat'));
     }
 
-    // ─── FeatureGate planTier ──────────────────────────────
-
-    public function testFeatureGateResolvesFreeTier(): void
+    public function testFeatureGateResolvesExpectedPlans(): void
     {
-        $user = $this->createUserMock('free');
-        $this->assertEquals('free', FeatureGate::planTier($user));
-    }
-
-    public function testFeatureGateResolvesProTier(): void
-    {
-        $user = $this->createUserMock('pro');
-        $this->assertEquals('pro', FeatureGate::planTier($user));
-    }
-
-    public function testFeatureGateResolvesUltraTier(): void
-    {
-        $user = $this->createUserMock('ultra');
-        $this->assertEquals('ultra', FeatureGate::planTier($user));
+        $this->assertSame('free', FeatureGate::planTier($this->createUserMock('free')));
+        $this->assertSame('pro', FeatureGate::planTier($this->createUserMock('pro')));
+        $this->assertSame('ultra', FeatureGate::planTier($this->createUserMock('ultra')));
     }
 
     public function testFeatureGateFallsBackToFreeForUnknownCode(): void
@@ -176,62 +195,80 @@ class AIQuotaServiceTest extends TestCase
         $user->shouldReceive('planoAtual')->andReturn($plan);
         $user->shouldReceive('isPro')->andReturn(false);
 
-        $this->assertEquals('free', FeatureGate::planTier($user));
+        $this->assertSame('free', FeatureGate::planTier($user));
     }
 
-    // ─── Billing config integrity ──────────────────────────
-
-    public function testBillingConfigHasAllPlans(): void
+    public function testBillingConfigHasExpectedAiLimits(): void
     {
         $config = require __DIR__ . '/../../../../Application/Config/Billing.php';
 
-        $this->assertArrayHasKey('limits', $config);
-        $this->assertArrayHasKey('features', $config);
-
-        foreach (['free', 'pro', 'ultra'] as $plan) {
-            $this->assertArrayHasKey($plan, $config['limits'], "Plano '{$plan}' deve existir em limits");
-            $this->assertArrayHasKey($plan, $config['features'], "Plano '{$plan}' deve existir em features");
-        }
-    }
-
-    public function testBillingConfigFreeHasAiChatEnabled(): void
-    {
-        $config = require __DIR__ . '/../../../../Application/Config/Billing.php';
-        $this->assertTrue($config['features']['free']['ai_chat'], 'Free deve ter ai_chat=true (degustação)');
-    }
-
-    public function testBillingConfigFreeHas5MessageLimit(): void
-    {
-        $config = require __DIR__ . '/../../../../Application/Config/Billing.php';
-        $this->assertEquals(5, $config['limits']['free']['ai_messages_per_month']);
-    }
-
-    public function testBillingConfigProHasUnlimitedMessages(): void
-    {
-        $config = require __DIR__ . '/../../../../Application/Config/Billing.php';
+        $this->assertTrue($config['features']['free']['ai_chat']);
+        $this->assertSame(5, $config['limits']['free']['ai_messages_per_month']);
         $this->assertNull($config['limits']['pro']['ai_messages_per_month']);
-    }
-
-    public function testBillingConfigUltraHasUnlimitedMessages(): void
-    {
-        $config = require __DIR__ . '/../../../../Application/Config/Billing.php';
         $this->assertNull($config['limits']['ultra']['ai_messages_per_month']);
     }
 
-    // ─── Helpers ───────────────────────────────────────────
+    private function requireAiLogsSchema(): void
+    {
+        try {
+            Capsule::connection()->getPdo();
+        } catch (\Throwable) {
+            $this->markTestSkipped('Requer conexão com banco de dados');
+        }
 
-    /**
-     * Cria um mock de Usuario com o plano especificado.
-     */
-    private function createUserMock(string $tier): Usuario
+        try {
+            $schema = Capsule::schema();
+            if (
+                !$schema->hasTable('ai_logs')
+                || !$schema->hasColumn('ai_logs', 'source')
+                || !$schema->hasColumn('ai_logs', 'tokens_total')
+            ) {
+                $this->markTestSkipped('Tabela ai_logs sem colunas necessárias para a quota atual');
+            }
+        } catch (\Throwable) {
+            $this->markTestSkipped('Não foi possível validar o schema de ai_logs');
+        }
+    }
+
+    private function insertAiLog(int $userId, array $overrides): void
+    {
+        $this->cleanupUserIds[$userId] = $userId;
+
+        Capsule::table('ai_logs')->insert(array_merge([
+            'user_id' => $userId,
+            'type' => 'chat',
+            'channel' => 'web',
+            'prompt' => 'teste',
+            'response' => 'ok',
+            'provider' => 'openai',
+            'model' => 'gpt-5',
+            'tokens_prompt' => 5,
+            'tokens_completion' => 5,
+            'tokens_total' => 10,
+            'response_time_ms' => 50,
+            'success' => true,
+            'error_message' => null,
+            'source' => 'llm',
+            'confidence' => 0.9,
+            'prompt_version' => 'test-v1',
+            'created_at' => Carbon::now(),
+        ], $overrides));
+    }
+
+    private function newUserId(): int
+    {
+        return random_int(800000, 899999);
+    }
+
+    private function createUserMock(string $tier, int $userId = 1): Usuario
     {
         $plan = Mockery::mock();
         $plan->code = $tier;
 
         $user = Mockery::mock(Usuario::class)->makePartial();
-        $user->id = 1;
+        $user->id = $userId;
         $user->shouldReceive('planoAtual')->andReturn($tier === 'free' ? null : $plan);
-        $user->shouldReceive('isPro')->andReturn(in_array($tier, ['pro', 'ultra']));
+        $user->shouldReceive('isPro')->andReturn(in_array($tier, ['pro', 'ultra'], true));
 
         return $user;
     }

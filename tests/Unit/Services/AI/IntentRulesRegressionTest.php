@@ -353,6 +353,8 @@ class IntentRulesRegressionTest extends TestCase
 
         $txResult = $this->transactionRule->match('criar despesa de 100 de supermercado');
 
+        $this->assertNotNull($entityResult, '"criar despesa..." deve ser reconhecido como criação de entidade');
+
         // EntityCreation deve ter confidence >= Transaction (ou Transaction deve ser null)
         if ($txResult !== null && $entityResult !== null) {
             $this->assertGreaterThanOrEqual(

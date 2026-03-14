@@ -20,6 +20,10 @@ readonly class TelegramMessageDTO
         public ?string $displayName = null,
         public ?string $username = null,
         public array   $rawPayload = [],
+        public ?string $fileId = null,
+        public ?string $mimeType = null,
+        public ?int    $fileSize = null,
+        public ?string $caption = null,
     ) {}
 
     /**
@@ -60,20 +64,119 @@ readonly class TelegramMessageDTO
             );
         }
 
-        // message (texto ou comando)
+        // message (texto, comando, voice, audio, photo, document)
         if (isset($update['message'])) {
             $msg    = $update['message'];
             $from   = $msg['from'] ?? [];
             $chatId = (string) ($msg['chat']['id'] ?? '');
-            $text   = $msg['text'] ?? '';
 
-            if ($text === '' || $chatId === '') {
+            if ($chatId === '') {
                 return null;
             }
 
             $firstName = $from['first_name'] ?? '';
             $lastName  = $from['last_name'] ?? '';
             $name      = trim("{$firstName} {$lastName}") ?: null;
+
+            // Voice message (áudio de voz gravado no app)
+            if (isset($msg['voice'])) {
+                $voice = $msg['voice'];
+                return new self(
+                    updateId: $updateId,
+                    messageId: (string) ($msg['message_id'] ?? ''),
+                    chatId: $chatId,
+                    type: 'voice',
+                    body: '',
+                    displayName: $name,
+                    username: $from['username'] ?? null,
+                    rawPayload: $update,
+                    fileId: $voice['file_id'],
+                    mimeType: $voice['mime_type'] ?? 'audio/ogg',
+                    fileSize: $voice['file_size'] ?? null,
+                );
+            }
+
+            // Audio message (arquivo de áudio/música)
+            if (isset($msg['audio'])) {
+                $audio = $msg['audio'];
+                return new self(
+                    updateId: $updateId,
+                    messageId: (string) ($msg['message_id'] ?? ''),
+                    chatId: $chatId,
+                    type: 'audio',
+                    body: '',
+                    displayName: $name,
+                    username: $from['username'] ?? null,
+                    rawPayload: $update,
+                    fileId: $audio['file_id'],
+                    mimeType: $audio['mime_type'] ?? 'audio/mpeg',
+                    fileSize: $audio['file_size'] ?? null,
+                );
+            }
+
+            // Photo message (foto enviada como imagem)
+            if (isset($msg['photo']) && is_array($msg['photo']) && count($msg['photo']) > 0) {
+                $photo = end($msg['photo']); // Maior resolução
+                return new self(
+                    updateId: $updateId,
+                    messageId: (string) ($msg['message_id'] ?? ''),
+                    chatId: $chatId,
+                    type: 'photo',
+                    body: $msg['caption'] ?? '',
+                    displayName: $name,
+                    username: $from['username'] ?? null,
+                    rawPayload: $update,
+                    fileId: $photo['file_id'],
+                    fileSize: $photo['file_size'] ?? null,
+                    caption: $msg['caption'] ?? null,
+                );
+            }
+
+            // Document (imagens ou áudios enviados como arquivo)
+            if (isset($msg['document'])) {
+                $doc = $msg['document'];
+                $docMime = $doc['mime_type'] ?? '';
+
+                if (str_starts_with($docMime, 'image/')) {
+                    return new self(
+                        updateId: $updateId,
+                        messageId: (string) ($msg['message_id'] ?? ''),
+                        chatId: $chatId,
+                        type: 'photo',
+                        body: $msg['caption'] ?? '',
+                        displayName: $name,
+                        username: $from['username'] ?? null,
+                        rawPayload: $update,
+                        fileId: $doc['file_id'],
+                        mimeType: $docMime,
+                        fileSize: $doc['file_size'] ?? null,
+                        caption: $msg['caption'] ?? null,
+                    );
+                }
+
+                if (str_starts_with($docMime, 'audio/')) {
+                    return new self(
+                        updateId: $updateId,
+                        messageId: (string) ($msg['message_id'] ?? ''),
+                        chatId: $chatId,
+                        type: 'audio',
+                        body: '',
+                        displayName: $name,
+                        username: $from['username'] ?? null,
+                        rawPayload: $update,
+                        fileId: $doc['file_id'],
+                        mimeType: $docMime,
+                        fileSize: $doc['file_size'] ?? null,
+                    );
+                }
+            }
+
+            // Text / Command (fallback original)
+            $text = $msg['text'] ?? '';
+
+            if ($text === '') {
+                return null;
+            }
 
             // Detectar se é comando (/start, /help, etc.)
             $type = str_starts_with($text, '/') ? 'command' : 'text';
@@ -186,6 +289,30 @@ readonly class TelegramMessageDTO
     public function isCommand(): bool
     {
         return $this->type === 'command';
+    }
+
+    /**
+     * Verifica se é mensagem de voz ou áudio.
+     */
+    public function isVoice(): bool
+    {
+        return $this->type === 'voice' || $this->type === 'audio';
+    }
+
+    /**
+     * Verifica se é uma foto/imagem.
+     */
+    public function isPhoto(): bool
+    {
+        return $this->type === 'photo';
+    }
+
+    /**
+     * Verifica se é qualquer tipo de media (voz, áudio, foto).
+     */
+    public function isMedia(): bool
+    {
+        return $this->isVoice() || $this->isPhoto();
     }
 
     /**

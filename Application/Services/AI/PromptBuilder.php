@@ -16,14 +16,16 @@ class PromptBuilder
      * Formato semântico: major.minor (major = mudança de formato, minor = ajustes de texto).
      */
     private const PROMPT_VERSIONS = [
-        'chat_system'            => '1.0',
-        'user_chat_system'       => '1.0',
-        'category_system'        => '1.0',
-        'category_user'          => '1.0',
-        'analysis_system'        => '1.0',
-        'analysis_user'          => '1.0',
-        'transaction_extraction' => '1.0',
-        'quick_query_system'     => '1.0',
+        'chat_system'              => '1.0',
+        'user_chat_system'         => '1.0',
+        'category_system'          => '1.0',
+        'category_user'            => '1.0',
+        'analysis_system'          => '1.0',
+        'analysis_user'            => '1.0',
+        'transaction_extraction'   => '1.0',
+        'quick_query_system'       => '1.0',
+        'receipt_analysis_system'  => '1.0',
+        'receipt_analysis_user'    => '1.0',
     ];
 
     /**
@@ -260,6 +262,43 @@ PROMPT;
     public static function quickQuerySystem(): string
     {
         return 'Responda a pergunta financeira de forma direta e concisa, em no máximo 2 frases. Use os dados fornecidos no contexto.';
+    }
+
+    /**
+     * System prompt para análise de comprovantes/recibos via Vision.
+     */
+    public static function receiptAnalysisSystem(): string
+    {
+        return <<<'PROMPT'
+Você é um especialista em OCR financeiro brasileiro.
+Analise imagens de comprovantes, recibos e notas fiscais.
+Extraia os dados financeiros em formato JSON válido.
+Sempre responda em JSON, sem texto adicional.
+Valores monetários como números decimais (35.50, não "R$ 35,50").
+Datas no formato YYYY-MM-DD.
+PROMPT;
+    }
+
+    /**
+     * User prompt para análise de comprovantes/recibos via Vision.
+     */
+    public static function receiptAnalysisUser(): string
+    {
+        return <<<'PROMPT'
+Analise esta imagem de comprovante/recibo financeiro.
+Retorne APENAS um JSON com estes campos:
+{
+  "descricao": "descrição da compra ou pagamento",
+  "valor": 0.00,
+  "data": "YYYY-MM-DD ou null",
+  "estabelecimento": "nome do estabelecimento ou null",
+  "forma_pagamento": "credito|debito|pix|dinheiro|null",
+  "tipo": "despesa|receita",
+  "categoria_sugerida": "categoria mais provável",
+  "confianca": 0.0
+}
+Se NÃO for um comprovante financeiro, retorne: {"tipo": "nao_financeiro", "descricao": "breve descrição da imagem"}
+PROMPT;
     }
 
     public static function defaultCategories(): array

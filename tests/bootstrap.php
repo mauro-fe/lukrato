@@ -22,6 +22,17 @@ if (!defined('BASE_URL')) {
     define('BASE_URL', 'http://localhost/lukrato/');
 }
 
+// Storage isolado e gravável para testes
+$testStoragePath = sys_get_temp_dir() . '/lukrato-test-storage';
+if (!is_dir($testStoragePath)) {
+    mkdir($testStoragePath, 0755, true);
+}
+if (!is_dir($testStoragePath . '/cache')) {
+    mkdir($testStoragePath . '/cache', 0755, true);
+}
+$_ENV['STORAGE_PATH'] = $testStoragePath;
+$_ENV['REDIS_ENABLED'] = 'false';
+
 // Eloquent (para testes que dependem de banco)
 use Illuminate\Database\Capsule\Manager as Capsule;
 

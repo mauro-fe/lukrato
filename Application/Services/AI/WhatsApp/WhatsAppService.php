@@ -164,4 +164,12 @@ class WhatsAppService
     {
         return $_ENV['WHATSAPP_VERIFY_TOKEN'] ?? getenv('WHATSAPP_VERIFY_TOKEN') ?: '';
     }
+
+    /**
+     * Retorna o app secret usado para validar a assinatura do webhook.
+     */
+    public static function getAppSecret(): string
+    {
+        return $_ENV['WHATSAPP_APP_SECRET'] ?? getenv('WHATSAPP_APP_SECRET') ?: '';
+    }
 }

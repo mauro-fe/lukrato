@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Middlewares;
 
+use Application\Core\Request;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Services\AI\AIQuotaService;
@@ -23,7 +24,7 @@ use Application\Services\Plan\FeatureGate;
  */
 final class AIQuotaMiddleware
 {
-    public static function handle(): void
+    public static function handle(?Request $request = null): void
     {
         $user = Auth::user();
         if (!$user) {

@@ -19,11 +19,16 @@ use Application\Services\AI\ConversationStateService;
 use Application\Services\AI\Context\UserContextBuilder;
 use Application\Services\AI\ContextCompressor;
 use Application\Services\AI\Rules\CategoryRuleEngine;
+use Application\Services\AI\Security\AIRateLimiter;
 use Application\Models\AiChatMessage;
 use Application\Services\AI\TransactionDetectorService;
 use Application\Services\AI\Telegram\TelegramResponseFormatter;
 use Application\Services\AI\Telegram\TelegramService;
 use Application\Services\AI\Telegram\TelegramUserResolver;
+use Application\Services\AI\Telegram\TelegramFileDownloader;
+use Application\Services\AI\Media\AudioTranscriptionService;
+use Application\Services\AI\Media\ImageAnalysisService;
+use Application\Services\AI\AiLogService;
 use Application\Services\Infrastructure\LogService;
 use Application\Enums\LogLevel;
 use Application\Enums\LogCategory;
@@ -35,13 +40,16 @@ use Illuminate\Database\Capsule\Manager as DB;
  * Endpoint:
  *  POST /api/webhook/telegram  → Recepção de updates
  *
- * Padrão: SEMPRE retorna 200 para o Telegram, independente de erro interno.
+ * Padrão: updates válidos retornam 200; secret inválido recebe 403.
  * Idempotência: via telegram_messages.tg_update_id (UNIQUE).
  * Segurança: valida header X-Telegram-Bot-Api-Secret-Token.
  * Canal: Telegram é tratado como "mais um canal" → usa AIService.dispatch() normalmente.
  */
 class TelegramWebhookController extends BaseController
 {
+    private const SENDER_LIMIT = 30;
+    private const SENDER_WINDOW_SECONDS = 60;
+
     private TelegramService $telegram;
 
     public function __construct()
@@ -54,7 +62,7 @@ class TelegramWebhookController extends BaseController
 
     /**
      * Recebe updates do Telegram.
-     * SEMPRE retorna 200 para o Telegram.
+     * Updates válidos retornam 200; secret inválido recebe 403.
      */
     public function receive(): void
     {
@@ -110,6 +118,9 @@ class TelegramWebhookController extends BaseController
             'body'              => $dto->body,
             'metadata'          => $dto->rawPayload,
             'processing_status' => 'received',
+            'media_file_id'     => $dto->fileId,
+            'media_mime_type'   => $dto->mimeType,
+            'media_file_size'   => $dto->fileSize,
         ]);
 
         try {
@@ -139,6 +150,11 @@ class TelegramWebhookController extends BaseController
      */
     private function processUpdate(TelegramMessageDTO $dto, TelegramMessage $msgRecord): void
     {
+        if (!$this->allowIncomingSender($dto->chatId, $dto->updateId)) {
+            $msgRecord->markIgnored();
+            return;
+        }
+
         // Responder callback_query para remover loading do botão
         if ($dto->callbackQueryId) {
             $this->telegram->answerCallbackQuery($dto->callbackQueryId);
@@ -170,6 +186,18 @@ class TelegramWebhookController extends BaseController
         }
 
         $msgRecord->update(['user_id' => $user->id]);
+
+        // Voice/Audio → transcrever e processar como texto
+        if ($dto->isVoice()) {
+            $this->handleVoiceMessage($dto, $user, $msgRecord);
+            return;
+        }
+
+        // Photo → analisar comprovante/recibo
+        if ($dto->isPhoto()) {
+            $this->handlePhotoMessage($dto, $user, $msgRecord);
+            return;
+        }
 
         // Callback: seleção de conta (select_conta_X)
         if ($dto->isAccountSelection()) {
@@ -586,6 +614,208 @@ class TelegramWebhookController extends BaseController
     }
 
     /**
+     * Trata mensagem de voz/áudio: download → transcrição Whisper → pipeline de texto.
+     */
+    private function handleVoiceMessage(
+        TelegramMessageDTO $dto,
+        \Application\Models\Usuario $user,
+        TelegramMessage $msgRecord,
+    ): void {
+        // Verificar quota antes de consumir API
+        if (!AIQuotaService::hasQuotaRemaining($user, 'chat')) {
+            $usage = AIQuotaService::getUsage($user);
+            $limit = $usage['chat']['limit'] ?? 5;
+            $this->telegram->sendText(
+                $dto->chatId,
+                "🤖 Você usou suas {$limit} mensagens de IA gratuitas este mês. "
+                    . "Faça upgrade para o Pro: https://lukrato.com.br/billing"
+            );
+            $msgRecord->markProcessed('quota_exceeded');
+            return;
+        }
+
+        // Indicar que está processando
+        $this->telegram->sendText($dto->chatId, "🎙️ Transcrevendo áudio...");
+
+        // Baixar arquivo do Telegram
+        $downloader = new TelegramFileDownloader();
+        $fileData = $downloader->downloadByFileId($dto->fileId);
+
+        if ($fileData === null) {
+            $this->telegram->sendText($dto->chatId, "⚠️ Não consegui baixar o áudio. Tente novamente.");
+            $msgRecord->markFailed('file_download_failed');
+            return;
+        }
+
+        // Verificar formato suportado
+        $transcriber = new AudioTranscriptionService();
+        $ext = $fileData['extension'] ?? 'ogg';
+
+        if (!$transcriber->isFormatSupported($ext)) {
+            $this->telegram->sendText($dto->chatId, "⚠️ Formato de áudio não suportado. Envie um áudio de voz normal.");
+            $msgRecord->markProcessed('unsupported_audio_format');
+            return;
+        }
+
+        // Transcrever via Whisper
+        $result = $transcriber->transcribe($fileData['content'], "audio.{$ext}");
+
+        if (!$result->success || $result->text === '') {
+            $this->telegram->sendText(
+                $dto->chatId,
+                "⚠️ Não consegui entender o áudio. Pode tentar novamente ou digitar a mensagem?"
+            );
+            $msgRecord->markFailed('transcription_failed: ' . ($result->error ?? 'empty'));
+            return;
+        }
+
+        // Logar transcrição
+        AiLogService::log([
+            'user_id'           => $user->id,
+            'type'              => 'audio_transcription',
+            'channel'           => 'telegram',
+            'prompt'            => "[voice:{$dto->fileId}]",
+            'response'          => $result->text,
+            'provider'          => 'openai',
+            'model'             => 'whisper-1',
+            'tokens_prompt'     => 0,
+            'tokens_completion' => 0,
+            'tokens_total'      => 0,
+            'response_time_ms'  => $result->durationMs,
+            'success'           => true,
+        ]);
+
+        // Atualizar registro com transcrição
+        $msgRecord->update([
+            'transcription' => $result->text,
+            'body'          => $result->text,
+        ]);
+
+        // Criar DTO sintético com texto transcrito e processar como mensagem normal
+        $textDto = new TelegramMessageDTO(
+            updateId: $dto->updateId,
+            messageId: $dto->messageId,
+            chatId: $dto->chatId,
+            type: 'text',
+            body: $result->text,
+            displayName: $dto->displayName,
+            username: $dto->username,
+            rawPayload: $dto->rawPayload,
+        );
+
+        $this->handleNormalMessage($textDto, $user, $msgRecord);
+    }
+
+    /**
+     * Trata mensagem de foto: download → análise Vision → criar transação ou pipeline de texto.
+     */
+    private function handlePhotoMessage(
+        TelegramMessageDTO $dto,
+        \Application\Models\Usuario $user,
+        TelegramMessage $msgRecord,
+    ): void {
+        // Verificar quota
+        if (!AIQuotaService::hasQuotaRemaining($user, 'chat')) {
+            $usage = AIQuotaService::getUsage($user);
+            $limit = $usage['chat']['limit'] ?? 5;
+            $this->telegram->sendText(
+                $dto->chatId,
+                "🤖 Você usou suas {$limit} mensagens de IA gratuitas este mês. "
+                    . "Faça upgrade para o Pro: https://lukrato.com.br/billing"
+            );
+            $msgRecord->markProcessed('quota_exceeded');
+            return;
+        }
+
+        // Indicar que está processando
+        $this->telegram->sendText($dto->chatId, "📷 Analisando imagem...");
+
+        // Baixar arquivo do Telegram
+        $downloader = new TelegramFileDownloader();
+        $fileData = $downloader->downloadByFileId($dto->fileId);
+
+        if ($fileData === null) {
+            $this->telegram->sendText($dto->chatId, "⚠️ Não consegui baixar a imagem. Tente novamente.");
+            $msgRecord->markFailed('file_download_failed');
+            return;
+        }
+
+        // Analisar via GPT-4o-mini Vision
+        $analyzer = new ImageAnalysisService();
+        $mimeType = $dto->mimeType ?? 'image/jpeg';
+        $analysisResult = $analyzer->analyzeReceipt($fileData['content'], $mimeType);
+
+        // Logar análise
+        AiLogService::log([
+            'user_id'           => $user->id,
+            'type'              => 'image_analysis',
+            'channel'           => 'telegram',
+            'prompt'            => "[photo:{$dto->fileId}]" . ($dto->caption ? " caption: {$dto->caption}" : ''),
+            'response'          => $analysisResult->rawText,
+            'provider'          => 'openai',
+            'model'             => $_ENV['OPENAI_MODEL'] ?? 'gpt-4o-mini',
+            'tokens_prompt'     => 0,
+            'tokens_completion' => 0,
+            'tokens_total'      => $analysisResult->tokensUsed,
+            'response_time_ms'  => 0,
+            'success'           => $analysisResult->success,
+        ]);
+
+        if (!$analysisResult->success) {
+            $this->telegram->sendText(
+                $dto->chatId,
+                "⚠️ Não consegui analisar a imagem. Pode descrever a transação por texto?"
+            );
+            $msgRecord->markFailed('image_analysis_failed: ' . ($analysisResult->error ?? 'unknown'));
+            return;
+        }
+
+        // Se não é comprovante financeiro
+        if (!$analysisResult->isFinancial()) {
+            $desc = $analysisResult->data['descricao'] ?? 'Não identifiquei informações financeiras nesta imagem.';
+            $this->telegram->sendText(
+                $dto->chatId,
+                "📷 {$desc}\n\nPara registrar uma transação, envie uma foto de um comprovante, recibo ou nota fiscal."
+            );
+            $msgRecord->update(['transcription' => $desc]);
+            $msgRecord->markProcessed('image_not_financial');
+            return;
+        }
+
+        // Dados financeiros extraídos
+        $extracted = $analysisResult->data;
+        $msgRecord->update(['transcription' => json_encode($extracted, JSON_UNESCAPED_UNICODE)]);
+
+        // Montar dados da transação no formato esperado por handleTransactionExtraction
+        $transactionData = [
+            'descricao' => $extracted['descricao']
+                ?? ($extracted['estabelecimento'] ?? 'Compra'),
+            'valor'     => (float) ($extracted['valor'] ?? 0),
+            'tipo'      => ($extracted['tipo'] ?? 'despesa') === 'receita' ? 'receita' : 'despesa',
+            'data'      => $extracted['data'] ?? date('Y-m-d'),
+        ];
+
+        if (!empty($extracted['forma_pagamento']) && $extracted['forma_pagamento'] !== 'null') {
+            $transactionData['forma_pagamento'] = $extracted['forma_pagamento'];
+        }
+
+        // Se não conseguiu extrair valor
+        if ($transactionData['valor'] <= 0) {
+            $desc = $transactionData['descricao'];
+            $this->telegram->sendText(
+                $dto->chatId,
+                "📷 Vi um comprovante de <b>{$desc}</b>, mas não consegui identificar o valor.\n"
+                    . "Pode digitar? Ex: <i>\"{$desc} 35.50\"</i>"
+            );
+            $msgRecord->markProcessed('image_no_amount');
+            return;
+        }
+
+        // Reutilizar fluxo existente de criação de transação
+        $this->handleTransactionExtraction($dto, $user, $transactionData, $msgRecord);
+    }
+
+    /**
      * Trata mensagem normal: pipeline completa de IA com IntentRouter.
      * Detecta: Quick Queries, Análise, Transações, Metas, Orçamentos, Chat...
      */
@@ -603,24 +833,16 @@ class TelegramWebhookController extends BaseController
         }
 
         // Verificar quota de chat antes de consumir IA
-        // Quick Queries (0 tokens) e regras não consomem quota — a verificação
-        // é feita antes do dispatch, mas o handler pode retornar 'computed' ou 'rule'
-        // sem ter consumido tokens. O AIService já não cobra quota nesses casos.
         if (!AIQuotaService::hasQuotaRemaining($user, 'chat')) {
-            // Verificar se é uma quick query (0 tokens) — essas devem funcionar sem quota
-            $isQuickQuery = $this->looksLikeQuickQuery($dto->body);
-
-            if (!$isQuickQuery) {
-                $usage = AIQuotaService::getUsage($user);
-                $limit = $usage['chat']['limit'] ?? 5;
-                $this->telegram->sendText(
-                    $dto->chatId,
-                    "🤖 Você usou suas {$limit} mensagens de IA gratuitas este mês. "
-                        . "Faça upgrade para o Pro e tenha IA ilimitada: https://lukrato.com.br/billing"
-                );
-                $msgRecord->markProcessed('quota_exceeded');
-                return;
-            }
+            $usage = AIQuotaService::getUsage($user);
+            $limit = $usage['chat']['limit'] ?? 5;
+            $this->telegram->sendText(
+                $dto->chatId,
+                "🤖 Você usou suas {$limit} mensagens de IA gratuitas este mês. "
+                    . "Faça upgrade para o Pro e tenha IA ilimitada: https://lukrato.com.br/billing"
+            );
+            $msgRecord->markProcessed('quota_exceeded');
+            return;
         }
 
         // Obter/criar conversa do Telegram (para multi-turn e contexto)
@@ -970,37 +1192,21 @@ class TelegramWebhookController extends BaseController
         }
     }
 
-    /**
-     * Verifica rapidamente se a mensagem parece uma quick query (0 tokens).
-     * Usado para permitir quick queries mesmo sem quota de IA.
-     */
-    private function looksLikeQuickQuery(string $message): bool
+    private function allowIncomingSender(string $sender, ?string $messageId = null): bool
     {
-        $normalized = mb_strtolower(trim($message));
+        $limiter = new AIRateLimiter();
 
-        $patterns = [
-            'quanto gastei',
-            'quanto recebi',
-            'qual meu saldo',
-            'quanto tenho',
-            'saldo atual',
-            'total despesa',
-            'total receita',
-            'quantos lancamento',
-            'quantas transac',
-            'maior gasto',
-            'menor gasto',
-            'ultima transac',
-            'último lancamento',
-            'ultimo lancamento',
-        ];
-
-        foreach ($patterns as $pattern) {
-            if (str_contains($normalized, $pattern)) {
-                return true;
-            }
-        }
-
-        return false;
+        return $limiter->allow(
+            scope: 'webhook_sender',
+            bucket: 'telegram',
+            identifier: $sender,
+            maxAttempts: self::SENDER_LIMIT,
+            windowSeconds: self::SENDER_WINDOW_SECONDS,
+            context: [
+                'channel' => 'telegram',
+                'sender' => $sender,
+                'message_id' => $messageId,
+            ],
+        );
     }
 }
