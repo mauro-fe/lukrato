@@ -248,7 +248,10 @@ class PerfilController
             }
 
             // Criar diretório se não existe
-            $uploadDir = BASE_PATH . '/public/assets/uploads/avatars';
+            // Em produção PUBLIC_PATH aponta para ~/public_html (document root)
+            // Em dev BASE_PATH/public é usado como fallback
+            $publicRoot = defined('PUBLIC_PATH') ? PUBLIC_PATH : BASE_PATH . '/public';
+            $uploadDir = $publicRoot . '/assets/uploads/avatars';
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0755, true);
             }
@@ -275,7 +278,7 @@ class PerfilController
             // Deletar avatar antigo APÓS salvar o novo com sucesso
             $oldAvatarPath = $user->avatar;
             if ($oldAvatarPath) {
-                $oldPath = BASE_PATH . '/public/' . $oldAvatarPath;
+                $oldPath = $publicRoot . '/' . $oldAvatarPath;
                 if (is_file($oldPath)) {
                     @unlink($oldPath);
                 }
@@ -313,7 +316,8 @@ class PerfilController
             }
 
             if ($user->avatar) {
-                $filePath = BASE_PATH . '/public/' . $user->avatar;
+                $publicRoot = defined('PUBLIC_PATH') ? PUBLIC_PATH : BASE_PATH . '/public';
+                $filePath = $publicRoot . '/' . $user->avatar;
                 if (is_file($filePath)) {
                     @unlink($filePath);
                 }

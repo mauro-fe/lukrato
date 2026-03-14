@@ -215,7 +215,8 @@ class PerfilService
 
             // Deletar arquivo de avatar se existir
             if ($user->avatar) {
-                $avatarPath = BASE_PATH . '/public/' . $user->avatar;
+                $publicRoot = defined('PUBLIC_PATH') ? PUBLIC_PATH : BASE_PATH . '/public';
+                $avatarPath = $publicRoot . '/' . $user->avatar;
                 if (is_file($avatarPath)) {
                     @unlink($avatarPath);
                 }
