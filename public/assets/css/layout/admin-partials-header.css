@@ -96,7 +96,7 @@ h3 {
   font-size: 1.5rem;
   cursor: pointer;
   border-radius: var(--radius-md);
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 10;
   flex-shrink: 0;
   align-items: center;
@@ -106,13 +106,23 @@ h3 {
   right: 16px;
 }
 
+.sidebar-close-btn i,
+.sidebar-close-btn svg {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 .sidebar-close-btn:hover {
   background: color-mix(in srgb, var(--color-primary) 15%, transparent);
   transform: scale(1.1);
 }
 
+.sidebar-close-btn:hover i,
+.sidebar-close-btn:hover svg {
+  transform: rotate(90deg);
+}
+
 .sidebar-close-btn:active {
-  transform: scale(0.95);
+  transform: scale(0.9);
 }
 
 @media (max-width: 992px) {
@@ -578,7 +588,7 @@ body.sidebar-collapsed .sidebar-footer .nav-item span {
 .edge-menu-btn svg {
   position: relative;
   z-index: 1;
-  transition: transform 0.4s ease-out;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 }
 
@@ -754,16 +764,30 @@ body.sidebar-open-mobile .sidebar-backdrop {
   /* Sidebar como overlay — transform-based (GPU accelerated) */
   .sidebar {
     position: fixed;
+    top: 0;
     left: 0;
+    bottom: 0;
+    right: auto;
     width: 260px;
+    height: 100dvh; /* dvh = dynamic viewport height, respeita barra do browser */
+    height: 100vh;  /* fallback */
     background: var(--color-surface);
+    border-right: none;
     transform: translateX(-100%);
     transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 9998;
     box-shadow: none;
     will-change: transform;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    display: flex;
+    flex-direction: column;
+  }
+
+  @supports (height: 100dvh) {
+    .sidebar {
+      height: 100dvh;
+    }
   }
 
   /* Scrollbar sutil dentro do sidebar mobile */
@@ -780,14 +804,16 @@ body.sidebar-open-mobile .sidebar-backdrop {
 
   /* Mobile: nav não precisa de scroll interno, sidebar inteiro scrolla */
   .sidebar-nav {
-    flex: none;
-    overflow-y: visible;
+    flex: 1 1 auto;
+    overflow-y: visible !important;
+    overflow-x: hidden;
+    min-height: 0;
   }
 
   /* Mobile: footer entra no fluxo do scroll */
   .sidebar-footer {
-    flex-shrink: 1;
-    margin-top: var(--spacing-4);
+    flex-shrink: 0;
+    margin-top: auto;
     padding-bottom: env(safe-area-inset-bottom, var(--spacing-3));
   }
 

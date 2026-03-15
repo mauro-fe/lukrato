@@ -29,7 +29,7 @@
 
 /* Quando sidebar está collapsed */
 body.sidebar-collapsed .top-navbar {
-  left: 100px;
+  left: 80px;
 }
 
 /* Mobile - navbar em tela cheia */
@@ -68,9 +68,11 @@ body.sidebar-collapsed .top-navbar {
   border: 1px solid var(--glass-border);
   color: var(--color-text);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   font-size: 18px;
   flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
 }
 
 .top-navbar-menu-btn:hover {
@@ -85,7 +87,25 @@ body.sidebar-collapsed .top-navbar {
 }
 
 .top-navbar-menu-btn:active {
-  transform: scale(0.95);
+  transform: scale(0.9);
+}
+
+/* Animação do ícone dentro do botão */
+.top-navbar-menu-btn i,
+.top-navbar-menu-btn svg {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Quando sidebar está aberta, rotaciona o ícone */
+body.sidebar-open-mobile .top-navbar-menu-btn {
+  background: color-mix(in srgb, var(--color-primary) 15%, var(--glass-bg));
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+body.sidebar-open-mobile .top-navbar-menu-btn i,
+body.sidebar-open-mobile .top-navbar-menu-btn svg {
+  transform: rotate(90deg);
 }
 
 /* ===================================================================

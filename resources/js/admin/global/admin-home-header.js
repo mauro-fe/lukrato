@@ -337,11 +337,24 @@
             setIcon();
         };
 
+        // Helper: swap mobile button icon between menu and x
+        const swapMobileIcon = (toIcon) => {
+            if (!mobileBtn) return;
+            const svg = mobileBtn.querySelector('svg');
+            if (svg) {
+                svg.setAttribute('data-lucide', toIcon);
+                if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                    lucide.createIcons({ nodes: [svg] });
+                }
+            }
+        };
+
         const openMobile = () => {
             body.classList.add('sidebar-open-mobile');
             aside?.classList.add('sidebar-animate-in');
             btn?.setAttribute('aria-expanded', 'true');
             mobileBtn?.setAttribute('aria-expanded', 'true');
+            swapMobileIcon('x');
             setIcon();
         };
 
@@ -349,6 +362,7 @@
             body.classList.remove('sidebar-open-mobile');
             btn?.setAttribute('aria-expanded', 'false');
             mobileBtn?.setAttribute('aria-expanded', 'false');
+            swapMobileIcon('menu');
             setIcon();
             // Remove animate-in class after transition ends so it can replay next open
             setTimeout(() => aside?.classList.remove('sidebar-animate-in'), 350);
