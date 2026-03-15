@@ -182,7 +182,8 @@ export const API = {
             STATE.accessRestricted = false;
 
             const json = await response.json();
-            return (json.items || json || []).map(acc => ({
+            const items = json.data || json.items || json || [];
+            return (Array.isArray(items) ? items : []).map(acc => ({
                 id: Number(acc.id),
                 name: acc.nome || acc.apelido || acc.instituicao || `Conta #${acc.id}`
             }));

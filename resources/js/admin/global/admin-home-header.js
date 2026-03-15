@@ -339,6 +339,7 @@
 
         const openMobile = () => {
             body.classList.add('sidebar-open-mobile');
+            aside?.classList.add('sidebar-animate-in');
             btn?.setAttribute('aria-expanded', 'true');
             mobileBtn?.setAttribute('aria-expanded', 'true');
             setIcon();
@@ -349,6 +350,8 @@
             btn?.setAttribute('aria-expanded', 'false');
             mobileBtn?.setAttribute('aria-expanded', 'false');
             setIcon();
+            // Remove animate-in class after transition ends so it can replay next open
+            setTimeout(() => aside?.classList.remove('sidebar-animate-in'), 350);
         };
 
         // ====================================================================
