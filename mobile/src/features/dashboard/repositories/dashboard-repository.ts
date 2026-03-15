@@ -49,13 +49,13 @@ type RemoteProvisao = {
     count_faturas?: number;
     total_faturas?: number;
   };
-  proximos?: Array<{
+  proximos?: {
     id?: number | string;
     titulo?: string;
     tipo?: string;
     valor?: number;
     data_pagamento?: string;
-  }>;
+  }[];
   vencidos?: {
     count?: number;
     total?: number;
@@ -191,7 +191,10 @@ function mapTransaction(item: RemoteTransaction): DashboardTransaction {
         : item.categoria?.nome || (kind === 'transfer' ? 'Transferencia' : 'Sem categoria'),
     account: item.conta || 'Conta nao definida',
     date: item.data,
-    amount: kind === 'income' ? Math.abs(Number(item.valor || 0)) : -Math.abs(Number(item.valor || 0)),
+    amount:
+      kind === 'expense'
+        ? -Math.abs(Number(item.valor || 0))
+        : Math.abs(Number(item.valor || 0)),
     kind,
   };
 }

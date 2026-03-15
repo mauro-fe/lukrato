@@ -15,6 +15,7 @@ use Application\Services\AI\AIService;
 use Application\Services\AI\AIQuotaService;
 use Application\Services\AI\Actions\ActionRegistry;
 use Application\Services\AI\AiLogService;
+use Application\Services\AI\IntentRules\ConfirmationIntentRule;
 use Application\Services\AI\Media\MediaAsset;
 use Application\Services\AI\Media\MediaProcessingResult;
 use Application\Services\AI\Media\MediaRouterService;
@@ -220,7 +221,7 @@ class WhatsAppWebhookController extends BaseController
         }
 
         // 3. Verificar se é resposta de confirmação a uma transação pendente
-        if ($dto->isConfirmationReply()) {
+        if ($this->shouldHandleConfirmationReply($dto, $user->id)) {
             $this->handleConfirmationReply($dto, $user, $msgRecord);
             return;
         }
@@ -255,7 +256,7 @@ class WhatsAppWebhookController extends BaseController
                 return;
             }
 
-            if ($dto->isAffirmative()) {
+            if (ConfirmationIntentRule::isAffirmative($dto->body)) {
                 // Executar via ActionRegistry (mesmo caminho do web chat)
                 $actionRegistry = new ActionRegistry();
                 $action = $actionRegistry->resolve($pending->action_type);
@@ -343,6 +344,20 @@ class WhatsAppWebhookController extends BaseController
                 $msgRecord->markProcessed('transaction_rejected');
             }
         });
+    }
+
+    private function shouldHandleConfirmationReply(WhatsAppMessageDTO $dto, int $userId): bool
+    {
+        if (
+            !ConfirmationIntentRule::isAffirmative($dto->body)
+            && !ConfirmationIntentRule::isNegative($dto->body)
+        ) {
+            return false;
+        }
+
+        return PendingAiAction::where('user_id', $userId)
+            ->awaiting()
+            ->exists();
     }
 
     private function handleMediaMessage(

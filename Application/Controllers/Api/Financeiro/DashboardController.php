@@ -4,11 +4,11 @@ namespace Application\Controllers\Api\Financeiro;
 
 use Application\Core\Response;
 use Application\Lib\Auth;
+use Application\Models\Lancamento;
 use Application\Repositories\LancamentoRepository;
 use Application\Repositories\MetaRepository;
 use Application\Repositories\OrcamentoRepository;
 use Application\Services\Financeiro\DashboardProvisaoService;
-use Illuminate\Support\Facades\DB;
 
 class DashboardController
 {
@@ -114,10 +114,13 @@ class DashboardController
         $from = sprintf('%04d-%02d-01', $y, $m);
         $to = date('Y-m-t', strtotime($from));
 
-        $rows = DB::table('lancamentos as l')
+        $rows = Lancamento::query()
+            ->withoutGlobalScopes()
+            ->from('lancamentos as l')
             ->leftJoin('categorias as c', 'c.id', '=', 'l.categoria_id')
             ->leftJoin('contas as a', 'a.id', '=', 'l.conta_id')
             ->where('l.user_id', $userId)
+            ->whereNull('l.deleted_at')
             ->whereBetween('l.data', [$from, $to])
             ->orderBy('l.data', 'desc')
             ->orderBy('l.id', 'desc')

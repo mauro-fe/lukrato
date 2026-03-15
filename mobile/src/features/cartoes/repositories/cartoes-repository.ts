@@ -1,6 +1,4 @@
-import { appConfig } from '@/src/lib/config/app-config';
 import { httpClient, HttpClientError } from '@/src/lib/api/http-client';
-import { cartoesPreview } from '@/src/features/cartoes/data/cartoes-preview';
 import { CartaoAlert, CartaoOverview, CartoesSnapshot } from '@/src/features/cartoes/types';
 
 type RemoteCard = {
@@ -62,7 +60,7 @@ type RemoteInvoiceStatus = {
 };
 
 type RepositoryResult<T> = {
-  source: 'preview' | 'remote';
+  source: 'remote';
   data: T;
   message?: string | null;
 };
@@ -127,28 +125,28 @@ function getFallbackColor(card: RemoteCard) {
   return card.cor_cartao || card.conta?.instituicao_financeira?.cor_primaria || BRAND_COLORS[brand] || '#1f4f82';
 }
 
-function fallbackMessage(error: unknown) {
+function getErrorMessage(error: unknown) {
   if (!error) {
     return null;
   }
 
   if (error instanceof HttpClientError) {
     if (error.status === 401) {
-      return 'A API de cartoes respondeu sem sessao autenticada. Mantive o preview para voce continuar evoluindo o app.';
+      return 'Sua sessao nao foi aceita pelo backend. Entre novamente para carregar os cartoes.';
     }
 
     if (error.status === 403) {
-      return 'A API de cartoes exigiu protecao adicional. Mantive o preview para nao travar a tela.';
+      return 'O backend bloqueou a operacao de cartoes. Revise a permissao ou os limites da sua conta.';
     }
 
     if (error.code === 'NO_BASE_URL') {
-      return 'A URL da API ainda nao foi configurada. O preview segue ativo.';
+      return 'A URL da API nao foi configurada para este aparelho.';
     }
 
     return error.message;
   }
 
-  return 'Nao foi possivel usar a API de cartoes agora. O preview continua ativo.';
+  return 'Nao foi possivel carregar os cartoes agora.';
 }
 
 function mapAlert(alert: RemoteAlert, index: number): CartaoAlert {
@@ -290,16 +288,55 @@ function buildFocus(cards: CartaoOverview[], alerts: CartaoAlert[]) {
   };
 }
 
+export function createEmptyCartoesSnapshot(): CartoesSnapshot {
+  return {
+    monthLabel: getCurrentMonthLabel(),
+    helperTitle: 'Cartoes e faturas sem misterio',
+    helperDescription:
+      'O usuario ve primeiro o que vence logo, quanto limite ainda resta e qual cartao esta pedindo mais atencao.',
+    totalCards: 0,
+    totalLimit: 0,
+    availableLimit: 0,
+    usedLimit: 0,
+    usagePercent: 0,
+    pendingInvoiceCount: 0,
+    focus: {
+      title: 'Nenhum cartao cadastrado ainda',
+      description:
+        'Quando o primeiro cartao entrar, a tela vai mostrar limite, conta vinculada e a fatura mais importante.',
+      amount: 0,
+      supportText: 'O app vai manter a parte de cartoes e faturas visivel sem misturar com contas bancarias.',
+      tone: 'warning',
+    },
+    alerts: [],
+    guidedSteps: [
+      {
+        id: '1',
+        title: 'Abra primeiro a fatura que vence antes',
+        description: 'Esse e o caminho mais simples para nao esquecer vencimentos e nao pagar juros a toa.',
+      },
+      {
+        id: '2',
+        title: 'Compare limite livre antes de parcelar',
+        description: 'O app deixa o disponivel ao lado do total para a decisao ficar obvia.',
+      },
+      {
+        id: '3',
+        title: 'Mantenha a conta vinculada bem visivel',
+        description: 'Quando chegar a hora de pagar, o usuario ja sabe de onde o dinheiro vai sair.',
+      },
+    ],
+    cards: [],
+  };
+}
+
 function buildSnapshot(
   resumo: RemoteResumo,
   cards: CartaoOverview[],
   alerts: CartaoAlert[]
 ): CartoesSnapshot {
   return {
-    monthLabel: getCurrentMonthLabel(),
-    helperTitle: 'Cartoes e faturas sem misterio',
-    helperDescription:
-      'O usuario ve primeiro o que vence logo, quanto limite ainda resta e qual cartao esta pedindo mais atencao.',
+    ...createEmptyCartoesSnapshot(),
     totalCards: resumo.total_cartoes,
     totalLimit: Number(resumo.limite_total || 0),
     availableLimit: Number(resumo.limite_disponivel || 0),
@@ -337,12 +374,16 @@ function buildSnapshot(
 class CartoesRepository {
   async getSnapshot(): Promise<RepositoryResult<CartoesSnapshot>> {
     try {
+      const warnings: string[] = [];
       const [resumo, cardsPayload, alertsPayload] = await Promise.all([
         httpClient.get<RemoteResumo>('api/cartoes/resumo'),
         httpClient.get<RemoteCard[]>('api/cartoes'),
         httpClient
           .get<RemoteAlertsPayload>('api/cartoes/alertas')
-          .catch(() => ({ total: 0, alertas: [] })),
+          .catch(() => {
+            warnings.push('Alertas de cartao indisponiveis no momento.');
+            return { total: 0, alertas: [] };
+          }),
       ]);
 
       const cardMetas = await Promise.all(cardsPayload.map((card) => loadCardMeta(card)));
@@ -352,12 +393,13 @@ class CartoesRepository {
       return {
         source: 'remote',
         data: buildSnapshot(resumo, cards, alerts),
+        message: warnings.length ? warnings.join(' ') : null,
       };
     } catch (error) {
       return {
-        source: 'preview',
-        data: cartoesPreview,
-        message: appConfig.usePreviewFallback ? fallbackMessage(error) : null,
+        source: 'remote',
+        data: createEmptyCartoesSnapshot(),
+        message: getErrorMessage(error),
       };
     }
   }

@@ -71,7 +71,7 @@ export function NewLancamentoScreen() {
     isPaid,
     errors,
     isSubmitting,
-    submitMessage,
+    submitFeedback,
     dataSource,
     sourceMessage,
     availableAccounts,
@@ -94,11 +94,19 @@ export function NewLancamentoScreen() {
     }
   }, [params.mode, setMode]);
 
-  const modeMeta = getModeMeta(mode);
+  useEffect(() => {
+    if (submitFeedback?.tone !== 'success') {
+      return;
+    }
 
-  async function handleSubmit() {
-    await submit();
-  }
+    const timeout = setTimeout(() => {
+      router.back();
+    }, 450);
+
+    return () => clearTimeout(timeout);
+  }, [submitFeedback, router]);
+
+  const modeMeta = getModeMeta(mode);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -121,10 +129,26 @@ export function NewLancamentoScreen() {
             </View>
           </View>
 
-          {submitMessage ? (
-            <View style={styles.successBanner}>
-              <Ionicons name="checkmark-circle-outline" size={18} color={tokens.colors.success} />
-              <Text style={styles.successText}>{submitMessage}</Text>
+          {submitFeedback ? (
+            <View
+              style={[
+                styles.feedbackBanner,
+                submitFeedback.tone === 'success' ? styles.feedbackSuccess : styles.feedbackError,
+              ]}>
+              <Ionicons
+                name={submitFeedback.tone === 'success' ? 'checkmark-circle-outline' : 'alert-circle-outline'}
+                size={18}
+                color={submitFeedback.tone === 'success' ? tokens.colors.success : tokens.colors.danger}
+              />
+              <Text
+                style={[
+                  styles.feedbackText,
+                  submitFeedback.tone === 'success'
+                    ? styles.feedbackSuccessText
+                    : styles.feedbackErrorText,
+                ]}>
+                {submitFeedback.message}
+              </Text>
             </View>
           ) : null}
 
@@ -314,7 +338,11 @@ export function NewLancamentoScreen() {
             <Text style={styles.saveLabel}>Resumo</Text>
             <Text style={styles.saveValue}>{amount > 0 ? formatCurrency(amount) : 'Sem valor ainda'}</Text>
           </View>
-          <Pressable style={[styles.saveButton, isSubmitting && styles.saveButtonDisabled]} onPress={handleSubmit}>
+          <Pressable
+            style={[styles.saveButton, isSubmitting && styles.saveButtonDisabled]}
+            onPress={() => {
+              void submit();
+            }}>
             <Text style={styles.saveButtonText}>{isSubmitting ? 'Salvando...' : modeMeta.submitLabel}</Text>
           </Pressable>
         </View>
@@ -400,20 +428,31 @@ const styles = StyleSheet.create({
     color: tokens.colors.textMuted,
     ...tokens.typography.body,
   },
-  successBanner: {
+  feedbackBanner: {
     flexDirection: 'row',
     gap: tokens.spacing.sm,
     alignItems: 'center',
     borderRadius: tokens.radius.md,
     borderWidth: 1,
-    borderColor: '#bde7cf',
-    backgroundColor: '#ecfdf3',
     padding: tokens.spacing.md,
   },
-  successText: {
+  feedbackSuccess: {
+    borderColor: '#bde7cf',
+    backgroundColor: '#ecfdf3',
+  },
+  feedbackError: {
+    borderColor: '#f3c7c1',
+    backgroundColor: '#fff1ef',
+  },
+  feedbackText: {
     flex: 1,
-    color: tokens.colors.success,
     ...tokens.typography.small,
+  },
+  feedbackSuccessText: {
+    color: tokens.colors.success,
+  },
+  feedbackErrorText: {
+    color: tokens.colors.danger,
   },
   cardTitle: {
     color: tokens.colors.text,

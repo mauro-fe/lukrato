@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Application\DTO\AI;
 
+use Application\Services\AI\IntentRules\ConfirmationIntentRule;
+
 /**
  * DTO para mensagens recebidas via WhatsApp Cloud API.
  */
@@ -95,31 +97,13 @@ readonly class WhatsAppMessageDTO
 
     public function isConfirmationReply(): bool
     {
-        $normalized = mb_strtolower(trim($this->body));
-
-        return in_array($normalized, [
-            'sim',
-            'confirmar',
-            'yes',
-            'confirm_yes',
-            'não',
-            'nao',
-            'cancelar',
-            'cancel',
-            'confirm_no',
-        ], true);
+        return ConfirmationIntentRule::isAffirmative($this->body)
+            || ConfirmationIntentRule::isNegative($this->body);
     }
 
     public function isAffirmative(): bool
     {
-        $normalized = mb_strtolower(trim($this->body));
-
-        return in_array($normalized, [
-            'sim',
-            'confirmar',
-            'yes',
-            'confirm_yes',
-        ], true);
+        return ConfirmationIntentRule::isAffirmative($this->body);
     }
 
     public function isMedia(): bool

@@ -59,4 +59,25 @@ class WhatsAppMessageDTOTest extends TestCase
         $this->assertSame('comprovante.pdf', $dto->filename);
         $this->assertSame('application/pdf', $dto->mimeType);
     }
+
+    public function testDetectsLooseTextConfirmation(): void
+    {
+        $dto = WhatsAppMessageDTO::fromMetaPayload([
+            'contacts' => [
+                ['profile' => ['name' => 'Mauro']],
+            ],
+            'messages' => [[
+                'id' => 'wamid.3',
+                'from' => '5511999999999',
+                'type' => 'text',
+                'text' => [
+                    'body' => 'ok está bom',
+                ],
+            ]],
+        ]);
+
+        $this->assertInstanceOf(WhatsAppMessageDTO::class, $dto);
+        $this->assertTrue($dto->isConfirmationReply());
+        $this->assertTrue($dto->isAffirmative());
+    }
 }

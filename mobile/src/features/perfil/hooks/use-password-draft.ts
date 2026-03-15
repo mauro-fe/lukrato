@@ -21,7 +21,7 @@ export function usePasswordDraft() {
   const [errors, setErrors] = useState<PasswordFormErrors>({});
   const [feedback, setFeedback] = useState<PerfilFeedback | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [dataSource, setDataSource] = useState<'preview' | 'remote'>('preview');
+  const [dataSource, setDataSource] = useState<'remote'>('remote');
   const [sourceMessage, setSourceMessage] = useState<string | null>(null);
 
   useEffect(() => {

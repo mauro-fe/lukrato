@@ -54,4 +54,21 @@ class TelegramMessageDTOTest extends TestCase
         $this->assertTrue($dto->isVideo());
         $this->assertTrue($dto->isMedia());
     }
+
+    public function testDetectsLooseTextConfirmation(): void
+    {
+        $dto = TelegramMessageDTO::fromTelegramUpdate([
+            'update_id' => 12,
+            'message' => [
+                'message_id' => 24,
+                'chat' => ['id' => 99],
+                'from' => ['first_name' => 'Mauro'],
+                'text' => 'pode pagar',
+            ],
+        ]);
+
+        $this->assertInstanceOf(TelegramMessageDTO::class, $dto);
+        $this->assertTrue($dto->isConfirmationReply());
+        $this->assertTrue($dto->isAffirmative());
+    }
 }

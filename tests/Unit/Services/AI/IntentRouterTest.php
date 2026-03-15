@@ -113,6 +113,14 @@ class IntentRouterTest extends TestCase
         $this->assertTrue($result->isConfident());
     }
 
+    public function testRegistrarValorComDescricaoDetectaCreateEntity(): void
+    {
+        $result = $this->router->detect('registre 30 com comida', false, 1);
+
+        $this->assertEquals(IntentType::CREATE_ENTITY, $result->intent);
+        $this->assertTrue($result->isConfident());
+    }
+
     public function testCriarOrcamentoDetectaCreateEntity(): void
     {
         $result = $this->router->detect('definir orçamento de 800 para alimentação', false, 1);

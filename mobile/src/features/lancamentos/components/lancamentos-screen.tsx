@@ -9,7 +9,7 @@ import { LancamentosListCard } from '@/src/features/lancamentos/components/lanca
 import { LancamentosOverviewCard } from '@/src/features/lancamentos/components/lancamentos-overview-card';
 import { LancamentosQuickActionsCard } from '@/src/features/lancamentos/components/lancamentos-quick-actions-card';
 import { QuickEntrySheet } from '@/src/features/lancamentos/components/quick-entry-sheet';
-import { useLancamentosPreview } from '@/src/features/lancamentos/hooks/use-lancamentos-preview';
+import { useLancamentosOverview } from '@/src/features/lancamentos/hooks/use-lancamentos-overview';
 import { DataSourceBanner } from '@/src/shared/ui/data-source-banner';
 import { SectionHeading } from '@/src/shared/ui/section-heading';
 import { tokens } from '@/src/theme/tokens';
@@ -34,7 +34,7 @@ export function LancamentosScreen() {
     updateSearch,
     openSheet,
     closeSheet,
-  } = useLancamentosPreview();
+  } = useLancamentosOverview();
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>

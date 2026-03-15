@@ -21,6 +21,59 @@ class SecurityHeaders
             || (($_ENV['APP_ENV'] ?? 'production') === 'development');
     }
 
+    private function isLocalHost(string $host): bool
+    {
+        return in_array($host, ['localhost', '127.0.0.1', '::1'], true);
+    }
+
+    private function isLocalRequest(): bool
+    {
+        $hostHeader = (string) ($_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? '');
+        $host = strtolower((string) parse_url('http://' . $hostHeader, PHP_URL_HOST));
+
+        return $this->isLocalHost($host);
+    }
+
+    private function isAllowedOrigin(string $origin): bool
+    {
+        if ($origin === '') {
+            return false;
+        }
+
+        $normalizedOrigin = rtrim($origin, '/');
+
+        $allowedOrigins = [
+            'https://lukrato.com.br',
+            'https://www.lukrato.com.br',
+        ];
+
+        if (in_array($normalizedOrigin, $allowedOrigins, true)) {
+            return true;
+        }
+
+        if (!$this->isDev() && !$this->isLocalRequest()) {
+            return false;
+        }
+
+        $originHost = strtolower((string) parse_url($normalizedOrigin, PHP_URL_HOST));
+        $originScheme = strtolower((string) parse_url($normalizedOrigin, PHP_URL_SCHEME));
+        $originPort = parse_url($normalizedOrigin, PHP_URL_PORT);
+
+        if (!in_array($originScheme, ['http', 'https'], true)) {
+            return false;
+        }
+
+        if (!$this->isLocalHost($originHost)) {
+            return false;
+        }
+
+        if ($originPort === null) {
+          return true;
+        }
+
+        return $originPort >= 1 && $originPort <= 65535;
+    }
+
     /**
      * Content Security Policy
      * Protege contra XSS e injeção de scripts maliciosos
@@ -55,24 +108,14 @@ class SecurityHeaders
     {
         $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
-        $allowedOrigins = [
-            'https://lukrato.com.br/',
-            'https://www.lukrato.com.br/',
-        ];
-
-        // Em desenvolvimento, permitir origens locais
-        if ($this->isDev()) {
-            $allowedOrigins[] = 'http://localhost';
-            $allowedOrigins[] = 'http://127.0.0.1';
-        }
-
-        if (in_array($origin, $allowedOrigins, true)) {
-            header("Access-Control-Allow-Origin: {$origin}");
+        if ($this->isAllowedOrigin($origin)) {
+            header('Vary: Origin');
+            header('Access-Control-Allow-Origin: ' . rtrim($origin, '/'));
             header('Access-Control-Allow-Credentials: true');
         }
 
         header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
-        header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+        header('Access-Control-Allow-Headers: Accept, Content-Type, Authorization, X-Requested-With, X-CSRF-Token');
 
         // Headers de segurança
         foreach ($this->securityHeaders as $name => $value) {

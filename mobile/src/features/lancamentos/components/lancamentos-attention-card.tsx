@@ -36,10 +36,18 @@ export function LancamentosAttentionCard({
             <View style={styles.rowContent}>
               <Text style={styles.itemTitle}>{item.title}</Text>
               <Text style={styles.itemMeta}>
-                {item.account} • {item.note ?? `Vence em ${formatShortDate(item.dueDate ?? item.date)}`}
+                {item.account} | {item.note ?? `Vence em ${formatShortDate(item.dueDate ?? item.date)}`}
               </Text>
             </View>
-            <Text style={[styles.amount, item.type === 'expense' ? styles.expense : styles.income]}>
+            <Text
+              style={[
+                styles.amount,
+                item.type === 'expense'
+                  ? styles.expense
+                  : item.type === 'income'
+                    ? styles.income
+                    : styles.transfer,
+              ]}>
               {formatCurrency(item.amount)}
             </Text>
           </View>
@@ -107,5 +115,8 @@ const styles = StyleSheet.create({
   },
   income: {
     color: tokens.colors.success,
+  },
+  transfer: {
+    color: tokens.colors.info,
   },
 });

@@ -1,9 +1,4 @@
-import { appConfig } from '@/src/lib/config/app-config';
 import { httpClient, HttpClientError } from '@/src/lib/api/http-client';
-import {
-  perfilPreview,
-  perfilPreviewFormData,
-} from '@/src/features/perfil/data/perfil-preview';
 import {
   PasswordFormErrors,
   PerfilContactChannel,
@@ -74,18 +69,49 @@ type ChangePasswordResponse = {
 };
 
 type RepositoryResult<T> = {
-  source: 'preview' | 'remote';
+  source: 'remote';
   data: T;
   message?: string | null;
 };
 
-let previewProfileFormState: PerfilFormData = { ...perfilPreviewFormData };
-let previewIdentityState = {
-  avatarUrl: perfilPreview.identity.avatarUrl,
-  supportCode: perfilPreview.identity.supportCode,
+export const emptyPerfilFormData: PerfilFormData = {
+  name: '',
+  email: '',
+  cpf: '',
+  phone: '',
+  sex: '',
+  birthDate: '',
+  addressCep: '',
+  addressStreet: '',
+  addressNumber: '',
+  addressComplement: '',
+  addressNeighborhood: '',
+  addressCity: '',
+  addressState: '',
 };
-let previewReferralState = { ...perfilPreview.referral };
-let previewTelegramState = { ...perfilPreview.telegram };
+
+function buildEmptyReferral(): PerfilSnapshot['referral'] {
+  return {
+    code: 'Sem codigo ainda',
+    link: '',
+    rewardDays: 0,
+    totalInvites: 0,
+    completedInvites: 0,
+    pendingInvites: 0,
+    monthlyUsed: 0,
+    monthlyLimit: 0,
+    monthlyRemaining: 0,
+  };
+}
+
+function buildEmptyTelegram(): PerfilSnapshot['telegram'] {
+  return {
+    linked: false,
+    username: null,
+    helperText:
+      'Conecte o Telegram apenas se fizer sentido para registrar coisas sem abrir o app inteiro.',
+  };
+}
 
 function normalizeValue(value: string | null | undefined, fallback = 'Nao informado') {
   const trimmed = String(value ?? '').trim();
@@ -250,24 +276,8 @@ function mapRemoteUserToFormData(user: RemoteUser): PerfilFormData {
   };
 }
 
-function mapFormDataToRemoteUser(formData: PerfilFormData): RemoteUser {
-  return {
-    nome: formData.name,
-    email: formData.email,
-    cpf: formData.cpf,
-    telefone: formData.phone,
-    sexo: formData.sex,
-    data_nascimento: formData.birthDate,
-    endereco: {
-      cep: formData.addressCep,
-      rua: formData.addressStreet,
-      numero: formData.addressNumber,
-      complemento: formData.addressComplement,
-      bairro: formData.addressNeighborhood,
-      cidade: formData.addressCity,
-      estado: formData.addressState,
-    },
-  };
+export function createEmptyPerfilSnapshot(): PerfilSnapshot {
+  return buildSnapshot({}, buildEmptyReferral(), buildEmptyTelegram());
 }
 
 function buildSnapshot(
@@ -349,38 +359,29 @@ function buildSnapshot(
     telegram,
     support: {
       recommendedChannel: String(user.telefone ?? '').trim() ? 'whatsapp' : 'email',
-      hint: 'Se surgir duvida, escreva com suas palavras. O app manda a mensagem sem o usuario caçar email ou formulario externo.',
+      hint: 'Se surgir duvida, escreva com suas palavras. O app manda a mensagem sem o usuario cacar email ou formulario externo.',
     },
   };
 }
 
-function fallbackMessage(error: unknown) {
+function getErrorMessage(error: unknown) {
   if (!error) {
     return null;
   }
 
   if (error instanceof HttpClientError) {
     if (error.status === 401) {
-      return 'A API de perfil respondeu sem sessao autenticada. Mantive o preview para voce continuar evoluindo a UX.';
+      return 'Sua sessao nao foi aceita pelo backend. Entre novamente para carregar o perfil.';
     }
 
     if (error.code === 'NO_BASE_URL') {
-      return 'A URL da API ainda nao foi configurada. O preview segue ativo.';
+      return 'A URL da API nao foi configurada para este aparelho.';
     }
 
     return error.message;
   }
 
-  return 'Nao foi possivel carregar o perfil agora. O preview continua ativo.';
-}
-
-function buildPreviewSnapshot() {
-  return buildSnapshot(
-    mapFormDataToRemoteUser(previewProfileFormState),
-    previewReferralState,
-    previewTelegramState,
-    previewIdentityState
-  );
+  return 'Nao foi possivel carregar o perfil agora.';
 }
 
 function buildProfileFormData(formData: PerfilFormData) {
@@ -446,32 +447,28 @@ class PerfilRepository {
 
       const [referralPayload, telegramPayload] = await Promise.all([
         httpClient.get<RemoteReferralStats>('api/referral/stats').catch(() => {
-          optionalWarnings.push('Indicacoes ficaram em fallback.');
+          optionalWarnings.push('Indicacoes indisponiveis no momento.');
           return null;
         }),
         httpClient.get<RemoteTelegramStatus>('api/telegram/status').catch(() => {
-          optionalWarnings.push('Status do Telegram ficou em fallback.');
+          optionalWarnings.push('Status do Telegram indisponivel no momento.');
           return null;
         }),
       ]);
 
       const referral = referralPayload
         ? {
-            code: normalizeValue(referralPayload.referral_code, perfilPreview.referral.code),
-            link: normalizeValue(referralPayload.referral_link, perfilPreview.referral.link),
+            code: normalizeValue(referralPayload.referral_code, 'Sem codigo ainda'),
+            link: String(referralPayload.referral_link ?? '').trim(),
             rewardDays: Number(referralPayload.dias_ganhos ?? 0),
             totalInvites: Number(referralPayload.total_indicacoes ?? 0),
             completedInvites: Number(referralPayload.indicacoes_completadas ?? 0),
             pendingInvites: Number(referralPayload.indicacoes_pendentes ?? 0),
             monthlyUsed: Number(referralPayload.indicacoes_mes ?? 0),
-            monthlyLimit: Number(
-              referralPayload.limite_mensal ?? perfilPreview.referral.monthlyLimit
-            ),
-            monthlyRemaining: Number(
-              referralPayload.indicacoes_restantes ?? perfilPreview.referral.monthlyRemaining
-            ),
+            monthlyLimit: Number(referralPayload.limite_mensal ?? 0),
+            monthlyRemaining: Number(referralPayload.indicacoes_restantes ?? 0),
           }
-        : previewReferralState;
+        : buildEmptyReferral();
 
       const telegram = telegramPayload
         ? {
@@ -481,20 +478,18 @@ class PerfilRepository {
               ? 'Telegram vinculado. O usuario consegue ver isso sem medo de mexer em configuracao sensivel.'
               : 'Conecte o Telegram apenas se fizer sentido para registrar coisas sem abrir o app inteiro.',
           }
-        : previewTelegramState;
+        : buildEmptyTelegram();
 
       return {
         source: 'remote',
         data: buildSnapshot(profilePayload.user, referral, telegram),
-        message: optionalWarnings.length
-          ? `Perfil real carregado, mas ${optionalWarnings.join(' ')}`
-          : null,
+        message: optionalWarnings.length ? optionalWarnings.join(' ') : null,
       };
     } catch (error) {
       return {
-        source: 'preview',
-        data: buildPreviewSnapshot(),
-        message: appConfig.usePreviewFallback ? fallbackMessage(error) : null,
+        source: 'remote',
+        data: createEmptyPerfilSnapshot(),
+        message: getErrorMessage(error),
       };
     }
   }
@@ -511,51 +506,29 @@ class PerfilRepository {
       };
     } catch (error) {
       return {
-        source: 'preview',
+        source: 'remote',
         data: {
-          profile: previewProfileFormState,
+          profile: { ...emptyPerfilFormData },
         },
-        message: appConfig.usePreviewFallback ? fallbackMessage(error) : null,
+        message: getErrorMessage(error),
       };
     }
   }
 
   async updateProfile(formData: PerfilFormData) {
-    try {
-      const payload = await httpClient.postForm<UpdateProfileResponse>(
-        'api/perfil',
-        buildProfileFormData(formData),
-        undefined,
-        { csrf: true }
-      );
+    const payload = await httpClient.postForm<UpdateProfileResponse>(
+      'api/perfil',
+      buildProfileFormData(formData),
+      undefined,
+      { csrf: true }
+    );
 
-      return {
-        source: 'remote' as const,
-        data: {
-          message: payload.message || 'Perfil atualizado com sucesso.',
-        },
-      };
-    } catch (error) {
-      if (!appConfig.usePreviewFallback || error instanceof HttpClientError) {
-        if (!appConfig.usePreviewFallback) {
-          throw error;
-        }
-
-        if (error instanceof HttpClientError && error.status && error.status < 500) {
-          throw error;
-        }
-      }
-
-      previewProfileFormState = { ...formData };
-
-      return {
-        source: 'preview' as const,
-        data: {
-          message: 'Perfil atualizado localmente no preview.',
-        },
-        message: fallbackMessage(error),
-      };
-    }
+    return {
+      source: 'remote' as const,
+      data: {
+        message: payload.message || 'Perfil atualizado com sucesso.',
+      },
+    };
   }
 
   async changePassword(currentPassword: string, newPassword: string, confirmPassword: string) {
@@ -613,4 +586,4 @@ class PerfilRepository {
 }
 
 export const perfilRepository = new PerfilRepository();
-export { buildPreviewSnapshot, mapPasswordErrors };
+export { mapPasswordErrors };

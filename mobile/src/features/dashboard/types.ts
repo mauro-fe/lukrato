@@ -26,7 +26,7 @@ export type DashboardTransaction = {
   account: string;
   date: string;
   amount: number;
-  kind: 'income' | 'expense';
+  kind: 'income' | 'expense' | 'transfer';
 };
 
 export type DashboardSnapshot = {

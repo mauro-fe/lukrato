@@ -1,8 +1,10 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 
-import { perfilPreview } from '@/src/features/perfil/data/perfil-preview';
-import { perfilRepository } from '@/src/features/perfil/repositories/perfil-repository';
+import {
+  createEmptyPerfilSnapshot,
+  perfilRepository,
+} from '@/src/features/perfil/repositories/perfil-repository';
 import { PerfilContactChannel, PerfilFeedback, TelegramLinkDraft } from '@/src/features/perfil/types';
 
 function getActionErrorMessage(error: unknown, fallback: string) {
@@ -14,8 +16,8 @@ function getActionErrorMessage(error: unknown, fallback: string) {
 }
 
 export function usePerfilOverview() {
-  const [snapshot, setSnapshot] = useState(perfilPreview);
-  const [source, setSource] = useState<'preview' | 'remote'>('preview');
+  const [snapshot, setSnapshot] = useState(() => createEmptyPerfilSnapshot());
+  const [source, setSource] = useState<'remote'>('remote');
   const [sourceMessage, setSourceMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);

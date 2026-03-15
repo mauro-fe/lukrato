@@ -46,6 +46,13 @@ class PromptBuilderTest extends TestCase
         $this->assertStringContainsString('CAPACIDADES', $prompt);
     }
 
+    public function testUserChatSystemAvoidsFakeConfirmationFlows(): void
+    {
+        $prompt = PromptBuilder::userChatSystem();
+        $this->assertStringContainsString('nunca diga "responda sim/nao"', $prompt);
+        $this->assertStringContainsString('nao mande o usuario seguir passo a passo pelo site', $prompt);
+    }
+
     public function testUserChatSystemIncludesUserName(): void
     {
         $prompt = PromptBuilder::userChatSystem(['usuario_nome' => 'João']);

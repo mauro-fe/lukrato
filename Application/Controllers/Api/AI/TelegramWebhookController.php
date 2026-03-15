@@ -18,6 +18,7 @@ use Application\Services\AI\Actions\ActionRegistry;
 use Application\Services\AI\ConversationStateService;
 use Application\Services\AI\Context\UserContextBuilder;
 use Application\Services\AI\ContextCompressor;
+use Application\Services\AI\IntentRules\ConfirmationIntentRule;
 use Application\Services\AI\Media\MediaAsset;
 use Application\Services\AI\Media\MediaProcessingResult;
 use Application\Services\AI\Media\MediaRouterService;
@@ -224,7 +225,7 @@ class TelegramWebhookController extends BaseController
         }
 
         // Callback: confirmação sim/não
-        if ($dto->isConfirmationReply()) {
+        if ($this->shouldHandleConfirmationReply($dto, $user->id)) {
             $this->handleConfirmationReply($dto, $user, $msgRecord);
             return;
         }
@@ -1128,6 +1129,24 @@ class TelegramWebhookController extends BaseController
         }
 
         $msgRecord->markProcessed($intent);
+    }
+
+    private function shouldHandleConfirmationReply(TelegramMessageDTO $dto, int $userId): bool
+    {
+        if ($dto->isConfirmationCallback()) {
+            return true;
+        }
+
+        if (
+            !ConfirmationIntentRule::isAffirmative($dto->body)
+            && !ConfirmationIntentRule::isNegative($dto->body)
+        ) {
+            return false;
+        }
+
+        return PendingAiAction::where('user_id', $userId)
+            ->awaiting()
+            ->exists();
     }
 
     /**

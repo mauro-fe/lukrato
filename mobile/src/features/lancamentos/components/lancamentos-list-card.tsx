@@ -37,22 +37,36 @@ export function LancamentosListCard({
                     <View style={styles.rowContent}>
                       <View style={styles.rowTop}>
                         <Text style={styles.itemTitle}>{item.title}</Text>
-                        <View style={[styles.status, item.status === 'pending' ? styles.statusPending : styles.statusPaid]}>
+                        <View
+                          style={[
+                            styles.status,
+                            item.status === 'pending' ? styles.statusPending : styles.statusPaid,
+                          ]}>
                           <Text
                             style={[
                               styles.statusText,
-                              item.status === 'pending' ? styles.statusPendingText : styles.statusPaidText,
+                              item.status === 'pending'
+                                ? styles.statusPendingText
+                                : styles.statusPaidText,
                             ]}>
                             {item.status === 'pending' ? 'Pendente' : 'Pago'}
                           </Text>
                         </View>
                       </View>
                       <Text style={styles.meta}>
-                        {item.category} • {item.account}
+                        {item.category} | {item.account}
                       </Text>
                       {item.note ? <Text style={styles.note}>{item.note}</Text> : null}
                     </View>
-                    <Text style={[styles.amount, item.type === 'expense' ? styles.expense : styles.income]}>
+                    <Text
+                      style={[
+                        styles.amount,
+                        item.type === 'expense'
+                          ? styles.expense
+                          : item.type === 'income'
+                            ? styles.income
+                            : styles.transfer,
+                      ]}>
                       {formatCurrency(item.amount)}
                     </Text>
                   </View>
@@ -131,6 +145,9 @@ const styles = StyleSheet.create({
   },
   income: {
     color: tokens.colors.success,
+  },
+  transfer: {
+    color: tokens.colors.info,
   },
   status: {
     paddingHorizontal: tokens.spacing.sm,

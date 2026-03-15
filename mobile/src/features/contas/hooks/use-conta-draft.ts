@@ -1,12 +1,14 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 
-import {
-  contaInstitutionOptions,
-  ContaInstitutionOption,
-} from '@/src/features/contas/data/conta-form-options';
+import { ContaInstitutionOption } from '@/src/features/contas/data/conta-form-options';
 import { contasRepository } from '@/src/features/contas/repositories/contas-repository';
+import { HttpClientError } from '@/src/lib/api/http-client';
 
-type ContaDraftErrors = Partial<Record<'name', string>>;
+type ContaDraftErrors = Partial<Record<'name' | 'initialBalance', string>>;
+type SubmitFeedback = {
+  tone: 'success' | 'error';
+  message: string;
+};
 
 type AccountType =
   | 'conta_corrente'
@@ -52,6 +54,27 @@ function buildSuggestedName(
   return baseName ? `${baseName} principal` : 'Conta principal';
 }
 
+function mapApiErrors(error: HttpClientError): ContaDraftErrors {
+  const nextErrors: ContaDraftErrors = {};
+  const details = error.details;
+
+  if (!details || typeof details !== 'object' || Array.isArray(details)) {
+    return nextErrors;
+  }
+
+  const detailMap = details as Record<string, unknown>;
+
+  if (typeof detailMap.nome === 'string') {
+    nextErrors.name = detailMap.nome;
+  }
+
+  if (typeof detailMap.saldo_inicial === 'string') {
+    nextErrors.initialBalance = detailMap.saldo_inicial;
+  }
+
+  return nextErrors;
+}
+
 export function useContaDraft(
   initialType: AccountType = 'conta_corrente'
 ) {
@@ -63,11 +86,10 @@ export function useContaDraft(
   const [initialBalanceInput, setInitialBalanceInput] = useState('');
   const [errors, setErrors] = useState<ContaDraftErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState('');
-  const [dataSource, setDataSource] = useState<'preview' | 'remote'>('preview');
+  const [submitFeedback, setSubmitFeedback] = useState<SubmitFeedback | null>(null);
+  const [dataSource, setDataSource] = useState<'remote'>('remote');
   const [sourceMessage, setSourceMessage] = useState<string | null>(null);
-  const [allInstitutions, setAllInstitutions] =
-    useState<ContaInstitutionOption[]>(contaInstitutionOptions);
+  const [allInstitutions, setAllInstitutions] = useState<ContaInstitutionOption[]>([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -154,31 +176,54 @@ export function useContaDraft(
   }
 
   async function submit() {
-    setSubmitMessage('');
+    setSubmitFeedback(null);
 
     if (!validate()) {
       return false;
     }
 
     setIsSubmitting(true);
-    const result = await contasRepository.createConta({
-      name,
-      accountType,
-      institutionId: institutionId || undefined,
-      institutionName:
-        institutionId || accountType === 'dinheiro'
-          ? accountType === 'dinheiro'
-            ? 'Fora do banco'
-            : undefined
-          : manualInstitutionName.trim() || undefined,
-      initialBalance,
-    });
-    setIsSubmitting(false);
-    setDataSource(result.source);
-    setSourceMessage(result.message ?? null);
-    setSubmitMessage(result.data.message);
 
-    return result.source;
+    try {
+      const result = await contasRepository.createConta({
+        name,
+        accountType,
+        institutionId: institutionId || undefined,
+        institutionName:
+          institutionId || accountType === 'dinheiro'
+            ? accountType === 'dinheiro'
+              ? 'Fora do banco'
+              : undefined
+            : manualInstitutionName.trim() || undefined,
+        initialBalance,
+      });
+
+      setDataSource(result.source);
+      setSourceMessage(result.message ?? null);
+      setSubmitFeedback({
+        tone: 'success',
+        message: result.data.message,
+      });
+      setErrors({});
+      return true;
+    } catch (error) {
+      if (error instanceof HttpClientError) {
+        setErrors(mapApiErrors(error));
+        setSubmitFeedback({
+          tone: 'error',
+          message: error.message,
+        });
+      } else {
+        setSubmitFeedback({
+          tone: 'error',
+          message: 'Nao foi possivel salvar a conta agora.',
+        });
+      }
+
+      return false;
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return {
@@ -191,7 +236,7 @@ export function useContaDraft(
     manualInstitutionName,
     errors,
     isSubmitting,
-    submitMessage,
+    submitFeedback,
     dataSource,
     sourceMessage,
     selectedInstitution,

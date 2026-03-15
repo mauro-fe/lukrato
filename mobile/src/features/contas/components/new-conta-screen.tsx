@@ -25,7 +25,7 @@ export function NewContaScreen() {
     manualInstitutionName,
     errors,
     isSubmitting,
-    submitMessage,
+    submitFeedback,
     dataSource,
     sourceMessage,
     selectedInstitution,
@@ -44,9 +44,9 @@ export function NewContaScreen() {
     contaTypeOptions.find((option) => option.id === accountType) ?? contaTypeOptions[0];
 
   async function handleSubmit() {
-    const result = await submit();
+    const success = await submit();
 
-    if (result) {
+    if (success) {
       setTimeout(() => {
         router.back();
       }, 450);
@@ -73,10 +73,26 @@ export function NewContaScreen() {
           </View>
         </View>
 
-        {submitMessage ? (
-          <View style={styles.successBanner}>
-            <Ionicons name="checkmark-circle-outline" size={18} color={tokens.colors.success} />
-            <Text style={styles.successText}>{submitMessage}</Text>
+        {submitFeedback ? (
+          <View
+            style={[
+              styles.feedbackBanner,
+              submitFeedback.tone === 'success' ? styles.feedbackSuccess : styles.feedbackError,
+            ]}>
+            <Ionicons
+              name={submitFeedback.tone === 'success' ? 'checkmark-circle-outline' : 'alert-circle-outline'}
+              size={18}
+              color={submitFeedback.tone === 'success' ? tokens.colors.success : tokens.colors.danger}
+            />
+            <Text
+              style={[
+                styles.feedbackText,
+                submitFeedback.tone === 'success'
+                  ? styles.feedbackSuccessText
+                  : styles.feedbackErrorText,
+              ]}>
+              {submitFeedback.message}
+            </Text>
           </View>
         ) : null}
 
@@ -195,6 +211,7 @@ export function NewContaScreen() {
           <Text style={styles.balanceHint}>
             O saldo pode ser positivo, zero ou negativo. O importante e o usuario comecar do ponto real.
           </Text>
+          {errors.initialBalance ? <Text style={styles.errorText}>{errors.initialBalance}</Text> : null}
         </AppCard>
       </ScrollView>
 
@@ -203,7 +220,7 @@ export function NewContaScreen() {
           <Text style={styles.saveLabel}>Resumo</Text>
           <Text style={styles.saveValue}>{name.trim() || suggestedName}</Text>
           <Text style={styles.saveSupport}>
-            {activeType.label} • {formatCurrency(initialBalance)}
+            {activeType.label} | {formatCurrency(initialBalance)}
           </Text>
         </View>
 
@@ -315,20 +332,31 @@ const styles = StyleSheet.create({
     color: tokens.colors.textMuted,
     ...tokens.typography.body,
   },
-  successBanner: {
+  feedbackBanner: {
     flexDirection: 'row',
     gap: tokens.spacing.sm,
     alignItems: 'center',
     borderRadius: tokens.radius.md,
     borderWidth: 1,
-    borderColor: '#bde7cf',
-    backgroundColor: '#ecfdf3',
     padding: tokens.spacing.md,
   },
-  successText: {
+  feedbackSuccess: {
+    backgroundColor: '#ecfdf3',
+    borderColor: '#bde7cf',
+  },
+  feedbackError: {
+    backgroundColor: '#fff1ef',
+    borderColor: '#f3c7c1',
+  },
+  feedbackText: {
     flex: 1,
-    color: tokens.colors.success,
     ...tokens.typography.small,
+  },
+  feedbackSuccessText: {
+    color: tokens.colors.success,
+  },
+  feedbackErrorText: {
+    color: tokens.colors.danger,
   },
   cardTitle: {
     color: tokens.colors.text,

@@ -1,15 +1,12 @@
-import { appConfig } from '@/src/lib/config/app-config';
 import { httpClient, HttpClientError } from '@/src/lib/api/http-client';
 import {
-  formAccountOptions,
-  formCategoryOptions,
   FormAccountOption,
   FormCategoryOption,
 } from '@/src/features/lancamentos/data/lancamento-form-options';
-import { lancamentosPreview } from '@/src/features/lancamentos/data/lancamentos-preview';
 import {
   LancamentoEntryMode,
   LancamentoItem,
+  LancamentoQuickAction,
   LancamentoSnapshot,
 } from '@/src/features/lancamentos/types';
 
@@ -24,6 +21,9 @@ type RemoteLancamento = {
   categoria_nome?: string;
   conta?: string;
   conta_nome?: string;
+  conta_destino?: string;
+  conta_destino_nome?: string;
+  eh_transferencia?: boolean | number;
   pago?: boolean;
 };
 
@@ -36,7 +36,7 @@ type RemoteOptionsResponse = {
 };
 
 type RepositoryResult<T> = {
-  source: 'preview' | 'remote';
+  source: 'remote';
   data: T;
   message?: string | null;
 };
@@ -89,15 +89,74 @@ function pickCategoryIcon(label: string) {
   return CATEGORY_ICON_MAP[normalized] ?? 'grid-outline';
 }
 
+function buildQuickActions(): LancamentoQuickAction[] {
+  return [
+    {
+      id: 'expense',
+      label: 'Registrar gasto',
+      caption: 'Despesa do dia',
+      icon: 'remove-circle-outline',
+      tone: 'danger',
+    },
+    {
+      id: 'income',
+      label: 'Recebi',
+      caption: 'Entrada rapida',
+      icon: 'add-circle-outline',
+      tone: 'success',
+    },
+    {
+      id: 'transfer',
+      label: 'Transferir',
+      caption: 'Entre contas',
+      icon: 'swap-horizontal-outline',
+      tone: 'secondary',
+    },
+  ];
+}
+
+export function createEmptyLancamentosSnapshot(
+  monthKey = getCurrentMonthKey()
+): LancamentoSnapshot {
+  return {
+    monthLabel: getMonthLabel(monthKey),
+    helperTitle: 'Tudo que entrou e saiu sem a bagunca de uma tabela fria',
+    helperDescription:
+      'O usuario enxerga primeiro o que esta pendente, depois encontra qualquer lancamento com poucos toques.',
+    totalItems: 0,
+    pendingCount: 0,
+    pendingAmount: 0,
+    paidCount: 0,
+    quickActions: buildQuickActions(),
+    focusTip: {
+      title: 'Comece registrando o que ja aconteceu neste mes',
+      description:
+        'Quando os primeiros lancamentos entram, a tela passa a mostrar pendencias e historico de um jeito bem mais util.',
+    },
+    items: [],
+  };
+}
+
 function mapRemoteItem(item: RemoteLancamento): LancamentoItem {
+  const isTransfer =
+    item.eh_transferencia === true ||
+    item.eh_transferencia === 1 ||
+    item.tipo === 'transferencia';
+  const type = isTransfer ? 'transfer' : item.tipo === 'receita' ? 'income' : 'expense';
+  const sourceAccount = item.conta_nome || item.conta || 'Conta';
+  const destinationAccount = item.conta_destino_nome || item.conta_destino || '';
+
   return {
     id: String(item.id),
     title: item.descricao || 'Lancamento',
-    category: item.categoria_nome || item.categoria || 'Sem categoria',
-    account: item.conta_nome || item.conta || 'Conta',
+    category: item.categoria_nome || item.categoria || (isTransfer ? 'Transferencia' : 'Sem categoria'),
+    account: isTransfer && destinationAccount ? `${sourceAccount} -> ${destinationAccount}` : sourceAccount,
     date: item.data,
-    amount: Number(item.valor) * (item.tipo === 'despesa' ? -1 : 1),
-    type: item.tipo === 'receita' ? 'income' : 'expense',
+    amount:
+      type === 'expense'
+        ? -Math.abs(Number(item.valor || 0))
+        : Math.abs(Number(item.valor || 0)),
+    type,
     status: item.pago === false ? 'pending' : 'paid',
     note: item.observacao || undefined,
   };
@@ -128,34 +187,34 @@ function buildSnapshot(items: LancamentoItem[], monthKey: string): LancamentoSna
     pendingCount: pendingItems.length,
     pendingAmount,
     paidCount,
-    quickActions: lancamentosPreview.quickActions,
+    quickActions: buildQuickActions(),
     focusTip,
     items,
   };
 }
 
-function fallbackMessage(error: unknown) {
+function getErrorMessage(error: unknown) {
   if (!error) {
     return null;
   }
 
   if (error instanceof HttpClientError) {
     if (error.status === 401) {
-      return 'A API respondeu sem sessao autenticada. Mantive o preview para voce continuar evoluindo o app.';
+      return 'Sua sessao nao foi aceita pelo backend. Entre novamente para carregar os lancamentos.';
     }
 
     if (error.status === 403) {
-      return 'A API exigiu protecao adicional. Mantive o preview para nao travar o fluxo.';
+      return 'O backend bloqueou a operacao. Revise a permissao ou os limites da sua conta.';
     }
 
     if (error.code === 'NO_BASE_URL') {
-      return 'Defina a URL da API no app quando quiser sair do preview.';
+      return 'A URL da API nao foi configurada para este aparelho.';
     }
 
     return error.message;
   }
 
-  return 'Nao foi possivel usar a API agora. O preview segue ativo.';
+  return 'Nao foi possivel carregar os lancamentos agora.';
 }
 
 function mapRemoteOptions(data: RemoteOptionsResponse): {
@@ -192,16 +251,15 @@ class LancamentosRepository {
         month: monthKey,
       });
 
-      const snapshot = buildSnapshot(remoteItems.map(mapRemoteItem), monthKey);
       return {
         source: 'remote',
-        data: snapshot,
+        data: buildSnapshot(remoteItems.map(mapRemoteItem), monthKey),
       };
     } catch (error) {
       return {
-        source: 'preview',
-        data: lancamentosPreview,
-        message: appConfig.usePreviewFallback ? fallbackMessage(error) : null,
+        source: 'remote',
+        data: createEmptyLancamentosSnapshot(monthKey),
+        message: getErrorMessage(error),
       };
     }
   }
@@ -217,40 +275,58 @@ class LancamentosRepository {
       };
     } catch (error) {
       return {
-        source: 'preview',
+        source: 'remote',
         data: {
-          accounts: formAccountOptions,
-          categories: formCategoryOptions,
+          accounts: [],
+          categories: [],
         },
-        message: appConfig.usePreviewFallback ? fallbackMessage(error) : null,
+        message: getErrorMessage(error),
       };
     }
   }
 
-  async createLancamento(input: CreateLancamentoInput): Promise<
-    RepositoryResult<{ message: string }>
-  > {
+  async createLancamento(
+    input: CreateLancamentoInput
+  ): Promise<RepositoryResult<{ message: string }>> {
     if (input.mode === 'transfer') {
-      return {
-        source: 'preview',
-        data: {
-          message: 'Transferencia pronta na interface. A integracao real entra junto com autenticacao mobile.',
+      await httpClient.post(
+        'api/transfers',
+        {
+          conta_id: Number(input.accountId),
+          conta_id_destino: Number(input.destinationAccountId),
+          valor: input.amount,
+          data: input.date,
+          descricao: input.description,
+          observacao: input.note ?? '',
         },
-        message: 'A criacao real de transferencia ainda depende da camada de autenticacao mobile.',
+        undefined,
+        { csrf: true }
+      );
+
+      return {
+        source: 'remote',
+        data: {
+          message: 'Transferencia salva no backend.',
+        },
       };
     }
 
     try {
-      await httpClient.post('api/lancamentos', {
-        tipo: input.mode === 'income' ? 'receita' : 'despesa',
-        data: input.date,
-        valor: input.amount,
-        descricao: input.description,
-        observacao: input.note ?? '',
-        conta_id: Number(input.accountId),
-        categoria_id: input.categoryId ? Number(input.categoryId) : null,
-        pago: input.isPaid,
-      }, undefined, { csrf: true });
+      await httpClient.post(
+        'api/lancamentos',
+        {
+          tipo: input.mode === 'income' ? 'receita' : 'despesa',
+          data: input.date,
+          valor: input.amount,
+          descricao: input.description,
+          observacao: input.note ?? '',
+          conta_id: Number(input.accountId),
+          categoria_id: input.categoryId ? Number(input.categoryId) : null,
+          pago: input.isPaid,
+        },
+        undefined,
+        { csrf: true }
+      );
 
       return {
         source: 'remote',
@@ -259,13 +335,11 @@ class LancamentosRepository {
         },
       };
     } catch (error) {
-      return {
-        source: 'preview',
-        data: {
-          message: 'Lancamento pronto na interface. A API real ainda depende da sessao mobile.',
-        },
-        message: appConfig.usePreviewFallback ? fallbackMessage(error) : null,
-      };
+      if (error instanceof HttpClientError) {
+        throw error;
+      }
+
+      throw new HttpClientError('Nao foi possivel salvar o lancamento agora.');
     }
   }
 }

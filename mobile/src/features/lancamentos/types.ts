@@ -18,7 +18,7 @@ export type LancamentoItem = {
   date: string;
   dueDate?: string;
   amount: number;
-  type: 'income' | 'expense';
+  type: 'income' | 'expense' | 'transfer';
   status: 'pending' | 'paid';
   note?: string;
 };

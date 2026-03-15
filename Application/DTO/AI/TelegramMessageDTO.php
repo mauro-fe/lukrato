@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Application\DTO\AI;
 
+use Application\Services\AI\IntentRules\ConfirmationIntentRule;
+
 /**
  * DTO para updates do Telegram.
  * Normaliza texto, callbacks e anexos em uma estrutura previsivel.
@@ -209,23 +211,18 @@ readonly class TelegramMessageDTO
 
     public function isConfirmationReply(): bool
     {
-        if ($this->type === 'callback_query') {
-            return in_array($this->body, ['confirm_yes', 'confirm_no'], true);
+        if ($this->isConfirmationCallback()) {
+            return true;
         }
 
-        $normalized = mb_strtolower(trim($this->body));
+        return ConfirmationIntentRule::isAffirmative($this->body)
+            || ConfirmationIntentRule::isNegative($this->body);
+    }
 
-        return in_array($normalized, [
-            'sim',
-            'confirmar',
-            'yes',
-            'confirm_yes',
-            'não',
-            'nao',
-            'cancelar',
-            'cancel',
-            'confirm_no',
-        ], true);
+    public function isConfirmationCallback(): bool
+    {
+        return $this->type === 'callback_query'
+            && in_array($this->body, ['confirm_yes', 'confirm_no'], true);
     }
 
     public function isAccountSelection(): bool
@@ -262,18 +259,11 @@ readonly class TelegramMessageDTO
 
     public function isAffirmative(): bool
     {
-        if ($this->type === 'callback_query') {
+        if ($this->isConfirmationCallback()) {
             return $this->body === 'confirm_yes';
         }
 
-        $normalized = mb_strtolower(trim($this->body));
-
-        return in_array($normalized, [
-            'sim',
-            'confirmar',
-            'yes',
-            'confirm_yes',
-        ], true);
+        return ConfirmationIntentRule::isAffirmative($this->body);
     }
 
     public function isCommand(): bool

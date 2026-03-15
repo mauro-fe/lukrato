@@ -1,10 +1,5 @@
-import { appConfig } from '@/src/lib/config/app-config';
 import { httpClient, HttpClientError } from '@/src/lib/api/http-client';
-import {
-  contaInstitutionOptions,
-  ContaInstitutionOption,
-} from '@/src/features/contas/data/conta-form-options';
-import { contasPreview } from '@/src/features/contas/data/contas-preview';
+import { ContaInstitutionOption } from '@/src/features/contas/data/conta-form-options';
 import { ContaItem, ContasSnapshot } from '@/src/features/contas/types';
 
 type RemoteInstitution = {
@@ -40,7 +35,7 @@ type RemoteInstitutionOption = {
 };
 
 type RepositoryResult<T> = {
-  source: 'preview' | 'remote';
+  source: 'remote';
   data: T;
   message?: string | null;
 };
@@ -94,12 +89,6 @@ const TYPE_COLORS: Record<string, string> = {
   carteira_digital: '#c86518',
   dinheiro: '#94771d',
 };
-
-let previewSnapshotState = clonePreviewSnapshot();
-
-function clonePreviewSnapshot() {
-  return JSON.parse(JSON.stringify(contasPreview)) as ContasSnapshot;
-}
 
 function getCurrentMonthKey() {
   return new Date().toISOString().slice(0, 7);
@@ -270,6 +259,10 @@ function buildEmptySnapshot(monthKey: string, archivedCount = 0): ContasSnapshot
   };
 }
 
+export function createEmptyContasSnapshot(monthKey = getCurrentMonthKey()) {
+  return buildEmptySnapshot(monthKey);
+}
+
 function buildSnapshot(
   activeAccounts: ContaRecord[],
   archivedCount: number,
@@ -375,28 +368,28 @@ function buildSnapshot(
   };
 }
 
-function fallbackMessage(error: unknown) {
+function getErrorMessage(error: unknown) {
   if (!error) {
     return null;
   }
 
   if (error instanceof HttpClientError) {
     if (error.status === 401) {
-      return 'A API de contas respondeu sem sessao autenticada. Mantive o preview para voce continuar evoluindo o app.';
+      return 'Sua sessao nao foi aceita pelo backend. Entre novamente para carregar as contas.';
     }
 
     if (error.status === 403) {
-      return 'A API de contas exigiu protecao adicional. Mantive o preview para nao travar a interface.';
+      return 'O backend bloqueou a operacao de contas. Revise a permissao ou os limites da sua conta.';
     }
 
     if (error.code === 'NO_BASE_URL') {
-      return 'A URL da API ainda nao foi configurada. O preview segue ativo.';
+      return 'A URL da API nao foi configurada para este aparelho.';
     }
 
     return error.message;
   }
 
-  return 'Nao foi possivel usar a API de contas agora. O preview continua ativo.';
+  return 'Nao foi possivel carregar as contas agora.';
 }
 
 function mapRemoteInstitution(option: RemoteInstitutionOption): ContaInstitutionOption {
@@ -406,90 +399,6 @@ function mapRemoteInstitution(option: RemoteInstitutionOption): ContaInstitution
     type: option.tipo || 'instituicao',
     accentColor: option.cor_primaria || '#1f4f82',
   };
-}
-
-function getPreviewInstitutionName(input: CreateContaInput) {
-  if (input.institutionName?.trim()) {
-    return input.institutionName.trim();
-  }
-
-  if (input.accountType === 'dinheiro') {
-    return 'Fora do banco';
-  }
-
-  return 'Instituicao nao definida';
-}
-
-function appendPreviewAccount(
-  snapshot: ContasSnapshot,
-  input: CreateContaInput
-): ContasSnapshot {
-  const nextSnapshot = clonePreviewSnapshot();
-  Object.assign(nextSnapshot, snapshot);
-  nextSnapshot.groups = snapshot.groups.map((group) => ({
-    ...group,
-    accounts: [...group.accounts],
-  }));
-
-  const targetGroupId = RESERVE_TYPES.has(input.accountType) ? 'reserve' : 'everyday';
-  const targetGroup = nextSnapshot.groups.find((group) => group.id === targetGroupId);
-
-  if (!targetGroup) {
-    return snapshot;
-  }
-
-  const institutionName = getPreviewInstitutionName(input);
-  const newAccount: ContaItem = {
-    id: `preview-${Date.now()}`,
-    name: input.name.trim(),
-    institutionName,
-    typeLabel: getTypeLabel(input.accountType),
-    icon: getTypeIcon(input.accountType),
-    accentColor: getTypeColor(input.accountType),
-    balance: input.initialBalance,
-    inflow: input.initialBalance > 0 ? input.initialBalance : 0,
-    outflow: input.initialBalance < 0 ? Math.abs(input.initialBalance) : 0,
-    note:
-      input.initialBalance < 0
-        ? 'Conta criada com saldo negativo. O app vai destacar isso para o usuario agir rapido.'
-        : RESERVE_TYPES.has(input.accountType)
-          ? 'Conta criada para separar patrimonio e objetivos do dinheiro que gira no mes.'
-          : 'Conta criada para organizar o dinheiro do dia a dia sem esconder nada.',
-  };
-
-  targetGroup.accounts = [newAccount, ...targetGroup.accounts];
-  targetGroup.totalBalance += input.initialBalance;
-  nextSnapshot.totalBalance += input.initialBalance;
-  nextSnapshot.activeCount += 1;
-
-  if (targetGroupId === 'reserve') {
-    nextSnapshot.reserveBalance += input.initialBalance;
-  } else {
-    nextSnapshot.everydayBalance += input.initialBalance;
-  }
-
-  if (input.initialBalance < 0) {
-    nextSnapshot.negativeCount += 1;
-    nextSnapshot.focus = {
-      title: 'A nova conta nasceu pedindo atencao',
-      description:
-        'Como o saldo inicial entrou negativo, o app destacou isso de imediato para o usuario nao descobrir tarde demais.',
-      amount: input.initialBalance,
-      supportText: `${input.name.trim()} comecou abaixo de zero.`,
-      tone: 'negative',
-    };
-  } else if (nextSnapshot.activeCount === 1) {
-    nextSnapshot.focus = {
-      title: 'Sua primeira conta ja ficou visivel no topo',
-      description:
-        'Agora o saldo desta conta passa a ser a referencia principal para o usuario entender o que esta disponivel.',
-      amount: input.initialBalance,
-      supportText: `${input.name.trim()} ja esta pronta para receber movimentacoes.`,
-      tone: 'positive',
-    };
-  }
-
-  return nextSnapshot;
 }
 
 class ContasRepository {
@@ -514,9 +423,9 @@ class ContasRepository {
       };
     } catch (error) {
       return {
-        source: 'preview',
-        data: previewSnapshotState,
-        message: appConfig.usePreviewFallback ? fallbackMessage(error) : null,
+        source: 'remote',
+        data: buildEmptySnapshot(monthKey),
+        message: getErrorMessage(error),
       };
     }
   }
@@ -535,18 +444,16 @@ class ContasRepository {
       };
     } catch (error) {
       return {
-        source: 'preview',
+        source: 'remote',
         data: {
-          institutions: contaInstitutionOptions,
+          institutions: [],
         },
-        message: appConfig.usePreviewFallback ? fallbackMessage(error) : null,
+        message: getErrorMessage(error),
       };
     }
   }
 
-  async createConta(
-    input: CreateContaInput
-  ): Promise<RepositoryResult<{ message: string }>> {
+  async createConta(input: CreateContaInput): Promise<RepositoryResult<{ message: string }>> {
     const payload = {
       nome: input.name.trim(),
       tipo_conta: input.accountType,
@@ -567,16 +474,11 @@ class ContasRepository {
         },
       };
     } catch (error) {
-      previewSnapshotState = appendPreviewAccount(previewSnapshotState, input);
+      if (error instanceof HttpClientError) {
+        throw error;
+      }
 
-      return {
-        source: 'preview',
-        data: {
-          message:
-            'Conta criada no preview. A interface ja mostra esse novo lugar na lista de contas.',
-        },
-        message: appConfig.usePreviewFallback ? fallbackMessage(error) : null,
-      };
+      throw new HttpClientError('Nao foi possivel salvar a conta agora.');
     }
   }
 }

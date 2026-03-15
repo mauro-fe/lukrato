@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 
-import { perfilPreviewFormData } from '@/src/features/perfil/data/perfil-preview';
-import { perfilRepository } from '@/src/features/perfil/repositories/perfil-repository';
+import {
+  emptyPerfilFormData,
+  perfilRepository,
+} from '@/src/features/perfil/repositories/perfil-repository';
 import { HttpClientError } from '@/src/lib/api/http-client';
 import { PerfilFeedback, PerfilFormData, PerfilFormErrors } from '@/src/features/perfil/types';
 
@@ -75,11 +77,11 @@ function mapApiErrors(error: HttpClientError): PerfilFormErrors {
 }
 
 export function usePerfilFormDraft() {
-  const [profile, setProfile] = useState<PerfilFormData>(perfilPreviewFormData);
+  const [profile, setProfile] = useState<PerfilFormData>({ ...emptyPerfilFormData });
   const [errors, setErrors] = useState<PerfilFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<PerfilFeedback | null>(null);
-  const [dataSource, setDataSource] = useState<'preview' | 'remote'>('preview');
+  const [dataSource, setDataSource] = useState<'remote'>('remote');
   const [sourceMessage, setSourceMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -172,12 +174,12 @@ export function usePerfilFormDraft() {
     try {
       const result = await perfilRepository.updateProfile(profile);
       setDataSource(result.source);
-      setSourceMessage(result.message ?? null);
+      setSourceMessage(null);
       setFeedback({
         tone: 'success',
         message: result.data.message,
       });
-      return result.source;
+      return true;
     } catch (error) {
       if (error instanceof HttpClientError) {
         setErrors(mapApiErrors(error));

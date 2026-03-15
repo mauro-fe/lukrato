@@ -21,20 +21,46 @@ export function RecentActivityCard({ transactions }: RecentActivityCardProps) {
       </View>
 
       <View style={styles.list}>
-        {transactions.map((transaction) => (
-          <View key={transaction.id} style={styles.row}>
-            <View style={[styles.statusDot, transaction.kind === 'income' ? styles.statusIncome : styles.statusExpense]} />
-            <View style={styles.info}>
-              <Text style={styles.transactionTitle}>{transaction.title}</Text>
-              <Text style={styles.transactionMeta}>
-                {transaction.category} • {transaction.account} • {formatShortDate(transaction.date)}
+        {transactions.length ? (
+          transactions.map((transaction) => (
+            <View key={transaction.id} style={styles.row}>
+              <View
+                style={[
+                  styles.statusDot,
+                  transaction.kind === 'income'
+                    ? styles.statusIncome
+                    : transaction.kind === 'expense'
+                      ? styles.statusExpense
+                      : styles.statusTransfer,
+                ]}
+              />
+              <View style={styles.info}>
+                <Text style={styles.transactionTitle}>{transaction.title}</Text>
+                <Text style={styles.transactionMeta}>
+                  {transaction.category} | {transaction.account} | {formatShortDate(transaction.date)}
+                </Text>
+              </View>
+              <Text
+                style={[
+                  styles.amount,
+                  transaction.kind === 'income'
+                    ? styles.income
+                    : transaction.kind === 'expense'
+                      ? styles.expense
+                      : styles.transfer,
+                ]}>
+                {formatCurrency(transaction.amount)}
               </Text>
             </View>
-            <Text style={[styles.amount, transaction.kind === 'income' ? styles.income : styles.expense]}>
-              {formatCurrency(transaction.amount)}
+          ))
+        ) : (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyTitle}>Seus ultimos lancamentos aparecem aqui</Text>
+            <Text style={styles.emptyDescription}>
+              Assim que a API devolver movimentacoes, a lista mostra o que entrou, saiu ou foi transferido.
             </Text>
           </View>
-        ))}
+        )}
       </View>
     </AppCard>
   );
@@ -80,6 +106,9 @@ const styles = StyleSheet.create({
   statusExpense: {
     backgroundColor: tokens.colors.danger,
   },
+  statusTransfer: {
+    backgroundColor: tokens.colors.info,
+  },
   info: {
     flex: 1,
     gap: 2,
@@ -100,5 +129,24 @@ const styles = StyleSheet.create({
   },
   expense: {
     color: tokens.colors.danger,
+  },
+  transfer: {
+    color: tokens.colors.info,
+  },
+  emptyState: {
+    borderRadius: tokens.radius.md,
+    borderWidth: 1,
+    borderColor: tokens.colors.border,
+    backgroundColor: tokens.colors.surfaceAlt,
+    padding: tokens.spacing.md,
+    gap: 4,
+  },
+  emptyTitle: {
+    color: tokens.colors.text,
+    ...tokens.typography.body,
+  },
+  emptyDescription: {
+    color: tokens.colors.textMuted,
+    ...tokens.typography.small,
   },
 });

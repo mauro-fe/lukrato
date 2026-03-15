@@ -1,12 +1,14 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 
-import { contasPreview } from '@/src/features/contas/data/contas-preview';
-import { contasRepository } from '@/src/features/contas/repositories/contas-repository';
+import {
+  contasRepository,
+  createEmptyContasSnapshot,
+} from '@/src/features/contas/repositories/contas-repository';
 
 export function useContasOverview() {
-  const [snapshot, setSnapshot] = useState(contasPreview);
-  const [source, setSource] = useState<'preview' | 'remote'>('preview');
+  const [snapshot, setSnapshot] = useState(() => createEmptyContasSnapshot());
+  const [source, setSource] = useState<'remote'>('remote');
   const [sourceMessage, setSourceMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);

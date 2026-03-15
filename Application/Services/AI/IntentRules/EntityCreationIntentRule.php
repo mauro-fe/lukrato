@@ -25,6 +25,9 @@ class EntityCreationIntentRule implements IntentRuleInterface
 {
     use PatternMatchingRuleTrait;
 
+    private const MONEY_PATTERN =
+        '/(?:r\$\s*)?\d{1,3}(?:\.\d{3})*(?:[.,]\d{1,2})?(?:\s*(?:reais|conto[s]?|pila[s]?|k|mil))?\b/iu';
+
     /**
      * Perguntas e consultas geralmente não representam criação de entidade.
      * Isso evita colisões com quick query e chat em frases como:
@@ -161,6 +164,7 @@ class EntityCreationIntentRule implements IntentRuleInterface
 
         if ($this->hasExplicitCreationVerb($normalized)) {
             $entity = self::detectEntityByPatterns($normalized);
+            $entity ??= self::detectEntityFromExplicitShortcut($normalized);
             if ($entity !== null) {
                 return IntentResult::medium(IntentType::CREATE_ENTITY, 0.9, ['entity' => $entity]);
             }
@@ -190,6 +194,13 @@ class EntityCreationIntentRule implements IntentRuleInterface
         $entity = self::detectEntityByPatterns($normalized);
         if ($entity !== null) {
             return $entity;
+        }
+
+        if (self::matchesAnyPattern($normalized, self::EXPLICIT_CREATION_PATTERNS)) {
+            $entity = self::detectEntityFromExplicitShortcut($normalized);
+            if ($entity !== null) {
+                return $entity;
+            }
         }
 
         return self::detectEntityFromImplicit($normalized);
@@ -237,5 +248,18 @@ class EntityCreationIntentRule implements IntentRuleInterface
         }
 
         return null;
+    }
+
+    /**
+     * Frases como "registre 30 com comida" nao nomeiam a entidade,
+     * mas continuam sendo um pedido explicito para criar um lancamento.
+     */
+    private static function detectEntityFromExplicitShortcut(string $normalized): ?string
+    {
+        if (!preg_match(self::MONEY_PATTERN, $normalized)) {
+            return null;
+        }
+
+        return 'lancamento';
     }
 }

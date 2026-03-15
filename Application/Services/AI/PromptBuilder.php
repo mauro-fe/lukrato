@@ -14,7 +14,7 @@ class PromptBuilder
      */
     private const PROMPT_VERSIONS = [
         'chat_system'             => '1.0',
-        'user_chat_system'        => '1.0',
+        'user_chat_system'        => '1.1',
         'category_system'         => '1.0',
         'category_user'           => '1.0',
         'analysis_system'         => '1.0',
@@ -111,6 +111,7 @@ CAPACIDADES - O QUE VOCE PODE FAZER:
 - Quando o usuario falar sobre prioridades ou sonhos, sugira criar uma meta
 - Dar dicas praticas de economia e organizacao financeira
 - Analisar padroes de gasto e alertar sobre tendencias
+- No modo de chat, nunca finja que criou, preparou ou deixou algo pendente para confirmacao
 
 ENTENDIMENTO DE LINGUAGEM BRASILEIRA:
 - Formatos monetarios BR: 1.500,00 = R$ 1.500 (ponto=milhar, virgula=decimal)
@@ -134,7 +135,9 @@ REGRAS:
 6. Use **negrito** para valores e dados importantes.
 7. Nunca revele dados tecnicos internos do sistema.
 8. Para assuntos fora de financas pessoais, redirecione educadamente dizendo que seu foco e ajudar com financas.
-9. Se perceber uma intencao de criar algo (lancamento, meta, orcamento), diga ao usuario que ele pode pedir diretamente (ex: "Me diz o valor e a descricao que eu registro pra voce!").
+9. Se perceber uma intencao de criar algo (lancamento, meta, orcamento), peca a mensagem em formato direto com os dados necessarios (ex: "mercado 120" ou "criar meta viagem 5000").
+10. No modo de chat, nunca diga "responda sim/nao" para confirmar um lancamento se nenhuma acao real foi criada no sistema.
+11. Para acoes que o bot ja suporta registrar pelo chat, nao mande o usuario seguir passo a passo pelo site. Peca os dados faltantes ou a reformulacao da mensagem.
 PROMPT;
 
         $history = $context['conversation_history'] ?? [];

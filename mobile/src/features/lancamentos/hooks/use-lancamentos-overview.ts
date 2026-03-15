@@ -1,7 +1,9 @@
 import { useDeferredValue, useEffect, useMemo, useState, useTransition } from 'react';
 
-import { lancamentosPreview } from '@/src/features/lancamentos/data/lancamentos-preview';
-import { lancamentosRepository } from '@/src/features/lancamentos/repositories/lancamentos-repository';
+import {
+  createEmptyLancamentosSnapshot,
+  lancamentosRepository,
+} from '@/src/features/lancamentos/repositories/lancamentos-repository';
 import { LancamentoFilter, LancamentoItem, LancamentoSection } from '@/src/features/lancamentos/types';
 
 function matchesFilter(item: LancamentoItem, activeFilter: LancamentoFilter) {
@@ -43,13 +45,13 @@ function buildSections(items: LancamentoItem[]): LancamentoSection[] {
   }));
 }
 
-export function useLancamentosPreview() {
-  const [snapshot, setSnapshot] = useState(lancamentosPreview);
+export function useLancamentosOverview() {
+  const [snapshot, setSnapshot] = useState(() => createEmptyLancamentosSnapshot());
   const [activeFilter, setActiveFilter] = useState<LancamentoFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [source, setSource] = useState<'preview' | 'remote'>('preview');
+  const [source, setSource] = useState<'remote'>('remote');
   const [sourceMessage, setSourceMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
