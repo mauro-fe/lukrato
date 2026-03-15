@@ -151,22 +151,34 @@ async function refreshCsrfForForm(tokenId) {
         body: JSON.stringify({ token_id: tokenId })
     });
 
-    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(`Falha ao renovar CSRF (${response.status})`);
+    }
 
-    if (data.token) {
-        const metaTag = document.querySelector('meta[name="csrf-token"]');
-        if (metaTag) metaTag.content = data.token;
+    const data = await response.json();
+    const payload = data?.data && typeof data.data === 'object' ? data.data : data;
+    const token = typeof payload?.token === 'string' ? payload.token : '';
+
+    if (token) {
+        document.querySelectorAll(`meta[data-csrf-id="${tokenId}"]`).forEach((metaTag) => {
+            metaTag.setAttribute('content', token);
+        });
+
+        if (tokenId === 'register_form') {
+            const registerMeta = document.querySelector('meta[name="csrf-token-register"]');
+            if (registerMeta) registerMeta.setAttribute('content', token);
+        }
 
         document.querySelectorAll('input[name="csrf_token"]').forEach((input) => {
             const formId = input.closest('form')?.id;
             if (tokenId === 'login_form' && formId === 'loginForm') {
-                input.value = data.token;
+                input.value = token;
             } else if (tokenId === 'register_form' && formId === 'registerForm') {
-                input.value = data.token;
+                input.value = token;
             }
         });
 
-        return data.token;
+        return token;
     }
     throw new Error('Token não recebido');
 }

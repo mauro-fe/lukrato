@@ -129,10 +129,15 @@
             }
 
             const data = await res.json();
+            const payload = data?.data && typeof data.data === 'object' ? data.data : data;
+            const token = typeof payload?.token === 'string' ? payload.token : '';
+            const ttl = typeof payload?.ttl === 'number'
+                ? payload.ttl
+                : (typeof data?.ttl === 'number' ? data.ttl : null);
 
-            if (data?.token) {
-                applyToken(data.token, data.ttl);
-                return data.token;
+            if (token) {
+                applyToken(token, ttl);
+                return token;
             }
 
             throw new Error('Resposta sem token');
