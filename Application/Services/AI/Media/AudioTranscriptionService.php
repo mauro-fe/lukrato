@@ -15,6 +15,11 @@ class AudioTranscriptionService
     private const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
     private const SUPPORTED_FORMATS = ['ogg', 'oga', 'mp3', 'mp4', 'mpeg', 'mpga', 'm4a', 'wav', 'webm'];
 
+    /** Extensions that OpenAI rejects but are aliases for a supported format. */
+    private const EXTENSION_ALIASES = [
+        'oga' => 'ogg',
+    ];
+
     private Client $client;
     private string $apiKey;
     private string $model;
@@ -55,6 +60,8 @@ class AudioTranscriptionService
         $startTime = hrtime(true);
 
         try {
+            $filename = $this->normalizeFilename($filename);
+
             $multipart = [
                 ['name' => 'file', 'contents' => $audioContent, 'filename' => $filename],
                 ['name' => 'model', 'contents' => $this->model],
@@ -109,5 +116,20 @@ class AudioTranscriptionService
 
         return str_starts_with($mimeType, 'audio/')
             || in_array($mimeType, ['video/mp4', 'video/webm'], true);
+    }
+
+    /**
+     * Remapeia extensões que o app aceita mas a OpenAI rejeita (ex: .oga → .ogg).
+     */
+    private function normalizeFilename(string $filename): string
+    {
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        $alias = self::EXTENSION_ALIASES[$ext] ?? null;
+
+        if ($alias !== null) {
+            return preg_replace('/\.[^.]+$/', '.' . $alias, $filename);
+        }
+
+        return $filename;
     }
 }
