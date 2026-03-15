@@ -12,16 +12,45 @@ export function DataSourceBanner({
   fallbackMessage,
 }: DataSourceBannerProps) {
   const isPreview = source === 'preview';
+  const hasRemoteWarning = !isPreview && Boolean(fallbackMessage);
 
   return (
-    <View style={[styles.banner, isPreview ? styles.previewBanner : styles.remoteBanner]}>
-      <Text style={[styles.title, isPreview ? styles.previewText : styles.remoteText]}>
-        {isPreview ? 'Modo preview' : 'Conectado ao backend'}
+    <View
+      style={[
+        styles.banner,
+        isPreview
+          ? styles.previewBanner
+          : hasRemoteWarning
+            ? styles.warningBanner
+            : styles.remoteBanner,
+      ]}>
+      <Text
+        style={[
+          styles.title,
+          isPreview
+            ? styles.previewText
+            : hasRemoteWarning
+              ? styles.warningText
+              : styles.remoteText,
+        ]}>
+        {isPreview
+          ? 'Modo local'
+          : hasRemoteWarning
+            ? 'Conexao com backend'
+            : 'Conectado ao backend'}
       </Text>
-      <Text style={[styles.description, isPreview ? styles.previewText : styles.remoteText]}>
+      <Text
+        style={[
+          styles.description,
+          isPreview
+            ? styles.previewText
+            : hasRemoteWarning
+              ? styles.warningText
+              : styles.remoteText,
+        ]}>
         {isPreview
           ? fallbackMessage ?? 'Usando dados locais enquanto a API real nao responde.'
-          : 'Os dados desta tela vieram da API do Lukrato.'}
+          : fallbackMessage ?? 'Os dados desta tela vieram da API do Lukrato.'}
       </Text>
     </View>
   );
@@ -42,6 +71,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#edf7ff',
     borderColor: '#c7def6',
   },
+  warningBanner: {
+    backgroundColor: '#fff8e7',
+    borderColor: '#f0d8a9',
+  },
   title: {
     ...tokens.typography.small,
   },
@@ -53,5 +86,8 @@ const styles = StyleSheet.create({
   },
   remoteText: {
     color: tokens.colors.info,
+  },
+  warningText: {
+    color: tokens.colors.secondary,
   },
 });

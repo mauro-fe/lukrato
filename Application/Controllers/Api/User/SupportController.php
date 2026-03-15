@@ -13,7 +13,7 @@ class SupportController extends BaseController
 {
     public function send(): void
     {
-        $this->requireAuth();
+        $this->requireAuthApi();
 
         $data    = json_decode(file_get_contents('php://input'), true) ?? [];
         $message = trim($data['message'] ?? '');

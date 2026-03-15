@@ -46,7 +46,7 @@
     },
     "extra": {
       "apiBaseUrl": "",
-      "usePreviewFallback": true
+      "usePreviewFallback": false
     }
   }
 }

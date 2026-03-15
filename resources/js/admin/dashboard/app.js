@@ -27,7 +27,7 @@ export const API = {
         if (window.LK?.api) {
             const res = await LK.api.get(url);
             if (!res.ok) throw new Error(res.message || 'Erro na API');
-            return res.raw || res.data;
+            return res.data;
         }
         // fallback para fetch nativo
         const response = await fetch(url, {
@@ -37,7 +37,7 @@ export const API = {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const json = await response.json();
         if (json?.success === false) throw new Error(json?.message || 'Erro na API');
-        return json;
+        return json?.data ?? json;
     },
 
     getMetrics: async (month) => {
@@ -67,7 +67,7 @@ export const API = {
         if (window.LK?.api) {
             // Tenta o endpoint primário via facade
             const res = await LK.api.delete(`${CONFIG.API_URL}lancamentos/${id}`);
-            if (res.ok) return res.raw || res.data;
+            if (res.ok) return res.data;
             throw new Error(res.message || 'Erro ao excluir');
         }
         // Fallback com múltiplos endpoints
@@ -617,7 +617,7 @@ export const Provisao = {
         } catch {
             try {
                 const data = await API.fetch(`${CONFIG.API_URL}gamification/progress`);
-                Provisao.isProUser = data?.data?.is_pro === true;
+                Provisao.isProUser = data?.is_pro === true;
             } catch {
                 Provisao.isProUser = false;
             }

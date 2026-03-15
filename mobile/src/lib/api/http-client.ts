@@ -8,15 +8,24 @@ type HttpRequestOptions = {
 
 let csrfTokenState: { token: string; tokenId: string } | null = null;
 
+export function clearCsrfTokenCache() {
+  csrfTokenState = null;
+}
+
 export class HttpClientError extends Error {
   constructor(
     message: string,
     public readonly status?: number,
-    public readonly code?: string
+    public readonly code?: string,
+    public readonly details?: unknown
   ) {
     super(message);
     this.name = 'HttpClientError';
   }
+}
+
+function isFormDataBody(body: RequestInit['body']) {
+  return typeof FormData !== 'undefined' && body instanceof FormData;
 }
 
 function buildUrl(path: string, query?: Record<string, QueryValue>) {
@@ -102,7 +111,7 @@ async function buildHeaders(init?: RequestInit, options?: HttpRequestOptions) {
   headers.set('Accept', 'application/json');
   headers.set('X-Requested-With', 'XMLHttpRequest');
 
-  if (init?.body && !headers.has('Content-Type')) {
+  if (init?.body && !headers.has('Content-Type') && !isFormDataBody(init.body)) {
     headers.set('Content-Type', 'application/json');
   }
 
@@ -135,12 +144,19 @@ async function request<T>(
   if (!response.ok) {
     throw new HttpClientError(
       payload?.message ?? `Request failed with status ${response.status}.`,
-      response.status
+      response.status,
+      undefined,
+      payload?.errors
     );
   }
 
   if (payload?.success === false) {
-    throw new HttpClientError(payload?.message ?? 'Request failed.', response.status);
+    throw new HttpClientError(
+      payload?.message ?? 'Request failed.',
+      response.status,
+      undefined,
+      payload?.errors
+    );
   }
 
   if (payload && typeof payload === 'object' && 'data' in payload) {
@@ -165,6 +181,22 @@ export const httpClient = {
       {
         method: 'POST',
         body: body ? JSON.stringify(body) : undefined,
+      },
+      query,
+      options
+    );
+  },
+  postForm<T>(
+    path: string,
+    formData: FormData,
+    query?: Record<string, QueryValue>,
+    options?: HttpRequestOptions
+  ) {
+    return request<T>(
+      path,
+      {
+        method: 'POST',
+        body: formData,
       },
       query,
       options

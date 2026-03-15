@@ -36,5 +36,5 @@ function resolveApiBaseUrl() {
 
 export const appConfig = {
   apiBaseUrl: resolveApiBaseUrl(),
-  usePreviewFallback: readExtra().usePreviewFallback !== false,
+  usePreviewFallback: readExtra().usePreviewFallback === true,
 } as const;

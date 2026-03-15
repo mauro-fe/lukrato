@@ -35,7 +35,7 @@ Router::add('POST', '/api/session/heartbeat', 'Api\\User\\SessionController@hear
 // ============================================
 
 Router::add('POST', '/api/contato/enviar', 'Api\\User\\ContactController@send', ['ratelimit']);
-Router::add('POST', '/api/suporte/enviar', 'Api\\User\\SupportController@send', ['ratelimit']);
+Router::add('POST', '/api/suporte/enviar', 'Api\\User\\SupportController@send', ['auth', 'ratelimit']);
 
 // ============================================
 // PERFIL

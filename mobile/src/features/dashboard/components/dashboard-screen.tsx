@@ -7,12 +7,14 @@ import { HeroBalanceCard } from '@/src/features/dashboard/components/hero-balanc
 import { QuickActionsGrid } from '@/src/features/dashboard/components/quick-actions-grid';
 import { RecentActivityCard } from '@/src/features/dashboard/components/recent-activity-card';
 import { SmartInsightsCard } from '@/src/features/dashboard/components/smart-insights-card';
-import { useDashboardPreview } from '@/src/features/dashboard/hooks/use-dashboard-preview';
+import { useDashboardOverview } from '@/src/features/dashboard/hooks/use-dashboard-overview';
+import { DataSourceBanner } from '@/src/shared/ui/data-source-banner';
 import { SectionHeading } from '@/src/shared/ui/section-heading';
 import { tokens } from '@/src/theme/tokens';
 
 export function DashboardScreen() {
-  const { snapshot, isLoading, isRefreshing, refresh } = useDashboardPreview();
+  const { snapshot, source, sourceMessage, isLoading, isRefreshing, refresh } =
+    useDashboardOverview();
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -33,6 +35,8 @@ export function DashboardScreen() {
             description="O dashboard mostra primeiro o que importa agora, depois os proximos passos e so entao os detalhes."
           />
         </View>
+
+        <DataSourceBanner source={source} fallbackMessage={sourceMessage} />
 
         <HeroBalanceCard
           balance={snapshot.balance}

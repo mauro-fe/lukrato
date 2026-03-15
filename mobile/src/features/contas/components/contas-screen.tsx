@@ -52,17 +52,21 @@ export function ContasScreen() {
           fallbackMessage={sourceMessage ?? (isLoading ? 'Tentando conectar com a API do Lukrato...' : null)}
         />
 
-        <Pressable style={styles.newAccountButton} onPress={() => router.push('/(app)/contas/nova')}>
-          <View style={styles.newAccountIcon}>
-            <Ionicons name="add" size={18} color={tokens.colors.textInverse} />
-          </View>
-          <View style={styles.newAccountCopy}>
-            <Text style={styles.newAccountLabel}>Nova conta</Text>
-            <Text style={styles.newAccountDescription}>
-              Cadastre um novo lugar para guardar dinheiro sem sair da logica da tela.
-            </Text>
-          </View>
-        </Pressable>
+        <View style={styles.shortcuts}>
+          <ShortcutCard
+            icon="add"
+            title="Nova conta"
+            description="Cadastre um novo lugar para guardar dinheiro sem sair da logica da tela."
+            onPress={() => router.push('/(app)/contas/nova')}
+          />
+          <ShortcutCard
+            icon="card-outline"
+            title="Cartoes e faturas"
+            description="Abra a area que mostra o que vence logo e quanto limite ainda resta."
+            onPress={() => router.push('/(app)/contas/cartoes')}
+            tone="light"
+          />
+        </View>
 
         <ContasHeroCard
           totalBalance={snapshot.totalBalance}
@@ -90,6 +94,43 @@ export function ContasScreen() {
         ))}
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function ShortcutCard({
+  icon,
+  title,
+  description,
+  onPress,
+  tone = 'dark',
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  description: string;
+  onPress: () => void;
+  tone?: 'dark' | 'light';
+}) {
+  const isLight = tone === 'light';
+
+  return (
+    <Pressable
+      style={[styles.shortcutButton, isLight ? styles.shortcutButtonLight : styles.shortcutButtonDark]}
+      onPress={onPress}>
+      <View style={[styles.shortcutIcon, isLight && styles.shortcutIconLight]}>
+        <Ionicons
+          name={icon}
+          size={18}
+          color={isLight ? tokens.colors.primaryStrong : tokens.colors.textInverse}
+        />
+      </View>
+      <View style={styles.shortcutCopy}>
+        <Text style={[styles.shortcutLabel, isLight && styles.shortcutLabelLight]}>{title}</Text>
+        <Text
+          style={[styles.shortcutDescription, isLight && styles.shortcutDescriptionLight]}>
+          {description}
+        </Text>
+      </View>
+    </Pressable>
   );
 }
 
@@ -137,16 +178,26 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.pill,
     backgroundColor: '#fde7d0',
   },
-  newAccountButton: {
+  shortcuts: {
+    gap: tokens.spacing.sm,
+  },
+  shortcutButton: {
     flexDirection: 'row',
     gap: tokens.spacing.sm,
     alignItems: 'center',
     borderRadius: tokens.radius.lg,
-    backgroundColor: tokens.colors.secondary,
     padding: tokens.spacing.md,
     ...tokens.shadow.subtle,
   },
-  newAccountIcon: {
+  shortcutButtonDark: {
+    backgroundColor: tokens.colors.secondary,
+  },
+  shortcutButtonLight: {
+    backgroundColor: tokens.colors.surface,
+    borderWidth: 1,
+    borderColor: tokens.colors.border,
+  },
+  shortcutIcon: {
     width: 40,
     height: 40,
     borderRadius: tokens.radius.pill,
@@ -154,16 +205,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  newAccountCopy: {
+  shortcutIconLight: {
+    backgroundColor: '#fff3e8',
+  },
+  shortcutCopy: {
     flex: 1,
     gap: 2,
   },
-  newAccountLabel: {
+  shortcutLabel: {
     color: tokens.colors.textInverse,
     ...tokens.typography.body,
   },
-  newAccountDescription: {
+  shortcutLabelLight: {
+    color: tokens.colors.text,
+  },
+  shortcutDescription: {
     color: 'rgba(255,255,255,0.74)',
     ...tokens.typography.caption,
+  },
+  shortcutDescriptionLight: {
+    color: tokens.colors.textMuted,
   },
 });
