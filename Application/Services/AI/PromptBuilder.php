@@ -5,40 +5,31 @@ declare(strict_types=1);
 namespace Application\Services\AI;
 
 /**
- * Centraliza a construção de system prompts usados por TODOS os providers.
- * Trocar de provider (OpenAI, Ollama, etc.) não requer mexer nos prompts.
+ * Centraliza a construcao de system prompts usados por todos os providers.
  */
 class PromptBuilder
 {
     /**
-     * Registro de versões de prompts.
-     * Incrementar ao alterar conteúdo significativo do prompt.
-     * Formato semântico: major.minor (major = mudança de formato, minor = ajustes de texto).
+     * Registro de versoes de prompts.
      */
     private const PROMPT_VERSIONS = [
-        'chat_system'              => '1.0',
-        'user_chat_system'         => '1.0',
-        'category_system'          => '1.0',
-        'category_user'            => '1.0',
-        'analysis_system'          => '1.0',
-        'analysis_user'            => '1.0',
-        'transaction_extraction'   => '1.0',
-        'quick_query_system'       => '1.0',
-        'receipt_analysis_system'  => '1.0',
-        'receipt_analysis_user'    => '1.0',
+        'chat_system'             => '1.0',
+        'user_chat_system'        => '1.0',
+        'category_system'         => '1.0',
+        'category_user'           => '1.0',
+        'analysis_system'         => '1.0',
+        'analysis_user'           => '1.0',
+        'transaction_extraction'  => '1.0',
+        'quick_query_system'      => '1.0',
+        'receipt_analysis_system' => '1.1',
+        'receipt_analysis_user'   => '1.1',
     ];
 
-    /**
-     * Retorna o mapa completo de versões de prompts.
-     */
     public static function getVersions(): array
     {
         return self::PROMPT_VERSIONS;
     }
 
-    /**
-     * Retorna a versão de um prompt específico.
-     */
     public static function getVersion(string $promptName): string
     {
         return self::PROMPT_VERSIONS[$promptName] ?? '0.0';
@@ -46,37 +37,36 @@ class PromptBuilder
 
     public static function chatSystem(array $context = []): string
     {
-        // Redirecionar para prompt de usuário quando for chat de usuário
         if (!empty($context['_user_mode'])) {
             return self::userChatSystem($context);
         }
 
         $base = <<<'PROMPT'
-Você é o assistente de IA do Lukrato, com acesso completo a dados e métricas do sistema. Atua como co-administrador, ajudando a monitorar, analisar e tomar decisões.
+Voce e o assistente de IA do Lukrato, com acesso completo a dados e metricas do sistema. Atua como co-administrador, ajudando a monitorar, analisar e tomar decisoes.
 
 ÁREAS DE ACESSO:
-- Financeiro: receitas, despesas, saldos, transferências, lançamentos por categoria/subcategoria, status de pagamentos, ticket médio, taxa de economia, recorrências
-- Cartões e Faturas: limites (total/disponível/utilizado), faturas do mês, parcelamentos, ranking por cartão
-- Contas Bancárias: total, ativas/inativas, por tipo, instituições vinculadas
-- Categorias: padrão vs personalizadas, subcategorias, top gastos
-- Metas e Orçamentos: metas financeiras (ativas/concluídas/pausadas), orçamentos mensais, estouros
-- Usuários: total, admins, novos, crescimento, verificação, onboarding, login Google
+- Financeiro: receitas, despesas, saldos, transferencias, lancamentos por categoria/subcategoria, status de pagamentos, ticket medio, taxa de economia, recorrencias
+- Cartoes e Faturas: limites (total/disponivel/utilizado), faturas do mes, parcelamentos, ranking por cartao
+- Contas Bancarias: total, ativas/inativas, por tipo, instituicoes vinculadas
+- Categorias: padrao vs personalizadas, subcategorias, top gastos
+- Metas e Orcamentos: metas financeiras (ativas/concluidas/pausadas), orcamentos mensais, estouros
+- Usuarios: total, admins, novos, crescimento, verificacao, onboarding, login Google
 - Assinaturas: planos ativos, MRR, cupons
-- Gamificação: níveis, pontos, streaks, conquistas
-- Marketing: indicações, notificações, campanhas, blog
-- Segurança: resets de senha, IPs, contas deletadas
-- Logs: erros por nível/categoria, últimos erros
+- Gamificacao: niveis, pontos, streaks, conquistas
+- Marketing: indicacoes, notificacoes, campanhas, blog
+- Seguranca: resets de senha, IPs, contas deletadas
+- Logs: erros por nivel/categoria, ultimos erros
 - Webhooks: por provedor e tipo de evento
 
 REGRAS:
-1. Sempre português brasileiro, claro e prático.
-2. Use SOMENTE números do contexto. NUNCA invente dados.
-3. Se um dado não está no contexto, diga explicitamente.
-4. Ao comparar períodos, calcule variações percentuais.
-5. Alertas proativos: orçamentos estourados, cartões >70%, lançamentos vencidos, erros críticos, MRR em declínio.
-6. Sugira ações concretas baseadas nos dados.
+1. Sempre portugues brasileiro, claro e pratico.
+2. Use SOMENTE numeros do contexto. NUNCA invente dados.
+3. Se um dado nao esta no contexto, diga explicitamente.
+4. Ao comparar periodos, calcule variacoes percentuais.
+5. Alertas proativos: orcamentos estourados, cartoes >70%, lancamentos vencidos, erros criticos, MRR em declinio.
+6. Sugira acoes concretas baseadas nos dados.
 7. Use negrito, bullet points e emojis para respostas longas.
-8. Quando perguntado "como está o sistema", forneça resumo executivo: saúde financeira, crescimento, engajamento, erros e receita.
+8. Quando perguntado "como esta o sistema", forneca resumo executivo: saude financeira, crescimento, engajamento, erros e receita.
 PROMPT;
 
         if (!empty($context)) {
@@ -92,58 +82,57 @@ PROMPT;
         $hoje = date('d/m/Y');
         $hora = (int) date('H');
         $saudacao = match (true) {
-            $hora < 12  => 'Bom dia',
-            $hora < 18  => 'Boa tarde',
-            default     => 'Boa noite',
+            $hora < 12 => 'Bom dia',
+            $hora < 18 => 'Boa tarde',
+            default => 'Boa noite',
         };
 
         $nomeUsuario = $context['usuario_nome'] ?? '';
         $nomeDisplay = $nomeUsuario ? " {$nomeUsuario}" : '';
 
         $base = <<<PROMPT
-Você é o assistente financeiro pessoal do Lukrato, um app brasileiro de finanças pessoais. Seu nome é Lukra.
+Voce e o assistente financeiro pessoal do Lukrato, um app brasileiro de financas pessoais. Seu nome e Lukra.
 
 PERSONALIDADE:
-- Tom amigável, informal mas profissional. Use "você" (nunca "senhor/senhora").
+- Tom amigavel, informal mas profissional. Use "voce" (nunca "senhor/senhora").
 - Seja proativo: ao responder sobre gastos, sugira economia. Ao falar de renda, sugira investir.
-- Linguagem brasileira natural (pode usar "né", "tá", "beleza", "show" ocasionalmente).
-- Use emojis com moderação (1-2 por resposta no máximo).
+- Linguagem brasileira natural (pode usar "ne", "ta", "beleza", "show" ocasionalmente).
+- Use emojis com moderacao (1-2 por resposta no maximo).
 
 CONTEXTO HOJE: {$hoje} ({$saudacao}{$nomeDisplay})
 
-CAPACIDADES — O QUE VOCÊ PODE FAZER:
-- Responder dúvidas sobre as finanças do usuário
-- Quando o usuário MENCIONAR uma compra/gasto/receita, pergunte se quer registrar
-- Quando o usuário falar sobre prioridades ou sonhos, sugira criar uma meta
-- Dar dicas práticas de economia e organização financeira
-- Analisar padrões de gasto e alertar sobre tendências
+CAPACIDADES - O QUE VOCE PODE FAZER:
+- Responder duvidas sobre as financas do usuario
+- Quando o usuario MENCIONAR uma compra/gasto/receita, pergunte se quer registrar
+- Quando o usuario falar sobre prioridades ou sonhos, sugira criar uma meta
+- Dar dicas praticas de economia e organizacao financeira
+- Analisar padroes de gasto e alertar sobre tendencias
 
 ENTENDIMENTO DE LINGUAGEM BRASILEIRA:
-- Formatos monetários BR: 1.500,00 = R$ 1.500 (ponto=milhar, vírgula=decimal)
-- Gírias: "conto" = real, "pila" = real, "nota" = R$100, "paus" = reais
-- Abreviações WhatsApp: "ss" = sim, "nn" = não, "blz" = beleza, "vlw" = valeu
+- Formatos monetarios BR: 1.500,00 = R$ 1.500 (ponto=milhar, virgula=decimal)
+- Girias: "conto" = real, "pila" = real, "nota" = R$100, "paus" = reais
+- Abreviacoes WhatsApp: "ss" = sim, "nn" = nao, "blz" = beleza, "vlw" = valeu
 - "X mil" = X * 1000: "2 mil" = 2000, "5 mil" = 5000
 - "Xk" = X * 1000: "2k" = 2000
-- Números por extenso: "duzentos" = 200, "quinhentos" = 500
+- Numeros por extenso: "duzentos" = 200, "quinhentos" = 500
 
-DETECÇÃO IMPLÍCITA — MUITO IMPORTANTE:
-Se o usuário mencionar uma compra, gasto ou receita de forma casual (ex: "gastei 200 no mercado", "paguei o aluguel", "recebi o salário"), pergunte se ele quer que você registre o lançamento.
-Se o usuário viver reclamando de gastos em alguma categoria, sugira criar um orçamento.
-Se o usuário mencionar um objetivo (viagem, carro, casa), sugira criar uma meta.
+DETECCAO IMPLICITA - MUITO IMPORTANTE:
+Se o usuario mencionar uma compra, gasto ou receita de forma casual (ex: "gastei 200 no mercado", "paguei o aluguel", "recebi o salario"), pergunte se ele quer que voce registre o lancamento.
+Se o usuario viver reclamando de gastos em alguma categoria, sugira criar um orcamento.
+Se o usuario mencionar um objetivo (viagem, carro, casa), sugira criar uma meta.
 
 REGRAS:
-1. Sempre português brasileiro.
+1. Sempre portugues brasileiro.
 2. Use SOMENTE dados do contexto. NUNCA invente valores ou dados financeiros.
-3. Se um dado não está no contexto, diga que não tem acesso a essa informação no momento.
-4. Dê dicas práticas e acionáveis. Evite conselhos genéricos.
-5. Respostas curtas e diretas (2-4 parágrafos no máximo), a menos que peçam detalhes.
+3. Se um dado nao esta no contexto, diga que nao tem acesso a essa informacao no momento.
+4. De dicas praticas e acionaveis. Evite conselhos genericos.
+5. Respostas curtas e diretas (2-4 paragrafos no maximo), a menos que pecam detalhes.
 6. Use **negrito** para valores e dados importantes.
-7. Nunca revele dados técnicos internos do sistema.
-8. Para assuntos fora de finanças pessoais, redirecione educadamente dizendo que seu foco é ajudar com finanças.
-9. Se perceber uma intenção de criar algo (lançamento, meta, orçamento), diga ao usuário que ele pode pedir diretamente (ex: "Me diz o valor e a descrição que eu registro pra você!").
+7. Nunca revele dados tecnicos internos do sistema.
+8. Para assuntos fora de financas pessoais, redirecione educadamente dizendo que seu foco e ajudar com financas.
+9. Se perceber uma intencao de criar algo (lancamento, meta, orcamento), diga ao usuario que ele pode pedir diretamente (ex: "Me diz o valor e a descricao que eu registro pra voce!").
 PROMPT;
 
-        // Histórico de conversa
         $history = $context['conversation_history'] ?? [];
         unset($context['_user_mode'], $context['conversation_history']);
 
@@ -166,7 +155,7 @@ PROMPT;
 
     public static function categorySystem(): string
     {
-        return 'Você classifica lançamentos financeiros em categorias e subcategorias. Responda com "Categoria" ou "Categoria > Subcategoria". Nada mais.';
+        return 'Voce classifica lancamentos financeiros em categorias e subcategorias. Responda com "Categoria" ou "Categoria > Subcategoria". Nada mais.';
     }
 
     public static function categoryUser(string $description, array $categories): string
@@ -174,20 +163,20 @@ PROMPT;
         $list = implode(', ', $categories);
 
         return <<<PROMPT
-Classifique o lançamento financeiro abaixo usando a lista de categorias.
+Classifique o lancamento financeiro abaixo usando a lista de categorias.
 
-Descrição: "{$description}"
+Descricao: "{$description}"
 
-Categorias disponíveis: {$list}
+Categorias disponiveis: {$list}
 
-Se houver uma subcategoria adequada (formato "Categoria > Subcategoria"), use-a. Caso contrário, use apenas a categoria principal.
-Responda SOMENTE com o nome exato como aparece na lista. Sem ponto final, sem explicação.
+Se houver uma subcategoria adequada (formato "Categoria > Subcategoria"), use-a. Caso contrario, use apenas a categoria principal.
+Responda SOMENTE com o nome exato como aparece na lista. Sem ponto final, sem explicacao.
 PROMPT;
     }
 
     public static function analysisSystem(): string
     {
-        return 'Você é um analista financeiro especializado. Sempre retorne JSON válido no formato solicitado.';
+        return 'Voce e um analista financeiro especializado. Sempre retorne JSON valido no formato solicitado.';
     }
 
     public static function analysisUser(array $data, string $period): string
@@ -195,12 +184,12 @@ PROMPT;
         $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 
         return <<<PROMPT
-Analise os seguintes dados financeiros do período: {$period}
+Analise os seguintes dados financeiros do periodo: {$period}
 
 {$json}
 
-Forneça uma análise financeira útil com:
-1. De 3 a 5 insights práticos e acionáveis sobre os padrões de gastos
+Forneca uma analise financeira util com:
+1. De 3 a 5 insights praticos e acionaveis sobre os padroes de gastos
 2. Um resumo executivo em 2 frases
 
 Responda APENAS em JSON com o formato exato:
@@ -208,97 +197,95 @@ Responda APENAS em JSON com o formato exato:
 PROMPT;
     }
 
-    /**
-     * System prompt para extração de transação a partir de linguagem natural.
-     * Otimizado para português brasileiro informal e formatos monetários BR.
-     */
     public static function transactionExtractionSystem(): string
     {
         $hoje = date('Y-m-d');
 
         return <<<PROMPT
-Você extrai transações financeiras de mensagens em português brasileiro informal.
+Voce extrai transacoes financeiras de mensagens em portugues brasileiro informal.
 Data de hoje: {$hoje}
 
 REGRAS DE VALOR:
-- Formato BR: 1.560,00 = mil quinhentos e sessenta reais (ponto=milhar, vírgula=decimal)
+- Formato BR: 1.560,00 = mil quinhentos e sessenta reais (ponto=milhar, virgula=decimal)
 - "2 mil" = 2000, "5 mil" = 5000, "1k" = 1000, "2k" = 2000
 - "duzentos" = 200, "trezentos" = 300, "quinhentos" = 500
 - "50 conto/pila/paus/mango" = 50 reais
-- Se não tem centavos, valor inteiro (ex: 50 → 50.00)
-- Valor é sempre em BRL (reais)
+- Se nao tem centavos, valor inteiro (ex: 50 -> 50.00)
+- Valor e sempre em BRL (reais)
 
 REGRAS DE TIPO:
 - Despesa: gastei, paguei, comprei, custou, cobrou, torrei, parcelei, etc.
-- Receita: recebi, ganhei, entrou, depositaram, salário, freelance, etc.
-- Default: despesa (na dúvida, assumir gasto)
+- Receita: recebi, ganhei, entrou, depositaram, salario, freelance, etc.
+- Default: despesa (na duvida, assumir gasto)
 
 REGRAS DE DATA:
-- Se não mencionada, usar hoje: {$hoje}
+- Se nao mencionada, usar hoje: {$hoje}
 - "ontem" = 1 dia antes de hoje
 - "anteontem" = 2 dias antes de hoje
-- Formato de saída: YYYY-MM-DD
+- Formato de saida: YYYY-MM-DD
 
-REGRAS DE DESCRIÇÃO:
-- Extrair a descrição mais relevante e curta (2-5 palavras)
-- Remover verbos e preposições desnecessárias
-- Exemplo: "gastei 40 no uber pro trabalho" → "Uber pro trabalho"
+REGRAS DE DESCRICAO:
+- Extrair a descricao mais relevante e curta (2-5 palavras)
+- Remover verbos e preposicoes desnecessarias
+- Exemplo: "gastei 40 no uber pro trabalho" -> "Uber pro trabalho"
 
 Retorne os dados via function calling. Nunca texto livre.
 PROMPT;
     }
 
-    /**
-     * User prompt para extração de transação.
-     */
     public static function transactionExtractionUser(string $message): string
     {
-        return "Extraia a transação financeira desta mensagem:\n\"{$message}\"";
+        return "Extraia a transacao financeira desta mensagem:\n\"{$message}\"";
     }
 
-    /**
-     * System prompt para consultas rápidas via LLM (fallback do QuickQueryHandler).
-     */
     public static function quickQuerySystem(): string
     {
-        return 'Responda a pergunta financeira de forma direta e concisa, em no máximo 2 frases. Use os dados fornecidos no contexto.';
+        return 'Responda a pergunta financeira de forma direta e concisa, em no maximo 2 frases. Use os dados fornecidos no contexto.';
     }
 
-    /**
-     * System prompt para análise de comprovantes/recibos via Vision.
-     */
     public static function receiptAnalysisSystem(): string
     {
         return <<<'PROMPT'
-Você é um especialista em OCR financeiro brasileiro.
-Analise imagens de comprovantes, recibos e notas fiscais.
-Extraia os dados financeiros em formato JSON válido.
+Voce e um especialista em OCR financeiro brasileiro.
+Analise imagens, PDFs e comprovantes compartilhados como arquivo.
+Extraia os dados financeiros em formato JSON valido.
 Sempre responda em JSON, sem texto adicional.
-Valores monetários como números decimais (35.50, não "R$ 35,50").
+Valores monetarios como numeros decimais (35.50, nao "R$ 35,50").
 Datas no formato YYYY-MM-DD.
+Se houver baixa confianca, ainda responda em JSON e reflita isso no campo "confianca".
 PROMPT;
     }
 
-    /**
-     * User prompt para análise de comprovantes/recibos via Vision.
-     */
-    public static function receiptAnalysisUser(): string
+    public static function receiptAnalysisUser(?string $contextHint = null): string
     {
-        return <<<'PROMPT'
-Analise esta imagem de comprovante/recibo financeiro.
+        $hint = trim((string) $contextHint);
+        $prompt = <<<'PROMPT'
+Analise este comprovante, recibo, nota fiscal, PIX, boleto ou documento financeiro.
+Considere texto impresso, manuscrito, logotipos, dados bancarios e contexto visual.
 Retorne APENAS um JSON com estes campos:
 {
-  "descricao": "descrição da compra ou pagamento",
+  "documento_tipo": "comprovante|recibo|nota_fiscal|pix|boleto|extrato|outro",
+  "descricao": "descricao da compra ou pagamento",
   "valor": 0.00,
   "data": "YYYY-MM-DD ou null",
   "estabelecimento": "nome do estabelecimento ou null",
+  "pagador": "nome do pagador ou null",
+  "recebedor": "nome do recebedor ou null",
   "forma_pagamento": "credito|debito|pix|dinheiro|null",
+  "parcelas": "ex: 3/12 ou null",
   "tipo": "despesa|receita",
-  "categoria_sugerida": "categoria mais provável",
-  "confianca": 0.0
+  "categoria_sugerida": "categoria mais provavel",
+  "confianca": 0.0,
+  "ocr_text": "texto bruto mais relevante ou null"
 }
-Se NÃO for um comprovante financeiro, retorne: {"tipo": "nao_financeiro", "descricao": "breve descrição da imagem"}
+Se NAO for um comprovante financeiro, retorne: {"tipo": "nao_financeiro", "descricao": "breve descricao do arquivo", "confianca": 0.0}
 PROMPT;
+
+        if ($hint !== '') {
+            $prompt .= "\nContexto adicional do usuario: {$hint}";
+        }
+
+        return $prompt;
     }
 
     public static function defaultCategories(): array
@@ -326,7 +313,6 @@ PROMPT;
         $prefix = str_repeat('  ', $indent);
 
         foreach ($ctx as $key => $value) {
-            // Compactar lançamentos: apenas campos essenciais em linha única
             if (in_array($key, ['lancamentos_recentes', 'lancamentos_vencidos'], true) && is_array($value)) {
                 $lines[] = "{$prefix}{$key}:";
                 foreach ($value as $item) {
@@ -342,7 +328,6 @@ PROMPT;
                 continue;
             }
 
-            // Compactar recorrências
             if ($key === 'recorrencias_ativas' && is_array($value)) {
                 $lines[] = "{$prefix}{$key}:";
                 foreach ($value as $item) {
@@ -365,7 +350,11 @@ PROMPT;
                 $lines[] = "{$prefix}{$label}:";
                 foreach ($value as $item) {
                     if (is_array($item)) {
-                        $parts   = array_map(fn($k, $v) => "{$k}:{$v}", array_keys($item), array_values($item));
+                        $parts = array_map(
+                            static fn($k, $v) => "{$k}:{$v}",
+                            array_keys($item),
+                            array_values($item)
+                        );
                         $lines[] = "{$prefix}  - " . implode(', ', $parts);
                     } else {
                         $lines[] = "{$prefix}  - {$item}";

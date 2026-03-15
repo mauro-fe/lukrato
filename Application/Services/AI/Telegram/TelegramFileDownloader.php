@@ -94,7 +94,7 @@ class TelegramFileDownloader
     /**
      * Conveniência: obtém file_path e baixa conteúdo em uma chamada.
      *
-     * @return array{content: string, file_path: string, extension: string}|null
+     * @return array{content: string, file_path: string, extension: string, filename: string}|null
      */
     public function downloadByFileId(string $fileId): ?array
     {
@@ -114,6 +114,7 @@ class TelegramFileDownloader
             'content'   => $content,
             'file_path' => $filePath,
             'extension' => strtolower($extension),
+            'filename'  => basename($filePath),
         ];
     }
 }

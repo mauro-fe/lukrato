@@ -5,30 +5,36 @@ declare(strict_types=1);
 namespace Application\Services\AI\Media;
 
 /**
- * Resultado da análise de imagem de comprovante/recibo via GPT-4o-mini Vision.
+ * Resultado da análise de comprovante via visão/documento.
  */
 readonly class ReceiptAnalysisResult
 {
     public function __construct(
-        public bool    $success,
-        public array   $data = [],
-        public string  $rawText = '',
-        public int     $tokensUsed = 0,
+        public bool $success,
+        public array $data = [],
+        public string $rawText = '',
+        public int $tokensUsed = 0,
         public ?string $error = null,
     ) {}
 
-    /**
-     * Verifica se a imagem contém dados financeiros.
-     */
     public function isFinancial(): bool
     {
-        return ($this->data['tipo'] ?? 'nao_financeiro') !== 'nao_financeiro';
+        $tipo = $this->data['tipo'] ?? 'nao_financeiro';
+        if (!in_array($tipo, ['despesa', 'receita'], true)) {
+            return false;
+        }
+
+        $confidence = (float) ($this->data['confianca'] ?? 0);
+        if ($confidence > 0 && $confidence < 0.35) {
+            return false;
+        }
+
+        $hasDescription = trim((string) ($this->data['descricao'] ?? $this->data['estabelecimento'] ?? '')) !== '';
+        $hasAmount = (float) ($this->data['valor'] ?? 0) > 0;
+
+        return $hasDescription || $hasAmount;
     }
 
-    /**
-     * Converte dados extraídos em texto para o pipeline de transações.
-     * Ex: "despesa padaria 35.50 pix"
-     */
     public function toTransactionText(): string
     {
         if (!$this->isFinancial()) {
@@ -36,25 +42,46 @@ readonly class ReceiptAnalysisResult
         }
 
         $parts = [];
-
         $tipo = $this->data['tipo'] ?? 'despesa';
         $parts[] = $tipo === 'receita' ? 'recebi' : 'gastei';
 
-        $valor = $this->data['valor'] ?? 0;
+        $valor = (float) ($this->data['valor'] ?? 0);
         if ($valor > 0) {
-            $parts[] = number_format((float) $valor, 2, '.', '');
+            $parts[] = number_format($valor, 2, '.', '');
         }
 
-        $desc = $this->data['descricao'] ?? $this->data['estabelecimento'] ?? '';
-        if ($desc !== '') {
-            $parts[] = $desc;
+        $descricao = trim((string) ($this->data['descricao'] ?? $this->data['estabelecimento'] ?? ''));
+        if ($descricao !== '') {
+            $parts[] = $descricao;
         }
 
-        $forma = $this->data['forma_pagamento'] ?? '';
-        if ($forma !== '' && $forma !== 'null') {
-            $parts[] = $forma;
+        $formaPagamento = trim((string) ($this->data['forma_pagamento'] ?? ''));
+        if ($formaPagamento !== '' && $formaPagamento !== 'null') {
+            $parts[] = $formaPagamento;
         }
 
         return implode(' ', $parts);
+    }
+
+    /**
+     * @return array{descricao:string,valor:float,tipo:string,data:string,forma_pagamento?:string}
+     */
+    public function toTransactionData(?string $defaultDate = null): array
+    {
+        $defaultDate = $defaultDate ?: date('Y-m-d');
+
+        $data = [
+            'descricao' => (string) ($this->data['descricao'] ?? $this->data['estabelecimento'] ?? 'Compra'),
+            'valor' => (float) ($this->data['valor'] ?? 0),
+            'tipo' => ($this->data['tipo'] ?? 'despesa') === 'receita' ? 'receita' : 'despesa',
+            'data' => (string) ($this->data['data'] ?? $defaultDate),
+        ];
+
+        $formaPagamento = trim((string) ($this->data['forma_pagamento'] ?? ''));
+        if ($formaPagamento !== '' && $formaPagamento !== 'null') {
+            $data['forma_pagamento'] = $formaPagamento;
+        }
+
+        return $data;
     }
 }

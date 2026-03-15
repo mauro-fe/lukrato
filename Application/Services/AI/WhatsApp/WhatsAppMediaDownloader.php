@@ -1,0 +1,78 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Application\Services\AI\WhatsApp;
+
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+
+/**
+ * Baixa anexos do WhatsApp Cloud API a partir do media id.
+ */
+class WhatsAppMediaDownloader
+{
+    private const API_VERSION = 'v21.0';
+    private const BASE_URL = 'https://graph.facebook.com';
+    private const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
+
+    private Client $http;
+    private string $token;
+
+    public function __construct()
+    {
+        $this->token = $_ENV['WHATSAPP_TOKEN'] ?? getenv('WHATSAPP_TOKEN') ?: '';
+        $this->http = new Client([
+            'base_uri' => self::BASE_URL . '/' . self::API_VERSION . '/',
+            'timeout' => 30,
+            'connect_timeout' => 10,
+            'headers' => [
+                'Authorization' => 'Bearer ' . $this->token,
+            ],
+        ]);
+    }
+
+    /**
+     * @return array{content:string,mime_type:?string,file_size:?int,filename:?string}|null
+     */
+    public function downloadByMediaId(string $mediaId, ?string $filename = null): ?array
+    {
+        if ($this->token === '') {
+            error_log('[WhatsAppMediaDownloader] WHATSAPP_TOKEN nao configurado.');
+            return null;
+        }
+
+        try {
+            $metaResponse = $this->http->get($mediaId);
+            $meta = json_decode($metaResponse->getBody()->getContents(), true);
+            $url = $meta['url'] ?? null;
+
+            if (!is_string($url) || $url === '') {
+                error_log('[WhatsAppMediaDownloader] URL de media ausente para ' . $mediaId);
+                return null;
+            }
+
+            $downloadResponse = $this->http->get($url, [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->token,
+                ],
+            ]);
+
+            $content = $downloadResponse->getBody()->getContents();
+            if (strlen($content) > self::MAX_FILE_SIZE) {
+                error_log('[WhatsAppMediaDownloader] Arquivo excede limite de 25MB.');
+                return null;
+            }
+
+            return [
+                'content' => $content,
+                'mime_type' => $meta['mime_type'] ?? null,
+                'file_size' => isset($meta['file_size']) ? (int) $meta['file_size'] : null,
+                'filename' => $filename,
+            ];
+        } catch (GuzzleException $e) {
+            error_log('[WhatsAppMediaDownloader] Erro ao baixar media: ' . $e->getMessage());
+            return null;
+        }
+    }
+}

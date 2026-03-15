@@ -16,6 +16,9 @@ use Application\Services\AI\AIQuotaService;
 use Application\Services\AI\AIService;
 use Application\Services\AI\Context\UserContextBuilder;
 use Application\Services\AI\ContextCompressor;
+use Application\Services\AI\Media\MediaAsset;
+use Application\Services\AI\Media\MediaRouterService;
+use Application\Services\AI\Media\ReceiptAnalysisResult;
 
 /**
  * Controller de IA para usuários autenticados.
@@ -34,6 +37,22 @@ class UserAiController extends BaseController
 
         $payload = $this->getRequestPayload();
         $message = trim($payload['message'] ?? '');
+        $resolvedInput = $this->resolveIncomingMessage($message);
+
+        if (!$resolvedInput['success']) {
+            Response::error($resolvedInput['error'] ?? 'Nao consegui processar o anexo.', 422);
+            return;
+        }
+
+        $message = $resolvedInput['message'];
+        $resolvedInput = $this->resolveIncomingMessage($message);
+
+        if (!$resolvedInput['success']) {
+            Response::error($resolvedInput['error'] ?? 'Nao consegui processar o anexo.', 422);
+            return;
+        }
+
+        $message = $resolvedInput['message'];
 
         if ($message === '') {
             Response::error('Mensagem não pode ser vazia.', 422);
@@ -74,6 +93,7 @@ class UserAiController extends BaseController
                 'intent'   => $response->intent?->value,
                 'source'   => $response->source,
                 'cached'   => $response->cached,
+                'derived_message' => $resolvedInput['derived_message'],
             ],
         ], $response->success ? 200 : 503);
     }
@@ -192,6 +212,113 @@ class UserAiController extends BaseController
         ], $response->success ? 200 : 422);
     }
 
+    /**
+     * @return array{success:bool,message:string,derived_message:?string,error?:string}
+     */
+    private function resolveIncomingMessage(string $message): array
+    {
+        $message = trim($message);
+
+        if (!$this->request->hasFile('attachment')) {
+            return [
+                'success' => true,
+                'message' => $message,
+                'derived_message' => null,
+            ];
+        }
+
+        $file = $this->request->file('attachment');
+        $tmpName = (string) ($file['tmp_name'] ?? '');
+        if ($tmpName === '' || !is_file($tmpName)) {
+            return [
+                'success' => false,
+                'message' => $message,
+                'derived_message' => null,
+                'error' => 'Arquivo enviado e invalido ou nao pode ser lido.',
+            ];
+        }
+
+        $content = file_get_contents($tmpName);
+        if (!is_string($content) || $content === '') {
+            return [
+                'success' => false,
+                'message' => $message,
+                'derived_message' => null,
+                'error' => 'Nao consegui ler o arquivo enviado.',
+            ];
+        }
+
+        $asset = new MediaAsset(
+            sourceType: 'document',
+            content: $content,
+            mimeType: $file['type'] ?? null,
+            filename: $file['name'] ?? null,
+            fileSize: isset($file['size']) ? (int) $file['size'] : null,
+            caption: $message !== '' ? $message : null,
+        );
+
+        $result = (new MediaRouterService())->process($asset);
+        if ($result->isUnsupported()) {
+            return [
+                'success' => false,
+                'message' => $message,
+                'derived_message' => null,
+                'error' => 'Tipo de arquivo nao suportado. Envie imagem, PDF, audio ou video curto.',
+            ];
+        }
+
+        if (!$result->success) {
+            return [
+                'success' => false,
+                'message' => $message,
+                'derived_message' => null,
+                'error' => $result->error ?? 'Nao consegui processar o arquivo enviado.',
+            ];
+        }
+
+        $derivedMessage = $result->text;
+
+        if ($result->isReceiptAnalysis()) {
+            $receipt = new ReceiptAnalysisResult(
+                success: $result->success,
+                data: $result->data,
+                rawText: $result->text,
+                tokensUsed: $result->tokensUsed,
+                error: $result->error,
+            );
+
+            if (!$receipt->isFinancial()) {
+                if ($message !== '') {
+                    return [
+                        'success' => true,
+                        'message' => $message,
+                        'derived_message' => null,
+                    ];
+                }
+
+                $desc = $receipt->data['descricao'] ?? 'Nao identifiquei informacoes financeiras nesse arquivo.';
+                return [
+                    'success' => false,
+                    'message' => '',
+                    'derived_message' => null,
+                    'error' => $desc,
+                ];
+            }
+
+            $derivedMessage = $receipt->toTransactionText();
+        }
+
+        $finalMessage = trim($message !== '' && $derivedMessage !== ''
+            ? "{$message}\n{$derivedMessage}"
+            : ($derivedMessage !== '' ? $derivedMessage : $message));
+
+        return [
+            'success' => true,
+            'message' => $finalMessage,
+            'derived_message' => $derivedMessage !== '' ? $derivedMessage : null,
+        ];
+    }
+
     // ─── Quota ──────────────────────────────────────────────
 
     /**
@@ -303,6 +430,14 @@ class UserAiController extends BaseController
 
         $payload = $this->getRequestPayload();
         $message = trim($payload['message'] ?? '');
+        $resolvedInput = $this->resolveIncomingMessage($message);
+
+        if (!$resolvedInput['success']) {
+            Response::error($resolvedInput['error'] ?? 'Nao consegui processar o anexo.', 422);
+            return;
+        }
+
+        $message = $resolvedInput['message'];
 
         if ($message === '') {
             Response::error('Mensagem não pode ser vazia.', 422);
@@ -399,6 +534,7 @@ class UserAiController extends BaseController
                 ],
                 'source'  => $response->source,
                 'cached'  => $response->cached,
+                'derived_message' => $resolvedInput['derived_message'],
                 'ai_data' => $response->data,
             ],
         ], $response->success ? 200 : 503);

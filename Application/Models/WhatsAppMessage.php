@@ -21,6 +21,11 @@ class WhatsAppMessage extends Model
         'processing_status',
         'intent',
         'error_message',
+        'media_file_id',
+        'media_mime_type',
+        'media_file_size',
+        'media_filename',
+        'transcription',
     ];
 
     protected $casts = [

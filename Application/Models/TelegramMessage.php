@@ -25,6 +25,7 @@ class TelegramMessage extends Model
         'media_file_id',
         'media_mime_type',
         'media_file_size',
+        'media_filename',
         'transcription',
     ];
 

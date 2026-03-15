@@ -14,11 +14,17 @@ use Application\Repositories\ContaRepository;
 use Application\Services\AI\AIService;
 use Application\Services\AI\AIQuotaService;
 use Application\Services\AI\Actions\ActionRegistry;
+use Application\Services\AI\AiLogService;
+use Application\Services\AI\Media\MediaAsset;
+use Application\Services\AI\Media\MediaProcessingResult;
+use Application\Services\AI\Media\MediaRouterService;
+use Application\Services\AI\Media\ReceiptAnalysisResult;
 use Application\Services\AI\NLP\NumberNormalizer;
 use Application\Services\AI\NLP\TextNormalizer;
 use Application\Services\AI\Rules\CategoryRuleEngine;
 use Application\Services\AI\Security\AIRateLimiter;
 use Application\Services\AI\TransactionDetectorService;
+use Application\Services\AI\WhatsApp\WhatsAppMediaDownloader;
 use Application\Services\AI\WhatsApp\WhatsAppService;
 use Application\Services\AI\WhatsApp\WhatsAppUserResolver;
 use Application\Services\Infrastructure\LogService;
@@ -152,6 +158,10 @@ class WhatsAppWebhookController extends BaseController
             'body'              => $dto->body,
             'metadata'          => $dto->rawPayload,
             'processing_status' => 'received',
+            'media_file_id'     => $dto->mediaId,
+            'media_mime_type'   => $dto->mimeType,
+            'media_file_size'   => $dto->fileSize,
+            'media_filename'    => $dto->filename,
         ]);
 
         try {
@@ -203,6 +213,11 @@ class WhatsAppWebhookController extends BaseController
         }
 
         $msgRecord->update(['user_id' => $user->id]);
+
+        if ($dto->isMedia()) {
+            $this->handleMediaMessage($dto, $user, $msgRecord);
+            return;
+        }
 
         // 3. Verificar se é resposta de confirmação a uma transação pendente
         if ($dto->isConfirmationReply()) {
@@ -328,6 +343,156 @@ class WhatsAppWebhookController extends BaseController
                 $msgRecord->markProcessed('transaction_rejected');
             }
         });
+    }
+
+    private function handleMediaMessage(
+        WhatsAppMessageDTO $dto,
+        \Application\Models\Usuario $user,
+        WhatsAppMessage $msgRecord,
+    ): void {
+        if (!AIQuotaService::hasQuotaRemaining($user, 'chat')) {
+            $usage = AIQuotaService::getUsage($user);
+            $limit = $usage['chat']['limit'] ?? 5;
+            $this->whatsapp->sendText(
+                $dto->fromPhone,
+                "🤖 Você usou suas {$limit} mensagens de IA gratuitas este mês. "
+                    . "Faça upgrade para o Pro: https://lukrato.com.br/billing"
+            );
+            $msgRecord->markProcessed('quota_exceeded');
+            return;
+        }
+
+        $statusText = $dto->isAudio()
+            ? "🎙️ Transcrevendo áudio..."
+            : ($dto->isVideo() ? "🎬 Processando vídeo..." : "📎 Analisando arquivo...");
+        $this->whatsapp->sendText($dto->fromPhone, $statusText);
+
+        $downloader = new WhatsAppMediaDownloader();
+        $fileData = $downloader->downloadByMediaId((string) $dto->mediaId, $dto->filename);
+
+        if ($fileData === null) {
+            $this->whatsapp->sendText($dto->fromPhone, "⚠️ Não consegui baixar o arquivo. Tente novamente.");
+            $msgRecord->markFailed('file_download_failed');
+            return;
+        }
+
+        $asset = new MediaAsset(
+            sourceType: $dto->type,
+            content: $fileData['content'],
+            mimeType: $dto->mimeType ?? $fileData['mime_type'],
+            filename: $dto->filename ?? $fileData['filename'],
+            fileSize: $dto->fileSize ?? $fileData['file_size'],
+            caption: $dto->caption ?? $dto->body,
+            remoteId: $dto->mediaId,
+        );
+
+        $result = (new MediaRouterService())->process($asset);
+        $this->logMediaProcessing($user->id, 'whatsapp', $dto->mediaId, $dto->caption, $result);
+
+        if ($result->isUnsupported()) {
+            $this->whatsapp->sendText(
+                $dto->fromPhone,
+                "⚠️ Ainda não consigo processar esse tipo de arquivo. Envie imagem, PDF, áudio ou vídeo curto."
+            );
+            $msgRecord->markProcessed('unsupported_media');
+            return;
+        }
+
+        if (!$result->success) {
+            $this->whatsapp->sendText(
+                $dto->fromPhone,
+                "⚠️ Não consegui processar o arquivo. " . ($result->error ?? 'Tente novamente ou envie em outro formato.')
+            );
+            $msgRecord->markFailed('media_processing_failed: ' . ($result->error ?? 'unknown'));
+            return;
+        }
+
+        if ($result->isReceiptAnalysis()) {
+            $receipt = new ReceiptAnalysisResult(
+                success: $result->success,
+                data: $result->data,
+                rawText: $result->text,
+                tokensUsed: $result->tokensUsed,
+                error: $result->error,
+            );
+
+            $msgRecord->update([
+                'transcription' => json_encode($receipt->data, JSON_UNESCAPED_UNICODE),
+                'body' => $receipt->toTransactionText(),
+            ]);
+
+            if (!$receipt->isFinancial()) {
+                $desc = $receipt->data['descricao'] ?? 'Nao identifiquei informacoes financeiras nesse arquivo.';
+                $this->whatsapp->sendText(
+                    $dto->fromPhone,
+                    "📎 {$desc}\n\nPara registrar uma transação, envie um comprovante, nota fiscal, PDF ou descreva o lançamento por texto."
+                );
+                $msgRecord->markProcessed('media_not_financial');
+                return;
+            }
+
+            $transactionData = $receipt->toTransactionData();
+            if ($transactionData['valor'] <= 0) {
+                $desc = $transactionData['descricao'];
+                $this->whatsapp->sendText(
+                    $dto->fromPhone,
+                    "📎 Vi um comprovante de {$desc}, mas nao consegui identificar o valor. "
+                        . "Pode digitar? Ex: \"{$desc} 35.50\""
+                );
+                $msgRecord->markProcessed('media_no_amount');
+                return;
+            }
+
+            $this->handleTransactionExtraction($dto, $user, $transactionData, $msgRecord);
+            return;
+        }
+
+        $msgRecord->update([
+            'transcription' => $result->text,
+            'body' => $result->text,
+        ]);
+
+        $textDto = new WhatsAppMessageDTO(
+            waMessageId: $dto->waMessageId,
+            fromPhone: $dto->fromPhone,
+            type: 'text',
+            body: $result->text,
+            displayName: $dto->displayName,
+            rawPayload: $dto->rawPayload,
+        );
+
+        $this->handleNormalMessage($textDto, $user, $msgRecord);
+    }
+
+    private function logMediaProcessing(
+        int $userId,
+        string $channel,
+        ?string $fileId,
+        ?string $caption,
+        MediaProcessingResult $result,
+    ): void {
+        $logType = in_array($result->operation, ['receipt_analysis', 'document_analysis'], true)
+            ? 'image_analysis'
+            : 'audio_transcription';
+
+        AiLogService::log([
+            'user_id'           => $userId,
+            'type'              => $logType,
+            'channel'           => $channel,
+            'prompt'            => "[media:{$fileId}]" . ($caption ? " caption: {$caption}" : ''),
+            'response'          => $result->text !== '' ? $result->text : json_encode($result->data, JSON_UNESCAPED_UNICODE),
+            'provider'          => 'openai',
+            'model'             => $_ENV['OPENAI_VISION_MODEL']
+                ?? $_ENV['OPENAI_TRANSCRIPTION_MODEL']
+                ?? $_ENV['OPENAI_MODEL']
+                ?? 'gpt-4o-mini',
+            'tokens_prompt'     => 0,
+            'tokens_completion' => 0,
+            'tokens_total'      => $result->tokensUsed,
+            'response_time_ms'  => $result->durationMs,
+            'success'           => $result->success,
+            'error_message'     => $result->error,
+        ]);
     }
 
     /**

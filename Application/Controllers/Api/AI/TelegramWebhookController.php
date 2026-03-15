@@ -18,6 +18,12 @@ use Application\Services\AI\Actions\ActionRegistry;
 use Application\Services\AI\ConversationStateService;
 use Application\Services\AI\Context\UserContextBuilder;
 use Application\Services\AI\ContextCompressor;
+use Application\Services\AI\Media\MediaAsset;
+use Application\Services\AI\Media\MediaProcessingResult;
+use Application\Services\AI\Media\MediaRouterService;
+use Application\Services\AI\Media\ReceiptAnalysisResult;
+use Application\Services\AI\NLP\NumberNormalizer;
+use Application\Services\AI\NLP\TextNormalizer;
 use Application\Services\AI\Rules\CategoryRuleEngine;
 use Application\Services\AI\Security\AIRateLimiter;
 use Application\Models\AiChatMessage;
@@ -26,10 +32,10 @@ use Application\Services\AI\Telegram\TelegramResponseFormatter;
 use Application\Services\AI\Telegram\TelegramService;
 use Application\Services\AI\Telegram\TelegramUserResolver;
 use Application\Services\AI\Telegram\TelegramFileDownloader;
-use Application\Services\AI\Media\AudioTranscriptionService;
-use Application\Services\AI\Media\ImageAnalysisService;
 use Application\Services\AI\AiLogService;
 use Application\Services\Infrastructure\LogService;
+use Application\Services\AI\Media\ImageAnalysisService;
+use Application\Services\AI\Media\AudioTranscriptionService;
 use Application\Enums\LogLevel;
 use Application\Enums\LogCategory;
 use Illuminate\Database\Capsule\Manager as DB;
@@ -121,6 +127,7 @@ class TelegramWebhookController extends BaseController
             'media_file_id'     => $dto->fileId,
             'media_mime_type'   => $dto->mimeType,
             'media_file_size'   => $dto->fileSize,
+            'media_filename'    => $dto->filename,
         ]);
 
         try {
@@ -186,6 +193,11 @@ class TelegramWebhookController extends BaseController
         }
 
         $msgRecord->update(['user_id' => $user->id]);
+
+        if ($dto->isDocument() || $dto->isVideo()) {
+            $this->handleMediaMessage($dto, $user, $msgRecord);
+            return;
+        }
 
         // Voice/Audio → transcrever e processar como texto
         if ($dto->isVoice()) {
@@ -621,6 +633,9 @@ class TelegramWebhookController extends BaseController
         \Application\Models\Usuario $user,
         TelegramMessage $msgRecord,
     ): void {
+        $this->handleMediaMessage($dto, $user, $msgRecord);
+        return;
+
         // Verificar quota antes de consumir API
         if (!AIQuotaService::hasQuotaRemaining($user, 'chat')) {
             $usage = AIQuotaService::getUsage($user);
@@ -714,6 +729,9 @@ class TelegramWebhookController extends BaseController
         \Application\Models\Usuario $user,
         TelegramMessage $msgRecord,
     ): void {
+        $this->handleMediaMessage($dto, $user, $msgRecord);
+        return;
+
         // Verificar quota
         if (!AIQuotaService::hasQuotaRemaining($user, 'chat')) {
             $usage = AIQuotaService::getUsage($user);
@@ -815,6 +833,158 @@ class TelegramWebhookController extends BaseController
         $this->handleTransactionExtraction($dto, $user, $transactionData, $msgRecord);
     }
 
+    private function handleMediaMessage(
+        TelegramMessageDTO $dto,
+        \Application\Models\Usuario $user,
+        TelegramMessage $msgRecord,
+    ): void {
+        if (!AIQuotaService::hasQuotaRemaining($user, 'chat')) {
+            $usage = AIQuotaService::getUsage($user);
+            $limit = $usage['chat']['limit'] ?? 5;
+            $this->telegram->sendText(
+                $dto->chatId,
+                "🤖 Você usou suas {$limit} mensagens de IA gratuitas este mês. "
+                    . "Faça upgrade para o Pro: https://lukrato.com.br/billing"
+            );
+            $msgRecord->markProcessed('quota_exceeded');
+            return;
+        }
+
+        $statusText = $dto->isVoice()
+            ? "🎙️ Transcrevendo áudio..."
+            : ($dto->isVideo() ? "🎬 Processando vídeo..." : "📎 Analisando arquivo...");
+        $this->telegram->sendText($dto->chatId, $statusText);
+
+        $downloader = new TelegramFileDownloader();
+        $fileData = $downloader->downloadByFileId((string) $dto->fileId);
+
+        if ($fileData === null) {
+            $this->telegram->sendText($dto->chatId, "⚠️ Não consegui baixar o arquivo. Tente novamente.");
+            $msgRecord->markFailed('file_download_failed');
+            return;
+        }
+
+        $asset = new MediaAsset(
+            sourceType: $dto->type,
+            content: $fileData['content'],
+            mimeType: $dto->mimeType,
+            filename: $dto->filename ?? $fileData['filename'],
+            fileSize: $dto->fileSize,
+            caption: $dto->caption ?? $dto->body,
+            remoteId: $dto->fileId,
+        );
+
+        $result = (new MediaRouterService())->process($asset);
+        $this->logMediaProcessing($user->id, 'telegram', $dto->fileId, $dto->caption, $result);
+
+        if ($result->isUnsupported()) {
+            $this->telegram->sendText(
+                $dto->chatId,
+                "⚠️ Ainda não consigo processar esse tipo de arquivo. Envie imagem, PDF, áudio ou vídeo curto."
+            );
+            $msgRecord->markProcessed('unsupported_media');
+            return;
+        }
+
+        if (!$result->success) {
+            $this->telegram->sendText(
+                $dto->chatId,
+                "⚠️ Não consegui processar o arquivo. " . ($result->error ?? 'Tente novamente ou envie em outro formato.')
+            );
+            $msgRecord->markFailed('media_processing_failed: ' . ($result->error ?? 'unknown'));
+            return;
+        }
+
+        if ($result->isReceiptAnalysis()) {
+            $receipt = new ReceiptAnalysisResult(
+                success: $result->success,
+                data: $result->data,
+                rawText: $result->text,
+                tokensUsed: $result->tokensUsed,
+                error: $result->error,
+            );
+
+            $msgRecord->update([
+                'transcription' => json_encode($receipt->data, JSON_UNESCAPED_UNICODE),
+                'body' => $receipt->toTransactionText(),
+            ]);
+
+            if (!$receipt->isFinancial()) {
+                $desc = $receipt->data['descricao'] ?? 'Nao identifiquei informacoes financeiras nesse arquivo.';
+                $this->telegram->sendText(
+                    $dto->chatId,
+                    "📎 {$desc}\n\nPara registrar uma transação, envie um comprovante, nota fiscal, PDF ou descreva o lançamento por texto."
+                );
+                $msgRecord->markProcessed('media_not_financial');
+                return;
+            }
+
+            $transactionData = $receipt->toTransactionData();
+            if ($transactionData['valor'] <= 0) {
+                $desc = $transactionData['descricao'];
+                $this->telegram->sendText(
+                    $dto->chatId,
+                    "📎 Vi um comprovante de <b>{$desc}</b>, mas nao consegui identificar o valor.\n"
+                        . "Pode digitar? Ex: <i>\"{$desc} 35.50\"</i>"
+                );
+                $msgRecord->markProcessed('media_no_amount');
+                return;
+            }
+
+            $this->handleTransactionExtraction($dto, $user, $transactionData, $msgRecord);
+            return;
+        }
+
+        $msgRecord->update([
+            'transcription' => $result->text,
+            'body' => $result->text,
+        ]);
+
+        $textDto = new TelegramMessageDTO(
+            updateId: $dto->updateId,
+            messageId: $dto->messageId,
+            chatId: $dto->chatId,
+            type: 'text',
+            body: $result->text,
+            displayName: $dto->displayName,
+            username: $dto->username,
+            rawPayload: $dto->rawPayload,
+        );
+
+        $this->handleNormalMessage($textDto, $user, $msgRecord);
+    }
+
+    private function logMediaProcessing(
+        int $userId,
+        string $channel,
+        ?string $fileId,
+        ?string $caption,
+        MediaProcessingResult $result,
+    ): void {
+        $logType = in_array($result->operation, ['receipt_analysis', 'document_analysis'], true)
+            ? 'image_analysis'
+            : 'audio_transcription';
+
+        AiLogService::log([
+            'user_id'           => $userId,
+            'type'              => $logType,
+            'channel'           => $channel,
+            'prompt'            => "[media:{$fileId}]" . ($caption ? " caption: {$caption}" : ''),
+            'response'          => $result->text !== '' ? $result->text : json_encode($result->data, JSON_UNESCAPED_UNICODE),
+            'provider'          => 'openai',
+            'model'             => $_ENV['OPENAI_VISION_MODEL']
+                ?? $_ENV['OPENAI_TRANSCRIPTION_MODEL']
+                ?? $_ENV['OPENAI_MODEL']
+                ?? 'gpt-4o-mini',
+            'tokens_prompt'     => 0,
+            'tokens_completion' => 0,
+            'tokens_total'      => $result->tokensUsed,
+            'response_time_ms'  => $result->durationMs,
+            'success'           => $result->success,
+            'error_message'     => $result->error,
+        ]);
+    }
+
     /**
      * Trata mensagem normal: pipeline completa de IA com IntentRouter.
      * Detecta: Quick Queries, Análise, Transações, Metas, Orçamentos, Chat...
@@ -824,8 +994,10 @@ class TelegramWebhookController extends BaseController
         \Application\Models\Usuario $user,
         TelegramMessage $msgRecord,
     ): void {
+        $normalizedBody = TextNormalizer::normalize($dto->body);
+        $normalizedBody = NumberNormalizer::normalize($normalizedBody);
         // Tentar extração de transação primeiro (regex, 0 tokens)
-        $extracted = TransactionDetectorService::extract($dto->body);
+        $extracted = TransactionDetectorService::extract($normalizedBody);
 
         if ($extracted !== null) {
             $this->handleTransactionExtraction($dto, $user, $extracted, $msgRecord);
@@ -852,7 +1024,7 @@ class TelegramWebhookController extends BaseController
         AiChatMessage::create([
             'conversation_id' => $conversation->id,
             'role'            => 'user',
-            'content'         => $dto->body,
+            'content'         => $normalizedBody,
         ]);
 
         // Coletar contexto financeiro do usuário
@@ -863,7 +1035,7 @@ class TelegramWebhookController extends BaseController
             $context = [];
         }
 
-        $context = ContextCompressor::compress($context, $dto->body);
+        $context = ContextCompressor::compress($context, $normalizedBody);
 
         // Incluir últimas mensagens como histórico de conversa
         $history = $conversation->messages()
@@ -890,7 +1062,7 @@ class TelegramWebhookController extends BaseController
 
         $request = new AIRequestDTO(
             userId: $user->id,
-            message: $dto->body,
+            message: $normalizedBody,
             context: $context,
             channel: AIChannel::TELEGRAM,
         );
