@@ -46,6 +46,9 @@
     const aiQuotaBar = document.getElementById('aiQuotaBar');
     const aiQuotaText = document.getElementById('aiQuotaText');
     const aiEmpty = document.getElementById('aiEmpty');
+    const aiAttachBtn = document.getElementById('aiAttachBtn');
+    const aiFileInput = document.getElementById('aiFileInput');
+    const aiMicBtn = document.getElementById('aiMicBtn');
 
     if (!toggleBtn || !panel || !fabContainer) return;
 
@@ -554,6 +557,160 @@
     function hideExhaustedOverlay() {
         if (aiExhaustedOverlay) aiExhaustedOverlay.style.display = 'none';
         if (aiInputRow) aiInputRow.style.display = '';
+    }
+
+    // ── File Upload ──────────────────────────────────────────
+    if (aiAttachBtn && aiFileInput) {
+        aiAttachBtn.addEventListener('click', () => aiFileInput.click());
+        aiFileInput.addEventListener('change', async () => {
+            const file = aiFileInput.files[0];
+            aiFileInput.value = '';
+            if (!file) return;
+
+            const maxSize = 20 * 1024 * 1024;
+            if (file.size > maxSize) {
+                showToast('Arquivo excede o limite de 20MB.', 'warning');
+                return;
+            }
+
+            await sendAIMessageWithFile(file);
+        });
+    }
+
+    // ── Audio Recording (MediaRecorder API) ─────────────────
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isRecording = false;
+
+    if (aiMicBtn) {
+        aiMicBtn.addEventListener('click', async () => {
+            if (isRecording) {
+                stopRecording();
+            } else {
+                await startRecording();
+            }
+        });
+    }
+
+    async function startRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream, { mimeType: getSupportedAudioMime() });
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) audioChunks.push(e.data);
+            };
+
+            mediaRecorder.onstop = async () => {
+                stream.getTracks().forEach(t => t.stop());
+                const blob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+                const ext = mediaRecorder.mimeType.includes('webm') ? 'webm' : 'ogg';
+                const file = new File([blob], `audio.${ext}`, { type: mediaRecorder.mimeType });
+                await sendAIMessageWithFile(file, 'Audio');
+            };
+
+            mediaRecorder.start();
+            isRecording = true;
+            aiMicBtn.classList.add('recording');
+            aiMicBtn.title = 'Parar gravação';
+        } catch (err) {
+            console.error('[Lukrato AI] Mic error:', err);
+            showToast('Não foi possível acessar o microfone. Verifique as permissões.', 'error');
+        }
+    }
+
+    function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
+        isRecording = false;
+        if (aiMicBtn) {
+            aiMicBtn.classList.remove('recording');
+            aiMicBtn.title = 'Gravar áudio';
+        }
+    }
+
+    function getSupportedAudioMime() {
+        const mimes = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/ogg'];
+        for (const m of mimes) {
+            if (MediaRecorder.isTypeSupported(m)) return m;
+        }
+        return 'audio/webm';
+    }
+
+    // ── Send message with file attachment ────────────────────
+    async function sendAIMessageWithFile(file, label) {
+        if (aiLoading || !currentConvId) return;
+
+        aiLoading = true;
+        if (aiSendBtn) aiSendBtn.disabled = true;
+
+        const displayLabel = label || file.name;
+        const textMsg = aiInput?.value.trim() || '';
+        if (aiInput) { aiInput.value = ''; aiInput.style.height = 'auto'; }
+
+        appendAIMessage('user', textMsg ? `📎 ${displayLabel}\n${textMsg}` : `📎 ${displayLabel}`);
+        const typingEl = appendAIMessage('assistant', '● ● ●', true);
+
+        try {
+            const formData = new FormData();
+            formData.append('attachment', file);
+            if (textMsg) formData.append('message', textMsg);
+
+            const res = await fetch(`${BASE}api/ai/conversations/${encodeURIComponent(currentConvId)}/messages`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-Token': CSRF(),
+                },
+                body: formData,
+                signal: AbortSignal.timeout(120000),
+            });
+
+            if (typingEl) typingEl.remove();
+
+            if (res.status === 429) {
+                appendAIMessage('assistant', 'Você usou suas 5 mensagens de IA gratuitas este mês. <a href="/billing" style="color:var(--color-primary);font-weight:600;">Faça upgrade para o Pro</a> e tenha IA ilimitada.');
+                showExhaustedOverlay();
+                updateQuotaDisplay(0, true);
+                return;
+            }
+
+            if (!res.ok) {
+                let errMsg = `Erro ${res.status}`;
+                try { const ed = await res.json(); errMsg = ed.message || errMsg; } catch { }
+                appendAIMessage('assistant', errMsg);
+                return;
+            }
+
+            const data = await res.json();
+            const content = data.data?.assistant_message?.content
+                || data.data?.content
+                || data.data?.response;
+
+            if (data.success && content) {
+                appendAIMessage('assistant', content);
+                const aiData = data.data?.ai_data;
+                if (aiData?.action === 'confirm' && aiData?.pending_id) {
+                    appendConfirmationButtons(aiData);
+                }
+            } else {
+                appendAIMessage('assistant', data.message || 'Sem resposta do assistente.');
+            }
+
+            loadQuota();
+        } catch (err) {
+            if (typingEl) typingEl.remove();
+            const isTimeout = err?.name === 'TimeoutError';
+            appendAIMessage('assistant', isTimeout
+                ? 'A resposta demorou demais. Tente novamente.'
+                : 'Erro de conexão com o assistente.');
+        } finally {
+            aiLoading = false;
+            if (aiSendBtn) aiSendBtn.disabled = false;
+            if (aiInput) aiInput.focus();
+        }
     }
 
     // ── Helpers ────────────────────────────────────────────────

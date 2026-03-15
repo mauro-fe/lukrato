@@ -30,11 +30,11 @@ class ChatHandler implements AIHandlerInterface
      */
     private const TRIVIAL_PATTERNS = [
         '^teste$|^test$|^testing$|^testando$' =>
-            'Teste recebido! ✅ Estou funcionando. Como posso ajudar?',
+        'Teste recebido! ✅ Estou funcionando. Como posso ajudar?',
         '^ok$|^beleza$|^blz$|^valeu$|^obrigad|^thanks|^thx' =>
-            'Estou aqui se precisar de mais alguma coisa! 😊',
+        'Estou aqui se precisar de mais alguma coisa! 😊',
         'quem [eé] voc[eê]|o que voc[eê] faz|como funciona|qual seu nome|teu nome' =>
-            'Sou o Lukra, assistente financeiro do Lukrato! 🤖 Posso ajudar com: registrar gastos e receitas, acompanhar metas e orçamentos, analisar seus gastos, e dar dicas financeiras. É só me dizer!',
+        'Sou o Lukra, assistente financeiro do Lukrato! 🤖 Posso ajudar com: registrar gastos e receitas, acompanhar metas e orçamentos, analisar seus gastos, e dar dicas financeiras. É só me dizer!',
     ];
 
     /**
@@ -44,16 +44,16 @@ class ChatHandler implements AIHandlerInterface
     private const ACTION_HINTS = [
         // Menção de gasto/compra → sugerir registrar lançamento
         'gast[eio]|comprei|paguei|pag[ao]|cust[eo]u|torrei|larguei|meti\s+\d|soltei|boleto|fatura|prestação' =>
-            ['action_hint' => 'create_lancamento', 'suggestion' => 'Quer que eu registre isso como um lançamento?'],
+        ['action_hint' => 'create_lancamento', 'suggestion' => 'Quer que eu registre isso como um lançamento?'],
         // Menção de receita → sugerir registrar
         'ganhei|recebi|dep[oó]sit|entrou|sal[áa]rio|freelance|freela' =>
-            ['action_hint' => 'create_lancamento_receita', 'suggestion' => 'Quer que eu registre essa receita?'],
+        ['action_hint' => 'create_lancamento_receita', 'suggestion' => 'Quer que eu registre essa receita?'],
         // Menção de objetivo/sonho → sugerir meta
         'quero comprar|sonho|quero viajar|juntar\s+dinheiro|economizar\s+para|guardar\s+para|objetivo' =>
-            ['action_hint' => 'create_meta', 'suggestion' => 'Que tal criar uma meta pra isso? Eu posso te ajudar a acompanhar!'],
+        ['action_hint' => 'create_meta', 'suggestion' => 'Que tal criar uma meta pra isso? Eu posso te ajudar a acompanhar!'],
         // Reclamação de gasto excessivo → sugerir orçamento
         'gastando\s+muito|gasto\s+demais|preciso\s+economizar|estou\s+no\s+vermelho|apertad[oa]|sem\s+dinheiro|quebrad[oa]|endividad[oa]' =>
-            ['action_hint' => 'create_orcamento', 'suggestion' => 'Já pensou em criar um orçamento pra controlar melhor? Posso te ajudar!'],
+        ['action_hint' => 'create_orcamento', 'suggestion' => 'Já pensou em criar um orçamento pra controlar melhor? Posso te ajudar!'],
     ];
 
     public function setProvider(AIProvider $provider): void
@@ -95,9 +95,11 @@ class ChatHandler implements AIHandlerInterface
             // Chamar LLM via provider
             $response = $this->provider->chat($request->message, $context);
 
-            // Checar se é resposta de fallback
-            if (str_contains($response, 'indisponível no momento')) {
-                return AIResponseDTO::fail($response, IntentType::CHAT);
+            if ($response === null || trim($response) === '') {
+                return AIResponseDTO::fail(
+                    'O assistente de IA está indisponível no momento. Tente novamente em instantes.',
+                    IntentType::CHAT,
+                );
             }
 
             // Detectar ação implícita na mensagem do usuário

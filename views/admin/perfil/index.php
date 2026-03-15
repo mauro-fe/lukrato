@@ -537,7 +537,7 @@
 
                 <!-- Estado: Código gerado -->
                 <div class="integration-action" id="telegram-code-generated" style="display:none">
-                    <div class="integration-code-box">
+                    <div class="integration-code-box telegram-link-flow">
                         <p class="integration-instructions">Envie este código para o bot:</p>
                         <div style="display:flex;align-items:center;gap:8px;margin:12px 0">
                             <input class="form-input" id="telegram-code-display" type="text" readonly
@@ -547,9 +547,15 @@
                                 <i data-lucide="copy"></i>
                             </button>
                         </div>
-                        <a id="telegram-bot-link" href="#" target="_blank" class="btn-integration" style="--accent:#0ea5e9;text-decoration:none;display:inline-flex">
+                        <a id="telegram-bot-link" href="#" target="_blank" rel="noopener noreferrer" class="btn-integration" style="--accent:#0ea5e9;text-decoration:none;display:inline-flex">
                             <i data-lucide="external-link"></i> Abrir no Telegram
                         </a>
+                        <div class="telegram-qr-wrapper" id="telegram-qr-wrapper" aria-live="polite">
+                            <div class="telegram-qr-card">
+                                <img id="telegram-qr-image" class="telegram-qr-image" src="" alt="QR code para abrir o bot do Telegram">
+                                <small class="telegram-qr-hint">Se estiver no PC, escaneie com o celular.</small>
+                            </div>
+                        </div>
                         <small style="color:var(--color-text-muted);font-size:12px;margin-top:8px;display:block;">
                             O código expira em 10 minutos
                         </small>

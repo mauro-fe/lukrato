@@ -50,17 +50,21 @@ class ConfirmationHandler implements AIHandlerInterface
             return AIResponseDTO::fail('Usuário não identificado.', IntentType::CONFIRM_ACTION);
         }
 
-        $pending = PendingAiAction::awaiting()
+        $pendingActions = PendingAiAction::awaiting()
             ->where('user_id', $userId)
             ->orderByDesc('created_at')
-            ->first();
+            ->get();
 
-        if (!$pending) {
+        if ($pendingActions->isEmpty()) {
             return AIResponseDTO::fail(
                 'Não encontrei nenhuma ação pendente para confirmar.',
                 IntentType::CONFIRM_ACTION
             );
         }
+
+        // Se há múltiplas actions pendentes, confirma/rejeita a mais recente
+        // mas avisa o usuário sobre as outras
+        $pending = $pendingActions->first();
 
         if ($pending->isExpired()) {
             $pending->markExpired();
@@ -79,9 +83,14 @@ class ConfirmationHandler implements AIHandlerInterface
         // Rejeição explícita
         if (ConfirmationIntentRule::isNegative($message)) {
             $pending->reject();
+            $msg = '❌ Ação cancelada com sucesso.';
+            if ($pendingActions->count() > 1) {
+                $remaining = $pendingActions->count() - 1;
+                $msg .= "\n\nVocê ainda tem **{$remaining}** ação(ões) pendente(s). Diga **sim** para confirmar a próxima.";
+            }
             return AIResponseDTO::fromRule(
-                '❌ Ação cancelada com sucesso.',
-                ['action' => 'rejected', 'pending_id' => $pending->id],
+                $msg,
+                ['action' => 'rejected', 'pending_id' => $pending->id, 'remaining' => $pendingActions->count() - 1],
                 IntentType::CONFIRM_ACTION
             );
         }

@@ -221,44 +221,6 @@ class TransactionExtractorHandler implements AIHandlerInterface
     }
 
     /**
-     * Tenta parsear JSON de uma resposta da IA.
-     * Suporta JSON aninhado e limpa artefatos de markdown.
-     */
-    private function parseJsonResponse(string $response): ?array
-    {
-        // 1. Limpar blocos markdown ```json ... ```
-        $cleaned = preg_replace('/```(?:json)?\s*([\s\S]*?)```/', '$1', $response);
-        $cleaned = trim($cleaned);
-
-        // 2. Tentar decodificar diretamente
-        $data = json_decode($cleaned, true);
-        if (is_array($data) && isset($data['descricao'])) {
-            return $data;
-        }
-
-        // 3. Extrair JSON com suporte a aninhamento (brace counting)
-        $start = strpos($cleaned, '{');
-        if ($start !== false) {
-            $depth = 0;
-            $len = strlen($cleaned);
-            for ($i = $start; $i < $len; $i++) {
-                if ($cleaned[$i] === '{') $depth++;
-                if ($cleaned[$i] === '}') $depth--;
-                if ($depth === 0) {
-                    $jsonStr = substr($cleaned, $start, $i - $start + 1);
-                    $data = json_decode($jsonStr, true);
-                    if (is_array($data) && isset($data['descricao'])) {
-                        return $data;
-                    }
-                    break;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    /**
      * Monta resposta com PendingAiAction para canal web, ou resposta direta para WhatsApp.
      */
     private function buildResponse(array $result, AIRequestDTO $request, string $source): AIResponseDTO

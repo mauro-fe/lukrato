@@ -47,7 +47,7 @@ class ContextCompressor
     private const ALWAYS_INCLUDE = ['data_atual', 'mes_atual', 'dia_da_semana', 'plataforma'];
 
     /** Contexto mínimo para queries genéricas (saudações, testes, etc.) */
-    private const MINIMAL_CONTEXT = ['data_atual', 'mes_atual', 'dia_da_semana', 'plataforma', 'financeiro'];
+    private const MINIMAL_CONTEXT = ['data_atual', 'mes_atual', 'dia_da_semana', 'plataforma', 'financeiro', 'lancamentos_recentes'];
 
     /** Expressões que indicam que o usuário quer uma visão geral. */
     private const GENERIC_PATTERNS = [

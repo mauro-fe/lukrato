@@ -85,38 +85,67 @@ class OpenAIProvider implements AIProvider
             }
         }
 
-        $response = $this->client->post('chat/completions', [
-            'headers' => $this->headers(),
-            'json'    => $body,
-        ]);
+        // Retry com backoff para erros transitórios (429, 500, 502, 503)
+        $maxAttempts = 3;
+        $lastException = null;
 
-        // Capturar rate limits dos headers
-        $this->lastRateLimits = [
-            'requests_limit'     => (int) ($response->getHeaderLine('x-ratelimit-limit-requests') ?: 0),
-            'requests_remaining' => (int) ($response->getHeaderLine('x-ratelimit-remaining-requests') ?: 0),
-            'tokens_limit'       => (int) ($response->getHeaderLine('x-ratelimit-limit-tokens') ?: 0),
-            'tokens_remaining'   => (int) ($response->getHeaderLine('x-ratelimit-remaining-tokens') ?: 0),
-            'reset_requests'     => $response->getHeaderLine('x-ratelimit-reset-requests') ?: null,
-            'reset_tokens'       => $response->getHeaderLine('x-ratelimit-reset-tokens') ?: null,
-        ];
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            try {
+                $response = $this->client->post('chat/completions', [
+                    'headers' => $this->headers(),
+                    'json'    => $body,
+                ]);
 
-        $result = json_decode($response->getBody()->getContents(), true);
+                // Capturar rate limits dos headers
+                $this->lastRateLimits = [
+                    'requests_limit'     => (int) ($response->getHeaderLine('x-ratelimit-limit-requests') ?: 0),
+                    'requests_remaining' => (int) ($response->getHeaderLine('x-ratelimit-remaining-requests') ?: 0),
+                    'tokens_limit'       => (int) ($response->getHeaderLine('x-ratelimit-limit-tokens') ?: 0),
+                    'tokens_remaining'   => (int) ($response->getHeaderLine('x-ratelimit-remaining-tokens') ?: 0),
+                    'reset_requests'     => $response->getHeaderLine('x-ratelimit-reset-requests') ?: null,
+                    'reset_tokens'       => $response->getHeaderLine('x-ratelimit-reset-tokens') ?: null,
+                ];
 
-        $usage = $result['usage'] ?? [];
-        $this->lastMeta = [
-            'tokens_prompt'     => $usage['prompt_tokens'] ?? null,
-            'tokens_completion' => $usage['completion_tokens'] ?? null,
-            'tokens_total'      => $usage['total_tokens'] ?? null,
-        ];
+                $result = json_decode($response->getBody()->getContents(), true);
 
-        // Persistir rate limits em cache para o endpoint quota()
-        try {
-            (new CacheService())->set('ai:openai_rate_limits', $this->lastRateLimits, 300);
-        } catch (\Throwable) {
-            // Silencioso
+                $usage = $result['usage'] ?? [];
+                $this->lastMeta = [
+                    'tokens_prompt'     => $usage['prompt_tokens'] ?? null,
+                    'tokens_completion' => $usage['completion_tokens'] ?? null,
+                    'tokens_total'      => $usage['total_tokens'] ?? null,
+                ];
+
+                // Persistir rate limits em cache para o endpoint quota()
+                try {
+                    (new CacheService())->set('ai:openai_rate_limits', $this->lastRateLimits, 300);
+                } catch (\Throwable) {
+                    // Silencioso
+                }
+
+                return $result;
+            } catch (\GuzzleHttp\Exception\ServerException $e) {
+                // 500, 502, 503 — retry
+                $lastException = $e;
+            } catch (\GuzzleHttp\Exception\ClientException $e) {
+                $status = $e->getResponse()->getStatusCode();
+                if ($status === 429 && $attempt < $maxAttempts) {
+                    // Rate limited — retry com backoff
+                    $lastException = $e;
+                } else {
+                    throw $e; // 4xx não-retryable
+                }
+            } catch (\GuzzleHttp\Exception\ConnectException $e) {
+                // Timeout de conexão — retry
+                $lastException = $e;
+            }
+
+            // Backoff exponencial: 1s, 2s
+            if ($attempt < $maxAttempts) {
+                usleep($attempt * 1000000);
+            }
         }
 
-        return $result;
+        throw $lastException;
     }
 
     // ─── AIProvider ────────────────────────────────────────────

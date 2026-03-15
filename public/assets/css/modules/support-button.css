@@ -1241,6 +1241,38 @@
     transform: none;
 }
 
+/* ── Media buttons (mic + attach) ──────────────────────── */
+.lk-ai-media-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    color: var(--color-text-muted);
+    border: 1.5px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all var(--transition-fast);
+}
+
+.lk-ai-media-btn:hover {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.lk-ai-media-btn.recording {
+    color: #e74c3c;
+    border-color: #e74c3c;
+    animation: pulseRecording 1.2s ease-in-out infinite;
+}
+
+@keyframes pulseRecording {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
 /* ── Animation ──────────────────────────────────────────── */
 @keyframes chatPanelIn {
     from {

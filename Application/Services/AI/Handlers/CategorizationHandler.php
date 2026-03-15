@@ -163,12 +163,14 @@ class CategorizationHandler implements AIHandlerInterface
             // Tentar match exato primeiro
             $cat = (clone $query)->where('nome', $categoriaNome)->first();
 
-            // Tentar fuzzy match
+            // Tentar fuzzy match (com normalização de acentos)
             if (!$cat) {
                 $allCats = $query->get();
                 $bestScore = 0;
+                $normalizedTarget = self::removeAccents(mb_strtolower($categoriaNome));
                 foreach ($allCats as $c) {
-                    similar_text(mb_strtolower($c->nome), mb_strtolower($categoriaNome), $percent);
+                    $normalizedCat = self::removeAccents(mb_strtolower($c->nome));
+                    similar_text($normalizedCat, $normalizedTarget, $percent);
                     if ($percent >= 85 && $percent > $bestScore) {
                         $bestScore = $percent;
                         $cat = $c;
@@ -187,14 +189,16 @@ class CategorizationHandler implements AIHandlerInterface
                         ->where('nome', $subcategoriaNome)
                         ->first();
 
-                    // Fuzzy match para subcategoria
+                    // Fuzzy match para subcategoria (com normalização de acentos)
                     if (!$sub) {
                         $allSubs = Categoria::query()
                             ->where('parent_id', $cat->id)
                             ->get();
                         $bestScore = 0;
+                        $normalizedTarget = self::removeAccents(mb_strtolower($subcategoriaNome));
                         foreach ($allSubs as $s) {
-                            similar_text(mb_strtolower($s->nome), mb_strtolower($subcategoriaNome), $percent);
+                            $normalizedSub = self::removeAccents(mb_strtolower($s->nome));
+                            similar_text($normalizedSub, $normalizedTarget, $percent);
                             if ($percent >= 85 && $percent > $bestScore) {
                                 $bestScore = $percent;
                                 $sub = $s;
@@ -213,5 +217,40 @@ class CategorizationHandler implements AIHandlerInterface
         }
 
         return $result;
+    }
+
+    /**
+     * Remove acentos de uma string para comparação fuzzy mais precisa.
+     */
+    private static function removeAccents(string $str): string
+    {
+        $map = [
+            'á' => 'a',
+            'à' => 'a',
+            'ã' => 'a',
+            'â' => 'a',
+            'ä' => 'a',
+            'é' => 'e',
+            'è' => 'e',
+            'ê' => 'e',
+            'ë' => 'e',
+            'í' => 'i',
+            'ì' => 'i',
+            'î' => 'i',
+            'ï' => 'i',
+            'ó' => 'o',
+            'ò' => 'o',
+            'õ' => 'o',
+            'ô' => 'o',
+            'ö' => 'o',
+            'ú' => 'u',
+            'ù' => 'u',
+            'û' => 'u',
+            'ü' => 'u',
+            'ç' => 'c',
+            'ñ' => 'n',
+        ];
+
+        return strtr($str, $map);
     }
 }

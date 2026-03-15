@@ -239,6 +239,7 @@ class DashboardController
                 'data' => $score,
             ]);
         } catch (\Exception $e) {
+            error_log('[DashboardController::healthScore] ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
             Response::json([
                 'success' => false,
                 'message' => 'Erro ao calcular health score',
@@ -492,13 +493,14 @@ class DashboardController
             $currentMonth = date('Y-m');
             $data = $this->lancamentoRepo->getResumoMes($userId, $currentMonth);
 
-            $insights = $this->generateHealthScoreInsights($data);
+            $insights = $this->generateHealthScoreInsights($data, $userId);
 
             Response::json([
                 'success' => true,
                 'data' => $insights,
             ]);
         } catch (\Exception $e) {
+            error_log('[DashboardController::healthScoreInsights] ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
             Response::json([
                 'success' => false,
                 'message' => 'Erro ao gerar insights',
@@ -509,7 +511,7 @@ class DashboardController
     /**
      * Gera insights acionáveis para melhorar Health Score
      */
-    private function generateHealthScoreInsights(array $data): array
+    private function generateHealthScoreInsights(array $data, int $userId): array
     {
         $insights = [];
 

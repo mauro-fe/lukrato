@@ -126,66 +126,9 @@ class QuickQueryHandler implements AIHandlerInterface
 
     // ─── Extração de período ─────────────────────────────────
 
-    /**
-     * Extrai mês/ano da mensagem do usuário.
-     * Retorna [month, year] ou null para usar o mês atual.
-     */
     private function extractPeriod(string $message): ?array
     {
-        $months = [
-            'janeiro' => 1,
-            'jan' => 1,
-            'fevereiro' => 2,
-            'fev' => 2,
-            'março' => 3,
-            'marco' => 3,
-            'mar' => 3,
-            'abril' => 4,
-            'abr' => 4,
-            'maio' => 5,
-            'mai' => 5,
-            'junho' => 6,
-            'jun' => 6,
-            'julho' => 7,
-            'jul' => 7,
-            'agosto' => 8,
-            'ago' => 8,
-            'setembro' => 9,
-            'set' => 9,
-            'outubro' => 10,
-            'out' => 10,
-            'novembro' => 11,
-            'nov' => 11,
-            'dezembro' => 12,
-            'dez' => 12,
-        ];
-
-        // "mês passado" / "mes anterior"
-        if (preg_match('/m[eê]s\s+(passado|anterior)/iu', $message)) {
-            $prev = now()->subMonth();
-            return [(int) $prev->month, (int) $prev->year];
-        }
-
-        // "ano passado"
-        if (preg_match('/ano\s+(passado|anterior)/iu', $message)) {
-            // Retorna null — cai para LLM que pode lidar com ano inteiro
-            return null;
-        }
-
-        // "último trimestre" / "trimestre passado"
-        if (preg_match('/(último|ultimo)\s+trimestre|trimestre\s+passado/iu', $message)) {
-            return null; // Trimestre requer lógica mais complexa; cai para LLM
-        }
-
-        // Nome de mês explícito (ex: "janeiro", "em março", "março 2025", "jan", "fev")
-        foreach ($months as $name => $num) {
-            if (preg_match('/\b' . preg_quote($name, '/') . '\b(?:\s+(?:de\s+)?(\d{4}))?/iu', $message, $m)) {
-                $year = !empty($m[1]) ? (int) $m[1] : (int) now()->year;
-                return [$num, $year];
-            }
-        }
-
-        return null; // Mês atual (padrão)
+        return \Application\Services\AI\NLP\PeriodExtractor::extract($message);
     }
 
     /**
@@ -275,39 +218,43 @@ class QuickQueryHandler implements AIHandlerInterface
     {
         if ($userId === null) return null;
 
-        $query = Conta::query()->where('ativo', true)
-            ->where('user_id', $userId);
-
-        $contas = $query->get(['id', 'nome', 'saldo_inicial']);
+        $contas = Conta::query()->where('ativo', true)
+            ->where('user_id', $userId)
+            ->get(['id', 'nome', 'saldo_inicial']);
 
         $totalSaldo = 0;
         foreach ($contas as $conta) {
             $saldo = (float) $conta->saldo_inicial;
 
-            $receitasConta = Lancamento::query()
+            $receitasQuery = Lancamento::query()
                 ->where('conta_id', $conta->id)
                 ->where('tipo', 'receita')
                 ->where('pago', true)
                 ->whereNull('cancelado_em')
-                ->when($userId, fn($q) => $q->where('user_id', $userId))
-                ->sum('valor');
+                ->when($userId, fn($q) => $q->where('user_id', $userId));
 
-            $despesasConta = Lancamento::query()
+            $despesasQuery = Lancamento::query()
                 ->where('conta_id', $conta->id)
                 ->where('tipo', 'despesa')
                 ->where('pago', true)
                 ->whereNull('cancelado_em')
-                ->when($userId, fn($q) => $q->where('user_id', $userId))
-                ->sum('valor');
+                ->when($userId, fn($q) => $q->where('user_id', $userId));
 
-            $saldo += (float) $receitasConta - (float) $despesasConta;
+            if ($period !== null) {
+                [$month, $year] = $this->getPeriodValues($period);
+                $receitasQuery->whereMonth('data', $month)->whereYear('data', $year);
+                $despesasQuery->whereMonth('data', $month)->whereYear('data', $year);
+            }
+
+            $saldo += (float) $receitasQuery->sum('valor') - (float) $despesasQuery->sum('valor');
             $totalSaldo += $saldo;
         }
 
         $formatted = 'R$ ' . number_format($totalSaldo, 2, ',', '.');
+        $label = $period !== null ? ' em ' . $this->getPeriodLabel($period) : '';
 
         return [
-            'message' => "🏦 Seu saldo total em **{$contas->count()} conta(s)** é **{$formatted}**.",
+            'message' => "🏦 Seu saldo total em **{$contas->count()} conta(s)**{$label} é **{$formatted}**.",
             'data'    => [
                 'saldo_total'  => $totalSaldo,
                 'total_contas' => $contas->count(),

@@ -101,10 +101,13 @@ class AudioTranscriptionService
 
     public function isMimeTypeSupported(?string $mimeType): bool
     {
-        $mimeType = strtolower((string) $mimeType);
+        $mimeType = strtolower(trim((string) $mimeType));
 
-        return $mimeType === ''
-            || str_starts_with($mimeType, 'audio/')
+        if ($mimeType === '') {
+            return false;
+        }
+
+        return str_starts_with($mimeType, 'audio/')
             || in_array($mimeType, ['video/mp4', 'video/webm'], true);
     }
 }

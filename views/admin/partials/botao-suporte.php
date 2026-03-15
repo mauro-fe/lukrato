@@ -129,8 +129,15 @@ $planTier     = $planTier     ?? 'free';
                 </a>
             </div>
             <div class="lk-ai-input-row" id="aiInputRow">
+                <button class="lk-ai-media-btn" id="aiAttachBtn" title="Enviar imagem ou PDF">
+                    <i data-lucide="paperclip" style="width:16px;height:16px;"></i>
+                </button>
+                <input type="file" id="aiFileInput" accept="image/jpeg,image/png,image/webp,application/pdf" style="display:none;">
                 <textarea id="aiChatInput" class="lk-ai-textarea" placeholder="Digite sua pergunta..."
                     rows="1"></textarea>
+                <button class="lk-ai-media-btn" id="aiMicBtn" title="Gravar áudio">
+                    <i data-lucide="mic" style="width:16px;height:16px;"></i>
+                </button>
                 <button class="lk-ai-send-btn" id="aiChatSend">
                     <i data-lucide="send" style="width:16px;height:16px;"></i>
                 </button>

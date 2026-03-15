@@ -883,6 +883,8 @@
             const json = await res.json();
             const data = json.data || {};
             const statusEl = document.getElementById('telegram-status');
+            const qrWrapper = document.getElementById('telegram-qr-wrapper');
+            const qrImage = document.getElementById('telegram-qr-image');
             if (data.linked) {
                 statusEl.innerHTML = '<span class="status-indicator linked"></span><span class="status-text">Vinculado</span>';
                 document.getElementById('telegram-not-linked').style.display = 'none';
@@ -894,6 +896,8 @@
                 document.getElementById('telegram-code-generated').style.display = 'none';
                 document.getElementById('telegram-linked').style.display = 'none';
             }
+            if (qrWrapper) qrWrapper.classList.remove('is-visible');
+            if (qrImage) qrImage.removeAttribute('src');
         } catch (e) { /* silent */ }
     }
 
@@ -913,6 +917,17 @@
                 document.getElementById('telegram-code-generated').style.display = '';
                 document.getElementById('telegram-code-display').value = json.data.code;
                 document.getElementById('telegram-bot-link').href = json.data.bot_url;
+                const qrWrapper = document.getElementById('telegram-qr-wrapper');
+                const qrImage = document.getElementById('telegram-qr-image');
+                if (qrWrapper && qrImage) {
+                    if (json.data.qr_code_data_uri) {
+                        qrImage.src = json.data.qr_code_data_uri;
+                        qrWrapper.classList.add('is-visible');
+                    } else {
+                        qrImage.removeAttribute('src');
+                        qrWrapper.classList.remove('is-visible');
+                    }
+                }
             } else {
                 if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: json.error || json.message, confirmButtonColor: '#e67e22' });
             }

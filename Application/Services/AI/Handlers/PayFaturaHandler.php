@@ -13,6 +13,8 @@ use Application\Models\FaturaCartaoItem;
 use Application\Models\PendingAiAction;
 use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\Infrastructure\LogService;
+use Application\Services\AI\NLP\CardNameExtractor;
+use Application\Services\AI\NLP\PeriodExtractor;
 use Carbon\Carbon;
 
 /**
@@ -110,7 +112,28 @@ class PayFaturaHandler implements AIHandlerInterface
             $contaNome = 'padrão';
             if ($contaId) {
                 $conta = Conta::find($contaId);
-                $contaNome = $conta ? $conta->nome : 'padrão';
+                if ($conta) {
+                    $contaNome = $conta->nome;
+                } else {
+                    $contaId = null;
+                }
+            }
+
+            if (!$contaId) {
+                // Tentar auto-preencher com primeira conta ativa do usuário
+                $contaPadrao = Conta::where('user_id', $userId)
+                    ->where('ativo', true)
+                    ->first();
+                if ($contaPadrao) {
+                    $contaId = $contaPadrao->id;
+                    $contaNome = $contaPadrao->nome;
+                } else {
+                    return AIResponseDTO::fromRule(
+                        '⚠️ Seu cartão **' . $cartao->nome_cartao . '** não tem uma conta vinculada e você não possui contas ativas. Cadastre uma conta primeiro.',
+                        ['action' => 'no_account'],
+                        IntentType::PAY_FATURA
+                    );
+                }
             }
 
             // 6. Criar PendingAiAction
@@ -163,78 +186,11 @@ class PayFaturaHandler implements AIHandlerInterface
 
     private function extractCartaoName(string $message): ?string
     {
-        $banks = [
-            'nubank'              => 'nubank',
-            'inter'               => 'inter',
-            'ita[úu]'             => 'itaú',
-            'itau'                => 'itaú',
-            'bradesco'            => 'bradesco',
-            'santander'           => 'santander',
-            'c6'                  => 'c6',
-            'next'                => 'next',
-            'bb'                  => 'banco do brasil',
-            'banco\s+do\s+brasil' => 'banco do brasil',
-            'caixa'               => 'caixa',
-            'original'            => 'original',
-            'neon'                => 'neon',
-            'picpay'              => 'picpay',
-            'mercado\s+pago'      => 'mercado pago',
-            'will'                => 'will',
-            'xp'                  => 'xp',
-        ];
-
-        $normalized = mb_strtolower(trim($message));
-        foreach ($banks as $pattern => $name) {
-            if (preg_match('/\b' . $pattern . '\b/iu', $normalized)) {
-                return $name;
-            }
-        }
-
-        return null;
+        return CardNameExtractor::extract($message);
     }
 
     private function extractPeriod(string $message): ?array
     {
-        $months = [
-            'janeiro' => 1,
-            'jan' => 1,
-            'fevereiro' => 2,
-            'fev' => 2,
-            'março' => 3,
-            'marco' => 3,
-            'mar' => 3,
-            'abril' => 4,
-            'abr' => 4,
-            'maio' => 5,
-            'mai' => 5,
-            'junho' => 6,
-            'jun' => 6,
-            'julho' => 7,
-            'jul' => 7,
-            'agosto' => 8,
-            'ago' => 8,
-            'setembro' => 9,
-            'set' => 9,
-            'outubro' => 10,
-            'out' => 10,
-            'novembro' => 11,
-            'nov' => 11,
-            'dezembro' => 12,
-            'dez' => 12,
-        ];
-
-        if (preg_match('/m[eê]s\s+(passado|anterior)/iu', $message)) {
-            $prev = now()->subMonth();
-            return [(int) $prev->month, (int) $prev->year];
-        }
-
-        foreach ($months as $name => $num) {
-            if (preg_match('/\b' . preg_quote($name, '/') . '\b(?:\s+(?:de\s+)?(\d{4}))?/iu', $message, $m)) {
-                $year = !empty($m[1]) ? (int) $m[1] : (int) now()->year;
-                return [$num, $year];
-            }
-        }
-
-        return null;
+        return PeriodExtractor::extract($message);
     }
 }

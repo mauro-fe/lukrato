@@ -34,10 +34,8 @@ class PendingAiAction extends Model
     public function scopeAwaiting($query)
     {
         return $query->where('status', 'awaiting_confirm')
-            ->where(function ($q) {
-                $q->whereNull('expires_at')
-                    ->orWhere('expires_at', '>', now());
-            });
+            ->whereNotNull('expires_at')
+            ->where('expires_at', '>', now());
     }
 
     public function scopeExpired($query)

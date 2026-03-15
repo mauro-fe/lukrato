@@ -5,13 +5,15 @@
 
 // Injeta CSS dos componentes
 function injectStyles() {
+  const base = window.BASE_URL || window.__LK_CONFIG?.baseUrl || '/';
   const styles = [
-    '/assets/css/pages/admin-dashboard/health-score.css',
-    '/assets/css/pages/admin-dashboard/greeting.css',
-    '/assets/css/pages/admin-dashboard/health-score-insights.css'
+    'assets/css/pages/admin-dashboard/health-score.css',
+    'assets/css/pages/admin-dashboard/greeting.css',
+    'assets/css/pages/admin-dashboard/health-score-insights.css'
   ];
 
-  styles.forEach(href => {
+  styles.forEach(path => {
+    const href = base + path;
     if (!document.querySelector(`link[href="${href}"]`)) {
       const link = document.createElement('link');
       link.rel = 'stylesheet';

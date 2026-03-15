@@ -193,7 +193,7 @@ class ConversationStateService
             'ultim' => -1,
         ];
         foreach ($ordinals as $prefix => $index) {
-            if (str_contains($normalized, $prefix)) {
+            if (preg_match('/\b' . preg_quote($prefix, '/') . '/iu', $normalized)) {
                 $realIndex = $index === -1 ? count($options) - 1 : $index;
                 if (isset($options[$realIndex])) {
                     $selected = $options[$realIndex];
