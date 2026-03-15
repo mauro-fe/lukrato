@@ -10,6 +10,7 @@ node_modules/
 *.zip
 
 /storage/cache/*.json
+Application/storage/cache/
 
 
 *client_secret*.json
