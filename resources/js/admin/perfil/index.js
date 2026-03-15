@@ -189,7 +189,7 @@
                 });
                 const j = await res.json().catch(() => null);
 
-                if (!res.ok || j?.status !== 'success') {
+                if (!res.ok || !j?.success) {
                     throw new Error(j?.message || 'Falha ao enviar foto.');
                 }
 
@@ -221,7 +221,7 @@
             });
             const j = await res.json().catch(() => null);
 
-            if (!res.ok || j?.status !== 'success') {
+            if (!res.ok || !j?.success) {
                 throw new Error(j?.message || 'Falha ao remover foto.');
             }
 
@@ -248,7 +248,7 @@
             });
 
             const j = await res.json().catch(() => null);
-            if (!res.ok || j?.status !== 'success') {
+            if (!res.ok || !j?.success) {
                 throw new Error(j?.message || 'Falha ao carregar perfil.');
             }
 
@@ -604,7 +604,7 @@
 
                 const data = await res.json();
 
-                if (!res.ok || data.status !== 'success') {
+                if (!res.ok || !data.success) {
                     throw new Error(data.message || 'Erro ao excluir conta');
                 }
 

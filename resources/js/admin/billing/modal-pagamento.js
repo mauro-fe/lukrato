@@ -689,7 +689,7 @@ form?.addEventListener('submit', async (e) => {
             credentials: 'include', body: JSON.stringify(payload)
         });
         const json = await resp.json().catch(() => null);
-        if (!resp.ok || !json || json.status !== 'success') throw new Error(json?.message || 'Não foi possível processar a solicitação.');
+        if (!resp.ok || !json || !json.success) throw new Error(json?.message || 'Não foi possível processar a solicitação.');
 
         Swal?.close();
 

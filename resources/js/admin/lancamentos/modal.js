@@ -404,7 +404,7 @@ const ModalManager = {
         try {
             const res = await Modules.API.updateLancamento(STATE.editingLancamentoId, payload);
             const json = await res.json().catch(() => null);
-            if (!res.ok || (json && json.status !== 'success')) {
+            if (!res.ok || (json && !json.success)) {
                 const msg = json?.message || (json?.errors ? Object.values(json.errors).join('\n') : 'Falha ao atualizar transferência.');
                 throw new Error(msg);
             }
@@ -610,7 +610,7 @@ const ModalManager = {
             const res = await Modules.API.updateLancamento(STATE.editingLancamentoId, payload);
             const json = await res.json().catch(() => null);
 
-            if (!res.ok || (json && json.status !== 'success')) {
+            if (!res.ok || (json && !json.success)) {
                 const msg = json?.message ||
                     (json?.errors ? Object.values(json.errors).join('\n') :
                         'Falha ao atualizar lançamento.');

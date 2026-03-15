@@ -92,7 +92,7 @@ const BASE_URL = getBaseUrl();
                 body: JSON.stringify({ csrf_token: csrfToken })
             });
             const data = await response.json();
-            if (!response.ok || data.status !== 'success') throw new Error(data.message || 'Erro ao cancelar assinatura');
+            if (!response.ok || !data.success) throw new Error(data.message || 'Erro ao cancelar assinatura');
 
             await Swal.fire({
                 icon: 'success', title: 'Assinatura cancelada!',
