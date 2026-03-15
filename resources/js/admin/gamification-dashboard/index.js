@@ -86,7 +86,7 @@ async function loadGamificationProgress() {
         if (!response.ok) return;
 
         const data = await response.json();
-        const isSuccess = data.success === true || data.status === 'Success' || data.status === 'success';
+        const isSuccess = data.success === true;
         if (isSuccess && data.data) {
             currentProgress = data.data;
             isPro = data.data.is_pro;
@@ -158,7 +158,7 @@ async function loadGamificationStats() {
         if (!response.ok) return;
 
         const data = await response.json();
-        const isSuccess = data.success === true || data.status === 'Success' || data.status === 'success';
+        const isSuccess = data.success === true;
         if (isSuccess && data.data) updateStatsUI(data.data);
     } catch (error) {
         console.error('Erro ao carregar estatísticas:', error);
@@ -222,7 +222,7 @@ async function loadAchievements() {
         if (!response.ok) return;
 
         const data = await response.json();
-        const isSuccess = data.success === true || data.status === 'Success' || data.status === 'success';
+        const isSuccess = data.success === true;
         if (isSuccess && data.data) updateAchievementsUI(data.data.achievements);
     } catch (error) {
         console.error('Erro ao carregar conquistas:', error);
@@ -319,7 +319,7 @@ async function showAllAchievements() {
         if (!response.ok) throw new Error('Erro ao carregar conquistas');
 
         const data = await response.json();
-        const isSuccess = data.success === true || data.status === 'Success' || data.status === 'success';
+        const isSuccess = data.success === true;
         if (!isSuccess || !data.data) return;
 
         const achievements = data.data.achievements;

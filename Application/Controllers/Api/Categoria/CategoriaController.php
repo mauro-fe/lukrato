@@ -215,15 +215,14 @@ class CategoriaController extends BaseController
         $totalVinculados = $subcategoriasCount + $lancamentosCount;
 
         if ($totalVinculados > 0 && !$force) {
-            Response::json([
-                'status' => 'confirm_delete',
-                'message' => "Esta categoria possui itens vinculados. Confirme para excluir.",
+            Response::error('Esta categoria possui itens vinculados. Confirme para excluir.', 422, [
+                'confirm_delete' => true,
                 'counts' => [
                     'subcategorias' => $subcategoriasCount,
                     'lancamentos' => $lancamentosCount,
                     'total' => $totalVinculados,
                 ],
-            ], 422);
+            ]);
             return;
         }
 

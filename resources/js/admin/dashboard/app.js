@@ -36,7 +36,7 @@ export const API = {
         });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const json = await response.json();
-        if (json?.error || json?.status === 'error') throw new Error(json?.message || 'Erro na API');
+        if (json?.success === false) throw new Error(json?.message || 'Erro na API');
         return json;
     },
 

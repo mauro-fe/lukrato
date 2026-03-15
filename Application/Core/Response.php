@@ -52,7 +52,7 @@ class Response
         } catch (\JsonException $e) {
             $this->statusCode = 500;
             $this->content = json_encode([
-                'status' => 'error',
+                'success' => false,
                 'message' => 'JSON encoding error: ' . $e->getMessage()
             ]);
         }
@@ -160,7 +160,6 @@ class Response
     {
         self::json([
             'success' => true,
-            'status'  => 'success',
             'message' => $message,
             'data'    => $data,
         ], $statusCode);
@@ -168,7 +167,7 @@ class Response
 
     public static function error(string $message, int $statusCode = 400, mixed $errors = null): void
     {
-        $payload = ['status' => 'error', 'message' => $message];
+        $payload = ['success' => false, 'message' => $message];
         if ($errors !== null) $payload['errors'] = $errors;
         self::json($payload, $statusCode);
     }

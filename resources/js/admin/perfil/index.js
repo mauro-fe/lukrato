@@ -386,7 +386,7 @@
                 });
 
                 const j = await r.json().catch(() => null);
-                if (!r.ok || j?.status === 'error') {
+                if (!r.ok || !j?.success) {
                     throw new Error(extractApiError(j, 'Falha ao alterar senha.'));
                 }
 
@@ -476,7 +476,7 @@
 
 
             const j = await r.json().catch(() => null);
-            if (!r.ok || j?.status === 'error') {
+            if (!r.ok || !j?.success) {
                 throw new Error(extractApiError(j, 'Falha ao salvar.'));
             }
 
@@ -822,7 +822,7 @@
                 document.getElementById('whatsapp-verify').style.display = '';
                 document.getElementById('whatsapp-verify-msg').textContent = json.message;
             } else {
-                if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: json.error || json.message, confirmButtonColor: '#e67e22' });
+                if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: json.message || 'Erro desconhecido', confirmButtonColor: '#e67e22' });
             }
         } catch (e) {
             if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: 'Erro de conexão', confirmButtonColor: '#e67e22' });
@@ -848,7 +848,7 @@
                 if (window.Swal) Swal.fire({ icon: 'success', title: 'Vinculado!', text: json.message, confirmButtonColor: '#e67e22', timer: 2500, timerProgressBar: true });
                 loadWhatsAppStatus();
             } else {
-                if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: json.error || json.message, confirmButtonColor: '#e67e22' });
+                if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: json.message || 'Erro desconhecido', confirmButtonColor: '#e67e22' });
             }
         } catch (e) {
             if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: 'Erro de conexão', confirmButtonColor: '#e67e22' });
@@ -929,7 +929,7 @@
                     }
                 }
             } else {
-                if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: json.error || json.message, confirmButtonColor: '#e67e22' });
+                if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: json.message || 'Erro desconhecido', confirmButtonColor: '#e67e22' });
             }
         } catch (e) {
             if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: 'Erro de conexão', confirmButtonColor: '#e67e22' });

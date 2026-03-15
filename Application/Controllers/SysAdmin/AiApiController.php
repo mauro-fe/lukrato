@@ -94,10 +94,7 @@ class AiApiController extends BaseController
 
             Response::success($data ?? ['status' => 'ok']);
         } catch (\Throwable $e) {
-            Response::json([
-                'success' => false,
-                'message' => 'Serviço Python offline',
-            ], 503);
+            Response::error('Serviço Python offline', 503);
         }
     }
 
@@ -204,18 +201,14 @@ class AiApiController extends BaseController
                 default => 'error',
             };
 
-            Response::json([
-                'success' => false,
-                'data'    => [
-                    'provider' => 'openai',
-                    'model'    => $model,
-                    'status'   => $code,
-                    'message'  => $errMsg,
-                    'requests_limit'     => 0,
-                    'requests_remaining' => 0,
-                    'tokens_limit'       => 0,
-                    'tokens_remaining'   => 0,
-                ],
+            Response::error($errMsg, $status, [
+                'provider' => 'openai',
+                'model'    => $model,
+                'status'   => $code,
+                'requests_limit'     => 0,
+                'requests_remaining' => 0,
+                'tokens_limit'       => 0,
+                'tokens_remaining'   => 0,
             ]);
         } catch (\Throwable $e) {
             Response::error('Erro ao verificar quota: ' . $e->getMessage(), 500);
@@ -299,7 +292,7 @@ class AiApiController extends BaseController
         $categories  = is_array($payload['categories'] ?? null) ? $payload['categories'] : [];
 
         if (mb_strlen($description) < 3) {
-            Response::json(['category' => null]);
+            Response::success(['category' => null]);
             return;
         }
 
@@ -323,7 +316,7 @@ class AiApiController extends BaseController
             return;
         }
 
-        Response::json(['category' => $category]);
+        Response::success(['category' => $category]);
     }
 
     /**
@@ -375,10 +368,7 @@ class AiApiController extends BaseController
         );
 
         if (empty($result)) {
-            Response::json([
-                'success' => false,
-                'message' => 'Análise de IA indisponível no momento. Verifique se o serviço está rodando.',
-            ], 503);
+            Response::error('Análise de IA indisponível no momento. Verifique se o serviço está rodando.', 503);
             return;
         }
 

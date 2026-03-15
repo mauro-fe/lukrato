@@ -520,7 +520,7 @@ function clearErrors(form) {
                 // Se foi bloqueio local de captcha, não processar mais (botão já foi reabilitado)
                 if (data?._captchaBlock) return;
 
-                const success = data && (data.success === true || data.status === 'success');
+                const success = data && data.success;
 
                 if (!response.ok || !success) {
                     let message;

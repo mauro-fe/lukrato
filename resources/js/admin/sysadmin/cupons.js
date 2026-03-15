@@ -64,7 +64,7 @@ async function carregarCupons() {
 
         const data = await response.json();
 
-        if (data.status === 'success') {
+        if (data.success) {
             cupons = data.data.cupons;
             renderizarCupons();
         } else {
@@ -226,7 +226,7 @@ document.getElementById('formCupom').addEventListener('submit', async (e) => {
 
         const result = await response.json();
 
-        if (result.status === 'success') {
+        if (result.success) {
             LKFeedback.success(result.message, { toast: true });
             fecharModalCupom();
             carregarCupons();
@@ -272,7 +272,7 @@ async function excluirCupom(id, codigo) {
 
         const data = await response.json();
 
-        if (data.status === 'success') {
+        if (data.success) {
             LKFeedback.success(data.message, { toast: true });
             carregarCupons();
         } else {
@@ -296,7 +296,7 @@ async function verEstatisticas(cupomId) {
 
         const data = await response.json();
 
-        if (data.status === 'success') {
+        if (data.success) {
             const {
                 cupom,
                 estatisticas,

@@ -152,7 +152,7 @@ export const CartoesAPI = {
                     showLoading: false // Não mostrar loading global para alertas
                 });
                 data = result.data;
-                STATE.alertas = data.alertas || [];
+                STATE.alertas = data.data?.alertas || data.alertas || [];
             } else {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -171,7 +171,7 @@ export const CartoesAPI = {
 
                 if (response.ok) {
                     data = await response.json();
-                    STATE.alertas = data.alertas || [];
+                    STATE.alertas = data.data?.alertas || data.alertas || [];
                 } else {
                     console.warn('Erro ao carregar alertas:', response.status);
                     STATE.alertas = [];
@@ -404,15 +404,15 @@ export const CartoesAPI = {
                     return;
                 }
 
-                throw new Error(error.message || error.error || 'Erro ao salvar cartão');
+                throw new Error(error.message || 'Erro ao salvar cartão');
             }
 
             const result = await response.json();
 
             // 🎮 GAMIFICAÇÃO: Exibir conquistas se houver
-            if (result.gamification?.achievements && Array.isArray(result.gamification.achievements)) {
+            if (result.data?.gamification?.achievements && Array.isArray(result.data.gamification.achievements)) {
                 if (typeof window.notifyMultipleAchievements === 'function') {
-                    window.notifyMultipleAchievements(result.gamification.achievements);
+                    window.notifyMultipleAchievements(result.data.gamification.achievements);
                 } else {
                     console.error('❌ notifyMultipleAchievements não está disponível');
                 }
@@ -511,7 +511,8 @@ export const CartoesAPI = {
             throw new Error('Erro ao carregar fatura');
         }
 
-        return await response.json();
+        const json = await response.json();
+        return json.data || json;
     },
 
     /**
@@ -531,7 +532,8 @@ export const CartoesAPI = {
             throw new Error('Erro ao carregar parcelamentos');
         }
 
-        return await response.json();
+        const json = await response.json();
+        return json.data || json;
     },
 
     /**
@@ -552,7 +554,8 @@ export const CartoesAPI = {
             throw new Error('Erro ao carregar histórico');
         }
 
-        return await response.json();
+        const json = await response.json();
+        return json.data || json;
     },
 
     /**

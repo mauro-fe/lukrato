@@ -86,16 +86,19 @@ class UserAiController extends BaseController
 
         $response = $ai->dispatch($request);
 
-        Response::json([
-            'success'  => $response->success,
-            'data'     => [
-                'response' => $response->message,
-                'intent'   => $response->intent?->value,
-                'source'   => $response->source,
-                'cached'   => $response->cached,
-                'derived_message' => $resolvedInput['derived_message'],
-            ],
-        ], $response->success ? 200 : 503);
+        $chatData = [
+            'response' => $response->message,
+            'intent'   => $response->intent?->value,
+            'source'   => $response->source,
+            'cached'   => $response->cached,
+            'derived_message' => $resolvedInput['derived_message'],
+        ];
+
+        if ($response->success) {
+            Response::success($chatData);
+        } else {
+            Response::error($response->message, 503);
+        }
     }
 
     /**
@@ -111,7 +114,7 @@ class UserAiController extends BaseController
         $description = trim($payload['description'] ?? '');
 
         if (mb_strlen($description) < 2) {
-            Response::json(['success' => false, 'data' => ['category' => null]], 422);
+            Response::error('Descrição muito curta para sugerir categoria.', 422);
             return;
         }
 
@@ -122,17 +125,20 @@ class UserAiController extends BaseController
 
         // Normaliza chaves para inglês (frontend espera 'category', 'subcategory', etc.)
         $d = $response->data;
-        Response::json([
-            'success' => $response->success,
-            'data'    => [
-                'category'        => $d['categoria']       ?? null,
-                'subcategory'     => $d['subcategoria']    ?? null,
-                'category_id'     => $d['categoria_id']    ?? null,
-                'subcategory_id'  => $d['subcategoria_id'] ?? null,
-                'confidence'      => $d['confidence']      ?? null,
-            ],
-            'source'  => $response->source,
-        ]);
+        $categoryData = [
+            'category'        => $d['categoria']       ?? null,
+            'subcategory'     => $d['subcategoria']    ?? null,
+            'category_id'     => $d['categoria_id']    ?? null,
+            'subcategory_id'  => $d['subcategoria_id'] ?? null,
+            'confidence'      => $d['confidence']      ?? null,
+            'source'          => $response->source,
+        ];
+
+        if ($response->success) {
+            Response::success($categoryData);
+        } else {
+            Response::error('Não foi possível sugerir categoria.', 422);
+        }
     }
 
     /**
@@ -160,19 +166,14 @@ class UserAiController extends BaseController
         $response = $ai->dispatch($request);
 
         if (!$response->success) {
-            Response::json([
-                'success' => false,
-                'message' => $response->message,
-            ], 503);
+            Response::error($response->message, 503);
             return;
         }
 
-        Response::json([
-            'success' => true,
-            'data'    => $response->data,
-            'source'  => $response->source,
-            'cached'  => $response->cached,
-        ]);
+        $analyzeData = is_array($response->data) ? $response->data : [];
+        $analyzeData['source'] = $response->source;
+        $analyzeData['cached'] = $response->cached;
+        Response::success($analyzeData);
     }
 
     /**
@@ -204,12 +205,13 @@ class UserAiController extends BaseController
 
         $response = $ai->dispatch($request);
 
-        Response::json([
-            'success' => $response->success,
-            'data'    => $response->data,
-            'message' => $response->message,
-            'source'  => $response->source,
-        ], $response->success ? 200 : 422);
+        if ($response->success) {
+            $extractData = is_array($response->data) ? $response->data : [];
+            $extractData['source'] = $response->source;
+            Response::success($extractData, $response->message);
+        } else {
+            Response::error($response->message, 422);
+        }
     }
 
     /**
@@ -333,10 +335,7 @@ class UserAiController extends BaseController
         $user  = \Application\Lib\Auth::user();
         $usage = AIQuotaService::getUsage($user);
 
-        Response::json([
-            'success' => true,
-            'data'    => $usage,
-        ]);
+        Response::success($usage);
     }
 
     // ─── Conversations ──────────────────────────────────────
@@ -354,10 +353,7 @@ class UserAiController extends BaseController
             ->limit(50)
             ->get(['id', 'titulo', 'created_at', 'updated_at']);
 
-        Response::json([
-            'success' => true,
-            'data'    => $conversations->toArray(),
-        ]);
+        Response::success($conversations->toArray());
     }
 
     /**
@@ -373,14 +369,11 @@ class UserAiController extends BaseController
             'titulo'  => null,
         ]);
 
-        Response::json([
-            'success' => true,
-            'data'    => [
-                'id'         => $conversation->id,
-                'titulo'     => $conversation->titulo,
-                'created_at' => $conversation->created_at?->toISOString(),
-            ],
-        ], 201);
+        Response::success([
+            'id'         => $conversation->id,
+            'titulo'     => $conversation->titulo,
+            'created_at' => $conversation->created_at?->toISOString(),
+        ], 'Conversa criada.', 201);
     }
 
     /**
@@ -396,7 +389,7 @@ class UserAiController extends BaseController
             ->first();
 
         if (!$conversation) {
-            Response::json(['success' => false, 'message' => 'Conversa não encontrada.'], 404);
+            Response::error('Conversa não encontrada.', 404);
             return;
         }
 
@@ -404,10 +397,7 @@ class UserAiController extends BaseController
             ->orderBy('created_at')
             ->get(['id', 'role', 'content', 'intent', 'created_at']);
 
-        Response::json([
-            'success' => true,
-            'data'    => $messages->toArray(),
-        ]);
+        Response::success($messages->toArray());
     }
 
     /**
@@ -424,7 +414,7 @@ class UserAiController extends BaseController
             ->first();
 
         if (!$conversation) {
-            Response::json(['success' => false, 'message' => 'Conversa não encontrada.'], 404);
+            Response::error('Conversa não encontrada.', 404);
             return;
         }
 
@@ -516,28 +506,31 @@ class UserAiController extends BaseController
         // Atualizar updated_at da conversa
         $conversation->touch();
 
-        Response::json([
-            'success' => $response->success,
-            'data'    => [
-                'user_message'      => [
-                    'id'         => $userMsg->id,
-                    'role'       => 'user',
-                    'content'    => $userMsg->content,
-                    'created_at' => $userMsg->created_at?->toISOString(),
-                ],
-                'assistant_message' => [
-                    'id'         => $assistantMsg->id,
-                    'role'       => 'assistant',
-                    'content'    => $assistantMsg->content,
-                    'intent'     => $assistantMsg->intent,
-                    'created_at' => $assistantMsg->created_at?->toISOString(),
-                ],
-                'source'  => $response->source,
-                'cached'  => $response->cached,
-                'derived_message' => $resolvedInput['derived_message'],
-                'ai_data' => $response->data,
+        $sendMessageData = [
+            'user_message'      => [
+                'id'         => $userMsg->id,
+                'role'       => 'user',
+                'content'    => $userMsg->content,
+                'created_at' => $userMsg->created_at?->toISOString(),
             ],
-        ], $response->success ? 200 : 503);
+            'assistant_message' => [
+                'id'         => $assistantMsg->id,
+                'role'       => 'assistant',
+                'content'    => $assistantMsg->content,
+                'intent'     => $assistantMsg->intent,
+                'created_at' => $assistantMsg->created_at?->toISOString(),
+            ],
+            'source'  => $response->source,
+            'cached'  => $response->cached,
+            'derived_message' => $resolvedInput['derived_message'],
+            'ai_data' => $response->data,
+        ];
+
+        if ($response->success) {
+            Response::success($sendMessageData);
+        } else {
+            Response::error($response->message, 503);
+        }
     }
 
     /**
@@ -554,13 +547,13 @@ class UserAiController extends BaseController
             ->first();
 
         if (!$pending) {
-            Response::json(['success' => false, 'message' => 'Ação não encontrada ou já processada.'], 404);
+            Response::error('Ação não encontrada ou já processada.', 404);
             return;
         }
 
         if ($pending->isExpired()) {
             $pending->markExpired();
-            Response::json(['success' => false, 'message' => 'Ação expirada. Inicie o processo novamente.'], 410);
+            Response::error('Ação expirada. Inicie o processo novamente.', 410);
             return;
         }
 
@@ -597,13 +590,14 @@ class UserAiController extends BaseController
 
         $response = $ai->dispatch($request);
 
-        Response::json([
-            'success' => $response->success,
-            'data'    => [
+        if ($response->success) {
+            Response::success([
                 'message' => $response->message,
                 'ai_data' => $response->data,
-            ],
-        ], $response->success ? 200 : 422);
+            ]);
+        } else {
+            Response::error($response->message, 422);
+        }
     }
 
     /**
@@ -620,16 +614,13 @@ class UserAiController extends BaseController
             ->first();
 
         if (!$pending) {
-            Response::json(['success' => false, 'message' => 'Ação não encontrada ou já processada.'], 404);
+            Response::error('Ação não encontrada ou já processada.', 404);
             return;
         }
 
         $pending->reject();
 
-        Response::json([
-            'success' => true,
-            'data'    => ['message' => 'Ação cancelada com sucesso.'],
-        ]);
+        Response::success(['message' => 'Ação cancelada com sucesso.']);
     }
 
     /**
@@ -645,12 +636,12 @@ class UserAiController extends BaseController
             ->first();
 
         if (!$conversation) {
-            Response::json(['success' => false, 'message' => 'Conversa não encontrada.'], 404);
+            Response::error('Conversa não encontrada.', 404);
             return;
         }
 
         $conversation->delete();
 
-        Response::json(['success' => true, 'message' => 'Conversa excluída.']);
+        Response::success(null, 'Conversa excluída.');
     }
 }

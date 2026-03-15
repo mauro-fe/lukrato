@@ -193,7 +193,7 @@ async function openCardDetailModal(cardId, cardName, cardColor, currentMonth) {
         try { data = JSON.parse(responseText); }
         catch (e) { throw new Error('Resposta inválida do servidor'); }
 
-        if (data.status !== 'success' || !data.data) throw new Error(data.message || 'Dados inválidos retornados');
+        if (!data.success || !data.data) throw new Error(data.message || 'Dados inválidos retornados');
 
         renderCardDetailModal(data.data, cardColor);
     } catch (error) {

@@ -1456,7 +1456,7 @@ class LancamentoGlobalManager {
             });
 
             const result = await response.json();
-            const isSuccess = response.ok && (result.success === true || result.status === 'success' || response.status === 201);
+            const isSuccess = response.ok && (result.success === true || response.status === 201);
 
             if (isSuccess) {
                 const tipoLancamento = this.tipoAtual;

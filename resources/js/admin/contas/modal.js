@@ -471,7 +471,7 @@ export const ContasModal = {
 
             const data = await response.json();
 
-            if (!response.ok || !data.ok) {
+            if (!response.ok || !data.success) {
                 throw new Error(data.message || 'Erro ao salvar cartão');
             }
 

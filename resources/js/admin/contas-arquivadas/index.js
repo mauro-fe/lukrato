@@ -211,10 +211,10 @@ async function handleHardDelete(id, nome = '') {
         if (res.status === 422) {
             const data = await safeJson(res);
 
-            if (data?.status === 'confirm_delete') {
-                const origem = data?.counts?.origem ?? 0;
-                const destino = data?.counts?.destino ?? 0;
-                const total = data?.counts?.total ?? (origem + destino);
+            if (data && !data.success && data.errors?.requires_confirmation) {
+                const origem = data?.data?.counts?.origem ?? 0;
+                const destino = data?.data?.counts?.destino ?? 0;
+                const total = data?.data?.counts?.total ?? (origem + destino);
 
                 const confirm = await Swal.fire({
                     title: 'Excluir conta e TODOS os lançamentos?',
@@ -306,7 +306,7 @@ async function load() {
         }
 
         const data = await res.json();
-        _rows = Array.isArray(data) ? data : [];
+        _rows = Array.isArray(data) ? data : (data.data || []);
         renderCards(_rows);
     } catch (err) {
         console.error(err);

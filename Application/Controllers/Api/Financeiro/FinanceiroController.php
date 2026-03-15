@@ -95,7 +95,7 @@ class FinanceiroController extends BaseController
             // Inclui: saldo inicial das contas + receitas - despesas + transferências
             $saldoAcumulado = $this->calcularSaldoAcumulado($uid, $endStr);
 
-            Response::json([
+            Response::success([
                 'saldo'          => $saldoAcumulado,
                 'receitas'       => $receitas,
                 'despesas'       => $despesas,
@@ -104,7 +104,7 @@ class FinanceiroController extends BaseController
                 'view'           => $viewType, // Informar qual visão está sendo usada
             ]);
         } catch (Throwable $e) {
-            Response::json(['error' => $e->getMessage()], 500);
+            Response::error($e->getMessage(), 500);
         }
     }
 
@@ -193,9 +193,9 @@ class FinanceiroController extends BaseController
                 ];
             })->all();
 
-            Response::json($out);
+            Response::success($out);
         } catch (Throwable $e) {
-            Response::json(['error' => $e->getMessage()], 500);
+            Response::error($e->getMessage(), 500);
         }
     }
     public function options(): void
@@ -221,7 +221,7 @@ class FinanceiroController extends BaseController
                 ->orderBy('nome')
                 ->get(['id', 'nome']);
 
-            Response::json([
+            Response::success([
                 'categorias' => [
                     'receitas' => $catsReceita->map(fn(Categoria $c) => ['id' => (int)$c->id, 'nome' => (string)$c->nome])->all(),
                     'despesas' => $catsDespesa->map(fn(Categoria $c) => ['id' => (int)$c->id, 'nome' => (string)$c->nome])->all(),
@@ -229,7 +229,7 @@ class FinanceiroController extends BaseController
                 'contas' => $contas->map(fn(Conta $c) => ['id' => (int)$c->id, 'nome' => (string)$c->nome])->all(),
             ]);
         } catch (Throwable $e) {
-            Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            Response::error($e->getMessage(), 500);
         }
     }
 
@@ -312,7 +312,7 @@ class FinanceiroController extends BaseController
         try {
             $uid = Auth::id();
             if (!$uid) {
-                Response::json(['status' => 'error', 'message' => 'Não autenticado'], 401);
+                Response::error('Não autenticado', 401);
                 return;
             }
 
@@ -324,7 +324,7 @@ class FinanceiroController extends BaseController
 
             $lancamento = $this->lancamentoRepo->findByIdAndUser($id, $uid);
             if (!$lancamento) {
-                Response::json(['status' => 'error', 'message' => 'Lançamento não encontrado.'], 404);
+                Response::error('Lançamento não encontrado.', 404);
                 return;
             }
 
@@ -378,11 +378,11 @@ class FinanceiroController extends BaseController
             // Atualizar
             $this->lancamentoRepo->update($lancamento->id, $dto->toArray());
 
-            Response::json(['ok' => true, 'id' => (int)$lancamento->id]);
+            Response::success(['id' => (int)$lancamento->id]);
         } catch (ValueError $e) {
-            Response::json(['status' => 'error', 'message' => $e->getMessage()], 422);
+            Response::error($e->getMessage(), 422);
         } catch (Throwable $e) {
-            Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            Response::error($e->getMessage(), 500);
         }
     }
 
@@ -417,11 +417,11 @@ class FinanceiroController extends BaseController
                 observacao: $data['observacao'] ?? null
             );
 
-            Response::json(['ok' => true, 'id' => (int)$transferencia->id], 201);
+            Response::success(['id' => (int)$transferencia->id], 'Success', 201);
         } catch (ValueError $e) {
-            Response::json(['status' => 'error', 'message' => $e->getMessage()], 422);
+            Response::error($e->getMessage(), 422);
         } catch (Throwable $e) {
-            Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            Response::error($e->getMessage(), 500);
         }
     }
 }

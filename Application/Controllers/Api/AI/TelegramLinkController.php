@@ -48,16 +48,12 @@ class TelegramLinkController extends BaseController
         $botUsername = $_ENV['TELEGRAM_BOT_USERNAME'] ?? getenv('TELEGRAM_BOT_USERNAME') ?: 'LukratoBot';
         $botUrl = "https://t.me/{$botUsername}?start={$code}";
 
-        Response::json([
-            'success' => true,
-            'message' => "Código gerado! Envie \"{$code}\" para o bot @{$botUsername} no Telegram.",
-            'data'    => [
-                'code'        => $code,
-                'bot_url'     => $botUrl,
-                'qr_code_data_uri' => TelegramQrCodeService::makeDataUri($botUrl),
-                'expires_in'  => 600, // 10 minutos
-            ],
-        ]);
+        Response::success([
+            'code'        => $code,
+            'bot_url'     => $botUrl,
+            'qr_code_data_uri' => TelegramQrCodeService::makeDataUri($botUrl),
+            'expires_in'  => 600, // 10 minutos
+        ], "Código gerado! Envie \"{$code}\" para o bot @{$botUsername} no Telegram.");
     }
 
     /**
@@ -83,10 +79,7 @@ class TelegramLinkController extends BaseController
         $user->telegram_verified = false;
         $user->save();
 
-        Response::json([
-            'success' => true,
-            'message' => 'Telegram desvinculado.',
-        ]);
+        Response::success(null, 'Telegram desvinculado.');
     }
 
     /**
@@ -105,12 +98,9 @@ class TelegramLinkController extends BaseController
 
         $linked = $user && $user->telegram_verified && $user->telegram_chat_id;
 
-        Response::json([
-            'success' => true,
-            'data'    => [
-                'linked'   => $linked,
-                'username' => $linked ? $this->maskChatId($user->telegram_chat_id) : null,
-            ],
+        Response::success([
+            'linked'   => $linked,
+            'username' => $linked ? $this->maskChatId($user->telegram_chat_id) : null,
         ]);
     }
 

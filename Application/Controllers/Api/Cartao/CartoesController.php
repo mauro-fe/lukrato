@@ -55,7 +55,7 @@ class CartoesController
             $cartoes = $this->service->listarCartoes($userId, $contaId, $apenasAtivos);
         }
 
-        Response::json($cartoes);
+        Response::success($cartoes);
     }
 
     /**
@@ -68,11 +68,11 @@ class CartoesController
         $cartao = $this->service->buscarCartao($id, $userId);
 
         if (!$cartao) {
-            Response::json(['status' => 'error', 'message' => 'Cartão não encontrado'], 404);
+            Response::error('Cartão não encontrado', 404);
             return;
         }
 
-        Response::json($cartao);
+        Response::success($cartao);
     }
 
     /**
@@ -89,9 +89,7 @@ class CartoesController
         $limitCheck = $planLimitService->canCreateCartao($userId);
 
         if (!$limitCheck['allowed']) {
-            Response::json([
-                'status' => 'error',
-                'message' => $limitCheck['message'],
+            Response::error($limitCheck['message'], 403, [
                 'limit_reached' => true,
                 'upgrade_url' => $limitCheck['upgrade_url'],
                 'limit_info' => [
@@ -99,7 +97,7 @@ class CartoesController
                     'used' => $limitCheck['used'],
                     'remaining' => $limitCheck['remaining']
                 ]
-            ], 403);
+            ]);
             return;
         }
 
@@ -107,11 +105,7 @@ class CartoesController
         $resultado = $this->service->criarCartao($dto);
 
         if (!$resultado['success']) {
-            Response::json([
-                'status' => 'error',
-                'message' => $resultado['message'],
-                'errors' => $resultado['errors'] ?? null,
-            ], 422);
+            Response::error($resultado['message'], 422, $resultado['errors'] ?? null);
             return;
         }
 
@@ -131,12 +125,11 @@ class CartoesController
             ]);
         }
 
-        Response::json([
-            'ok' => true,
+        Response::success([
             'id' => $resultado['id'],
             'data' => $resultado['data'],
             'gamification' => $gamificationResult,
-        ], 201);
+        ], 'Success', 201);
     }
 
     /**
@@ -152,18 +145,15 @@ class CartoesController
         $resultado = $this->service->atualizarCartao($id, $userId, $dto);
 
         if (!$resultado['success']) {
-            Response::json([
-                'status' => 'error',
-                'message' => $resultado['message'],
-                'errors' => $resultado['errors'] ?? null,
-            ], isset($resultado['message']) && str_contains($resultado['message'], 'não encontrado') ? 404 : 422);
+            Response::error(
+                $resultado['message'],
+                isset($resultado['message']) && str_contains($resultado['message'], 'não encontrado') ? 404 : 422,
+                $resultado['errors'] ?? null
+            );
             return;
         }
 
-        Response::json([
-            'ok' => true,
-            'data' => $resultado['data'],
-        ]);
+        Response::success(['data' => $resultado['data']]);
     }
 
     /**
@@ -176,11 +166,11 @@ class CartoesController
         $resultado = $this->service->desativarCartao($id, $userId);
 
         if (!$resultado['success']) {
-            Response::json(['status' => 'error', 'message' => $resultado['message']], 404);
+            Response::error($resultado['message'], 404);
             return;
         }
 
-        Response::json($resultado);
+        Response::success($resultado);
     }
 
     /**
@@ -193,11 +183,11 @@ class CartoesController
         $resultado = $this->service->reativarCartao($id, $userId);
 
         if (!$resultado['success']) {
-            Response::json(['status' => 'error', 'message' => $resultado['message']], 404);
+            Response::error($resultado['message'], 404);
             return;
         }
 
-        Response::json($resultado);
+        Response::success($resultado);
     }
 
     /**
@@ -210,11 +200,11 @@ class CartoesController
         $resultado = $this->service->arquivarCartao($id, $userId);
 
         if (!$resultado['success']) {
-            Response::json(['status' => 'error', 'message' => $resultado['message']], 404);
+            Response::error($resultado['message'], 404);
             return;
         }
 
-        Response::json($resultado);
+        Response::success($resultado);
     }
 
     /**
@@ -227,11 +217,11 @@ class CartoesController
         $resultado = $this->service->restaurarCartao($id, $userId);
 
         if (!$resultado['success']) {
-            Response::json(['status' => 'error', 'message' => $resultado['message']], 404);
+            Response::error($resultado['message'], 404);
             return;
         }
 
-        Response::json($resultado);
+        Response::success($resultado);
     }
 
     /**
@@ -248,16 +238,15 @@ class CartoesController
 
         if (!$resultado['success']) {
             $statusCode = isset($resultado['requires_confirmation']) && $resultado['requires_confirmation'] ? 422 : 404;
-            Response::json([
+            Response::error($resultado['message'], $statusCode, [
                 'status' => $resultado['requires_confirmation'] ?? false ? 'confirm_delete' : 'error',
-                'message' => $resultado['message'],
                 'requires_confirmation' => $resultado['requires_confirmation'] ?? false,
                 'total_lancamentos' => $resultado['total_lancamentos'] ?? 0,
-            ], $statusCode);
+            ]);
             return;
         }
 
-        Response::json($resultado);
+        Response::success($resultado);
     }
 
     /**
@@ -280,12 +269,11 @@ class CartoesController
         $resultado = $this->service->atualizarLimiteDisponivel($id, $userId);
 
         if (!$resultado['success']) {
-            Response::json(['status' => 'error', 'message' => $resultado['message']], 404);
+            Response::error($resultado['message'], 404);
             return;
         }
 
-        Response::json([
-            'ok' => true,
+        Response::success([
             'limite_disponivel' => $resultado['limite_disponivel'],
             'limite_utilizado' => $resultado['limite_utilizado'],
             'percentual_uso' => $resultado['percentual_uso'],
@@ -300,7 +288,7 @@ class CartoesController
     {
         $userId = Auth::id();
         $resumo = $this->service->obterResumo($userId);
-        Response::json($resumo);
+        Response::success($resumo);
     }
 
     /**
@@ -315,15 +303,15 @@ class CartoesController
         $ano = isset($_GET['ano']) ? (int) $_GET['ano'] : (int) date('Y');
 
         if ($mes < 1 || $mes > 12) {
-            Response::json(['status' => 'error', 'message' => 'Mês inválido'], 400);
+            Response::error('Mês inválido', 400);
             return;
         }
 
         try {
             $fatura = $this->faturaService->obterFaturaMes($id, $mes, $ano, $userId);
-            Response::json($fatura);
+            Response::success($fatura);
         } catch (\Exception $e) {
-            Response::json(['status' => 'error', 'message' => $e->getMessage()], 404);
+            Response::error($e->getMessage(), 404);
         }
     }
 
@@ -362,12 +350,9 @@ class CartoesController
                 ]);
             }
 
-            Response::json($resultado);
+            Response::success($resultado);
         } catch (\Exception $e) {
-            Response::json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 400);
+            Response::error($e->getMessage(), 400);
         }
     }
 
@@ -385,21 +370,15 @@ class CartoesController
         $ano = $data['ano'] ?? (int) date('Y');
 
         if (empty($parcelaIds)) {
-            Response::json([
-                'status' => 'error',
-                'message' => 'Nenhuma parcela selecionada'
-            ], 400);
+            Response::error('Nenhuma parcela selecionada', 400);
             return;
         }
 
         try {
             $resultado = $this->faturaService->pagarParcelas($id, $parcelaIds, (int)$mes, (int)$ano, $userId);
-            Response::json($resultado);
+            Response::success($resultado);
         } catch (\Exception $e) {
-            Response::json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 400);
+            Response::error($e->getMessage(), 400);
         }
     }
 
@@ -413,9 +392,9 @@ class CartoesController
 
         try {
             $meses = $this->faturaService->obterMesesComFaturasPendentes($id, $userId);
-            Response::json(['meses' => $meses]);
+            Response::success(['meses' => $meses]);
         } catch (\Exception $e) {
-            Response::json(['status' => 'error', 'message' => $e->getMessage()], 404);
+            Response::error($e->getMessage(), 404);
         }
     }
 
@@ -430,9 +409,9 @@ class CartoesController
 
         try {
             $historico = $this->faturaService->obterHistoricoFaturasPagas($id, $userId, $limite);
-            Response::json($historico);
+            Response::success($historico);
         } catch (\Exception $e) {
-            Response::json(['status' => 'error', 'message' => $e->getMessage()], 404);
+            Response::error($e->getMessage(), 404);
         }
     }
 
@@ -447,7 +426,7 @@ class CartoesController
         // Verifica se o cartão pertence ao usuário
         $cartao = $this->service->buscarCartao($id, $userId);
         if (!$cartao) {
-            Response::json(['status' => 'error', 'message' => 'Cartão não encontrado'], 404);
+            Response::error('Cartão não encontrado', 404);
             return;
         }
 
@@ -456,7 +435,7 @@ class CartoesController
 
         try {
             $resumo = $this->faturaService->obterResumoParcelamentos($id, $mes, $ano, $userId);
-            Response::json($resumo);
+            Response::success($resumo);
         } catch (\Exception $e) {
             LogService::captureException($e, LogCategory::CARTAO, [
                 'action' => 'parcelamentos_resumo',
@@ -466,7 +445,7 @@ class CartoesController
             ]);
 
             // Retorna dados vazios ao invés de erro 500
-            Response::json([
+            Response::success([
                 'total_parcelamentos' => 0,
                 'parcelamentos' => [],
                 'projecao' => [
@@ -517,7 +496,7 @@ class CartoesController
                 return ($ordem[$a['gravidade']] ?? 2) <=> ($ordem[$b['gravidade']] ?? 2);
             });
 
-            Response::json([
+            Response::success([
                 'total' => count($alertas),
                 'alertas' => $alertas,
                 'por_tipo' => [
@@ -530,7 +509,7 @@ class CartoesController
                 'action' => 'alertas',
                 'user_id' => $userId,
             ]);
-            Response::json([
+            Response::success([
                 'total' => 0,
                 'alertas' => [],
                 'por_tipo' => [
@@ -553,9 +532,9 @@ class CartoesController
 
         try {
             $relatorio = $this->service->validarIntegridadeLimites($userId, $corrigir);
-            Response::json($relatorio);
+            Response::success($relatorio);
         } catch (\Exception $e) {
-            Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            Response::error($e->getMessage(), 500);
         }
     }
 
@@ -570,7 +549,7 @@ class CartoesController
         $ano = isset($_GET['ano']) ? (int) $_GET['ano'] : null;
 
         if (!$mes || !$ano) {
-            Response::json(['status' => 'error', 'message' => 'Mês e ano são obrigatórios'], 400);
+            Response::error('Mês e ano são obrigatórios', 400);
             return;
         }
 
@@ -578,12 +557,12 @@ class CartoesController
             $status = $this->faturaService->faturaEstaPaga($id, $mes, $ano, $userId);
 
             if ($status === null) {
-                Response::json(['pago' => false]);
+                Response::success(['pago' => false]);
             } else {
-                Response::json($status);
+                Response::success($status);
             }
         } catch (\Exception $e) {
-            Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            Response::error($e->getMessage(), 500);
         }
     }
 
@@ -600,13 +579,13 @@ class CartoesController
         $ano = isset($data['ano']) ? (int) $data['ano'] : null;
 
         if (!$mes || !$ano) {
-            Response::json(['status' => 'error', 'message' => 'Mês e ano são obrigatórios'], 400);
+            Response::error('Mês e ano são obrigatórios', 400);
             return;
         }
 
         try {
             $resultado = $this->faturaService->desfazerPagamentoFatura($id, $mes, $ano, $userId);
-            Response::json($resultado);
+            Response::success($resultado);
         } catch (\Exception $e) {
             LogService::captureException($e, LogCategory::FATURA, [
                 'action' => 'desfazer_pagamento_fatura',
@@ -615,7 +594,7 @@ class CartoesController
                 'ano' => $ano,
                 'user_id' => $userId,
             ]);
-            Response::json(['status' => 'error', 'message' => $e->getMessage()], 400);
+            Response::error($e->getMessage(), 400);
         }
     }
 
@@ -629,14 +608,14 @@ class CartoesController
 
         try {
             $resultado = $this->faturaService->desfazerPagamentoParcela($id, $userId);
-            Response::json($resultado);
+            Response::success($resultado);
         } catch (\Exception $e) {
             LogService::captureException($e, LogCategory::FATURA, [
                 'action' => 'desfazer_pagamento_parcela',
                 'parcela_id' => $id,
                 'user_id' => $userId,
             ]);
-            Response::json(['status' => 'error', 'message' => $e->getMessage()], 400);
+            Response::error($e->getMessage(), 400);
         }
     }
 
@@ -652,13 +631,13 @@ class CartoesController
         try {
             $service = new \Application\Services\Cartao\RecorrenciaCartaoService();
             $itens = $service->listarRecorrenciasAtivas($userId);
-            Response::json(['status' => 'success', 'data' => $itens]);
+            Response::success($itens);
         } catch (\Exception $e) {
             LogService::captureException($e, LogCategory::CARTAO, [
                 'action' => 'listar_recorrencias',
                 'user_id' => $userId,
             ]);
-            Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            Response::error($e->getMessage(), 500);
         }
     }
 
@@ -672,14 +651,14 @@ class CartoesController
         try {
             $service = new \Application\Services\Cartao\RecorrenciaCartaoService();
             $itens = $service->listarRecorrenciasAtivas($userId, $id);
-            Response::json(['status' => 'success', 'data' => $itens]);
+            Response::success($itens);
         } catch (\Exception $e) {
             LogService::captureException($e, LogCategory::CARTAO, [
                 'action' => 'listar_recorrencias_cartao',
                 'cartao_id' => $id,
                 'user_id' => $userId,
             ]);
-            Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            Response::error($e->getMessage(), 500);
         }
     }
 
@@ -694,15 +673,18 @@ class CartoesController
             $service = new \Application\Services\Cartao\RecorrenciaCartaoService();
             $resultado = $service->cancelarRecorrencia($id, $userId);
 
-            $statusCode = $resultado['success'] ? 200 : 400;
-            Response::json($resultado, $statusCode);
+            if ($resultado['success']) {
+                Response::success($resultado);
+            } else {
+                Response::error($resultado['message'] ?? 'Erro ao cancelar recorrência', 400);
+            }
         } catch (\Exception $e) {
             LogService::captureException($e, LogCategory::CARTAO, [
                 'action' => 'cancelar_recorrencia',
                 'item_pai_id' => $id,
                 'user_id' => $userId,
             ]);
-            Response::json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            Response::error($e->getMessage(), 500);
         }
     }
 }

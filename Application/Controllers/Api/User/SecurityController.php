@@ -31,8 +31,7 @@ class SecurityController
         // antes de enviar a resposta ao cliente
         session_write_close();
 
-        Response::json([
-            'status'   => 'ok',
+        Response::success([
             'token'    => $token,
             'token_id' => $tokenId,
             'ttl'      => CsrfMiddleware::ttl(),

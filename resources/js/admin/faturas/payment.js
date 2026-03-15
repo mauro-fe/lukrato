@@ -256,7 +256,7 @@ export const ModalPagarFatura = {
             });
 
             if (!response.success) {
-                throw new Error(response.error || 'Erro ao processar pagamento');
+                throw new Error(response.message || 'Erro ao processar pagamento');
             }
 
             await Swal.fire({
@@ -349,7 +349,7 @@ export async function reverterPagamentoFaturaGlobal(faturaId) {
             body: JSON.stringify({ mes, ano })
         });
 
-        if (response.status === 'success' || response.success) {
+        if (response.success) {
             await Swal.fire({
                 icon: 'success',
                 title: 'Pagamento Revertido!',
@@ -357,7 +357,7 @@ export async function reverterPagamentoFaturaGlobal(faturaId) {
                     <p>${response.message || 'O pagamento foi revertido com sucesso.'}</p>
                     <p style="color: #059669; margin-top: 0.5rem;">
                         <i data-lucide="circle-check"></i> 
-                        ${response.itens_revertidos || 0} item(s) voltou(aram) para pendente.
+                        ${response.data?.itens_revertidos || 0} item(s) voltou(aram) para pendente.
                     </p>
                 `,
                 timer: 3000,
@@ -371,7 +371,7 @@ export async function reverterPagamentoFaturaGlobal(faturaId) {
             }
             await Modules.App.carregarParcelamentos();
         } else {
-            throw new Error(response.message || response.error || 'Erro ao reverter pagamento');
+            throw new Error(response.message || 'Erro ao reverter pagamento');
         }
     } catch (error) {
         console.error('Erro ao reverter pagamento:', error);
@@ -421,7 +421,7 @@ export async function excluirFaturaGlobal(faturaId) {
             }
             Modules.App.carregarParcelamentos();
         } else {
-            throw new Error(response.error || 'Erro ao excluir fatura');
+            throw new Error(response.message || 'Erro ao excluir fatura');
         }
     } catch (error) {
         console.error('Erro ao excluir fatura:', error);
@@ -481,7 +481,7 @@ export async function excluirItemFaturaGlobal(faturaId, itemId) {
                 }, 500);
             }
         } else {
-            throw new Error(response.error || 'Erro ao excluir item');
+            throw new Error(response.message || 'Erro ao excluir item');
         }
     } catch (error) {
         console.error('Erro ao excluir item:', error);

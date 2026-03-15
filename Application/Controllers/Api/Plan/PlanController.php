@@ -31,7 +31,7 @@ class PlanController
         $userId = Auth::id();
 
         if (!$userId) {
-            Response::json(['error' => 'Não autenticado'], 401);
+            Response::error('Não autenticado', 401);
             return;
         }
 
@@ -42,10 +42,7 @@ class PlanController
         try {
             $summary = $this->limitService->getLimitsSummary($userId);
 
-            Response::json([
-                'success' => true,
-                'data' => $summary,
-            ]);
+            Response::success($summary);
         } catch (\Throwable $e) {
             LogService::captureException($e, LogCategory::SUBSCRIPTION, [
                 'action' => 'get_plan_limits',
@@ -54,9 +51,8 @@ class PlanController
 
             // Retornar resposta padrão com limites do plano free para não liberar acesso indevido
             $freeConfig = $this->limitService->getConfig()['limits']['free'] ?? [];
-            Response::json([
-                'success' => true,
-                'data' => [
+            Response::success(
+                [
                     'plan' => 'free',
                     'is_pro' => false,
                     'contas' => ['allowed' => true, 'limit' => $freeConfig['max_contas'] ?? 2, 'used' => 0],
@@ -66,8 +62,8 @@ class PlanController
                     'historico' => ['restricted' => true, 'months_limit' => $freeConfig['historico_meses'] ?? 3],
                     'features' => [],
                     'upgrade_url' => '/assinatura',
-                ],
-            ]);
+                ]
+            );
         }
     }
 
@@ -80,7 +76,7 @@ class PlanController
         $userId = Auth::id();
 
         if (!$userId) {
-            Response::json(['error' => 'Não autenticado'], 401);
+            Response::error('Não autenticado', 401);
             return;
         }
 
@@ -91,13 +87,10 @@ class PlanController
         $isPro = $this->limitService->isPro($userId);
         $features = $this->limitService->getFeatures($userId);
 
-        Response::json([
-            'success' => true,
-            'data' => [
-                'plan' => $isPro ? 'pro' : 'free',
-                'is_pro' => $isPro,
-                'features' => $features,
-            ],
+        Response::success([
+            'plan' => $isPro ? 'pro' : 'free',
+            'is_pro' => $isPro,
+            'features' => $features,
         ]);
     }
 
@@ -110,7 +103,7 @@ class PlanController
         $userId = Auth::id();
 
         if (!$userId) {
-            Response::json(['error' => 'Não autenticado'], 401);
+            Response::error('Não autenticado', 401);
             return;
         }
 
@@ -133,11 +126,7 @@ class PlanController
             ],
         };
 
-        Response::json([
-            'success' => true,
-            'resource' => $resource,
-            'data' => $result,
-        ]);
+        Response::success(['resource' => $resource, ...$result]);
     }
 
     /**
@@ -149,7 +138,7 @@ class PlanController
         $userId = Auth::id();
 
         if (!$userId) {
-            Response::json(['error' => 'Não autenticado'], 401);
+            Response::error('Não autenticado', 401);
             return;
         }
 
@@ -159,9 +148,6 @@ class PlanController
 
         $restriction = $this->limitService->getHistoryRestriction($userId);
 
-        Response::json([
-            'success' => true,
-            'data' => $restriction,
-        ]);
+        Response::success($restriction);
     }
 }

@@ -102,8 +102,8 @@ export const ContasAPI = {
 
             const result = await response.json();
 
-            if (!response.ok) {
-                throw new Error(result.error || 'Erro ao criar instituição');
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || 'Erro ao criar instituição');
             }
 
             return result;
@@ -271,10 +271,9 @@ export const ContasAPI = {
 
             const result = await response.json();
 
-            if (!response.ok || (!result.ok && !result.success)) {
+            if (!response.ok || !result.success) {
                 console.error('❌ [' + requestId + '] Erro na resposta - Condição falhou');
                 console.error('❌ [' + requestId + '] !response.ok:', !response.ok);
-                console.error('❌ [' + requestId + '] !result.ok:', !result.ok);
                 console.error('❌ [' + requestId + '] !result.success:', !result.success);
                 throw new Error(result.message || 'Erro ao criar conta');
             }
@@ -342,7 +341,7 @@ export const ContasAPI = {
                 throw new Error('Resposta inválida do servidor. Verifique o console.');
             }
 
-            if (!response.ok || (!result.ok && !result.success)) {
+            if (!response.ok || !result.success) {
                 throw new Error(result.message || 'Erro ao atualizar conta');
             }
 
@@ -451,7 +450,7 @@ export const ContasAPI = {
                 const result = await response.json();
 
                 // Se precisa de confirmação de força (tem lançamentos)
-                if (result.status === 'confirm_delete') {
+                if (!result.success && result.errors?.requires_confirmation) {
                     ContasAPI.showDeleteConfirmation(
                         nomeConta + ' (tem lançamentos vinculados)',
                         async () => {
@@ -581,10 +580,8 @@ export const ContasAPI = {
                 const result = await response.json();
 
 
-                // A resposta vem como { status: 'success', data: [...] }
-                if (result.status === 'success' && result.data) {
-                    STATE.categorias = result.data;
-                } else if (result.success && result.data) {
+                // A resposta vem como { success: true, data: [...] }
+                if (result.success && result.data) {
                     STATE.categorias = result.data;
                 } else if (Array.isArray(result)) {
                     STATE.categorias = result;
@@ -735,7 +732,8 @@ export const ContasAPI = {
             const response = await fetch(url);
             if (!response.ok) throw new Error('Erro ao carregar cartões');
 
-            const cartoes = await response.json();
+            const result = await response.json();
+            const cartoes = Array.isArray(result) ? result : (result.data || []);
 
             select.innerHTML = '<option value="">Não usar cartão (débito na conta)</option>';
 

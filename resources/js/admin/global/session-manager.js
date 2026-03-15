@@ -699,13 +699,14 @@
 
             const result = await utils.apiRequest(CONFIG.endpoints.heartbeat, 'POST');
 
-            if (result.ok && result.data) {
+            if (result.ok && result.data?.success) {
+                const hbData = result.data.data || {};
                 // Atualiza o tempo restante com o valor retornado
-                if (result.data.remainingTime) {
-                    state.remainingTime = result.data.remainingTime;
+                if (hbData.remainingTime) {
+                    state.remainingTime = hbData.remainingTime;
                 }
-                if (result.data.isRemembered !== undefined) {
-                    state.isRemembered = result.data.isRemembered;
+                if (hbData.isRemembered !== undefined) {
+                    state.isRemembered = hbData.isRemembered;
                 }
             }
         },
@@ -735,7 +736,7 @@
                 return;
             }
 
-            const data = result.data || {};
+            const data = result.data?.data || {};
             state.remainingTime = data.remainingTime || 0;
             state.lastCheck = Date.now();
 
@@ -834,16 +835,17 @@
             });
 
             if (result && result.ok && result.data?.success) {
+                const renewData = result.data.data || {};
                 // Atualiza token CSRF se fornecido
-                if (result.data.newToken) {
+                if (renewData.newToken) {
                     const csrfMeta = document.querySelector('meta[name="csrf-token"]');
                     if (csrfMeta) {
-                        csrfMeta.content = result.data.newToken;
+                        csrfMeta.content = renewData.newToken;
                     }
                 }
 
                 // Atualiza estado
-                state.remainingTime = result.data.remainingTime || CONFIG.sessionLifetime;
+                state.remainingTime = renewData.remainingTime || CONFIG.sessionLifetime;
 
                 // Esconde modal
                 UI.hideWarningModal();

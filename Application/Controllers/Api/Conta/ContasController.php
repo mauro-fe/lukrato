@@ -66,14 +66,14 @@ class ContasController
                 mes: $month
             );
 
-            Response::json($contas);
+            Response::success($contas);
         } catch (\Throwable $e) {
             LogService::error('Erro ao listar contas', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
             ]);
-            Response::json(['error' => 'Erro ao carregar contas: ' . $e->getMessage()], 500);
+            Response::error('Erro ao carregar contas: ' . $e->getMessage(), 500);
         }
     }
 
@@ -97,9 +97,7 @@ class ContasController
                 'usado' => $limitCheck['used']
             ]);
 
-            Response::json([
-                'status' => 'error',
-                'message' => $limitCheck['message'],
+            Response::error($limitCheck['message'], 403, [
                 'limit_reached' => true,
                 'upgrade_url' => $limitCheck['upgrade_url'],
                 'limit_info' => [
@@ -107,7 +105,7 @@ class ContasController
                     'used' => $limitCheck['used'],
                     'remaining' => $limitCheck['remaining']
                 ]
-            ], 403);
+            ]);
             return;
         }
 
@@ -141,11 +139,7 @@ class ContasController
                 'errors' => $resultado['errors'] ?? null
             ]);
 
-            Response::json([
-                'status' => 'error',
-                'message' => $resultado['message'],
-                'errors' => $resultado['errors'] ?? null,
-            ], 422);
+            Response::error($resultado['message'], 422, $resultado['errors'] ?? null);
             return;
         }
 
@@ -156,12 +150,11 @@ class ContasController
             'nome' => $resultado['data']['nome'] ?? null
         ]);
 
-        Response::json($this->addCsrfToResponse([
-            'success' => true,
-            'ok' => true,
+        Response::success([
             'id' => $resultado['id'],
             'data' => $resultado['data'],
-        ]), 201);
+            'csrf_token' => CsrfMiddleware::generateToken('default'),
+        ], 'Success', 201);
     }
 
     /**
@@ -198,11 +191,7 @@ class ContasController
                 'errors' => $resultado['errors'] ?? null
             ]);
 
-            Response::json([
-                'status' => 'error',
-                'message' => $resultado['message'],
-                'errors' => $resultado['errors'] ?? null,
-            ], isset($resultado['message']) && str_contains($resultado['message'], 'não encontrada') ? 404 : 422);
+            Response::error($resultado['message'], isset($resultado['message']) && str_contains($resultado['message'], 'não encontrada') ? 404 : 422, $resultado['errors'] ?? null);
             return;
         }
 
@@ -212,11 +201,10 @@ class ContasController
             'conta_id' => $id
         ]);
 
-        Response::json($this->addCsrfToResponse([
-            'success' => true,
-            'ok' => true,
+        Response::success([
             'data' => $resultado['data'],
-        ]));
+            'csrf_token' => CsrfMiddleware::generateToken('default'),
+        ]);
     }
 
     /**
@@ -229,11 +217,11 @@ class ContasController
         $resultado = $this->service->arquivarConta($id, $userId);
 
         if (!$resultado['success']) {
-            Response::json(['status' => 'error', 'message' => $resultado['message']], 404);
+            Response::error($resultado['message'], 404);
             return;
         }
 
-        Response::json($resultado);
+        Response::success($resultado);
     }
 
     /**
@@ -246,11 +234,11 @@ class ContasController
         $resultado = $this->service->restaurarConta($id, $userId);
 
         if (!$resultado['success']) {
-            Response::json(['status' => 'error', 'message' => $resultado['message']], 404);
+            Response::error($resultado['message'], 404);
             return;
         }
 
-        Response::json($resultado);
+        Response::success($resultado);
     }
 
     /**
@@ -267,15 +255,14 @@ class ContasController
 
         if (!$resultado['success']) {
             $statusCode = isset($resultado['requires_confirmation']) && $resultado['requires_confirmation'] ? 422 : 404;
-            Response::json([
-                'status' => $resultado['requires_confirmation'] ?? false ? 'confirm_delete' : 'error',
-                'message' => $resultado['message'],
+            Response::error($resultado['message'], $statusCode, [
+                'requires_confirmation' => $resultado['requires_confirmation'] ?? false,
                 'counts' => $resultado['counts'] ?? null,
-            ], $statusCode);
+            ]);
             return;
         }
 
-        Response::json($resultado);
+        Response::success($resultado);
     }
 
     /**
@@ -315,14 +302,14 @@ class ContasController
                 ];
             });
 
-            Response::json($instituicoes);
+            Response::success($instituicoes);
         } catch (\Throwable $e) {
             LogService::error('Erro ao listar instituições', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
             ]);
-            Response::json(['error' => 'Erro ao carregar instituições: ' . $e->getMessage()], 500);
+            Response::error('Erro ao carregar instituições: ' . $e->getMessage(), 500);
         }
     }
 
@@ -337,7 +324,7 @@ class ContasController
 
             // Validações
             if (empty($data['nome'])) {
-                Response::json(['error' => 'Nome da instituição é obrigatório'], 400);
+                Response::error('Nome da instituição é obrigatório', 400);
                 return;
             }
 
@@ -352,7 +339,7 @@ class ContasController
             // Verificar se já existe com o mesmo nome
             $exists = InstituicaoFinanceira::where('nome', $nome)->exists();
             if ($exists) {
-                Response::json(['error' => 'Já existe uma instituição com este nome'], 400);
+                Response::error('Já existe uma instituição com este nome', 400);
                 return;
             }
 
@@ -367,26 +354,22 @@ class ContasController
                 'ativo' => true,
             ]);
 
-            Response::json([
-                'success' => true,
-                'message' => 'Instituição criada com sucesso!',
-                'data' => [
-                    'id' => $instituicao->id,
-                    'nome' => $instituicao->nome,
-                    'codigo' => $instituicao->codigo,
-                    'tipo' => $instituicao->tipo,
-                    'cor_primaria' => $instituicao->cor_primaria,
-                    'cor_secundaria' => $instituicao->cor_secundaria,
-                    'logo_url' => $instituicao->logo_url,
-                ]
-            ], 201);
+            Response::success([
+                'id' => $instituicao->id,
+                'nome' => $instituicao->nome,
+                'codigo' => $instituicao->codigo,
+                'tipo' => $instituicao->tipo,
+                'cor_primaria' => $instituicao->cor_primaria,
+                'cor_secundaria' => $instituicao->cor_secundaria,
+                'logo_url' => $instituicao->logo_url,
+            ], 'Instituição criada com sucesso!', 201);
         } catch (\Throwable $e) {
             LogService::error('Erro ao criar instituição', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
             ]);
-            Response::json(['error' => 'Erro ao criar instituição: ' . $e->getMessage()], 500);
+            Response::error('Erro ao criar instituição: ' . $e->getMessage(), 500);
         }
     }
 

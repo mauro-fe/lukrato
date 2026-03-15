@@ -60,7 +60,7 @@ async function apiDelete(endpoint) {
 // ── Plan limit error handler ───────────────────────────────────
 
 function handleLimitError(res) {
-    const isError = res.status === 'error' || res.success === false;
+    const isError = res.success === false;
     if (!isError) return false;
 
     const msg = res.message || '';
@@ -746,7 +746,7 @@ export const FinancasApp = {
             // Verificar se é erro de limite do plano
             if (handleLimitError(res)) return;
 
-            if (res.success !== false && res.status !== 'error') {
+            if (res.success) {
                 FinancasApp.closeModal('modalOrcamento');
                 Utils.showToast('Orçamento salvo!', 'success');
                 await FinancasApp.loadAll();
@@ -876,7 +876,7 @@ export const FinancasApp = {
             // Verificar se é erro de limite do plano
             if (handleLimitError(res)) return;
 
-            if (res.success !== false && res.status !== 'error') {
+            if (res.success) {
                 FinancasApp.closeModal('modalSugestoes');
                 Utils.showToast(`${res.data?.aplicados || orcamentos.length} orçamentos configurados!`, 'success');
                 await FinancasApp.loadAll();
@@ -918,7 +918,7 @@ export const FinancasApp = {
             // Verificar se é erro de limite do plano
             if (handleLimitError(res)) return;
 
-            if (res.success !== false && res.status !== 'error') {
+            if (res.success) {
                 Utils.showToast(`${res.data?.copiados || 0} orçamentos copiados!`, 'success');
                 await FinancasApp.loadAll();
             } else {
@@ -1033,7 +1033,7 @@ export const FinancasApp = {
             // Verificar se é erro de limite do plano
             if (handleLimitError(res)) return;
 
-            if (res.success !== false && res.status !== 'error') {
+            if (res.success) {
                 // Processar conquistas desbloqueadas
                 const responseData = res.data;
                 const gamification = responseData?.gamification || res.gamification;

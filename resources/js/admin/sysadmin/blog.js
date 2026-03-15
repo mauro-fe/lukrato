@@ -213,7 +213,7 @@ async function apiRequest(url, options = {}) {
 async function loadCategorias() {
     try {
         const data = await apiRequest(`${BASE_URL}api/sysadmin/blog/categorias`);
-        if (data.status === 'success') {
+        if (data.success) {
             categorias = data.data.categorias;
             populateCategoriaSelects();
         }
@@ -263,7 +263,7 @@ async function loadPosts() {
 
         const data = await apiRequest(`${BASE_URL}api/sysadmin/blog/posts?${params}`);
 
-        if (data.status === 'success') {
+        if (data.success) {
             posts = data.data.items;
             totalPages = Math.ceil(data.data.total / data.data.perPage);
             currentPage = data.data.page;
@@ -569,7 +569,7 @@ async function uploadImage(file) {
 
         const data = await response.json();
 
-        if (data.status === 'success') {
+        if (data.success) {
             document.getElementById('imagemCapaPath').value = data.data.path;
             document.getElementById('previewImg').src = data.data.url;
             document.getElementById('uploadPreview').style.display = 'block';
@@ -633,7 +633,7 @@ async function savePost() {
             body: JSON.stringify(payload),
         });
 
-        if (data.status === 'success') {
+        if (data.success) {
             LKFeedback.success(data.data?.message || data.message || 'Salvo com sucesso!');
             closeModal();
             loadPosts();
@@ -657,7 +657,7 @@ async function editPost(id) {
     try {
         const data = await apiRequest(`${BASE_URL}api/sysadmin/blog/posts/${id}`);
 
-        if (data.status === 'success') {
+        if (data.success) {
             openModal('edit', data.data.post);
         } else {
             throw new Error(data.message || 'Erro ao carregar post');
@@ -687,7 +687,7 @@ async function deletePost(id) {
             method: 'DELETE',
         });
 
-        if (data.status === 'success') {
+        if (data.success) {
             LKFeedback.success(data.data?.message || 'Artigo excluído!');
             loadPosts();
         } else {

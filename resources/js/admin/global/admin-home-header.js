@@ -111,12 +111,12 @@
             }
 
             if (!response.ok) {
-                const msg = json?.message || json?.error || `Erro ${response.status}`;
+                const msg = json?.message || `Erro ${response.status}`;
                 throw new Error(msg);
             }
 
-            if (json && (json.error || json.status === 'error')) {
-                throw new Error(json?.message || json?.error || 'Erro na requisição');
+            if (json && !json.success) {
+                throw new Error(json?.message || 'Erro na requisição');
             }
 
             return json;

@@ -33,7 +33,7 @@
                 body: JSON.stringify(data),
             });
             const json = await resp.json();
-            return json.success === true || json.status === 'success';
+            return json.success === true;
         } catch {
             return false;
         }

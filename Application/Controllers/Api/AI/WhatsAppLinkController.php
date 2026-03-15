@@ -55,14 +55,10 @@ class WhatsAppLinkController extends BaseController
 
         $code = WhatsAppUserResolver::generateVerificationCode($userId);
 
-        Response::json([
-            'success' => true,
-            'message' => "Código de verificação gerado. Envie \"{$code}\" no WhatsApp do Lukrato para confirmar.",
-            'data'    => [
-                'phone'      => $normalized,
-                'expires_in' => 600, // 10 minutos
-            ],
-        ]);
+        Response::success([
+            'phone'      => $normalized,
+            'expires_in' => 600, // 10 minutos
+        ], "Código de verificação gerado. Envie \"{$code}\" no WhatsApp do Lukrato para confirmar.");
     }
 
     /**
@@ -93,10 +89,7 @@ class WhatsAppLinkController extends BaseController
             return;
         }
 
-        Response::json([
-            'success' => true,
-            'message' => 'WhatsApp vinculado com sucesso!',
-        ]);
+        Response::success(null, 'WhatsApp vinculado com sucesso!');
     }
 
     /**
@@ -122,10 +115,7 @@ class WhatsAppLinkController extends BaseController
         $user->whatsapp_verified = false;
         $user->save();
 
-        Response::json([
-            'success' => true,
-            'message' => 'WhatsApp desvinculado.',
-        ]);
+        Response::success(null, 'WhatsApp desvinculado.');
     }
 
     /**
@@ -144,12 +134,9 @@ class WhatsAppLinkController extends BaseController
 
         $linked = $user && $user->whatsapp_verified && $user->whatsapp_phone;
 
-        Response::json([
-            'success' => true,
-            'data'    => [
-                'linked' => $linked,
-                'phone'  => $linked ? $this->maskPhone($user->whatsapp_phone) : null,
-            ],
+        Response::success([
+            'linked' => $linked,
+            'phone'  => $linked ? $this->maskPhone($user->whatsapp_phone) : null,
         ]);
     }
 

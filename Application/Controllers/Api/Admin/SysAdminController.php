@@ -38,22 +38,18 @@ class SysAdminController extends BaseController
 
             if ($action === 'activate') {
                 MaintenanceService::activate($reason, $estimatedMinutes);
-                Response::json([
-                    'success' => true,
+                Response::success([
                     'active' => true,
-                    'message' => 'Modo manutenção ativado com sucesso.',
                     'data' => MaintenanceService::getData(),
-                ]);
+                ], 'Modo manutenção ativado com sucesso.');
             } else {
                 MaintenanceService::deactivate();
-                Response::json([
-                    'success' => true,
+                Response::success([
                     'active' => false,
-                    'message' => 'Modo manutenção desativado. Sistema online.',
-                ]);
+                ], 'Modo manutenção desativado. Sistema online.');
             }
         } catch (\Throwable $e) {
-            Response::json(['success' => false, 'message' => 'Erro: ' . $e->getMessage()], 500);
+            Response::error('Erro: ' . $e->getMessage(), 500);
         }
     }
 
@@ -69,8 +65,7 @@ class SysAdminController extends BaseController
             session_write_close();
         }
 
-        Response::json([
-            'success' => true,
+        Response::success([
             'active' => MaintenanceService::isActive(),
             'data' => MaintenanceService::getData(),
         ]);
@@ -844,7 +839,7 @@ class SysAdminController extends BaseController
             $resolved = LogService::resolve($id, $userId);
 
             if ($resolved) {
-                Response::json(['success' => true, 'message' => 'Log marcado como resolvido']);
+                Response::success(null, 'Log marcado como resolvido');
             } else {
                 Response::error('Log não encontrado', 404);
             }
@@ -868,11 +863,9 @@ class SysAdminController extends BaseController
 
         try {
             $deleted = LogService::cleanup($days);
-            Response::json([
-                'success' => true,
-                'message' => "{$deleted} log(s) antigo(s) removido(s)",
-                'count'   => $deleted,
-            ]);
+            Response::success([
+                'count' => $deleted,
+            ], "{$deleted} log(s) antigo(s) removido(s)");
         } catch (Exception $e) {
             Response::error('Erro ao limpar logs: ' . $e->getMessage(), 500);
         }
@@ -928,11 +921,9 @@ class SysAdminController extends BaseController
                 $results['redis'] = false;
             }
 
-            Response::json([
-                'success' => true,
-                'message' => "Cache limpo com sucesso ({$results['files']} arquivo(s) removido(s))",
+            Response::success([
                 'details' => $results,
-            ]);
+            ], "Cache limpo com sucesso ({$results['files']} arquivo(s) removido(s))");
         } catch (Exception $e) {
             Response::error('Erro ao limpar cache: ' . $e->getMessage(), 500);
         }

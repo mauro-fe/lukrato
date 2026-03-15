@@ -87,7 +87,7 @@ async function loadAllData() {
 // ─── Progress Section ───────────────────────────────────────────────────────
 
 function updateProgressSection(data) {
-    const isSuccess = data.success === true || data.status === 'Success' || data.status === 'success';
+    const isSuccess = data.success === true;
     if (!isSuccess) return;
 
     const progress = data.data;
@@ -121,7 +121,7 @@ function updateProgressSection(data) {
 // ─── Achievements ───────────────────────────────────────────────────────────
 
 function updateAchievements(data) {
-    const isSuccess = data.success === true || data.status === 'Success' || data.status === 'success';
+    const isSuccess = data.success === true;
     if (!isSuccess || !data.data?.achievements) return;
 
     const achievements = data.data.achievements;
@@ -185,7 +185,7 @@ function filterAchievements(achievements, filter) {
 // ─── Points History ─────────────────────────────────────────────────────────
 
 function updatePointsHistory(data) {
-    const isSuccess = data.success === true || data.status === 'Success' || data.status === 'success';
+    const isSuccess = data.success === true;
     if (!isSuccess || !data.data) {
         if (elements.pointsHistory) elements.pointsHistory.innerHTML = '<p class="empty-state">Nenhuma atividade recente</p>';
         return;
@@ -218,7 +218,7 @@ function updatePointsHistory(data) {
 // ─── Leaderboard ────────────────────────────────────────────────────────────
 
 function updateLeaderboard(data) {
-    const isSuccess = data.success === true || data.status === 'Success' || data.status === 'success';
+    const isSuccess = data.success === true;
     if (!isSuccess || !data.data?.leaderboard) return;
 
     const leaderboard = data.data.leaderboard;

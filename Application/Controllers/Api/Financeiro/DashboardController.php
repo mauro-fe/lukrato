@@ -54,7 +54,7 @@ class DashboardController
     {
         $userId = Auth::id();
         if (!$userId) {
-            Response::json(['status' => 'error', 'message' => 'Não autenticado'], 401);
+            Response::error('Não autenticado', 401);
             return;
         }
 
@@ -72,7 +72,7 @@ class DashboardController
         $difReceitas = $comparativo['competencia']['receitas'] - $comparativo['caixa']['receitas'];
         $difDespesas = $comparativo['competencia']['despesas'] - $comparativo['caixa']['despesas'];
 
-        Response::json([
+        Response::success([
             'month' => $month,
             'competencia' => [
                 'receitas' => $comparativo['competencia']['receitas'],
@@ -97,7 +97,7 @@ class DashboardController
     {
         $userId = Auth::id();
         if (!$userId) {
-            Response::json(['status' => 'error', 'message' => 'Nao autenticado'], 401);
+            Response::error('Nao autenticado', 401);
             return;
         }
 
@@ -142,7 +142,7 @@ class DashboardController
             'conta' => (string)$r->conta,
         ])->values()->all();
 
-        Response::json($out);
+        Response::success($out);
     }
 
     /**
@@ -159,7 +159,7 @@ class DashboardController
     {
         $userId = Auth::id();
         if (!$userId) {
-            Response::json(['status' => 'error', 'message' => 'Não autenticado'], 401);
+            Response::error('Não autenticado', 401);
             return;
         }
 
@@ -172,7 +172,7 @@ class DashboardController
 
         $result = $this->provisaoService->generate($userId, $normalized['month']);
 
-        Response::json($result->toArray());
+        Response::success($result->toArray());
     }
 
     /**
@@ -185,10 +185,7 @@ class DashboardController
     {
         $userId = Auth::id();
         if (!$userId) {
-            Response::json([
-                'success' => false,
-                'message' => 'Não autenticado',
-            ], 401);
+            Response::error('Não autenticado', 401);
             return;
         }
 
@@ -234,16 +231,10 @@ class DashboardController
             $score['metas_ativas'] = $metasAtivas;
             $score['metas_concluidas'] = $metasConcluidas;
 
-            Response::json([
-                'success' => true,
-                'data' => $score,
-            ]);
+            Response::success($score);
         } catch (\Exception $e) {
             error_log('[DashboardController::healthScore] ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
-            Response::json([
-                'success' => false,
-                'message' => 'Erro ao calcular health score',
-            ], 500);
+            Response::error('Erro ao calcular health score', 500);
         }
     }
 
@@ -257,10 +248,7 @@ class DashboardController
     {
         $userId = Auth::id();
         if (!$userId) {
-            Response::json([
-                'success' => false,
-                'message' => 'Não autenticado',
-            ], 401);
+            Response::error('Não autenticado', 401);
             return;
         }
 
@@ -277,15 +265,9 @@ class DashboardController
 
             $insight = $this->generateInsight($currentData, $previousData);
 
-            Response::json([
-                'success' => true,
-                'data' => $insight,
-            ]);
+            Response::success($insight);
         } catch (\Exception $e) {
-            Response::json([
-                'success' => false,
-                'message' => 'Erro ao gerar insight',
-            ], 500);
+            Response::error('Erro ao gerar insight', 500);
         }
     }
 
@@ -478,10 +460,7 @@ class DashboardController
     {
         $userId = Auth::id();
         if (!$userId) {
-            Response::json([
-                'success' => false,
-                'message' => 'Não autenticado',
-            ], 401);
+            Response::error('Não autenticado', 401);
             return;
         }
 
@@ -495,16 +474,10 @@ class DashboardController
 
             $insights = $this->generateHealthScoreInsights($data, $userId);
 
-            Response::json([
-                'success' => true,
-                'data' => $insights,
-            ]);
+            Response::success($insights);
         } catch (\Exception $e) {
             error_log('[DashboardController::healthScoreInsights] ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
-            Response::json([
-                'success' => false,
-                'message' => 'Erro ao gerar insights',
-            ], 500);
+            Response::error('Erro ao gerar insights', 500);
         }
     }
 

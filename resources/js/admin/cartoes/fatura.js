@@ -410,16 +410,16 @@ export const FaturaModal = {
             const resultado = await response.json();
 
             // 🎮 GAMIFICAÇÃO: Exibir conquistas se houver
-            if (resultado.gamification?.achievements && Array.isArray(resultado.gamification.achievements)) {
+            if (resultado.data?.gamification?.achievements && Array.isArray(resultado.data.gamification.achievements)) {
                 if (typeof window.notifyMultipleAchievements === 'function') {
-                    window.notifyMultipleAchievements(resultado.gamification.achievements);
+                    window.notifyMultipleAchievements(resultado.data.gamification.achievements);
                 } else {
                     console.error('❌ notifyMultipleAchievements não está disponível');
                 }
             } else {
             }
 
-            Utils.showToast('success', `Fatura paga com sucesso! ${resultado.itens_pagos} parcela(s) quitada(s).`);
+            Utils.showToast('success', `Fatura paga com sucesso! ${resultado.data?.itens_pagos ?? ''} parcela(s) quitada(s).`);
 
             // Fechar modal
             const modal = document.querySelector('.modal-fatura-overlay');
@@ -565,16 +565,19 @@ export const FaturaModal = {
                 throw new Error('Erro ao carregar fatura');
             }
 
-            const fatura = await faturaResponse.json();
+            const faturaJson = await faturaResponse.json();
+            const fatura = faturaJson.data || faturaJson;
             let parcelamentos = null;
             let statusPagamento = null;
 
             if (parcelamentosResponse.ok) {
-                parcelamentos = await parcelamentosResponse.json();
+                const parcJson = await parcelamentosResponse.json();
+                parcelamentos = parcJson.data || parcJson;
             }
 
             if (statusResponse.ok) {
-                statusPagamento = await statusResponse.json();
+                const statusJson = await statusResponse.json();
+                statusPagamento = statusJson.data || statusJson;
             }
 
             // Atualizar conteúdo do modal sem fechá-lo
@@ -638,7 +641,7 @@ export const FaturaModal = {
                             'X-Requested-With': 'XMLHttpRequest'
                         },
                         credentials: 'same-origin'
-                    }).then(r => r.ok ? r.json() : null).catch(() => null)
+                    }).then(r => r.ok ? r.json().then(j => j.data || j) : null).catch(() => null)
                 ]);
 
                 const conteudo = FaturaModal.criarConteudoModal(fatura, parcelamentos, statusResponse, cartaoId);

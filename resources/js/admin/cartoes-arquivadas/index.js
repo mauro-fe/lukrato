@@ -216,10 +216,10 @@ window.handleHardDelete = async function (id, nome = '') {
         });
         const data = await safeJson(res);
 
-        if (res.status === 422 && data?.status === 'confirm_delete') {
-            const totalLancamentos = data?.total_lancamentos || 0;
-            const totalFaturas = data?.total_faturas || 0;
-            const totalItens = data?.total_itens || 0;
+        if (res.status === 422 && !data?.success && data?.errors?.requires_confirmation) {
+            const totalLancamentos = data?.data?.total_lancamentos || 0;
+            const totalFaturas = data?.data?.total_faturas || 0;
+            const totalItens = data?.data?.total_itens || 0;
 
             let detalhes = '';
             const totalGeral = totalLancamentos + totalFaturas + totalItens;
@@ -255,7 +255,7 @@ window.handleHardDelete = async function (id, nome = '') {
             const delData = await safeJson(delRes);
             if (!delRes.ok || !delData.success) throw new Error(delData?.message || 'Erro ao excluir');
 
-            const totalExcluido = (delData.deleted_lancamentos || 0) + (delData.deleted_faturas || 0) + (delData.deleted_itens || 0);
+            const totalExcluido = (delData.data?.deleted_lancamentos || 0) + (delData.data?.deleted_faturas || 0) + (delData.data?.deleted_itens || 0);
             await window.Swal.fire({
                 icon: 'success', title: 'Excluído!',
                 html: `<p><b>${nomeCartao}</b> e todos os dados vinculados foram excluídos permanentemente.</p>

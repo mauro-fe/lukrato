@@ -78,13 +78,12 @@ export function init() {
             let payload = null;
             try { payload = JSON.parse(raw); } catch (_) { /* ignore */ }
 
-            const okByStatus  = payload?.status === 'success';
             const okBySuccess = payload?.success === true;
-            const message     = payload?.message ?? payload?.data?.message ?? 'Mensagem enviada com sucesso.';
+            const message     = payload?.message ?? 'Mensagem enviada com sucesso.';
 
             const Swal = await loadSwal();
 
-            if (res.ok && (okByStatus || okBySuccess)) {
+            if (res.ok && okBySuccess) {
                 await Swal.fire({
                     icon: 'success',
                     title: 'Mensagem enviada! ',

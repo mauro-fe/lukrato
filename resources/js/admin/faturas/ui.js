@@ -1466,7 +1466,7 @@ export const FaturasUI = {
             const response = await Modules.API.pagarFaturaCompleta(cartaoId, parseInt(mes), parseInt(ano), selectedContaId);
 
             if (!response.success) {
-                throw new Error(response.error || 'Erro ao processar pagamento');
+                throw new Error(response.message || 'Erro ao processar pagamento');
             }
 
             await Swal.fire({
@@ -1477,7 +1477,7 @@ export const FaturasUI = {
                     <div style="margin: 1rem 0; padding: 0.75rem; background: #f0fdf4; border-radius: 8px;">
                         <div style="font-size: 0.875rem; color: #047857;">Valor debitado:</div>
                         <div style="font-size: 1.25rem; font-weight: bold; color: #059669;">
-                            ${Utils.formatMoney(response.valor_pago || valorTotal)}
+                            ${Utils.formatMoney(response.data?.valor_pago || valorTotal)}
                         </div>
                     </div>
                     <div style="color: #059669;">

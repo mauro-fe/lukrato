@@ -48,7 +48,8 @@ class ProgressiveDisclosure {
         credentials: 'include',
         headers: { 'Accept': 'application/json' }
       });
-      const data = await response.json();
+      const json = await response.json();
+      const data = json?.data ?? json;
 
       if (data && typeof data.count !== 'undefined') {
         this.state.transactionCount = parseInt(data.count) || 0;

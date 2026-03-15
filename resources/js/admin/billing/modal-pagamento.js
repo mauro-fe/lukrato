@@ -372,7 +372,7 @@ async function checkPendingPix() {
     try {
         const resp = await fetch(`${BASE_URL}premium/pending-pix`, { credentials: 'include', headers: { 'Accept': 'application/json' } });
         const json = await resp.json();
-        if (json.status === 'success' && json.data?.hasPending && json.data?.pix) {
+        if (json.success && json.data?.hasPending && json.data?.pix) {
             showPendingPaymentSection({
                 billingType: 'PIX', createdAt: json.data.createdAt || new Date().toLocaleString('pt-BR'),
                 paymentId: json.data.paymentId,
@@ -410,7 +410,7 @@ function startPaymentPolling(paymentId) {
         try {
             const resp = await fetch(`${BASE_URL}premium/check-payment/${paymentId}`, { credentials: 'include', headers: { 'Accept': 'application/json' } });
             const json = await resp.json();
-            if (json.status === 'success' && json.data?.paid) {
+            if (json.success && json.data?.paid) {
                 clearInterval(paymentPollingInterval);
                 window.Swal?.fire('Pagamento confirmado! 🎉', 'Seu plano foi ativado com sucesso.', 'success').then(() => window.location.reload());
             }
@@ -428,7 +428,7 @@ async function checkPendingPayment() {
     try {
         const resp = await fetch(`${BASE_URL}premium/pending-payment`, { credentials: 'include', headers: { 'Accept': 'application/json' } });
         const json = await resp.json();
-        if (json.status === 'success' && json.data?.hasPending) {
+        if (json.success && json.data?.hasPending) {
             hasPendingPayment = true;
             pendingPaymentData = json.data;
             showPendingPaymentSection(json.data);
@@ -501,7 +501,7 @@ async function cancelPendingPayment() {
         });
         const json = await resp.json();
 
-        if (json.status === 'success') {
+        if (json.success) {
             hasPendingPayment = false; pendingPaymentData = null;
             stopPaymentPolling(); hidePendingPaymentSection();
             window.Swal?.fire({ icon: 'success', title: 'Pagamento cancelado!', text: 'Agora você pode escolher outro método.', timer: 2000, showConfirmButton: false });

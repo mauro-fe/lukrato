@@ -58,14 +58,13 @@ class SessionController
         }
 
         if (!$userId) {
-            Response::json([
+            Response::error('Usuário não autenticado', 401, [
                 'authenticated' => false,
                 'expired' => true,
-                'message' => 'Usuário não autenticado',
                 'remainingTime' => 0,
                 'showWarning' => false,
                 'canRenew' => false,
-            ], 401);
+            ]);
             return;
         }
 
@@ -96,7 +95,7 @@ class SessionController
             }
         }
 
-        Response::json([
+        Response::success([
             'authenticated' => !$isExpired,
             'expired' => $isExpired,
             'remainingTime' => $remainingTime,
@@ -129,10 +128,7 @@ class SessionController
         $userId = $_SESSION['user_id'] ?? null;
 
         if (!$userId) {
-            Response::json([
-                'success' => false,
-                'message' => 'Sessão inválida. Por favor, faça login novamente.',
-            ], 401);
+            Response::error('Sessão inválida. Por favor, faça login novamente.', 401);
             return;
         }
 
@@ -146,10 +142,7 @@ class SessionController
 
         if ($sessionAge > $sessionLifetime + $gracePeriod) {
             // Passou do grace period, não pode mais renovar
-            Response::json([
-                'success' => false,
-                'message' => 'Sessão expirada há muito tempo. Por favor, faça login novamente.',
-            ], 401);
+            Response::error('Sessão expirada há muito tempo. Por favor, faça login novamente.', 401);
             return;
         }
 
@@ -165,13 +158,11 @@ class SessionController
         // Gera novo token CSRF
         $newToken = CsrfMiddleware::generateToken('default');
 
-        Response::json([
-            'success' => true,
-            'message' => 'Sessão renovada com sucesso',
+        Response::success([
             'newToken' => $newToken,
             'remainingTime' => $sessionLifetime,
             'expiresAt' => date('Y-m-d H:i:s', time() + $sessionLifetime),
-        ]);
+        ], 'Sessão renovada com sucesso');
     }
 
     /**
@@ -189,7 +180,7 @@ class SessionController
         $user = Auth::user();
 
         if (!$user) {
-            Response::json(['alive' => false], 401);
+            Response::error('Não autenticado', 401);
             return;
         }
 
@@ -204,7 +195,7 @@ class SessionController
             $_SESSION['last_activity'] = time();
         }
 
-        Response::json([
+        Response::success([
             'alive' => true,
             'remainingTime' => max(0, $sessionLifetime - $sessionAge),
         ]);
