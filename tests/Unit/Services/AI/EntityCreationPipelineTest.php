@@ -112,6 +112,31 @@ class EntityCreationPipelineTest extends TestCase
         $this->assertEquals('lancamento', $type);
     }
 
+    public function testExtractLancamentoNoCartaoPreencheDescricaoPadrao(): void
+    {
+        $handler = new EntityCreationHandler();
+
+        $result = $this->extractLancamento($handler, 'lança 30 no cartão de crédito');
+
+        $this->assertEquals('despesa', $result['tipo'] ?? null);
+        $this->assertEqualsWithDelta(30.0, (float) ($result['valor'] ?? 0), 0.01);
+        $this->assertEquals('cartao_credito', $result['forma_pagamento'] ?? null);
+        $this->assertEquals('Compra no Cartão', $result['descricao'] ?? null);
+        $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}$/', $result['data'] ?? '');
+    }
+
+    public function testExtractLancamentoNaFaturaDoNubankExtraiCartao(): void
+    {
+        $handler = new EntityCreationHandler();
+
+        $result = $this->extractLancamento($handler, 'lança 30 na fatura do nubank');
+
+        $this->assertEquals('cartao_credito', $result['forma_pagamento'] ?? null);
+        $this->assertEquals('Nubank', $result['nome_cartao'] ?? null);
+        $this->assertEquals('Nubank', $result['_cartao_nome'] ?? null);
+        $this->assertEquals('Compra no Nubank', $result['descricao'] ?? null);
+    }
+
     // ─── Regex extraction: orcamento ───────────────────────
 
     public function testDefinirOrcamentoDetected(): void
@@ -174,5 +199,16 @@ class EntityCreationPipelineTest extends TestCase
         // Sem título e valor, deve pedir informações
         $this->assertTrue($response->success);
         $this->assertStringContainsString('preciso', mb_strtolower($response->message));
+    }
+
+    private function extractLancamento(EntityCreationHandler $handler, string $message): array
+    {
+        $method = new \ReflectionMethod($handler, 'extractLancamento');
+        $method->setAccessible(true);
+
+        /** @var array $result */
+        $result = $method->invoke($handler, $message);
+
+        return $result;
     }
 }

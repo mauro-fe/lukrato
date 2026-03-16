@@ -412,6 +412,7 @@ class EntityCreationHandler implements AIHandlerInterface
 
         // forma_pagamento
         $data = array_merge($data, $this->extractFormaPagamento($message));
+        $data = array_merge($data, $this->extractNomeCartao($message));
 
         // parcelamento
         $data = array_merge($data, $this->extractParcelamento($message));
@@ -419,6 +420,10 @@ class EntityCreationHandler implements AIHandlerInterface
         // Se tem parcelamento, forçar cartão de crédito
         if (!empty($data['eh_parcelado']) && empty($data['forma_pagamento'])) {
             $data['forma_pagamento'] = 'cartao_credito';
+        }
+
+        if (!empty($data['nome_cartao']) && ($data['forma_pagamento'] ?? null) === 'cartao_credito') {
+            $data['_cartao_nome'] = $data['nome_cartao'];
         }
 
         // data: hoje, amanhã, ontem, anteontem, dias da semana, DD/MM, DD/MM/YYYY
@@ -460,14 +465,14 @@ class EntityCreationHandler implements AIHandlerInterface
             $desc = trim($m[1]);
             // Remover partes que são data, valor, cartão ou parcelamento
             $desc = preg_replace('/\b(?:hoje|amanh[ãa]|ontem|\d{1,2}\/\d{1,2}(?:\/\d{2,4})?|R?\$?\s*[\d.,]+\s*(?:reais|conto[s]?|pila[s]?)?)\b/iu', '', $desc);
-            $desc = preg_replace('/\b(?:cart[ãa]o|cr[ée]dito|d[ée]bito|em\s+\d{1,2}\s*x|\d{1,2}\s*x|parcela[s]?|parcelado?|nubank|inter|ita[úu]|bradesco|santander|c6)\b/iu', '', $desc);
+            $desc = preg_replace('/\b(?:fatura|cart[ãa]o|cr[ée]dito|d[ée]bito|em\s+\d{1,2}\s*x|\d{1,2}\s*x|parcela[s]?|parcelado?|nubank|inter|ita[úu]|bradesco|santander|c6)\b/iu', '', $desc);
             $desc = trim($desc, " \t\n\r\0\x0B,.");
             if (mb_strlen($desc) >= 3) {
                 $data['descricao'] = mb_substr($desc, 0, 190);
             }
         }
 
-        return $data;
+        return $this->fillDefaultLancamentoDescricao($data);
     }
 
     /**
@@ -481,7 +486,7 @@ class EntityCreationHandler implements AIHandlerInterface
         if (preg_match('/\b(?:d[ée]bito|no\s+d[ée]bito|cart[ãa]o\s+(?:de\s+)?d[ée]bito)\b/iu', $normalized)) {
             return ['forma_pagamento' => 'cartao_debito'];
         }
-        if (preg_match('/\b(?:cart[ãa]o|cr[ée]dito|no\s+cart[ãa]o|no\s+cr[ée]dito|parcelei|parcelo)\b/iu', $normalized)) {
+        if (preg_match('/\b(?:cart[ãa]o|cr[ée]dito|fatura|na\s+fatura|no\s+cart[ãa]o|no\s+cr[ée]dito|parcelei|parcelo)\b/iu', $normalized)) {
             return ['forma_pagamento' => 'cartao_credito'];
         }
         if (preg_match('/\b(?:pix|mandei\s+pix|fiz\s+pix|via\s+pix)\b/iu', $normalized)) {
@@ -492,6 +497,26 @@ class EntityCreationHandler implements AIHandlerInterface
         }
         if (preg_match('/\b(?:dinheiro|cash|esp[ée]cie|em\s+m[ãa]os)\b/iu', $normalized)) {
             return ['forma_pagamento' => 'dinheiro'];
+        }
+
+        return [];
+    }
+
+    private function extractNomeCartao(string $message): array
+    {
+        if (!preg_match('/\b(?:cart[ãa]o|cr[ée]dito|fatura|parcelei|parcelo|parcelado?)\b/iu', $message)) {
+            return [];
+        }
+
+        $patterns = [
+            '/\b(?:fatura|cart[ãa]o(?:\s+de\s+cr[ée]dito)?)\s+(?:do|da)\s+(nubank|inter|ita[úu]|itau|bradesco|santander|bb|banco\s*do\s*brasil|sicredi|sicoob|c6|c6\s*bank|original|bmg|pan|neon|next|will|digio|picpay|pagbank|mercado\s*pago|ame|stone|safra|caixa|banrisul|btg)\b/iu',
+            '/\b(?:no|na|do|da|pelo|pela)\s+(nubank|inter|ita[úu]|itau|bradesco|santander|bb|banco\s*do\s*brasil|sicredi|sicoob|c6|c6\s*bank|original|bmg|pan|neon|next|will|digio|picpay|pagbank|mercado\s*pago|ame|stone|safra|caixa|banrisul|btg)\b/iu',
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $message, $matches)) {
+                return ['nome_cartao' => $this->normalizeCardName($matches[1])];
+            }
         }
 
         return [];
@@ -587,9 +612,12 @@ class EntityCreationHandler implements AIHandlerInterface
         // Tentar detectar nome do cartão na mensagem
         $cardNamePattern = '/(?:no|na|do|da|pelo|pela)\s+(nubank|inter|ita[úu]|itau|bradesco|santander|bb|banco\s*do\s*brasil|sicredi|sicoob|c6|c6\s*bank|original|bmg|pan|neon|next|will|digio|picpay|pagbank|mercado\s*pago|ame|stone|safra|caixa|banrisul|btg)/iu';
 
-        $cardName = null;
-        if (preg_match($cardNamePattern, $message, $m)) {
+        $cardName = trim((string) ($data['nome_cartao'] ?? ''));
+        if ($cardName === '' && preg_match($cardNamePattern, $message, $m)) {
             $cardName = trim($m[1]);
+        }
+        if ($cardName === '') {
+            $cardName = null;
         }
 
         // Buscar cartões ativos do usuário
@@ -622,6 +650,38 @@ class EntityCreationHandler implements AIHandlerInterface
 
         // Não conseguiu resolver — será pedido ao usuário (via cards list na confirmação ou multi-turno)
         return $data;
+    }
+
+    private function fillDefaultLancamentoDescricao(array $data): array
+    {
+        $descricao = trim((string) ($data['descricao'] ?? ''));
+        if ($descricao !== '') {
+            return $data;
+        }
+
+        if (($data['forma_pagamento'] ?? null) !== 'cartao_credito') {
+            return $data;
+        }
+
+        $cartaoNome = trim((string) ($data['nome_cartao'] ?? $data['_cartao_nome'] ?? ''));
+        $data['descricao'] = $cartaoNome !== ''
+            ? 'Compra no ' . $cartaoNome
+            : 'Compra no Cartão';
+
+        return $data;
+    }
+
+    private function normalizeCardName(string $name): string
+    {
+        $normalized = mb_strtolower(trim($name));
+
+        return match ($normalized) {
+            'bb', 'banco do brasil' => 'Banco do Brasil',
+            'c6', 'c6 bank' => 'C6 Bank',
+            'itau', 'itaú' => 'Itaú',
+            'mercado pago' => 'Mercado Pago',
+            default => mb_convert_case($normalized, MB_CASE_TITLE, 'UTF-8'),
+        };
     }
 
     private function extractMeta(string $message): array
@@ -963,7 +1023,7 @@ class EntityCreationHandler implements AIHandlerInterface
 
         if ($isCartao) {
             // Preview de compra no cartão de crédito
-            $cartaoNome = $d['_cartao_nome'] ?? 'Cartão de Crédito';
+            $cartaoNome = $d['_cartao_nome'] ?? $d['nome_cartao'] ?? 'Cartão de Crédito';
             $icon = '💳';
 
             $lines = ["{$icon} **Compra no Cartão**: {$cartaoNome}"];
