@@ -12,7 +12,6 @@
   -webkit-backdrop-filter: var(--glass-backdrop);
   border: 1px solid var(--glass-border);
   border-radius: 16px;
-  padding: 1.25rem;
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -20,10 +19,11 @@
     transform 0.25s ease-out,
     box-shadow 0.25s ease-out,
     border-color 0.25s ease-out;
-  cursor: pointer;
+  cursor: default;
   position: relative;
   overflow: hidden;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  padding: 1.25rem;
 }
 
 .stat-card::before {
@@ -118,6 +118,5 @@
 
 .stat-value.warning {
   color: #f59e0b;
-  color: var(--color-primary);
 }
 

@@ -164,7 +164,12 @@ class LancamentoGlobalManager {
                 this.contas = [];
             } else {
                 const dataContas = await resContas.json();
-                const contasArray = dataContas.contas || dataContas || [];
+                const contasArray = Array.isArray(dataContas)
+                    ? dataContas
+                    : (Array.isArray(dataContas?.data)
+                        ? dataContas.data
+                        : (Array.isArray(dataContas?.contas) ? dataContas.contas : []));
+
                 this.contas = contasArray.map(conta => ({
                     ...conta,
                     saldo: conta.saldoAtual !== undefined ? conta.saldoAtual : (conta.saldo_inicial || 0)

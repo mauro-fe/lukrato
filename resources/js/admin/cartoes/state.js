@@ -23,6 +23,9 @@ export const STATE = {
     currentView: 'grid',
     currentFilter: 'all',
     searchTerm: '',
+    lastLoadedAt: null,
+    isLoading: false,
+    isSaving: false,
 };
 
 // ── Module registry (filled by other modules) ─────────────────

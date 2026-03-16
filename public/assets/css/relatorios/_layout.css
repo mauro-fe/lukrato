@@ -26,9 +26,8 @@
   margin-bottom: var(--spacing-6);
   padding: var(--spacing-6);
   background:
-    radial-gradient(circle at top right, rgba(230, 126, 34, 0.14), transparent 28%),
-    linear-gradient(135deg, rgba(52, 152, 219, 0.08), rgba(46, 204, 113, 0.04)),
     var(--glass-bg);
+    border-radius: var(--radius-md);
 }
 
 .reports-context-copy {

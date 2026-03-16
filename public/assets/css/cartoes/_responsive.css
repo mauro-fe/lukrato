@@ -64,6 +64,16 @@
     gap: 8px;
   }
 
+  .cartoes-summary-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cartoes-summary-pills {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
   .btn-adicionar-cartao,
   #btnNovoCartao,
   .btn-primary {
@@ -157,9 +167,10 @@
 
   .credit-card,
   .cartao-card {
-    height: 200px !important;
+    height: auto !important;
     min-width: 100% !important;
     max-width: 100% !important;
+    min-height: 200px !important;
     margin-top: 10px;
   }
 
@@ -171,6 +182,24 @@
   .card-number {
     font-size: 16px !important;
     letter-spacing: 2px !important;
+  }
+
+  .card-account {
+    max-width: 100% !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  .card-metrics {
+    grid-template-columns: 1fr !important;
+    gap: 0.5rem !important;
+  }
+
+  .card-metric {
+    padding: 0.65rem 0.75rem !important;
+  }
+
+  .card-limit-summary {
+    gap: 0.4rem !important;
   }
 
   .card-holder,
@@ -299,6 +328,11 @@
     border-radius: 8px !important;
   }
 
+  .empty-state-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
   .faturas-list {
     gap: var(--spacing-3) !important;
   }
@@ -373,8 +407,9 @@
 
   .credit-card,
   .cartao-card {
-    height: 180px !important;
+    height: auto !important;
     padding: 1.25rem !important;
+    min-height: 0 !important;
   }
 
   .card-number {
@@ -409,6 +444,10 @@
     font-size: 14px !important;
     letter-spacing: 1px !important;
     margin-bottom: 1rem !important;
+  }
+
+  .card-account {
+    font-size: 11px !important;
   }
 
   .card-label {

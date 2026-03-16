@@ -107,7 +107,7 @@
   width: 28px;
   height: 28px;
   border: none;
-  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  background: var(--glass-bg) ;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.2s ease;

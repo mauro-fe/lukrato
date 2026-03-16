@@ -1,22 +1,22 @@
 /**
- * Cartões Manager – Entry point
+ * Cartoes Manager - Entry point
  * Orchestrates all modules and exposes backward-compatible global API
  */
 
-import { CONFIG, STATE, Utils, Modules } from './state.js';
+import { Modules } from './state.js';
 import { CartoesAPI } from './api.js';
 import { CartoesUI } from './ui.js';
 import { FaturaModal } from './fatura.js';
 
 const init = async () => {
     CartoesUI.setupEventListeners();
+    CartoesUI.restoreViewPreference();
     await Modules.API.loadCartoes();
-    await Modules.API.carregarAlertas();
 };
 
 // Backward compat for onclick="cartoesManager.xxx()"
 window.cartoesManager = {
-    openModal: (id) => CartoesUI.openModal(id),
+    openModal: (mode = 'create', cartaoData = null) => CartoesUI.openModal(mode, cartaoData),
     closeModal: () => CartoesUI.closeModal(),
     editCartao: (id) => Modules.API.editCartao(id),
     arquivarCartao: (id) => Modules.API.arquivarCartao(id),
@@ -35,4 +35,7 @@ window.cartoesManager = {
     desfazerPagamentoParcela: (pid) => Modules.API.desfazerPagamentoParcela(pid),
 };
 
-document.addEventListener('DOMContentLoaded', () => init());
+if (!window.__CARTOES_MANAGER_INITIALIZED__) {
+    window.__CARTOES_MANAGER_INITIALIZED__ = true;
+    document.addEventListener('DOMContentLoaded', () => init());
+}

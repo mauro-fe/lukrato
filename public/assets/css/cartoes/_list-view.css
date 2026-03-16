@@ -5,25 +5,36 @@
 
 .cartoes-grid.list-view .credit-card {
   height: auto;
+  min-height: 0;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
   padding: 1.5rem;
 }
 
 .cartoes-grid.list-view .card-header {
   margin-bottom: 0;
-  flex: 1;
+  flex: 1.2;
 }
 
 .cartoes-grid.list-view .card-number {
-  margin: 0 2rem;
+  margin: 0;
   font-size: 1.15rem;
 }
 
-.cartoes-grid.list-view .card-footer {
+.cartoes-grid.list-view .card-account {
+  margin: 0;
+}
+
+.cartoes-grid.list-view .card-metrics {
   flex: 1;
-  justify-content: flex-end;
-  gap: 2rem;
+  margin: 0;
+}
+
+.cartoes-grid.list-view .card-limit-summary {
+  flex: 1;
+  min-width: 220px;
 }
 
 /* List View em Mobile */
@@ -41,16 +52,19 @@
     margin-bottom: 1rem !important;
   }
 
+  .cartoes-grid.list-view .card-account {
+    margin-bottom: 0.75rem !important;
+  }
+
   .cartoes-grid.list-view .card-number {
     margin: 1rem 0 !important;
     width: 100% !important;
     font-size: 15px !important;
   }
 
-  .cartoes-grid.list-view .card-footer {
+  .cartoes-grid.list-view .card-metrics,
+  .cartoes-grid.list-view .card-limit-summary {
     width: 100% !important;
-    flex-direction: row !important;
-    justify-content: space-between !important;
     gap: 1rem !important;
   }
 
