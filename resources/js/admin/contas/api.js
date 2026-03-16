@@ -80,11 +80,11 @@ export const ContasAPI = {
         } catch (error) {
             console.error('Erro ao carregar instituicoes:', error);
 
-            let message = 'Erro ao carregar instituicoes financeiras';
+            let message = 'Erro ao carregar institui\u00e7\u00f5es financeiras';
             if (error.name === 'AbortError' || error.message?.includes('demorou')) {
-                message = 'A conexao esta lenta. Tente novamente.';
+                message = 'A conex\u00e3o est\u00e1 lenta. Tente novamente.';
             } else if (!navigator.onLine) {
-                message = 'Sem conexao com a internet';
+                message = 'Sem conex\u00e3o com a internet';
             }
 
             Utils.showToast(message, 'error');
@@ -145,7 +145,7 @@ export const ContasAPI = {
             }
 
             Modules.Modal.closeNovaInstituicaoModal();
-            Utils.showToast('Instituicao criada com sucesso!', 'success');
+            Utils.showToast('Institui\u00e7\u00e3o criada com sucesso!', 'success');
         } catch (error) {
             Utils.showToast(error.message, 'error');
         }
@@ -217,9 +217,9 @@ export const ContasAPI = {
 
             let message = 'Erro ao carregar contas';
             if (error.name === 'AbortError' || error.message?.includes('demorou')) {
-                message = 'A conexao esta lenta. Tente novamente.';
+                message = 'A conex\u00e3o est\u00e1 lenta. Tente novamente.';
             } else if (!navigator.onLine) {
-                message = 'Sem conexao com a internet';
+                message = 'Sem conex\u00e3o com a internet';
             }
 
             STATE.lastLoadError = message;
@@ -321,7 +321,7 @@ export const ContasAPI = {
             } catch (parseError) {
                 console.error('Erro ao fazer parse do JSON:', parseError);
                 console.error('Resposta recebida:', responseText);
-                throw new Error('Resposta invalida do servidor. Verifique o console.');
+                throw new Error('Resposta inv\u00e1lida do servidor. Verifique o console.');
             }
 
             if (!response.ok || !result.success) {
@@ -349,7 +349,7 @@ export const ContasAPI = {
 
         const result = await Swal.fire({
             title: 'Arquivar conta?',
-            html: `Deseja realmente arquivar <strong>${nomeConta}</strong>?<br><small class="text-muted">A conta ficara oculta, mas pode ser restaurada depois.</small>`,
+            html: `Deseja realmente arquivar <strong>${nomeConta}</strong>?<br><small class="text-muted">A conta ficar\u00e1 oculta, mas pode ser restaurada depois.</small>`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e67e22',

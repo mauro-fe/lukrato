@@ -51,7 +51,7 @@ export const ContasRender = {
 
         if (titleEl) {
             titleEl.textContent = query || typeFilter !== 'all'
-                ? `${contasVisiveis.length} conta(s) na visualizacao atual`
+                ? `${contasVisiveis.length} conta(s) na visualiza\u00e7\u00e3o atual`
                 : 'Suas contas ativas em tempo real';
         }
 
@@ -59,9 +59,9 @@ export const ContasRender = {
             if (STATE.lastLoadError && !STATE.contas.length) {
                 descriptionEl.textContent = STATE.lastLoadError;
             } else if (query || typeFilter !== 'all') {
-                descriptionEl.textContent = 'A lista abaixo esta filtrada, mas os cards do topo continuam mostrando o saldo total atual da carteira.';
+                descriptionEl.textContent = 'A lista abaixo est\u00e1 filtrada, mas os cards do topo continuam mostrando o saldo total atual da carteira.';
             } else {
-                descriptionEl.textContent = 'Esta pagina mostra a posicao atual das contas ativas, incluindo investimentos. Para analises por periodo, use os relatorios.';
+                descriptionEl.textContent = 'Esta p\u00e1gina mostra a posi\u00e7\u00e3o atual das contas ativas, incluindo investimentos. Para an\u00e1lises por per\u00edodo, use os relat\u00f3rios.';
             }
         }
 
@@ -70,7 +70,7 @@ export const ContasRender = {
 
         if (chipsEl) {
             const chips = [
-                '<span class="contas-context-chip info">Exclusao permanente fica em Arquivadas</span>',
+                '<span class="contas-context-chip info">Exclus\u00e3o permanente fica em Arquivadas</span>',
                 `<span class="contas-context-chip neutral">Mostrando ${contasVisiveis.length} de ${allCount} conta(s)</span>`,
             ];
 
@@ -111,7 +111,7 @@ export const ContasRender = {
             summaryEl.innerHTML = `
                 <div class="contas-filter-summary-text">
                     <i data-lucide="info"></i>
-                    <span>Os saldos acima representam a posicao atual consolidada das contas ativas, incluindo investimentos.</span>
+                    <span>Os saldos acima representam a posi\u00e7\u00e3o atual consolidada das contas ativas, incluindo investimentos.</span>
                 </div>
             `;
             return;
@@ -145,7 +145,7 @@ export const ContasRender = {
                     <i data-lucide="wallet"></i>
                 </div>
                 <h3>Nenhuma conta cadastrada</h3>
-                <p>Comece criando sua primeira conta para acompanhar seu saldo atual em um so lugar.</p>
+                <p>Comece criando sua primeira conta para acompanhar seu saldo atual em um s\u00f3 lugar.</p>
                 <button class="btn btn-primary btn-lg" data-action="create-first-account">
                     <i data-lucide="plus"></i> Criar primeira conta
                 </button>
@@ -234,21 +234,21 @@ export const ContasRender = {
                         <button class="btn-icon" onclick="contasManager.editConta(${conta.id})" title="Editar">
                             <i data-lucide="pencil"></i>
                         </button>
-                        <button class="btn-icon" onclick="contasManager.moreConta(${conta.id}, event)" title="Mais opcoes">
+                        <button class="btn-icon" onclick="contasManager.moreConta(${conta.id}, event)" title="Mais op\u00e7\u00f5es">
                             <i data-lucide="more-vertical"></i>
                         </button>
                     </div>
                 </div>
                 <div class="account-body">
                     <h3 class="account-name">${escapeHtml(conta.nome)}</h3>
-                    <div class="account-institution">${escapeHtml(instituicao ? instituicao.nome : 'Instituicao nao definida')}</div>
+                    <div class="account-institution">${escapeHtml(instituicao ? instituicao.nome : 'Institui\u00e7\u00e3o n\u00e3o definida')}</div>
                     <span class="account-type-badge ${tipoClass}">${escapeHtml(tipoLabel)}</span>
                     <div class="account-balance ${saldoClass}">
                         ${Utils.formatCurrency(saldo)}
                     </div>
                     <div class="account-info">
-                        <button class="btn-new-transaction" data-conta-id="${conta.id}" title="Novo lancamento">
-                            <i data-lucide="circle-plus"></i> Novo Lancamento
+                        <button class="btn-new-transaction" data-conta-id="${conta.id}" title="Novo lan\u00e7amento">
+                            <i data-lucide="circle-plus"></i> Novo Lan\u00e7amento
                         </button>
                     </div>
                     ${ContasRender.renderCartoesBadge(conta)}
@@ -257,7 +257,7 @@ export const ContasRender = {
                     <button class="btn-icon" onclick="contasManager.editConta(${conta.id})" title="Editar">
                         <i data-lucide="pencil"></i>
                     </button>
-                    <button class="btn-icon" onclick="contasManager.moreConta(${conta.id}, event)" title="Mais opcoes">
+                    <button class="btn-icon" onclick="contasManager.moreConta(${conta.id}, event)" title="Mais op\u00e7\u00f5es">
                         <i data-lucide="more-vertical"></i>
                     </button>
                 </div>
@@ -275,7 +275,7 @@ export const ContasRender = {
 
         const grupos = Utils.groupByTipo(STATE.instituicoes);
 
-        select.innerHTML = '<option value="">Selecione uma instituicao</option>';
+        select.innerHTML = '<option value="">Selecione uma institui\u00e7\u00e3o</option>';
 
         Object.keys(grupos).forEach((tipo) => {
             const optgroup = document.createElement('optgroup');
