@@ -222,4 +222,22 @@ class TransactionDetectorTest extends TestCase
         $this->assertArrayHasKey('data', $result);
         $this->assertMatchesRegularExpression('/\d{4}-\d{2}-\d{2}/', $result['data']);
     }
+
+    public function testExtractRemovesMerchantContextFromDescription(): void
+    {
+        $result = TransactionDetectorService::extract('gastei 30 com produto de limpeza no mercado');
+
+        $this->assertNotNull($result);
+        $this->assertEquals('Produto De Limpeza', $result['descricao'] ?? null);
+        $this->assertEquals('Mercado', $result['categoria_contexto'] ?? null);
+    }
+
+    public function testExtractKeepsMercadoWhenItIsTheActualDescription(): void
+    {
+        $result = TransactionDetectorService::extract('gastei 30 no mercado');
+
+        $this->assertNotNull($result);
+        $this->assertEquals('Mercado', $result['descricao'] ?? null);
+        $this->assertArrayNotHasKey('categoria_contexto', $result);
+    }
 }

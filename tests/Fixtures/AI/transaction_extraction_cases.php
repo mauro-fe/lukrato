@@ -44,6 +44,12 @@ return [
         'notes'    => 'Verbo comprei',
     ],
     [
+        'input'    => 'gastei 30 com produto de limpeza no mercado',
+        'expected' => ['descricao' => 'Produto De Limpeza', 'valor' => 30.0, 'tipo' => 'despesa'],
+        'tags'     => ['context'],
+        'notes'    => 'Descricao deve focar no item e nao no estabelecimento',
+    ],
+    [
         'input'    => 'recebi 5000 de salário',
         'expected' => ['descricao' => 'Salário', 'valor' => 5000.0, 'tipo' => 'receita'],
         'tags'     => ['income'],

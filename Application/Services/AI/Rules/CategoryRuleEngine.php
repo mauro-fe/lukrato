@@ -6,6 +6,7 @@ namespace Application\Services\AI\Rules;
 
 use Application\Models\Categoria;
 use Application\Models\UserCategoryRule;
+use Application\Services\AI\NLP\TransactionDescriptionNormalizer;
 
 /**
  * Motor de regras para categorização de lançamentos sem LLM.
@@ -147,50 +148,59 @@ class CategoryRuleEngine
      * @param int|null $userId       ID do usuário (para buscar categorias personalizadas)
      * @return array|null ['categoria' => string, 'subcategoria' => ?string, 'categoria_id' => ?int, 'subcategoria_id' => ?int, 'confidence' => string]
      */
-    public static function match(string $description, ?int $userId = null): ?array
+    public static function match(string $description, ?int $userId = null, ?string $context = null): ?array
     {
-        $normalized = mb_strtolower(trim($description));
+        $normalizedParts = TransactionDescriptionNormalizer::normalize($description);
+        $normalizedDescription = mb_strtolower(trim($normalizedParts['descricao'] ?? ''));
+        $normalizedContext = mb_strtolower(trim(implode(' ', array_filter([
+            $normalizedParts['categoria_contexto'] ?? null,
+            $context,
+        ]))));
 
-        if ($normalized === '') {
+        if ($normalizedDescription === '' && $normalizedContext === '') {
             return null;
         }
 
         // 1. Tentar regras personalizadas do usuário (aprendidas de correções)
         if ($userId !== null) {
-            $userMatch = self::matchUserRules($normalized, $userId);
+            $userMatch = self::matchUserRules($normalizedDescription, $normalizedContext, $userId);
             if ($userMatch !== null) {
                 return $userMatch;
             }
         }
 
         // 2. Tentar regras globais (RULE_MAP)
+        $bestMatch = null;
+        $bestScore = -1;
         foreach (self::RULE_MAP as $pattern => $mapping) {
-            if (preg_match('/' . $pattern . '/iu', $normalized)) {
-                [$categoriaNome, $subcategoriaNome] = $mapping;
-
-                // Tentar resolver IDs reais do banco
-                $ids = self::resolveIds($categoriaNome, $subcategoriaNome, $userId);
-
-                return [
-                    'categoria'        => $categoriaNome,
-                    'subcategoria'     => $subcategoriaNome,
-                    'categoria_id'     => $ids['categoria_id'],
-                    'subcategoria_id'  => $ids['subcategoria_id'],
-                    'confidence'       => 'rule',
-                ];
+            $score = self::scoreRuleMatch($pattern, $normalizedDescription, $normalizedContext);
+            if ($score <= 0 || $score <= $bestScore) {
+                continue;
             }
+
+            [$categoriaNome, $subcategoriaNome] = $mapping;
+            $ids = self::resolveIds($categoriaNome, $subcategoriaNome, $userId);
+
+            $bestScore = $score;
+            $bestMatch = [
+                'categoria'        => $categoriaNome,
+                'subcategoria'     => $subcategoriaNome,
+                'categoria_id'     => $ids['categoria_id'],
+                'subcategoria_id'  => $ids['subcategoria_id'],
+                'confidence'       => 'rule',
+            ];
         }
 
-        return null;
+        return $bestMatch;
     }
 
     /**
      * Verifica regras personalizadas do usuário (aprendidas).
      */
-    private static function matchUserRules(string $normalizedDesc, int $userId): ?array
+    private static function matchUserRules(string $normalizedDesc, string $normalizedContext, int $userId): ?array
     {
         try {
-            $rule = UserCategoryRule::findMatch($normalizedDesc, $userId);
+            $rule = UserCategoryRule::findMatch($normalizedDesc, $userId, $normalizedContext);
             if ($rule === null) {
                 return null;
             }
@@ -223,6 +233,35 @@ class CategoryRuleEngine
             // Falha silenciosa — cair para regras globais
             return null;
         }
+    }
+
+    private static function scoreRuleMatch(string $pattern, string $normalizedDescription, string $normalizedContext): int
+    {
+        $score = 0;
+
+        if ($normalizedDescription !== '' && preg_match('/' . $pattern . '/iu', $normalizedDescription, $descriptionMatch)) {
+            $score = max($score, self::buildMatchScore($descriptionMatch[0] ?? '', true));
+        }
+
+        if ($normalizedContext !== '' && preg_match('/' . $pattern . '/iu', $normalizedContext, $contextMatch)) {
+            $score = max($score, self::buildMatchScore($contextMatch[0] ?? '', false));
+        }
+
+        return $score;
+    }
+
+    private static function buildMatchScore(string $matchedText, bool $isPrimaryDescription): int
+    {
+        $matchedText = trim((string) preg_replace('/\s+/u', ' ', $matchedText));
+        if ($matchedText === '') {
+            return 0;
+        }
+
+        $wordCount = substr_count($matchedText, ' ') + 1;
+        $length = mb_strlen($matchedText);
+        $base = $isPrimaryDescription ? 100 : 35;
+
+        return $base + ($wordCount * 15) + ($length * 4);
     }
 
     /**
@@ -276,7 +315,8 @@ class CategoryRuleEngine
      */
     private static function extractKeywords(string $description): array
     {
-        $normalized = mb_strtolower(trim($description));
+        $normalizedParts = TransactionDescriptionNormalizer::normalize($description);
+        $normalized = mb_strtolower(trim($normalizedParts['descricao'] ?? ''));
 
         // Remove valores monetários e números
         $cleaned = preg_replace('/r?\$[\s]?\d[\d.,]*/i', '', $normalized);
@@ -326,7 +366,18 @@ class CategoryRuleEngine
             'paguei',
             'gastei',
             'comprei',
-            'recebi', // verbos de ação genéricos
+            'recebi',
+            'produto',
+            'produtos',
+            'compra',
+            'compras',
+            'item',
+            'itens',
+            'coisa',
+            'coisas',
+            'gasto',
+            'despesa',
+            'receita',
         ];
 
         // Filtrar stopwords e tokens muito curtos
@@ -335,6 +386,24 @@ class CategoryRuleEngine
             if (mb_strlen($token) >= 3 && !in_array($token, $stopwords, true)) {
                 $keywords[] = $token;
             }
+        }
+
+        if (!empty($normalizedParts['categoria_contexto']) && count($keywords) > 1) {
+            $keywords = array_values(array_filter($keywords, static fn(string $token): bool => !in_array($token, [
+                'mercado',
+                'supermercado',
+                'loja',
+                'shopping',
+                'farmacia',
+                'restaurante',
+                'padaria',
+                'posto',
+            ], true)));
+        }
+
+        $meaningfulPhrase = trim(implode(' ', $keywords));
+        if (substr_count($meaningfulPhrase, ' ') >= 1 && mb_strlen($meaningfulPhrase) >= 8) {
+            $keywords[] = $meaningfulPhrase;
         }
 
         // Retornar até 3 keywords, priorizando as mais longas (mais específicas)

@@ -137,6 +137,16 @@ class EntityCreationPipelineTest extends TestCase
         $this->assertEquals('Compra no Nubank', $result['descricao'] ?? null);
     }
 
+    public function testExtractLancamentoRemoveContextoDoMercadoDaDescricao(): void
+    {
+        $handler = new EntityCreationHandler();
+
+        $result = $this->extractLancamento($handler, 'registre 30 com produto de limpeza no mercado');
+
+        $this->assertEquals('Produto De Limpeza', $result['descricao'] ?? null);
+        $this->assertEquals('Mercado', $result['categoria_contexto'] ?? null);
+    }
+
     // ─── Regex extraction: orcamento ───────────────────────
 
     public function testDefinirOrcamentoDetected(): void

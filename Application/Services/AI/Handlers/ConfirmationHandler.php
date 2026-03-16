@@ -133,7 +133,11 @@ class ConfirmationHandler implements AIHandlerInterface
         if ($actionType === 'create_lancamento' && empty($payload['categoria_id'])) {
             $descricao = $payload['descricao'] ?? '';
             if ($descricao !== '') {
-                $match = CategoryRuleEngine::match($descricao, $userId);
+                $match = CategoryRuleEngine::match(
+                    $descricao,
+                    $userId,
+                    $payload['categoria_contexto'] ?? null
+                );
                 if ($match !== null && !empty($match['categoria_id'])) {
                     $payload['categoria_id'] = (int) $match['categoria_id'];
                     if (!empty($match['subcategoria_id'])) {

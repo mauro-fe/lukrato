@@ -85,11 +85,12 @@ class UserCategoryRule extends Model
      *
      * @return static|null A regra com maior usage_count que casar
      */
-    public static function findMatch(string $description, int $userId): ?self
+    public static function findMatch(string $description, int $userId, ?string $context = null): ?self
     {
-        $normalized = self::normalize($description);
+        $normalizedDescription = self::normalize($description);
+        $normalizedContext = self::normalize($context ?? '');
 
-        if ($normalized === '') {
+        if ($normalizedDescription === '' && $normalizedContext === '') {
             return null;
         }
 
@@ -98,25 +99,18 @@ class UserCategoryRule extends Model
             ->orderByDesc('usage_count')
             ->get();
 
-        foreach ($rules as $rule) {
-            // Verificar se o padrão normalizado aparece na descrição normalizada
-            if (str_contains($normalized, $rule->normalized_pattern)) {
-                return $rule;
-            }
+        $bestRule = null;
+        $bestScore = -1;
 
-            // Tentar como regex se o padrão parece ser um
-            if (str_contains($rule->normalized_pattern, '|') || str_contains($rule->normalized_pattern, '\\')) {
-                try {
-                    if (preg_match('/' . $rule->normalized_pattern . '/iu', $normalized)) {
-                        return $rule;
-                    }
-                } catch (\Throwable) {
-                    // Padrão regex inválido — ignorar
-                }
+        foreach ($rules as $rule) {
+            $score = self::scoreRuleMatch($rule->normalized_pattern, $normalizedDescription, $normalizedContext, (int) $rule->usage_count);
+            if ($score > $bestScore) {
+                $bestScore = $score;
+                $bestRule = $rule;
             }
         }
 
-        return null;
+        return $bestRule;
     }
 
     /**
@@ -162,5 +156,49 @@ class UserCategoryRule extends Model
         if ($this->source === 'correction') {
             $this->update(['source' => 'confirmed']);
         }
+    }
+
+    private static function scoreRuleMatch(string $pattern, string $description, string $context, int $usageCount): int
+    {
+        $score = 0;
+
+        if ($description !== '') {
+            $score = max($score, self::scoreAgainstText($pattern, $description, true, $usageCount));
+        }
+
+        if ($context !== '') {
+            $score = max($score, self::scoreAgainstText($pattern, $context, false, $usageCount));
+        }
+
+        return $score;
+    }
+
+    private static function scoreAgainstText(string $pattern, string $text, bool $isPrimaryDescription, int $usageCount): int
+    {
+        if ($pattern === '') {
+            return 0;
+        }
+
+        $matchedText = null;
+        if (str_contains($text, $pattern)) {
+            $matchedText = $pattern;
+        } elseif (str_contains($pattern, '|') || str_contains($pattern, '\\')) {
+            try {
+                if (preg_match('/' . $pattern . '/iu', $text, $matches)) {
+                    $matchedText = $matches[0] ?? $pattern;
+                }
+            } catch (\Throwable) {
+                return 0;
+            }
+        }
+
+        if ($matchedText === null) {
+            return 0;
+        }
+
+        $base = $isPrimaryDescription ? 300 : 90;
+        $length = mb_strlen($matchedText);
+
+        return $base + ($usageCount * 10) + ($length * 4);
     }
 }

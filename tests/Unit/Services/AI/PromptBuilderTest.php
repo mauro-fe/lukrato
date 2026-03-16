@@ -112,6 +112,8 @@ class PromptBuilderTest extends TestCase
         $this->assertStringContainsString('REGRAS DE VALOR', $prompt);
         $this->assertStringContainsString('REGRAS DE TIPO', $prompt);
         $this->assertStringContainsString('REGRAS DE DATA', $prompt);
+        $this->assertStringContainsString('frase inteira', $prompt);
+        $this->assertStringContainsString('produto de limpeza', $prompt);
         $this->assertStringContainsString('function calling', $prompt);
         $this->assertStringContainsString(date('Y-m-d'), $prompt);
     }

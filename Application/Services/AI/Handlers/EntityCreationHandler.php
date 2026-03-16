@@ -14,6 +14,7 @@ use Application\Repositories\ContaRepository;
 use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\ConversationStateService;
 use Application\Services\AI\IntentRules\EntityCreationIntentRule;
+use Application\Services\AI\NLP\TransactionDescriptionNormalizer;
 use Application\Services\AI\Rules\CategoryRuleEngine;
 use Application\Services\AI\Schemas\EntitySchemas;
 use Application\Models\Categoria;
@@ -468,7 +469,11 @@ class EntityCreationHandler implements AIHandlerInterface
             $desc = preg_replace('/\b(?:fatura|cart[ãa]o|cr[ée]dito|d[ée]bito|em\s+\d{1,2}\s*x|\d{1,2}\s*x|parcela[s]?|parcelado?|nubank|inter|ita[úu]|bradesco|santander|c6)\b/iu', '', $desc);
             $desc = trim($desc, " \t\n\r\0\x0B,.");
             if (mb_strlen($desc) >= 3) {
-                $data['descricao'] = mb_substr($desc, 0, 190);
+                $normalizedDescription = TransactionDescriptionNormalizer::normalize($desc);
+                $data['descricao'] = mb_substr($normalizedDescription['descricao'], 0, 190);
+                if (!empty($normalizedDescription['categoria_contexto'])) {
+                    $data['categoria_contexto'] = $normalizedDescription['categoria_contexto'];
+                }
             }
         }
 
@@ -568,7 +573,11 @@ class EntityCreationHandler implements AIHandlerInterface
         // 1. Tentar via CategoryRuleEngine (regras aprendidas + globais)
         $descricao = $data['descricao'] ?? '';
         if ($descricao !== '') {
-            $match = CategoryRuleEngine::match($descricao, $userId);
+            $match = CategoryRuleEngine::match(
+                $descricao,
+                $userId,
+                $data['categoria_contexto'] ?? null
+            );
             if ($match !== null && !empty($match['categoria_id'])) {
                 $data['categoria_id'] = (int) $match['categoria_id'];
                 if (!empty($match['subcategoria_id'])) {

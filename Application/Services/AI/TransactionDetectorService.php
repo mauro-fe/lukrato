@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI;
 
+use Application\Services\AI\NLP\TransactionDescriptionNormalizer;
 use Application\Services\AI\NLP\NumberNormalizer;
 
 /**
@@ -125,7 +126,7 @@ class TransactionDetectorService
     /**
      * Extrai dados de transação de uma mensagem.
      *
-     * @return array{descricao: string, valor: float, tipo: string, data: string, forma_pagamento?: string, eh_parcelado?: bool, total_parcelas?: int, nome_cartao?: string}|null
+     * @return array{descricao: string, valor: float, tipo: string, data: string, forma_pagamento?: string, eh_parcelado?: bool, total_parcelas?: int, nome_cartao?: string, categoria_contexto?: string}|null
      */
     public static function extract(string $message): ?array
     {
@@ -294,16 +295,16 @@ class TransactionDetectorService
         $descricao = preg_replace('/\s*(?:Conto[s]?|Pila[s]?|Reais)\s*$/iu', '', $descricao);
         $descricao = trim($descricao);
 
-        if ($descricao === '') {
+        $normalizedDescription = self::normalizeDescriptionPayload($descricao);
+        if ($normalizedDescription['descricao'] === '') {
             return null;
         }
 
-        return [
-            'descricao' => $descricao,
-            'valor'     => $valor,
-            'tipo'      => $tipo,
-            'data'      => self::detectDate($normalized),
-        ];
+        return array_merge([
+            'valor' => $valor,
+            'tipo'  => $tipo,
+            'data'  => self::detectDate($normalized),
+        ], $normalizedDescription);
     }
 
     /**
@@ -330,18 +331,18 @@ class TransactionDetectorService
             return null;
         }
 
-        $descricao = mb_convert_case($descricao, MB_CASE_TITLE);
-        $descricao = preg_replace('/^(No|Na|De|Do|Da|Em|Com|Pro|Pra|Para)\s+/u', '', $descricao);
-        $descricao = trim($descricao);
+        $normalizedDescription = self::normalizeDescriptionPayload($descricao);
+        if ($normalizedDescription['descricao'] === '') {
+            return null;
+        }
 
-        return [
-            'descricao'      => $descricao,
+        return array_merge([
             'valor'          => $valor,
             'tipo'           => 'despesa',
             'data'           => self::detectDate($normalized),
             'eh_parcelado'   => true,
             'total_parcelas' => $parcelas,
-        ];
+        ], $normalizedDescription);
     }
 
     /**
@@ -357,17 +358,17 @@ class TransactionDetectorService
             return null;
         }
 
-        $descricao = mb_convert_case($descricao, MB_CASE_TITLE);
-        $descricao = preg_replace('/\s+(No|Na|Do|Da|Pelo|Pela)\s*$/u', '', $descricao);
-        $descricao = trim($descricao);
+        $normalizedDescription = self::normalizeDescriptionPayload($descricao);
+        if ($normalizedDescription['descricao'] === '') {
+            return null;
+        }
 
-        return [
-            'descricao'        => $descricao,
-            'valor'            => $valor,
-            'tipo'             => 'despesa',
-            'data'             => self::detectDate($normalized),
-            'forma_pagamento'  => 'cartao_credito',
-        ];
+        return array_merge([
+            'valor'           => $valor,
+            'tipo'            => 'despesa',
+            'data'            => self::detectDate($normalized),
+            'forma_pagamento' => 'cartao_credito',
+        ], $normalizedDescription);
     }
 
     /**
@@ -383,16 +384,16 @@ class TransactionDetectorService
             return null;
         }
 
-        $descricao = mb_convert_case($descricao, MB_CASE_TITLE);
-        $descricao = preg_replace('/^(Do|Da|De|No|Na)\s+/u', '', $descricao);
-        $descricao = trim($descricao);
+        $normalizedDescription = self::normalizeDescriptionPayload($descricao);
+        if ($normalizedDescription['descricao'] === '') {
+            return null;
+        }
 
-        return [
-            'descricao' => $descricao,
-            'valor'     => $valor,
-            'tipo'      => 'despesa',
-            'data'      => self::detectDate($normalized),
-        ];
+        return array_merge([
+            'valor' => $valor,
+            'tipo'  => 'despesa',
+            'data'  => self::detectDate($normalized),
+        ], $normalizedDescription);
     }
 
     /**
@@ -408,17 +409,17 @@ class TransactionDetectorService
             return null;
         }
 
-        $descricao = mb_convert_case($descricao, MB_CASE_TITLE);
-        $descricao = preg_replace('/^(Pro|Pra|Para|De|Do|Da)\s+/u', '', $descricao);
-        $descricao = trim($descricao);
+        $normalizedDescription = self::normalizeDescriptionPayload($descricao);
+        if ($normalizedDescription['descricao'] === '') {
+            return null;
+        }
 
-        return [
-            'descricao'       => $descricao,
+        return array_merge([
             'valor'           => $valor,
             'tipo'            => 'despesa',
             'data'            => self::detectDate($normalized),
             'forma_pagamento' => 'pix',
-        ];
+        ], $normalizedDescription);
     }
 
     /**
@@ -428,6 +429,14 @@ class TransactionDetectorService
     private static function parseValue(string $raw): float
     {
         return NumberNormalizer::parseValue($raw);
+    }
+
+    /**
+     * @return array{descricao: string, categoria_contexto?: string}
+     */
+    private static function normalizeDescriptionPayload(string $description): array
+    {
+        return TransactionDescriptionNormalizer::normalize($description);
     }
 
     /**

@@ -58,7 +58,11 @@ class TransactionExtractorHandler implements AIHandlerInterface
 
         if ($extracted !== null) {
             // Categorizar via rules
-            $category = CategoryRuleEngine::match($extracted['descricao'], $request->userId);
+            $category = CategoryRuleEngine::match(
+                $extracted['descricao'],
+                $request->userId,
+                $extracted['categoria_contexto'] ?? null
+            );
 
             $result = array_merge($extracted, [
                 'categoria'        => $category['categoria'] ?? null,
@@ -130,7 +134,11 @@ class TransactionExtractorHandler implements AIHandlerInterface
 
             // Categorizar
             if (!empty($data['descricao'])) {
-                $category = CategoryRuleEngine::match($data['descricao'], $request->userId);
+                $category = CategoryRuleEngine::match(
+                    $data['descricao'],
+                    $request->userId,
+                    $data['categoria_contexto'] ?? null
+                );
                 if ($category !== null) {
                     $data = array_merge($data, [
                         'categoria'        => $category['categoria'],

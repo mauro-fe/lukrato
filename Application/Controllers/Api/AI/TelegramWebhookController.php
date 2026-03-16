@@ -1163,6 +1163,7 @@ class TelegramWebhookController extends BaseController
         $category = CategoryRuleEngine::match(
             $extracted['descricao'],
             $user->id,
+            $extracted['categoria_contexto'] ?? null
         );
 
         // Montar payload unificado (mesmo formato do EntityCreationHandler)

@@ -19,7 +19,7 @@ class PromptBuilder
         'category_user'           => '1.0',
         'analysis_system'         => '1.0',
         'analysis_user'           => '1.0',
-        'transaction_extraction'  => '1.0',
+        'transaction_extraction'  => '1.1',
         'quick_query_system'      => '1.0',
         'receipt_analysis_system' => '1.1',
         'receipt_analysis_user'   => '1.1',
@@ -234,7 +234,11 @@ REGRAS DE DATA:
 REGRAS DE DESCRICAO:
 - Extrair a descricao mais relevante e curta (2-5 palavras)
 - Remover verbos e preposicoes desnecessarias
+- Considerar a frase inteira, nao apenas uma palavra solta
+- Quando houver item + local/estabelecimento, usar o item como descricao principal
+- Nao incluir o local na descricao se ele for apenas contexto
 - Exemplo: "gastei 40 no uber pro trabalho" -> "Uber pro trabalho"
+- Exemplo: "gastei 30 com produto de limpeza no mercado" -> "Produto de limpeza"
 
 Retorne os dados via function calling. Nunca texto livre.
 PROMPT;
