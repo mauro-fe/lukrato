@@ -71,4 +71,43 @@ class TelegramMessageDTOTest extends TestCase
         $this->assertTrue($dto->isConfirmationReply());
         $this->assertTrue($dto->isAffirmative());
     }
+
+    public function testDetectsQuickReplyCallback(): void
+    {
+        $dto = TelegramMessageDTO::fromTelegramUpdate([
+            'update_id' => 13,
+            'callback_query' => [
+                'id' => 'cb-1',
+                'data' => 'quick_reply_2',
+                'from' => ['id' => 99, 'first_name' => 'Mauro'],
+                'message' => [
+                    'message_id' => 25,
+                    'chat' => ['id' => 99],
+                ],
+            ],
+        ]);
+
+        $this->assertInstanceOf(TelegramMessageDTO::class, $dto);
+        $this->assertTrue($dto->isQuickReplySelection());
+        $this->assertSame(2, $dto->getSelectedQuickReplyIndex());
+    }
+
+    public function testDetectsFlowCancellationCallback(): void
+    {
+        $dto = TelegramMessageDTO::fromTelegramUpdate([
+            'update_id' => 14,
+            'callback_query' => [
+                'id' => 'cb-2',
+                'data' => 'cancel_flow',
+                'from' => ['id' => 99, 'first_name' => 'Mauro'],
+                'message' => [
+                    'message_id' => 26,
+                    'chat' => ['id' => 99],
+                ],
+            ],
+        ]);
+
+        $this->assertInstanceOf(TelegramMessageDTO::class, $dto);
+        $this->assertTrue($dto->isFlowCancellation());
+    }
 }

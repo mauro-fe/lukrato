@@ -34,6 +34,7 @@ use Application\Services\AI\Telegram\TelegramService;
 use Application\Services\AI\Telegram\TelegramUserResolver;
 use Application\Services\AI\Telegram\TelegramFileDownloader;
 use Application\Services\AI\AiLogService;
+use Application\Services\Infrastructure\CacheService;
 use Application\Services\Infrastructure\LogService;
 use Application\Services\AI\Media\ImageAnalysisService;
 use Application\Services\AI\Media\AudioTranscriptionService;
@@ -56,6 +57,8 @@ class TelegramWebhookController extends BaseController
 {
     private const SENDER_LIMIT = 30;
     private const SENDER_WINDOW_SECONDS = 60;
+    private const QUICK_REPLY_TTL_SECONDS = 900;
+    private const MAX_QUICK_REPLIES = 3;
 
     private TelegramService $telegram;
 
@@ -195,6 +198,11 @@ class TelegramWebhookController extends BaseController
 
         $msgRecord->update(['user_id' => $user->id]);
 
+        if ($dto->isFlowCancellation() || ($this->isCancellationText($dto->body) && $this->hasActiveTelegramFlow($user->id))) {
+            $this->handleFlowCancellation($dto, $user, $msgRecord);
+            return;
+        }
+
         if ($dto->isDocument() || $dto->isVideo()) {
             $this->handleMediaMessage($dto, $user, $msgRecord);
             return;
@@ -225,6 +233,11 @@ class TelegramWebhookController extends BaseController
         }
 
         // Callback: confirmação sim/não
+        if ($dto->isQuickReplySelection()) {
+            $this->handleQuickReplySelection($dto, $user, $msgRecord);
+            return;
+        }
+
         if ($this->shouldHandleConfirmationReply($dto, $user->id)) {
             $this->handleConfirmationReply($dto, $user, $msgRecord);
             return;
@@ -249,6 +262,19 @@ class TelegramWebhookController extends BaseController
                 if ($arg !== null && preg_match('/^\d{6}$/', $arg)) {
                     $this->handleVerificationCode($dto, $msgRecord, $arg);
                     return;
+                }
+
+                $linkedUser = TelegramUserResolver::resolve($dto->chatId);
+                if ($linkedUser !== null) {
+                    $this->sendQuickReplyButtons(
+                        $dto->chatId,
+                        "Seu Telegram ja esta vinculado a conta <b>{$linkedUser->nome}</b>.\n\n"
+                            . "Voce pode mandar texto, audio, imagem, PDF e comprovantes.\n"
+                            . "Se quiser interromper algum fluxo, use /cancel.",
+                        $this->getStarterQuickReplies()
+                    );
+                    $msgRecord->markProcessed('command_start_linked');
+                    break;
                 }
 
                 $name = $dto->displayName ? ", {$dto->displayName}" : '';
@@ -298,8 +324,21 @@ class TelegramWebhookController extends BaseController
                         . "🔗 /vincular - Vincular conta\n"
                         . "❌ /desvincular - Desvincular conta\n"
                         . "📊 /status - Ver status do vínculo"
+                        . "\n/cancel - Cancelar fluxo ou confirmacao em andamento"
                 );
                 $msgRecord->markProcessed('command_help');
+                break;
+
+            case 'cancel':
+                $user = TelegramUserResolver::resolve($dto->chatId);
+
+                if ($user === null) {
+                    $this->telegram->sendText($dto->chatId, "Nao encontrei nenhum fluxo ativo para cancelar.");
+                    $msgRecord->markProcessed('command_cancel_without_user');
+                    break;
+                }
+
+                $this->handleFlowCancellation($dto, $user, $msgRecord);
                 break;
 
             case 'vincular':
@@ -374,6 +413,15 @@ class TelegramWebhookController extends BaseController
         }
 
         $msgRecord->update(['user_id' => $user->id]);
+
+        $this->sendQuickReplyButtons(
+            $dto->chatId,
+            "Telegram vinculado com sucesso.\n\n"
+                . "Agora voce pode registrar transacoes, consultar seus numeros e enviar comprovantes direto por aqui.",
+            $this->getStarterQuickReplies()
+        );
+        $msgRecord->markProcessed('verification_success');
+        return;
 
         $this->telegram->sendText(
             $dto->chatId,
@@ -599,6 +647,40 @@ class TelegramWebhookController extends BaseController
         TelegramMessage $msgRecord,
     ): void {
         $optionIndex = $dto->getSelectedOptionIndex();
+        $conversation = $this->getOrCreateConversation($user->id);
+        $state = ConversationStateService::getState($conversation->id);
+        $options = $state['data']['options'] ?? [];
+
+        if ($optionIndex === null) {
+            $this->telegram->sendText($dto->chatId, "Opcao invalida.");
+            $msgRecord->markProcessed('option_selection_invalid');
+            return;
+        }
+
+        if (
+            ($state['state'] ?? 'idle') !== 'awaiting_selection'
+            || !isset($options[$optionIndex])
+        ) {
+            $this->telegram->sendText($dto->chatId, "Essa opcao expirou. Tente novamente.");
+            $msgRecord->markProcessed('option_selection_failed');
+            return;
+        }
+
+        $textDto = new TelegramMessageDTO(
+            updateId: $dto->updateId,
+            messageId: $dto->messageId,
+            chatId: $dto->chatId,
+            type: 'text',
+            body: (string) ($optionIndex + 1),
+            displayName: $dto->displayName,
+            username: $dto->username,
+            rawPayload: $dto->rawPayload,
+        );
+
+        $this->handleNormalMessage($textDto, $user, $msgRecord);
+        return;
+
+        $optionIndex = $dto->getSelectedOptionIndex();
 
         if ($optionIndex === null) {
             $this->telegram->sendText($dto->chatId, "⚠️ Seleção inválida.");
@@ -629,6 +711,49 @@ class TelegramWebhookController extends BaseController
     /**
      * Trata mensagem de voz/áudio: download → transcrição Whisper → pipeline de texto.
      */
+    private function handleQuickReplySelection(
+        TelegramMessageDTO $dto,
+        \Application\Models\Usuario $user,
+        TelegramMessage $msgRecord,
+    ): void {
+        $replyIndex = $dto->getSelectedQuickReplyIndex();
+        $quickReplies = $this->getCachedQuickReplies($dto->chatId);
+        $message = $replyIndex !== null
+            ? trim((string) ($quickReplies[$replyIndex]['message'] ?? ''))
+            : '';
+
+        if (
+            $replyIndex === null
+            || !isset($quickReplies[$replyIndex]['message'])
+            || $message === ''
+        ) {
+            $this->telegram->sendText(
+                $dto->chatId,
+                "Esse atalho expirou. Me envie a mensagem manualmente ou escolha outro caminho."
+            );
+            $msgRecord->markProcessed('quick_reply_expired');
+            return;
+        }
+
+        $textDto = new TelegramMessageDTO(
+            updateId: $dto->updateId,
+            messageId: $dto->messageId,
+            chatId: $dto->chatId,
+            type: str_starts_with($message, '/') ? 'command' : 'text',
+            body: $message,
+            displayName: $dto->displayName,
+            username: $dto->username,
+            rawPayload: $dto->rawPayload,
+        );
+
+        if ($textDto->isCommand()) {
+            $this->handleCommand($textDto, $msgRecord);
+            return;
+        }
+
+        $this->handleNormalMessage($textDto, $user, $msgRecord);
+    }
+
     private function handleVoiceMessage(
         TelegramMessageDTO $dto,
         \Application\Models\Usuario $user,
@@ -1122,6 +1247,17 @@ class TelegramWebhookController extends BaseController
         }
 
         // Resposta normal — formatar e enviar (com split se necessário)
+        if (!empty($response->data['quick_replies']) && is_array($response->data['quick_replies'])) {
+            $this->sendQuickReplyButtons(
+                $chatId,
+                $response->message,
+                $response->data['quick_replies'],
+                $response->data['suggestion'] ?? null,
+            );
+            $msgRecord->markProcessed($intent . '_quick_replies');
+            return;
+        }
+
         $chunks = TelegramResponseFormatter::format($response->message);
 
         foreach ($chunks as $chunk) {
@@ -1153,6 +1289,204 @@ class TelegramWebhookController extends BaseController
      * Transação detectada → criar PendingAiAction + pedir confirmação com botões inline.
      * Unificado: usa PendingAiAction (mesmo modelo do web chat) com TTL de 24h.
      */
+    private function isCancellationText(string $text): bool
+    {
+        $normalized = mb_strtolower(trim($text));
+
+        if ($normalized === '') {
+            return false;
+        }
+
+        return preg_match('/\b(cancel|cancela|parar?|desist|sair|deixa\s*pra\s*l[aá]|esquece)\b/iu', $normalized) === 1;
+    }
+
+    private function handleFlowCancellation(
+        TelegramMessageDTO $dto,
+        \Application\Models\Usuario $user,
+        TelegramMessage $msgRecord,
+    ): void {
+        $cancelledPending = $this->rejectLatestPendingAction($user->id);
+        $cancelledConversation = $this->clearActiveConversationState($user->id);
+
+        if (!$cancelledPending && !$cancelledConversation) {
+            $this->telegram->sendText($dto->chatId, "Nao havia nenhuma acao ou fluxo ativo para cancelar.");
+            $msgRecord->markProcessed('cancel_no_active_flow');
+            return;
+        }
+
+        $parts = [];
+        if ($cancelledPending) {
+            $parts[] = 'a confirmacao pendente';
+        }
+        if ($cancelledConversation) {
+            $parts[] = 'o fluxo em andamento';
+        }
+
+        $this->telegram->sendText(
+            $dto->chatId,
+            'Tudo certo. Cancelei ' . implode(' e ', $parts) . '.'
+        );
+        $msgRecord->markProcessed('cancelled_flow');
+    }
+
+    private function rejectLatestPendingAction(int $userId): bool
+    {
+        $pending = PendingAiAction::query()
+            ->where('user_id', $userId)
+            ->awaiting()
+            ->orderByDesc('created_at')
+            ->first();
+
+        if ($pending === null) {
+            return false;
+        }
+
+        return $pending->reject();
+    }
+
+    private function clearActiveConversationState(int $userId): bool
+    {
+        $conversation = $this->getLatestTelegramConversation($userId);
+
+        if ($conversation === null || !ConversationStateService::isActive($conversation->id)) {
+            return false;
+        }
+
+        ConversationStateService::clearState($conversation->id);
+        return true;
+    }
+
+    private function hasActiveTelegramFlow(int $userId): bool
+    {
+        if (PendingAiAction::where('user_id', $userId)->awaiting()->exists()) {
+            return true;
+        }
+
+        $conversation = $this->getLatestTelegramConversation($userId);
+        return $conversation !== null && ConversationStateService::isActive($conversation->id);
+    }
+
+    private function getLatestTelegramConversation(int $userId): ?AiConversation
+    {
+        return AiConversation::where('user_id', $userId)
+            ->where('titulo', 'Telegram')
+            ->orderByDesc('updated_at')
+            ->first();
+    }
+
+    private function sendQuickReplyButtons(
+        string $chatId,
+        string $text,
+        array $quickReplies,
+        ?string $suggestion = null,
+    ): void {
+        $normalizedReplies = $this->normalizeQuickReplies($quickReplies);
+        $message = $this->appendSuggestion($text, $suggestion);
+
+        if (empty($normalizedReplies)) {
+            foreach (TelegramResponseFormatter::format($message) as $chunk) {
+                $this->telegram->sendText($chatId, $chunk);
+            }
+            return;
+        }
+
+        $this->cacheQuickReplies($chatId, $normalizedReplies);
+
+        $rows = [];
+        foreach ($normalizedReplies as $index => $reply) {
+            $rows[] = [[
+                'text' => $reply['label'],
+                'callback_data' => "quick_reply_{$index}",
+            ]];
+        }
+
+        $chunks = TelegramResponseFormatter::format($message);
+        $lastIndex = count($chunks) - 1;
+
+        foreach ($chunks as $index => $chunk) {
+            if ($index === $lastIndex) {
+                $this->telegram->sendInlineKeyboard($chatId, $chunk, $rows);
+                continue;
+            }
+
+            $this->telegram->sendText($chatId, $chunk);
+        }
+    }
+
+    private function appendSuggestion(string $text, ?string $suggestion = null): string
+    {
+        $text = trim($text);
+        $suggestion = trim((string) $suggestion);
+
+        if ($suggestion === '') {
+            return $text;
+        }
+
+        if (str_contains(mb_strtolower($text), mb_strtolower($suggestion))) {
+            return $text;
+        }
+
+        return $text . "\n\n" . $suggestion;
+    }
+
+    private function normalizeQuickReplies(array $quickReplies): array
+    {
+        $normalized = [];
+
+        foreach ($quickReplies as $reply) {
+            if (!is_array($reply)) {
+                continue;
+            }
+
+            $label = trim((string) ($reply['label'] ?? ''));
+            $message = trim((string) ($reply['message'] ?? ''));
+
+            if ($label === '' || $message === '') {
+                continue;
+            }
+
+            $normalized[] = [
+                'label' => mb_substr($label, 0, 32),
+                'message' => mb_substr($message, 0, 200),
+            ];
+
+            if (count($normalized) >= self::MAX_QUICK_REPLIES) {
+                break;
+            }
+        }
+
+        return $normalized;
+    }
+
+    private function cacheQuickReplies(string $chatId, array $quickReplies): void
+    {
+        (new CacheService())->set(
+            $this->quickReplyCacheKey($chatId),
+            $quickReplies,
+            self::QUICK_REPLY_TTL_SECONDS,
+        );
+    }
+
+    private function getCachedQuickReplies(string $chatId): array
+    {
+        $cached = (new CacheService())->get($this->quickReplyCacheKey($chatId), []);
+        return is_array($cached) ? $cached : [];
+    }
+
+    private function quickReplyCacheKey(string $chatId): string
+    {
+        return "telegram:quick_replies:{$chatId}";
+    }
+
+    private function getStarterQuickReplies(): array
+    {
+        return [
+            ['label' => 'Registrar gasto', 'message' => 'quero registrar um gasto'],
+            ['label' => 'Ver gastos do mes', 'message' => 'quanto gastei este mes?'],
+            ['label' => 'Ver ajuda', 'message' => '/help'],
+        ];
+    }
+
     private function handleTransactionExtraction(
         TelegramMessageDTO $dto,
         \Application\Models\Usuario $user,
@@ -1392,7 +1726,7 @@ class TelegramWebhookController extends BaseController
         }
 
         // Adicionar botão de cancelar
-        $rows[] = [['text' => '❌ Cancelar', 'callback_data' => 'confirm_no']];
+        $rows[] = [['text' => '❌ Cancelar', 'callback_data' => 'cancel_flow']];
 
         $chunks = TelegramResponseFormatter::format($text);
         $lastIndex = count($chunks) - 1;

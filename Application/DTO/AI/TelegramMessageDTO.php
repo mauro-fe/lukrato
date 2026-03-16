@@ -247,6 +247,28 @@ readonly class TelegramMessageDTO
             && str_starts_with($this->body, 'select_option_');
     }
 
+    public function isQuickReplySelection(): bool
+    {
+        return $this->type === 'callback_query'
+            && str_starts_with($this->body, 'quick_reply_');
+    }
+
+    public function getSelectedQuickReplyIndex(): ?int
+    {
+        if (!$this->isQuickReplySelection()) {
+            return null;
+        }
+
+        $idx = substr($this->body, strlen('quick_reply_'));
+        return is_numeric($idx) ? (int) $idx : null;
+    }
+
+    public function isFlowCancellation(): bool
+    {
+        return $this->type === 'callback_query'
+            && $this->body === 'cancel_flow';
+    }
+
     public function getSelectedOptionIndex(): ?int
     {
         if (!$this->isOptionSelection()) {

@@ -52,9 +52,10 @@ class TelegramService
     public function sendText(string $chatId, string $text): bool
     {
         return $this->request('sendMessage', [
-            'chat_id'    => $chatId,
-            'text'       => mb_substr($text, 0, 4096),
+            'chat_id' => $chatId,
+            'text' => mb_substr($text, 0, 4096),
             'parse_mode' => 'HTML',
+            'disable_web_page_preview' => true,
         ]);
     }
 
@@ -164,12 +165,22 @@ class TelegramService
             ]);
 
             $status = $response->getStatusCode();
+            $body = json_decode($response->getBody()->getContents(), true);
 
-            if ($status >= 200 && $status < 300) {
+            if (
+                $status >= 200
+                && $status < 300
+                && is_array($body)
+                && ($body['ok'] ?? false) === true
+            ) {
                 return true;
             }
 
-            error_log("[Telegram] Resposta inesperada: HTTP {$status}");
+            $description = is_array($body)
+                ? (string) ($body['description'] ?? 'Resposta sem descricao.')
+                : 'Resposta invalida da API.';
+
+            error_log("[Telegram] {$method} falhou: HTTP {$status} - {$description}");
             return false;
         } catch (GuzzleException $e) {
             error_log("[Telegram] Erro ao chamar {$method}: " . $e->getMessage());
@@ -191,7 +202,17 @@ class TelegramService
                 'json' => $params,
             ]);
 
-            return json_decode($response->getBody()->getContents(), true) ?: [];
+            $body = json_decode($response->getBody()->getContents(), true);
+
+            if (!is_array($body)) {
+                return ['ok' => false, 'description' => 'Resposta invalida da API'];
+            }
+
+            if (($body['ok'] ?? false) !== true) {
+                error_log("[Telegram] {$method} falhou: " . ($body['description'] ?? 'Sem descricao'));
+            }
+
+            return $body;
         } catch (GuzzleException $e) {
             error_log("[Telegram] Erro ao chamar {$method}: " . $e->getMessage());
             return ['ok' => false, 'description' => $e->getMessage()];

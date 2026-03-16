@@ -877,33 +877,147 @@
     });
 
     // --- Telegram ---
-    async function loadTelegramStatus() {
+    let telegramLinkPending = false;
+    let telegramLinkPollTimer = null;
+    let telegramLinkCountdownTimer = null;
+    let telegramLinkExpiresAt = 0;
+    let telegramLinkSuccessToastShown = false;
+
+    function clearTelegramLinkTimers() {
+        if (telegramLinkPollTimer) clearInterval(telegramLinkPollTimer);
+        if (telegramLinkCountdownTimer) clearInterval(telegramLinkCountdownTimer);
+        telegramLinkPollTimer = null;
+        telegramLinkCountdownTimer = null;
+        telegramLinkExpiresAt = 0;
+    }
+
+    function setTelegramLinkMeta(statusText = '', countdownText = '') {
+        const statusCopyEl = document.getElementById('telegram-link-status-copy');
+        const countdownEl = document.getElementById('telegram-link-countdown');
+        if (statusCopyEl) statusCopyEl.textContent = statusText;
+        if (countdownEl) countdownEl.textContent = countdownText;
+    }
+
+    function renderTelegramQr(data = {}) {
+        const qrWrapper = document.getElementById('telegram-qr-wrapper');
+        const qrImage = document.getElementById('telegram-qr-image');
+        if (!qrWrapper || !qrImage) return;
+
+        if (data.qr_code_data_uri) {
+            qrImage.src = data.qr_code_data_uri;
+            qrWrapper.classList.add('is-visible');
+            return;
+        }
+
+        qrImage.removeAttribute('src');
+        qrWrapper.classList.remove('is-visible');
+    }
+
+    function renderTelegramAwaitingState(data = {}) {
+        telegramLinkPending = true;
+        telegramLinkSuccessToastShown = false;
+
+        const statusEl = document.getElementById('telegram-status');
+        if (statusEl) {
+            statusEl.innerHTML = '<span class="status-indicator pending"></span><span class="status-text">Aguardando confirmacao</span>';
+        }
+
+        document.getElementById('telegram-not-linked').style.display = 'none';
+        document.getElementById('telegram-code-generated').style.display = '';
+        document.getElementById('telegram-linked').style.display = 'none';
+        document.getElementById('telegram-code-display').value = data.code || '';
+        document.getElementById('telegram-bot-link').href = data.bot_url || '#';
+        setTelegramLinkMeta('Abra o bot, envie o codigo e aguarde a confirmacao.', '');
+        renderTelegramQr(data);
+    }
+
+    function startTelegramLinkTracking(expiresIn = 600) {
+        clearTelegramLinkTimers();
+        telegramLinkExpiresAt = Date.now() + Math.max(1, expiresIn) * 1000;
+
+        const updateCountdown = () => {
+            const remainingMs = telegramLinkExpiresAt - Date.now();
+            if (remainingMs <= 0) {
+                clearTelegramLinkTimers();
+                telegramLinkPending = false;
+                setTelegramLinkMeta('Codigo expirado. Gere um novo para continuar.', '');
+                const statusEl = document.getElementById('telegram-status');
+                if (statusEl) {
+                    statusEl.innerHTML = '<span class="status-indicator not-linked"></span><span class="status-text">Codigo expirado</span>';
+                }
+                return;
+            }
+
+            const totalSeconds = Math.ceil(remainingMs / 1000);
+            const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+            const seconds = String(totalSeconds % 60).padStart(2, '0');
+            setTelegramLinkMeta('Abra o bot, envie o codigo e aguarde a confirmacao.', `Expira em ${minutes}:${seconds}`);
+        };
+
+        updateCountdown();
+        telegramLinkCountdownTimer = setInterval(updateCountdown, 1000);
+        telegramLinkPollTimer = setInterval(() => {
+            loadTelegramStatus({ preservePending: true, showToast: true });
+        }, 5000);
+    }
+
+    async function loadTelegramStatus(options = {}) {
+        const { preservePending = false, showToast = false } = options;
         try {
             const res = await fetch(`${API}telegram/status`, { credentials: 'same-origin' });
             const json = await res.json();
             const data = json.data || {};
             const statusEl = document.getElementById('telegram-status');
-            const qrWrapper = document.getElementById('telegram-qr-wrapper');
-            const qrImage = document.getElementById('telegram-qr-image');
             if (data.linked) {
+                telegramLinkPending = false;
+                clearTelegramLinkTimers();
                 statusEl.innerHTML = '<span class="status-indicator linked"></span><span class="status-text">Vinculado</span>';
                 document.getElementById('telegram-not-linked').style.display = 'none';
                 document.getElementById('telegram-code-generated').style.display = 'none';
                 document.getElementById('telegram-linked').style.display = '';
+                const linkedHandle = document.getElementById('telegram-linked-handle');
+                if (linkedHandle) linkedHandle.textContent = data.username ? `Chat ${data.username}` : 'Pronto para uso';
+                setTelegramLinkMeta('', '');
+                renderTelegramQr();
+                if (showToast && !telegramLinkSuccessToastShown && window.Swal) {
+                    telegramLinkSuccessToastShown = true;
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Telegram vinculado',
+                        text: 'Agora voce pode usar o bot normalmente.',
+                        confirmButtonColor: '#0ea5e9',
+                        timer: 2500,
+                        timerProgressBar: true,
+                    });
+                }
             } else {
+                if (preservePending && telegramLinkPending) {
+                    statusEl.innerHTML = '<span class="status-indicator pending"></span><span class="status-text">Aguardando confirmacao</span>';
+                    document.getElementById('telegram-not-linked').style.display = 'none';
+                    document.getElementById('telegram-code-generated').style.display = '';
+                    document.getElementById('telegram-linked').style.display = 'none';
+                    return;
+                }
+
+                telegramLinkPending = false;
+                clearTelegramLinkTimers();
                 statusEl.innerHTML = '<span class="status-indicator not-linked"></span><span class="status-text">Não vinculado</span>';
                 document.getElementById('telegram-not-linked').style.display = '';
                 document.getElementById('telegram-code-generated').style.display = 'none';
                 document.getElementById('telegram-linked').style.display = 'none';
+                const linkedHandle = document.getElementById('telegram-linked-handle');
+                if (linkedHandle) linkedHandle.textContent = '';
+                setTelegramLinkMeta('', '');
+                renderTelegramQr();
             }
-            if (qrWrapper) qrWrapper.classList.remove('is-visible');
-            if (qrImage) qrImage.removeAttribute('src');
         } catch (e) { /* silent */ }
     }
 
     document.getElementById('btn-telegram-link')?.addEventListener('click', async () => {
         const btn = document.getElementById('btn-telegram-link');
+        const regenerateBtn = document.getElementById('btn-telegram-regenerate');
         btn.disabled = true;
+        if (regenerateBtn) regenerateBtn.disabled = true;
         try {
             const res = await fetch(`${API}telegram/link`, {
                 method: 'POST',
@@ -913,6 +1027,9 @@
             });
             const json = await res.json();
             if (json.success) {
+                renderTelegramAwaitingState(json.data || {});
+                startTelegramLinkTracking(json.data?.expires_in || 600);
+
                 document.getElementById('telegram-not-linked').style.display = 'none';
                 document.getElementById('telegram-code-generated').style.display = '';
                 document.getElementById('telegram-code-display').value = json.data.code;
@@ -935,6 +1052,11 @@
             if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: 'Erro de conexão', confirmButtonColor: '#e67e22' });
         }
         btn.disabled = false;
+        if (regenerateBtn) regenerateBtn.disabled = false;
+    });
+
+    document.getElementById('btn-telegram-regenerate')?.addEventListener('click', () => {
+        document.getElementById('btn-telegram-link')?.click();
     });
 
     document.getElementById('btn-copy-telegram-code')?.addEventListener('click', () => {
@@ -947,6 +1069,9 @@
             btn.style.color = '#22c55e';
             if (window.lucide) lucide.createIcons();
             setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; if (window.lucide) lucide.createIcons(); }, 2000);
+        }).catch(() => {
+            input.select();
+            document.execCommand('copy');
         });
     });
 
@@ -966,7 +1091,11 @@
                 body: `csrf_token=${encodeURIComponent(csrfToken)}`,
             });
             const json = await res.json();
-            if (json.success) loadTelegramStatus();
+            if (json.success) {
+                telegramLinkPending = false;
+                clearTelegramLinkTimers();
+                loadTelegramStatus();
+            }
         } catch (e) { /* silent */ }
     });
 

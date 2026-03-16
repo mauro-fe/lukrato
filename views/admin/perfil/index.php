@@ -539,6 +539,11 @@
                 <div class="integration-action" id="telegram-code-generated" style="display:none">
                     <div class="integration-code-box telegram-link-flow">
                         <p class="integration-instructions">Envie este código para o bot:</p>
+                        <ol class="telegram-link-steps">
+                            <li>Abra o bot do Lukrato no Telegram</li>
+                            <li>Envie o código de 6 dígitos abaixo</li>
+                            <li>Volte aqui enquanto confirmamos o vínculo</li>
+                        </ol>
                         <div style="display:flex;align-items:center;gap:8px;margin:12px 0">
                             <input class="form-input" id="telegram-code-display" type="text" readonly
                                 style="font-family:var(--font-mono);font-weight:700;font-size:1.5rem;text-align:center;letter-spacing:4px;max-width:200px;color:var(--color-primary);background:var(--color-bg-secondary)">
@@ -556,9 +561,15 @@
                                 <small class="telegram-qr-hint">Se estiver no PC, escaneie com o celular.</small>
                             </div>
                         </div>
-                        <small style="color:var(--color-text-muted);font-size:12px;margin-top:8px;display:block;">
-                            O código expira em 10 minutos
-                        </small>
+                        <div class="telegram-link-meta">
+                            <span id="telegram-link-status-copy">Abra o bot, envie o código e aguarde a confirmação.</span>
+                            <span id="telegram-link-countdown"></span>
+                        </div>
+                        <div class="telegram-link-actions">
+                            <button type="button" class="btn-integration subtle" id="btn-telegram-regenerate" style="--accent:#0ea5e9">
+                                <i data-lucide="refresh-cw"></i> Gerar novo código
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -568,6 +579,7 @@
                         <i data-lucide="check-circle" style="color:#0ea5e9;width:18px;height:18px;vertical-align:middle"></i>
                         Telegram vinculado
                     </p>
+                    <small class="integration-linked-subtitle" id="telegram-linked-handle"></small>
                     <button type="button" class="btn-integration danger" id="btn-telegram-unlink">
                         <i data-lucide="unlink"></i> Desvincular
                     </button>

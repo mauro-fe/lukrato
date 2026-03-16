@@ -23,10 +23,17 @@ class TelegramResponseFormatter
      */
     public static function format(string $message): array
     {
+        $message = str_replace(["\r\n", "\r"], "\n", trim($message));
+        $message = self::escapeHtml($message);
         $message = self::markdownToTelegramHtml($message);
         $message = self::cleanUnsupportedHtml($message);
 
         return self::splitMessage($message);
+    }
+
+    private static function escapeHtml(string $text): string
+    {
+        return htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 
     /**
@@ -52,20 +59,10 @@ class TelegramResponseFormatter
      */
     private static function cleanUnsupportedHtml(string $text): string
     {
-        return strip_tags($text, [
-            'b',
-            'strong',
-            'i',
-            'em',
-            'u',
-            'ins',
-            's',
-            'strike',
-            'del',
-            'code',
-            'pre',
-            'a',
-        ]);
+        return strip_tags(
+            $text,
+            '<b><strong><i><em><u><ins><s><strike><del><code><pre><a>'
+        );
     }
 
     /**
@@ -79,6 +76,10 @@ class TelegramResponseFormatter
         if (mb_strlen($text) <= self::MAX_MESSAGE_LENGTH) {
             return [$text];
         }
+
+        // Para mensagens longas, removemos HTML antes de quebrar.
+        // Isso evita chunks com tags incompletas, que o Telegram rejeita.
+        $text = strip_tags($text);
 
         $chunks = [];
         $remaining = $text;
