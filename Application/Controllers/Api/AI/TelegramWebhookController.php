@@ -1192,6 +1192,28 @@ class TelegramWebhookController extends BaseController
             $payload['nome_cartao'] = $extracted['nome_cartao'];
         }
 
+        AiLogService::log([
+            'user_id'           => $user->id,
+            'type'              => 'transaction_preview',
+            'channel'           => 'telegram',
+            'prompt'            => $dto->body,
+            'response'          => json_encode([
+                'extracted' => $extracted,
+                'category'  => $category,
+                'payload'   => $payload,
+            ], JSON_UNESCAPED_UNICODE),
+            'provider'          => 'internal',
+            'model'             => 'regex+rules',
+            'tokens_prompt'     => 0,
+            'tokens_completion' => 0,
+            'tokens_total'      => 0,
+            'response_time_ms'  => 0,
+            'success'           => true,
+            'source'            => 'rule',
+            'confidence'        => 1.0,
+            'prompt_version'    => 'telegram_tx_preview_v1',
+        ]);
+
         // Criar PendingAiAction (unificado) com TTL de 24h
         PendingAiAction::create([
             'user_id'     => $user->id,

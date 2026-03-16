@@ -21,6 +21,92 @@ class CategoryRuleEngine
 {
     /** Cache em memória para evitar queries repetidas no mesmo request. */
     private static array $resolveCache = [];
+
+    private const LEARNING_STOPWORDS = [
+        'a',
+        'ao',
+        'as',
+        'com',
+        'compra',
+        'compras',
+        'comprei',
+        'coisa',
+        'coisas',
+        'conta',
+        'contas',
+        'da',
+        'das',
+        'de',
+        'despesa',
+        'do',
+        'dos',
+        'e',
+        'em',
+        'entrada',
+        'entradas',
+        'gastei',
+        'gasto',
+        'item',
+        'itens',
+        'lancamento',
+        'lancamentos',
+        'mais',
+        'meu',
+        'meus',
+        'minha',
+        'minhas',
+        'na',
+        'nas',
+        'no',
+        'nos',
+        'o',
+        'os',
+        'ou',
+        'pagamento',
+        'pagamentos',
+        'paguei',
+        'para',
+        'por',
+        'pra',
+        'pro',
+        'produto',
+        'produtos',
+        'que',
+        'recebi',
+        'receita',
+        'saida',
+        'saidas',
+        'se',
+        'sem',
+        'seu',
+        'site',
+        'sua',
+        'um',
+        'uma',
+        'umas',
+        'uns',
+        'valor',
+        'valores',
+    ];
+
+    private const CONTEXT_ONLY_TOKENS = [
+        'app',
+        'aplicativo',
+        'delivery',
+        'drogaria',
+        'farmacia',
+        'internet',
+        'loja',
+        'lojas',
+        'mercado',
+        'online',
+        'padaria',
+        'posto',
+        'restaurante',
+        'shopping',
+        'supermercado',
+    ];
+
     /**
      * Mapeamento de padrões regex para [categoria, subcategoria].
      * As chaves são regex (case-insensitive) e os valores são arrays [nome_categoria, nome_subcategoria|null].
@@ -162,11 +248,11 @@ class CategoryRuleEngine
         }
 
         // 1. Tentar regras personalizadas do usuário (aprendidas de correções)
+        $userMatch = null;
+        $userScore = -1;
         if ($userId !== null) {
             $userMatch = self::matchUserRules($normalizedDescription, $normalizedContext, $userId);
-            if ($userMatch !== null) {
-                return $userMatch;
-            }
+            $userScore = (int) ($userMatch['_score'] ?? -1);
         }
 
         // 2. Tentar regras globais (RULE_MAP)
@@ -189,6 +275,11 @@ class CategoryRuleEngine
                 'subcategoria_id'  => $ids['subcategoria_id'],
                 'confidence'       => 'rule',
             ];
+        }
+
+        if ($userMatch !== null && $userScore > $bestScore) {
+            unset($userMatch['_score']);
+            return $userMatch;
         }
 
         return $bestMatch;
@@ -228,6 +319,7 @@ class CategoryRuleEngine
                 'subcategoria_id'  => $rule->subcategoria_id,
                 'confidence'       => 'user_rule',
                 'user_rule_id'     => $rule->id,
+                '_score'           => (int) ($rule->getAttribute('_match_score') ?? 0),
             ];
         } catch (\Throwable) {
             // Falha silenciosa — cair para regras globais
@@ -281,9 +373,12 @@ class CategoryRuleEngine
         string $source = 'correction'
     ): void {
         try {
-            // Extrair a palavra-chave mais relevante da descrição (a mais longa)
             $keywords = self::extractKeywords($description);
             foreach ($keywords as $keyword) {
+                if (UserCategoryRule::isWeakPattern($keyword)) {
+                    continue;
+                }
+
                 UserCategoryRule::learn($userId, $keyword, $categoriaId, $subcategoriaId, $source);
             }
         } catch (\Throwable) {
@@ -325,80 +420,18 @@ class CategoryRuleEngine
         // Tokenizar
         $tokens = preg_split('/[\s,;:\-\/\(\)]+/', $cleaned, -1, PREG_SPLIT_NO_EMPTY);
 
-        // Stopwords em pt-BR
-        $stopwords = [
-            'de',
-            'do',
-            'da',
-            'dos',
-            'das',
-            'em',
-            'no',
-            'na',
-            'nos',
-            'nas',
-            'um',
-            'uma',
-            'uns',
-            'umas',
-            'o',
-            'a',
-            'os',
-            'as',
-            'para',
-            'por',
-            'com',
-            'sem',
-            'que',
-            'se',
-            'ou',
-            'ao',
-            'e',
-            'mais',
-            'pra',
-            'pro',
-            'meu',
-            'minha',
-            'meus',
-            'minhas',
-            'seu',
-            'sua',
-            'paguei',
-            'gastei',
-            'comprei',
-            'recebi',
-            'produto',
-            'produtos',
-            'compra',
-            'compras',
-            'item',
-            'itens',
-            'coisa',
-            'coisas',
-            'gasto',
-            'despesa',
-            'receita',
-        ];
-
-        // Filtrar stopwords e tokens muito curtos
         $keywords = [];
         foreach ($tokens as $token) {
-            if (mb_strlen($token) >= 3 && !in_array($token, $stopwords, true)) {
+            if (mb_strlen($token) >= 3 && !in_array($token, self::LEARNING_STOPWORDS, true)) {
                 $keywords[] = $token;
             }
         }
 
         if (!empty($normalizedParts['categoria_contexto']) && count($keywords) > 1) {
-            $keywords = array_values(array_filter($keywords, static fn(string $token): bool => !in_array($token, [
-                'mercado',
-                'supermercado',
-                'loja',
-                'shopping',
-                'farmacia',
-                'restaurante',
-                'padaria',
-                'posto',
-            ], true)));
+            $keywords = array_values(array_filter(
+                $keywords,
+                static fn(string $token): bool => !in_array($token, self::CONTEXT_ONLY_TOKENS, true)
+            ));
         }
 
         $meaningfulPhrase = trim(implode(' ', $keywords));

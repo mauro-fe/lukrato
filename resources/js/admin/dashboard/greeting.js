@@ -50,12 +50,15 @@ class DashboardGreeting {
 
     if (hour >= 5 && hour < 12) {
       return { title: `Bom dia, ${this.userName}!`, emoji: '🌅' };
+
     } else if (hour >= 12 && hour < 18) {
       return { title: `Boa tarde, ${this.userName}!`, emoji: '☀️' };
-    } else if (hour >= 18 && hour < 21) {
+
+    } else if (hour >= 18 && hour < 24) {
       return { title: `Boa noite, ${this.userName}!`, emoji: '🌆' };
+
     } else {
-      return { title: `Olá, ${this.userName}!`, emoji: '🌙' };
+      return { title: `Boa madrugada, ${this.userName}!`, emoji: '🌙' };
     }
   }
 

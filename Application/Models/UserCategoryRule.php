@@ -24,6 +24,54 @@ use Illuminate\Database\Eloquent\Model;
  */
 class UserCategoryRule extends Model
 {
+    public const MIN_CONFIRMED_USAGE_FOR_MATCH = 2;
+
+    private const GENERIC_PATTERNS = [
+        'compra',
+        'compras',
+        'conta',
+        'contas',
+        'despesa',
+        'despesas',
+        'entrada',
+        'entradas',
+        'gasto',
+        'gastos',
+        'item',
+        'itens',
+        'lancamento',
+        'lancamentos',
+        'pagamento',
+        'pagamentos',
+        'produto',
+        'produtos',
+        'receita',
+        'receitas',
+        'saida',
+        'saidas',
+        'servico',
+        'servicos',
+        'site',
+        'valor',
+        'valores',
+    ];
+
+    private const SHORT_PATTERN_WHITELIST = [
+        '99',
+        'bb',
+        'c6',
+        'das',
+        'fgts',
+        'inss',
+        'iptu',
+        'ipva',
+        'ir',
+        'mei',
+        'oi',
+        'pix',
+        'tim',
+    ];
+
     protected $table = 'user_category_rules';
 
     protected $fillable = [
@@ -76,8 +124,69 @@ class UserCategoryRule extends Model
         $normalized = preg_replace('/[óòôõ]/u', 'o', $normalized);
         $normalized = preg_replace('/[úùû]/u', 'u', $normalized);
         $normalized = preg_replace('/[ç]/u', 'c', $normalized);
+        $normalized = preg_replace('/\s+/u', ' ', $normalized);
 
         return $normalized;
+    }
+
+    public static function isWeakPattern(string $pattern): bool
+    {
+        $normalized = self::normalize($pattern);
+        if ($normalized === '') {
+            return true;
+        }
+
+        if (in_array($normalized, self::GENERIC_PATTERNS, true)) {
+            return true;
+        }
+
+        if (mb_strlen($normalized) <= 2 && !in_array($normalized, self::SHORT_PATTERN_WHITELIST, true)) {
+            return true;
+        }
+
+        $tokens = preg_split('/[\s,;:\-\/\(\)]+/u', $normalized, -1, PREG_SPLIT_NO_EMPTY);
+        if (empty($tokens)) {
+            return true;
+        }
+
+        foreach ($tokens as $token) {
+            if (!in_array($token, self::GENERIC_PATTERNS, true)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static function shouldUseForMatching(self $rule): bool
+    {
+        $pattern = (string) ($rule->normalized_pattern ?: $rule->pattern ?: '');
+        if (self::isWeakPattern($pattern)) {
+            return false;
+        }
+
+        return !self::requiresMoreConfirmations($rule);
+    }
+
+    public static function requiresMoreConfirmations(self $rule): bool
+    {
+        return (string) $rule->source === 'confirmed'
+            && (int) $rule->usage_count < self::MIN_CONFIRMED_USAGE_FOR_MATCH;
+    }
+
+    public static function getAuditFlags(self $rule): array
+    {
+        $flags = [];
+
+        if (self::isWeakPattern((string) ($rule->normalized_pattern ?: $rule->pattern ?: ''))) {
+            $flags[] = 'weak_pattern';
+        }
+
+        if (self::requiresMoreConfirmations($rule)) {
+            $flags[] = 'pending_confirmation_threshold';
+        }
+
+        return $flags;
     }
 
     /**
@@ -103,6 +212,10 @@ class UserCategoryRule extends Model
         $bestScore = -1;
 
         foreach ($rules as $rule) {
+            if (!self::shouldUseForMatching($rule)) {
+                continue;
+            }
+
             $score = self::scoreRuleMatch($rule->normalized_pattern, $normalizedDescription, $normalizedContext, (int) $rule->usage_count);
             if ($score > $bestScore) {
                 $bestScore = $score;
@@ -110,6 +223,11 @@ class UserCategoryRule extends Model
             }
         }
 
+        if ($bestRule === null || $bestScore <= 0) {
+            return null;
+        }
+
+        $bestRule->setAttribute('_match_score', $bestScore);
         return $bestRule;
     }
 
@@ -126,24 +244,37 @@ class UserCategoryRule extends Model
     ): self {
         $normalized = self::normalize($pattern);
 
-        $rule = static::updateOrCreate(
-            [
-                'user_id'            => $userId,
-                'normalized_pattern' => $normalized,
-            ],
-            [
-                'pattern'           => $pattern,
-                'categoria_id'      => $categoriaId,
-                'subcategoria_id'   => $subcategoriaId,
-                'source'            => $source,
-            ]
-        );
+        $rule = static::where('user_id', $userId)
+            ->where('normalized_pattern', $normalized)
+            ->first();
 
-        // Se já existia, incrementar usage_count
-        if (!$rule->wasRecentlyCreated) {
-            $rule->increment('usage_count');
+        if ($rule === null) {
+            return static::create([
+                'user_id'            => $userId,
+                'pattern'            => $pattern,
+                'normalized_pattern' => $normalized,
+                'categoria_id'       => $categoriaId,
+                'subcategoria_id'    => $subcategoriaId,
+                'usage_count'        => 1,
+                'source'             => $source,
+            ]);
         }
 
+        $currentRank = self::sourceRank((string) $rule->source);
+        $incomingRank = self::sourceRank($source);
+
+        $rule->pattern = $pattern;
+
+        if ($incomingRank >= $currentRank) {
+            $rule->categoria_id = $categoriaId;
+            $rule->subcategoria_id = $subcategoriaId;
+            $rule->source = $source;
+        }
+
+        $rule->save();
+        $rule->increment('usage_count');
+
+        $rule = $rule->fresh() ?? $rule;
         return $rule;
     }
 
@@ -153,9 +284,16 @@ class UserCategoryRule extends Model
     public function confirm(): void
     {
         $this->increment('usage_count');
-        if ($this->source === 'correction') {
-            $this->update(['source' => 'confirmed']);
-        }
+    }
+
+    private static function sourceRank(string $source): int
+    {
+        return match ($source) {
+            'manual' => 3,
+            'correction' => 2,
+            'confirmed' => 1,
+            default => 0,
+        };
     }
 
     private static function scoreRuleMatch(string $pattern, string $description, string $context, int $usageCount): int
