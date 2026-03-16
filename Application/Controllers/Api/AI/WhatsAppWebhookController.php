@@ -513,9 +513,11 @@ class WhatsAppWebhookController extends BaseController
                 ?? $_ENV['OPENAI_TRANSCRIPTION_MODEL']
                 ?? $_ENV['OPENAI_MODEL']
                 ?? 'gpt-4o-mini',
-            'tokens_prompt'     => 0,
-            'tokens_completion' => 0,
-            'tokens_total'      => $result->tokensUsed,
+            'tokens_prompt'     => $result->tokensPrompt,
+            'tokens_completion' => $result->tokensCompletion,
+            'tokens_total'      => $result->tokensUsed > 0
+                ? $result->tokensUsed
+                : ($result->tokensPrompt + $result->tokensCompletion),
             'response_time_ms'  => $result->durationMs,
             'success'           => $result->success,
             'error_message'     => $result->error,

@@ -47,9 +47,12 @@ class ImageAnalysisService
         ?string $contextHint = null,
         ?string $filename = null,
     ): ReceiptAnalysisResult {
+        $startedAt = microtime(true);
+
         if ($this->apiKey === '') {
             return new ReceiptAnalysisResult(
                 success: false,
+                durationMs: $this->elapsedMs($startedAt),
                 error: 'OPENAI_API_KEY nao configurada',
             );
         }
@@ -69,6 +72,7 @@ class ImageAnalysisService
         if (!$isPdf && strlen($content) > self::MAX_IMAGE_SIZE) {
             return new ReceiptAnalysisResult(
                 success: false,
+                durationMs: $this->elapsedMs($startedAt),
                 error: 'Imagem excede limite de 20MB',
             );
         }
@@ -76,6 +80,7 @@ class ImageAnalysisService
         if ($isPdf && strlen($content) > self::MAX_PDF_SIZE) {
             return new ReceiptAnalysisResult(
                 success: false,
+                durationMs: $this->elapsedMs($startedAt),
                 error: 'PDF excede limite de 20MB',
             );
         }
@@ -92,7 +97,10 @@ class ImageAnalysisService
 
             $result = json_decode($response->getBody()->getContents(), true);
             $usage = $result['usage'] ?? [];
-            $tokensUsed = (int) ($usage['total_tokens'] ?? 0);
+            $tokensPrompt = $this->extractPromptTokens($usage);
+            $tokensCompletion = $this->extractCompletionTokens($usage);
+            $tokensUsed = (int) ($usage['total_tokens'] ?? ($tokensPrompt + $tokensCompletion));
+            $durationMs = $this->elapsedMs($startedAt);
             $rawText = $this->extractResponseText($result);
             $parsed = json_decode($rawText, true);
 
@@ -101,6 +109,9 @@ class ImageAnalysisService
                     success: false,
                     rawText: $rawText,
                     tokensUsed: $tokensUsed,
+                    promptTokens: $tokensPrompt,
+                    completionTokens: $tokensCompletion,
+                    durationMs: $durationMs,
                     error: 'Resposta nao e JSON valido',
                 );
             }
@@ -110,12 +121,16 @@ class ImageAnalysisService
                 data: $parsed,
                 rawText: $rawText,
                 tokensUsed: $tokensUsed,
+                promptTokens: $tokensPrompt,
+                completionTokens: $tokensCompletion,
+                durationMs: $durationMs,
             );
         } catch (GuzzleException $e) {
             error_log('[ImageAnalysis] Erro Vision API: ' . $e->getMessage());
 
             return new ReceiptAnalysisResult(
                 success: false,
+                durationMs: $this->elapsedMs($startedAt),
                 error: 'Falha na API Vision: ' . $e->getMessage(),
             );
         }
@@ -259,6 +274,21 @@ class ImageAnalysisService
         }
 
         return '{}';
+    }
+
+    private function extractPromptTokens(array $usage): int
+    {
+        return (int) ($usage['prompt_tokens'] ?? $usage['input_tokens'] ?? 0);
+    }
+
+    private function extractCompletionTokens(array $usage): int
+    {
+        return (int) ($usage['completion_tokens'] ?? $usage['output_tokens'] ?? 0);
+    }
+
+    private function elapsedMs(float $startedAt): int
+    {
+        return (int) round((microtime(true) - $startedAt) * 1000);
     }
 
     /**

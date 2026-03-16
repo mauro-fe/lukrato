@@ -864,10 +864,10 @@ class TelegramWebhookController extends BaseController
             'response'          => $analysisResult->rawText,
             'provider'          => 'openai',
             'model'             => $_ENV['OPENAI_MODEL'] ?? 'gpt-4o-mini',
-            'tokens_prompt'     => 0,
-            'tokens_completion' => 0,
+            'tokens_prompt'     => $analysisResult->promptTokens,
+            'tokens_completion' => $analysisResult->completionTokens,
             'tokens_total'      => $analysisResult->tokensUsed,
-            'response_time_ms'  => 0,
+            'response_time_ms'  => $analysisResult->durationMs,
             'success'           => $analysisResult->success,
         ]);
 
@@ -1077,9 +1077,11 @@ class TelegramWebhookController extends BaseController
                 ?? $_ENV['OPENAI_TRANSCRIPTION_MODEL']
                 ?? $_ENV['OPENAI_MODEL']
                 ?? 'gpt-4o-mini',
-            'tokens_prompt'     => 0,
-            'tokens_completion' => 0,
-            'tokens_total'      => $result->tokensUsed,
+            'tokens_prompt'     => $result->tokensPrompt,
+            'tokens_completion' => $result->tokensCompletion,
+            'tokens_total'      => $result->tokensUsed > 0
+                ? $result->tokensUsed
+                : ($result->tokensPrompt + $result->tokensCompletion),
             'response_time_ms'  => $result->durationMs,
             'success'           => $result->success,
             'error_message'     => $result->error,

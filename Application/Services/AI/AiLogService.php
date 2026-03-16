@@ -4,19 +4,31 @@ declare(strict_types=1);
 
 namespace Application\Services\AI;
 
+use Application\DTO\AI\IntentResult;
 use Application\Models\AiLog;
 use Illuminate\Database\Capsule\Manager as DB;
 
 class AiLogService
 {
-    // Preços por 1M tokens (input / output) — atualizar conforme pricing OpenAI
+    // Precos por 1M tokens (input / output).
     private const MODEL_PRICING = [
-        'gpt-4o-mini' => ['input' => 0.15, 'output' => 0.60],
-        'gpt-4o'      => ['input' => 2.50, 'output' => 10.00],
-        'gpt-4-turbo' => ['input' => 10.00, 'output' => 30.00],
+        'gpt-5.4'      => ['input' => 2.50, 'output' => 15.00],
+        'gpt-5.2'      => ['input' => 1.75, 'output' => 14.00],
+        'gpt-5.1'      => ['input' => 1.25, 'output' => 10.00],
+        'gpt-5'        => ['input' => 1.25, 'output' => 10.00],
+        'gpt-5-mini'   => ['input' => 0.25, 'output' => 2.00],
+        'gpt-5-nano'   => ['input' => 0.05, 'output' => 0.40],
+        'gpt-4.1'      => ['input' => 2.00, 'output' => 8.00],
+        'gpt-4.1-mini' => ['input' => 0.40, 'output' => 1.60],
+        'gpt-4.1-nano' => ['input' => 0.10, 'output' => 0.40],
+        'gpt-4o-mini'  => ['input' => 0.15, 'output' => 0.60],
+        'gpt-4o'       => ['input' => 2.50, 'output' => 10.00],
+        'gpt-4-turbo'  => ['input' => 10.00, 'output' => 30.00],
     ];
 
-    /** Cache estático para evitar hasTable() a cada chamada */
+    private const DEFAULT_PRICING_MODEL = 'gpt-4o-mini';
+
+    /** Cache estatico para evitar hasTable() a cada chamada. */
     private static ?bool $tableExists = null;
 
     public static function log(array $data): ?AiLog
@@ -90,31 +102,34 @@ class AiLogService
     {
         $since = now()->subHours($hours);
 
-        $total       = AiLog::where('created_at', '>=', $since)->count();
-        $successCount = AiLog::where('created_at', '>=', $since)->where('success', true)->count();
+        $total = AiLog::where('created_at', '>=', $since)->count();
+        $successCount = AiLog::where('created_at', '>=', $since)
+            ->where('success', true)
+            ->count();
 
         $byType = AiLog::where('created_at', '>=', $since)
             ->select('type', DB::raw('COUNT(*) as qtd'), DB::raw('SUM(tokens_total) as tokens'))
             ->groupBy('type')
             ->get()
-            ->mapWithKeys(fn($r) => [$r->type => ['qtd' => (int) $r->qtd, 'tokens' => (int) $r->tokens]])
+            ->mapWithKeys(fn($row) => [
+                $row->type => [
+                    'qtd' => (int) $row->qtd,
+                    'tokens' => (int) $row->tokens,
+                ],
+            ])
             ->toArray();
 
         $tokensTotal = AiLog::where('created_at', '>=', $since)->sum('tokens_total');
-        $avgTime     = (int) AiLog::where('created_at', '>=', $since)->avg('response_time_ms');
+        $avgTime = (int) AiLog::where('created_at', '>=', $since)
+            ->where('response_time_ms', '>', 0)
+            ->avg('response_time_ms');
 
-        // Custo estimado
-        $costByModel = AiLog::where('created_at', '>=', $since)
-            ->select('model', DB::raw('SUM(tokens_prompt) as inp'), DB::raw('SUM(tokens_completion) as outp'))
-            ->groupBy('model')
-            ->get();
-
-        $estimatedCost = 0.0;
-        foreach ($costByModel as $row) {
-            $pricing = self::MODEL_PRICING[$row->model] ?? self::MODEL_PRICING['gpt-4o-mini'];
-            $estimatedCost += ((int) $row->inp / 1_000_000) * $pricing['input'];
-            $estimatedCost += ((int) $row->outp / 1_000_000) * $pricing['output'];
-        }
+        $estimatedCost = AiLog::where('created_at', '>=', $since)
+            ->get(['model', 'tokens_prompt', 'tokens_completion', 'tokens_total'])
+            ->reduce(
+                fn(float $carry, AiLog $log): float => $carry + self::estimateLogCost($log),
+                0.0
+            );
 
         $recentes = AiLog::where('created_at', '>=', $since)
             ->orderByDesc('created_at')
@@ -137,69 +152,67 @@ class AiLogService
     }
 
     /**
-     * Métricas de qualidade semântica da IA.
-     * Separa sucesso técnico de qualidade real do pipeline.
+     * Metricas de qualidade semantica da IA.
+     * Separa sucesso tecnico de qualidade real do pipeline.
      */
     public static function qualityMetrics(int $hours = 24): array
     {
         $since = now()->subHours($hours);
         $total = AiLog::where('created_at', '>=', $since)->count();
+        $confidenceThreshold = IntentResult::CONFIDENCE_THRESHOLD;
 
         if ($total === 0) {
             return [
-                'period_hours'         => $hours,
-                'total'                => 0,
-                'low_confidence_rate'  => 0.0,
-                'fallback_to_chat_rate' => 0.0,
-                'intent_distribution'  => [],
-                'error_by_handler'     => [],
-                'source_distribution'  => [],
+                'period_hours'              => $hours,
+                'total'                     => 0,
+                'low_confidence_rate'       => 0.0,
+                'fallback_to_chat_rate'     => 0.0,
+                'intent_distribution'       => [],
+                'error_by_handler'          => [],
+                'source_distribution'       => [],
                 'avg_response_time_by_type' => [],
             ];
         }
 
-        // Taxa de fallback para chat (indica que regras não capturaram o intent)
         $chatFallback = AiLog::where('created_at', '>=', $since)
             ->where('type', 'chat')
+            ->where('confidence', '>', 0)
+            ->where('confidence', '<', $confidenceThreshold)
             ->count();
 
-        // Distribuição por intent/type
         $intentDist = AiLog::where('created_at', '>=', $since)
             ->select('type', DB::raw('COUNT(*) as qtd'))
             ->groupBy('type')
             ->get()
-            ->mapWithKeys(fn($r) => [$r->type => (int) $r->qtd])
+            ->mapWithKeys(fn($row) => [$row->type => (int) $row->qtd])
             ->toArray();
 
-        // Erros por handler/type
         $errorsByHandler = AiLog::where('created_at', '>=', $since)
             ->where('success', false)
             ->select('type', DB::raw('COUNT(*) as qtd'))
             ->groupBy('type')
             ->get()
-            ->mapWithKeys(fn($r) => [$r->type => (int) $r->qtd])
+            ->mapWithKeys(fn($row) => [$row->type => (int) $row->qtd])
             ->toArray();
 
-        // Distribuição por source (rule, llm, cache, computed)
         $sourceDist = AiLog::where('created_at', '>=', $since)
             ->whereNotNull('source')
             ->select('source', DB::raw('COUNT(*) as qtd'))
             ->groupBy('source')
             ->get()
-            ->mapWithKeys(fn($r) => [$r->source => (int) $r->qtd])
+            ->mapWithKeys(fn($row) => [$row->source => (int) $row->qtd])
             ->toArray();
 
-        // Tempo médio de resposta por tipo
         $avgTimeByType = AiLog::where('created_at', '>=', $since)
+            ->where('response_time_ms', '>', 0)
             ->select('type', DB::raw('AVG(response_time_ms) as avg_ms'))
             ->groupBy('type')
             ->get()
-            ->mapWithKeys(fn($r) => [$r->type => (int) $r->avg_ms])
+            ->mapWithKeys(fn($row) => [$row->type => (int) $row->avg_ms])
             ->toArray();
 
-        // Low confidence: respostas com confidence abaixo de 0.6 (do metadata)
         $lowConfCount = AiLog::where('created_at', '>=', $since)
-            ->where('confidence', '<', 0.6)
+            ->where('confidence', '<', $confidenceThreshold)
             ->where('confidence', '>', 0)
             ->count();
 
@@ -219,5 +232,57 @@ class AiLogService
     {
         $cutoff = now()->subDays($days);
         return AiLog::where('created_at', '<', $cutoff)->delete();
+    }
+
+    private static function estimateLogCost(AiLog $log): float
+    {
+        $pricing = self::resolveModelPricing((string) $log->model);
+        $tokensPrompt = (int) ($log->tokens_prompt ?? 0);
+        $tokensCompletion = (int) ($log->tokens_completion ?? 0);
+        $tokensTotal = (int) ($log->tokens_total ?? 0);
+
+        if ($tokensPrompt > 0 || $tokensCompletion > 0) {
+            return ($tokensPrompt / 1_000_000) * $pricing['input']
+                + ($tokensCompletion / 1_000_000) * $pricing['output'];
+        }
+
+        if ($tokensTotal <= 0) {
+            return 0.0;
+        }
+
+        // Logs antigos de imagem/audio guardavam apenas total; tratar como input
+        // evita custo zerado sem inventar um split inexistente.
+        return ($tokensTotal / 1_000_000) * $pricing['input'];
+    }
+
+    /**
+     * @return array{input: float, output: float}
+     */
+    private static function resolveModelPricing(string $model): array
+    {
+        $normalized = strtolower(trim($model));
+        if ($normalized === '') {
+            return self::MODEL_PRICING[self::DEFAULT_PRICING_MODEL];
+        }
+
+        if (isset(self::MODEL_PRICING[$normalized])) {
+            return self::MODEL_PRICING[$normalized];
+        }
+
+        $modelKeys = array_keys(self::MODEL_PRICING);
+        usort($modelKeys, static fn(string $left, string $right): int => strlen($right) <=> strlen($left));
+
+        foreach ($modelKeys as $candidate) {
+            if (self::matchesPricingModel($normalized, $candidate)) {
+                return self::MODEL_PRICING[$candidate];
+            }
+        }
+
+        return self::MODEL_PRICING[self::DEFAULT_PRICING_MODEL];
+    }
+
+    private static function matchesPricingModel(string $model, string $candidate): bool
+    {
+        return $model === $candidate || str_starts_with($model, $candidate . '-');
     }
 }

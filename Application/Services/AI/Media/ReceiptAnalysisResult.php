@@ -14,6 +14,9 @@ readonly class ReceiptAnalysisResult
         public array $data = [],
         public string $rawText = '',
         public int $tokensUsed = 0,
+        public int $promptTokens = 0,
+        public int $completionTokens = 0,
+        public int $durationMs = 0,
         public ?string $error = null,
     ) {}
 

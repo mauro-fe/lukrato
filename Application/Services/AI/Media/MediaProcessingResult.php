@@ -16,6 +16,8 @@ readonly class MediaProcessingResult
         public string $text = '',
         public array $data = [],
         public int $tokensUsed = 0,
+        public int $tokensPrompt = 0,
+        public int $tokensCompletion = 0,
         public int $durationMs = 0,
         public ?string $error = null,
     ) {}
@@ -41,6 +43,9 @@ readonly class MediaProcessingResult
             data: $this->data,
             rawText: $this->text,
             tokensUsed: $this->tokensUsed,
+            promptTokens: $this->tokensPrompt,
+            completionTokens: $this->tokensCompletion,
+            durationMs: $this->durationMs,
             error: $this->error,
         ))->isFinancial();
     }

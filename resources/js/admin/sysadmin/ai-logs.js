@@ -28,6 +28,23 @@
         return (n || 0).toLocaleString('pt-BR');
     }
 
+    function renderTokenBreakdown(log) {
+        const prompt = Number(log.tokens_prompt ?? 0);
+        const completion = Number(log.tokens_completion ?? 0);
+        const total = Number(log.tokens_total ?? 0);
+
+        if (prompt > 0 || completion > 0) {
+            const breakdown = `${fmtNumber(prompt)} / ${fmtNumber(completion)}`;
+            return total > 0 ? `${breakdown} | Total: ${fmtNumber(total)}` : breakdown;
+        }
+
+        if (total > 0) {
+            return `-- / -- | Total: ${fmtNumber(total)}`;
+        }
+
+        return '-- / --';
+    }
+
     // ── Load Quota ──
     async function loadQuota() {
         const badge = document.getElementById('quotaStatus');
@@ -188,7 +205,10 @@
                     quick_query: 'Consulta Rápida',
                     extract_transaction: 'Extração',
                     create_entity: 'Criação',
-                    confirm_action: 'Confirmação'
+                    confirm_action: 'Confirmação',
+                    image_analysis: 'Análise de imagem',
+                    audio_transcription: 'Transcrição',
+                    pay_fatura: 'Pagamento de fatura'
                 }[log.type] || log.type;
 
                 const channelInfo = {
@@ -226,7 +246,7 @@
                             <span><strong>Canal:</strong> ${esc(log.channel || 'web')}</span>
                             <span><strong>Provider:</strong> ${esc(log.provider)}</span>
                             <span><strong>Model:</strong> ${esc(log.model)}</span>
-                            <span><strong>Tokens (in/out):</strong> ${log.tokens_prompt ?? '—'} / ${log.tokens_completion ?? '—'}</span>
+                            <span><strong>Tokens (in/out):</strong> ${renderTokenBreakdown(log)}</span>
                             <span><strong>Tempo:</strong> ${log.response_time_ms ? log.response_time_ms + 'ms' : '—'}</span>
                             ${log.user_id ? `<span><strong>User ID:</strong> ${log.user_id}</span>` : ''}
                         </div>

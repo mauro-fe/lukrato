@@ -70,6 +70,9 @@ class MediaRouterService
             text: $result->rawText,
             data: $result->data,
             tokensUsed: $result->tokensUsed,
+            tokensPrompt: $result->promptTokens,
+            tokensCompletion: $result->completionTokens,
+            durationMs: $result->durationMs,
             error: $result->error,
         );
     }
