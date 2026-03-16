@@ -100,6 +100,48 @@ class WhatsAppService
     }
 
     /**
+     * Envia até 3 botões interativos genéricos.
+     *
+     * @param array<int, array{id:string,title:string}> $buttons
+     */
+    public function sendReplyButtons(string $toPhone, string $bodyText, array $buttons): bool
+    {
+        $normalizedButtons = [];
+
+        foreach (array_slice($buttons, 0, 3) as $button) {
+            $id = trim((string) ($button['id'] ?? ''));
+            $title = trim((string) ($button['title'] ?? ''));
+
+            if ($id === '' || $title === '') {
+                continue;
+            }
+
+            $normalizedButtons[] = [
+                'type' => 'reply',
+                'reply' => [
+                    'id' => mb_substr($id, 0, 256),
+                    'title' => mb_substr($title, 0, 20),
+                ],
+            ];
+        }
+
+        if (empty($normalizedButtons)) {
+            return $this->sendText($toPhone, $bodyText);
+        }
+
+        return $this->sendMessage($toPhone, [
+            'type' => 'interactive',
+            'interactive' => [
+                'type' => 'button',
+                'body' => ['text' => mb_substr($bodyText, 0, 1024)],
+                'action' => [
+                    'buttons' => $normalizedButtons,
+                ],
+            ],
+        ]);
+    }
+
+    /**
      * Marca uma mensagem recebida como lida.
      */
     public function markAsRead(string $waMessageId): bool

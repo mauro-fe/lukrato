@@ -97,13 +97,49 @@ readonly class WhatsAppMessageDTO
 
     public function isConfirmationReply(): bool
     {
-        return ConfirmationIntentRule::isAffirmative($this->body)
-            || ConfirmationIntentRule::isNegative($this->body);
+        return $this->isAffirmative() || $this->isNegative();
+    }
+
+    public function isQuickReplySelection(): bool
+    {
+        return str_starts_with($this->body, 'quick_reply_');
+    }
+
+    public function getSelectedQuickReplyIndex(): ?int
+    {
+        if (!$this->isQuickReplySelection()) {
+            return null;
+        }
+
+        $idx = substr($this->body, strlen('quick_reply_'));
+        return is_numeric($idx) ? (int) $idx : null;
+    }
+
+    public function isOptionSelection(): bool
+    {
+        return str_starts_with($this->body, 'select_option_');
+    }
+
+    public function getSelectedOptionIndex(): ?int
+    {
+        if (!$this->isOptionSelection()) {
+            return null;
+        }
+
+        $idx = substr($this->body, strlen('select_option_'));
+        return is_numeric($idx) ? (int) $idx : null;
     }
 
     public function isAffirmative(): bool
     {
-        return ConfirmationIntentRule::isAffirmative($this->body);
+        return in_array($this->body, ['confirm_yes', 'confirmar'], true)
+            || ConfirmationIntentRule::isAffirmative($this->body);
+    }
+
+    public function isNegative(): bool
+    {
+        return in_array($this->body, ['confirm_no', 'cancelar'], true)
+            || ConfirmationIntentRule::isNegative($this->body);
     }
 
     public function isMedia(): bool

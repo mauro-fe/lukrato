@@ -80,4 +80,79 @@ class WhatsAppMessageDTOTest extends TestCase
         $this->assertTrue($dto->isConfirmationReply());
         $this->assertTrue($dto->isAffirmative());
     }
+
+    public function testParsesInteractiveConfirmationButton(): void
+    {
+        $dto = WhatsAppMessageDTO::fromMetaPayload([
+            'contacts' => [
+                ['profile' => ['name' => 'Mauro']],
+            ],
+            'messages' => [[
+                'id' => 'wamid.4',
+                'from' => '5511999999999',
+                'type' => 'interactive',
+                'interactive' => [
+                    'type' => 'button_reply',
+                    'button_reply' => [
+                        'id' => 'confirm_yes',
+                        'title' => 'Sim',
+                    ],
+                ],
+            ]],
+        ]);
+
+        $this->assertInstanceOf(WhatsAppMessageDTO::class, $dto);
+        $this->assertTrue($dto->isConfirmationReply());
+        $this->assertTrue($dto->isAffirmative());
+    }
+
+    public function testParsesQuickReplySelection(): void
+    {
+        $dto = WhatsAppMessageDTO::fromMetaPayload([
+            'contacts' => [
+                ['profile' => ['name' => 'Mauro']],
+            ],
+            'messages' => [[
+                'id' => 'wamid.5',
+                'from' => '5511999999999',
+                'type' => 'interactive',
+                'interactive' => [
+                    'type' => 'button_reply',
+                    'button_reply' => [
+                        'id' => 'quick_reply_2',
+                        'title' => 'Criar meta',
+                    ],
+                ],
+            ]],
+        ]);
+
+        $this->assertInstanceOf(WhatsAppMessageDTO::class, $dto);
+        $this->assertTrue($dto->isQuickReplySelection());
+        $this->assertSame(2, $dto->getSelectedQuickReplyIndex());
+    }
+
+    public function testParsesOptionSelection(): void
+    {
+        $dto = WhatsAppMessageDTO::fromMetaPayload([
+            'contacts' => [
+                ['profile' => ['name' => 'Mauro']],
+            ],
+            'messages' => [[
+                'id' => 'wamid.6',
+                'from' => '5511999999999',
+                'type' => 'interactive',
+                'interactive' => [
+                    'type' => 'button_reply',
+                    'button_reply' => [
+                        'id' => 'select_option_1',
+                        'title' => 'Conta principal',
+                    ],
+                ],
+            ]],
+        ]);
+
+        $this->assertInstanceOf(WhatsAppMessageDTO::class, $dto);
+        $this->assertTrue($dto->isOptionSelection());
+        $this->assertSame(1, $dto->getSelectedOptionIndex());
+    }
 }

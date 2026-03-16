@@ -137,6 +137,14 @@ class IntentRouterTest extends TestCase
         $this->assertTrue($result->isConfident());
     }
 
+    public function testMensagemCompactaDeLancamentoDetectaExtractTransaction(): void
+    {
+        $result = $this->router->detect('Receita, comida, 30, hoje', false, 1);
+
+        $this->assertEquals(IntentType::EXTRACT_TRANSACTION, $result->intent);
+        $this->assertTrue($result->isConfident());
+    }
+
     public function testContagemDeLancamentosDetectaQuickQuery(): void
     {
         $result = $this->router->detect('quantos lançamentos tenho', false, 1);

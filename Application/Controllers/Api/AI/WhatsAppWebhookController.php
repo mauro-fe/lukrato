@@ -5,17 +5,18 @@ declare(strict_types=1);
 namespace Application\Controllers\Api\AI;
 
 use Application\Controllers\BaseController;
-use Application\DTO\AI\AIRequestDTO;
+use Application\DTO\AI\AIResponseDTO;
 use Application\DTO\AI\WhatsAppMessageDTO;
 use Application\Enums\AI\AIChannel;
+use Application\Models\AiConversation;
 use Application\Models\PendingAiAction;
 use Application\Models\WhatsAppMessage;
 use Application\Repositories\ContaRepository;
-use Application\Services\AI\AIService;
 use Application\Services\AI\AIQuotaService;
 use Application\Services\AI\Actions\ActionRegistry;
 use Application\Services\AI\AiLogService;
-use Application\Services\AI\IntentRules\ConfirmationIntentRule;
+use Application\Services\AI\ChannelConversationService;
+use Application\Services\AI\ConversationStateService;
 use Application\Services\AI\Media\MediaAsset;
 use Application\Services\AI\Media\MediaProcessingResult;
 use Application\Services\AI\Media\MediaRouterService;
@@ -24,10 +25,10 @@ use Application\Services\AI\NLP\NumberNormalizer;
 use Application\Services\AI\NLP\TextNormalizer;
 use Application\Services\AI\Rules\CategoryRuleEngine;
 use Application\Services\AI\Security\AIRateLimiter;
-use Application\Services\AI\TransactionDetectorService;
 use Application\Services\AI\WhatsApp\WhatsAppMediaDownloader;
 use Application\Services\AI\WhatsApp\WhatsAppService;
 use Application\Services\AI\WhatsApp\WhatsAppUserResolver;
+use Application\Services\Infrastructure\CacheService;
 use Application\Services\Infrastructure\LogService;
 use Application\Enums\LogLevel;
 use Application\Enums\LogCategory;
@@ -48,13 +49,18 @@ class WhatsAppWebhookController extends BaseController
 {
     private const SENDER_LIMIT = 30;
     private const SENDER_WINDOW_SECONDS = 60;
+    private const QUICK_REPLY_TTL_SECONDS = 900;
+    private const MAX_QUICK_REPLIES = 3;
+    private const CONVERSATION_TITLE = 'WhatsApp';
 
     private WhatsAppService $whatsapp;
+    private ChannelConversationService $conversationService;
 
     public function __construct()
     {
         parent::__construct();
         $this->whatsapp = new WhatsAppService();
+        $this->conversationService = new ChannelConversationService();
     }
 
     // ─── Webhook Verification (GET) ──────────────────────────
@@ -256,7 +262,7 @@ class WhatsAppWebhookController extends BaseController
                 return;
             }
 
-            if (ConfirmationIntentRule::isAffirmative($dto->body)) {
+            if ($dto->isAffirmative()) {
                 // Executar via ActionRegistry (mesmo caminho do web chat)
                 $actionRegistry = new ActionRegistry();
                 $action = $actionRegistry->resolve($pending->action_type);
@@ -348,10 +354,7 @@ class WhatsAppWebhookController extends BaseController
 
     private function shouldHandleConfirmationReply(WhatsAppMessageDTO $dto, int $userId): bool
     {
-        if (
-            !ConfirmationIntentRule::isAffirmative($dto->body)
-            && !ConfirmationIntentRule::isNegative($dto->body)
-        ) {
+        if (!$dto->isAffirmative() && !$dto->isNegative()) {
             return false;
         }
 
@@ -523,8 +526,22 @@ class WhatsAppWebhookController extends BaseController
         $normalizedBody = TextNormalizer::normalize($dto->body);
         $normalizedBody = NumberNormalizer::normalize($normalizedBody);
 
+        if ($dto->isQuickReplySelection()) {
+            $this->handleQuickReplySelection($dto, $user, $msgRecord);
+            return;
+        }
+
+        if ($dto->isOptionSelection()) {
+            $this->handleOptionSelection($dto, $user, $msgRecord);
+            return;
+        }
+
+        if ($this->handleLocalShortcut($dto, $user, $msgRecord, $normalizedBody)) {
+            return;
+        }
+
         // Tentar extração de transação primeiro (regex, 0 tokens)
-        $extracted = TransactionDetectorService::extract($normalizedBody);
+        $extracted = null;
 
         if ($extracted !== null) {
             $this->handleTransactionExtraction($dto, $user, $extracted, $msgRecord);
@@ -544,19 +561,15 @@ class WhatsAppWebhookController extends BaseController
             return;
         }
 
-        // Delegar para AIService como qualquer outro canal
-        $ai = new AIService();
-
-        $request = AIRequestDTO::chat(
-            userId: $user->id,
-            message: $normalizedBody,
-            channel: AIChannel::WHATSAPP,
+        $result = $this->conversationService->processTextTurn(
+            $user->id,
+            $normalizedBody,
+            AIChannel::WHATSAPP,
+            self::CONVERSATION_TITLE,
+            ['from_phone' => $dto->fromPhone],
         );
 
-        $response = $ai->dispatch($request);
-
-        $this->whatsapp->sendText($dto->fromPhone, $response->message);
-        $msgRecord->markProcessed($response->intent?->value ?? 'chat');
+        $this->sendAiResponse($dto->fromPhone, $result['response'], $msgRecord);
     }
 
     /**
@@ -657,6 +670,519 @@ class WhatsAppWebhookController extends BaseController
         );
 
         $msgRecord->markProcessed('transaction_pending');
+    }
+
+    private function handleQuickReplySelection(
+        WhatsAppMessageDTO $dto,
+        \Application\Models\Usuario $user,
+        WhatsAppMessage $msgRecord,
+    ): void {
+        $replyIndex = $dto->getSelectedQuickReplyIndex();
+        $quickReplies = $this->getCachedQuickReplies($dto->fromPhone);
+        $message = $replyIndex !== null
+            ? trim((string) ($quickReplies[$replyIndex]['message'] ?? ''))
+            : '';
+
+        if (
+            $replyIndex === null
+            || !isset($quickReplies[$replyIndex]['message'])
+            || $message === ''
+        ) {
+            $this->whatsapp->sendText(
+                $dto->fromPhone,
+                'Esse atalho expirou. Me envie a mensagem manualmente ou escolha outro caminho.'
+            );
+            $msgRecord->markProcessed('quick_reply_expired');
+            return;
+        }
+
+        $textDto = new WhatsAppMessageDTO(
+            waMessageId: $dto->waMessageId,
+            fromPhone: $dto->fromPhone,
+            type: 'text',
+            body: $message,
+            displayName: $dto->displayName,
+            rawPayload: $dto->rawPayload,
+        );
+
+        $this->handleNormalMessage($textDto, $user, $msgRecord);
+    }
+
+    private function handleOptionSelection(
+        WhatsAppMessageDTO $dto,
+        \Application\Models\Usuario $user,
+        WhatsAppMessage $msgRecord,
+    ): void {
+        $optionIndex = $dto->getSelectedOptionIndex();
+
+        if ($optionIndex === null) {
+            $this->whatsapp->sendText($dto->fromPhone, 'Opcao invalida.');
+            $msgRecord->markProcessed('option_selection_invalid');
+            return;
+        }
+
+        $textDto = new WhatsAppMessageDTO(
+            waMessageId: $dto->waMessageId,
+            fromPhone: $dto->fromPhone,
+            type: 'text',
+            body: (string) ($optionIndex + 1),
+            displayName: $dto->displayName,
+            rawPayload: $dto->rawPayload,
+        );
+
+        $this->handleNormalMessage($textDto, $user, $msgRecord);
+    }
+
+    private function sendAiResponse(
+        string $toPhone,
+        AIResponseDTO $response,
+        WhatsAppMessage $msgRecord,
+    ): void {
+        $intent = $response->intent?->value ?? 'chat';
+        $pendingId = $response->data['pending_id'] ?? $response->data['pending_action_id'] ?? null;
+
+        if (!empty($pendingId)) {
+            $this->sendConfirmationMessage($toPhone, $response->message);
+            $msgRecord->markProcessed($intent . '_pending');
+            return;
+        }
+
+        if (!empty($response->data['options']) && ($response->data['action'] ?? '') === 'awaiting_selection') {
+            $this->sendSelectionResponse($toPhone, $response->message, $response->data['options']);
+            $msgRecord->markProcessed($intent . '_awaiting_selection');
+            return;
+        }
+
+        if (!empty($response->data['quick_replies']) && is_array($response->data['quick_replies'])) {
+            $this->sendQuickReplyResponse(
+                $toPhone,
+                $response->message,
+                $response->data['quick_replies'],
+                $response->data['suggestion'] ?? null,
+            );
+            $msgRecord->markProcessed($intent . '_quick_replies');
+            return;
+        }
+
+        $this->sendTextChunks(
+            $toPhone,
+            $this->appendSuggestion($response->message, $response->data['suggestion'] ?? null),
+        );
+        $msgRecord->markProcessed($intent);
+    }
+
+    private function sendConfirmationMessage(string $toPhone, string $text): void
+    {
+        $chunks = $this->splitMessage($text, 1024);
+        $lastIndex = count($chunks) - 1;
+
+        foreach ($chunks as $index => $chunk) {
+            if ($index === $lastIndex) {
+                $this->whatsapp->sendConfirmationButtons($toPhone, $chunk);
+                continue;
+            }
+
+            $this->whatsapp->sendText($toPhone, $chunk);
+        }
+    }
+
+    /**
+     * @param array<int, mixed> $options
+     */
+    private function sendSelectionResponse(string $toPhone, string $text, array $options): void
+    {
+        $normalizedOptions = $this->normalizeSelectionOptions($options);
+        $message = $this->buildSelectionMessage($text, $normalizedOptions);
+
+        if (!empty($normalizedOptions) && count($normalizedOptions) <= self::MAX_QUICK_REPLIES) {
+            $buttons = [];
+            foreach ($normalizedOptions as $index => $option) {
+                $buttons[] = [
+                    'id' => "select_option_{$index}",
+                    'title' => $option['label'],
+                ];
+            }
+
+            $chunks = $this->splitMessage($message, 1024);
+            $lastIndex = count($chunks) - 1;
+
+            foreach ($chunks as $index => $chunk) {
+                if ($index === $lastIndex) {
+                    $this->whatsapp->sendReplyButtons($toPhone, $chunk, $buttons);
+                    continue;
+                }
+
+                $this->whatsapp->sendText($toPhone, $chunk);
+            }
+            return;
+        }
+
+        $this->sendTextChunks($toPhone, $message);
+    }
+
+    /**
+     * @param array<int, mixed> $quickReplies
+     */
+    private function sendQuickReplyResponse(
+        string $toPhone,
+        string $text,
+        array $quickReplies,
+        ?string $suggestion = null,
+    ): void {
+        $normalizedReplies = $this->normalizeQuickReplies($quickReplies);
+        $message = $this->appendSuggestion($text, $suggestion);
+
+        if (empty($normalizedReplies)) {
+            $this->sendTextChunks($toPhone, $message);
+            return;
+        }
+
+        $this->cacheQuickReplies($toPhone, $normalizedReplies);
+
+        $buttons = [];
+        foreach ($normalizedReplies as $index => $reply) {
+            $buttons[] = [
+                'id' => "quick_reply_{$index}",
+                'title' => $reply['label'],
+            ];
+        }
+
+        $chunks = $this->splitMessage($message, 1024);
+        $lastIndex = count($chunks) - 1;
+
+        foreach ($chunks as $index => $chunk) {
+            if ($index === $lastIndex) {
+                $this->whatsapp->sendReplyButtons($toPhone, $chunk, $buttons);
+                continue;
+            }
+
+            $this->whatsapp->sendText($toPhone, $chunk);
+        }
+    }
+
+    private function sendTextChunks(string $toPhone, string $text): void
+    {
+        foreach ($this->splitMessage($text, 4096) as $chunk) {
+            $this->whatsapp->sendText($toPhone, $chunk);
+        }
+    }
+
+    /**
+     * @param array<int, mixed> $quickReplies
+     * @return array<int, array{label:string,message:string}>
+     */
+    private function normalizeQuickReplies(array $quickReplies): array
+    {
+        $normalized = [];
+
+        foreach ($quickReplies as $reply) {
+            if (!is_array($reply)) {
+                continue;
+            }
+
+            $label = trim((string) ($reply['label'] ?? ''));
+            $message = trim((string) ($reply['message'] ?? ''));
+
+            if ($label === '' || $message === '') {
+                continue;
+            }
+
+            $normalized[] = [
+                'label' => mb_substr($label, 0, 20),
+                'message' => mb_substr($message, 0, 200),
+            ];
+
+            if (count($normalized) >= self::MAX_QUICK_REPLIES) {
+                break;
+            }
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @param array<int, mixed> $options
+     * @return array<int, array{label:string}>
+     */
+    private function normalizeSelectionOptions(array $options): array
+    {
+        $normalized = [];
+
+        foreach ($options as $option) {
+            if (!is_array($option)) {
+                continue;
+            }
+
+            $label = trim((string) ($option['nome'] ?? $option['label'] ?? ''));
+            if ($label === '') {
+                continue;
+            }
+
+            $normalized[] = [
+                'label' => mb_substr($label, 0, 20),
+            ];
+        }
+
+        return $normalized;
+    }
+
+    private function appendSuggestion(string $text, ?string $suggestion = null): string
+    {
+        $text = trim($text);
+        $suggestion = trim((string) $suggestion);
+
+        if ($suggestion === '') {
+            return $text;
+        }
+
+        if (str_contains(mb_strtolower($text), mb_strtolower($suggestion))) {
+            return $text;
+        }
+
+        return $text . "\n\n" . $suggestion;
+    }
+
+    /**
+     * @param array<int, array{label:string}> $options
+     */
+    private function buildSelectionMessage(string $text, array $options): string
+    {
+        $message = trim($text);
+
+        if (empty($options)) {
+            return $message;
+        }
+
+        if (preg_match('/\b1\.\s+/u', $message) === 1) {
+            return $message;
+        }
+
+        $optionsText = implode("\n", array_map(
+            static fn(array $option, int $index): string => ($index + 1) . '. ' . $option['label'],
+            $options,
+            array_keys($options),
+        ));
+
+        return $message . "\n\n" . $optionsText . "\n\nResponda com o numero ou toque em uma opcao.";
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function splitMessage(string $text, int $limit): array
+    {
+        $text = trim($text);
+        if ($text === '') {
+            return [];
+        }
+
+        if (mb_strlen($text) <= $limit) {
+            return [$text];
+        }
+
+        $chunks = [];
+        $buffer = '';
+
+        foreach (preg_split("/\n{2,}/u", $text) ?: [$text] as $part) {
+            $part = trim((string) $part);
+            if ($part === '') {
+                continue;
+            }
+
+            $candidate = $buffer === '' ? $part : $buffer . "\n\n" . $part;
+            if (mb_strlen($candidate) <= $limit) {
+                $buffer = $candidate;
+                continue;
+            }
+
+            if ($buffer !== '') {
+                $chunks[] = $buffer;
+                $buffer = '';
+            }
+
+            while (mb_strlen($part) > $limit) {
+                $slice = mb_substr($part, 0, $limit);
+                $breakPos = max(
+                    (int) mb_strrpos($slice, "\n"),
+                    (int) mb_strrpos($slice, '. '),
+                    (int) mb_strrpos($slice, ' '),
+                );
+
+                if ($breakPos <= 0) {
+                    $breakPos = $limit;
+                }
+
+                $chunks[] = trim(mb_substr($part, 0, $breakPos));
+                $part = trim(mb_substr($part, $breakPos));
+            }
+
+            $buffer = $part;
+        }
+
+        if ($buffer !== '') {
+            $chunks[] = $buffer;
+        }
+
+        return array_values(array_filter($chunks, static fn(string $chunk): bool => $chunk !== ''));
+    }
+
+    /**
+     * @param array<int, array{label:string,message:string}> $quickReplies
+     */
+    private function cacheQuickReplies(string $phone, array $quickReplies): void
+    {
+        (new CacheService())->set(
+            $this->quickReplyCacheKey($phone),
+            $quickReplies,
+            self::QUICK_REPLY_TTL_SECONDS,
+        );
+    }
+
+    /**
+     * @return array<int, array{label:string,message:string}>
+     */
+    private function getCachedQuickReplies(string $phone): array
+    {
+        $cached = (new CacheService())->get($this->quickReplyCacheKey($phone), []);
+        return is_array($cached) ? $cached : [];
+    }
+
+    private function quickReplyCacheKey(string $phone): string
+    {
+        return "whatsapp:quick_replies:{$phone}";
+    }
+
+    private function handleLocalShortcut(
+        WhatsAppMessageDTO $dto,
+        \Application\Models\Usuario $user,
+        WhatsAppMessage $msgRecord,
+        string $normalizedBody,
+    ): bool {
+        $command = mb_strtolower(trim($normalizedBody));
+
+        if ($command === '/help') {
+            $this->sendHelpMessage($dto->fromPhone);
+            $msgRecord->markProcessed('command_help');
+            return true;
+        }
+
+        if ($command === '/cancel') {
+            $this->handleFlowCancellation($dto, $user, $msgRecord);
+            return true;
+        }
+
+        if ($this->isCancellationText($command) && $this->hasActiveWhatsAppFlow($user->id)) {
+            $this->handleFlowCancellation($dto, $user, $msgRecord);
+            return true;
+        }
+
+        return false;
+    }
+
+    private function sendHelpMessage(string $toPhone): void
+    {
+        $this->sendTextChunks(
+            $toPhone,
+            "Como usar o Lukrato no WhatsApp:\n\n"
+            . "Registrar transacoes:\n"
+            . "- \"almoco 35 hoje\"\n"
+            . "- \"recebi freelance 500 ontem\"\n"
+            . "- \"netflix 55,90 cartao nubank\"\n\n"
+            . "Consultar financas:\n"
+            . "- \"quanto gastei este mes?\"\n"
+            . "- \"qual meu saldo?\"\n"
+            . "- \"maior gasto do mes?\"\n\n"
+            . "Planejamento:\n"
+            . "- \"criar meta de 5000 para viagem\"\n"
+            . "- \"orcamento de 800 para alimentacao\"\n\n"
+            . "Se faltar algum dado, eu pergunto so o que falta.\n"
+            . "Use /cancel para cancelar um fluxo em andamento."
+        );
+    }
+
+    private function isCancellationText(string $text): bool
+    {
+        $normalized = mb_strtolower(trim($text));
+
+        if ($normalized === '') {
+            return false;
+        }
+
+        return preg_match('/\b(cancel|cancela|parar?|desist|sair|deixa\s*pra\s*l[aá]|esquece)\b/iu', $normalized) === 1;
+    }
+
+    private function handleFlowCancellation(
+        WhatsAppMessageDTO $dto,
+        \Application\Models\Usuario $user,
+        WhatsAppMessage $msgRecord,
+    ): void {
+        $cancelledPending = $this->rejectLatestPendingAction($user->id);
+        $cancelledConversation = $this->clearActiveConversationState($user->id);
+
+        if (!$cancelledPending && !$cancelledConversation) {
+            $this->whatsapp->sendText($dto->fromPhone, 'Nao havia nenhuma acao ou fluxo ativo para cancelar.');
+            $msgRecord->markProcessed('cancel_no_active_flow');
+            return;
+        }
+
+        $parts = [];
+        if ($cancelledPending) {
+            $parts[] = 'a confirmacao pendente';
+        }
+        if ($cancelledConversation) {
+            $parts[] = 'o fluxo em andamento';
+        }
+
+        $this->whatsapp->sendText(
+            $dto->fromPhone,
+            'Tudo certo. Cancelei ' . implode(' e ', $parts) . '.'
+        );
+        $msgRecord->markProcessed('cancelled_flow');
+    }
+
+    private function rejectLatestPendingAction(int $userId): bool
+    {
+        $pending = PendingAiAction::query()
+            ->where('user_id', $userId)
+            ->awaiting()
+            ->orderByDesc('created_at')
+            ->first();
+
+        if ($pending === null) {
+            return false;
+        }
+
+        return $pending->reject();
+    }
+
+    private function clearActiveConversationState(int $userId): bool
+    {
+        $conversation = $this->getLatestWhatsAppConversation($userId);
+
+        if ($conversation === null || !ConversationStateService::isActive($conversation->id)) {
+            return false;
+        }
+
+        ConversationStateService::clearState($conversation->id);
+        return true;
+    }
+
+    private function hasActiveWhatsAppFlow(int $userId): bool
+    {
+        if (PendingAiAction::where('user_id', $userId)->awaiting()->exists()) {
+            return true;
+        }
+
+        $conversation = $this->getLatestWhatsAppConversation($userId);
+        return $conversation !== null && ConversationStateService::isActive($conversation->id);
+    }
+
+    private function getLatestWhatsAppConversation(int $userId): ?AiConversation
+    {
+        return AiConversation::where('user_id', $userId)
+            ->where('titulo', self::CONVERSATION_TITLE)
+            ->orderByDesc('updated_at')
+            ->first();
     }
 
     private function isValidWebhookSignature(string $rawBody): bool

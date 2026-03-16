@@ -229,19 +229,15 @@ class TransactionExtractorHandler implements AIHandlerInterface
     }
 
     /**
-     * Monta resposta com PendingAiAction para canal web, ou resposta direta para WhatsApp.
+     * Monta resposta unificada para todos os canais.
      */
     private function buildResponse(array $result, AIRequestDTO $request, string $source): AIResponseDTO
     {
         $confirmText = $this->formatConfirmation($result);
 
-        // No canal web, criar PendingAiAction para confirmação via botões
-        if ($request->channel === AIChannel::WEB && $request->userId) {
+        if ($request->userId) {
             $conversationId = $request->context['conversation_id'] ?? null;
-
             $isCartao = ($result['forma_pagamento'] ?? null) === 'cartao_credito';
-
-            // Buscar contas ativas — cartão de crédito não precisa de conta
             $accountsList = [];
             $cardsList = [];
 
@@ -262,10 +258,11 @@ class TransactionExtractorHandler implements AIHandlerInterface
                     $result['conta_id'] = $contas->first()->id;
                 }
 
-                $accountsList = $contas->map(fn($c) => ['id' => $c->id, 'nome' => $c->nome])->values()->toArray();
+                if ($request->channel === AIChannel::WEB) {
+                    $accountsList = $contas->map(fn($c) => ['id' => $c->id, 'nome' => $c->nome])->values()->toArray();
+                }
             }
 
-            // Se é cartão mas sem cartao_credito_id, enviar lista de cartões para seleção
             if ($isCartao && empty($result['cartao_credito_id'])) {
                 $cartoes = CartaoCredito::where('user_id', $request->userId)->where('ativo', true)->get();
                 if ($cartoes->isEmpty()) {
@@ -278,9 +275,8 @@ class TransactionExtractorHandler implements AIHandlerInterface
                 if ($cartoes->count() === 1) {
                     $result['cartao_credito_id'] = $cartoes->first()->id;
                     $result['_cartao_nome'] = $cartoes->first()->nome_cartao;
-                    // Refresh confirmation text with card name
                     $confirmText = $this->formatConfirmation($result);
-                } else {
+                } elseif ($request->channel === AIChannel::WEB) {
                     $cardsList = $cartoes->map(fn($c) => [
                         'id'   => $c->id,
                         'nome' => $c->nome_cartao,
@@ -311,14 +307,16 @@ class TransactionExtractorHandler implements AIHandlerInterface
                 $responseData['cards'] = $cardsList;
             }
 
-            $confirmText .= "\n\n**Deseja confirmar?** Responda **sim** ou **não**.";
+            $confirmText .= match ($request->channel) {
+                AIChannel::WEB => "\n\n**Deseja confirmar?** Responda **sim** ou **não**.",
+                default => "\n\nConfirme para continuar.",
+            };
 
             return $source === 'llm'
                 ? AIResponseDTO::fromLLM($confirmText, $responseData, IntentType::EXTRACT_TRANSACTION)
                 : AIResponseDTO::fromRule($confirmText, $responseData, IntentType::EXTRACT_TRANSACTION);
         }
 
-        // WhatsApp ou sem userId — retornar sem PendingAiAction (fluxo existente)
         return $source === 'llm'
             ? AIResponseDTO::fromLLM($confirmText, $result, IntentType::EXTRACT_TRANSACTION)
             : AIResponseDTO::fromRule($confirmText, $result, IntentType::EXTRACT_TRANSACTION);

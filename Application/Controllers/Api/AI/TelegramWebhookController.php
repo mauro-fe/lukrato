@@ -9,12 +9,14 @@ use Application\DTO\AI\AIRequestDTO;
 use Application\DTO\AI\TelegramMessageDTO;
 use Application\Enums\AI\AIChannel;
 use Application\Models\AiConversation;
+use Application\Models\AiChatMessage;
 use Application\Models\PendingAiAction;
 use Application\Models\TelegramMessage;
 use Application\Repositories\ContaRepository;
 use Application\Services\AI\AIService;
 use Application\Services\AI\AIQuotaService;
 use Application\Services\AI\Actions\ActionRegistry;
+use Application\Services\AI\ChannelConversationService;
 use Application\Services\AI\ConversationStateService;
 use Application\Services\AI\Context\UserContextBuilder;
 use Application\Services\AI\ContextCompressor;
@@ -27,8 +29,6 @@ use Application\Services\AI\NLP\NumberNormalizer;
 use Application\Services\AI\NLP\TextNormalizer;
 use Application\Services\AI\Rules\CategoryRuleEngine;
 use Application\Services\AI\Security\AIRateLimiter;
-use Application\Models\AiChatMessage;
-use Application\Services\AI\TransactionDetectorService;
 use Application\Services\AI\Telegram\TelegramResponseFormatter;
 use Application\Services\AI\Telegram\TelegramService;
 use Application\Services\AI\Telegram\TelegramUserResolver;
@@ -61,11 +61,13 @@ class TelegramWebhookController extends BaseController
     private const MAX_QUICK_REPLIES = 3;
 
     private TelegramService $telegram;
+    private ChannelConversationService $conversationService;
 
     public function __construct()
     {
         parent::__construct();
         $this->telegram = new TelegramService();
+        $this->conversationService = new ChannelConversationService();
     }
 
     // ─── Webhook Reception (POST) ─────────────────────────────
@@ -1087,7 +1089,7 @@ class TelegramWebhookController extends BaseController
         $normalizedBody = TextNormalizer::normalize($dto->body);
         $normalizedBody = NumberNormalizer::normalize($normalizedBody);
         // Tentar extração de transação primeiro (regex, 0 tokens)
-        $extracted = TransactionDetectorService::extract($normalizedBody);
+        $extracted = null;
 
         if ($extracted !== null) {
             $this->handleTransactionExtraction($dto, $user, $extracted, $msgRecord);
@@ -1106,6 +1108,17 @@ class TelegramWebhookController extends BaseController
             $msgRecord->markProcessed('quota_exceeded');
             return;
         }
+
+        $result = $this->conversationService->processTextTurn(
+            $user->id,
+            $normalizedBody,
+            AIChannel::TELEGRAM,
+            'Telegram',
+            ['chat_id' => $dto->chatId],
+        );
+
+        $this->sendAiResponse($dto->chatId, $result['response'], $msgRecord);
+        return;
 
         // Obter/criar conversa do Telegram (para multi-turn e contexto)
         $conversation = $this->getOrCreateConversation($user->id);

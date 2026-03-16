@@ -43,6 +43,7 @@ class IntentRouter
         IntentType::CREATE_ENTITY,
         IntentType::PAY_FATURA,
     ];
+    private const CACHE_VERSION = 'v2';
 
     /** States that indicate an active multi-turn flow */
     private const ACTIVE_STATES = ['collecting_entity', 'awaiting_selection'];
@@ -112,7 +113,7 @@ class IntentRouter
 
         // Verificar cache de intent para mensagens similares
         $cacheScope = $isWhatsApp ? 'whatsapp' : 'default';
-        $cacheKey = 'ai:intent:' . $cacheScope . ':' . md5($normalized);
+        $cacheKey = 'ai:intent:' . self::CACHE_VERSION . ':' . $cacheScope . ':' . md5($normalized);
         $cached = $this->cache->get($cacheKey);
         if ($cached !== null) {
             $intent = IntentType::tryFrom($cached);

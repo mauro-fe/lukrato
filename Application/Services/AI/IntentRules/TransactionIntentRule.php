@@ -6,6 +6,7 @@ namespace Application\Services\AI\IntentRules;
 
 use Application\DTO\AI\IntentResult;
 use Application\Enums\AI\IntentType;
+use Application\Services\AI\TransactionDetectorService;
 
 /**
  * Detecta intenção de registro de transação financeira.
@@ -23,6 +24,9 @@ use Application\Enums\AI\IntentType;
  */
 class TransactionIntentRule implements IntentRuleInterface
 {
+    private const EXPLICIT_CREATION_GUARD =
+    '/\b(?:criar|crie|cadastr(?:ar|e)|adicion(?:ar|e)|novo|nova|definir|registr(?:ar|e|o)|lanc(?:ar|e)|quero\s+criar)\b/iu';
+
     /**
      * Verbos que indicam registro de transação.
      * Cobre: passado, presente, gerúndio, 3ª pessoa, perífrases e gírias BR.
@@ -90,10 +94,23 @@ class TransactionIntentRule implements IntentRuleInterface
     public function match(string $message, bool $isWhatsApp = false): ?IntentResult
     {
         $normalized = mb_strtolower(trim($message));
+        $entityType = EntityCreationIntentRule::detectEntityType($normalized);
+
+        if ($entityType !== null && $entityType !== 'lancamento') {
+            return null;
+        }
+
+        if ($entityType === 'lancamento' && preg_match(self::EXPLICIT_CREATION_GUARD, $normalized)) {
+            return null;
+        }
 
         // Excluir contextos onde números claramente não são valores monetários
         if (preg_match(self::NON_MONETARY_CONTEXT, $normalized)) {
             return null;
+        }
+
+        if (TransactionDetectorService::extract($normalized) !== null) {
+            return IntentResult::medium(IntentType::EXTRACT_TRANSACTION, 0.95, ['source' => 'transaction_detector']);
         }
 
         // WhatsApp: mensagens curtas com número são quase sempre transações
