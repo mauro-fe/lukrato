@@ -240,4 +240,15 @@ class TransactionDetectorTest extends TestCase
         $this->assertEquals('Mercado', $result['descricao'] ?? null);
         $this->assertArrayNotHasKey('categoria_contexto', $result);
     }
+
+    public function testExtractStructuredCommaSeparatedTransaction(): void
+    {
+        $result = TransactionDetectorService::extract('Receita, comida, 30, hoje');
+
+        $this->assertNotNull($result);
+        $this->assertEqualsWithDelta(30.0, $result['valor'], 0.01);
+        $this->assertEquals('receita', $result['tipo']);
+        $this->assertEquals('Comida', $result['descricao'] ?? null);
+        $this->assertEquals(date('Y-m-d'), $result['data'] ?? null);
+    }
 }

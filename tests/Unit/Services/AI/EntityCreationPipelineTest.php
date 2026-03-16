@@ -147,6 +147,18 @@ class EntityCreationPipelineTest extends TestCase
         $this->assertEquals('Mercado', $result['categoria_contexto'] ?? null);
     }
 
+    public function testExtractLancamentoStructuredCommaSeparatedFormat(): void
+    {
+        $handler = new EntityCreationHandler();
+
+        $result = $this->extractLancamento($handler, 'Receita, comida, 30, hoje');
+
+        $this->assertEquals('receita', $result['tipo'] ?? null);
+        $this->assertEqualsWithDelta(30.0, (float) ($result['valor'] ?? 0), 0.01);
+        $this->assertEquals('Comida', $result['descricao'] ?? null);
+        $this->assertEquals(date('Y-m-d'), $result['data'] ?? null);
+    }
+
     // ─── Regex extraction: orcamento ───────────────────────
 
     public function testDefinirOrcamentoDetected(): void
@@ -209,6 +221,36 @@ class EntityCreationPipelineTest extends TestCase
         // Sem título e valor, deve pedir informações
         $this->assertTrue($response->success);
         $this->assertStringContainsString('preciso', mb_strtolower($response->message));
+    }
+
+    public function testHandlerNaoAceitaValorZeroInventadoPelaIA(): void
+    {
+        $provider = Mockery::mock(AIProvider::class);
+        $provider->shouldReceive('chatWithTools')
+            ->once()
+            ->andReturn([
+                'valor' => 0,
+                'descricao' => 'gasto',
+            ]);
+
+        $handler = new EntityCreationHandler();
+        $handler->setProvider($provider);
+
+        $request = new AIRequestDTO(
+            userId: 1,
+            message: 'quero registrar um gasto',
+            intent: IntentType::CREATE_ENTITY,
+            channel: AIChannel::WEB
+        );
+
+        $response = $handler->handle($request);
+
+        $this->assertTrue($response->success);
+        $this->assertEquals('missing_fields', $response->data['action'] ?? null);
+        $this->assertContains('valor', $response->data['missing'] ?? []);
+        $this->assertContains('descricao', $response->data['missing'] ?? []);
+        $this->assertStringContainsString('valor', mb_strtolower($response->message));
+        $this->assertStringContainsString('descri', mb_strtolower($response->message));
     }
 
     private function extractLancamento(EntityCreationHandler $handler, string $message): array

@@ -38,6 +38,11 @@ class ChatHandlerV2 implements AIHandlerInterface
             ['action_hint' => 'create_orcamento', 'suggestion' => 'Um orcamento pode te dar mais controle sobre isso.'],
     ];
 
+    private const CAPABILITY_PATTERNS = [
+        '/\b(?:voc[eê]|vc|tu)\b.{0,40}\b(?:consegue|pode|nao consegue|não consegue|nao pode|não pode)\b.{0,60}\b(?:lan[cç]ar|registrar|anotar)\b/iu',
+        '/\b(?:lan[cç]a|registre|registra|anota)\b.{0,30}\b(?:pra mim|por mim)\b/iu',
+    ];
+
     public function setProvider(AIProvider $provider): void
     {
         $this->provider = $provider;
@@ -65,6 +70,11 @@ class ChatHandlerV2 implements AIHandlerInterface
                 ],
                 IntentType::CHAT,
             );
+        }
+
+        $capabilityResponse = $this->matchCapabilityQuestion($request->message);
+        if ($capabilityResponse !== null) {
+            return $capabilityResponse;
         }
 
         try {
@@ -158,6 +168,33 @@ class ChatHandlerV2 implements AIHandlerInterface
         return null;
     }
 
+    private function matchCapabilityQuestion(string $message): ?AIResponseDTO
+    {
+        $normalized = mb_strtolower(trim($message));
+        if ($normalized === '') {
+            return null;
+        }
+
+        foreach (self::CAPABILITY_PATTERNS as $pattern) {
+            if (preg_match($pattern, $normalized) !== 1) {
+                continue;
+            }
+
+            return AIResponseDTO::fromComputed(
+                'Consigo sim. Me mande a transacao em uma frase, como "mercado 30 hoje" ou "recebi freelance 500 ontem". Se faltar algum dado, eu pergunto so o que falta.',
+                [
+                    'source' => 'capability_transaction',
+                    'action_hint' => 'create_lancamento',
+                    'suggestion' => 'Se quiser, posso comecar por um gasto ou uma receita agora.',
+                    'quick_replies' => $this->getTransactionCaptureQuickReplies(),
+                ],
+                IntentType::CHAT,
+            );
+        }
+
+        return null;
+    }
+
     /**
      * @return array<int, array{label:string,message:string,mode:string}>
      */
@@ -167,6 +204,18 @@ class ChatHandlerV2 implements AIHandlerInterface
             ['label' => 'Registrar gasto', 'message' => 'quero registrar um gasto', 'mode' => 'fill'],
             ['label' => 'Ver gastos do mes', 'message' => 'quanto gastei este mes?', 'mode' => 'send'],
             ['label' => 'Criar meta', 'message' => 'quero criar uma meta', 'mode' => 'fill'],
+        ];
+    }
+
+    /**
+     * @return array<int, array{label:string,message:string,mode:string}>
+     */
+    private function getTransactionCaptureQuickReplies(): array
+    {
+        return [
+            ['label' => 'Registrar gasto', 'message' => 'quero registrar um gasto', 'mode' => 'fill'],
+            ['label' => 'Registrar receita', 'message' => 'quero registrar uma receita', 'mode' => 'fill'],
+            ['label' => 'Ver exemplos', 'message' => '/help', 'mode' => 'send'],
         ];
     }
 

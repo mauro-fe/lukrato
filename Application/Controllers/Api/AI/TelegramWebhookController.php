@@ -422,15 +422,6 @@ class TelegramWebhookController extends BaseController
         );
         $msgRecord->markProcessed('verification_success');
         return;
-
-        $this->telegram->sendText(
-            $dto->chatId,
-            "✅ Telegram vinculado com sucesso!\n\n"
-                . "Agora você pode registrar transações enviando mensagens como:\n"
-                . "💬 <i>\"almoco 35\"</i>\n"
-                . "💬 <i>\"recebi salário 5000\"</i>"
-        );
-        $msgRecord->markProcessed('verification_success');
     }
 
     /**
@@ -679,33 +670,6 @@ class TelegramWebhookController extends BaseController
 
         $this->handleNormalMessage($textDto, $user, $msgRecord);
         return;
-
-        $optionIndex = $dto->getSelectedOptionIndex();
-
-        if ($optionIndex === null) {
-            $this->telegram->sendText($dto->chatId, "⚠️ Seleção inválida.");
-            $msgRecord->markProcessed('option_selection_invalid');
-            return;
-        }
-
-        // Buscar conversa ativa do Telegram para este usuário
-        $conversation = $this->getOrCreateConversation($user->id);
-
-        // Usar ConversationStateService para resolver a seleção
-        // O índice do botão (1-based) é passado como mensagem textual
-        $resolved = ConversationStateService::resolveSelection(
-            $conversation->id,
-            (string) ($optionIndex + 1)  // 0-based → 1-based
-        );
-
-        if ($resolved === null) {
-            $this->telegram->sendText($dto->chatId, "⚠️ Opção inválida ou expirada. Tente novamente.");
-            $msgRecord->markProcessed('option_selection_failed');
-            return;
-        }
-
-        // Continuar o fluxo normal com os dados resolvidos (re-dispatch via AI)
-        $this->handleNormalMessage($dto, $user, $msgRecord);
     }
 
     /**

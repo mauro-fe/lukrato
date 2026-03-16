@@ -138,10 +138,16 @@ class TransactionDetectorService
 
         // Pré-processar valores coloquiais
         $processedMessage = self::normalizeColloquialValues($message);
+        $processedNormalized = mb_strtolower(trim($processedMessage));
+
+        $structured = self::extractStructuredTransaction($processedMessage, $processedNormalized);
+        if ($structured !== null) {
+            return self::enrichWithPaymentInfo($structured, $processedNormalized);
+        }
 
         foreach (self::EXTRACTION_PATTERNS as $pattern) {
             if (preg_match($pattern, $processedMessage, $matches)) {
-                $parsed = self::parseMatches($matches, $pattern, mb_strtolower(trim($processedMessage)));
+                $parsed = self::parseMatches($matches, $pattern, $processedNormalized);
                 if ($parsed !== null) {
                     // Enriquecer com forma de pagamento, parcelamento e nome do cartão
                     $parsed = self::enrichWithPaymentInfo($parsed, $normalized);
@@ -151,6 +157,77 @@ class TransactionDetectorService
         }
 
         return null;
+    }
+
+    private static function extractStructuredTransaction(string $message, string $normalized): ?array
+    {
+        if (!preg_match('/[,;\n]/u', $message)) {
+            return null;
+        }
+
+        $protectedMessage = preg_replace('/(?<=\d),(?=\d)/u', '__DECIMAL_COMMA__', trim($message));
+        $tokens = preg_split('/\s*[,;\n]+\s*/u', $protectedMessage ?: '') ?: [];
+        $tokens = array_values(array_filter(array_map(
+            static fn($token) => trim(str_replace('__DECIMAL_COMMA__', ',', $token)),
+            $tokens
+        ), static fn($token) => $token !== ''));
+
+        if (count($tokens) < 2) {
+            return null;
+        }
+
+        $data = [];
+        $descriptionParts = [];
+
+        foreach ($tokens as $token) {
+            if (!isset($data['tipo'])) {
+                if (preg_match('/\b(receita|ganho|sal[áa]rio|renda|entrada|receb[ei]|ganhei)\b/iu', $token)) {
+                    $data['tipo'] = 'receita';
+                    continue;
+                }
+
+                if (preg_match('/\b(despesa|gasto|compra|sa[íi]da|pagamento|conta)\b/iu', $token)) {
+                    $data['tipo'] = 'despesa';
+                    continue;
+                }
+            }
+
+            if (!isset($data['valor'])) {
+                $valor = self::parseValue($token);
+                if ($valor > 0 && preg_match('/\d/u', NumberNormalizer::normalize($token)) === 1) {
+                    $data['valor'] = $valor;
+                    continue;
+                }
+            }
+
+            if (!isset($data['data'])) {
+                $date = self::parseStructuredDateToken($token);
+                if ($date !== null) {
+                    $data['data'] = $date;
+                    continue;
+                }
+            }
+
+            $cleanToken = trim((string) preg_replace('/^(?:descri[çc][ãa]o|descricao)\s*[:\-]\s*/iu', '', $token));
+            if ($cleanToken !== '') {
+                $descriptionParts[] = $cleanToken;
+            }
+        }
+
+        if (($data['valor'] ?? 0) <= 0 || empty($descriptionParts)) {
+            return null;
+        }
+
+        $normalizedDescription = self::normalizeDescriptionPayload(implode(' ', $descriptionParts));
+        if (($normalizedDescription['descricao'] ?? '') === '') {
+            return null;
+        }
+
+        return array_merge([
+            'valor' => (float) $data['valor'],
+            'tipo'  => $data['tipo'] ?? self::detectType($normalized),
+            'data'  => $data['data'] ?? self::detectDate($normalized),
+        ], $normalizedDescription);
     }
 
     /**
@@ -474,5 +551,29 @@ class TransactionDetectorService
             return date('Y-m-d', strtotime('-2 days'));
         }
         return date('Y-m-d');
+    }
+
+    private static function parseStructuredDateToken(string $token): ?string
+    {
+        $normalized = mb_strtolower(trim($token));
+
+        if ($normalized === '') {
+            return null;
+        }
+
+        return match (true) {
+            preg_match('/^hoje$/iu', $normalized) === 1 => date('Y-m-d'),
+            preg_match('/^amanh[ãa]$/iu', $normalized) === 1 => date('Y-m-d', strtotime('+1 day')),
+            preg_match('/^anteontem$/iu', $normalized) === 1 => date('Y-m-d', strtotime('-2 days')),
+            preg_match('/^ontem$/iu', $normalized) === 1 => date('Y-m-d', strtotime('-1 day')),
+            preg_match('/^(\d{1,2})\s*[\/\-]\s*(\d{1,2})(?:\s*[\/\-]\s*(\d{2,4}))?$/u', $normalized, $m) === 1
+                => sprintf(
+                    '%s-%s-%s',
+                    isset($m[3]) ? (strlen($m[3]) === 2 ? '20' . $m[3] : $m[3]) : date('Y'),
+                    str_pad($m[2], 2, '0', STR_PAD_LEFT),
+                    str_pad($m[1], 2, '0', STR_PAD_LEFT),
+                ),
+            default => null,
+        };
     }
 }

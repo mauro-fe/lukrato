@@ -328,11 +328,26 @@ class EntityCreationHandler implements AIHandlerInterface
                     if (preg_match('/R?\$?\s*(\d{1,3}(?:\.\d{3})*[,\.]\d{2}|\d+(?:[,\.]\d{1,2})?)/iu', $normalized, $m)) {
                         $valor = str_replace('.', '', $m[1]);
                         $valor = str_replace(',', '.', $valor);
-                        $existing[$firstMissing] = (float) $valor;
+                        $valor = (float) $valor;
+                        if ($valor > 0) {
+                            $existing[$firstMissing] = $valor;
+                        }
                     }
                     break;
 
                 case 'descricao':
+                    if (mb_strlen($msg) >= 2 && mb_strlen($msg) <= 150) {
+                        $normalizedDescription = TransactionDescriptionNormalizer::normalize($msg);
+                        $descricao = trim((string) ($normalizedDescription['descricao'] ?? ''));
+
+                        if ($descricao !== '' && !$this->isPlaceholderLancamentoDescription($descricao)) {
+                            $existing['descricao'] = mb_substr($descricao, 0, 190);
+                            if (!empty($normalizedDescription['categoria_contexto'])) {
+                                $existing['categoria_contexto'] = $normalizedDescription['categoria_contexto'];
+                            }
+                        }
+                    }
+                    break;
                 case 'titulo':
                 case 'nome':
                     // Qualquer texto >2 chars serve como descrição/título/nome
@@ -392,23 +407,28 @@ class EntityCreationHandler implements AIHandlerInterface
 
     private function extractLancamento(string $message): array
     {
-        $data = [];
+        $data = $this->extractStructuredLancamentoTokens($message);
 
         // tipo: receita ou despesa
-        if (preg_match('/\b(receita|ganho|sal[áa]rio|renda|entrada|receb[ei]|ganhei)\b/iu', $message)) {
-            $data['tipo'] = 'receita';
-        } else {
-            $data['tipo'] = 'despesa';
+        if (!isset($data['tipo'])) {
+            if (preg_match('/\b(receita|ganho|sal[áa]rio|renda|entrada|receb[ei]|ganhei)\b/iu', $message)) {
+                $data['tipo'] = 'receita';
+            } else {
+                $data['tipo'] = 'despesa';
+            }
         }
 
         // Normalizar valores coloquiais antes de extrair
         $msgNorm = $this->normalizeColloquialValues($message);
 
         // valor: R$ 100, 100 reais, 1.500,00, etc.
-        if (preg_match('/R?\$?\s*(\d{1,3}(?:\.\d{3})*[,\.]\d{2}|\d+(?:[,\.]\d{1,2})?)\s*(?:reais|conto[s]?|pila[s]?)?/iu', $msgNorm, $m)) {
+        if (!isset($data['valor']) && preg_match('/R?\$?\s*(\d{1,3}(?:\.\d{3})*[,\.]\d{2}|\d+(?:[,\.]\d{1,2})?)\s*(?:reais|conto[s]?|pila[s]?)?/iu', $msgNorm, $m)) {
             $valor = str_replace('.', '', $m[1]);
             $valor = str_replace(',', '.', $valor);
-            $data['valor'] = (float) $valor;
+            $valor = (float) $valor;
+            if ($valor > 0) {
+                $data['valor'] = $valor;
+            }
         }
 
         // forma_pagamento
@@ -428,41 +448,43 @@ class EntityCreationHandler implements AIHandlerInterface
         }
 
         // data: hoje, amanhã, ontem, anteontem, dias da semana, DD/MM, DD/MM/YYYY
-        if (preg_match('/\bhoje\b/iu', $message)) {
-            $data['data'] = date('Y-m-d');
-        } elseif (preg_match('/\bamanh[ãa]\b/iu', $message)) {
-            $data['data'] = date('Y-m-d', strtotime('+1 day'));
-        } elseif (preg_match('/\banteontem\b/iu', $message)) {
-            $data['data'] = date('Y-m-d', strtotime('-2 days'));
-        } elseif (preg_match('/\bontem\b/iu', $message)) {
-            $data['data'] = date('Y-m-d', strtotime('-1 day'));
-        } elseif (preg_match('/\b(?:semana\s+passada)\b/iu', $message)) {
-            $data['data'] = date('Y-m-d', strtotime('last monday'));
-        } elseif (preg_match('/\b(segunda|ter[çc]a|quarta|quinta|sexta|s[áa]bado|sabado|domingo)(?:\s+(?:passad[ao]|[úu]ltim[ao]))?\b/iu', $message, $dm)) {
-            $dayMap = [
-                'segunda' => 'last monday',
-                'terça' => 'last tuesday',
-                'terca' => 'last tuesday',
-                'quarta' => 'last wednesday',
-                'quinta' => 'last thursday',
-                'sexta' => 'last friday',
-                'sábado' => 'last saturday',
-                'sabado' => 'last saturday',
-                'domingo' => 'last sunday',
-            ];
-            $dayKey = mb_strtolower($dm[1]);
-            $data['data'] = date('Y-m-d', strtotime($dayMap[$dayKey] ?? 'today'));
-        } elseif (preg_match('/(\d{1,2})\s*[\/\-]\s*(\d{1,2})(?:\s*[\/\-]\s*(\d{2,4}))?/u', $message, $m)) {
-            $day = str_pad($m[1], 2, '0', STR_PAD_LEFT);
-            $month = str_pad($m[2], 2, '0', STR_PAD_LEFT);
-            $year = isset($m[3]) ? (strlen($m[3]) === 2 ? '20' . $m[3] : $m[3]) : date('Y');
-            $data['data'] = "{$year}-{$month}-{$day}";
-        } else {
-            $data['data'] = date('Y-m-d');
+        if (!isset($data['data'])) {
+            if (preg_match('/\bhoje\b/iu', $message)) {
+                $data['data'] = date('Y-m-d');
+            } elseif (preg_match('/\bamanh[ãa]\b/iu', $message)) {
+                $data['data'] = date('Y-m-d', strtotime('+1 day'));
+            } elseif (preg_match('/\banteontem\b/iu', $message)) {
+                $data['data'] = date('Y-m-d', strtotime('-2 days'));
+            } elseif (preg_match('/\bontem\b/iu', $message)) {
+                $data['data'] = date('Y-m-d', strtotime('-1 day'));
+            } elseif (preg_match('/\b(?:semana\s+passada)\b/iu', $message)) {
+                $data['data'] = date('Y-m-d', strtotime('last monday'));
+            } elseif (preg_match('/\b(segunda|ter[çc]a|quarta|quinta|sexta|s[áa]bado|sabado|domingo)(?:\s+(?:passad[ao]|[úu]ltim[ao]))?\b/iu', $message, $dm)) {
+                $dayMap = [
+                    'segunda' => 'last monday',
+                    'terça' => 'last tuesday',
+                    'terca' => 'last tuesday',
+                    'quarta' => 'last wednesday',
+                    'quinta' => 'last thursday',
+                    'sexta' => 'last friday',
+                    'sábado' => 'last saturday',
+                    'sabado' => 'last saturday',
+                    'domingo' => 'last sunday',
+                ];
+                $dayKey = mb_strtolower($dm[1]);
+                $data['data'] = date('Y-m-d', strtotime($dayMap[$dayKey] ?? 'today'));
+            } elseif (preg_match('/(\d{1,2})\s*[\/\-]\s*(\d{1,2})(?:\s*[\/\-]\s*(\d{2,4}))?/u', $message, $m)) {
+                $day = str_pad($m[1], 2, '0', STR_PAD_LEFT);
+                $month = str_pad($m[2], 2, '0', STR_PAD_LEFT);
+                $year = isset($m[3]) ? (strlen($m[3]) === 2 ? '20' . $m[3] : $m[3]) : date('Y');
+                $data['data'] = "{$year}-{$month}-{$day}";
+            } else {
+                $data['data'] = date('Y-m-d');
+            }
         }
 
         // descricao: tenta extrair "de <descricao>" ou texto significativo
-        if (preg_match('/\b(?:de|do|da|para|com|no|na)\s+(.{3,60})$/iu', $message, $m)) {
+        if (empty($data['descricao']) && preg_match('/\b(?:de|do|da|para|com|no|na)\s+(.{3,60})$/iu', $message, $m)) {
             $desc = trim($m[1]);
             // Remover partes que são data, valor, cartão ou parcelamento
             $desc = preg_replace('/\b(?:hoje|amanh[ãa]|ontem|\d{1,2}\/\d{1,2}(?:\/\d{2,4})?|R?\$?\s*[\d.,]+\s*(?:reais|conto[s]?|pila[s]?)?)\b/iu', '', $desc);
@@ -478,6 +500,114 @@ class EntityCreationHandler implements AIHandlerInterface
         }
 
         return $this->fillDefaultLancamentoDescricao($data);
+    }
+
+    private function extractStructuredLancamentoTokens(string $message): array
+    {
+        if (!preg_match('/[,;\n]/u', $message)) {
+            return [];
+        }
+
+        $protectedMessage = preg_replace('/(?<=\d),(?=\d)/u', '__DECIMAL_COMMA__', trim($message));
+        $tokens = preg_split('/\s*[,;\n]+\s*/u', $protectedMessage ?: '') ?: [];
+        $tokens = array_values(array_filter(array_map(
+            static fn($token) => trim(str_replace('__DECIMAL_COMMA__', ',', $token)),
+            $tokens
+        ), static fn($token) => $token !== ''));
+
+        if (count($tokens) < 2) {
+            return [];
+        }
+
+        $data = [];
+        $descriptionParts = [];
+
+        foreach ($tokens as $token) {
+            if (!isset($data['tipo'])) {
+                if (preg_match('/\b(receita|ganho|sal[áa]rio|renda|entrada|receb[ei]|ganhei)\b/iu', $token)) {
+                    $data['tipo'] = 'receita';
+                    continue;
+                }
+
+                if (preg_match('/\b(despesa|gasto|compra|sa[íi]da|pagamento|conta)\b/iu', $token)) {
+                    $data['tipo'] = 'despesa';
+                    continue;
+                }
+            }
+
+            if (!isset($data['valor'])) {
+                $value = $this->parsePositiveMoneyValue($token);
+                if ($value !== null) {
+                    $data['valor'] = $value;
+                    continue;
+                }
+            }
+
+            if (!isset($data['data'])) {
+                $date = $this->parseLancamentoDateToken($token);
+                if ($date !== null) {
+                    $data['data'] = $date;
+                    continue;
+                }
+            }
+
+            $cleanToken = trim((string) preg_replace('/^(?:descri[çc][ãa]o|descricao)\s*[:\-]\s*/iu', '', $token));
+            if ($cleanToken !== '') {
+                $descriptionParts[] = $cleanToken;
+            }
+        }
+
+        if (!empty($descriptionParts)) {
+            $normalizedDescription = TransactionDescriptionNormalizer::normalize(implode(' ', $descriptionParts));
+            $descricao = trim((string) ($normalizedDescription['descricao'] ?? ''));
+
+            if ($descricao !== '') {
+                $data['descricao'] = mb_substr($descricao, 0, 190);
+                if (!empty($normalizedDescription['categoria_contexto'])) {
+                    $data['categoria_contexto'] = $normalizedDescription['categoria_contexto'];
+                }
+            }
+        }
+
+        return $data;
+    }
+
+    private function parsePositiveMoneyValue(string $text): ?float
+    {
+        $normalized = $this->normalizeColloquialValues($text);
+        if (!preg_match('/R?\$?\s*(\d{1,3}(?:\.\d{3})*[,\.]\d{2}|\d+(?:[,\.]\d{1,2})?)/iu', $normalized, $m)) {
+            return null;
+        }
+
+        $value = str_replace('.', '', $m[1]);
+        $value = str_replace(',', '.', $value);
+        $value = (float) $value;
+
+        return $value > 0 ? $value : null;
+    }
+
+    private function parseLancamentoDateToken(string $token): ?string
+    {
+        $normalized = mb_strtolower(trim($token));
+
+        if ($normalized === '') {
+            return null;
+        }
+
+        return match (true) {
+            preg_match('/^hoje$/iu', $normalized) === 1 => date('Y-m-d'),
+            preg_match('/^amanh[ãa]$/iu', $normalized) === 1 => date('Y-m-d', strtotime('+1 day')),
+            preg_match('/^anteontem$/iu', $normalized) === 1 => date('Y-m-d', strtotime('-2 days')),
+            preg_match('/^ontem$/iu', $normalized) === 1 => date('Y-m-d', strtotime('-1 day')),
+            preg_match('/^(\d{1,2})\s*[\/\-]\s*(\d{1,2})(?:\s*[\/\-]\s*(\d{2,4}))?$/u', $normalized, $m) === 1
+                => sprintf(
+                    '%s-%s-%s',
+                    isset($m[3]) ? (strlen($m[3]) === 2 ? '20' . $m[3] : $m[3]) : date('Y'),
+                    str_pad($m[2], 2, '0', STR_PAD_LEFT),
+                    str_pad($m[1], 2, '0', STR_PAD_LEFT),
+                ),
+            default => null,
+        };
     }
 
     /**
@@ -914,7 +1044,7 @@ class EntityCreationHandler implements AIHandlerInterface
 
                 if ($result !== null) {
                     // Merge: regex has priority (already extracted)
-                    return array_merge($result, $partial);
+                    return array_merge($this->sanitizeAIExtractedData($result, $entityType, $message), $partial);
                 }
             }
 
@@ -927,10 +1057,82 @@ class EntityCreationHandler implements AIHandlerInterface
                 return $partial;
             }
 
-            return array_merge($json, $partial);
+            return array_merge($this->sanitizeAIExtractedData($json, $entityType, $message), $partial);
         } catch (\Throwable) {
             return $partial;
         }
+    }
+
+    private function sanitizeAIExtractedData(array $data, string $entityType, string $message): array
+    {
+        $clean = [];
+
+        foreach ($data as $field => $value) {
+            if ($value === null) {
+                continue;
+            }
+
+            if (is_string($value)) {
+                $value = trim($value);
+                if ($value === '') {
+                    continue;
+                }
+            }
+
+            $clean[$field] = $value;
+        }
+
+        $hasNumericSignal = $this->hasExplicitNumericSignal($message);
+        foreach (['valor', 'valor_alvo', 'valor_limite'] as $field) {
+            if (!isset($clean[$field])) {
+                continue;
+            }
+
+            if (!is_numeric($clean[$field]) || (float) $clean[$field] <= 0 || !$hasNumericSignal) {
+                unset($clean[$field]);
+            }
+        }
+
+        if (
+            $entityType === 'lancamento'
+            && isset($clean['descricao'])
+            && $this->isPlaceholderLancamentoDescription((string) $clean['descricao'])
+        ) {
+            unset($clean['descricao']);
+        }
+
+        return $clean;
+    }
+
+    private function hasExplicitNumericSignal(string $message): bool
+    {
+        $normalized = $this->normalizeColloquialValues($message);
+
+        return preg_match('/\b\d{1,6}(?:[.,]\d{1,2})?\b/u', $normalized) === 1;
+    }
+
+    private function isPlaceholderLancamentoDescription(string $description): bool
+    {
+        $normalized = mb_strtolower(trim($description));
+
+        if ($normalized === '') {
+            return true;
+        }
+
+        return in_array($normalized, [
+            'gasto',
+            'despesa',
+            'receita',
+            'lancamento',
+            'lançamento',
+            'compra',
+            'pagamento',
+            'entrada',
+            'saida',
+            'saída',
+            'transacao',
+            'transação',
+        ], true);
     }
 
     private function buildExtractionPrompt(string $message, string $entityType, array $partial): string
@@ -968,7 +1170,7 @@ class EntityCreationHandler implements AIHandlerInterface
     private function getMissingFields(array $data, string $entityType): array
     {
         $required = match ($entityType) {
-            'lancamento'   => ['tipo', 'data', 'valor'],
+            'lancamento'   => ['valor', 'descricao', 'tipo', 'data'],
             'meta'         => ['titulo', 'valor_alvo'],
             'orcamento'    => ['valor_limite'],
             'categoria'    => ['nome', 'tipo'],
@@ -979,6 +1181,21 @@ class EntityCreationHandler implements AIHandlerInterface
 
         $missing = [];
         foreach ($required as $field) {
+            if (in_array($field, ['valor', 'valor_alvo', 'valor_limite'], true)) {
+                if (!isset($data[$field]) || !is_numeric($data[$field]) || (float) $data[$field] <= 0) {
+                    $missing[] = $field;
+                }
+                continue;
+            }
+
+            if ($entityType === 'lancamento' && $field === 'descricao') {
+                $descricao = trim((string) ($data['descricao'] ?? ''));
+                if ($descricao === '' || $this->isPlaceholderLancamentoDescription($descricao)) {
+                    $missing[] = $field;
+                }
+                continue;
+            }
+
             if (!isset($data[$field]) || $data[$field] === '' || $data[$field] === null) {
                 $missing[] = $field;
             }
