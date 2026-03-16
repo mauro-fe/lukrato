@@ -16,6 +16,10 @@ class ImageAnalysisService
 {
     private const MAX_IMAGE_SIZE = 20 * 1024 * 1024; // 20MB
     private const MAX_PDF_SIZE = 20 * 1024 * 1024; // 20MB
+    private const DEFAULT_MAX_IMAGE_DIMENSION = 1400;
+    private const LOW_DETAIL_MIN_DIMENSION = 1600;
+    private const LOW_DETAIL_MIN_BYTES = 1_500_000;
+    private const JPEG_QUALITY = 82;
 
     private Client $client;
     private string $apiKey;
@@ -52,6 +56,14 @@ class ImageAnalysisService
         $mimeType = $this->detectMimeType($content) ?? strtolower($mimeType);
         $extension = strtolower((string) pathinfo((string) $filename, PATHINFO_EXTENSION));
         $isPdf = $mimeType === 'application/pdf' || $extension === 'pdf';
+        $imageDetail = 'auto';
+
+        if (!$isPdf) {
+            $preparedImage = $this->prepareImageForVision($content, $mimeType);
+            $content = $preparedImage['content'];
+            $mimeType = $preparedImage['mimeType'];
+            $imageDetail = $preparedImage['detail'];
+        }
 
         if (!$isPdf && strlen($content) > self::MAX_IMAGE_SIZE) {
             return new ReceiptAnalysisResult(
@@ -70,7 +82,12 @@ class ImageAnalysisService
         try {
             $response = $isPdf
                 ? $this->analyzePdf($content, $contextHint)
-                : $this->analyzeImage($content, $mimeType !== '' ? $mimeType : 'image/jpeg', $contextHint);
+                : $this->analyzeImage(
+                    $content,
+                    $mimeType !== '' ? $mimeType : 'image/jpeg',
+                    $contextHint,
+                    $imageDetail,
+                );
 
             $result = json_decode($response->getBody()->getContents(), true);
             $usage = $result['usage'] ?? [];
@@ -103,7 +120,12 @@ class ImageAnalysisService
         }
     }
 
-    private function analyzeImage(string $content, string $mimeType, ?string $contextHint): ResponseInterface
+    private function analyzeImage(
+        string $content,
+        string $mimeType,
+        ?string $contextHint,
+        string $detail = 'auto',
+    ): ResponseInterface
     {
         $base64 = base64_encode($content);
 
@@ -115,7 +137,7 @@ class ImageAnalysisService
             'json' => [
                 'model'       => $this->model,
                 'temperature' => 0.1,
-                'max_tokens'  => 700,
+                'max_tokens'  => 350,
                 'response_format' => ['type' => 'json_object'],
                 'messages' => [
                     [
@@ -133,7 +155,7 @@ class ImageAnalysisService
                                 'type'      => 'image_url',
                                 'image_url' => [
                                     'url'    => "data:{$mimeType};base64,{$base64}",
-                                    'detail' => 'high',
+                                    'detail' => $detail,
                                 ],
                             ],
                         ],
@@ -141,6 +163,51 @@ class ImageAnalysisService
                 ],
             ],
         ]);
+    }
+
+    /**
+     * @return array{content:string,mimeType:string,detail:string}
+     */
+    private function prepareImageForVision(string $content, string $mimeType): array
+    {
+        [$width, $height] = $this->detectImageDimensions($content);
+        $detail = $this->resolveImageDetail($width, $height, strlen($content));
+
+        if (!$this->canOptimizeRasterImage($mimeType)) {
+            return [
+                'content' => $content,
+                'mimeType' => $mimeType,
+                'detail' => $detail,
+            ];
+        }
+
+        $maxDimension = $this->visionMaxDimension();
+        if (
+            $width === null
+            || $height === null
+            || max($width, $height) <= $maxDimension
+        ) {
+            return [
+                'content' => $content,
+                'mimeType' => $mimeType,
+                'detail' => $detail,
+            ];
+        }
+
+        $optimized = $this->downscaleImage($content, $mimeType, $maxDimension);
+        if ($optimized === null) {
+            return [
+                'content' => $content,
+                'mimeType' => $mimeType,
+                'detail' => $detail,
+            ];
+        }
+
+        return [
+            'content' => $optimized['content'],
+            'mimeType' => $optimized['mimeType'],
+            'detail' => $detail,
+        ];
     }
 
     private function analyzePdf(string $content, ?string $contextHint): ResponseInterface
@@ -190,6 +257,107 @@ class ImageAnalysisService
         }
 
         return '{}';
+    }
+
+    /**
+     * @return array{0:int|null,1:int|null}
+     */
+    private function detectImageDimensions(string $content): array
+    {
+        $size = @getimagesizefromstring($content);
+
+        if (!is_array($size) || !isset($size[0], $size[1])) {
+            return [null, null];
+        }
+
+        return [(int) $size[0], (int) $size[1]];
+    }
+
+    private function resolveImageDetail(?int $width, ?int $height, int $bytes): string
+    {
+        $configured = strtolower(trim((string) ($_ENV['OPENAI_VISION_DETAIL'] ?? '')));
+        if (in_array($configured, ['low', 'auto', 'high'], true)) {
+            return $configured;
+        }
+
+        $maxDimension = max((int) ($width ?? 0), (int) ($height ?? 0));
+
+        if ($maxDimension >= self::LOW_DETAIL_MIN_DIMENSION || $bytes >= self::LOW_DETAIL_MIN_BYTES) {
+            return 'low';
+        }
+
+        return 'auto';
+    }
+
+    private function visionMaxDimension(): int
+    {
+        $configured = (int) ($_ENV['OPENAI_VISION_MAX_DIMENSION'] ?? self::DEFAULT_MAX_IMAGE_DIMENSION);
+        return max(768, min(2000, $configured));
+    }
+
+    private function canOptimizeRasterImage(string $mimeType): bool
+    {
+        return in_array($mimeType, ['image/jpeg', 'image/png', 'image/webp'], true);
+    }
+
+    /**
+     * @return array{content:string,mimeType:string}|null
+     */
+    private function downscaleImage(string $content, string $mimeType, int $maxDimension): ?array
+    {
+        if (!function_exists('imagecreatefromstring') || !function_exists('imagescale')) {
+            return null;
+        }
+
+        $image = @imagecreatefromstring($content);
+        if ($image === false) {
+            return null;
+        }
+
+        $width = imagesx($image);
+        $height = imagesy($image);
+
+        if ($width <= 0 || $height <= 0 || max($width, $height) <= $maxDimension) {
+            imagedestroy($image);
+            return null;
+        }
+
+        $scale = $maxDimension / max($width, $height);
+        $targetWidth = max(1, (int) round($width * $scale));
+        $targetHeight = max(1, (int) round($height * $scale));
+
+        $scaled = imagescale($image, $targetWidth, $targetHeight, IMG_BICUBIC_FIXED);
+        imagedestroy($image);
+
+        if ($scaled === false) {
+            return null;
+        }
+
+        imagealphablending($scaled, false);
+        imagesavealpha($scaled, true);
+
+        $outputMime = $mimeType;
+
+        ob_start();
+        if ($mimeType === 'image/png') {
+            imagepng($scaled, null, 6);
+        } elseif ($mimeType === 'image/webp' && function_exists('imagewebp')) {
+            imagewebp($scaled, null, 80);
+        } else {
+            $outputMime = 'image/jpeg';
+            imagejpeg($scaled, null, self::JPEG_QUALITY);
+        }
+        $optimized = (string) ob_get_clean();
+        imagedestroy($scaled);
+
+        if ($optimized === '') {
+            return null;
+        }
+
+        return [
+            'content' => $optimized,
+            'mimeType' => $outputMime,
+        ];
     }
 
     private function detectMimeType(string $content): ?string

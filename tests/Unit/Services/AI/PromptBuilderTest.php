@@ -163,4 +163,15 @@ class PromptBuilderTest extends TestCase
         $this->assertIsString($version);
         $this->assertNotEmpty($version);
     }
+
+    public function testReceiptAnalysisPromptAvoidsUnusedVerboseFields(): void
+    {
+        $system = PromptBuilder::receiptAnalysisSystem();
+        $user = PromptBuilder::receiptAnalysisUser();
+
+        $this->assertStringContainsString('JSON valido e compacto', $system);
+        $this->assertStringNotContainsString('ocr_text', $user);
+        $this->assertStringNotContainsString('pagador', $user);
+        $this->assertStringNotContainsString('recebedor', $user);
+    }
 }

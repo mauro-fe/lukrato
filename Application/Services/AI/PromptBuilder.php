@@ -268,13 +268,9 @@ PROMPT;
     public static function receiptAnalysisSystem(): string
     {
         return <<<'PROMPT'
-Voce e um especialista em OCR financeiro brasileiro.
-Analise imagens, PDFs e comprovantes compartilhados como arquivo.
-Extraia os dados financeiros em formato JSON valido.
-Sempre responda em JSON, sem texto adicional.
-Valores monetarios como numeros decimais (35.50, nao "R$ 35,50").
-Datas no formato YYYY-MM-DD.
-Se houver baixa confianca, ainda responda em JSON e reflita isso no campo "confianca".
+Voce extrai dados de comprovantes financeiros brasileiros.
+Responda somente com JSON valido e compacto.
+Use valores como numero decimal, datas em YYYY-MM-DD e confianca entre 0.0 e 1.0.
 PROMPT;
     }
 
@@ -283,22 +279,18 @@ PROMPT;
         $hint = trim((string) $contextHint);
         $prompt = <<<'PROMPT'
 Analise este comprovante, recibo, nota fiscal, PIX, boleto ou documento financeiro.
-Considere texto impresso, manuscrito, logotipos, dados bancarios e contexto visual.
 Retorne APENAS um JSON com estes campos:
 {
   "documento_tipo": "comprovante|recibo|nota_fiscal|pix|boleto|extrato|outro",
-  "descricao": "descricao da compra ou pagamento",
+  "descricao": "descricao curta da compra ou pagamento",
   "valor": 0.00,
   "data": "YYYY-MM-DD ou null",
   "estabelecimento": "nome do estabelecimento ou null",
-  "pagador": "nome do pagador ou null",
-  "recebedor": "nome do recebedor ou null",
   "forma_pagamento": "credito|debito|pix|dinheiro|null",
   "parcelas": "ex: 3/12 ou null",
-  "tipo": "despesa|receita",
-  "categoria_sugerida": "categoria mais provavel",
-  "confianca": 0.0,
-  "ocr_text": "texto bruto mais relevante ou null"
+  "tipo": "despesa|receita|nao_financeiro",
+  "categoria_sugerida": "categoria mais provavel ou null",
+  "confianca": 0.0
 }
 Se NAO for um comprovante financeiro, retorne: {"tipo": "nao_financeiro", "descricao": "breve descricao do arquivo", "confianca": 0.0}
 PROMPT;
