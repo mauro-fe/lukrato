@@ -18,6 +18,7 @@ use Application\Services\AI\Context\UserContextBuilder;
 use Application\Services\AI\ContextCompressor;
 use Application\Services\AI\Media\MediaAsset;
 use Application\Services\AI\Media\MediaRouterService;
+use Application\Services\AI\Media\MediaType;
 use Application\Services\AI\Media\ReceiptAnalysisResult;
 
 /**
@@ -251,13 +252,22 @@ class UserAiController extends BaseController
             caption: $message !== '' ? $message : null,
         );
 
+        if ($asset->mediaType() === MediaType::VIDEO) {
+            return [
+                'success' => false,
+                'message' => $message,
+                'derived_message' => null,
+                'error' => 'Videos nao sao suportados. Envie imagem, PDF ou audio.',
+            ];
+        }
+
         $result = (new MediaRouterService())->process($asset);
         if ($result->isUnsupported()) {
             return [
                 'success' => false,
                 'message' => $message,
                 'derived_message' => null,
-                'error' => 'Tipo de arquivo nao suportado. Envie imagem, PDF, audio ou video curto.',
+                'error' => $result->error ?? 'Tipo de arquivo nao suportado. Envie imagem, PDF ou audio.',
             ];
         }
 

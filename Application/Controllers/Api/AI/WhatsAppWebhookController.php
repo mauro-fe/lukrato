@@ -368,6 +368,15 @@ class WhatsAppWebhookController extends BaseController
         \Application\Models\Usuario $user,
         WhatsAppMessage $msgRecord,
     ): void {
+        if ($dto->isVideo()) {
+            $this->whatsapp->sendText(
+                $dto->fromPhone,
+                "Videos nao sao suportados. Envie imagem, PDF ou audio."
+            );
+            $msgRecord->markProcessed('video_not_supported');
+            return;
+        }
+
         if (!AIQuotaService::hasQuotaRemaining($user, 'chat')) {
             $usage = AIQuotaService::getUsage($user);
             $limit = $usage['chat']['limit'] ?? 5;
@@ -410,7 +419,7 @@ class WhatsAppWebhookController extends BaseController
         if ($result->isUnsupported()) {
             $this->whatsapp->sendText(
                 $dto->fromPhone,
-                "⚠️ Ainda não consigo processar esse tipo de arquivo. Envie imagem, PDF, áudio ou vídeo curto."
+                $result->error ?? "Tipo de arquivo nao suportado. Envie imagem, PDF ou audio."
             );
             $msgRecord->markProcessed('unsupported_media');
             return;

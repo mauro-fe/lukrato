@@ -22,7 +22,12 @@ class MediaRouterService
         return match ($mediaType) {
             MediaType::AUDIO => $this->processAudio($asset),
             MediaType::IMAGE, MediaType::PDF => $this->processReceipt($asset, $mediaType),
-            MediaType::VIDEO => $this->processVideo($asset),
+            MediaType::VIDEO => new MediaProcessingResult(
+                success: false,
+                mediaType: MediaType::VIDEO,
+                operation: 'unsupported',
+                error: 'Videos nao sao suportados. Envie imagem, PDF ou audio.',
+            ),
             default => new MediaProcessingResult(
                 success: false,
                 mediaType: $mediaType,
@@ -69,21 +74,4 @@ class MediaRouterService
         );
     }
 
-    private function processVideo(MediaAsset $asset): MediaProcessingResult
-    {
-        $transcriber = $this->videoTranscriber ?? new VideoTranscriptionService(
-            $this->audioTranscriber ?? new AudioTranscriptionService()
-        );
-        $filename = $asset->filename ?? ('video.' . $asset->extension('mp4'));
-        $result = $transcriber->transcribe($asset->content, $filename, $asset->promptHint());
-
-        return new MediaProcessingResult(
-            success: $result->success,
-            mediaType: MediaType::VIDEO,
-            operation: 'video_transcription',
-            text: $result->text,
-            durationMs: $result->durationMs,
-            error: $result->error,
-        );
-    }
 }

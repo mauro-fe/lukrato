@@ -26,21 +26,8 @@ class ImageAnalysisServiceTest extends TestCase
         $this->assertSame('low', $detail);
     }
 
-    public function testCompactImagesDefaultToAutoDetail(): void
+    public function testCompactImagesDefaultToLowDetailForEconomy(): void
     {
-        $service = new ImageAnalysisService();
-        $method = new \ReflectionMethod($service, 'resolveImageDetail');
-        $method->setAccessible(true);
-
-        $detail = $method->invoke($service, 900, 1200, 350_000);
-
-        $this->assertSame('auto', $detail);
-    }
-
-    public function testConfiguredVisionDetailOverridesHeuristic(): void
-    {
-        $_ENV['OPENAI_VISION_DETAIL'] = 'low';
-
         $service = new ImageAnalysisService();
         $method = new \ReflectionMethod($service, 'resolveImageDetail');
         $method->setAccessible(true);
@@ -48,5 +35,29 @@ class ImageAnalysisServiceTest extends TestCase
         $detail = $method->invoke($service, 900, 1200, 350_000);
 
         $this->assertSame('low', $detail);
+    }
+
+    public function testTinyImagesCanStillUseAutoDetail(): void
+    {
+        $service = new ImageAnalysisService();
+        $method = new \ReflectionMethod($service, 'resolveImageDetail');
+        $method->setAccessible(true);
+
+        $detail = $method->invoke($service, 640, 640, 120_000);
+
+        $this->assertSame('auto', $detail);
+    }
+
+    public function testConfiguredVisionDetailOverridesHeuristic(): void
+    {
+        $_ENV['OPENAI_VISION_DETAIL'] = 'auto';
+
+        $service = new ImageAnalysisService();
+        $method = new \ReflectionMethod($service, 'resolveImageDetail');
+        $method->setAccessible(true);
+
+        $detail = $method->invoke($service, 900, 1200, 350_000);
+
+        $this->assertSame('auto', $detail);
     }
 }

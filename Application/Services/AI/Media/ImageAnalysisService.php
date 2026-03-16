@@ -16,10 +16,11 @@ class ImageAnalysisService
 {
     private const MAX_IMAGE_SIZE = 20 * 1024 * 1024; // 20MB
     private const MAX_PDF_SIZE = 20 * 1024 * 1024; // 20MB
-    private const DEFAULT_MAX_IMAGE_DIMENSION = 1400;
-    private const LOW_DETAIL_MIN_DIMENSION = 1600;
-    private const LOW_DETAIL_MIN_BYTES = 1_500_000;
-    private const JPEG_QUALITY = 82;
+    private const DEFAULT_MAX_IMAGE_DIMENSION = 1024;
+    private const FORCE_REENCODE_MIN_BYTES = 250_000;
+    private const SMALL_IMAGE_AUTO_MAX_DIMENSION = 720;
+    private const SMALL_IMAGE_AUTO_MAX_BYTES = 180_000;
+    private const JPEG_QUALITY = 72;
 
     private Client $client;
     private string $apiKey;
@@ -56,7 +57,7 @@ class ImageAnalysisService
         $mimeType = $this->detectMimeType($content) ?? strtolower($mimeType);
         $extension = strtolower((string) pathinfo((string) $filename, PATHINFO_EXTENSION));
         $isPdf = $mimeType === 'application/pdf' || $extension === 'pdf';
-        $imageDetail = 'auto';
+        $imageDetail = 'low';
 
         if (!$isPdf) {
             $preparedImage = $this->prepareImageForVision($content, $mimeType);
@@ -182,11 +183,12 @@ class ImageAnalysisService
         }
 
         $maxDimension = $this->visionMaxDimension();
-        if (
-            $width === null
-            || $height === null
-            || max($width, $height) <= $maxDimension
-        ) {
+        $currentBytes = strlen($content);
+        $shouldOptimize = $mimeType !== 'image/jpeg'
+            || $currentBytes >= self::FORCE_REENCODE_MIN_BYTES
+            || ($width !== null && $height !== null && max($width, $height) > $maxDimension);
+
+        if (!$shouldOptimize) {
             return [
                 'content' => $content,
                 'mimeType' => $mimeType,
@@ -194,7 +196,7 @@ class ImageAnalysisService
             ];
         }
 
-        $optimized = $this->downscaleImage($content, $mimeType, $maxDimension);
+        $optimized = $this->optimizeImageForVision($content, $maxDimension);
         if ($optimized === null) {
             return [
                 'content' => $content,
@@ -282,11 +284,14 @@ class ImageAnalysisService
 
         $maxDimension = max((int) ($width ?? 0), (int) ($height ?? 0));
 
-        if ($maxDimension >= self::LOW_DETAIL_MIN_DIMENSION || $bytes >= self::LOW_DETAIL_MIN_BYTES) {
-            return 'low';
+        if ($maxDimension > 0
+            && $maxDimension <= self::SMALL_IMAGE_AUTO_MAX_DIMENSION
+            && $bytes <= self::SMALL_IMAGE_AUTO_MAX_BYTES
+        ) {
+            return 'auto';
         }
 
-        return 'auto';
+        return 'low';
     }
 
     private function visionMaxDimension(): int
@@ -303,7 +308,7 @@ class ImageAnalysisService
     /**
      * @return array{content:string,mimeType:string}|null
      */
-    private function downscaleImage(string $content, string $mimeType, int $maxDimension): ?array
+    private function optimizeImageForVision(string $content, int $maxDimension): ?array
     {
         if (!function_exists('imagecreatefromstring') || !function_exists('imagescale')) {
             return null;
@@ -317,46 +322,45 @@ class ImageAnalysisService
         $width = imagesx($image);
         $height = imagesy($image);
 
-        if ($width <= 0 || $height <= 0 || max($width, $height) <= $maxDimension) {
+        if ($width <= 0 || $height <= 0) {
             imagedestroy($image);
             return null;
         }
 
-        $scale = $maxDimension / max($width, $height);
+        $scale = min(1, $maxDimension / max($width, $height));
         $targetWidth = max(1, (int) round($width * $scale));
         $targetHeight = max(1, (int) round($height * $scale));
 
-        $scaled = imagescale($image, $targetWidth, $targetHeight, IMG_BICUBIC_FIXED);
-        imagedestroy($image);
-
-        if ($scaled === false) {
+        $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
+        if ($canvas === false) {
+            imagedestroy($image);
             return null;
         }
 
-        imagealphablending($scaled, false);
-        imagesavealpha($scaled, true);
-
-        $outputMime = $mimeType;
+        $white = imagecolorallocate($canvas, 255, 255, 255);
+        imagefill($canvas, 0, 0, $white);
+        imagecopyresampled($canvas, $image, 0, 0, 0, 0, $targetWidth, $targetHeight, $width, $height);
+        imagedestroy($image);
 
         ob_start();
-        if ($mimeType === 'image/png') {
-            imagepng($scaled, null, 6);
-        } elseif ($mimeType === 'image/webp' && function_exists('imagewebp')) {
-            imagewebp($scaled, null, 80);
-        } else {
-            $outputMime = 'image/jpeg';
-            imagejpeg($scaled, null, self::JPEG_QUALITY);
-        }
+        imagejpeg($canvas, null, self::JPEG_QUALITY);
         $optimized = (string) ob_get_clean();
-        imagedestroy($scaled);
+        imagedestroy($canvas);
 
         if ($optimized === '') {
             return null;
         }
 
+        if (strlen($optimized) >= strlen($content) && max($width, $height) <= $maxDimension) {
+            return [
+                'content' => $content,
+                'mimeType' => $this->detectMimeType($content) ?? 'image/jpeg',
+            ];
+        }
+
         return [
             'content' => $optimized,
-            'mimeType' => $outputMime,
+            'mimeType' => 'image/jpeg',
         ];
     }
 

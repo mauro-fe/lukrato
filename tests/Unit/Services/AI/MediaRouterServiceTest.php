@@ -91,7 +91,7 @@ class MediaRouterServiceTest extends TestCase
         $this->assertSame('despesa', $result->data['tipo']);
     }
 
-    public function testRoutesVideoToVideoTranscription(): void
+    public function testRejectsVideoUploads(): void
     {
         $router = new MediaRouterService(
             audioTranscriber: new class extends AudioTranscriptionService {
@@ -117,8 +117,8 @@ class MediaRouterServiceTest extends TestCase
             filename: 'video.mp4',
         ));
 
-        $this->assertTrue($result->success);
-        $this->assertSame('video_transcription', $result->operation);
-        $this->assertSame('recebi 300 do cliente', $result->text);
+        $this->assertFalse($result->success);
+        $this->assertTrue($result->isUnsupported());
+        $this->assertSame('Videos nao sao suportados. Envie imagem, PDF ou audio.', $result->error);
     }
 }

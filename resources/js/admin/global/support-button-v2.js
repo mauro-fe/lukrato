@@ -56,6 +56,15 @@
         emptyTemplate: dom.aiEmpty?.outerHTML || '',
     };
 
+    const ALLOWED_ATTACHMENT_TYPES = new Set([
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+        'application/pdf',
+    ]);
+
+    const VIDEO_EXTENSIONS = new Set(['mp4', 'mov', 'avi', 'mkv', 'webm']);
+
     function refreshIcons() {
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
@@ -74,6 +83,24 @@
                 timerProgressBar: true,
             });
         }
+    }
+
+    function isVideoFile(file) {
+        if (!file) return false;
+        if (String(file.type || '').startsWith('video/')) return true;
+
+        const name = String(file.name || '');
+        const extension = name.includes('.') ? name.split('.').pop().toLowerCase() : '';
+        return VIDEO_EXTENSIONS.has(extension);
+    }
+
+    function isAllowedAttachment(file) {
+        if (!file) return false;
+        if (ALLOWED_ATTACHMENT_TYPES.has(String(file.type || '').toLowerCase())) return true;
+
+        const name = String(file.name || '');
+        const extension = name.includes('.') ? name.split('.').pop().toLowerCase() : '';
+        return ['jpg', 'jpeg', 'png', 'webp', 'pdf'].includes(extension);
     }
 
     function closeFab() {
@@ -1011,6 +1038,16 @@
             const file = dom.aiFileInput?.files?.[0];
             if (dom.aiFileInput) dom.aiFileInput.value = '';
             if (!file) return;
+
+            if (isVideoFile(file)) {
+                showToast('Video nao e suportado. Envie imagem, PDF ou audio.', 'warning');
+                return;
+            }
+
+            if (!isAllowedAttachment(file)) {
+                showToast('Tipo de arquivo nao suportado. Envie imagem ou PDF.', 'warning');
+                return;
+            }
 
             if (file.size > 20 * 1024 * 1024) {
                 showToast('Arquivo excede o limite de 20MB.', 'warning');

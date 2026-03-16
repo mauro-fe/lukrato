@@ -930,6 +930,15 @@ class TelegramWebhookController extends BaseController
         \Application\Models\Usuario $user,
         TelegramMessage $msgRecord,
     ): void {
+        if ($dto->isVideo()) {
+            $this->telegram->sendText(
+                $dto->chatId,
+                "Videos nao sao suportados. Envie imagem, PDF ou audio."
+            );
+            $msgRecord->markProcessed('video_not_supported');
+            return;
+        }
+
         if (!AIQuotaService::hasQuotaRemaining($user, 'chat')) {
             $usage = AIQuotaService::getUsage($user);
             $limit = $usage['chat']['limit'] ?? 5;
@@ -972,7 +981,7 @@ class TelegramWebhookController extends BaseController
         if ($result->isUnsupported()) {
             $this->telegram->sendText(
                 $dto->chatId,
-                "⚠️ Ainda não consigo processar esse tipo de arquivo. Envie imagem, PDF, áudio ou vídeo curto."
+                $result->error ?? "Tipo de arquivo nao suportado. Envie imagem, PDF ou audio."
             );
             $msgRecord->markProcessed('unsupported_media');
             return;
