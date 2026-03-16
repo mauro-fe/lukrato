@@ -13,8 +13,9 @@ import { formatMoney, parseMoney, calcularRecorrenciaFim } from '../shared/utils
 import { formatMoneyInput } from '../shared/utils.js';
 import { getBaseUrl, getCSRFToken } from '../shared/api.js';
 import { applyMoneyMask } from '../shared/money-mask.js';
-import { refreshIcons } from '../shared/ui.js';
+import { refreshIcons, showToast } from '../shared/ui.js';
 import { sugerirCategoriaIA as _sugerirCategoriaIA } from '../shared/ai-categorization.js';
+import { loadLancamentoRecentHistory, renderLancamentoHistoryPlaceholder } from '../shared/lancamento-history.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 class LancamentoGlobalManager {
@@ -29,6 +30,13 @@ class LancamentoGlobalManager {
         this.salvando = false;
         this.isEstornoCartao = false;
         this._dataLoaded = false;
+        this.pendingTipo = null;
+        this.contextoAbertura = {
+            source: 'global',
+            presetAccountId: null,
+            lockAccount: false,
+            tipo: null
+        };
 
         // Wizard state
         this.currentStep = 1;
@@ -44,6 +52,110 @@ class LancamentoGlobalManager {
     }
 
     // ── Data Loading ─────────────────────────────────────────────────────────
+    normalizarContextoAbertura(options = {}) {
+        const rawOptions = options && typeof options === 'object'
+            ? options
+            : (typeof options === 'string' || typeof options === 'number'
+                ? { presetAccountId: options }
+                : {});
+
+        return {
+            source: rawOptions.source === 'contas' ? 'contas' : 'global',
+            presetAccountId: rawOptions.presetAccountId !== undefined && rawOptions.presetAccountId !== null && rawOptions.presetAccountId !== ''
+                ? String(rawOptions.presetAccountId)
+                : null,
+            lockAccount: Boolean(rawOptions.lockAccount),
+            tipo: typeof rawOptions.tipo === 'string' && rawOptions.tipo !== '' ? rawOptions.tipo : null
+        };
+    }
+
+    aplicarContextoAbertura(contexto) {
+        this.contextoAbertura = contexto;
+
+        const label = document.getElementById('globalContaSelectLabelText');
+        if (label) {
+            label.textContent = contexto.source === 'contas' ? 'Conta atual' : 'Selecione a conta';
+        }
+
+        const hint = document.getElementById('globalContaContextHint');
+        if (hint) {
+            hint.textContent = contexto.source === 'contas'
+                ? 'Abrimos com a conta desta tela. Se precisar, voce pode trocar antes de continuar.'
+                : 'Escolha a conta para ver saldo e as ultimas movimentacoes.';
+        }
+
+        const select = document.getElementById('globalContaSelect');
+        if (select) {
+            select.disabled = this.contas.length === 0 || Boolean(contexto.lockAccount && this.contaSelecionada);
+        }
+    }
+
+    atualizarEstadoTipo() {
+        const hasContaSelecionada = Boolean(this.contaSelecionada);
+
+        document.querySelectorAll('#globalStep1 [data-requires-account="1"]').forEach((button) => {
+            button.disabled = !hasContaSelecionada;
+            button.classList.toggle('is-disabled', !hasContaSelecionada);
+        });
+
+        const hint = document.getElementById('globalTipoContaHint');
+        if (hint) {
+            hint.hidden = hasContaSelecionada;
+        }
+    }
+
+    sincronizarContaSelecionadaNoFormulario() {
+        const contaIdInput = document.getElementById('globalLancamentoContaId');
+        if (contaIdInput) {
+            contaIdInput.value = this.contaSelecionada?.id ?? '';
+        }
+
+        if (this.tipoAtual === 'transferencia' && this.contaSelecionada) {
+            this.preencherContasDestino();
+
+            const contaDestinoSelect = document.getElementById('globalLancamentoContaDestino');
+            if (contaDestinoSelect && contaDestinoSelect.value === String(this.contaSelecionada.id)) {
+                contaDestinoSelect.value = '';
+            }
+        }
+    }
+
+    atualizarContaSelecionadaUI() {
+        const contaInfo = document.getElementById('globalContaInfo');
+        const nomeConta = document.getElementById('globalContaNome');
+        const saldoConta = document.getElementById('globalContaSaldo');
+
+        if (!this.contaSelecionada) {
+            if (contaInfo) contaInfo.style.display = 'none';
+            this.atualizarEstadoTipo();
+            this.sincronizarContaSelecionadaNoFormulario();
+            return;
+        }
+
+        if (nomeConta) nomeConta.textContent = this.contaSelecionada.nome;
+        if (saldoConta) saldoConta.textContent = formatMoney(this.contaSelecionada.saldo);
+        if (contaInfo) contaInfo.style.display = 'flex';
+
+        this.atualizarEstadoTipo();
+        this.sincronizarContaSelecionadaNoFormulario();
+    }
+
+    async atualizarHistoricoContaSelecionada() {
+        const historicoContainer = document.getElementById('globalLancamentoHistorico');
+        if (!historicoContainer) return;
+
+        if (!this.contaSelecionada) {
+            renderLancamentoHistoryPlaceholder(historicoContainer, 'Selecione uma conta para ver as ultimas movimentacoes.');
+            return;
+        }
+
+        await loadLancamentoRecentHistory({
+            contaId: this.contaSelecionada.id,
+            containerEl: historicoContainer,
+            limit: 5
+        });
+    }
+
     async carregarDados() {
         const base = getBaseUrl();
         try {
@@ -87,6 +199,7 @@ class LancamentoGlobalManager {
     preencherSelectContas() {
         const select = document.getElementById('globalContaSelect');
         if (!select) return;
+        const selectedId = this.contaSelecionada?.id ? String(this.contaSelecionada.id) : null;
 
         const selectContainer = select.closest('.lk-select-container') || select.parentElement;
         const avisoExistente = selectContainer?.querySelector('.no-accounts-warning');
@@ -121,6 +234,10 @@ class LancamentoGlobalManager {
             option.dataset.nome = conta.nome;
             select.appendChild(option);
         });
+
+        if (selectedId && this.contas.some(conta => String(conta.id) === selectedId)) {
+            select.value = selectedId;
+        }
     }
 
     preencherContasDestino() {
@@ -365,39 +482,60 @@ class LancamentoGlobalManager {
         });
     }
 
-    onContaChange() {
+    async onContaChange() {
         const select = document.getElementById('globalContaSelect');
+        if (!select) return;
+
         const contaId = select.value;
         if (!contaId) {
-            document.getElementById('globalContaInfo').style.display = 'none';
             this.contaSelecionada = null;
+            this.atualizarContaSelecionadaUI();
+            await this.atualizarHistoricoContaSelecionada();
             return;
         }
+
         const option = select.options[select.selectedIndex];
         this.contaSelecionada = {
             id: contaId,
-            nome: option.dataset.nome,
-            saldo: parseFloat(option.dataset.saldo)
+            nome: option?.dataset?.nome || option?.textContent || 'Conta',
+            saldo: parseFloat(option?.dataset?.saldo || '0')
         };
-        document.getElementById('globalContaNome').textContent = this.contaSelecionada.nome;
-        document.getElementById('globalContaSaldo').textContent = formatMoney(this.contaSelecionada.saldo);
-        document.getElementById('globalContaInfo').style.display = 'flex';
+
+        this.aplicarContextoAbertura(this.contextoAbertura);
+        this.atualizarContaSelecionadaUI();
+        await this.atualizarHistoricoContaSelecionada();
+
+        if (this.pendingTipo && this.currentStep === 1) {
+            const tipoPendente = this.pendingTipo;
+            this.pendingTipo = null;
+            await this.mostrarFormulario(tipoPendente);
+        }
     }
 
     // ── Modal Management ─────────────────────────────────────────────────────
-    async openModal() {
+    async openModal(options = {}) {
         const overlay = document.getElementById('modalLancamentoGlobalOverlay');
         if (overlay) {
+            const contexto = this.normalizarContextoAbertura(options);
             overlay.classList.add('active');
             document.body.style.overflow = 'hidden';
             await this.carregarDados();
+            this.contaSelecionada = null;
             this.initWizard();
-            setTimeout(() => {
-                if (this.contas.length === 1) {
-                    const select = document.getElementById('globalContaSelect');
-                    if (select) { select.value = this.contas[0].id; this.onContaChange(); }
-                }
-            }, 100);
+            this.aplicarContextoAbertura(contexto);
+
+            const select = document.getElementById('globalContaSelect');
+            const contaPadrao = contexto.presetAccountId
+                || (this.contas.length === 1 ? String(this.contas[0].id) : '');
+
+            if (select) {
+                const contaExiste = contaPadrao
+                    && Array.from(select.options).some((option) => String(option.value) === String(contaPadrao));
+                select.value = contaExiste ? String(contaPadrao) : '';
+            }
+
+            this.pendingTipo = contexto.tipo;
+            await this.onContaChange();
         }
     }
 
@@ -406,6 +544,7 @@ class LancamentoGlobalManager {
         if (overlay) {
             overlay.classList.remove('active');
             document.body.style.overflow = '';
+            this.pendingTipo = null;
             const headerGradient = overlay.querySelector('.lk-modal-header-gradient');
             if (headerGradient) headerGradient.style.setProperty('background', 'var(--color-primary)', 'important');
             this.initWizard();
@@ -427,6 +566,14 @@ class LancamentoGlobalManager {
         this.tipoAtual = null;
         this.totalSteps = 5;
         this.resetarFormulario();
+        this.aplicarContextoAbertura(this.contextoAbertura);
+        this.atualizarContaSelecionadaUI();
+        if (!this.contaSelecionada) {
+            const historicoContainer = document.getElementById('globalLancamentoHistorico');
+            if (historicoContainer) {
+                renderLancamentoHistoryPlaceholder(historicoContainer, 'Selecione uma conta para ver as ultimas movimentacoes.');
+            }
+        }
         // Hide progress dots on step 1
         const progress = document.getElementById('globalWizardProgress');
         if (progress) progress.style.display = 'none';
@@ -550,6 +697,27 @@ class LancamentoGlobalManager {
 
     skipAndSave() {
         if (!this.validarFormulario()) return;
+        this.salvarLancamento();
+    }
+
+    saveQuick() {
+        if (this.tipoAtual === 'transferencia') {
+            this.nextStep();
+            return;
+        }
+
+        if (this.currentStep !== 2) {
+            this.goToStep(2);
+        }
+
+        if (!this.validateCurrentStep()) return;
+
+        const dataInput = document.getElementById('globalLancamentoData');
+        if (dataInput && !dataInput.value) {
+            const hoje = new Date();
+            dataInput.value = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+        }
+
         this.salvarLancamento();
     }
 
@@ -919,6 +1087,8 @@ class LancamentoGlobalManager {
         const pagoCheck = document.getElementById('globalLancamentoPago');
         if (pagoGroup) pagoGroup.style.display = showStep5Fields ? 'block' : 'none';
         if (pagoCheck) pagoCheck.checked = true;
+        const quickSaveButton = document.getElementById('globalBtnQuickSave');
+        if (quickSaveButton) quickSaveButton.style.display = showStep5Fields ? 'inline-flex' : 'none';
 
         const pagoLabel = document.getElementById('globalPagoLabel');
         const pagoHelper = document.getElementById('globalPagoHelperText');
@@ -1475,26 +1645,27 @@ class LancamentoGlobalManager {
                 }
 
                 this.closeModal();
-                await new Promise(r => setTimeout(r, 100));
+                showToast(result.message || 'Lançamento salvo com sucesso!', 'success');
 
-                const titulos = { receita: 'Receita Criada!', despesa: 'Despesa Criada!', transferencia: 'Transferência Criada!' };
-                await Swal.fire({
-                    icon: 'success',
-                    title: titulos[tipoLancamento] || 'Lançamento Criado!',
-                    html: `<p style="font-size:1.1rem;margin-bottom:0.5rem;">${result.message || 'Seu lançamento foi salvo com sucesso!'}</p>
-                           <p style="color:#666;font-size:0.9rem;"><i data-lucide="circle-check" style="width:16px;height:16px;display:inline-block;"></i> Dados atualizados</p>`,
-                    confirmButtonText: 'Ok, entendi!',
-                    confirmButtonColor: '#28a745',
-                    allowOutsideClick: false,
-                    customClass: { container: 'swal-above-modal', popup: 'animated fadeInDown faster' }
-                });
-
-                const currentPath = window.location.pathname.toLowerCase();
-                if (currentPath.includes('contas') || currentPath.includes('lancamentos')) {
-                    window.location.reload();
-                    return;
+                if (typeof window.refreshDashboard === 'function') {
+                    window.refreshDashboard();
+                } else if (window.LK?.refreshDashboard) {
+                    window.LK.refreshDashboard();
                 }
 
+                const currentPath = window.location.pathname.toLowerCase();
+                if (currentPath.includes('contas') && window.contasManager && typeof window.contasManager.loadContas === 'function') {
+                    await window.contasManager.loadContas();
+                }
+
+                document.dispatchEvent(new CustomEvent('lukrato:data-changed', {
+                    detail: {
+                        resource: 'transactions',
+                        action: 'create',
+                        source: 'lancamento-global',
+                        payload: result.data
+                    }
+                }));
                 window.dispatchEvent(new CustomEvent('lancamento-created', { detail: result.data }));
                 this.salvando = false;
                 this._resetBtnSalvar();
@@ -1553,6 +1724,9 @@ const manager = new LancamentoGlobalManager();
 
 // Expose on window for inline onclick handlers in PHP views
 window.lancamentoGlobalManager = manager;
+window.LK = window.LK || {};
+window.LK.modals = window.LK.modals || {};
+window.LK.modals.openLancamentoModal = (options = {}) => manager.openModal(options);
 
 // ── Bootstrap ────────────────────────────────────────────────────────────────
 if (document.readyState === 'loading') {

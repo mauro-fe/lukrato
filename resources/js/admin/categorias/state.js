@@ -50,6 +50,10 @@ export const STATE = {
     inlineSubcategoriaIcon: {},      // { [categoriaId]: iconName } — ícone selecionado no form inline
     filterQuery: '',                   // texto de busca para filtrar categorias/subcategorias
     editingSubcatId: null,             // ID da subcategoria sendo editada inline
+    searchMatches: {},                 // { [categoriaId]: { categoryMatch: bool, subMatches: string[] } }
+    lastLoadError: null,
+    isLoading: false,
+    isRefreshing: false,
 };
 
 // ─── Available Icons (grouped by context / search label) ─────────────────────

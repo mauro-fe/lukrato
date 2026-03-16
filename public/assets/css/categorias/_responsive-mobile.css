@@ -88,6 +88,27 @@
     padding: 3px 8px;
   }
 
+  .cat-context-card {
+    padding: var(--spacing-3);
+    gap: var(--spacing-3);
+  }
+
+  .cat-context-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .cat-context-stat {
+    padding: var(--spacing-2);
+  }
+
+  .cat-context-actions {
+    flex-direction: column;
+  }
+
+  .cat-context-btn {
+    width: 100%;
+  }
+
   .type-toggle-pill {
     padding: var(--spacing-2) var(--spacing-3);
     font-size: var(--font-size-xs);
@@ -139,6 +160,15 @@
 
   .cat-card-name {
     font-size: 0.8rem;
+  }
+
+  .cat-card-meta {
+    padding-left: 32px;
+  }
+
+  .cat-card-badge,
+  .cat-card-static-note {
+    font-size: 0.62rem;
   }
 
   .cat-card-actions {

@@ -10,6 +10,7 @@
 import {
     CONFIG, STATE, Utils, Modules,
     PAYWALL_MESSAGE, TYPE_OPTIONS, YEARLY_VIEWS,
+    STORAGE_KEYS, SECTION_META, VIEW_META,
     escapeHtml, computeInitialMonth, safeColor, getChartColor
 } from './state.js';
 import { ChartManager } from './charts.js';
@@ -21,6 +22,46 @@ const formatMonthLabel = (m) => Utils.formatMonthLabel(m);
 const isYearlyView = (v) => Utils.isYearlyView(v);
 const getReportType = () => Utils.getReportType();
 const getActiveCategoryType = () => Utils.getActiveCategoryType();
+
+function getSelectedAccountName(accountId = STATE.currentAccount) {
+    if (!accountId) return null;
+    return STATE.accounts.find(acc => String(acc.id) === String(accountId))?.name || `Conta #${accountId}`;
+}
+
+function getCurrentPeriodLabel() {
+    if (isYearlyView()) {
+        return `Ano ${STATE.currentMonth.split('-')[0]}`;
+    }
+    return formatMonthLabel(STATE.currentMonth);
+}
+
+function getCurrentTypeLabel() {
+    const currentType = getActiveCategoryType();
+    const options = TYPE_OPTIONS[STATE.currentView] || [];
+    return options.find(option => option.value === currentType)?.label || null;
+}
+
+function isScopedAnalysisSection(section = STATE.activeSection) {
+    return section === 'relatorios' || section === 'comparativos';
+}
+
+function getSectionMeta(section = STATE.activeSection) {
+    return SECTION_META[section] || SECTION_META.overview;
+}
+
+function getViewMeta(view = STATE.currentView) {
+    return VIEW_META[view] || VIEW_META[CONFIG.VIEWS.CATEGORY];
+}
+
+function persistReportPreferences() {
+    try {
+        localStorage.setItem(STORAGE_KEYS.ACTIVE_VIEW, STATE.currentView);
+        localStorage.setItem(STORAGE_KEYS.CATEGORY_TYPE, STATE.categoryType);
+        localStorage.setItem(STORAGE_KEYS.ANNUAL_CATEGORY_TYPE, STATE.annualCategoryType);
+    } catch {
+        // storage can be unavailable in private mode or restricted browsers
+    }
+}
 
 // ─── Billing / Paywall Helpers ───────────────────────────────────────────────
 
@@ -103,6 +144,8 @@ function showErrorToast(message) {
 
 export const API = {
     async fetchReportData() {
+        STATE.lastReportError = null;
+
         const params = new URLSearchParams({
             type: Utils.getReportType(),
             year: STATE.currentMonth.split('-')[0],
@@ -132,25 +175,37 @@ export const API = {
             if (!response.ok) throw new Error('API request failed');
 
             STATE.accessRestricted = false;
+            STATE.lastReportError = null;
 
             const json = await response.json();
             return json.data || json;
         } catch (error) {
             clearTimeout(timeoutId);
+            STATE.lastReportError = error.name === 'AbortError'
+                ? 'A requisicao demorou demais. Tente novamente em instantes.'
+                : 'Nao foi possivel carregar o relatorio agora. Verifique a conexao e tente novamente.';
             console.error('Error fetching report data:', error);
             showErrorToast(error.name === 'AbortError'
                 ? 'A requisição demorou demais. Tente novamente.'
                 : 'Erro ao carregar relatório. Verifique sua conexão.');
-            return { labels: [], values: [] };
+            return null;
         }
     },
 
-    async fetchReportDataForType(type) {
+    async fetchReportDataForType(type, options = {}) {
         const params = new URLSearchParams({
             type,
             year: STATE.currentMonth.split('-')[0],
             month: STATE.currentMonth.split('-')[1]
         });
+
+        const accountId = Object.prototype.hasOwnProperty.call(options, 'accountId')
+            ? options.accountId
+            : STATE.currentAccount;
+
+        if (accountId) {
+            params.set('account_id', accountId);
+        }
 
         try {
             const response = await fetch(`${CONFIG.BASE_URL}api/reports?${params}`, {
@@ -348,15 +403,52 @@ export const UI = {
     },
 
     showEmptyState() {
+        const scopeName = getSelectedAccountName();
+        const viewMeta = getViewMeta();
+        const periodLabel = getCurrentPeriodLabel();
+        const scopeHint = scopeName
+            ? `Nenhum dado foi encontrado para ${scopeName} em ${periodLabel}.`
+            : `Nao ha lancamentos suficientes para montar este recorte em ${periodLabel}.`;
+
         UI.setContent(`
-            <div class="empty-state">
+            <div class="empty-state report-empty-state">
                 <i data-lucide="pie-chart"></i>
-                <h3>Nenhum dado encontrado</h3>
-                <p>Não há lançamentos registrados para o período selecionado. Adicione receitas ou despesas para visualizar seus relatórios.</p>
-                <a href="${CONFIG.BASE_URL}lancamentos" class="empty-cta">
-                    <i data-lucide="plus"></i>
-                    <span>Adicionar lançamento</span>
-                </a>
+                <h3>${escapeHtml(viewMeta.title)}</h3>
+                <p>${escapeHtml(scopeHint)}</p>
+                <div class="report-state-actions">
+                    <a href="${CONFIG.BASE_URL}lancamentos" class="empty-cta">
+                        <i data-lucide="plus"></i>
+                        <span>Adicionar lancamento</span>
+                    </a>
+                    ${scopeName ? `
+                        <button type="button" class="btn btn-secondary" data-action="clear-report-account">
+                            <i data-lucide="layers"></i>
+                            <span>Mostrar todas as contas</span>
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `);
+    },
+
+    showErrorState(message) {
+        const safeMessage = escapeHtml(message || 'Nao foi possivel carregar este relatorio.');
+        UI.setContent(`
+            <div class="error-state report-error-state">
+                <i data-lucide="triangle-alert"></i>
+                <p class="error-message">${safeMessage}</p>
+                <div class="report-state-actions">
+                    <button type="button" class="btn btn-primary btn-retry" data-action="retry-report">
+                        <i data-lucide="refresh-cw"></i>
+                        <span>Tentar novamente</span>
+                    </button>
+                    ${STATE.currentAccount ? `
+                        <button type="button" class="btn btn-secondary" data-action="clear-report-account">
+                            <i data-lucide="layers"></i>
+                            <span>Voltar para todas as contas</span>
+                        </button>
+                    ` : ''}
+                </div>
             </div>
         `);
     },
@@ -392,6 +484,90 @@ export const UI = {
                 ? STATE.currentMonth.split('-')[0]
                 : formatMonthLabel(STATE.currentMonth);
         }
+    },
+
+    updatePageContext() {
+        const kickerEl = document.getElementById('reportsContextKicker');
+        const titleEl = document.getElementById('reportsContextTitle');
+        const descriptionEl = document.getElementById('reportsContextDescription');
+        const chipsEl = document.getElementById('reportsContextChips');
+        const actionsEl = document.getElementById('reportsContextActions');
+
+        if (!kickerEl || !titleEl || !descriptionEl || !chipsEl || !actionsEl) {
+            return;
+        }
+
+        const sectionMeta = getSectionMeta();
+        const viewMeta = getViewMeta();
+        const periodLabel = getCurrentPeriodLabel();
+        const accountName = getSelectedAccountName();
+        const scopedSection = isScopedAnalysisSection();
+        const currentTypeLabel = getCurrentTypeLabel();
+        const isPreview = !window.IS_PRO && STATE.activeSection === 'insights';
+
+        kickerEl.textContent = sectionMeta.kicker;
+        titleEl.textContent = STATE.activeSection === 'relatorios' ? viewMeta.title : sectionMeta.title;
+        descriptionEl.textContent = STATE.activeSection === 'relatorios' ? viewMeta.description : sectionMeta.description;
+
+        const chips = [
+            `<span class="context-chip"><i data-lucide="calendar-range"></i><span>${escapeHtml(periodLabel)}</span></span>`
+        ];
+
+        if (STATE.activeSection === 'relatorios' && currentTypeLabel) {
+            chips.push(`<span class="context-chip context-chip-highlight"><i data-lucide="filter"></i><span>${escapeHtml(currentTypeLabel)}</span></span>`);
+        }
+
+        if (accountName && scopedSection) {
+            chips.push(`<span class="context-chip context-chip-highlight"><i data-lucide="landmark"></i><span>${escapeHtml(accountName)}</span></span>`);
+        } else if (accountName && !scopedSection) {
+            chips.push(`<span class="context-chip"><i data-lucide="bookmark"></i><span>Filtro salvo: ${escapeHtml(accountName)}</span></span>`);
+        } else {
+            chips.push(`<span class="context-chip"><i data-lucide="layers"></i><span>Consolidado</span></span>`);
+        }
+
+        if (isPreview) {
+            chips.push(`<span class="context-chip context-chip-pro"><i data-lucide="crown"></i><span>Preview PRO</span></span>`);
+        }
+
+        chipsEl.innerHTML = chips.join('');
+        actionsEl.innerHTML = accountName ? `
+            <button type="button" class="context-action-btn" data-action="clear-report-account">
+                <i data-lucide="eraser"></i>
+                <span>Limpar filtro de conta</span>
+            </button>
+        ` : '';
+
+        if (window.lucide) lucide.createIcons();
+    },
+
+    updateReportFilterSummary() {
+        const summaryEl = document.getElementById('reportFilterSummary');
+        const noteEl = document.getElementById('reportScopeNote');
+        if (!summaryEl || !noteEl) return;
+
+        const chips = [
+            `<span class="report-filter-chip"><i data-lucide="calendar-range"></i><span>${escapeHtml(getCurrentPeriodLabel())}</span></span>`,
+            `<span class="report-filter-chip"><i data-lucide="bar-chart-3"></i><span>${escapeHtml(getViewMeta().title)}</span></span>`
+        ];
+
+        const typeLabel = getCurrentTypeLabel();
+        if (typeLabel) {
+            chips.push(`<span class="report-filter-chip"><i data-lucide="filter"></i><span>${escapeHtml(typeLabel)}</span></span>`);
+        }
+
+        if (STATE.currentAccount) {
+            chips.push(`<span class="report-filter-chip report-filter-chip-highlight"><i data-lucide="landmark"></i><span>${escapeHtml(getSelectedAccountName())}</span></span>`);
+        } else {
+            chips.push(`<span class="report-filter-chip"><i data-lucide="layers"></i><span>Todas as contas</span></span>`);
+        }
+
+        summaryEl.innerHTML = chips.join('');
+        noteEl.classList.remove('hidden');
+        noteEl.innerHTML = STATE.currentAccount
+            ? '<i data-lucide="info"></i><span>O resumo do topo continua consolidado. O filtro por conta afeta este grafico e a aba Comparativos.</span>'
+            : '<i data-lucide="info"></i><span>Use o filtro de conta para analisar um recorte especifico sem perder o consolidado do topo.</span>';
+
+        if (window.lucide) lucide.createIcons();
     },
 
     updateControls() {
@@ -447,8 +623,11 @@ Modules.UI = UI;
 const fetchReportData = () => API.fetchReportData();
 const showLoading = () => UI.showLoading();
 const showEmptyState = () => UI.showEmptyState();
+const showErrorState = (message) => UI.showErrorState(message);
 const showPaywall = (m) => UI.showPaywall(m);
 const updateMonthLabel = () => UI.updateMonthLabel();
+const updatePageContext = () => UI.updatePageContext();
+const updateReportFilterSummary = () => UI.updateReportFilterSummary();
 const updateControls = () => UI.updateControls();
 const setActiveTab = (v) => UI.setActiveTab(v);
 const renderPieChart = (d) => ChartManager.renderPie(d);
@@ -458,6 +637,8 @@ const renderBarChart = (d) => ChartManager.renderBar(d);
 // ─── Rendering ───────────────────────────────────────────────────────────────
 
 export async function renderReport() {
+    updatePageContext();
+    updateReportFilterSummary();
     showLoading();
 
     // Atualizar cards de resumo
@@ -469,8 +650,15 @@ export async function renderReport() {
         return;
     }
 
+    if (STATE.lastReportError) {
+        return showErrorState(STATE.lastReportError);
+    }
+
     // Validação específica para cada tipo de relatório
     if (STATE.currentView === CONFIG.VIEWS.CARDS) {
+        if (!data || !Array.isArray(data.cards)) {
+            return showEmptyState();
+        }
         renderCardsReport(data);
         return;
     }
@@ -752,8 +940,8 @@ async function updateOverviewSection() {
     const [stats, insightsData, categoryData, comparisonData] = await Promise.all([
         API.fetchSummaryStats(),
         API.fetchInsightsTeaser(),
-        API.fetchReportDataForType('despesas_por_categoria'),
-        API.fetchReportDataForType('receitas_despesas_diario'),
+        API.fetchReportDataForType('despesas_por_categoria', { accountId: null }),
+        API.fetchReportDataForType('receitas_despesas_diario', { accountId: null }),
     ]);
 
     // 1. Monthly Pulse
@@ -1707,7 +1895,10 @@ export function handleTabChange(view) {
     STATE.currentView = view;
     setActiveTab(view);
     updateControls();
+    updatePageContext();
+    updateReportFilterSummary();
     syncPickerMode();
+    persistReportPreferences();
     renderReport();
 }
 
@@ -1717,11 +1908,16 @@ export function handleTypeChange(type) {
     } else {
         STATE.categoryType = type;
     }
+    updatePageContext();
+    updateReportFilterSummary();
+    persistReportPreferences();
     renderReport();
 }
 
 export function handleAccountChange(accountId) {
     STATE.currentAccount = accountId || null;
+    updatePageContext();
+    updateReportFilterSummary();
     renderReport();
 }
 
@@ -1730,6 +1926,8 @@ export function onExternalMonthChange(event) {
     if (STATE.currentMonth === event.detail.month) return;
     STATE.currentMonth = event.detail.month;
     updateMonthLabel();
+    updatePageContext();
+    updateReportFilterSummary();
     renderReport();
 }
 
@@ -1740,5 +1938,7 @@ export function onExternalYearChange(event) {
     const newValue = `${event.detail.year}-${normalizedMonth}`;
     if (STATE.currentMonth === newValue) return;
     STATE.currentMonth = newValue;
+    updatePageContext();
+    updateReportFilterSummary();
     renderReport();
 }

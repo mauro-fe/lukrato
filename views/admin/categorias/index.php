@@ -100,6 +100,49 @@
         </div>
     </div>
 
+    <section class="cat-context-card" id="catContextCard" aria-live="polite">
+        <div class="cat-context-copy">
+            <p class="cat-context-kicker" id="catContextKicker">Categorias e subcategorias</p>
+            <h3 class="cat-context-title" id="catContextTitle">Organize sua estrutura financeira com clareza</h3>
+            <p class="cat-context-description" id="catContextDescription">
+                Os limites mensais exibidos abaixo seguem o mês selecionado no topo da página.
+            </p>
+        </div>
+
+        <div class="cat-context-stats">
+            <article class="cat-context-stat">
+                <span class="cat-context-stat-value" id="catTotalCount">0</span>
+                <span class="cat-context-stat-label">Categorias</span>
+            </article>
+            <article class="cat-context-stat">
+                <span class="cat-context-stat-value" id="catOwnCount">0</span>
+                <span class="cat-context-stat-label">Personalizadas</span>
+            </article>
+            <article class="cat-context-stat">
+                <span class="cat-context-stat-value" id="catSubCount">0</span>
+                <span class="cat-context-stat-label">Subcategorias</span>
+            </article>
+            <article class="cat-context-stat">
+                <span class="cat-context-stat-value" id="catBudgetCount">0</span>
+                <span class="cat-context-stat-label">Com limite no mês</span>
+            </article>
+        </div>
+
+        <div class="cat-context-chips" id="catContextChips"></div>
+
+        <div class="cat-context-actions">
+            <button type="button" class="cat-context-btn" data-action="refresh-categorias" id="catRefreshButton">
+                <i data-lucide="refresh-cw"></i>
+                <span>Atualizar dados</span>
+            </button>
+            <button type="button" class="cat-context-btn ghost d-none" data-action="clear-categoria-search"
+                id="catClearSearchButton">
+                <i data-lucide="x"></i>
+                <span>Limpar busca</span>
+            </button>
+        </div>
+    </section>
+
     <!-- ==================== BUSCA ==================== -->
     <div class="cat-toolbar">
         <div class="cat-search-wrapper">
@@ -111,6 +154,8 @@
             </button>
         </div>
     </div>
+
+    <div class="cat-filter-summary" id="catFilterSummary" aria-live="polite"></div>
 
     <!-- ==================== CATEGORIAS SEPARADAS POR TIPO ==================== -->
     <div class="categories-grid">
@@ -124,12 +169,14 @@
                     <div class="header-text">
                         <h3 class="category-title">Receitas</h3>
                         <p class="category-count">
-                            <span id="receitasCount">0</span> categorias
+                            <span id="receitasCount">0</span>
+                            <span class="category-count-divider">de</span>
+                            <span id="receitasTotalCount">0</span> categorias
                         </p>
                     </div>
                 </div>
-                <button type="button" class="icon-btn refresh-btn" title="Atualizar receitas"
-                    onclick="location.reload()">
+                <button type="button" class="icon-btn refresh-btn" title="Atualizar categorias"
+                    data-action="refresh-categorias">
                     <i data-lucide="refresh-cw"></i>
                 </button>
             </div>
@@ -152,12 +199,14 @@
                     <div class="header-text">
                         <h3 class="category-title">Despesas</h3>
                         <p class="category-count">
-                            <span id="despesasCount">0</span> categorias
+                            <span id="despesasCount">0</span>
+                            <span class="category-count-divider">de</span>
+                            <span id="despesasTotalCount">0</span> categorias
                         </p>
                     </div>
                 </div>
-                <button type="button" class="icon-btn refresh-btn" title="Atualizar despesas"
-                    onclick="location.reload()">
+                <button type="button" class="icon-btn refresh-btn" title="Atualizar categorias"
+                    data-action="refresh-categorias">
                     <i data-lucide="refresh-cw"></i>
                 </button>
             </div>

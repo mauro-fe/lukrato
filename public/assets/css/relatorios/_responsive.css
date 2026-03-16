@@ -3,6 +3,37 @@
    ============================================================================ */
 
 @media (max-width: 768px) {
+  .reports-context-card {
+    flex-direction: column;
+    padding: var(--spacing-4);
+  }
+
+  .reports-context-side,
+  .reports-context-chips {
+    width: 100%;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  .context-action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .report-filter-summary {
+    margin-top: calc(var(--spacing-6) * -0.15);
+  }
+
+  .report-state-actions {
+    flex-direction: column;
+  }
+
+  .report-state-actions .btn,
+  .report-state-actions .empty-cta {
+    width: 100%;
+    justify-content: center;
+  }
+
   .tab-btn {
     min-height: 44px;
     min-width: 44px;

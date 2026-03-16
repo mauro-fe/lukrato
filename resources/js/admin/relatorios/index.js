@@ -7,7 +7,7 @@
  * ============================================================================
  */
 
-import { CONFIG, STATE, Utils, Modules } from './state.js';
+import { CONFIG, STATE, Utils, Modules, STORAGE_KEYS, TYPE_OPTIONS } from './state.js';
 import { ChartManager } from './charts.js';
 import {
     API, UI,
@@ -25,6 +25,27 @@ if (window.__LK_REPORTS_LOADED__) {
 
     // ── Initialize ───────────────────────────────────────────────────────────
 
+    function restoreSavedPreferences() {
+        try {
+            const savedView = localStorage.getItem(STORAGE_KEYS.ACTIVE_VIEW);
+            if (savedView && Object.values(CONFIG.VIEWS).includes(savedView)) {
+                STATE.currentView = savedView;
+            }
+
+            const savedCategoryType = localStorage.getItem(STORAGE_KEYS.CATEGORY_TYPE);
+            if (savedCategoryType && TYPE_OPTIONS[CONFIG.VIEWS.CATEGORY]?.some(opt => opt.value === savedCategoryType)) {
+                STATE.categoryType = savedCategoryType;
+            }
+
+            const savedAnnualType = localStorage.getItem(STORAGE_KEYS.ANNUAL_CATEGORY_TYPE);
+            if (savedAnnualType && TYPE_OPTIONS[CONFIG.VIEWS.ANNUAL_CATEGORY]?.some(opt => opt.value === savedAnnualType)) {
+                STATE.annualCategoryType = savedAnnualType;
+            }
+        } catch {
+            // Ignore storage issues and keep defaults
+        }
+    }
+
     async function initialize() {
 
         ChartManager.setupDefaults();
@@ -41,6 +62,8 @@ if (window.__LK_REPORTS_LOADED__) {
             });
         }
 
+        restoreSavedPreferences();
+
         // Event listeners
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => handleTabChange(btn.dataset.view));
@@ -48,6 +71,7 @@ if (window.__LK_REPORTS_LOADED__) {
 
         // === Section tabs (Relatórios / Insights / Comparativos) ===
         const switchSection = (section) => {
+            STATE.activeSection = section;
             document.querySelectorAll('.rel-section-tab').forEach(t => {
                 t.classList.remove('active');
                 t.setAttribute('aria-selected', 'false');
@@ -64,7 +88,8 @@ if (window.__LK_REPORTS_LOADED__) {
                 panel.classList.add('active');
             }
 
-            localStorage.setItem('rel_active_section', section);
+            localStorage.setItem(STORAGE_KEYS.ACTIVE_SECTION, section);
+            UI.updatePageContext();
 
             // Carregar dados da seção PRO quando ativada
             refreshActiveSection(section);
@@ -100,8 +125,12 @@ if (window.__LK_REPORTS_LOADED__) {
             });
         });
 
+        UI.setActiveTab(STATE.currentView);
+        UI.updateControls();
+        UI.updatePageContext();
+
         // Restaurar última aba selecionada
-        const savedSection = localStorage.getItem('rel_active_section');
+        const savedSection = localStorage.getItem(STORAGE_KEYS.ACTIVE_SECTION);
         if (savedSection && document.getElementById('section-' + savedSection)) {
             // Não restaurar aba PRO-locked para free users
             if (!window.IS_PRO && proLockedSections.includes(savedSection)) {
@@ -145,6 +174,8 @@ if (window.__LK_REPORTS_LOADED__) {
             });
         }
 
+        showClearBtn();
+
         document.addEventListener('lukrato:theme-changed', () => {
             ChartManager.setupDefaults();
             renderReport();
@@ -165,6 +196,24 @@ if (window.__LK_REPORTS_LOADED__) {
 
         // Event delegation: open card detail modal
         document.addEventListener('click', (e) => {
+            const retryTrigger = e.target.closest('[data-action="retry-report"]');
+            if (retryTrigger) {
+                e.preventDefault();
+                renderReport();
+                return;
+            }
+
+            const clearAccountTrigger = e.target.closest('[data-action="clear-report-account"]');
+            if (clearAccountTrigger) {
+                e.preventDefault();
+                if (accountSelect) {
+                    accountSelect.value = '';
+                }
+                handleAccountChange('');
+                showClearBtn();
+                return;
+            }
+
             const trigger = e.target.closest('[data-action="open-card-detail"]');
             if (!trigger) return;
             e.stopPropagation();

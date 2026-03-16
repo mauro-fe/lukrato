@@ -14,6 +14,15 @@ import { setupMoneyMask, setMoneyValue, getMoneyValue } from '../shared/money-ma
 // ─── ContasModal ─────────────────────────────────────────────────────────────
 
 export const ContasModal = {
+    syncScrollLock() {
+        const hasActiveOverlay = document.querySelector(
+            '#modalContaOverlay.active, #modalNovaInstituicaoOverlay.active, #modalCartaoOverlay.active'
+        );
+        const overflowValue = hasActiveOverlay ? 'hidden' : '';
+
+        document.body.style.overflow = overflowValue;
+        document.documentElement.style.overflow = overflowValue;
+    },
 
     // =====================================================================
     //  Conta Modal (create / edit)
@@ -76,6 +85,7 @@ export const ContasModal = {
 
         // Mostrar modal
         modalOverlay.classList.add('active');
+        ContasModal.syncScrollLock();
 
         // Anexar listeners de fechar
         ContasModal.attachCloseModalListeners();
@@ -94,10 +104,7 @@ export const ContasModal = {
         if (!modalOverlay) return;
 
         modalOverlay.classList.remove('active');
-
-        // Restaurar scroll do body
-        document.body.style.overflow = '';
-        document.documentElement.style.overflow = '';
+        ContasModal.syncScrollLock();
 
         // Resetar flag de submissão
         STATE.isSubmitting = false;
@@ -143,7 +150,7 @@ export const ContasModal = {
         const overlay = document.getElementById('modalNovaInstituicaoOverlay');
         if (overlay) {
             overlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
+            ContasModal.syncScrollLock();
 
             // Focar no campo de nome
             setTimeout(() => {
@@ -159,7 +166,7 @@ export const ContasModal = {
         const overlay = document.getElementById('modalNovaInstituicaoOverlay');
         if (overlay) {
             overlay.classList.remove('active');
-            document.body.style.overflow = '';
+            ContasModal.syncScrollLock();
 
             // Limpar formulário
             document.getElementById('formNovaInstituicao')?.reset();
@@ -407,6 +414,7 @@ export const ContasModal = {
 
         // Mostrar modal
         modalOverlay.classList.add('active');
+        ContasModal.syncScrollLock();
 
         // Focar no primeiro campo após animação
         setTimeout(() => {
@@ -422,10 +430,7 @@ export const ContasModal = {
         if (!modalOverlay) return;
 
         modalOverlay.classList.remove('active');
-
-        // Restaurar scroll do body
-        document.body.style.overflow = '';
-        document.documentElement.style.overflow = '';
+        ContasModal.syncScrollLock();
 
         setTimeout(() => {
             document.getElementById('formCartao')?.reset();

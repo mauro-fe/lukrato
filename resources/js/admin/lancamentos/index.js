@@ -8,7 +8,6 @@
  */
 
 import { CONFIG, DOM, initDOM, STATE, Utils, MoneyMask, Notifications, Modules } from './state.js';
-import { debounce } from '../shared/utils.js';
 import { TableManager } from './table.js';
 import { MobileCards } from './mobile.js';
 import { OptionsManager, ModalManager } from './modal.js';
@@ -37,26 +36,32 @@ export const API = {
         }
     },
 
-    fetchLancamentos: async ({ month, tipo = '', categoria = '', conta = '', limit, startDate = '', endDate = '' }) => {
-        const qs = API.buildQuery({ month, tipo, categoria, conta, limit, startDate, endDate });
+    fetchLancamentos: async (
+        { month, tipo = '', categoria = '', conta = '', limit, startDate = '', endDate = '', search = '', status = '' },
+        { signal } = {}
+    ) => {
+        const qs = API.buildQuery({ month, tipo, categoria, conta, limit, startDate, endDate, search, status });
 
         try {
             const res = await fetch(`${CONFIG.ENDPOINT}?${qs.toString()}`, {
-                headers: { 'Accept': 'application/json' }
+                headers: { 'Accept': 'application/json' },
+                signal
             });
 
-            if (res.status === 204 || res.status === 404 || !res.ok) return [];
+            if (res.status === 204 || res.status === 404) return [];
+            if (!res.ok) throw new Error('Falha ao carregar lançamentos.');
 
             const data = await res.json().catch(() => null);
             if (Array.isArray(data)) return data;
             if (data && Array.isArray(data.data)) return data.data;
             return [];
-        } catch {
-            return [];
+        } catch (error) {
+            if (error?.name === 'AbortError') throw error;
+            throw error;
         }
     },
 
-    buildQuery: ({ month, tipo, categoria, conta, limit, startDate, endDate }) => {
+    buildQuery: ({ month, tipo, categoria, conta, limit, startDate, endDate, search, status }) => {
         const qs = new URLSearchParams();
         if (month) qs.set('month', month);
         if (tipo) qs.set('tipo', tipo);
@@ -71,6 +76,8 @@ export const API = {
         }
         if (startDate) qs.set('start_date', startDate);
         if (endDate) qs.set('end_date', endDate);
+        if (search) qs.set('q', search);
+        if (status) qs.set('status', status);
         return qs;
     },
 
@@ -204,16 +211,9 @@ const EventListeners = {
             STATE.viewingLancamento = null;
         });
 
-        // Filtro de busca por texto (debounced)
-        let searchTimer = null;
+        // Filtro de busca por texto
         DOM.filtroTexto?.addEventListener('input', () => {
-            clearTimeout(searchTimer);
-            searchTimer = setTimeout(() => {
-                // Re-apply client-side filters without refetching
-                TableManager.setData(STATE.allData);
-                TableManager.render();
-                MobileCards.setItems(STATE.filteredData);
-            }, 300);
+            DataManager.load();
         });
 
         // Botão de limpar filtros
@@ -223,6 +223,8 @@ const EventListeners = {
             if (DOM.selectConta) DOM.selectConta.value = '';
             if (DOM.filtroTexto) DOM.filtroTexto.value = '';
             if (DOM.filtroStatus) DOM.filtroStatus.value = '';
+            if (DOM.filtroDataInicio) DOM.filtroDataInicio.value = '';
+            if (DOM.filtroDataFim) DOM.filtroDataFim.value = '';
             updateChipActiveStates();
             document.dispatchEvent(new CustomEvent('lk:custom-select-sync'));
             DataManager.load();
@@ -240,15 +242,47 @@ const EventListeners = {
         chipSelects.forEach(sel => {
             sel?.addEventListener('change', () => {
                 updateChipActiveStates();
-                // Status is client-side filter, others trigger server reload
-                if (sel === DOM.filtroStatus) {
-                    TableManager.setData(STATE.allData);
-                    TableManager.render();
-                    MobileCards.setItems(STATE.filteredData);
-                } else {
-                    DataManager.load();
-                }
+                DataManager.load();
             });
+        });
+
+        const loadWhenPeriodComplete = () => {
+            const startDate = Utils.getTrimmedDateValue(DOM.filtroDataInicio);
+            const endDate = Utils.getTrimmedDateValue(DOM.filtroDataFim);
+
+            if ((startDate && endDate) || (!startDate && !endDate)) {
+                DataManager.load();
+            } else if (Modules.ListContext?.update) {
+                Modules.ListContext.update();
+            }
+        };
+
+        DOM.filtroDataInicio?.addEventListener('change', loadWhenPeriodComplete);
+        DOM.filtroDataFim?.addEventListener('change', loadWhenPeriodComplete);
+
+        DOM.periodPresetButtons?.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const preset = btn.dataset.periodPreset;
+                if (!preset) return;
+
+                if (preset === 'today') {
+                    const today = Utils.getTodayYMD();
+                    if (DOM.filtroDataInicio) DOM.filtroDataInicio.value = today;
+                    if (DOM.filtroDataFim) DOM.filtroDataFim.value = today;
+                } else {
+                    const range = Utils.getRangeFromToday(Number(preset));
+                    if (DOM.filtroDataInicio) DOM.filtroDataInicio.value = range.startDate;
+                    if (DOM.filtroDataFim) DOM.filtroDataFim.value = range.endDate;
+                }
+
+                DataManager.load();
+            });
+        });
+
+        DOM.btnUsarMesDoTopo?.addEventListener('click', () => {
+            if (DOM.filtroDataInicio) DOM.filtroDataInicio.value = '';
+            if (DOM.filtroDataFim) DOM.filtroDataFim.value = '';
+            DataManager.load();
         });
 
         // Botão de exportar
@@ -258,12 +292,22 @@ const EventListeners = {
         DOM.btnExcluirSel?.addEventListener('click', DataManager.bulkDelete);
 
         // Eventos globais do sistema
-        document.addEventListener('lukrato:month-changed', () => DataManager.load());
+        document.addEventListener('lukrato:month-changed', () => {
+            const hasCustomRange = Utils.getTrimmedDateValue(DOM.filtroDataInicio) && Utils.getTrimmedDateValue(DOM.filtroDataFim);
+            if (hasCustomRange) {
+                Modules.ListContext?.update?.();
+                return;
+            }
+            DataManager.load({ immediate: true });
+        });
         document.addEventListener('lukrato:export-click', () => ExportManager.export());
 
         document.addEventListener('lukrato:data-changed', (e) => {
             const res = e.detail?.resource;
-            if (!res || res === 'transactions') DataManager.load();
+            if (!res || res === 'transactions') {
+                const preservePage = e.detail?.action !== 'create';
+                DataManager.load({ immediate: true, preservePage });
+            }
             if (res === 'categorias' || res === 'contas') OptionsManager.loadFilterOptions();
         });
 
@@ -303,7 +347,11 @@ const init = async () => {
     document.getElementById('btnNovoLancamento')?.addEventListener('click', () => {
         if (window.lancamentoGlobalManager) window.lancamentoGlobalManager.openModal();
     });
-    document.getElementById('btnRefreshPage')?.addEventListener('click', () => location.reload());
+    DOM.btnRefreshPage?.addEventListener('click', () => DataManager.load({
+        immediate: true,
+        preservePage: true,
+        showToast: true
+    }));
 
     // Carregar dados iniciais
     await OptionsManager.loadFilterOptions();
@@ -312,7 +360,7 @@ const init = async () => {
 };
 
 // Expor funções globais necessárias
-window.refreshLancamentos = () => DataManager.load();
+window.refreshLancamentos = () => DataManager.load({ immediate: true, preservePage: true });
 
 // Iniciar aplicação
 document.addEventListener('DOMContentLoaded', () => init());

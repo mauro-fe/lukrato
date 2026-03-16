@@ -58,6 +58,71 @@ export const TYPE_OPTIONS = {
     ]
 };
 
+export const STORAGE_KEYS = {
+    ACTIVE_SECTION: 'rel_active_section',
+    ACTIVE_VIEW: 'rel_active_view',
+    CATEGORY_TYPE: 'rel_category_type',
+    ANNUAL_CATEGORY_TYPE: 'rel_annual_category_type'
+};
+
+export const SECTION_META = {
+    overview: {
+        kicker: 'Painel consolidado',
+        title: 'Leia seu mes com contexto',
+        description: 'Veja seu pulso financeiro, identifique sinais importantes e acompanhe a evolucao do periodo em um resumo rapido.'
+    },
+    relatorios: {
+        kicker: 'Relatorio ativo',
+        title: 'Transforme lancamentos em decisao',
+        description: 'Explore seus numeros por categoria, conta, cartao e evolucao para descobrir onde agir.'
+    },
+    insights: {
+        kicker: 'Leitura automatica',
+        title: 'Insights que ajudam a agir',
+        description: 'Receba sinais claros sobre gastos, saldo, concentracoes e oportunidades sem precisar interpretar tudo manualmente.'
+    },
+    comparativos: {
+        kicker: 'Comparacao temporal',
+        title: 'Compare e ajuste sua rota',
+        description: 'Entenda o que melhorou, piorou ou estagnou em relacao ao mes e ao ano anteriores.'
+    }
+};
+
+export const VIEW_META = {
+    [CONFIG.VIEWS.CATEGORY]: {
+        title: 'Categorias do periodo',
+        description: 'Encontre rapidamente onde seu dinheiro esta concentrado por categoria.'
+    },
+    [CONFIG.VIEWS.BALANCE]: {
+        title: 'Saldo diario',
+        description: 'Acompanhe como seu caixa evolui ao longo do periodo.'
+    },
+    [CONFIG.VIEWS.COMPARISON]: {
+        title: 'Receitas x despesas',
+        description: 'Compare entradas e saidas para entender pressao ou folga no caixa.'
+    },
+    [CONFIG.VIEWS.ACCOUNTS]: {
+        title: 'Desempenho por conta',
+        description: 'Descubra quais contas concentram mais entradas e saidas.'
+    },
+    [CONFIG.VIEWS.CARDS]: {
+        title: 'Saude dos cartoes',
+        description: 'Monitore faturas, uso de limite e sinais de atencao nos cartoes.'
+    },
+    [CONFIG.VIEWS.EVOLUTION]: {
+        title: 'Evolucao em 12 meses',
+        description: 'Observe tendencia, sazonalidade e ritmo financeiro ao longo do ultimo ano.'
+    },
+    [CONFIG.VIEWS.ANNUAL_SUMMARY]: {
+        title: 'Resumo anual',
+        description: 'Compare mes a mes como receitas, despesas e saldo se comportaram no ano.'
+    },
+    [CONFIG.VIEWS.ANNUAL_CATEGORY]: {
+        title: 'Categorias do ano',
+        description: 'Veja quais categorias dominaram seu ano e onde houve maior concentracao.'
+    }
+};
+
 // ─── UTILITY FUNCTIONS ───────────────────────────────────────────────────────
 
 export function computeInitialMonth() {
@@ -99,6 +164,7 @@ export function getChartColor(index) {
 // ─── STATE ───────────────────────────────────────────────────────────────────
 
 export const STATE = {
+    activeSection: 'overview',
     currentView: CONFIG.VIEWS.CATEGORY,
     categoryType: 'despesas_por_categoria',
     annualCategoryType: 'despesas_anuais_por_categoria',
@@ -107,6 +173,7 @@ export const STATE = {
     chart: null,
     accounts: [],
     accessRestricted: false,
+    lastReportError: null,
     // Subcategory drill-down state
     activeDrilldown: null,       // cat_id of expanded category (or null)
     reportDetails: null,         // details[] from API response (PRO only)

@@ -17,7 +17,7 @@
             </div>
             <div>
                 <div class="stat-value" id="saldoTotal" aria-live="polite">R$ 0,00</div>
-                <div class="stat-label">Saldo Contas</div>
+                <div class="stat-label">Saldo Atual Total</div>
             </div>
         </div>
 
@@ -27,11 +27,34 @@
             </div>
             <div>
                 <div class="stat-value" id="saldoInvestimentos" aria-live="polite">R$ 0,00</div>
-                <div class="stat-label">Investimentos</div>
+                <div class="stat-label">Investimentos Atuais</div>
             </div>
         </div>
 
     </div>
+
+    <section class="contas-context-card" id="contasContextCard" aria-live="polite">
+        <div class="contas-context-copy">
+            <p class="contas-context-kicker">Saldo atual consolidado</p>
+            <h3 class="contas-context-title" id="contasContextTitle">Suas contas ativas em tempo real</h3>
+            <p class="contas-context-description" id="contasContextDescription">
+                Esta página mostra a posição atual das contas ativas. Para análises por período, use os relatórios.
+            </p>
+        </div>
+
+        <div class="contas-context-metrics">
+            <article class="contas-context-metric">
+                <span class="contas-context-metric-value" id="contasNegativasCount">0</span>
+                <span class="contas-context-metric-label">Com saldo negativo</span>
+            </article>
+            <article class="contas-context-metric">
+                <span class="contas-context-metric-value" id="contasPositivasCount">0</span>
+                <span class="contas-context-metric-label">Com saldo positivo</span>
+            </article>
+        </div>
+
+        <div class="contas-context-chips" id="contasContextChips"></div>
+    </section>
 
     <!-- ==================== LISTA DE CONTAS ==================== -->
     <div class="lk-accounts-wrap" data-aos="fade-up">
@@ -63,6 +86,31 @@
                 </a>
             </div>
         </div>
+
+        <div class="contas-toolbar">
+            <div class="contas-search-wrapper">
+                <i data-lucide="search" class="contas-search-icon"></i>
+                <input type="text" id="contasSearchInput" class="contas-search-input"
+                    placeholder="Buscar conta, instituição ou tipo..." autocomplete="off" />
+                <button type="button" id="contasSearchClear" class="contas-search-clear d-none" title="Limpar busca">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="contas-filter-wrapper">
+                <label class="visually-hidden" for="contasTypeFilter">Filtrar por tipo</label>
+                <select id="contasTypeFilter" class="contas-type-filter" aria-label="Filtrar contas por tipo">
+                    <option value="all">Todos os tipos</option>
+                    <option value="conta_corrente">Conta corrente</option>
+                    <option value="conta_poupanca">Poupança</option>
+                    <option value="conta_investimento">Investimento</option>
+                    <option value="carteira_digital">Carteira digital</option>
+                    <option value="dinheiro">Dinheiro</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="contas-filter-summary" id="contasFilterSummary" aria-live="polite"></div>
 
         <!-- Cards das contas -->
         <div class="lk-card">
@@ -97,6 +145,5 @@
 
 <!-- ==================== MODAIS ==================== -->
 <?php include __DIR__ . '/../partials/modals/modal-contas.php'; ?>
-<?php include __DIR__ . '/../partials/modals/modal-lancamento-v2.php'; ?>
 
 <!-- Page JS carregado automaticamente via loadPageJs() + Vite -->

@@ -19,8 +19,8 @@ export const CONFIG = {
     TABLE_HEIGHT: '520px',
     PAGINATION_SIZE: 10,
     PAGINATION_OPTIONS: [10, 25, 50, 100],
-    DATA_LIMIT: 500,
-    DEBOUNCE_DELAY: 10
+    DATA_LIMIT: 1000,
+    DEBOUNCE_DELAY: 250
 };
 
 CONFIG.ENDPOINT = `${CONFIG.BASE_URL}api/lancamentos`;
@@ -54,7 +54,11 @@ export function initDOM() {
     DOM.selectConta = document.getElementById('filtroConta');
     DOM.filtroTexto = document.getElementById('filtroTexto');
     DOM.filtroStatus = document.getElementById('filtroStatus');
+    DOM.filtroDataInicio = document.getElementById('filtroDataInicio');
+    DOM.filtroDataFim = document.getElementById('filtroDataFim');
     DOM.btnLimparFiltros = document.getElementById('btnLimparFiltros');
+    DOM.btnUsarMesDoTopo = document.getElementById('btnUsarMesDoTopo');
+    DOM.periodPresetButtons = Array.from(document.querySelectorAll('[data-period-preset]'));
     DOM.activeFilterBadges = document.getElementById('activeFilterBadges');
     // Exportação
     DOM.btnExportar = document.getElementById('btnExportar');
@@ -67,6 +71,10 @@ export function initDOM() {
     // Seleção e exclusão
     DOM.btnExcluirSel = document.getElementById('btnExcluirSel');
     DOM.selCountSpan = document.getElementById('selCount');
+    DOM.btnRefreshPage = document.getElementById('btnRefreshPage');
+    DOM.lancamentosContextText = document.getElementById('lancamentosContextText');
+    DOM.lancamentosLimitNotice = document.getElementById('lancamentosLimitNotice');
+    DOM.selectionScopeHint = document.getElementById('selectionScopeHint');
     // Modal de edição
     DOM.modalEditLancEl = document.getElementById('modalEditarLancamento');
     DOM.formLanc = document.getElementById('formLancamento');
@@ -131,6 +139,12 @@ export const STATE = {
     lancamentos: [],
     allData: [],
     filteredData: [],
+    isLoading: false,
+    requestSeq: 0,
+    abortController: null,
+    lastFetchCount: 0,
+    isDataLimitWarning: false,
+    lastAppliedFilters: null,
     currentPage: 1,
     pageSize: 10,
     sortField: 'data',
@@ -266,6 +280,90 @@ export const Utils = {
         const asciiMatch = disposition.match(/filename="?([^";]+)"?/i);
         if (asciiMatch && asciiMatch[1]) return asciiMatch[1];
         return null;
+    },
+
+    getTodayYMD: () => {
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    },
+
+    getRangeFromToday: (days) => {
+        const safeDays = Number(days);
+        const end = new Date();
+        const start = new Date();
+        start.setDate(end.getDate() - Math.max(0, safeDays - 1));
+
+        const toYMD = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        return {
+            startDate: toYMD(start),
+            endDate: toYMD(end)
+        };
+    },
+
+    formatMonthLabel: (month) => {
+        if (!month || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) return 'período atual';
+        const [year, monthNumber] = month.split('-').map(Number);
+        const date = new Date(year, monthNumber - 1, 1);
+        return new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(date);
+    },
+
+    formatDateRangeLabel: (startDate, endDate) => {
+        if (!startDate || !endDate) return 'período personalizado';
+        return `${Utils.fmtDate(startDate)} a ${Utils.fmtDate(endDate)}`;
+    },
+
+    getAppliedPeriodLabel: (filters = STATE.lastAppliedFilters) => {
+        const applied = filters || {};
+        if (applied.startDate && applied.endDate) {
+            return Utils.formatDateRangeLabel(applied.startDate, applied.endDate);
+        }
+        return Utils.formatMonthLabel(applied.month || Utils.getCurrentMonth());
+    },
+
+    countAppliedListFilters: (filters = STATE.lastAppliedFilters) => {
+        const applied = filters || {};
+        const values = [
+            applied.tipo,
+            applied.categoria,
+            applied.conta,
+            applied.search,
+            applied.status
+        ].filter(Boolean).length;
+
+        return values + (applied.startDate && applied.endDate ? 1 : 0);
+    },
+
+    getListEmptyStateMeta: (filters = STATE.lastAppliedFilters) => {
+        const applied = filters || {};
+        const hasSearchFilters = Boolean(applied.search || applied.tipo || applied.categoria || applied.conta || applied.status);
+        const hasCustomPeriod = Boolean(applied.startDate && applied.endDate);
+        const periodLabel = Utils.getAppliedPeriodLabel(applied);
+
+        if (hasSearchFilters || hasCustomPeriod) {
+            return {
+                title: hasCustomPeriod && !hasSearchFilters
+                    ? 'Nenhum lançamento no período selecionado'
+                    : 'Nenhum lançamento encontrado',
+                description: hasSearchFilters
+                    ? 'Ajuste ou limpe os filtros para ampliar os resultados.'
+                    : `Não encontramos lançamentos em ${periodLabel}.`,
+                showClearFilters: true,
+                showCreateAction: true
+            };
+        }
+
+        return {
+            title: 'Nenhum lançamento neste período',
+            description: `Quando você criar um lançamento, ele aparecerá aqui em ${periodLabel}.`,
+            showClearFilters: false,
+            showCreateAction: true
+        };
     },
 
     hasSwal: () => !!window.Swal,

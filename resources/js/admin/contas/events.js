@@ -1,28 +1,55 @@
 /**
  * ============================================================================
- * LUKRATO — Contas / Events & Money Masks
+ * LUKRATO - Contas / Events & Money Masks
  * ============================================================================
  * Master event wiring, keyboard shortcuts, view toggle, card listeners,
- * and money mask helpers for conta / cartão / lançamento inputs.
+ * and money mask helpers for conta and cartao inputs.
  * ============================================================================
  */
 
-import { CONFIG, STATE, Utils, Modules } from './state.js';
-import { refreshIcons } from '../shared/ui.js';
-import { setupMoneyMask, applyMoneyMask } from '../shared/money-mask.js';
-
-// ─── ContasEvents ────────────────────────────────────────────────────────────
+import { Utils, Modules, STATE } from './state.js';
 
 export const ContasEvents = {
+    refreshContas() {
+        Modules.API.loadContas({ silent: STATE.contas.length > 0 });
+    },
+
+    applyFilters() {
+        const searchInput = document.getElementById('contasSearchInput');
+        const searchClear = document.getElementById('contasSearchClear');
+        const typeFilter = document.getElementById('contasTypeFilter');
+
+        STATE.searchQuery = searchInput?.value || '';
+        STATE.typeFilter = typeFilter?.value || 'all';
+
+        if (searchClear) {
+            searchClear.classList.toggle('d-none', !STATE.searchQuery.trim());
+        }
+
+        Modules.Render.renderContas();
+    },
+
+    clearFilters() {
+        const searchInput = document.getElementById('contasSearchInput');
+        const searchClear = document.getElementById('contasSearchClear');
+        const typeFilter = document.getElementById('contasTypeFilter');
+
+        STATE.searchQuery = '';
+        STATE.typeFilter = 'all';
+
+        if (searchInput) searchInput.value = '';
+        if (typeFilter) typeFilter.value = 'all';
+        if (searchClear) searchClear.classList.add('d-none');
+
+        Modules.Render.renderContas();
+    },
 
     /**
-     * Master event wiring — attach all buttons, form handlers, delegates.
+     * Master event wiring - attach all buttons, form handlers, delegates.
      */
     attachEventListeners() {
-        // Botões de fechar modal - Re-anexar sempre
         Modules.Modal.attachCloseModalListeners();
 
-        // Botão nova conta
         const btnNovaConta = document.getElementById('btnNovaConta');
         if (btnNovaConta && !btnNovaConta.dataset.listenerAdded) {
             btnNovaConta.addEventListener('click', () => {
@@ -31,37 +58,58 @@ export const ContasEvents = {
             btnNovaConta.dataset.listenerAdded = 'true';
         }
 
-        // Botão reload
         const btnReload = document.getElementById('btnReload');
         if (btnReload && !btnReload.dataset.listenerAdded) {
             btnReload.addEventListener('click', () => {
-                Modules.API.loadContas();
+                ContasEvents.refreshContas();
             });
             btnReload.dataset.listenerAdded = 'true';
         }
 
-        // Formulário de nova instituição
+        const searchInput = document.getElementById('contasSearchInput');
+        const searchClear = document.getElementById('contasSearchClear');
+        const typeFilter = document.getElementById('contasTypeFilter');
+        let searchTimer = null;
+
+        if (searchInput && !searchInput.dataset.listenerAdded) {
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(() => ContasEvents.applyFilters(), 180);
+            });
+            searchInput.dataset.listenerAdded = 'true';
+        }
+
+        if (searchClear && !searchClear.dataset.listenerAdded) {
+            searchClear.addEventListener('click', () => {
+                ContasEvents.clearFilters();
+            });
+            searchClear.dataset.listenerAdded = 'true';
+        }
+
+        if (typeFilter && !typeFilter.dataset.listenerAdded) {
+            typeFilter.addEventListener('change', () => {
+                ContasEvents.applyFilters();
+            });
+            typeFilter.dataset.listenerAdded = 'true';
+        }
+
         const formNovaInstituicao = document.getElementById('formNovaInstituicao');
         if (formNovaInstituicao && !formNovaInstituicao.dataset.listenerAdded) {
-            formNovaInstituicao.addEventListener('submit', (e) => {
-                e.preventDefault();
-                Modules.Modal.handleNovaInstituicaoSubmit(e.target);
+            formNovaInstituicao.addEventListener('submit', (event) => {
+                event.preventDefault();
+                Modules.Modal.handleNovaInstituicaoSubmit(event.target);
             });
             formNovaInstituicao.dataset.listenerAdded = 'true';
         }
 
-        // Input de cor da instituição
         const corInstituicao = document.getElementById('corInstituicao');
         if (corInstituicao && !corInstituicao.dataset.listenerAdded) {
-            corInstituicao.addEventListener('input', (e) => {
-                Modules.Modal.updateColorPreview(e.target.value);
+            corInstituicao.addEventListener('input', (event) => {
+                Modules.Modal.updateColorPreview(event.target.value);
             });
             corInstituicao.dataset.listenerAdded = 'true';
         }
 
-        // Backdrop bloqueado - nova instituição modal fecha apenas pelo botão X
-
-        // Botão novo cartão
         const btnNovoCartao = document.getElementById('btnNovoCartao');
         if (btnNovoCartao && !btnNovoCartao.dataset.listenerAdded) {
             btnNovoCartao.addEventListener('click', () => {
@@ -70,47 +118,37 @@ export const ContasEvents = {
             btnNovoCartao.dataset.listenerAdded = 'true';
         }
 
-        // Formulário de cartão
         const formCartao = document.getElementById('formCartao');
         if (formCartao) {
-            // Remover qualquer listener anterior
             const newFormCartao = formCartao.cloneNode(true);
             formCartao.parentNode.replaceChild(newFormCartao, formCartao);
 
-            // Adicionar novo listener
-            newFormCartao.addEventListener('submit', (e) => {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                Modules.Modal.handleCartaoSubmit(e.target);
+            newFormCartao.addEventListener('submit', (event) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                Modules.Modal.handleCartaoSubmit(event.target);
             });
 
-            // Re-aplicar máscara de dinheiro após clonar
             ContasMoneyMask.setupCartaoMoneyMask();
         }
 
-        // Formulário de conta - com proteção contra duplicação
         const formConta = document.getElementById('formConta');
         if (formConta) {
-            // Remover qualquer listener anterior
             const newForm = formConta.cloneNode(true);
             formConta.parentNode.replaceChild(newForm, formConta);
 
-            // Adicionar novo listener
-            newForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                e.stopImmediatePropagation(); // Impede múltiplos listeners
-                Modules.Modal.handleFormSubmit(e.target);
+            newForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                Modules.Modal.handleFormSubmit(event.target);
             });
 
-            // Re-aplicar máscara de dinheiro após clonar
             ContasMoneyMask.setupMoneyMask();
 
-            // Re-adicionar listener de mudança de moeda
-            document.getElementById('moedaSelect')?.addEventListener('change', (e) => {
-                Utils.updateCurrencySymbol(e.target.value);
+            document.getElementById('moedaSelect')?.addEventListener('change', (event) => {
+                Utils.updateCurrencySymbol(event.target.value);
             });
 
-            // Re-adicionar listener do botão de nova instituição após clonar o form
             const btnAddInstituicaoNew = document.getElementById('btnAddInstituicao');
             if (btnAddInstituicaoNew) {
                 btnAddInstituicaoNew.addEventListener('click', () => {
@@ -119,48 +157,36 @@ export const ContasEvents = {
             }
         }
 
-        // Formulário de lançamento
-        const formLancamento = document.getElementById('formLancamento');
-        if (formLancamento) {
-            // Remover qualquer listener anterior
-            const newFormLancamento = formLancamento.cloneNode(true);
-            formLancamento.parentNode.replaceChild(newFormLancamento, formLancamento);
+        ContasEvents.initViewToggle();
+        ContasEvents.attachContaCardListeners();
 
-            // Adicionar novo listener
-            newFormLancamento.addEventListener('submit', (e) => {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                Modules.Lancamento.handleLancamentoSubmit(e.target);
-            });
+        const page = document.querySelector('.cont-page');
+        if (page && !page.dataset.actionListenerAdded) {
+            page.addEventListener('click', (event) => {
+                const actionTarget = event.target.closest('[data-action]');
+                if (!actionTarget) return;
 
-            // Interceptar Enter nos inputs para avançar etapa em vez de submeter o form
-            newFormLancamento.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-                    Modules.Lancamento.nextStep();
+                const action = actionTarget.dataset.action;
+                if (action === 'clear-contas-filters') {
+                    event.preventDefault();
+                    ContasEvents.clearFilters();
+                }
+
+                if (action === 'retry-load-contas') {
+                    event.preventDefault();
+                    ContasEvents.refreshContas();
+                }
+
+                if (action === 'create-first-account') {
+                    event.preventDefault();
+                    Modules.Modal.openModal('create');
                 }
             });
-
-            // Re-aplicar máscara de dinheiro após clonar
-            ContasMoneyMask.setupLancamentoMoneyMask();
+            page.dataset.actionListenerAdded = 'true';
         }
 
-        // Botão voltar no formulário de lançamento
-        document.getElementById('btnVoltarTipo')?.addEventListener('click', () => {
-            Modules.Lancamento.voltarEscolhaTipo();
-        });
-
-        // Backdrop bloqueado - lançamento modal fecha apenas pelo botão X
-
-        // View Toggle (Cards/Lista)
-        ContasEvents.initViewToggle();
-
-        // Backdrop bloqueado - modal fecha apenas pelo botão X
-
-        // Fechar modal com tecla ESC
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
                 Modules.Modal.closeModal();
             }
         });
@@ -170,8 +196,7 @@ export const ContasEvents = {
      * Inicializar atalhos de teclado
      */
     initKeyboardShortcuts() {
-        document.addEventListener('keydown', (e) => {
-            // Ignorar se estiver em input ou modal aberto
+        document.addEventListener('keydown', (event) => {
             const activeEl = document.activeElement;
             const isInputFocused = activeEl && (
                 activeEl.tagName === 'INPUT' ||
@@ -183,16 +208,15 @@ export const ContasEvents = {
 
             if (isInputFocused || isModalOpen) return;
 
-            // N = Nova conta
-            if (e.key.toLowerCase() === 'n' && !e.ctrlKey && !e.metaKey && !e.altKey) {
-                e.preventDefault();
+            if (event.key.toLowerCase() === 'n' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+                event.preventDefault();
                 Modules.Modal.openModal('create');
             }
         });
     },
 
     /**
-     * Inicializar toggle de visualização (Cards/Lista)
+     * Inicializar toggle de visualizacao (Cards/Lista)
      */
     initViewToggle() {
         const viewToggle = document.querySelector('.view-toggle');
@@ -202,19 +226,16 @@ export const ContasEvents = {
         if (!viewToggle || !accountsGrid) return;
 
         const viewButtons = viewToggle.querySelectorAll('.view-btn');
-
-        // Restaurar preferência salva
         const savedView = localStorage.getItem('contas_view_mode') || 'grid';
+
         if (savedView === 'list') {
             accountsGrid.classList.add('list-view');
             if (listHeader) listHeader.classList.add('visible');
         }
 
-        // Atualizar estado dos botões
         ContasEvents.updateViewToggleState(viewButtons, savedView);
 
-        // Adicionar listeners aos botões
-        viewButtons.forEach(btn => {
+        viewButtons.forEach((btn) => {
             if (btn.dataset.listenerAdded) return;
 
             btn.addEventListener('click', () => {
@@ -228,10 +249,7 @@ export const ContasEvents = {
                     if (listHeader) listHeader.classList.remove('visible');
                 }
 
-                // Salvar preferência
                 localStorage.setItem('contas_view_mode', view);
-
-                // Atualizar estado dos botões
                 ContasEvents.updateViewToggleState(viewButtons, view);
             });
 
@@ -240,10 +258,10 @@ export const ContasEvents = {
     },
 
     /**
-     * Atualizar estado visual dos botões de toggle
+     * Atualizar estado visual dos botoes de toggle
      */
     updateViewToggleState(buttons, activeView) {
-        buttons.forEach(btn => {
+        buttons.forEach((btn) => {
             if (btn.dataset.view === activeView) {
                 btn.classList.add('active');
             } else {
@@ -256,109 +274,69 @@ export const ContasEvents = {
      * Anexar listeners nos cards de contas (reattach after re-render)
      */
     attachContaCardListeners() {
-        // Botões de novo lançamento
-        document.querySelectorAll('.btn-new-transaction').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                const contaId = btn.dataset.contaId;
-                const conta = STATE.contas.find(c => c.id == contaId);
-                Modules.Lancamento.openLancamentoModal(contaId, conta?.nome || 'Conta');
-            });
+        const grid = document.getElementById('accountsGrid');
+        if (!grid || grid.dataset.listenerAdded) return;
+
+        grid.addEventListener('click', (event) => {
+            const btn = event.target.closest('.btn-new-transaction');
+            if (!btn) return;
+
+            event.stopPropagation();
+            event.preventDefault();
+
+            const contaId = btn.dataset.contaId;
+            if (window.lancamentoGlobalManager?.openModal) {
+                window.lancamentoGlobalManager.openModal({
+                    source: 'contas',
+                    presetAccountId: contaId
+                });
+            }
         });
+
+        grid.dataset.listenerAdded = 'true';
     },
 };
 
-// ─── ContasMoneyMask ─────────────────────────────────────────────────────────
-
 export const ContasMoneyMask = {
-
     /**
-     * Configurar máscara de dinheiro para saldo da conta
+     * Configurar mascara de dinheiro para saldo da conta
      */
     setupMoneyMask() {
         const saldoInput = document.getElementById('saldoInicial');
         if (!saldoInput) return;
 
-        saldoInput.addEventListener('input', (e) => {
-            let value = e.target.value;
-
-            // Remove tudo que não é número ou sinal de menos
+        saldoInput.addEventListener('input', (event) => {
+            let value = event.target.value;
             value = value.replace(/[^\d-]/g, '');
 
-            // Verifica se é negativo
             const isNegative = value.startsWith('-');
-
-            // Remove o sinal para processar
             value = value.replace('-', '');
 
-            // Converte para número
-            let number = parseInt(value) || 0;
-
-            // Formata como moeda
-            const formatted = Utils.formatMoneyInput(number, isNegative);
-
-            e.target.value = formatted;
+            const number = parseInt(value, 10) || 0;
+            event.target.value = Utils.formatMoneyInput(number, isNegative);
         });
 
-        // Formata ao carregar
         saldoInput.value = '0,00';
     },
 
     /**
-     * Configurar máscara de dinheiro para limite do cartão
+     * Configurar mascara de dinheiro para limite do cartao
      */
     setupCartaoMoneyMask() {
         const limiteInput = document.getElementById('limiteTotal');
         if (!limiteInput) return;
 
-        limiteInput.addEventListener('input', (e) => {
-            let value = e.target.value;
-
-            // Remove tudo que não é número
+        limiteInput.addEventListener('input', (event) => {
+            let value = event.target.value;
             value = value.replace(/[^\d]/g, '');
 
-            // Converte para número
-            let number = parseInt(value) || 0;
-
-            // Formata como moeda
-            const formatted = Utils.formatMoneyInput(number, false);
-
-            e.target.value = formatted;
+            const number = parseInt(value, 10) || 0;
+            event.target.value = Utils.formatMoneyInput(number, false);
         });
 
-        // Formata ao carregar
         limiteInput.value = '0,00';
     },
-
-    /**
-     * Configura máscara de dinheiro para input de lançamento
-     */
-    setupLancamentoMoneyMask() {
-        const valorInput = document.getElementById('lancamentoValor');
-        if (!valorInput) return;
-
-        valorInput.addEventListener('input', (e) => {
-            let value = e.target.value;
-
-            // Remove tudo que não é número
-            value = value.replace(/[^\d]/g, '');
-
-            // Converte para número
-            let number = parseInt(value) || 0;
-
-            // Formata como moeda
-            const formatted = Utils.formatMoneyInput(number, false);
-
-            e.target.value = formatted;
-        });
-
-        // Formata ao carregar
-        valorInput.value = '0,00';
-    },
 };
-
-// ─── Register modules ────────────────────────────────────────────────────────
 
 Modules.Events = ContasEvents;
 Modules.MoneyMask = ContasMoneyMask;

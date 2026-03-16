@@ -64,6 +64,15 @@ async function apiDeleteSubcategoria(id) {
     }
 }
 
+function getSearchMeta(categoriaId) {
+    return STATE.searchMatches?.[categoriaId] || null;
+}
+
+function shouldForceOpenAccordion(categoriaId) {
+    const meta = getSearchMeta(categoriaId);
+    return Boolean((STATE.filterQuery || '').trim() && meta?.subMatches?.length);
+}
+
 // =========================================================================
 // ACCORDION — Card expand/collapse
 // =========================================================================
@@ -73,7 +82,7 @@ async function apiDeleteSubcategoria(id) {
  * Inclui badge com contagem de subcategorias quando disponível.
  */
 export function renderExpandButton(categoriaId) {
-    const isOpen = STATE.expandedCategorias.has(categoriaId);
+    const isOpen = STATE.expandedCategorias.has(categoriaId) || shouldForceOpenAccordion(categoriaId);
     const cached = STATE.subcategoriasCache[categoriaId];
     const count = cached ? cached.length : null;
     const badge = count !== null
@@ -107,7 +116,7 @@ function updateSubcatBadge(categoriaId) {
  * Gera o painel oculto que receberá a lista de subcategorias.
  */
 export function renderAccordionPanel(categoriaId) {
-    const isOpen = STATE.expandedCategorias.has(categoriaId);
+    const isOpen = STATE.expandedCategorias.has(categoriaId) || shouldForceOpenAccordion(categoriaId);
     return `
         <div class="cat-subcategorias-panel ${isOpen ? 'is-open' : ''}"
              id="subcat-panel-${categoriaId}"
@@ -176,17 +185,23 @@ function renderSubcategoriasList(categoriaId) {
     if (subs.length === 0) {
         return '<div class="subcat-empty"><i data-lucide="inbox"></i> Nenhuma subcategoria</div>';
     }
-    return subs.map(sub => renderSubcategoriaItem(sub)).join('');
+    const query = (STATE.filterQuery || '').toLowerCase().trim();
+    const orderedSubs = query
+        ? [...subs].sort((a, b) => Number(b.nome.toLowerCase().includes(query)) - Number(a.nome.toLowerCase().includes(query)))
+        : subs;
+
+    return orderedSubs.map(sub => renderSubcategoriaItem(sub, query)).join('');
 }
 
-function renderSubcategoriaItem(sub) {
+function renderSubcategoriaItem(sub, query = '') {
     const icon = sub.icone || 'tag';
     const color = ICON_COLORS[icon] || '#94a3b8';
     const isOwn = !!sub.user_id; // só pode editar/excluir se for do usuário
     const isSeeded = !!sub.is_seeded;
+    const isMatch = Boolean(query && sub.nome.toLowerCase().includes(query));
 
     return `
-        <div class="subcat-item" data-subcat-id="${sub.id}">
+        <div class="subcat-item ${isMatch ? 'match-highlight' : ''}" data-subcat-id="${sub.id}">
             <div class="subcat-item-icon" style="color:${color}">
                 <i data-lucide="${icon}"></i>
             </div>

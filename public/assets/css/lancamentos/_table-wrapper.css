@@ -22,6 +22,48 @@
   flex-wrap: wrap;
 }
 
+.lk-table-context {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0.85rem var(--spacing-5);
+  border-bottom: 1px solid var(--glass-border);
+  background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+  flex-wrap: wrap;
+}
+
+.lk-table-context-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: var(--color-text);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.lk-context-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full, 999px);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.lk-context-badge.warning {
+  background: color-mix(in srgb, var(--color-warning) 14%, transparent);
+  color: var(--color-warning);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 25%, transparent);
+}
+
+.lk-selection-hint {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
 .info-group {
   display: flex;
   align-items: center;
@@ -65,7 +107,79 @@
   box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
 }
 
+.icon-btn:disabled {
+  cursor: wait;
+  opacity: 0.75;
+}
+
+.icon-btn:disabled:hover {
+  transform: none;
+}
+
 .lan-table-container {
   padding: var(--spacing-4);
+}
+
+.lk-empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.lk-empty-icon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 1.5rem;
+  background: var(--color-primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lk-empty-title {
+  color: var(--color-text);
+  margin-bottom: 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.lk-empty-description {
+  color: var(--color-text-muted);
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.lk-empty-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.lk-empty-secondary-btn {
+  min-height: 44px;
+  padding: 0.75rem 1.15rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--color-text);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.lk-empty-secondary-btn:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
+.lk-list-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+  color: var(--color-text-muted);
 }
 

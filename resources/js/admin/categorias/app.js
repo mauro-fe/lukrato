@@ -41,6 +41,7 @@ async function loadCategorias() {
         }
 
         const result = await response.json();
+        STATE.lastLoadError = null;
 
         // Processar resposta
         if (result.success && result.data) {
@@ -63,9 +64,11 @@ async function loadCategorias() {
         }
 
         // Não renderizar aqui — loadAll() faz após ambas cargas
+        return true;
     } catch (error) {
         console.error('❌ Erro ao carregar categorias:', error);
-        showError('Erro ao carregar categorias. Tente novamente.');
+        STATE.lastLoadError = 'Erro ao carregar categorias. Tente novamente.';
+        return false;
     }
 }
 
@@ -77,26 +80,36 @@ async function loadOrcamentos() {
         const mes = STATE.mesSelecionado;
         const ano = STATE.anoSelecionado;
         const response = await fetch(`${CONFIG.API_URL}financas/orcamentos?mes=${mes}&ano=${ano}`);
-        if (!response.ok) return;
+        if (!response.ok) return false;
         const result = await response.json();
         if (result.success !== false && Array.isArray(result.data)) {
             STATE.orcamentos = result.data;
         }
+        return true;
     } catch (e) {
         console.error('Erro ao carregar orçamentos:', e);
+        return false;
     }
 }
 
 /**
  * Carregar tudo em paralelo
  */
-async function loadAll() {
+async function loadAll(options = {}) {
+    const { showErrorToast = false } = options;
     const page = document.querySelector('.cat-page');
     const isFirstLoad = page && !page.classList.contains('is-ready');
+    STATE.isLoading = true;
+    updateRefreshButtons();
 
-    await Promise.all([loadCategorias(), loadOrcamentos()]);
+    const [categoriasOk] = await Promise.all([loadCategorias(), loadOrcamentos()]);
+    STATE.isLoading = false;
     renderCategorias();
     SubcategoriasModule.initSubcategoriaEvents();
+
+    if (!categoriasOk && showErrorToast && STATE.lastLoadError) {
+        showError(STATE.lastLoadError);
+    }
 
     // Na primeira carga, revela a página (remove visibility:hidden)
     if (isFirstLoad && page) {
@@ -119,6 +132,233 @@ setTimeout(() => {
  */
 function getOrcamento(categoriaId) {
     return STATE.orcamentos.find(o => Number(o.categoria_id) === Number(categoriaId)) || null;
+}
+
+function getQueryValue() {
+    return (STATE.filterQuery || '').toLowerCase().trim();
+}
+
+function getMonthReferenceLabel() {
+    const baseDate = new Date(STATE.anoSelecionado, Math.max(0, STATE.mesSelecionado - 1), 1);
+    const label = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(baseDate);
+    return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+function getCategoriasByType(tipo) {
+    return STATE.categorias.filter(cat => cat.tipo === tipo || cat.tipo === 'ambas');
+}
+
+function buildSearchMatches(query) {
+    if (!query) return {};
+
+    return STATE.categorias.reduce((acc, cat) => {
+        const nome = String(cat.nome || '').toLowerCase();
+        const subs = STATE.subcategoriasCache[cat.id] || cat.subcategorias || [];
+        const subMatches = subs
+            .filter(sub => String(sub.nome || '').toLowerCase().includes(query))
+            .map(sub => sub.nome);
+        const categoryMatch = nome.includes(query);
+
+        if (categoryMatch || subMatches.length) {
+            acc[cat.id] = {
+                categoryMatch,
+                subMatches,
+            };
+        }
+
+        return acc;
+    }, {});
+}
+
+function countAllSubcategorias() {
+    return STATE.categorias.reduce((total, cat) => {
+        const subs = STATE.subcategoriasCache[cat.id] || cat.subcategorias || [];
+        return total + subs.length;
+    }, 0);
+}
+
+function getBudgetedCategoryCount() {
+    return new Set(
+        STATE.orcamentos
+            .map(item => Number(item.categoria_id))
+            .filter(id => Number.isFinite(id) && id > 0)
+    ).size;
+}
+
+function renderContextChip(label, tone = 'default') {
+    return `<span class="cat-context-chip ${tone}">${escapeHtml(label)}</span>`;
+}
+
+function updateFilterSummary({ query, visibleCount, totalCount }) {
+    const summary = document.getElementById('catFilterSummary');
+    if (!summary) return;
+
+    if (STATE.lastLoadError && totalCount === 0) {
+        summary.innerHTML = `
+            <div class="cat-filter-summary-content error">
+                <i data-lucide="triangle-alert"></i>
+                <span>${escapeHtml(STATE.lastLoadError)}</span>
+            </div>
+        `;
+        return;
+    }
+
+    if (!query) {
+        summary.innerHTML = `
+            <div class="cat-filter-summary-content">
+                <i data-lucide="info"></i>
+                <span>As ações de reordenação valem para categorias criadas por você. Os limites mensais seguem ${escapeHtml(getMonthReferenceLabel())}.</span>
+            </div>
+        `;
+        return;
+    }
+
+    const matchSourceCount = Object.values(STATE.searchMatches).filter(meta => meta.subMatches?.length > 0).length;
+    summary.innerHTML = `
+        <div class="cat-filter-summary-content">
+            <i data-lucide="search-check"></i>
+            <span>Mostrando ${visibleCount} de ${totalCount} categorias para "${escapeHtml(STATE.filterQuery.trim())}". ${matchSourceCount > 0 ? 'Cards com match em subcategoria são abertos automaticamente.' : ''}</span>
+        </div>
+    `;
+}
+
+function updateContextCard({ receitas, despesas, receitasTotal, despesasTotal }) {
+    const totalCategorias = STATE.categorias.length;
+    const visibleCount = new Set([...receitas, ...despesas].map(cat => cat.id)).size;
+    const query = STATE.filterQuery.trim();
+    const defaultCount = STATE.categorias.filter(cat => !cat.user_id).length;
+    const ownCount = STATE.categorias.filter(cat => !!cat.user_id).length;
+
+    const title = document.getElementById('catContextTitle');
+    const description = document.getElementById('catContextDescription');
+    const chips = document.getElementById('catContextChips');
+    const clearSearchButton = document.getElementById('catClearSearchButton');
+    const refreshButton = document.getElementById('catRefreshButton');
+
+    if (title) {
+        title.textContent = query
+            ? `${visibleCount} resultado(s) para "${STATE.filterQuery.trim()}"`
+            : `${totalCategorias} categorias para organizar receitas e despesas`;
+    }
+
+    if (description) {
+        if (STATE.lastLoadError && totalCategorias === 0) {
+            description.textContent = STATE.lastLoadError;
+        } else if (query) {
+            description.textContent = 'A busca considera nome da categoria e nome da subcategoria, com destaque automático nos matches.';
+        } else {
+            description.textContent = `Os limites mensais e o gasto atual exibidos abaixo consideram ${getMonthReferenceLabel()}.`;
+        }
+    }
+
+    if (chips) {
+        const contextualChips = [
+            renderContextChip(`Orçamentos: ${getMonthReferenceLabel()}`, 'info'),
+            renderContextChip(`Receitas ${receitas.length}/${receitasTotal}`, 'success'),
+            renderContextChip(`Despesas ${despesas.length}/${despesasTotal}`, 'danger'),
+        ];
+
+        if (defaultCount > 0) {
+            contextualChips.push(renderContextChip(`${defaultCount} padrão`, 'neutral'));
+        }
+
+        if (query) {
+            contextualChips.push(renderContextChip(`Busca: ${STATE.filterQuery.trim()}`, 'accent'));
+        }
+
+        if (STATE.filterQuery.trim()) {
+            contextualChips.push(renderContextChip('Reordenação pausada durante a busca', 'warning'));
+        }
+
+        chips.innerHTML = contextualChips.join('');
+    }
+
+    if (clearSearchButton) {
+        clearSearchButton.classList.toggle('d-none', !query);
+    }
+
+    if (refreshButton) {
+        refreshButton.classList.toggle('is-busy', STATE.isRefreshing || STATE.isLoading);
+    }
+
+    document.getElementById('catTotalCount').textContent = totalCategorias;
+    document.getElementById('catOwnCount').textContent = ownCount;
+    document.getElementById('catSubCount').textContent = countAllSubcategorias();
+    document.getElementById('catBudgetCount').textContent = getBudgetedCategoryCount();
+}
+
+function updateRefreshButtons() {
+    const isBusy = STATE.isRefreshing || STATE.isLoading;
+    const topButton = document.getElementById('catRefreshButton');
+
+    document.querySelectorAll('[data-action="refresh-categorias"]').forEach(button => {
+        button.disabled = isBusy;
+        button.classList.toggle('is-busy', isBusy);
+    });
+
+    if (topButton) {
+        const label = topButton.querySelector('span');
+        if (label) {
+            label.textContent = isBusy ? 'Atualizando...' : 'Atualizar dados';
+        }
+    }
+}
+
+function renderListState({ tipoLabel, totalCount, query }) {
+    if (STATE.lastLoadError && STATE.categorias.length === 0) {
+        return `
+            <div class="category-state error">
+                <i data-lucide="triangle-alert"></i>
+                <p>${escapeHtml(STATE.lastLoadError)}</p>
+                <button type="button" class="category-state-btn" data-action="refresh-categorias">Tentar novamente</button>
+            </div>
+        `;
+    }
+
+    if (query) {
+        return `
+            <div class="category-state empty">
+                <i data-lucide="search-x"></i>
+                <p>Nenhuma categoria de ${escapeHtml(tipoLabel)} corresponde à busca atual.</p>
+                <button type="button" class="category-state-btn" data-action="clear-categoria-search">Limpar busca</button>
+            </div>
+        `;
+    }
+
+    if (totalCount === 0) {
+        return `
+            <div class="category-state empty">
+                <i data-lucide="inbox"></i>
+                <p>Nenhuma categoria de ${escapeHtml(tipoLabel)} cadastrada.</p>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="category-state empty">
+            <i data-lucide="inbox"></i>
+            <p>Nenhuma categoria de ${escapeHtml(tipoLabel)} disponível neste momento.</p>
+        </div>
+    `;
+}
+
+async function parseApiFailure(response, fallbackMessage) {
+    const payload = await response.json().catch(() => null);
+    const validationMessage = payload?.errors && typeof payload.errors === 'object'
+        ? Object.values(payload.errors).reduce((found, value) => {
+            if (found) return found;
+            if (typeof value === 'string' && value.trim()) return value;
+            if (Array.isArray(value)) {
+                return value.find(item => typeof item === 'string' && item.trim()) || null;
+            }
+            return null;
+        }, null)
+        : null;
+
+    return {
+        payload,
+        message: validationMessage || payload?.message || fallbackMessage,
+    };
 }
 
 /**
@@ -164,42 +404,46 @@ function showError(message) {
  * Renderizar categorias na tela
  */
 function renderCategorias() {
-    const q = (STATE.filterQuery || '').toLowerCase().trim();
+    const q = getQueryValue();
+    STATE.searchMatches = buildSearchMatches(q);
 
-    let receitas = STATE.categorias.filter(c => c.tipo === 'receita' || c.tipo === 'ambas');
-    let despesas = STATE.categorias.filter(c => c.tipo === 'despesa' || c.tipo === 'ambas');
+    const receitasTotal = getCategoriasByType('receita');
+    const despesasTotal = getCategoriasByType('despesa');
+    const receitas = filterCategoriasWithQuery(receitasTotal, q);
+    const despesas = filterCategoriasWithQuery(despesasTotal, q);
 
-    // Aplicar filtro de busca
-    if (q) {
-        receitas = filterCategoriasWithQuery(receitas, q);
-        despesas = filterCategoriasWithQuery(despesas, q);
-    }
-
-    // Atualizar contadores
     document.getElementById('receitasCount').textContent = receitas.length;
     document.getElementById('despesasCount').textContent = despesas.length;
+    document.getElementById('receitasTotalCount').textContent = receitasTotal.length;
+    document.getElementById('despesasTotalCount').textContent = despesasTotal.length;
 
-    // Preparar HTML antes de inserir no DOM (evita flash de conteúdo sem ícones)
     const receitasContainer = document.getElementById('receitasList');
     const despesasContainer = document.getElementById('despesasList');
 
-    // Construir HTML em memória
     const receitasHtml = receitas.length === 0
-        ? '<div class="empty-state"><i data-lucide="inbox"></i><p>Nenhuma categoria de receita cadastrada</p></div>'
+        ? renderListState({ tipoLabel: 'receita', totalCount: receitasTotal.length, query: q })
         : receitas.map(cat => renderCategoriaItem(cat, 'receita')).join('');
 
     const despesasHtml = despesas.length === 0
-        ? '<div class="empty-state"><i data-lucide="inbox"></i><p>Nenhuma categoria de despesa cadastrada</p></div>'
+        ? renderListState({ tipoLabel: 'despesa', totalCount: despesasTotal.length, query: q })
         : despesas.map(cat => renderCategoriaItem(cat, 'despesa')).join('');
 
-    // Inserir tudo no DOM de uma vez
     receitasContainer.innerHTML = receitasHtml;
     despesasContainer.innerHTML = despesasHtml;
+    updateContextCard({
+        receitas,
+        despesas,
+        receitasTotal: receitasTotal.length,
+        despesasTotal: despesasTotal.length,
+    });
+    updateFilterSummary({
+        query: q,
+        visibleCount: new Set([...receitas, ...despesas].map(cat => cat.id)).size,
+        totalCount: STATE.categorias.length,
+    });
+    updateRefreshButtons();
 
-    // Atualizar sugestões (marca as já existentes)
     renderSuggestions();
-
-    // Processar ícones Lucide APENAS nos elementos <i> não processados
     Utils.processNewIcons();
 }
 
@@ -208,19 +452,22 @@ function renderCategorias() {
  * Retorna categorias cujo nome ou subcategorias contenham a query.
  */
 function filterCategoriasWithQuery(categorias, query) {
-    return categorias.filter(cat => {
-        const nameMatch = cat.nome.toLowerCase().includes(query);
-        if (nameMatch) return true;
-        // Verificar subcategorias no cache
-        const subs = STATE.subcategoriasCache[cat.id] || cat.subcategorias || [];
-        return subs.some(sub => sub.nome.toLowerCase().includes(query));
-    });
+    if (!query) return categorias;
+    return categorias.filter(cat => Boolean(STATE.searchMatches[cat.id]));
 }
 
 /**
  * Renderizar item de categoria como card
  */
 function renderCategoriaItem(categoria, tipo) {
+    const query = getQueryValue();
+    const searchMeta = STATE.searchMatches[categoria.id] || { categoryMatch: false, subMatches: [] };
+    const isSearchExpanded = Boolean(query && searchMeta.subMatches?.length);
+    const isExpanded = STATE.expandedCategorias.has(categoria.id) || isSearchExpanded;
+    const isCustom = Boolean(categoria.user_id);
+    const canManage = isCustom && !categoria.is_seeded;
+    const canReorder = canManage && !query;
+
     // Remover emoji se presente no nome (legacy)
     const displayName = categoria.nome.replace(/[\u{1F300}-\u{1F9FF}]\s*/gu, '').trim() || categoria.nome;
 
@@ -257,24 +504,61 @@ function renderCategoriaItem(categoria, tipo) {
 
     // Preview chips de subcategorias (mostrar até 3 quando fechado)
     const subs = STATE.subcategoriasCache[categoria.id] || categoria.subcategorias || [];
-    const isExpanded = STATE.expandedCategorias.has(categoria.id);
+    const previewSource = searchMeta.subMatches?.length
+        ? [...subs].sort((a, b) => Number(b.nome.toLowerCase().includes(query)) - Number(a.nome.toLowerCase().includes(query)))
+        : subs;
     let previewHtml = '';
     if (!isExpanded && subs.length > 0) {
-        const previewSubs = subs.slice(0, 3);
+        const previewSubs = previewSource.slice(0, 3);
         const remaining = subs.length - previewSubs.length;
         previewHtml = `
             <div class="subcat-preview" data-expand-cat="${categoria.id}">
                 ${previewSubs.map(sub => {
             const sIcon = sub.icone || 'tag';
             const sColor = ICON_COLORS[sIcon] || '#94a3b8';
-            return `<span class="subcat-chip" title="${escapeHtml(sub.nome)}"><i data-lucide="${sIcon}" style="color:${sColor}"></i>${escapeHtml(sub.nome)}</span>`;
+            const isMatch = Boolean(query && sub.nome.toLowerCase().includes(query));
+            return `<span class="subcat-chip ${isMatch ? 'match-highlight' : ''}" title="${escapeHtml(sub.nome)}"><i data-lucide="${sIcon}" style="color:${sColor}"></i>${escapeHtml(sub.nome)}</span>`;
         }).join('')}
                 ${remaining > 0 ? `<span class="subcat-chip more">+${remaining}</span>` : ''}
             </div>`;
     }
 
+    const badges = [
+        `<span class="cat-card-badge ${isCustom ? 'own' : 'default'}">${isCustom ? 'Sua' : 'Padrão'}</span>`,
+        searchMeta.subMatches?.length
+            ? `<span class="cat-card-badge search">Match em ${searchMeta.subMatches.length} subcategoria(s)</span>`
+            : '',
+    ].filter(Boolean).join('');
+
+    const actionsHtml = canManage
+        ? `
+            <button type="button" class="cat-card-btn reorder"
+                    onclick="categoriasManager.moveCategoria(${categoria.id}, 'up', '${tipo}')"
+                    title="${query ? 'Limpe a busca para reordenar' : 'Mover para cima'}"
+                    ${canReorder ? '' : 'disabled'}>
+                <i data-lucide="chevron-up"></i>
+            </button>
+            <button type="button" class="cat-card-btn reorder"
+                    onclick="categoriasManager.moveCategoria(${categoria.id}, 'down', '${tipo}')"
+                    title="${query ? 'Limpe a busca para reordenar' : 'Mover para baixo'}"
+                    ${canReorder ? '' : 'disabled'}>
+                <i data-lucide="chevron-down"></i>
+            </button>
+            <button type="button" class="cat-card-btn edit"
+                    onclick="categoriasManager.editarCategoria(${categoria.id})"
+                    title="Editar">
+                <i data-lucide="pen"></i>
+            </button>
+            <button type="button" class="cat-card-btn delete"
+                    onclick="categoriasManager.excluirCategoria(${categoria.id})"
+                    title="Excluir">
+                <i data-lucide="trash-2"></i>
+            </button>
+        `
+        : '<span class="cat-card-static-note">Categoria padrão do sistema</span>';
+
     return `
-        <div class="cat-card ${tipo}" data-id="${categoria.id}">
+        <div class="cat-card ${tipo} ${isCustom ? 'is-custom' : 'is-default'} ${searchMeta.subMatches?.length ? 'match-subcat' : ''}" data-id="${categoria.id}">
             <div class="cat-card-header">
                 <div class="cat-card-main" data-expand-cat="${categoria.id}" role="button" tabindex="0"
                      title="Ver subcategorias">
@@ -285,28 +569,10 @@ function renderCategoriaItem(categoria, tipo) {
                     ${SubcategoriasModule.renderExpandButton(categoria.id)}
                 </div>
                 <div class="cat-card-actions">
-                    <button type="button" class="cat-card-btn reorder" 
-                            onclick="categoriasManager.moveCategoria(${categoria.id}, 'up')"
-                            title="Mover para cima">
-                        <i data-lucide="chevron-up"></i>
-                    </button>
-                    <button type="button" class="cat-card-btn reorder" 
-                            onclick="categoriasManager.moveCategoria(${categoria.id}, 'down')"
-                            title="Mover para baixo">
-                        <i data-lucide="chevron-down"></i>
-                    </button>
-                    <button type="button" class="cat-card-btn edit" 
-                            onclick="categoriasManager.editarCategoria(${categoria.id})"
-                            title="Editar">
-                        <i data-lucide="pen"></i>
-                    </button>
-                    ${!categoria.is_seeded ? `<button type="button" class="cat-card-btn delete" 
-                            onclick="categoriasManager.excluirCategoria(${categoria.id})"
-                            title="Excluir">
-                        <i data-lucide="trash-2"></i>
-                    </button>` : ''}
+                    ${actionsHtml}
                 </div>
             </div>
+            <div class="cat-card-meta">${badges}</div>
             ${previewHtml}
             ${budgetHtml}
             ${SubcategoriasModule.renderAccordionPanel(categoria.id)}
@@ -349,7 +615,7 @@ function renderSuggestions() {
 
     // Verificar quais já existem
     const existingNames = STATE.categorias
-        .filter(c => c.tipo === tipo)
+        .filter(c => c.tipo === tipo || c.tipo === 'ambas')
         .map(c => c.nome.toLowerCase());
 
     container.innerHTML = items.map(item => {
@@ -638,39 +904,103 @@ function filterEditIcons(query) {
 // REORDER — Move categorias up/down
 // =========================================================================
 
-async function moveCategoria(categoriaId, direction) {
-    const tipo = STATE.categorias.find(c => c.id === categoriaId)?.tipo;
-    if (!tipo) return;
+function setButtonBusy(button, isBusy, busyLabel = 'Salvando...') {
+    if (!button) return;
 
-    const listId = tipo === 'receita' ? 'receitasList' : 'despesasList';
-    const container = document.getElementById(listId);
-    if (!container) return;
-
-    const cards = [...container.querySelectorAll('.cat-card[data-id]')];
-    const idx = cards.findIndex(c => Number(c.dataset.id) === categoriaId);
-    if (idx < 0) return;
-    if (direction === 'up' && idx === 0) return;
-    if (direction === 'down' && idx === cards.length - 1) return;
-
-    // Swap in DOM for immediate feedback
-    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
-    if (direction === 'up') {
-        container.insertBefore(cards[idx], cards[swapIdx]);
-    } else {
-        container.insertBefore(cards[swapIdx], cards[idx]);
+    if (isBusy) {
+        if (!button.dataset.originalHtml) {
+            button.dataset.originalHtml = button.innerHTML;
+        }
+        button.disabled = true;
+        button.classList.add('is-busy');
+        button.innerHTML = `<i data-lucide="loader-circle"></i><span>${busyLabel}</span>`;
+        Utils.processNewIcons();
+        return;
     }
 
-    // Collect new order of IDs
-    const newIds = [...container.querySelectorAll('.cat-card[data-id]')].map(c => Number(c.dataset.id));
+    button.disabled = false;
+    button.classList.remove('is-busy');
+    if (button.dataset.originalHtml) {
+        button.innerHTML = button.dataset.originalHtml;
+    }
+    Utils.processNewIcons();
+}
 
-    // API call (best-effort, non-blocking)
+function clearSearch() {
+    const searchInput = document.getElementById('catSearchInput');
+    const searchClear = document.getElementById('catSearchClear');
+
+    if (searchInput) searchInput.value = '';
+    STATE.filterQuery = '';
+    if (searchClear) searchClear.classList.add('d-none');
+    renderCategorias();
+    SubcategoriasModule.initSubcategoriaEvents();
+}
+
+function resolveAppUrl(path) {
+    if (!path) return CONFIG.BASE_URL;
+    if (/^https?:\/\//i.test(path)) return path;
+    return `${CONFIG.BASE_URL}${String(path).replace(/^\/+/, '')}`;
+}
+
+async function refreshCategorias(options = {}) {
+    const { silent = false } = options;
+
+    if (STATE.isRefreshing || STATE.isLoading) return;
+
+    STATE.isRefreshing = true;
+    updateRefreshButtons();
+
     try {
-        await fetch(`${CONFIG.API_URL}categorias/reorder`, {
+        await loadAll({ showErrorToast: !silent });
+        if (!silent && !STATE.lastLoadError) {
+            showSuccess('Categorias atualizadas.');
+        }
+    } finally {
+        STATE.isRefreshing = false;
+        updateRefreshButtons();
+    }
+}
+
+async function moveCategoria(categoriaId, direction, bucketType = 'despesa') {
+    const categoria = STATE.categorias.find(c => c.id === categoriaId);
+    if (!categoria || !categoria.user_id || categoria.is_seeded) return;
+
+    if (getQueryValue()) {
+        toastError('Limpe a busca para reordenar categorias.');
+        return;
+    }
+
+    const orderedIds = STATE.categorias
+        .filter(cat => (cat.tipo === bucketType || cat.tipo === 'ambas') && cat.user_id && !cat.is_seeded)
+        .map(cat => Number(cat.id));
+
+    const idx = orderedIds.indexOf(Number(categoriaId));
+    if (idx < 0) return;
+    if (direction === 'up' && idx === 0) return;
+    if (direction === 'down' && idx === orderedIds.length - 1) return;
+
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    [orderedIds[idx], orderedIds[swapIdx]] = [orderedIds[swapIdx], orderedIds[idx]];
+
+    try {
+        const response = await fetch(`${CONFIG.API_URL}categorias/reorder`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': Utils.getCsrfToken() },
-            body: JSON.stringify({ ids: newIds }),
+            body: JSON.stringify({ ids: orderedIds }),
         });
-    } catch { /* silent fail — order persists on next reload */ }
+
+        if (!response.ok) {
+            const error = await parseApiFailure(response, 'Erro ao reordenar categorias.');
+            throw new Error(error.message);
+        }
+
+        await loadCategorias();
+        renderCategorias();
+        SubcategoriasModule.initSubcategoriaEvents();
+    } catch (error) {
+        toastError(error.message || 'Erro ao reordenar categorias.');
+    }
 }
 
 // =========================================================================
@@ -702,7 +1032,9 @@ function resetCreateForm() {
  * Criar nova categoria
  */
 async function handleNovaCategoria(form) {
+    const submitButton = form.querySelector('button[type="submit"]');
     try {
+        setButtonBusy(submitButton, true, 'Adicionando...');
         const formData = new FormData(form);
         const data = {
             nome: formData.get('nome'),
@@ -720,8 +1052,26 @@ async function handleNovaCategoria(form) {
         });
 
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Erro ao criar categoria');
+            const error = await parseApiFailure(response, 'Erro ao criar categoria.');
+            const limitInfo = error.payload?.errors;
+
+            if (response.status === 403 && limitInfo?.limit_reached && typeof Swal !== 'undefined') {
+                const decision = await Swal.fire({
+                    icon: 'info',
+                    title: 'Limite do plano atingido',
+                    text: error.message,
+                    showCancelButton: true,
+                    confirmButtonText: 'Ver planos',
+                    cancelButtonText: 'Fechar',
+                });
+
+                if (decision.isConfirmed && limitInfo.upgrade_url) {
+                    window.location.href = resolveAppUrl(limitInfo.upgrade_url);
+                }
+                return;
+            }
+
+            throw new Error(error.message);
         }
 
         const result = await response.json();
@@ -737,12 +1087,13 @@ async function handleNovaCategoria(form) {
         form.reset();
         resetCreateForm();
 
-        // Recarregar tudo
         await loadAll();
 
     } catch (error) {
         console.error('❌ Erro ao criar categoria:', error);
         showError(error.message || 'Erro ao criar categoria. Tente novamente.');
+    } finally {
+        setButtonBusy(submitButton, false);
     }
 }
 
@@ -751,7 +1102,7 @@ async function handleNovaCategoria(form) {
  */
 function editarCategoria(id) {
     const categoria = STATE.categorias.find(c => c.id === id);
-    if (!categoria) return;
+    if (!categoria || !categoria.user_id || categoria.is_seeded) return;
 
     STATE.categoriaEmEdicao = categoria;
 
@@ -784,7 +1135,9 @@ function editarCategoria(id) {
 async function handleEditarCategoria(form) {
     if (!STATE.categoriaEmEdicao) return;
 
+    const submitButton = form.querySelector('button[type="submit"]') || document.querySelector('[form="formEditCategoria"]');
     try {
+        setButtonBusy(submitButton, true, 'Salvando...');
         const formData = new FormData(form);
         const data = {
             nome: formData.get('nome'),
@@ -802,11 +1155,11 @@ async function handleEditarCategoria(form) {
         });
 
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Erro ao editar categoria');
+            const error = await parseApiFailure(response, 'Erro ao editar categoria.');
+            throw new Error(error.message);
         }
 
-        const result = await response.json();
+        await response.json();
 
         showSuccess('Categoria atualizada com sucesso!');
 
@@ -820,6 +1173,8 @@ async function handleEditarCategoria(form) {
     } catch (error) {
         console.error('❌ Erro ao editar categoria:', error);
         showError(error.message || 'Erro ao editar categoria. Tente novamente.');
+    } finally {
+        setButtonBusy(submitButton, false);
     }
 }
 
@@ -828,7 +1183,7 @@ async function handleEditarCategoria(form) {
  */
 async function excluirCategoria(id) {
     const categoria = STATE.categorias.find(c => c.id === id);
-    if (!categoria) return;
+    if (!categoria || !categoria.user_id || categoria.is_seeded) return;
 
     const confirmacao = await Swal.fire({
         title: 'Confirmar exclusão',
@@ -849,12 +1204,50 @@ async function excluirCategoria(id) {
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-Token': Utils.getCsrfToken()
-            }
+            },
+            body: JSON.stringify({})
         });
 
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Erro ao excluir categoria');
+            const error = await parseApiFailure(response, 'Erro ao excluir categoria.');
+
+            if (response.status === 422 && error.payload?.errors?.confirm_delete) {
+                const counts = error.payload.errors.counts || {};
+                const forceDelete = await Swal.fire({
+                    title: 'Categoria com vínculos',
+                    html: `
+                        <p>Esta categoria ainda possui itens vinculados.</p>
+                        <ul class="swal2-html-container" style="text-align:left; margin:1rem 0 0;">
+                            <li>${counts.subcategorias || 0} subcategoria(s)</li>
+                            <li>${counts.lancamentos || 0} lançamento(s)</li>
+                        </ul>
+                        <p>Se continuar, as subcategorias serão removidas e os lançamentos ficarão sem categoria.</p>
+                    `,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    confirmButtonText: 'Excluir mesmo assim',
+                    cancelButtonText: 'Cancelar'
+                });
+
+                if (!forceDelete.isConfirmed) return;
+
+                const forcedResponse = await fetch(`${CONFIG.API_URL}categorias/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': Utils.getCsrfToken()
+                    },
+                    body: JSON.stringify({ force: true })
+                });
+
+                if (!forcedResponse.ok) {
+                    const forcedError = await parseApiFailure(forcedResponse, 'Erro ao excluir categoria.');
+                    throw new Error(forcedError.message);
+                }
+            } else {
+                throw new Error(error.message);
+            }
         }
 
         showSuccess('Categoria excluída com sucesso!');
@@ -1084,6 +1477,22 @@ export const EventListeners = {
         renderSuggestions();
         Utils.processNewIcons();
 
+        document.addEventListener('click', (e) => {
+            const actionTarget = e.target.closest('[data-action]');
+            if (!actionTarget || !actionTarget.closest('.cat-page')) return;
+
+            const action = actionTarget.dataset.action;
+            if (action === 'refresh-categorias') {
+                e.preventDefault();
+                refreshCategorias();
+            }
+
+            if (action === 'clear-categoria-search') {
+                e.preventDefault();
+                clearSearch();
+            }
+        });
+
         // ── Search / Filter ──────────────────────────────────────────────
         const searchInput = document.getElementById('catSearchInput');
         const searchClear = document.getElementById('catSearchClear');
@@ -1103,11 +1512,7 @@ export const EventListeners = {
 
         if (searchClear) {
             searchClear.addEventListener('click', () => {
-                if (searchInput) searchInput.value = '';
-                STATE.filterQuery = '';
-                searchClear.classList.add('d-none');
-                renderCategorias();
-                SubcategoriasModule.initSubcategoriaEvents();
+                clearSearch();
             });
         }
 
@@ -1140,6 +1545,7 @@ export const CategoriasManager = {
     excluirCategoria,
     editarOrcamento,
     moveCategoria,
+    refreshCategorias,
 
     // Expose for programmatic access
     loadAll,

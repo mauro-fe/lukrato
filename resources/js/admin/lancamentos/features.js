@@ -98,6 +98,95 @@ export const ExportManager = {
 };
 
 // ============================================================================
+// FILTROS E CONTEXTO DA LISTA
+// ============================================================================
+
+export const ListFilters = {
+    collect() {
+        const startDate = Utils.getTrimmedDateValue(DOM.filtroDataInicio);
+        const endDate = Utils.getTrimmedDateValue(DOM.filtroDataFim);
+        const hasCustomPeriod = Boolean(startDate && endDate);
+
+        return {
+            month: hasCustomPeriod ? '' : Utils.getCurrentMonth(),
+            tipo: DOM.selectTipo?.value || '',
+            categoria: DOM.selectCategoria?.value || '',
+            conta: DOM.selectConta?.value || '',
+            search: (DOM.filtroTexto?.value || '').trim(),
+            status: DOM.filtroStatus?.value || '',
+            startDate,
+            endDate,
+            hasCustomPeriod
+        };
+    },
+
+    hasIncompletePeriod() {
+        const startDate = Utils.getTrimmedDateValue(DOM.filtroDataInicio);
+        const endDate = Utils.getTrimmedDateValue(DOM.filtroDataFim);
+        return Boolean((startDate && !endDate) || (!startDate && endDate));
+    }
+};
+
+export const ListContext = {
+    setRefreshLoading(isLoading) {
+        if (!DOM.btnRefreshPage) return;
+
+        DOM.btnRefreshPage.disabled = isLoading;
+        DOM.btnRefreshPage.innerHTML = isLoading
+            ? '<i data-lucide="loader-2" class="icon-spin"></i>'
+            : '<i data-lucide="refresh-cw"></i>';
+
+        if (window.lucide) lucide.createIcons();
+    },
+
+    update({ loading = STATE.isLoading } = {}) {
+        const textEl = DOM.lancamentosContextText;
+        const limitEl = DOM.lancamentosLimitNotice;
+        const hintEl = DOM.selectionScopeHint;
+        if (!textEl) return;
+
+        const draftPeriod = ListFilters.hasIncompletePeriod();
+        const filters = STATE.lastAppliedFilters || ListFilters.collect();
+        const periodLabel = Utils.getAppliedPeriodLabel(filters);
+        const total = STATE.filteredData.length;
+        const activeFilters = Utils.countAppliedListFilters(filters);
+
+        if (loading && total === 0) {
+            textEl.textContent = 'Carregando lançamentos...';
+        } else if (loading) {
+            textEl.textContent = `Atualizando lista de ${periodLabel}...`;
+        } else if (draftPeriod) {
+            textEl.textContent = `Complete a data inicial e final para aplicar um período personalizado. Exibindo ${periodLabel}.`;
+        } else {
+            const label = total === 1 ? 'lançamento' : 'lançamentos';
+            const filterSuffix = activeFilters > 0
+                ? ` • ${activeFilters} filtro${activeFilters > 1 ? 's' : ''} ativo${activeFilters > 1 ? 's' : ''}`
+                : '';
+            textEl.textContent = `${total} ${label} em ${periodLabel}${filterSuffix}`;
+        }
+
+        if (limitEl) {
+            const showLimit = !loading && STATE.isDataLimitWarning;
+            limitEl.style.display = showLimit ? 'inline-flex' : 'none';
+            if (showLimit) {
+                limitEl.textContent = `Exibindo até ${CONFIG.DATA_LIMIT} resultados. Refine os filtros para ver tudo.`;
+            }
+        }
+
+        if (hintEl) {
+            const selectedCount = STATE.selectedIds?.size || 0;
+            hintEl.textContent = selectedCount > 0
+                ? `${selectedCount} item${selectedCount > 1 ? 's' : ''} selecionado${selectedCount > 1 ? 's' : ''} nesta página.`
+                : 'Seleção em massa vale só para a página atual.';
+        }
+
+        this.setRefreshLoading(loading);
+    }
+};
+
+Modules.ListContext = ListContext;
+
+// ============================================================================
 // BADGES DE FILTROS ATIVOS
 // ============================================================================
 
@@ -119,6 +208,8 @@ export const FilterBadges = {
         const conta = DOM.selectConta?.selectedOptions?.[0]?.textContent || '';
         const contaVal = DOM.selectConta?.value || '';
         const status = DOM.filtroStatus?.value || '';
+        const startDate = Utils.getTrimmedDateValue(DOM.filtroDataInicio);
+        const endDate = Utils.getTrimmedDateValue(DOM.filtroDataFim);
 
         if (searchText) badges.push({ label: `Busca: "${searchText}"`, field: 'texto' });
         if (tipo) badges.push({ label: `Tipo: ${tipo === 'receita' ? 'Receita' : tipo === 'despesa' ? 'Despesa' : tipo}`, field: 'tipo' });
@@ -126,6 +217,7 @@ export const FilterBadges = {
         if (categoriaVal === 'none') badges.push({ label: 'Sem categoria', field: 'categoria' });
         if (contaVal) badges.push({ label: `Conta: ${conta}`, field: 'conta' });
         if (status) badges.push({ label: `Status: ${status === 'pago' ? 'Pago' : 'Pendente'}`, field: 'status' });
+        if (startDate && endDate) badges.push({ label: `Período: ${Utils.formatDateRangeLabel(startDate, endDate)}`, field: 'periodo' });
 
         if (!badges.length) {
             container.style.display = 'none';
@@ -147,6 +239,10 @@ export const FilterBadges = {
                 if (field === 'categoria' && DOM.selectCategoria) DOM.selectCategoria.value = '';
                 if (field === 'conta' && DOM.selectConta) DOM.selectConta.value = '';
                 if (field === 'status' && DOM.filtroStatus) DOM.filtroStatus.value = '';
+                if (field === 'periodo') {
+                    if (DOM.filtroDataInicio) DOM.filtroDataInicio.value = '';
+                    if (DOM.filtroDataFim) DOM.filtroDataFim.value = '';
+                }
                 document.dispatchEvent(new CustomEvent('lk:custom-select-sync'));
                 DataManager.load();
             });
@@ -159,35 +255,102 @@ export const FilterBadges = {
 // ============================================================================
 
 export const DataManager = {
-    load: async () => {
+    load: async (options = {}) => {
+        const { immediate = false, preservePage = false, showToast = false } = options;
         clearTimeout(STATE.loadTimer);
-        STATE.loadTimer = setTimeout(async () => {
-            const month = Utils.getCurrentMonth();
-            const tipo = DOM.selectTipo ? DOM.selectTipo.value : '';
-            const categoria = DOM.selectCategoria ? DOM.selectCategoria.value : '';
-            const conta = DOM.selectConta ? DOM.selectConta.value : '';
+        const execute = async () => {
+            const filters = ListFilters.collect();
+            STATE.lastAppliedFilters = filters;
+            Modules.FilterBadges.update();
 
-            // Clear table while loading
-            Modules.TableManager.renderRows([]);
+            if (ListFilters.hasIncompletePeriod()) {
+                ListContext.update();
+                if (showToast) {
+                    Notifications.toast('Informe a data inicial e final para usar período personalizado.', 'info');
+                }
+                return;
+            }
 
-            // Limpa cards enquanto carrega
-            Modules.MobileCards.setItems([]);
+            if (filters.startDate && filters.endDate && filters.endDate < filters.startDate) {
+                ListContext.update();
+                Notifications.toast('A data final deve ser posterior ou igual à inicial.', 'error');
+                return;
+            }
 
-            const items = await Modules.API.fetchLancamentos({
-                month,
-                tipo,
-                categoria,
-                conta,
-                limit: CONFIG.DATA_LIMIT
-            });
+            STATE.abortController?.abort?.();
+            STATE.abortController = new AbortController();
+            STATE.isLoading = true;
+            ListContext.update({ loading: true });
 
-            // Armazenar no STATE para uso do ParcelamentoGrouper
-            STATE.lancamentos = items;
+            if (!STATE.allData.length) {
+                Modules.TableManager.renderLoading();
+                Modules.MobileCards.renderLoading();
+            }
 
-            Modules.TableManager.renderRows(items);
-            Modules.MobileCards.setItems(items);
+            const requestId = ++STATE.requestSeq;
 
-        }, CONFIG.DEBOUNCE_DELAY);
+            try {
+                const items = await Modules.API.fetchLancamentos({
+                    month: filters.month,
+                    tipo: filters.tipo,
+                    categoria: filters.categoria,
+                    conta: filters.conta,
+                    search: filters.search,
+                    status: filters.status,
+                    startDate: filters.startDate,
+                    endDate: filters.endDate,
+                    limit: CONFIG.DATA_LIMIT
+                }, {
+                    signal: STATE.abortController.signal
+                });
+
+                if (requestId !== STATE.requestSeq) return;
+
+                STATE.lancamentos = items;
+                STATE.lastFetchCount = items.length;
+                STATE.isDataLimitWarning = items.length >= CONFIG.DATA_LIMIT;
+                STATE.isLoading = false;
+
+                Modules.TableManager.renderRows(items, {
+                    resetPage: !preservePage,
+                    clearSelection: true
+                });
+                Modules.MobileCards.setItems(items, {
+                    resetPage: !preservePage
+                });
+                ListContext.update();
+
+                if (showToast) {
+                    Notifications.toast('Lista atualizada com sucesso!');
+                }
+            } catch (error) {
+                if (error?.name === 'AbortError') return;
+
+                if (requestId !== STATE.requestSeq) return;
+
+                STATE.lancamentos = [];
+                STATE.lastFetchCount = 0;
+                STATE.isDataLimitWarning = false;
+                STATE.isLoading = false;
+
+                Modules.TableManager.renderRows([], {
+                    resetPage: !preservePage,
+                    clearSelection: true
+                });
+                Modules.MobileCards.setItems([], {
+                    resetPage: !preservePage
+                });
+                ListContext.update();
+                Notifications.toast(error?.message || 'Falha ao carregar lançamentos.', 'error');
+            }
+        };
+
+        if (immediate) {
+            await execute();
+            return;
+        }
+
+        STATE.loadTimer = setTimeout(execute, CONFIG.DEBOUNCE_DELAY);
     },
 
     bulkDelete: async () => {
@@ -209,7 +372,7 @@ export const DataManager = {
             Modules.TableManager.clearSelection();
             Notifications.toast('Lançamentos excluídos com sucesso!');
             // Recarrega dados para manter cards em sincronia
-            await DataManager.load();
+            await DataManager.load({ immediate: true });
         } else {
             Notifications.toast('Alguns itens não foram excluídos.', 'error');
         }

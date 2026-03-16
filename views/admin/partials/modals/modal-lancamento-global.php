@@ -20,7 +20,7 @@
             <div class="lk-form-group">
                 <label for="globalContaSelect" class="lk-label required">
                     <i data-lucide="wallet"></i>
-                    Selecione a Conta
+                    <span id="globalContaSelectLabelText">Selecione a Conta</span>
                 </label>
                 <div class="lk-select-wrapper">
                     <select id="globalContaSelect" class="lk-select" required
@@ -29,6 +29,9 @@
                     </select>
                     <i data-lucide="chevron-down" class="lk-select-icon"></i>
                 </div>
+                <small class="lk-helper-text" id="globalContaContextHint">
+                    Escolha a conta para ver saldo e ultimas movimentacoes.
+                </small>
             </div>
 
             <!-- Saldo da Conta Selecionada -->
@@ -49,16 +52,31 @@
 
             <!-- ====== STEP 1: Tipo de Movimentação ====== -->
             <div class="lk-wizard-step active" data-step="1" id="globalStep1">
+                <div class="lk-historico-section">
+                    <h3 class="lk-section-title">
+                        <i data-lucide="history"></i>
+                        Ultimas Movimentacoes
+                    </h3>
+                    <div class="lk-historico-list" id="globalLancamentoHistorico">
+                        <div class="lk-historico-empty">
+                            <i data-lucide="history"></i>
+                            <p>Selecione uma conta para ver as ultimas movimentacoes.</p>
+                        </div>
+                    </div>
+                </div>
                 <div class="lk-wizard-question">
                     <h3>
                         <i data-lucide="list-checks"></i>
                         O que você quer registrar?
                     </h3>
                     <p>Escolha o tipo de movimentação</p>
+                    <small class="lk-helper-text" id="globalTipoContaHint" hidden>
+                        Selecione uma conta para liberar as opcoes de lancamento.
+                    </small>
                 </div>
 
                 <div class="lk-tipo-grid lk-tipo-grid-3">
-                    <button type="button" class="lk-tipo-card lk-tipo-receita"
+                    <button type="button" class="lk-tipo-card lk-tipo-receita" data-requires-account="1"
                         onclick="lancamentoGlobalManager.mostrarFormulario('receita')">
                         <div class="lk-tipo-icon">
                             <i data-lucide="arrow-down"></i>
@@ -68,7 +86,7 @@
                         <div class="lk-tipo-badge">+ Entrada</div>
                     </button>
 
-                    <button type="button" class="lk-tipo-card lk-tipo-despesa"
+                    <button type="button" class="lk-tipo-card lk-tipo-despesa" data-requires-account="1"
                         onclick="lancamentoGlobalManager.mostrarFormulario('despesa')">
                         <div class="lk-tipo-icon">
                             <i data-lucide="arrow-up"></i>
@@ -78,7 +96,7 @@
                         <div class="lk-tipo-badge">- Saída</div>
                     </button>
 
-                    <button type="button" class="lk-tipo-card lk-tipo-transferencia"
+                    <button type="button" class="lk-tipo-card lk-tipo-transferencia" data-requires-account="1"
                         onclick="lancamentoGlobalManager.mostrarFormulario('transferencia')">
                         <div class="lk-tipo-icon">
                             <i data-lucide="arrow-left-right"></i>
@@ -139,6 +157,11 @@
                             </button>
                         </div>
                         <div class="lk-wizard-nav-right">
+                            <button type="button" class="lk-btn-skip" id="globalBtnQuickSave"
+                                onclick="lancamentoGlobalManager.saveQuick()" style="display:none;">
+                                <i data-lucide="zap"></i>
+                                Salvar rápido
+                            </button>
                             <button type="button" class="lk-btn lk-btn-primary" onclick="lancamentoGlobalManager.nextStep()">
                                 Próximo
                                 <i data-lucide="arrow-right"></i>

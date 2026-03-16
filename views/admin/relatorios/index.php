@@ -57,6 +57,20 @@
     </div>
 
     <!-- ==================== TABS DE SEÇÃO (estilo Perfil) ==================== -->
+    <section class="reports-context-card modern-card" id="reportsContextCard" aria-live="polite">
+        <div class="reports-context-copy">
+            <span class="reports-context-kicker" id="reportsContextKicker">Painel consolidado</span>
+            <h2 class="reports-context-title" id="reportsContextTitle">Leia seu mes com contexto</h2>
+            <p class="reports-context-description" id="reportsContextDescription">
+                Veja seu pulso financeiro, identifique sinais importantes e acompanhe a evolucao do periodo em um resumo rapido.
+            </p>
+        </div>
+        <div class="reports-context-side">
+            <div class="reports-context-chips" id="reportsContextChips"></div>
+            <div class="reports-context-actions" id="reportsContextActions"></div>
+        </div>
+    </section>
+
     <nav class="rel-section-tabs" role="tablist" aria-label="Seções de relatórios">
         <button type="button" class="rel-section-tab active" data-section="overview" role="tab" aria-selected="true"
             aria-controls="section-overview">
@@ -255,6 +269,9 @@
         </div>
 
         <!-- Área de Relatório / Gráfico -->
+        <div class="report-filter-summary" id="reportFilterSummary" aria-live="polite"></div>
+        <div class="report-scope-note hidden" id="reportScopeNote" aria-live="polite"></div>
+
         <div class="modern-card report-card">
             <div class="report-area" id="reportArea">
                 <div class="lk-loading-state">

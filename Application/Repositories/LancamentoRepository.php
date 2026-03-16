@@ -481,6 +481,8 @@ class LancamentoRepository extends BaseRepository
      *     categoria_id?: int|null,
      *     categoria_null?: bool,
      *     tipo?: string|null,
+     *     status?: string|null,
+     *     search?: string|null,
      *     limit?: int
      * } $filters
      * @return Collection
@@ -488,9 +490,10 @@ class LancamentoRepository extends BaseRepository
     public function findByFilters(int $userId, string $startDate, string $endDate, array $filters = []): Collection
     {
         $limit = min((int) ($filters['limit'] ?? 500), 1000);
+        $search = trim((string) ($filters['search'] ?? ''));
 
         return $this->query()
-            ->with(['categoria', 'conta', 'cartaoCredito', 'parcelamento:id,numero_parcelas,parcelas_pagas,status'])
+            ->with(['categoria', 'subcategoria', 'conta', 'cartaoCredito', 'parcelamento:id,numero_parcelas,parcelas_pagas,status'])
             ->where('user_id', $userId)
             ->whereBetween('data', [$startDate, $endDate])
             ->when($filters['account_id'] ?? null, function ($q, $accId) {
@@ -502,6 +505,46 @@ class LancamentoRepository extends BaseRepository
             ->when($filters['categoria_null'] ?? false, fn($q) => $q->whereNull('categoria_id'))
             ->when($filters['categoria_id'] ?? null, fn($q, $catId) => $q->where('categoria_id', $catId))
             ->when($filters['tipo'] ?? null, fn($q, $tipo) => $q->where('tipo', $tipo))
+            ->when($filters['status'] ?? null, function ($q, $status) {
+                if ($status === 'pago') {
+                    $q->where(function ($s) {
+                        $s->where('pago', 1)
+                            ->orWhere('tipo', LancamentoTipo::TRANSFERENCIA->value)
+                            ->orWhere('eh_transferencia', 1);
+                    });
+                    return;
+                }
+
+                if ($status === 'pendente') {
+                    $q->where(function ($s) {
+                        $s->whereNull('pago')->orWhere('pago', 0);
+                    })->where('tipo', '!=', LancamentoTipo::TRANSFERENCIA->value)
+                        ->where(function ($s) {
+                            $s->whereNull('eh_transferencia')->orWhere('eh_transferencia', 0);
+                        });
+                }
+            })
+            ->when($search !== '', function ($q) use ($search) {
+                $term = '%' . addcslashes($search, '%_\\') . '%';
+
+                $q->where(function ($s) use ($term) {
+                    $s->where('descricao', 'like', $term)
+                        ->orWhereHas('categoria', fn($cat) => $cat->where('nome', 'like', $term))
+                        ->orWhereHas('subcategoria', fn($sub) => $sub->where('nome', 'like', $term))
+                        ->orWhereHas('conta', function ($conta) use ($term) {
+                            $conta->where(function ($c) use ($term) {
+                                $c->where('nome', 'like', $term)
+                                    ->orWhere('instituicao', 'like', $term);
+                            });
+                        })
+                        ->orWhereHas('contaDestino', function ($conta) use ($term) {
+                            $conta->where(function ($c) use ($term) {
+                                $c->where('nome', 'like', $term)
+                                    ->orWhere('instituicao', 'like', $term);
+                            });
+                        });
+                });
+            })
             ->orderBy('data', 'desc')
             ->orderBy('id', 'desc')
             ->limit($limit)

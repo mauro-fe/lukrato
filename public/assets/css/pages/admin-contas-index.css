@@ -11,6 +11,126 @@
   padding: 0 var(--spacing-4);
 }
 
+.contas-context-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr);
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-6);
+  padding: var(--spacing-5);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-primary) 14%, transparent), transparent 42%),
+    var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  box-shadow: var(--shadow-lg);
+}
+
+.contas-context-copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.contas-context-kicker {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.contas-context-title {
+  margin: 0;
+  color: var(--color-text);
+  font-size: clamp(1.2rem, 1rem + 0.5vw, 1.65rem);
+  line-height: 1.1;
+}
+
+.contas-context-description {
+  margin: 0;
+  color: var(--color-text-muted);
+  max-width: 62ch;
+}
+
+.contas-context-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-3);
+}
+
+.contas-context-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--spacing-3);
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 75%, transparent);
+  background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+}
+
+.contas-context-metric-value {
+  font-size: clamp(1.1rem, 0.95rem + 0.5vw, 1.5rem);
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.contas-context-metric-label {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.contas-context-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  grid-column: 1 / -1;
+}
+
+.contas-context-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-text-muted) 10%, transparent);
+}
+
+.contas-context-chip.info {
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 18%, transparent);
+}
+
+.contas-context-chip.success {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-success) 18%, transparent);
+}
+
+.contas-context-chip.warning {
+  color: #f59e0b;
+  background: color-mix(in srgb, #f59e0b 12%, transparent);
+  border-color: color-mix(in srgb, #f59e0b 18%, transparent);
+}
+
+.contas-context-chip.neutral {
+  color: var(--color-text-muted);
+  border-color: color-mix(in srgb, var(--color-text-muted) 18%, transparent);
+}
+
+.contas-context-chip.accent {
+  color: #8b5cf6;
+  background: color-mix(in srgb, #8b5cf6 12%, transparent);
+  border-color: color-mix(in srgb, #8b5cf6 18%, transparent);
+}
+
 
 .stats-grid {
   display: grid;
@@ -94,6 +214,114 @@
 
 .lk-accounts-wrap:hover {
   box-shadow: var(--shadow-2xl);
+}
+
+.contas-toolbar {
+  display: flex;
+  gap: var(--spacing-3);
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-4);
+}
+
+.contas-search-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+}
+
+.contas-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.contas-search-input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 42px 0 38px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.contas-search-input:focus,
+.contas-type-filter:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
+}
+
+.contas-search-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-text-muted);
+  color: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.contas-filter-wrapper {
+  min-width: 220px;
+}
+
+.contas-type-filter {
+  min-height: 42px;
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: 0 12px;
+}
+
+.contas-filter-summary {
+  min-height: 24px;
+  margin-bottom: var(--spacing-4);
+}
+
+.contas-filter-summary-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: var(--color-text-muted);
+  font-size: 0.84rem;
+}
+
+.contas-filter-summary-text svg {
+  width: 15px;
+  height: 15px;
+  color: var(--color-primary);
+}
+
+.contas-filter-summary-text.error,
+.contas-filter-summary-text.error svg {
+  color: var(--color-danger);
+}
+
+.contas-inline-action {
+  border: none;
+  background: transparent;
+  color: var(--color-primary);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
 }
 
 /* Header */
@@ -246,9 +474,19 @@
   display: none;
 }
 
-/* Ocultar badge no grid view */
+/* Badge do tipo de conta */
 .account-type-badge {
-  display: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.85rem;
+  background: color-mix(in srgb, var(--color-text-muted) 10%, transparent);
+  color: var(--color-text-muted);
 }
 
 /* Badge tipo de conta para list view */
@@ -287,6 +525,26 @@
   background: var(--color-bg);
 
   color: #f59e0b;
+}
+
+.account-type-badge.tipo-corrente {
+  color: #3b82f6;
+  background: color-mix(in srgb, #3b82f6 12%, transparent);
+}
+
+.account-type-badge.tipo-poupanca {
+  color: #10b981;
+  background: color-mix(in srgb, #10b981 12%, transparent);
+}
+
+.account-type-badge.tipo-investimento {
+  color: #8b5cf6;
+  background: color-mix(in srgb, #8b5cf6 12%, transparent);
+}
+
+.account-type-badge.tipo-carteira {
+  color: #f59e0b;
+  background: color-mix(in srgb, #f59e0b 12%, transparent);
 }
 
 .acc-grid.list-view .account-card .btn-new-transaction {
@@ -597,6 +855,10 @@
   background: var(--glass-bg);
   color: var(--color-text);
   border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+.btn-ghost.is-busy svg {
+  animation: contas-spin 1s linear infinite;
 }
 
 .btn-sm {
@@ -1516,4 +1778,112 @@
 .swal2-popup .swal2-styled i {
     color: white !important;
     margin-right: 0.5rem;
+}
+
+@keyframes contas-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.contas-empty-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-10) var(--spacing-6);
+  text-align: center;
+  border-radius: var(--radius-xl);
+  border: 1px dashed color-mix(in srgb, var(--color-primary) 24%, transparent);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-primary) 12%, transparent), transparent 44%),
+    var(--color-surface-muted);
+}
+
+.contas-empty-state .empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  color: var(--color-primary);
+}
+
+.contas-empty-state .empty-icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+.contas-empty-state h3 {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.contas-empty-state p {
+  margin: 0;
+  max-width: 44ch;
+  color: var(--color-text-muted);
+}
+
+.contas-inline-action:hover {
+  text-decoration: underline;
+}
+
+.contas-search-clear svg {
+  width: 14px;
+  height: 14px;
+}
+
+@media (max-width: 768px) {
+  .contas-context-card {
+    grid-template-columns: 1fr;
+    padding: var(--spacing-4);
+    margin-bottom: var(--spacing-5);
+  }
+
+  .contas-context-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .contas-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .contas-search-wrapper,
+  .contas-filter-wrapper {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .contas-filter-summary-text {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .contas-context-title {
+    font-size: 1.05rem;
+  }
+
+  .contas-context-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .contas-context-chip {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .contas-empty-state {
+    padding: var(--spacing-8) var(--spacing-4);
+  }
 }

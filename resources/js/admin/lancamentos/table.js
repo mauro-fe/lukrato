@@ -118,33 +118,12 @@ export const TableManager = {
     /**
      * Store and prepare data for rendering
      */
-    setData(items) {
+    setData(items, options = {}) {
+        const { resetPage = true, clearSelection = true } = options;
         STATE.allData = Array.isArray(items) ? items : [];
 
-        // Apply client-side filters (text search + status)
-        let filtered = STATE.allData;
-
-        // Text search filter
-        const searchText = (DOM.filtroTexto?.value || '').trim().toLowerCase();
-        if (searchText) {
-            filtered = filtered.filter(item => {
-                const desc = (item.descricao || '').toLowerCase();
-                const cat = (item.categoria_nome || '').toLowerCase();
-                const conta = (item.conta_nome || '').toLowerCase();
-                return desc.includes(searchText) || cat.includes(searchText) || conta.includes(searchText);
-            });
-        }
-
-        // Status filter (pago/pendente)
-        const statusFilter = DOM.filtroStatus?.value || '';
-        if (statusFilter === 'pago') {
-            filtered = filtered.filter(item => item.pago == 1 || item.tipo === 'transferencia');
-        } else if (statusFilter === 'pendente') {
-            filtered = filtered.filter(item => item.pago != 1 && item.tipo !== 'transferencia');
-        }
-
         // Process for parcelamento groups
-        STATE.filteredData = Modules.ParcelamentoGrouper.processForTable(filtered);
+        STATE.filteredData = Modules.ParcelamentoGrouper.processForTable(STATE.allData);
 
         // Update active filter badges
         Modules.FilterBadges.update();
@@ -152,8 +131,13 @@ export const TableManager = {
         // Sort data
         this.sortData();
 
-        STATE.currentPage = 1;
-        STATE.selectedIds.clear();
+        if (resetPage) {
+            STATE.currentPage = 1;
+        }
+
+        if (clearSelection) {
+            STATE.selectedIds.clear();
+        }
 
         if (DOM.selectAllCheckbox) {
             DOM.selectAllCheckbox.checked = false;
@@ -222,19 +206,25 @@ export const TableManager = {
 
         // Render empty state if no data
         if (total === 0) {
+            const emptyState = Utils.getListEmptyStateMeta();
             DOM.tableBody.innerHTML = `
                 <tr>
                     <td colspan="10" class="empty-state-cell">
-                        <div class="empty-state" style="text-align:center; padding: 3rem 1rem;">
-                            <div class="empty-icon" style="width:120px;height:120px;margin:0 auto 1.5rem;background:var(--color-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                        <div class="empty-state lk-empty-state">
+                            <div class="empty-icon lk-empty-icon">
                                 <i data-lucide="arrow-left-right" style="font-size:3rem;color:white;"></i>
                             </div>
-                            <h3 style="color:var(--color-text);margin-bottom:0.75rem;font-size:1.5rem;font-weight:600;">Nenhum lançamento encontrado</h3>
-                            <p style="color:var(--color-text-muted);margin-bottom:1.5rem;font-size:1rem;">Comece criando seu primeiro lançamento para gerenciar suas finanças</p>
-                            <div style="display:flex;justify-content:center;">
-                                <button type="button" class="btn btn-primary btn-lg" onclick="lancamentoGlobalManager.openModal()" style="background:var(--color-primary);border:none;padding:0.75rem 1.5rem;font-size:1rem;border-radius:var(--radius-md);color:white;font-weight:500;">
+                            <h3 class="lk-empty-title">${Utils.escapeHtml(emptyState.title)}</h3>
+                            <p class="lk-empty-description">${Utils.escapeHtml(emptyState.description)}</p>
+                            <div class="lk-empty-actions">
+                                <button type="button" class="modern-btn primary" onclick="lancamentoGlobalManager.openModal()">
                                     <i data-lucide="plus"></i> Criar primeiro lançamento
                                 </button>
+                                ${emptyState.showClearFilters ? `
+                                    <button type="button" class="lk-empty-secondary-btn" onclick="document.getElementById('btnLimparFiltros')?.click()">
+                                        Limpar filtros
+                                    </button>
+                                ` : ''}
                             </div>
                         </div>
                     </td>
@@ -254,6 +244,27 @@ export const TableManager = {
         this.updatePagination();
         this.updateSelectionInfo();
         this.updateSortIndicators();
+    },
+
+    renderLoading() {
+        if (!DOM.tableBody) return;
+
+        DOM.tableBody.innerHTML = `
+            <tr class="lk-loading-row">
+                <td colspan="10" class="empty-state-cell">
+                    <div class="lk-list-loading">
+                        <div class="spinner-border" role="status" style="width:2rem;height:2rem;color:var(--color-primary);">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <p>Atualizando lançamentos...</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+
+        if (window.lucide) lucide.createIcons();
+        this.updatePagination();
+        this.updateSelectionInfo();
     },
 
     /**
@@ -666,6 +677,12 @@ export const TableManager = {
             DOM.btnExcluirSel.toggleAttribute('disabled', count === 0);
         }
 
+        if (DOM.selectionScopeHint) {
+            DOM.selectionScopeHint.textContent = count > 0
+                ? `${count} item${count > 1 ? 's' : ''} selecionado${count > 1 ? 's' : ''} nesta página.`
+                : 'Seleção em massa vale só para a página atual.';
+        }
+
         // Update select all checkbox state
         if (DOM.selectAllCheckbox && DOM.tableBody) {
             const checkboxes = DOM.tableBody.querySelectorAll('.row-checkbox');
@@ -827,8 +844,8 @@ export const TableManager = {
     /**
      * Compatibility method: render rows from items array
      */
-    renderRows(items) {
-        this.setData(items);
+    renderRows(items, options = {}) {
+        this.setData(items, options);
         this.render();
     },
 

@@ -33,8 +33,12 @@ export const STATE = {
     categorias: null,
     currentEditId: null,
     isSubmitting: false,
-    contaSelecionadaLancamento: null,
-    isEstornoCartao: false
+    isEstornoCartao: false,
+    searchQuery: '',
+    typeFilter: 'all',
+    lastLoadError: null,
+    isLoadingContas: false,
+    lastLoadedAt: null,
 };
 
 // ─── MODULES REGISTRY (cross-module late-binding) ────────────────────────────
@@ -306,5 +310,21 @@ export const Utils = {
         };
 
         symbolElement.textContent = symbols[currency] || 'R$';
+    },
+
+    /**
+     * Formatar data/hora curta para feedback de atualização
+     */
+    formatDateTime(dateLike) {
+        if (!dateLike) return '';
+        const date = dateLike instanceof Date ? dateLike : new Date(dateLike);
+        if (Number.isNaN(date.getTime())) return '';
+
+        return new Intl.DateTimeFormat('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+        }).format(date);
     }
 };

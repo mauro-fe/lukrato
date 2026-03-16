@@ -18,6 +18,123 @@
   margin-bottom: var(--spacing-6);
 }
 
+.reports-context-card {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: var(--spacing-5);
+  margin-bottom: var(--spacing-6);
+  padding: var(--spacing-6);
+  background:
+    radial-gradient(circle at top right, rgba(230, 126, 34, 0.14), transparent 28%),
+    linear-gradient(135deg, rgba(52, 152, 219, 0.08), rgba(46, 204, 113, 0.04)),
+    var(--glass-bg);
+}
+
+.reports-context-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.reports-context-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-3);
+  color: var(--color-primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.reports-context-title {
+  margin: 0 0 var(--spacing-2);
+  color: var(--color-text);
+  font-size: clamp(1.45rem, 2vw, 2rem);
+  line-height: 1.1;
+}
+
+.reports-context-description {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  max-width: 62ch;
+}
+
+.reports-context-side {
+  min-width: min(100%, 340px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--spacing-4);
+}
+
+.reports-context-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--spacing-2);
+}
+
+.context-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-text);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.context-chip svg {
+  width: 14px;
+  height: 14px;
+  color: var(--color-primary);
+}
+
+.context-chip-highlight {
+  background: color-mix(in srgb, var(--color-primary) 13%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 28%, transparent);
+}
+
+.context-chip-pro {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.14), rgba(217, 119, 6, 0.08));
+  border-color: rgba(245, 158, 11, 0.24);
+}
+
+.context-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 32%, transparent);
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--color-text);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.context-action-btn:hover {
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+.context-action-btn svg {
+  width: 15px;
+  height: 15px;
+  color: var(--color-primary);
+}
+
 /* ============================================================================
    SECTION TABS (estilo Perfil)
    ============================================================================ */

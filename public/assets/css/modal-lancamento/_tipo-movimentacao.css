@@ -33,9 +33,30 @@
   transition: all var(--transition-normal);
 }
 
+.lk-tipo-card:disabled,
+.lk-tipo-card.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+  transform: none;
+  box-shadow: none;
+}
+
 .lk-tipo-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
+}
+
+.lk-tipo-card:disabled:hover,
+.lk-tipo-card.is-disabled:hover {
+  transform: none;
+  box-shadow: none;
+  background: var(--glass-bg);
+}
+
+.lk-tipo-card:disabled .lk-tipo-icon,
+.lk-tipo-card.is-disabled .lk-tipo-icon {
+  filter: saturate(0.7);
+  box-shadow: none;
 }
 
 /* Tipos de cards */
@@ -167,5 +188,28 @@
 .lk-tipo-agendamento .lk-tipo-badge {
   background: rgba(230, 126, 34, 0.15);
   color: var(--color-primary);
+}
+
+.lk-tipo-card:disabled.lk-tipo-receita,
+.lk-tipo-card:disabled.lk-tipo-despesa,
+.lk-tipo-card:disabled.lk-tipo-transferencia,
+.lk-tipo-card:disabled.lk-tipo-agendamento,
+.lk-tipo-card.is-disabled.lk-tipo-receita,
+.lk-tipo-card.is-disabled.lk-tipo-despesa,
+.lk-tipo-card.is-disabled.lk-tipo-transferencia,
+.lk-tipo-card.is-disabled.lk-tipo-agendamento {
+  border-color: var(--color-card-border);
+}
+
+.lk-tipo-card:disabled.lk-tipo-receita:hover,
+.lk-tipo-card:disabled.lk-tipo-despesa:hover,
+.lk-tipo-card:disabled.lk-tipo-transferencia:hover,
+.lk-tipo-card:disabled.lk-tipo-agendamento:hover,
+.lk-tipo-card.is-disabled.lk-tipo-receita:hover,
+.lk-tipo-card.is-disabled.lk-tipo-despesa:hover,
+.lk-tipo-card.is-disabled.lk-tipo-transferencia:hover,
+.lk-tipo-card.is-disabled.lk-tipo-agendamento:hover {
+  border-color: var(--color-card-border);
+  background: var(--glass-bg);
 }
 

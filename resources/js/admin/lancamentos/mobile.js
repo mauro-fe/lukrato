@@ -19,9 +19,12 @@ const MobileCards = {
     sortField: 'data',
     sortDir: 'desc',
 
-    setItems(items) {
+    setItems(items, options = {}) {
+        const { resetPage = true } = options;
         this.cache = Array.isArray(items) ? items : [];
-        this.currentPage = 1;
+        if (resetPage) {
+            this.currentPage = 1;
+        }
         this.renderPage();
     },
 
@@ -83,6 +86,7 @@ const MobileCards = {
         const { list, total, page, totalPages } = this.getPagedData();
 
         if (!total) {
+            const emptyState = Utils.getListEmptyStateMeta();
             DOM.lanCards.innerHTML = `
                 <div class="lan-cards-header cards-header">
                     <span>Data</span>
@@ -91,15 +95,22 @@ const MobileCards = {
                     <span>Ações</span>
                 </div>
                 <div class="lan-card card-item" style="border-radius:0 0 16px 16px;">
-                    <div class="empty-state" style="grid-column:1/-1;padding:2rem 1rem;text-align:center;">
-                        <div class="empty-icon" style="width:100px;height:100px;margin:0 auto 1rem;background:var(--color-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                    <div class="empty-state lk-empty-state" style="grid-column:1/-1;">
+                        <div class="empty-icon lk-empty-icon" style="width:100px;height:100px;margin:0 auto 1rem;">
                             <i data-lucide="arrow-left-right" style="font-size:2.5rem;color:white;"></i>
                         </div>
-                        <h3 style="color:var(--color-text);margin-bottom:0.5rem;font-size:1.25rem;font-weight:600;">Nenhum lançamento encontrado</h3>
-                        <p style="color:var(--color-text-muted);margin-bottom:1.25rem;font-size:0.9rem;">Comece criando seu primeiro lançamento para gerenciar suas finanças</p>
-                        <button type="button" class="btn btn-primary btn-lg" onclick="lancamentoGlobalManager.openModal()" style="background:var(--color-primary);border:none;padding:0.65rem 1.25rem;font-size:0.95rem;border-radius:var(--radius-md);color:white;font-weight:500;">
-                            <i data-lucide="plus"></i> Criar primeiro lançamento
-                        </button>
+                        <h3 class="lk-empty-title" style="font-size:1.25rem;">${Utils.escapeHtml(emptyState.title)}</h3>
+                        <p class="lk-empty-description" style="font-size:0.9rem;">${Utils.escapeHtml(emptyState.description)}</p>
+                        <div class="lk-empty-actions">
+                            <button type="button" class="modern-btn primary" onclick="lancamentoGlobalManager.openModal()">
+                                <i data-lucide="plus"></i> Criar primeiro lançamento
+                            </button>
+                            ${emptyState.showClearFilters ? `
+                            <button type="button" class="lk-empty-secondary-btn" onclick="document.getElementById('btnLimparFiltros')?.click()">
+                                Limpar filtros
+                            </button>
+                            ` : ''}
+                        </div>
                     </div>
                 </div>
             `;
@@ -385,6 +396,71 @@ const MobileCards = {
                 </div>
             ` : '';
 
+            const showStatusRow = pagoEmLabel !== statusLabel || pagoEmClass !== statusClass;
+            const leadingDetails = [
+                cartaoDisplay && cartaoDisplay !== '-'
+                    ? `
+                        <div class="lan-card-detail-row card-detail-row">
+                            <span class="lan-card-detail-label card-detail-label">Cartão</span>
+                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(cartaoDisplay)}</span>
+                        </div>
+                    `
+                    : '',
+                formaPgto && formaPgto !== '-'
+                    ? `
+                        <div class="lan-card-detail-row card-detail-row">
+                            <span class="lan-card-detail-label card-detail-label">Forma Pgto</span>
+                            <span class="lan-card-detail-value card-detail-value">${formaPgto}</span>
+                        </div>
+                    `
+                    : ''
+            ].join('');
+
+            const trailingDetails = [
+                showStatusRow
+                    ? `
+                        <div class="lan-card-detail-row card-detail-row">
+                            <span class="lan-card-detail-label card-detail-label">Status</span>
+                            <span class="lan-card-detail-value card-detail-value">
+                                <span class="badge-status ${statusClass}"><i data-lucide="${statusLucideIcon}"></i> ${statusLabel}</span>
+                            </span>
+                        </div>
+                    `
+                    : '',
+                isRecorrente
+                    ? `
+                        <div class="lan-card-detail-row card-detail-row">
+                            <span class="lan-card-detail-label card-detail-label">Recorrência</span>
+                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(recorrenciaInfo)}</span>
+                        </div>
+                    `
+                    : '',
+                lembreteInfo !== '-'
+                    ? `
+                        <div class="lan-card-detail-row card-detail-row">
+                            <span class="lan-card-detail-label card-detail-label">Lembrete</span>
+                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(lembreteInfo)}</span>
+                        </div>
+                    `
+                    : '',
+                parcelaInfo !== '-'
+                    ? `
+                        <div class="lan-card-detail-row card-detail-row">
+                            <span class="lan-card-detail-label card-detail-label">Parcela</span>
+                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(parcelaInfo)}</span>
+                        </div>
+                    `
+                    : '',
+                canceladoEm !== '-'
+                    ? `
+                        <div class="lan-card-detail-row card-detail-row">
+                            <span class="lan-card-detail-label card-detail-label">Cancelado em</span>
+                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(canceladoEm)}</span>
+                        </div>
+                    `
+                    : ''
+            ].join('');
+
             parts.push(`
                 <article class="lan-card card-item" data-id="${id}" aria-expanded="false">
                     <div class="lan-card-main card-main">
@@ -413,14 +489,7 @@ const MobileCards = {
                             <span class="lan-card-detail-label card-detail-label">Conta</span>
                             <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(conta || '-')}</span>
                         </div>
-                        <div class="lan-card-detail-row card-detail-row">
-                            <span class="lan-card-detail-label card-detail-label">Cartão</span>
-                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(cartaoDisplay)}</span>
-                        </div>
-                        <div class="lan-card-detail-row card-detail-row">
-                            <span class="lan-card-detail-label card-detail-label">Forma Pgto</span>
-                            <span class="lan-card-detail-value card-detail-value">${formaPgto}</span>
-                        </div>
+                        ${leadingDetails}
                         <div class="lan-card-detail-row card-detail-row is-badges is-multiline">
                             <span class="lan-card-detail-label card-detail-label">Descrição</span>
                             <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(descricao)}${cardBadges}</span>
@@ -431,28 +500,7 @@ const MobileCards = {
                                 <span class="badge-status ${pagoEmClass}"><i data-lucide="${pagoEmLucideIcon}"></i> ${Utils.escapeHtml(pagoEmLabel)}</span>
                             </span>
                         </div>
-                        <div class="lan-card-detail-row card-detail-row">
-                            <span class="lan-card-detail-label card-detail-label">Status</span>
-                            <span class="lan-card-detail-value card-detail-value">
-                                <span class="badge-status ${statusClass}"><i data-lucide="${statusLucideIcon}"></i> ${statusLabel}</span>
-                            </span>
-                        </div>
-                        <div class="lan-card-detail-row card-detail-row">
-                            <span class="lan-card-detail-label card-detail-label">Recorrência</span>
-                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(recorrenciaInfo)}</span>
-                        </div>
-                        <div class="lan-card-detail-row card-detail-row">
-                            <span class="lan-card-detail-label card-detail-label">Lembrete</span>
-                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(lembreteInfo)}</span>
-                        </div>
-                        <div class="lan-card-detail-row card-detail-row">
-                            <span class="lan-card-detail-label card-detail-label">Parcela</span>
-                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(parcelaInfo)}</span>
-                        </div>
-                        <div class="lan-card-detail-row card-detail-row">
-                            <span class="lan-card-detail-label card-detail-label">Cancelado em</span>
-                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(canceladoEm)}</span>
-                        </div>
+                        ${trailingDetails}
                         ${observacao ? `
                         <div class="lan-card-detail-row card-detail-row is-multiline">
                             <span class="lan-card-detail-label card-detail-label">Observação</span>
@@ -512,6 +560,29 @@ const MobileCards = {
         if (DOM.lanPagerLast) {
             DOM.lanPagerLast.disabled = page >= totalPages;
         }
+    },
+
+    renderLoading() {
+        if (!DOM.lanCards) return;
+
+        DOM.lanCards.innerHTML = `
+            <div class="lan-cards-header cards-header">
+                <span>Data</span>
+                <span>Tipo</span>
+                <span>Valor</span>
+            </div>
+            <div class="lan-card card-item" style="border-radius:0 0 16px 16px;">
+                <div class="lk-list-loading" style="grid-column:1/-1;padding:2rem 1rem;">
+                    <div class="spinner-border" role="status" style="width:2rem;height:2rem;color:var(--color-primary);">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                    <p>Atualizando lançamentos...</p>
+                </div>
+            </div>
+        `;
+
+        if (window.lucide) lucide.createIcons();
+        this.updatePager(0, 1, 1);
     },
 
     goToPage(page) {

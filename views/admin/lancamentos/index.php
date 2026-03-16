@@ -109,7 +109,7 @@
         <section class="lk-filters-section" data-aos="fade-up" data-aos-delay="200" aria-label="Filtros de lançamentos">
             <div class="lk-filters-section-head">
                 <h3 class="lk-filters-title">Filtrar lançamentos</h3>
-                <p class="lk-filters-subtitle">Refine por tipo, categoria, conta e status</p>
+                <p class="lk-filters-subtitle">Período explícito, busca completa e filtros consistentes</p>
             </div>
 
             <div class="lk-filters-bar">
@@ -117,7 +117,7 @@
                     <div class="lk-filter-search">
                         <i data-lucide="search" class="lk-filter-search-icon"></i>
                         <input type="text" id="filtroTexto" class="lk-filter-search-input"
-                            placeholder="Buscar por descrição..." aria-label="Buscar lançamentos">
+                            placeholder="Buscar em descrição, categoria ou conta..." aria-label="Buscar lançamentos">
                     </div>
 
                     <div class="lk-filter-group">
@@ -161,8 +161,32 @@
                     </button>
                 </div>
 
+                <div class="lk-filters-row lk-filters-row-secondary">
+                    <div class="lk-period-filter" aria-label="Período da listagem">
+                        <div class="lk-period-filter-label">
+                            <i data-lucide="calendar-range"></i>
+                            <span>Período da listagem</span>
+                        </div>
+                        <div class="lk-period-inputs">
+                            <input type="date" id="filtroDataInicio" class="lk-filter-date-input" aria-label="Data inicial da listagem">
+                            <span class="lk-period-separator">até</span>
+                            <input type="date" id="filtroDataFim" class="lk-filter-date-input" aria-label="Data final da listagem">
+                        </div>
+                    </div>
+
+                    <div class="lk-period-presets" aria-label="Atalhos de período">
+                        <button type="button" class="lk-period-preset-btn" data-period-preset="today">Hoje</button>
+                        <button type="button" class="lk-period-preset-btn" data-period-preset="7">7 dias</button>
+                        <button type="button" class="lk-period-preset-btn" data-period-preset="30">30 dias</button>
+                        <button type="button" class="lk-period-month-btn" id="btnUsarMesDoTopo">
+                            <i data-lucide="calendar-sync"></i>
+                            <span>Usar mês do topo</span>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Active filter badges -->
-                <div class="lk-active-filters" id="activeFilterBadges" style="display: none;">
+                <div class="lk-active-filters" id="activeFilterBadges" style="display: none;" aria-live="polite">
                 </div>
             </div>
         </section>
@@ -194,6 +218,14 @@
             </div>
         </div>
 
+        <div class="lk-table-context" aria-live="polite">
+            <div class="lk-table-context-main">
+                <span id="lancamentosContextText">Carregando lançamentos...</span>
+                <span id="lancamentosLimitNotice" class="lk-context-badge warning" style="display:none;"></span>
+            </div>
+            <span id="selectionScopeHint" class="lk-selection-hint">Seleção em massa vale só para a página atual.</span>
+        </div>
+
         <div class="lan-table-container">
             <!-- DESKTOP: Tabela HTML Pura -->
             <section class="table-container tab-desktop">
@@ -203,7 +235,7 @@
                             <tr>
                                 <th class="th-checkbox">
                                     <input type="checkbox" id="selectAllLancamentos" class="lk-checkbox"
-                                        title="Selecionar todos">
+                                        title="Selecionar itens da página atual" aria-label="Selecionar itens da página atual">
                                 </th>
                                 <th class="th-expand"></th>
                                 <th class="th-data sortable" data-sort="data">

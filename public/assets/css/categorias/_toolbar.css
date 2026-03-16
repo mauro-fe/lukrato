@@ -8,6 +8,208 @@
     gap: var(--spacing-3);
 }
 
+.cat-context-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: var(--spacing-4);
+    padding: var(--spacing-4);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    background:
+        radial-gradient(circle at top right, color-mix(in srgb, var(--color-primary) 14%, transparent), transparent 48%),
+        var(--glass-bg);
+    backdrop-filter: var(--glass-backdrop);
+    box-shadow: 0 10px 35px rgba(15, 23, 42, 0.12);
+}
+
+.cat-context-copy {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+    min-width: 0;
+}
+
+.cat-context-kicker {
+    margin: 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+}
+
+.cat-context-title {
+    margin: 0;
+    font-size: clamp(1.15rem, 1rem + 0.5vw, 1.6rem);
+    line-height: 1.1;
+    color: var(--color-text);
+}
+
+.cat-context-description {
+    margin: 0;
+    color: var(--color-text-muted);
+    max-width: 62ch;
+}
+
+.cat-context-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-3);
+}
+
+.cat-context-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: var(--spacing-3);
+    border: 1px solid color-mix(in srgb, var(--glass-border) 70%, transparent);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+}
+
+.cat-context-stat-value {
+    font-size: clamp(1.15rem, 1rem + 0.45vw, 1.55rem);
+    font-weight: 800;
+    line-height: 1;
+    color: var(--color-text);
+}
+
+.cat-context-stat-label {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+}
+
+.cat-context-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    grid-column: 1 / -1;
+}
+
+.cat-context-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 30px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text);
+    background: color-mix(in srgb, var(--color-text-muted) 10%, transparent);
+}
+
+.cat-context-chip.info {
+    color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+    border-color: color-mix(in srgb, var(--color-primary) 18%, transparent);
+}
+
+.cat-context-chip.success {
+    color: var(--color-success);
+    background: color-mix(in srgb, var(--color-success) 12%, transparent);
+    border-color: color-mix(in srgb, var(--color-success) 18%, transparent);
+}
+
+.cat-context-chip.danger {
+    color: var(--color-danger);
+    background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+    border-color: color-mix(in srgb, var(--color-danger) 18%, transparent);
+}
+
+.cat-context-chip.warning {
+    color: #f59e0b;
+    background: color-mix(in srgb, #f59e0b 12%, transparent);
+    border-color: color-mix(in srgb, #f59e0b 18%, transparent);
+}
+
+.cat-context-chip.neutral {
+    color: var(--color-text-muted);
+    border-color: color-mix(in srgb, var(--color-text-muted) 16%, transparent);
+}
+
+.cat-context-chip.accent {
+    color: #8b5cf6;
+    background: color-mix(in srgb, #8b5cf6 12%, transparent);
+    border-color: color-mix(in srgb, #8b5cf6 18%, transparent);
+}
+
+.cat-context-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-2);
+}
+
+.cat-context-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid color-mix(in srgb, var(--color-primary) 18%, transparent);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+    color: var(--color-text);
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.cat-context-btn:hover {
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+    background: color-mix(in srgb, var(--color-primary) 16%, transparent);
+}
+
+.cat-context-btn.ghost {
+    background: transparent;
+    border-color: var(--glass-border);
+    color: var(--color-text-muted);
+}
+
+.cat-context-btn:disabled,
+.cat-context-btn.is-busy {
+    opacity: 0.7;
+    cursor: wait;
+}
+
+.cat-context-btn.is-busy svg,
+.refresh-btn.is-busy svg {
+    animation: cat-spin 1s linear infinite;
+}
+
+.cat-filter-summary {
+    display: flex;
+    align-items: center;
+    min-height: 24px;
+}
+
+.cat-filter-summary-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 2px;
+    color: var(--color-text-muted);
+    font-size: 0.84rem;
+}
+
+.cat-filter-summary-content svg {
+    width: 15px;
+    height: 15px;
+    color: var(--color-primary);
+}
+
+.cat-filter-summary-content.error {
+    color: var(--color-danger);
+}
+
+.cat-filter-summary-content.error svg {
+    color: var(--color-danger);
+}
+
 .cat-search-wrapper {
     flex: 1;
     min-width: 200px;
@@ -89,6 +291,12 @@
     height: 14px;
 }
 
+@keyframes cat-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 /* ============================================================================
    CARD MATCH HIGHLIGHT — quando filtrando, destaque nos matches
    ============================================================================ */
@@ -112,6 +320,10 @@
    ============================================================================ */
 
 @media (max-width: 768px) {
+    .cat-context-card {
+        grid-template-columns: 1fr;
+    }
+
     .cat-search-wrapper {
         width: 100%;
     }

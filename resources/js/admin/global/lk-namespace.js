@@ -122,9 +122,9 @@ LK.initPageTransitions = () => {
 };
 
 // ── Global FAB Menu Helper ──────────────────────────────────────────────────
-window.openLancamentoModalGlobal = function () {
+window.openLancamentoModalGlobal = function (options = {}) {
     if (typeof lancamentoGlobalManager !== 'undefined') {
-        lancamentoGlobalManager.openModal();
+        lancamentoGlobalManager.openModal(options);
     }
 };
 
