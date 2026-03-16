@@ -49,7 +49,7 @@ import './avatar-global.js';       // Navbar + sidebar avatar (window.__LK_updat
 // ─── 7. Partials extraídos (notificações, header, suporte) ─────────────────
 import './notification-manager.js'; // NotificationManager + lkNotify (bell.php)
 import './month-picker.js';         // LukratoHeader month/year nav (header-mes.php)
-import './support-button.js';       // openSupportModal / sendSupportMessage (botao-suporte.php)
+import './support-button-v2.js';    // openSupportModal / sendSupportMessage (botao-suporte.php)
 
 // ─── 8. User Feedback Collector ─────────────────────────────────────────────
 import './feedback-collector.js';   // Micro feedback, NPS, sugestao, AI feedback (window.LKUserFeedback)

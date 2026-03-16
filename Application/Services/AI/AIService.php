@@ -12,7 +12,7 @@ use Application\Enums\AI\IntentType;
 use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\Handlers\AIHandlerInterface;
 use Application\Services\AI\Handlers\CategorizationHandler;
-use Application\Services\AI\Handlers\ChatHandler;
+use Application\Services\AI\Handlers\ChatHandlerV2;
 use Application\Services\AI\Handlers\ConfirmationHandler;
 use Application\Services\AI\Handlers\EntityCreationHandler;
 use Application\Services\AI\Handlers\FinancialAnalysisHandler;
@@ -65,7 +65,7 @@ class AIService
     private function registerHandlers(): void
     {
         $handlers = [
-            IntentType::CHAT->value                => new ChatHandler(),
+            IntentType::CHAT->value                => new ChatHandlerV2(),
             IntentType::QUICK_QUERY->value         => new QuickQueryHandler(),
             IntentType::CATEGORIZE->value          => new CategorizationHandler(),
             IntentType::EXTRACT_TRANSACTION->value => new TransactionExtractorHandler(),

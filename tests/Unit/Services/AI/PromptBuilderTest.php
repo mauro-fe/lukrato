@@ -44,6 +44,8 @@ class PromptBuilderTest extends TestCase
         $this->assertStringContainsString('Lukra', $prompt);
         $this->assertStringContainsString('PERSONALIDADE:', $prompt);
         $this->assertStringContainsString('CAPACIDADES', $prompt);
+        $this->assertStringContainsString('UX CONVERSACIONAL', $prompt);
+        $this->assertStringContainsString('uma pergunta por vez', $prompt);
     }
 
     public function testUserChatSystemAvoidsFakeConfirmationFlows(): void

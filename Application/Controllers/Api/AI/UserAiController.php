@@ -45,14 +45,6 @@ class UserAiController extends BaseController
         }
 
         $message = $resolvedInput['message'];
-        $resolvedInput = $this->resolveIncomingMessage($message);
-
-        if (!$resolvedInput['success']) {
-            Response::error($resolvedInput['error'] ?? 'Nao consegui processar o anexo.', 422);
-            return;
-        }
-
-        $message = $resolvedInput['message'];
 
         if ($message === '') {
             Response::error('Mensagem não pode ser vazia.', 422);
