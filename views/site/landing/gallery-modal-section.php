@@ -4,7 +4,7 @@
         currentSlide: 0, 
         slides: [
             { src: '<?= BASE_URL ?>assets/img/mockups/dashboard.png', title: 'Dashboard', desc: 'Visão geral rápida: saldo, receitas e despesas do mês.' },
-            { src: '<?= BASE_URL ?>assets/img/mockups/contas.png', title: 'Contas', desc: 'Crie e gerencie contas: banco, carteira, investimentos.' },
+            { src: '<?= BASE_URL ?>assets/img/mockups/contas.png', title: 'Contas', desc: 'Crie e gerencie contas: banco, carteira e reserva.' },
             { src: '<?= BASE_URL ?>assets/img/mockups/categorias.png', title: 'Categorias', desc: 'Organize receitas e despesas por categoria com facilidade.' },
             { src: '<?= BASE_URL ?>assets/img/mockups/relatorios.png', title: 'Relatórios', desc: 'Gráficos e insights para entender seus gastos e evolução.' },
             { src: '<?= BASE_URL ?>assets/img/mockups/5.png', title: 'Tema claro', desc: 'Escolha o tema que preferir para usar no dia a dia.' }

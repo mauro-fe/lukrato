@@ -368,7 +368,6 @@
                             <option value="compra">🛒 Compra</option>
                             <option value="quitacao">💳 Quitar Dívida</option>
                             <option value="emergencia">🛡️ Emergência</option>
-                            <option value="investimento">📈 Investimento</option>
                             <option value="viagem">✈️ Viagem</option>
                             <option value="educacao">🎓 Educação</option>
                             <option value="moradia">🏠 Moradia</option>

@@ -56,7 +56,6 @@ export type CreateContaInput = {
   accountType:
     | 'conta_corrente'
     | 'conta_poupanca'
-    | 'conta_investimento'
     | 'carteira_digital'
     | 'dinheiro';
   institutionId?: string;
@@ -69,7 +68,7 @@ const RESERVE_TYPES = new Set(['conta_poupanca', 'conta_investimento']);
 const TYPE_LABELS: Record<string, string> = {
   conta_corrente: 'Corrente',
   conta_poupanca: 'Poupanca',
-  conta_investimento: 'Investimento',
+  conta_investimento: 'Reserva',
   carteira_digital: 'Carteira',
   dinheiro: 'Dinheiro',
 };
@@ -77,7 +76,7 @@ const TYPE_LABELS: Record<string, string> = {
 const TYPE_ICONS: Record<string, string> = {
   conta_corrente: 'wallet-outline',
   conta_poupanca: 'shield-checkmark-outline',
-  conta_investimento: 'trending-up-outline',
+  conta_investimento: 'shield-checkmark-outline',
   carteira_digital: 'phone-portrait-outline',
   dinheiro: 'cash-outline',
 };
@@ -85,7 +84,7 @@ const TYPE_ICONS: Record<string, string> = {
 const TYPE_COLORS: Record<string, string> = {
   conta_corrente: '#1f4f82',
   conta_poupanca: '#1f9d63',
-  conta_investimento: '#3a79d9',
+  conta_investimento: '#1f9d63',
   carteira_digital: '#c86518',
   dinheiro: '#94771d',
 };
@@ -210,7 +209,7 @@ function buildEmptySnapshot(monthKey: string, archivedCount = 0): ContasSnapshot
     focus: {
       title: 'Sua primeira conta vai aparecer aqui',
       description:
-        'Comece por uma conta usada no dia a dia. Depois o app separa reserva e investimento sem confundir o saldo.',
+        'Comece por uma conta usada no dia a dia. Depois o app separa a reserva sem confundir o saldo.',
       amount: 0,
       supportText:
         'Enquanto nao houver conta cadastrada, a interface continua explicita sobre o proximo passo.',
@@ -230,7 +229,7 @@ function buildEmptySnapshot(monthKey: string, archivedCount = 0): ContasSnapshot
       {
         id: '3',
         title: 'Separe reserva quando fizer sentido',
-        description: 'Quando vier poupanca ou investimento, eles vao para outro bloco.',
+        description: 'Quando vier poupanca ou outra reserva, ela vai para outro bloco.',
       },
     ],
     quickActions: buildQuickActions(),
@@ -248,11 +247,11 @@ function buildEmptySnapshot(monthKey: string, archivedCount = 0): ContasSnapshot
       {
         id: 'reserve',
         title: 'Reserva e objetivos',
-        description: 'Poupanca e investimento ficam separados do dinheiro que gira no mes.',
+        description: 'Poupanca e outras reservas ficam separadas do dinheiro que gira no mes.',
         totalBalance: 0,
         emptyTitle: 'Ainda nao existe reserva separada',
         emptyDescription:
-          'Quando o usuario criar poupanca ou investimento, eles aparecem aqui sem misturar com o caixa do mes.',
+          'Quando o usuario criar uma reserva, ela aparece aqui sem misturar com o caixa do mes.',
         accounts: [],
       },
     ],
@@ -311,7 +310,7 @@ function buildSnapshot(
     monthLabel: getMonthLabel(monthKey),
     helperTitle: 'Onde o dinheiro esta guardado fica claro logo de cara',
     helperDescription:
-      'Primeiro aparecem as contas usadas no dia a dia. Reserva e investimento ficam separados para nao confundir o saldo disponivel com o patrimonio.',
+      'Primeiro aparecem as contas usadas no dia a dia. Reservas ficam separadas para nao confundir o saldo disponivel com o patrimonio.',
     totalBalance: sumValues(activeAccounts, 'balance'),
     everydayBalance: sumValues(everydayAccounts, 'balance'),
     reserveBalance: sumValues(reserveAccounts, 'balance'),
@@ -338,7 +337,7 @@ function buildSnapshot(
         id: '3',
         title: 'Mantenha reserva separada do giro do mes',
         description:
-          'Poupanca e investimento ficam em outro bloco para o dinheiro disponivel nao parecer maior do que realmente esta.',
+          'Poupanca e outras reservas ficam em outro bloco para o dinheiro disponivel nao parecer maior do que realmente esta.',
         done: reserveAccounts.length > 0,
       },
     ],
@@ -361,7 +360,7 @@ function buildSnapshot(
         totalBalance: sumValues(reserveAccounts, 'balance'),
         emptyTitle: 'Ainda nao existe reserva separada',
         emptyDescription:
-          'Quando o usuario criar poupanca ou investimento, eles aparecem aqui sem misturar com o caixa do mes.',
+          'Quando o usuario criar uma reserva, ela aparece aqui sem misturar com o caixa do mes.',
         accounts: decorateAccounts(reserveAccounts, primaryAccountId),
       },
     ],

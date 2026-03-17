@@ -129,7 +129,7 @@ export const Utils = {
         const labels = {
             'conta_corrente': 'Corrente',
             'conta_poupanca': 'Poupança',
-            'conta_investimento': 'Investimento',
+            'conta_investimento': 'Reserva',
             'carteira_digital': 'Carteira',
             'dinheiro': 'Dinheiro'
         };
@@ -143,7 +143,7 @@ export const Utils = {
         const classes = {
             'conta_corrente': 'tipo-corrente',
             'conta_poupanca': 'tipo-poupanca',
-            'conta_investimento': 'tipo-investimento',
+            'conta_investimento': 'tipo-poupanca',
             'carteira_digital': 'tipo-carteira',
             'dinheiro': 'tipo-carteira'
         };

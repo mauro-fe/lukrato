@@ -61,7 +61,6 @@ const CATEGORY_ICON_MAP: Record<string, string> = {
   casa: 'home-outline',
   saude: 'fitness-outline',
   lazer: 'game-controller-outline',
-  investimentos: 'trending-up-outline',
 };
 
 function getCurrentMonthKey() {

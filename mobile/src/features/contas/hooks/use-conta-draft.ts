@@ -13,7 +13,6 @@ type SubmitFeedback = {
 type AccountType =
   | 'conta_corrente'
   | 'conta_poupanca'
-  | 'conta_investimento'
   | 'carteira_digital'
   | 'dinheiro';
 
@@ -37,10 +36,6 @@ function buildSuggestedName(
 
   if (accountType === 'conta_poupanca') {
     return baseName ? `Reserva ${baseName}` : 'Reserva principal';
-  }
-
-  if (accountType === 'conta_investimento') {
-    return baseName ? `Carteira ${baseName}` : 'Carteira de investimentos';
   }
 
   if (accountType === 'carteira_digital') {

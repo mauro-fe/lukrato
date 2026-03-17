@@ -37,8 +37,8 @@ class AprendaController extends BaseController
             'site/aprenda/index',
             [
                 'pageTitle'       => 'Aprenda sobre Finanças Pessoais | Dicas e Guias Gratuitos | Lukrato',
-                'pageDescription' => 'Artigos educativos sobre finanças pessoais: como organizar finanças pessoais, economizar dinheiro, investir, sair das dívidas e controlar gastos. Guias gratuitos do Lukrato.',
-                'pageKeywords'    => 'finanças pessoais, educação financeira, como economizar dinheiro, controle de gastos, investimentos para iniciantes, como organizar finanças pessoais 2026, planilha de gastos mensais gratuita, dicas financeiras, orçamento pessoal, planejamento financeiro',
+                'pageDescription' => 'Artigos educativos sobre finanças pessoais: como organizar finanças pessoais, economizar dinheiro, sair das dívidas e controlar gastos. Guias gratuitos do Lukrato.',
+                'pageKeywords'    => 'finanças pessoais, educação financeira, como economizar dinheiro, controle de gastos, como organizar finanças pessoais 2026, planilha de gastos mensais gratuita, dicas financeiras, orçamento pessoal, planejamento financeiro',
                 'canonicalUrl'    => rtrim(BASE_URL, '/') . '/blog',
                 'categorias'      => $categorias,
                 'recentes'        => $recentes,
@@ -161,7 +161,6 @@ class AprendaController extends BaseController
         $map = [
             'comecar-com-financas' => 'como organizar finanças pessoais 2026, educação financeira, orçamento pessoal, como começar a controlar gastos, finanças para iniciantes, planejamento financeiro pessoal',
             'economizar-dinheiro'  => 'como economizar dinheiro, dicas para economizar, planilha de gastos mensais gratuita, reserva de emergência, gastos invisíveis, reduzir despesas',
-            'investimentos'        => 'investimentos para iniciantes, renda fixa, renda variável, tesouro direto, como começar a investir, investir com pouco dinheiro',
             'dividas'              => 'como sair das dívidas, como controlar gastos do cartão de crédito, negociação de dívidas, cartão de crédito sem dívida, quitar dívidas',
             'ferramentas'          => 'app de controle financeiro gratuito brasileiro, planilha de gastos mensais gratuita, métodos de controle financeiro, regra 50-30-20, ferramentas finanças pessoais',
         ];

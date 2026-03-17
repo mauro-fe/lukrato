@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Financeiro;
 
+use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Repositories\ParcelamentoRepository;
@@ -20,7 +21,7 @@ use Application\Models\Parcelamento;
  * Parcelamento = grupo de N lancamentos mensais (parcelas) vinculados
  * a uma mesma compra/serviço, pagos pela conta bancária (não cartão).
  */
-class ParcelamentosController
+class ParcelamentosController extends BaseController
 {
     private ParcelamentoRepository $parcelamentoRepo;
     private CategoriaRepository $categoriaRepo;
@@ -28,6 +29,7 @@ class ParcelamentosController
 
     public function __construct()
     {
+        parent::__construct();
         $this->parcelamentoRepo = new ParcelamentoRepository();
         $this->categoriaRepo = new CategoriaRepository();
         $this->contaRepo = new ContaRepository();
@@ -45,9 +47,7 @@ class ParcelamentosController
             return;
         }
 
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        $this->releaseSession();
 
         $status = $_GET['status'] ?? null;
         $parcelamentos = $status
@@ -96,9 +96,7 @@ class ParcelamentosController
             return;
         }
 
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        $this->releaseSession();
 
         $p = $this->parcelamentoRepo->findWithLancamentos($id);
         if (!$p || (int)$p->user_id !== $userId) {
@@ -147,8 +145,7 @@ class ParcelamentosController
             return;
         }
 
-        $json = file_get_contents('php://input');
-        $data = json_decode($json ?: '', true);
+        $data = $this->getJson();
 
         if (!$data) {
             Response::error('Dados inválidos', 400);

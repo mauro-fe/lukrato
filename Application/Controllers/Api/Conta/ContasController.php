@@ -2,6 +2,7 @@
 
 namespace Application\Controllers\Api\Conta;
 
+use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Models\InstituicaoFinanceira;
@@ -13,28 +14,14 @@ use Application\Services\Infrastructure\LogService;
 use Application\Services\Plan\PlanLimitService;
 
 
-class ContasController
+class ContasController extends BaseController
 {
     private ContaService $service;
 
     public function __construct()
     {
+        parent::__construct();
         $this->service = new ContaService();
-    }
-
-    private function getRequestPayload(): array
-    {
-        $data = json_decode(file_get_contents('php://input'), true) ?: [];
-        if (empty($data) && strtolower($_SERVER['REQUEST_METHOD'] ?? '') === 'post') {
-            $data = $_POST;
-        }
-        return $data;
-    }
-
-    private function addCsrfToResponse(array $response): array
-    {
-        $response['csrf_token'] = CsrfMiddleware::generateToken('default');
-        return $response;
     }
 
     /**
@@ -47,9 +34,7 @@ class ContasController
             $userId = Auth::id();
 
             // Liberar lock da sessão para permitir requisições paralelas
-            if (session_status() === PHP_SESSION_ACTIVE) {
-                session_write_close();
-            }
+            $this->releaseSession();
 
             $archived = (int) ($_GET['archived'] ?? 0) === 1;
             $onlyActive = (int) ($_GET['only_active'] ?? ($archived ? 0 : 1)) === 1;
@@ -320,7 +305,7 @@ class ContasController
     public function createInstituicao(): void
     {
         try {
-            $data = json_decode(file_get_contents('php://input'), true) ?? [];
+            $data = $this->getJson();
 
             // Validações
             if (empty($data['nome'])) {

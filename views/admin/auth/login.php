@@ -78,7 +78,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                 <header class="welcome">
                     <h2>Bem-vindo</h2>
                     <p>
-                        Acompanhe saldos, investimentos e objetivos em um único lugar.
+                        Acompanhe saldos, contas e objetivos em um único lugar.
                         Entre para gerenciar suas finanças com segurança e performance.
                     </p>
                 </header>

@@ -12,7 +12,7 @@ use Application\Core\Router;
  */
 
 
-Router::add('POST', '/api/tour/complete', 'Api\TourController@complete', ['auth', 'csrf', 'ratelimit']);
+Router::add('POST', '/api/tour/complete', 'Api\\User\\TourController@complete', ['auth', 'csrf', 'ratelimit']);
 
 
 // ============================================
@@ -229,31 +229,6 @@ Router::add('GET',    '/api/financas/orcamentos/sugestoes',      'Api\\Financeir
 Router::add('POST',   '/api/financas/orcamentos/aplicar-sugestoes', 'Api\\Financeiro\\FinancasController@orcamentosAplicarSugestoes', ['auth', 'csrf', 'ratelimit']);
 Router::add('POST',   '/api/financas/orcamentos/copiar-mes',    'Api\\Financeiro\\FinancasController@orcamentosCopiarMes',     ['auth', 'csrf', 'ratelimit']);
 Router::add('GET',    '/api/financas/insights',                  'Api\\Financeiro\\FinancasController@insights',                ['auth']);
-
-// ============================================
-// INVESTIMENTOS (REST)
-// ============================================
-
-// Estatísticas e categorias (devem vir antes das rotas dinâmicas)
-Router::add('GET', '/api/investimentos/stats',      'Api\\Financeiro\\InvestimentosController@stats',      ['auth']);
-Router::add('GET', '/api/investimentos/categorias', 'Api\\Financeiro\\InvestimentosController@categorias', ['auth']);
-
-// CRUD de investimentos
-Router::add('GET',  '/api/investimentos',             'Api\\Financeiro\\InvestimentosController@index',   ['auth']);
-Router::add('POST', '/api/investimentos',             'Api\\Financeiro\\InvestimentosController@store',   ['auth', 'csrf', 'ratelimit']);
-Router::add('GET',  '/api/investimentos/{id}',        'Api\\Financeiro\\InvestimentosController@show',    ['auth']);
-Router::add('POST', '/api/investimentos/{id}/update', 'Api\\Financeiro\\InvestimentosController@update',  ['auth', 'csrf', 'ratelimit']);
-Router::add('POST', '/api/investimentos/{id}/delete', 'Api\\Financeiro\\InvestimentosController@destroy', ['auth', 'csrf', 'ratelimit']);
-Router::add('POST', '/api/investimentos/{id}/preco',  'Api\\Financeiro\\InvestimentosController@atualizarPreco', ['auth', 'csrf', 'ratelimit']);
-
-// Transações de investimentos
-Router::add('GET',  '/api/investimentos/{id}/transacoes', 'Api\\Financeiro\\InvestimentosController@transacoes',     ['auth']);
-Router::add('POST', '/api/investimentos/{id}/transacoes', 'Api\\Financeiro\\InvestimentosController@criarTransacao', ['auth', 'csrf', 'ratelimit']);
-
-// Proventos de investimentos
-Router::add('GET',  '/api/investimentos/{id}/proventos', 'Api\\Financeiro\\InvestimentosController@proventos',     ['auth']);
-Router::add('POST', '/api/investimentos/{id}/proventos', 'Api\\Financeiro\\InvestimentosController@criarProvento', ['auth', 'csrf', 'ratelimit']);
-
 
 // ============================================
 // NOTIFICAÇÕES

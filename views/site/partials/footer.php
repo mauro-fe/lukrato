@@ -126,10 +126,6 @@ $extraJs = $extraJs ?? [];
                         title="Dicas para economizar dinheiro">
                         <span>Economizar Dinheiro</span>
                     </a>
-                    <a href="<?= BASE_URL ?>blog/categoria/investimentos" class="text-white/70"
-                        title="Guias de investimentos">
-                        <span>Investimentos</span>
-                    </a>
                     <a href="<?= BASE_URL ?>blog/categoria/dividas" class="text-white/70"
                         title="Como sair das dívidas">
                         <span>Dívidas</span>

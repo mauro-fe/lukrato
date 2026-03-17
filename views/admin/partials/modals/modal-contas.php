@@ -63,7 +63,6 @@
                         <select id="tipoContaSelect" name="tipo_conta" class="form-select" required>
                             <option value="conta_corrente">Conta Corrente</option>
                             <option value="conta_poupanca">Conta Poupança</option>
-                            <option value="conta_investimento">Investimento</option>
                             <option value="carteira_digital">Carteira Digital</option>
                             <option value="dinheiro">Dinheiro</option>
                         </select>

@@ -23,11 +23,11 @@
 
         <div class="stat-card" data-aos="flip-right">
             <div class="stat-icon">
-                <i data-lucide="trending-up" style="color: var(--color-success)"></i>
+                <i data-lucide="piggy-bank" style="color: var(--color-success)"></i>
             </div>
             <div>
-                <div class="stat-value" id="saldoInvestimentos" aria-live="polite">R$ 0,00</div>
-                <div class="stat-label">Investimentos Atuais</div>
+                <div class="stat-value" id="saldoReservas" aria-live="polite">R$ 0,00</div>
+                <div class="stat-label">Reservas Atuais</div>
             </div>
         </div>
 
@@ -103,7 +103,6 @@
                     <option value="all">Todos os tipos</option>
                     <option value="conta_corrente">Conta corrente</option>
                     <option value="conta_poupanca">Poupança</option>
-                    <option value="conta_investimento">Investimento</option>
                     <option value="carteira_digital">Carteira digital</option>
                     <option value="dinheiro">Dinheiro</option>
                 </select>

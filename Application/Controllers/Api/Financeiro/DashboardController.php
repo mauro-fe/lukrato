@@ -2,15 +2,16 @@
 
 namespace Application\Controllers\Api\Financeiro;
 
+use Application\Controllers\BaseController;
 use Application\Core\Response;
-use Application\Lib\Auth;
 use Application\Models\Lancamento;
 use Application\Repositories\LancamentoRepository;
 use Application\Repositories\MetaRepository;
 use Application\Repositories\OrcamentoRepository;
 use Application\Services\Financeiro\DashboardProvisaoService;
+use Application\Services\Infrastructure\LogService;
 
-class DashboardController
+class DashboardController extends BaseController
 {
     private LancamentoRepository $lancamentoRepo;
     private DashboardProvisaoService $provisaoService;
@@ -19,6 +20,7 @@ class DashboardController
 
     public function __construct()
     {
+        parent::__construct();
         $this->lancamentoRepo = new LancamentoRepository();
         $this->provisaoService = new DashboardProvisaoService();
         $this->orcamentoRepo = new OrcamentoRepository();
@@ -27,20 +29,7 @@ class DashboardController
 
     private function normalizeMonth(string $monthInput): array
     {
-        $dt = \DateTime::createFromFormat('Y-m', $monthInput);
-
-        if (!$dt || $dt->format('Y-m') !== $monthInput) {
-            $month = date('Y-m');
-            $dt = new \DateTime("$month-01");
-        } else {
-            $month = $dt->format('Y-m');
-        }
-
-        return [
-            'month' => $month,
-            'year' => (int)$dt->format('Y'),
-            'monthNum' => (int)$dt->format('m'),
-        ];
+        return $this->normalizeYearMonth($monthInput);
     }
 
 
@@ -52,18 +41,14 @@ class DashboardController
      */
     public function comparativoCompetenciaCaixa(): void
     {
-        $userId = Auth::id();
-        if (!$userId) {
-            Response::error('Não autenticado', 401);
+        $userId = $this->resolveCurrentUserIdOrFail('Nao autenticado');
+        if ($userId === null) {
             return;
         }
 
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        $this->releaseSession();
 
-        $monthInput = trim($_GET['month'] ?? date('Y-m'));
-        $normalizedDate = $this->normalizeMonth($monthInput);
+        $normalizedDate = $this->normalizeMonth((string) $this->getQuery('month', date('Y-m')));
         $month = $normalizedDate['month'];
 
         $comparativo = $this->lancamentoRepo->getResumoCompetenciaVsCaixa($userId, $month);
@@ -95,24 +80,18 @@ class DashboardController
 
     public function transactions(): void
     {
-        $userId = Auth::id();
-        if (!$userId) {
-            Response::error('Nao autenticado', 401);
+        $userId = $this->resolveCurrentUserIdOrFail('Nao autenticado');
+        if ($userId === null) {
             return;
         }
 
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        $this->releaseSession();
 
-        $monthInput = trim($_GET['month'] ?? date('Y-m'));
-        $limit = min((int)($_GET['limit'] ?? 5), 100);
+        $limit = min((int) $this->getQuery('limit', 5), 100);
 
-        $normalized = $this->normalizeMonth($monthInput);
-        $month = $normalized['month'];
-        [$y, $m] = array_map('intval', explode('-', $month));
-        $from = sprintf('%04d-%02d-01', $y, $m);
-        $to = date('Y-m-t', strtotime($from));
+        $normalized = $this->normalizeMonth((string) $this->getQuery('month', date('Y-m')));
+        $from = $normalized['start'];
+        $to = $normalized['end'];
 
         $rows = Lancamento::query()
             ->withoutGlobalScopes()
@@ -160,18 +139,14 @@ class DashboardController
      */
     public function provisao(): void
     {
-        $userId = Auth::id();
-        if (!$userId) {
-            Response::error('Não autenticado', 401);
+        $userId = $this->resolveCurrentUserIdOrFail('Nao autenticado');
+        if ($userId === null) {
             return;
         }
 
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        $this->releaseSession();
 
-        $monthInput = trim($_GET['month'] ?? date('Y-m'));
-        $normalized = $this->normalizeMonth($monthInput);
+        $normalized = $this->normalizeMonth((string) $this->getQuery('month', date('Y-m')));
 
         $result = $this->provisaoService->generate($userId, $normalized['month']);
 
@@ -186,15 +161,12 @@ class DashboardController
      */
     public function healthScore(): void
     {
-        $userId = Auth::id();
-        if (!$userId) {
-            Response::error('Não autenticado', 401);
+        $userId = $this->resolveCurrentUserIdOrFail('Nao autenticado');
+        if ($userId === null) {
             return;
         }
 
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        $this->releaseSession();
 
         try {
             // Pega dados do mês atual
@@ -236,7 +208,12 @@ class DashboardController
 
             Response::success($score);
         } catch (\Exception $e) {
-            error_log('[DashboardController::healthScore] ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            LogService::error('Erro ao calcular health score no dashboard', [
+                'user_id' => $userId,
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
             Response::error('Erro ao calcular health score', 500);
         }
     }
@@ -249,15 +226,12 @@ class DashboardController
      */
     public function greetingInsight(): void
     {
-        $userId = Auth::id();
-        if (!$userId) {
-            Response::error('Não autenticado', 401);
+        $userId = $this->resolveCurrentUserIdOrFail('Nao autenticado');
+        if ($userId === null) {
             return;
         }
 
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        $this->releaseSession();
 
         try {
             $currentMonth = date('Y-m');
@@ -461,15 +435,12 @@ class DashboardController
      */
     public function healthScoreInsights(): void
     {
-        $userId = Auth::id();
-        if (!$userId) {
-            Response::error('Não autenticado', 401);
+        $userId = $this->resolveCurrentUserIdOrFail('Nao autenticado');
+        if ($userId === null) {
             return;
         }
 
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        $this->releaseSession();
 
         try {
             $currentMonth = date('Y-m');
@@ -479,7 +450,12 @@ class DashboardController
 
             Response::success($insights);
         } catch (\Exception $e) {
-            error_log('[DashboardController::healthScoreInsights] ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            LogService::error('Erro ao gerar insights de health score', [
+                'user_id' => $userId,
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
             Response::error('Erro ao gerar insights', 500);
         }
     }

@@ -66,6 +66,10 @@ export function getCategoryIconColor(icon) {
 
 // ── Utility helpers ────────────────────────────────────────────
 export const Utils = {
+    normalizeMetaTipo(tipo) {
+        return tipo === 'investimento' ? 'economia' : (tipo || 'economia');
+    },
+
     /**
      * Obter token CSRF (sempre fresco)
      */
@@ -142,7 +146,7 @@ export const Utils = {
      */
     getTipoEmoji(tipo) {
         const map = {
-            economia: '💰', compra: '🛒', quitacao: '💳', emergencia: '🛡️', investimento: '📈',
+            economia: '💰', compra: '🛒', quitacao: '💳', emergencia: '🛡️', investimento: '💰',
             viagem: '✈️', educacao: '🎓', moradia: '🏠', veiculo: '🚗', saude: '🏥',
             negocio: '🏪', aposentadoria: '🏖️', outro: '🎯'
         };

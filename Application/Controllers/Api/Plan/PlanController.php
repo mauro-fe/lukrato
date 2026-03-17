@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Plan;
 
+use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Services\Plan\PlanLimitService;
@@ -13,12 +14,13 @@ use Application\Enums\LogCategory;
 /**
  * Controller para consultar limites e status do plano do usuário
  */
-class PlanController
+class PlanController extends BaseController
 {
     private PlanLimitService $limitService;
 
     public function __construct()
     {
+        parent::__construct();
         $this->limitService = new PlanLimitService();
     }
 
@@ -35,9 +37,7 @@ class PlanController
             return;
         }
 
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        $this->releaseSession();
 
         try {
             $summary = $this->limitService->getLimitsSummary($userId);
@@ -80,9 +80,7 @@ class PlanController
             return;
         }
 
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        $this->releaseSession();
 
         $isPro = $this->limitService->isPro($userId);
         $features = $this->limitService->getFeatures($userId);
@@ -107,9 +105,7 @@ class PlanController
             return;
         }
 
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        $this->releaseSession();
 
         $result = match ($resource) {
             'conta', 'contas', 'account', 'accounts'
@@ -142,9 +138,7 @@ class PlanController
             return;
         }
 
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        $this->releaseSession();
 
         $restriction = $this->limitService->getHistoryRestriction($userId);
 

@@ -61,7 +61,7 @@ export const ContasRender = {
             } else if (query || typeFilter !== 'all') {
                 descriptionEl.textContent = 'A lista abaixo est\u00e1 filtrada, mas os cards do topo continuam mostrando o saldo total atual da carteira.';
             } else {
-                descriptionEl.textContent = 'Esta p\u00e1gina mostra a posi\u00e7\u00e3o atual das contas ativas, incluindo investimentos. Para an\u00e1lises por per\u00edodo, use os relat\u00f3rios.';
+                descriptionEl.textContent = 'Esta p\u00e1gina mostra a posi\u00e7\u00e3o atual das contas ativas e das reservas separadas. Para an\u00e1lises por per\u00edodo, use os relat\u00f3rios.';
             }
         }
 
@@ -111,7 +111,7 @@ export const ContasRender = {
             summaryEl.innerHTML = `
                 <div class="contas-filter-summary-text">
                     <i data-lucide="info"></i>
-                    <span>Os saldos acima representam a posi\u00e7\u00e3o atual consolidada das contas ativas, incluindo investimentos.</span>
+                    <span>Os saldos acima representam a posi\u00e7\u00e3o atual consolidada das contas ativas e reservas.</span>
                 </div>
             `;
             return;
@@ -296,21 +296,21 @@ export const ContasRender = {
 
     updateStats() {
         const totalContas = STATE.contas.length;
-        const tiposInvestimento = ['conta_investimento'];
-        const contasNormais = STATE.contas.filter((conta) => !tiposInvestimento.includes(conta.tipo_conta));
-        const contasInvest = STATE.contas.filter((conta) => tiposInvestimento.includes(conta.tipo_conta));
+        const tiposReserva = new Set(['conta_poupanca', 'conta_investimento']);
+        const contasCaixa = STATE.contas.filter((conta) => !tiposReserva.has(conta.tipo_conta || conta.tipo));
+        const contasReserva = STATE.contas.filter((conta) => tiposReserva.has(conta.tipo_conta || conta.tipo));
 
-        const saldoContas = contasNormais.reduce((sum, conta) => sum + (conta.saldoAtual ?? 0), 0);
-        const saldoInvest = contasInvest.reduce((sum, conta) => sum + (conta.saldoAtual ?? 0), 0);
-        const saldoTotal = saldoContas + saldoInvest;
+        const saldoCaixa = contasCaixa.reduce((sum, conta) => sum + (conta.saldoAtual ?? 0), 0);
+        const saldoReservas = contasReserva.reduce((sum, conta) => sum + (conta.saldoAtual ?? 0), 0);
+        const saldoTotal = saldoCaixa + saldoReservas;
 
         const totalContasEl = document.getElementById('totalContas');
         const saldoTotalEl = document.getElementById('saldoTotal');
-        const saldoInvestEl = document.getElementById('saldoInvestimentos');
+        const saldoReservasEl = document.getElementById('saldoReservas');
 
         if (totalContasEl) totalContasEl.textContent = totalContas;
         if (saldoTotalEl) saldoTotalEl.textContent = Utils.formatCurrency(saldoTotal);
-        if (saldoInvestEl) saldoInvestEl.textContent = Utils.formatCurrency(saldoInvest);
+        if (saldoReservasEl) saldoReservasEl.textContent = Utils.formatCurrency(saldoReservas);
     },
 
     showLoading(show) {

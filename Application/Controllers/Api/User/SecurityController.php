@@ -2,11 +2,12 @@
 
 namespace Application\Controllers\Api\User;
 
+use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Middlewares\CsrfMiddleware;
 use Application\Services\Infrastructure\LogService;
 
-class SecurityController
+class SecurityController extends BaseController
 {
     public function refreshCsrf(): void
     {
@@ -29,7 +30,7 @@ class SecurityController
 
         // Forçar escrita da sessão para garantir que o novo token esteja persistido
         // antes de enviar a resposta ao cliente
-        session_write_close();
+        $this->releaseSession();
 
         Response::success([
             'token'    => $token,
@@ -42,12 +43,9 @@ class SecurityController
     {
         $tokenId = 'default';
 
-        $raw = file_get_contents('php://input');
-        if (is_string($raw) && $raw !== '') {
-            $payload = json_decode($raw, true);
-            if (json_last_error() === JSON_ERROR_NONE && is_array($payload)) {
-                $tokenId = $payload['token_id'] ?? $payload['tokenId'] ?? $tokenId;
-            }
+        $payload = $this->getJson();
+        if (is_array($payload) && $payload !== []) {
+            $tokenId = $payload['token_id'] ?? $payload['tokenId'] ?? $tokenId;
         }
 
         if (isset($_REQUEST['token_id']) && is_string($_REQUEST['token_id']) && $_REQUEST['token_id'] !== '') {

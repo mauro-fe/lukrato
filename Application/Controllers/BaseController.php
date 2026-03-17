@@ -202,6 +202,73 @@ abstract class BaseController
         return $this->request->get($key, $default);
     }
 
+    protected function resolveCurrentUserId(): ?int
+    {
+        if ($this->userId !== null) {
+            return $this->userId;
+        }
+
+        $userId = Auth::id();
+        $this->userId = $userId ? (int) $userId : null;
+
+        return $this->userId;
+    }
+
+    protected function resolveCurrentUserIdOrFail(string $message = 'Não autenticado', int $status = 401): ?int
+    {
+        $userId = $this->resolveCurrentUserId();
+
+        if ($userId === null) {
+            $this->fail($message, $status);
+            return null;
+        }
+
+        return $userId;
+    }
+
+    protected function releaseSession(): void
+    {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+    }
+
+    /**
+     * @return array{month:string,year:int,monthNum:int,start:string,end:string}
+     */
+    protected function parseYearMonth(string $monthInput): array
+    {
+        $monthInput = trim($monthInput);
+        $date = \DateTimeImmutable::createFromFormat('!Y-m', $monthInput);
+
+        if (!$date || $date->format('Y-m') !== $monthInput) {
+            throw new \ValueError('Formato de mês inválido (YYYY-MM).');
+        }
+
+        return $this->buildYearMonthPeriod($date);
+    }
+
+    /**
+     * @return array{month:string,year:int,monthNum:int,start:string,end:string}
+     */
+    protected function normalizeYearMonth(string $monthInput, ?string $fallbackMonth = null): array
+    {
+        $monthInput = trim($monthInput);
+        $fallbackMonth ??= date('Y-m');
+
+        $date = \DateTimeImmutable::createFromFormat('!Y-m', $monthInput);
+        if ($date && $date->format('Y-m') === $monthInput) {
+            return $this->buildYearMonthPeriod($date);
+        }
+
+        $fallbackDate = \DateTimeImmutable::createFromFormat('!Y-m', $fallbackMonth);
+        if ($fallbackDate && $fallbackDate->format('Y-m') === $fallbackMonth) {
+            return $this->buildYearMonthPeriod($fallbackDate);
+        }
+
+        return $this->buildYearMonthPeriod(new \DateTimeImmutable('first day of this month'));
+    }
+
 
     protected function getJson(string $key = null, mixed $default = null): mixed
     {
@@ -330,5 +397,19 @@ abstract class BaseController
             'sysadmin'      => 'super_admin',
             default         => null,
         };
+    }
+
+    /**
+     * @return array{month:string,year:int,monthNum:int,start:string,end:string}
+     */
+    private function buildYearMonthPeriod(\DateTimeImmutable $date): array
+    {
+        return [
+            'month' => $date->format('Y-m'),
+            'year' => (int) $date->format('Y'),
+            'monthNum' => (int) $date->format('m'),
+            'start' => $date->format('Y-m-01'),
+            'end' => $date->format('Y-m-t'),
+        ];
     }
 }

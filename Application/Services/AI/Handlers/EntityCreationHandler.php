@@ -994,7 +994,7 @@ class EntityCreationHandler implements AIHandlerInterface
         } elseif (preg_match('/\b(?:carteira|dinheiro|cash)\b/iu', $message)) {
             $data['tipo_conta'] = 'carteira';
         } elseif (preg_match('/\b(?:investimento|cdb|tesouro|a[çc][ãa]o|a[çc][oõ]es|fundo)\b/iu', $message)) {
-            $data['tipo_conta'] = 'investimento';
+            $data['tipo_conta'] = 'conta_poupanca';
         } else {
             $data['tipo_conta'] = 'conta_corrente';
         }
@@ -1143,7 +1143,7 @@ class EntityCreationHandler implements AIHandlerInterface
             'orcamento'    => 'categoria_id (number), valor_limite (number), mes (1-12), ano (YYYY)',
             'categoria'    => 'nome (string), tipo (receita/despesa/transferencia/ambas)',
             'subcategoria' => 'nome (string)',
-            'conta'        => 'nome (string), instituicao (string/null), tipo_conta (conta_corrente/conta_poupanca/carteira/investimento/outro), saldo_inicial (number)',
+            'conta'        => 'nome (string), instituicao (string/null), tipo_conta (conta_corrente/conta_poupanca/carteira/outro), saldo_inicial (number)',
             default => '',
         };
 
@@ -1410,7 +1410,7 @@ class EntityCreationHandler implements AIHandlerInterface
             'conta_corrente' => 'Conta Corrente',
             'conta_poupanca' => 'Poupança',
             'carteira'       => 'Carteira',
-            'investimento'   => 'Investimento',
+            'investimento'   => 'Reserva',
             default          => ucfirst($d['tipo_conta'] ?? 'outro'),
         };
         $saldo = 'R$ ' . number_format((float) ($d['saldo_inicial'] ?? 0), 2, ',', '.');

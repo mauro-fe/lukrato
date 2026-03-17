@@ -172,7 +172,7 @@
             {
                 selector: '.receitas-card',
                 title: 'Categorias de Receita',
-                message: 'Aqui ficam suas categorias de entrada: salário, investimentos, vendas, etc.',
+                message: 'Aqui ficam suas categorias de entrada: salário, freelance, vendas, reembolsos e similares.',
                 position: 'right',
                 icon: 'arrow-up'
             },

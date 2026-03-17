@@ -2,7 +2,6 @@ export type ContaTypeOption = {
   id:
     | 'conta_corrente'
     | 'conta_poupanca'
-    | 'conta_investimento'
     | 'carteira_digital'
     | 'dinheiro';
   label: string;
@@ -31,12 +30,6 @@ export const contaTypeOptions: ContaTypeOption[] = [
     icon: 'shield-checkmark-outline',
   },
   {
-    id: 'conta_investimento',
-    label: 'Investimento',
-    description: 'Para patrimonio e objetivos de medio e longo prazo.',
-    icon: 'trending-up-outline',
-  },
-  {
     id: 'carteira_digital',
     label: 'Carteira',
     description: 'Para apps, saldo digital e uso rapido.',
@@ -57,5 +50,4 @@ export const contaInstitutionOptions: ContaInstitutionOption[] = [
   { id: 'santander', name: 'Santander', type: 'banco', accentColor: '#d71920' },
   { id: 'caixa', name: 'Caixa', type: 'banco', accentColor: '#2276c9' },
   { id: 'bb', name: 'Banco do Brasil', type: 'banco', accentColor: '#f0c419' },
-  { id: 'xp', name: 'XP Investimentos', type: 'corretora', accentColor: '#242424' },
 ];

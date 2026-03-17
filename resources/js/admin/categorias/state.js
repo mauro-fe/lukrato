@@ -66,7 +66,7 @@ export const ICON_GROUPS = [
     { label: 'Saúde', icons: ['heart-pulse', 'pill', 'stethoscope', 'dumbbell', 'activity'] },
     { label: 'Educação', icons: ['graduation-cap', 'book-open', 'pencil', 'library'] },
     { label: 'Trabalho & Renda', icons: ['briefcase', 'laptop', 'building', 'wallet', 'banknote', 'piggy-bank', 'landmark', 'calculator'] },
-    { label: 'Investimentos', icons: ['trending-up', 'bar-chart-3', 'coins', 'bitcoin'] },
+    { label: 'Patrimônio', icons: ['trending-up', 'bar-chart-3', 'coins', 'bitcoin'] },
     { label: 'Lazer', icons: ['clapperboard', 'music', 'gamepad-2', 'palette', 'camera', 'headphones', 'ticket'] },
     { label: 'Compras', icons: ['shopping-cart', 'shopping-bag', 'shirt', 'scissors', 'gem', 'gift'] },
     { label: 'Finanças', icons: ['credit-card', 'percent', 'shield-check', 'calendar-check', 'pie-chart'] },
@@ -126,8 +126,8 @@ export const AVAILABLE_ICONS = [
     { name: 'landmark', label: 'banco instituição' },
     { name: 'calculator', label: 'cálculo contabilidade imposto' },
     // Investimentos
-    { name: 'trending-up', label: 'investimento rendimento lucro' },
-    { name: 'bar-chart-3', label: 'gráfico investimento ação' },
+    { name: 'trending-up', label: 'crescimento rendimento lucro' },
+    { name: 'bar-chart-3', label: 'gráfico patrimônio desempenho' },
     { name: 'coins', label: 'moedas dinheiro' },
     { name: 'bitcoin', label: 'cripto bitcoin' },
     // Lazer & Entretenimento
@@ -150,7 +150,7 @@ export const AVAILABLE_ICONS = [
     { name: 'percent', label: 'juros desconto' },
     { name: 'shield-check', label: 'seguro proteção' },
     { name: 'calendar-check', label: 'planejamento agenda compromisso' },
-    { name: 'pie-chart', label: 'investimento divisão' },
+    { name: 'pie-chart', label: 'planejamento divisão' },
     // Família & Pessoal
     { name: 'baby', label: 'bebê filho criança' },
     { name: 'dog', label: 'pet animal cachorro' },
@@ -198,12 +198,10 @@ export const SUGGESTIONS = {
     receita: [
         { nome: 'Salário', icone: 'briefcase' },
         { nome: 'Freelance', icone: 'laptop' },
-        { nome: 'Investimentos', icone: 'trending-up' },
         { nome: 'Vendas', icone: 'banknote' },
         { nome: 'Bônus', icone: 'gift' },
         { nome: 'Prêmios', icone: 'trophy' },
         { nome: 'Outras Receitas', icone: 'wallet' },
-        { nome: 'Dividendos', icone: 'coins' },
         { nome: 'Aluguel', icone: 'key' },
         { nome: 'Cashback', icone: 'percent' },
     ]
@@ -228,7 +226,6 @@ export const ICON_MAP = {
     // Receitas
     'salário': 'briefcase',
     'freelance': 'laptop',
-    'investimentos': 'trending-up',
     'bônus': 'gift',
     'vendas': 'banknote',
     'prêmios': 'trophy',

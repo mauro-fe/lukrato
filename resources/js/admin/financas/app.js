@@ -975,7 +975,7 @@ export const FinancasApp = {
             document.getElementById('metaTitulo').value = meta.titulo || '';
             document.getElementById('metaValorAlvo').value = Utils.formatNumber(meta.valor_alvo);
             document.getElementById('metaValorAtual').value = Utils.formatNumber(meta.valor_atual || 0);
-            document.getElementById('metaTipo').value = meta.tipo || 'economia';
+            document.getElementById('metaTipo').value = Utils.normalizeMetaTipo(meta.tipo);
             document.getElementById('metaPrioridade').value = meta.prioridade || 'media';
             document.getElementById('metaPrazo').value = meta.data_prazo || '';
             document.getElementById('metaCor').value = meta.cor || '#6366f1';
@@ -1191,7 +1191,7 @@ export const FinancasApp = {
 
         setTimeout(() => {
             if (tmpl.titulo) document.getElementById('metaTitulo').value = tmpl.titulo;
-            if (tmpl.tipo) document.getElementById('metaTipo').value = tmpl.tipo;
+            if (tmpl.tipo) document.getElementById('metaTipo').value = Utils.normalizeMetaTipo(tmpl.tipo);
             if (tmpl.valor_sugerido) document.getElementById('metaValorAlvo').value = Utils.formatNumber(tmpl.valor_sugerido);
             if (tmpl.prioridade) document.getElementById('metaPrioridade').value = tmpl.prioridade;
             if (tmpl.cor) {

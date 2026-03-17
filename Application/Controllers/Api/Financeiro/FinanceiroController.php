@@ -3,7 +3,6 @@
 namespace Application\Controllers\Api\Financeiro;
 
 use Application\Controllers\BaseController;
-use Application\Core\Request;
 use Application\Core\Response;
 use Application\Models\Lancamento;
 use Application\Models\Categoria;
@@ -18,8 +17,6 @@ use Application\DTO\Requests\UpdateLancamentoDTO;
 use Application\Repositories\LancamentoRepository;
 use Application\Repositories\CategoriaRepository;
 use Application\Repositories\ContaRepository;
-use Carbon\Carbon;
-use Application\Lib\Auth;
 use ValueError;
 use Throwable;
 use Illuminate\Database\Eloquent\Builder;
@@ -40,6 +37,7 @@ class FinanceiroController extends BaseController
         ?CategoriaRepository $categoriaRepo = null,
         ?ContaRepository $contaRepo = null
     ) {
+        parent::__construct();
         $this->limitService = $limitService ?? new LancamentoLimitService();
         $this->transferenciaService = $transferenciaService ?? new TransferenciaService();
         $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
@@ -49,81 +47,54 @@ class FinanceiroController extends BaseController
 
     /**
      * GET /api/dashboard/metrics
-     * 
-     * REFATORAÇÃO: Suporta visualização por competência ou caixa
-     * Parâmetros:
-     * - month: Mês no formato Y-m (ex: 2026-01)
-     * - view: 'caixa' ou 'competencia' (padrão: 'caixa')
+     *
+     * Suporta visualizacao por competencia ou caixa.
      */
     public function metrics(): void
     {
-        $uid = Auth::id();
-
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
+        $uid = $this->resolveCurrentUserIdOrFail('Nao autenticado');
+        if ($uid === null) {
+            return;
         }
 
+        $this->releaseSession();
+
         try {
-            $req = new Request();
-            $month = $req->get('month') ?? $_GET['month'] ?? date('Y-m');
-            $viewType = $req->get('view') ?? $_GET['view'] ?? 'caixa'; // 'caixa' ou 'competencia'
-
-            if (!preg_match('/^\d{4}-\d{2}$/', $month)) {
-                throw new ValueError('Formato de mês inválido (YYYY-MM).');
-            }
-
-            [$y, $m] = array_map('intval', explode('-', $month));
-            $start = Carbon::createMidnightDate($y, $m, 1);
-            $end   = (clone $start)->endOfMonth();
-
-            $startStr = $start->format('Y-m-d');
-            $endStr = $end->format('Y-m-d');
+            $period = $this->parseYearMonth((string) $this->getQuery('month', date('Y-m')));
+            $viewType = (string) $this->getQuery('view', 'caixa');
+            $startStr = $period['start'];
+            $endStr = $period['end'];
 
             if ($viewType === 'competencia') {
-                // Visão de COMPETÊNCIA: usa data_competencia quando disponível
                 $receitas = $this->lancamentoRepo->sumReceitasCompetencia($uid, $startStr, $endStr);
                 $despesas = $this->lancamentoRepo->sumDespesasCompetencia($uid, $startStr, $endStr);
             } else {
-                // Visão de CAIXA: comportamento original
                 $receitas = $this->lancamentoRepo->sumReceitasCaixa($uid, $startStr, $endStr);
                 $despesas = $this->lancamentoRepo->sumDespesasCaixa($uid, $startStr, $endStr);
             }
 
             $resultado = $receitas - $despesas;
-
-            // Saldo acumulado sempre usa CAIXA (saldo real nas contas)
-            // Inclui: saldo inicial das contas + receitas - despesas + transferências
             $saldoAcumulado = $this->calcularSaldoAcumulado($uid, $endStr);
 
             Response::success([
-                'saldo'          => $saldoAcumulado,
-                'receitas'       => $receitas,
-                'despesas'       => $despesas,
-                'resultado'      => $resultado,
+                'saldo' => $saldoAcumulado,
+                'receitas' => $receitas,
+                'despesas' => $despesas,
+                'resultado' => $resultado,
                 'saldoAcumulado' => $saldoAcumulado,
-                'view'           => $viewType, // Informar qual visão está sendo usada
+                'view' => $viewType,
             ]);
         } catch (Throwable $e) {
             Response::error($e->getMessage(), 500);
         }
     }
 
-    /**
-     * Calcula o saldo acumulado real do usuário até uma data.
-     * Inclui: saldo inicial das contas + receitas - despesas ± transferências
-     * 
-     * @param int $userId
-     * @param string $ate Data limite no formato Y-m-d
-     * @return float
-     */
     private function calcularSaldoAcumulado(int $userId, string $ate): float
     {
-        // 1. Soma dos saldos iniciais de todas as contas ativas
         $saldosIniciais = (float) Conta::forUser($userId)
             ->ativas()
             ->sum('saldo_inicial');
 
-        // 2. Soma das receitas (respeitando afeta_caixa + pago)
         $receitas = (float) Lancamento::where('user_id', $userId)
             ->where('tipo', LancamentoTipo::RECEITA->value)
             ->where('eh_transferencia', 0)
@@ -132,7 +103,6 @@ class FinanceiroController extends BaseController
             ->where('data', '<=', $ate)
             ->sum('valor');
 
-        // 3. Soma das despesas (respeitando afeta_caixa + pago)
         $despesas = (float) Lancamento::where('user_id', $userId)
             ->where('tipo', LancamentoTipo::DESPESA->value)
             ->where('eh_transferencia', 0)
@@ -141,35 +111,24 @@ class FinanceiroController extends BaseController
             ->where('data', '<=', $ate)
             ->sum('valor');
 
-        // Nota: Transferências não afetam o saldo global (entrada em uma conta = saída de outra)
-        // Por isso não precisamos somar/subtrair transferências aqui
-
         return $saldosIniciais + $receitas - $despesas;
     }
 
     public function transactions(): void
     {
-        $uid = Auth::id();
-
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
+        $uid = $this->resolveCurrentUserIdOrFail('Nao autenticado');
+        if ($uid === null) {
+            return;
         }
 
+        $this->releaseSession();
+
         try {
-            $req = new Request();
-            $month = $req->get('month') ?? $_GET['month'] ?? date('Y-m');
-            $limit = min((int)($req->get('limit') ?? $_GET['limit'] ?? 50), 1000);
-
-            if (!preg_match('/^\d{4}-\d{2}$/', $month)) {
-                throw new ValueError('Formato de mês inválido (YYYY-MM).');
-            }
-
-            [$y, $m] = array_map('intval', explode('-', $month));
-            $start = Carbon::createMidnightDate($y, $m, 1)->toDateString();
-            $end   = Carbon::createMidnightDate($y, $m, 1)->endOfMonth()->toDateString();
+            $period = $this->parseYearMonth((string) $this->getQuery('month', date('Y-m')));
+            $limit = min((int) $this->getQuery('limit', 50), 1000);
 
             $rows = Lancamento::with('categoria:id,nome')
-                ->whereBetween('data', [$start, $end])
+                ->whereBetween('data', [$period['start'], $period['end']])
                 ->when($uid, fn($q) => $q->where('user_id', $uid))
                 ->where('eh_transferencia', 0)
                 ->orderBy('data', 'desc')
@@ -179,16 +138,16 @@ class FinanceiroController extends BaseController
 
             $out = $rows->map(function (Lancamento $t) {
                 return [
-                    'id'               => (int) $t->id,
-                    'data'             => (string) $t->data,
-                    'tipo'             => (string) $t->tipo,
-                    'descricao'        => (string) ($t->descricao ?? ''),
-                    'observacao'       => (string) ($t->observacao ?? ''),
-                    'valor'            => (float)  $t->valor,
+                    'id' => (int) $t->id,
+                    'data' => (string) $t->data,
+                    'tipo' => (string) $t->tipo,
+                    'descricao' => (string) ($t->descricao ?? ''),
+                    'observacao' => (string) ($t->observacao ?? ''),
+                    'valor' => (float) $t->valor,
                     'eh_transferencia' => (bool) ($t->eh_transferencia ?? 0),
                     'eh_saldo_inicial' => (bool) ($t->eh_saldo_inicial ?? 0),
-                    'categoria'        => $t->categoria
-                        ? ['id' => (int)$t->categoria->id, 'nome' => (string)$t->categoria->nome]
+                    'categoria' => $t->categoria
+                        ? ['id' => (int) $t->categoria->id, 'nome' => (string) $t->categoria->nome]
                         : null,
                 ];
             })->all();
@@ -198,13 +157,15 @@ class FinanceiroController extends BaseController
             Response::error($e->getMessage(), 500);
         }
     }
+
     public function options(): void
     {
-        $uid = Auth::id();
-
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
+        $uid = $this->resolveCurrentUserIdOrFail('Nao autenticado');
+        if ($uid === null) {
+            return;
         }
+
+        $this->releaseSession();
 
         try {
             $baseCatsQuery = fn(string $tipo) => Categoria::where(function (Builder $q) use ($uid) {
@@ -223,80 +184,57 @@ class FinanceiroController extends BaseController
 
             Response::success([
                 'categorias' => [
-                    'receitas' => $catsReceita->map(fn(Categoria $c) => ['id' => (int)$c->id, 'nome' => (string)$c->nome])->all(),
-                    'despesas' => $catsDespesa->map(fn(Categoria $c) => ['id' => (int)$c->id, 'nome' => (string)$c->nome])->all(),
+                    'receitas' => $catsReceita->map(fn(Categoria $c) => ['id' => (int) $c->id, 'nome' => (string) $c->nome])->all(),
+                    'despesas' => $catsDespesa->map(fn(Categoria $c) => ['id' => (int) $c->id, 'nome' => (string) $c->nome])->all(),
                 ],
-                'contas' => $contas->map(fn(Conta $c) => ['id' => (int)$c->id, 'nome' => (string)$c->nome])->all(),
+                'contas' => $contas->map(fn(Conta $c) => ['id' => (int) $c->id, 'nome' => (string) $c->nome])->all(),
             ]);
         } catch (Throwable $e) {
             Response::error($e->getMessage(), 500);
         }
     }
 
-
     public function store(): void
     {
         try {
-            $payload = $this->getRequestPayload();
-            $uid = Auth::id();
-
-            if (!$uid) {
-                Response::error('Nao autenticado', 401);
+            $uid = $this->resolveCurrentUserIdOrFail('Nao autenticado');
+            if ($uid === null) {
                 return;
             }
 
-            // Validar com o validator
+            $payload = $this->getRequestPayload();
             $errors = LancamentoValidator::validateCreate($payload);
 
-            // Validar conta e categoria (regras de negócio)
-            $contaId = $payload['conta_id'] ?? null;
-            $contaId = is_scalar($contaId) ? (int)$contaId : null;
-            if ($contaId && !$this->contaRepo->belongsToUser($contaId, $uid)) {
-                $errors['conta_id'] = 'Conta inválida.';
-            }
-
-            $categoriaId = $payload['categoria_id'] ?? null;
-            $categoriaId = is_scalar($categoriaId) ? (int)$categoriaId : null;
-            if ($categoriaId && !$this->categoriaRepo->belongsToUser($categoriaId, $uid)) {
-                $errors['categoria_id'] = 'Categoria inválida.';
-            }
+            $contaId = $this->normalizeOptionalId($payload['conta_id'] ?? null);
+            $categoriaId = $this->normalizeOptionalId($payload['categoria_id'] ?? null);
+            $errors = array_merge($errors, $this->validateLancamentoRelations($uid, $contaId, $categoriaId));
 
             if (!empty($errors)) {
                 Response::validationError($errors);
                 return;
             }
 
-            // Verificar limite antes de criar
             try {
-                $usage = $this->limitService->assertCanCreate($uid, $payload['data']);
+                $usage = $this->limitService->assertCanCreate($uid, (string) ($payload['data'] ?? ''));
             } catch (DomainException $e) {
                 Response::error($e->getMessage(), 402);
                 return;
             }
 
-            // Criar DTO
-            $dto = CreateLancamentoDTO::fromRequest($uid, [
-                'tipo' => strtolower(trim($payload['tipo'])),
-                'data' => $payload['data'],
-                'valor' => LancamentoValidator::sanitizeValor($payload['valor']),
-                'descricao' => mb_substr(trim($payload['descricao'] ?? ''), 0, 190),
-                'observacao' => mb_substr(trim($payload['observacao'] ?? ''), 0, 500),
-                'categoria_id' => $categoriaId,
-                'conta_id' => $contaId,
-            ]);
+            $dto = CreateLancamentoDTO::fromRequest(
+                $uid,
+                $this->buildLancamentoWriteData($payload, $contaId, $categoriaId)
+            );
 
-            // Criar lançamento
             $lancamento = $this->lancamentoRepo->create($dto->toArray());
-
-            // Atualizar usage
-            $usage = $this->limitService->usage($uid, substr($payload['data'], 0, 7));
+            $usage = $this->limitService->usage($uid, substr((string) ($payload['data'] ?? ''), 0, 7));
 
             Response::success([
                 'ok' => true,
-                'id' => (int)$lancamento->id,
+                'id' => (int) $lancamento->id,
                 'usage' => $usage,
                 'ui_message' => $this->limitService->getWarningMessage($usage),
-                'upgrade_cta' => ($usage['should_warn'] ?? false) ? $this->limitService->getUpgradeCta() : null
+                'upgrade_cta' => ($usage['should_warn'] ?? false) ? $this->limitService->getUpgradeCta() : null,
             ], 'Lancamento criado', 201);
         } catch (ValueError $e) {
             Response::validationError(['message' => $e->getMessage()]);
@@ -305,80 +243,48 @@ class FinanceiroController extends BaseController
         }
     }
 
-
-
     public function update(mixed $routeParam = null): void
     {
         try {
-            $uid = Auth::id();
-            if (!$uid) {
-                Response::error('Não autenticado', 401);
+            $uid = $this->resolveCurrentUserIdOrFail('Nao autenticado');
+            if ($uid === null) {
                 return;
             }
 
-            $id = (int)(is_array($routeParam) ? ($routeParam['id'] ?? 0) : $routeParam);
-
+            $id = $this->extractLancamentoId($routeParam);
             if ($id <= 0) {
-                throw new ValueError('ID inválido.');
+                throw new ValueError('ID invalido.');
             }
 
             $lancamento = $this->lancamentoRepo->findByIdAndUser($id, $uid);
             if (!$lancamento) {
-                Response::error('Lançamento não encontrado.', 404);
+                Response::error('Lancamento nao encontrado.', 404);
                 return;
             }
 
-            if ((bool)($lancamento->eh_transferencia ?? 0) === true) {
-                throw new ValueError('Transferências não podem ser editadas aqui.');
+            if ((bool) ($lancamento->eh_transferencia ?? 0) === true) {
+                throw new ValueError('Transferencias nao podem ser editadas aqui.');
             }
 
             $payload = $this->getRequestPayload();
-
-            // Mesclar dados atuais com novos
-            $mergedData = [
-                'tipo' => $payload['tipo'] ?? $lancamento->tipo,
-                'data' => $payload['data'] ?? $lancamento->data,
-                'valor' => $payload['valor'] ?? $lancamento->valor,
-                'descricao' => $payload['descricao'] ?? $lancamento->descricao,
-                'observacao' => $payload['observacao'] ?? $lancamento->observacao,
-                'conta_id' => $payload['conta_id'] ?? $lancamento->conta_id,
-                'categoria_id' => $payload['categoria_id'] ?? $lancamento->categoria_id,
-            ];
-
-            // Validar
+            $mergedData = $this->mergeLancamentoPayload($payload, $lancamento);
             $errors = LancamentoValidator::validateUpdate($mergedData);
 
-            // Validar conta e categoria
-            $contaId = is_scalar($mergedData['conta_id']) ? (int)$mergedData['conta_id'] : null;
-            if ($contaId && !$this->contaRepo->belongsToUser($contaId, $uid)) {
-                $errors['conta_id'] = 'Conta inválida.';
-            }
-
-            $categoriaId = is_scalar($mergedData['categoria_id']) ? (int)$mergedData['categoria_id'] : null;
-            if ($categoriaId && !$this->categoriaRepo->belongsToUser($categoriaId, $uid)) {
-                $errors['categoria_id'] = 'Categoria inválida.';
-            }
+            $contaId = $this->normalizeOptionalId($mergedData['conta_id'] ?? null);
+            $categoriaId = $this->normalizeOptionalId($mergedData['categoria_id'] ?? null);
+            $errors = array_merge($errors, $this->validateLancamentoRelations($uid, $contaId, $categoriaId));
 
             if (!empty($errors)) {
                 Response::validationError($errors);
                 return;
             }
 
-            // Criar DTO
-            $dto = UpdateLancamentoDTO::fromRequest([
-                'tipo' => strtolower(trim($mergedData['tipo'])),
-                'data' => $mergedData['data'],
-                'valor' => LancamentoValidator::sanitizeValor($mergedData['valor']),
-                'descricao' => mb_substr(trim($mergedData['descricao'] ?? ''), 0, 190),
-                'observacao' => mb_substr(trim($mergedData['observacao'] ?? ''), 0, 500),
-                'categoria_id' => $categoriaId,
-                'conta_id' => $contaId,
-            ]);
+            $dto = UpdateLancamentoDTO::fromRequest(
+                $this->buildLancamentoWriteData($mergedData, $contaId, $categoriaId)
+            );
 
-            // Atualizar
             $this->lancamentoRepo->update($lancamento->id, $dto->toArray());
-
-            Response::success(['id' => (int)$lancamento->id]);
+            Response::success(['id' => (int) $lancamento->id]);
         } catch (ValueError $e) {
             Response::error($e->getMessage(), 422);
         } catch (Throwable $e) {
@@ -386,16 +292,18 @@ class FinanceiroController extends BaseController
         }
     }
 
-
     public function transfer(): void
     {
         try {
-            $uid = Auth::id();
-            $data = $this->getRequestPayload();
+            $uid = $this->resolveCurrentUserIdOrFail('Nao autenticado');
+            if ($uid === null) {
+                return;
+            }
 
-            $dataStr = trim($data['data'] ?? date('Y-m-d'));
+            $data = $this->getRequestPayload();
+            $dataStr = trim((string) ($data['data'] ?? date('Y-m-d')));
             if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $dataStr)) {
-                throw new ValueError('Data inválida (YYYY-MM-DD).');
+                throw new ValueError('Data invalida (YYYY-MM-DD).');
             }
 
             $valor = LancamentoValidator::sanitizeValor($data['valor'] ?? 0);
@@ -403,10 +311,9 @@ class FinanceiroController extends BaseController
                 throw new ValueError('Valor deve ser maior que zero.');
             }
 
-            $origemId  = (int)($data['conta_id'] ?? 0);
-            $destinoId = (int)($data['conta_id_destino'] ?? 0);
+            $origemId = (int) ($data['conta_id'] ?? 0);
+            $destinoId = (int) ($data['conta_id_destino'] ?? 0);
 
-            // Usar TransferenciaService
             $transferencia = $this->transferenciaService->executarTransferencia(
                 userId: $uid,
                 contaOrigemId: $origemId,
@@ -417,11 +324,67 @@ class FinanceiroController extends BaseController
                 observacao: $data['observacao'] ?? null
             );
 
-            Response::success(['id' => (int)$transferencia->id], 'Success', 201);
+            Response::success(['id' => (int) $transferencia->id], 'Success', 201);
         } catch (ValueError $e) {
             Response::error($e->getMessage(), 422);
         } catch (Throwable $e) {
             Response::error($e->getMessage(), 500);
         }
+    }
+
+    private function normalizeOptionalId(mixed $value): ?int
+    {
+        if (!is_scalar($value)) {
+            return null;
+        }
+
+        $id = (int) $value;
+        return $id > 0 ? $id : null;
+    }
+
+    private function validateLancamentoRelations(int $userId, ?int $contaId, ?int $categoriaId): array
+    {
+        $errors = [];
+
+        if ($contaId !== null && !$this->contaRepo->belongsToUser($contaId, $userId)) {
+            $errors['conta_id'] = 'Conta invalida.';
+        }
+
+        if ($categoriaId !== null && !$this->categoriaRepo->belongsToUser($categoriaId, $userId)) {
+            $errors['categoria_id'] = 'Categoria invalida.';
+        }
+
+        return $errors;
+    }
+
+    private function buildLancamentoWriteData(array $data, ?int $contaId, ?int $categoriaId): array
+    {
+        return [
+            'tipo' => strtolower(trim((string) ($data['tipo'] ?? ''))),
+            'data' => (string) ($data['data'] ?? ''),
+            'valor' => LancamentoValidator::sanitizeValor($data['valor'] ?? 0),
+            'descricao' => mb_substr(trim((string) ($data['descricao'] ?? '')), 0, 190),
+            'observacao' => mb_substr(trim((string) ($data['observacao'] ?? '')), 0, 500),
+            'categoria_id' => $categoriaId,
+            'conta_id' => $contaId,
+        ];
+    }
+
+    private function extractLancamentoId(mixed $routeParam): int
+    {
+        return (int) (is_array($routeParam) ? ($routeParam['id'] ?? 0) : $routeParam);
+    }
+
+    private function mergeLancamentoPayload(array $payload, Lancamento $lancamento): array
+    {
+        return [
+            'tipo' => $payload['tipo'] ?? $lancamento->tipo,
+            'data' => $payload['data'] ?? $lancamento->data,
+            'valor' => $payload['valor'] ?? $lancamento->valor,
+            'descricao' => $payload['descricao'] ?? $lancamento->descricao,
+            'observacao' => $payload['observacao'] ?? $lancamento->observacao,
+            'conta_id' => $payload['conta_id'] ?? $lancamento->conta_id,
+            'categoria_id' => $payload['categoria_id'] ?? $lancamento->categoria_id,
+        ];
     }
 }

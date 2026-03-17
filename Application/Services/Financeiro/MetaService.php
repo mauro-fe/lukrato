@@ -227,15 +227,6 @@ class MetaService
                 'sugestao'  => null,
             ],
             [
-                'titulo'    => 'Primeiro Milhão',
-                'descricao' => 'A jornada começa com o primeiro passo — e com disciplina',
-                'tipo'      => Meta::TIPO_INVESTIMENTO,
-                'icone'     => 'gem',
-                'cor'       => '#f59e0b',
-                'valor_sugerido' => 1000000,
-                'sugestao'  => null,
-            ],
-            [
                 'titulo'    => 'Fundo para os Filhos',
                 'descricao' => 'Garanta o futuro dos seus filhos com planejamento desde cedo',
                 'tipo'      => Meta::TIPO_ECONOMIA,

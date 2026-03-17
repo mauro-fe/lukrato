@@ -2,12 +2,13 @@
 
 namespace Application\Controllers\Api\User;
 
+use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Services\Infrastructure\LogService;
 use Throwable;
 
-class TourController
+class TourController extends BaseController
 {
     /**
      * POST /api/tour/complete

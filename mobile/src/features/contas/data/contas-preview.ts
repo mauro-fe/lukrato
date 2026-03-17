@@ -4,7 +4,7 @@ export const contasPreview: ContasSnapshot = {
   monthLabel: 'Marco de 2026',
   helperTitle: 'Onde o dinheiro esta guardado fica claro logo de cara',
   helperDescription:
-    'Primeiro aparecem as contas usadas no dia a dia. Reserva e investimento ficam separados para o usuario nao confundir saldo disponivel com patrimonio.',
+    'Primeiro aparecem as contas usadas no dia a dia. Reservas ficam separadas para o usuario nao confundir saldo disponivel com patrimonio.',
   totalBalance: 18094.1,
   everydayBalance: 3502.8,
   reserveBalance: 14591.3,
@@ -34,7 +34,7 @@ export const contasPreview: ContasSnapshot = {
     {
       id: '3',
       title: 'Mantenha reserva separada do giro do mes',
-      description: 'Poupanca e investimento ficam em outro bloco para o dinheiro disponivel nao parecer maior do que realmente esta.',
+      description: 'Poupanca e outras reservas ficam em outro bloco para o dinheiro disponivel nao parecer maior do que realmente esta.',
       done: true,
     },
   ],
@@ -114,7 +114,7 @@ export const contasPreview: ContasSnapshot = {
       totalBalance: 14591.3,
       emptyTitle: 'Ainda nao existe reserva separada',
       emptyDescription:
-        'Quando o usuario criar poupanca ou investimento, eles aparecem aqui sem misturar com o caixa do mes.',
+        'Quando o usuario criar uma reserva, ela aparece aqui sem misturar com o caixa do mes.',
       accounts: [
         {
           id: 'inter',
@@ -129,16 +129,16 @@ export const contasPreview: ContasSnapshot = {
           note: 'Separada para emergencia e objetivos de curto prazo.',
         },
         {
-          id: 'xp',
-          name: 'Carteira XP',
-          institutionName: 'XP Investimentos',
-          typeLabel: 'Investimento',
-          icon: 'trending-up-outline',
-          accentColor: '#3a79d9',
+          id: 'reserva-casa',
+          name: 'Reserva Casa',
+          institutionName: 'Objetivo planejado',
+          typeLabel: 'Reserva',
+          icon: 'shield-checkmark-outline',
+          accentColor: '#1f9d63',
           balance: 11840.5,
           inflow: 850,
           outflow: 0,
-          note: 'Patrimonio de medio e longo prazo em bloco proprio para nao confundir o saldo livre.',
+          note: 'Valor separado do giro do mes para proteger o que ja foi guardado.',
         },
       ],
     },

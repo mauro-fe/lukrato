@@ -23,7 +23,7 @@ class PlataformaCollector implements ContextCollectorInterface
                     'Parcelamentos com acompanhamento de parcelas',
                     'Recorrências (diária, semanal, mensal, anual) com geração automática',
                     'Categorias e subcategorias personalizáveis por usuário',
-                    'Metas financeiras (economia, investimento, compra, viagem, etc.)',
+                    'Metas financeiras (economia, compra, viagem, emergência, etc.)',
                     'Orçamentos mensais por categoria com rollover',
                     'Dashboard com provisão, projeções e insights financeiros',
                     'Comparativos (mensal, anual, categorias, evolução)',

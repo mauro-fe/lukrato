@@ -2,6 +2,7 @@
 
 namespace Application\Controllers\Api\Cartao;
 
+use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Services\Cartao\CartaoCreditoService;
@@ -12,24 +13,16 @@ use Application\Enums\LogCategory;
 use Application\DTO\CreateCartaoCreditoDTO;
 use Application\DTO\UpdateCartaoCreditoDTO;
 
-class CartoesController
+class CartoesController extends BaseController
 {
     private CartaoCreditoService $service;
     private CartaoFaturaService $faturaService;
 
     public function __construct()
     {
+        parent::__construct();
         $this->service = new CartaoCreditoService();
         $this->faturaService = new CartaoFaturaService();
-    }
-
-    private function getRequestPayload(): array
-    {
-        $data = json_decode(file_get_contents('php://input'), true) ?: [];
-        if (empty($data) && strtolower($_SERVER['REQUEST_METHOD'] ?? '') === 'post') {
-            $data = $_POST;
-        }
-        return $data;
     }
 
     /**
@@ -41,9 +34,7 @@ class CartoesController
         $userId = Auth::id();
 
         // Liberar lock da sessão para permitir requisições paralelas
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        $this->releaseSession();
 
         $contaId = isset($_GET['conta_id']) ? (int) $_GET['conta_id'] : null;
         $apenasAtivos = (int) ($_GET['only_active'] ?? 1) === 1;

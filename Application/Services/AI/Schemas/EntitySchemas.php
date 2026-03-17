@@ -82,7 +82,7 @@ class EntitySchemas
             'type' => 'function',
             'function' => [
                 'name' => 'create_meta',
-                'description' => 'Cria uma meta financeira (objetivo de poupança/investimento) extraída da mensagem do usuário.',
+                'description' => 'Cria uma meta financeira (objetivo de economia, compra ou reserva) extraída da mensagem do usuário.',
                 'strict' => true,
                 'parameters' => [
                     'type' => 'object',
@@ -211,7 +211,7 @@ class EntitySchemas
                         ],
                         'tipo_conta' => [
                             'type' => 'string',
-                            'enum' => ['conta_corrente', 'conta_poupanca', 'carteira', 'investimento', 'outro'],
+                            'enum' => ['conta_corrente', 'conta_poupanca', 'carteira', 'outro'],
                             'description' => 'Tipo da conta. Padrão: conta_corrente.',
                         ],
                         'saldo_inicial' => [
