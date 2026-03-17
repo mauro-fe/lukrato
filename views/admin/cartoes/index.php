@@ -1,27 +1,37 @@
 <div class="cartoes-page">
-    <!-- ==================== HEADER COM ESTATÍSTICAS ==================== -->
+    <!-- ==================== HEADER COM ESTATISTICAS ==================== -->
     <div class="cartoes-header">
         <div class="header-top">
+            <div class="page-copy">
+                <h1 class="page-title">
+                    <i data-lucide="credit-card"></i>
+                    Seus cartoes em um so lugar
+                </h1>
+                <p class="page-subtitle">
+                    Acompanhe limite, faturas pendentes e os cartoes que merecem atencao primeiro.
+                </p>
+            </div>
 
-            <button class="btn btn-primary" id="btnNovoCartao">
-                <i data-lucide="plus"></i>
-                Adicionar Cartão
-            </button>
+            <div class="header-actions">
+                <button class="btn btn-primary" id="btnNovoCartao">
+                    <i data-lucide="plus"></i>
+                    Adicionar cartao
+                </button>
 
-            <a href="<?= BASE_URL ?>cartoes/arquivadas" class="btn btn-secondary">
-                <i data-lucide="archive"></i>
-                Cartões Arquivados
-            </a>
+                <a href="<?= BASE_URL ?>cartoes/arquivadas" class="btn btn-secondary">
+                    <i data-lucide="archive"></i>
+                    Arquivados
+                </a>
+            </div>
         </div>
 
-        <!-- Stats Cards -->
         <div class="stats-grid">
             <div class="stat-card" data-stat="total">
                 <div class="stat-icon">
                     <i data-lucide="credit-card" style="color: white"></i>
                 </div>
                 <div class="stat-content">
-                    <div class="stat-label">Total de Cartões</div>
+                    <div class="stat-label">Total de cartoes</div>
                     <div class="stat-value" id="totalCartoes">0</div>
                 </div>
             </div>
@@ -31,7 +41,7 @@
                     <i data-lucide="hand-coins" style="color: white"></i>
                 </div>
                 <div class="stat-content">
-                    <div class="stat-label">Limite Total</div>
+                    <div class="stat-label">Limite total</div>
                     <div class="stat-value" id="statLimiteTotal">R$ 0,00</div>
                 </div>
             </div>
@@ -41,7 +51,7 @@
                     <i data-lucide="circle-check" style="color: white"></i>
                 </div>
                 <div class="stat-content">
-                    <div class="stat-label">Limite Disponível</div>
+                    <div class="stat-label">Limite disponivel</div>
                     <div class="stat-value success" id="limiteDisponivel">R$ 0,00</div>
                 </div>
             </div>
@@ -51,19 +61,19 @@
                     <i data-lucide="trending-up" style="color: white"></i>
                 </div>
                 <div class="stat-content">
-                    <div class="stat-label">Limite Utilizado</div>
+                    <div class="stat-label">Limite utilizado</div>
                     <div class="stat-value warning" id="limiteUtilizado">R$ 0,00</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ==================== FILTROS E AÇÕES ==================== -->
-    <div class="cartoes-toolbar">
+    <!-- ==================== FILTROS E ACOES ==================== -->
+    <div class="cartoes-toolbar" aria-label="Filtros e acoes da pagina de cartoes">
         <div class="toolbar-left">
             <div class="search-box">
                 <i data-lucide="search"></i>
-                <input type="text" id="searchCartoes" placeholder="Buscar cartões..." autocomplete="off">
+                <input type="text" id="searchCartoes" placeholder="Buscar por nome ou final..." autocomplete="off">
             </div>
 
             <div class="filter-group">
@@ -93,53 +103,65 @@
         </div>
 
         <div class="toolbar-right">
-            <button class="btn btn-ghost" id="btnExportar" title="Exportar relatório">
+            <button class="btn btn-ghost" id="btnExportar" title="Exportar relatorio">
                 <i data-lucide="download"></i>
             </button>
-            <button class="btn btn-ghost" id="btnReload" title="Atualizar">
+            <button class="btn btn-ghost" id="btnReload" title="Atualizar cartoes">
                 <i data-lucide="refresh-cw"></i>
             </button>
             <div class="view-toggle">
-                <button class="view-btn active" data-view="grid" title="Visualização em grade">
+                <button class="view-btn active" data-view="grid" title="Visualizacao em grade">
                     <i data-lucide="layout-grid"></i>
                 </button>
-                <button class="view-btn" data-view="list" title="Visualização em lista">
+                <button class="view-btn" data-view="list" title="Visualizacao em lista">
                     <i data-lucide="list"></i>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- ==================== GRID DE CARTÕES ==================== -->
+    <div class="cartoes-filter-summary" id="cartoesFilterSummary" aria-live="polite"></div>
+
+    <section class="cartoes-alertas" id="alertasContainer" style="display: none;" aria-live="polite"></section>
+
+    <!-- ==================== GRID DE CARTOES ==================== -->
     <div class="cartoes-container" id="cartoesContainer">
-        <div class="cartoes-grid" id="cartoesGrid">
-            <!-- Skeleton Loading -->
+        <div class="cartoes-grid" id="cartoesGrid" aria-live="polite" aria-busy="true">
             <div class="lk-skeleton lk-skeleton--card"></div>
             <div class="lk-skeleton lk-skeleton--card"></div>
             <div class="lk-skeleton lk-skeleton--card"></div>
         </div>
 
-        <!-- Empty State -->
         <div class="empty-state" id="emptyState" style="display: none;">
             <div class="empty-icon">
                 <i data-lucide="credit-card" style="color: white"></i>
             </div>
-            <h3>Nenhum cartão cadastrado</h3>
-            <p>Adicione seu primeiro cartão para começar a controlar seus gastos</p>
-            <button class="btn btn-primary" id="btnNovoCartaoEmpty">
-                <i data-lucide="plus"></i>
-                Adicionar Primeiro Cartão
-            </button>
+            <h3>Nenhum cartao cadastrado</h3>
+            <p>Adicione seu primeiro cartao para acompanhar limite, vencimentos e faturas em tempo real.</p>
+            <div class="empty-state-actions">
+                <button class="btn btn-primary" id="btnNovoCartaoEmpty">
+                    <i data-lucide="plus"></i>
+                    Adicionar primeiro cartao
+                </button>
+                <button class="btn btn-secondary" id="btnLimparFiltrosEmpty" style="display: none;">
+                    <i data-lucide="eraser"></i>
+                    Limpar filtros
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- ==================== MODAIS ==================== -->
 <?php include __DIR__ . '/../partials/modals/modal-cartoes.php'; ?>
+<?php include __DIR__ . '/../partials/modals/card-detail-modal.php'; ?>
 
 
 <!-- ==================== SCRIPTS E ESTILOS ==================== -->
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/bundles/cartoes-modern.css.php?v=<?= time() ?>">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/relatorios/_modal-cartao.css?v=<?= time() ?>">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/relatorios/_modal-responsive.css?v=<?= time() ?>">
+<?= vite_scripts('admin/card-modals/index.js') ?>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <!-- Page JS carregado automaticamente via loadPageJs() + Vite -->

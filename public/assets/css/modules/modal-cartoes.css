@@ -176,6 +176,22 @@
     margin-top: var(--spacing-2);
 }
 
+.form-inline-warning {
+    margin: 0.75rem 0 0;
+    padding: 0.875rem 1rem;
+    border-radius: 12px;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    background: rgba(245, 158, 11, 0.08);
+    color: #b45309;
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+}
+
+.form-inline-warning a {
+    color: inherit;
+    font-weight: 700;
+}
+
 .form-row {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -200,6 +216,27 @@
     padding-left: calc(var(--spacing-4) * 2 + 1rem);
 }
 
+.reminder-channels {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.reminder-channel {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--color-text);
+    font-weight: 600;
+}
+
+.reminder-channel input {
+    margin: 0;
+}
+
 /* Footer */
 .modal-footer {
     padding: var(--spacing-6);
@@ -207,7 +244,7 @@
     display: flex;
     gap: var(--spacing-3);
     background: var(--color-bg);
-    justify-content: center;
+    justify-content: flex-end;
 }
 
 .btn {
@@ -243,6 +280,11 @@
 .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(230, 126, 34, 0.4);
+}
+
+#btnSalvarCartao[aria-busy="true"] {
+    pointer-events: none;
+    opacity: 0.88;
 }
 
 /* Responsive */

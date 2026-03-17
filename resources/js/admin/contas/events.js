@@ -1,9 +1,9 @@
 /**
  * ============================================================================
- * LUKRATO - Contas / Events & Money Masks
+ * LUKRATO - Contas / Events & Money Mask
  * ============================================================================
- * Master event wiring, keyboard shortcuts, view toggle, card listeners,
- * and money mask helpers for conta and cartao inputs.
+ * Master event wiring, keyboard shortcuts, filters, view toggle and
+ * money mask helpers for conta inputs.
  * ============================================================================
  */
 
@@ -44,9 +44,6 @@ export const ContasEvents = {
         Modules.Render.renderContas();
     },
 
-    /**
-     * Master event wiring - attach all buttons, form handlers, delegates.
-     */
     attachEventListeners() {
         Modules.Modal.attachCloseModalListeners();
 
@@ -110,51 +107,32 @@ export const ContasEvents = {
             corInstituicao.dataset.listenerAdded = 'true';
         }
 
-        const btnNovoCartao = document.getElementById('btnNovoCartao');
-        if (btnNovoCartao && !btnNovoCartao.dataset.listenerAdded) {
-            btnNovoCartao.addEventListener('click', () => {
-                Modules.Modal.openCartaoModal('create');
-            });
-            btnNovoCartao.dataset.listenerAdded = 'true';
-        }
-
-        const formCartao = document.getElementById('formCartao');
-        if (formCartao) {
-            const newFormCartao = formCartao.cloneNode(true);
-            formCartao.parentNode.replaceChild(newFormCartao, formCartao);
-
-            newFormCartao.addEventListener('submit', (event) => {
-                event.preventDefault();
-                event.stopImmediatePropagation();
-                Modules.Modal.handleCartaoSubmit(event.target);
-            });
-
-            ContasMoneyMask.setupCartaoMoneyMask();
-        }
-
         const formConta = document.getElementById('formConta');
-        if (formConta) {
-            const newForm = formConta.cloneNode(true);
-            formConta.parentNode.replaceChild(newForm, formConta);
-
-            newForm.addEventListener('submit', (event) => {
+        if (formConta && !formConta.dataset.listenerAdded) {
+            formConta.addEventListener('submit', (event) => {
                 event.preventDefault();
                 event.stopImmediatePropagation();
                 Modules.Modal.handleFormSubmit(event.target);
             });
+            formConta.dataset.listenerAdded = 'true';
+        }
 
-            ContasMoneyMask.setupMoneyMask();
+        ContasMoneyMask.setupMoneyMask();
 
-            document.getElementById('moedaSelect')?.addEventListener('change', (event) => {
+        const moedaSelect = document.getElementById('moedaSelect');
+        if (moedaSelect && !moedaSelect.dataset.listenerAdded) {
+            moedaSelect.addEventListener('change', (event) => {
                 Utils.updateCurrencySymbol(event.target.value);
             });
+            moedaSelect.dataset.listenerAdded = 'true';
+        }
 
-            const btnAddInstituicaoNew = document.getElementById('btnAddInstituicao');
-            if (btnAddInstituicaoNew) {
-                btnAddInstituicaoNew.addEventListener('click', () => {
-                    Modules.Modal.openNovaInstituicaoModal();
-                });
-            }
+        const btnAddInstituicao = document.getElementById('btnAddInstituicao');
+        if (btnAddInstituicao && !btnAddInstituicao.dataset.listenerAdded) {
+            btnAddInstituicao.addEventListener('click', () => {
+                Modules.Modal.openNovaInstituicaoModal();
+            });
+            btnAddInstituicao.dataset.listenerAdded = 'true';
         }
 
         ContasEvents.initViewToggle();
@@ -166,18 +144,17 @@ export const ContasEvents = {
                 const actionTarget = event.target.closest('[data-action]');
                 if (!actionTarget) return;
 
-                const action = actionTarget.dataset.action;
-                if (action === 'clear-contas-filters') {
+                if (actionTarget.dataset.action === 'clear-contas-filters') {
                     event.preventDefault();
                     ContasEvents.clearFilters();
                 }
 
-                if (action === 'retry-load-contas') {
+                if (actionTarget.dataset.action === 'retry-load-contas') {
                     event.preventDefault();
                     ContasEvents.refreshContas();
                 }
 
-                if (action === 'create-first-account') {
+                if (actionTarget.dataset.action === 'create-first-account') {
                     event.preventDefault();
                     Modules.Modal.openModal('create');
                 }
@@ -185,17 +162,19 @@ export const ContasEvents = {
             page.dataset.actionListenerAdded = 'true';
         }
 
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape') {
-                Modules.Modal.closeModal();
-            }
-        });
+        if (!document.body.dataset.contasEscapeBound) {
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    Modules.Modal.closeActiveOverlay();
+                }
+            });
+            document.body.dataset.contasEscapeBound = 'true';
+        }
     },
 
-    /**
-     * Inicializar atalhos de teclado
-     */
     initKeyboardShortcuts() {
+        if (document.body.dataset.contasShortcutsBound) return;
+
         document.addEventListener('keydown', (event) => {
             const activeEl = document.activeElement;
             const isInputFocused = activeEl && (
@@ -213,11 +192,10 @@ export const ContasEvents = {
                 Modules.Modal.openModal('create');
             }
         });
+
+        document.body.dataset.contasShortcutsBound = 'true';
     },
 
-    /**
-     * Inicializar toggle de visualizacao (Cards/Lista)
-     */
     initViewToggle() {
         const viewToggle = document.querySelector('.view-toggle');
         const accountsGrid = document.getElementById('accountsGrid');
@@ -257,22 +235,12 @@ export const ContasEvents = {
         });
     },
 
-    /**
-     * Atualizar estado visual dos botoes de toggle
-     */
     updateViewToggleState(buttons, activeView) {
         buttons.forEach((btn) => {
-            if (btn.dataset.view === activeView) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
+            btn.classList.toggle('active', btn.dataset.view === activeView);
         });
     },
 
-    /**
-     * Anexar listeners nos cards de contas (reattach after re-render)
-     */
     attachContaCardListeners() {
         const grid = document.getElementById('accountsGrid');
         if (!grid || grid.dataset.listenerAdded) return;
@@ -298,12 +266,9 @@ export const ContasEvents = {
 };
 
 export const ContasMoneyMask = {
-    /**
-     * Configurar mascara de dinheiro para saldo da conta
-     */
     setupMoneyMask() {
         const saldoInput = document.getElementById('saldoInicial');
-        if (!saldoInput) return;
+        if (!saldoInput || saldoInput.dataset.moneyMaskBound) return;
 
         saldoInput.addEventListener('input', (event) => {
             let value = event.target.value;
@@ -317,24 +282,7 @@ export const ContasMoneyMask = {
         });
 
         saldoInput.value = '0,00';
-    },
-
-    /**
-     * Configurar mascara de dinheiro para limite do cartao
-     */
-    setupCartaoMoneyMask() {
-        const limiteInput = document.getElementById('limiteTotal');
-        if (!limiteInput) return;
-
-        limiteInput.addEventListener('input', (event) => {
-            let value = event.target.value;
-            value = value.replace(/[^\d]/g, '');
-
-            const number = parseInt(value, 10) || 0;
-            event.target.value = Utils.formatMoneyInput(number, false);
-        });
-
-        limiteInput.value = '0,00';
+        saldoInput.dataset.moneyMaskBound = 'true';
     },
 };
 

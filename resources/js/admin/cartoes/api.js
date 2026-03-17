@@ -13,8 +13,16 @@ export const CartoesAPI = {
     async loadCartoes() {
         const grid = document.getElementById('cartoesGrid');
         const emptyState = document.getElementById('emptyState');
+        const container = document.getElementById('cartoesContainer');
+
+        if (!grid || !emptyState) {
+            return;
+        }
 
         try {
+            STATE.isLoading = true;
+            grid.setAttribute('aria-busy', 'true');
+            container?.setAttribute('aria-busy', 'true');
             // Mostrar skeleton
             grid.innerHTML = `
                 <div class="lk-skeleton lk-skeleton--card"></div>
@@ -23,7 +31,6 @@ export const CartoesAPI = {
             `;
             emptyState.style.display = 'none';
 
-            const startTime = performance.now();
 
             // Usar lkFetch se disponível (com timeout, retry e indicadores)
             let data;
@@ -59,20 +66,13 @@ export const CartoesAPI = {
                 data = await response.json();
             }
 
-            const elapsed = performance.now() - startTime;
             STATE.cartoes = Array.isArray(data) ? data : (data.data || []);
-            // Verificar faturas pendentes
             await CartoesAPI.verificarFaturasPendentes();
+            STATE.lastLoadedAt = new Date().toISOString();
 
-            STATE.filteredCartoes = [...STATE.cartoes];
-
-            if (STATE.cartoes.length === 0) {
-                grid.innerHTML = '';
-                emptyState.style.display = 'block';
-            } else {
-                Modules.UI.renderCartoes();
-                Modules.UI.updateStats();
-            }
+            Modules.UI.updateStats();
+            Modules.UI.filterCartoes();
+            await CartoesAPI.carregarAlertas();
 
         } catch (error) {
             console.error('❌ [DEBUG] Erro ao carregar cartões:', error);
@@ -99,6 +99,10 @@ export const CartoesAPI = {
                 </div>
             `;
             refreshIcons();
+        } finally {
+            STATE.isLoading = false;
+            grid.setAttribute('aria-busy', 'false');
+            container?.setAttribute('aria-busy', 'false');
         }
     },
 
@@ -126,7 +130,7 @@ export const CartoesAPI = {
 
                 if (response.ok) {
                     const data = await response.json();
-                    const meses = data.data || data || [];
+                    const meses = data.data?.meses || data.meses || data.data || data || [];
                     cartao.temFaturaPendente = Array.isArray(meses) && meses.length > 0;
                 } else {
                     cartao.temFaturaPendente = false;
@@ -269,6 +273,8 @@ export const CartoesAPI = {
      */
     async loadContasSelect() {
         const select = document.getElementById('contaVinculada');
+        const help = document.getElementById('contaVinculadaHelp');
+        const emptyHint = document.getElementById('cartaoContaEmptyHint');
         if (!select) {
             console.error('❌ Select contaVinculada não encontrado!');
             return;
@@ -305,29 +311,53 @@ export const CartoesAPI = {
             }
 
             if (contas.length === 0) {
-                select.innerHTML = '<option value="">Nenhuma conta cadastrada</option>';
+                select.disabled = true;
+                select.innerHTML = '<option value="">Nenhuma conta disponivel</option>';
+                if (help) {
+                    help.textContent = 'Crie uma conta antes de vincular um cartao.';
+                }
+                if (emptyHint) {
+                    emptyHint.hidden = false;
+                }
                 console.warn('⚠️ Nenhuma conta encontrada');
-                return;
+                return 0;
             }
 
-            const options = contas.map(conta => {
+            const options = contas.map((conta) => {
                 // Pegar nome da instituição de diferentes estruturas possíveis
                 const instituicao = conta.instituicao_financeira?.nome ||
                     conta.instituicao?.nome ||
                     conta.nome ||
                     'Sem instituição';
-                const nome = Utils.escapeHtml(instituicao);
+                const nomeConta = Utils.escapeHtml(conta.nome || 'Conta sem nome');
+                const nomeInstituicao = Utils.escapeHtml(instituicao);
                 // Tentar pegar o saldo de diferentes campos possíveis (saldoAtual é o campo retornado com with_balances=1)
                 const saldoValue = parseFloat(conta.saldoAtual || conta.saldo_atual || conta.saldo || conta.saldo_inicial || 0);
                 const saldo = Utils.formatMoney(saldoValue);
-                return `<option value="${conta.id}">${nome} - ${saldo}</option>`;
+                return `<option value="${conta.id}">${nomeConta} - ${nomeInstituicao} - ${saldo}</option>`;
             }).join('');
 
+            select.disabled = false;
             select.innerHTML = '<option value="">Selecione a conta</option>' + options;
+            if (help) {
+                help.textContent = 'Conta onde o pagamento da fatura sera debitado.';
+            }
+            if (emptyHint) {
+                emptyHint.hidden = true;
+            }
+            return contas.length;
         } catch (error) {
             console.error('❌ Erro ao carregar contas:', error);
             console.error('Stack:', error.stack);
+            select.disabled = true;
             select.innerHTML = '<option value="">Erro ao carregar contas</option>';
+            if (help) {
+                help.textContent = 'Nao foi possivel carregar as contas agora.';
+            }
+            if (emptyHint) {
+                emptyHint.hidden = false;
+            }
+            return 0;
         }
     },
 
@@ -354,18 +384,31 @@ export const CartoesAPI = {
 
         // Campos de lembrete de fatura
         const lembreteAviso = document.getElementById('cartaoLembreteAviso')?.value || '';
+        const contaSelect = document.getElementById('contaVinculada');
+        const canalInapp = document.getElementById('cartaoCanalInapp');
+        const canalEmail = document.getElementById('cartaoCanalEmail');
+
+        if (contaSelect?.disabled) {
+            Utils.showToast('error', 'Crie uma conta antes de cadastrar um cartao.');
+            return;
+        }
+
+        if (lembreteAviso && !canalInapp?.checked && !canalEmail?.checked) {
+            Utils.showToast('error', 'Selecione pelo menos um canal para o lembrete.');
+            return;
+        }
 
         const data = {
-            nome_cartao: document.getElementById('nomeCartao').value,
-            conta_id: document.getElementById('contaVinculada').value,
+            nome_cartao: document.getElementById('nomeCartao').value.trim(),
+            conta_id: contaSelect?.value ? parseInt(contaSelect.value, 10) : null,
             bandeira: document.getElementById('bandeira').value,
-            ultimos_digitos: document.getElementById('ultimosDigitos').value,
+            ultimos_digitos: document.getElementById('ultimosDigitos').value.trim(),
             limite_total: limiteParsed,
             dia_fechamento: document.getElementById('diaFechamento').value || null,
             dia_vencimento: document.getElementById('diaVencimento').value || null,
             lembrar_fatura_antes_segundos: lembreteAviso ? parseInt(lembreteAviso) : null,
-            fatura_canal_inapp: lembreteAviso ? (document.getElementById('cartaoCanalInapp')?.checked ? 1 : 0) : 0,
-            fatura_canal_email: lembreteAviso ? (document.getElementById('cartaoCanalEmail')?.checked ? 1 : 0) : 0,
+            fatura_canal_inapp: lembreteAviso ? (canalInapp?.checked ? 1 : 0) : 0,
+            fatura_canal_email: lembreteAviso ? (canalEmail?.checked ? 1 : 0) : 0,
             csrf_token: csrfToken
         };
 
@@ -420,7 +463,7 @@ export const CartoesAPI = {
 
             Utils.showToast('success', isEdit ? 'Cartão atualizado com sucesso!' : 'Cartão criado com sucesso!');
             Modules.UI.closeModal();
-            CartoesAPI.loadCartoes();
+            await CartoesAPI.loadCartoes();
         } catch (error) {
             console.error('❌ Erro ao salvar cartão:', error);
             console.error('Stack:', error.stack);

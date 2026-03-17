@@ -24,7 +24,7 @@
 
 .chart-container {
   padding: var(--spacing-6);
-  background: var(--color-bg);
+  background: var(--glass-bg);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
   position: relative;
@@ -343,7 +343,7 @@
   gap: var(--spacing-2);
   padding: var(--spacing-3) var(--spacing-4);
   margin-top: var(--spacing-4);
-  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  background: var(--glass-bg);
   border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
   border-radius: var(--radius-lg);
   font-size: var(--font-size-sm);

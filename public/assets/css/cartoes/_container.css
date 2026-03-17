@@ -10,3 +10,47 @@
   animation: fadeInUp 0.6s ease;
 }
 
+.empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 0.85rem;
+  padding: 3.25rem 1.5rem;
+  text-align: center;
+  border: 1px dashed rgba(230, 126, 34, 0.25);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top, rgba(230, 126, 34, 0.12), transparent 55%),
+    var(--glass-bg);
+}
+
+.empty-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 22px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--color-primary), #c0392b);
+  box-shadow: 0 18px 40px rgba(230, 126, 34, 0.25);
+}
+
+.empty-state h3 {
+  margin: 0;
+  font-size: 1.35rem;
+  color: var(--color-text);
+}
+
+.empty-state p {
+  max-width: 540px;
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.empty-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+

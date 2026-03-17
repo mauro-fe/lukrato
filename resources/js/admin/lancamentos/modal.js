@@ -229,11 +229,11 @@ const ModalManager = {
      */
     sugerirCategoriaIA: async () => {
         await _sugerirCategoriaIA({
-            descricaoInputId:      'editLancDescricao',
-            categoriaSelectId:     'editLancCategoria',
-            subcategoriaSelectId:  'editLancSubcategoria',
-            subcategoriaGroupId:   'editSubcategoriaGroup',
-            btnId:                 'btnEditAiSuggestCategoria',
+            descricaoInputId: 'editLancDescricao',
+            categoriaSelectId: 'editLancCategoria',
+            subcategoriaSelectId: 'editLancSubcategoria',
+            subcategoriaGroupId: 'editSubcategoriaGroup',
+            btnId: 'btnEditAiSuggestCategoria',
             notify: (msg, type) => {
                 const iconMap = { success: 'success', warning: 'warning', error: 'error' };
                 Notifications.toast(msg, iconMap[type] || 'info');

@@ -2,6 +2,12 @@
    OVERVIEW SECTION — Financial Intelligence Dashboard
    ============================================================================ */
 
+   .overview-pulse-card{
+    background: var(--glass-bg);
+    padding: var(--spacing-3);
+    border-radius: var(--radius-md);
+   }
+
 .overview-grid {
   display: flex;
   flex-direction: column;
@@ -24,6 +30,12 @@
   font-weight: 700;
 }
 
+.overview-insights-card  {
+background: var(--glass-bg);
+padding: var(--spacing-3);
+border-radius: var(--radius-md);
+}
+
 /* Top Insights in Overview */
 .overview-insights-card .card-body {
   display: grid;
@@ -40,6 +52,8 @@
 
 .overview-mini-chart {
   padding: var(--spacing-4);
+  background: var(--glass-bg);
+  border-radius: var(--radius-md);
 }
 
 .overview-mini-chart h4 {

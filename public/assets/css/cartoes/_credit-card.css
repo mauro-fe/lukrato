@@ -1,6 +1,6 @@
 .credit-card {
   position: relative;
-  height: 220px;
+  height: 300px;
   border-radius: 20px;
   padding: 1.5rem;
   color: white;
@@ -50,6 +50,12 @@
     0 14px 28px rgba(0, 0, 0, 0.18),
     0 0 32px rgba(230, 126, 34, 0.12);
   filter: brightness(1.05) saturate(1.03);
+}
+
+.credit-card:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 2px;
+  transform: translateY(-4px);
 }
 
 /* Pattern decorativo */
@@ -129,10 +135,26 @@
   text-overflow: ellipsis;
 }
 
+.card-brand-copy {
+  min-width: 0;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.card-institution {
+  font-size: 0.8rem;
+  opacity: 0.78;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .card-actions {
   display: flex;
   gap: 0.35rem;
   flex-shrink: 0;
+  position: relative;
+  z-index: 2;
 }
 
 .card-action-btn {
@@ -204,6 +226,89 @@
   z-index: 1;
   opacity: 0.95;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.card-account {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  max-width: 100%;
+  margin-bottom: 0.75rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-metrics {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+}
+
+.card-metric {
+  padding: 0.75rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.card-metric.is-safe {
+  background: rgba(34, 197, 94, 0.14);
+}
+
+.card-metric.is-warning {
+  background: rgba(245, 158, 11, 0.18);
+}
+
+.card-metric.is-danger {
+  background: rgba(239, 68, 68, 0.18);
+}
+
+.card-limit-summary {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.card-limit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.limit-bar {
+  width: 100%;
+}
+
+.limit-fill.is-safe {
+  background: linear-gradient(90deg, #86efac, #22c55e);
+  box-shadow: 0 0 10px rgba(134, 239, 172, 0.35);
+}
+
+.limit-fill.is-warning {
+  background: linear-gradient(90deg, #fcd34d, #f59e0b);
+  box-shadow: 0 0 10px rgba(252, 211, 77, 0.35);
+}
+
+.limit-fill.is-danger {
+  background: linear-gradient(90deg, #fca5a5, #ef4444);
+  box-shadow: 0 0 10px rgba(252, 165, 165, 0.35);
+}
+
+.limit-caption {
+  font-size: 0.78rem;
+  opacity: 0.82;
 }
 
 /* Card Footer */

@@ -32,10 +32,10 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: var(--spacing-4);
+
 }
 
 .insight-card {
-  background-color: var(--color-bg) !important;
   border: 1px solid var(--glass-border);
   border-left: 4px solid var(--color-primary);
   border-radius: var(--radius-lg);
@@ -44,6 +44,7 @@
   gap: var(--spacing-3);
   transition: all var(--transition-smooth);
   animation: insightSlideIn 0.5s ease-out both;
+  background: var(--glass-bg);
 }
 
 /* Stagger animation for each card */
@@ -111,6 +112,7 @@
 
 .insight-info {
   border-left-color: #3498db;
+  
 }
 
 .insight-icon {
@@ -195,7 +197,7 @@
 }
 
 .comparative-card {
-  background: var(--color-bg);
+  background: var(--glass-bg) ;
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
   padding: var(--spacing-5);

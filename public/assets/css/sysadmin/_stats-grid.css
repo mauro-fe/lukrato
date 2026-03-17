@@ -15,7 +15,6 @@
   -webkit-backdrop-filter: var(--glass-backdrop);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-6);
   position: relative;
   overflow: hidden;
   transition: all var(--transition-normal);
