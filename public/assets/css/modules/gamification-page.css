@@ -733,11 +733,18 @@
 }
 
 .leaderboard-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  max-width: 40px !important;
+  max-height: 40px !important;
+  aspect-ratio: 1 / 1;
+  display: block !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  overflow: hidden;
+  flex: 0 0 40px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
 }
@@ -746,6 +753,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  max-width: 40px !important;
+  max-height: 40px !important;
+  border-radius: 50% !important;
+  flex: 0 0 40px;
   background: linear-gradient(135deg, var(--color-primary), #ea580c);
   color: #fff;
   font-size: 13px;
@@ -1083,6 +1098,17 @@
     gap: 10px;
     width: 100%;
     min-width: 0;
+  }
+
+  .leaderboard-avatar,
+  .leaderboard-avatar-fallback {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    max-width: 36px !important;
+    max-height: 36px !important;
+    flex-basis: 36px;
   }
 
   .user-meta {
