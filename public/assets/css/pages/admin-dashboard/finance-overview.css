@@ -124,7 +124,7 @@ a.fo-card-title:hover {
   align-items: center;
   gap: 10px;
   padding: 10px;
-  background: var(--color-bg);
+  background: var(--color-bglk-forma-btn);
   border-radius: 10px;
 }
 
