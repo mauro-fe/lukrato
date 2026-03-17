@@ -158,6 +158,7 @@
                     <button id="btnLimparFiltros" type="button" class="lk-filter-clear-btn" aria-label="Limpar filtros"
                         title="Limpar filtros">
                         <i data-lucide="x"></i>
+                        <span>Limpar</span>
                     </button>
                 </div>
 
@@ -168,9 +169,15 @@
                             <span>Período da listagem</span>
                         </div>
                         <div class="lk-period-inputs">
-                            <input type="date" id="filtroDataInicio" class="lk-filter-date-input" aria-label="Data inicial da listagem">
+                            <label class="lk-period-field">
+                                <span class="lk-period-field-label">De</span>
+                                <input type="date" id="filtroDataInicio" class="lk-filter-date-input" aria-label="Data inicial da listagem">
+                            </label>
                             <span class="lk-period-separator">até</span>
-                            <input type="date" id="filtroDataFim" class="lk-filter-date-input" aria-label="Data final da listagem">
+                            <label class="lk-period-field">
+                                <span class="lk-period-field-label">At&eacute;</span>
+                                <input type="date" id="filtroDataFim" class="lk-filter-date-input" aria-label="Data final da listagem">
+                            </label>
                         </div>
                     </div>
 

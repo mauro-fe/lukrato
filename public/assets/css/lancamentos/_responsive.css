@@ -15,6 +15,7 @@
 @media (max-width: 768px) {
   .lan-page {
     padding: var(--spacing-4) var(--spacing-3);
+    padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));
   }
 
   .modern-card {

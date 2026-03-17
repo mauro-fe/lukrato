@@ -673,36 +673,107 @@
   text-align: center;
 }
 
+.rank-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 76px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 18%, transparent);
+}
+
+.rank-pill i,
+.rank-pill svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
 .rank-1 .rank-cell {
   color: #daa520;
+}
+
+.rank-1 .rank-pill {
+  background: rgba(255, 215, 0, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(255, 215, 0, 0.24);
 }
 
 .rank-2 .rank-cell {
   color: #909090;
 }
 
+.rank-2 .rank-pill {
+  background: rgba(192, 192, 192, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(192, 192, 192, 0.22);
+}
+
 .rank-3 .rank-cell {
   color: #b8733c;
+}
+
+.rank-3 .rank-pill {
+  background: rgba(205, 127, 50, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(205, 127, 50, 0.22);
 }
 
 .user-cell {
   font-weight: 500;
   min-width: 200px;
-  text-align: center;
+  text-align: left;
 }
 
 .user-cell .user-info {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.leaderboard-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
+}
+
+.leaderboard-avatar-fallback {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  background: linear-gradient(135deg, var(--color-primary), #ea580c);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.user-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.user-meta-label {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
 .user-cell strong {
+  display: block;
   font-size: 15px;
   font-weight: 600;
   color: var(--color-text);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .level-cell {
@@ -732,6 +803,21 @@
   text-align: center;
 }
 
+.points-cell strong {
+  color: inherit;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.points-cell span {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .achievements-cell {
   text-align: center;
   color: var(--color-text-muted);
@@ -744,6 +830,7 @@
 @media (max-width: 768px) {
   .gamification-page {
     padding: 12px;
+    padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px));
   }
 
   .page-header {
@@ -886,6 +973,8 @@
     background: transparent;
     border: none;
     box-shadow: none;
+    max-height: none;
+    overflow: visible;
   }
 
   .leaderboard-table thead {
@@ -897,10 +986,19 @@
     display: block;
   }
 
+  .leaderboard-table tbody {
+    display: grid;
+    gap: 12px;
+  }
+
   .leaderboard-table tbody tr {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 12px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "rank user"
+      "level points";
+    align-items: center;
+    gap: 12px 14px;
     padding: 16px;
     background: var(--color-card-bg) !important;
     border: 1px solid var(--color-card-border);
@@ -940,53 +1038,67 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 0 !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  }
-
-  .leaderboard-table td:last-child {
+    padding: 0 !important;
     border-bottom: none;
-  }
-
-  .leaderboard-table td::before {
-    content: attr(data-label);
-    font-weight: 600;
-    color: var(--color-text-muted);
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .leaderboard-table .rank-cell::before {
-    content: "";
-  }
-
-  .leaderboard-table .user-cell::before {
-    content: "";
-  }
-
-  .leaderboard-table .level-cell::before {
-    content: "";
-  }
-
-  .leaderboard-table .points-cell::before {
-    content: "Pontos";
-  }
-
-  .rank-cell,
-  .user-cell,
-  .level-cell,
-  .points-cell {
-    text-align: right !important;
-    flex: 1;
-  }
-
-  .user-cell {
     min-width: 0;
   }
 
-  .user-cell .user-info {
+  .leaderboard-table td::before {
+    display: none;
+  }
+
+  .rank-cell {
+    grid-area: rank;
+    justify-content: flex-start;
+    text-align: left !important;
+  }
+
+  .user-cell {
+    grid-area: user;
+    min-width: 0;
+  }
+
+  .level-cell {
+    grid-area: level;
+    justify-content: flex-start;
+    text-align: left !important;
+  }
+
+  .points-cell {
+    grid-area: points;
+    justify-content: flex-end;
     align-items: flex-end;
+    text-align: right !important;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .rank-pill {
+    min-width: 68px;
+    padding: 8px 10px;
+  }
+
+  .user-cell .user-info {
+    justify-content: flex-start;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .user-meta {
+    min-width: 0;
+  }
+
+  .user-meta-label {
+    font-size: 11px;
+  }
+
+  .points-cell span {
+    font-size: 10px;
+  }
+
+  .points-cell strong {
+    margin-right: 0;
   }
 
   .level-badge {
@@ -1003,6 +1115,7 @@
 @media (max-width: 576px) {
   .gamification-page {
     padding: 8px;
+    padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px));
   }
 
   .page-header {
@@ -1126,20 +1239,20 @@
 
   .leaderboard-table tbody tr {
     padding: 12px;
-    margin-bottom: 8px;
   }
 
   .leaderboard-table td {
-    padding: 6px 0 !important;
+    gap: 6px;
     font-size: 14px;
-  }
-
-  .leaderboard-table td::before {
-    font-size: 11px;
   }
 
   .rank-cell {
     font-size: 15px;
+  }
+
+  .rank-pill {
+    min-width: 60px;
+    padding: 7px 8px;
   }
 
   .user-cell strong {
@@ -1154,8 +1267,7 @@
   .points-cell {
     font-size: 14px;
   }
-
-  }
+}
 
 /* ===============================================
    SWEETALERT CUSTOMIZATION

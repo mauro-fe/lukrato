@@ -217,7 +217,7 @@ function updatePointsHistory(data) {
 
 // ─── Leaderboard ────────────────────────────────────────────────────────────
 
-function updateLeaderboard(data) {
+function updateLeaderboardLegacy(data) {
     const isSuccess = data.success === true;
     if (!isSuccess || !data.data?.leaderboard) return;
 
@@ -240,8 +240,8 @@ function updateLeaderboard(data) {
                 : user.position === 3 ? '<i data-lucide="medal" style="color:#d97706;"></i>' : '';
         const nomeCurto = (user.user_name || '').trim().split(' ').slice(0, 2).join(' ');
         const avatarHtml = user.avatar
-            ? `<img src="${escapeHtml(user.avatar)}" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;margin-right:8px;vertical-align:middle;">`
-            : `<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--color-primary),#ea580c);color:#fff;font-size:12px;font-weight:700;margin-right:8px;vertical-align:middle;">${escapeHtml((nomeCurto || 'U')[0].toUpperCase())}</span>`;
+            ? `<img src="${escapeHtml(user.avatar)}" alt="" class="leaderboard-avatar">`
+            : `<span class="leaderboard-avatar leaderboard-avatar-fallback">${escapeHtml((nomeCurto || 'U')[0].toUpperCase())}</span>`;
         return `
                         <tr class="${rankClass}">
                             <td class="rank-cell">${rankIcon} ${user.position}º</td>
@@ -259,6 +259,63 @@ function updateLeaderboard(data) {
 }
 
 // ─── Achievement Detail Modal ───────────────────────────────────────────────
+
+function updateLeaderboard(data) {
+    const isSuccess = data.success === true;
+    if (!isSuccess || !data.data?.leaderboard) return;
+
+    const leaderboard = data.data.leaderboard;
+    if (!elements.leaderboardContainer) return;
+
+    if (leaderboard.length === 0) {
+        elements.leaderboardContainer.innerHTML = '<p class="empty-state">Nenhum usu&aacute;rio no ranking</p>';
+        return;
+    }
+
+    elements.leaderboardContainer.innerHTML = `
+        <table class="leaderboard-table">
+            <thead><tr><th>Posi&ccedil;&atilde;o</th><th>Usu&aacute;rio</th><th>N&iacute;vel</th><th>Pontos</th></tr></thead>
+            <tbody>
+                ${leaderboard.map((user) => {
+        const rankClass = user.position <= 3 ? `rank-${user.position}` : '';
+        const rankIcon = user.position === 1 ? '<i data-lucide="medal" style="color:#fbbf24;"></i>'
+            : user.position === 2 ? '<i data-lucide="medal" style="color:#94a3b8;"></i>'
+                : user.position === 3 ? '<i data-lucide="medal" style="color:#d97706;"></i>' : '';
+        const nomeCurto = (user.user_name || '').trim().split(' ').slice(0, 2).join(' ');
+        const avatarHtml = user.avatar
+            ? `<img src="${escapeHtml(user.avatar)}" alt="" class="leaderboard-avatar">`
+            : `<span class="leaderboard-avatar leaderboard-avatar-fallback">${escapeHtml((nomeCurto || 'U')[0].toUpperCase())}</span>`;
+
+        return `
+                        <tr class="${rankClass}">
+                            <td class="rank-cell" data-label="Posicao">
+                                <span class="rank-pill">${rankIcon}<span>${user.position}&ordm;</span></span>
+                            </td>
+                            <td class="user-cell" data-label="Usuario">
+                                <div class="user-info">
+                                    ${avatarHtml}
+                                    <div class="user-meta">
+                                        <strong>${escapeHtml(nomeCurto)}</strong>
+                                        <span class="user-meta-label">Ranking global</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="level-cell" data-label="Nivel">
+                                <span class="level-badge">N&iacute;vel ${user.current_level}</span>
+                            </td>
+                            <td class="points-cell" data-label="Pontos">
+                                <strong>${formatNumber(user.total_points)}</strong>
+                                <span>pts</span>
+                            </td>
+                        </tr>
+                    `;
+    }).join('')}
+            </tbody>
+        </table>
+    `;
+
+    if (window.lucide) lucide.createIcons();
+}
 
 function showAchievementDetail(achievement) {
     if (typeof Swal === 'undefined') return;

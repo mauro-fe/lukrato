@@ -78,9 +78,8 @@
 .lk-filters-bar {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: var(--spacing-3);
-  
+  gap: 12px;
+  padding: 14px;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
   border-radius: var(--radius-lg, 12px);
@@ -120,12 +119,14 @@
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .lk-filters-row-secondary {
   align-items: stretch;
   justify-content: space-between;
-  padding-top: 8px;
+  gap: 14px;
+  padding-top: 10px;
   border-top: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
 }
 
@@ -137,8 +138,9 @@
   background: var(--color-bg);
   border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
   border-radius: var(--radius-full, 50px);
-  padding: var(--spacing-3);
-  flex: 0 1 220px;
+  padding: 10px 14px;
+  flex: 1 1 280px;
+  min-width: 220px;
   transition:
     border-color 0.2s,
     box-shadow 0.2s;
@@ -185,11 +187,10 @@
 }
 
 .lk-period-filter {
-  display: flex;
+  display: grid;
   flex: 1 1 360px;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 14px;
+  align-content: start;
+  gap: 12px;
   min-width: 280px;
 }
 
@@ -212,13 +213,28 @@
 }
 
 .lk-period-inputs {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+
+.lk-period-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.lk-period-field-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .lk-filter-date-input {
+  width: 100%;
   min-height: 38px;
   padding: 8px 12px;
   border-radius: var(--radius-md, 10px);
@@ -237,9 +253,7 @@
 }
 
 .lk-period-separator {
-  color: var(--color-text-muted);
-  font-size: 0.82rem;
-  font-weight: 600;
+  display: none;
 }
 
 .lk-period-presets {
@@ -295,7 +309,7 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--spacing-3) !important;
-
+  min-width: 0;
 }
 
 /* Native mode baseline: keep chips visually stable even if custom select is not active */
@@ -542,15 +556,22 @@ padding: var(--spacing-3) !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: var(--radius-full, 999px);
   border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
   transition: all 0.2s;
   flex-shrink: 0;
+}
+
+.lk-filter-clear-btn span {
+  display: inline;
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
 .lk-filter-clear-btn:hover {
@@ -683,48 +704,82 @@ padding: var(--spacing-3) !important;
     gap: 8px;
   }
 
+  .lk-filters-row > * {
+    flex: none !important;
+    min-width: 0;
+  }
+
   .lk-filters-row-secondary {
     align-items: stretch;
   }
 
   .lk-filter-search {
-    flex: 1 1 100%;
+    width: 100%;
     min-width: 0;
-    padding: 0 var(--spacing-2)  !important;
+    padding: 10px 12px !important;
   }
 
   .lk-filter-group {
-    flex-wrap: wrap;
-    gap: 6px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+  }
+
+  .lk-filter-chip-select,
+  .lk-custom-select--chip {
+    min-width: 0;
     width: 100%;
   }
 
   .lk-period-filter,
-  .lk-period-presets,
+  .lk-period-presets {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .lk-period-filter {
+    display: grid;
+    gap: 12px;
+  }
+
   .lk-period-inputs {
     width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .lk-filter-date-input {
-    flex: 1 1 0;
     min-width: 0;
   }
 
   .lk-custom-select--chip {
-    flex: 1 1 calc(50% - 6px);
-    min-width: 136px;
+    min-width: 0;
   }
 
   .lk-custom-select--chip .lk-custom-select-trigger {
-    font-size: 0.75rem;
-    min-height: 30px;
-    padding: 4px 24px;
-    padding-left: 12px;
+    min-height: 42px;
+    padding: 0 14px;
+    font-size: 0.78rem;
   }
 
   .export-filters-row {
     flex-direction: column;
     gap: 8px;
+  }
+
+  .lk-period-presets {
+    justify-content: flex-start;
+  }
+
+  .lk-period-preset-btn,
+  .lk-period-month-btn {
+    min-height: 38px;
+    padding: 0 14px;
+  }
+
+  .lk-filter-clear-btn {
+    justify-content: center;
+    width: 100%;
   }
 
   .lk-datetime-inline {
@@ -734,5 +789,22 @@ padding: var(--spacing-3) !important;
 
   .lk-datetime-sep {
     display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .lk-filter-group,
+  .lk-period-inputs {
+    grid-template-columns: 1fr;
+  }
+
+  .lk-period-presets {
+    gap: 6px;
+  }
+
+  .lk-period-preset-btn,
+  .lk-period-month-btn {
+    width: 100%;
+    justify-content: center;
   }
 }
