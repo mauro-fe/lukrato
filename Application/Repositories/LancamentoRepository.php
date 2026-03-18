@@ -813,4 +813,26 @@ class LancamentoRepository extends BaseRepository
             ],
         ];
     }
+
+    public function getRecentTransactions(int $userId, string $from, string $to, int $limit)
+    {
+        return Lancamento::query()
+            ->withoutGlobalScopes()
+            ->from('lancamentos as l')
+            ->leftJoin('categorias as c', 'c.id', '=', 'l.categoria_id')
+            ->leftJoin('contas as a', 'a.id', '=', 'l.conta_id')
+            ->where('l.user_id', $userId)
+            ->whereNull('l.deleted_at')
+            ->whereBetween('l.data', [$from, $to])
+            ->orderBy('l.data', 'desc')
+            ->orderBy('l.id', 'desc')
+            ->limit($limit)
+            ->selectRaw('
+            l.id, l.data, l.tipo, l.valor, l.descricao,
+            l.categoria_id, l.conta_id,
+            COALESCE(c.nome, "") as categoria,
+            COALESCE(a.nome, a.instituicao, "") as conta
+        ')
+            ->get();
+    }
 }

@@ -555,7 +555,7 @@ function renderCategoriaItem(categoria, tipo) {
                 <i data-lucide="trash-2"></i>
             </button>
         `
-        : '<span class="cat-card-static-note">Categoria padrão do sistema</span>';
+        : '';
 
     return `
         <div class="cat-card ${tipo} ${isCustom ? 'is-custom' : 'is-default'} ${searchMeta.subMatches?.length ? 'match-subcat' : ''}" data-id="${categoria.id}">
@@ -572,7 +572,6 @@ function renderCategoriaItem(categoria, tipo) {
                     ${actionsHtml}
                 </div>
             </div>
-            <div class="cat-card-meta">${badges}</div>
             ${previewHtml}
             ${budgetHtml}
             ${SubcategoriasModule.renderAccordionPanel(categoria.id)}
