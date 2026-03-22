@@ -3,6 +3,7 @@
  */
 import { CONFIG, DOM, STATE, Utils, Modules } from './state.js';
 import { refreshIcons } from '../shared/ui.js';
+import { getApiPayload, getErrorMessage } from '../shared/api.js';
 
 // ============================================================================
 // MODAL PAGAR FATURA - BOOTSTRAP
@@ -110,18 +111,18 @@ export const ModalPagarFatura = {
                 Modules.API.listarContas()
             ]);
 
-            const fatura = faturaResponse;
-            this.contas = contasResponse.data || contasResponse || [];
+            const fatura = getApiPayload(faturaResponse, null);
+            this.contas = getApiPayload(contasResponse, []);
 
-            if (!fatura.data || !fatura.data.cartao) {
+            if (!fatura?.cartao) {
                 throw new Error('Dados da fatura incompletos');
             }
 
-            this.cartaoId = fatura.data.cartao.id;
-            this.contaPadraoId = fatura.data.cartao.conta_id || null;
+            this.cartaoId = fatura.cartao.id;
+            this.contaPadraoId = fatura.cartao.conta_id || null;
 
             // Extrair mês/ano da descrição da fatura
-            const descricao = fatura.data.descricao || '';
+            const descricao = fatura.descricao || '';
             const match = descricao.match(/(\d+)\/(\d+)/);
             this.mes = match ? parseInt(match[1]) : null;
             this.ano = match ? parseInt(match[2]) : null;
@@ -134,7 +135,7 @@ export const ModalPagarFatura = {
             Swal.fire({
                 icon: 'error',
                 title: 'Erro',
-                text: error.message || 'Erro ao carregar dados da fatura.'
+                text: getErrorMessage(error, 'Erro ao carregar dados da fatura.')
             });
         }
     },
@@ -256,7 +257,7 @@ export const ModalPagarFatura = {
             });
 
             if (!response.success) {
-                throw new Error(response.message || 'Erro ao processar pagamento');
+                throw new Error(getErrorMessage(response, 'Erro ao processar pagamento'));
             }
 
             await Swal.fire({
@@ -287,7 +288,7 @@ export const ModalPagarFatura = {
             Swal.fire({
                 icon: 'error',
                 title: 'Erro ao pagar fatura',
-                text: error.message || 'Não foi possível processar o pagamento. Tente novamente.'
+                text: getErrorMessage(error, 'Não foi possível processar o pagamento. Tente novamente.')
             });
         }
     }
@@ -357,7 +358,7 @@ export async function reverterPagamentoFaturaGlobal(faturaId) {
                     <p>${response.message || 'O pagamento foi revertido com sucesso.'}</p>
                     <p style="color: #059669; margin-top: 0.5rem;">
                         <i data-lucide="circle-check"></i> 
-                        ${response.data?.itens_revertidos || 0} item(s) voltou(aram) para pendente.
+                        ${getApiPayload(response, {})?.itens_revertidos || 0} item(s) voltou(aram) para pendente.
                     </p>
                 `,
                 timer: 3000,
@@ -371,14 +372,14 @@ export async function reverterPagamentoFaturaGlobal(faturaId) {
             }
             await Modules.App.carregarParcelamentos();
         } else {
-            throw new Error(response.message || 'Erro ao reverter pagamento');
+            throw new Error(getErrorMessage(response, 'Erro ao reverter pagamento'));
         }
     } catch (error) {
         console.error('Erro ao reverter pagamento:', error);
         Swal.fire({
             icon: 'error',
             title: 'Erro',
-            text: error.message || 'Não foi possível reverter o pagamento.'
+            text: getErrorMessage(error, 'Não foi possível reverter o pagamento.')
         });
     }
 }
@@ -421,14 +422,14 @@ export async function excluirFaturaGlobal(faturaId) {
             }
             Modules.App.carregarParcelamentos();
         } else {
-            throw new Error(response.message || 'Erro ao excluir fatura');
+            throw new Error(getErrorMessage(response, 'Erro ao excluir fatura'));
         }
     } catch (error) {
         console.error('Erro ao excluir fatura:', error);
         Swal.fire({
             icon: 'error',
             title: 'Erro',
-            text: error.message || 'Não foi possível excluir a fatura.'
+            text: getErrorMessage(error, 'Não foi possível excluir a fatura.')
         });
     }
 }
@@ -481,14 +482,14 @@ export async function excluirItemFaturaGlobal(faturaId, itemId) {
                 }, 500);
             }
         } else {
-            throw new Error(response.message || 'Erro ao excluir item');
+            throw new Error(getErrorMessage(response, 'Erro ao excluir item'));
         }
     } catch (error) {
         console.error('Erro ao excluir item:', error);
         Swal.fire({
             icon: 'error',
             title: 'Erro',
-            text: error.message || 'Não foi possível excluir o item.',
+            text: getErrorMessage(error, 'Não foi possível excluir o item.'),
             customClass: {
                 container: 'swal-above-modal'
             }

@@ -13,54 +13,40 @@ import {
     AVAILABLE_ICONS, ICON_COLORS,
     escapeHtml, toastSuccess, toastError,
 } from './state.js';
+import { apiGet, apiPost, apiPut, apiDelete, getErrorMessage } from '../shared/api.js';
 
 // =========================================================================
 // API HELPERS
 // =========================================================================
 
 async function fetchSubcategorias(categoriaId) {
-    const res = await fetch(`${CONFIG.API_URL}categorias/${categoriaId}/subcategorias`);
-    if (!res.ok) throw new Error('Erro ao carregar subcategorias');
-    const json = await res.json();
+    const json = await apiGet(`${CONFIG.API_URL}categorias/${categoriaId}/subcategorias`);
     const subs = json?.data?.subcategorias ?? json?.data ?? [];
     STATE.subcategoriasCache[categoriaId] = subs;
     return subs;
 }
 
 async function apiCreateSubcategoria(parentId, data) {
-    const res = await fetch(`${CONFIG.API_URL}categorias/${parentId}/subcategorias`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': Utils.getCsrfToken() },
-        body: JSON.stringify(data),
-    });
-    if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || 'Erro ao criar subcategoria');
+    try {
+        return await apiPost(`${CONFIG.API_URL}categorias/${parentId}/subcategorias`, data);
+    } catch (error) {
+        throw new Error(getErrorMessage(error, 'Erro ao criar subcategoria'));
     }
-    return res.json();
 }
 
 async function apiUpdateSubcategoria(id, data) {
-    const res = await fetch(`${CONFIG.API_URL}subcategorias/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': Utils.getCsrfToken() },
-        body: JSON.stringify(data),
-    });
-    if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || 'Erro ao atualizar subcategoria');
+    try {
+        return await apiPut(`${CONFIG.API_URL}subcategorias/${id}`, data);
+    } catch (error) {
+        throw new Error(getErrorMessage(error, 'Erro ao atualizar subcategoria'));
     }
-    return res.json();
 }
 
 async function apiDeleteSubcategoria(id) {
-    const res = await fetch(`${CONFIG.API_URL}subcategorias/${id}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': Utils.getCsrfToken() },
-    });
-    if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || 'Erro ao excluir subcategoria');
+    try {
+        await apiDelete(`${CONFIG.API_URL}subcategorias/${id}`);
+    } catch (error) {
+        throw new Error(getErrorMessage(error, 'Erro ao excluir subcategoria'));
     }
 }
 
@@ -297,7 +283,7 @@ async function handleAddSubcategoriaInline(categoriaId) {
         refreshSubcategoriasList(categoriaId);
         updateSubcatBadge(categoriaId);
     } catch (err) {
-        toastError(err.message);
+        toastError(getErrorMessage(err, 'Erro ao criar subcategoria'));
     }
 }
 
@@ -381,7 +367,7 @@ async function saveInlineEdit(subcatId) {
         refreshSubcategoriasList(parentId);
         updateSubcatBadge(parentId);
     } catch (err) {
-        toastError(err.message);
+        toastError(getErrorMessage(err, 'Erro ao atualizar subcategoria'));
     }
 }
 
@@ -496,7 +482,7 @@ async function handleDeleteSubcategoriaInCard(subcatId) {
         refreshSubcategoriasList(parentId);
         updateSubcatBadge(parentId);
     } catch (err) {
-        toastError(err.message);
+        toastError(getErrorMessage(err, 'Erro ao excluir subcategoria'));
     }
 }
 

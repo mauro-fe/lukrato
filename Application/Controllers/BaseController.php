@@ -2,6 +2,11 @@
 
 namespace Application\Controllers;
 
+use Application\Core\Exceptions\AuthException;
+use Application\Core\Exceptions\ClientErrorException;
+use Application\Core\Exceptions\HttpResponseException;
+use Application\Core\Exceptions\ValidationException;
+use Application\Enums\LogCategory;
 use Application\Core\View;
 use Application\Lib\Auth;
 use Application\Core\Response;
@@ -10,7 +15,11 @@ use Application\Services\Infrastructure\LogService;
 use Application\Services\Infrastructure\CacheService;
 use Application\Models\Telefone;
 use Application\Models\BlogCategoria;
+use Application\Models\Usuario;
+use DomainException;
+use InvalidArgumentException;
 use Throwable;
+use ValueError;
 
 abstract class BaseController
 {
@@ -31,7 +40,7 @@ abstract class BaseController
     protected function requireAuth(): void
     {
         if (!Auth::isLoggedIn()) {
-            $this->redirect('login');
+            $this->throwRedirectResponse('login');
         }
 
         $this->userId = Auth::id();
@@ -40,27 +49,111 @@ abstract class BaseController
 
         if (empty($this->userId) || empty($this->adminUsername)) {
             $this->auth->logout();
-            $this->redirect('login');
+            $this->throwRedirectResponse('login');
         }
     }
 
 
-    protected function requireAuthApi(): void
+    protected function requireAuthApiOrFail(): void
     {
         if (!Auth::isLoggedIn()) {
-            Response::unauthorized('Não autenticado');
-            exit;
+            throw new AuthException('Nao autenticado', 401);
         }
 
         $this->userId = Auth::id();
-        $user         = Auth::user();
+        $user = Auth::user();
         $this->adminUsername = $user?->nome ?? null;
 
         if (empty($this->userId) || empty($this->adminUsername)) {
             $this->auth->logout();
-            Response::unauthorized('Sessão inválida');
-            exit;
+            throw new AuthException('Sessao invalida', 401);
         }
+    }
+
+    protected function requireUserId(): int
+    {
+        $this->requireAuth();
+
+        return (int) $this->userId;
+    }
+
+    protected function requireUser(): Usuario
+    {
+        $this->requireAuth();
+        $user = Auth::user();
+
+        if (!$user) {
+            $this->auth->logout();
+            $this->throwRedirectResponse('login');
+        }
+
+        return $user;
+    }
+
+    protected function requireAdminUser(): Usuario
+    {
+        $user = $this->requireUser();
+
+        if ((int) ($user->is_admin ?? 0) !== 1) {
+            $this->throwRedirectResponse('login');
+        }
+
+        return $user;
+    }
+
+    protected function requireApiUserIdOrFail(): int
+    {
+        $this->requireAuthApiOrFail();
+
+        return (int) $this->userId;
+    }
+
+    protected function requireApiUserOrFail(): Usuario
+    {
+        $this->requireAuthApiOrFail();
+        $user = Auth::user();
+
+        if (!$user) {
+            $this->auth->logout();
+            throw new AuthException('Sessao invalida', 401);
+        }
+
+        return $user;
+    }
+
+    protected function requireApiUserIdAndReleaseSessionOrFail(): int
+    {
+        $userId = $this->requireApiUserIdOrFail();
+        $this->releaseSession();
+
+        return $userId;
+    }
+
+    protected function requireApiUserAndReleaseSessionOrFail(): Usuario
+    {
+        $user = $this->requireApiUserOrFail();
+        $this->releaseSession();
+
+        return $user;
+    }
+
+    protected function requireApiAdminUserOrFail(string $message = 'Acesso negado'): Usuario
+    {
+        $user = $this->requireApiUserOrFail();
+
+        if ((int) ($user->is_admin ?? 0) !== 1) {
+            throw new AuthException($message, 403);
+        }
+
+        return $user;
+    }
+
+    protected function requireApiAdminUserAndReleaseSessionOrFail(string $message = 'Acesso negado'): Usuario
+    {
+        $user = $this->requireApiAdminUserOrFail($message);
+        $this->releaseSession();
+
+        return $user;
     }
 
     protected function isAuthenticated(): bool
@@ -68,7 +161,7 @@ abstract class BaseController
         return Auth::isLoggedIn();
     }
 
-    protected function render(string $viewPath, array $data = [], ?string $header = null, ?string $footer = null): void
+    protected function renderResponse(string $viewPath, array $data = [], ?string $header = null, ?string $footer = null): Response
     {
         if (empty($data['menu'])) {
             $data['menu'] = $this->inferMenuFromView($viewPath) ?? $data['menu'] ?? null;
@@ -88,16 +181,13 @@ abstract class BaseController
         if ($header) $view->setHeader($header);
         if ($footer) $view->setFooter($footer);
 
-        echo $view->render();
+        return Response::htmlResponse($view->render());
     }
 
 
-    /**
-     * Atalho: renderiza com header/footer admin.
-     */
-    protected function renderAdmin(string $viewPath, array $data = []): void
+    protected function renderAdminResponse(string $viewPath, array $data = []): Response
     {
-        $this->render($viewPath, $data, 'admin/partials/header', 'admin/partials/footer');
+        return $this->renderResponse($viewPath, $data, 'admin/partials/header', 'admin/partials/footer');
     }
 
     /**
@@ -183,13 +273,18 @@ abstract class BaseController
     }
 
 
-    protected function redirect(string $path): void
+    protected function buildRedirectResponse(string $path, int $statusCode = 302): Response
     {
         $url = filter_var($path, FILTER_VALIDATE_URL)
             ? $path
             : rtrim(BASE_URL, '/') . '/' . ltrim($path, '/');
 
-        $this->response->redirect($url)->send();
+        return Response::redirectResponse($url, $statusCode);
+    }
+
+    protected function throwRedirectResponse(string $path, int $statusCode = 302): never
+    {
+        throw new HttpResponseException($this->buildRedirectResponse($path, $statusCode));
     }
 
     protected function getPost(string $key, mixed $default = null): mixed
@@ -199,31 +294,27 @@ abstract class BaseController
 
     protected function getQuery(string $key, mixed $default = null): mixed
     {
-        return $this->request->get($key, $default);
+        return $this->request->query($key, $default);
     }
 
-    protected function resolveCurrentUserId(): ?int
+    protected function getStringQuery(string $key, string $default = ''): string
     {
-        if ($this->userId !== null) {
-            return $this->userId;
-        }
-
-        $userId = Auth::id();
-        $this->userId = $userId ? (int) $userId : null;
-
-        return $this->userId;
+        return $this->request->queryString($key, $default);
     }
 
-    protected function resolveCurrentUserIdOrFail(string $message = 'Não autenticado', int $status = 401): ?int
+    protected function getIntQuery(string $key, int $default = 0): int
     {
-        $userId = $this->resolveCurrentUserId();
+        return $this->request->queryInt($key, $default);
+    }
 
-        if ($userId === null) {
-            $this->fail($message, $status);
-            return null;
-        }
+    protected function getBoolQuery(string $key, bool $default = false): bool
+    {
+        return $this->request->queryBool($key, $default);
+    }
 
-        return $userId;
+    protected function getArrayQuery(string $key, array $default = []): array
+    {
+        return $this->request->queryArray($key, $default);
     }
 
     protected function releaseSession(): void
@@ -270,18 +361,12 @@ abstract class BaseController
     }
 
 
-    protected function getJson(string $key = null, mixed $default = null): mixed
+    protected function getJson(?string $key = null, mixed $default = null): mixed
     {
+        $this->ensureValidJsonPayload();
+
         if ($this->jsonBodyCache === null) {
-            $raw = file_get_contents('php://input') ?: '';
-            try {
-                $this->jsonBodyCache = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
-                if (!is_array($this->jsonBodyCache)) {
-                    $this->jsonBodyCache = [];
-                }
-            } catch (\JsonException $e) {
-                $this->jsonBodyCache = [];
-            }
+            $this->jsonBodyCache = $this->request->json() ?? [];
         }
 
         if ($key === null) {
@@ -299,9 +384,20 @@ abstract class BaseController
     {
         $payload = $this->getJson() ?? [];
         if (empty($payload)) {
-            $payload = $this->request->post() ?? $_POST ?? [];
+            $payload = $this->request->post() ?? [];
         }
         return $payload;
+    }
+
+    private function ensureValidJsonPayload(): void
+    {
+        if (!$this->request->hasJsonError()) {
+            return;
+        }
+
+        throw new ValidationException([
+            'json' => $this->request->jsonError() ?? 'JSON invalido na requisicao.',
+        ], 'Validation failed', 400);
     }
 
     protected function sanitize(string $value): string
@@ -339,40 +435,228 @@ abstract class BaseController
     }
 
 
-    protected function ok(array $payload = [], int $status = 200): void
+    protected function ok(array $payload = [], int $status = 200): Response
     {
         $message = $payload['message'] ?? 'Success';
         if (array_key_exists('message', $payload)) {
             unset($payload['message']);
         }
 
-        Response::success($payload, $message, $status);
+        return Response::successResponse($payload, $message, $status);
     }
 
-    protected function fail(string $message, int $status = 400, array $extra = []): void
+    protected function fail(string $message, int $status = 400, mixed $extra = null, ?string $code = null): Response
     {
-        Response::error($message, $status, $extra);
+        return Response::errorResponse($message, $status, $extra, $code);
     }
 
-    protected function failAndLog(Throwable $e, string $userMessage = 'Erro interno.', int $status = 500, array $extra = []): void
+    protected function failResponse(string $message, int $status = 400, mixed $extra = null, ?string $code = null): Response
     {
-        $rid = bin2hex(random_bytes(6));
+        return Response::errorResponse($message, $status, $extra, $code);
+    }
 
-        $ctx = array_merge([
-            'request_id' => $rid,
-            'type'       => get_class($e),
-            'message'    => $e->getMessage(),
-            'file'       => $e->getFile(),
-            'line'       => $e->getLine(),
-            'trace'      => $e->getTraceAsString(),
-            'url'        => ($_SERVER['REQUEST_METHOD'] ?? '-') . ' ' . ($_SERVER['REQUEST_URI'] ?? '-'),
-            'user_id'    => $this->userId ?? null,
-            'ip'         => $_SERVER['REMOTE_ADDR'] ?? null,
-        ], $extra);
+    protected function failAndLog(Throwable $e, string $userMessage = 'Erro interno.', int $status = 500, array $extra = [], ?string $code = null): Response
+    {
+        $meta = $this->reportExceptionWithReference($e, $userMessage, $extra);
 
-        LogService::error($userMessage, $ctx);
+        return Response::errorResponse($userMessage, $status, [
+            'error_id' => $meta['error_id'],
+            'request_id' => $meta['request_id'],
+        ], $code);
+    }
 
-        Response::error($userMessage, $status, ['request_id' => $rid]);
+    protected function failAndLogResponse(Throwable $e, string $userMessage = 'Erro interno.', int $status = 500, array $extra = [], ?string $code = null): Response
+    {
+        $meta = $this->reportExceptionWithReference($e, $userMessage, $extra);
+
+        return Response::errorResponse($userMessage, $status, [
+            'error_id' => $meta['error_id'],
+            'request_id' => $meta['request_id'],
+        ], $code);
+    }
+
+    protected function internalErrorResponse(
+        Throwable $e,
+        string $userMessage = 'Erro interno do servidor.',
+        int $status = 500,
+        array $extra = [],
+        LogCategory $category = LogCategory::GENERAL,
+        ?string $code = null
+    ): Response {
+        $meta = $this->reportExceptionWithReference($e, $userMessage, $extra, $category);
+
+        return Response::errorResponse($userMessage, $status, [
+            'error_id' => $meta['error_id'],
+            'request_id' => $meta['request_id'],
+        ], $code);
+    }
+
+    protected function internalErrorMessage(
+        Throwable $e,
+        string $userMessage = 'Erro interno. Tente novamente mais tarde.',
+        array $extra = [],
+        LogCategory $category = LogCategory::GENERAL
+    ): string {
+        $meta = $this->reportExceptionWithReference($e, $userMessage, $extra, $category);
+
+        return $userMessage . ' (ref: ' . $meta['error_id'] . ')';
+    }
+
+    protected function internalErrorMeta(
+        Throwable $e,
+        string $userMessage = 'Erro interno do servidor.',
+        array $extra = [],
+        LogCategory $category = LogCategory::GENERAL
+    ): array {
+        $meta = $this->reportExceptionWithReference($e, $userMessage, $extra, $category);
+
+        return [
+            'error_id' => $meta['error_id'],
+            'request_id' => $meta['request_id'],
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $result
+     * @param array<string, mixed> $context
+     */
+    protected function workflowFailureResponse(
+        array $result,
+        string $publicMessage = 'Erro interno do servidor.',
+        LogCategory $category = LogCategory::GENERAL,
+        array $context = []
+    ): Response {
+        $status = (int) ($result['status'] ?? 400);
+        $message = (string) ($result['message'] ?? $publicMessage);
+        $errors = $result['errors'] ?? null;
+        $code = isset($result['code']) && is_string($result['code']) ? $result['code'] : null;
+
+        if ($errors === []) {
+            $errors = null;
+        }
+
+        if ($status < 500) {
+            return Response::errorResponse($message, $status, is_array($errors) ? $errors : null, $code);
+        }
+
+        if (is_array($errors) && (isset($errors['error_id']) || isset($errors['request_id']))) {
+            return Response::errorResponse($publicMessage, $status, $errors, $code);
+        }
+
+        $errorId = LogService::reportException(
+            e: new \RuntimeException($message),
+            publicMessage: $publicMessage,
+            context: array_merge($context, [
+                'workflow_status' => $status,
+            ]),
+            userId: $this->userId ?? null,
+            category: $category,
+        );
+
+        return Response::errorResponse($publicMessage, $status, [
+            'error_id' => $errorId,
+            'request_id' => LogService::currentRequestId(),
+        ], $code);
+    }
+
+    private function reportExceptionWithReference(
+        Throwable $e,
+        string $userMessage,
+        array $extra = [],
+        LogCategory $category = LogCategory::GENERAL
+    ): array {
+        $errorId = LogService::reportException(
+            e: $e,
+            publicMessage: $userMessage,
+            context: array_merge([
+                'url' => ($_SERVER['REQUEST_METHOD'] ?? '-') . ' ' . ($_SERVER['REQUEST_URI'] ?? '-'),
+                'user_id' => $this->userId ?? null,
+                'ip' => $_SERVER['REMOTE_ADDR'] ?? null,
+            ], $extra),
+            userId: $this->userId ?? null,
+            category: $category,
+        );
+
+        return [
+            'error_id' => $errorId,
+            'request_id' => LogService::currentRequestId(),
+        ];
+    }
+
+    protected function domainErrorResponse(
+        Throwable $e,
+        string $fallbackMessage,
+        int $status = 400,
+        array $extra = [],
+        ?string $code = null
+    ): Response {
+        return $this->failResponse(
+            $this->safeThrowableMessage($e, $fallbackMessage),
+            $status,
+            $extra !== [] ? $extra : null,
+            $code
+        );
+    }
+
+    protected function notFoundFromThrowable(
+        Throwable $e,
+        string $fallbackMessage = 'Recurso nao encontrado.',
+        array $extra = []
+    ): Response {
+        return $this->domainErrorResponse($e, $fallbackMessage, 404, $extra, 'RESOURCE_NOT_FOUND');
+    }
+
+    private function safeThrowableMessage(Throwable $e, string $fallbackMessage): string
+    {
+        if (
+            !$e instanceof ValidationException
+            && !$e instanceof AuthException
+            && !$e instanceof ClientErrorException
+            && !$e instanceof DomainException
+            && !$e instanceof InvalidArgumentException
+            && !$e instanceof ValueError
+        ) {
+            return $fallbackMessage;
+        }
+
+        $message = trim($e->getMessage());
+        if ($message === '' || $this->looksLikeSensitiveThrowableMessage($message)) {
+            return $fallbackMessage;
+        }
+
+        return $message;
+    }
+
+    private function looksLikeSensitiveThrowableMessage(string $message): bool
+    {
+        $normalized = strtolower($message);
+        $markers = [
+            'sqlstate',
+            'syntax error',
+            'stack trace',
+            'failed to open stream',
+            'uncaught',
+            'pdoexception',
+            'queryexception',
+            'integrity constraint',
+            'table ',
+            'column ',
+            'insert into',
+            'update `',
+            'delete from',
+            'select *',
+            ' on line ',
+            ' in c:\\',
+            ' in /',
+        ];
+
+        foreach ($markers as $marker) {
+            if (str_contains($normalized, $marker)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     protected function inferMenuFromView(string $viewPath): ?string

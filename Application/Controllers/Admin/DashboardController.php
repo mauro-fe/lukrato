@@ -3,27 +3,26 @@
 namespace Application\Controllers\Admin;
 
 use Application\Controllers\BaseController;
+use Application\Core\Response;
 
 class DashboardController extends BaseController
 {
-
-    public function dashboard(): void
+    public function dashboard(): Response
     {
-        // Check if onboarding was just completed (session flag)
+        $this->requireUserId();
+
         $showOnboardingCongrats = !empty($_SESSION['onboarding_just_completed']);
         if ($showOnboardingCongrats) {
             unset($_SESSION['onboarding_just_completed']);
         }
 
-        $data = [
-            'pageTitle' => 'Dashboard',
-            'showOnboardingCongrats' => $showOnboardingCongrats,
-            'showMonthSelector' => true,
-        ];
-
-        $this->render(
+        return $this->renderResponse(
             'admin/dashboard/index',
-            $data,
+            [
+                'pageTitle' => 'Dashboard',
+                'showOnboardingCongrats' => $showOnboardingCongrats,
+                'showMonthSelector' => true,
+            ],
             'admin/partials/header',
             'admin/partials/footer'
         );

@@ -22,6 +22,7 @@ class TurnstileService
 {
     private const VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
     private const COUNTER_TTL = 900; // 15 minutos
+    private const SOFT_DENY_BUFFER = 2;
 
     private CacheService $cache;
 
@@ -98,6 +99,7 @@ class TurnstileService
             );
             throw new ValidationException(
                 ['captcha' => 'Verificação de segurança necessária. Complete o CAPTCHA.'],
+                'Validation failed',
                 422
             );
         }
@@ -123,6 +125,10 @@ class TurnstileService
         curl_close($ch);
 
         if ($response === false || $httpCode !== 200) {
+            $failedAttempts = $this->getFailedAttempts($ip);
+            $threshold = defined('TURNSTILE_THRESHOLD') ? (int) TURNSTILE_THRESHOLD : 3;
+            $softDeny = $failedAttempts >= ($threshold + self::SOFT_DENY_BUFFER);
+
             LogService::persist(
                 LogLevel::ERROR,
                 LogCategory::SECURITY,
@@ -131,9 +137,19 @@ class TurnstileService
                     'ip'        => $ip,
                     'http_code' => $httpCode,
                     'curl_err'  => $curlError,
+                    'failed_attempts' => $failedAttempts,
+                    'soft_deny' => $softDeny,
                 ],
             );
-            // Fail-open: se a Cloudflare estiver fora, não bloqueia o usuário
+
+            if ($softDeny) {
+                throw new ValidationException(
+                    ['captcha' => 'Não foi possível validar a verificação de segurança agora. Tente novamente em instantes.'],
+                    'Validation failed',
+                    422
+                );
+            }
+
             return;
         }
 
@@ -154,6 +170,7 @@ class TurnstileService
 
             throw new ValidationException(
                 ['captcha' => 'Verificação de segurança falhou. Tente novamente.'],
+                'Validation failed',
                 422
             );
         }

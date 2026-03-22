@@ -8,6 +8,8 @@
  * ============================================================================
  */
 
+import { apiGet, apiPost, getBaseUrl, getErrorMessage } from '../shared/api.js';
+
 // ================================================
 // COMMUNICATIONS PAGE JS
 // ================================================
@@ -34,10 +36,7 @@ function lucideIcon(faClass) {
     return faToLucide[faClass] || faClass.replace('fa-', '');
 }
 
-const BASE = (() => {
-    const meta = document.querySelector('meta[name="base-url"]')?.content || '';
-    return meta.replace(/\/?$/, '/');
-})();
+const BASE = getBaseUrl();
 let currentPage = 1;
 let totalPages = 1;
 let debounceTimer = null;
@@ -95,20 +94,11 @@ async function updatePreview() {
     previewCount.textContent = '...';
 
     try {
-        const params = new URLSearchParams({
+        const data = await apiGet(`${BASE}api/campaigns/preview`, {
             plan: document.getElementById('filterPlan').value,
             status: document.getElementById('filterStatus').value,
             days_inactive: document.getElementById('filterDaysInactive').value || '',
         });
-
-        const response = await fetch(`${BASE}api/campaigns/preview?${params}`, {
-            headers: {
-                'Accept': 'application/json',
-            },
-            credentials: 'same-origin'
-        });
-
-        const data = await response.json();
 
         if (data.success) {
             previewCount.textContent = data.data.count.toLocaleString('pt-BR');
@@ -132,14 +122,10 @@ async function loadCampaigns(page = 1) {
     `;
 
     try {
-        const response = await fetch(`${BASE}api/campaigns?page=${page}&per_page=10`, {
-            headers: {
-                'Accept': 'application/json',
-            },
-            credentials: 'same-origin'
+        const data = await apiGet(`${BASE}api/campaigns`, {
+            page,
+            per_page: 10
         });
-
-        const data = await response.json();
 
         if (data.success) {
             renderCampaigns(data.data.campaigns);
@@ -297,14 +283,7 @@ async function showCampaignDetail(id) {
     modal.show();
 
     try {
-        const response = await fetch(`${BASE}api/campaigns/${id}`, {
-            headers: {
-                'Accept': 'application/json'
-            },
-            credentials: 'same-origin'
-        });
-
-        const data = await response.json();
+        const data = await apiGet(`${BASE}api/campaigns/${id}`);
 
         if (data.success) {
             const c = data.data;
@@ -507,20 +486,7 @@ async function handleFormSubmit(e) {
             }
         };
 
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-
-        const response = await fetch(`${BASE}api/campaigns`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-Token': csrfToken
-            },
-            credentials: 'same-origin',
-            body: JSON.stringify(payload)
-        });
-
-        const data = await response.json();
+        const data = await apiPost(`${BASE}api/campaigns`, payload);
 
         if (data.success) {
             if (data.data.scheduled_at) {
@@ -575,18 +541,7 @@ async function cancelScheduled(id) {
     if (!result.isConfirmed) return;
 
     try {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-        const response = await fetch(`${BASE}api/campaigns/${id}/cancel`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-Token': csrfToken
-            },
-            credentials: 'same-origin'
-        });
-
-        const data = await response.json();
+        const data = await apiPost(`${BASE}api/campaigns/${id}/cancel`);
 
         if (data.success) {
             LKFeedback.success('Campanha agendada cancelada.', { toast: true });

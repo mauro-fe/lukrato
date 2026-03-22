@@ -6,12 +6,35 @@ namespace Application\Bootstrap;
 
 class SecurityHeaders
 {
+    /**
+     * Rotas da shell autenticada que ainda carregam scripts legados com Function().
+     *
+     * @var list<string>
+     */
+    private array $legacyUnsafeEvalPrefixes = [
+        '/dashboard',
+        '/lancamentos',
+        '/faturas',
+        '/relatorios',
+        '/perfil',
+        '/contas',
+        '/cartoes',
+        '/financas',
+        '/onboarding',
+        '/categorias',
+        '/gamification',
+        '/billing',
+        '/super_admin',
+        '/sysadmin',
+        '/config',
+    ];
+
     private array $securityHeaders = [
-        'X-Content-Type-Options'    => 'nosniff',
-        'X-Frame-Options'           => 'DENY',
-        'X-XSS-Protection'          => '1; mode=block',
-        'Referrer-Policy'           => 'strict-origin-when-cross-origin',
-        'Permissions-Policy'        => 'geolocation=(), microphone=(), camera=()',
+        'X-Content-Type-Options' => 'nosniff',
+        'X-Frame-Options' => 'DENY',
+        'X-XSS-Protection' => '1; mode=block',
+        'Referrer-Policy' => 'strict-origin-when-cross-origin',
+        'Permissions-Policy' => 'geolocation=(), microphone=(), camera=()',
         'Strict-Transport-Security' => 'max-age=31536000; includeSubDomains; preload',
     ];
 
@@ -41,7 +64,6 @@ class SecurityHeaders
         }
 
         $normalizedOrigin = rtrim($origin, '/');
-
         $allowedOrigins = [
             'https://lukrato.com.br',
             'https://www.lukrato.com.br',
@@ -68,40 +90,102 @@ class SecurityHeaders
         }
 
         if ($originPort === null) {
-          return true;
+            return true;
         }
 
         return $originPort >= 1 && $originPort <= 65535;
     }
 
-    /**
-     * Content Security Policy
-     * Protege contra XSS e injeção de scripts maliciosos
-     */
     private function getCSP(): string
     {
-        $connectSrc = "'self' https://lukrato.com.br https://www.lukrato.com.br https://cdn.jsdelivr.net https://cdn.tiny.cloud https://accounts.google.com https://apis.google.com https://www.googleapis.com https://challenges.cloudflare.com";
+        $connectSrc = [
+            "'self'",
+            'https://lukrato.com.br',
+            'https://www.lukrato.com.br',
+            'https://cdn.jsdelivr.net',
+            'https://cdn.tiny.cloud',
+            'https://accounts.google.com',
+            'https://apis.google.com',
+            'https://www.googleapis.com',
+            'https://challenges.cloudflare.com',
+        ];
 
-        // Em desenvolvimento, permitir conexões para localhost/Vite dev server
         if ($this->isDev()) {
-            $connectSrc .= ' http://localhost http://localhost:* http://127.0.0.1 http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:*';
+            $connectSrc = array_merge($connectSrc, [
+                'http://localhost',
+                'http://localhost:*',
+                'http://127.0.0.1',
+                'http://127.0.0.1:*',
+                'ws://localhost:*',
+                'ws://127.0.0.1:*',
+            ]);
+        }
+
+        $scriptSrc = [
+            "'self'",
+            "'unsafe-inline'",
+            'https://cdnjs.cloudflare.com',
+            'https://cdn.jsdelivr.net',
+            'https://unpkg.com',
+            'https://cdn.tiny.cloud',
+            'https://accounts.google.com',
+            'https://apis.google.com',
+            'https://challenges.cloudflare.com',
+        ];
+
+        if ($this->shouldAllowUnsafeEval()) {
+            $scriptSrc[] = "'unsafe-eval'";
         }
 
         $directives = [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://cdn.tiny.cloud https://accounts.google.com https://apis.google.com https://challenges.cloudflare.com",
+            'script-src ' . implode(' ', $scriptSrc),
             "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://fonts.googleapis.com",
             "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:",
             "img-src 'self' data: https: blob:",
-            "connect-src {$connectSrc}",
+            'connect-src ' . implode(' ', $connectSrc),
             "frame-src 'self' https://accounts.google.com https://challenges.cloudflare.com",
             "object-src 'none'",
             "base-uri 'self'",
             "form-action 'self'",
-            "frame-ancestors 'self'",
+            "frame-ancestors 'none'",
+            "manifest-src 'self'",
+            "worker-src 'self' blob:",
         ];
 
         return implode('; ', $directives);
+    }
+
+    private function shouldAllowUnsafeEval(): bool
+    {
+        if ($this->isDev()) {
+            return true;
+        }
+
+        $path = $this->normalizedRequestPath();
+
+        foreach ($this->legacyUnsafeEvalPrefixes as $prefix) {
+            if ($path === $prefix || str_starts_with($path, $prefix . '/')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function normalizedRequestPath(): string
+    {
+        $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+
+        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+        $basePath = str_replace('/index.php', '', dirname($scriptName));
+        $basePath = rtrim($basePath, '/');
+
+        if ($basePath !== '' && str_starts_with($path, $basePath)) {
+            $path = substr($path, strlen($basePath));
+        }
+
+        return rtrim($path, '/') ?: '/';
     }
 
     public function apply(): void
@@ -117,16 +201,13 @@ class SecurityHeaders
         header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
         header('Access-Control-Allow-Headers: Accept, Content-Type, Authorization, X-Requested-With, X-CSRF-Token');
 
-        // Headers de segurança
         foreach ($this->securityHeaders as $name => $value) {
             header("$name: $value");
         }
 
-        // Content Security Policy
         header('Content-Security-Policy: ' . $this->getCSP());
 
-        // Preflight (OBRIGATÓRIO para fetch)
-        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
             http_response_code(204);
             exit;
         }

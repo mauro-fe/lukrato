@@ -25,7 +25,7 @@ return [
     ['paguei 32,50 de luz', 'extract_transaction', 0.7, [], 'Valor decimal com vírgula BR'],
     ['comprei 120 de mercado', 'extract_transaction', 0.7, [], 'Compra genérica'],
     ['torrei 200 no shopping', 'extract_transaction', 0.7, ['informal'], 'Gíria torrei'],
-    ['recebi 5000 de salário', 'create_entity', 0.7, [], 'Receita explícita — EntityCreation wins due to implicit lancamento'],
+    ['recebi 5000 de salário', 'extract_transaction', 0.7, [], 'Receita explícita detectada como transação'],
     ['ganhei 1500 de freelance', 'extract_transaction', 0.7, [], 'Receita freelance'],
     ['custou 89 reais', 'extract_transaction', 0.6, [], '3a pessoa - custou'],
 

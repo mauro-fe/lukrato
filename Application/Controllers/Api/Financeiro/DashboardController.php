@@ -10,7 +10,10 @@ use Application\Repositories\OrcamentoRepository;
 use Application\Services\Financeiro\DashboardProvisaoService;
 use Application\Services\Financeiro\HealthScoreService;
 use Application\Services\Financeiro\DashboardInsightService;
+use Application\Services\Financeiro\HealthScoreInsightService;
 use Application\Services\Infrastructure\LogService;
+use Application\Services\Financeiro\DashboardHealthSummaryService;
+use Throwable;
 
 class DashboardController extends BaseController
 {
@@ -20,16 +23,35 @@ class DashboardController extends BaseController
     private MetaRepository $metaRepo;
     private HealthScoreService $healthScoreService;
     private DashboardInsightService $dashboardInsightService;
+    private HealthScoreInsightService $healthScoreInsightService;
+    private DashboardHealthSummaryService $dashboardHealthSummaryService;
 
-    public function __construct()
-    {
+    public function __construct(
+        ?LancamentoRepository $lancamentoRepo = null,
+        ?DashboardProvisaoService $provisaoService = null,
+        ?OrcamentoRepository $orcamentoRepo = null,
+        ?MetaRepository $metaRepo = null,
+        ?HealthScoreService $healthScoreService = null,
+        ?DashboardInsightService $dashboardInsightService = null,
+        ?HealthScoreInsightService $healthScoreInsightService = null,
+        ?DashboardHealthSummaryService $dashboardHealthSummaryService = null
+    ) {
         parent::__construct();
-        $this->lancamentoRepo = new LancamentoRepository();
-        $this->provisaoService = new DashboardProvisaoService();
-        $this->orcamentoRepo = new OrcamentoRepository();
-        $this->metaRepo = new MetaRepository();
-        $this->healthScoreService = new HealthScoreService($this->lancamentoRepo, $this->orcamentoRepo, $this->metaRepo);
-        $this->dashboardInsightService = new DashboardInsightService($this->lancamentoRepo, $this->metaRepo);
+
+        $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
+        $this->provisaoService = $provisaoService ?? new DashboardProvisaoService();
+        $this->orcamentoRepo = $orcamentoRepo ?? new OrcamentoRepository();
+        $this->metaRepo = $metaRepo ?? new MetaRepository();
+
+        // Injeções que dependem de outros repositórios
+        $this->healthScoreService = $healthScoreService ?? new HealthScoreService($this->lancamentoRepo, $this->orcamentoRepo, $this->metaRepo);
+        $this->dashboardInsightService = $dashboardInsightService ?? new DashboardInsightService($this->lancamentoRepo);
+        $this->healthScoreInsightService = $healthScoreInsightService ?? new HealthScoreInsightService($this->lancamentoRepo, $this->metaRepo);
+        $this->dashboardHealthSummaryService = $dashboardHealthSummaryService ??
+            new DashboardHealthSummaryService(
+                $this->healthScoreService,
+                $this->healthScoreInsightService
+            );
     }
 
     private function normalizeMonth(string $monthInput): array
@@ -37,121 +59,170 @@ class DashboardController extends BaseController
         return $this->normalizeYearMonth($monthInput);
     }
 
-    public function comparativoCompetenciaCaixa(): void
+    private function getCurrentMonth(): string
     {
-        $userId = $this->resolveCurrentUserIdOrFail('Nao autenticado');
-        if ($userId === null) {
-            return;
-        }
-        $this->releaseSession();
-
-        $normalizedDate = $this->normalizeMonth((string) $this->getQuery('month', date('Y-m')));
-        $month = $normalizedDate['month'];
-
-        $comparativo = $this->lancamentoRepo->getResumoCompetenciaVsCaixa($userId, $month);
-
-        $response = $this->dashboardInsightService->buildComparativoCompetenciaCaixaResponse($comparativo, $month);
-
-        Response::success($response);
+        return (new \DateTimeImmutable('first day of this month'))->format('Y-m');
     }
 
-    public function transactions(): void
+    private function getPreviousMonth(): string
     {
-        $userId = $this->resolveCurrentUserIdOrFail('Nao autenticado');
-        if ($userId === null) {
-            return;
-        }
-        $this->releaseSession();
-
-        $limit = min((int) $this->getQuery('limit', 5), 100);
-        $normalized = $this->normalizeMonth((string) $this->getQuery('month', date('Y-m')));
-        $from = $normalized['start'];
-        $to = $normalized['end'];
-
-        $out = $this->dashboardInsightService->getRecentTransactions($userId, $from, $to, $limit);
-
-        Response::success($out);
+        return (new \DateTimeImmutable('first day of last month'))->format('Y-m');
     }
 
-    public function provisao(): void
+    public function comparativoCompetenciaCaixa(): Response
     {
-        $userId = $this->resolveCurrentUserIdOrFail('Nao autenticado');
-        if ($userId === null) {
-            return;
-        }
-        $this->releaseSession();
+        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
 
-        $normalized = $this->normalizeMonth((string) $this->getQuery('month', date('Y-m')));
-        $result = $this->provisaoService->generate($userId, $normalized['month']);
-
-        Response::success($result->toArray());
-    }
-
-    public function healthScore(): void
-    {
-        $userId = $this->resolveCurrentUserIdOrFail('Nao autenticado');
-        if ($userId === null) {
-            return;
-        }
-        $this->releaseSession();
+        $month = null;
 
         try {
-            $currentMonth = date('Y-m');
+            $normalizedDate = $this->normalizeMonth($this->getStringQuery('month', $this->getCurrentMonth()));
+            $month = $normalizedDate['month'];
+
+            $comparativo = $this->lancamentoRepo->getResumoCompetenciaVsCaixa($userId, $month);
+            $response = $this->dashboardInsightService->buildComparativoCompetenciaCaixaResponse($comparativo, $month);
+
+            return Response::successResponse($response);
+        } catch (Throwable $e) {
+            $this->logDashboardError('Erro ao gerar comparativo de competencia x caixa', $e, $userId, [
+                'month' => $month,
+            ]);
+
+            return $this->internalErrorResponse($e, 'Erro ao gerar comparativo.');
+        }
+    }
+
+    public function transactions(): Response
+    {
+        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+
+        $month = null;
+        $limit = max(0, min($this->getIntQuery('limit', 5), 100));
+
+        try {
+            $normalized = $this->normalizeMonth($this->getStringQuery('month', $this->getCurrentMonth()));
+            $month = $normalized['month'];
+            $from = $normalized['start'];
+            $to = $normalized['end'];
+
+            $out = $this->dashboardInsightService->getRecentTransactions($userId, $from, $to, $limit);
+
+            return Response::successResponse($out);
+        } catch (Throwable $e) {
+            $this->logDashboardError('Erro ao listar transacoes recentes do dashboard', $e, $userId, [
+                'month' => $month,
+                'limit' => $limit,
+            ]);
+
+            return $this->internalErrorResponse($e, 'Erro ao listar transacoes.');
+        }
+    }
+
+    public function provisao(): Response
+    {
+        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+
+        try {
+            $normalized = $this->normalizeMonth($this->getStringQuery('month', $this->getCurrentMonth()));
+            $result = $this->provisaoService->generate($userId, $normalized['month']);
+
+            return Response::successResponse($result->toArray());
+        } catch (Throwable $e) {
+            $this->logDashboardError('Erro ao gerar provisao do dashboard', $e, $userId);
+
+            return $this->internalErrorResponse($e, 'Erro ao gerar provisao.');
+        }
+    }
+
+    public function healthScore(): Response
+    {
+        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+        $currentMonth = null;
+
+        try {
+            $currentMonth = $this->getCurrentMonth();
             $score = $this->healthScoreService->calculateUserHealthScore($userId, $currentMonth);
 
-            Response::success($score);
-        } catch (\Exception $e) {
-            LogService::error('Erro ao calcular health score no dashboard', [
-                'user_id' => $userId,
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
+            return Response::successResponse($score);
+        } catch (Throwable $e) {
+            $this->logDashboardError('Erro ao calcular health score no dashboard', $e, $userId, [
+                'month' => $currentMonth,
             ]);
-            Response::error('Erro ao calcular health score', 500);
+
+            return $this->internalErrorResponse($e, 'Erro ao calcular health score.');
         }
     }
 
-    public function greetingInsight(): void
+    public function greetingInsight(): Response
     {
-        $userId = $this->resolveCurrentUserIdOrFail('Nao autenticado');
-        if ($userId === null) {
-            return;
-        }
-        $this->releaseSession();
+        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+        $currentMonth = null;
+        $previousMonth = null;
 
         try {
-            $currentMonth = date('Y-m');
-            $previousMonth = date('Y-m', strtotime('-1 month'));
+            $currentMonth = $this->getCurrentMonth();
+            $previousMonth = $this->getPreviousMonth();
 
             $insight = $this->dashboardInsightService->generateGreetingInsight($userId, $currentMonth, $previousMonth);
 
-            Response::success($insight);
-        } catch (\Exception $e) {
-            Response::error('Erro ao gerar insight', 500);
+            return Response::successResponse($insight);
+        } catch (Throwable $e) {
+            $this->logDashboardError('Erro ao gerar insight do dashboard', $e, $userId, [
+                'current_month' => $currentMonth,
+                'previous_month' => $previousMonth,
+            ]);
+
+            return $this->internalErrorResponse($e, 'Erro ao gerar insight.');
         }
     }
 
-    public function healthScoreInsights(): void
+    public function healthScoreInsights(): Response
     {
-        $userId = $this->resolveCurrentUserIdOrFail('Nao autenticado');
-        if ($userId === null) {
-            return;
-        }
-        $this->releaseSession();
+        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+        $currentMonth = null;
 
         try {
-            $currentMonth = date('Y-m');
-            $insights = $this->healthScoreService->generateHealthScoreInsights($userId, $currentMonth);
+            $currentMonth = $this->getCurrentMonth();
+            $insights = $this->healthScoreInsightService->generate($userId, $currentMonth);
 
-            Response::success($insights);
-        } catch (\Exception $e) {
-            LogService::error('Erro ao gerar insights de health score', [
-                'user_id' => $userId,
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
+            return Response::successResponse($insights);
+        } catch (Throwable $e) {
+            $this->logDashboardError('Erro ao gerar insights de health score', $e, $userId, [
+                'month' => $currentMonth,
             ]);
-            Response::error('Erro ao gerar insights', 500);
+
+            return $this->internalErrorResponse($e, 'Erro ao gerar insights.');
+        }
+    }
+
+    private function logDashboardError(string $message, Throwable $e, int $userId, array $context = []): void
+    {
+        LogService::error($message, array_merge($context, [
+            'user_id' => $userId,
+            'exception' => get_class($e),
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ]));
+    }
+
+    public function healthSummary(): Response
+    {
+        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+        $currentMonth = null;
+
+        try {
+            $currentMonth = $this->getCurrentMonth();
+
+            $summary = $this->dashboardHealthSummaryService->generate($userId, $currentMonth);
+
+            return Response::successResponse($summary);
+        } catch (Throwable $e) {
+            $this->logDashboardError('Erro ao gerar resumo do dashboard', $e, $userId, [
+                'month' => $currentMonth,
+            ]);
+
+            return $this->internalErrorResponse($e, 'Erro ao gerar resumo.');
         }
     }
 }

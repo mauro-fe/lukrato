@@ -13,6 +13,7 @@ use Application\Repositories\ParcelamentoRepository;
 use Application\Enums\LogCategory;
 use Application\Support\FaturaHelper;
 use Application\Services\Infrastructure\LogService;
+use Application\Services\User\OnboardingProgressService;
 use Illuminate\Database\Capsule\Manager as DB;
 
 /**
@@ -29,13 +30,16 @@ class LancamentoDeletionService
 {
     private LancamentoRepository $lancamentoRepo;
     private ParcelamentoRepository $parcelamentoRepo;
+    private OnboardingProgressService $onboardingProgressService;
 
     public function __construct(
         ?LancamentoRepository $lancamentoRepo = null,
-        ?ParcelamentoRepository $parcelamentoRepo = null
+        ?ParcelamentoRepository $parcelamentoRepo = null,
+        ?OnboardingProgressService $onboardingProgressService = null
     ) {
         $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
         $this->parcelamentoRepo = $parcelamentoRepo ?? new ParcelamentoRepository();
+        $this->onboardingProgressService = $onboardingProgressService ?? new OnboardingProgressService();
     }
 
     /**
@@ -48,7 +52,7 @@ class LancamentoDeletionService
      */
     public function delete(Lancamento $lancamento, int $userId, string $scope = 'single'): array
     {
-        return DB::transaction(function () use ($lancamento, $userId, $scope) {
+        $result = DB::transaction(function () use ($lancamento, $userId, $scope) {
             // Se for um pagamento de fatura, reverter os itens antes de excluir
             if ($lancamento->origem_tipo === 'pagamento_fatura' && $lancamento->cartao_credito_id) {
                 $this->reverterPagamentoFatura($lancamento);
@@ -67,6 +71,10 @@ class LancamentoDeletionService
             // Exclusão simples
             return $this->deleteSingle($lancamento, $userId);
         });
+
+        $this->syncOnboardingStateAfterDeletion($userId);
+
+        return $result;
     }
 
     /**
@@ -232,6 +240,18 @@ class LancamentoDeletionService
                 'lancamento_id' => $lancamento->id,
                 'cartao_id'     => $lancamento->cartao_credito_id ?? null,
                 'user_id'       => $lancamento->user_id,
+            ]);
+        }
+    }
+
+    private function syncOnboardingStateAfterDeletion(int $userId): void
+    {
+        try {
+            $this->onboardingProgressService->resyncState($userId);
+        } catch (\Throwable $e) {
+            LogService::captureException($e, LogCategory::GENERAL, [
+                'action' => 'resync_onboarding_after_lancamento_delete',
+                'user_id' => $userId,
             ]);
         }
     }

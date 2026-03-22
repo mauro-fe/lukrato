@@ -1,3 +1,11 @@
+import { apiGet } from '../shared/api.js';
+
+const ONBOARDING_STORAGE_PREFIX = `lk_user_${window.__LK_CONFIG?.userId ?? 'anon'}_`;
+
+function storageKey(name) {
+  return ONBOARDING_STORAGE_PREFIX + name;
+}
+
 /**
  * =====================================================================
  * PROGRESSIVE DISCLOSURE for First-Time Users
@@ -43,12 +51,9 @@ class ProgressiveDisclosure {
 
   async checkTransactionCount() {
     try {
-      const url = `${window.BASE_URL || '/'}api/dashboard/metrics?month=${this.getCurrentMonth()}`;
-      const response = await fetch(url, {
-        credentials: 'include',
-        headers: { 'Accept': 'application/json' }
+      const json = await apiGet(`${window.BASE_URL || '/'}api/dashboard/metrics`, {
+        month: this.getCurrentMonth()
       });
-      const json = await response.json();
       const data = json?.data ?? json;
 
       if (data && typeof data.count !== 'undefined') {
@@ -151,7 +156,7 @@ window.ProgressiveDisclosure = ProgressiveDisclosure;
 
 // Auto-init na primeira visita
 document.addEventListener('DOMContentLoaded', () => {
-  const isFirstTime = window.__lkFirstVisit || localStorage.getItem('lukrato_onboarding_completed') !== 'true';
+  const isFirstTime = window.__lkFirstVisit || localStorage.getItem(storageKey('lukrato_onboarding_completed')) !== 'true';
   if (isFirstTime) {
     window.progressiveDisclosure = new ProgressiveDisclosure({ isFirstTime: true });
   }

@@ -8,6 +8,8 @@
  * ============================================================================
  */
 
+import { apiPost, getBaseUrl } from '../shared/api.js';
+
 document.addEventListener('DOMContentLoaded', function () {
     const tipoInput = document.getElementById('tipoInput');
     const btnDespesa = document.getElementById('btnDespesa');
@@ -15,8 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const categoriaSelect = document.getElementById('categoriaSelect');
     const valorInput = document.getElementById('valorInput');
     const btnSkip = document.getElementById('btnSkipOnboarding');
-    const BASE_URL = document.querySelector('meta[name="base-url"]')?.content || '/';
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    const BASE_URL = getBaseUrl();
 
     // ─── Toggle tipo receita/despesa ───
     function setTipo(tipo) {
@@ -69,15 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
             btnSkip.disabled = true;
             btnSkip.innerHTML = '<span class="lk-skip-loading"></span> Preparando...';
 
-            fetch(BASE_URL + 'api/onboarding/complete', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                },
-            })
-                .then(function (r) { return r.json(); })
+            apiPost(BASE_URL + 'api/onboarding/complete')
                 .then(function (res) {
                     if (res.success && res.data?.redirect) {
                         window.location.href = res.data.redirect;

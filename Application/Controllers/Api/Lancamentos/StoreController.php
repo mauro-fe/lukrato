@@ -1,45 +1,42 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Api\Lancamentos;
 
 use Application\Controllers\BaseController;
 use Application\Core\Response;
-use Application\Lib\Auth;
-use Application\Services\Lancamento\LancamentoCreationService;
 use Application\DTO\ServiceResultDTO;
+use Application\Services\Lancamento\LancamentoCreationService;
 
 class StoreController extends BaseController
 {
     private LancamentoCreationService $creationService;
 
-    public function __construct()
+    public function __construct(?LancamentoCreationService $creationService = null)
     {
         parent::__construct();
-        $this->creationService = new LancamentoCreationService();
+        $this->creationService = $creationService ?? new LancamentoCreationService();
     }
 
-    public function __invoke(): void
+    public function __invoke(): Response
     {
-        $userId = Auth::id();
-        if (!$userId) {
-            Response::error('Nao autenticado', 401);
-            return;
-        }
+        $userId = $this->requireApiUserIdOrFail();
 
         $result = $this->creationService->createFromPayload($userId, $this->getRequestPayload());
-        $this->sendResponse($result);
+        return $this->buildResponse($result);
     }
 
-    private function sendResponse(ServiceResultDTO $result): void
+    private function buildResponse(ServiceResultDTO $result): Response
     {
         if ($result->isValidationError()) {
-            Response::validationError($result->data['errors']);
-            return;
+            return Response::validationErrorResponse($result->data['errors']);
         }
+
         if ($result->isError()) {
-            Response::error($result->message, $result->httpCode);
-            return;
+            return Response::errorResponse($result->message, $result->httpCode);
         }
-        Response::success($result->data, $result->message, 201);
+
+        return Response::successResponse($result->data, $result->message, 201);
     }
 }

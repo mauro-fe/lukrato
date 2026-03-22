@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Middlewares;
 
+use Application\Core\Exceptions\HttpResponseException;
 use Application\Core\Request;
 use Application\Core\Router;
 use Application\Lib\Auth;
@@ -17,18 +18,12 @@ use Application\Lib\Auth;
  */
 class SysadminMiddleware
 {
-    /**
-     * Verifica se o usuário logado é administrador do sistema.
-     * Se não for → stealth 404.
-     */
     public function handle(Request $request): void
     {
         $user = Auth::user();
 
-        // Sem usuário ou não é admin → stealth 404
-        if (!$user || (int)$user->is_admin !== 1) {
-            Router::handleNotFound($request);
-            return;
+        if (!$user || (int) $user->is_admin !== 1) {
+            throw new HttpResponseException(Router::notFoundResponse($request));
         }
     }
 }

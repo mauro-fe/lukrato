@@ -10,7 +10,7 @@
  * ============================================================================
  */
 
-import { getBaseUrl } from '../shared/api.js';
+import { apiGet, getBaseUrl, getErrorMessage } from '../shared/api.js';
 import { escapeHtml } from '../shared/utils.js';
 
 // ─── Globals ────────────────────────────────────────────────────────────────
@@ -78,14 +78,7 @@ function initGamification() {
 
 async function loadGamificationProgress() {
     try {
-        const response = await fetch(`${BASE}api/gamification/progress`, {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' },
-            credentials: 'same-origin'
-        });
-        if (!response.ok) return;
-
-        const data = await response.json();
+        const data = await apiGet(`${BASE}api/gamification/progress`);
         const isSuccess = data.success === true;
         if (isSuccess && data.data) {
             currentProgress = data.data;
@@ -150,14 +143,7 @@ function updateProgressUI(progress) {
 
 async function loadGamificationStats() {
     try {
-        const response = await fetch(`${BASE}api/gamification/stats`, {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' },
-            credentials: 'same-origin'
-        });
-        if (!response.ok) return;
-
-        const data = await response.json();
+        const data = await apiGet(`${BASE}api/gamification/stats`);
         const isSuccess = data.success === true;
         if (isSuccess && data.data) updateStatsUI(data.data);
     } catch (error) {
@@ -214,14 +200,7 @@ function getCurrentMonth() {
 async function loadAchievements() {
     try {
         const month = getCurrentMonth();
-        const response = await fetch(`${BASE}api/gamification/achievements?month=${month}`, {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' },
-            credentials: 'same-origin'
-        });
-        if (!response.ok) return;
-
-        const data = await response.json();
+        const data = await apiGet(`${BASE}api/gamification/achievements`, { month });
         const isSuccess = data.success === true;
         if (isSuccess && data.data) updateAchievementsUI(data.data.achievements);
     } catch (error) {
@@ -311,14 +290,7 @@ function showAchievementDetail(achievement) {
 
 async function showAllAchievements() {
     try {
-        const response = await fetch(`${BASE}api/gamification/achievements`, {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' },
-            credentials: 'same-origin'
-        });
-        if (!response.ok) throw new Error('Erro ao carregar conquistas');
-
-        const data = await response.json();
+        const data = await apiGet(`${BASE}api/gamification/achievements`);
         const isSuccess = data.success === true;
         if (!isSuccess || !data.data) return;
 
@@ -362,7 +334,7 @@ async function showAllAchievements() {
     } catch (error) {
         console.error('Erro ao carregar conquistas:', error);
         if (typeof Swal !== 'undefined') {
-            Swal.fire({ icon: 'error', title: 'Erro', text: 'Não foi possível carregar as conquistas: ' + error.message });
+            Swal.fire({ icon: 'error', title: 'Erro', text: getErrorMessage(error, 'Nao foi possivel carregar as conquistas.') });
         }
     }
 }

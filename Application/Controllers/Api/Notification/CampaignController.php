@@ -6,483 +6,177 @@ namespace Application\Controllers\Api\Notification;
 
 use Application\Controllers\BaseController;
 use Application\Core\Response;
-use Application\Lib\Auth;
-use Application\Models\Cupom;
-use Application\Models\MessageCampaign;
+use Application\Models\Usuario;
+use Application\Services\Communication\CampaignApiWorkflowService;
 use Application\Services\Communication\NotificationService;
-use Carbon\Carbon;
-use Exception;
+use Throwable;
 
 /**
- * CampaignController
- * 
  * API para gerenciamento de campanhas de mensagens pelo sysadmin.
  * Endpoints protegidos apenas para administradores.
  */
 class CampaignController extends BaseController
 {
-    private NotificationService $notificationService;
+    private CampaignApiWorkflowService $workflowService;
 
-    public function __construct()
-    {
+    public function __construct(
+        ?NotificationService $notificationService = null,
+        ?CampaignApiWorkflowService $workflowService = null
+    ) {
         parent::__construct();
-        $this->notificationService = new NotificationService();
+
+        $notificationService ??= new NotificationService();
+        $this->workflowService = $workflowService ?? new CampaignApiWorkflowService($notificationService);
     }
 
-    /**
-     * Verifica se o usuário atual é admin
-     */
-    private function requireAdmin(): ?object
+    private function requireAdminOrFail(): Usuario
     {
-        $user = Auth::user();
-
-        if (!$user || $user->is_admin != 1) {
-            Response::error('Acesso negado. Apenas administradores podem acessar este recurso.', 403);
-            return null;
-        }
-
-        return $user;
+        return $this->requireApiAdminUserOrFail('Acesso negado. Apenas administradores podem acessar este recurso.');
     }
 
-    /**
-     * GET /api/campaigns
-     * Lista campanhas com paginação
-     */
-    public function index(): void
+    public function index(): Response
     {
-        $this->requireAuthApi();
-
-        if (!$this->requireAdmin()) {
-            return;
-        }
+        $this->requireAdminOrFail();
 
         try {
-            $page = (int) ($_GET['page'] ?? 1);
-            $perPage = (int) ($_GET['per_page'] ?? 10);
+            $page = $this->getIntQuery('page', 1);
+            $perPage = $this->getIntQuery('per_page', 10);
 
-            $result = $this->notificationService->listCampaigns($page, $perPage);
-
-            Response::success($result, 'Campanhas listadas com sucesso');
-        } catch (Exception $e) {
-            error_log("[CampaignController] Erro ao listar campanhas: " . $e->getMessage());
-            Response::error('Erro ao listar campanhas: ' . $e->getMessage(), 500);
-        }
-    }
-
-    /**
-     * POST /api/campaigns
-     * Cria e envia uma nova campanha
-     */
-    public function store(): void
-    {
-        $this->requireAuthApi();
-
-        $admin = $this->requireAdmin();
-        if (!$admin) {
-            return;
-        }
-
-        try {
-            $payload = $this->getRequestPayload();
-
-            // Validações
-            $title = trim($payload['title'] ?? '');
-            $message = trim($payload['message'] ?? '');
-
-            if (empty($title)) {
-                Response::error('O título é obrigatório', 400);
-                return;
-            }
-
-            if (empty($message)) {
-                Response::error('A mensagem é obrigatória', 400);
-                return;
-            }
-
-            if (strlen($title) > 255) {
-                Response::error('O título deve ter no máximo 255 caracteres', 400);
-                return;
-            }
-
-            // Parâmetros da campanha
-            $type = $payload['type'] ?? MessageCampaign::TYPE_INFO;
-            $sendNotification = (bool) ($payload['send_notification'] ?? true);
-            $sendEmail = (bool) ($payload['send_email'] ?? false);
-            $link = !empty($payload['link']) ? trim($payload['link']) : null;
-            $linkText = !empty($payload['link_text']) ? trim($payload['link_text']) : null;
-
-            // Validar URL do link (prevenir protocolos maliciosos)
-            if ($link !== null) {
-                if (!filter_var($link, FILTER_VALIDATE_URL)) {
-                    Response::error('O link informado não é uma URL válida', 400);
-                    return;
-                }
-                $scheme = parse_url($link, PHP_URL_SCHEME);
-                if (!in_array(strtolower($scheme), ['http', 'https'])) {
-                    Response::error('O link deve usar protocolo http ou https', 400);
-                    return;
-                }
-            }
-
-            // Filtros
-            $filters = [
-                'plan' => $payload['filters']['plan'] ?? 'all',
-                'status' => $payload['filters']['status'] ?? 'all',
-                'days_inactive' => !empty($payload['filters']['days_inactive'])
-                    ? (int) $payload['filters']['days_inactive']
-                    : null,
-                'email_verified' => isset($payload['filters']['email_verified'])
-                    ? (bool) $payload['filters']['email_verified']
-                    : null,
-            ];
-
-            // Validar valores dos filtros
-            $validPlans = ['all', 'free', 'pro'];
-            if (!in_array($filters['plan'], $validPlans)) {
-                Response::error('Filtro de plano inválido', 400);
-                return;
-            }
-
-            $validStatuses = ['all', 'active', 'inactive'];
-            if (!in_array($filters['status'], $validStatuses)) {
-                Response::error('Filtro de status inválido', 400);
-                return;
-            }
-
-            if ($filters['days_inactive'] !== null && ($filters['days_inactive'] < 1 || $filters['days_inactive'] > 365)) {
-                Response::error('Dias de inatividade deve estar entre 1 e 365', 400);
-                return;
-            }
-
-            // Validar que pelo menos um canal está selecionado
-            if (!$sendNotification && !$sendEmail) {
-                Response::error('Selecione pelo menos um canal de envio (notificação ou e-mail)', 400);
-                return;
-            }
-
-            // Validar tipo
-            $validTypes = array_keys(MessageCampaign::getTypes());
-            if (!in_array($type, $validTypes)) {
-                Response::error('Tipo de campanha inválido', 400);
-                return;
-            }
-
-            // Agendamento (opcional)
-            $scheduledAt = null;
-            if (!empty($payload['scheduled_at'])) {
-                try {
-                    $scheduledDate = Carbon::parse($payload['scheduled_at']);
-                    if ($scheduledDate->lte(Carbon::now())) {
-                        Response::error('A data de agendamento deve ser no futuro', 400);
-                        return;
-                    }
-                    $scheduledAt = $scheduledDate->format('Y-m-d H:i:s');
-                } catch (\Exception $e) {
-                    Response::error('Data de agendamento inválida', 400);
-                    return;
-                }
-            }
-
-            // Cupom vinculado (opcional)
-            $cupomId = null;
-            if (!empty($payload['cupom_id'])) {
-                $cupom = Cupom::find((int) $payload['cupom_id']);
-                if (!$cupom || !$cupom->isValid()) {
-                    Response::error('Cupom inválido ou expirado', 400);
-                    return;
-                }
-                $cupomId = $cupom->id;
-            }
-
-            // Criar e enviar campanha
-            $campaign = $this->notificationService->sendCampaign(
-                $admin->id,
-                $title,
-                $message,
-                $type,
-                $filters,
-                $sendNotification,
-                $sendEmail,
-                $link,
-                $linkText,
-                $scheduledAt,
-                $cupomId
+            return Response::successResponse(
+                $this->workflowService->listCampaigns($page, $perPage),
+                'Campanhas listadas com sucesso'
             );
-
-            if ($scheduledAt) {
-                error_log("📅 [CAMPAIGN] Campanha #{$campaign->id} agendada por {$admin->nome} (ID: {$admin->id}) para {$scheduledAt}");
-
-                Response::success([
-                    'campaign_id' => $campaign->id,
-                    'title' => $campaign->title,
-                    'status' => $campaign->status,
-                    'scheduled_at' => $campaign->scheduled_at->format('d/m/Y H:i'),
-                ], 'Campanha agendada com sucesso');
-            } else {
-                error_log("📢 [CAMPAIGN] Campanha #{$campaign->id} enviada por {$admin->nome} (ID: {$admin->id}) - {$campaign->total_recipients} destinatários");
-
-                Response::success([
-                    'campaign_id' => $campaign->id,
-                    'title' => $campaign->title,
-                    'total_recipients' => $campaign->total_recipients,
-                    'emails_sent' => $campaign->emails_sent,
-                    'emails_failed' => $campaign->emails_failed,
-                    'status' => $campaign->status,
-                ], 'Campanha enviada com sucesso');
-            }
-        } catch (Exception $e) {
-            error_log("[CampaignController] Erro ao criar campanha: " . $e->getMessage());
-            Response::error('Erro ao enviar campanha: ' . $e->getMessage(), 500);
+        } catch (Throwable $e) {
+            return $this->internalErrorResponse($e, 'Erro ao listar campanhas.');
         }
     }
 
-    /**
-     * GET /api/campaigns/preview
-     * Preview: conta quantos usuários serão impactados pelos filtros
-     */
-    public function preview(): void
+    public function store(): Response
     {
-        $this->requireAuthApi();
-
-        if (!$this->requireAdmin()) {
-            return;
-        }
+        $admin = $this->requireAdminOrFail();
 
         try {
-            // Filtros da query string
-            $filters = [
-                'plan' => $_GET['plan'] ?? 'all',
-                'status' => $_GET['status'] ?? 'all',
-                'days_inactive' => !empty($_GET['days_inactive'])
-                    ? (int) $_GET['days_inactive']
-                    : null,
-                'email_verified' => isset($_GET['email_verified'])
-                    ? filter_var($_GET['email_verified'], FILTER_VALIDATE_BOOLEAN)
-                    : null,
+            $result = $this->workflowService->createCampaign($admin->id, $admin->nome, $this->getRequestPayload());
+
+            if (!$result['success']) {
+                return Response::errorResponse($result['message'], $result['status'], $result['errors'] ?? null);
+            }
+
+            return Response::successResponse($result['data'], $result['message']);
+        } catch (Throwable $e) {
+            return $this->internalErrorResponse($e, 'Erro ao enviar campanha.');
+        }
+    }
+
+    public function preview(): Response
+    {
+        $this->requireAdminOrFail();
+
+        try {
+            $query = [
+                'plan' => $this->getQuery('plan', 'all'),
+                'status' => $this->getQuery('status', 'all'),
+                'days_inactive' => $this->getQuery('days_inactive'),
+                'email_verified' => $this->getQuery('email_verified'),
             ];
 
-            $count = $this->notificationService->countUsersByFilters($filters);
-
-            Response::success([
-                'count' => $count,
-                'filters' => $filters,
-            ], 'Preview gerado com sucesso');
-        } catch (Exception $e) {
-            error_log("[CampaignController] Erro no preview: " . $e->getMessage());
-            Response::error('Erro ao gerar preview: ' . $e->getMessage(), 500);
+            return Response::successResponse(
+                $this->workflowService->preview($query),
+                'Preview gerado com sucesso'
+            );
+        } catch (Throwable $e) {
+            return $this->internalErrorResponse($e, 'Erro ao gerar preview.');
         }
     }
 
-    /**
-     * GET /api/campaigns/stats
-     * Estatísticas gerais de campanhas e notificações
-     */
-    public function stats(): void
+    public function stats(): Response
     {
-        $this->requireAuthApi();
-
-        if (!$this->requireAdmin()) {
-            return;
-        }
+        $this->requireAdminOrFail();
 
         try {
-            $stats = $this->notificationService->getStats();
-
-            Response::success($stats, 'Estatísticas obtidas com sucesso');
-        } catch (Exception $e) {
-            error_log("[CampaignController] Erro ao obter stats: " . $e->getMessage());
-            Response::error('Erro ao obter estatísticas: ' . $e->getMessage(), 500);
+            return Response::successResponse(
+                $this->workflowService->getStats(),
+                'Estatisticas obtidas com sucesso'
+            );
+        } catch (Throwable $e) {
+            return $this->internalErrorResponse($e, 'Erro ao obter estatisticas.');
         }
     }
 
-    /**
-     * GET /api/campaigns/options
-     * Retorna opções para os selects do formulário
-     */
-    public function options(): void
+    public function options(): Response
     {
-        $this->requireAuthApi();
+        $this->requireAdminOrFail();
 
-        if (!$this->requireAdmin()) {
-            return;
-        }
-
-        Response::success([
-            'types' => MessageCampaign::getTypes(),
-            'plans' => MessageCampaign::getPlanOptions(),
-            'statuses' => MessageCampaign::getStatusOptions(),
-            'inactive_days' => MessageCampaign::getInactiveDaysOptions(),
-        ], 'Opções obtidas com sucesso');
+        return Response::successResponse(
+            $this->workflowService->getOptions(),
+            'OpÃ§Ãµes obtidas com sucesso'
+        );
     }
 
-    /**
-     * GET /api/campaigns/{id}
-     * Detalhes de uma campanha específica
-     */
-    public function show(int $id): void
+    public function show(int $id): Response
     {
-        $this->requireAuthApi();
-
-        if (!$this->requireAdmin()) {
-            return;
-        }
+        $this->requireAdminOrFail();
 
         try {
-            $campaign = MessageCampaign::with(['creator:id,nome,email', 'cupom:id,codigo,tipo_desconto,valor_desconto'])->find($id);
+            $campaign = $this->workflowService->showCampaign($id);
 
-            if (!$campaign) {
-                Response::error('Campanha não encontrada', 404);
-                return;
+            if ($campaign === null) {
+                return Response::errorResponse('Campanha nao encontrada', 404);
             }
 
-            Response::success([
-                'id' => $campaign->id,
-                'title' => $campaign->title,
-                'message' => $campaign->message,
-                'link' => $campaign->link,
-                'link_text' => $campaign->link_text,
-                'type' => $campaign->type,
-                'icon' => $campaign->icon,
-                'color' => $campaign->color,
-                'filters' => $campaign->filters,
-                'filters_description' => $campaign->filters_description,
-                'send_notification' => $campaign->send_notification,
-                'send_email' => $campaign->send_email,
-                'channels_description' => $campaign->channels_description,
-                'total_recipients' => $campaign->total_recipients,
-                'notifications_read' => $campaign->notifications_read,
-                'read_rate' => $campaign->read_rate,
-                'emails_sent' => $campaign->emails_sent,
-                'emails_failed' => $campaign->emails_failed,
-                'email_success_rate' => $campaign->email_success_rate,
-                'status' => $campaign->status,
-                'status_badge' => $campaign->status_badge,
-                'is_scheduled' => $campaign->is_scheduled,
-                'scheduled_at' => $campaign->scheduled_at?->format('d/m/Y H:i'),
-                'cupom' => $campaign->cupom ? [
-                    'id' => $campaign->cupom->id,
-                    'codigo' => $campaign->cupom->codigo,
-                    'desconto_formatado' => $campaign->cupom->getDescontoFormatado(),
-                ] : null,
-                'creator' => [
-                    'id' => $campaign->creator->id ?? null,
-                    'nome' => $campaign->creator->nome ?? 'Sistema',
-                    'email' => $campaign->creator->email ?? null,
-                ],
-                'sent_at' => $campaign->sent_at?->format('d/m/Y H:i'),
-                'created_at' => $campaign->created_at->format('d/m/Y H:i'),
-            ], 'Campanha obtida com sucesso');
-        } catch (Exception $e) {
-            error_log("[CampaignController] Erro ao obter campanha: " . $e->getMessage());
-            Response::error('Erro ao obter campanha: ' . $e->getMessage(), 500);
+            return Response::successResponse($campaign, 'Campanha obtida com sucesso');
+        } catch (Throwable $e) {
+            return $this->internalErrorResponse($e, 'Erro ao obter campanha.');
         }
     }
 
-    // =========================================================================
-    // AGENDAMENTO
-    // =========================================================================
-
-    /**
-     * POST /api/campaigns/{id}/cancel
-     * Cancela uma campanha agendada (status draft com scheduled_at)
-     */
-    public function cancelScheduled(int $id): void
+    public function cancelScheduled(int $id): Response
     {
-        $this->requireAuthApi();
-
-        if (!$this->requireAdmin()) {
-            return;
-        }
+        $this->requireAdminOrFail();
 
         try {
-            $campaign = MessageCampaign::find($id);
+            $result = $this->workflowService->cancelScheduled($id);
 
-            if (!$campaign) {
-                Response::error('Campanha não encontrada', 404);
-                return;
+            if (!$result['success']) {
+                return Response::errorResponse($result['message'], $result['status'], $result['errors'] ?? null);
             }
 
-            if (!$campaign->is_scheduled) {
-                Response::error('Esta campanha não está agendada', 400);
-                return;
-            }
-
-            $campaign->status = MessageCampaign::STATUS_CANCELLED;
-            $campaign->scheduled_at = null;
-            $campaign->save();
-
-            error_log("❌ [CAMPAIGN] Campanha agendada #{$campaign->id} cancelada");
-
-            Response::success([
-                'campaign_id' => $campaign->id,
-                'status' => $campaign->status,
-            ], 'Campanha agendada cancelada com sucesso');
-        } catch (Exception $e) {
-            error_log("[CampaignController] Erro ao cancelar campanha: " . $e->getMessage());
-            Response::error('Erro ao cancelar campanha: ' . $e->getMessage(), 500);
+            return Response::successResponse($result['data'], $result['message']);
+        } catch (Throwable $e) {
+            return $this->internalErrorResponse($e, 'Erro ao cancelar campanha.');
         }
     }
 
-    // =========================================================================
-    // ANIVERSÁRIOS
-    // =========================================================================
-
-    /**
-     * GET /api/campaigns/birthdays
-     * Lista aniversariantes de hoje e dos próximos dias
-     */
-    public function birthdays(): void
+    public function birthdays(): Response
     {
-        $this->requireAuthApi();
-
-        if (!$this->requireAdmin()) {
-            return;
-        }
+        $this->requireAdminOrFail();
 
         try {
-            $days = (int) ($_GET['days'] ?? 7);
-            $days = min(max($days, 1), 30); // Entre 1 e 30 dias
+            $days = $this->getIntQuery('days', 7);
 
-            $today = $this->notificationService->getBirthdayUsers();
-            $upcoming = $this->notificationService->getUpcomingBirthdays($days);
-
-            Response::success([
-                'today' => $today,
-                'today_count' => count($today),
-                'upcoming' => $upcoming,
-                'upcoming_count' => count($upcoming),
-                'days_range' => $days,
-            ], 'Aniversariantes obtidos com sucesso');
-        } catch (Exception $e) {
-            error_log("[CampaignController] Erro ao obter aniversariantes: " . $e->getMessage());
-            Response::error('Erro ao obter aniversariantes: ' . $e->getMessage(), 500);
+            return Response::successResponse(
+                $this->workflowService->getBirthdays($days),
+                'Aniversariantes obtidos com sucesso'
+            );
+        } catch (Throwable $e) {
+            return $this->internalErrorResponse($e, 'Erro ao obter aniversariantes.');
         }
     }
 
-    /**
-     * POST /api/campaigns/birthdays/send
-     * Dispara notificações de aniversário manualmente
-     */
-    public function sendBirthdays(): void
+    public function sendBirthdays(): Response
     {
-        $this->requireAuthApi();
-
-        if (!$this->requireAdmin()) {
-            return;
-        }
+        $this->requireAdminOrFail();
 
         try {
             $payload = $this->getRequestPayload();
             $sendEmail = (bool) ($payload['send_email'] ?? true);
 
-            $result = $this->notificationService->processBirthdayNotifications($sendEmail);
-
-            error_log("🎂 [BIRTHDAY-MANUAL] Admin disparou notificações de aniversário - {$result['notifications_sent']} enviadas");
-
-            Response::success($result, 'Notificações de aniversário processadas');
-        } catch (Exception $e) {
-            error_log("[CampaignController] Erro ao enviar aniversários: " . $e->getMessage());
-            Response::error('Erro ao enviar notificações de aniversário: ' . $e->getMessage(), 500);
+            return Response::successResponse(
+                $this->workflowService->sendBirthdays($sendEmail),
+                'Notificacoes de aniversario processadas'
+            );
+        } catch (Throwable $e) {
+            return $this->internalErrorResponse($e, 'Erro ao enviar notificacoes de aniversario.');
         }
     }
 }

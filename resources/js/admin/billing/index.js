@@ -8,7 +8,7 @@
  * ============================================================================
  */
 
-import { getBaseUrl, getCSRFToken } from '../shared/api.js';
+import { apiPost, getBaseUrl, getCSRFToken, getErrorMessage } from '../shared/api.js';
 import './modal-pagamento.js';
 
 const BASE_URL = getBaseUrl();
@@ -85,14 +85,10 @@ const BASE_URL = getBaseUrl();
 
         try {
             const csrfToken = getCSRFToken();
-            const response = await fetch(`${BASE_URL}premium/cancel`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': csrfToken },
-                credentials: 'same-origin',
-                body: JSON.stringify({ csrf_token: csrfToken })
-            });
-            const data = await response.json();
-            if (!response.ok || !data.success) throw new Error(data.message || 'Erro ao cancelar assinatura');
+            const data = await apiPost(`${BASE_URL}premium/cancel`, { csrf_token: csrfToken });
+            if (data?.success === false) {
+                throw new Error(getErrorMessage({ data }, 'Erro ao cancelar assinatura'));
+            }
 
             await Swal.fire({
                 icon: 'success', title: 'Assinatura cancelada!',
@@ -102,7 +98,7 @@ const BASE_URL = getBaseUrl();
             window.location.reload();
         } catch (err) {
             console.error('Erro ao cancelar assinatura:', err);
-            Swal.fire({ icon: 'error', title: 'Erro', text: err.message || 'Não foi possível cancelar a assinatura. Tente novamente.' });
+            Swal.fire({ icon: 'error', title: 'Erro', text: getErrorMessage(err, 'Não foi possível cancelar a assinatura. Tente novamente.') });
         }
     });
 })();

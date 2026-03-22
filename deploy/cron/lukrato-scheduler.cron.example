@@ -1,0 +1,20 @@
+# Lukrato scheduler CLI
+#
+# Antes de aplicar:
+# 1. ajuste APP_DIR para o path real do projeto no servidor
+# 2. ajuste PHP_BIN para o binario PHP do servidor
+# 3. aplique com: crontab deploy/cron/lukrato-scheduler.cron.example
+
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/bin:/bin
+
+APP_DIR=/var/www/lukrato
+PHP_BIN=/usr/bin/php
+
+*/5 * * * * cd ${APP_DIR} && ${PHP_BIN} cli/run_scheduler.php run dispatch-scheduled-campaigns >> storage/logs/scheduler-cron.log 2>&1
+*/10 * * * * cd ${APP_DIR} && ${PHP_BIN} cli/run_scheduler.php run dispatch-reminders >> storage/logs/scheduler-cron.log 2>&1
+0 * * * * cd ${APP_DIR} && ${PHP_BIN} cli/run_scheduler.php run dispatch-fatura-reminders >> storage/logs/scheduler-cron.log 2>&1
+0 * * * * cd ${APP_DIR} && ${PHP_BIN} cli/run_scheduler.php run process-expired-subscriptions >> storage/logs/scheduler-cron.log 2>&1
+0 2 * * * cd ${APP_DIR} && ${PHP_BIN} cli/run_scheduler.php run generate-recurring-lancamentos >> storage/logs/scheduler-cron.log 2>&1
+0 3 * * * cd ${APP_DIR} && ${PHP_BIN} cli/run_scheduler.php run process-recurring-card-items >> storage/logs/scheduler-cron.log 2>&1
+0 8 * * * cd ${APP_DIR} && ${PHP_BIN} cli/run_scheduler.php run dispatch-birthdays >> storage/logs/scheduler-cron.log 2>&1

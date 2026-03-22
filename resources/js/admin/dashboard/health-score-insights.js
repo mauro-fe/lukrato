@@ -1,3 +1,5 @@
+import { apiGet } from '../shared/api.js';
+
 /**
  * Health Score Insights Component
  * Cards compactos com sugestões acionáveis
@@ -30,13 +32,7 @@ class HealthScoreInsights {
 
   async loadInsights() {
     try {
-      const response = await fetch(
-        `${this.baseURL}api/dashboard/health-score/insights`,
-        { credentials: 'include', headers: { 'Accept': 'application/json' } }
-      );
-
-      if (!response.ok) throw new Error('Failed to fetch insights');
-      const data = await response.json();
+      const data = await apiGet(`${this.baseURL}api/dashboard/health-score/insights`);
 
       if (data.success && data.data) {
         this.renderInsights(data.data);

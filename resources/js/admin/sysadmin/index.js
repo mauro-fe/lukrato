@@ -13,13 +13,27 @@
  * ============================================================================
  */
 
+import { apiDelete, apiGet, apiPost, apiPut, getErrorMessage } from '../shared/api.js';
+import { escapeHtml } from '../shared/utils.js';
+
 const BASE_URL = (window.LK?.getBase?.() || '/');
+
+function setButtonLoading(button, isLoading) {
+    if (!button) return;
+
+    button.disabled = isLoading;
+    button.classList.toggle('is-loading', isLoading);
+    button.style.pointerEvents = isLoading ? 'none' : '';
+}
+
+const escHtml = escapeHtml;
 
 // ============================================================================
 // CACHE MANAGEMENT
 // ============================================================================
 
 function limparCache() {
+    const triggerBtn = document.getElementById('btnClearCache');
     if (window.LKFeedback) {
         LKFeedback.confirm('Isso irá remover todos os arquivos de cache do sistema.', {
             title: 'Limpar Cache?',
@@ -28,18 +42,9 @@ function limparCache() {
             cancelButtonText: 'Cancelar'
         }).then(async (result) => {
             if (result.isConfirmed) {
+                setButtonLoading(triggerBtn, true);
                 try {
-                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-                    const res = await fetch(`${BASE_URL}api/sysadmin/clear-cache`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-Token': csrfToken,
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        credentials: 'include'
-                    });
-                    const data = await res.json();
+                    const data = await apiPost(`${BASE_URL}api/sysadmin/clear-cache`, {});
                     if (data.success) {
                         LKFeedback.success(data.message || 'Cache limpo com sucesso.', { toast: true });
                     } else {
@@ -47,7 +52,9 @@ function limparCache() {
                     }
                 } catch (error) {
                     console.error('Erro ao limpar cache:', error);
-                    LKFeedback.error('Erro de conexão ao limpar cache.');
+                    LKFeedback.error(getErrorMessage(error, 'Erro de conexão ao limpar cache.'));
+                } finally {
+                    setButtonLoading(triggerBtn, false);
                 }
             }
         });
@@ -66,10 +73,7 @@ let maintenanceActive = false;
 
 async function checkMaintenanceStatus() {
     try {
-        const res = await fetch(`${BASE_URL}api/sysadmin/maintenance`, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        });
-        const data = await res.json();
+        const data = await apiGet(`${BASE_URL}api/sysadmin/maintenance`);
         maintenanceActive = data.active || false;
         updateMaintenanceButton();
     } catch (e) {
@@ -106,8 +110,10 @@ async function toggleMaintenance() {
         : 'O site ficará indisponível para usuários (admins continuam acessando).';
     const confirmText = maintenanceActive ? 'Sim, desativar!' : 'Sim, ativar!';
     const icon = maintenanceActive ? 'question' : 'warning';
+    const maintenanceBtn = document.getElementById('btnMaintenance');
 
     const doToggle = async (reason, minutes) => {
+        setButtonLoading(maintenanceBtn, true);
         try {
             const data = await window.CsrfManager.fetchJson(`${BASE_URL}api/sysadmin/maintenance`, {
                 method: 'POST',
@@ -127,10 +133,12 @@ async function toggleMaintenance() {
             }
         } catch (e) {
             if (window.LKFeedback) {
-                LKFeedback.error(e.message);
+                LKFeedback.error(getErrorMessage(e, 'Erro ao atualizar modo de manuten��o.'));
             } else {
                 alert('Erro: ' + e.message);
             }
+        } finally {
+            setButtonLoading(maintenanceBtn, false);
         }
     };
 
@@ -185,8 +193,7 @@ function fetchUsers(page = 1) {
     const formData = new FormData(userFiltersForm);
     const params = new URLSearchParams(formData);
     params.set('page', page);
-    fetch(`${BASE_URL}api/sysadmin/users?${params.toString()}`)
-        .then(res => res.json())
+    apiGet(`${BASE_URL}api/sysadmin/users?${params.toString()}`)
         .then(data => {
             if (!data.success) {
                 userTableSection.innerHTML = `<div class='error-msg'>Erro ao buscar usuários</div>`;
@@ -259,8 +266,7 @@ function goToPage(p) {
 }
 
 function viewUser(userId) {
-    fetch(`${BASE_URL}api/sysadmin/users/${userId}`)
-        .then(res => res.json())
+    apiGet(`${BASE_URL}api/sysadmin/users/${userId}`)
         .then(response => {
             if (!response.success) {
                 LKFeedback.error(response.message || 'Erro ao buscar usuário');
@@ -358,7 +364,7 @@ function viewUser(userId) {
         })
         .catch(err => {
             console.error('Erro ao buscar usuário:', err);
-            LKFeedback.error('Erro ao buscar dados do usuário');
+            LKFeedback.error(getErrorMessage(err, 'Erro ao buscar dados do usuário'));
         });
 }
 
@@ -366,8 +372,7 @@ function editUser(userId) {
     LKFeedback.hideLoading();
     LKFeedback.loading('Buscando dados do usuário');
 
-    fetch(`${BASE_URL}api/sysadmin/users/${userId}`)
-        .then(res => res.json())
+    apiGet(`${BASE_URL}api/sysadmin/users/${userId}`)
         .then(response => {
             LKFeedback.hideLoading();
             if (!response.success) {
@@ -437,13 +442,7 @@ function editUser(userId) {
 
                     LKFeedback.loading('Salvando...');
 
-                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                    fetch(`${BASE_URL}api/sysadmin/users/${userId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-                        body: JSON.stringify(payload)
-                    })
-                        .then(res => res.json())
+                    apiPut(`${BASE_URL}api/sysadmin/users/${userId}`, payload)
                         .then(saveResponse => {
                             if (saveResponse.success) {
                                 LKFeedback.success(saveResponse.message || 'Usuário atualizado com sucesso', { toast: true });
@@ -452,11 +451,11 @@ function editUser(userId) {
                                 LKFeedback.error(saveResponse.message || 'Erro ao atualizar usuário');
                             }
                         })
-                        .catch(err => { console.error('Erro ao salvar:', err); LKFeedback.error('Erro ao salvar alterações'); });
+                        .catch(err => { console.error('Erro ao salvar:', err); LKFeedback.error(getErrorMessage(err, 'Erro ao salvar alterações')); });
                 }
             });
         })
-        .catch(err => { console.error('Erro ao buscar usuário:', err); LKFeedback.error('Erro ao buscar dados do usuário'); });
+        .catch(err => { console.error('Erro ao buscar usuário:', err); LKFeedback.error(getErrorMessage(err, 'Erro ao buscar dados do usuário')); });
 }
 
 function deleteUser(userId) {
@@ -469,12 +468,7 @@ function deleteUser(userId) {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-            fetch(`${BASE_URL}api/sysadmin/users/${userId}`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken }
-            })
-                .then(res => res.json())
+            apiDelete(`${BASE_URL}api/sysadmin/users/${userId}`)
                 .then(response => {
                     if (response.success) {
                         LKFeedback.success(response.message || 'Usuário removido com sucesso.', { toast: true });
@@ -483,7 +477,7 @@ function deleteUser(userId) {
                         LKFeedback.error(response.message || 'Erro ao excluir usuário');
                     }
                 })
-                .catch(err => { console.error('Erro ao excluir:', err); LKFeedback.error('Erro ao excluir usuário'); });
+                .catch(err => { console.error('Erro ao excluir:', err); LKFeedback.error(getErrorMessage(err, 'Erro ao excluir usuário')); });
         }
     });
 }
@@ -560,16 +554,9 @@ function openGrantAccessModal() {
 
 async function grantAccess(userId, days, planType) {
     try {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        const response = await fetch(`${BASE_URL}api/sysadmin/grant-access`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-            credentials: 'same-origin',
-            body: JSON.stringify({ userId, days, planType })
-        });
-        const data = await response.json();
+        const data = await apiPost(`${BASE_URL}api/sysadmin/grant-access`, { userId, days, planType });
 
-        if (response.ok && data.success) {
+        if (data.success) {
             const planName = data.data.planName || planType.toUpperCase();
             Swal.fire({
                 icon: 'success', title: 'Acesso Liberado!',
@@ -581,7 +568,7 @@ async function grantAccess(userId, days, planType) {
         }
     } catch (error) {
         console.error('Erro:', error);
-        LKFeedback.error('Ocorreu um erro ao processar a solicitação');
+        LKFeedback.error(getErrorMessage(error, 'Ocorreu um erro ao processar a solicitação'));
     }
 }
 
@@ -616,16 +603,9 @@ function openRevokeAccessModal() {
 
 async function revokeProAccess(userId) {
     try {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        const response = await fetch(`${BASE_URL}api/sysadmin/revoke-access`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-            credentials: 'same-origin',
-            body: JSON.stringify({ userId })
-        });
-        const data = await response.json();
+        const data = await apiPost(`${BASE_URL}api/sysadmin/revoke-access`, { userId });
 
-        if (response.ok && data.success) {
+        if (data.success) {
             Swal.fire({
                 icon: 'success', title: 'Acesso Removido!',
                 html: `<p>O acesso premium de <strong>${data.data.userName}</strong> foi removido com sucesso.</p><p class="text-muted text-sm">${data.data.subscriptionsCanceled} assinatura(s) cancelada(s).</p>`,
@@ -636,7 +616,7 @@ async function revokeProAccess(userId) {
         }
     } catch (error) {
         console.error('Erro:', error);
-        LKFeedback.error('Ocorreu um erro ao processar a solicitação');
+        LKFeedback.error(getErrorMessage(error, 'Ocorreu um erro ao processar a solicitação'));
     }
 }
 
@@ -651,10 +631,7 @@ let errorLogFiltersLoaded = false;
 
 async function loadErrorLogsSummary() {
     try {
-        const res = await fetch(`${BASE_URL}api/sysadmin/error-logs/summary?hours=24`, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        });
-        const data = await res.json();
+        const data = await apiGet(`${BASE_URL}api/sysadmin/error-logs/summary?hours=24`);
         if (!data.success) return;
 
         const summary = data.data;
@@ -719,12 +696,10 @@ async function loadErrorLogs(page) {
         const params = new URLSearchParams(new FormData(form));
         params.set('page', errorLogsCurrentPage);
 
-        const [logsRes] = await Promise.all([
-            fetch(`${BASE_URL}api/sysadmin/error-logs?${params.toString()}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } }),
+        const [logsData] = await Promise.all([
+            apiGet(`${BASE_URL}api/sysadmin/error-logs?${params.toString()}`),
             loadErrorLogsSummary()
         ]);
-
-        const logsData = await logsRes.json();
         if (refreshIcon) refreshIcon.classList.remove('icon-spin');
 
         if (!logsData.success) {
@@ -850,7 +825,7 @@ async function resolveErrorLog(logId) {
         }
     } catch (e) {
         console.error('Erro ao resolver log:', e);
-        LKFeedback.error('Erro ao resolver log');
+        LKFeedback.error(getErrorMessage(e, 'Erro ao resolver log'));
     }
 }
 
@@ -878,7 +853,7 @@ function confirmCleanupLogs() {
                 } else {
                     LKFeedback.error(data.message || 'Erro na limpeza');
                 }
-            } catch (e) { console.error('Erro cleanup:', e); LKFeedback.error('Erro ao limpar logs'); }
+            } catch (e) { console.error('Erro cleanup:', e); LKFeedback.error(getErrorMessage(e, 'Erro ao limpar logs')); }
         }
     });
 }
@@ -904,11 +879,7 @@ function loadStats() {
     const refreshBtn = document.querySelector('.btn-refresh-stats i');
     if (refreshBtn) refreshBtn.classList.add('icon-spin');
 
-    fetch(`${BASE_URL}api/sysadmin/stats`, {
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '' },
-        credentials: 'include'
-    })
-        .then(res => { if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`); return res.json(); })
+    apiGet(`${BASE_URL}api/sysadmin/stats`)
         .then(response => {
             if (refreshBtn) refreshBtn.classList.remove('icon-spin');
             if (!response.success) { showStatsError(response.message || 'Erro ao carregar estatísticas'); return; }
@@ -917,7 +888,7 @@ function loadStats() {
             updateStatsOverview(data);
             renderCharts(data.charts);
         })
-        .catch(err => { if (refreshBtn) refreshBtn.classList.remove('icon-spin'); console.error('Erro ao carregar estatísticas:', err); showStatsError('Erro ao conectar com o servidor'); });
+        .catch(err => { if (refreshBtn) refreshBtn.classList.remove('icon-spin'); console.error('Erro ao carregar estatísticas:', err); showStatsError(getErrorMessage(err, 'Erro ao conectar com o servidor')); });
 }
 
 function showStatsError(message) {
@@ -1027,12 +998,7 @@ function formatDate(dt) {
     return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR').slice(0, 5);
 }
 
-function escapeHtml(str) {
-    if (!str) return '';
-    const div = document.createElement('div');
-    div.appendChild(document.createTextNode(str));
-    return div.innerHTML;
-}
+
 
 function truncate(str, len) {
     if (!str) return '';
@@ -1064,8 +1030,7 @@ let feedbackStatsLoaded = false;
 
 async function loadFeedbackStats() {
     try {
-        const res = await fetch(`${BASE_URL}api/sysadmin/feedback/stats`, { credentials: 'same-origin' });
-        const json = await res.json();
+        const json = await apiGet(`${BASE_URL}api/sysadmin/feedback/stats`);
         const data = json.data ?? json;
 
         // NPS
@@ -1120,8 +1085,7 @@ async function loadFeedbackList(page = 1) {
         let url = `${BASE_URL}api/sysadmin/feedback?page=${page}&per_page=${perPage}`;
         if (tipo) url += `&tipo_feedback=${encodeURIComponent(tipo)}`;
 
-        const res = await fetch(url, { credentials: 'same-origin' });
-        const json = await res.json();
+        const json = await apiGet(url);
         const data = json.data ?? json;
 
         renderFeedbackTable(data);
@@ -1229,12 +1193,7 @@ function exportFeedback() {
     window.open(url, '_blank');
 }
 
-function escHtml(str) {
-    if (!str) return '';
-    const d = document.createElement('div');
-    d.textContent = str;
-    return d.innerHTML;
-}
+
 
 // ============================================================================
 // EVENT DELEGATION (substitui onclick handlers)
@@ -1387,3 +1346,12 @@ if (typeof ApexCharts !== 'undefined') {
 } else {
     console.warn('ApexCharts não disponível — verifique carregamento no header.php');
 }
+
+
+
+
+
+
+
+
+

@@ -28,14 +28,14 @@ Router::add('POST', '/api/csrf/refresh', 'Api\\User\\SecurityController@refreshC
 // Status e Renew sem middleware auth para permitir verificação/renovação mesmo com sessão expirada
 Router::add('GET',  '/api/session/status',    'Api\\User\\SessionController@status');
 Router::add('POST', '/api/session/renew',     'Api\\User\\SessionController@renew', ['ratelimit']);
-Router::add('POST', '/api/session/heartbeat', 'Api\\User\\SessionController@heartbeat', ['auth']);
+Router::add('POST', '/api/session/heartbeat', 'Api\\User\\SessionController@heartbeat', ['auth', 'csrf']);
 
 // ============================================
 // CONTATO / SUPORTE (Público) - Rate limiting para evitar spam
 // ============================================
 
 Router::add('POST', '/api/contato/enviar', 'Api\\User\\ContactController@send', ['ratelimit']);
-Router::add('POST', '/api/suporte/enviar', 'Api\\User\\SupportController@send', ['auth', 'ratelimit']);
+Router::add('POST', '/api/suporte/enviar', 'Api\\User\\SupportController@send', ['auth', 'csrf', 'ratelimit']);
 
 // ============================================
 // PERFIL
@@ -59,8 +59,8 @@ Router::add('GET',  '/api/onboarding/checklist', 'Api\\User\\OnboardingControlle
 Router::add('POST', '/api/onboarding/complete',  'Api\\User\\OnboardingController@complete', ['auth', 'csrf', 'ratelimit']);
 Router::add('POST', '/api/onboarding/skip-tour', 'Api\\User\\OnboardingController@skipTour', ['auth', 'csrf', 'ratelimit']);
 Router::add('POST', '/api/onboarding/reset',     'Api\\User\\OnboardingController@reset',    ['auth', 'csrf', 'ratelimit']);
-Router::add('POST', '/api/onboarding/conta',       'Api\\User\\OnboardingController@storeConta',      ['auth']);
-Router::add('POST', '/api/onboarding/lancamento',  'Api\\User\\OnboardingController@storeLancamento', ['auth']);
+Router::add('POST', '/api/onboarding/conta',       'Api\\User\\OnboardingController@storeConta',      ['auth', 'csrf']);
+Router::add('POST', '/api/onboarding/lancamento',  'Api\\User\\OnboardingController@storeLancamento', ['auth', 'csrf']);
 
 // ============================================
 // DASHBOARD
@@ -368,7 +368,7 @@ Router::add('GET',  '/api/telegram/status', 'Api\\AI\\TelegramLinkController@sta
 Router::add('GET',  '/api/sysadmin/ai/health-proxy',    'SysAdmin\\AiApiController@healthProxy',     ['auth', 'sysadmin']);
 Router::add('GET',  '/api/sysadmin/ai/quota',            'SysAdmin\\AiApiController@quota',           ['auth', 'sysadmin']);
 Router::add('POST', '/api/sysadmin/ai/chat',             'SysAdmin\\AiApiController@chat',            ['auth', 'sysadmin', 'csrf', 'ai.ratelimit']);
-Router::add('POST', '/api/sysadmin/ai/suggest-category', 'SysAdmin\\AiApiController@suggestCategory',  ['auth', 'sysadmin', 'ai.ratelimit']);
+Router::add('POST', '/api/sysadmin/ai/suggest-category', 'SysAdmin\\AiApiController@suggestCategory',  ['auth', 'sysadmin', 'csrf', 'ai.ratelimit']);
 Router::add('POST', '/api/sysadmin/ai/analyze-spending', 'SysAdmin\\AiApiController@analyzeSpending',  ['auth', 'sysadmin', 'csrf', 'ai.ratelimit']);
 
 // AI Logs (SysAdmin)

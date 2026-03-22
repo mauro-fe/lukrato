@@ -6,105 +6,72 @@ namespace Application\Controllers\SysAdmin;
 
 use Application\Controllers\BaseController;
 use Application\Core\Response;
-use Application\Lib\Auth;
-use Application\Services\AI\AiLogService;
+use Application\Services\Admin\AiLogsAdminWorkflowService;
 
 class AiLogsApiController extends BaseController
 {
-    private function isAdmin(): bool
+    public function __construct(
+        private readonly AiLogsAdminWorkflowService $workflowService = new AiLogsAdminWorkflowService()
+    ) {
+        parent::__construct();
+    }
+
+    public function index(): Response
     {
-        $user = Auth::user();
-        return $user && $user->is_admin == 1;
+        $this->requireApiAdminUserAndReleaseSessionOrFail();
+
+        return $this->respondWorkflowResult($this->workflowService->index([
+            'type' => $this->getQuery('type'),
+            'channel' => $this->getQuery('channel'),
+            'success' => $this->getQuery('success', ''),
+            'search' => $this->getQuery('search'),
+            'date_from' => $this->getQuery('date_from'),
+            'date_to' => $this->getQuery('date_to'),
+            'page' => $this->getIntQuery('page', 1),
+            'per_page' => $this->getIntQuery('per_page', 20),
+        ]));
+    }
+
+    public function summary(): Response
+    {
+        $this->requireApiAdminUserAndReleaseSessionOrFail();
+
+        return $this->respondWorkflowResult(
+            $this->workflowService->summary($this->getIntQuery('hours', 24))
+        );
+    }
+
+    public function cleanup(): Response
+    {
+        $this->requireApiAdminUserAndReleaseSessionOrFail();
+
+        return $this->respondWorkflowResult(
+            $this->workflowService->cleanup($this->getRequestPayload())
+        );
+    }
+
+    public function quality(): Response
+    {
+        $this->requireApiAdminUserAndReleaseSessionOrFail();
+
+        return $this->respondWorkflowResult(
+            $this->workflowService->quality($this->getIntQuery('hours', 24))
+        );
     }
 
     /**
-     * GET /api/sysadmin/ai/logs
+     * @param array<string, mixed> $result
      */
-    public function index(): void
+    private function respondWorkflowResult(array $result): Response
     {
-        $this->requireAuthApi();
-
-        if (!$this->isAdmin()) {
-            Response::error('Acesso negado', 403);
-            return;
+        if (!$result['success']) {
+            return Response::errorResponse(
+                $result['message'],
+                $result['status'] ?? 400,
+                $result['errors'] ?? null
+            );
         }
 
-        $filters = [
-            'type'      => $_GET['type'] ?? null,
-            'channel'   => $_GET['channel'] ?? null,
-            'success'   => $_GET['success'] ?? '',
-            'search'    => $_GET['search'] ?? null,
-            'date_from' => $_GET['date_from'] ?? null,
-            'date_to'   => $_GET['date_to'] ?? null,
-            'page'      => $_GET['page'] ?? 1,
-            'per_page'  => $_GET['per_page'] ?? 20,
-        ];
-
-        Response::success(AiLogService::query($filters));
-    }
-
-    /**
-     * GET /api/sysadmin/ai/logs/summary
-     */
-    public function summary(): void
-    {
-        $this->requireAuthApi();
-
-        if (!$this->isAdmin()) {
-            Response::error('Acesso negado', 403);
-            return;
-        }
-
-        $hours = max(1, (int) ($_GET['hours'] ?? 24));
-
-        Response::success(AiLogService::summary($hours));
-    }
-
-    /**
-     * DELETE /api/sysadmin/ai/logs/cleanup
-     */
-    public function cleanup(): void
-    {
-        $this->requireAuthApi();
-
-        if (!$this->isAdmin()) {
-            Response::error('Acesso negado', 403);
-            return;
-        }
-
-        $payload = $this->getRequestPayload();
-        $days = max(1, (int) ($payload['days'] ?? 90));
-
-        $deleted = AiLogService::cleanup($days);
-
-        Response::success([
-            'deleted' => $deleted,
-            'message' => "Removidos {$deleted} registros com mais de {$days} dias.",
-        ]);
-    }
-
-    /**
-     * GET /api/sysadmin/ai/logs/quality
-     *
-     * Métricas de qualidade semântica da IA:
-     * - low_confidence_rate: % de respostas com confidence < 0.6
-     * - fallback_to_chat_rate: % de chamadas caindo no ChatHandler
-     * - intent_distribution: distribuição por tipo de intent
-     * - error_by_handler: erros agrupados por handler
-     * - source_distribution: rule vs llm vs cache vs computed
-     * - avg_response_time_by_type: latência por handler
-     */
-    public function quality(): void
-    {
-        $this->requireAuthApi();
-
-        if (!$this->isAdmin()) {
-            Response::error('Acesso negado', 403);
-            return;
-        }
-
-        $hours = max(1, (int) ($_GET['hours'] ?? 24));
-
-        Response::success(AiLogService::qualityMetrics($hours));
+        return Response::successResponse($result['data'] ?? null);
     }
 }

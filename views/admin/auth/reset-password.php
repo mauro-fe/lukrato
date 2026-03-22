@@ -50,6 +50,8 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
                     <form action="<?= BASE_URL ?>resetar-senha" method="POST" novalidate id="resetForm">
                         <?= csrf_input('reset_form') ?>
                         <input type="hidden" name="token" value="<?= htmlspecialchars($token ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                        <input type="hidden" name="selector" value="<?= htmlspecialchars($selector ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                        <input type="hidden" name="validator" value="<?= htmlspecialchars($validator ?? '', ENT_QUOTES, 'UTF-8') ?>">
                         <div class="field">
                             <input type="password" name="password" id="password"
                                 placeholder="Nova senha (mínimo 8 caracteres)" required minlength="8"

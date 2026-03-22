@@ -1,95 +1,82 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Api\User;
 
 use Application\Controllers\BaseController;
 use Application\Core\Response;
+use Application\Enums\LogCategory;
 use Application\Lib\Auth;
-use Application\Services\User\PerfilService;
-use Application\Services\Gamification\AchievementService;
-use Application\DTO\PerfilUpdateDTO;
-use Application\Validators\PerfilValidator;
 use Application\Providers\PerfilControllerFactory;
 use Application\Services\Infrastructure\LogService;
-use Application\Enums\LogCategory;
-use Application\Validators\PasswordStrengthValidator;
+use Application\Services\User\PerfilApiWorkflowService;
+use Application\Services\User\PerfilAvatarService;
+use Application\Services\User\PerfilService;
+use Application\Validators\PerfilValidator;
 use Throwable;
 
 class PerfilController extends BaseController
 {
-    private PerfilService $perfilService;
-    private PerfilValidator $validator;
+    private PerfilApiWorkflowService $workflowService;
+    private PerfilAvatarService $avatarService;
 
     public function __construct(
         ?PerfilService $perfilService = null,
-        ?PerfilValidator $validator = null
+        ?PerfilValidator $validator = null,
+        ?PerfilApiWorkflowService $workflowService = null,
+        ?PerfilAvatarService $avatarService = null
     ) {
         parent::__construct();
 
-        if ($perfilService !== null && $validator !== null) {
-            $this->perfilService = $perfilService;
-            $this->validator = $validator;
-            return;
+        if ($workflowService === null) {
+            if ($perfilService === null || $validator === null) {
+                [$perfilService, $validator] = PerfilControllerFactory::buildDependencies();
+            }
+
+            $workflowService = new PerfilApiWorkflowService($perfilService, $validator);
         }
 
-        [
-            $this->perfilService,
-            $this->validator
-        ] = PerfilControllerFactory::buildDependencies();
+        $this->workflowService = $workflowService;
+        $this->avatarService = $avatarService ?? new PerfilAvatarService();
     }
 
-    public function show(): void
+    public function show(): Response
     {
+        $user = $this->requireApiUserAndReleaseSessionOrFail();
+
         try {
-            $user = $this->resolveAuthenticatedUser('Não autenticado');
-            if (!$user) {
-                return;
-            }
-
-            $this->releaseSession();
-
-            $perfil = $this->perfilService->obterPerfil($user->id);
+            $perfil = $this->workflowService->getProfile($user->id);
 
             if (!$perfil) {
-                Response::error('Usuário não encontrado', 404);
-                return;
+                return Response::errorResponse('UsuÃ¡rio nÃ£o encontrado', 404);
             }
 
-            Response::success([
+            return Response::successResponse([
                 'user' => $perfil,
             ], 'Perfil carregado');
         } catch (Throwable $e) {
             $this->logPerfilException($e, 'show_perfil');
-            Response::error('Erro interno', 500);
+
+            return Response::errorResponse('Erro interno', 500);
         }
     }
 
-    public function update(): void
+    public function update(): Response
     {
+        $user = $this->requireApiUserOrFail();
+
         try {
-            $user = $this->resolveAuthenticatedUser('Não autenticado');
-            if (!$user) {
-                return;
+            $result = $this->workflowService->updateProfile($user->id, $this->getRequestPayload());
+
+            if (!$result['success']) {
+                return Response::validationErrorResponse($result['errors']);
             }
 
-            $dto = PerfilUpdateDTO::fromRequest($this->getPostOrJsonPayload());
-
-            $errors = $this->validator->validate($dto, $user->id);
-
-            if (!empty($errors)) {
-                Response::validationError($errors);
-                return;
-            }
-
-            $perfilAtualizado = $this->perfilService->atualizarPerfil($user->id, $dto);
-
-            $achievementService = new AchievementService();
-            $newAchievements = $achievementService->checkAndUnlockAchievements($user->id, 'profile_update');
-
-            Response::success([
+            return Response::successResponse([
                 'message' => 'Perfil atualizado com sucesso',
-                'user' => $perfilAtualizado,
-                'new_achievements' => $newAchievements,
+                'user' => $result['user'],
+                'new_achievements' => $result['new_achievements'],
             ]);
         } catch (Throwable $e) {
             $this->logPerfilException($e, 'update_perfil');
@@ -98,360 +85,112 @@ class PerfilController extends BaseController
                 ? 404
                 : 500;
 
-            Response::error('Erro interno ao atualizar perfil', $statusCode);
+            return Response::errorResponse('Erro interno ao atualizar perfil', $statusCode);
         }
     }
 
-    public function updatePassword(): void
+    public function updatePassword(): Response
     {
+        $user = $this->requireApiUserOrFail();
+
         try {
-            $user = $this->resolveAuthenticatedUser('Não autenticado');
-            if (!$user) {
-                return;
+            $result = $this->workflowService->updatePassword($user, $this->getRequestPayload());
+
+            if (!$result['success']) {
+                return Response::validationErrorResponse($result['errors']);
             }
 
-            $payload = $this->getPostOrJsonPayload();
-            $senhaAtual = $payload['senha_atual'] ?? '';
-            $novaSenha = $payload['nova_senha'] ?? '';
-            $confSenha = $payload['conf_senha'] ?? '';
-
-            if ($senhaAtual === '' || $novaSenha === '' || $confSenha === '') {
-                Response::validationError(['senha' => 'Todos os campos de senha são obrigatórios.']);
-                return;
-            }
-
-            if (!password_verify($senhaAtual, $user->senha)) {
-                Response::validationError(['senha_atual' => 'Senha atual incorreta.']);
-                return;
-            }
-
-            $passwordErrors = PasswordStrengthValidator::validate($novaSenha);
-            if (!empty($passwordErrors)) {
-                Response::validationError(['nova_senha' => implode(' ', $passwordErrors)]);
-                return;
-            }
-
-            if ($novaSenha !== $confSenha) {
-                Response::validationError(['conf_senha' => 'As senhas não coincidem.']);
-                return;
-            }
-
-            $user->senha = $novaSenha;
-            $user->save();
-
-            Response::success([
-                'message' => 'Senha alterada com sucesso',
+            return Response::successResponse([
+                'message' => $result['message'],
             ]);
         } catch (Throwable $e) {
             $this->logPerfilException($e, 'update_password');
-            Response::error('Erro ao alterar senha', 500);
+
+            return Response::errorResponse('Erro ao alterar senha', 500);
         }
     }
 
-    public function updateTheme(): void
+    public function updateTheme(): Response
     {
+        $user = $this->requireApiUserOrFail();
+
         try {
-            $user = $this->resolveAuthenticatedUser('Não autenticado');
-            if (!$user) {
-                return;
+            $result = $this->workflowService->updateTheme($user, $this->getRequestPayload());
+
+            if (!$result['success']) {
+                return Response::errorResponse($result['message'], $result['status']);
             }
 
-            $payload = $this->getPostOrJsonPayload();
-            $theme = $payload['theme'] ?? null;
-
-            if (!in_array($theme, ['light', 'dark'], true)) {
-                Response::error('Tema inválido. Use "light" ou "dark"', 400);
-                return;
-            }
-
-            $user->theme_preference = $theme;
-            $user->save();
-
-            Response::success([
-                'message' => 'Tema atualizado com sucesso',
-                'theme' => $theme,
-            ]);
+            return Response::successResponse($result['data']);
         } catch (Throwable $e) {
             $this->logPerfilException($e, 'update_theme');
-            Response::error('Erro ao atualizar tema', 500);
+
+            return Response::errorResponse('Erro ao atualizar tema', 500);
         }
     }
 
-    public function uploadAvatar(): void
+    public function uploadAvatar(): Response
     {
+        $user = $this->requireApiUserOrFail();
+
         try {
-            $user = $this->resolveAuthenticatedUser('Não autenticado');
-            if (!$user) {
-                return;
+            $result = $this->avatarService->uploadAvatar($user, $_FILES['avatar'] ?? null);
+
+            if (!$result['success']) {
+                return Response::errorResponse($result['message'], $result['status']);
             }
 
-            if (empty($_FILES['avatar']) || $_FILES['avatar']['error'] !== UPLOAD_ERR_OK) {
-                Response::error('Nenhuma imagem enviada ou erro no upload', 400);
-                return;
-            }
-
-            $file = $_FILES['avatar'];
-
-            $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
-            $finfo  = new \finfo(FILEINFO_MIME_TYPE);
-            $mime   = $finfo->file($file['tmp_name']);
-
-            if (!in_array($mime, $allowedMimes, true)) {
-                Response::error('Tipo de arquivo não permitido. Use JPEG, PNG ou WebP.', 400);
-                return;
-            }
-
-            $maxSize = 2 * 1024 * 1024;
-            if ($file['size'] > $maxSize) {
-                Response::error('A imagem não pode ter mais de 2MB.', 400);
-                return;
-            }
-
-            $publicRoot = $this->resolvePublicRoot();
-            $uploadDir = $publicRoot . '/assets/uploads/avatars';
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0755, true);
-            }
-
-            $sourceImage = $this->createSourceAvatarImage($mime, $file['tmp_name']);
-
-            if (!$sourceImage) {
-                Response::error('Erro ao processar imagem', 500);
-                return;
-            }
-
-            $preparedImage = $this->prepareAvatarImage($sourceImage, $mime, $file['tmp_name']);
-
-            $filename = 'avatar_' . $user->id . '_' . uniqid() . '.webp';
-            $filepath = $uploadDir . '/' . $filename;
-            if (!imagewebp($preparedImage, $filepath, 85)) {
-                imagedestroy($preparedImage);
-                Response::error('Nao foi possivel salvar a foto de perfil.', 500);
-                return;
-            }
-            imagedestroy($preparedImage);
-
-            $oldAvatarPath = $user->avatar;
-            if ($oldAvatarPath) {
-                $oldPath = $publicRoot . '/' . $oldAvatarPath;
-                if (is_file($oldPath)) {
-                    @unlink($oldPath);
-                }
-            }
-
-            $relativePath = 'assets/uploads/avatars/' . $filename;
-            $user->avatar = $relativePath;
-            $this->resetAvatarPreferences($user);
-            $user->save();
-
-            Response::success([
-                'message' => 'Foto de perfil atualizada!',
-                'avatar' => rtrim(BASE_URL, '/') . '/' . $relativePath,
-                'avatar_settings' => $this->buildAvatarSettings($user),
-            ]);
+            return Response::successResponse($result['data']);
         } catch (Throwable $e) {
             $this->logPerfilException($e, 'upload_avatar');
-            Response::error('Erro ao enviar foto de perfil', 500);
+
+            return Response::errorResponse('Erro ao enviar foto de perfil', 500);
         }
     }
 
-    public function removeAvatar(): void
+    public function removeAvatar(): Response
     {
+        $user = $this->requireApiUserOrFail();
+
         try {
-            $user = $this->resolveAuthenticatedUser('Não autenticado');
-            if (!$user) {
-                return;
-            }
-
-            if ($user->avatar) {
-                $publicRoot = $this->resolvePublicRoot();
-                $filePath = $publicRoot . '/' . $user->avatar;
-                if (is_file($filePath)) {
-                    @unlink($filePath);
-                }
-                $user->avatar = null;
-                $this->resetAvatarPreferences($user);
-                $user->save();
-            }
-
-            Response::success([
-                'message' => 'Foto de perfil removida',
-                'avatar' => '',
-                'avatar_settings' => $this->buildAvatarSettings($user),
-            ]);
+            return Response::successResponse($this->avatarService->removeAvatar($user)['data']);
         } catch (Throwable $e) {
             $this->logPerfilException($e, 'remove_avatar');
-            Response::error('Erro ao remover foto de perfil', 500);
+
+            return Response::errorResponse('Erro ao remover foto de perfil', 500);
         }
     }
 
-    public function updateAvatarPreferences(): void
+    public function updateAvatarPreferences(): Response
     {
+        $user = $this->requireApiUserOrFail();
+
         try {
-            $user = $this->resolveAuthenticatedUser('Nao autenticado');
-            if (!$user) {
-                return;
-            }
+            $result = $this->avatarService->updateAvatarPreferences($user, $this->getRequestPayload());
 
-            $payload = $this->getPostOrJsonPayload();
-
-            $user->avatar_focus_x = $this->clampAvatarFocus($payload['position_x'] ?? 50);
-            $user->avatar_focus_y = $this->clampAvatarFocus($payload['position_y'] ?? 50);
-            $user->avatar_zoom = $this->clampAvatarZoom($payload['zoom'] ?? 1);
-            $user->save();
-
-            Response::success([
-                'message' => 'Enquadramento da foto atualizado.',
-                'avatar_settings' => $this->buildAvatarSettings($user),
-            ]);
+            return Response::successResponse($result['data']);
         } catch (Throwable $e) {
             $this->logPerfilException($e, 'update_avatar_preferences');
-            Response::error('Erro ao atualizar o enquadramento da foto.', 500);
+
+            return Response::errorResponse('Erro ao atualizar o enquadramento da foto.', 500);
         }
     }
 
-    private function resolveAuthenticatedUser(string $message): ?object
+    public function delete(): Response
     {
-        $user = Auth::user();
+        $user = $this->requireApiUserOrFail();
 
-        if (!$user) {
-            Response::error($message, 401);
-            return null;
-        }
-
-        return $user;
-    }
-
-    private function getPostOrJsonPayload(): array
-    {
-        if ($_POST !== []) {
-            return $_POST;
-        }
-
-        $payload = $this->getJson();
-        return is_array($payload) ? $payload : [];
-    }
-
-    private function resolvePublicRoot(): string
-    {
-        return defined('PUBLIC_PATH') ? PUBLIC_PATH : BASE_PATH . '/public';
-    }
-
-    private function resetAvatarPreferences(object $user): void
-    {
-        $user->avatar_focus_x = 50;
-        $user->avatar_focus_y = 50;
-        $user->avatar_zoom = 1.00;
-    }
-
-    private function buildAvatarSettings(object $user): array
-    {
-        return [
-            'position_x' => $this->clampAvatarFocus($user->avatar_focus_x ?? 50),
-            'position_y' => $this->clampAvatarFocus($user->avatar_focus_y ?? 50),
-            'zoom' => $this->clampAvatarZoom($user->avatar_zoom ?? 1),
-        ];
-    }
-
-    private function clampAvatarFocus(mixed $value): int
-    {
-        return max(0, min(100, (int) round((float) $value)));
-    }
-
-    private function clampAvatarZoom(mixed $value): float
-    {
-        return max(1.0, min(2.0, round((float) $value, 2)));
-    }
-
-    private function createSourceAvatarImage(string $mime, string $tmpPath)
-    {
-        $image = match ($mime) {
-            'image/jpeg' => @imagecreatefromjpeg($tmpPath),
-            'image/png' => @imagecreatefrompng($tmpPath),
-            'image/webp' => @imagecreatefromwebp($tmpPath),
-            default => false,
-        };
-
-        if ($image && in_array($mime, ['image/png', 'image/webp'], true)) {
-            imagealphablending($image, true);
-            imagesavealpha($image, true);
-        }
-
-        return $image;
-    }
-
-    private function prepareAvatarImage($sourceImage, string $mime, string $tmpPath)
-    {
-        $orientedImage = $this->normalizeAvatarOrientation($sourceImage, $mime, $tmpPath);
-
-        $sourceWidth = imagesx($orientedImage);
-        $sourceHeight = imagesy($orientedImage);
-
-        if ($sourceWidth <= 0 || $sourceHeight <= 0) {
-            return $orientedImage;
-        }
-
-        $maxEdge = 1024;
-        $scale = min($maxEdge / $sourceWidth, $maxEdge / $sourceHeight, 1);
-        $targetWidth = max(1, (int) round($sourceWidth * $scale));
-        $targetHeight = max(1, (int) round($sourceHeight * $scale));
-
-        if ($targetWidth === $sourceWidth && $targetHeight === $sourceHeight) {
-            return $orientedImage;
-        }
-
-        $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
-        imagealphablending($canvas, false);
-        imagesavealpha($canvas, true);
-        $transparent = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
-        imagefilledrectangle($canvas, 0, 0, $targetWidth, $targetHeight, $transparent);
-        imagecopyresampled($canvas, $orientedImage, 0, 0, 0, 0, $targetWidth, $targetHeight, $sourceWidth, $sourceHeight);
-        imagedestroy($orientedImage);
-
-        return $canvas;
-    }
-
-    private function normalizeAvatarOrientation($image, string $mime, string $tmpPath)
-    {
-        if ($mime !== 'image/jpeg' || !function_exists('exif_read_data')) {
-            return $image;
-        }
-
-        $exif = @exif_read_data($tmpPath);
-        $orientation = (int) ($exif['Orientation'] ?? 1);
-
-        $rotated = match ($orientation) {
-            3 => imagerotate($image, 180, 0),
-            6 => imagerotate($image, -90, 0),
-            8 => imagerotate($image, 90, 0),
-            default => $image,
-        };
-
-        if ($rotated !== $image) {
-            imagedestroy($image);
-        }
-
-        return $rotated ?: $image;
-    }
-
-    public function delete(): void
-    {
         try {
-            $user = $this->resolveAuthenticatedUser('Não autenticado');
-            if (!$user) {
-                return;
-            }
-
-            $this->perfilService->deletarConta($user->id);
-
+            $this->workflowService->deleteAccount($user->id);
             Auth::logout();
 
-            Response::success([
-                'message' => 'Conta excluída com sucesso',
+            return Response::successResponse([
+                'message' => 'Conta excluÃ­da com sucesso',
             ]);
         } catch (Throwable $e) {
             $this->logPerfilException($e, 'delete_account');
-            Response::error('Erro ao excluir conta', 500);
+
+            return Response::errorResponse('Erro ao excluir conta', 500);
         }
     }
 
@@ -459,7 +198,7 @@ class PerfilController extends BaseController
     {
         LogService::captureException($e, LogCategory::AUTH, [
             'action' => $action,
-            'user_id' => Auth::user()?->id,
+            'user_id' => $this->userId,
         ]);
     }
 }

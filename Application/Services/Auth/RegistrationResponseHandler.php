@@ -22,7 +22,7 @@ class RegistrationResponseHandler
     /**
      * Responde sucesso de registro
      */
-    public function success(array $result, bool $isGoogleRegistration = false): void
+    public function success(array $result, bool $isGoogleRegistration = false): Response
     {
         $isAjax = $this->request->isAjax();
         $redirect = $isGoogleRegistration ? 'dashboard' : 'login';
@@ -33,11 +33,10 @@ class RegistrationResponseHandler
             : ($result['message'] ?? 'Conta criada com sucesso! Verifique seu e-mail para ativar sua conta.');
 
         if ($isAjax) {
-            Response::success([
+            return Response::successResponse([
                 'redirect' => $result['redirect'] ?? $redirect,
                 'requires_verification' => !$isGoogleRegistration,
             ], $message, 201);
-            return;
         }
 
         $successMessage = $isGoogleRegistration
@@ -45,42 +44,56 @@ class RegistrationResponseHandler
             : 'Conta criada com sucesso! Verifique seu e-mail para ativar sua conta.';
 
         $_SESSION['success'] = $successMessage;
-        Response::redirectTo(BASE_URL . $redirect);
+
+        return Response::redirectResponse(BASE_URL . $redirect);
     }
 
     /**
      * Responde erro de validação
      */
-    public function validationError(array $errors, string $defaultMessage = 'Corrija os dados do cadastro e tente novamente.'): void
+    public function validationError(array $errors, string $defaultMessage = 'Corrija os dados do cadastro e tente novamente.'): Response
     {
         $isAjax = $this->request->isAjax();
         $message = $errors['email'] ?? $defaultMessage;
+        $code = $this->resolveValidationErrorCode($errors, $message);
 
         if ($isAjax) {
-            Response::error($message, 422, $errors);
-            return;
+            return Response::errorResponse($message, 422, $errors, $code);
         }
 
         $_SESSION['register_errors'] = $errors;
         $_SESSION['auth_active_tab'] = 'register';
         $_SESSION['error'] = $message;
-        Response::redirectTo(BASE_URL . 'login');
+
+        return Response::redirectResponse(BASE_URL . 'login');
     }
 
     /**
      * Responde erro geral
      */
-    public function generalError(string $message = 'Falha ao cadastrar. Tente novamente mais tarde.'): void
+    public function generalError(string $message = 'Falha ao cadastrar. Tente novamente mais tarde.'): Response
     {
         $isAjax = $this->request->isAjax();
 
         if ($isAjax) {
-            Response::error($message, 500);
-            return;
+            return Response::errorResponse($message, 500);
         }
 
         $_SESSION['error'] = $message;
         $_SESSION['auth_active_tab'] = 'register';
-        Response::redirectTo(BASE_URL . 'login');
+
+        return Response::redirectResponse(BASE_URL . 'login');
+    }
+
+    private function resolveValidationErrorCode(array $errors, string $message): ?string
+    {
+        $emailError = $errors['email'] ?? $message;
+        $normalized = mb_strtolower((string) $emailError);
+
+        if (str_contains($normalized, 'já cadastrado') || str_contains($normalized, 'ja cadastrado') || str_contains($normalized, 'já existe') || str_contains($normalized, 'ja existe')) {
+            return 'EMAIL_ALREADY_EXISTS';
+        }
+
+        return null;
     }
 }

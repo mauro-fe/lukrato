@@ -3,15 +3,15 @@
 namespace Application\Controllers\Admin;
 
 use Application\Controllers\BaseController;
-
+use Application\Core\Response;
 
 class CategoriaController extends BaseController
 {
-    public function index(?string $username = null): void
+    public function index(?string $username = null): Response
     {
-        $this->requireAuth();
+        $this->requireUserId();
 
-        $this->render(
+        return $this->renderResponse(
             'admin/categorias/index',
             [
                 'pageTitle' => 'Categorias',

@@ -4,7 +4,28 @@
  */
 
 import { CONFIG, STATE, Utils, Modules } from './state.js';
+import { apiFetch, getApiPayload, getErrorMessage, logClientError, logClientWarning } from '../shared/api.js';
 import { refreshIcons } from '../shared/ui.js';
+
+function normalizeApiUrl(url) {
+    if (typeof url !== 'string') {
+        return url;
+    }
+
+    if (url.startsWith(CONFIG.BASE_URL)) {
+        return url.slice(CONFIG.BASE_URL.length);
+    }
+
+    return url;
+}
+
+async function requestJson(url, { method = 'GET', data = null, headers = {}, timeout = 15000 } = {}) {
+    return apiFetch(normalizeApiUrl(url), {
+        method,
+        headers,
+        body: data,
+    }, { timeout });
+}
 
 export const CartoesAPI = {
     /**
@@ -41,32 +62,12 @@ export const CartoesAPI = {
                     showLoading: true,
                     loadingTarget: '#cartoesContainer'
                 });
-                data = result.data;
+                data = getApiPayload(result, []);
             } else {
-                // Fallback para fetch simples com timeout
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-                const response = await fetch(`${CONFIG.API_URL}/cartoes`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin',
-                    signal: controller.signal
-                });
-
-                clearTimeout(timeoutId);
-
-                if (!response.ok) {
-                    throw new Error('Erro ao carregar cartões');
-                }
-
-                data = await response.json();
+                data = await requestJson(`${CONFIG.API_URL}/cartoes`);
             }
 
-            STATE.cartoes = Array.isArray(data) ? data : (data.data || []);
+            STATE.cartoes = Array.isArray(data) ? data : getApiPayload(data, []);
             await CartoesAPI.verificarFaturasPendentes();
             STATE.lastLoadedAt = new Date().toISOString();
 
@@ -75,14 +76,11 @@ export const CartoesAPI = {
             await CartoesAPI.carregarAlertas();
 
         } catch (error) {
-            console.error('❌ [DEBUG] Erro ao carregar cartões:', error);
-            console.error('❌ [DEBUG] Error name:', error.name);
-            console.error('❌ [DEBUG] Error message:', error.message);
-            console.error('❌ [DEBUG] Error stack:', error.stack);
+            logClientError('[Cartoes] Erro ao carregar cartões', error, 'Erro ao carregar cartões');
 
             // Mensagem mais amigável para timeout
-            let message = 'Erro ao carregar cartões';
-            if (error.name === 'AbortError' || error.message.includes('demorou')) {
+            let message = getErrorMessage(error, 'Erro ao carregar cartoes');
+            if (error.name === 'AbortError' || message.includes('demorou')) {
                 message = 'A conexão está lenta. Tente novamente.';
             } else if (!navigator.onLine) {
                 message = 'Sem conexão com a internet';
@@ -92,7 +90,7 @@ export const CartoesAPI = {
             grid.innerHTML = `
                 <div class="error-state">
                     <i data-lucide="triangle-alert"></i>
-                    <p class="error-message">${message}</p>
+                    <p class="error-message">${Utils.escapeHtml(message)}</p>
                     <button class="btn btn-primary btn-retry" onclick="window.cartoesManager.loadCartoes()">
                         <i data-lucide="refresh-cw"></i> Tentar novamente
                     </button>
@@ -119,22 +117,10 @@ export const CartoesAPI = {
         // Verificar para cada cartão se tem fatura pendente
         const promises = STATE.cartoes.map(async (cartao) => {
             try {
-                const response = await fetch(`${CONFIG.API_URL}/cartoes/${cartao.id}/faturas-pendentes`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin'
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    const meses = data.data?.meses || data.meses || data.data || data || [];
-                    cartao.temFaturaPendente = Array.isArray(meses) && meses.length > 0;
-                } else {
-                    cartao.temFaturaPendente = false;
-                }
+                const data = await requestJson(`${CONFIG.API_URL}/cartoes/${cartao.id}/faturas-pendentes`);
+                const payload = getApiPayload(data, {});
+                const meses = payload?.meses || getApiPayload(payload, []) || [];
+                cartao.temFaturaPendente = Array.isArray(meses) && meses.length > 0;
             } catch (error) {
                 cartao.temFaturaPendente = false;
             }
@@ -155,36 +141,18 @@ export const CartoesAPI = {
                     maxRetries: 1,
                     showLoading: false // Não mostrar loading global para alertas
                 });
-                data = result.data;
-                STATE.alertas = data.data?.alertas || data.alertas || [];
+                data = getApiPayload(result, {});
+                const payload = getApiPayload(data, {});
+                STATE.alertas = payload?.alertas || [];
             } else {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-                const response = await fetch(`${CONFIG.API_URL}/cartoes/alertas`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin',
-                    signal: controller.signal
-                });
-
-                clearTimeout(timeoutId);
-
-                if (response.ok) {
-                    data = await response.json();
-                    STATE.alertas = data.data?.alertas || data.alertas || [];
-                } else {
-                    console.warn('Erro ao carregar alertas:', response.status);
-                    STATE.alertas = [];
-                }
+                data = await requestJson(`${CONFIG.API_URL}/cartoes/alertas`, { timeout: 10000 });
+                const payload = getApiPayload(data, {});
+                STATE.alertas = payload?.alertas || [];
             }
 
             CartoesAPI.renderAlertas();
         } catch (error) {
-            console.warn('Erro ao carregar alertas:', error);
+            logClientWarning('[Cartoes] Erro ao carregar alertas', error, 'Erro ao carregar alertas');
             STATE.alertas = [];
             // Não mostra erro para o usuário, apenas oculta o container
             const container = document.getElementById('alertasContainer');
@@ -229,17 +197,29 @@ export const CartoesAPI = {
             atencao: '#f39c12'
         };
 
+        const tipo = Object.prototype.hasOwnProperty.call(icones, alerta?.tipo)
+            ? alerta.tipo
+            : 'limite_baixo';
+        const gravidade = Object.prototype.hasOwnProperty.call(cores, alerta?.gravidade)
+            ? alerta.gravidade
+            : 'atencao';
+        const nomeCartao = Utils.escapeHtml(String(alerta?.nome_cartao || 'Cartão'));
+        const diasFaltando = Number(alerta?.dias_faltando || 0);
+        const percentualDisponivel = Number(alerta?.percentual_disponivel || 0);
+        const valorFatura = Number(alerta?.valor_fatura || 0);
+        const limiteDisponivel = Number(alerta?.limite_disponivel || 0);
+
         let mensagem = '';
-        if (alerta.tipo === 'vencimento_proximo') {
-            mensagem = `Fatura de <strong>${alerta.nome_cartao}</strong> vence em <strong>${alerta.dias_faltando} dia(s)</strong> - ${Utils.formatMoney(alerta.valor_fatura)}`;
-        } else if (alerta.tipo === 'limite_baixo') {
-            mensagem = `Limite de <strong>${alerta.nome_cartao}</strong> em <strong>${alerta.percentual_disponivel.toFixed(1)}%</strong> - ${Utils.formatMoney(alerta.limite_disponivel)} disponível`;
+        if (tipo === 'vencimento_proximo') {
+            mensagem = `Fatura de <strong>${nomeCartao}</strong> vence em <strong>${diasFaltando} dia(s)</strong> - ${Utils.formatMoney(valorFatura)}`;
+        } else if (tipo === 'limite_baixo') {
+            mensagem = `Limite de <strong>${nomeCartao}</strong> em <strong>${percentualDisponivel.toFixed(1)}%</strong> - ${Utils.formatMoney(limiteDisponivel)} disponível`;
         }
 
         return `
-            <div class="alerta-item alerta-${alerta.gravidade}" data-tipo="${alerta.tipo}">
-                <div class="alerta-icon" style="color: ${cores[alerta.gravidade]}">
-                    <i data-lucide="${icones[alerta.tipo]}"></i>
+            <div class="alerta-item alerta-${gravidade}" data-tipo="${tipo}">
+                <div class="alerta-icon" style="color: ${cores[gravidade]}">
+                    <i data-lucide="${icones[tipo]}"></i>
                 </div>
                 <div class="alerta-content">
                     <p>${mensagem}</p>
@@ -282,32 +262,15 @@ export const CartoesAPI = {
 
         try {
             const url = `${CONFIG.API_URL}/contas?only_active=0&with_balances=1`;
-
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                credentials: 'same-origin'
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('❌ Erro HTTP:', response.status, errorText);
-                throw new Error('Erro ao carregar contas');
-            }
-
-            const data = await response.json();
+            const data = await requestJson(url);
 
             // Tentar diferentes estruturas de resposta
+            const payload = getApiPayload(data, {});
             let contas = [];
-            if (Array.isArray(data)) {
-                contas = data;
-            } else if (data.data) {
-                contas = Array.isArray(data.data) ? data.data : [];
-            } else if (data.contas) {
-                contas = Array.isArray(data.contas) ? data.contas : [];
+            if (Array.isArray(payload)) {
+                contas = payload;
+            } else if (Array.isArray(payload?.contas)) {
+                contas = payload.contas;
             }
 
             if (contas.length === 0) {
@@ -347,8 +310,7 @@ export const CartoesAPI = {
             }
             return contas.length;
         } catch (error) {
-            console.error('❌ Erro ao carregar contas:', error);
-            console.error('Stack:', error.stack);
+            logClientError('[Cartoes] Erro ao carregar contas', error, 'Erro ao carregar contas');
             select.disabled = true;
             select.innerHTML = '<option value="">Erro ao carregar contas</option>';
             if (help) {
@@ -417,45 +379,17 @@ export const CartoesAPI = {
                 ? `${CONFIG.API_URL}/cartoes/${cartaoId}`
                 : `${CONFIG.API_URL}/cartoes`;
 
-            const response = await fetch(url, {
+            const result = await requestJson(url, {
                 method: isEdit ? 'PUT' : 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-Token': csrfToken
-                },
-                credentials: 'same-origin',
-                body: JSON.stringify(data)
+                data,
             });
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('❌ Erro HTTP:', response.status);
-                console.error('📄 Resposta completa:', errorText);
-
-                let error;
-                try {
-                    error = JSON.parse(errorText);
-                } catch (e) {
-                    error = { message: errorText };
-                }
-
-                // Se for erro de CSRF, recarregar a página
-                if (error.errors?.csrf_expired) {
-                    Utils.showToast('error', 'Sessão expirada. Recarregando página...');
-                    setTimeout(() => window.location.reload(), 2000);
-                    return;
-                }
-
-                throw new Error(error.message || 'Erro ao salvar cartão');
-            }
-
-            const result = await response.json();
+            const resultData = getApiPayload(result, null);
 
             // 🎮 GAMIFICAÇÃO: Exibir conquistas se houver
-            if (result.data?.gamification?.achievements && Array.isArray(result.data.gamification.achievements)) {
+            if (resultData?.gamification?.achievements && Array.isArray(resultData.gamification.achievements)) {
                 if (typeof window.notifyMultipleAchievements === 'function') {
-                    window.notifyMultipleAchievements(result.data.gamification.achievements);
+                    window.notifyMultipleAchievements(resultData.gamification.achievements);
                 } else {
                     console.error('❌ notifyMultipleAchievements não está disponível');
                 }
@@ -465,9 +399,8 @@ export const CartoesAPI = {
             Modules.UI.closeModal();
             await CartoesAPI.loadCartoes();
         } catch (error) {
-            console.error('❌ Erro ao salvar cartão:', error);
-            console.error('Stack:', error.stack);
-            Utils.showToast('error', error.message || 'Erro ao salvar cartão');
+            logClientError('[Cartoes] Erro ao salvar cartão', error, 'Erro ao salvar cartão');
+            Utils.showToast('error', getErrorMessage(error, 'Erro ao salvar cartao'));
         }
     },
 
@@ -498,29 +431,16 @@ export const CartoesAPI = {
         if (!confirmacao) return;
 
         try {
-            const csrfToken = await Utils.getCSRFToken();
-
-            const response = await fetch(`${CONFIG.API_URL}/cartoes/${id}/archive`, {
+            await requestJson(`${CONFIG.API_URL}/cartoes/${id}/archive`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-Token': csrfToken
-                },
-                credentials: 'same-origin'
             });
-
-            if (!response.ok) {
-                const result = await response.json().catch(() => ({}));
-                throw new Error(result.message || 'Erro ao arquivar cartão');
-            }
 
             Utils.showToast('success', 'Cartão arquivado com sucesso!');
             CartoesAPI.loadCartoes();
 
         } catch (error) {
-            console.error('Erro ao arquivar:', error);
-            Utils.showToast('error', error.message || 'Erro ao arquivar cartão');
+            logClientError('[Cartoes] Erro ao arquivar cartão', error, 'Erro ao arquivar cartão');
+            Utils.showToast('error', getErrorMessage(error, 'Erro ao arquivar cartao'));
         }
     },
 
@@ -537,68 +457,31 @@ export const CartoesAPI = {
      * Carregar dados da fatura
      */
     async carregarFatura(cartaoId, mes, ano) {
-        const response = await fetch(`${CONFIG.API_URL}/cartoes/${cartaoId}/fatura?mes=${mes}&ano=${ano}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            credentials: 'same-origin'
-        });
-
-        if (!response.ok) {
-            if (response.status === 404) {
-                // Fatura não encontrada - retornar objeto vazio
+        try {
+            const json = await requestJson(`${CONFIG.API_URL}/cartoes/${cartaoId}/fatura?mes=${mes}&ano=${ano}`);
+            return getApiPayload(json, { itens: [], total: 0, pago: 0, pendente: 0 });
+        } catch (error) {
+            if (error?.status === 404) {
                 return { itens: [], total: 0, pago: 0, pendente: 0 };
             }
-            throw new Error('Erro ao carregar fatura');
+            throw new Error(getErrorMessage(error, 'Erro ao carregar fatura'));
         }
-
-        const json = await response.json();
-        return json.data || json;
     },
 
     /**
      * Carregar resumo de parcelamentos
      */
     async carregarParcelamentosResumo(cartaoId, mes, ano) {
-        const response = await fetch(`${CONFIG.API_URL}/cartoes/${cartaoId}/parcelamentos-resumo?mes=${mes}&ano=${ano}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            credentials: 'same-origin'
-        });
-
-        if (!response.ok) {
-            throw new Error('Erro ao carregar parcelamentos');
-        }
-
-        const json = await response.json();
-        return json.data || json;
+        const json = await requestJson(`${CONFIG.API_URL}/cartoes/${cartaoId}/parcelamentos-resumo?mes=${mes}&ano=${ano}`);
+        return getApiPayload(json, null);
     },
 
     /**
      * Carregar histórico de faturas pagas
      */
     async carregarHistoricoFaturas(cartaoId, limite = 12) {
-        const csrfToken = await Utils.getCSRFToken();
-
-        const response = await fetch(`${CONFIG.API_URL}/cartoes/${cartaoId}/faturas-historico?limite=${limite}`, {
-            headers: {
-                'X-CSRF-Token': csrfToken,
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            credentials: 'same-origin'
-        });
-
-        if (!response.ok) {
-            throw new Error('Erro ao carregar histórico');
-        }
-
-        const json = await response.json();
-        return json.data || json;
+        const json = await requestJson(`${CONFIG.API_URL}/cartoes/${cartaoId}/faturas-historico?limite=${limite}`);
+        return getApiPayload(json, null);
     },
 
     /**
@@ -615,26 +498,16 @@ export const CartoesAPI = {
                 throw new Error('ID do cartão não encontrado na fatura');
             }
 
-            const csrfToken = await Utils.getCSRFToken();
-
-            const response = await fetch(`${CONFIG.API_URL}/cartoes/${cartaoId}/parcelas/pagar`, {
+            const data = await requestJson(`${CONFIG.API_URL}/cartoes/${cartaoId}/parcelas/pagar`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                credentials: 'same-origin',
-                body: JSON.stringify({
+                data: {
                     parcela_ids: parcelaIds,
                     mes: fatura.mes,
                     ano: fatura.ano
-                })
+                }
             });
 
-            const data = await response.json();
-
-            if (response.ok) {
+            if (data?.success !== false) {
                 Utils.showToast('success', data.message || 'Parcelas pagas com sucesso!');
 
                 // Fechar modal e recarregar
@@ -648,7 +521,7 @@ export const CartoesAPI = {
                 throw new Error(data.message || 'Erro ao pagar parcelas');
             }
         } catch (error) {
-            Utils.showToast('error', error.message);
+            Utils.showToast('error', getErrorMessage(error, 'Erro ao processar a operacao do cartao'));
         }
     },
 
@@ -678,23 +551,10 @@ export const CartoesAPI = {
         if (!confirmado.isConfirmed) return;
 
         try {
-            const csrfToken = await Utils.getCSRFToken();
-
-            const response = await fetch(
-                `${CONFIG.API_URL}/cartoes/${cartaoId}/fatura/desfazer-pagamento`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-Token': csrfToken,
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin',
-                    body: JSON.stringify({ mes, ano })
-                }
-            );
-
-            const data = await response.json();
+            const data = await requestJson(`${CONFIG.API_URL}/cartoes/${cartaoId}/fatura/desfazer-pagamento`, {
+                method: 'POST',
+                data: { mes, ano }
+            });
 
             if (data.success) {
                 Utils.showToast('success', data.message);
@@ -710,7 +570,7 @@ export const CartoesAPI = {
                 throw new Error(data.message || 'Erro ao desfazer pagamento');
             }
         } catch (error) {
-            Utils.showToast('error', error.message);
+            Utils.showToast('error', getErrorMessage(error, 'Erro ao processar a operacao do cartao'));
         }
     },
 
@@ -740,24 +600,11 @@ export const CartoesAPI = {
         if (!confirmado.isConfirmed) return;
 
         try {
-            const csrfToken = await Utils.getCSRFToken();
+            const data = await requestJson(`${CONFIG.API_URL}/cartoes/parcelas/${parcelaId}/desfazer-pagamento`, {
+                method: 'POST',
+            });
 
-            const response = await fetch(
-                `${CONFIG.API_URL}/cartoes/parcelas/${parcelaId}/desfazer-pagamento`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-Token': csrfToken,
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin'
-                }
-            );
-
-            const data = await response.json();
-
-            if (response.ok && data.success) {
+            if (data.success) {
                 Utils.showToast('success', data.message);
 
                 // Fechar modal e recarregar
@@ -771,10 +618,14 @@ export const CartoesAPI = {
                 throw new Error(data.message || 'Erro ao desfazer pagamento');
             }
         } catch (error) {
-            Utils.showToast('error', error.message);
+            Utils.showToast('error', getErrorMessage(error, 'Erro ao processar a operacao do cartao'));
         }
     },
 };
 
 // Register in module system
 Modules.API = CartoesAPI;
+
+
+
+

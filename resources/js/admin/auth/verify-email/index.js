@@ -1,10 +1,11 @@
 /**
  * ============================================================================
- * LUKRATO — Verify Email Page (Vite Module)
+ * LUKRATO - Verify Email Page (Vite Module)
  * ============================================================================
  */
 
 import { getBaseUrl } from '../shared.js';
+import { apiFetch, getErrorMessage } from '../../shared/api.js';
 
 const BASE = getBaseUrl();
 
@@ -34,7 +35,7 @@ const BASE = getBaseUrl();
                 const formData = new FormData(resendForm);
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
-                const response = await fetch(resendForm.action, {
+                const data = await apiFetch(resendForm.action, {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -44,14 +45,12 @@ const BASE = getBaseUrl();
                     }
                 });
 
-                const data = await response.json();
-
                 showResendMsg(
-                    data.message || (response.ok ? 'E-mail reenviado com sucesso!' : 'Erro ao reenviar e-mail.'),
-                    response.ok ? 'success' : 'error'
+                    data?.message || 'E-mail reenviado com sucesso!',
+                    data?.success === false ? 'error' : 'success'
                 );
             } catch (err) {
-                showResendMsg('Erro de conexão. Tente novamente.');
+                showResendMsg(getErrorMessage(err, 'Erro de conexão. Tente novamente.'));
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalHtml;

@@ -3,6 +3,7 @@
 namespace Application\Controllers\Api\Billing;
 
 use Application\Controllers\BaseController;
+use Application\Core\Response;
 use Application\Models\AssinaturaUsuario;
 use Application\Models\LogWebhookCobranca;
 use Application\Models\Usuario;
@@ -27,21 +28,18 @@ class AsaasWebhookController extends BaseController
      * Endpoint de teste - APENAS para desenvolvimento
      * Em produção retorna 404 para não expor informações
      */
-    public function test(): void
+    public function test(): Response
     {
         // Em produção, não revelar que o endpoint existe
         if (defined('APP_ENV') && APP_ENV === 'production') {
-            http_response_code(404);
-            echo 'Not Found';
-            exit;
+            return $this->plainTextResponse('Not Found', 404);
         }
 
         // Em desenvolvimento, permitir verificar se está funcionando
-        echo 'Webhook OK (dev only)';
-        exit;
+        return $this->plainTextResponse('Webhook OK (dev only)');
     }
 
-    public function receive(): void
+    public function receive(): Response
     {
         $headers = function_exists('getallheaders') ? getallheaders() : [];
         $rawBody = file_get_contents('php://input');
@@ -58,9 +56,7 @@ class AsaasWebhookController extends BaseController
                 ],
             );
 
-            http_response_code(200);
-            echo 'OK';
-            return;
+            return $this->plainTextResponse('OK');
         }
 
         $payload = json_decode($rawBody, true);
@@ -70,20 +66,19 @@ class AsaasWebhookController extends BaseController
                 LogLevel::WARNING,
                 LogCategory::WEBHOOK,
                 'Webhook Asaas com payload inválido',
-                ['rawBody' => $rawBody],
+                [
+                    'payload_size' => strlen((string) $rawBody),
+                    'payload_hash' => hash('sha256', (string) $rawBody),
+                ],
             );
 
-            http_response_code(200);
-            echo 'OK';
-            return;
+            return $this->plainTextResponse('OK');
         }
 
         $event = $payload['event'] ?? null;
 
         if (!$event) {
-            http_response_code(200);
-            echo 'OK';
-            return;
+            return $this->plainTextResponse('OK');
         }
 
         // 🔁 IDEMPOTÊNCIA
@@ -103,16 +98,14 @@ class AsaasWebhookController extends BaseController
                 'key' => $idempotencyKey,
             ]);
 
-            http_response_code(200);
-            echo 'OK';
-            return;
+            return $this->plainTextResponse('OK');
         }
 
         // 📦 Log bruto
         LogWebhookCobranca::create([
             'provedor' => 'asaas',
             'tipo_evento' => $event,
-            'payload' => $payload,
+            'payload' => $this->buildWebhookPayloadSummary($payload, (string) $rawBody),
         ]);
 
         try {
@@ -144,8 +137,7 @@ class AsaasWebhookController extends BaseController
             ]);
         }
 
-        http_response_code(200);
-        echo 'OK';
+        return $this->plainTextResponse('OK');
     }
 
     private function handleSubscriptionEvent(string $event, array $payload): void
@@ -362,5 +354,32 @@ class AsaasWebhookController extends BaseController
             'CANCELED' => AssinaturaUsuario::ST_CANCELED,
             default => null,
         };
+    }
+
+    private function plainTextResponse(string $content, int $statusCode = 200): Response
+    {
+        return Response::htmlResponse($content, $statusCode)
+            ->header('Content-Type', 'text/plain; charset=UTF-8');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildWebhookPayloadSummary(array $payload, string $rawBody): array
+    {
+        $payment = is_array($payload['payment'] ?? null) ? $payload['payment'] : [];
+        $subscription = is_array($payload['subscription'] ?? null) ? $payload['subscription'] : [];
+
+        return [
+            'id' => $payload['id'] ?? null,
+            'event' => $payload['event'] ?? null,
+            'payment_id' => $payment['id'] ?? null,
+            'subscription_id' => $subscription['id'] ?? $payment['subscription'] ?? null,
+            'customer_id' => $payment['customer'] ?? $subscription['customer'] ?? null,
+            'status' => $payment['status'] ?? $subscription['status'] ?? null,
+            'billing_type' => $payment['billingType'] ?? $subscription['billingType'] ?? null,
+            'value' => $payment['value'] ?? $subscription['value'] ?? null,
+            'payload_hash' => hash('sha256', $rawBody),
+        ];
     }
 }

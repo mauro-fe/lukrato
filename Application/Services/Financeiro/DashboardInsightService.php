@@ -3,49 +3,52 @@
 namespace Application\Services\Financeiro;
 
 use Application\Repositories\LancamentoRepository;
-use Application\Repositories\MetaRepository;
 
 class DashboardInsightService
 {
     private LancamentoRepository $lancamentoRepo;
-    private MetaRepository $metaRepo;
 
-    public function __construct(
-        LancamentoRepository $lancamentoRepo,
-        MetaRepository $metaRepo
-    ) {
+    public function __construct(LancamentoRepository $lancamentoRepo)
+    {
         $this->lancamentoRepo = $lancamentoRepo;
-        $this->metaRepo = $metaRepo;
     }
 
     public function buildComparativoCompetenciaCaixaResponse(array $comparativo, string $month): array
     {
-        $difReceitas = $comparativo['competencia']['receitas'] - $comparativo['caixa']['receitas'];
-        $difDespesas = $comparativo['competencia']['despesas'] - $comparativo['caixa']['despesas'];
+        $competenciaReceitas = $this->toFloat($comparativo['competencia']['receitas'] ?? 0);
+        $competenciaDespesas = $this->toFloat($comparativo['competencia']['despesas'] ?? 0);
+        $caixaReceitas = $this->toFloat($comparativo['caixa']['receitas'] ?? 0);
+        $caixaDespesas = $this->toFloat($comparativo['caixa']['despesas'] ?? 0);
+        $difReceitas = $competenciaReceitas - $caixaReceitas;
+        $difDespesas = $competenciaDespesas - $caixaDespesas;
 
         return [
             'month' => $month,
             'competencia' => [
-                'receitas' => $comparativo['competencia']['receitas'],
-                'despesas' => $comparativo['competencia']['despesas'],
-                'resultado' => $comparativo['competencia']['receitas'] - $comparativo['competencia']['despesas'],
+                'receitas' => $competenciaReceitas,
+                'despesas' => $competenciaDespesas,
+                'resultado' => $competenciaReceitas - $competenciaDespesas,
             ],
             'caixa' => [
-                'receitas' => $comparativo['caixa']['receitas'],
-                'despesas' => $comparativo['caixa']['despesas'],
-                'resultado' => $comparativo['caixa']['receitas'] - $comparativo['caixa']['despesas'],
+                'receitas' => $caixaReceitas,
+                'despesas' => $caixaDespesas,
+                'resultado' => $caixaReceitas - $caixaDespesas,
             ],
             'diferenca' => [
                 'receitas' => $difReceitas,
                 'despesas' => $difDespesas,
-                'resultado' => ($comparativo['competencia']['receitas'] - $comparativo['competencia']['despesas']) -
-                    ($comparativo['caixa']['receitas'] - $comparativo['caixa']['despesas']),
+                'resultado' => ($competenciaReceitas - $competenciaDespesas) - ($caixaReceitas - $caixaDespesas),
             ],
         ];
     }
 
     public function getRecentTransactions(int $userId, string $from, string $to, int $limit): array
     {
+        $limit = max(0, $limit);
+        if ($limit === 0) {
+            return [];
+        }
+
         $rows = $this->lancamentoRepo->getRecentTransactions($userId, $from, $to, $limit);
 
         return $rows->map(fn($r) => [
@@ -146,5 +149,10 @@ class DashboardInsightService
         unset($selected['weight']);
 
         return $selected;
+    }
+
+    private function toFloat(mixed $value): float
+    {
+        return (float) ($value ?? 0);
     }
 }

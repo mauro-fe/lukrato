@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace Application\Controllers\Auth;
 
 use Application\Controllers\BaseController;
+use Application\Core\Response;
+use Application\Enums\LogCategory;
 use Application\Services\Auth\GoogleAuthService;
 use Application\Services\Infrastructure\LogService;
-use Application\Enums\LogCategory;
 use Exception;
 
-/**
- * Controller para iniciar login com Google OAuth
- */
 class GoogleLoginController extends BaseController
 {
     private GoogleAuthService $googleAuthService;
@@ -23,41 +21,34 @@ class GoogleLoginController extends BaseController
         $this->googleAuthService = $googleAuthService ?? new GoogleAuthService();
     }
 
-    public function login(): void
+    public function login(): Response
     {
-        // Se já estiver logado, redireciona para dashboard
         if ($this->isAuthenticated()) {
-            $this->redirect('dashboard');
-            return;
+            return $this->buildRedirectResponse('dashboard');
         }
 
         try {
-            // Salva código de indicação na sessão (se veio via ?ref=)
             $ref = $_GET['ref'] ?? '';
-            if (!empty($ref)) {
+            if ($ref !== '') {
                 $_SESSION['pending_referral_code'] = strtoupper(trim($ref));
             }
-
-            // Preserva intended URL se veio da tela de login
-            // (já salva em $_SESSION['login_intended'] pelo LoginController)
 
             $authUrl = $this->googleAuthService->getAuthUrl();
 
             LogService::info('Iniciando login com Google OAuth', [
-                'client_id'    => $_ENV['GOOGLE_CLIENT_ID'] ?? null,
+                'client_id' => $_ENV['GOOGLE_CLIENT_ID'] ?? null,
                 'redirect_uri' => $_ENV['GOOGLE_REDIRECT_URI'] ?? null,
-                'auth_url'     => $authUrl,
+                'auth_url' => $authUrl,
             ]);
 
-            header('Location: ' . $authUrl);
-            exit;
+            return Response::redirectResponse($authUrl);
         } catch (Exception $e) {
             LogService::captureException($e, LogCategory::AUTH, [
                 'action' => 'google_login_init',
             ]);
 
             $this->setError('Não foi possível conectar ao Google. Tente novamente.');
-            $this->redirect('login');
+            return $this->buildRedirectResponse('login');
         }
     }
 }

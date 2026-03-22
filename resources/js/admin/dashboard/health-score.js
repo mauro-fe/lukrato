@@ -1,3 +1,5 @@
+import { apiGet } from '../shared/api.js';
+
 /**
  * Financial Health Score Component
  * Gauge compacto + métricas de lançamentos, orçamento e metas
@@ -72,10 +74,7 @@ class HealthScoreWidget {
 
   async load() {
     try {
-      const response = await fetch(`${window.BASE_URL || '/'}api/dashboard/health-score`);
-      if (!response.ok) throw new Error('Failed to fetch health score');
-
-      const data = await response.json();
+      const data = await apiGet(`${window.BASE_URL || '/'}api/dashboard/health-score`);
 
       if (data.success && data.data) {
         this.updateScore(data.data);

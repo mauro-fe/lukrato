@@ -1,6 +1,7 @@
 /**
  * LUKRATO — Faturas / State & Config
  */
+import { apiFetch, getCSRFToken as getStoredCSRFToken } from '../shared/api.js';
 import { formatMoney, parseMoney, escapeHtml, debounce } from '../shared/utils.js';
 
 export { formatMoney, escapeHtml, debounce };
@@ -122,7 +123,7 @@ export const Utils = {
     },
 
     getCSRFToken() {
-        return document.querySelector('meta[name="csrf-token"]')?.content || '';
+        return getStoredCSRFToken();
     },
 
     escapeHtml(text) {
@@ -145,32 +146,16 @@ export const Utils = {
     },
 
     async apiRequest(url, options = {}) {
-        const defaultOptions = {
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': this.getCSRFToken()
-            }
-        };
-
         const fullUrl = url.startsWith('http') ? url : CONFIG.BASE_URL + url.replace(/^\//, '');
 
         try {
-            const response = await fetch(fullUrl, {
-                ...defaultOptions,
+            return await apiFetch(fullUrl, {
                 ...options,
                 headers: {
-                    ...defaultOptions.headers,
+                    'X-CSRF-Token': this.getCSRFToken(),
                     ...options.headers
                 }
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || `Erro ${response.status}: ${response.statusText}`);
-            }
-
-            return data;
         } catch (error) {
             console.error('Erro na requisição:', error);
             throw error;

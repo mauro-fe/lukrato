@@ -8,7 +8,28 @@
  */
 
 import { CONFIG, STATE, Utils, Modules } from './state.js';
+import { apiFetch, getApiPayload, getErrorMessage } from '../shared/api.js';
 import { refreshIcons } from '../shared/ui.js';
+
+function normalizeApiUrl(url) {
+    if (typeof url !== 'string') {
+        return url;
+    }
+
+    if (url.startsWith(CONFIG.BASE_URL)) {
+        return url.slice(CONFIG.BASE_URL.length);
+    }
+
+    return url;
+}
+
+async function requestJson(url, { method = 'GET', data = null, headers = {}, timeout = 20000 } = {}) {
+    return apiFetch(normalizeApiUrl(url), {
+        method,
+        headers,
+        body: data,
+    }, { timeout });
+}
 
 export const ContasAPI = {
     setReloadState(isBusy) {
@@ -20,8 +41,8 @@ export const ContasAPI = {
         btnReload.setAttribute('aria-busy', isBusy ? 'true' : 'false');
     },
 
-    async handlePlanLimitError(response, result) {
-        if (response.status !== 403 || !result?.errors?.limit_reached || typeof Swal === 'undefined') {
+    async handlePlanLimitError(status, result) {
+        if (status !== 403 || !result?.errors?.limit_reached || typeof Swal === 'undefined') {
             return false;
         }
 
@@ -51,31 +72,12 @@ export const ContasAPI = {
                     maxRetries: 2,
                     showLoading: false
                 });
-                data = result.data;
+                data = getApiPayload(result, []);
             } else {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-                const response = await fetch(`${CONFIG.API_URL}/instituicoes`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin',
-                    signal: controller.signal
-                });
-
-                clearTimeout(timeoutId);
-
-                if (!response.ok) {
-                    throw new Error('Erro ao carregar instituicoes');
-                }
-
-                data = await response.json();
+                data = await requestJson(`${CONFIG.API_URL}/instituicoes`, { timeout: 15000 });
             }
 
-            STATE.instituicoes = Array.isArray(data) ? data : (data.data || []);
+            STATE.instituicoes = Array.isArray(data) ? data : getApiPayload(data, []);
             Modules.Render.renderInstituicoesSelect();
         } catch (error) {
             console.error('Erro ao carregar instituicoes:', error);
@@ -87,35 +89,22 @@ export const ContasAPI = {
                 message = 'Sem conex\u00e3o com a internet';
             }
 
-            Utils.showToast(message, 'error');
+            Utils.showToast(getErrorMessage(error, message), 'error');
         }
     },
 
     async createInstituicao(data) {
         try {
-            const csrfToken = await Utils.getCSRFToken();
-            const response = await fetch(`${CONFIG.API_URL}/instituicoes`, {
+            return await requestJson(`${CONFIG.API_URL}/instituicoes`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken
-                },
-                body: JSON.stringify(data)
+                data,
             });
-
-            const result = await response.json();
-
-            if (!response.ok || !result.success) {
-                const handledPlanLimit = await ContasAPI.handlePlanLimitError(response, result);
-                if (handledPlanLimit) {
-                    return null;
-                }
-
-                throw new Error(result.message || 'Erro ao criar instituicao');
+        } catch (error) {
+            const handledPlanLimit = await ContasAPI.handlePlanLimitError(error?.status ?? 0, error?.data);
+            if (handledPlanLimit) {
+                return null;
             }
 
-            return result;
-        } catch (error) {
             console.error('Erro ao criar instituicao:', error);
             throw error;
         }
@@ -132,22 +121,23 @@ export const ContasAPI = {
 
         try {
             const result = await ContasAPI.createInstituicao(data);
-            if (!result?.data) {
+            const instituicao = getApiPayload(result, null);
+            if (!instituicao) {
                 return;
             }
 
-            STATE.instituicoes.push(result.data);
+            STATE.instituicoes.push(instituicao);
             Modules.Render.renderInstituicoesSelect();
 
             const select = document.getElementById('instituicaoFinanceiraSelect');
             if (select) {
-                select.value = result.data.id;
+                select.value = instituicao.id;
             }
 
             Modules.Modal.closeNovaInstituicaoModal();
             Utils.showToast('Institui\u00e7\u00e3o criada com sucesso!', 'success');
         } catch (error) {
-            Utils.showToast(error.message, 'error');
+            Utils.showToast(getErrorMessage(error, 'Erro ao criar instituicao'), 'error');
         }
     },
 
@@ -181,33 +171,13 @@ export const ContasAPI = {
                     showLoading: !silent,
                     loadingTarget: '#accountsGrid'
                 });
-                data = result.data;
+                data = getApiPayload(result, []);
             } else {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 20000);
-
-                const response = await fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin',
-                    signal: controller.signal
-                });
-
-                clearTimeout(timeoutId);
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Erro na resposta ao carregar contas:', errorText);
-                    throw new Error(`Erro ao carregar contas: ${response.status}`);
-                }
-
-                data = await response.json();
+                data = await requestJson(url, { timeout: 20000 });
             }
 
-            STATE.contas = Array.isArray(data) ? data : (data.data || data.contas || []);
+            const payload = getApiPayload(data, {});
+            STATE.contas = Array.isArray(payload) ? payload : (payload?.contas || []);
             STATE.lastLoadedAt = new Date();
 
             Modules.Render.updateStats();
@@ -227,7 +197,7 @@ export const ContasAPI = {
             if (STATE.contas.length === 0) {
                 Modules.Render.renderContas();
             } else {
-                Utils.showToast(message, 'error');
+                Utils.showToast(getErrorMessage(error, message), 'error');
                 Modules.Render.updatePageContext(Modules.Render.getFilteredContas());
                 Modules.Render.updateFilterSummary(Modules.Render.getFilteredContas());
                 refreshIcons();
@@ -245,31 +215,10 @@ export const ContasAPI = {
         const requestId = `req_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 
         try {
-            const csrfToken = await Utils.getCSRFToken();
-            const response = await fetch(`${CONFIG.API_URL}/contas`, {
+            const result = await requestJson(`${CONFIG.API_URL}/contas`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken
-                },
-                body: JSON.stringify(data)
+                data,
             });
-
-            const result = await response.json();
-
-            if (!response.ok || !result.success) {
-                const handledPlanLimit = await ContasAPI.handlePlanLimitError(response, result);
-                if (handledPlanLimit) {
-                    return;
-                }
-
-                console.error('Erro ao criar conta:', {
-                    requestId,
-                    status: response.status,
-                    result
-                });
-                throw new Error(result.message || 'Erro ao criar conta');
-            }
 
             if (result.csrf_token) {
                 Utils.updateCSRFToken(result.csrf_token);
@@ -283,8 +232,13 @@ export const ContasAPI = {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }, 400);
         } catch (error) {
+            const handledPlanLimit = await ContasAPI.handlePlanLimitError(error?.status ?? 0, error?.data);
+            if (handledPlanLimit) {
+                return;
+            }
+
             console.error('Falha ao criar conta:', { requestId, error });
-            Utils.showToast(error.message, 'error');
+            Utils.showToast(getErrorMessage(error, 'Erro ao criar conta'), 'error');
         } finally {
             STATE.isSubmitting = false;
         }
@@ -302,31 +256,13 @@ export const ContasAPI = {
 
     async updateConta(contaId, data) {
         try {
-            const csrfToken = await Utils.getCSRFToken();
-            const response = await fetch(`${CONFIG.API_URL}/contas/${contaId}`, {
+            const result = await requestJson(`${CONFIG.API_URL}/contas/${contaId}`, {
                 method: 'POST',
+                data,
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
                     'X-HTTP-Method-Override': 'PUT'
-                },
-                body: JSON.stringify(data)
+                }
             });
-
-            const responseText = await response.text();
-
-            let result;
-            try {
-                result = JSON.parse(responseText);
-            } catch (parseError) {
-                console.error('Erro ao fazer parse do JSON:', parseError);
-                console.error('Resposta recebida:', responseText);
-                throw new Error('Resposta inv\u00e1lida do servidor. Verifique o console.');
-            }
-
-            if (!response.ok || !result.success) {
-                throw new Error(result.message || 'Erro ao atualizar conta');
-            }
 
             if (result.csrf_token) {
                 Utils.updateCSRFToken(result.csrf_token);
@@ -337,7 +273,7 @@ export const ContasAPI = {
             Modules.Modal.closeModal();
         } catch (error) {
             console.error('Erro ao atualizar conta:', error);
-            Utils.showToast(error.message, 'error');
+            Utils.showToast(getErrorMessage(error, 'Erro ao atualizar conta'), 'error');
         } finally {
             STATE.isSubmitting = false;
         }
@@ -372,20 +308,9 @@ export const ContasAPI = {
         if (!result.isConfirmed) return;
 
         try {
-            const csrfToken = await Utils.getCSRFToken();
-            const response = await fetch(`${CONFIG.API_URL}/contas/${contaId}/archive`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken
-                }
+            await requestJson(`${CONFIG.API_URL}/contas/${contaId}/archive`, {
+                method: 'POST'
             });
-
-            const archiveResult = await response.json();
-
-            if (!response.ok || !archiveResult.success) {
-                throw new Error(archiveResult.message || 'Erro ao arquivar conta');
-            }
 
             Swal.fire({
                 title: 'Arquivada!',
@@ -400,7 +325,7 @@ export const ContasAPI = {
             console.error('Erro ao arquivar conta:', error);
             Swal.fire({
                 title: 'Erro!',
-                text: error.message,
+                text: getErrorMessage(error, 'Erro ao arquivar conta'),
                 icon: 'error',
                 confirmButtonColor: '#e67e22'
             });
@@ -413,17 +338,12 @@ export const ContasAPI = {
 
         ContasAPI.showDeleteConfirmation(nomeConta, async () => {
             try {
-                const csrfToken = await Utils.getCSRFToken();
-                const response = await fetch(`${CONFIG.API_URL}/contas/${contaId}`, {
+                const result = await requestJson(`${CONFIG.API_URL}/contas/${contaId}`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken,
                         'X-HTTP-Method-Override': 'DELETE'
                     }
                 });
-
-                const result = await response.json();
 
                 if (!result.success && result.errors?.requires_confirmation) {
                     ContasAPI.showDeleteConfirmation(
@@ -436,7 +356,7 @@ export const ContasAPI = {
                     return;
                 }
 
-                if (!response.ok || !result.success) {
+                if (!result.success) {
                     throw new Error(result.message || 'Erro ao excluir conta');
                 }
 
@@ -444,34 +364,25 @@ export const ContasAPI = {
                 await ContasAPI.loadContas({ silent: true });
             } catch (error) {
                 console.error('Erro ao excluir conta:', error);
-                Utils.showToast(error.message, 'error');
+                Utils.showToast(getErrorMessage(error, 'Erro ao excluir conta'), 'error');
             }
         });
     },
 
     async forceDeleteConta(contaId) {
         try {
-            const csrfToken = await Utils.getCSRFToken();
-            const response = await fetch(`${CONFIG.API_URL}/contas/${contaId}?force=1`, {
+            await requestJson(`${CONFIG.API_URL}/contas/${contaId}?force=1`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
                     'X-HTTP-Method-Override': 'DELETE'
                 }
             });
-
-            const result = await response.json();
-
-            if (!response.ok || !result.success) {
-                throw new Error(result.message || 'Erro ao excluir conta');
-            }
 
             Utils.showToast('Conta e lancamentos excluidos com sucesso!', 'success');
             await ContasAPI.loadContas({ silent: true });
         } catch (error) {
             console.error('Erro ao excluir conta:', error);
-            Utils.showToast(error.message, 'error');
+            Utils.showToast(getErrorMessage(error, 'Erro ao excluir conta'), 'error');
         }
     },
 

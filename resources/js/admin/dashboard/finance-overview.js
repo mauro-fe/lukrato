@@ -1,3 +1,5 @@
+import { apiGet } from '../shared/api.js';
+
 /**
  * Finance Overview Component
  * Cards compactos de Orçamento e Metas no dashboard
@@ -29,13 +31,7 @@ class FinanceOverview {
     try {
       const mes = new Date().getMonth() + 1;
       const ano = new Date().getFullYear();
-      const response = await fetch(
-        `${this.baseURL}api/financas/resumo?mes=${mes}&ano=${ano}`,
-        { credentials: 'include', headers: { 'Accept': 'application/json' } }
-      );
-
-      if (!response.ok) throw new Error('Failed to fetch');
-      const result = await response.json();
+      const result = await apiGet(`${this.baseURL}api/financas/resumo`, { mes, ano });
 
       if (result.success && result.data) {
         this.renderOrcamento(result.data.orcamento);

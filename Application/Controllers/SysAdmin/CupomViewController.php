@@ -3,27 +3,20 @@
 namespace Application\Controllers\SysAdmin;
 
 use Application\Controllers\BaseController;
-use Application\Lib\Auth;
+use Application\Core\Response;
 
 class CupomViewController extends BaseController
 {
-    public function index(): void
+    public function index(): Response
     {
-        $this->requireAuth();
-        $user = Auth::user();
+        $this->requireAdminUser();
 
-        // Verificar se é admin
-        if (!$user || $user->is_admin != 1) {
-            $this->redirect('login');
-            return;
-        }
-
-        $this->render(
+        return $this->renderResponse(
             'admin/sysadmin/cupons',
             [
                 'pageTitle' => 'Gerenciar Cupons de Desconto',
                 'menu' => 'cupons',
-                'skipPlanLimits' => true
+                'skipPlanLimits' => true,
             ],
             'admin/partials/header',
             'admin/partials/footer'

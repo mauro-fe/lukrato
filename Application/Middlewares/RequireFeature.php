@@ -2,6 +2,7 @@
 
 namespace Application\Middlewares;
 
+use Application\Core\Exceptions\HttpResponseException;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Services\Plan\FeatureGate;
@@ -12,7 +13,7 @@ final class RequireFeature
     {
         $user = Auth::user();
         if (!$user || !FeatureGate::allows($user, $feature)) {
-            Response::forbidden('Recurso disponível apenas no plano Pro'); // 403
+            throw new HttpResponseException(Response::forbiddenResponse('Recurso disponível apenas no plano Pro'));
         }
     }
 }

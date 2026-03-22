@@ -5,19 +5,17 @@ declare(strict_types=1);
 namespace Application\Controllers\Auth;
 
 use Application\Controllers\BaseController;
+use Application\Core\Exceptions\ValidationException;
+use Application\Core\Response;
+use Application\Enums\LogCategory;
+use Application\Middlewares\CsrfMiddleware;
 use Application\Services\Auth\AuthService;
 use Application\Services\Auth\GoogleAuthService;
 use Application\Services\Auth\RegistrationResponseHandler;
-use Application\Core\Exceptions\ValidationException;
-use Application\Middlewares\CsrfMiddleware;
 use Application\Services\Infrastructure\LogService;
 use Application\Services\Infrastructure\TurnstileService;
-use Application\Enums\LogCategory;
 use Throwable;
 
-/**
- * Controller para registro de novos usuários
- */
 class RegistroController extends BaseController
 {
     private AuthService $authService;
@@ -34,29 +32,21 @@ class RegistroController extends BaseController
         $this->responseHandler = new RegistrationResponseHandler($this->request);
     }
 
-    /**
-     * Exibe formulário de registro
-     */
-    public function showForm(): void
+    public function showForm(): Response
     {
         $socialData = $_SESSION['social_register'] ?? null;
 
-        $this->render('auth/register', [
+        return $this->renderResponse('auth/register', [
             'errors' => $this->getSessionErrors(),
             'success' => $this->getSuccess(),
             'socialData' => $socialData,
         ]);
     }
 
-    /**
-     * Processa registro de novo usuário
-     */
-    public function store(): void
+    public function store(): Response
     {
-        // Valida CSRF com tokenId específico do formulário
         CsrfMiddleware::handle($this->request, 'register_form');
 
-        // Turnstile CAPTCHA no registro (sempre, se habilitado)
         if (TurnstileService::isEnabled()) {
             $turnstile = new TurnstileService();
             $token = $this->request->post('cf-turnstile-response', '');
@@ -71,27 +61,21 @@ class RegistroController extends BaseController
             $payload = $this->buildRegistrationPayload($isGoogleRegistration, $socialData);
             $result = $this->authService->register($payload);
 
-            // Limpa dados temporários de social login
             unset($_SESSION['social_register']);
 
-            // Login automático se for registro via Google
             if ($isGoogleRegistration) {
-                $this->handleGoogleRegistrationSuccess($result, $email);
-                return;
+                return $this->handleGoogleRegistrationSuccess($result, $email);
             }
 
             $this->logRegistrationSuccess($email, $result, 'local');
-            $this->responseHandler->success($result, false);
+            return $this->responseHandler->success($result, false);
         } catch (ValidationException $e) {
-            $this->handleValidationError($e, $email);
+            return $this->handleValidationError($e, $email);
         } catch (Throwable $e) {
-            $this->handleRegistrationError($e, $email);
+            return $this->handleRegistrationError($e, $email);
         }
     }
 
-    /**
-     * Constrói payload de registro baseado no tipo (local ou Google)
-     */
     private function buildRegistrationPayload(bool $isGoogle, ?array $socialData): array
     {
         $payload = [
@@ -113,10 +97,7 @@ class RegistroController extends BaseController
         return $payload;
     }
 
-    /**
-     * Trata sucesso de registro via Google (com login automático)
-     */
-    private function handleGoogleRegistrationSuccess(array $result, string $email): void
+    private function handleGoogleRegistrationSuccess(array $result, string $email): Response
     {
         $userId = $result['user_id'] ?? null;
 
@@ -125,19 +106,14 @@ class RegistroController extends BaseController
 
             if ($loginSuccess) {
                 $this->logRegistrationSuccess($email, $result, 'google');
-                $this->responseHandler->success($result, true);
-                return;
+                return $this->responseHandler->success($result, true);
             }
         }
 
-        // Se falhou o login automático, redireciona para login manual
         LogService::warning('Login automático falhou após registro Google', ['email' => $email]);
-        $this->responseHandler->success($result, false);
+        return $this->responseHandler->success($result, false);
     }
 
-    /**
-     * Loga sucesso do registro
-     */
     private function logRegistrationSuccess(string $email, array $result, string $provider): void
     {
         LogService::info('Novo usuário registrado com sucesso.', [
@@ -148,10 +124,7 @@ class RegistroController extends BaseController
         ]);
     }
 
-    /**
-     * Trata erros de validação
-     */
-    private function handleValidationError(ValidationException $e, string $email): void
+    private function handleValidationError(ValidationException $e, string $email): Response
     {
         LogService::persist(
             \Application\Enums\LogLevel::WARNING,
@@ -160,13 +133,10 @@ class RegistroController extends BaseController
             ['email' => $email, 'ip' => $this->request->ip() ?? 'unknown', 'errors' => $e->getErrors()]
         );
 
-        $this->responseHandler->validationError($e->getErrors());
+        return $this->responseHandler->validationError($e->getErrors());
     }
 
-    /**
-     * Trata erros gerais de registro
-     */
-    private function handleRegistrationError(Throwable $e, string $email): void
+    private function handleRegistrationError(Throwable $e, string $email): Response
     {
         LogService::captureException($e, LogCategory::AUTH, [
             'action' => 'registro',
@@ -174,12 +144,9 @@ class RegistroController extends BaseController
             'ip' => $this->request->ip() ?? 'unknown',
         ]);
 
-        $this->responseHandler->generalError();
+        return $this->responseHandler->generalError();
     }
 
-    /**
-     * Obtém erros da sessão
-     */
     private function getSessionErrors(): ?array
     {
         $errors = $_SESSION['form_errors'] ?? null;

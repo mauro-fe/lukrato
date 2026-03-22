@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Api\User;
 
 use Application\Controllers\BaseController;
@@ -17,7 +19,6 @@ enum ThemePreference: string
 
 class PreferenciaUsuarioController extends BaseController
 {
-
     private function getPayloadValue(string $key): mixed
     {
         $value = $this->getPost($key);
@@ -32,68 +33,68 @@ class PreferenciaUsuarioController extends BaseController
                 return $json[$key];
             }
         }
+
         return null;
     }
 
-    public function show(): void
+    public function show(): Response
     {
-        try {
-            $this->requireAuth();
+        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
 
-            $user = Usuario::find($this->userId);
+        try {
+            $user = Usuario::find($userId);
             if (!$user) {
-                Response::error('Usuário não encontrado.', 404);
-                return;
+                return Response::errorResponse('Usuário não encontrado.', 404);
             }
 
             $theme = ThemePreference::tryFrom($user->theme_preference ?? '') ?? ThemePreference::SYSTEM;
 
-            Response::success([
+            return Response::successResponse([
                 'theme' => $theme->value,
             ]);
         } catch (Throwable $e) {
             LogService::error('Falha ao buscar preferência de tema', ['exception' => $e->getMessage()]);
-            Response::error('Falha ao buscar preferência de tema.', 500);
+
+            return Response::errorResponse('Falha ao buscar preferência de tema.', 500);
         }
     }
 
-    public function update(): void
+    public function update(): Response
     {
+        $userId = $this->requireApiUserIdOrFail();
         $themeInput = null;
-        try {
-            $this->requireAuth();
 
+        try {
             $themeInput = $this->getPayloadValue('theme');
             $themeInput = is_string($themeInput) ? strtolower(trim($themeInput)) : null;
 
             $theme = ThemePreference::tryFrom($themeInput ?? '');
 
             if ($theme === null) {
-                Response::validationError([
-                    'theme' => 'Deve ser: light, dark ou system.'
+                return Response::validationErrorResponse([
+                    'theme' => 'Deve ser: light, dark ou system.',
                 ]);
-                return;
             }
 
-            $user = Usuario::find($this->userId);
+            $user = Usuario::find($userId);
             if (!$user) {
-                Response::error('Usuário não encontrado.', 404);
-                return;
+                return Response::errorResponse('Usuário não encontrado.', 404);
             }
 
             $user->theme_preference = $theme->value;
             $user->save();
 
-            Response::success([
+            return Response::successResponse([
                 'message' => 'Preferência de tema atualizada.',
-                'theme'   => $user->theme_preference,
+                'theme' => $user->theme_preference,
             ]);
         } catch (Throwable $e) {
             LogService::error('Falha ao salvar preferência de tema', [
                 'exception' => $e->getMessage(),
-                'payload' => ['theme' => $themeInput]
+                'payload' => ['theme' => $themeInput],
             ]);
-            Response::error('Falha ao salvar preferência.', 500);
+
+            return Response::errorResponse('Falha ao salvar preferência.', 500);
         }
     }
 
@@ -101,62 +102,54 @@ class PreferenciaUsuarioController extends BaseController
      * Verifica se hoje é aniversário do usuário
      * GET /api/user/birthday-check
      */
-    public function birthdayCheck(): void
+    public function birthdayCheck(): Response
     {
+        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+
         try {
-            $this->requireAuth();
-
-            // Liberar lock da sessão para permitir requisições paralelas
-            if (session_status() === PHP_SESSION_ACTIVE) {
-                session_write_close();
-            }
-
-            $user = Usuario::find($this->userId);
+            $user = Usuario::find($userId);
             if (!$user) {
-                Response::error('Usuário não encontrado.', 404);
-                return;
+                return Response::errorResponse('Usuário não encontrado.', 404);
             }
 
-            // Verifica se tem data de nascimento
             if (empty($user->data_nascimento)) {
-                Response::success([
+                return Response::successResponse([
                     'is_birthday' => false,
-                    'reason' => 'no_birthdate'
+                    'reason' => 'no_birthdate',
                 ]);
-                return;
             }
 
             $today = new \DateTimeImmutable('today');
-            $birthDate = new \DateTimeImmutable($user->data_nascimento);
+            $birthDateValue = $user->data_nascimento;
+            $birthDate = $birthDateValue instanceof \DateTimeInterface
+                ? \DateTimeImmutable::createFromInterface($birthDateValue)
+                : new \DateTimeImmutable((string) $birthDateValue);
 
-            // Verifica se é o mesmo dia e mês
             $isBirthday = (
-                (int) $today->format('m') === (int) $birthDate->format('m') &&
-                (int) $today->format('d') === (int) $birthDate->format('d')
+                (int) $today->format('m') === (int) $birthDate->format('m')
+                && (int) $today->format('d') === (int) $birthDate->format('d')
             );
 
             if ($isBirthday) {
-                // Calcula idade
                 $age = (int) $today->diff($birthDate)->y;
-
-                // Pega primeiro nome
                 $nameParts = explode(' ', trim($user->nome));
                 $firstName = $nameParts[0] ?? 'Você';
 
-                Response::success([
+                return Response::successResponse([
                     'is_birthday' => true,
                     'first_name' => $firstName,
                     'age' => $age,
                     'full_name' => $user->nome,
                 ]);
-            } else {
-                Response::success([
-                    'is_birthday' => false
-                ]);
             }
+
+            return Response::successResponse([
+                'is_birthday' => false,
+            ]);
         } catch (Throwable $e) {
             LogService::error('Falha ao verificar aniversário', ['exception' => $e->getMessage()]);
-            Response::success(['is_birthday' => false]); // Falha silenciosa
+
+            return Response::successResponse(['is_birthday' => false]);
         }
     }
 }

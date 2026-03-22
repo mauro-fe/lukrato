@@ -90,7 +90,7 @@ class FaturaService
                 'usuario_id' => $usuarioId,
                 'error' => $e->getMessage()
             ]);
-            throw new Exception("Erro ao listar faturas: " . $e->getMessage());
+            throw new Exception('Erro ao listar faturas.');
         }
     }
 
@@ -155,7 +155,7 @@ class FaturaService
                 'usuario_id' => $usuarioId,
                 'error' => $e->getMessage()
             ]);
-            throw new Exception("Erro ao buscar fatura: " . $e->getMessage());
+            throw new Exception('Erro ao buscar fatura.');
         }
     }
 

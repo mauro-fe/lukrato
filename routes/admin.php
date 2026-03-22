@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Application\Core\Router;
+use Application\Core\Response;
 
 /**
  * ============================================
@@ -63,21 +64,19 @@ Router::add('GET', '/sysadmin/ai/logs', 'SysAdmin\AiLogsViewController@index', [
 
 // Redirects legados
 Router::add('GET', '/admin', function () {
-    header('Location: ' . BASE_URL . 'login');
-    exit;
+    return Response::redirectResponse(BASE_URL . 'login');
 });
 
 Router::add('GET', '/admin/login', function () {
-    header('Location: ' . BASE_URL . 'login');
-    exit;
+    return Response::redirectResponse(BASE_URL . 'login');
 });
 
 Router::add('GET', '/admin/home', function () {
-    if (isset($_SESSION['user_id']) || isset($_SESSION['admin_username'])) {
-        header('Location: ' . BASE_URL . 'dashboard');
-    } else {
-        session_destroy();
-        header('Location: ' . BASE_URL . 'login');
+    if (isset($_SESSION['user_id'])) {
+        return Response::redirectResponse(BASE_URL . 'dashboard');
     }
-    exit;
+
+    session_destroy();
+
+    return Response::redirectResponse(BASE_URL . 'login');
 });

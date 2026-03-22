@@ -15,6 +15,7 @@ use Application\Services\Gamification\GamificationService;
 use Application\Services\Gamification\AchievementService;
 use Application\Services\Plan\UserPlanService;
 use Application\Services\Infrastructure\LogService;
+use Application\Services\User\OnboardingProgressService;
 use Illuminate\Database\Capsule\Manager as DB;
 
 class LancamentoCreationService
@@ -24,19 +25,22 @@ class LancamentoCreationService
     private GamificationService $gamificationService;
     private LancamentoLimitService $limitService;
     private UserPlanService $planService;
+    private OnboardingProgressService $onboardingProgressService;
 
     public function __construct(
         ?CartaoCreditoLancamentoService $cartaoService = null,
         ?LancamentoRepository $lancamentoRepo = null,
         ?GamificationService $gamificationService = null,
         ?LancamentoLimitService $limitService = null,
-        ?UserPlanService $planService = null
+        ?UserPlanService $planService = null,
+        ?OnboardingProgressService $onboardingProgressService = null
     ) {
         $this->cartaoService = $cartaoService ?? new CartaoCreditoLancamentoService();
         $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
         $this->gamificationService = $gamificationService ?? new GamificationService();
         $this->limitService = $limitService ?? new LancamentoLimitService();
         $this->planService = $planService ?? new UserPlanService();
+        $this->onboardingProgressService = $onboardingProgressService ?? new OnboardingProgressService();
     }
 
     /**
@@ -293,6 +297,8 @@ class LancamentoCreationService
         $totalCriados = 1;
         $pai->loadMissing(['categoria', 'conta']);
 
+        $this->syncOnboardingLancamentoCreated($userId, $pai->created_at);
+
         $gamification = $this->triggerGamification($userId, $pai->id);
 
         $infinita = $dto->recorrenciaFim === null && $dto->recorrenciaTotal === null;
@@ -332,6 +338,7 @@ class LancamentoCreationService
         }
 
         $lancamentos[0]->loadMissing(['categoria', 'conta']);
+        $this->syncOnboardingLancamentoCreated($userId, $lancamentos[0]->created_at ?? null);
 
         return ServiceResultDTO::ok(
             count($lancamentos) . ' lançamentos agendados com sucesso',
@@ -349,6 +356,8 @@ class LancamentoCreationService
     {
         $lancamento = $this->lancamentoRepo->create($dto->toArray());
         $lancamento->loadMissing(['categoria', 'conta']);
+
+        $this->syncOnboardingLancamentoCreated($userId, $lancamento->created_at);
 
         $gamification = $this->triggerGamification($userId, $lancamento->id);
 
@@ -591,5 +600,17 @@ class LancamentoCreationService
         }
 
         return $totalCriados;
+    }
+
+    private function syncOnboardingLancamentoCreated(int $userId, \DateTimeInterface|string|null $createdAt = null): void
+    {
+        try {
+            $this->onboardingProgressService->markLancamentoCreated($userId, $createdAt);
+        } catch (\Throwable $e) {
+            LogService::captureException($e, LogCategory::GENERAL, [
+                'action' => 'sync_onboarding_lancamento_created',
+                'user_id' => $userId,
+            ]);
+        }
     }
 }

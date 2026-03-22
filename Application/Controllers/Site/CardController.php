@@ -3,20 +3,19 @@
 namespace Application\Controllers\Site;
 
 use Application\Controllers\BaseController;
+use Application\Core\Response;
 
 class CardController extends BaseController
 {
-    public function index(): void
+    public function index(): Response
     {
-        $this->render(
+        return $this->renderResponse(
             'site/card/index',
             [
                 'pageTitle' => 'Lukrato - Links',
-                'extraCss'  => [],
-                'extraJs'   => [],
-            ],
-            null, // Sem header
-            null  // Sem footer
+                'extraCss' => [],
+                'extraJs' => [],
+            ]
         );
     }
 }

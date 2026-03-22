@@ -2,14 +2,10 @@
 
 /**
  * Página de confirmação para criar conta via Google
+ *
+ * Espera $googleData ser fornecido pelo controller.
  */
-$googleData = $_SESSION['google_pending_user'] ?? null;
-if (!$googleData) {
-    header('Location: ' . BASE_URL . 'login');
-    exit;
-}
-
-$favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
+$favicon = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">

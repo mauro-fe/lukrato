@@ -1,0 +1,172 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit\Controllers\Api\Cartao;
+
+use Application\Controllers\Api\Cartao\CartoesController;
+use Application\Core\Exceptions\AuthException;
+use Application\Models\Usuario;
+use Application\Services\Cartao\CartaoCreditoService;
+use Application\Services\Cartao\CartaoFaturaService;
+use Application\Services\Plan\PlanLimitService;
+use Mockery;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use PHPUnit\Framework\TestCase;
+use Tests\Support\SessionIsolation;
+
+class CartoesControllerTest extends TestCase
+{
+    use MockeryPHPUnitIntegration;
+    use SessionIsolation;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->resetSessionState();
+        $_GET = [];
+        $_POST = [];
+        $_REQUEST = [];
+    }
+
+    protected function tearDown(): void
+    {
+        $_GET = [];
+        $_POST = [];
+        $_REQUEST = [];
+        $this->resetSessionState();
+        parent::tearDown();
+    }
+
+    public function testIndexReturnsSuccessResponse(): void
+    {
+        $this->seedAuthenticatedSession(1201, 'Cartao User');
+
+        $service = Mockery::mock(CartaoCreditoService::class);
+        $service
+            ->shouldReceive('listarCartoes')
+            ->once()
+            ->with(1201, null, true)
+            ->andReturn([
+                ['id' => 1, 'nome' => 'Cartão Principal'],
+            ]);
+
+        $controller = new CartoesController(
+            $service,
+            Mockery::mock(CartaoFaturaService::class),
+            Mockery::mock(PlanLimitService::class),
+        );
+
+        $response = $controller->index();
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame([
+            'success' => true,
+            'message' => 'Success',
+            'data' => [
+                ['id' => 1, 'nome' => 'Cartão Principal'],
+            ],
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+    }
+
+    public function testShowReturnsNotFoundWhenCardDoesNotExist(): void
+    {
+        $this->seedAuthenticatedSession(1202, 'Cartao User');
+
+        $service = Mockery::mock(CartaoCreditoService::class);
+        $service
+            ->shouldReceive('buscarCartao')
+            ->once()
+            ->with(99, 1202)
+            ->andReturn(null);
+
+        $controller = new CartoesController(
+            $service,
+            Mockery::mock(CartaoFaturaService::class),
+            Mockery::mock(PlanLimitService::class),
+        );
+
+        $response = $controller->show(99);
+
+        $this->assertSame(404, $response->getStatusCode());
+        $this->assertSame([
+            'success' => false,
+            'message' => 'Cartão não encontrado',
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+    }
+
+    public function testStoreReturnsForbiddenWhenPlanLimitIsReached(): void
+    {
+        $this->seedAuthenticatedSession(1203, 'Cartao User');
+
+        $planLimitService = Mockery::mock(PlanLimitService::class);
+        $planLimitService
+            ->shouldReceive('canCreateCartao')
+            ->once()
+            ->with(1203)
+            ->andReturn([
+                'allowed' => false,
+                'message' => 'Limite de cartões atingido',
+                'upgrade_url' => '/upgrade',
+                'limit' => 3,
+                'used' => 3,
+                'remaining' => 0,
+            ]);
+
+        $controller = new CartoesController(
+            Mockery::mock(CartaoCreditoService::class),
+            Mockery::mock(CartaoFaturaService::class),
+            $planLimitService,
+        );
+
+        $response = $controller->store();
+
+        $this->assertSame(403, $response->getStatusCode());
+        $this->assertSame([
+            'success' => false,
+            'message' => 'Limite de cartões atingido',
+            'errors' => [
+                'limit_reached' => true,
+                'upgrade_url' => '/upgrade',
+                'limit_info' => [
+                    'limit' => 3,
+                    'used' => 3,
+                    'remaining' => 0,
+                ],
+            ],
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+    }
+
+    public function testIndexThrowsAuthExceptionWhenSessionIsMissing(): void
+    {
+        $controller = new CartoesController(
+            Mockery::mock(CartaoCreditoService::class),
+            Mockery::mock(CartaoFaturaService::class),
+            Mockery::mock(PlanLimitService::class),
+        );
+
+        $this->expectException(AuthException::class);
+        $this->expectExceptionMessage('Nao autenticado');
+
+        $controller->index();
+    }
+
+    private function seedAuthenticatedSession(int $userId, string $name): void
+    {
+        $this->startIsolatedSession('cartoes-controller-test');
+
+        $user = new Usuario();
+        $user->id = $userId;
+        $user->nome = $name;
+        $user->is_admin = 0;
+        $user->senha = password_hash('Senha@123', PASSWORD_DEFAULT);
+
+        $_SESSION['usuario_logged_in'] = true;
+        $_SESSION['user_id'] = $userId;
+        $_SESSION['usuario_nome'] = $name;
+        $_SESSION['usuario_cache'] = [
+            'id' => $userId,
+            'data' => $user,
+        ];
+    }
+}

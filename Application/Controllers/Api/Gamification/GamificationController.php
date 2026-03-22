@@ -1,20 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Api\Gamification;
 
 use Application\Controllers\BaseController;
 use Application\Core\Response;
-use Application\Services\Gamification\GamificationService;
-use Application\Services\Gamification\AchievementService;
-use Application\Services\Gamification\StreakService;
-use Application\Models\UserProgress;
-use Application\Models\Achievement;
-use Application\Models\UserAchievement;
-use Application\Models\Lancamento;
 use Application\Models\Categoria;
+use Application\Models\Lancamento;
+use Application\Models\UserAchievement;
+use Application\Models\UserProgress;
+use Application\Services\Gamification\AchievementService;
+use Application\Services\Gamification\GamificationService;
+use Application\Services\Gamification\StreakService;
 use Carbon\Carbon;
-use Application\Lib\Auth;
-use Exception;
+use Throwable;
 
 class GamificationController extends BaseController
 {
@@ -22,37 +22,34 @@ class GamificationController extends BaseController
     private AchievementService $achievementService;
     private StreakService $streakService;
 
-    public function __construct()
-    {
+    public function __construct(
+        ?GamificationService $gamificationService = null,
+        ?AchievementService $achievementService = null,
+        ?StreakService $streakService = null
+    ) {
         parent::__construct();
-        $this->gamificationService = new GamificationService();
-        $this->achievementService = new AchievementService();
-        $this->streakService = new StreakService();
+        $this->gamificationService = $gamificationService ?? new GamificationService();
+        $this->achievementService = $achievementService ?? new AchievementService();
+        $this->streakService = $streakService ?? new StreakService();
     }
 
     /**
      * GET /api/gamification/progress
-     * Retorna o progresso completo do usuário
-     * Também verifica e desbloqueia conquistas pendentes (perfil completo, etc)
+     * Retorna o progresso completo do usuário.
+     * Também verifica e desbloqueia conquistas pendentes (perfil completo, etc).
      */
-    public function getProgress(): void
+    public function getProgress(): Response
     {
-        $this->requireAuthApi();
-
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        $user = $this->requireApiUserAndReleaseSessionOrFail();
 
         try {
             $progress = UserProgress::where('user_id', $this->userId)->first();
-            $user = Auth::user();
 
-            // Verificar conquistas que não dependem de lançamentos (perfil completo, etc)
-            // Isso garante que conquistas sejam verificadas ao entrar no dashboard
+            // Verificar conquistas que não dependem de lançamentos.
             $this->achievementService->checkAndUnlockAchievements($this->userId, 'dashboard_load');
 
             if (!$progress) {
-                Response::success([
+                return Response::successResponse([
                     'total_points' => 0,
                     'current_level' => 1,
                     'points_to_next_level' => 300,
@@ -63,12 +60,11 @@ class GamificationController extends BaseController
                     'streak_protection_available' => false,
                     'streak_protection_used' => false,
                 ], 'Progresso do usuário');
-                return;
             }
 
             $streakInfo = $this->streakService->getStreakInfo($this->userId);
 
-            Response::success([
+            return Response::successResponse([
                 'total_points' => $progress->total_points,
                 'current_level' => $progress->current_level,
                 'points_to_next_level' => $progress->points_to_next_level,
@@ -81,39 +77,32 @@ class GamificationController extends BaseController
                 'streak_protection_used' => $streakInfo['protection_used_this_month'],
                 'level_thresholds' => GamificationService::LEVEL_THRESHOLDS,
             ], 'Progresso do usuário');
-        } catch (Exception $e) {
-            error_log("🎮 [GAMIFICATION] Erro ao buscar progresso: " . $e->getMessage());
-            Response::error('Erro ao buscar progresso', 500);
+        } catch (Throwable $e) {
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[GAMIFICATION] Erro ao buscar progresso: ' . $e->getMessage());
+
+            return Response::errorResponse('Erro ao buscar progresso', 500);
         }
     }
 
     /**
      * GET /api/gamification/achievements
-     * Retorna conquistas disponíveis e desbloqueadas
-     * @param ?string month - Filtro opcional por mês (formato YYYY-MM)
+     * Retorna conquistas disponíveis e desbloqueadas.
      */
-    public function getAchievements(): void
+    public function getAchievements(): Response
     {
-        $this->requireAuthApi();
-
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        $user = $this->requireApiUserAndReleaseSessionOrFail();
 
         try {
-            $user = Auth::user();
-            error_log("🎮 [ACHIEVEMENTS API] User ID: {$this->userId}, isPro: " . ($user->isPro() ? 'true' : 'false'));
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[ACHIEVEMENTS API] User ID: ' . $this->userId . ', isPro: ' . ($user->isPro() ? 'true' : 'false'));
 
-            // Filtro por mês (opcional)
             $month = $_GET['month'] ?? null;
-            error_log("🎮 [ACHIEVEMENTS API] Month filter: " . ($month ?? 'null'));
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[ACHIEVEMENTS API] Month filter: ' . ($month ?? 'null'));
 
             $achievements = $this->achievementService->getUserAchievements($this->userId, $month);
-            error_log("🎮 [ACHIEVEMENTS API] Total conquistas retornadas: " . count($achievements));
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[ACHIEVEMENTS API] Total conquistas retornadas: ' . count($achievements));
 
-            // Estatísticas gerais
             $totalCount = count($achievements);
-            $unlockedCount = count(array_filter($achievements, fn($a) => $a['unlocked']));
+            $unlockedCount = count(array_filter($achievements, static fn(array $achievement): bool => (bool) ($achievement['unlocked'] ?? false)));
 
             $stats = [
                 'total_achievements' => $totalCount,
@@ -124,39 +113,36 @@ class GamificationController extends BaseController
                 'is_pro' => $user->isPro(),
             ];
 
-            error_log("🎮 [ACHIEVEMENTS API] Sending response - Total: {$totalCount}, Unlocked: {$unlockedCount}");
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[ACHIEVEMENTS API] Sending response - Total: ' . $totalCount . ', Unlocked: ' . $unlockedCount);
 
-            Response::success([
+            return Response::successResponse([
                 'achievements' => $achievements,
                 'stats' => $stats,
             ], 'Conquistas do usuário');
-        } catch (Exception $e) {
-            error_log("🎮 [GAMIFICATION] Erro ao buscar conquistas: " . $e->getMessage());
-            error_log("🎮 [GAMIFICATION] Stack trace: " . $e->getTraceAsString());
-            Response::error('Erro ao buscar conquistas', 500);
+        } catch (Throwable $e) {
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[GAMIFICATION] Erro ao buscar conquistas: ' . $e->getMessage());
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[GAMIFICATION] Stack trace: ' . $e->getTraceAsString());
+
+            return Response::errorResponse('Erro ao buscar conquistas', 500);
         }
     }
 
     /**
      * GET /api/gamification/achievements/pending
-     * Retorna conquistas desbloqueadas que ainda não foram vistas (para notificação global)
+     * Retorna conquistas desbloqueadas que ainda não foram vistas.
      */
-    public function getPendingAchievements(): void
+    public function getPendingAchievements(): Response
     {
-        $this->requireAuthApi();
-
-        // Liberar lock da sessão para permitir requisições paralelas
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        $this->requireApiUserIdAndReleaseSessionOrFail();
 
         try {
             $pendingAchievements = UserAchievement::with('achievement')
                 ->where('user_id', $this->userId)
                 ->where('notification_seen', false)
                 ->get()
-                ->map(function ($userAchievement) {
+                ->map(static function ($userAchievement): array {
                     $achievement = $userAchievement->achievement;
+
                     return [
                         'id' => $achievement->id,
                         'name' => $achievement->name,
@@ -168,64 +154,58 @@ class GamificationController extends BaseController
                 })
                 ->toArray();
 
-            Response::success([
+            return Response::successResponse([
                 'pending' => $pendingAchievements,
                 'count' => count($pendingAchievements),
             ], 'Conquistas pendentes de notificação');
-        } catch (Exception $e) {
-            error_log("🎮 [GAMIFICATION] Erro ao buscar conquistas pendentes: " . $e->getMessage());
-            Response::error('Erro ao buscar conquistas pendentes', 500);
+        } catch (Throwable $e) {
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[GAMIFICATION] Erro ao buscar conquistas pendentes: ' . $e->getMessage());
+
+            return Response::errorResponse('Erro ao buscar conquistas pendentes', 500);
         }
     }
 
     /**
      * POST /api/gamification/achievements/mark-seen
-     * Marca conquistas como vistas
+     * Marca conquistas como vistas.
      */
-    public function markAchievementsSeen(): void
+    public function markAchievementsSeen(): Response
     {
-        $this->requireAuthApi();
+        $this->requireApiUserIdOrFail();
 
         try {
             $payload = $this->getRequestPayload();
             $achievementIds = $payload['achievement_ids'] ?? [];
 
             if (empty($achievementIds) || !is_array($achievementIds)) {
-                Response::error('IDs de conquistas inválidos', 400);
-                return;
+                return Response::errorResponse('IDs de conquistas inválidos', 400);
             }
 
             $updated = UserAchievement::where('user_id', $this->userId)
                 ->whereIn('achievement_id', $achievementIds)
                 ->update(['notification_seen' => true]);
 
-            Response::success([
+            return Response::successResponse([
                 'marked_count' => $updated,
             ], 'Conquistas marcadas como vistas');
-        } catch (Exception $e) {
-            error_log("🎮 [GAMIFICATION] Erro ao marcar conquistas: " . $e->getMessage());
-            Response::error('Erro ao marcar conquistas', 500);
+        } catch (Throwable $e) {
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[GAMIFICATION] Erro ao marcar conquistas: ' . $e->getMessage());
+
+            return Response::errorResponse('Erro ao marcar conquistas', 500);
         }
     }
 
     /**
      * GET /api/gamification/leaderboard
-     * Retorna ranking dos top usuários (top 10)
+     * Retorna ranking dos top usuários.
      */
-    public function getLeaderboard(): void
+    public function getLeaderboard(): Response
     {
-        $this->requireAuthApi();
-
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        $user = $this->requireApiUserAndReleaseSessionOrFail();
 
         try {
-            // Leaderboard é exclusivo para usuários Pro
-            $user = Auth::user();
-            if (!$user || !$user->isPro()) {
-                Response::error('Recurso exclusivo para assinantes Pro', 403);
-                return;
+            if (!$user->isPro()) {
+                return Response::errorResponse('Recurso exclusivo para assinantes Pro', 403);
             }
 
             $topUsers = UserProgress::with('user:id,nome,avatar')
@@ -233,8 +213,9 @@ class GamificationController extends BaseController
                 ->orderBy('current_level', 'desc')
                 ->limit(10)
                 ->get()
-                ->map(function ($progress, $index) {
+                ->map(static function ($progress, int $index): array {
                     $avatar = $progress->user->avatar ?? null;
+
                     return [
                         'position' => $index + 1,
                         'user_id' => $progress->user_id,
@@ -246,60 +227,49 @@ class GamificationController extends BaseController
                     ];
                 });
 
-            // Posição do usuário atual
             $userProgress = UserProgress::where('user_id', $this->userId)->first();
             $userPosition = null;
 
             if ($userProgress) {
                 $userPosition = UserProgress::where('total_points', '>', $userProgress->total_points)
-                    ->orWhere(function ($query) use ($userProgress) {
+                    ->orWhere(function ($query) use ($userProgress): void {
                         $query->where('total_points', '=', $userProgress->total_points)
                             ->where('current_level', '>', $userProgress->current_level);
                     })
                     ->count() + 1;
             }
 
-            Response::success([
+            return Response::successResponse([
                 'leaderboard' => $topUsers,
                 'user_position' => $userPosition,
             ], 'Ranking de usuários');
-        } catch (Exception $e) {
-            error_log("🎮 [GAMIFICATION] Erro ao buscar leaderboard: " . $e->getMessage());
-            Response::error('Erro ao buscar ranking', 500);
+        } catch (Throwable $e) {
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[GAMIFICATION] Erro ao buscar leaderboard: ' . $e->getMessage());
+
+            return Response::errorResponse('Erro ao buscar ranking', 500);
         }
     }
 
     /**
      * GET /api/gamification/stats
-     * Retorna estatísticas gerais para o dashboard
+     * Retorna estatísticas gerais para o dashboard.
      */
-    public function getStats(): void
+    public function getStats(): Response
     {
-        $this->requireAuthApi();
-
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        $user = $this->requireApiUserAndReleaseSessionOrFail();
 
         try {
-            $user = Auth::user();
-
-            // Total de lançamentos
             $totalLancamentos = Lancamento::where('user_id', $this->userId)->count();
-
-            // Total de categorias
             $totalCategorias = Categoria::where('user_id', $this->userId)->count();
 
-            // Meses ativos (meses com lançamentos)
             $mesesAtivos = Lancamento::where('user_id', $this->userId)
                 ->selectRaw('COUNT(DISTINCT DATE_FORMAT(data, "%Y-%m")) as total')
                 ->first()
                 ->total ?? 0;
 
-            // Progresso
             $progress = UserProgress::where('user_id', $this->userId)->first();
 
-            Response::success([
+            return Response::successResponse([
                 'total_lancamentos' => $totalLancamentos,
                 'total_categorias' => $totalCategorias,
                 'meses_ativos' => $mesesAtivos,
@@ -308,33 +278,30 @@ class GamificationController extends BaseController
                 'streak_atual' => $progress?->current_streak ?? 0,
                 'is_pro' => $user->isPro(),
             ], 'Estatísticas do usuário');
-        } catch (Exception $e) {
-            error_log("🎮 [GAMIFICATION] Erro ao buscar estatísticas: " . $e->getMessage());
-            Response::error('Erro ao buscar estatísticas', 500);
+        } catch (Throwable $e) {
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[GAMIFICATION] Erro ao buscar estatisticas: ' . $e->getMessage());
+
+            return Response::errorResponse('Erro ao buscar estatisticas', 500);
         }
     }
 
     /**
      * GET /api/gamification/history
-     * Retorna histórico de atividades recentes (últimas ações que deram pontos)
+     * Retorna histórico de atividades recentes.
      */
-    public function getHistory(): void
+    public function getHistory(): Response
     {
-        $this->requireAuthApi();
-
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        $this->requireApiUserIdAndReleaseSessionOrFail();
 
         try {
-            $limit = (int)($_GET['limit'] ?? 10);
-            $limit = min(max($limit, 1), 50); // Entre 1 e 50
+            $limit = (int) ($_GET['limit'] ?? 10);
+            $limit = min(max($limit, 1), 50);
 
             $history = \Application\Models\PointsLog::where('user_id', $this->userId)
                 ->orderBy('created_at', 'desc')
                 ->limit($limit)
                 ->get()
-                ->map(function ($log) {
+                ->map(function ($log): array {
                     return [
                         'id' => $log->id,
                         'action' => $log->action,
@@ -345,19 +312,17 @@ class GamificationController extends BaseController
                     ];
                 });
 
-            Response::success([
+            return Response::successResponse([
                 'history' => $history,
                 'count' => $history->count(),
             ], 'Histórico de atividades');
-        } catch (Exception $e) {
-            error_log("🎮 [GAMIFICATION] Erro ao buscar histórico: " . $e->getMessage());
-            Response::error('Erro ao buscar histórico', 500);
+        } catch (Throwable $e) {
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[GAMIFICATION] Erro ao buscar historico: ' . $e->getMessage());
+
+            return Response::errorResponse('Erro ao buscar historico', 500);
         }
     }
 
-    /**
-     * Formatar nome da ação para exibição
-     */
     private function formatActionName(string $action): string
     {
         $names = [
@@ -376,12 +341,11 @@ class GamificationController extends BaseController
         return $names[$action] ?? ucwords(str_replace('_', ' ', strtolower($action)));
     }
 
-    /**
-     * Obter tempo relativo (ex: "há 2 horas")
-     */
     private function getRelativeTime(?Carbon $date): string
     {
-        if (!$date) return '';
+        if (!$date) {
+            return '';
+        }
 
         $now = Carbon::now();
         $diff = $date->diff($now);
@@ -391,15 +355,21 @@ class GamificationController extends BaseController
                 if ($diff->i === 0) {
                     return 'Agora';
                 }
-                return "Há {$diff->i} min";
+
+                return 'Há ' . $diff->i . ' min';
             }
-            return "Há {$diff->h}h";
-        } elseif ($diff->days === 1) {
-            return 'Ontem';
-        } elseif ($diff->days < 7) {
-            return "Há {$diff->days} dias";
-        } else {
-            return $date->format('d/m/Y');
+
+            return 'Há ' . $diff->h . 'h';
         }
+
+        if ($diff->days === 1) {
+            return 'Ontem';
+        }
+
+        if ($diff->days < 7) {
+            return 'Há ' . $diff->days . ' dias';
+        }
+
+        return $date->format('d/m/Y');
     }
 }

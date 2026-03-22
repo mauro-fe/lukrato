@@ -24,6 +24,7 @@ import {
 } from './state.js';
 
 import { SubcategoriasModule } from './subcategorias.js';
+import { apiDelete, apiGet, apiPost, apiPut, getErrorMessage } from '../shared/api.js';
 
 // =========================================================================
 // DATA LOADING
@@ -34,13 +35,7 @@ import { SubcategoriasModule } from './subcategorias.js';
  */
 async function loadCategorias() {
     try {
-        const response = await fetch(`${CONFIG.API_URL}categorias`);
-
-        if (!response.ok) {
-            throw new Error(`Erro HTTP: ${response.status}`);
-        }
-
-        const result = await response.json();
+        const result = await apiGet(`${CONFIG.API_URL}categorias`);
         STATE.lastLoadError = null;
 
         // Processar resposta
@@ -63,11 +58,11 @@ async function loadCategorias() {
             }
         }
 
-        // Não renderizar aqui — loadAll() faz após ambas cargas
+        // Nao renderizar aqui - loadAll() faz apos ambas cargas
         return true;
     } catch (error) {
-        console.error('❌ Erro ao carregar categorias:', error);
-        STATE.lastLoadError = 'Erro ao carregar categorias. Tente novamente.';
+        console.error('Erro ao carregar categorias:', error);
+        STATE.lastLoadError = getErrorMessage(error, 'Erro ao carregar categorias. Tente novamente.');
         return false;
     }
 }
@@ -79,15 +74,13 @@ async function loadOrcamentos() {
     try {
         const mes = STATE.mesSelecionado;
         const ano = STATE.anoSelecionado;
-        const response = await fetch(`${CONFIG.API_URL}financas/orcamentos?mes=${mes}&ano=${ano}`);
-        if (!response.ok) return false;
-        const result = await response.json();
+        const result = await apiGet(`${CONFIG.API_URL}financas/orcamentos`, { mes, ano });
         if (result.success !== false && Array.isArray(result.data)) {
             STATE.orcamentos = result.data;
         }
         return true;
     } catch (e) {
-        console.error('Erro ao carregar orçamentos:', e);
+        console.error('Erro ao carregar orcamentos:', e);
         return false;
     }
 }
@@ -340,25 +333,6 @@ function renderListState({ tipoLabel, totalCount, query }) {
             <p>Nenhuma categoria de ${escapeHtml(tipoLabel)} disponível neste momento.</p>
         </div>
     `;
-}
-
-async function parseApiFailure(response, fallbackMessage) {
-    const payload = await response.json().catch(() => null);
-    const validationMessage = payload?.errors && typeof payload.errors === 'object'
-        ? Object.values(payload.errors).reduce((found, value) => {
-            if (found) return found;
-            if (typeof value === 'string' && value.trim()) return value;
-            if (Array.isArray(value)) {
-                return value.find(item => typeof item === 'string' && item.trim()) || null;
-            }
-            return null;
-        }, null)
-        : null;
-
-    return {
-        payload,
-        message: validationMessage || payload?.message || fallbackMessage,
-    };
 }
 
 /**
@@ -983,22 +957,12 @@ async function moveCategoria(categoriaId, direction, bucketType = 'despesa') {
     [orderedIds[idx], orderedIds[swapIdx]] = [orderedIds[swapIdx], orderedIds[idx]];
 
     try {
-        const response = await fetch(`${CONFIG.API_URL}categorias/reorder`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': Utils.getCsrfToken() },
-            body: JSON.stringify({ ids: orderedIds }),
-        });
-
-        if (!response.ok) {
-            const error = await parseApiFailure(response, 'Erro ao reordenar categorias.');
-            throw new Error(error.message);
-        }
-
+        await apiPut(`${CONFIG.API_URL}categorias/reorder`, { ids: orderedIds });
         await loadCategorias();
         renderCategorias();
         SubcategoriasModule.initSubcategoriaEvents();
     } catch (error) {
-        toastError(error.message || 'Erro ao reordenar categorias.');
+        toastError(getErrorMessage(error, 'Erro ao reordenar categorias.'));
     }
 }
 
@@ -1041,41 +1005,12 @@ async function handleNovaCategoria(form) {
             icone: formData.get('icone') || null
         };
 
-        const response = await fetch(`${CONFIG.API_URL}categorias`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': Utils.getCsrfToken()
-            },
-            body: JSON.stringify(data)
-        });
+        const result = await apiPost(`${CONFIG.API_URL}categorias`, data);
 
-        if (!response.ok) {
-            const error = await parseApiFailure(response, 'Erro ao criar categoria.');
-            const limitInfo = error.payload?.errors;
-
-            if (response.status === 403 && limitInfo?.limit_reached && typeof Swal !== 'undefined') {
-                const decision = await Swal.fire({
-                    icon: 'info',
-                    title: 'Limite do plano atingido',
-                    text: error.message,
-                    showCancelButton: true,
-                    confirmButtonText: 'Ver planos',
-                    cancelButtonText: 'Fechar',
-                });
-
-                if (decision.isConfirmed && limitInfo.upgrade_url) {
-                    window.location.href = resolveAppUrl(limitInfo.upgrade_url);
-                }
-                return;
-            }
-
-            throw new Error(error.message);
+        if (result?.success === false) {
+            throw new Error(getErrorMessage({ data: result }, 'Erro ao criar categoria.'));
         }
 
-        const result = await response.json();
-
-        // 🎮 GAMIFICAÇÃO: Exibir conquistas se houver
         if (result.data?.gamification?.achievements && Array.isArray(result.data.gamification.achievements)) {
             if (typeof window.notifyMultipleAchievements === 'function') {
                 window.notifyMultipleAchievements(result.data.gamification.achievements);
@@ -1085,12 +1020,28 @@ async function handleNovaCategoria(form) {
         showSuccess('Categoria criada com sucesso!');
         form.reset();
         resetCreateForm();
-
         await loadAll();
-
     } catch (error) {
-        console.error('❌ Erro ao criar categoria:', error);
-        showError(error.message || 'Erro ao criar categoria. Tente novamente.');
+        const limitInfo = error?.data?.errors;
+
+        if (error?.status === 403 && limitInfo?.limit_reached && typeof Swal !== 'undefined') {
+            const decision = await Swal.fire({
+                icon: 'info',
+                title: 'Limite do plano atingido',
+                text: getErrorMessage(error, 'Limite do plano atingido.'),
+                showCancelButton: true,
+                confirmButtonText: 'Ver planos',
+                cancelButtonText: 'Fechar',
+            });
+
+            if (decision.isConfirmed && limitInfo.upgrade_url) {
+                window.location.href = resolveAppUrl(limitInfo.upgrade_url);
+            }
+            return;
+        }
+
+        console.error('Erro ao criar categoria:', error);
+        showError(getErrorMessage(error, 'Erro ao criar categoria. Tente novamente.'));
     } finally {
         setButtonBusy(submitButton, false);
     }
@@ -1144,34 +1095,17 @@ async function handleEditarCategoria(form) {
             icone: formData.get('icone') || null
         };
 
-        const response = await fetch(`${CONFIG.API_URL}categorias/${STATE.categoriaEmEdicao.id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': Utils.getCsrfToken()
-            },
-            body: JSON.stringify(data)
-        });
-
-        if (!response.ok) {
-            const error = await parseApiFailure(response, 'Erro ao editar categoria.');
-            throw new Error(error.message);
-        }
-
-        await response.json();
+        await apiPut(`${CONFIG.API_URL}categorias/${STATE.categoriaEmEdicao.id}`, data);
 
         showSuccess('Categoria atualizada com sucesso!');
 
-        // Fechar modal
         const modal = bootstrap.Modal.getInstance(document.getElementById('modalEditCategoria'));
         modal.hide();
 
-        // Recarregar tudo
         await loadAll();
-
     } catch (error) {
-        console.error('❌ Erro ao editar categoria:', error);
-        showError(error.message || 'Erro ao editar categoria. Tente novamente.');
+        console.error('Erro ao editar categoria:', error);
+        showError(getErrorMessage(error, 'Erro ao editar categoria. Tente novamente.'));
     } finally {
         setButtonBusy(submitButton, false);
     }
@@ -1185,7 +1119,7 @@ async function excluirCategoria(id) {
     if (!categoria || !categoria.user_id || categoria.is_seeded) return;
 
     const confirmacao = await Swal.fire({
-        title: 'Confirmar exclusão',
+        title: 'Confirmar exclusao',
         html: `Deseja realmente excluir a categoria <strong>${categoria.nome}</strong>?`,
         icon: 'warning',
         showCancelButton: true,
@@ -1198,66 +1132,45 @@ async function excluirCategoria(id) {
     if (!confirmacao.isConfirmed) return;
 
     try {
-        const response = await fetch(`${CONFIG.API_URL}categorias/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': Utils.getCsrfToken()
-            },
-            body: JSON.stringify({})
-        });
-
-        if (!response.ok) {
-            const error = await parseApiFailure(response, 'Erro ao excluir categoria.');
-
-            if (response.status === 422 && error.payload?.errors?.confirm_delete) {
-                const counts = error.payload.errors.counts || {};
-                const forceDelete = await Swal.fire({
-                    title: 'Categoria com vínculos',
-                    html: `
-                        <p>Esta categoria ainda possui itens vinculados.</p>
-                        <ul class="swal2-html-container" style="text-align:left; margin:1rem 0 0;">
-                            <li>${counts.subcategorias || 0} subcategoria(s)</li>
-                            <li>${counts.lancamentos || 0} lançamento(s)</li>
-                        </ul>
-                        <p>Se continuar, as subcategorias serão removidas e os lançamentos ficarão sem categoria.</p>
-                    `,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#dc3545',
-                    confirmButtonText: 'Excluir mesmo assim',
-                    cancelButtonText: 'Cancelar'
-                });
-
-                if (!forceDelete.isConfirmed) return;
-
-                const forcedResponse = await fetch(`${CONFIG.API_URL}categorias/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-Token': Utils.getCsrfToken()
-                    },
-                    body: JSON.stringify({ force: true })
-                });
-
-                if (!forcedResponse.ok) {
-                    const forcedError = await parseApiFailure(forcedResponse, 'Erro ao excluir categoria.');
-                    throw new Error(forcedError.message);
-                }
-            } else {
-                throw new Error(error.message);
-            }
-        }
-
-        showSuccess('Categoria excluída com sucesso!');
-
-        // Recarregar tudo
-        await loadAll();
-
+        await apiDelete(`${CONFIG.API_URL}categorias/${id}`, {});
     } catch (error) {
-        console.error('❌ Erro ao excluir categoria:', error);
-        showError(error.message || 'Erro ao excluir categoria. Pode haver lançamentos vinculados.');
+        if (error?.status === 422 && error?.data?.errors?.confirm_delete) {
+            const counts = error.data.errors.counts || {};
+            const forceDelete = await Swal.fire({
+                title: 'Categoria com vinculos',
+                html: `
+                    <p>Esta categoria ainda possui itens vinculados.</p>
+                    <ul class="swal2-html-container" style="text-align:left; margin:1rem 0 0;">
+                        <li>${counts.subcategorias || 0} subcategoria(s)</li>
+                        <li>${counts.lancamentos || 0} lancamento(s)</li>
+                    </ul>
+                    <p>Se continuar, as subcategorias serao removidas e os lancamentos ficarao sem categoria.</p>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                confirmButtonText: 'Excluir mesmo assim',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (!forceDelete.isConfirmed) return;
+
+            try {
+                await apiDelete(`${CONFIG.API_URL}categorias/${id}`, { force: true });
+            } catch (forcedError) {
+                console.error('Erro ao excluir categoria:', forcedError);
+                showError(getErrorMessage(forcedError, 'Erro ao excluir categoria. Pode haver lancamentos vinculados.'));
+                return;
+            }
+        } else {
+            console.error('Erro ao excluir categoria:', error);
+            showError(getErrorMessage(error, 'Erro ao excluir categoria. Pode haver lancamentos vinculados.'));
+            return;
+        }
     }
+
+    showSuccess('Categoria excluida com sucesso!');
+    await loadAll();
 }
 
 // =========================================================================
@@ -1361,30 +1274,19 @@ async function salvarOrcamento(categoriaId, valorLimite) {
         const mes = STATE.mesSelecionado;
         const ano = STATE.anoSelecionado;
 
-        const response = await fetch(`${CONFIG.API_URL}financas/orcamentos`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': Utils.getCsrfToken()
-            },
-            body: JSON.stringify({
-                categoria_id: categoriaId,
-                valor_limite: valorLimite,
-                mes: mes,
-                ano: ano
-            })
+        await apiPost(`${CONFIG.API_URL}financas/orcamentos`, {
+            categoria_id: categoriaId,
+            valor_limite: valorLimite,
+            mes,
+            ano
         });
-
-        if (!response.ok) {
-            throw new Error('Erro ao salvar orçamento');
-        }
 
         showSuccess('Limite atualizado!');
         await loadOrcamentos();
         renderCategorias();
     } catch (e) {
-        console.error('Erro ao salvar orçamento:', e);
-        showError('Erro ao salvar limite. Tente novamente.');
+        console.error('Erro ao salvar orcamento:', e);
+        showError(getErrorMessage(e, 'Erro ao salvar limite. Tente novamente.'));
     }
 }
 
@@ -1393,24 +1295,14 @@ async function salvarOrcamento(categoriaId, valorLimite) {
  */
 async function removerOrcamento(orcamentoId) {
     try {
-        const response = await fetch(`${CONFIG.API_URL}financas/orcamentos/${orcamentoId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': Utils.getCsrfToken()
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error('Erro ao remover orçamento');
-        }
+        await apiDelete(`${CONFIG.API_URL}financas/orcamentos/${orcamentoId}`);
 
         showSuccess('Limite removido!');
         await loadOrcamentos();
         renderCategorias();
     } catch (e) {
-        console.error('Erro ao remover orçamento:', e);
-        showError('Erro ao remover limite. Tente novamente.');
+        console.error('Erro ao remover orcamento:', e);
+        showError(getErrorMessage(e, 'Erro ao remover limite. Tente novamente.'));
     }
 }
 

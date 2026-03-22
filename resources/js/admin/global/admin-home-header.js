@@ -1,5 +1,7 @@
 ﻿// ============================================================================
 // HEADER.JS - Sistema de Header e Sidebar
+import { apiGet } from '../shared/api.js';
+
 // ============================================================================
 // Comportamentos do HEADER: 
 // - Seletor de conta
@@ -98,23 +100,7 @@
         const url = baseUrl.replace(/\/?$/, '/') + path.replace(/^\/?/, '');
 
         try {
-            const response = await fetch(url, {
-                credentials: 'include',
-                ...init
-            });
-
-            let json = null;
-            try {
-                json = await response.json();
-            } catch (e) {
-                throw new Error('Resposta inválida do servidor');
-            }
-
-            if (!response.ok) {
-                const msg = json?.message || `Erro ${response.status}`;
-                throw new Error(msg);
-            }
-
+            const json = await apiGet(url);
             if (json && !json.success) {
                 throw new Error(json?.message || 'Erro na requisição');
             }

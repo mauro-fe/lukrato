@@ -1,10 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Api\Lancamentos;
 
 use Application\Controllers\BaseController;
 use Application\Core\Response;
-use Application\Lib\Auth;
 use Application\Models\Usuario;
 use Application\Services\Lancamento\LancamentoExportService;
 use InvalidArgumentException;
@@ -13,59 +14,46 @@ class ExportController extends BaseController
 {
     private LancamentoExportService $exportService;
 
-    public function __construct()
+    public function __construct(?LancamentoExportService $exportService = null)
     {
         parent::__construct();
-        $this->exportService = new LancamentoExportService();
+        $this->exportService = $exportService ?? new LancamentoExportService();
     }
 
-    public function __invoke(): void
+    public function __invoke(): Response
     {
-        $userId = Auth::id();
-        if (!$userId) {
-            Response::error('Nao autenticado', 401);
-            return;
-        }
-
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
 
         $user = Usuario::find($userId);
         if (!$user || !$user->isPro()) {
-            Response::error('Exportação de lançamentos é um recurso exclusivo do plano PRO.', 403);
-            return;
+            return Response::errorResponse('Exportação de lançamentos é um recurso exclusivo do plano PRO.', 403);
         }
 
         $filters = [
-            'month'              => $_GET['month'] ?? null,
-            'start_date'         => $_GET['start_date'] ?? null,
-            'end_date'           => $_GET['end_date'] ?? null,
-            'tipo'               => $_GET['tipo'] ?? null,
-            'categoria_id'       => $_GET['categoria_id'] ?? null,
-            'account_id'         => $_GET['account_id'] ?? null,
-            'include_transfers'  => $_GET['include_transfers'] ?? null,
-            'format'             => $_GET['format'] ?? null,
+            'month' => $_GET['month'] ?? null,
+            'start_date' => $_GET['start_date'] ?? null,
+            'end_date' => $_GET['end_date'] ?? null,
+            'tipo' => $_GET['tipo'] ?? null,
+            'categoria_id' => $_GET['categoria_id'] ?? null,
+            'account_id' => $_GET['account_id'] ?? null,
+            'include_transfers' => $_GET['include_transfers'] ?? null,
+            'format' => $_GET['format'] ?? null,
         ];
 
         try {
             $result = $this->exportService->export($userId, $filters);
         } catch (InvalidArgumentException $e) {
-            Response::validationError(['export' => $e->getMessage()]);
-            return;
+            return $this->domainErrorResponse($e, 'Parametros de exportacao invalidos.', 422);
         } catch (\Throwable) {
-            Response::error('Erro ao gerar exportacao.', 500);
-            return;
+            return Response::errorResponse('Erro ao gerar exportacao.', 500);
         }
 
-        if (ob_get_length() > 0) {
-            ob_end_clean();
-        }
-
-        header('Content-Type: ' . $result['mime']);
-        header('Content-Disposition: attachment; filename="' . $result['filename'] . '"');
-        header('Content-Length: ' . (string) mb_strlen($result['binary'], '8bit'));
-        echo $result['binary'];
-        exit;
+        return (new Response())
+            ->setStatusCode(200)
+            ->header('Content-Type', $result['mime'])
+            ->header('Content-Disposition', 'attachment; filename="' . $result['filename'] . '"')
+            ->header('Content-Length', (string) mb_strlen($result['binary'], '8bit'))
+            ->setContent($result['binary'])
+            ->clearOutputBuffer();
     }
 }

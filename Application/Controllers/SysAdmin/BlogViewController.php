@@ -3,25 +3,19 @@
 namespace Application\Controllers\SysAdmin;
 
 use Application\Controllers\BaseController;
-use Application\Lib\Auth;
+use Application\Core\Response;
 
 class BlogViewController extends BaseController
 {
-    public function index(): void
+    public function index(): Response
     {
-        $this->requireAuth();
-        $user = Auth::user();
+        $this->requireAdminUser();
 
-        if (!$user || $user->is_admin != 1) {
-            $this->redirect('login');
-            return;
-        }
-
-        $this->render(
+        return $this->renderResponse(
             'admin/sysadmin/blog',
             [
-                'pageTitle'      => 'Blog - Gerenciar Artigos',
-                'menu'           => 'super_admin',
+                'pageTitle' => 'Blog - Gerenciar Artigos',
+                'menu' => 'super_admin',
                 'skipPlanLimits' => true,
             ],
             'admin/partials/header',

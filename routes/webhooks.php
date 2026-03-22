@@ -8,20 +8,20 @@ use Application\Core\Router;
  * ============================================
  * WEBHOOKS DE TERCEIROS
  * ============================================
- * Estas rotas NÃO têm autenticação de sessão.
- * A validação é feita via assinatura/token específico.
+ * Estas rotas nao tem autenticacao de sessao.
+ * A validacao e feita via assinatura/token especifico.
  */
 
 // Asaas (Gateway de pagamento)
 Router::add('POST', '/api/webhook/asaas', 'Api\\Billing\\AsaasWebhookController@receive');
 
-// GET apenas para desenvolvimento (retorna 404 em produção)
+// GET apenas para desenvolvimento (retorna 404 em producao)
 if (!defined('APP_ENV') || APP_ENV !== 'production') {
     Router::add('GET', '/api/webhook/asaas', 'Api\\Billing\\AsaasWebhookController@test');
 }
 
 // WhatsApp (Meta Cloud API)
-Router::add('GET',  '/api/webhook/whatsapp', 'Api\\AI\\WhatsAppWebhookController@verify');
+Router::add('GET', '/api/webhook/whatsapp', 'Api\\AI\\WhatsAppWebhookController@verify');
 Router::add('POST', '/api/webhook/whatsapp', 'Api\\AI\\WhatsAppWebhookController@receive');
 
 // Telegram (Bot API)
@@ -29,32 +29,12 @@ Router::add('POST', '/api/webhook/telegram', 'Api\\AI\\TelegramWebhookController
 
 /**
  * ============================================
- * SCHEDULER / CRON JOBS VIA HTTP
+ * OPERACOES INTERNAS
  * ============================================
- * Rotas para executar tarefas agendadas via HTTP.
- * Ideal para ambientes hospedados sem suporte a cron nativo.
- * Autenticação via header X-Scheduler-Token ou query param ?token=
+ * Tarefas operacionais/scheduler nao ficam mais expostas por HTTP.
+ * A entrada oficial e o runner CLI interno:
+ *
+ *   php cli/run_scheduler.php list
+ *   php cli/run_scheduler.php run all
+ *   php cli/run_scheduler.php run dispatch-reminders
  */
-
-// Health check (público)
-Router::add('GET', '/api/scheduler/health', 'Api\\Billing\\SchedulerController@health');
-
-// Tarefas agendadas (requerem SCHEDULER_TOKEN)
-Router::add('GET',  '/api/scheduler/tasks', 'Api\\Billing\\SchedulerController@tasks');
-Router::add('GET',  '/api/scheduler/debug', 'Api\\Billing\\SchedulerController@debug');
-Router::add('GET',  '/api/scheduler/dispatch-reminders', 'Api\\Billing\\SchedulerController@dispatchReminders');
-Router::add('POST', '/api/scheduler/dispatch-reminders', 'Api\\Billing\\SchedulerController@dispatchReminders');
-Router::add('GET',  '/api/scheduler/dispatch-birthdays', 'Api\\Billing\\SchedulerController@dispatchBirthdays');
-Router::add('POST', '/api/scheduler/dispatch-birthdays', 'Api\\Billing\\SchedulerController@dispatchBirthdays');
-Router::add('GET',  '/api/scheduler/dispatch-fatura-reminders', 'Api\\Billing\\SchedulerController@dispatchFaturaReminders');
-Router::add('POST', '/api/scheduler/dispatch-fatura-reminders', 'Api\\Billing\\SchedulerController@dispatchFaturaReminders');
-Router::add('GET',  '/api/scheduler/process-expired-subscriptions', 'Api\\Billing\\SchedulerController@processExpiredSubscriptions');
-Router::add('POST', '/api/scheduler/process-expired-subscriptions', 'Api\\Billing\\SchedulerController@processExpiredSubscriptions');
-Router::add('GET',  '/api/scheduler/generate-recurring-lancamentos', 'Api\\Billing\\SchedulerController@generateRecurringLancamentos');
-Router::add('POST', '/api/scheduler/generate-recurring-lancamentos', 'Api\\Billing\\SchedulerController@generateRecurringLancamentos');
-Router::add('GET',  '/api/scheduler/dispatch-scheduled-campaigns', 'Api\\Billing\\SchedulerController@dispatchScheduledCampaigns');
-Router::add('POST', '/api/scheduler/dispatch-scheduled-campaigns', 'Api\\Billing\\SchedulerController@dispatchScheduledCampaigns');
-
-// Rota única para executar todas as tarefas do cron
-Router::add('GET',  '/api/rota-do-cron', 'Api\\Billing\\SchedulerController@runAll');
-Router::add('POST', '/api/rota-do-cron', 'Api\\Billing\\SchedulerController@runAll');

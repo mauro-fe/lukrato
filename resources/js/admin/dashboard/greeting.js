@@ -1,3 +1,5 @@
+import { apiGet } from '../shared/api.js';
+
 /**
  * Dashboard Greeting Component
  * Saudação contextual baseada em hora, com insight dinâmico
@@ -70,10 +72,7 @@ class DashboardGreeting {
 
   async loadInsight() {
     try {
-      const response = await fetch(`${window.BASE_URL || '/'}api/dashboard/greeting-insight`);
-      if (!response.ok) throw new Error('Failed to fetch insight');
-
-      const data = await response.json();
+      const data = await apiGet(`${window.BASE_URL || '/'}api/dashboard/greeting-insight`);
 
       if (data.success && data.data) {
         this.displayInsight(data.data);

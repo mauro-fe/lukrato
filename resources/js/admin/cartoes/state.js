@@ -3,6 +3,7 @@
  * Extracted from cartoes-manager.js (monolith → modules)
  */
 
+import { getCSRFToken as getStoredCSRFToken, refreshCSRFToken } from '../shared/api.js';
 import { formatMoney, parseMoney, escapeHtml, debounce } from '../shared/utils.js';
 import { refreshIcons } from '../shared/ui.js';
 
@@ -38,25 +39,14 @@ export const Utils = {
      */
     async getCSRFToken() {
         try {
-            // Tentar buscar token fresco da API
-            const response = await fetch('/lukrato/public/api/csrf-token.php');
-            if (response.ok) {
-                const data = await response.json();
-                if (data.token) {
-                    // Atualizar meta tag
-                    const metaTag = document.querySelector('meta[name="csrf-token"]');
-                    if (metaTag) {
-                        metaTag.setAttribute('content', data.token);
-                    }
-                    return data.token;
-                }
-            }
+            const token = await refreshCSRFToken();
+            if (token) return token;
         } catch (error) {
             console.warn('Erro ao buscar token fresco, usando fallback:', error);
         }
 
         // Fallback: tentar meta tag
-        const metaToken = document.querySelector('meta[name="csrf-token"]')?.content;
+        const metaToken = getStoredCSRFToken();
         if (metaToken) return metaToken;
 
         if (window.LK?.getCSRF) return window.LK.getCSRF();

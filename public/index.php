@@ -2,67 +2,75 @@
 
 declare(strict_types=1);
 
-// Configurações iniciais
 date_default_timezone_set('America/Sao_Paulo');
 
-// Definir caminhos
 define('BASE_PATH', dirname(__DIR__));
 define('PUBLIC_PATH', realpath(__DIR__));
 define('ASSETS_URL', '/lukrato/public/assets/');
 
-// Verificar autoload do Composer
+if (!function_exists('emitGenericBootstrapFailure')) {
+    /**
+     * Emite resposta genérica de bootstrap sem vazar detalhes internos.
+     */
+    function emitGenericBootstrapFailure(string $logMessage, ?Throwable $exception = null): never
+    {
+        http_response_code(500);
+
+        if (class_exists(\Application\Services\Infrastructure\LogService::class)) {
+            $errorId = bin2hex(random_bytes(8));
+            \Application\Services\Infrastructure\LogService::safeErrorLog("[bootstrap_error_id:{$errorId}] {$logMessage}");
+
+            if ($exception !== null) {
+                \Application\Services\Infrastructure\LogService::safeErrorLog(sprintf(
+                    '[bootstrap_error_id:%s] %s in %s:%d',
+                    $errorId,
+                    $exception->getMessage(),
+                    $exception->getFile(),
+                    $exception->getLine()
+                ));
+            }
+        }
+
+        echo 'Erro interno do servidor. Por favor, tente novamente mais tarde.';
+        exit;
+    }
+}
+
 $autoloadPath = BASE_PATH . '/vendor/autoload.php';
 if (!file_exists($autoloadPath)) {
     http_response_code(500);
-    die('Erro: Execute "composer install" para instalar as dependências.');
+    echo 'Erro interno do servidor. Por favor, tente novamente mais tarde.';
+    exit;
 }
 require_once $autoloadPath;
 
-// Carregar variáveis de ambiente
 $envPath = BASE_PATH . '/.env';
 if (!file_exists($envPath)) {
-    http_response_code(500);
-    die('Erro: Arquivo .env não encontrado. Copie .env.example para .env e configure.');
+    emitGenericBootstrapFailure('Arquivo .env ausente durante bootstrap.');
 }
 
 try {
     $dotenv = Dotenv\Dotenv::createImmutable(BASE_PATH);
     $dotenv->load();
 
-    // Validar variáveis obrigatórias em produção
     $env = $_ENV['APP_ENV'] ?? 'production';
     if ($env === 'production') {
         $dotenv->required(['APP_NAME', 'DB_HOST', 'DB_NAME', 'DB_USER'])->notEmpty();
     }
 } catch (Exception $e) {
-    http_response_code(500);
-    die('Erro ao carregar configurações: ' . $e->getMessage());
+    emitGenericBootstrapFailure('Falha ao carregar configurações de ambiente.', $e);
 }
 
-// Configurações de sessão
 ini_set('session.cookie_lifetime', '0');
+ini_set('session.use_strict_mode', '1');
 ini_set('session.use_only_cookies', '1');
 ini_set('session.cookie_httponly', '1');
 ini_set('session.cookie_secure', $env === 'production' ? '1' : '0');
 ini_set('session.cookie_samesite', 'Lax');
 
-// Inicializar aplicação
 try {
     $app = new Application\Bootstrap\Application();
     $app->run();
 } catch (Throwable $e) {
-    http_response_code(500);
-
-    // Em desenvolvimento, mostrar erro detalhado
-    if (($_ENV['APP_DEBUG'] ?? false) && $env !== 'production') {
-        echo '<h1>Erro na Aplicação</h1>';
-        echo '<pre>' . htmlspecialchars($e->getMessage()) . '</pre>';
-        echo '<pre>' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
-    } else {
-        // Em produção, mensagem genérica
-        echo 'Erro interno do servidor. Por favor, tente novamente mais tarde.';
-
-        // Log do erro
-        error_log('Application Error: ' . $e->getMessage());
-    }
+    emitGenericBootstrapFailure('Falha não tratada no bootstrap da aplicação.', $e);
 }

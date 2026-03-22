@@ -40,7 +40,7 @@ class TelegramFileDownloader
     public function getFilePath(string $fileId): ?string
     {
         if ($this->token === '') {
-            error_log('[TelegramFileDownloader] TELEGRAM_BOT_TOKEN não configurado.');
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[TelegramFileDownloader] TELEGRAM_BOT_TOKEN não configurado.');
             return null;
         }
 
@@ -53,13 +53,13 @@ class TelegramFileDownloader
             $result = json_decode($response->getBody()->getContents(), true);
 
             if (!($result['ok'] ?? false)) {
-                error_log('[TelegramFileDownloader] getFile falhou: ' . json_encode($result));
+                \Application\Services\Infrastructure\LogService::safeErrorLog('[TelegramFileDownloader] getFile falhou: ' . json_encode($result));
                 return null;
             }
 
             return $result['result']['file_path'] ?? null;
         } catch (GuzzleException $e) {
-            error_log('[TelegramFileDownloader] Erro em getFile: ' . $e->getMessage());
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[TelegramFileDownloader] Erro em getFile: ' . $e->getMessage());
             return null;
         }
     }
@@ -80,13 +80,13 @@ class TelegramFileDownloader
             $content = $response->getBody()->getContents();
 
             if (strlen($content) > self::MAX_FILE_SIZE) {
-                error_log('[TelegramFileDownloader] Arquivo excede limite de 20MB.');
+                \Application\Services\Infrastructure\LogService::safeErrorLog('[TelegramFileDownloader] Arquivo excede limite de 20MB.');
                 return null;
             }
 
             return $content;
         } catch (GuzzleException $e) {
-            error_log('[TelegramFileDownloader] Erro ao baixar arquivo: ' . $e->getMessage());
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[TelegramFileDownloader] Erro ao baixar arquivo: ' . $e->getMessage());
             return null;
         }
     }

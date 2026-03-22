@@ -18,16 +18,57 @@
 // which masked real bugs. Now only suppresses messages matching Bootstrap's
 // specific backdrop-related error patterns.
 (function () {
+    if (window.__LK_PRODUCTION_CONSOLE_GUARD__) {
+        return;
+    }
+
+    window.__LK_PRODUCTION_CONSOLE_GUARD__ = true;
+
+    const isLocalDebugEnvironment = () => {
+        const host = String(window.location.hostname || '').toLowerCase();
+        return host === 'localhost'
+            || host === '127.0.0.1'
+            || host === '::1'
+            || host.endsWith('.local')
+            || host.endsWith('.test');
+    };
+
+    const sanitizeConsoleArgs = (args, fallbackLabel) => {
+        const strings = args
+            .filter((arg) => typeof arg === 'string' && arg.trim() !== '')
+            .map((arg) => arg.trim());
+
+        if (strings.length > 0) {
+            return strings.join(' | ');
+        }
+
+        const status = args.find((arg) => typeof arg?.status === 'number')?.status;
+        return status ? `${fallbackLabel} (status=${status})` : fallbackLabel;
+    };
+
     const isBootstrapBackdropError = (msg) =>
         typeof msg === 'string' &&
         msg.includes('backdrop') &&
         (msg.includes('Modal') || msg.includes('modal') || msg.includes('dispose') || msg.includes('hide'));
 
-    const originalError = console.error;
+    const originalError = console.error.bind(console);
+    const originalWarn = console.warn.bind(console);
     console.error = function (...args) {
         const message = args.join(' ');
         if (isBootstrapBackdropError(message)) return;
-        originalError.apply(console, args);
+        if (!isLocalDebugEnvironment()) {
+            originalError(sanitizeConsoleArgs(args, 'Erro inesperado'));
+            return;
+        }
+        originalError(...args);
+    };
+
+    console.warn = function (...args) {
+        if (!isLocalDebugEnvironment()) {
+            originalWarn(sanitizeConsoleArgs(args, 'Aviso inesperado'));
+            return;
+        }
+        originalWarn(...args);
     };
 
     window.addEventListener('error', function (event) {

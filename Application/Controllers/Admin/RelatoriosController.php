@@ -3,21 +3,18 @@
 namespace Application\Controllers\Admin;
 
 use Application\Controllers\BaseController;
-use Application\Lib\Auth;
+use Application\Core\Response;
 use Application\Models\Usuario;
-
 
 class RelatoriosController extends BaseController
 {
-
-    public function view(): void
+    public function view(): Response
     {
-        $this->requireAuth();
-
-        $user = Usuario::find(Auth::id());
+        $userId = $this->requireUserId();
+        $user = Usuario::find($userId);
         $isPro = $user ? $user->isPro() : false;
 
-        $this->render(
+        return $this->renderResponse(
             'admin/relatorios/index',
             [
                 'pageTitle' => 'Relatórios',

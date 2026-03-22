@@ -9,14 +9,13 @@
  * ============================================================================
  */
 
-import { getCSRFToken, getBaseUrl } from '../shared/api.js';
+import { apiGet, apiPost, getBaseUrl, getErrorMessage } from '../shared/api.js';
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 
 const modalEl = document.getElementById('billing-modal');
 const ds = modalEl?.dataset || {};
 const BASE_URL = getBaseUrl();
-const CSRF_TOKEN = getCSRFToken();
 const userDataComplete = {
     pix: ds.pixComplete === '1',
     boleto: ds.boletoComplete === '1',
@@ -135,11 +134,7 @@ async function applyCoupon() {
     couponApplyBtn.querySelector('span').textContent = 'Validando...';
 
     try {
-        const resp = await fetch(`${BASE_URL}api/cupons/validar?codigo=${encodeURIComponent(code)}`, {
-            credentials: 'include',
-            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
-        });
-        const json = await resp.json();
+        const json = await apiGet('api/cupons/validar', { codigo: code });
 
         if (json.success && json.data?.cupom) {
             const c = json.data.cupom;
@@ -370,8 +365,7 @@ function switchPaymentMethod(method) {
 
 async function checkPendingPix() {
     try {
-        const resp = await fetch(`${BASE_URL}premium/pending-pix`, { credentials: 'include', headers: { 'Accept': 'application/json' } });
-        const json = await resp.json();
+        const json = await apiGet('premium/pending-pix');
         if (json.success && json.data?.hasPending && json.data?.pix) {
             showPendingPaymentSection({
                 billingType: 'PIX', createdAt: json.data.createdAt || new Date().toLocaleString('pt-BR'),
@@ -408,8 +402,7 @@ function startPaymentPolling(paymentId) {
     if (paymentPollingInterval) clearInterval(paymentPollingInterval);
     paymentPollingInterval = setInterval(async () => {
         try {
-            const resp = await fetch(`${BASE_URL}premium/check-payment/${paymentId}`, { credentials: 'include', headers: { 'Accept': 'application/json' } });
-            const json = await resp.json();
+            const json = await apiGet(`premium/check-payment/${paymentId}`);
             if (json.success && json.data?.paid) {
                 clearInterval(paymentPollingInterval);
                 window.Swal?.fire('Pagamento confirmado! 🎉', 'Seu plano foi ativado com sucesso.', 'success').then(() => window.location.reload());
@@ -426,8 +419,7 @@ function stopPaymentPolling() {
 
 async function checkPendingPayment() {
     try {
-        const resp = await fetch(`${BASE_URL}premium/pending-payment`, { credentials: 'include', headers: { 'Accept': 'application/json' } });
-        const json = await resp.json();
+        const json = await apiGet('premium/pending-payment');
         if (json.success && json.data?.hasPending) {
             hasPendingPayment = true;
             pendingPaymentData = json.data;
@@ -495,11 +487,7 @@ async function cancelPendingPayment() {
         cancelPendingBtn.disabled = true;
         cancelPendingBtn.innerHTML = '<i data-lucide="loader-2" class="icon-spin"></i> <span>Cancelando...</span>';
 
-        const resp = await fetch(`${BASE_URL}premium/cancel-pending`, {
-            method: 'POST', credentials: 'include',
-            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-Token': CSRF_TOKEN }
-        });
-        const json = await resp.json();
+        const json = await apiPost('premium/cancel-pending');
 
         if (json.success) {
             hasPendingPayment = false; pendingPaymentData = null;
@@ -509,7 +497,7 @@ async function cancelPendingPayment() {
             throw new Error(json.message || 'Erro ao cancelar pagamento');
         }
     } catch (err) {
-        window.Swal?.fire('Erro', err.message || 'Não foi possível cancelar o pagamento.', 'error');
+        window.Swal?.fire('Erro', getErrorMessage(err, 'Nao foi possivel cancelar o pagamento.'), 'error');
     } finally {
         cancelPendingBtn.disabled = false;
         cancelPendingBtn.innerHTML = '<i data-lucide="x-circle"></i> <span>Cancelar e escolher outro método</span>';
@@ -683,13 +671,8 @@ form?.addEventListener('submit', async (e) => {
             Swal.fire({ title: loadingTitle, text: 'Aguarde enquanto processamos sua solicitação.', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
         }
 
-        const resp = await fetch(`${BASE_URL}premium/checkout`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': CSRF_TOKEN },
-            credentials: 'include', body: JSON.stringify(payload)
-        });
-        const json = await resp.json().catch(() => null);
-        if (!resp.ok || !json || !json.success) throw new Error(json?.message || 'Não foi possível processar a solicitação.');
+        const json = await apiPost('premium/checkout', payload);
+        if (!json || !json.success) throw new Error('Nao foi possivel processar a solicitacao.');
 
         Swal?.close();
 
@@ -716,9 +699,12 @@ form?.addEventListener('submit', async (e) => {
     } catch (error) {
         console.error('[Checkout] Erro:', error);
         Swal?.close();
-        window.Swal?.fire('Erro', error.message || 'Erro ao processar. Tente novamente.', 'error');
+        window.Swal?.fire('Erro', getErrorMessage(error, 'Erro ao processar. Tente novamente.'), 'error');
     } finally {
         submitBtn.disabled = false;
         updateSubmitButton();
     }
 });
+
+
+

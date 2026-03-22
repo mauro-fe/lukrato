@@ -1,149 +1,113 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Api\Referral;
 
 use Application\Controllers\BaseController;
 use Application\Core\Response;
-use Application\Services\Referral\ReferralService;
 use Application\Lib\Auth;
+use Application\Services\Referral\ReferralService;
 use Exception;
 
 class ReferralController extends BaseController
 {
     private ReferralService $referralService;
 
-    public function __construct()
+    public function __construct(?ReferralService $referralService = null)
     {
         parent::__construct();
-        $this->referralService = new ReferralService();
+        $this->referralService = $referralService ?? new ReferralService();
     }
 
-    /**
-     * GET /api/referral/stats
-     * Retorna as estatísticas de indicação do usuário logado
-     */
-    public function getStats(): void
+    public function getStats(): Response
     {
-        $this->requireAuthApi();
-
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        $user = $this->requireApiUserAndReleaseSessionOrFail();
 
         try {
-            $user = Auth::user();
-
-            // Garante que o usuário tenha um código de indicação
             $this->referralService->ensureUserHasReferralCode($user);
-
             $stats = $this->referralService->getUserStats($user);
 
-            Response::success($stats, 'Estatísticas de indicação');
+            return Response::successResponse($stats, 'Estatísticas de indicação');
         } catch (Exception $e) {
-            Response::error('Erro ao carregar estatísticas: ' . $e->getMessage(), 500);
+            return $this->internalErrorResponse($e, 'Erro ao carregar estatisticas.');
         }
     }
 
-    /**
-     * GET /api/referral/validate?code=XXXXXXXX
-     * Valida um código de indicação (usado no cadastro)
-     */
-    public function validateCode(): void
+    public function validateCode(): Response
     {
         try {
             $code = $_GET['code'] ?? '';
 
             if (empty($code)) {
-                Response::error('Código de indicação não informado', 400);
-                return;
+                return Response::errorResponse('Código de indicação não informado', 400);
             }
 
-            // Se estiver logado, não pode usar seu próprio código
             $excludeUserId = Auth::isLoggedIn() ? Auth::id() : null;
-
             $result = $this->referralService->validateCode($code, $excludeUserId);
 
             if ($result['valid']) {
-                Response::success([
+                return Response::successResponse([
                     'valid' => true,
                     'referrer_name' => $result['referrer']->nome,
                     'reward_days' => ReferralService::REFERRED_REWARD_DAYS,
                 ], $result['message']);
-            } else {
-                Response::error($result['message'], 400);
             }
+
+            return Response::errorResponse($result['message'], 400);
         } catch (Exception $e) {
-            Response::error('Erro ao validar código: ' . $e->getMessage(), 500);
+            return $this->internalErrorResponse($e, 'Erro ao validar codigo.');
         }
     }
 
-    /**
-     * GET /api/referral/code
-     * Retorna o código de indicação do usuário logado
-     */
-    public function getCode(): void
+    public function getCode(): Response
     {
-        $this->requireAuthApi();
-
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        $user = $this->requireApiUserAndReleaseSessionOrFail();
 
         try {
-            $user = Auth::user();
-
-            // Garante que o usuário tenha um código de indicação
             $code = $this->referralService->ensureUserHasReferralCode($user);
             $link = $this->referralService->getReferralLink($user);
 
-            Response::success([
+            return Response::successResponse([
                 'code' => $code,
                 'link' => $link,
                 'reward_days' => ReferralService::REFERRER_REWARD_DAYS,
-            ], 'Código de indicação');
+            ], 'Codigo de indicacao');
         } catch (Exception $e) {
-            Response::error('Erro ao obter código: ' . $e->getMessage(), 500);
+            return $this->internalErrorResponse($e, 'Erro ao obter codigo.');
         }
     }
 
-    /**
-     * GET /api/referral/ranking
-     * Retorna o ranking de indicações
-     */
-    public function getRanking(): void
+    public function getRanking(): Response
     {
-        $this->requireAuthApi();
-
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        $this->requireApiUserIdAndReleaseSessionOrFail();
 
         try {
-            $limit = min(intval($_GET['limit'] ?? 10), 50);
+            $limit = min((int) ($_GET['limit'] ?? 10), 50);
             $ranking = $this->referralService->getReferralRanking($limit);
 
-            Response::success([
+            return Response::successResponse([
                 'ranking' => $ranking,
-            ], 'Ranking de indicações');
+            ], 'Ranking de indicacoes');
         } catch (Exception $e) {
-            Response::error('Erro ao carregar ranking: ' . $e->getMessage(), 500);
+            return $this->internalErrorResponse($e, 'Erro ao carregar ranking.');
         }
     }
 
-    /**
-     * GET /api/referral/info
-     * Retorna informações gerais sobre o programa de indicação
-     */
-    public function getInfo(): void
+    public function getInfo(): Response
     {
         try {
-            Response::success([
+            return Response::successResponse([
                 'referrer_reward_days' => ReferralService::REFERRER_REWARD_DAYS,
                 'referred_reward_days' => ReferralService::REFERRED_REWARD_DAYS,
-                'description' => 'Indique amigos para o Lukrato e ganhe ' . ReferralService::REFERRER_REWARD_DAYS . ' dias de PRO! Seu amigo também ganha ' . ReferralService::REFERRED_REWARD_DAYS . ' dias grátis.',
-            ], 'Informações do programa de indicação');
+                'description' => 'Indique amigos para o Lukrato e ganhe '
+                    . ReferralService::REFERRER_REWARD_DAYS
+                    . ' dias de PRO! Seu amigo tambem ganha '
+                    . ReferralService::REFERRED_REWARD_DAYS
+                    . ' dias gratis.',
+            ], 'Informacoes do programa de indicacao');
         } catch (Exception $e) {
-            Response::error('Erro ao carregar informações: ' . $e->getMessage(), 500);
+            return $this->internalErrorResponse($e, 'Erro ao carregar informacoes.');
         }
     }
 }

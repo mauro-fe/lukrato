@@ -6,106 +6,77 @@ namespace Application\Controllers\Api\AI;
 
 use Application\Controllers\BaseController;
 use Application\Core\Response;
+use Application\Models\Usuario;
 use Application\Services\AI\Telegram\TelegramQrCodeService;
 use Application\Services\AI\Telegram\TelegramUserResolver;
 
 /**
- * Controller para vincular/desvincular Telegram ao perfil do usuário.
- *
- * Fluxo:
- * 1. POST /api/telegram/link   → gera código de 6 dígitos (cache 10min)
- * 2. POST /api/telegram/unlink → remove vínculo
- * 3. GET  /api/telegram/status → retorna status do vínculo
- *
- * Diferente do WhatsApp, o Telegram não precisa de POST /verify separado.
- * O bot recebe o código e faz a verificação automaticamente via deep link ou mensagem.
+ * Controller para vincular/desvincular Telegram ao perfil do usuario.
  */
 class TelegramLinkController extends BaseController
 {
     /**
-     * Gera código de verificação para vincular Telegram.
-     * O usuário deve enviar este código ao bot @LukratoBot no Telegram.
+     * Gera codigo de verificacao para vincular Telegram.
      */
-    public function requestLink(): void
+    public function requestLink(): Response
     {
-        $userId = $_SESSION['user_id'] ?? null;
+        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
 
-        if (!$userId) {
-            Response::error('Não autenticado', 401);
-            return;
-        }
-
-        // Verificar se já está vinculado
-        $user = \Application\Models\Usuario::find($userId);
+        $user = Usuario::find($userId);
         if ($user && $user->telegram_verified && $user->telegram_chat_id) {
-            Response::error('Telegram já está vinculado. Desvincule primeiro para vincular novamente.', 409);
-            return;
+            return Response::errorResponse('Telegram já está vinculado. Desvincule primeiro para vincular novamente.', 409);
         }
 
-        // Gera código com cache reverso para lookup pelo bot
         $code = TelegramUserResolver::generateVerificationCodeWithReverse($userId);
 
         $botUsername = $_ENV['TELEGRAM_BOT_USERNAME'] ?? getenv('TELEGRAM_BOT_USERNAME') ?: 'LukratoBot';
         $botUrl = "https://t.me/{$botUsername}?start={$code}";
 
-        Response::success([
-            'code'        => $code,
-            'bot_url'     => $botUrl,
+        return Response::successResponse([
+            'code' => $code,
+            'bot_url' => $botUrl,
             'qr_code_data_uri' => TelegramQrCodeService::makeDataUri($botUrl),
-            'expires_in'  => 600, // 10 minutos
+            'expires_in' => 600,
         ], "Código gerado! Envie \"{$code}\" para o bot @{$botUsername} no Telegram.");
     }
 
     /**
-     * Remove o vínculo do Telegram.
+     * Remove o vinculo do Telegram.
      */
-    public function unlink(): void
+    public function unlink(): Response
     {
-        $userId = $_SESSION['user_id'] ?? null;
-
-        if (!$userId) {
-            Response::error('Não autenticado', 401);
-            return;
-        }
-
-        $user = \Application\Models\Usuario::find($userId);
+        $userId = $this->requireApiUserIdOrFail();
+        $user = Usuario::find($userId);
 
         if (!$user) {
-            Response::error('Usuário não encontrado', 404);
-            return;
+            return Response::errorResponse('Usuário não encontrado', 404);
         }
 
-        $user->telegram_chat_id  = null;
+        $user->telegram_chat_id = null;
         $user->telegram_verified = false;
         $user->save();
 
-        Response::success(null, 'Telegram desvinculado.');
+        return Response::successResponse(null, 'Telegram desvinculado.');
     }
 
     /**
-     * Retorna o status atual do vínculo.
+     * Retorna o status atual do vinculo.
      */
-    public function status(): void
+    public function status(): Response
     {
-        $userId = $_SESSION['user_id'] ?? null;
-
-        if (!$userId) {
-            Response::error('Não autenticado', 401);
-            return;
-        }
-
-        $user = \Application\Models\Usuario::find($userId);
+        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+        $user = Usuario::find($userId);
 
         $linked = $user && $user->telegram_verified && $user->telegram_chat_id;
 
-        Response::success([
-            'linked'   => $linked,
+        return Response::successResponse([
+            'linked' => $linked,
             'username' => $linked ? $this->maskChatId($user->telegram_chat_id) : null,
         ]);
     }
 
     /**
-     * Mascara o chat_id para exibição.
+     * Mascara o chat_id para exibicao.
      */
     private function maskChatId(string $chatId): string
     {

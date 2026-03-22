@@ -155,7 +155,7 @@ class TelegramService
     private function request(string $method, array $params): bool
     {
         if (!$this->isConfigured()) {
-            error_log('[Telegram] Serviço não configurado. Defina TELEGRAM_BOT_TOKEN.');
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[Telegram] Serviço não configurado. Defina TELEGRAM_BOT_TOKEN.');
             return false;
         }
 
@@ -180,10 +180,10 @@ class TelegramService
                 ? (string) ($body['description'] ?? 'Resposta sem descricao.')
                 : 'Resposta invalida da API.';
 
-            error_log("[Telegram] {$method} falhou: HTTP {$status} - {$description}");
+            \Application\Services\Infrastructure\LogService::safeErrorLog("[Telegram] {$method} falhou: HTTP {$status} - {$description}");
             return false;
         } catch (GuzzleException $e) {
-            error_log("[Telegram] Erro ao chamar {$method}: " . $e->getMessage());
+            \Application\Services\Infrastructure\LogService::safeErrorLog("[Telegram] Erro ao chamar {$method}: " . $e->getMessage());
             return false;
         }
     }
@@ -209,12 +209,12 @@ class TelegramService
             }
 
             if (($body['ok'] ?? false) !== true) {
-                error_log("[Telegram] {$method} falhou: " . ($body['description'] ?? 'Sem descricao'));
+                \Application\Services\Infrastructure\LogService::safeErrorLog("[Telegram] {$method} falhou: " . ($body['description'] ?? 'Sem descricao'));
             }
 
             return $body;
         } catch (GuzzleException $e) {
-            error_log("[Telegram] Erro ao chamar {$method}: " . $e->getMessage());
+            \Application\Services\Infrastructure\LogService::safeErrorLog("[Telegram] Erro ao chamar {$method}: " . $e->getMessage());
             return ['ok' => false, 'description' => $e->getMessage()];
         }
     }

@@ -5,25 +5,19 @@ declare(strict_types=1);
 namespace Application\Controllers\SysAdmin;
 
 use Application\Controllers\BaseController;
-use Application\Lib\Auth;
+use Application\Core\Response;
 
 class AiLogsViewController extends BaseController
 {
-    public function index(): void
+    public function index(): Response
     {
-        $this->requireAuth();
-        $user = Auth::user();
+        $this->requireAdminUser();
 
-        if (!$user || $user->is_admin != 1) {
-            $this->redirect('login');
-            return;
-        }
-
-        $this->render(
+        return $this->renderResponse(
             'admin/sysadmin/ai-logs',
             [
-                'pageTitle'      => 'Logs da IA - SysAdmin',
-                'subTitle'       => 'Histórico de interações e métricas de uso da IA',
+                'pageTitle' => 'Logs da IA - SysAdmin',
+                'subTitle' => 'Histórico de interações e métricas de uso da IA',
                 'skipPlanLimits' => true,
             ],
             'admin/partials/header',

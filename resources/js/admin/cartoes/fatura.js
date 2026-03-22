@@ -4,6 +4,7 @@
  */
 
 import { CONFIG, STATE, Utils, Modules } from './state.js';
+import { apiGet, apiPost, getApiPayload, getErrorMessage } from '../shared/api.js';
 import { refreshIcons } from '../shared/ui.js';
 
 export const FaturaModal = {
@@ -386,40 +387,23 @@ export const FaturaModal = {
                 btnPagar.style.cursor = 'not-allowed';
             }
 
-            const csrfToken = await Utils.getCSRFToken();
-
-            const response = await fetch(`${CONFIG.API_URL}/cartoes/${fatura.cartao.id}/fatura/pagar`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                credentials: 'same-origin',
-                body: JSON.stringify({
-                    mes: fatura.mes,
-                    ano: fatura.ano
-                })
+            const resultado = await apiPost(`${CONFIG.API_URL}/cartoes/${fatura.cartao.id}/fatura/pagar`, {
+                mes: fatura.mes,
+                ano: fatura.ano
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Erro ao pagar fatura');
-            }
-
-            const resultado = await response.json();
-
             // 🎮 GAMIFICAÇÃO: Exibir conquistas se houver
-            if (resultado.data?.gamification?.achievements && Array.isArray(resultado.data.gamification.achievements)) {
+            const resultadoPayload = getApiPayload(resultado, null);
+            if (resultadoPayload?.gamification?.achievements && Array.isArray(resultadoPayload.gamification.achievements)) {
                 if (typeof window.notifyMultipleAchievements === 'function') {
-                    window.notifyMultipleAchievements(resultado.data.gamification.achievements);
+                    window.notifyMultipleAchievements(resultadoPayload.gamification.achievements);
                 } else {
                     console.error('❌ notifyMultipleAchievements não está disponível');
                 }
             } else {
             }
 
-            Utils.showToast('success', `Fatura paga com sucesso! ${resultado.data?.itens_pagos ?? ''} parcela(s) quitada(s).`);
+            Utils.showToast('success', `Fatura paga com sucesso! ${resultadoPayload?.itens_pagos ?? ''} parcela(s) quitada(s).`);
 
             // Fechar modal
             const modal = document.querySelector('.modal-fatura-overlay');
@@ -439,7 +423,7 @@ export const FaturaModal = {
                 btnPagar.style.opacity = '1';
                 btnPagar.style.cursor = 'pointer';
             }
-            Utils.showToast('error', error.message || 'Erro ao pagar fatura');
+            Utils.showToast('error', getErrorMessage(error, 'Erro ao pagar fatura'));
         }
     },
 
@@ -534,49 +518,25 @@ export const FaturaModal = {
 
         try {
             // Buscar fatura, parcelamentos e status do novo mês
-            const [faturaResponse, parcelamentosResponse, statusResponse] = await Promise.all([
-                fetch(`${CONFIG.API_URL}/cartoes/${cartaoId}/fatura?mes=${novoMes}&ano=${novoAno}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin'
-                }).catch(() => ({ ok: false, status: 404 })),
-                fetch(`${CONFIG.API_URL}/cartoes/${cartaoId}/parcelamentos-resumo?mes=${novoMes}&ano=${novoAno}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin'
-                }).catch(() => ({ ok: false, status: 404 })),
-                fetch(`${CONFIG.API_URL}/cartoes/${cartaoId}/fatura/status?mes=${novoMes}&ano=${novoAno}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin'
-                }).catch(() => ({ ok: false, status: 404 }))
+            const [faturaJson, parcJson, statusJson] = await Promise.all([
+                apiGet(`${CONFIG.API_URL}/cartoes/${cartaoId}/fatura`, { mes: novoMes, ano: novoAno }).catch(() => null),
+                apiGet(`${CONFIG.API_URL}/cartoes/${cartaoId}/parcelamentos-resumo`, { mes: novoMes, ano: novoAno }).catch(() => null),
+                apiGet(`${CONFIG.API_URL}/cartoes/${cartaoId}/fatura/status`, { mes: novoMes, ano: novoAno }).catch(() => null)
             ]);
 
-            if (!faturaResponse.ok) {
+            if (!faturaJson) {
                 throw new Error('Erro ao carregar fatura');
             }
 
-            const faturaJson = await faturaResponse.json();
             const fatura = faturaJson.data || faturaJson;
             let parcelamentos = null;
             let statusPagamento = null;
 
-            if (parcelamentosResponse.ok) {
-                const parcJson = await parcelamentosResponse.json();
+            if (parcJson) {
                 parcelamentos = parcJson.data || parcJson;
             }
 
-            if (statusResponse.ok) {
-                const statusJson = await statusResponse.json();
+            if (statusJson) {
                 statusPagamento = statusJson.data || statusJson;
             }
 
@@ -610,7 +570,7 @@ export const FaturaModal = {
             }
         } catch (error) {
             console.error('❌ Erro ao navegar entre meses:', error);
-            Utils.showToast('error', 'Erro ao carregar fatura');
+            Utils.showToast('error', getErrorMessage(error, 'Erro ao carregar fatura'));
         }
     },
 
@@ -634,14 +594,7 @@ export const FaturaModal = {
                 const [fatura, parcelamentos, statusResponse] = await Promise.all([
                     Modules.API.carregarFatura(cartaoId, mes, ano),
                     Modules.API.carregarParcelamentosResumo(cartaoId, mes, ano).catch(() => null),
-                    fetch(`${CONFIG.API_URL}/cartoes/${cartaoId}/fatura/status?mes=${mes}&ano=${ano}`, {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        credentials: 'same-origin'
-                    }).then(r => r.ok ? r.json().then(j => j.data || j) : null).catch(() => null)
+                    apiGet(`${CONFIG.API_URL}/cartoes/${cartaoId}/fatura/status`, { mes, ano }).then((j) => getApiPayload(j, null)).catch(() => null)
                 ]);
 
                 const conteudo = FaturaModal.criarConteudoModal(fatura, parcelamentos, statusResponse, cartaoId);

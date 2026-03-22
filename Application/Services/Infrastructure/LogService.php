@@ -5,77 +5,110 @@ namespace Application\Services\Infrastructure;
 use Application\Enums\LogCategory;
 use Application\Enums\LogLevel;
 use Application\Models\ErrorLog;
-use Monolog\Logger;
-use Monolog\Handler\StreamHandler;
 use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 
 class LogService
 {
     private const LOG_DIR = BASE_PATH . '/storage/logs';
+    private const REDACTED = '[REDACTED]';
+    private const REDACTED_PAYLOAD = '[REDACTED_PAYLOAD]';
+    private const REDACTED_SESSION = '[REDACTED_SESSION]';
+
     private static ?Logger $logger = null;
+    private static ?string $requestId = null;
 
     /**
-     * Se a persistência no DB está habilitada.
-     * Desativado automaticamente se a tabela não existe ou o DB falha.
+     * Se a persistencia no DB esta habilitada.
+     * Desativado automaticamente se a tabela nao existe ou o DB falha.
      */
     private static bool $dbEnabled = true;
     private static bool $dbChecked = false;
 
-    // ─── Métodos públicos (compatíveis com uso existente) ──
-
     public static function info(string $message, array $context = []): void
     {
-        self::getLogger()->info($message, $context);
+        self::writeLog('info', $message, $context);
     }
 
     public static function warning(string $message, array $context = []): void
     {
-        self::getLogger()->warning($message, $context);
+        self::writeLog('warning', $message, $context);
     }
 
     public static function error(string $message, array $context = []): void
     {
-        self::getLogger()->error($message, $context);
+        self::writeLog('error', $message, $context);
     }
 
     public static function critical(string $message, array $context = []): void
     {
-        self::getLogger()->critical($message, $context);
+        self::writeLog('critical', $message, $context);
     }
 
     public static function log(string $level, string $message, array $context = []): void
     {
-        $logger = self::getLogger();
-        if (method_exists($logger, $level)) {
-            $logger->{$level}($message, $context);
-        } else {
-            $logger->log(strtoupper($level), $message, $context);
-        }
+        self::writeLog($level, $message, $context);
     }
 
-    // ─── Métodos com persistência no DB ─────────────────────
+    public static function sanitizeContext(array $data): array
+    {
+        $sanitized = [];
+
+        foreach ($data as $key => $value) {
+            $sanitized[$key] = self::sanitizeValue(
+                $value,
+                is_string($key) ? $key : null
+            );
+        }
+
+        return $sanitized;
+    }
+
+    public static function sanitizeMessage(string $message): string
+    {
+        if ($message === '') {
+            return $message;
+        }
+
+        $message = self::sanitizeInlineAuthorization($message);
+        $message = self::sanitizeInlineCookie($message);
+        $message = self::sanitizeInlinePairs($message);
+        $message = self::sanitizeInlineUrls($message);
+        $message = self::sanitizeInlineEmails($message);
+        $message = self::sanitizeInlineCpfLabels($message);
+
+        return $message;
+    }
+
+    public static function safeErrorLog(string $message): void
+    {
+        error_log(self::sanitizeMessage($message));
+    }
 
     /**
      * Registra um erro no banco de dados + arquivo de log.
      * Use para erros que precisam de visibilidade no painel admin.
      */
     public static function persist(
-        LogLevel    $level,
+        LogLevel $level,
         LogCategory $category,
-        string      $message,
-        array       $context = [],
+        string $message,
+        array $context = [],
         ?\Throwable $exception = null,
-        ?int        $userId = null,
+        ?int $userId = null,
     ): ?ErrorLog {
-        // Sempre gravar no arquivo de log
-        $fileLevel = $level->value;
-        self::$fileLevel($message, array_merge($context, [
+        [$context, $userId] = self::enrichContext($context, $userId);
+        $sanitizedMessage = self::sanitizeMessage($message);
+        $sanitizedContext = self::sanitizeContext($context);
+
+        self::writeLog($level->value, $sanitizedMessage, array_merge($sanitizedContext, [
             'category' => $category->value,
-            'user_id'  => $userId,
+            'user_id' => $userId,
+            'request_id' => $sanitizedContext['request_id'] ?? self::currentRequestId(),
         ]));
 
-        // Persistir no banco
-        return self::writeToDb($level, $category, $message, $context, $exception, $userId);
+        return self::writeToDb($level, $category, $sanitizedMessage, $sanitizedContext, $exception, $userId);
     }
 
     /**
@@ -83,11 +116,11 @@ class LogService
      * Atalho para os catch blocks mais comuns.
      */
     public static function captureException(
-        \Throwable  $e,
+        \Throwable $e,
         LogCategory $category = LogCategory::GENERAL,
-        array       $context = [],
-        ?int        $userId = null,
-        LogLevel    $level = LogLevel::ERROR,
+        array $context = [],
+        ?int $userId = null,
+        LogLevel $level = LogLevel::ERROR,
     ): ?ErrorLog {
         return self::persist(
             level: $level,
@@ -99,10 +132,55 @@ class LogService
         );
     }
 
-    // ─── Query helpers (para o painel admin) ────────────────
+    public static function reportException(
+        \Throwable $e,
+        string $publicMessage = 'Erro interno do servidor.',
+        array $context = [],
+        ?int $userId = null,
+        LogCategory $category = LogCategory::GENERAL,
+        LogLevel $level = LogLevel::ERROR,
+    ): string {
+        $errorId = bin2hex(random_bytes(6));
+        $requestId = self::currentRequestId();
+
+        self::persist(
+            level: $level,
+            category: $category,
+            message: $publicMessage,
+            context: array_merge($context, [
+                'error_id' => $errorId,
+                'request_id' => $requestId,
+                'exception_class' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]),
+            exception: $e,
+            userId: $userId,
+        );
+
+        return $errorId;
+    }
+
+    public static function currentRequestId(): string
+    {
+        if (self::$requestId !== null) {
+            return self::$requestId;
+        }
+
+        $headerRequestId = $_SERVER['HTTP_X_REQUEST_ID'] ?? null;
+        if (is_string($headerRequestId) && preg_match('/^[a-zA-Z0-9._:-]{6,100}$/', $headerRequestId) === 1) {
+            self::$requestId = $headerRequestId;
+            return self::$requestId;
+        }
+
+        self::$requestId = bin2hex(random_bytes(8));
+
+        return self::$requestId;
+    }
 
     /**
-     * Buscar logs com filtros e paginação
+     * Buscar logs com filtros e paginacao
      */
     public static function query(array $filters = [], int $page = 1, int $perPage = 50): array
     {
@@ -141,18 +219,18 @@ class LogService
         }
 
         $total = $query->count();
-        $data  = $query->skip(($page - 1) * $perPage)->take($perPage)->get();
+        $data = $query->skip(($page - 1) * $perPage)->take($perPage)->get();
 
         return [
-            'data'     => $data,
-            'total'    => $total,
-            'page'     => $page,
+            'data' => $data,
+            'total' => $total,
+            'page' => $page,
             'per_page' => $perPage,
         ];
     }
 
     /**
-     * Resumo para o dashboard admin: contadores por nível nas últimas 24h
+     * Resumo para o dashboard admin: contadores por nivel nas ultimas 24h
      */
     public static function summary(int $hours = 24): array
     {
@@ -160,9 +238,6 @@ class LogService
             return ['total' => 0, 'unresolved' => 0, 'by_level' => [], 'by_category' => []];
         }
 
-        $since = now()->subHours($hours);
-
-        // Contadores de não-resolvidos por nível (sem filtro de tempo)
         $byLevel = ErrorLog::whereNull('resolved_at')
             ->selectRaw('level, COUNT(*) as total')
             ->groupBy('level')
@@ -177,13 +252,12 @@ class LogService
             ->pluck('total', 'category')
             ->toArray();
 
-        $unresolved = ErrorLog::whereNull('resolved_at')
-            ->count();
+        $unresolved = ErrorLog::whereNull('resolved_at')->count();
 
         return [
-            'total'       => array_sum($byLevel),
-            'unresolved'  => $unresolved,
-            'by_level'    => $byLevel,
+            'total' => array_sum($byLevel),
+            'unresolved' => $unresolved,
+            'by_level' => $byLevel,
             'by_category' => $byCategory,
             'period_hours' => $hours,
         ];
@@ -203,6 +277,7 @@ class LogService
             $log->markResolved($resolvedBy);
             return true;
         }
+
         return false;
     }
 
@@ -220,28 +295,24 @@ class LogService
             ->delete();
     }
 
-    // ─── Internals ──────────────────────────────────────────
-
     private static function writeToDb(
-        LogLevel     $level,
-        LogCategory  $category,
-        string       $message,
-        array        $context,
-        ?\Throwable  $exception,
-        ?int         $userId,
+        LogLevel $level,
+        LogCategory $category,
+        string $message,
+        array $context,
+        ?\Throwable $exception,
+        ?int $userId,
     ): ?ErrorLog {
         if (!self::isDbAvailable()) {
             return null;
         }
 
         try {
-            // Capturar contexto da request
-            $url       = $_SERVER['REQUEST_URI'] ?? null;
-            $method    = $_SERVER['REQUEST_METHOD'] ?? null;
-            $ip        = $_SERVER['REMOTE_ADDR'] ?? null;
+            $url = $_SERVER['REQUEST_URI'] ?? null;
+            $method = $_SERVER['REQUEST_METHOD'] ?? null;
+            $ip = $_SERVER['REMOTE_ADDR'] ?? null;
             $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
 
-            // Auto-detect userId se não informado
             if ($userId === null) {
                 try {
                     $userId = \Application\Lib\Auth::id();
@@ -251,32 +322,60 @@ class LogService
             }
 
             $data = [
-                'level'    => $level->value,
+                'level' => $level->value,
                 'category' => $category->value,
-                'message'  => mb_substr($message, 0, 500),
-                'context'  => !empty($context) ? $context : null,
-                'user_id'  => $userId,
-                'url'      => $url ? mb_substr($url, 0, 500) : null,
-                'method'   => $method,
-                'ip'       => $ip,
-                'user_agent' => $userAgent ? mb_substr($userAgent, 0, 500) : null,
+                'message' => mb_substr(self::sanitizeMessage($message), 0, 500),
+                'context' => !empty($context) ? self::sanitizeContext($context) : null,
+                'user_id' => $userId,
+                'url' => $url ? mb_substr(self::sanitizeUrl($url), 0, 500) : null,
+                'method' => $method,
+                'ip' => $ip,
+                'user_agent' => $userAgent ? mb_substr(self::sanitizeMessage($userAgent), 0, 500) : null,
             ];
 
             if ($exception) {
-                $data['exception_class']   = get_class($exception);
-                $data['exception_message'] = mb_substr($exception->getMessage(), 0, 65535);
-                $data['file']              = $exception->getFile();
-                $data['line']              = $exception->getLine();
-                $data['stack_trace']       = mb_substr($exception->getTraceAsString(), 0, 65535);
+                $data['exception_class'] = get_class($exception);
+                $data['exception_message'] = mb_substr(self::sanitizeMessage($exception->getMessage()), 0, 65535);
+                $data['file'] = $exception->getFile();
+                $data['line'] = $exception->getLine();
+                $data['stack_trace'] = mb_substr(self::sanitizeMessage($exception->getTraceAsString()), 0, 65535);
             }
 
             return ErrorLog::create($data);
         } catch (\Throwable $e) {
-            // Falha silenciosa — não queremos que o logging quebre a app
-            error_log("[LogService] Falha ao persistir no DB: " . $e->getMessage());
+            self::safeErrorLog('[LogService] Falha ao persistir no DB: ' . $e->getMessage());
             self::$dbEnabled = false;
             return null;
         }
+    }
+
+    /**
+     * @return array{0: array<string, mixed>, 1: ?int}
+     */
+    private static function enrichContext(array $context, ?int $userId): array
+    {
+        if (!isset($context['request_id']) || !is_string($context['request_id']) || trim($context['request_id']) === '') {
+            $context['request_id'] = self::currentRequestId();
+        }
+
+        $resolvedUserId = $userId;
+        if (isset($context['user_id']) && is_scalar($context['user_id'])) {
+            $resolvedUserId = (int) $context['user_id'];
+        }
+
+        if ($resolvedUserId === null) {
+            try {
+                $resolvedUserId = \Application\Lib\Auth::id();
+            } catch (\Throwable) {
+                $resolvedUserId = null;
+            }
+        }
+
+        if ($resolvedUserId !== null) {
+            $context['user_id'] = $resolvedUserId;
+        }
+
+        return [$context, $resolvedUserId];
     }
 
     private static function isDbAvailable(): bool
@@ -299,6 +398,378 @@ class LogService
         return self::$dbEnabled;
     }
 
+    private static function writeLog(string $level, string $message, array $context = []): void
+    {
+        $logger = self::getLogger();
+        $sanitizedMessage = self::sanitizeMessage($message);
+        [$context] = self::enrichContext($context, null);
+        $sanitizedContext = self::sanitizeContext($context);
+
+        if (method_exists($logger, $level)) {
+            $logger->{$level}($sanitizedMessage, $sanitizedContext);
+            return;
+        }
+
+        $logger->log(strtoupper($level), $sanitizedMessage, $sanitizedContext);
+    }
+
+    private static function sanitizeValue(mixed $value, ?string $key = null): mixed
+    {
+        if ($key !== null && self::isPayloadKey($key)) {
+            return self::summarizePayload($value);
+        }
+
+        if ($key !== null && self::isSessionKey($key)) {
+            return self::summarizeSession($value);
+        }
+
+        if ($key !== null && self::isHeaderBagKey($key) && is_array($value)) {
+            return self::sanitizeHeaders($value);
+        }
+
+        if ($key !== null && self::isSensitiveKey($key)) {
+            return self::REDACTED;
+        }
+
+        if ($value instanceof \DateTimeInterface) {
+            return $value->format(DATE_ATOM);
+        }
+
+        if (is_array($value)) {
+            return self::sanitizeContext($value);
+        }
+
+        if (is_object($value)) {
+            return '[object ' . get_class($value) . ']';
+        }
+
+        if (!is_string($value)) {
+            return $value;
+        }
+
+        if ($key !== null && self::isEmailKey($key)) {
+            return self::maskEmail($value);
+        }
+
+        if ($key !== null && self::isCpfKey($key)) {
+            return self::maskCpf($value);
+        }
+
+        if ($key !== null && self::isUrlKey($key)) {
+            return self::sanitizeUrl($value);
+        }
+
+        return self::sanitizeMessage($value);
+    }
+
+    private static function sanitizeHeaders(array $headers): array
+    {
+        $sanitized = [];
+
+        foreach ($headers as $name => $value) {
+            if (is_string($name) && self::isSensitiveKey($name)) {
+                $sanitized[$name] = self::REDACTED;
+                continue;
+            }
+
+            $sanitized[$name] = self::sanitizeValue(
+                $value,
+                is_string($name) ? $name : null
+            );
+        }
+
+        return $sanitized;
+    }
+
+    private static function summarizePayload(mixed $value): string
+    {
+        return sprintf(
+            '%s type=%s meta=%s sha256=%s',
+            self::REDACTED_PAYLOAD,
+            get_debug_type($value),
+            self::payloadMetadata($value),
+            self::payloadHash($value)
+        );
+    }
+
+    private static function summarizeSession(mixed $value): string
+    {
+        $meta = is_array($value) ? 'keys=' . count($value) : 'type=' . get_debug_type($value);
+
+        return self::REDACTED_SESSION . ' ' . $meta;
+    }
+
+    private static function payloadMetadata(mixed $value): string
+    {
+        return match (true) {
+            is_string($value) => 'length=' . strlen($value),
+            is_array($value) => 'items=' . count($value),
+            default => 'size=1',
+        };
+    }
+
+    private static function payloadHash(mixed $value): string
+    {
+        $encoded = is_string($value)
+            ? $value
+            : json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PARTIAL_OUTPUT_ON_ERROR);
+
+        if (!is_string($encoded) || $encoded === '') {
+            $encoded = serialize([$value]);
+        }
+
+        return substr(hash('sha256', $encoded), 0, 12);
+    }
+
+    private static function sanitizeInlinePairs(string $message): string
+    {
+        $keys = 'password|senha|current_password|new_password|password_confirmation|token|csrf_token|_token|session_id|access_token|refresh_token|validator|token_hash|api_key|client_secret|secret|selector';
+
+        $message = (string) preg_replace_callback(
+            '/("?(?:' . $keys . ')"?\s*:\s*)"([^"]*)"/iu',
+            static fn(array $matches): string => $matches[1] . '"' . self::REDACTED . '"',
+            $message
+        );
+
+        return (string) preg_replace_callback(
+            '/((?:^|[\s,{])"?)((' . $keys . '))("?\s*[:=]\s*)([^,\s}\]]+)/iu',
+            static fn(array $matches): string => $matches[1] . $matches[2] . $matches[4] . self::REDACTED,
+            $message
+        );
+    }
+
+    private static function sanitizeInlineAuthorization(string $message): string
+    {
+        return (string) preg_replace_callback(
+            '/(authorization\s*[:=]\s*)(Bearer\s+)?([^\s,\r\n]+)/iu',
+            static function (array $matches): string {
+                $prefix = $matches[1];
+                $scheme = $matches[2] ?? '';
+
+                return $prefix . $scheme . self::REDACTED;
+            },
+            $message
+        );
+    }
+
+    private static function sanitizeInlineCookie(string $message): string
+    {
+        return (string) preg_replace(
+            '/((?:cookie|set-cookie)\s*[:=]\s*)([^;\r\n]+)/iu',
+            '$1' . self::REDACTED,
+            $message
+        );
+    }
+
+    private static function sanitizeInlineUrls(string $message): string
+    {
+        return (string) preg_replace_callback(
+            '/https?:\/\/[^\s]+|\/[A-Za-z0-9_\-\/.?=&%]+/u',
+            static function (array $matches): string {
+                $candidate = $matches[0];
+
+                if (!str_contains($candidate, '?')) {
+                    return $candidate;
+                }
+
+                return self::sanitizeUrl($candidate);
+            },
+            $message
+        );
+    }
+
+    private static function sanitizeInlineEmails(string $message): string
+    {
+        return (string) preg_replace_callback(
+            '/\b([A-Z0-9._%+\-]+)@([A-Z0-9.\-]+\.[A-Z]{2,})\b/i',
+            static fn(array $matches): string => self::maskEmail($matches[0]),
+            $message
+        );
+    }
+
+    private static function sanitizeInlineCpfLabels(string $message): string
+    {
+        return (string) preg_replace_callback(
+            '/\b(cpf|documento)\b(\s*[:=]\s*)([0-9.\-\/]{11,18})/iu',
+            static fn(array $matches): string => $matches[1] . $matches[2] . self::maskCpf($matches[3]),
+            $message
+        );
+    }
+
+    private static function sanitizeUrl(string $value): string
+    {
+        if ($value === '' || !str_contains($value, '?')) {
+            return $value;
+        }
+
+        $parts = parse_url($value);
+        if ($parts === false || !isset($parts['query'])) {
+            return (string) preg_replace_callback(
+                '/([?&])(password|senha|token|csrf_token|_token|authorization|session_id|access_token|refresh_token|validator|selector|api_key|client_secret)=([^&]+)/iu',
+                static fn(array $matches): string => $matches[1] . $matches[2] . '=' . self::REDACTED,
+                $value
+            );
+        }
+
+        parse_str($parts['query'], $query);
+        $sanitizedQuery = [];
+
+        foreach ($query as $queryKey => $queryValue) {
+            $sanitizedQuery[$queryKey] = self::sanitizeValue($queryValue, (string) $queryKey);
+        }
+
+        $base = '';
+        if (isset($parts['scheme'])) {
+            $base .= $parts['scheme'] . '://';
+        }
+        if (isset($parts['user'])) {
+            $base .= $parts['user'];
+            if (isset($parts['pass'])) {
+                $base .= ':' . self::REDACTED;
+            }
+            $base .= '@';
+        }
+        if (isset($parts['host'])) {
+            $base .= $parts['host'];
+        }
+        if (isset($parts['port'])) {
+            $base .= ':' . $parts['port'];
+        }
+        $base .= $parts['path'] ?? '';
+
+        $queryString = http_build_query($sanitizedQuery);
+        if ($queryString !== '') {
+            $base .= '?' . $queryString;
+        }
+        if (isset($parts['fragment'])) {
+            $base .= '#' . $parts['fragment'];
+        }
+
+        return $base;
+    }
+
+    private static function maskEmail(string $value): string
+    {
+        if (!str_contains($value, '@')) {
+            return self::REDACTED;
+        }
+
+        [$local, $domain] = explode('@', $value, 2);
+        $firstChar = $local !== '' ? mb_substr($local, 0, 1) : '*';
+
+        return $firstChar . '***@' . $domain;
+    }
+
+    private static function maskCpf(string $value): string
+    {
+        $digits = preg_replace('/\D+/', '', $value);
+
+        if (!is_string($digits) || strlen($digits) !== 11) {
+            return self::REDACTED;
+        }
+
+        return '***.***.***-**';
+    }
+
+    private static function isSensitiveKey(string $key): bool
+    {
+        $normalized = self::normalizeKey($key);
+
+        return in_array($normalized, [
+            'password',
+            'senha',
+            'currentpassword',
+            'newpassword',
+            'passwordconfirmation',
+            'token',
+            'csrftoken',
+            'authorization',
+            'sessionid',
+            'accesstoken',
+            'refreshtoken',
+            'validator',
+            'tokenhash',
+            'apikey',
+            'clientsecret',
+            'secret',
+            'cookie',
+            'setcookie',
+            'selector',
+            'expectedprefix',
+            'providedprefix',
+            'tokenprefix',
+            'oldtokenprefix',
+            'newtokenprefix',
+            'legacytokenprefix',
+        ], true) || str_ends_with($normalized, 'token') || str_ends_with($normalized, 'secret');
+    }
+
+    private static function isPayloadKey(string $key): bool
+    {
+        return in_array(self::normalizeKey($key), [
+            'payload',
+            'rawbody',
+            'rawpayload',
+            'requestbody',
+            'responsebody',
+            'requestpayload',
+            'responsepayload',
+            'webhookpayload',
+            'webhookbody',
+            'server',
+            'request',
+            'response',
+        ], true);
+    }
+
+    private static function isSessionKey(string $key): bool
+    {
+        return in_array(self::normalizeKey($key), [
+            'session',
+            'sessiondata',
+            'sessioncontext',
+        ], true);
+    }
+
+    private static function isHeaderBagKey(string $key): bool
+    {
+        return in_array(self::normalizeKey($key), [
+            'headers',
+            'requestheaders',
+            'responseheaders',
+        ], true);
+    }
+
+    private static function isEmailKey(string $key): bool
+    {
+        return str_contains(self::normalizeKey($key), 'email');
+    }
+
+    private static function isCpfKey(string $key): bool
+    {
+        return in_array(self::normalizeKey($key), [
+            'cpf',
+            'cpfcnpj',
+            'documentocpf',
+        ], true);
+    }
+
+    private static function isUrlKey(string $key): bool
+    {
+        return in_array(self::normalizeKey($key), [
+            'url',
+            'uri',
+            'requesturi',
+            'redirecturl',
+            'path',
+        ], true);
+    }
+
+    private static function normalizeKey(string $key): string
+    {
+        return preg_replace('/[^a-z0-9]+/', '', strtolower($key)) ?? strtolower($key);
+    }
+
     private static function getLogger(): Logger
     {
         if (!self::$logger) {
@@ -312,7 +783,7 @@ class LogService
             $stream = new StreamHandler($logFilePath, Logger::DEBUG);
 
             $output = "[%datetime%] [%level_name%]: %message% %context%\n";
-            $formatter = new LineFormatter($output, "Y-m-d H:i:s", true, true);
+            $formatter = new LineFormatter($output, 'Y-m-d H:i:s', true, true);
             $stream->setFormatter($formatter);
 
             self::$logger = new Logger('app');

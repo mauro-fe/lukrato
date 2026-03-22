@@ -2,6 +2,7 @@
 
 namespace Application\Controllers;
 
+use Application\Core\Response;
 use Application\Services\Gamification\GamificationService;
 
 class GamificationController extends BaseController
@@ -14,18 +15,17 @@ class GamificationController extends BaseController
         $this->gamificationService = new GamificationService();
     }
 
-    public function index(): void
+    public function index(): Response
     {
-        $this->requireAuth();
-        $user = \Application\Lib\Auth::user();
+        $user = $this->requireUser();
         $isPro = $user ? $user->isPro() : false;
 
-        $this->render(
+        return $this->renderResponse(
             'admin/gamification/index',
             [
-                'pageTitle' => 'Gamificação - Lukrato',
+                'pageTitle' => 'Gamificacao - Lukrato',
                 'isPro' => $isPro,
-                'currentUser' => $user
+                'currentUser' => $user,
             ],
             'admin/partials/header',
             'admin/partials/footer'

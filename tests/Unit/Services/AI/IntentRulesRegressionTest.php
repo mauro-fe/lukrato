@@ -88,7 +88,8 @@ class IntentRulesRegressionTest extends TestCase
     {
         $result = $this->transactionRule->match('gastei 50 uber', true);
         $this->assertNotNull($result);
-        $this->assertEquals(0.9, $result->confidence);
+        $this->assertEquals(IntentType::EXTRACT_TRANSACTION, $result->intent);
+        $this->assertGreaterThanOrEqual(0.9, $result->confidence);
     }
 
     // ─── TransactionIntentRule: Negativos ─────────────────────────

@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Application\Repositories;
 
+use Application\Enums\LancamentoTipo;
 use Application\Models\OrcamentoCategoria;
 use Application\Models\Lancamento;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class OrcamentoRepository extends BaseRepository
@@ -74,7 +76,10 @@ class OrcamentoRepository extends BaseRepository
     public function deleteForUser(int $id, int $userId): bool
     {
         $orc = $this->findByIdAndUser($id, $userId);
-        if (!$orc) return false;
+        if (!$orc) {
+            return false;
+        }
+
         return $orc->delete();
     }
 
@@ -83,10 +88,7 @@ class OrcamentoRepository extends BaseRepository
      */
     public function getGastoReal(int $userId, int $categoriaId, int $mes, int $ano): float
     {
-        return (float) Lancamento::where('user_id', $userId)
-            ->where('categoria_id', $categoriaId)
-            ->where('tipo', 'despesa')
-            ->where('eh_transferencia', 0)
+        return (float) $this->buildCategoriaDespesaQuery($userId, $categoriaId)
             ->whereYear('data_competencia', $ano)
             ->whereMonth('data_competencia', $mes)
             ->sum('valor');
@@ -97,19 +99,15 @@ class OrcamentoRepository extends BaseRepository
      */
     public function getGastoRealComFallback(int $userId, int $categoriaId, int $mes, int $ano): float
     {
-        $comCompetencia = (float) Lancamento::where('user_id', $userId)
-            ->where('categoria_id', $categoriaId)
-            ->where('tipo', 'despesa')
-            ->where('eh_transferencia', 0)
+        $baseQuery = $this->buildCategoriaDespesaQuery($userId, $categoriaId);
+
+        $comCompetencia = (float) (clone $baseQuery)
             ->whereNotNull('data_competencia')
             ->whereYear('data_competencia', $ano)
             ->whereMonth('data_competencia', $mes)
             ->sum('valor');
 
-        $semCompetencia = (float) Lancamento::where('user_id', $userId)
-            ->where('categoria_id', $categoriaId)
-            ->where('tipo', 'despesa')
-            ->where('eh_transferencia', 0)
+        $semCompetencia = (float) (clone $baseQuery)
             ->whereNull('data_competencia')
             ->whereYear('data', $ano)
             ->whereMonth('data', $mes)
@@ -168,5 +166,14 @@ class OrcamentoRepository extends BaseRepository
         }
 
         return $count;
+    }
+
+    private function buildCategoriaDespesaQuery(int $userId, int $categoriaId): Builder
+    {
+        return Lancamento::query()
+            ->where('user_id', $userId)
+            ->where('categoria_id', $categoriaId)
+            ->where('tipo', LancamentoTipo::DESPESA->value)
+            ->where('eh_transferencia', 0);
     }
 }

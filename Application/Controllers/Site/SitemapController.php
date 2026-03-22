@@ -2,123 +2,135 @@
 
 namespace Application\Controllers\Site;
 
+use Application\Core\Response;
 use Application\Models\BlogCategoria;
 use Application\Models\BlogPost;
 
 /**
  * SitemapController
- * Gera sitemap.xml dinâmico com todas as páginas públicas + blog.
+ * Gera sitemap.xml dinamico com todas as paginas publicas + blog.
  */
 class SitemapController
 {
-    public function index(): void
+    public function index(): Response
     {
-        header('Content-Type: application/xml; charset=UTF-8');
-        header('X-Robots-Tag: noindex');
-
         $baseUrl = rtrim(BASE_URL, '/');
 
-        // ── Páginas estáticas ──
         $staticPages = [
-            ['loc' => $baseUrl . '/',            'changefreq' => 'weekly',  'priority' => '1.0'],
-            ['loc' => $baseUrl . '/login',       'changefreq' => 'monthly', 'priority' => '0.5'],
-            ['loc' => $baseUrl . '/termos',      'changefreq' => 'yearly',  'priority' => '0.3'],
-            ['loc' => $baseUrl . '/privacidade', 'changefreq' => 'yearly',  'priority' => '0.3'],
-            ['loc' => $baseUrl . '/lgpd',        'changefreq' => 'yearly',  'priority' => '0.3'],
+            ['loc' => $baseUrl . '/', 'changefreq' => 'weekly', 'priority' => '1.0'],
+            ['loc' => $baseUrl . '/login', 'changefreq' => 'monthly', 'priority' => '0.5'],
+            ['loc' => $baseUrl . '/termos', 'changefreq' => 'yearly', 'priority' => '0.3'],
+            ['loc' => $baseUrl . '/privacidade', 'changefreq' => 'yearly', 'priority' => '0.3'],
+            ['loc' => $baseUrl . '/lgpd', 'changefreq' => 'yearly', 'priority' => '0.3'],
         ];
 
-        // ── Hub do blog ──
         $blogHub = [
-            'loc'        => $baseUrl . '/blog',
+            'loc' => $baseUrl . '/blog',
             'changefreq' => 'daily',
-            'priority'   => '0.9',
+            'priority' => '0.9',
         ];
 
-        // ── Categorias do blog ──
-        $categorias = BlogCategoria::ordenadas()->get();
         $categoryEntries = [];
-        foreach ($categorias as $cat) {
+        foreach ($this->getCategorias() as $categoria) {
             $categoryEntries[] = [
-                'loc'        => $baseUrl . '/blog/categoria/' . $cat->slug,
+                'loc' => $baseUrl . '/blog/categoria/' . $categoria->slug,
                 'changefreq' => 'weekly',
-                'priority'   => '0.7',
+                'priority' => '0.7',
             ];
         }
 
-        // ── Artigos publicados ──
-        $posts = BlogPost::publicados()
-            ->recentes()
-            ->select(['slug', 'updated_at', 'imagem_capa', 'titulo'])
-            ->get();
-
         $postEntries = [];
-        foreach ($posts as $post) {
+        foreach ($this->getPosts() as $post) {
             $entry = [
-                'loc'        => $baseUrl . '/blog/' . $post->slug,
-                'lastmod'    => $post->updated_at?->toDateString(),
+                'loc' => $baseUrl . '/blog/' . $post->slug,
+                'lastmod' => $post->updated_at?->toDateString(),
                 'changefreq' => 'monthly',
-                'priority'   => '0.8',
+                'priority' => '0.8',
             ];
+
             if ($post->imagem_capa) {
                 $entry['image'] = [
-                    'loc'   => $baseUrl . '/' . $post->imagem_capa,
+                    'loc' => $baseUrl . '/' . $post->imagem_capa,
                     'title' => $post->titulo,
                 ];
             }
+
             $postEntries[] = $entry;
         }
 
-        // ── Gerar XML ──
-        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-        echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' . "\n";
-        echo '        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">' . "\n";
-
-        // Páginas estáticas
-        foreach ($staticPages as $page) {
-            $this->writeUrl($page);
-        }
-
-        // Hub
-        $this->writeUrl($blogHub);
-
-        // Categorias
-        foreach ($categoryEntries as $cat) {
-            $this->writeUrl($cat);
-        }
-
-        // Artigos
-        foreach ($postEntries as $post) {
-            $this->writeUrl($post);
-        }
-
-        echo '</urlset>' . "\n";
-        exit;
+        return Response::htmlResponse($this->buildXml($staticPages, $blogHub, $categoryEntries, $postEntries))
+            ->header('Content-Type', 'application/xml; charset=UTF-8')
+            ->header('X-Robots-Tag', 'noindex');
     }
 
-    /**
-     * Escreve uma entrada <url> no XML.
-     */
-    private function writeUrl(array $entry): void
+    protected function getCategorias(): iterable
     {
-        echo "  <url>\n";
-        echo "    <loc>" . htmlspecialchars($entry['loc']) . "</loc>\n";
+        return BlogCategoria::ordenadas()->get();
+    }
+
+    protected function getPosts(): iterable
+    {
+        return BlogPost::publicados()
+            ->recentes()
+            ->select(['slug', 'updated_at', 'imagem_capa', 'titulo'])
+            ->get();
+    }
+
+    private function buildXml(array $staticPages, array $blogHub, array $categoryEntries, array $postEntries): string
+    {
+        $lines = [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
+            '        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">',
+        ];
+
+        foreach ($staticPages as $page) {
+            $lines[] = $this->buildUrlXml($page);
+        }
+
+        $lines[] = $this->buildUrlXml($blogHub);
+
+        foreach ($categoryEntries as $category) {
+            $lines[] = $this->buildUrlXml($category);
+        }
+
+        foreach ($postEntries as $post) {
+            $lines[] = $this->buildUrlXml($post);
+        }
+
+        $lines[] = '</urlset>';
+
+        return implode("\n", $lines) . "\n";
+    }
+
+    private function buildUrlXml(array $entry): string
+    {
+        $lines = [
+            '  <url>',
+            '    <loc>' . htmlspecialchars((string) $entry['loc']) . '</loc>',
+        ];
 
         if (!empty($entry['lastmod'])) {
-            echo "    <lastmod>" . htmlspecialchars($entry['lastmod']) . "</lastmod>\n";
-        }
-        if (!empty($entry['changefreq'])) {
-            echo "    <changefreq>" . htmlspecialchars($entry['changefreq']) . "</changefreq>\n";
-        }
-        if (!empty($entry['priority'])) {
-            echo "    <priority>" . htmlspecialchars($entry['priority']) . "</priority>\n";
-        }
-        if (!empty($entry['image'])) {
-            echo "    <image:image>\n";
-            echo "      <image:loc>" . htmlspecialchars($entry['image']['loc']) . "</image:loc>\n";
-            echo "      <image:title>" . htmlspecialchars($entry['image']['title']) . "</image:title>\n";
-            echo "    </image:image>\n";
+            $lines[] = '    <lastmod>' . htmlspecialchars((string) $entry['lastmod']) . '</lastmod>';
         }
 
-        echo "  </url>\n";
+        if (!empty($entry['changefreq'])) {
+            $lines[] = '    <changefreq>' . htmlspecialchars((string) $entry['changefreq']) . '</changefreq>';
+        }
+
+        if (!empty($entry['priority'])) {
+            $lines[] = '    <priority>' . htmlspecialchars((string) $entry['priority']) . '</priority>';
+        }
+
+        if (!empty($entry['image'])) {
+            $lines[] = '    <image:image>';
+            $lines[] = '      <image:loc>' . htmlspecialchars((string) $entry['image']['loc']) . '</image:loc>';
+            $lines[] = '      <image:title>' . htmlspecialchars((string) $entry['image']['title']) . '</image:title>';
+            $lines[] = '    </image:image>';
+        }
+
+        $lines[] = '  </url>';
+
+        return implode("\n", $lines);
     }
 }

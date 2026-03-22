@@ -101,7 +101,7 @@ class CartaoCreditoLancamentoService
 
             return [
                 'success' => false,
-                'message' => 'Erro ao criar item de fatura: ' . $e->getMessage(),
+                'message' => 'Erro ao criar item de fatura.',
             ];
         }
     }
@@ -135,13 +135,17 @@ class CartaoCreditoLancamentoService
         // ===============================================================
 
         // Criar item de fatura vinculado à fatura mensal (SEM lancamento_id)
+        $valorCompra = $this->moneyString($data['valor'] ?? 0);
+
+        $valorCompra = $this->moneyString($data['valor'] ?? 0);
+
         $item = FaturaCartaoItem::create([
             'user_id' => $userId,
             'cartao_credito_id' => $cartao->id,
             'fatura_id' => $fatura->id,
             'lancamento_id' => null,                   // NÃO vincula a lançamento
             'descricao' => $data['descricao'],
-            'valor' => $data['valor'],
+            'valor' => $valorCompra,
             'data_compra' => $dataCompra,
             'data_vencimento' => $vencimento['data'],
             'categoria_id' => $data['categoria_id'] ?? null,
@@ -155,13 +159,12 @@ class CartaoCreditoLancamentoService
         LogService::info("[CARTAO] Item de fatura criado (à vista) - SEM lançamento individual", [
             'item_id' => $item->id,
             'fatura_id' => $fatura->id,
-            'valor' => $data['valor'],
+            'valor' => $valorCompra,
             'mes_referencia' => $competencia['mes'],
         ]);
 
         // Atualizar valor total da fatura
-        $fatura->valor_total += $data['valor'];
-        $fatura->save();
+        $this->incrementarValorFatura($fatura, $valorCompra);
 
         // Atualizar limite disponível do cartão (reduz limite)
         $this->atualizarLimiteCartao($cartao->id, $data['valor'], $userId, 'debito');
@@ -240,8 +243,7 @@ class CartaoCreditoLancamentoService
         ]);
 
         // Atualizar valor total da fatura
-        $fatura->valor_total += $data['valor'];
-        $fatura->save();
+        $this->incrementarValorFatura($fatura, $valorCompra);
 
         // Atualizar limite disponível do cartão
         $this->atualizarLimiteCartao($cartao->id, $data['valor'], $userId, 'debito');
@@ -301,6 +303,8 @@ class CartaoCreditoLancamentoService
                 $anoCompetencia++;
             }
 
+            $valorParcelaFormatado = $this->moneyString($valorDessaParcela);
+
             // Criar item de fatura (SEM lancamento_id)
             $item = FaturaCartaoItem::create([
                 'user_id' => $userId,
@@ -308,7 +312,7 @@ class CartaoCreditoLancamentoService
                 'fatura_id' => $fatura->id,
                 'lancamento_id' => null,                   // NÃO vincula a lançamento
                 'descricao' => $descricaoParcela,
-                'valor' => $valorDessaParcela,
+                'valor' => $valorParcelaFormatado,
                 'data_compra' => $dataCompra,
                 'data_vencimento' => $dataVencimentoParcela,
                 'categoria_id' => $data['categoria_id'] ?? null,
@@ -335,8 +339,7 @@ class CartaoCreditoLancamentoService
             ]);
 
             // Atualizar valor total da fatura
-            $fatura->valor_total += $valorDessaParcela;
-            $fatura->save();
+            $this->incrementarValorFatura($fatura, $valorParcelaFormatado);
 
             $itens[] = $item;
 
@@ -604,7 +607,7 @@ class CartaoCreditoLancamentoService
         } catch (\Throwable $e) {
             DB::rollBack();
 
-            error_log('[CARTAO] Erro ao cancelar parcelamento: ' . $e->getMessage());
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[CARTAO] Erro ao cancelar parcelamento: ' . $e->getMessage());
 
             return [
                 'success' => false,
@@ -692,13 +695,15 @@ class CartaoCreditoLancamentoService
             // Buscar ou criar fatura do mês de vencimento
             $fatura = $this->buscarOuCriarFatura($userId, $cartaoId, $mesVencimento, $anoVencimento);
 
+            $valorEstornoFormatado = $this->moneyString(-$valorEstorno);
+
             // Criar item de fatura como ESTORNO (valor negativo para abater da fatura)
             $item = FaturaCartaoItem::create([
                 'user_id' => $userId,
                 'cartao_credito_id' => $cartaoId,
                 'fatura_id' => $fatura->id,
                 'descricao' => '↩️ ' . $descricao,
-                'valor' => -$valorEstorno, // NEGATIVO para abater da fatura
+                'valor' => $valorEstornoFormatado, // NEGATIVO para abater da fatura
                 'tipo' => 'estorno',
                 'data_compra' => $dataEstorno,
                 'data_vencimento' => $dataVencimento,
@@ -713,8 +718,8 @@ class CartaoCreditoLancamentoService
             ]);
 
             // Atualizar valor total da fatura (subtrair o estorno)
-            $novoTotal = $fatura->valor_total - $valorEstorno;
-            $fatura->update(['valor_total' => max(0, $novoTotal)]);
+            $novoTotal = max(0, (float) $fatura->valor_total - $valorEstorno);
+            $fatura->update(['valor_total' => $this->moneyString($novoTotal)]);
 
             // Atualizar limite disponível do cartão
             $cartao->atualizarLimiteDisponivel();
@@ -768,7 +773,7 @@ class CartaoCreditoLancamentoService
                 'user_id' => $userId,
                 'cartao_credito_id' => $cartaoId,
                 'descricao' => $descricao,
-                'valor_total' => 0,
+                'valor_total' => $this->moneyString(0),
                 'numero_parcelas' => 0,
                 'data_compra' => date('Y-m-d'),
             ]);
@@ -782,5 +787,17 @@ class CartaoCreditoLancamentoService
         }
 
         return $fatura;
+    }
+
+    private function incrementarValorFatura(Fatura $fatura, float|int|string $valor): void
+    {
+        $novoTotal = (float) $fatura->valor_total + (float) $valor;
+        $fatura->valor_total = $this->moneyString($novoTotal);
+        $fatura->save();
+    }
+
+    private function moneyString(float|int|string|null $valor): string
+    {
+        return number_format((float) ($valor ?? 0), 2, '.', '');
     }
 }

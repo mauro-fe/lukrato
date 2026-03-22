@@ -1,3 +1,5 @@
+import { apiGet } from '../shared/api.js';
+
 /**
  * Birthday Modal - Sistema de Celebração de Aniversário
  * 
@@ -35,18 +37,7 @@
                 }
 
                 const baseUrl = document.querySelector('meta[name="base-url"]')?.content || '/';
-                const response = await fetch(`${baseUrl}api/user/birthday-check`, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin'
-                });
-
-                if (!response.ok) return;
-
-                const data = await response.json();
+                const data = await apiGet(`${baseUrl}api/user/birthday-check`);
 
                 if (data.success && data.data?.is_birthday) {
                     this.showModal(data.data);

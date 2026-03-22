@@ -14,6 +14,10 @@ if (file_exists(BASE_PATH . '/' . $envFile)) {
     $dotenv->safeLoad();
 }
 
+if (!isset($_ENV['CPF_ENCRYPTION_KEY']) && !getenv('CPF_ENCRYPTION_KEY') && !isset($_ENV['APP_KEY']) && !getenv('APP_KEY')) {
+    $_ENV['CPF_ENCRYPTION_KEY'] = 'base64:' . base64_encode(hash('sha256', 'lukrato-test-cpf-key', true));
+}
+
 // Timezone
 date_default_timezone_set($_ENV['APP_TZ'] ?? 'America/Sao_Paulo');
 
@@ -33,7 +37,16 @@ if (!is_dir($testStoragePath . '/cache')) {
 $_ENV['STORAGE_PATH'] = $testStoragePath;
 $_ENV['REDIS_ENABLED'] = 'false';
 
+$testRuntimePath = BASE_PATH . '/tests/.runtime';
+$testSessionPath = $testRuntimePath . '/sessions';
+if (!is_dir($testSessionPath)) {
+    mkdir($testSessionPath, 0755, true);
+}
+ini_set('session.save_path', $testSessionPath);
+
 // Eloquent (para testes que dependem de banco)
+use Application\Lib\Auth;
+use Application\Models\Usuario;
 use Illuminate\Database\Capsule\Manager as Capsule;
 
 $capsule = new Capsule();
@@ -49,3 +62,13 @@ $capsule->addConnection([
 ]);
 $capsule->setAsGlobal();
 $capsule->bootEloquent();
+
+Auth::setDefaultUserResolver(static function (int $userId): ?Usuario {
+    $cached = $_SESSION['usuario_cache'] ?? null;
+
+    if (($cached['id'] ?? null) === $userId && (($cached['data'] ?? null) instanceof Usuario)) {
+        return $cached['data'];
+    }
+
+    return Usuario::find($userId);
+});

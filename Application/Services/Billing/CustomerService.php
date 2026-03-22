@@ -4,6 +4,7 @@ namespace Application\Services\Billing;
 
 use Application\DTO\CustomerDataDTO;
 use Application\Models\Usuario;
+use Application\Repositories\DocumentoRepository;
 use Illuminate\Database\Capsule\Manager as DB;
 
 /**
@@ -11,6 +12,10 @@ use Illuminate\Database\Capsule\Manager as DB;
  */
 class CustomerService
 {
+    public function __construct(
+        private readonly ?DocumentoRepository $documentoRepo = null
+    ) {}
+
     public function buildCustomerData(Usuario $usuario, array $holderInfo = []): CustomerDataDTO
     {
         $cpf = $this->getCpf($usuario->id);
@@ -30,10 +35,7 @@ class CustomerService
 
     public function getCpf(int $userId): ?string
     {
-        $cpf = DB::table('documentos')
-            ->where('id_usuario', $userId)
-            ->where('id_tipo', 1)
-            ->value('numero');
+        $cpf = $this->getDocumentoRepo()->getCpf($userId);
 
         return $cpf ? preg_replace('/\D+/', '', $cpf) : null;
     }
@@ -86,7 +88,7 @@ class CustomerService
                 return;
             } catch (\Throwable $e) {
                 // Customer inválido no Asaas — limpar e recriar abaixo
-                error_log("⚠️ [CUSTOMER] Customer {$usuario->external_customer_id} inválido no Asaas para user {$usuario->id}. Recriando...");
+                \Application\Services\Infrastructure\LogService::safeErrorLog("⚠️ [CUSTOMER] Customer {$usuario->external_customer_id} inválido no Asaas para user {$usuario->id}. Recriando...");
                 $usuario->external_customer_id = null;
                 $usuario->gateway = null;
                 $usuario->save();
@@ -119,5 +121,10 @@ class CustomerService
         if (empty($usuario->external_customer_id)) {
             throw new \RuntimeException('Falha ao criar cliente no Asaas.');
         }
+    }
+
+    private function getDocumentoRepo(): DocumentoRepository
+    {
+        return $this->documentoRepo ?? new DocumentoRepository();
     }
 }

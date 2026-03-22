@@ -15,9 +15,9 @@ import {
     Utils,
     Modules,
     getThemeColors,
-    escapeHtml,
-    getCSRFToken
+    escapeHtml
 } from './state.js';
+import { apiDelete, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
 
 // ==================== API ====================
 // Usa LK.api (facade unificada) quando disponível, com fallback local
@@ -29,14 +29,8 @@ export const API = {
             if (!res.ok) throw new Error(res.message || 'Erro na API');
             return res.data;
         }
-        // fallback para fetch nativo
-        const response = await fetch(url, {
-            credentials: 'include',
-            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const json = await response.json();
-        if (json?.success === false) throw new Error(json?.message || 'Erro na API');
+        const json = await apiGet(url);
+        if (json?.success === false) throw new Error(getErrorMessage({ data: json }, 'Erro na API'));
         return json?.data ?? json;
     },
 
@@ -71,27 +65,18 @@ export const API = {
             throw new Error(res.message || 'Erro ao excluir');
         }
         // Fallback com múltiplos endpoints
-        const csrf = getCSRFToken();
-        const headers = {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            ...(csrf ? { 'X-CSRF-Token': csrf } : {})
-        };
         const endpoints = [
-            { url: `${CONFIG.API_URL}lancamentos/${id}`, method: 'DELETE' },
-            { url: `${CONFIG.API_URL}lancamentos/${id}/delete`, method: 'POST' },
-            { url: `${CONFIG.API_URL}lancamentos/delete`, method: 'POST', body: JSON.stringify({ id }) }
+            { request: () => apiDelete(`${CONFIG.API_URL}lancamentos/${id}`) },
+            { request: () => apiPost(`${CONFIG.API_URL}lancamentos/${id}/delete`, {}) },
+            { request: () => apiPost(`${CONFIG.API_URL}lancamentos/delete`, { id }) }
         ];
         for (const endpoint of endpoints) {
             try {
-                const response = await fetch(endpoint.url, { credentials: 'include', headers, method: endpoint.method, body: endpoint.body });
-                if (response.ok) return await response.json();
-                if (response.status !== 404) {
-                    const json = await response.json().catch(() => ({}));
-                    throw new Error(json?.message || `HTTP ${response.status}`);
+                return await endpoint.request();
+            } catch (error) {
+                if (error?.status !== 404) {
+                    throw new Error(getErrorMessage(error, 'Erro ao excluir'));
                 }
-            } catch (err) {
-                if (endpoint === endpoints[endpoints.length - 1]) throw err;
             }
         }
         throw new Error('Endpoint de exclusão não encontrado.');
@@ -587,7 +572,7 @@ export const TransactionManager = {
         } catch (err) {
             console.error('Erro ao excluir lançamento:', err);
             await Notifications.ensureSwal();
-            Notifications.error('Erro', err.message || 'Falha ao excluir lançamento');
+            Notifications.error('Erro', getErrorMessage(err, 'Falha ao excluir lançamento'));
         }
     }
 };
@@ -969,3 +954,5 @@ Modules.App = {
     DashboardManager,
     EventListeners
 };
+
+

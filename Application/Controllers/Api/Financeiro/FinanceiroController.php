@@ -17,6 +17,7 @@ use Application\DTO\Requests\UpdateLancamentoDTO;
 use Application\Repositories\LancamentoRepository;
 use Application\Repositories\CategoriaRepository;
 use Application\Repositories\ContaRepository;
+use Application\Services\User\OnboardingProgressService;
 use ValueError;
 use Throwable;
 use Illuminate\Database\Eloquent\Builder;
@@ -29,13 +30,15 @@ class FinanceiroController extends BaseController
     private LancamentoRepository $lancamentoRepo;
     private CategoriaRepository $categoriaRepo;
     private ContaRepository $contaRepo;
+    private OnboardingProgressService $onboardingProgressService;
 
     public function __construct(
         ?LancamentoLimitService $limitService = null,
         ?TransferenciaService $transferenciaService = null,
         ?LancamentoRepository $lancamentoRepo = null,
         ?CategoriaRepository $categoriaRepo = null,
-        ?ContaRepository $contaRepo = null
+        ?ContaRepository $contaRepo = null,
+        ?OnboardingProgressService $onboardingProgressService = null
     ) {
         parent::__construct();
         $this->limitService = $limitService ?? new LancamentoLimitService();
@@ -43,6 +46,7 @@ class FinanceiroController extends BaseController
         $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
         $this->categoriaRepo = $categoriaRepo ?? new CategoriaRepository();
         $this->contaRepo = $contaRepo ?? new ContaRepository();
+        $this->onboardingProgressService = $onboardingProgressService ?? new OnboardingProgressService();
     }
 
     /**
@@ -50,18 +54,13 @@ class FinanceiroController extends BaseController
      *
      * Suporta visualizacao por competencia ou caixa.
      */
-    public function metrics(): void
+    public function metrics(): Response
     {
-        $uid = $this->resolveCurrentUserIdOrFail('Nao autenticado');
-        if ($uid === null) {
-            return;
-        }
-
-        $this->releaseSession();
+        $uid = $this->requireApiUserIdAndReleaseSessionOrFail();
 
         try {
-            $period = $this->parseYearMonth((string) $this->getQuery('month', date('Y-m')));
-            $viewType = (string) $this->getQuery('view', 'caixa');
+            $period = $this->parseYearMonth($this->getStringQuery('month', date('Y-m')));
+            $viewType = $this->getStringQuery('view', 'caixa');
             $startStr = $period['start'];
             $endStr = $period['end'];
 
@@ -76,7 +75,7 @@ class FinanceiroController extends BaseController
             $resultado = $receitas - $despesas;
             $saldoAcumulado = $this->calcularSaldoAcumulado($uid, $endStr);
 
-            Response::success([
+            return Response::successResponse([
                 'saldo' => $saldoAcumulado,
                 'receitas' => $receitas,
                 'despesas' => $despesas,
@@ -85,7 +84,7 @@ class FinanceiroController extends BaseController
                 'view' => $viewType,
             ]);
         } catch (Throwable $e) {
-            Response::error($e->getMessage(), 500);
+            return $this->internalErrorResponse($e, 'Erro ao carregar metricas.');
         }
     }
 
@@ -114,18 +113,13 @@ class FinanceiroController extends BaseController
         return $saldosIniciais + $receitas - $despesas;
     }
 
-    public function transactions(): void
+    public function transactions(): Response
     {
-        $uid = $this->resolveCurrentUserIdOrFail('Nao autenticado');
-        if ($uid === null) {
-            return;
-        }
-
-        $this->releaseSession();
+        $uid = $this->requireApiUserIdAndReleaseSessionOrFail();
 
         try {
-            $period = $this->parseYearMonth((string) $this->getQuery('month', date('Y-m')));
-            $limit = min((int) $this->getQuery('limit', 50), 1000);
+            $period = $this->parseYearMonth($this->getStringQuery('month', date('Y-m')));
+            $limit = min($this->getIntQuery('limit', 50), 1000);
 
             $rows = Lancamento::with('categoria:id,nome')
                 ->whereBetween('data', [$period['start'], $period['end']])
@@ -152,20 +146,15 @@ class FinanceiroController extends BaseController
                 ];
             })->all();
 
-            Response::success($out);
+            return Response::successResponse($out);
         } catch (Throwable $e) {
-            Response::error($e->getMessage(), 500);
+            return $this->internalErrorResponse($e, 'Erro ao carregar transacoes.');
         }
     }
 
-    public function options(): void
+    public function options(): Response
     {
-        $uid = $this->resolveCurrentUserIdOrFail('Nao autenticado');
-        if ($uid === null) {
-            return;
-        }
-
-        $this->releaseSession();
+        $uid = $this->requireApiUserIdAndReleaseSessionOrFail();
 
         try {
             $baseCatsQuery = fn(string $tipo) => Categoria::where(function (Builder $q) use ($uid) {
@@ -182,7 +171,7 @@ class FinanceiroController extends BaseController
                 ->orderBy('nome')
                 ->get(['id', 'nome']);
 
-            Response::success([
+            return Response::successResponse([
                 'categorias' => [
                     'receitas' => $catsReceita->map(fn(Categoria $c) => ['id' => (int) $c->id, 'nome' => (string) $c->nome])->all(),
                     'despesas' => $catsDespesa->map(fn(Categoria $c) => ['id' => (int) $c->id, 'nome' => (string) $c->nome])->all(),
@@ -190,17 +179,14 @@ class FinanceiroController extends BaseController
                 'contas' => $contas->map(fn(Conta $c) => ['id' => (int) $c->id, 'nome' => (string) $c->nome])->all(),
             ]);
         } catch (Throwable $e) {
-            Response::error($e->getMessage(), 500);
+            return $this->internalErrorResponse($e, 'Erro ao carregar opcoes.');
         }
     }
 
-    public function store(): void
+    public function store(): Response
     {
         try {
-            $uid = $this->resolveCurrentUserIdOrFail('Nao autenticado');
-            if ($uid === null) {
-                return;
-            }
+            $uid = $this->requireApiUserIdOrFail();
 
             $payload = $this->getRequestPayload();
             $errors = LancamentoValidator::validateCreate($payload);
@@ -210,15 +196,13 @@ class FinanceiroController extends BaseController
             $errors = array_merge($errors, $this->validateLancamentoRelations($uid, $contaId, $categoriaId));
 
             if (!empty($errors)) {
-                Response::validationError($errors);
-                return;
+                return Response::validationErrorResponse($errors);
             }
 
             try {
                 $usage = $this->limitService->assertCanCreate($uid, (string) ($payload['data'] ?? ''));
             } catch (DomainException $e) {
-                Response::error($e->getMessage(), 402);
-                return;
+                return $this->domainErrorResponse($e, 'Nao foi possivel criar o lancamento.', 402);
             }
 
             $dto = CreateLancamentoDTO::fromRequest(
@@ -227,9 +211,10 @@ class FinanceiroController extends BaseController
             );
 
             $lancamento = $this->lancamentoRepo->create($dto->toArray());
+            $this->syncOnboardingLancamentoCreated($uid, $lancamento->created_at);
             $usage = $this->limitService->usage($uid, substr((string) ($payload['data'] ?? ''), 0, 7));
 
-            Response::success([
+            return Response::successResponse([
                 'ok' => true,
                 'id' => (int) $lancamento->id,
                 'usage' => $usage,
@@ -237,19 +222,16 @@ class FinanceiroController extends BaseController
                 'upgrade_cta' => ($usage['should_warn'] ?? false) ? $this->limitService->getUpgradeCta() : null,
             ], 'Lancamento criado', 201);
         } catch (ValueError $e) {
-            Response::validationError(['message' => $e->getMessage()]);
+            return $this->domainErrorResponse($e, 'Dados invalidos para criar lancamento.', 422);
         } catch (Throwable $e) {
-            Response::error('Erro ao salvar lancamento.', 500);
+            return Response::errorResponse('Erro ao salvar lancamento.', 500);
         }
     }
 
-    public function update(mixed $routeParam = null): void
+    public function update(mixed $routeParam = null): Response
     {
         try {
-            $uid = $this->resolveCurrentUserIdOrFail('Nao autenticado');
-            if ($uid === null) {
-                return;
-            }
+            $uid = $this->requireApiUserIdOrFail();
 
             $id = $this->extractLancamentoId($routeParam);
             if ($id <= 0) {
@@ -258,8 +240,7 @@ class FinanceiroController extends BaseController
 
             $lancamento = $this->lancamentoRepo->findByIdAndUser($id, $uid);
             if (!$lancamento) {
-                Response::error('Lancamento nao encontrado.', 404);
-                return;
+                return Response::errorResponse('Lancamento nao encontrado.', 404);
             }
 
             if ((bool) ($lancamento->eh_transferencia ?? 0) === true) {
@@ -275,8 +256,7 @@ class FinanceiroController extends BaseController
             $errors = array_merge($errors, $this->validateLancamentoRelations($uid, $contaId, $categoriaId));
 
             if (!empty($errors)) {
-                Response::validationError($errors);
-                return;
+                return Response::validationErrorResponse($errors);
             }
 
             $dto = UpdateLancamentoDTO::fromRequest(
@@ -284,21 +264,18 @@ class FinanceiroController extends BaseController
             );
 
             $this->lancamentoRepo->update($lancamento->id, $dto->toArray());
-            Response::success(['id' => (int) $lancamento->id]);
+            return Response::successResponse(['id' => (int) $lancamento->id]);
         } catch (ValueError $e) {
-            Response::error($e->getMessage(), 422);
+            return $this->domainErrorResponse($e, 'Dados invalidos para atualizar lancamento.', 422);
         } catch (Throwable $e) {
-            Response::error($e->getMessage(), 500);
+            return $this->internalErrorResponse($e, 'Erro ao atualizar lancamento.');
         }
     }
 
-    public function transfer(): void
+    public function transfer(): Response
     {
         try {
-            $uid = $this->resolveCurrentUserIdOrFail('Nao autenticado');
-            if ($uid === null) {
-                return;
-            }
+            $uid = $this->requireApiUserIdOrFail();
 
             $data = $this->getRequestPayload();
             $dataStr = trim((string) ($data['data'] ?? date('Y-m-d')));
@@ -324,11 +301,11 @@ class FinanceiroController extends BaseController
                 observacao: $data['observacao'] ?? null
             );
 
-            Response::success(['id' => (int) $transferencia->id], 'Success', 201);
+            return Response::successResponse(['id' => (int) $transferencia->id], 'Success', 201);
         } catch (ValueError $e) {
-            Response::error($e->getMessage(), 422);
+            return $this->domainErrorResponse($e, 'Dados invalidos para realizar transferencia.', 422);
         } catch (Throwable $e) {
-            Response::error($e->getMessage(), 500);
+            return $this->internalErrorResponse($e, 'Erro ao realizar transferencia.');
         }
     }
 
@@ -386,5 +363,17 @@ class FinanceiroController extends BaseController
             'conta_id' => $payload['conta_id'] ?? $lancamento->conta_id,
             'categoria_id' => $payload['categoria_id'] ?? $lancamento->categoria_id,
         ];
+    }
+
+    private function syncOnboardingLancamentoCreated(int $userId, \DateTimeInterface|string|null $createdAt = null): void
+    {
+        try {
+            $this->onboardingProgressService->markLancamentoCreated($userId, $createdAt);
+        } catch (Throwable $e) {
+            \Application\Services\Infrastructure\LogService::captureException($e, \Application\Enums\LogCategory::GENERAL, [
+                'action' => 'sync_onboarding_lancamento_created_legacy',
+                'user_id' => $userId,
+            ]);
+        }
     }
 }

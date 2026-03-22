@@ -6,180 +6,135 @@ namespace Application\Controllers\Api\Notification;
 
 use Application\Controllers\BaseController;
 use Application\Core\Response;
-use Application\Lib\Auth;
 use Application\Models\Notification;
 use Application\Services\Communication\NotificationService;
 use Exception;
 
 /**
- * NotificationController
- * 
- * API para gerenciamento de notificações do usuário logado.
- * Usado pelo ícone de sino no header do sistema.
+ * API para gerenciamento de notificacoes do usuario logado.
  */
 class NotificationController extends BaseController
 {
     private NotificationService $notificationService;
 
-    public function __construct()
+    public function __construct(?NotificationService $notificationService = null)
     {
         parent::__construct();
-        $this->notificationService = new NotificationService();
+        $this->notificationService = $notificationService ?? new NotificationService();
     }
 
-    /**
-     * GET /api/notifications
-     * Lista notificações do usuário logado
-     */
-    public function index(): void
+    public function index(): Response
     {
-        $this->requireAuthApi();
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
-            $user = Auth::user();
             $limit = (int) ($_GET['limit'] ?? 20);
             $unreadOnly = filter_var($_GET['unread_only'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
             $notifications = $this->notificationService->getUserNotifications(
-                $user->id,
-                min($limit, 50), // Máximo 50
+                $userId,
+                min($limit, 50),
                 $unreadOnly
             );
 
-            // Enriquecer com atributos computados
-            $notifications = array_map(function ($notification) {
+            $notifications = array_map(function (array $notification): array {
                 $model = new Notification($notification);
+
                 return array_merge($notification, [
                     'icon' => $model->icon,
                     'color' => $model->color,
-                    'time_ago' => $this->timeAgo($notification['created_at']),
+                    'time_ago' => $this->timeAgo((string) $notification['created_at']),
                 ]);
             }, $notifications);
 
-            Response::success([
+            return Response::successResponse([
                 'notifications' => $notifications,
                 'total' => count($notifications),
-            ], 'Notificações listadas com sucesso');
+            ], 'Notificacoes listadas com sucesso');
         } catch (Exception $e) {
-            error_log("[NotificationController] Erro ao listar: " . $e->getMessage());
-            Response::error('Erro ao listar notificações: ' . $e->getMessage(), 500);
+            return $this->internalErrorResponse($e, 'Erro ao listar notificacoes.');
         }
     }
 
-    /**
-     * GET /api/notifications/count
-     * Conta notificações não lidas
-     */
-    public function count(): void
+    public function count(): Response
     {
-        $this->requireAuthApi();
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
-            $user = Auth::user();
-            $count = $this->notificationService->getUnreadCount($user->id);
+            $count = $this->notificationService->getUnreadCount($userId);
 
-            Response::success([
+            return Response::successResponse([
                 'unread_count' => $count,
             ]);
         } catch (Exception $e) {
-            error_log("[NotificationController] Erro ao contar: " . $e->getMessage());
-            Response::error('Erro ao contar notificações: ' . $e->getMessage(), 500);
+            return $this->internalErrorResponse($e, 'Erro ao contar notificacoes.');
         }
     }
 
-    /**
-     * POST /api/notifications/{id}/read
-     * Marca uma notificação como lida
-     */
-    public function markAsRead(int $id): void
+    public function markAsRead(int $id): Response
     {
-        $this->requireAuthApi();
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
-            $user = Auth::user();
-            $success = $this->notificationService->markAsRead($id, $user->id);
+            $success = $this->notificationService->markAsRead($id, $userId);
 
             if (!$success) {
-                Response::error('Notificação não encontrada', 404);
-                return;
+                return Response::errorResponse('Notificação não encontrada', 404);
             }
 
-            Response::success(['marked' => true], 'Notificação marcada como lida');
+            return Response::successResponse(['marked' => true], 'Notificacao marcada como lida');
         } catch (Exception $e) {
-            error_log("[NotificationController] Erro ao marcar como lida: " . $e->getMessage());
-            Response::error('Erro ao marcar notificação como lida: ' . $e->getMessage(), 500);
+            return $this->internalErrorResponse($e, 'Erro ao marcar notificacao como lida.');
         }
     }
 
-    /**
-     * POST /api/notifications/read-all
-     * Marca todas as notificações como lidas
-     */
-    public function markAllAsRead(): void
+    public function markAllAsRead(): Response
     {
-        $this->requireAuthApi();
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
-            $user = Auth::user();
-            $count = $this->notificationService->markAllAsRead($user->id);
+            $count = $this->notificationService->markAllAsRead($userId);
 
-            Response::success([
+            return Response::successResponse([
                 'marked_count' => $count,
-            ], 'Todas as notificações foram marcadas como lidas');
+            ], 'Todas as notificacoes foram marcadas como lidas');
         } catch (Exception $e) {
-            error_log("[NotificationController] Erro ao marcar todas: " . $e->getMessage());
-            Response::error('Erro ao marcar notificações como lidas: ' . $e->getMessage(), 500);
+            return $this->internalErrorResponse($e, 'Erro ao marcar notificacoes como lidas.');
         }
     }
 
-    /**
-     * DELETE /api/notifications/{id}
-     * Deleta uma notificação
-     */
-    public function destroy(int $id): void
+    public function destroy(int $id): Response
     {
-        $this->requireAuthApi();
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
-            $user = Auth::user();
-            $success = $this->notificationService->deleteNotification($id, $user->id);
+            $success = $this->notificationService->deleteNotification($id, $userId);
 
             if (!$success) {
-                Response::error('Notificação não encontrada', 404);
-                return;
+                return Response::errorResponse('Notificacao nao encontrada', 404);
             }
 
-            Response::success(['deleted' => true], 'Notificação deletada com sucesso');
+            return Response::successResponse(['deleted' => true], 'Notificacao deletada com sucesso');
         } catch (Exception $e) {
-            error_log("[NotificationController] Erro ao deletar: " . $e->getMessage());
-            Response::error('Erro ao deletar notificação: ' . $e->getMessage(), 500);
+            return $this->internalErrorResponse($e, 'Erro ao deletar notificacao.');
         }
     }
 
-    /**
-     * DELETE /api/notifications/read
-     * Deleta todas as notificações lidas
-     */
-    public function deleteRead(): void
+    public function deleteRead(): Response
     {
-        $this->requireAuthApi();
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
-            $user = Auth::user();
-            $count = $this->notificationService->deleteReadNotifications($user->id);
+            $count = $this->notificationService->deleteReadNotifications($userId);
 
-            Response::success([
+            return Response::successResponse([
                 'deleted_count' => $count,
-            ], 'Notificações lidas foram deletadas');
+            ], 'Notificacoes lidas foram deletadas');
         } catch (Exception $e) {
-            error_log("[NotificationController] Erro ao deletar lidas: " . $e->getMessage());
-            Response::error('Erro ao deletar notificações: ' . $e->getMessage(), 500);
+            return $this->internalErrorResponse($e, 'Erro ao deletar notificacoes.');
         }
     }
 
-    /**
-     * Formata tempo relativo (ex: "há 5 minutos")
-     */
     private function timeAgo(string $datetime): string
     {
         $time = strtotime($datetime);
@@ -192,25 +147,28 @@ class NotificationController extends BaseController
 
         if ($diff < 3600) {
             $minutes = floor($diff / 60);
-            return "há {$minutes} " . ($minutes === 1 ? 'minuto' : 'minutos');
+
+            return "ha {$minutes} " . ($minutes === 1 ? 'minuto' : 'minutos');
         }
 
         if ($diff < 86400) {
             $hours = floor($diff / 3600);
-            return "há {$hours} " . ($hours === 1 ? 'hora' : 'horas');
+
+            return "ha {$hours} " . ($hours === 1 ? 'hora' : 'horas');
         }
 
         if ($diff < 604800) {
             $days = floor($diff / 86400);
-            return "há {$days} " . ($days === 1 ? 'dia' : 'dias');
+
+            return "ha {$days} " . ($days === 1 ? 'dia' : 'dias');
         }
 
         if ($diff < 2592000) {
             $weeks = floor($diff / 604800);
-            return "há {$weeks} " . ($weeks === 1 ? 'semana' : 'semanas');
+
+            return "ha {$weeks} " . ($weeks === 1 ? 'semana' : 'semanas');
         }
 
-        // Mais de um mês, mostrar data
         return date('d/m/Y', $time);
     }
 }

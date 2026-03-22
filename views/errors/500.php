@@ -6,7 +6,7 @@
 
 // Log da exceção se disponível
 if (isset($exception)) {
-    error_log("Erro 500: " . $exception->getMessage());
+    \Application\Services\Infrastructure\LogService::safeErrorLog("Erro 500: " . $exception->getMessage());
 }
 
 $errorCode        = 500;

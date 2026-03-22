@@ -12,7 +12,7 @@ use Application\Services\Infrastructure\LogService;
 /**
  * Serviço para gerar automaticamente itens recorrentes de cartão de crédito.
  * 
- * Executado pelo cron (SchedulerController::runAll).
+ * Executado pelo runner CLI `cli/run_scheduler.php`.
  * 
  * Lógica:
  * 1. Busca todos os itens "pai" de recorrência ativa (recorrente=true, recorrencia_pai_id IS NULL, cancelado_em IS NULL)
@@ -363,7 +363,7 @@ class RecorrenciaCartaoService
                 'item_pai_id' => $itemPaiId,
                 'error' => $e->getMessage(),
             ]);
-            return ['success' => false, 'message' => 'Erro ao cancelar assinatura: ' . $e->getMessage()];
+            return ['success' => false, 'message' => 'Erro ao cancelar assinatura.'];
         }
     }
 

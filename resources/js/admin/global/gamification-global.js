@@ -3,8 +3,16 @@
  * Carregado em todas as páginas para exibir conquistas e level ups
  */
 
+import { apiGet, apiPost } from '../shared/api.js';
+
 (function () {
     'use strict';
+
+    const ONBOARDING_STORAGE_PREFIX = `lk_user_${window.__LK_CONFIG?.userId ?? 'anon'}_`;
+
+    function storageKey(name) {
+        return ONBOARDING_STORAGE_PREFIX + name;
+    }
 
     // Mapeamento de cores para ícones de conquistas
     function getAchievementIconColor(icon) {
@@ -498,16 +506,7 @@
 
         try {
             const baseUrl = window.BASE_URL || window.LK?.getBase?.() || '/';
-            const response = await fetch(`${baseUrl}api/gamification/achievements/pending`, {
-                credentials: 'same-origin'
-            });
-
-            if (!response.ok) {
-                isCheckingPending = false;
-                return;
-            }
-
-            const data = await response.json();
+            const data = await apiGet(`${baseUrl}api/gamification/achievements/pending`);
 
             if (data.success && data.data && data.data.pending && data.data.pending.length > 0) {
                 const pending = data.data.pending;
@@ -550,20 +549,7 @@
     async function markAchievementsSeen(achievementIds) {
         try {
             const baseUrl = window.BASE_URL || window.LK?.getBase?.() || '/';
-
-            // Obter CSRF token
-            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-            const csrfToken = csrfMeta ? csrfMeta.content : '';
-
-            await fetch(`${baseUrl}api/gamification/achievements/mark-seen`, {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken
-                },
-                body: JSON.stringify({ achievement_ids: achievementIds })
-            });
+            await apiPost(`${baseUrl}api/gamification/achievements/mark-seen`, { achievement_ids: achievementIds });
         } catch (error) {
             console.error('🎮 [GAMIFICATION] Erro ao marcar conquistas como vistas:', error);
         }
@@ -582,16 +568,7 @@
 
         try {
             const baseUrl = window.BASE_URL || window.LK?.getBase?.() || '/';
-            const response = await fetch(`${baseUrl}api/notificacoes/referral-rewards`, {
-                credentials: 'same-origin'
-            });
-
-            if (!response.ok) {
-                isCheckingReferralRewards = false;
-                return;
-            }
-
-            const data = await response.json();
+            const data = await apiGet(`${baseUrl}api/notificacoes/referral-rewards`);
 
             if (data.success && data.data && data.data.rewards && data.data.rewards.length > 0) {
                 const rewards = data.data.rewards;
@@ -671,18 +648,7 @@
     async function markReferralRewardsSeen(ids) {
         try {
             const baseUrl = window.BASE_URL || window.LK?.getBase?.() || '/';
-            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-            const csrfToken = csrfMeta ? csrfMeta.content : '';
-
-            await fetch(`${baseUrl}api/notificacoes/referral-rewards/seen`, {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken
-                },
-                body: JSON.stringify({ ids: ids })
-            });
+            await apiPost(`${baseUrl}api/notificacoes/referral-rewards/seen`, { ids });
         } catch (error) {
             console.error('🎁 [REFERRAL] Erro ao marcar recompensas como vistas:', error);
         }
@@ -694,7 +660,7 @@
     // Isto garante que conquistas desbloqueadas em outros contextos
     // (como verificação de email, ações em background) sejam notificadas
     function initPendingAchievementsCheck() {
-        const onboardingInProgress = localStorage.getItem('lukrato_onboarding_in_progress') === 'true';
+        const onboardingInProgress = localStorage.getItem(storageKey('lukrato_onboarding_in_progress')) === 'true';
 
         // Não verificar durante onboarding
         if (onboardingInProgress || window.gamificationPaused === true) {
@@ -859,8 +825,8 @@
     // ====================================================================
     // Verificar se onboarding está completo ao carregar a página
     window.addEventListener('DOMContentLoaded', function () {
-        const onboardingCompleted = localStorage.getItem('lukrato_onboarding_completed') === 'true';
-        const onboardingInProgress = localStorage.getItem('lukrato_onboarding_in_progress') === 'true';
+        const onboardingCompleted = localStorage.getItem(storageKey('lukrato_onboarding_completed')) === 'true';
+        const onboardingInProgress = localStorage.getItem(storageKey('lukrato_onboarding_in_progress')) === 'true';
 
 
         if (onboardingCompleted && !onboardingInProgress) {

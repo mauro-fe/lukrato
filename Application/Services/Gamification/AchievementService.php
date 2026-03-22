@@ -39,11 +39,11 @@ class AchievementService
      */
     public function checkAndUnlockAchievements(int $userId, ?string $context = null): array
     {
-        error_log("🔍 [ACHIEVEMENT] Iniciando verificação para user_id: {$userId}, context: {$context}");
+        \Application\Services\Infrastructure\LogService::safeErrorLog("🔍 [ACHIEVEMENT] Iniciando verificação para user_id: {$userId}, context: {$context}");
 
         $user = Usuario::find($userId);
         if (!$user) {
-            error_log("❌ [ACHIEVEMENT] Usuário não encontrado: {$userId}");
+            \Application\Services\Infrastructure\LogService::safeErrorLog("❌ [ACHIEVEMENT] Usuário não encontrado: {$userId}");
             return [];
         }
 
@@ -53,7 +53,7 @@ class AchievementService
         // Pro: pode desbloquear todas (free + pro + all)
         // Free: pode desbloquear apenas free + all
         $isPro = $user->isPro();
-        error_log("👤 [ACHIEVEMENT] Usuário é Pro? " . ($isPro ? 'Sim' : 'Não'));
+        \Application\Services\Infrastructure\LogService::safeErrorLog("👤 [ACHIEVEMENT] Usuário é Pro? " . ($isPro ? 'Sim' : 'Não'));
 
         $availableQuery = Achievement::active();
 
@@ -67,7 +67,7 @@ class AchievementService
         // Usuário Pro: não filtra, pode desbloquear todas
 
         $availableAchievements = $availableQuery->get();
-        error_log("📋 [ACHIEVEMENT] Total de conquistas disponíveis: " . $availableAchievements->count());
+        \Application\Services\Infrastructure\LogService::safeErrorLog("📋 [ACHIEVEMENT] Total de conquistas disponíveis: " . $availableAchievements->count());
 
         foreach ($availableAchievements as $achievement) {
             // Pular se já desbloqueou
@@ -78,16 +78,16 @@ class AchievementService
             // Verificar se pode desbloquear
             $canUnlock = $this->canUnlock($userId, $achievement->code, $user);
             if ($canUnlock) {
-                error_log("✅ [ACHIEVEMENT] Pode desbloquear: {$achievement->code}");
+                \Application\Services\Infrastructure\LogService::safeErrorLog("✅ [ACHIEVEMENT] Pode desbloquear: {$achievement->code}");
                 $result = $this->unlockAchievement($userId, $achievement->id);
                 if ($result['success']) {
                     $unlockedNow[] = $result['achievement'];
-                    error_log("🎉 [ACHIEVEMENT] Desbloqueada: {$achievement->code}");
+                    \Application\Services\Infrastructure\LogService::safeErrorLog("🎉 [ACHIEVEMENT] Desbloqueada: {$achievement->code}");
                 }
             }
         }
 
-        error_log("🏆 [ACHIEVEMENT] Total desbloqueadas: " . count($unlockedNow));
+        \Application\Services\Infrastructure\LogService::safeErrorLog("🏆 [ACHIEVEMENT] Total desbloqueadas: " . count($unlockedNow));
         return $unlockedNow;
     }
 
@@ -269,7 +269,7 @@ class AchievementService
                 $gamificationService = new GamificationService();
                 $gamificationService->recalculateLevel($userId);
 
-                error_log("🏆 [ACHIEVEMENT] User {$userId} desbloqueou '{$achievement->name}' (+{$achievement->points_reward} pts)");
+                \Application\Services\Infrastructure\LogService::safeErrorLog("🏆 [ACHIEVEMENT] User {$userId} desbloqueou '{$achievement->name}' (+{$achievement->points_reward} pts)");
             }
         }
 
@@ -695,11 +695,11 @@ class AchievementService
     {
         $userCards = CartaoCredito::where('user_id', $userId)->pluck('id');
 
-        error_log("🔍 [ACHIEVEMENT] checkFirstInvoicePaid - userId: {$userId}");
-        error_log("🔍 [ACHIEVEMENT] checkFirstInvoicePaid - cartões do usuário: " . $userCards->count());
+        \Application\Services\Infrastructure\LogService::safeErrorLog("🔍 [ACHIEVEMENT] checkFirstInvoicePaid - userId: {$userId}");
+        \Application\Services\Infrastructure\LogService::safeErrorLog("🔍 [ACHIEVEMENT] checkFirstInvoicePaid - cartões do usuário: " . $userCards->count());
 
         if ($userCards->isEmpty()) {
-            error_log("❌ [ACHIEVEMENT] checkFirstInvoicePaid - Usuário não tem cartões");
+            \Application\Services\Infrastructure\LogService::safeErrorLog("❌ [ACHIEVEMENT] checkFirstInvoicePaid - Usuário não tem cartões");
             return false;
         }
 
@@ -707,7 +707,7 @@ class AchievementService
             ->where('status', 'paga')
             ->count();
 
-        error_log("🔍 [ACHIEVEMENT] checkFirstInvoicePaid - faturas pagas: {$faturaPaga}");
+        \Application\Services\Infrastructure\LogService::safeErrorLog("🔍 [ACHIEVEMENT] checkFirstInvoicePaid - faturas pagas: {$faturaPaga}");
 
         return $faturaPaga >= 1;
     }

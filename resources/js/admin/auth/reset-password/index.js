@@ -1,14 +1,15 @@
 /**
  * ============================================================================
- * LUKRATO — Reset Password Page (Vite Module)
+ * LUKRATO - Reset Password Page (Vite Module)
  * ============================================================================
  */
 
 import { createParticles, createConfetti, initTogglePassword, getBaseUrl } from '../shared.js';
+import { apiFetch, getErrorMessage } from '../../shared/api.js';
 
 const BASE = getBaseUrl();
 
-// ── Init shared features ───────────────────────────────────────────────────
+// -- Init shared features ---------------------------------------------------
 createParticles();
 initTogglePassword();
 
@@ -71,7 +72,6 @@ initTogglePassword();
             const password = document.getElementById('password').value;
             const confirm = document.getElementById('password_confirmation').value;
 
-            // Validação forte: mesmas regras do registro
             if (password.length < 8) {
                 showMessage('A senha deve ter pelo menos 8 caracteres.');
                 return;
@@ -109,7 +109,7 @@ initTogglePassword();
 
             try {
                 const formData = new FormData(form);
-                const response = await fetch(form.action, {
+                const data = await apiFetch(form.action, {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -118,9 +118,7 @@ initTogglePassword();
                     }
                 });
 
-                const data = await response.json();
-
-                if (response.ok && data.success) {
+                if (data?.success) {
                     form.style.display = 'none';
                     showMessage(data.message || 'Senha redefinida com sucesso!', 'success');
                     createConfetti(200);
@@ -128,12 +126,11 @@ initTogglePassword();
                         window.location.href = data.redirect || BASE + 'login';
                     }, 2000);
                 } else {
-                    showMessage(data.message || 'Erro ao redefinir senha.');
-                    btn.disabled = false;
-                    btn.innerHTML = originalHtml;
+                    showMessage(getErrorMessage({ data }, 'Erro ao redefinir senha.'));
                 }
             } catch (err) {
-                showMessage('Erro de conexão. Tente novamente.');
+                showMessage(getErrorMessage(err, 'Erro de conexão. Tente novamente.'));
+            } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalHtml;
             }

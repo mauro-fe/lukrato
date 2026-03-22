@@ -3,39 +3,34 @@
 namespace Application\Controllers\Admin;
 
 use Application\Controllers\BaseController;
+use Application\Core\Response;
 
 class CartoesController extends BaseController
 {
-    /**
-     * Página principal de cartões de crédito
-     */
-    public function index(): void
+    public function index(): Response
     {
-        $this->requireAuth();
+        $this->requireUserId();
 
-        $this->render(
+        return $this->renderResponse(
             'admin/cartoes/index',
             [
                 'pageTitle' => 'Cartões de Crédito',
-                'subTitle' => 'Gerencie seus cartões e controle seus gastos'
+                'subTitle' => 'Gerencie seus cartões e controle seus gastos',
             ],
             'admin/partials/header',
             'admin/partials/footer'
         );
     }
 
-    /**
-     * Página de cartões arquivados
-     */
-    public function archived(): void
+    public function archived(): Response
     {
-        $this->requireAuth();
+        $this->requireUserId();
 
-        $this->render(
+        return $this->renderResponse(
             'admin/cartoes/arquivadas',
             [
                 'pageTitle' => 'Cartões Arquivados',
-                'subTitle' => 'Gerencie seus cartões arquivados'
+                'subTitle' => 'Gerencie seus cartões arquivados',
             ],
             'admin/partials/header',
             'admin/partials/footer'

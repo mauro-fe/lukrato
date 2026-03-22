@@ -4,100 +4,104 @@ declare(strict_types=1);
 
 namespace Application\Core;
 
-use Application\Services\Infrastructure\CacheService;
-use Application\Services\Infrastructure\LogService;
-use Application\Core\Exceptions\AuthException;
-use Application\Core\Exceptions\ValidationException;
+use Application\Core\Exceptions\HttpResponseException;
+use Application\Core\Routing\ErrorResponseFactory as RoutingErrorResponseFactory;
+use Application\Core\Routing\HttpExceptionHandler;
+use Application\Core\Routing\MiddlewareResolver as RoutingMiddlewareResolver;
 use Throwable;
 
 class Router
 {
     private static array $routes = [];
+    private static ?RoutingMiddlewareResolver $middlewareResolver = null;
 
     public static function add(string $method, string $path, mixed $callback, array $middlewares = []): void
     {
         self::$routes[] = [
-            'method'      => strtoupper($method),
-            'path'        => trim($path, '/'),
-            'callback'    => $callback,
+            'method' => strtoupper($method),
+            'path' => self::normalizeRoutePath($path),
+            'callback' => $callback,
             'middlewares' => $middlewares,
         ];
     }
 
-    public static function run(string $requestedPath, string $requestMethod): void
+    public static function reset(): void
     {
+        self::$routes = [];
+        self::$middlewareResolver = null;
+        RoutingMiddlewareResolver::reset();
+    }
+
+    public static function run(string $requestedPath, string $requestMethod): ?Response
+    {
+        $request = new Request();
         $routeContext = null;
 
         try {
-            $request = new Request();
-            $match   = self::findMatchingRoute($requestedPath, $requestMethod);
+            $match = self::findMatchingRoute($requestedPath, strtoupper($requestMethod));
 
             if ($match === null) {
-                self::handleNotFound($request);
-                return;
+                return self::notFoundResponse($request);
+            }
+
+            if ($match['route'] === null) {
+                return self::methodNotAllowedResponse($request, $match['allowed_methods']);
             }
 
             $routeContext = $match['route'];
 
-            self::executeMiddlewares($routeContext['middlewares'], $request);
-            self::executeCallback($routeContext, $match['params'], $request);
-        } catch (AuthException $e) {
-            self::handleAuthOrValidationException($e, $request ?? null);
-        } catch (ValidationException $e) {
-            self::handleAuthOrValidationException($e, $request ?? null);
+            self::middlewareResolver()->execute($routeContext['middlewares'], $request);
+
+            return self::executeCallback($routeContext, $match['params'], $request);
+        } catch (HttpResponseException $e) {
+            return $e->getResponse();
         } catch (Throwable $e) {
-            self::handleException($e, $routeContext, $request ?? null);
+            return self::exceptionHandler()->handle($e, $routeContext, $request);
         }
     }
 
     private static function findMatchingRoute(string $path, string $method): ?array
     {
-        $path = $path === '' ? '/' : trim($path, '/');
+        $path = self::normalizeRoutePath($path);
+        $allowedMethods = [];
 
         foreach (self::$routes as $route) {
-            $pattern = "#^" . preg_replace('/\{[a-zA-Z0-9_]+\}/', '([a-zA-Z0-9_-]+)', $route['path']) . "$#";
+            $params = self::matchRoutePath($route['path'], $path);
+            if ($params === null) {
+                continue;
+            }
 
-            if ($method === $route['method'] && preg_match($pattern, $path, $matches)) {
-                array_shift($matches); // remove full match
-                return ['route' => $route, 'params' => $matches];
+            $allowedMethods[] = $route['method'];
+
+            if ($method === $route['method']) {
+                return [
+                    'route' => $route,
+                    'params' => $params,
+                    'allowed_methods' => array_values(array_unique($allowedMethods)),
+                ];
             }
         }
+
+        if ($allowedMethods !== []) {
+            return [
+                'route' => null,
+                'params' => [],
+                'allowed_methods' => array_values(array_unique($allowedMethods)),
+            ];
+        }
+
         return null;
     }
 
-    /** @throws ValidationException|AuthException|Throwable */
-    private static function executeMiddlewares(array $middlewareNames, Request $request): void
-    {
-        if (empty($middlewareNames)) {
-            return;
-        }
-
-        $registry = require BASE_PATH . '/Application/Middlewares/RegistryMiddleware.php';
-
-        foreach ($middlewareNames as $name) {
-            if (!isset($registry[$name])) {
-                throw new \Exception("Middleware '{$name}' não está registrado.");
-            }
-
-            $middlewareClass = $registry[$name];
-
-            if ($name === 'ratelimit' || $name === 'ratelimit_strict') {
-                $identifier = $request->ip() ?? 'unknown';
-                (new $middlewareClass(new CacheService()))->handle($request, $identifier);
-            } elseif ($name === 'sysadmin') {
-                (new $middlewareClass())->handle($request);
-            } else {
-                $middlewareClass::handle($request);
-            }
-        }
-    }
-
-    private static function executeCallback(array $route, array $params, Request $request): void
+    private static function executeCallback(array $route, array $params, Request $request): ?Response
     {
         if (is_callable($route['callback'])) {
-            array_unshift($params, $request);
-            call_user_func_array($route['callback'], $params);
-            return;
+            $result = call_user_func_array(
+                $route['callback'],
+                self::buildCallableArguments($route['callback'], $params, $request)
+            );
+
+            return $result instanceof Response ? $result : null;
         }
 
         if (is_string($route['callback']) && str_contains($route['callback'], '@')) {
@@ -105,126 +109,118 @@ class Router
             $controllerNs = 'Application\\Controllers\\' . str_replace('/', '\\', $controllerPath);
 
             if (!class_exists($controllerNs)) {
-                throw new \Exception("Controlador '{$controllerNs}' n├úo encontrado.");
+                throw new \Exception("Controlador '{$controllerNs}' não encontrado.");
             }
 
             $instance = new $controllerNs();
 
             if (!method_exists($instance, $method)) {
-                throw new \Exception("M├®todo '{$method}' n├úo encontrado no controlador '{$controllerNs}'.");
+                throw new \Exception("Método '{$method}' não encontrado no controlador '{$controllerNs}'.");
             }
 
-            call_user_func_array([$instance, $method], $params);
-            return;
+            $result = call_user_func_array([$instance, $method], $params);
+
+            return $result instanceof Response ? $result : null;
         }
 
         throw new \Exception('Callback da rota inválida.');
     }
 
-
-    private static function handleAuthOrValidationException(\Exception $e, ?Request $request): void
+    public static function exceptionResponse(Throwable $e, ?array $routeContext, ?Request $request): Response
     {
-        if ($e instanceof AuthException) {
-            Response::unauthorized($e->getMessage());
-            return;
-        }
-        if ($e instanceof ValidationException) {
-            Response::validationError($e->getErrors(), $e->getCode());
-            return;
-        }
+        return self::exceptionHandler()->handle($e, $routeContext, $request);
     }
 
-    public static function handleException(Throwable $e, ?array $routeContext, ?Request $request): void
+    public static function notFoundResponse(?Request $request = null): Response
     {
-        LogService::critical('Erro fatal no Router', [
-            'erro' => $e->getMessage(),
-            'rota' => $routeContext['path'] ?? 'desconhecida',
-            'trace' => $e->getTraceAsString(),
-        ]);
-
-        $isDev = (($_ENV['APP_ENV'] ?? 'production') === 'development');
-        $wantsJson = $request?->wantsJson() || $request?->isAjax();
-
-        if ($wantsJson && !$isDev) {
-            Response::error('Erro interno no servidor.', 500);
-            return;
-        }
-
-        if ($isDev) {
-            $html = '<h1>Erro na Aplicação</h1><pre>';
-            $html .= '<strong>Mensagem:</strong> ' . htmlspecialchars($e->getMessage()) . "\n\n";
-            $html .= '<strong>Arquivo:</strong> ' . $e->getFile() . ' (Linha ' . $e->getLine() . ")\n\n";
-            $html .= '<strong>Trace:</strong>' . "\n" . htmlspecialchars($e->getTraceAsString());
-            $html .= '</pre>';
-            Response::htmlOut($html, 500);
-        } else {
-            self::handleViewError(500, BASE_PATH . '/views/errors/500.php', 'Erro no servidor', ['exception' => $e]);
-        }
+        return self::errorResponseFactory()->notFound($request);
     }
 
-    /**
-     * Retorna resposta 404 padrão (JSON para API/AJAX, HTML para web).
-     * Público para que middlewares possam reutilizar (stealth mode).
-     */
-    public static function handleNotFound(?Request $request = null): void
+    public static function forbiddenResponse(?Request $request = null): Response
     {
-        $wantsJson = $request?->wantsJson() || $request?->isAjax();
-
-        if ($wantsJson) {
-            Response::notFound('Recurso não encontrado');
-            return;
-        }
-
-        self::handleViewError(404, BASE_PATH . '/views/errors/404.php', 'Página não encontrada');
+        return self::errorResponseFactory()->forbidden($request);
     }
 
-    /**
-     * Retorna resposta 403 (JSON para API/AJAX, HTML para web).
-     */
-    public static function handleForbidden(?Request $request = null): void
+    public static function tooManyRequestsResponse(?Request $request = null, int $retryAfter = 60): Response
     {
-        $wantsJson = $request?->wantsJson() || $request?->isAjax();
+        return self::errorResponseFactory()->tooManyRequests($request, $retryAfter);
+    }
 
-        if ($wantsJson) {
-            Response::forbidden('Acesso negado');
-            return;
+    public static function methodNotAllowedResponse(?Request $request = null, array $allowedMethods = []): Response
+    {
+        return self::errorResponseFactory()->methodNotAllowed($request, $allowedMethods);
+    }
+
+    private static function normalizeRoutePath(string $path): string
+    {
+        $trimmed = trim($path, '/');
+
+        return $trimmed === '' ? '/' : '/' . $trimmed;
+    }
+
+    private static function matchRoutePath(string $routePath, string $requestedPath): ?array
+    {
+        $pattern = self::buildRoutePattern($routePath);
+
+        if (!preg_match($pattern, $requestedPath, $matches)) {
+            return null;
         }
 
-        self::handleViewError(403, BASE_PATH . '/views/errors/403.php', 'Acesso negado');
+        array_shift($matches);
+
+        return $matches;
+    }
+
+    private static function buildRoutePattern(string $routePath): string
+    {
+        if ($routePath === '/') {
+            return '#^/$#';
+        }
+
+        $quotedPath = preg_quote($routePath, '#');
+
+        return '#^' . preg_replace('/\\\\\{[a-zA-Z0-9_]+\\\\\}/', '([^/]+)', $quotedPath) . '$#';
     }
 
     /**
-     * Retorna resposta 429 (JSON para API/AJAX, HTML para web).
+     * @param array<int, mixed> $params
+     * @return array<int, mixed>
      */
-    public static function handleTooManyRequests(?Request $request = null, int $retryAfter = 60): void
+    private static function buildCallableArguments(callable $callback, array $params, Request $request): array
     {
-        header("Retry-After: {$retryAfter}");
+        $reflection = new \ReflectionFunction(\Closure::fromCallable($callback));
+        $parameters = $reflection->getParameters();
 
-        $wantsJson = $request?->wantsJson() || $request?->isAjax();
-
-        if ($wantsJson) {
-            Response::error('Muitas requisições. Tente novamente mais tarde.', 429);
-            return;
+        if ($parameters !== [] && self::shouldInjectRequestIntoCallable($parameters[0])) {
+            array_unshift($params, $request);
         }
 
-        self::handleViewError(429, BASE_PATH . '/views/errors/429.php', 'Muitas requisições', [
-            'retryAfter' => $retryAfter,
-        ]);
+        return $params;
     }
 
-    /**
-     * Renderiza uma view de erro com o código HTTP correspondente.
-     * @param array $data Variáveis extras disponibilizadas na view via extract()
-     */
-    private static function handleViewError(int $code, string $viewPath, string $defaultMessage, array $data = []): void
+    private static function shouldInjectRequestIntoCallable(\ReflectionParameter $parameter): bool
     {
-        http_response_code($code);
-        if (file_exists($viewPath)) {
-            extract($data, EXTR_SKIP);
-            include $viewPath;
-        } else {
-            echo "<h2>{$code} | {$defaultMessage}</h2>";
+        $type = $parameter->getType();
+
+        if (!$type instanceof \ReflectionNamedType || $type->isBuiltin()) {
+            return false;
         }
-        exit;
+
+        return is_a($type->getName(), Request::class, true);
+    }
+
+    private static function middlewareResolver(): RoutingMiddlewareResolver
+    {
+        return self::$middlewareResolver ??= new RoutingMiddlewareResolver();
+    }
+
+    private static function exceptionHandler(): HttpExceptionHandler
+    {
+        return new HttpExceptionHandler(self::errorResponseFactory());
+    }
+
+    private static function errorResponseFactory(): RoutingErrorResponseFactory
+    {
+        return new RoutingErrorResponseFactory();
     }
 }

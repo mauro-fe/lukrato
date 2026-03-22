@@ -1724,6 +1724,12 @@
    ================================================================ */
 
 /* Estilos customizados para SweetAlert2 */
+
+.swal2-popup{
+    color: var(--text-color);
+    background: var(--color-bg);
+}
+
 .swal2-popup .swal2-actions {
     gap: 1rem;
 }

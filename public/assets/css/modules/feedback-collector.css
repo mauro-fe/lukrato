@@ -280,6 +280,8 @@
 .lk-swal-suggestion.swal2-popup {
     max-width: 460px !important;
     padding: 28px 32px !important;
+  background: var(--color-bg) !important;
+  color: var(--text-color);
 }
 
 .lk-swal-suggestion .swal2-title {

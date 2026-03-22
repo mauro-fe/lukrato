@@ -8,8 +8,11 @@ use Application\Models\Lancamento;
 use Application\Models\Conta;
 use Application\Models\FaturaCartaoItem;
 use Application\Enums\LancamentoTipo;
+use DateTimeImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use InvalidArgumentException;
 
 /**
  * Repository para operações com lançamentos.
@@ -311,14 +314,14 @@ class LancamentoRepository extends BaseRepository
                 if ($itensRestantes === 0) {
                     // Se não tem mais itens, excluir a fatura também
                     $fatura->delete();
-                    error_log("🗑️ [DELETE] Fatura {$faturaId} excluída (sem itens restantes)");
+                    \Application\Services\Infrastructure\LogService::safeErrorLog("🗑️ [DELETE] Fatura {$faturaId} excluída (sem itens restantes)");
                 } else {
                     // Atualizar valor total e status
                     $novoTotal = FaturaCartaoItem::where('fatura_id', $faturaId)->sum('valor');
                     $fatura->valor_total = $novoTotal;
                     $fatura->save();
                     $fatura->atualizarStatus();
-                    error_log("📊 [DELETE] Fatura {$faturaId} atualizada - Novo total: {$novoTotal}, Status: {$fatura->status}");
+                    \Application\Services\Infrastructure\LogService::safeErrorLog("📊 [DELETE] Fatura {$faturaId} atualizada - Novo total: {$novoTotal}, Status: {$fatura->status}");
                 }
             }
         }
@@ -328,7 +331,7 @@ class LancamentoRepository extends BaseRepository
             $cartao = \Application\Models\CartaoCredito::find($cartaoId);
             if ($cartao) {
                 $cartao->atualizarLimiteDisponivel();
-                error_log("💳 [DELETE] Limite do cartão {$cartaoId} recalculado");
+                \Application\Services\Infrastructure\LogService::safeErrorLog("💳 [DELETE] Limite do cartão {$cartaoId} recalculado");
             }
         }
 
@@ -730,30 +733,21 @@ class LancamentoRepository extends BaseRepository
      */
     public function getResumoMes(int $userId, string $month): array
     {
-        [$year, $monthNum] = explode('-', $month);
-        $year = (int) $year;
-        $monthNum = (int) $monthNum;
+        $period = $this->parseYearMonth($month);
 
-        $baseQuery = fn() => $this->query()
-            ->where('user_id', $userId)
-            ->where('eh_transferencia', 0)
-            ->where('eh_saldo_inicial', 0)
-            ->whereYear('data', $year)
-            ->whereMonth('data', $monthNum);
-
-        $receitas = (float) $baseQuery()
+        $receitas = (float) $this->buildResumoMesBaseQuery($userId, $period['year'], $period['monthNum'])
             ->where('tipo', LancamentoTipo::RECEITA->value)
             ->sum('valor');
 
-        $despesas = (float) $baseQuery()
+        $despesas = (float) $this->buildResumoMesBaseQuery($userId, $period['year'], $period['monthNum'])
             ->where('tipo', LancamentoTipo::DESPESA->value)
             ->sum('valor');
 
-        $count = $baseQuery()->count();
+        $count = $this->buildResumoMesBaseQuery($userId, $period['year'], $period['monthNum'])->count();
 
-        $categories = (int) $baseQuery()
+        $categories = (int) $this->buildResumoMesBaseQuery($userId, $period['year'], $period['monthNum'])
             ->whereNotNull('categoria_id')
-            ->distinct('categoria_id')
+            ->distinct()
             ->count('categoria_id');
 
         // Saldo atual = saldo inicial das contas + receitas pagas - despesas pagas (caixa)
@@ -798,9 +792,9 @@ class LancamentoRepository extends BaseRepository
      */
     public function getResumoCompetenciaVsCaixa(int $userId, string $month): array
     {
-        [$year, $monthNum] = explode('-', $month);
-        $start = "{$year}-{$monthNum}-01";
-        $end = date('Y-m-t', strtotime($start));
+        $period = $this->parseYearMonth($month);
+        $start = $period['start'];
+        $end = $period['end'];
 
         return [
             'competencia' => [
@@ -814,8 +808,13 @@ class LancamentoRepository extends BaseRepository
         ];
     }
 
-    public function getRecentTransactions(int $userId, string $from, string $to, int $limit)
+    public function getRecentTransactions(int $userId, string $from, string $to, int $limit): Collection
     {
+        $limit = max(0, $limit);
+        if ($limit === 0) {
+            return new Collection();
+        }
+
         return Lancamento::query()
             ->withoutGlobalScopes()
             ->from('lancamentos as l')
@@ -834,5 +833,63 @@ class LancamentoRepository extends BaseRepository
             COALESCE(a.nome, a.instituicao, "") as conta
         ')
             ->get();
+    }
+
+    /**
+     * @return array{year:int,monthNum:int,start:string,end:string}
+     */
+    private function parseYearMonth(string $month): array
+    {
+        $month = trim($month);
+        $date = DateTimeImmutable::createFromFormat('!Y-m', $month);
+
+        if (!$date || $date->format('Y-m') !== $month) {
+            throw new InvalidArgumentException('Formato de mes invalido (YYYY-MM).');
+        }
+
+        return [
+            'year' => (int) $date->format('Y'),
+            'monthNum' => (int) $date->format('m'),
+            'start' => $date->format('Y-m-01'),
+            'end' => $date->format('Y-m-t'),
+        ];
+    }
+
+    private function buildResumoMesBaseQuery(int $userId, int $year, int $monthNum): Builder
+    {
+        return $this->query()
+            ->where('user_id', $userId)
+            ->where('eh_transferencia', 0)
+            ->where('eh_saldo_inicial', 0)
+            ->whereYear('data', $year)
+            ->whereMonth('data', $monthNum);
+    }
+    /**
+     * Busca a soma de gastos de todas as categorias do usuário em um mês (Competência).
+     * Resolve o problema de performancea N+1 no Dashboard.
+     * * @return array<int, float> [categoria_id => valor_total]
+     */
+    public function getSomaGastosPorCategoria(int $userId, int $month, int $year): array
+    {
+        return $this->query()
+            ->selectRaw('categoria_id, SUM(valor) as total')
+            ->where('user_id', $userId)
+            ->where('tipo', LancamentoTipo::DESPESA->value)
+            ->where('eh_transferencia', 0)
+            ->where(function ($q) use ($month, $year) {
+                // Lógica de competência com fallback para data
+                $q->where(function ($sub) use ($month, $year) {
+                    $sub->whereNotNull('data_competencia')
+                        ->whereMonth('data_competencia', $month)
+                        ->whereYear('data_competencia', $year);
+                })->orWhere(function ($sub) use ($month, $year) {
+                    $sub->whereNull('data_competencia')
+                        ->whereMonth('data', $month)
+                        ->whereYear('data', $year);
+                });
+            })
+            ->groupBy('categoria_id')
+            ->pluck('total', 'categoria_id')
+            ->toArray();
     }
 }

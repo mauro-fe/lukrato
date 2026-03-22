@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Application\Bootstrap;
 
+use Application\Core\Response;
+use Application\Core\ResponseEmitter;
+use Application\Services\Infrastructure\LogService;
+
 class ErrorHandler
 {
     private string $environment;
@@ -15,6 +19,10 @@ class ErrorHandler
 
     public function register(): void
     {
+        if (!defined('APP_RUNTIME_ERROR_HANDLER_REGISTERED')) {
+            define('APP_RUNTIME_ERROR_HANDLER_REGISTERED', true);
+        }
+
         if ($this->environment === 'development') {
             $this->registerDevelopmentHandlers();
         } else {
@@ -49,15 +57,15 @@ class ErrorHandler
         int $line
     ): bool {
         if ($this->isAjaxRequest()) {
-            $this->sendJsonError([
+            $this->emit($this->buildJsonErrorResponse([
                 'success' => false,
                 'message' => "Erro: $message",
                 'file' => $file,
-                'line' => $line
-            ]);
-        } else {
-            echo "<b>Erro:</b> $message<br><small>$file:$line</small>";
+                'line' => $line,
+            ]));
         }
+
+        echo "<b>Erro:</b> $message<br><small>$file:$line</small>";
 
         return true;
     }
@@ -65,18 +73,16 @@ class ErrorHandler
     public function handleDevelopmentException(\Throwable $e): void
     {
         if ($this->isAjaxRequest()) {
-            $this->sendJsonError([
+            $this->emit($this->buildJsonErrorResponse([
                 'success' => false,
                 'message' => 'Exceção não tratada',
                 'exception' => $e->getMessage(),
                 'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ]);
-        } else {
-            echo "<h2>Exceção não tratada:</h2>";
-            echo "<p><b>{$e->getMessage()}</b></p>";
-            echo "<pre>{$e->getTraceAsString()}</pre>";
+                'line' => $e->getLine(),
+            ]));
         }
+
+        $this->emit($this->buildDevelopmentExceptionResponse($e));
     }
 
     public function handleProductionError(
@@ -85,12 +91,12 @@ class ErrorHandler
         string $file,
         int $line
     ): bool {
-        error_log("Error: [$severity] $message in $file on line $line");
+        LogService::safeErrorLog("Error: [$severity] $message in $file on line $line");
 
-        if (in_array($severity, [E_ERROR, E_USER_ERROR, E_PARSE])) {
-            http_response_code(500);
-            $this->showErrorPage(new \ErrorException($message, 0, $severity, $file, $line));
-            exit;
+        if (in_array($severity, [E_ERROR, E_USER_ERROR, E_PARSE], true)) {
+            $this->emit($this->buildProductionErrorResponse(
+                new \ErrorException($message, 0, $severity, $file, $line)
+            ));
         }
 
         return false;
@@ -98,7 +104,7 @@ class ErrorHandler
 
     public function handleProductionException(\Throwable $e): void
     {
-        error_log(
+        LogService::safeErrorLog(
             "Unhandled Exception: " . $e->getMessage() .
                 " in " . $e->getFile() .
                 " on line " . $e->getLine() .
@@ -106,39 +112,24 @@ class ErrorHandler
         );
 
         $errorId = bin2hex(random_bytes(8));
-        error_log("[error_id:{$errorId}] {$e->getMessage()} in {$e->getFile()}:{$e->getLine()}");
+        LogService::safeErrorLog("[error_id:{$errorId}] {$e->getMessage()} in {$e->getFile()}:{$e->getLine()}");
 
-        if ($this->isAjaxRequest()) {
-            $this->sendJsonError([
-                'status' => 'error',
-                'message' => 'Erro inesperado no servidor.',
-                'error_id' => $errorId,
-            ]);
-        } else {
-            http_response_code(500);
-            $this->showErrorPage($e);
-        }
-
-        exit;
+        $this->emit($this->buildProductionExceptionResponse($e, $errorId));
     }
 
-    public function handleRequestError(\Throwable $e): void
+    public function handleRequestError(\Throwable $e): Response
     {
         if ($this->environment === 'development') {
-            echo '<h1>Erro na requisição:</h1>';
-            echo '<pre>' . htmlspecialchars($e->getMessage()) . '</pre>';
-            echo '<h2>Stack Trace:</h2>';
-            echo '<pre>' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
-        } else {
-            error_log(
-                "Request Error: " . $e->getMessage() .
-                    " in " . $e->getFile() .
-                    " on line " . $e->getLine()
-            );
-
-            http_response_code(500);
-            $this->showErrorPage($e);
+            return $this->buildRequestErrorResponse($e);
         }
+
+        LogService::safeErrorLog(
+            "Request Error: " . $e->getMessage() .
+                " in " . $e->getFile() .
+                " on line " . $e->getLine()
+        );
+
+        return $this->buildProductionErrorResponse($e);
     }
 
     private function isAjaxRequest(): bool
@@ -152,21 +143,62 @@ class ErrorHandler
         );
     }
 
-    private function sendJsonError(array $data, int $statusCode = 500): void
+    private function buildJsonErrorResponse(array $data, int $statusCode = 500): Response
     {
-        http_response_code($statusCode);
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode($data);
-        exit;
+        return Response::jsonResponse($data, $statusCode);
     }
 
-    private function showErrorPage(?\Throwable $exception = null): void
+    private function buildDevelopmentExceptionResponse(\Throwable $e): Response
+    {
+        $html = '<h2>Exceção não tratada:</h2>';
+        $html .= '<p><b>' . htmlspecialchars($e->getMessage()) . '</b></p>';
+        $html .= '<pre>' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
+
+        return Response::htmlResponse($html, 500);
+    }
+
+    private function buildProductionErrorResponse(\Throwable $exception): Response
+    {
+        return Response::htmlResponse($this->renderErrorPageHtml($exception), 500);
+    }
+
+    private function buildProductionExceptionResponse(\Throwable $e, string $errorId): Response
+    {
+        if ($this->isAjaxRequest()) {
+            return $this->buildJsonErrorResponse([
+                'status' => 'error',
+                'message' => 'Erro inesperado no servidor.',
+                'error_id' => $errorId,
+            ]);
+        }
+
+        return $this->buildProductionErrorResponse($e);
+    }
+
+    private function buildRequestErrorResponse(\Throwable $e): Response
+    {
+        $html = '<h1>Erro na requisição:</h1>';
+        $html .= '<pre>' . htmlspecialchars($e->getMessage()) . '</pre>';
+        $html .= '<h2>Stack Trace:</h2>';
+        $html .= '<pre>' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
+
+        return Response::htmlResponse($html, 500);
+    }
+
+    private function renderErrorPageHtml(?\Throwable $exception = null): string
     {
         $errorPage = BASE_PATH . '/views/errors/500.php';
         if (file_exists($errorPage)) {
+            ob_start();
             include $errorPage;
-        } else {
-            echo 'Ocorreu um erro interno. Por favor, tente novamente mais tarde.';
+            return (string) ob_get_clean();
         }
+
+        return 'Ocorreu um erro interno. Por favor, tente novamente mais tarde.';
+    }
+
+    private function emit(Response $response): void
+    {
+        (new ResponseEmitter())->emit($response);
     }
 }

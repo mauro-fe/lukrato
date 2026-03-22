@@ -453,26 +453,35 @@ class AsaasService
      */
     private function getClientIp(): string
     {
-        $headers = [
-            'HTTP_CF_CONNECTING_IP', // Cloudflare
-            'HTTP_X_FORWARDED_FOR',
-            'HTTP_X_REAL_IP',
-            'REMOTE_ADDR',
-        ];
+        $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        $trustedProxies = array_filter(array_map(
+            'trim',
+            explode(',', $_ENV['TRUSTED_PROXIES'] ?? getenv('TRUSTED_PROXIES') ?: '')
+        ));
 
-        foreach ($headers as $header) {
-            if (!empty($_SERVER[$header])) {
-                $ip = $_SERVER[$header];
-                // Se for lista, pegar o primeiro
-                if (str_contains($ip, ',')) {
-                    $ip = trim(explode(',', $ip)[0]);
+        if (!empty($trustedProxies) && in_array($remoteAddr, $trustedProxies, true)) {
+            $forwardedHeaders = [
+                'HTTP_CF_CONNECTING_IP',
+                'HTTP_X_FORWARDED_FOR',
+                'HTTP_X_REAL_IP',
+                'HTTP_CLIENT_IP',
+            ];
+
+            foreach ($forwardedHeaders as $header) {
+                if (empty($_SERVER[$header])) {
+                    continue;
                 }
-                if (filter_var($ip, FILTER_VALIDATE_IP)) {
-                    return $ip;
+
+                foreach (explode(',', (string) $_SERVER[$header]) as $ip) {
+                    $ip = trim($ip);
+
+                    if (filter_var($ip, FILTER_VALIDATE_IP)) {
+                        return $ip;
+                    }
                 }
             }
         }
 
-        return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        return $remoteAddr;
     }
 }

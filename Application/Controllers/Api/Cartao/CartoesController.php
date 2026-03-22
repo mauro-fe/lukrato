@@ -1,582 +1,300 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Api\Cartao;
 
 use Application\Controllers\BaseController;
 use Application\Core\Response;
-use Application\Lib\Auth;
+use Application\Enums\LogCategory;
+use Application\Services\Cartao\CartaoApiWorkflowService;
 use Application\Services\Cartao\CartaoCreditoService;
 use Application\Services\Cartao\CartaoFaturaService;
 use Application\Services\Infrastructure\LogService;
 use Application\Services\Plan\PlanLimitService;
-use Application\Enums\LogCategory;
-use Application\DTO\CreateCartaoCreditoDTO;
-use Application\DTO\UpdateCartaoCreditoDTO;
 
 class CartoesController extends BaseController
 {
-    private CartaoCreditoService $service;
-    private CartaoFaturaService $faturaService;
+    private CartaoApiWorkflowService $workflowService;
 
-    public function __construct()
-    {
+    public function __construct(
+        ?CartaoCreditoService $service = null,
+        ?CartaoFaturaService $faturaService = null,
+        ?PlanLimitService $planLimitService = null,
+        ?CartaoApiWorkflowService $workflowService = null
+    ) {
         parent::__construct();
-        $this->service = new CartaoCreditoService();
-        $this->faturaService = new CartaoFaturaService();
+
+        $service ??= new CartaoCreditoService();
+        $faturaService ??= new CartaoFaturaService();
+        $planLimitService ??= new PlanLimitService();
+
+        $this->workflowService = $workflowService
+            ?? new CartaoApiWorkflowService($service, $faturaService, $planLimitService);
     }
 
-    /**
-     * GET /api/cartoes
-     * Listar cartões do usuário
-     */
-    public function index(): void
+    public function index(): Response
     {
-        $userId = Auth::id();
+        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
 
-        // Liberar lock da sessão para permitir requisições paralelas
-        $this->releaseSession();
-
-        $contaId = isset($_GET['conta_id']) ? (int) $_GET['conta_id'] : null;
-        $apenasAtivos = (int) ($_GET['only_active'] ?? 1) === 1;
-        $arquivados = (int) ($_GET['archived'] ?? 0) === 1;
-
-        if ($arquivados) {
-            $cartoes = $this->service->listarCartoesArquivados($userId);
-        } else {
-            $cartoes = $this->service->listarCartoes($userId, $contaId, $apenasAtivos);
-        }
-
-        Response::success($cartoes);
+        return Response::successResponse($this->workflowService->listCards(
+            $userId,
+            $this->resolveOptionalIntQuery('conta_id'),
+            $this->resolveBooleanQuery('only_active', true),
+            $this->resolveBooleanQuery('archived', false)
+        ));
     }
 
-    /**
-     * GET /api/cartoes/{id}
-     * Buscar cartão específico
-     */
-    public function show(int $id): void
+    public function show(int $id): Response
     {
-        $userId = Auth::id();
-        $cartao = $this->service->buscarCartao($id, $userId);
+        $userId = $this->requireApiUserIdOrFail();
+        $cartao = $this->workflowService->showCard($id, $userId);
 
         if (!$cartao) {
-            Response::error('Cartão não encontrado', 404);
-            return;
+            return Response::errorResponse('Cartão não encontrado', 404);
         }
 
-        Response::success($cartao);
+        return Response::successResponse($cartao);
     }
 
-    /**
-     * POST /api/cartoes
-     * Criar novo cartão
-     */
-    public function store(): void
+    public function store(): Response
     {
-        $userId = Auth::id();
-        $data = $this->getRequestPayload();
+        $userId = $this->requireApiUserIdOrFail();
+        $result = $this->workflowService->createCard($userId, $this->getRequestPayload());
 
-        // 🔒 VERIFICAR LIMITE DO PLANO
-        $planLimitService = new PlanLimitService();
-        $limitCheck = $planLimitService->canCreateCartao($userId);
+        if (!$result['success']) {
+            return Response::errorResponse($result['message'], $result['status'], $result['errors'] ?? null);
+        }
 
-        if (!$limitCheck['allowed']) {
-            Response::error($limitCheck['message'], 403, [
-                'limit_reached' => true,
-                'upgrade_url' => $limitCheck['upgrade_url'],
-                'limit_info' => [
-                    'limit' => $limitCheck['limit'],
-                    'used' => $limitCheck['used'],
-                    'remaining' => $limitCheck['remaining']
-                ]
+        return Response::successResponse($result['data'], $result['message'], $result['status']);
+    }
+
+    public function update(int $id): Response
+    {
+        $userId = $this->requireApiUserIdOrFail();
+        $result = $this->workflowService->updateCard($id, $userId, $this->getRequestPayload());
+
+        if (!$result['success']) {
+            return Response::errorResponse($result['message'], $result['status'], $result['errors'] ?? null);
+        }
+
+        return Response::successResponse($result['data']);
+    }
+
+    public function deactivate(int $id): Response
+    {
+        return $this->handleCardActionResult($this->workflowService->deactivateCard($id, $this->requireApiUserIdOrFail()));
+    }
+
+    public function reactivate(int $id): Response
+    {
+        return $this->handleCardActionResult($this->workflowService->reactivateCard($id, $this->requireApiUserIdOrFail()));
+    }
+
+    public function archive(int $id): Response
+    {
+        return $this->handleCardActionResult($this->workflowService->archiveCard($id, $this->requireApiUserIdOrFail()));
+    }
+
+    public function restore(int $id): Response
+    {
+        return $this->handleCardActionResult($this->workflowService->restoreCard($id, $this->requireApiUserIdOrFail()));
+    }
+
+    public function delete(int $id): Response
+    {
+        $userId = $this->requireApiUserIdOrFail();
+        $result = $this->workflowService->deleteCard($id, $userId, $this->getRequestPayload());
+
+        if (!$result['success']) {
+            $statusCode = isset($result['requires_confirmation']) && $result['requires_confirmation'] ? 422 : 404;
+
+            return Response::errorResponse($result['message'], $statusCode, [
+                'status' => ($result['requires_confirmation'] ?? false) ? 'confirm_delete' : 'error',
+                'requires_confirmation' => $result['requires_confirmation'] ?? false,
+                'total_lancamentos' => $result['total_lancamentos'] ?? 0,
             ]);
-            return;
         }
 
-        $dto = CreateCartaoCreditoDTO::fromArray($data, $userId);
-        $resultado = $this->service->criarCartao($dto);
-
-        if (!$resultado['success']) {
-            Response::error($resultado['message'], 422, $resultado['errors'] ?? null);
-            return;
-        }
-
-        // 🎮 GAMIFICAÇÃO: Verificar conquistas após criar cartão
-        $gamificationResult = [];
-        try {
-            $achievementService = new \Application\Services\Gamification\AchievementService();
-            $newAchievements = $achievementService->checkAndUnlockAchievements($userId, 'card_created');
-
-            if (!empty($newAchievements)) {
-                $gamificationResult['achievements'] = $newAchievements;
-            }
-        } catch (\Exception $e) {
-            LogService::captureException($e, LogCategory::GAMIFICATION, [
-                'action' => 'check_achievements_card_created',
-                'user_id' => $userId,
-            ]);
-        }
-
-        Response::success([
-            'id' => $resultado['id'],
-            'data' => $resultado['data'],
-            'gamification' => $gamificationResult,
-        ], 'Success', 201);
+        return Response::successResponse($result);
     }
 
-    /**
-     * PUT /api/cartoes/{id}
-     * Atualizar cartão
-     */
-    public function update(int $id): void
+    public function destroy(int $id): Response
     {
-        $userId = Auth::id();
-        $data = $this->getRequestPayload();
-
-        $dto = UpdateCartaoCreditoDTO::fromArray($data);
-        $resultado = $this->service->atualizarCartao($id, $userId, $dto);
-
-        if (!$resultado['success']) {
-            Response::error(
-                $resultado['message'],
-                isset($resultado['message']) && str_contains($resultado['message'], 'não encontrado') ? 404 : 422,
-                $resultado['errors'] ?? null
-            );
-            return;
-        }
-
-        Response::success(['data' => $resultado['data']]);
+        return $this->archive($id);
     }
 
-    /**
-     * POST /api/cartoes/{id}/desativar
-     * Desativar cartão
-     */
-    public function deactivate(int $id): void
+    public function updateLimit(int $id): Response
     {
-        $userId = Auth::id();
-        $resultado = $this->service->desativarCartao($id, $userId);
+        $result = $this->workflowService->refreshLimit($id, $this->requireApiUserIdOrFail());
 
-        if (!$resultado['success']) {
-            Response::error($resultado['message'], 404);
-            return;
+        if (!$result['success']) {
+            return Response::errorResponse($result['message'], 404);
         }
 
-        Response::success($resultado);
-    }
-
-    /**
-     * POST /api/cartoes/{id}/reactivate
-     * Reativar cartão
-     */
-    public function reactivate(int $id): void
-    {
-        $userId = Auth::id();
-        $resultado = $this->service->reativarCartao($id, $userId);
-
-        if (!$resultado['success']) {
-            Response::error($resultado['message'], 404);
-            return;
-        }
-
-        Response::success($resultado);
-    }
-
-    /**
-     * POST /api/cartoes/{id}/archive
-     * Arquivar cartão
-     */
-    public function archive(int $id): void
-    {
-        $userId = Auth::id();
-        $resultado = $this->service->arquivarCartao($id, $userId);
-
-        if (!$resultado['success']) {
-            Response::error($resultado['message'], 404);
-            return;
-        }
-
-        Response::success($resultado);
-    }
-
-    /**
-     * POST /api/cartoes/{id}/restore
-     * Restaurar cartão arquivado
-     */
-    public function restore(int $id): void
-    {
-        $userId = Auth::id();
-        $resultado = $this->service->restaurarCartao($id, $userId);
-
-        if (!$resultado['success']) {
-            Response::error($resultado['message'], 404);
-            return;
-        }
-
-        Response::success($resultado);
-    }
-
-    /**
-     * POST /api/cartoes/{id}/delete
-     * Excluir cartão permanentemente
-     */
-    public function delete(int $id): void
-    {
-        $userId = Auth::id();
-        $data = $this->getRequestPayload();
-        $force = filter_var($data['force'] ?? false, FILTER_VALIDATE_BOOLEAN);
-
-        $resultado = $this->service->excluirCartaoPermanente($id, $userId, $force);
-
-        if (!$resultado['success']) {
-            $statusCode = isset($resultado['requires_confirmation']) && $resultado['requires_confirmation'] ? 422 : 404;
-            Response::error($resultado['message'], $statusCode, [
-                'status' => $resultado['requires_confirmation'] ?? false ? 'confirm_delete' : 'error',
-                'requires_confirmation' => $resultado['requires_confirmation'] ?? false,
-                'total_lancamentos' => $resultado['total_lancamentos'] ?? 0,
-            ]);
-            return;
-        }
-
-        Response::success($resultado);
-    }
-
-    /**
-     * DELETE /api/cartoes/{id}
-     * Excluir cartão (agora arquiva em vez de excluir)
-     */
-    public function destroy(int $id): void
-    {
-        // Agora redireciona para arquivar
-        $this->archive($id);
-    }
-
-    /**
-     * POST /api/cartoes/{id}/atualizar-limite
-     * Atualizar limite disponível do cartão
-     */
-    public function updateLimit(int $id): void
-    {
-        $userId = Auth::id();
-        $resultado = $this->service->atualizarLimiteDisponivel($id, $userId);
-
-        if (!$resultado['success']) {
-            Response::error($resultado['message'], 404);
-            return;
-        }
-
-        Response::success([
-            'limite_disponivel' => $resultado['limite_disponivel'],
-            'limite_utilizado' => $resultado['limite_utilizado'],
-            'percentual_uso' => $resultado['percentual_uso'],
+        return Response::successResponse([
+            'limite_disponivel' => $result['limite_disponivel'],
+            'limite_utilizado' => $result['limite_utilizado'],
+            'percentual_uso' => $result['percentual_uso'],
         ]);
     }
 
-    /**
-     * GET /api/cartoes/resumo
-     * Obter resumo geral dos cartões
-     */
-    public function summary(): void
+    public function summary(): Response
     {
-        $userId = Auth::id();
-        $resumo = $this->service->obterResumo($userId);
-        Response::success($resumo);
+        return Response::successResponse($this->workflowService->getSummary($this->requireApiUserIdOrFail()));
     }
 
-    /**
-     * GET /api/cartoes/{id}/fatura?mes=1&ano=2025
-     * Obter fatura do mês de um cartão
-     */
-    public function fatura(int $id): void
+    public function fatura(int $id): Response
     {
-        $userId = Auth::id();
-
-        $mes = isset($_GET['mes']) ? (int) $_GET['mes'] : (int) date('n');
-        $ano = isset($_GET['ano']) ? (int) $_GET['ano'] : (int) date('Y');
+        $userId = $this->requireApiUserIdOrFail();
+        $mes = $this->resolveQueryMonth();
+        $ano = $this->resolveQueryYear();
 
         if ($mes < 1 || $mes > 12) {
-            Response::error('Mês inválido', 400);
-            return;
+            return Response::errorResponse('Mês inválido', 400);
         }
 
         try {
-            $fatura = $this->faturaService->obterFaturaMes($id, $mes, $ano, $userId);
-            Response::success($fatura);
+            return Response::successResponse($this->workflowService->getInvoice($id, $mes, $ano, $userId));
         } catch (\Exception $e) {
-            Response::error($e->getMessage(), 404);
+            return $this->notFoundFromThrowable($e, 'Fatura nao encontrada.');
         }
     }
 
-    /**
-     * POST /api/cartoes/{id}/fatura/pagar
-     * Pagar a fatura completa ou parcial de um mês
-     */
-    public function pagarFatura(int $id): void
+    public function pagarFatura(int $id): Response
     {
-        $userId = Auth::id();
-        $data = $this->getRequestPayload();
-
-        $mes = $data['mes'] ?? (int) date('n');
-        $ano = $data['ano'] ?? (int) date('Y');
-        $contaId = isset($data['conta_id']) ? (int)$data['conta_id'] : null;
-        $valorParcial = isset($data['valor_parcial']) ? (float)$data['valor_parcial'] : null;
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
-            $resultado = $this->faturaService->pagarFatura($id, (int)$mes, (int)$ano, $userId, $contaId, $valorParcial);
-
-            // 🎮 GAMIFICAÇÃO: Verificar conquistas após pagar fatura
-            $gamificationResult = [];
-            try {
-                $achievementService = new \Application\Services\Gamification\AchievementService();
-                $newAchievements = $achievementService->checkAndUnlockAchievements($userId, 'invoice_paid');
-
-                if (!empty($newAchievements)) {
-                    $gamificationResult['achievements'] = $newAchievements;
-                    $resultado['gamification'] = $gamificationResult;
-                }
-            } catch (\Exception $e) {
-                LogService::captureException($e, LogCategory::GAMIFICATION, [
-                    'action' => 'check_achievements_invoice_paid',
-                    'user_id' => $userId,
-                    'cartao_id' => $id,
-                ]);
-            }
-
-            Response::success($resultado);
+            return Response::successResponse($this->workflowService->payInvoice($id, $userId, $this->getRequestPayload()));
         } catch (\Exception $e) {
-            Response::error($e->getMessage(), 400);
+            return $this->domainErrorResponse($e, 'Nao foi possivel pagar a fatura.', 400);
         }
     }
 
-    /**
-     * POST /api/cartoes/{id}/parcelas/pagar
-     * Pagar parcelas individuais selecionadas
-     */
-    public function pagarParcelas(int $id): void
+    public function pagarParcelas(int $id): Response
     {
-        $userId = Auth::id();
-        $data = $this->getRequestPayload();
+        $userId = $this->requireApiUserIdOrFail();
+        $payload = $this->getRequestPayload();
 
-        $parcelaIds = $data['parcela_ids'] ?? [];
-        $mes = $data['mes'] ?? (int) date('n');
-        $ano = $data['ano'] ?? (int) date('Y');
-
-        if (empty($parcelaIds)) {
-            Response::error('Nenhuma parcela selecionada', 400);
-            return;
+        if (empty($payload['parcela_ids'] ?? [])) {
+            return Response::errorResponse('Nenhuma parcela selecionada', 400);
         }
 
         try {
-            $resultado = $this->faturaService->pagarParcelas($id, $parcelaIds, (int)$mes, (int)$ano, $userId);
-            Response::success($resultado);
+            return Response::successResponse($this->workflowService->payInstallments($id, $userId, $payload));
         } catch (\Exception $e) {
-            Response::error($e->getMessage(), 400);
+            return $this->domainErrorResponse($e, 'Nao foi possivel pagar as parcelas.', 400);
         }
     }
 
-    /**
-     * GET /api/cartoes/{id}/faturas-pendentes
-     * Listar meses que têm faturas pendentes de pagamento
-     */
-    public function faturasPendentes(int $id): void
+    public function faturasPendentes(int $id): Response
     {
-        $userId = Auth::id();
-
         try {
-            $meses = $this->faturaService->obterMesesComFaturasPendentes($id, $userId);
-            Response::success(['meses' => $meses]);
+            $meses = $this->workflowService->getPendingInvoices($id, $this->requireApiUserIdOrFail());
+
+            return Response::successResponse(['meses' => $meses]);
         } catch (\Exception $e) {
-            Response::error($e->getMessage(), 404);
+            return $this->notFoundFromThrowable($e, 'Cartao nao encontrado.');
         }
     }
 
-    /**
-     * GET /api/cartoes/{id}/faturas-historico?limite=12
-     * Obter histórico de faturas pagas
-     */
-    public function faturasHistorico(int $id): void
+    public function faturasHistorico(int $id): Response
     {
-        $userId = Auth::id();
-        $limite = (int) ($_GET['limite'] ?? 12);
+        $userId = $this->requireApiUserIdOrFail();
+        $limite = $this->getIntQuery('limite', 12);
 
         try {
-            $historico = $this->faturaService->obterHistoricoFaturasPagas($id, $userId, $limite);
-            Response::success($historico);
+            return Response::successResponse($this->workflowService->getInvoiceHistory($id, $userId, $limite));
         } catch (\Exception $e) {
-            Response::error($e->getMessage(), 404);
+            return $this->notFoundFromThrowable($e, 'Cartao nao encontrado.');
         }
     }
 
-    /**
-     * GET /api/cartoes/{id}/parcelamentos-resumo?mes=1&ano=2026
-     * Obter resumo dos parcelamentos ativos do cartão
-     */
-    public function parcelamentosResumo(int $id): void
+    public function parcelamentosResumo(int $id): Response
     {
-        $userId = Auth::id();
+        $userId = $this->requireApiUserIdOrFail();
 
-        // Verifica se o cartão pertence ao usuário
-        $cartao = $this->service->buscarCartao($id, $userId);
-        if (!$cartao) {
-            Response::error('Cartão não encontrado', 404);
-            return;
+        if (!$this->workflowService->showCard($id, $userId)) {
+            return Response::errorResponse('Cartão não encontrado', 404);
         }
 
-        $mes = isset($_GET['mes']) ? (int) $_GET['mes'] : (int) date('n');
-        $ano = isset($_GET['ano']) ? (int) $_GET['ano'] : (int) date('Y');
+        $mes = $this->resolveQueryMonth();
+        $ano = $this->resolveQueryYear();
 
-        try {
-            $resumo = $this->faturaService->obterResumoParcelamentos($id, $mes, $ano, $userId);
-            Response::success($resumo);
-        } catch (\Exception $e) {
-            LogService::captureException($e, LogCategory::CARTAO, [
-                'action' => 'parcelamentos_resumo',
-                'cartao_id' => $id,
-                'mes' => $mes,
-                'ano' => $ano,
-            ]);
-
-            // Retorna dados vazios ao invés de erro 500
-            Response::success([
-                'total_parcelamentos' => 0,
-                'parcelamentos' => [],
-                'projecao' => [
-                    'tres_meses' => 0.0,
-                    'seis_meses' => 0.0,
-                ],
-            ]);
-        }
+        return Response::successResponse($this->workflowService->getInstallmentsSummary($id, $mes, $ano, $userId));
     }
 
-    /**
-     * GET /api/cartoes/alertas
-     * Obter alertas de vencimentos próximos e limites baixos
-     */
-    public function alertas(): void
+    public function alertas(): Response
     {
-        $userId = Auth::id();
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
-            $vencimentos = [];
-            $limitesBaixos = [];
-
-            // Buscar vencimentos com tratamento de erro
-            try {
-                $vencimentos = $this->faturaService->verificarVencimentosProximos($userId, 7);
-            } catch (\Exception $e) {
-                LogService::captureException($e, LogCategory::CARTAO, [
-                    'action' => 'verificar_vencimentos',
-                    'user_id' => $userId,
-                ]);
-            }
-
-            // Buscar limites baixos com tratamento de erro
-            try {
-                $limitesBaixos = $this->service->verificarLimitesBaixos($userId);
-            } catch (\Exception $e) {
-                LogService::captureException($e, LogCategory::CARTAO, [
-                    'action' => 'verificar_limites_baixos',
-                    'user_id' => $userId,
-                ]);
-            }
-
-            $alertas = array_merge($vencimentos, $limitesBaixos);
-
-            // Ordenar por gravidade (crítico primeiro)
-            usort($alertas, function ($a, $b) {
-                $ordem = ['critico' => 0, 'atencao' => 1];
-                return ($ordem[$a['gravidade']] ?? 2) <=> ($ordem[$b['gravidade']] ?? 2);
-            });
-
-            Response::success([
-                'total' => count($alertas),
-                'alertas' => $alertas,
-                'por_tipo' => [
-                    'vencimentos' => count($vencimentos),
-                    'limites_baixos' => count($limitesBaixos),
-                ]
-            ]);
+            return Response::successResponse($this->workflowService->getAlerts($userId));
         } catch (\Exception $e) {
-            LogService::captureException($e, LogCategory::CARTAO, [
+            $errorMeta = $this->internalErrorMeta($e, 'Erro ao carregar alertas.', [
                 'action' => 'alertas',
                 'user_id' => $userId,
-            ]);
-            Response::success([
+            ], LogCategory::CARTAO);
+
+            return Response::successResponse([
                 'total' => 0,
                 'alertas' => [],
                 'por_tipo' => [
                     'vencimentos' => 0,
                     'limites_baixos' => 0,
                 ],
-                'error' => $e->getMessage()
+                'error' => 'Erro ao carregar alertas.',
+                'error_id' => $errorMeta['error_id'],
+                'request_id' => $errorMeta['request_id'],
             ]);
         }
     }
 
-    /**
-     * GET /api/cartoes/validar-integridade?corrigir=false
-     * Validar integridade dos limites dos cartões
-     */
-    public function validarIntegridade(): void
+    public function validarIntegridade(): Response
     {
-        $userId = Auth::id();
-        $corrigir = isset($_GET['corrigir']) && $_GET['corrigir'] === 'true';
+        $userId = $this->requireApiUserIdOrFail();
+        $corrigir = $this->getQuery('corrigir') === 'true';
 
         try {
-            $relatorio = $this->service->validarIntegridadeLimites($userId, $corrigir);
-            Response::success($relatorio);
+            return Response::successResponse($this->workflowService->validateIntegrity($userId, $corrigir));
         } catch (\Exception $e) {
-            Response::error($e->getMessage(), 500);
+            return $this->internalErrorResponse($e, 'Erro ao validar integridade do cartao.');
         }
     }
 
-    /**
-     * GET /api/cartoes/{id}/fatura/status?mes=X&ano=Y
-     * Verificar se a fatura de um mês está paga
-     */
-    public function statusFatura(int $id): void
+    public function statusFatura(int $id): Response
     {
-        $userId = Auth::id();
-        $mes = isset($_GET['mes']) ? (int) $_GET['mes'] : null;
-        $ano = isset($_GET['ano']) ? (int) $_GET['ano'] : null;
+        $userId = $this->requireApiUserIdOrFail();
+        $mes = $this->resolveRequiredIntQuery('mes');
+        $ano = $this->resolveRequiredIntQuery('ano');
 
         if (!$mes || !$ano) {
-            Response::error('Mês e ano são obrigatórios', 400);
-            return;
+            return Response::errorResponse('Mês e ano são obrigatórios', 400);
         }
 
         try {
-            $status = $this->faturaService->faturaEstaPaga($id, $mes, $ano, $userId);
+            $status = $this->workflowService->getInvoiceStatus($id, $mes, $ano, $userId);
 
-            if ($status === null) {
-                Response::success(['pago' => false]);
-            } else {
-                Response::success($status);
-            }
+            return Response::successResponse($status ?? ['pago' => false]);
         } catch (\Exception $e) {
-            Response::error($e->getMessage(), 500);
+            return $this->internalErrorResponse($e, 'Erro ao carregar status da fatura.');
         }
     }
 
-    /**
-     * POST /api/cartoes/{id}/fatura/desfazer-pagamento
-     * Desfazer pagamento de uma fatura
-     */
-    public function desfazerPagamentoFatura(int $id): void
+    public function desfazerPagamentoFatura(int $id): Response
     {
-        $userId = Auth::id();
-        $data = $this->getRequestPayload();
-
-        $mes = isset($data['mes']) ? (int) $data['mes'] : null;
-        $ano = isset($data['ano']) ? (int) $data['ano'] : null;
+        $userId = $this->requireApiUserIdOrFail();
+        $payload = $this->getRequestPayload();
+        $mes = isset($payload['mes']) ? (int) $payload['mes'] : null;
+        $ano = isset($payload['ano']) ? (int) $payload['ano'] : null;
 
         if (!$mes || !$ano) {
-            Response::error('Mês e ano são obrigatórios', 400);
-            return;
+            return Response::errorResponse('Mês e ano são obrigatórios', 400);
         }
 
         try {
-            $resultado = $this->faturaService->desfazerPagamentoFatura($id, $mes, $ano, $userId);
-            Response::success($resultado);
+            return Response::successResponse($this->workflowService->undoInvoicePayment($id, $mes, $ano, $userId));
         } catch (\Exception $e) {
             LogService::captureException($e, LogCategory::FATURA, [
                 'action' => 'desfazer_pagamento_fatura',
@@ -585,97 +303,123 @@ class CartoesController extends BaseController
                 'ano' => $ano,
                 'user_id' => $userId,
             ]);
-            Response::error($e->getMessage(), 400);
+
+            return $this->domainErrorResponse($e, 'Nao foi possivel desfazer o pagamento da fatura.', 400);
         }
     }
 
-    /**
-     * POST /api/cartoes/parcelas/{id}/desfazer-pagamento
-     * Desfazer pagamento de uma parcela específica
-     */
-    public function desfazerPagamentoParcela(int $id): void
+    public function desfazerPagamentoParcela(int $id): Response
     {
-        $userId = Auth::id();
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
-            $resultado = $this->faturaService->desfazerPagamentoParcela($id, $userId);
-            Response::success($resultado);
+            return Response::successResponse($this->workflowService->undoInstallmentPayment($id, $userId));
         } catch (\Exception $e) {
             LogService::captureException($e, LogCategory::FATURA, [
                 'action' => 'desfazer_pagamento_parcela',
                 'parcela_id' => $id,
                 'user_id' => $userId,
             ]);
-            Response::error($e->getMessage(), 400);
+
+            return $this->domainErrorResponse($e, 'Nao foi possivel desfazer o pagamento da parcela.', 400);
         }
     }
 
-    // ─── Recorrências / Assinaturas ───────────────────────────
-
-    /**
-     * GET /api/cartoes/recorrencias
-     * Listar todas as assinaturas/recorrências ativas do usuário
-     */
-    public function recorrencias(): void
+    public function recorrencias(): Response
     {
-        $userId = Auth::id();
+        $userId = $this->requireApiUserIdOrFail();
+
         try {
-            $service = new \Application\Services\Cartao\RecorrenciaCartaoService();
-            $itens = $service->listarRecorrenciasAtivas($userId);
-            Response::success($itens);
+            return Response::successResponse($this->workflowService->listRecurring($userId));
         } catch (\Exception $e) {
             LogService::captureException($e, LogCategory::CARTAO, [
                 'action' => 'listar_recorrencias',
                 'user_id' => $userId,
             ]);
-            Response::error($e->getMessage(), 500);
+
+            return $this->internalErrorResponse($e, 'Erro ao listar recorrencias do cartao.');
         }
     }
 
-    /**
-     * GET /api/cartoes/{id}/recorrencias
-     * Listar recorrências ativas de um cartão específico
-     */
-    public function recorrenciasCartao(int $id): void
+    public function recorrenciasCartao(int $id): Response
     {
-        $userId = Auth::id();
+        $userId = $this->requireApiUserIdOrFail();
+
         try {
-            $service = new \Application\Services\Cartao\RecorrenciaCartaoService();
-            $itens = $service->listarRecorrenciasAtivas($userId, $id);
-            Response::success($itens);
+            return Response::successResponse($this->workflowService->listRecurring($userId, $id));
         } catch (\Exception $e) {
             LogService::captureException($e, LogCategory::CARTAO, [
                 'action' => 'listar_recorrencias_cartao',
                 'cartao_id' => $id,
                 'user_id' => $userId,
             ]);
-            Response::error($e->getMessage(), 500);
+
+            return $this->internalErrorResponse($e, 'Erro ao listar recorrencias do cartao.', 500, [
+                'cartao_id' => $id,
+            ]);
         }
     }
 
-    /**
-     * POST /api/cartoes/recorrencias/{id}/cancelar
-     * Cancelar uma assinatura/recorrência
-     */
-    public function cancelarRecorrencia(int $id): void
+    public function cancelarRecorrencia(int $id): Response
     {
-        $userId = Auth::id();
+        $userId = $this->requireApiUserIdOrFail();
+
         try {
-            $service = new \Application\Services\Cartao\RecorrenciaCartaoService();
-            $resultado = $service->cancelarRecorrencia($id, $userId);
+            $resultado = $this->workflowService->cancelRecurring($id, $userId);
 
             if ($resultado['success']) {
-                Response::success($resultado);
-            } else {
-                Response::error($resultado['message'] ?? 'Erro ao cancelar recorrência', 400);
+                return Response::successResponse($resultado);
             }
+
+            return Response::errorResponse($resultado['message'] ?? 'Erro ao cancelar recorrência', 400);
         } catch (\Exception $e) {
             LogService::captureException($e, LogCategory::CARTAO, [
                 'action' => 'cancelar_recorrencia',
                 'item_pai_id' => $id,
                 'user_id' => $userId,
             ]);
-            Response::error($e->getMessage(), 500);
+
+            return $this->internalErrorResponse($e, 'Erro ao cancelar recorrencia do cartao.', 500, [
+                'item_pai_id' => $id,
+            ]);
         }
+    }
+
+    private function handleCardActionResult(array $resultado): Response
+    {
+        if (!$resultado['success']) {
+            return Response::errorResponse($resultado['message'], 404);
+        }
+
+        return Response::successResponse($resultado);
+    }
+
+    private function resolveBooleanQuery(string $key, bool $default): bool
+    {
+        return (int) $this->getQuery($key, $default ? 1 : 0) === 1;
+    }
+
+    private function resolveOptionalIntQuery(string $key): ?int
+    {
+        $value = $this->getQuery($key);
+
+        return $value !== null ? (int) $value : null;
+    }
+
+    private function resolveRequiredIntQuery(string $key): ?int
+    {
+        $value = $this->getQuery($key);
+
+        return $value !== null ? (int) $value : null;
+    }
+
+    private function resolveQueryMonth(): int
+    {
+        return $this->getIntQuery('mes', (int) date('n'));
+    }
+
+    private function resolveQueryYear(): int
+    {
+        return $this->getIntQuery('ano', (int) date('Y'));
     }
 }

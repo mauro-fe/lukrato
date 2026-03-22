@@ -4,16 +4,22 @@ declare(strict_types=1);
 
 namespace Application\Services\Gamification;
 
-use Application\Models\Conta;
 use Application\Models\Lancamento;
 use Application\Models\Usuario;
 use Application\Services\Infrastructure\LogService;
+use Application\Services\User\OnboardingProgressService;
 
 class OnboardingActivationService
 {
+    private OnboardingProgressService $progressService;
+
+    public function __construct(?OnboardingProgressService $progressService = null)
+    {
+        $this->progressService = $progressService ?? new OnboardingProgressService();
+    }
+
     public function checkAndComplete(int $userId): void
     {
-        // 🔒 Verificação rápida: se já concluiu, sai imediatamente
         $user = Usuario::select('id', 'onboarding_completed_at')
             ->find($userId);
 
@@ -21,13 +27,8 @@ class OnboardingActivationService
             return;
         }
 
-        // 🧠 Regra de ativação:
-        // - Pelo menos 1 conta
-        // - Pelo menos 1 lançamento real (não transferência e não saldo inicial)
-
-        $temConta = Conta::where('user_id', $userId)->exists();
-
-        if (!$temConta) {
+        $progress = $this->progressService->getProgress($userId);
+        if (!$progress->has_conta) {
             return;
         }
 
@@ -40,12 +41,13 @@ class OnboardingActivationService
             return;
         }
 
-        // 🔥 Atualização direta e segura (evita race condition)
         Usuario::where('id', $userId)
             ->whereNull('onboarding_completed_at')
             ->update([
                 'onboarding_completed_at' => now(),
             ]);
+
+        $this->progressService->markCompleted($userId);
 
         LogService::info('Onboarding ativado automaticamente', [
             'user_id' => $userId,

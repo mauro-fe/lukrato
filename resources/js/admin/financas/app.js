@@ -5,56 +5,34 @@
  */
 
 import { CONFIG, STATE, Modules, Utils, getCategoryIconColor } from './state.js';
+import {
+    apiDelete as sharedApiDelete,
+    apiGet as sharedApiGet,
+    apiPost as sharedApiPost,
+    apiPut as sharedApiPut,
+    getErrorMessage,
+} from '../shared/api.js';
 
 // ── API Helpers ────────────────────────────────────────────────
 
 async function apiGet(endpoint) {
-    const url = `${CONFIG.BASE_URL}${endpoint}`;
-    const response = await fetch(url, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': Utils.getCsrfToken() }
-    });
-    return await response.json();
+    return sharedApiGet(endpoint);
 }
 
 async function apiPost(endpoint, data) {
-    const url = `${CONFIG.BASE_URL}${endpoint}`;
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': Utils.getCsrfToken()
-        },
-        body: JSON.stringify(data)
-    });
-    return await response.json();
+    return sharedApiPost(endpoint, data);
 }
 
 async function apiPut(endpoint, data) {
-    const url = `${CONFIG.BASE_URL}${endpoint}`;
-    const response = await fetch(url, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': Utils.getCsrfToken()
-        },
-        body: JSON.stringify(data)
-    });
-    return await response.json();
+    return sharedApiPut(endpoint, data);
 }
 
 async function apiDelete(endpoint) {
-    const url = `${CONFIG.BASE_URL}${endpoint}`;
-    const response = await fetch(url, {
-        method: 'DELETE',
-        headers: {
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': Utils.getCsrfToken()
-        }
-    });
-    return await response.json();
+    return sharedApiDelete(endpoint);
+}
+
+function requestErrorMessage(error, fallback) {
+    return getErrorMessage(error, fallback);
 }
 
 // ── Plan limit error handler ───────────────────────────────────
@@ -754,7 +732,7 @@ export const FinancasApp = {
                 Utils.showToast(res.message || 'Erro ao salvar', 'error');
             }
         } catch (e) {
-            Utils.showToast('Erro ao salvar orçamento', 'error');
+            Utils.showToast(requestErrorMessage(e, 'Erro ao salvar orçamento'), 'error');
         }
     },
 
@@ -784,7 +762,7 @@ export const FinancasApp = {
                 Utils.showToast(res.message || 'Erro ao excluir', 'error');
             }
         } catch (e) {
-            Utils.showToast('Erro ao excluir', 'error');
+            Utils.showToast(requestErrorMessage(e, 'Erro ao excluir'), 'error');
         }
     },
 
@@ -884,7 +862,7 @@ export const FinancasApp = {
                 Utils.showToast(res.message || 'Erro ao aplicar', 'error');
             }
         } catch (e) {
-            Utils.showToast('Erro ao aplicar sugestões', 'error');
+            Utils.showToast(requestErrorMessage(e, 'Erro ao aplicar sugestões'), 'error');
         }
     },
 
@@ -925,7 +903,7 @@ export const FinancasApp = {
                 Utils.showToast(res.message || 'Erro ao copiar', 'error');
             }
         } catch (e) {
-            Utils.showToast('Erro ao copiar mês', 'error');
+            Utils.showToast(requestErrorMessage(e, 'Erro ao copiar mês'), 'error');
         }
     },
 
@@ -1046,7 +1024,7 @@ export const FinancasApp = {
                 Utils.showToast(res.message || 'Erro ao salvar', 'error');
             }
         } catch (e) {
-            Utils.showToast('Erro ao salvar meta', 'error');
+            Utils.showToast(requestErrorMessage(e, 'Erro ao salvar meta'), 'error');
         }
     },
 
@@ -1074,7 +1052,7 @@ export const FinancasApp = {
                 Utils.showToast(res.message || 'Erro ao excluir', 'error');
             }
         } catch (e) {
-            Utils.showToast('Erro ao excluir', 'error');
+            Utils.showToast(requestErrorMessage(e, 'Erro ao excluir'), 'error');
         }
     },
 
@@ -1134,7 +1112,7 @@ export const FinancasApp = {
                 Utils.showToast(res.message || 'Erro ao registrar aporte', 'error');
             }
         } catch (e) {
-            Utils.showToast('Erro ao registrar aporte', 'error');
+            Utils.showToast(requestErrorMessage(e, 'Erro ao registrar aporte'), 'error');
         }
     },
 

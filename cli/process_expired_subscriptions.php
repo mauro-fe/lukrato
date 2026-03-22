@@ -1,32 +1,34 @@
 <?php
 
-/**
- * CLI Script: Processar assinaturas expiradas
- * 
- * Este script deve ser executado periodicamente via cron job.
- * Exemplo de cron (rodar a cada hora):
- * 0 * * * * php /path/to/lukrato/cli/process_expired_subscriptions.php
- * 
- * Ou rodar diariamente às 8h:
- * 0 8 * * * php /path/to/lukrato/cli/process_expired_subscriptions.php
- */
+declare(strict_types=1);
 
 require __DIR__ . '/../bootstrap.php';
 
-use Application\Services\Billing\SubscriptionExpirationService;
 use Application\Services\Infrastructure\LogService;
+use Application\Services\Infrastructure\SchedulerExecutionLock;
+use Application\Services\Infrastructure\SchedulerTaskRunner;
 
 echo "=== Processando Assinaturas Expiradas ===" . PHP_EOL;
 echo "Data/Hora: " . date('Y-m-d H:i:s') . PHP_EOL;
 echo str_repeat('-', 50) . PHP_EOL;
 
+$lock = new SchedulerExecutionLock();
+$runner = new SchedulerTaskRunner();
+
 try {
-    $service = new SubscriptionExpirationService();
-    $stats = $service->processExpiredSubscriptions();
+    $lock->acquire('scheduler');
+
+    $result = $runner->runTask(SchedulerTaskRunner::TASK_PROCESS_EXPIRED_SUBSCRIPTIONS);
+
+    if (($result['success'] ?? false) !== true) {
+        throw new RuntimeException((string) ($result['error'] ?? 'Falha ao processar assinaturas expiradas.'));
+    }
+
+    $stats = $result['result'];
 
     echo PHP_EOL . "Resultado:" . PHP_EOL;
     echo "  - Assinaturas verificadas: {$stats['checked']}" . PHP_EOL;
-    echo "  - Usuários notificados: {$stats['notified']}" . PHP_EOL;
+    echo "  - Usuarios notificados: {$stats['notified']}" . PHP_EOL;
     echo "  - Assinaturas bloqueadas: {$stats['blocked']}" . PHP_EOL;
     echo "  - Emails enviados: {$stats['emails_sent']}" . PHP_EOL;
 
@@ -42,9 +44,8 @@ try {
     }
 
     echo PHP_EOL . str_repeat('-', 50) . PHP_EOL;
-    echo "Processamento concluído com sucesso!" . PHP_EOL;
+    echo "Processamento concluido com sucesso!" . PHP_EOL;
 
-    // Exit code baseado em erros
     exit(empty($stats['errors']) ? 0 : 1);
 } catch (Throwable $e) {
     echo PHP_EOL . "ERRO FATAL: " . $e->getMessage() . PHP_EOL;
@@ -57,4 +58,6 @@ try {
     ]);
 
     exit(2);
+} finally {
+    $lock->release();
 }

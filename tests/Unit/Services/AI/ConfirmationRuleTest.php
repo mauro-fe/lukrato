@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Services\AI;
 
 use Application\Services\AI\IntentRules\ConfirmationIntentRule;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class ConfirmationRuleTest extends TestCase
@@ -17,18 +18,14 @@ class ConfirmationRuleTest extends TestCase
         $this->cases = require __DIR__ . '/../../../Fixtures/AI/confirmation_cases.php';
     }
 
-    /**
-     * @dataProvider affirmativeProvider
-     */
+    #[DataProvider('affirmativeProvider')]
     public function testIsAffirmative(string $input, bool $expected, string $notes): void
     {
         $result = ConfirmationIntentRule::isAffirmative($input);
         $this->assertEquals($expected, $result, "isAffirmative('{$input}') should be " . ($expected ? 'true' : 'false') . " — {$notes}");
     }
 
-    /**
-     * @dataProvider negativeProvider
-     */
+    #[DataProvider('negativeProvider')]
     public function testIsNegative(string $input, bool $expected, string $notes): void
     {
         $result = ConfirmationIntentRule::isNegative($input);

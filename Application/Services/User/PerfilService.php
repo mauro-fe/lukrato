@@ -243,10 +243,7 @@ class PerfilService
             if ($cpf !== '') {
                 $cpfLimpo = preg_replace('/\D/', '', $cpf);
                 if (strlen($cpfLimpo) === 11) {
-                    $existeCpf = DB::table('documentos')
-                        ->where('id_usuario', $userId)
-                        ->where('id_tipo', 1)
-                        ->exists();
+                    $existeCpf = $this->documentoRepo->hasCpf($userId);
 
                     if (!$existeCpf) {
                         $this->documentoRepo->updateOrCreateCpf($userId, $cpfLimpo);

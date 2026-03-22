@@ -2,13 +2,14 @@
 
 namespace Application\Middlewares;
 
+use Application\Core\Exceptions\HttpResponseException;
 use Application\Core\Request;
 use Application\Core\Response;
 use Predis\Client as RedisClient;
 
 /**
  * Middleware de Rate Limiting para evitar abuso de API
- * 
+ *
  * Limites:
  * - 100 requisições por minuto por IP (geral)
  * - 10 requisições por minuto para endpoints de cobrança
@@ -19,12 +20,10 @@ class BillingRateLimitMiddleware
     private ?RedisClient $redis = null;
     private const PREFIX = 'rate_limit:';
 
-    // Limites por tipo
     private const LIMIT_GENERAL_PER_MINUTE = 100;
     private const LIMIT_BILLING_PER_MINUTE = 10;
     private const LIMIT_PER_HOUR = 1000;
 
-    // Endpoints sensíveis
     private const BILLING_ENDPOINTS = [
         '/api/premium/checkout',
         '/api/premium/cancel',
@@ -33,13 +32,12 @@ class BillingRateLimitMiddleware
 
     public function __construct()
     {
-        // Usar Redis se disponível, senão fallback para sessão/arquivo
         try {
             if (class_exists(RedisClient::class)) {
                 $this->redis = new RedisClient([
                     'scheme' => 'tcp',
-                    'host'   => $_ENV['REDIS_HOST'] ?? '127.0.0.1',
-                    'port'   => $_ENV['REDIS_PORT'] ?? 6379,
+                    'host' => $_ENV['REDIS_HOST'] ?? '127.0.0.1',
+                    'port' => $_ENV['REDIS_PORT'] ?? 6379,
                 ]);
                 $this->redis->ping();
             }
@@ -53,10 +51,8 @@ class BillingRateLimitMiddleware
         $ip = $this->getClientIp();
         $path = $request->path ?? $_SERVER['REQUEST_URI'] ?? '/';
 
-        // Determinar se é endpoint de cobrança
         $isBillingEndpoint = $this->isBillingEndpoint($path);
 
-        // Verificar limites
         if ($isBillingEndpoint) {
             if (!$this->checkLimit($ip, 'billing_minute', self::LIMIT_BILLING_PER_MINUTE, 60)) {
                 $this->sendRateLimitError('Muitas tentativas de cobrança. Aguarde 1 minuto.');
@@ -64,13 +60,11 @@ class BillingRateLimitMiddleware
             }
         }
 
-        // Limite geral por minuto
         if (!$this->checkLimit($ip, 'minute', self::LIMIT_GENERAL_PER_MINUTE, 60)) {
             $this->sendRateLimitError('Muitas requisições. Aguarde 1 minuto.');
             return false;
         }
 
-        // Limite por hora
         if (!$this->checkLimit($ip, 'hour', self::LIMIT_PER_HOUR, 3600)) {
             $this->sendRateLimitError('Limite horário excedido. Aguarde 1 hora.');
             return false;
@@ -84,8 +78,7 @@ class BillingRateLimitMiddleware
         $key = self::PREFIX . "{$ip}:{$window}";
 
         if ($this->redis) {
-            // Usar Redis (mais eficiente)
-            $current = (int)$this->redis->get($key);
+            $current = (int) $this->redis->get($key);
 
             if ($current >= $limit) {
                 return false;
@@ -97,10 +90,9 @@ class BillingRateLimitMiddleware
             }
 
             return true;
-        } else {
-            // Fallback para arquivo (não ideal, mas funcional)
-            return $this->checkLimitFile($key, $limit, $ttl);
         }
+
+        return $this->checkLimitFile($key, $limit, $ttl);
     }
 
     private function checkLimitFile(string $key, int $limit, int $ttl): bool
@@ -137,13 +129,14 @@ class BillingRateLimitMiddleware
                 return true;
             }
         }
+
         return false;
     }
 
     private function getClientIp(): string
     {
         $headers = [
-            'HTTP_CF_CONNECTING_IP', // Cloudflare
+            'HTTP_CF_CONNECTING_IP',
             'HTTP_X_FORWARDED_FOR',
             'HTTP_X_REAL_IP',
             'REMOTE_ADDR',
@@ -152,7 +145,6 @@ class BillingRateLimitMiddleware
         foreach ($headers as $header) {
             if (!empty($_SERVER[$header])) {
                 $ip = $_SERVER[$header];
-                // Se for lista, pegar o primeiro
                 if (str_contains($ip, ',')) {
                     $ip = trim(explode(',', $ip)[0]);
                 }
@@ -167,11 +159,8 @@ class BillingRateLimitMiddleware
 
     private function sendRateLimitError(string $message): void
     {
-        http_response_code(429);
-        header('Content-Type: application/json');
-        header('Retry-After: 60');
-
-        Response::error($message, 429);
-        exit;
+        throw new HttpResponseException(
+            Response::errorResponse($message, 429)->header('Retry-After', '60')
+        );
     }
 }

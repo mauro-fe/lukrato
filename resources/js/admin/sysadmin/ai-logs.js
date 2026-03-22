@@ -1,8 +1,9 @@
+import { apiDelete, apiGet, getBaseUrl, getErrorMessage } from '../shared/api.js';
+
 (function () {
     'use strict';
 
-    const BASE = (window.BASE_URL || document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
-    const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    const BASE = getBaseUrl();
     const FILTERS_STORAGE_KEY = 'sysadmin-ai-logs-filters-v2';
     const PERIOD_STORAGE_KEY = 'sysadmin-ai-logs-summary-period-v1';
 
@@ -279,11 +280,7 @@
         const badge = getEl('quotaStatus');
 
         try {
-            const res = await fetch(`${BASE}api/sysadmin/ai/quota`, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                signal: AbortSignal.timeout(15000)
-            });
-            const json = await res.json();
+            const json = await apiGet(`${BASE}api/sysadmin/ai/quota`);
             const data = json.data;
 
             if (!data) {
@@ -341,10 +338,7 @@
 
     async function loadSummary() {
         try {
-            const res = await fetch(`${BASE}api/sysadmin/ai/logs/summary?hours=${summaryHours}`, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            });
-            const json = await res.json();
+            const json = await apiGet(`${BASE}api/sysadmin/ai/logs/summary`, { hours: summaryHours });
             if (!json.success) return;
 
             const data = json.data;
@@ -367,10 +361,7 @@
 
     async function loadQualityMetrics() {
         try {
-            const res = await fetch(`${BASE}api/sysadmin/ai/logs/quality?hours=${summaryHours}`, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            });
-            const json = await res.json();
+            const json = await apiGet(`${BASE}api/sysadmin/ai/logs/quality`, { hours: summaryHours });
             if (!json.success) return;
 
             const data = json.data;
@@ -414,10 +405,7 @@
         setLoadingRow('Carregando logs...');
 
         try {
-            const res = await fetch(`${BASE}api/sysadmin/ai/logs?${params.toString()}`, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            });
-            const json = await res.json();
+            const json = await apiGet(`${BASE}api/sysadmin/ai/logs`, Object.fromEntries(params.entries()));
 
             if (!json.success) {
                 setLoadingRow('Erro ao carregar logs');
@@ -556,20 +544,11 @@
         if (!confirm('Remover todos os logs com mais de 90 dias?')) return;
 
         try {
-            const res = await fetch(`${BASE}api/sysadmin/ai/logs/cleanup`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-Token': csrf
-                },
-                body: JSON.stringify({ days: 90 })
-            });
-            const json = await res.json();
+            const json = await apiDelete(`${BASE}api/sysadmin/ai/logs/cleanup`, { days: 90 });
             alert(json.data?.message || json.message || 'Concluido');
             await refreshDashboard();
-        } catch {
-            alert('Erro ao limpar logs');
+        } catch (error) {
+            alert(getErrorMessage(error, 'Erro ao limpar logs'));
         }
     });
 

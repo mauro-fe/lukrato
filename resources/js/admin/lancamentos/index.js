@@ -1,13 +1,4 @@
-/**
- * ============================================================================
- * LUKRATO — Lançamentos / Entry Point
- * ============================================================================
- * Main orchestrator: imports all sub-modules, defines the API layer and
- * EventListeners, wires everything together and bootstraps on DOMContentLoaded.
- * ============================================================================
- */
-
-import { CONFIG, DOM, initDOM, STATE, Utils, MoneyMask, Notifications, Modules } from './state.js';
+﻿import { CONFIG, DOM, initDOM, STATE, Utils, MoneyMask, Notifications, Modules } from './state.js';
 import { TableManager } from './table.js';
 import { MobileCards } from './mobile.js';
 import { OptionsManager, ModalManager } from './modal.js';
@@ -19,17 +10,12 @@ import {
     ParcelamentoGrouper,
     FaturaDetalhes
 } from './features.js';
-
-// ─── API ─────────────────────────────────────────────────────────────────────
+import { apiDelete, apiFetch, apiGet, apiPost, apiPut } from '../shared/api.js';
 
 export const API = {
     fetchJsonList: async (url) => {
         try {
-            const res = await fetch(url, {
-                headers: { 'Accept': 'application/json' }
-            });
-            if (!res.ok) return [];
-            const body = await res.json().catch(() => null);
+            const body = await apiGet(url);
             return Utils.normalizeDataList(body);
         } catch {
             return [];
@@ -43,19 +29,18 @@ export const API = {
         const qs = API.buildQuery({ month, tipo, categoria, conta, limit, startDate, endDate, search, status });
 
         try {
-            const res = await fetch(`${CONFIG.ENDPOINT}?${qs.toString()}`, {
+            const data = await apiFetch(`${CONFIG.ENDPOINT}?${qs.toString()}`, {
+                method: 'GET',
                 headers: { 'Accept': 'application/json' },
                 signal
-            });
+            }, { timeout: 0 });
 
-            if (res.status === 204 || res.status === 404) return [];
-            if (!res.ok) throw new Error('Falha ao carregar lançamentos.');
-
-            const data = await res.json().catch(() => null);
+            if (data === null) return [];
             if (Array.isArray(data)) return data;
             if (data && Array.isArray(data.data)) return data.data;
             return [];
         } catch (error) {
+            if (error?.status === 404) return [];
             if (error?.name === 'AbortError') throw error;
             throw error;
         }
@@ -83,16 +68,9 @@ export const API = {
 
     deleteOne: async (id, scope = 'single') => {
         try {
-            const token = Utils.getCSRFToken();
             const url = `${CONFIG.ENDPOINT}/${encodeURIComponent(id)}${scope !== 'single' ? `?scope=${scope}` : ''}`;
-            const res = await fetch(url, {
-                method: 'DELETE',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': token
-                }
-            });
-            return res.ok;
+            await apiDelete(url);
+            return true;
         } catch {
             return false;
         }
@@ -100,24 +78,8 @@ export const API = {
 
     bulkDelete: async (ids) => {
         try {
-            const token = Utils.getCSRFToken();
-            const payload = {
-                ids,
-                _token: token,
-                csrf_token: token
-            };
-
-            const res = await fetch(`${CONFIG.ENDPOINT}/delete`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': token
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (res.ok) return true;
+            await apiPost(`${CONFIG.ENDPOINT}/delete`, { ids });
+            return true;
         } catch { /* fall through to fallback */ }
 
         // Fallback: deletar individualmente
@@ -126,16 +88,7 @@ export const API = {
     },
 
     updateLancamento: async (id, payload) => {
-        const token = Utils.getCSRFToken();
-        return fetch(`${CONFIG.ENDPOINT}/${encodeURIComponent(id)}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': token
-            },
-            body: JSON.stringify(payload)
-        });
+        return apiPut(`${CONFIG.ENDPOINT}/${encodeURIComponent(id)}`, payload);
     },
 
     exportLancamentos: async (params, format) => {
@@ -160,15 +113,12 @@ export const API = {
 // Register API on shared Modules
 Modules.API = API;
 
-// ─── EVENT LISTENERS ─────────────────────────────────────────────────────────
-
 const EventListeners = {
     init() {
         // Money mask on edit modal value fields
         MoneyMask.bind(DOM.inputLancValor);
         MoneyMask.bind(DOM.inputTransValor);
 
-        // Tipo de lançamento mudou — atualizar categorias
         DOM.selectLancTipo?.addEventListener('change', () => {
             OptionsManager.populateCategoriaSelect(
                 DOM.selectLancCategoria,
@@ -322,7 +272,7 @@ const EventListeners = {
     }
 };
 
-// ─── INIT ────────────────────────────────────────────────────────────────────
+// ─── INIT ──────────────────────────────────────────────────────────────────
 
 const init = async () => {
     // Populate DOM refs

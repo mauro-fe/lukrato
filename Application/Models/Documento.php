@@ -7,7 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Documento extends Model
 {
     protected $table = 'documentos';
-    protected $fillable = ['numero', 'id_tipo', 'id_usuario'];
+    protected $fillable = ['numero', 'cpf_hash', 'cpf_encrypted', 'id_tipo', 'id_usuario'];
+    protected $hidden = ['cpf_hash', 'cpf_encrypted'];
     public $timestamps = false;
 
     public function tipo()

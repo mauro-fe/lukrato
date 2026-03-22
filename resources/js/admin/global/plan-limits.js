@@ -1,3 +1,5 @@
+import { apiGet } from '../shared/api.js';
+
 /**
  * ============================================
  * PLAN LIMITS MANAGER
@@ -61,19 +63,7 @@
         }
 
         try {
-            const response = await fetch(`${CONFIG.apiBase}api/plan/limits`, {
-                credentials: 'same-origin',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao buscar limites');
-            }
-
-            const result = await response.json();
+            const result = await apiGet(`${CONFIG.apiBase}api/plan/limits`);
 
             if (result.success) {
                 limitsData = result.data;

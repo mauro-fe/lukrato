@@ -12,6 +12,8 @@ class SessionManager
             return;
         }
 
+        ini_set('session.use_strict_mode', '1');
+        ini_set('session.use_only_cookies', '1');
         $config = $this->getSessionConfig();
         session_set_cookie_params($config);
         session_start();
@@ -56,6 +58,49 @@ class SessionManager
 
     private function isSecureConnection(): bool
     {
-        return !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+        if ($this->isDirectSecureConnection()) {
+            return true;
+        }
+
+        $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '';
+        if (!$this->isTrustedProxy($remoteAddr)) {
+            return false;
+        }
+
+        $forwardedProto = strtolower(trim(explode(',', (string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''))[0] ?? ''));
+        if ($forwardedProto !== '') {
+            return in_array($forwardedProto, ['https', 'wss'], true);
+        }
+
+        if (strtolower((string) ($_SERVER['HTTP_X_FORWARDED_SSL'] ?? '')) === 'on') {
+            return true;
+        }
+
+        if (strtolower((string) ($_SERVER['HTTP_FRONT_END_HTTPS'] ?? '')) === 'on') {
+            return true;
+        }
+
+        $cfVisitor = (string) ($_SERVER['HTTP_CF_VISITOR'] ?? '');
+
+        return $cfVisitor !== '' && str_contains(strtolower($cfVisitor), '"scheme":"https"');
+    }
+
+    private function isDirectSecureConnection(): bool
+    {
+        if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+            return true;
+        }
+
+        return (int) ($_SERVER['SERVER_PORT'] ?? 0) === 443;
+    }
+
+    private function isTrustedProxy(string $remoteAddr): bool
+    {
+        $trustedProxies = array_filter(array_map(
+            'trim',
+            explode(',', $_ENV['TRUSTED_PROXIES'] ?? getenv('TRUSTED_PROXIES') ?: '')
+        ));
+
+        return $remoteAddr !== '' && in_array($remoteAddr, $trustedProxies, true);
     }
 }

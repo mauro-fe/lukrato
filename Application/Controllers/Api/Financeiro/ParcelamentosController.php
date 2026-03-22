@@ -6,153 +6,121 @@ namespace Application\Controllers\Api\Financeiro;
 
 use Application\Controllers\BaseController;
 use Application\Core\Response;
-use Application\Lib\Auth;
-use Application\Repositories\ParcelamentoRepository;
-use Application\Repositories\CategoriaRepository;
-use Application\Repositories\ContaRepository;
-use Application\Services\Infrastructure\LogService;
 use Application\Enums\LogCategory;
 use Application\Models\Lancamento;
 use Application\Models\Parcelamento;
+use Application\Repositories\CategoriaRepository;
+use Application\Repositories\ContaRepository;
+use Application\Repositories\ParcelamentoRepository;
+use Application\Services\Infrastructure\LogService;
+use Application\Services\User\OnboardingProgressService;
 
-/**
- * Controller para gerenciar parcelamentos sem cartão de crédito.
- *
- * Parcelamento = grupo de N lancamentos mensais (parcelas) vinculados
- * a uma mesma compra/serviço, pagos pela conta bancária (não cartão).
- */
 class ParcelamentosController extends BaseController
 {
     private ParcelamentoRepository $parcelamentoRepo;
     private CategoriaRepository $categoriaRepo;
     private ContaRepository $contaRepo;
+    private OnboardingProgressService $progressService;
 
-    public function __construct()
-    {
+    public function __construct(
+        ?ParcelamentoRepository $parcelamentoRepo = null,
+        ?CategoriaRepository $categoriaRepo = null,
+        ?ContaRepository $contaRepo = null,
+        ?OnboardingProgressService $progressService = null
+    ) {
         parent::__construct();
-        $this->parcelamentoRepo = new ParcelamentoRepository();
-        $this->categoriaRepo = new CategoriaRepository();
-        $this->contaRepo = new ContaRepository();
+        $this->parcelamentoRepo = $parcelamentoRepo ?? new ParcelamentoRepository();
+        $this->categoriaRepo = $categoriaRepo ?? new CategoriaRepository();
+        $this->contaRepo = $contaRepo ?? new ContaRepository();
+        $this->progressService = $progressService ?? new OnboardingProgressService();
     }
 
-    /**
-     * Listar parcelamentos do usuário
-     * GET /api/parcelamentos
-     */
-    public function index(): void
+    public function index(): Response
     {
-        $userId = Auth::id();
-        if (!$userId) {
-            Response::error('Não autenticado', 401);
-            return;
-        }
-
-        $this->releaseSession();
+        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
 
         $status = $_GET['status'] ?? null;
         $parcelamentos = $status
             ? $this->parcelamentoRepo->findByStatus($userId, $status)
             : $this->parcelamentoRepo->findByUsuario($userId);
 
-        $result = $parcelamentos->map(function ($p) {
-            $parcelas = $p->lancamentos->sortBy('data')->values();
+        $result = $parcelamentos->map(function ($parcelamento) {
+            $parcelas = $parcelamento->lancamentos->sortBy('data')->values();
+
             return [
-                'id' => $p->id,
-                'descricao' => $p->descricao,
-                'valor_total' => (float)$p->valor_total,
-                'valor_parcela' => $p->valor_parcela,
-                'numero_parcelas' => (int)$p->numero_parcelas,
-                'parcelas_pagas' => (int)$p->parcelas_pagas,
-                'percentual_pago' => $p->percentual_pago,
-                'status' => $p->status,
-                'tipo' => $p->tipo,
-                'categoria' => $p->categoria?->nome ?? null,
-                'conta' => $p->conta?->nome ?? null,
-                'data_criacao' => $p->data_criacao,
-                'parcelas' => $parcelas->map(fn($l) => [
-                    'id' => $l->id,
-                    'numero_parcela' => $l->numero_parcela,
-                    'data' => (string)$l->data,
-                    'valor' => (float)$l->valor,
-                    'pago' => (bool)$l->pago,
-                    'data_pagamento' => $l->data_pagamento ? (string)$l->data_pagamento : null,
-                    'descricao' => $l->descricao,
+                'id' => $parcelamento->id,
+                'descricao' => $parcelamento->descricao,
+                'valor_total' => (float) $parcelamento->valor_total,
+                'valor_parcela' => $parcelamento->valor_parcela,
+                'numero_parcelas' => (int) $parcelamento->numero_parcelas,
+                'parcelas_pagas' => (int) $parcelamento->parcelas_pagas,
+                'percentual_pago' => $parcelamento->percentual_pago,
+                'status' => $parcelamento->status,
+                'tipo' => $parcelamento->tipo,
+                'categoria' => $parcelamento->categoria?->nome ?? null,
+                'conta' => $parcelamento->conta?->nome ?? null,
+                'data_criacao' => $parcelamento->data_criacao,
+                'parcelas' => $parcelas->map(fn($lancamento) => [
+                    'id' => $lancamento->id,
+                    'numero_parcela' => $lancamento->numero_parcela,
+                    'data' => (string) $lancamento->data,
+                    'valor' => (float) $lancamento->valor,
+                    'pago' => (bool) $lancamento->pago,
+                    'data_pagamento' => $lancamento->data_pagamento ? (string) $lancamento->data_pagamento : null,
+                    'descricao' => $lancamento->descricao,
                 ])->toArray(),
             ];
         });
 
-        Response::success($result->toArray());
+        return Response::successResponse($result->toArray());
     }
 
-    /**
-     * Mostrar parcelamento específico
-     * GET /api/parcelamentos/{id}
-     */
-    public function show(int $id): void
+    public function show(int $id): Response
     {
-        $userId = Auth::id();
-        if (!$userId) {
-            Response::error('Não autenticado', 401);
-            return;
+        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+
+        $parcelamento = $this->parcelamentoRepo->findWithLancamentos($id);
+        if (!$parcelamento || (int) $parcelamento->user_id !== $userId) {
+            return Response::errorResponse('Parcelamento não encontrado', 404);
         }
 
-        $this->releaseSession();
+        $parcelas = $parcelamento->lancamentos->sortBy('data')->values();
 
-        $p = $this->parcelamentoRepo->findWithLancamentos($id);
-        if (!$p || (int)$p->user_id !== $userId) {
-            Response::error('Parcelamento não encontrado', 404);
-            return;
-        }
-
-        $parcelas = $p->lancamentos->sortBy('data')->values();
-
-        Response::success([
-            'id' => $p->id,
-            'descricao' => $p->descricao,
-            'valor_total' => (float)$p->valor_total,
-            'valor_parcela' => $p->valor_parcela,
-            'numero_parcelas' => (int)$p->numero_parcelas,
-            'parcelas_pagas' => (int)$p->parcelas_pagas,
-            'percentual_pago' => $p->percentual_pago,
-            'status' => $p->status,
-            'tipo' => $p->tipo,
-            'categoria' => $p->categoria?->nome ?? null,
-            'conta' => $p->conta?->nome ?? null,
-            'data_criacao' => $p->data_criacao,
-            'parcelas' => $parcelas->map(fn($l) => [
-                'id' => $l->id,
-                'numero_parcela' => $l->numero_parcela,
-                'data' => (string)$l->data,
-                'valor' => (float)$l->valor,
-                'pago' => (bool)$l->pago,
-                'data_pagamento' => $l->data_pagamento ? (string)$l->data_pagamento : null,
-                'descricao' => $l->descricao,
+        return Response::successResponse([
+            'id' => $parcelamento->id,
+            'descricao' => $parcelamento->descricao,
+            'valor_total' => (float) $parcelamento->valor_total,
+            'valor_parcela' => $parcelamento->valor_parcela,
+            'numero_parcelas' => (int) $parcelamento->numero_parcelas,
+            'parcelas_pagas' => (int) $parcelamento->parcelas_pagas,
+            'percentual_pago' => $parcelamento->percentual_pago,
+            'status' => $parcelamento->status,
+            'tipo' => $parcelamento->tipo,
+            'categoria' => $parcelamento->categoria?->nome ?? null,
+            'conta' => $parcelamento->conta?->nome ?? null,
+            'data_criacao' => $parcelamento->data_criacao,
+            'parcelas' => $parcelas->map(fn($lancamento) => [
+                'id' => $lancamento->id,
+                'numero_parcela' => $lancamento->numero_parcela,
+                'data' => (string) $lancamento->data,
+                'valor' => (float) $lancamento->valor,
+                'pago' => (bool) $lancamento->pago,
+                'data_pagamento' => $lancamento->data_pagamento ? (string) $lancamento->data_pagamento : null,
+                'descricao' => $lancamento->descricao,
             ])->toArray(),
         ]);
     }
 
-    /**
-     * Criar novo parcelamento (sem cartão de crédito)
-     * POST /api/parcelamentos
-     *
-     * Payload: { descricao, valor_total, numero_parcelas, categoria_id?, conta_id, tipo, data_criacao }
-     */
-    public function store(): void
+    public function store(): Response
     {
-        $userId = Auth::id();
-        if (!$userId) {
-            Response::error('Não autenticado', 401);
-            return;
-        }
+        $userId = $this->requireApiUserIdOrFail();
 
         $data = $this->getJson();
 
         if (!$data) {
-            Response::error('Dados inválidos', 400);
-            return;
+            return Response::errorResponse('Dados inválidos', 400);
         }
 
-        // Validações
         $errors = [];
 
         $descricao = trim($data['descricao'] ?? '');
@@ -160,17 +128,17 @@ class ParcelamentosController extends BaseController
             $errors['descricao'] = 'Descrição é obrigatória.';
         }
 
-        $valorTotal = (float)($data['valor_total'] ?? 0);
+        $valorTotal = (float) ($data['valor_total'] ?? 0);
         if ($valorTotal <= 0) {
             $errors['valor_total'] = 'Valor total deve ser maior que zero.';
         }
 
-        $numeroParcelas = (int)($data['numero_parcelas'] ?? 0);
+        $numeroParcelas = (int) ($data['numero_parcelas'] ?? 0);
         if ($numeroParcelas < 2 || $numeroParcelas > 120) {
             $errors['numero_parcelas'] = 'Número de parcelas deve ser entre 2 e 120.';
         }
 
-        $contaId = (int)($data['conta_id'] ?? 0);
+        $contaId = (int) ($data['conta_id'] ?? 0);
         if ($contaId <= 0) {
             $errors['conta_id'] = 'Conta é obrigatória.';
         } elseif (!$this->contaRepo->belongsToUser($contaId, $userId)) {
@@ -179,7 +147,7 @@ class ParcelamentosController extends BaseController
 
         $categoriaId = null;
         if (!empty($data['categoria_id'])) {
-            $categoriaId = (int)$data['categoria_id'];
+            $categoriaId = (int) $data['categoria_id'];
             if (!$this->categoriaRepo->belongsToUser($categoriaId, $userId)) {
                 $errors['categoria_id'] = 'Categoria inválida.';
             }
@@ -187,9 +155,9 @@ class ParcelamentosController extends BaseController
 
         $subcategoriaId = null;
         if (!empty($data['subcategoria_id'])) {
-            $subcategoriaId = (int)$data['subcategoria_id'];
+            $subcategoriaId = (int) $data['subcategoria_id'];
             if (!$this->categoriaRepo->belongsToUser($subcategoriaId, $userId)) {
-                $subcategoriaId = null; // Silently ignore invalid subcategoria
+                $subcategoriaId = null;
             }
         }
 
@@ -209,18 +177,16 @@ class ParcelamentosController extends BaseController
         }
 
         if (!empty($errors)) {
-            Response::validationError($errors);
-            return;
+            return Response::validationErrorResponse($errors);
         }
 
-        // Campos de lembrete (opcional)
         $lembrarAntesSegundos = null;
         $canalEmail = false;
         $canalInapp = false;
         if (!empty($data['lembrar_antes_segundos'])) {
-            $lembrarAntesSegundos = (int)$data['lembrar_antes_segundos'];
-            $canalEmail = (bool)($data['canal_email'] ?? false);
-            $canalInapp = (bool)($data['canal_inapp'] ?? true);
+            $lembrarAntesSegundos = (int) $data['lembrar_antes_segundos'];
+            $canalEmail = (bool) ($data['canal_email'] ?? false);
+            $canalInapp = (bool) ($data['canal_inapp'] ?? true);
         }
 
         try {
@@ -232,14 +198,13 @@ class ParcelamentosController extends BaseController
                 'parcelas_pagas' => 0,
                 'categoria_id' => $categoriaId,
                 'conta_id' => $contaId,
-                'tipo' => ($tipo === 'receita') ? 'entrada' : 'saida',
+                'tipo' => $tipo === 'receita' ? 'entrada' : 'saida',
                 'status' => Parcelamento::STATUS_ATIVO,
                 'data_criacao' => $dataCriacao,
             ];
 
             $parcelamento = Parcelamento::create($parcelamentoData);
 
-            // Gerar parcelas (lancamentos)
             $valorParcela = round($valorTotal / $numeroParcelas, 2);
             $somaParcelas = $valorParcela * ($numeroParcelas - 1);
             $valorUltima = round($valorTotal - $somaParcelas, 2);
@@ -252,7 +217,7 @@ class ParcelamentosController extends BaseController
                     $dataVencimento->modify('+' . ($i - 1) . ' months');
                 }
 
-                $valorDessa = ($i === $numeroParcelas) ? $valorUltima : $valorParcela;
+                $valorDessa = $i === $numeroParcelas ? $valorUltima : $valorParcela;
 
                 Lancamento::create([
                     'user_id' => $userId,
@@ -272,7 +237,6 @@ class ParcelamentosController extends BaseController
                     'pago' => false,
                     'afeta_caixa' => false,
                     'origem_tipo' => Lancamento::ORIGEM_PARCELAMENTO,
-                    // Lembretes
                     'lembrar_antes_segundos' => $lembrarAntesSegundos,
                     'canal_email' => $canalEmail,
                     'canal_inapp' => $canalInapp,
@@ -288,11 +252,11 @@ class ParcelamentosController extends BaseController
                 'valor_total' => $valorTotal,
             ]);
 
-            Response::success([
+            return Response::successResponse([
                 'id' => $parcelamento->id,
                 'descricao' => $parcelamento->descricao,
-                'valor_total' => (float)$parcelamento->valor_total,
-                'numero_parcelas' => (int)$parcelamento->numero_parcelas,
+                'valor_total' => (float) $parcelamento->valor_total,
+                'numero_parcelas' => (int) $parcelamento->numero_parcelas,
                 'total_criados' => $numeroParcelas,
                 'message' => "Parcelamento criado: {$numeroParcelas} parcelas geradas",
             ], 'Parcelamento criado com sucesso', 201);
@@ -301,26 +265,14 @@ class ParcelamentosController extends BaseController
                 'action' => 'create_parcelamento',
                 'user_id' => $userId,
             ]);
-            Response::error('Erro ao criar parcelamento: ' . $e->getMessage(), 500);
+
+            return $this->internalErrorResponse($e, 'Erro ao criar parcelamento.');
         }
     }
 
-    /**
-     * Excluir parcelamento
-     * DELETE /api/parcelamentos/{id}
-     *
-     * Comportamento:
-     * - ?scope=all     → Exclui todas as parcelas (pagas e pendentes) + header
-     * - ?scope=future  → Exclui apenas parcelas futuras não pagas
-     * - Default        → Exclui apenas parcelas não pagas + cancela header
-     */
-    public function destroy(int $id): void
+    public function destroy(int $id): Response
     {
-        $userId = Auth::id();
-        if (!$userId) {
-            Response::error('Não autenticado', 401);
-            return;
-        }
+        $userId = $this->requireApiUserIdOrFail();
 
         $scope = $_GET['scope'] ?? 'unpaid';
 
@@ -329,34 +281,33 @@ class ParcelamentosController extends BaseController
             ->first();
 
         if (!$parcelamento) {
-            Response::error('Parcelamento não encontrado', 404);
-            return;
+            return Response::errorResponse('Parcelamento não encontrado', 404);
         }
 
         try {
             $hoje = date('Y-m-d');
 
             if ($scope === 'all') {
-                // Excluir TODAS as parcelas (pagas e não pagas)
                 $excluidos = Lancamento::where('parcelamento_id', $id)
                     ->where('user_id', $userId)
                     ->delete();
 
                 $parcelamento->delete();
+                $this->syncOnboardingStateAfterDeletion($userId);
 
-                Response::success([
+                return Response::successResponse([
                     'message' => "Parcelamento excluído completamente ({$excluidos} parcelas removidas)",
                     'itens_excluidos' => $excluidos,
                 ]);
-            } elseif ($scope === 'future') {
-                // Excluir apenas parcelas futuras não pagas
+            }
+
+            if ($scope === 'future') {
                 $excluidos = Lancamento::where('parcelamento_id', $id)
                     ->where('user_id', $userId)
                     ->where('pago', false)
                     ->where('data', '>', $hoje)
                     ->delete();
 
-                // Atualizar header
                 $restantes = Lancamento::where('parcelamento_id', $id)->count();
                 if ($restantes === 0) {
                     $parcelamento->delete();
@@ -366,31 +317,46 @@ class ParcelamentosController extends BaseController
                     $this->parcelamentoRepo->atualizarParcelasPagas($id);
                 }
 
-                Response::success([
+                $this->syncOnboardingStateAfterDeletion($userId);
+
+                return Response::successResponse([
                     'message' => "{$excluidos} parcelas futuras removidas",
                     'itens_excluidos' => $excluidos,
                 ]);
-            } else {
-                // Default: excluir não pagas + cancelar
-                $excluidos = Lancamento::where('parcelamento_id', $id)
-                    ->where('user_id', $userId)
-                    ->where('pago', false)
-                    ->delete();
-
-                $parcelamento->status = Parcelamento::STATUS_CANCELADO;
-                $parcelamento->save();
-
-                Response::success([
-                    'message' => "Parcelamento cancelado ({$excluidos} parcelas pendentes removidas)",
-                    'itens_excluidos' => $excluidos,
-                ]);
             }
+
+            $excluidos = Lancamento::where('parcelamento_id', $id)
+                ->where('user_id', $userId)
+                ->where('pago', false)
+                ->delete();
+
+            $parcelamento->status = Parcelamento::STATUS_CANCELADO;
+            $parcelamento->save();
+            $this->syncOnboardingStateAfterDeletion($userId);
+
+            return Response::successResponse([
+                'message' => "Parcelamento cancelado ({$excluidos} parcelas pendentes removidas)",
+                'itens_excluidos' => $excluidos,
+            ]);
         } catch (\Throwable $e) {
             LogService::captureException($e, LogCategory::LANCAMENTO, [
                 'action' => 'delete_parcelamento',
                 'parcelamento_id' => $id,
             ]);
-            Response::error('Erro ao excluir parcelamento', 500);
+
+            return Response::errorResponse('Erro ao excluir parcelamento', 500);
+        }
+    }
+
+    private function syncOnboardingStateAfterDeletion(int $userId): void
+    {
+        try {
+            $this->progressService->resyncState($userId);
+        } catch (\Throwable $e) {
+            LogService::captureException($e, LogCategory::GENERAL, [
+                'action' => 'sync_onboarding_after_parcelamento_delete',
+                'user_id' => $userId,
+            ]);
         }
     }
 }

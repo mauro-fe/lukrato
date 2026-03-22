@@ -43,6 +43,7 @@ class MetaRepository extends BaseRepository
     public function createForUser(int $userId, array $data): Model
     {
         $data['user_id'] = $userId;
+
         return $this->create($data);
     }
 
@@ -52,7 +53,10 @@ class MetaRepository extends BaseRepository
     public function updateForUser(int $id, int $userId, array $data): bool
     {
         $meta = $this->findByIdAndUser($id, $userId);
-        if (!$meta) return false;
+        if (!$meta) {
+            return false;
+        }
+
         return $meta->update($data);
     }
 
@@ -62,7 +66,10 @@ class MetaRepository extends BaseRepository
     public function deleteForUser(int $id, int $userId): bool
     {
         $meta = $this->findByIdAndUser($id, $userId);
-        if (!$meta) return false;
+        if (!$meta) {
+            return false;
+        }
+
         return $meta->delete();
     }
 

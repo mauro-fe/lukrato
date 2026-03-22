@@ -12,78 +12,78 @@ class FeedbackAdminController extends BaseController
 {
     private FeedbackService $service;
 
-    public function __construct()
+    public function __construct(?FeedbackService $service = null)
     {
         parent::__construct();
-        $this->service = new FeedbackService();
+        $this->service = $service ?? new FeedbackService();
     }
 
     /**
      * GET /api/sysadmin/feedback/stats
      */
-    public function stats(): void
+    public function stats(): Response
     {
-        $this->requireAuthApi();
+        $this->requireApiUserIdOrFail();
 
         $statsByTipo = $this->service->getStatsByTipo();
-        $npsScore    = $this->service->getNpsScore(
+        $npsScore = $this->service->getNpsScore(
             $this->getQuery('start_date'),
             $this->getQuery('end_date')
         );
 
-        Response::success([
+        return Response::successResponse([
             'by_tipo' => $statsByTipo,
-            'nps'     => $npsScore,
+            'nps' => $npsScore,
         ]);
     }
 
     /**
      * GET /api/sysadmin/feedback
      */
-    public function index(): void
+    public function index(): Response
     {
-        $this->requireAuthApi();
+        $this->requireApiUserIdOrFail();
 
         $filters = [
             'tipo_feedback' => $this->getQuery('tipo_feedback'),
-            'rating_min'    => $this->getQuery('rating_min'),
-            'rating_max'    => $this->getQuery('rating_max'),
-            'start_date'    => $this->getQuery('start_date'),
-            'end_date'      => $this->getQuery('end_date'),
+            'rating_min' => $this->getQuery('rating_min'),
+            'rating_max' => $this->getQuery('rating_max'),
+            'start_date' => $this->getQuery('start_date'),
+            'end_date' => $this->getQuery('end_date'),
         ];
-        $perPage = (int) ($this->getQuery('per_page', '15'));
-        $page    = (int) ($this->getQuery('page', '1'));
+        $perPage = $this->getIntQuery('per_page', 15);
+        $page = $this->getIntQuery('page', 1);
 
         $result = $this->service->getPaginated($filters, $perPage, $page);
 
         $result['items'] = $result['items']->map(function ($f) {
             return [
-                'id'            => $f->id,
-                'user_id'       => $f->user_id,
-                'user_nome'     => $f->user->nome ?? 'Removido',
+                'id' => $f->id,
+                'user_id' => $f->user_id,
+                'user_nome' => $f->user->nome ?? 'Removido',
                 'tipo_feedback' => $f->tipo_feedback,
-                'contexto'      => $f->contexto,
-                'rating'        => $f->rating,
-                'comentario'    => $f->comentario,
-                'pagina'        => $f->pagina,
-                'created_at'    => $f->created_at?->format('Y-m-d H:i:s'),
+                'contexto' => $f->contexto,
+                'rating' => $f->rating,
+                'comentario' => $f->comentario,
+                'pagina' => $f->pagina,
+                'created_at' => $f->created_at?->format('Y-m-d H:i:s'),
             ];
         });
 
-        Response::success($result);
+        return Response::successResponse($result);
     }
 
     /**
      * GET /api/sysadmin/feedback/export
      */
-    public function export(): void
+    public function export(): Response
     {
-        $this->requireAuthApi();
+        $this->requireApiUserIdOrFail();
 
         $filters = [
             'tipo_feedback' => $this->getQuery('tipo_feedback'),
-            'start_date'    => $this->getQuery('start_date'),
-            'end_date'      => $this->getQuery('end_date'),
+            'start_date' => $this->getQuery('start_date'),
+            'end_date' => $this->getQuery('end_date'),
         ];
 
         $items = $this->service->getExportData($filters);
@@ -104,9 +104,12 @@ class FeedbackAdminController extends BaseController
             );
         }
 
-        header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="feedbacks_export.csv"');
-        echo "\xEF\xBB\xBF" . $csv;
-        exit;
+        return (new Response())
+            ->setStatusCode(200)
+            ->withHeaders([
+                'Content-Type' => 'text/csv; charset=utf-8',
+                'Content-Disposition' => 'attachment; filename="feedbacks_export.csv"',
+            ])
+            ->setContent("\xEF\xBB\xBF" . $csv);
     }
 }

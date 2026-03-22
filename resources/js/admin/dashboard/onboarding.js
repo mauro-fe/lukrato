@@ -1,3 +1,5 @@
+import { apiGet } from '../shared/api.js';
+
 /**
  * ============================================================================
  * LUKRATO — Dashboard Onboarding Checklist (Expandido)
@@ -8,13 +10,19 @@
  */
 
 const BASE_URL = window.__LK_CONFIG?.baseUrl || window.BASE_URL || '/';
+const ONBOARDING_STORAGE_PREFIX = `lk_user_${window.__LK_CONFIG?.userId ?? 'anon'}_`;
+
+function storageKey(name) {
+    return ONBOARDING_STORAGE_PREFIX + name;
+}
 
 // Store previous state para detectar mudanças
 let previousChecklistState = null;
 
 export function initOnboardingChecklist() {
     const firstVisit = !!window.__lkFirstVisit;
-    const SKIP_KEY = 'lk_checklist_skipped';
+    const SKIP_KEY = storageKey('lk_checklist_skipped');
+    const STATE_KEY = storageKey('lk_checklist_state');
     const el = document.getElementById('onboardingChecklist');
 
     if (!el) return;
@@ -23,8 +31,8 @@ export function initOnboardingChecklist() {
     if (localStorage.getItem(SKIP_KEY) === '1') return;
 
     // Inicializar estado anterior
-    previousChecklistState = localStorage.getItem('lk_checklist_state') ?
-        JSON.parse(localStorage.getItem('lk_checklist_state')) : {};
+    previousChecklistState = localStorage.getItem(STATE_KEY) ?
+        JSON.parse(localStorage.getItem(STATE_KEY)) : {};
 
     fetchAndRenderChecklist(el, firstVisit);
 
@@ -72,10 +80,7 @@ export function initOnboardingChecklist() {
 }
 
 function fetchAndRenderChecklist(el, firstVisit) {
-    fetch(BASE_URL + 'api/onboarding/checklist', {
-        headers: { 'Accept': 'application/json' }
-    })
-        .then(function (r) { return r.json(); })
+    apiGet(BASE_URL + 'api/onboarding/checklist')
         .then(function (res) {
             if (!res.success) return;
             const data = res.data;
@@ -91,8 +96,8 @@ function fetchAndRenderChecklist(el, firstVisit) {
 
             if (firstVisit) {
                 // Set localStorage flags for gamification/state tracking
-                localStorage.setItem('lukrato_onboarding_completed', 'true');
-                localStorage.removeItem('lukrato_onboarding_in_progress');
+                localStorage.setItem(storageKey('lukrato_onboarding_completed'), 'true');
+                localStorage.removeItem(storageKey('lukrato_onboarding_in_progress'));
 
                 fireConfetti();
                 setTimeout(function () {
@@ -179,7 +184,7 @@ function renderChecklistExpanded(data, el, firstVisit) {
         link.addEventListener('click', function (e) {
             const key = this.getAttribute('data-item-key');
             // Mark as viewed but don't prevent navigation
-            localStorage.setItem('lk_checklist_item_clicked_' + key, 'true');
+            localStorage.setItem(storageKey('lk_checklist_item_clicked_' + key), 'true');
         });
     });
 }
@@ -204,7 +209,7 @@ function detectChecklistChanges(data) {
     }
 
     // Salvar novo estado
-    localStorage.setItem('lk_checklist_state', JSON.stringify(currentState));
+    localStorage.setItem(storageKey('lk_checklist_state'), JSON.stringify(currentState));
     previousChecklistState = currentState;
 }
 

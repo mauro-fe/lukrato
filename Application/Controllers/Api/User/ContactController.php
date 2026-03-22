@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Api\User;
 
 use Application\Controllers\BaseController;
@@ -10,40 +12,36 @@ class ContactController extends BaseController
 {
     private MailService $mail;
 
-    public function __construct()
+    public function __construct(?MailService $mail = null)
     {
         parent::__construct();
-        $this->mail = new MailService();
+        $this->mail = $mail ?? new MailService();
     }
 
-
-    public function send()
+    public function send(): Response
     {
-        $nome     = trim($_POST['nome'] ?? '');
-        $email    = trim($_POST['email'] ?? '');
+        $nome = trim($_POST['nome'] ?? '');
+        $email = trim($_POST['email'] ?? '');
         $whatsapp = trim($_POST['whatsapp'] ?? '');
-        $assunto  = trim($_POST['assunto'] ?? '');
+        $assunto = trim($_POST['assunto'] ?? '');
         $mensagem = trim($_POST['mensagem'] ?? '');
 
         if (!$nome || !$email || !$assunto || !$mensagem) {
-            return Response::validationError([
-                'message' => 'Preencha os campos obrigatórios.'
+            return Response::validationErrorResponse([
+                'message' => 'Preencha os campos obrigatórios.',
             ]);
         }
 
-        // 1) Renderiza o template do e-mail (sem depender de base_path)
         $templatePath = dirname(__DIR__, 4) . '/views/emails/contact-message.php';
 
         ob_start();
-        require $templatePath; // o template "enxerga" $nome, $email, $whatsapp, $assunto, $mensagem
+        require $templatePath;
         $html = ob_get_clean();
 
-        // 2) Para quem você vai mandar (email do Lukrato)
         $to = $_ENV['MAIL_USERNAME']
             ?? $_ENV['MAIL_FROM']
             ?? 'lukratosistema@gmail.com';
 
-        // 3) Reply-To (pra responder direto pro usuário)
         $replyTo = ['email' => $email, 'name' => $nome];
 
         try {
@@ -56,11 +54,11 @@ class ContactController extends BaseController
                 $replyTo
             );
 
-            return Response::success([
-                'message' => 'Mensagem enviada com sucesso.'
+            return Response::successResponse([
+                'message' => 'Mensagem enviada com sucesso.',
             ]);
         } catch (\Throwable $e) {
-            return Response::error(
+            return Response::errorResponse(
                 'Não foi possível enviar sua mensagem agora. Tente novamente.',
                 500
             );

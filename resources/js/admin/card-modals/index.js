@@ -10,7 +10,7 @@
  * ============================================================================
  */
 
-import { getBaseUrl } from '../shared/api.js';
+import { apiFetch, getBaseUrl, getErrorMessage } from '../shared/api.js';
 import { escapeHtml } from '../shared/utils.js';
 
 // ─── Formatação local (BRL) ────────────────────────────────────────────────
@@ -179,19 +179,7 @@ async function openCardDetailModal(cardId, cardName, cardColor, currentMonth) {
         const params = new URLSearchParams({ mes: month, ano: year });
         const url = `${getBaseUrl()}api/reports/card-details/${cardId}?${params}`;
 
-        // Fetch with timeout (15 seconds)
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-        const response = await fetch(url, { credentials: 'include', signal: controller.signal });
-        clearTimeout(timeoutId);
-
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        const responseText = await response.text();
-        let data;
-        try { data = JSON.parse(responseText); }
-        catch (e) { throw new Error('Resposta inválida do servidor'); }
+        const data = await apiFetch(url, { credentials: 'include' }, { timeout: 15000 });
 
         if (!data.success || !data.data) throw new Error(data.message || 'Dados inválidos retornados');
 
@@ -199,9 +187,7 @@ async function openCardDetailModal(cardId, cardName, cardColor, currentMonth) {
     } catch (error) {
         console.error('Erro ao abrir detalhes do cartão:', error);
         document.body.style.overflow = '';
-        const msg = error.name === 'AbortError'
-            ? 'A requisição demorou demais. Tente novamente.'
-            : 'Não foi possível carregar os detalhes do cartão. Tente novamente.';
+        const msg = getErrorMessage(error, 'Não foi possível carregar os detalhes do cartão. Tente novamente.');
         if (typeof Swal !== 'undefined') {
             Swal.fire({ icon: 'error', title: 'Erro ao carregar', text: msg, confirmButtonColor: '#e67e22' });
         }

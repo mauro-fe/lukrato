@@ -3,6 +3,7 @@
  */
 import { CONFIG, DOM, STATE, Utils, Modules, initDOM } from './state.js';
 import { refreshIcons } from '../shared/ui.js';
+import { getApiPayload, getErrorMessage } from '../shared/api.js';
 
 export const FaturasApp = {
     async init() {
@@ -146,7 +147,8 @@ export const FaturasApp = {
         try {
             const response = await Modules.API.listarCartoes();
             // API de cartões retorna array diretamente, não { data: [...] }
-            STATE.cartoes = Array.isArray(response) ? response : (response.data || []);
+            const payload = getApiPayload(response, []);
+            STATE.cartoes = Array.isArray(payload) ? payload : [];
 
             // Preencher o select de cartões
             this.preencherSelectCartoes();
@@ -268,13 +270,14 @@ export const FaturasApp = {
                 ano: STATE.filtros.ano || ''
             });
 
-            let parcelamentos = response.data?.faturas || [];
+            const payload = getApiPayload(response, {});
+            let parcelamentos = payload?.faturas || [];
 
             STATE.parcelamentos = parcelamentos;
 
             // Usar anos da API (somente na primeira carga)
             if (!STATE.anosCarregados) {
-                const anosDisponiveis = response.data?.anos_disponiveis || this.extrairAnosDisponiveis(parcelamentos);
+                const anosDisponiveis = payload?.anos_disponiveis || this.extrairAnosDisponiveis(parcelamentos);
                 this.preencherSelectAnos(anosDisponiveis);
                 STATE.anosCarregados = true;
             }
@@ -287,7 +290,7 @@ export const FaturasApp = {
             Swal.fire({
                 icon: 'error',
                 title: 'Erro ao Carregar',
-                text: error.message || 'Não foi possível carregar os parcelamentos'
+                text: getErrorMessage(error, 'Não foi possível carregar os parcelamentos')
             });
         } finally {
             Modules.UI.hideLoading();
@@ -312,7 +315,7 @@ export const FaturasApp = {
             Swal.fire({
                 icon: 'error',
                 title: 'Erro ao Cancelar',
-                text: error.message
+                text: getErrorMessage(error, 'Não foi possível cancelar o parcelamento')
             });
         }
     },

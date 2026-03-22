@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ============================================================================
  * LUKRATO — Lançamentos / Features (Export, Filters, Data, Parcelamento, FaturaDetalhes)
  * ============================================================================
@@ -6,6 +6,7 @@
 
 import { CONFIG, DOM, STATE, Utils, MoneyMask, Notifications, Modules } from './state.js';
 
+import { apiDelete, apiGet, apiPut, getErrorMessage, logClientError, logClientWarning } from '../shared/api.js';
 // ============================================================================
 // GERENCIAMENTO DE EXPORTAÇÃO
 // ============================================================================
@@ -89,8 +90,8 @@ export const ExportManager = {
 
             Notifications.toast('Exportação concluída com sucesso!');
         } catch (err) {
-            console.error(err);
-            Notifications.toast(err?.message || 'Falha ao exportar lançamentos.', 'error');
+            logClientError('Erro ao exportar lançamentos', err, 'Falha ao exportar lançamentos');
+            Notifications.toast(getErrorMessage(err, 'Falha ao exportar lançamentos.'), 'error');
         } finally {
             ExportManager.setLoading(false);
         }
@@ -457,14 +458,7 @@ export const ParcelamentoGrouper = {
 
         try {
             // Buscar TODAS as parcelas da API (não apenas as do mês atual)
-            const csrfToken = Utils.getCSRFToken();
-            const resp = await fetch(`${CONFIG.BASE_URL}api/parcelamentos/${parcelamentoId}`, {
-                headers: { 'X-CSRF-Token': csrfToken }
-            });
-
-            if (!resp.ok) throw new Error('Erro ao buscar parcelas');
-
-            const json = await resp.json();
+            const json = await apiGet(`${CONFIG.BASE_URL}api/parcelamentos/${parcelamentoId}`);
             const parcelamento = json.data || json;
             const parcelas = (parcelamento.parcelas || []).sort((a, b) => new Date(a.data) - new Date(b.data));
 
@@ -557,7 +551,7 @@ export const ParcelamentoGrouper = {
             document.addEventListener('keydown', escHandler);
 
         } catch (error) {
-            console.error('Erro ao abrir modal de parcelas:', error);
+            logClientError('Erro ao abrir modal de parcelas', error, 'Erro ao carregar parcelas');
             LKFeedback.error('Erro ao carregar parcelas', { toast: true });
         }
     },
@@ -567,35 +561,22 @@ export const ParcelamentoGrouper = {
      */
     async togglePago(lancamentoId, pago) {
         try {
-            const csrfToken = Utils.getCSRFToken();
             const endpoint = pago
                 ? `${CONFIG.BASE_URL}api/lancamentos/${lancamentoId}/pagar`
                 : `${CONFIG.BASE_URL}api/lancamentos/${lancamentoId}/despagar`;
 
-            const response = await fetch(endpoint, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken
-                }
-            });
+            await apiPut(endpoint, {});
 
-            const data = await response.json();
-
-            if (response.ok) {
-                // Reload data da tabela principal (para atualizar a tabela por trás)
-                DataManager.load();
-                // Reabrir modal buscando parcelas atualizadas da API
-                const modal = document.querySelector('.parcelas-modal');
-                const parcelamentoId = modal?.dataset.parcelamentoId;
-                if (parcelamentoId) {
-                    await this.toggle(parcelamentoId);
-                }
-            } else {
-                throw new Error(data.message || 'Erro ao atualizar status');
+            // Reload data da tabela principal (para atualizar a tabela por trás)
+            DataManager.load();
+            // Reabrir modal buscando parcelas atualizadas da API
+            const modal = document.querySelector('.parcelas-modal');
+            const parcelamentoId = modal?.dataset.parcelamentoId;
+            if (parcelamentoId) {
+                await this.toggle(parcelamentoId);
             }
         } catch (error) {
-            LKFeedback.error(error.message, { toast: true });
+            LKFeedback.error(getErrorMessage(error, 'Erro ao atualizar status'), { toast: true });
         }
     },
 
@@ -624,23 +605,11 @@ export const ParcelamentoGrouper = {
         if (result.isConfirmed) {
             const scope = result.value; // 'unpaid' or 'all'
             try {
-                const response = await fetch(`${CONFIG.BASE_URL}api/parcelamentos/${parcelamentoId}?scope=${scope}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': Utils.getCSRFToken()
-                    }
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    LKFeedback.success(data.message || 'Parcelamento atualizado com sucesso', { toast: true });
-                    await DataManager.load();
-                } else {
-                    throw new Error(data.message || 'Erro ao cancelar parcelamento');
-                }
+                const data = await apiDelete(`${CONFIG.BASE_URL}api/parcelamentos/${parcelamentoId}?scope=${scope}`);
+                LKFeedback.success(data?.message || 'Parcelamento atualizado com sucesso', { toast: true });
+                await DataManager.load();
             } catch (error) {
-                LKFeedback.error(error.message, { toast: true });
+                LKFeedback.error(getErrorMessage(error, 'Erro ao cancelar parcelamento'), { toast: true });
             }
         }
     },
@@ -738,21 +707,20 @@ export const FaturaDetalhes = {
         let data = this.cache[lancamentoId];
         if (!data) {
             try {
-                const response = await fetch(`${CONFIG.ENDPOINT}/${lancamentoId}/fatura-detalhes`);
-                const json = await response.json();
+                const json = await apiGet(`${CONFIG.ENDPOINT}/${lancamentoId}/fatura-detalhes`);
                 if (json.success && json.data) {
                     data = json.data;
                     this.cache[lancamentoId] = data;
                 } else {
-                    console.warn('Erro ao buscar detalhes da fatura:', json.message);
+                    logClientWarning('Erro ao buscar detalhes da fatura', { message: json.message }, 'Erro ao buscar detalhes da fatura');
                     return;
                 }
             } catch (err) {
-                console.error('Erro ao buscar detalhes da fatura:', err);
+                logClientError('Erro ao buscar detalhes da fatura', err, 'Erro ao buscar detalhes da fatura');
                 return;
             }
-        }
 
+        }
         const categorias = data.categorias || [];
         if (categorias.length === 0) return;
 
@@ -828,8 +796,7 @@ export const FaturaDetalhes = {
         let data = this.cache[lancamentoId];
         if (!data) {
             try {
-                const response = await fetch(`${CONFIG.ENDPOINT}/${lancamentoId}/fatura-detalhes`);
-                const json = await response.json();
+                const json = await apiGet(`${CONFIG.ENDPOINT}/${lancamentoId}/fatura-detalhes`);
                 if (json.success && json.data) {
                     data = json.data;
                     this.cache[lancamentoId] = data;
@@ -837,11 +804,11 @@ export const FaturaDetalhes = {
                     return;
                 }
             } catch (err) {
-                console.error('Erro ao buscar detalhes da fatura:', err);
+                logClientError('Erro ao buscar detalhes da fatura', err, 'Erro ao buscar detalhes da fatura');
                 return;
             }
-        }
 
+        }
         const categorias = data.categorias || [];
         if (categorias.length === 0) return;
 
@@ -909,8 +876,6 @@ export const FaturaDetalhes = {
         });
     }
 };
-
-// ─── Register on Modules ─────────────────────────────────────────────────────
 
 Modules.ExportManager = ExportManager;
 Modules.FilterBadges = FilterBadges;

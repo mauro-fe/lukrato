@@ -1,27 +1,5 @@
-/**
- * ============================================================================
- * LUKRATO — Shared AI Categorization
- * ============================================================================
- * Utility for AI-powered category suggestion used across all transaction modals.
- *
- * import { sugerirCategoriaIA } from '../shared/ai-categorization.js';
- * ============================================================================
- */
+import { apiPost, getErrorMessage } from './api.js';
 
-import { getBaseUrl, getCSRFToken } from './api.js';
-
-/**
- * Request AI category suggestion and apply to the given selects.
- *
- * @param {Object} opts
- * @param {string} opts.descricaoInputId    - ID of the description input
- * @param {string} opts.categoriaSelectId   - ID of the category <select>
- * @param {string} opts.subcategoriaSelectId - ID of the subcategory <select> (optional)
- * @param {string} opts.subcategoriaGroupId - ID of the subcategory wrapper div (optional)
- * @param {string} opts.btnId              - ID of the AI suggest button
- * @param {Function} opts.notify           - Notification callback: (message, type) => void
- *                                           type: 'success' | 'warning' | 'error'
- */
 export async function sugerirCategoriaIA(opts) {
     const {
         descricaoInputId,
@@ -32,14 +10,12 @@ export async function sugerirCategoriaIA(opts) {
         notify,
     } = opts;
 
-    // ── Validar descrição ────────────────────────────────────────────────
     const descricao = document.getElementById(descricaoInputId)?.value.trim() || '';
     if (descricao.length < 2) {
-        notify('Digite uma descrição primeiro', 'warning');
+        notify('Digite uma descricao primeiro', 'warning');
         return;
     }
 
-    // ── Loading state ────────────────────────────────────────────────────
     const btn = document.getElementById(btnId);
     if (btn) {
         btn.disabled = true;
@@ -47,28 +23,7 @@ export async function sugerirCategoriaIA(opts) {
     }
 
     try {
-        const base = getBaseUrl();
-        const csrf = getCSRFToken();
-        const resp = await fetch(`${base}api/ai/suggest-category`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': csrf,
-            },
-            body: JSON.stringify({ description: descricao }),
-        });
-
-        // ── Tratar erros de quota / upgrade ──────────────────────────────
-        if (resp.status === 403) {
-            notify('Faça upgrade do plano para usar sugestões de IA', 'warning');
-            return;
-        }
-        if (resp.status === 429) {
-            notify('Você usou suas 5 sugestões de categoria gratuitas este mês. Faça upgrade para o Pro para sugestões ilimitadas.', 'warning');
-            return;
-        }
-
-        const data = await resp.json();
+        const data = await apiPost('api/ai/suggest-category', { description: descricao });
 
         if (data.success && data.data?.category) {
             const select = document.getElementById(categoriaSelectId);
@@ -78,21 +33,19 @@ export async function sugerirCategoriaIA(opts) {
             const categoryName = data.data.category;
             let matched = false;
 
-            // Tentar match por ID primeiro (mais confiável)
             if (categoryId) {
-                const optById = select.querySelector(`option[value="${categoryId}"]`);
-                if (optById) {
+                const optionById = select.querySelector(`option[value="${categoryId}"]`);
+                if (optionById) {
                     select.value = String(categoryId);
                     select.dispatchEvent(new Event('change'));
                     matched = true;
                 }
             }
 
-            // Fallback: match por nome (case-insensitive)
             if (!matched) {
-                for (const opt of select.options) {
-                    if (opt.text.trim().toLowerCase() === categoryName.toLowerCase()) {
-                        select.value = opt.value;
+                for (const option of select.options) {
+                    if (option.text.trim().toLowerCase() === String(categoryName || '').toLowerCase()) {
+                        select.value = option.value;
                         select.dispatchEvent(new Event('change'));
                         matched = true;
                         break;
@@ -103,19 +56,28 @@ export async function sugerirCategoriaIA(opts) {
             if (matched) {
                 notify(`Categoria sugerida: ${categoryName}`, 'success');
 
-                // Auto-selecionar subcategoria se retornada pelo backend
-                const subcatId = data.data.subcategory_id;
-                if (subcatId && subcategoriaSelectId) {
-                    _applySub(subcategoriaSelectId, subcategoriaGroupId, subcatId);
+                const subcategoriaId = data.data.subcategory_id;
+                if (subcategoriaId && subcategoriaSelectId) {
+                    applySubcategoria(subcategoriaSelectId, subcategoriaGroupId, subcategoriaId);
                 }
             } else {
-                notify(`IA sugeriu "${categoryName}", mas não encontrada nas suas categorias`, 'warning');
+                notify(`IA sugeriu "${categoryName}", mas nao encontrei essa categoria nas suas opcoes.`, 'warning');
             }
         } else {
-            notify('Não foi possível sugerir uma categoria', 'warning');
+            notify('Nao foi possivel sugerir uma categoria', 'warning');
         }
-    } catch (_e) {
-        notify('Erro ao sugerir categoria', 'error');
+    } catch (error) {
+        if (error?.status === 403) {
+            notify('Faca upgrade do plano para usar sugestoes de IA', 'warning');
+            return;
+        }
+
+        if (error?.status === 429) {
+            notify('Voce usou suas sugestoes gratuitas de categoria neste mes. Faca upgrade para continuar.', 'warning');
+            return;
+        }
+
+        notify(getErrorMessage(error, 'Erro ao sugerir categoria'), 'error');
     } finally {
         if (btn) {
             btn.disabled = false;
@@ -124,31 +86,26 @@ export async function sugerirCategoriaIA(opts) {
     }
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-/**
- * Aguarda o population do select de subcategoria (que acontece via change event)
- * e então seleciona a subcategoria pelo ID.
- */
-function _applySub(subcategoriaSelectId, subcategoriaGroupId, subcatId) {
-    // O change no select de categoria dispara a population assíncrona das subcategorias.
-    // Pollar até que a option esteja disponível (max 3s) para não depender de timing fixo.
+function applySubcategoria(subcategoriaSelectId, subcategoriaGroupId, subcategoriaId) {
     let attempts = 0;
     const maxAttempts = 30;
     const interval = setInterval(() => {
-        attempts++;
+        attempts += 1;
         const subSelect = document.getElementById(subcategoriaSelectId);
-        if (!subSelect) { clearInterval(interval); return; }
-
-        const opt = Array.from(subSelect.options).find(o => String(o.value) === String(subcatId));
-        if (opt || attempts >= maxAttempts) {
+        if (!subSelect) {
             clearInterval(interval);
-            if (opt) {
-                subSelect.value = String(subcatId);
+            return;
+        }
+
+        const option = Array.from(subSelect.options).find((item) => String(item.value) === String(subcategoriaId));
+        if (option || attempts >= maxAttempts) {
+            clearInterval(interval);
+
+            if (option) {
+                subSelect.value = String(subcategoriaId);
                 subSelect.dispatchEvent(new Event('change'));
             }
 
-            // Garantir que o grupo de subcategoria esteja visível
             if (subcategoriaGroupId) {
                 const group = document.getElementById(subcategoriaGroupId);
                 if (group) {

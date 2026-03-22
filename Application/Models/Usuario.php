@@ -3,6 +3,7 @@
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Application\Services\Auth\TokenPairService;
 use Application\Services\Infrastructure\LogService;
 use Application\Services\Plan\FeatureGate;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -53,6 +54,9 @@ class Usuario extends Model
         'is_admin',
         'email_verified_at',
         'email_verification_token',
+        'email_verification_selector',
+        'email_verification_token_hash',
+        'email_verification_expires_at',
         'email_verification_sent_at',
         'email_verification_reminder_sent_at',
         'original_email_hash',
@@ -63,13 +67,20 @@ class Usuario extends Model
         'telegram_verified',
     ];
 
-    protected $hidden = ['senha', 'password', 'email_verification_token'];
+    protected $hidden = [
+        'senha',
+        'password',
+        'email_verification_token',
+        'email_verification_selector',
+        'email_verification_token_hash',
+    ];
     protected $casts = [
         'data_nascimento' => 'date:Y-m-d',
         'is_admin' => 'integer',
         'onboarding_completed_at' => 'datetime',
         'onboarding_tour_skipped_at' => 'datetime',
         'email_verified_at' => 'datetime',
+        'email_verification_expires_at' => 'datetime',
         'email_verification_sent_at' => 'datetime',
         'email_verification_reminder_sent_at' => 'datetime',
         'telegram_verified' => 'boolean',
@@ -106,6 +117,11 @@ class Usuario extends Model
     public function contas()
     {
         return $this->hasMany(Conta::class, 'user_id');
+    }
+
+    public function onboardingProgress()
+    {
+        return $this->hasOne(OnboardingProgress::class, 'user_id');
     }
 
     public function getIsProAttribute(): bool
@@ -232,6 +248,9 @@ class Usuario extends Model
         return $this->forceFill([
             'email_verified_at' => now(),
             'email_verification_token' => null,
+            'email_verification_selector' => null,
+            'email_verification_token_hash' => null,
+            'email_verification_expires_at' => null,
         ])->save();
     }
 
@@ -240,14 +259,31 @@ class Usuario extends Model
      */
     public function generateEmailVerificationToken(): string
     {
-        $token = bin2hex(random_bytes(32));
+        $credentials = $this->generateEmailVerificationCredentials();
+
+        return $credentials['selector'] . ':' . $credentials['validator'];
+    }
+
+    /**
+     * @return array{selector:string,validator:string}
+     */
+    public function generateEmailVerificationCredentials(?TokenPairService $tokenPairService = null): array
+    {
+        $tokenPairService ??= new TokenPairService();
+        $credentials = $tokenPairService->issue();
 
         $this->forceFill([
-            'email_verification_token' => $token,
+            'email_verification_token' => null,
+            'email_verification_selector' => $credentials['selector'],
+            'email_verification_token_hash' => $credentials['token_hash'],
+            'email_verification_expires_at' => now()->addHours(24),
             'email_verification_sent_at' => now(),
         ])->save();
 
-        return $token;
+        return [
+            'selector' => $credentials['selector'],
+            'validator' => $credentials['validator'],
+        ];
     }
 
     /**
@@ -259,7 +295,25 @@ class Usuario extends Model
             return null;
         }
 
-        return self::where('email_verification_token', $token)->first();
+        return self::findByVerificationTokenHash(hash('sha256', $token));
+    }
+
+    public static function findByVerificationSelector(string $selector): ?self
+    {
+        if ($selector === '') {
+            return null;
+        }
+
+        return self::where('email_verification_selector', $selector)->first();
+    }
+
+    public static function findByVerificationTokenHash(string $tokenHash): ?self
+    {
+        if ($tokenHash === '') {
+            return null;
+        }
+
+        return self::where('email_verification_token_hash', $tokenHash)->first();
     }
 
 

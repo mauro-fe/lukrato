@@ -1,77 +1,67 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Api\Lancamentos;
 
 use Application\Controllers\BaseController;
 use Application\Core\Response;
-use Application\Lib\Auth;
 use Application\Repositories\LancamentoRepository;
 use Application\Services\Lancamento\LancamentoDeletionService;
+use Application\Services\Infrastructure\LogService;
 
 class DestroyController extends BaseController
 {
     private LancamentoRepository $lancamentoRepo;
     private LancamentoDeletionService $deletionService;
 
-    public function __construct()
-    {
+    public function __construct(
+        ?LancamentoRepository $lancamentoRepo = null,
+        ?LancamentoDeletionService $deletionService = null
+    ) {
         parent::__construct();
-        $this->lancamentoRepo = new LancamentoRepository();
-        $this->deletionService = new LancamentoDeletionService();
+        $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
+        $this->deletionService = $deletionService ?? new LancamentoDeletionService();
     }
 
-    public function __invoke(int $id): void
+    public function __invoke(int $id): Response
     {
-        $uid = Auth::id();
-        if (!$uid) {
-            Response::error('Nao autenticado', 401);
-            return;
-        }
+        $uid = $this->requireApiUserIdOrFail();
 
         $lancamento = $this->lancamentoRepo->findByIdAndUser($id, $uid);
         if (!$lancamento) {
-            Response::error('Lancamento nao encontrado', 404);
-            return;
+            return Response::errorResponse('Lancamento nao encontrado', 404);
         }
 
-        $scope  = $_GET['scope'] ?? 'single';
+        $scope = $_GET['scope'] ?? 'single';
         $result = $this->deletionService->delete($lancamento, $uid, $scope);
 
-        Response::success($result);
+        return Response::successResponse($result);
     }
 
-    /**
-     * Exclui múltiplos lançamentos de uma vez.
-     * Recebe JSON: { "ids": [1, 2, 3] }
-     */
-    public function bulkDelete(): void
+    public function bulkDelete(): Response
     {
-        $uid = Auth::id();
-        if (!$uid) {
-            Response::error('Nao autenticado', 401);
-            return;
-        }
+        $uid = $this->requireApiUserIdOrFail();
 
         $payload = $this->getRequestPayload();
         $ids = $payload['ids'] ?? [];
 
         if (!is_array($ids) || empty($ids)) {
-            Response::error('Nenhum lançamento selecionado.', 422);
-            return;
+            return Response::errorResponse('Nenhum lançamento selecionado.', 422);
         }
 
-        // Limitar a 100 itens por request para segurança
         if (count($ids) > 100) {
-            Response::error('Máximo de 100 lançamentos por operação.', 422);
-            return;
+            return Response::errorResponse('Máximo de 100 lançamentos por operação.', 422);
         }
 
         $deleted = 0;
-        $errors  = [];
+        $errors = [];
 
         foreach ($ids as $id) {
             $id = (int) $id;
-            if ($id <= 0) continue;
+            if ($id <= 0) {
+                continue;
+            }
 
             $lancamento = $this->lancamentoRepo->findByIdAndUser($id, $uid);
             if (!$lancamento) {
@@ -83,14 +73,19 @@ class DestroyController extends BaseController
                 $this->deletionService->delete($lancamento, $uid, 'single');
                 $deleted++;
             } catch (\Throwable $e) {
-                $errors[] = "Erro ao excluir #{$id}: {$e->getMessage()}";
+                LogService::captureException($e, \Application\Enums\LogCategory::GENERAL, [
+                    'action' => 'bulk_delete_lancamentos',
+                    'lancamento_id' => $id,
+                    'user_id' => $uid,
+                ]);
+                $errors[] = "Erro ao excluir #{$id}.";
             }
         }
 
-        Response::success([
+        return Response::successResponse([
             'deleted' => $deleted,
-            'errors'  => $errors,
-            'message' => "{$deleted} lançamento(s) excluído(s) com sucesso."
+            'errors' => $errors,
+            'message' => "{$deleted} lançamento(s) excluído(s) com sucesso.",
         ]);
     }
 }

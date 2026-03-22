@@ -11,7 +11,7 @@
 
 import { formatMoney, parseMoney, calcularRecorrenciaFim } from '../shared/utils.js';
 import { formatMoneyInput } from '../shared/utils.js';
-import { getBaseUrl, getCSRFToken } from '../shared/api.js';
+import { apiGet, apiPost, getBaseUrl, getErrorMessage, logClientError, logClientWarning } from '../shared/api.js';
 import { applyMoneyMask } from '../shared/money-mask.js';
 import { refreshIcons, showToast } from '../shared/ui.js';
 import { sugerirCategoriaIA as _sugerirCategoriaIA } from '../shared/ai-categorization.js';
@@ -159,11 +159,10 @@ class LancamentoGlobalManager {
     async carregarDados() {
         const base = getBaseUrl();
         try {
-            const resContas = await fetch(`${base}api/contas?with_balances=1`);
-            if (!resContas.ok) {
+            const dataContas = await apiGet(`${base}api/contas`, { with_balances: 1 }).catch(() => null);
+            if (!dataContas) {
                 this.contas = [];
             } else {
-                const dataContas = await resContas.json();
                 const contasArray = Array.isArray(dataContas)
                     ? dataContas
                     : (Array.isArray(dataContas?.data)
@@ -177,20 +176,18 @@ class LancamentoGlobalManager {
             }
             this.preencherSelectContas();
 
-            const resCategorias = await fetch(`${base}api/categorias`);
-            if (!resCategorias.ok) {
+            const dataCategorias = await apiGet(`${base}api/categorias`).catch(() => null);
+            if (!dataCategorias) {
                 this.categorias = [];
             } else {
-                const dataCategorias = await resCategorias.json();
                 let categoriasData = dataCategorias.categorias || dataCategorias.data || dataCategorias;
                 this.categorias = Array.isArray(categoriasData) ? categoriasData : [];
             }
 
-            const resCartoes = await fetch(`${base}api/cartoes`);
-            if (!resCartoes.ok) {
+            const dataCartoes = await apiGet(`${base}api/cartoes`).catch(() => null);
+            if (!dataCartoes) {
                 this.cartoes = [];
             } else {
-                const dataCartoes = await resCartoes.json();
                 let cartoesData = dataCartoes.cartoes || dataCartoes.data || dataCartoes;
                 this.cartoes = Array.isArray(cartoesData) ? cartoesData : [];
             }
@@ -330,9 +327,7 @@ class LancamentoGlobalManager {
 
         try {
             const base = getBaseUrl();
-            const res = await fetch(`${base}api/categorias/${categoriaId}/subcategorias`);
-            if (!res.ok) throw new Error();
-            const json = await res.json();
+            const json = await apiGet(`${base}api/categorias/${categoriaId}/subcategorias`);
             const subs = json?.data?.subcategorias ?? json?.data ?? [];
 
             select.innerHTML = '<option value="">Sem subcategoria</option>';
@@ -571,6 +566,21 @@ class LancamentoGlobalManager {
         this.tipoAtual = null;
         this.totalSteps = 5;
         this.resetarFormulario();
+
+        const contaInfo = document.getElementById('globalContaInfo');
+        if (contaInfo) {
+            contaInfo.classList.remove('lk-conta-info--compact');
+        }
+
+        const contaSelect = document.getElementById('globalContaSelect');
+        if (contaSelect) {
+            contaSelect.value = this.contaSelecionada?.id ? String(this.contaSelecionada.id) : '';
+            const contaSelectGroup = contaSelect.closest('.lk-form-group');
+            if (contaSelectGroup) {
+                contaSelectGroup.classList.remove('lk-conta-select--hidden');
+            }
+        }
+
         this.aplicarContextoAbertura(this.contextoAbertura);
         this.atualizarContaSelecionadaUI();
         if (!this.contaSelecionada) {
@@ -1579,6 +1589,7 @@ class LancamentoGlobalManager {
 
         this.salvando = true;
         const base = getBaseUrl();
+        let result = null;
 
         try {
             const dados = this.coletarDadosFormulario();
@@ -1590,7 +1601,6 @@ class LancamentoGlobalManager {
                 refreshIcons();
             }
 
-            const csrfToken = getCSRFToken();
             let apiUrl = `${base}api/lancamentos`;
             let requestData = dados;
 
@@ -1624,14 +1634,13 @@ class LancamentoGlobalManager {
                 }
             }
 
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
-                body: JSON.stringify(requestData)
-            });
+            result = await apiPost(apiUrl, requestData);
+            const isSuccess = result?.success === true;
 
-            const result = await response.json();
-            const isSuccess = response.ok && (result.success === true || response.status === 201);
+            if (isSuccess) {
+                await this.handleSuccessfulSave(result);
+                return;
+            }
 
             if (isSuccess) {
                 const tipoLancamento = this.tipoAtual;
@@ -1689,10 +1698,55 @@ class LancamentoGlobalManager {
                 throw new Error(errorMessage);
             }
         } catch (error) {
-            console.error('Erro ao salvar lançamento:', error);
+            logClientError('Erro ao salvar lancamento', error, 'Falha ao salvar lancamento');
             this.salvando = false;
             this._resetBtnSalvar();
-            Swal.fire({ icon: 'error', title: 'Erro', text: error.message, confirmButtonText: 'OK', customClass: { container: 'swal-above-modal' } });
+            Swal.fire({ icon: 'error', title: 'Erro', text: getErrorMessage(error, 'Erro ao salvar lancamento.'), confirmButtonText: 'OK', customClass: { container: 'swal-above-modal' } });
+        }
+    }
+
+    async handleSuccessfulSave(result) {
+        const payload = result?.data ?? null;
+
+        try {
+            if (payload?.gamification) {
+                const gamif = payload.gamification;
+                if (gamif.achievements?.length > 0 && typeof window.notifyMultipleAchievements === 'function') {
+                    window.notifyMultipleAchievements(gamif.achievements);
+                }
+                if (gamif.level_up && typeof window.notifyLevelUp === 'function') {
+                    window.notifyLevelUp(gamif.level);
+                }
+            }
+
+            this.closeModal();
+            showToast(result?.message || 'Lançamento salvo com sucesso!', 'success');
+
+            if (typeof window.refreshDashboard === 'function') {
+                window.refreshDashboard();
+            } else if (window.LK?.refreshDashboard) {
+                window.LK.refreshDashboard();
+            }
+
+            const currentPath = window.location.pathname.toLowerCase();
+            if (currentPath.includes('contas') && window.contasManager && typeof window.contasManager.loadContas === 'function') {
+                await window.contasManager.loadContas();
+            }
+
+            document.dispatchEvent(new CustomEvent('lukrato:data-changed', {
+                detail: {
+                    resource: 'transactions',
+                    action: 'create',
+                    source: 'lancamento-global',
+                    payload
+                }
+            }));
+            window.dispatchEvent(new CustomEvent('lancamento-created', { detail: payload }));
+        } catch (postSaveError) {
+            logClientWarning('Erro ao atualizar UI apos salvar lancamento', postSaveError, 'Falha ao atualizar a tela');
+        } finally {
+            this.salvando = false;
+            this._resetBtnSalvar();
         }
     }
 

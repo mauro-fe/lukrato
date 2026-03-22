@@ -171,7 +171,7 @@ class WhatsAppService
     private function sendMessage(string $toPhone, array $messagePayload): bool
     {
         if (!$this->isConfigured()) {
-            error_log('[WhatsApp] Serviço não configurado. Defina WHATSAPP_TOKEN e WHATSAPP_PHONE_ID.');
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[WhatsApp] Serviço não configurado. Defina WHATSAPP_TOKEN e WHATSAPP_PHONE_ID.');
             return false;
         }
 
@@ -191,10 +191,10 @@ class WhatsAppService
                 return true;
             }
 
-            error_log("[WhatsApp] Resposta inesperada: HTTP {$status}");
+            \Application\Services\Infrastructure\LogService::safeErrorLog("[WhatsApp] Resposta inesperada: HTTP {$status}");
             return false;
         } catch (GuzzleException $e) {
-            error_log("[WhatsApp] Erro ao enviar mensagem: " . $e->getMessage());
+            \Application\Services\Infrastructure\LogService::safeErrorLog("[WhatsApp] Erro ao enviar mensagem: " . $e->getMessage());
             return false;
         }
     }

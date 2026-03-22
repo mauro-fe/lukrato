@@ -12,59 +12,56 @@ class FeedbackController extends BaseController
 {
     private FeedbackService $service;
 
-    public function __construct()
+    public function __construct(?FeedbackService $service = null)
     {
         parent::__construct();
-        $this->service = new FeedbackService();
+        $this->service = $service ?? new FeedbackService();
     }
 
     /**
      * POST /api/feedback
      */
-    public function store(): void
+    public function store(): Response
     {
-        $this->requireAuthApi();
+        $userId = $this->requireApiUserIdOrFail();
 
         $data = $this->getJson();
         $data['pagina'] = $_SERVER['HTTP_REFERER'] ?? null;
 
-        $result = $this->service->store($this->userId, $data);
+        $result = $this->service->store($userId, $data);
 
         if ($result['success']) {
-            Response::success($result['data'] ?? null, 'Feedback registrado com sucesso.');
-        } else {
-            Response::error($result['message'], 429);
+            return Response::successResponse($result['data'] ?? null, 'Feedback registrado com sucesso.');
         }
+
+        return Response::errorResponse($result['message'], 429);
     }
 
     /**
      * GET /api/feedback/check-nps
      */
-    public function checkNps(): void
+    public function checkNps(): Response
     {
-        $this->requireAuthApi();
+        $userId = $this->requireApiUserIdOrFail();
+        $shouldShow = $this->service->shouldShowNps($userId);
 
-        $shouldShow = $this->service->shouldShowNps($this->userId);
-
-        Response::success(['show_nps' => $shouldShow]);
+        return Response::successResponse(['show_nps' => $shouldShow]);
     }
 
     /**
      * GET /api/feedback/can-micro?contexto=xxx
      */
-    public function canMicro(): void
+    public function canMicro(): Response
     {
-        $this->requireAuthApi();
-
+        $userId = $this->requireApiUserIdOrFail();
         $contexto = $this->getQuery('contexto', '');
 
         if (empty($contexto)) {
-            Response::error('Contexto obrigatorio.', 400);
-            return;
+            return Response::errorResponse('Contexto obrigatorio.', 400);
         }
 
-        $can = $this->service->canShowMicroFeedback($this->userId, $contexto);
+        $can = $this->service->canShowMicroFeedback($userId, $contexto);
 
-        Response::success(['can_show' => $can]);
+        return Response::successResponse(['can_show' => $can]);
     }
 }

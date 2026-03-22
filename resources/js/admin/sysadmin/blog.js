@@ -1,29 +1,15 @@
 /**
  * ============================================================================
- * LUKRATO — SysAdmin Blog Page (Vite Module)
+ * LUKRATO - SysAdmin Blog Page (Vite Module)
  * ============================================================================
- * CRUD de artigos do blog, upload de imagem, TinyMCE, filtros e paginação.
+ * CRUD de artigos do blog, upload de imagem, TinyMCE, filtros e paginacao.
  * ============================================================================
  */
 
-const BASE_URL = (() => {
-    const meta = document.querySelector('meta[name="base-url"]')?.content || '';
-    return meta.replace(/\/?$/, '/');
-})();
+import { apiFetch, getBaseUrl, getErrorMessage } from '../shared/api.js';
+import { escapeHtml } from '../shared/utils.js';
 
-function getCsrfToken() {
-    if (window.CSRFManager) {
-        if (typeof window.CSRFManager.getToken === 'function') {
-            const token = window.CSRFManager.getToken();
-            if (token) return token;
-        }
-        if (window.CSRFManager.token) return window.CSRFManager.token;
-    }
-    const metaToken = document.querySelector('meta[name="csrf-token"]')?.content;
-    if (metaToken) return metaToken;
-    console.warn('CSRF Token não encontrado!');
-    return '';
-}
+const BASE_URL = getBaseUrl();
 
 // ─── State ──────────────────────────────────────────────────
 let posts = [];
@@ -56,14 +42,7 @@ function showConteudoFallback(message) {
     }
 }
 
-// ─── Helpers ────────────────────────────────────────────────
-function escapeHtml(str) {
-    if (!str) return '';
-    const div = document.createElement('div');
-    div.appendChild(document.createTextNode(str));
-    return div.innerHTML;
-}
-
+// Helpers
 function slugify(text) {
     return text
         .toString()
@@ -189,24 +168,10 @@ function setupResumoCounter() {
 
 // ─── API Requests ───────────────────────────────────────────
 async function apiRequest(url, options = {}) {
-    const defaultHeaders = {
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': getCsrfToken(),
-    };
-
-    const response = await fetch(url, {
+    return apiFetch(url, {
         ...options,
-        headers: { ...defaultHeaders, ...options.headers },
-        credentials: 'include',
+        credentials: 'include'
     });
-
-    // Handle CSRF refresh
-    const newToken = response.headers.get('X-CSRF-Token');
-    if (newToken && window.CSRFManager && typeof window.CSRFManager.update === 'function') {
-        window.CSRFManager.update(newToken);
-    }
-
-    return response.json();
 }
 
 // ─── Load Categorias ────────────────────────────────────────
@@ -276,7 +241,7 @@ async function loadPosts() {
         }
     } catch (error) {
         console.error('Erro ao carregar posts:', error);
-        LKFeedback.error(error.message);
+        LKFeedback.error(getErrorMessage(error, 'Erro no upload.'));
     } finally {
         loading.style.display = 'none';
     }
@@ -560,14 +525,11 @@ async function uploadImage(file) {
     formData.append('imagem', file);
 
     try {
-        const response = await fetch(`${BASE_URL}api/sysadmin/blog/upload`, {
+        const data = await apiFetch(`${BASE_URL}api/sysadmin/blog/upload`, {
             method: 'POST',
-            headers: { 'X-CSRF-Token': getCsrfToken() },
             credentials: 'include',
             body: formData,
         });
-
-        const data = await response.json();
 
         if (data.success) {
             document.getElementById('imagemCapaPath').value = data.data.path;
@@ -580,7 +542,7 @@ async function uploadImage(file) {
         }
     } catch (error) {
         console.error('Erro no upload:', error);
-        LKFeedback.error(error.message);
+        LKFeedback.error(getErrorMessage(error, 'Erro ao processar requisicao do blog.'));
     }
 }
 
@@ -648,7 +610,7 @@ async function savePost() {
         }
     } catch (error) {
         console.error('Erro ao salvar post:', error);
-        LKFeedback.error(error.message);
+        LKFeedback.error(getErrorMessage(error, 'Erro ao processar requisicao do blog.'));
     }
 }
 
@@ -664,7 +626,7 @@ async function editPost(id) {
         }
     } catch (error) {
         console.error('Erro ao editar post:', error);
-        LKFeedback.error(error.message);
+        LKFeedback.error(getErrorMessage(error, 'Erro ao processar requisicao do blog.'));
     }
 }
 
@@ -695,6 +657,6 @@ async function deletePost(id) {
         }
     } catch (error) {
         console.error('Erro ao excluir post:', error);
-        LKFeedback.error(error.message);
+        LKFeedback.error(getErrorMessage(error, 'Erro ao processar requisicao do blog.'));
     }
 }

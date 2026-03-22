@@ -202,9 +202,11 @@ class CartaoCredito extends Model
     public function atualizarLimiteDisponivel(): void
     {
         // Usa o accessor calculado que já considera despesas e estornos
-        $totalUtilizado = $this->limite_utilizado;
+        $totalUtilizado = (float) $this->limite_utilizado;
+        $novoLimiteDisponivel = (float) $this->limite_total - $totalUtilizado;
 
-        $this->limite_disponivel = $this->limite_total - $totalUtilizado;
+        // Decimal casts do Eloquent usam brick/math; enviar string evita warnings/deprecations.
+        $this->limite_disponivel = number_format($novoLimiteDisponivel, 2, '.', '');
         $this->save();
     }
 

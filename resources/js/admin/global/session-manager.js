@@ -12,6 +12,8 @@
  * @author Lukrato Team
  */
 
+import { apiFetch, getBaseUrl, getCSRFToken, logClientError } from '../shared/api.js';
+
 (function () {
     'use strict';
 
@@ -67,12 +69,11 @@
     // ========================================================================
     const utils = {
         getBaseUrl() {
-            const meta = document.querySelector('meta[name="base-url"]');
-            return (meta?.content || '/').replace(/\/?$/, '/');
+            return getBaseUrl();
         },
 
         getCsrfToken() {
-            return document.querySelector('meta[name="csrf-token"]')?.content ||
+            return getCSRFToken() ||
                 document.querySelector('input[name="_token"]')?.value || '';
         },
 
@@ -122,25 +123,28 @@
                 method,
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': this.getCsrfToken()
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
                 credentials: 'same-origin'
             };
 
             if (body && method !== 'GET') {
-                options.body = JSON.stringify(body);
+                options.body = body;
             }
 
             try {
-                const response = await fetch(url, options);
-                const data = await response.json();
-                return { ok: response.ok, status: response.status, data };
+                const data = await apiFetch(url, options);
+                return { ok: true, status: 200, data };
             } catch (error) {
                 if (!(error instanceof TypeError && error.message.includes('NetworkError'))) {
-                    console.error('[SessionManager] API Error:', error);
+                    logClientError('[SessionManager] API Error', error, 'Falha na requisição da sessão');
                 }
-                return { ok: false, status: 0, data: null, error };
+                return {
+                    ok: false,
+                    status: error?.status || 0,
+                    data: error?.data ?? null,
+                    error
+                };
             }
         }
     };
@@ -564,15 +568,25 @@
         showSimpleToast(message, type = 'info') {
             const toast = document.createElement('div');
             toast.className = `lk-simple-toast lk-simple-toast-${type}`;
-            toast.innerHTML = `
-                <div class="lk-simple-toast-content">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                        <polyline points="22,4 12,14.01 9,11.01"/>
-                    </svg>
-                    <span>${message}</span>
-                </div>
-            `;
+            const content = document.createElement('div');
+            const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+            const label = document.createElement('span');
+
+            content.className = 'lk-simple-toast-content';
+            icon.setAttribute('viewBox', '0 0 24 24');
+            icon.setAttribute('fill', 'none');
+            icon.setAttribute('stroke', 'currentColor');
+            icon.setAttribute('stroke-width', '2');
+            path.setAttribute('d', 'M22 11.08V12a10 10 0 1 1-5.93-9.14');
+            polyline.setAttribute('points', '22,4 12,14.01 9,11.01');
+            icon.appendChild(path);
+            icon.appendChild(polyline);
+            label.textContent = String(message ?? '');
+            content.appendChild(icon);
+            content.appendChild(label);
+            toast.appendChild(content);
 
             document.body.appendChild(toast);
 
@@ -697,7 +711,9 @@
                 return;
             }
 
-            const result = await utils.apiRequest(CONFIG.endpoints.heartbeat, 'POST');
+            const result = await utils.apiRequest(CONFIG.endpoints.heartbeat, 'POST', {
+                _token: utils.getCsrfToken()
+            });
 
             if (result.ok && result.data?.success) {
                 const hbData = result.data.data || {};

@@ -6,8 +6,14 @@ use Application\Models\Usuario;
 
 class Auth
 {
-    public const SESSION_TIMEOUT = 3600; // 1 hora padrão
+    public const SESSION_TIMEOUT = 3600; // 1 hora padrao
     public const REMEMBER_TIMEOUT = 2592000; // 30 dias se marcou 'lembrar de mim'
+
+    private static ?Usuario $resolvedUser = null;
+    private static ?int $resolvedUserId = null;
+    private static ?string $resolvedSessionId = null;
+    private static $userResolver = null;
+    private static $defaultUserResolver = null;
 
     /**
      * Retorna o timeout apropriado baseado no remember_me
@@ -17,120 +23,111 @@ class Auth
         return !empty($_SESSION['remember_me']) ? self::REMEMBER_TIMEOUT : self::SESSION_TIMEOUT;
     }
 
-    public static function checkAdmin($expectedUsername = null)
-    {
-        if (!self::isLoggedIn()) {
-            self::redirectToLogin();
-        }
-
-        if ($expectedUsername && !self::isAuthorized($expectedUsername)) {
-            self::redirectToHome();
-        }
-
-        return self::id();
-    }
-
-
     public static function isLoggedIn(): bool
     {
-        $new = (isset($_SESSION['usuario_logged_in']) && $_SESSION['usuario_logged_in'] === true && isset($_SESSION['user_id']));
-        $old = (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true && isset($_SESSION['admin_id']));
-        return $new || $old;
+        return isset($_SESSION['user_id']) && (int) $_SESSION['user_id'] > 0;
     }
 
     public static function isAuthorized(string $username): bool
     {
-        return isset($_SESSION['admin_username']) && $_SESSION['admin_username'] === $username;
+        $currentUsername = self::username();
+
+        return $currentUsername !== null && hash_equals($currentUsername, $username);
     }
+
     public static function user(): ?Usuario
     {
         if (!self::isLoggedIn()) {
             return null;
         }
 
-        $uid = self::id();
-        if (!$uid) {
+        $userId = self::id();
+        if (!$userId) {
             return null;
         }
 
-        // Cache novo
-        if (!isset($_SESSION['usuario_cache']) || ($_SESSION['usuario_cache']['id'] ?? null) !== $uid) {
-            $user = Usuario::find($uid);
-            if (!$user) {
-                self::logout();
-                return null;
-            }
-            $_SESSION['usuario_cache'] = ['id' => $user->id, 'data' => $user];
+        if (
+            self::$resolvedUser !== null
+            && self::$resolvedUserId === $userId
+            && self::$resolvedSessionId === session_id()
+        ) {
+            return self::$resolvedUser;
         }
 
-        return $_SESSION['usuario_cache']['data'] ?? null;
+        $resolver = self::$userResolver ?? self::$defaultUserResolver;
+        $user = $resolver !== null ? $resolver($userId) : Usuario::find($userId);
+
+        if (!$user) {
+            self::logout();
+            return null;
+        }
+
+        self::$resolvedUser = $user;
+        self::$resolvedUserId = (int) $user->id;
+        self::$resolvedSessionId = session_id();
+
+        return self::$resolvedUser;
     }
+
     public static function id(): ?int
     {
-        if (isset($_SESSION['user_id'])) {
-            return (int) $_SESSION['user_id'];
-        }
-        if (isset($_SESSION['admin_id'])) {
-            return (int) $_SESSION['admin_id'];
-        }
-        return null;
+        return isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
     }
 
     public static function username(): ?string
     {
-        if (isset($_SESSION['usuario_nome'])) {
-            return (string) $_SESSION['usuario_nome'];
-        }
-        if (isset($_SESSION['admin_username'])) {
-            return (string) $_SESSION['admin_username'];
-        }
-        return null;
+        $user = self::user();
+
+        return $user ? self::buildUsername($user) : null;
     }
 
     public static function login(Usuario $usuario): void
     {
-        $_SESSION['usuario_logged_in'] = true;
-        $_SESSION['user_id']        = $usuario->id;
-        $_SESSION['usuario_nome']      = (string) ($usuario->nome ?? '');
-        $_SESSION['login_time']        = time();
-        $_SESSION['last_activity']     = time();
+        if (session_status() === PHP_SESSION_ACTIVE && !headers_sent()) {
+            session_regenerate_id(true);
+        }
 
-        $_SESSION['admin_logged_in'] = true;
-        $_SESSION['admin_id']        = $usuario->id;
+        self::forgetResolvedUser();
 
-        $nome = (string) ($usuario->nome ?? 'usuario');
-        $adminUsername = strtolower(trim(preg_replace('/\s+/', '-', $nome)));
-        $adminUsername = preg_replace('/[^a-z0-9\-_.]/', '', $adminUsername) ?: 'usuario';
+        $_SESSION['user_id'] = (int) $usuario->id;
+        $_SESSION['last_activity'] = time();
+        unset(
+            $_SESSION['remember_me'],
+            $_SESSION['usuario_logged_in'],
+            $_SESSION['usuario_nome'],
+            $_SESSION['login_time'],
+            $_SESSION['admin_logged_in'],
+            $_SESSION['admin_id'],
+            $_SESSION['admin_username'],
+            $_SESSION['usuario_cache'],
+            $_SESSION['admin_cache']
+        );
 
-        $_SESSION['admin_username'] = $adminUsername;
-
-        unset($_SESSION['usuario_cache'], $_SESSION['admin_cache']);
-
-        // Cookie de longa duração para identificar usuário que já logou
-        $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+        $secure = self::isSecureConnection();
         setcookie('lukrato_known_user', '1', [
-            'expires'  => time() + 86400 * 30,
-            'path'     => '/',
-            'secure'   => $secure,
-            'httponly'  => true,
+            'expires' => time() + 86400 * 30,
+            'path' => '/',
+            'secure' => $secure,
+            'httponly' => true,
             'samesite' => 'Lax',
         ]);
     }
 
     public static function logout(): void
     {
+        self::forgetResolvedUser();
         $_SESSION = [];
 
-        if (ini_get("session.use_cookies")) {
+        if (ini_get('session.use_cookies')) {
             $params = session_get_cookie_params();
             setcookie(
                 session_name(),
                 '',
                 time() - 42000,
-                $params["path"],
-                $params["domain"],
-                $params["secure"],
-                $params["httponly"]
+                $params['path'],
+                $params['domain'],
+                $params['secure'],
+                $params['httponly']
             );
         }
 
@@ -145,7 +142,6 @@ class Auth
             return false;
         }
 
-        // Usa o timeout dinâmico se não foi especificado
         $effectiveTimeout = $timeout ?? self::getSessionTimeout();
 
         $lastActivity = $_SESSION['last_activity'] ?? 0;
@@ -155,6 +151,7 @@ class Auth
         }
 
         $_SESSION['last_activity'] = time();
+
         return true;
     }
 
@@ -163,6 +160,7 @@ class Auth
         if (!isset($_SESSION['csrf_token'])) {
             $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         }
+
         return $_SESSION['csrf_token'];
     }
 
@@ -171,14 +169,78 @@ class Auth
         return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
     }
 
-    private static function redirectToLogin(): void
+    public static function resolveUserUsing(?callable $resolver): void
     {
-        header('Location: ' . BASE_URL . 'login');
-        exit;
+        self::$userResolver = $resolver;
+        self::forgetResolvedUser();
     }
-    private static function redirectToHome(): void
+
+    public static function setDefaultUserResolver(?callable $resolver): void
     {
-        header('Location: ' . BASE_URL . 'dashboard');
-        exit;
+        self::$defaultUserResolver = $resolver;
+        self::forgetResolvedUser();
+    }
+
+    private static function buildUsername(Usuario $usuario): string
+    {
+        $name = (string) ($usuario->nome ?? 'usuario');
+        $username = strtolower(trim((string) preg_replace('/\s+/', '-', $name)));
+
+        return preg_replace('/[^a-z0-9\\-_.]/', '', $username) ?: 'usuario';
+    }
+
+    private static function forgetResolvedUser(): void
+    {
+        self::$resolvedUser = null;
+        self::$resolvedUserId = null;
+        self::$resolvedSessionId = null;
+    }
+
+    private static function isSecureConnection(): bool
+    {
+        if (self::isDirectSecureConnection()) {
+            return true;
+        }
+
+        $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '';
+        if (!self::isTrustedProxy($remoteAddr)) {
+            return false;
+        }
+
+        $forwardedProto = strtolower(trim(explode(',', (string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''))[0] ?? ''));
+        if ($forwardedProto !== '') {
+            return in_array($forwardedProto, ['https', 'wss'], true);
+        }
+
+        if (strtolower((string) ($_SERVER['HTTP_X_FORWARDED_SSL'] ?? '')) === 'on') {
+            return true;
+        }
+
+        if (strtolower((string) ($_SERVER['HTTP_FRONT_END_HTTPS'] ?? '')) === 'on') {
+            return true;
+        }
+
+        $cfVisitor = (string) ($_SERVER['HTTP_CF_VISITOR'] ?? '');
+
+        return $cfVisitor !== '' && str_contains(strtolower($cfVisitor), '"scheme":"https"');
+    }
+
+    private static function isDirectSecureConnection(): bool
+    {
+        if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+            return true;
+        }
+
+        return (int) ($_SERVER['SERVER_PORT'] ?? 0) === 443;
+    }
+
+    private static function isTrustedProxy(string $remoteAddr): bool
+    {
+        $trustedProxies = array_filter(array_map(
+            'trim',
+            explode(',', $_ENV['TRUSTED_PROXIES'] ?? getenv('TRUSTED_PROXIES') ?: '')
+        ));
+
+        return $remoteAddr !== '' && in_array($remoteAddr, $trustedProxies, true);
     }
 }

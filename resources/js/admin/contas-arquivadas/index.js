@@ -8,6 +8,8 @@
  * ============================================================================
  */
 
+import { apiFetch } from '../shared/api.js';
+
 const BASE = (() => {
     const meta = document.querySelector('meta[name="base-url"]')?.content || '';
     return meta.replace(/\/?$/, '/');
@@ -20,9 +22,36 @@ const apiPretty = (p) => `${BASE}api/${p}`.replace(/\/{2,}/g, '/').replace(':/',
 const apiIndex = (p) => `${BASE}index.php/api/${p}`.replace(/\/{2,}/g, '/').replace(':/', '://');
 
 async function fetchAPI(path, opts = {}) {
-    let res = await fetch(apiPretty(path), opts);
-    if (res.status === 404) res = await fetch(apiIndex(path), opts);
-    return res;
+    const buildResponse = (payload, status = 200) => ({
+        ok: status >= 200 && status < 300,
+        status,
+        headers: new Headers({
+            'content-type': typeof payload === 'string' ? 'text/plain' : 'application/json'
+        }),
+        json: async () => payload,
+        text: async () => (typeof payload === 'string' ? payload : JSON.stringify(payload ?? {}))
+    });
+
+    try {
+        const payload = await apiFetch(apiPretty(path), {
+            credentials: 'same-origin',
+            ...opts
+        });
+        return buildResponse(payload, 200);
+    } catch (error) {
+        if (error?.status !== 404) {
+            return buildResponse(error?.data ?? { message: error?.message }, error?.status || 500);
+        }
+        try {
+            const payload = await apiFetch(apiIndex(path), {
+                credentials: 'same-origin',
+                ...opts
+            });
+            return buildResponse(payload, 200);
+        } catch (fallbackError) {
+            return buildResponse(fallbackError?.data ?? { message: fallbackError?.message }, fallbackError?.status || 500);
+        }
+    }
 }
 
 const grid = document.getElementById('archivedGrid');

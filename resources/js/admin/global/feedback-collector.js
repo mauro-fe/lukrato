@@ -6,6 +6,8 @@
  * IIFE global, expoe window.LKUserFeedback
  * ============================================================================
  */
+import { apiGet, apiPost } from '../shared/api.js';
+
 (function () {
     'use strict';
 
@@ -22,17 +24,7 @@
                 const res = await LK.api.post('api/feedback', data);
                 return res?.ok ?? res?.data?.success ?? false;
             }
-            const resp = await fetch(BASE() + 'api/feedback', {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '',
-                },
-                body: JSON.stringify(data),
-            });
-            const json = await resp.json();
+            const json = await apiPost(BASE() + 'api/feedback', data);
             return json.success === true;
         } catch {
             return false;
@@ -45,11 +37,7 @@
                 const res = await LK.api.get(endpoint);
                 return res?.data?.data ?? res?.data ?? {};
             }
-            const resp = await fetch(BASE() + endpoint, {
-                credentials: 'same-origin',
-                headers: { 'Accept': 'application/json' },
-            });
-            const json = await resp.json();
+            const json = await apiGet(BASE() + endpoint);
             return json.data ?? json;
         } catch {
             return {};

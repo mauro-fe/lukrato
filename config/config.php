@@ -91,6 +91,10 @@ function definePathConstants(): void
  */
 function configureErrorReporting(): void
 {
+    if (defined('APP_RUNTIME_ERROR_HANDLER_REGISTERED') && APP_RUNTIME_ERROR_HANDLER_REGISTERED) {
+        return;
+    }
+
     if (APP_ENV === 'production') {
         error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
         ini_set('display_errors', '0');

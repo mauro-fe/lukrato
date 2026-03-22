@@ -3,6 +3,7 @@
 namespace Application\Controllers\Site;
 
 use Application\Controllers\BaseController;
+use Application\Core\Response;
 use Application\Models\BlogCategoria;
 use Application\Models\BlogPost;
 use Application\Repositories\BlogPostRepository;
@@ -18,10 +19,9 @@ class AprendaController extends BaseController
     }
 
     /**
-     * Hub principal — /blog
-     * Mostra categorias e artigos recentes.
+     * Hub principal - /blog
      */
-    public function index(): void
+    public function index(): Response
     {
         $categorias = BlogCategoria::ordenadas()
             ->withCount(['postsPublicados as posts_count'])
@@ -33,15 +33,15 @@ class AprendaController extends BaseController
             ->limit(6)
             ->get();
 
-        $this->render(
+        return $this->renderResponse(
             'site/aprenda/index',
             [
-                'pageTitle'       => 'Aprenda sobre Finanças Pessoais | Dicas e Guias Gratuitos | Lukrato',
+                'pageTitle' => 'Aprenda sobre Finanças Pessoais | Dicas e Guias Gratuitos | Lukrato',
                 'pageDescription' => 'Artigos educativos sobre finanças pessoais: como organizar finanças pessoais, economizar dinheiro, sair das dívidas e controlar gastos. Guias gratuitos do Lukrato.',
-                'pageKeywords'    => 'finanças pessoais, educação financeira, como economizar dinheiro, controle de gastos, como organizar finanças pessoais 2026, planilha de gastos mensais gratuita, dicas financeiras, orçamento pessoal, planejamento financeiro',
-                'canonicalUrl'    => rtrim(BASE_URL, '/') . '/blog',
-                'categorias'      => $categorias,
-                'recentes'        => $recentes,
+                'pageKeywords' => 'finanças pessoais, educação financeira, como economizar dinheiro, controle de gastos, como organizar finanças pessoais 2026, planilha de gastos mensais gratuita, dicas financeiras, orçamento pessoal, planejamento financeiro',
+                'canonicalUrl' => rtrim(BASE_URL, '/') . '/blog',
+                'categorias' => $categorias,
+                'recentes' => $recentes,
                 'breadcrumbItems' => [
                     ['label' => 'Início', 'url' => BASE_URL],
                     ['label' => 'Aprenda', 'url' => null],
@@ -53,41 +53,38 @@ class AprendaController extends BaseController
     }
 
     /**
-     * Lista artigos de uma categoria — /blog/categoria/{slug}
+     * Lista artigos de uma categoria - /blog/categoria/{slug}
      */
-    public function categoria($slug): void
+    public function categoria($slug): Response
     {
         $categoria = BlogCategoria::where('slug', $slug)->first();
 
         if (!$categoria) {
-            http_response_code(404);
-            $this->render('errors/404', [], 'site/partials/header', 'site/partials/footer');
-            return;
+            return $this->renderResponse('errors/404', [], 'site/partials/header', 'site/partials/footer')
+                ->setStatusCode(404);
         }
 
-        $page    = max(1, (int) ($_GET['page'] ?? 1));
+        $page = max(1, (int) ($_GET['page'] ?? 1));
         $perPage = 12;
 
         $result = $this->repo->listByCategoria($categoria->id, $perPage, $page);
-
         $totalPages = (int) ceil($result['total'] / $perPage);
-
         $catBaseUrl = rtrim(BASE_URL, '/') . '/blog/categoria/' . $categoria->slug;
 
-        $this->render(
+        return $this->renderResponse(
             'site/aprenda/categoria',
             [
-                'pageTitle'       => $categoria->nome . ' – Guia Completo | Aprenda | Lukrato',
+                'pageTitle' => $categoria->nome . ' - Guia Completo | Aprenda | Lukrato',
                 'pageDescription' => "Artigos e guias completos sobre {$categoria->nome}. Aprenda sobre finanças pessoais, dicas práticas e estratégias com o Lukrato.",
-                'pageKeywords'    => $this->getCategoryKeywords($categoria->slug),
-                'canonicalUrl'    => $catBaseUrl . ($page > 1 ? '?page=' . $page : ''),
-                'categoria'       => $categoria,
-                'posts'           => $result['items'],
-                'total'           => $result['total'],
-                'page'            => $page,
-                'totalPages'      => $totalPages,
-                'paginationPrev'  => $page > 1 ? $catBaseUrl . ($page > 2 ? '?page=' . ($page - 1) : '') : null,
-                'paginationNext'  => $page < $totalPages ? $catBaseUrl . '?page=' . ($page + 1) : null,
+                'pageKeywords' => $this->getCategoryKeywords($categoria->slug),
+                'canonicalUrl' => $catBaseUrl . ($page > 1 ? '?page=' . $page : ''),
+                'categoria' => $categoria,
+                'posts' => $result['items'],
+                'total' => $result['total'],
+                'page' => $page,
+                'totalPages' => $totalPages,
+                'paginationPrev' => $page > 1 ? $catBaseUrl . ($page > 2 ? '?page=' . ($page - 1) : '') : null,
+                'paginationNext' => $page < $totalPages ? $catBaseUrl . '?page=' . ($page + 1) : null,
                 'breadcrumbItems' => [
                     ['label' => 'Início', 'url' => BASE_URL],
                     ['label' => 'Aprenda', 'url' => rtrim(BASE_URL, '/') . '/blog'],
@@ -100,47 +97,44 @@ class AprendaController extends BaseController
     }
 
     /**
-     * Exibe artigo individual — /blog/{slug}
+     * Exibe artigo individual - /blog/{slug}
      */
-    public function show($slug): void
+    public function show($slug): Response
     {
         $post = $this->repo->findPublishedBySlug($slug);
 
         if (!$post) {
-            http_response_code(404);
-            $this->render('errors/404', [], 'site/partials/header', 'site/partials/footer');
-            return;
+            return $this->renderResponse('errors/404', [], 'site/partials/header', 'site/partials/footer')
+                ->setStatusCode(404);
         }
 
-        // Artigos relacionados (mesma categoria)
         $relacionados = $this->repo->findRelated(
             $post->id,
             $post->blog_categoria_id,
             4
         );
 
-        // Layout variant: 'sidebar' or 'bottom' (default)
         $allowedLayouts = ['sidebar', 'bottom'];
         $layout = in_array($_GET['layout'] ?? '', $allowedLayouts, true)
             ? $_GET['layout']
             : 'bottom';
 
-        $this->render(
+        return $this->renderResponse(
             'site/aprenda/show',
             [
-                'pageTitle'       => $post->effective_meta_title,
+                'pageTitle' => $post->effective_meta_title,
                 'pageDescription' => $post->effective_meta_description,
-                'canonicalUrl'    => rtrim(BASE_URL, '/') . '/blog/' . $post->slug,
-                'pageImage'       => $post->imagem_capa_url ?? (BASE_URL . 'assets/img/og-image.png'),
-                'pageType'        => 'article',
-                'pageImageAlt'    => $post->titulo,
+                'canonicalUrl' => rtrim(BASE_URL, '/') . '/blog/' . $post->slug,
+                'pageImage' => $post->imagem_capa_url ?? (BASE_URL . 'assets/img/og-image.png'),
+                'pageType' => 'article',
+                'pageImageAlt' => $post->titulo,
                 'articlePublishedTime' => $post->published_at?->toIso8601String(),
-                'articleModifiedTime'  => $post->updated_at?->toIso8601String(),
-                'articleSection'       => $post->categoria?->nome,
-                'pageKeywords'    => $this->getArticleKeywords($post),
-                'post'            => $post,
-                'relacionados'    => $relacionados,
-                'relatedLayout'   => $layout,
+                'articleModifiedTime' => $post->updated_at?->toIso8601String(),
+                'articleSection' => $post->categoria?->nome,
+                'pageKeywords' => $this->getArticleKeywords($post),
+                'post' => $post,
+                'relacionados' => $relacionados,
+                'relatedLayout' => $layout,
                 'breadcrumbItems' => [
                     ['label' => 'Início', 'url' => BASE_URL],
                     ['label' => 'Aprenda', 'url' => rtrim(BASE_URL, '/') . '/blog'],
@@ -153,45 +147,37 @@ class AprendaController extends BaseController
         );
     }
 
-    /**
-     * Retorna keywords específicas por categoria.
-     */
     private function getCategoryKeywords(string $slug): string
     {
         $map = [
             'comecar-com-financas' => 'como organizar finanças pessoais 2026, educação financeira, orçamento pessoal, como começar a controlar gastos, finanças para iniciantes, planejamento financeiro pessoal',
-            'economizar-dinheiro'  => 'como economizar dinheiro, dicas para economizar, planilha de gastos mensais gratuita, reserva de emergência, gastos invisíveis, reduzir despesas',
-            'dividas'              => 'como sair das dívidas, como controlar gastos do cartão de crédito, negociação de dívidas, cartão de crédito sem dívida, quitar dívidas',
-            'ferramentas'          => 'app de controle financeiro gratuito brasileiro, planilha de gastos mensais gratuita, métodos de controle financeiro, regra 50-30-20, ferramentas finanças pessoais',
+            'economizar-dinheiro' => 'como economizar dinheiro, dicas para economizar, planilha de gastos mensais gratuita, reserva de emergência, gastos invisíveis, reduzir despesas',
+            'dividas' => 'como sair das dívidas, como controlar gastos do cartão de crédito, negociação de dívidas, cartão de crédito sem dívida, quitar dívidas',
+            'ferramentas' => 'app de controle financeiro gratuito brasileiro, planilha de gastos mensais gratuita, métodos de controle financeiro, regra 50-30-20, ferramentas finanças pessoais',
         ];
 
         return $map[$slug] ?? 'finanças pessoais, controle financeiro, educação financeira';
     }
 
-    /**
-     * Gera keywords para um artigo individual a partir de seus metadados.
-     */
     private function getArticleKeywords(BlogPost $post): string
     {
         $keywords = [];
 
-        // Adicionar nome da categoria
         if ($post->categoria) {
             $keywords[] = mb_strtolower($post->categoria->nome);
         }
 
-        // Extrair palavras-chave do título (palavras com 4+ letras)
         $titulo = mb_strtolower($post->titulo);
         $stopWords = ['como', 'para', 'que', 'com', 'sem', 'seu', 'sua', 'das', 'dos', 'por', 'mais', 'uma', 'não'];
         $words = preg_split('/\s+/', $titulo);
+
         foreach ($words as $word) {
             $clean = trim($word, '.:,;!?');
-            if (mb_strlen($clean) >= 4 && !in_array($clean, $stopWords)) {
+            if (mb_strlen($clean) >= 4 && !in_array($clean, $stopWords, true)) {
                 $keywords[] = $clean;
             }
         }
 
-        // Base keywords sempre presentes
         $keywords[] = 'finanças pessoais';
         $keywords[] = 'lukrato';
 

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Bootstrap;
 
+use Application\Core\Response;
+use Application\Core\ResponseEmitter;
 use Application\Core\Router;
 use Application\Services\Infrastructure\MaintenanceService;
 
@@ -24,31 +26,34 @@ class Application
 
     public function run(): void
     {
+        $emitter = new ResponseEmitter();
+
         $this->errorHandler->register();
         $this->sessionManager->start();
         $this->securityHeaders->apply();
         $this->loadConfigurations();
 
-        // Verificar modo manutenção antes de processar a request
-        if ($this->isMaintenanceMode()) {
-            return;
+        $maintenanceResponse = $this->getMaintenanceResponse();
+        if ($maintenanceResponse instanceof Response) {
+            $emitter->emit($maintenanceResponse);
         }
 
-        $this->handleRequest();
+        $response = $this->handleRequest();
+        if ($response instanceof Response) {
+            $emitter->emit($response);
+        }
     }
 
     private function loadConfigurations(): void
     {
         $configPath = BASE_PATH . '/config/config.php';
         if (!file_exists($configPath)) {
-            die('Erro: Arquivo de configuração não encontrado.');
+            throw new \RuntimeException('Erro: Arquivo de configuração não encontrado.');
         }
         require_once $configPath;
 
-        // Vite asset helper (funções vite_scripts, vite_asset, etc.)
         require_once BASE_PATH . '/config/vite.php';
 
-        // Carregar arquivos de rotas
         $routeFiles = [
             BASE_PATH . '/routes/web.php',
             BASE_PATH . '/routes/auth.php',
@@ -59,101 +64,85 @@ class Application
 
         foreach ($routeFiles as $routeFile) {
             if (!file_exists($routeFile)) {
-                die("Erro: Arquivo de rotas não encontrado: {$routeFile}");
+                throw new \RuntimeException("Erro: Arquivo de rotas não encontrado: {$routeFile}");
             }
             require_once $routeFile;
         }
     }
 
-    private function handleRequest(): void
+    private function handleRequest(): ?Response
     {
         try {
             $requestHandler = new RequestHandler();
             $route = $requestHandler->parseRoute();
             $method = $requestHandler->getMethod();
 
-            Router::run($route, $method);
+            return Router::run($route, $method);
         } catch (\Throwable $e) {
-            $this->errorHandler->handleRequestError($e);
+            return $this->errorHandler->handleRequestError($e);
         }
     }
 
-    /**
-     * Verifica modo manutenção.
-     * Permite acesso de SysAdmins e rotas da API de manutenção.
-     */
-    private function isMaintenanceMode(): bool
+    private function getMaintenanceResponse(): ?Response
     {
         if (!MaintenanceService::isActive()) {
-            return false;
+            return null;
         }
 
         $uri = $_SERVER['REQUEST_URI'] ?? '';
         $path = parse_url($uri, PHP_URL_PATH) ?? '';
 
-        // Permitir rotas de sysadmin (para poder desativar manutenção)
         if (str_contains($path, '/api/sysadmin/') || str_contains($path, '/sysAdmin')) {
-            return false;
+            return null;
         }
 
-        // Permitir rotas de auth (para sysadmin conseguir logar e usuários saírem)
         if (str_contains($path, '/api/auth/') || str_contains($path, '/login') || str_contains($path, '/logout')) {
-            return false;
+            return null;
         }
 
-        // Permitir assets estáticos
         if (preg_match('/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|eot)$/i', $path)) {
-            return false;
+            return null;
         }
 
-        // Permitir landing page (rota raiz "/")
         if ($path === '/' || $path === '') {
-            return false;
+            return null;
         }
 
-        // SysAdmin logado pode navegar normalmente
         $user = \Application\Lib\Auth::user();
         if ($user && (int) $user->is_admin === 1) {
-            return false;
+            return null;
         }
 
-        // Mostrar página de manutenção
-        $this->showMaintenancePage();
-        return true;
+        return $this->buildMaintenanceResponse();
     }
 
-    /**
-     * Renderiza a página de manutenção
-     */
-    private function showMaintenancePage(): void
+    private function buildMaintenanceResponse(): Response
     {
         $data = MaintenanceService::getData();
         $isApi = str_contains($_SERVER['REQUEST_URI'] ?? '', '/api/');
 
         if ($isApi) {
-            http_response_code(503);
-            header('Content-Type: application/json');
-            header('Retry-After: 300');
-            echo json_encode([
+            return Response::jsonResponse([
                 'error' => 'Sistema em manutenção',
                 'message' => $data['reason'] ?? 'Estamos realizando melhorias. Voltamos em breve!',
                 'retry_after' => 300,
-            ]);
-            exit;
+            ], 503)->header('Retry-After', '300');
         }
 
-        http_response_code(503);
-        header('Retry-After: 300');
-
         $maintenanceView = BASE_PATH . '/views/errors/maintenance.php';
+
         if (file_exists($maintenanceView)) {
+            ob_start();
             $reason = $data['reason'] ?? '';
             $estimatedMinutes = $data['estimated_minutes'] ?? null;
             $activatedAt = $data['activated_at'] ?? null;
             include $maintenanceView;
+            $html = (string) ob_get_clean();
         } else {
-            echo '<h1>Sistema em Manutenção</h1><p>Estamos realizando melhorias. Voltamos em breve!</p>';
+            $html = '<h1>Sistema em Manutenção</h1><p>Estamos realizando melhorias. Voltamos em breve!</p>';
         }
-        exit;
+
+        return Response::htmlResponse($html, 503)
+            ->header('Retry-After', '300');
     }
 }

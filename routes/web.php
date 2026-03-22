@@ -2,6 +2,7 @@
 
 
 use Application\Core\Router;
+use Application\Core\Response;
 
 /**
  * ============================================
@@ -34,16 +35,13 @@ Router::add('GET', '/blog/{slug}', 'Site\\AprendaController@show');
 
 // Redirects 301 — URLs antigas /aprenda → /blog
 Router::add('GET', '/aprenda', function () {
-    header('Location: ' . rtrim(BASE_URL, '/') . '/blog', true, 301);
-    exit;
+    return Response::redirectResponse(rtrim(BASE_URL, '/') . '/blog', 301);
 });
 Router::add('GET', '/aprenda/categoria/{slug}', function ($slug) {
-    header('Location: ' . rtrim(BASE_URL, '/') . '/blog/categoria/' . $slug, true, 301);
-    exit;
+    return Response::redirectResponse(rtrim(BASE_URL, '/') . '/blog/categoria/' . $slug, 301);
 });
 Router::add('GET', '/aprenda/{slug}', function ($slug) {
-    header('Location: ' . rtrim(BASE_URL, '/') . '/blog/' . $slug, true, 301);
-    exit;
+    return Response::redirectResponse(rtrim(BASE_URL, '/') . '/blog/' . $slug, 301);
 });
 
 // SITEMAP DINÂMICO
@@ -74,27 +72,19 @@ function registerRedirectRoutes(): void
 
 
     Router::add('GET',  '/admin',       function () {
-
-        redirectToLogin();
+        return redirectToLogin();
     });
 
     Router::add('GET',  '/admin/login', function () {
-
-        header('Location: ' . BASE_URL . 'login');
-
-        exit;
+        return Response::redirectResponse(BASE_URL . 'login');
     });
 
     Router::add('GET',  '/admin/dashboard', function () {
-
-        header('Location: ' . BASE_URL . 'dashboard');
-
-        exit;
+        return Response::redirectResponse(BASE_URL . 'dashboard');
     });
 
     Router::add('GET',  '/admin/home', function () {
-
-        redirectToUserDashboard();
+        return redirectToUserDashboard();
     });
 }
 
@@ -171,32 +161,26 @@ function registerApiRoutes(): void
 
  * =======================*/
 
-function redirectToLogin(): void
+function redirectToLogin(): Response
 
 {
-
-    header('Location: ' . BASE_URL . 'login');
-
-    exit;
+    return Response::redirectResponse(BASE_URL . 'login');
 }
 
 
 
-function redirectToUserDashboard(): void
+function redirectToUserDashboard(): Response
 
 {
 
-    if (isset($_SESSION['user_id']) || isset($_SESSION['admin_username'])) {
-
-        header('Location: ' . BASE_URL . 'dashboard');
+    if (isset($_SESSION['user_id'])) {
+        return Response::redirectResponse(BASE_URL . 'dashboard');
     } else {
 
         session_destroy();
 
-        redirectToLogin();
+        return redirectToLogin();
     }
-
-    exit;
 }
 
 // Registrar todas as rotas

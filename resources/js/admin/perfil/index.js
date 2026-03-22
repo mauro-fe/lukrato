@@ -1,3 +1,5 @@
+import { apiDelete, apiFetch, apiGet, getBaseUrl, getErrorMessage } from '../shared/api.js';
+
 /**
  * ============================================================================
  * LUKRATO — Perfil Page (Vite Module)
@@ -11,10 +13,7 @@
 (() => {
     'use strict';
 
-    const BASE = (() => {
-        const meta = document.querySelector('meta[name="base-url"]')?.content || '';
-        return meta.replace(/\/?$/, '/');
-    })();
+    const BASE = getBaseUrl();
 
     const API = `${BASE}api/`;
     const form = document.getElementById('profileForm');
@@ -181,16 +180,14 @@
             if (avatarEditBtn) avatarEditBtn.disabled = true;
 
             try {
-                const res = await fetch(`${API}perfil/avatar`, {
+                const j = await apiFetch(`${API}perfil/avatar`, {
                     method: 'POST',
                     credentials: 'include',
                     body: fd,
-                    headers: { 'Accept': 'application/json' }
                 });
-                const j = await res.json().catch(() => null);
 
-                if (!res.ok || !j?.success) {
-                    throw new Error(j?.message || 'Falha ao enviar foto.');
+                if (j?.success === false) {
+                    throw new Error(getErrorMessage({ data: j }, 'Falha ao enviar foto.'));
                 }
 
                 updateAvatarDisplay(j.data?.avatar, fieldNome?.value);
@@ -200,7 +197,7 @@
                 }
             } catch (err) {
                 console.error('Erro ao enviar avatar:', err);
-                if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: err.message, confirmButtonColor: '#e74c3c' });
+                if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: getErrorMessage(err, 'Falha ao enviar foto.'), confirmButtonColor: '#e74c3c' });
             } finally {
                 avatarInput.value = '';
                 if (avatarEditBtn) avatarEditBtn.disabled = false;
@@ -209,20 +206,12 @@
     }
 
     async function removeAvatar() {
+        if (avatarEditBtn) avatarEditBtn.disabled = true;
         try {
-            const res = await fetch(`${API}perfil/avatar`, {
-                method: 'DELETE',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRF-Token': getCsrf(),
-                },
-            });
-            const j = await res.json().catch(() => null);
+            const j = await apiDelete(`${API}perfil/avatar`);
 
-            if (!res.ok || !j?.success) {
-                throw new Error(j?.message || 'Falha ao remover foto.');
+            if (j?.success === false) {
+                throw new Error(getErrorMessage({ data: j }, 'Falha ao remover foto.'));
             }
 
             updateAvatarDisplay('', fieldNome?.value);
@@ -232,24 +221,18 @@
             }
         } catch (err) {
             console.error('Erro ao remover avatar:', err);
-            if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: err.message, confirmButtonColor: '#e74c3c' });
+            if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: getErrorMessage(err, 'Falha ao remover foto.'), confirmButtonColor: '#e74c3c' });
+        } finally {
+            if (avatarEditBtn) avatarEditBtn.disabled = false;
         }
     }
 
     async function loadProfile() {
         if (!form) return;
         try {
-            const res = await fetch(`${API}perfil`, {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-
-            const j = await res.json().catch(() => null);
-            if (!res.ok || !j?.success) {
-                throw new Error(j?.message || 'Falha ao carregar perfil.');
+            const j = await apiGet(`${API}perfil`);
+            if (j?.success === false) {
+                throw new Error(getErrorMessage({ data: j }, 'Falha ao carregar perfil.'));
             }
 
             const user = j?.data?.user || {};
@@ -284,34 +267,11 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'Erro ao carregar',
-                    text: err.message || 'Não foi possível carregar o perfil.',
+                    text: getErrorMessage(err, 'Não foi possível carregar o perfil.'),
                     confirmButtonColor: '#e74c3c'
                 });
             }
         }
-    }
-
-    function extractApiError(payload, fallback = 'Falha ao salvar.') {
-        if (!payload) return fallback;
-        const {
-            errors
-        } = payload;
-        if (errors) {
-            if (typeof errors === 'string') return errors;
-            if (Array.isArray(errors)) return errors.filter(Boolean).join('\n');
-            if (typeof errors === 'object') {
-                const messages = [];
-                Object.values(errors).forEach((val) => {
-                    if (Array.isArray(val)) {
-                        messages.push(...val.filter(Boolean).map(String));
-                    } else if (val) {
-                        messages.push(String(val));
-                    }
-                });
-                if (messages.length) return messages.join('\n');
-            }
-        }
-        return payload.message || fallback;
     }
 
     form?.addEventListener('submit', async (e) => {
@@ -378,16 +338,14 @@
             if (csrfInput) fd.append(csrfInput.name, csrfInput.value);
 
             try {
-                const r = await fetch(`${API}perfil/senha`, {
+                const j = await apiFetch(`${API}perfil/senha`, {
                     method: 'POST',
                     credentials: 'include',
                     body: fd,
-                    headers: { 'Accept': 'application/json' }
                 });
 
-                const j = await r.json().catch(() => null);
-                if (!r.ok || !j?.success) {
-                    throw new Error(extractApiError(j, 'Falha ao alterar senha.'));
+                if (j?.success === false) {
+                    throw new Error(getErrorMessage({ data: j }, 'Falha ao alterar senha.'));
                 }
 
                 // Clear password fields
@@ -416,7 +374,7 @@
                     Swal.fire({
                         icon: 'error',
                         title: 'Erro ao alterar senha',
-                        text: err.message || 'Erro ao alterar senha.',
+                        text: getErrorMessage(err, 'Erro ao alterar senha.'),
                         confirmButtonColor: '#e74c3c'
                     });
                 }
@@ -465,19 +423,14 @@
         }
 
         try {
-            const r = await fetch(`${API}perfil`, {
+            const j = await apiFetch(`${API}perfil`, {
                 method: 'POST',
                 credentials: 'include',
                 body: fd,
-                headers: {
-                    'Accept': 'application/json'
-                }
             });
 
-
-            const j = await r.json().catch(() => null);
-            if (!r.ok || !j?.success) {
-                throw new Error(extractApiError(j, 'Falha ao salvar.'));
+            if (j?.success === false) {
+                throw new Error(getErrorMessage({ data: j }, 'Falha ao salvar.'));
             }
 
             // GAMIFICAÇÃO: Exibir conquistas se houver
@@ -511,7 +464,7 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'Erro ao salvar',
-                    text: err.message || 'Erro ao salvar perfil.',
+                    text: getErrorMessage(err, 'Erro ao salvar perfil.'),
                     confirmButtonColor: '#e74c3c'
                 });
             }
@@ -584,6 +537,7 @@
             }
 
             try {
+                btnDelete.disabled = true;
                 Swal.fire({
                     title: 'Excluindo conta...',
                     text: 'Por favor aguarde',
@@ -591,21 +545,10 @@
                     didOpen: () => Swal.showLoading()
                 });
 
-                const res = await fetch(`${API}perfil/delete`, {
-                    method: 'DELETE',
-                    credentials: 'include',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')
-                            ?.content || ''
-                    }
-                });
+                const data = await apiDelete(`${API}perfil/delete`);
 
-                const data = await res.json();
-
-                if (!res.ok || !data.success) {
-                    throw new Error(data.message || 'Erro ao excluir conta');
+                if (data?.success === false) {
+                    throw new Error(getErrorMessage({ data }, 'Erro ao excluir conta'));
                 }
 
                 await Swal.fire({
@@ -630,8 +573,10 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'Erro',
-                    text: err.message || 'Não foi possível excluir a conta. Tente novamente.'
+                    text: getErrorMessage(err, 'Não foi possível excluir a conta. Tente novamente.')
                 });
+            } finally {
+                btnDelete.disabled = false;
             }
         });
     }
@@ -642,16 +587,9 @@
 
     async function loadReferralStats() {
         try {
-            const res = await fetch(`${API}referral/stats`, {
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
+            const data = await apiGet(`${API}referral/stats`);
 
-            const data = await res.json();
-
-            if (res.ok && data.data) {
+            if (data?.data) {
                 const stats = data.data;
 
                 // Atualiza código e link
@@ -782,11 +720,21 @@
     const csrfToken = document.querySelector('input[name="csrf_token"]')?.value
         || document.querySelector('meta[name="csrf-token"]')?.content || '';
 
+    function buildIntegrationFormData(fields = {}) {
+        const formData = new FormData();
+        Object.entries(fields).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+                formData.append(key, value);
+            }
+        });
+        formData.append('csrf_token', csrfToken);
+        return formData;
+    }
+
     // --- WhatsApp ---
     async function loadWhatsAppStatus() {
         try {
-            const res = await fetch(`${API}whatsapp/status`, { credentials: 'same-origin' });
-            const json = await res.json();
+            const json = await apiGet(`${API}whatsapp/status`);
             const data = json.data || {};
             const statusEl = document.getElementById('whatsapp-status');
             if (data.linked) {
@@ -810,24 +758,23 @@
         const btn = document.getElementById('btn-whatsapp-link');
         btn.disabled = true;
         try {
-            const res = await fetch(`${API}whatsapp/link`, {
+            const json = await apiFetch(`${API}whatsapp/link`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 credentials: 'same-origin',
-                body: `phone=${encodeURIComponent(phone)}&csrf_token=${encodeURIComponent(csrfToken)}`,
+                body: buildIntegrationFormData({ phone }),
             });
-            const json = await res.json();
             if (json.success) {
                 document.getElementById('whatsapp-not-linked').style.display = 'none';
                 document.getElementById('whatsapp-verify').style.display = '';
                 document.getElementById('whatsapp-verify-msg').textContent = json.message;
-            } else {
-                if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: json.message || 'Erro desconhecido', confirmButtonColor: '#e67e22' });
+            } else if (window.Swal) {
+                Swal.fire({ icon: 'error', title: 'Erro', text: getErrorMessage({ data: json }, 'Erro desconhecido'), confirmButtonColor: '#e67e22' });
             }
         } catch (e) {
-            if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: 'Erro de conexão', confirmButtonColor: '#e67e22' });
+            if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: getErrorMessage(e, 'Erro de conexão'), confirmButtonColor: '#e67e22' });
+        } finally {
+            btn.disabled = false;
         }
-        btn.disabled = false;
     });
 
     document.getElementById('btn-whatsapp-verify')?.addEventListener('click', async () => {
@@ -837,23 +784,22 @@
         const btn = document.getElementById('btn-whatsapp-verify');
         btn.disabled = true;
         try {
-            const res = await fetch(`${API}whatsapp/verify`, {
+            const json = await apiFetch(`${API}whatsapp/verify`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 credentials: 'same-origin',
-                body: `phone=${encodeURIComponent(phone)}&code=${encodeURIComponent(code)}&csrf_token=${encodeURIComponent(csrfToken)}`,
+                body: buildIntegrationFormData({ phone, code }),
             });
-            const json = await res.json();
             if (json.success) {
                 if (window.Swal) Swal.fire({ icon: 'success', title: 'Vinculado!', text: json.message, confirmButtonColor: '#e67e22', timer: 2500, timerProgressBar: true });
                 loadWhatsAppStatus();
-            } else {
-                if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: json.message || 'Erro desconhecido', confirmButtonColor: '#e67e22' });
+            } else if (window.Swal) {
+                Swal.fire({ icon: 'error', title: 'Erro', text: getErrorMessage({ data: json }, 'Erro desconhecido'), confirmButtonColor: '#e67e22' });
             }
         } catch (e) {
-            if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: 'Erro de conexão', confirmButtonColor: '#e67e22' });
+            if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: getErrorMessage(e, 'Erro de conexão'), confirmButtonColor: '#e67e22' });
+        } finally {
+            btn.disabled = false;
         }
-        btn.disabled = false;
     });
 
     document.getElementById('btn-whatsapp-unlink')?.addEventListener('click', async () => {
@@ -865,13 +811,11 @@
         }) : { isConfirmed: confirm('Desvincular WhatsApp?') };
         if (!result.isConfirmed) return;
         try {
-            const res = await fetch(`${API}whatsapp/unlink`, {
+            const json = await apiFetch(`${API}whatsapp/unlink`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 credentials: 'same-origin',
-                body: `csrf_token=${encodeURIComponent(csrfToken)}`,
+                body: buildIntegrationFormData(),
             });
-            const json = await res.json();
             if (json.success) loadWhatsAppStatus();
         } catch (e) { /* silent */ }
     });
@@ -964,8 +908,7 @@
     async function loadTelegramStatus(options = {}) {
         const { preservePending = false, showToast = false } = options;
         try {
-            const res = await fetch(`${API}telegram/status`, { credentials: 'same-origin' });
-            const json = await res.json();
+            const json = await apiGet(`${API}telegram/status`);
             const data = json.data || {};
             const statusEl = document.getElementById('telegram-status');
             if (data.linked) {
@@ -1019,13 +962,11 @@
         btn.disabled = true;
         if (regenerateBtn) regenerateBtn.disabled = true;
         try {
-            const res = await fetch(`${API}telegram/link`, {
+            const json = await apiFetch(`${API}telegram/link`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 credentials: 'same-origin',
-                body: `csrf_token=${encodeURIComponent(csrfToken)}`,
+                body: buildIntegrationFormData(),
             });
-            const json = await res.json();
             if (json.success) {
                 renderTelegramAwaitingState(json.data || {});
                 startTelegramLinkTracking(json.data?.expires_in || 600);
@@ -1045,14 +986,15 @@
                         qrWrapper.classList.remove('is-visible');
                     }
                 }
-            } else {
-                if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: json.message || 'Erro desconhecido', confirmButtonColor: '#e67e22' });
+            } else if (window.Swal) {
+                Swal.fire({ icon: 'error', title: 'Erro', text: getErrorMessage({ data: json }, 'Erro desconhecido'), confirmButtonColor: '#e67e22' });
             }
         } catch (e) {
-            if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: 'Erro de conexão', confirmButtonColor: '#e67e22' });
+            if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: getErrorMessage(e, 'Erro de conexão'), confirmButtonColor: '#e67e22' });
+        } finally {
+            btn.disabled = false;
+            if (regenerateBtn) regenerateBtn.disabled = false;
         }
-        btn.disabled = false;
-        if (regenerateBtn) regenerateBtn.disabled = false;
     });
 
     document.getElementById('btn-telegram-regenerate')?.addEventListener('click', () => {
@@ -1084,22 +1026,18 @@
         }) : { isConfirmed: confirm('Desvincular Telegram?') };
         if (!result.isConfirmed) return;
         try {
-            const res = await fetch(`${API}telegram/unlink`, {
+            const json = await apiFetch(`${API}telegram/unlink`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 credentials: 'same-origin',
-                body: `csrf_token=${encodeURIComponent(csrfToken)}`,
+                body: buildIntegrationFormData(),
             });
-            const json = await res.json();
             if (json.success) {
                 telegramLinkPending = false;
                 clearTelegramLinkTimers();
                 loadTelegramStatus();
             }
         } catch (e) { /* silent */ }
-    });
-
-    // Load integration statuses
+    });    // Load integration statuses
     if (document.getElementById('whatsapp-card')) loadWhatsAppStatus();
     loadTelegramStatus();
     loadProfile();

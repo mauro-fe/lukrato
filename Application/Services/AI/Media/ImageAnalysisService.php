@@ -126,7 +126,7 @@ class ImageAnalysisService
                 durationMs: $durationMs,
             );
         } catch (GuzzleException $e) {
-            error_log('[ImageAnalysis] Erro Vision API: ' . $e->getMessage());
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[ImageAnalysis] Erro Vision API: ' . $e->getMessage());
 
             return new ReceiptAnalysisResult(
                 success: false,

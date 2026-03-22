@@ -1,4 +1,4 @@
-import { getBaseUrl } from './api.js';
+import { apiGet, getBaseUrl, getErrorMessage } from './api.js';
 import { refreshIcons } from './ui.js';
 import { escapeHtml, formatMoney } from './utils.js';
 
@@ -111,27 +111,20 @@ export async function loadLancamentoRecentHistory({
     const startDate = new Date(endDate);
     startDate.setDate(startDate.getDate() - lookbackDays);
 
-    const params = new URLSearchParams({
-        account_id: String(contaId),
-        limit: String(limit),
-        start_date: startDate.toISOString().slice(0, 10),
-        end_date: endDate.toISOString().slice(0, 10)
-    });
-
     try {
-        const response = await fetch(`${baseUrl}api/lancamentos?${params}`);
-        if (!response.ok) {
-            throw new Error('Erro ao carregar historico');
-        }
-
-        const result = await response.json();
+        const result = await apiGet('api/lancamentos', {
+            account_id: String(contaId),
+            limit: String(limit),
+            start_date: startDate.toISOString().slice(0, 10),
+            end_date: endDate.toISOString().slice(0, 10)
+        });
         const lancamentos = Array.isArray(result) ? result : (result.data || result.lancamentos || []);
 
         renderLancamentoHistory(containerEl, lancamentos, contaId, emptyMessage);
         return lancamentos;
     } catch (error) {
         console.error('Erro ao carregar historico recente:', error);
-        containerEl.innerHTML = buildHistoryState('circle-alert', errorMessage);
+        containerEl.innerHTML = buildHistoryState('circle-alert', getErrorMessage(error, errorMessage));
         refreshIcons();
         return [];
     }

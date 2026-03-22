@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Admin;
 
-use Application\Controllers\BaseController;
 use Application\Controllers\Api\User\PerfilController as UserPerfilController;
+use Application\Controllers\BaseController;
+use Application\Core\Response;
 use Application\Providers\PerfilControllerFactory;
 use Application\Services\Infrastructure\LogService;
 use Application\Services\User\PerfilService;
+use Application\Validators\PerfilValidator;
 use Throwable;
 
 class ConfigController extends BaseController
@@ -30,34 +32,40 @@ class ConfigController extends BaseController
         'estado',
     ];
 
-    public function __construct(?PerfilService $perfilService = null)
-    {
+    private PerfilService $perfilService;
+    private PerfilValidator $validator;
+
+    public function __construct(
+        ?PerfilService $perfilService = null,
+        ?PerfilValidator $validator = null
+    ) {
         parent::__construct();
-        $this->perfilService = $perfilService ?? PerfilControllerFactory::createService();
+
+        [$resolvedPerfilService, $resolvedValidator] = PerfilControllerFactory::buildDependencies();
+
+        $this->perfilService = $perfilService ?? $resolvedPerfilService;
+        $this->validator = $validator ?? $resolvedValidator;
     }
 
-    public function update(): void
+    public function update(): Response
     {
-        $this->requireAuthApi();
+        $this->requireApiUserIdOrFail();
 
         try {
             $payload = $this->getRequestPayload();
 
             if ($payload === []) {
-                $this->fail('Nenhum dado enviado.', 400);
-                return;
+                return $this->failResponse('Nenhum dado enviado.', 400);
             }
 
             if ($this->isThemePayload($payload)) {
-                $this->delegateToPerfil('updateTheme', [
+                return $this->delegateToPerfil('updateTheme', [
                     'theme' => (string) $payload['theme'],
                 ], 'theme');
-                return;
             }
 
             if ($this->containsProfileFields($payload)) {
-                $this->delegateToPerfil('update', $this->mergeWithCurrentProfile($payload), 'profile');
-                return;
+                return $this->delegateToPerfil('update', $this->mergeWithCurrentProfile($payload), 'profile');
             }
 
             LogService::warning('Payload legado não suportado em /api/config', [
@@ -65,16 +73,14 @@ class ConfigController extends BaseController
                 'keys' => array_keys($payload),
             ]);
 
-            $this->fail(
+            return $this->failResponse(
                 'Rota legada de configurações não suporta mais este payload. Use /api/perfil ou /api/perfil/tema.',
                 410
             );
         } catch (Throwable $e) {
-            $this->failAndLog($e, 'Erro ao processar configurações legadas.');
+            return $this->failAndLogResponse($e, 'Erro ao processar configurações legadas.');
         }
     }
-
-    private PerfilService $perfilService;
 
     private function isThemePayload(array $payload): bool
     {
@@ -133,7 +139,7 @@ class ConfigController extends BaseController
         return $address;
     }
 
-    private function delegateToPerfil(string $method, array $payload, string $legacyType): void
+    private function delegateToPerfil(string $method, array $payload, string $legacyType): Response
     {
         LogService::info('Delegando rota legada /api/config para /api/perfil', [
             'user_id' => $this->userId,
@@ -141,9 +147,15 @@ class ConfigController extends BaseController
             'method' => $method,
         ]);
 
+        $previousPost = $_POST;
         $_POST = $payload;
 
-        $controller = new UserPerfilController();
-        $controller->{$method}();
+        try {
+            $controller = new UserPerfilController($this->perfilService, $this->validator);
+
+            return $controller->{$method}();
+        } finally {
+            $_POST = $previousPost;
+        }
     }
 }

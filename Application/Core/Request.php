@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Application\Core;
 
-use Application\Lib\Helpers;
-use Application\Core\Exceptions\ValidationException;
+use Application\Core\Validation\RequestValidator;
 
 class Request
 {
+    private readonly array $server;
     private readonly array $query;
     private readonly array $body;
     private readonly array $data;
@@ -16,63 +16,135 @@ class Request
     private readonly string $method;
     private readonly array $headers;
     private readonly ?array $json;
+    private readonly ?string $jsonError;
     private readonly string $rawInput;
 
-    public function __construct()
-    {
-        $this->method  = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
-        $this->headers = $this->normalizeHeaders(getallheaders() ?: []);
-        $this->files   = $_FILES ?? [];
-        $this->rawInput = file_get_contents('php://input') ?: '';
+    public function __construct(
+        ?array $server = null,
+        ?array $query = null,
+        ?array $post = null,
+        ?array $files = null,
+        ?string $rawInput = null,
+        ?array $headers = null
+    ) {
+        $this->server = $server ?? $_SERVER ?? [];
+        $this->method = strtoupper($this->server['REQUEST_METHOD'] ?? 'GET');
+        $this->headers = $this->normalizeHeaders($headers ?? $this->detectHeaders($this->server));
+        $this->files = $files ?? $_FILES ?? [];
+        $this->rawInput = $rawInput ?? (file_get_contents('php://input') ?: '');
 
-        $this->parseData();
+        $this->parseData($query ?? $_GET ?? [], $post ?? $_POST ?? []);
     }
 
-    private function parseData(): void
+    private function parseData(array $query, array $post): void
     {
-        $this->query = $_GET ?? [];
+        $this->query = $query;
 
-        $body = [];
-        $json = null;
-        $contentType = $this->contentType();
-
-        if (str_contains($contentType, 'application/json')) {
-            $raw = $this->rawInput;
-            if ($raw) {
-                try {
-                    $decoded = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
-                    if (is_array($decoded)) {
-                        $json = $decoded;
-                        $body = $decoded;
-                    }
-                } catch (\JsonException $e) {
-                }
-            }
-        } elseif (str_contains($contentType, 'application/x-www-form-urlencoded') || str_contains($contentType, 'multipart/form-data')) {
-            if ($this->isPost()) {
-                $body = $_POST ?? [];
-            } else {
-                $raw = $this->rawInput;
-                parse_str($raw, $parsed);
-                if (is_array($parsed)) $body = $parsed;
-            }
-        } elseif ($this->isPost()) {
-            $body = $_POST ?? [];
-        }
+        [$body, $json, $jsonError] = $this->parseBody($post);
 
         $this->body = $body;
         $this->json = $json;
-
-        // Body tem prioridade sobre query para evitar injeção via URL params
+        $this->jsonError = $jsonError;
         $this->data = array_merge($this->query, $this->body);
+    }
+
+    /**
+     * @return array{0: array, 1: ?array, 2: ?string}
+     */
+    private function parseBody(array $post): array
+    {
+        $contentType = $this->contentType();
+
+        if (str_contains($contentType, 'application/json')) {
+            return $this->parseJsonBody();
+        }
+
+        if (
+            str_contains($contentType, 'application/x-www-form-urlencoded')
+            || str_contains($contentType, 'multipart/form-data')
+        ) {
+            return [$this->parseFormBody($post), null, null];
+        }
+
+        if ($this->isPost()) {
+            return [$post, null, null];
+        }
+
+        return [[], null, null];
+    }
+
+    /**
+     * @return array{0: array, 1: ?array, 2: ?string}
+     */
+    private function parseJsonBody(): array
+    {
+        if ($this->rawInput === '') {
+            return [[], null, null];
+        }
+
+        try {
+            $decoded = json_decode($this->rawInput, true, 512, JSON_THROW_ON_ERROR);
+
+            if (is_array($decoded)) {
+                return [$decoded, $decoded, null];
+            }
+        } catch (\JsonException) {
+            return [[], null, 'JSON invalido na requisicao.'];
+        }
+
+        return [[], null, null];
+    }
+
+    private function parseFormBody(array $post): array
+    {
+        if ($this->isPost()) {
+            return $post;
+        }
+
+        parse_str($this->rawInput, $parsed);
+
+        return is_array($parsed) ? $parsed : [];
+    }
+
+    private function detectHeaders(array $server): array
+    {
+        if (function_exists('getallheaders')) {
+            $headers = getallheaders();
+            if (is_array($headers) && $headers !== []) {
+                return $headers;
+            }
+        }
+
+        $headers = [];
+
+        foreach ($server as $key => $value) {
+            if (!is_string($key)) {
+                continue;
+            }
+
+            if (str_starts_with($key, 'HTTP_')) {
+                $header = str_replace('_', '-', substr($key, 5));
+                $headers[$header] = (string) $value;
+                continue;
+            }
+
+            if (in_array($key, ['CONTENT_TYPE', 'CONTENT_LENGTH', 'CONTENT_MD5'], true)) {
+                $header = str_replace('_', '-', $key);
+                $headers[$header] = (string) $value;
+            }
+        }
+
+        return $headers;
     }
 
     private function normalizeHeaders(array $headers): array
     {
         $normalized = [];
-        foreach ($headers as $k => $v) {
-            $normalized[strtolower((string)$k)] = (string)$v;
+
+        foreach ($headers as $key => $value) {
+            $normalized[strtolower((string) $key)] = (string) $value;
         }
+
         return $normalized;
     }
 
@@ -85,18 +157,22 @@ class Request
     {
         return $this->method === 'GET';
     }
+
     public function isPost(): bool
     {
         return $this->method === 'POST';
     }
+
     public function isPut(): bool
     {
         return $this->method === 'PUT';
     }
+
     public function isPatch(): bool
     {
         return $this->method === 'PATCH';
     }
+
     public function isDelete(): bool
     {
         return $this->method === 'DELETE';
@@ -104,24 +180,18 @@ class Request
 
     public function isAjax(): bool
     {
-        // Header clássico (jQuery)
         if (strtolower($this->header('x-requested-with') ?? '') === 'xmlhttprequest') {
             return true;
         }
 
-        // Fetch / Axios / APIs modernas
-        if ($this->wantsJson()) {
-            return true;
-        }
-
-        return false;
+        return $this->wantsJson();
     }
-
 
     public function header(string $key): ?string
     {
-        $k = strtolower(str_replace('_', '-', $key));
-        return $this->headers[$k] ?? null;
+        $normalizedKey = strtolower(str_replace('_', '-', $key));
+
+        return $this->headers[$normalizedKey] ?? null;
     }
 
     public function headers(): array
@@ -136,29 +206,29 @@ class Request
 
     public function bearerToken(): ?string
     {
-        $h = $this->header('authorization');
-        if ($h && preg_match('/^Bearer\s+(.+)$/i', $h, $m)) {
-            return trim($m[1]);
+        $authorization = $this->header('authorization');
+        if ($authorization && preg_match('/^Bearer\s+(.+)$/i', $authorization, $matches)) {
+            return trim($matches[1]);
         }
+
         return null;
     }
 
     public function wantsJson(): bool
     {
         $accept = $this->header('accept') ?? '';
-        return str_contains($accept, 'application/json');
+
+        return str_contains($accept, 'application/json') || str_contains($accept, '+json');
     }
 
-    public function query(string $key = null, mixed $default = null): mixed
+    public function query(?string $key = null, mixed $default = null): mixed
     {
-        if ($key === null) return $this->query;
-        return $this->query[$key] ?? $default;
+        return $this->valueFromBag($this->query, $key, $default);
     }
 
-    public function post(string $key = null, mixed $default = null): mixed
+    public function post(?string $key = null, mixed $default = null): mixed
     {
-        if ($key === null) return $this->body;
-        return $this->body[$key] ?? $default;
+        return $this->valueFromBag($this->body, $key, $default);
     }
 
     public function get(string $key, mixed $default = null): mixed
@@ -166,10 +236,9 @@ class Request
         return $this->data[$key] ?? $default;
     }
 
-    public function input(string $key = null, mixed $default = null): mixed
+    public function input(?string $key = null, mixed $default = null): mixed
     {
-        if ($key === null) return $this->data;
-        return $this->data[$key] ?? $default;
+        return $this->valueFromBag($this->data, $key, $default);
     }
 
     public function all(): array
@@ -212,42 +281,120 @@ class Request
         return $this->json;
     }
 
+    public function hasJsonError(): bool
+    {
+        return $this->jsonError !== null;
+    }
+
+    public function jsonError(): ?string
+    {
+        return $this->jsonError;
+    }
+
+    public function rawInput(): string
+    {
+        return $this->rawInput;
+    }
+
+    public function queryString(string $key, string $default = ''): string
+    {
+        return $this->stringFromBag($this->query, $key, $default);
+    }
+
+    public function queryInt(string $key, int $default = 0): int
+    {
+        return $this->intFromBag($this->query, $key, $default);
+    }
+
+    public function queryBool(string $key, bool $default = false): bool
+    {
+        return $this->boolFromBag($this->query, $key, $default);
+    }
+
+    public function queryArray(string $key, array $default = []): array
+    {
+        return $this->arrayFromBag($this->query, $key, $default);
+    }
+
+    public function postString(string $key, string $default = ''): string
+    {
+        return $this->stringFromBag($this->body, $key, $default);
+    }
+
+    public function postInt(string $key, int $default = 0): int
+    {
+        return $this->intFromBag($this->body, $key, $default);
+    }
+
+    public function postBool(string $key, bool $default = false): bool
+    {
+        return $this->boolFromBag($this->body, $key, $default);
+    }
+
+    public function postArray(string $key, array $default = []): array
+    {
+        return $this->arrayFromBag($this->body, $key, $default);
+    }
+
+    public function inputString(string $key, string $default = ''): string
+    {
+        return $this->stringFromBag($this->data, $key, $default);
+    }
+
+    public function inputInt(string $key, int $default = 0): int
+    {
+        return $this->intFromBag($this->data, $key, $default);
+    }
+
+    public function inputBool(string $key, bool $default = false): bool
+    {
+        return $this->boolFromBag($this->data, $key, $default);
+    }
+
+    public function inputArray(string $key, array $default = []): array
+    {
+        return $this->arrayFromBag($this->data, $key, $default);
+    }
+
+    public function stringValue(string $key, string $default = ''): string
+    {
+        return $this->inputString($key, $default);
+    }
+
+    public function intValue(string $key, int $default = 0): int
+    {
+        return $this->inputInt($key, $default);
+    }
+
+    public function boolValue(string $key, bool $default = false): bool
+    {
+        return $this->inputBool($key, $default);
+    }
+
+    public function arrayValue(string $key, array $default = []): array
+    {
+        return $this->inputArray($key, $default);
+    }
+
     public function validate(array $rules, array $filters = []): array
     {
-        $gump = new \GUMP();
-
-        $gump->add_validator("cpf_cnpj", function ($field, $input, $param = null) {
-            $value = preg_replace('/\D/', '', $input[$field] ?? '');
-            if (strlen($value) === 11) return Helpers::isValidCpf($value);
-            if (strlen($value) === 14) return Helpers::isValidCnpj($value);
-            return false;
-        }, 'O campo {field} deve conter um CPF ou CNPJ válido.');
-
-        if (!empty($filters)) $gump->filter_rules($filters);
-        $gump->validation_rules($rules);
-
-        $validated = $gump->run($this->data);
-        if ($validated === false) {
-            throw new ValidationException($gump->get_errors_array(), 'Validation failed', 422);
-        }
-        return $validated;
+        return (new RequestValidator())->validate($this->data, $rules, $filters);
     }
 
     public function ip(): string
     {
-        $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        $remoteAddr = $this->server['REMOTE_ADDR'] ?? '0.0.0.0';
 
         $trustedProxies = array_filter(array_map(
             'trim',
             explode(',', $_ENV['TRUSTED_PROXIES'] ?? '')
         ));
 
-        // Só aceitar headers de proxy se a requisição vier de um proxy confiável
         if (!empty($trustedProxies) && in_array($remoteAddr, $trustedProxies, true)) {
             $forwardedHeaders = ['HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP'];
             foreach ($forwardedHeaders as $key) {
-                if (!empty($_SERVER[$key])) {
-                    foreach (explode(',', $_SERVER[$key]) as $ip) {
+                if (!empty($this->server[$key])) {
+                    foreach (explode(',', $this->server[$key]) as $ip) {
                         $ip = trim($ip);
                         if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
                             return $ip;
@@ -258,5 +405,87 @@ class Request
         }
 
         return $remoteAddr;
+    }
+
+    private function valueFromBag(array $bag, ?string $key, mixed $default = null): mixed
+    {
+        if ($key === null) {
+            return $bag;
+        }
+
+        return $bag[$key] ?? $default;
+    }
+
+    private function stringFromBag(array $bag, string $key, string $default): string
+    {
+        return $this->normalizeString($this->valueFromBag($bag, $key), $default);
+    }
+
+    private function intFromBag(array $bag, string $key, int $default): int
+    {
+        return $this->normalizeInt($this->valueFromBag($bag, $key), $default);
+    }
+
+    private function boolFromBag(array $bag, string $key, bool $default): bool
+    {
+        return $this->normalizeBool($this->valueFromBag($bag, $key), $default);
+    }
+
+    private function arrayFromBag(array $bag, string $key, array $default): array
+    {
+        $value = $this->valueFromBag($bag, $key);
+
+        return is_array($value) ? $value : $default;
+    }
+
+    private function normalizeString(mixed $value, string $default): string
+    {
+        if ($value === null) {
+            return $default;
+        }
+
+        if (is_scalar($value)) {
+            return trim((string) $value);
+        }
+
+        return $default;
+    }
+
+    private function normalizeInt(mixed $value, int $default): int
+    {
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (is_numeric($value)) {
+            return (int) $value;
+        }
+
+        return $default;
+    }
+
+    private function normalizeBool(mixed $value, bool $default): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_int($value) || is_float($value)) {
+            return (bool) $value;
+        }
+
+        if (is_string($value)) {
+            $normalized = mb_strtolower(trim($value));
+
+            if (in_array($normalized, ['1', 'true', 'yes', 'sim', 'on'], true)) {
+                return true;
+            }
+
+            if (in_array($normalized, ['0', 'false', 'no', 'nao', 'off', ''], true)) {
+                return false;
+            }
+        }
+
+        return $default;
     }
 }

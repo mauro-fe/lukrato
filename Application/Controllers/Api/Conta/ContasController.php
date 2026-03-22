@@ -1,389 +1,172 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Api\Conta;
 
 use Application\Controllers\BaseController;
 use Application\Core\Response;
-use Application\Lib\Auth;
-use Application\Models\InstituicaoFinanceira;
+use Application\Services\Conta\ContaApiWorkflowService;
 use Application\Services\Conta\ContaService;
-use Application\DTO\CreateContaDTO;
-use Application\DTO\UpdateContaDTO;
-use Application\Middlewares\CsrfMiddleware;
-use Application\Services\Infrastructure\LogService;
 use Application\Services\Plan\PlanLimitService;
-
+use Throwable;
 
 class ContasController extends BaseController
 {
-    private ContaService $service;
+    private ContaApiWorkflowService $workflowService;
 
-    public function __construct()
-    {
+    public function __construct(
+        ?ContaService $service = null,
+        ?PlanLimitService $planLimitService = null,
+        ?ContaApiWorkflowService $workflowService = null
+    ) {
         parent::__construct();
-        $this->service = new ContaService();
+
+        $service ??= new ContaService();
+        $planLimitService ??= new PlanLimitService();
+        $this->workflowService = $workflowService ?? new ContaApiWorkflowService($service, $planLimitService);
     }
 
     /**
      * GET /api/contas
-     * Listar contas do usuário
+     * Listar contas do usuario.
      */
-    public function index(): void
+    public function index(): Response
     {
+        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+
         try {
-            $userId = Auth::id();
-
-            // Liberar lock da sessão para permitir requisições paralelas
-            $this->releaseSession();
-
-            $archived = (int) ($_GET['archived'] ?? 0) === 1;
-            $onlyActive = (int) ($_GET['only_active'] ?? ($archived ? 0 : 1)) === 1;
-            $withBalances = (int) ($_GET['with_balances'] ?? 0) === 1;
-            $month = isset($_GET['month']) && trim($_GET['month']) !== ''
-                ? trim($_GET['month'])
-                : null;
-
-            $contas = $this->service->listarContas(
-                userId: $userId,
-                arquivadas: $archived,
-                apenasAtivas: $onlyActive,
-                comSaldos: $withBalances,
-                mes: $month
-            );
-
-            Response::success($contas);
-        } catch (\Throwable $e) {
-            LogService::error('Erro ao listar contas', [
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ]);
-            Response::error('Erro ao carregar contas: ' . $e->getMessage(), 500);
+            return $this->respondWorkflowResult($this->workflowService->listAccounts($userId, [
+                'archived' => $this->getIntQuery('archived', 0),
+                'only_active' => $this->getQuery('only_active'),
+                'with_balances' => $this->getIntQuery('with_balances', 0),
+                'month' => $this->getQuery('month'),
+            ]));
+        } catch (Throwable $e) {
+            return $this->internalErrorResponse($e, 'Erro ao carregar contas.');
         }
     }
 
     /**
      * POST /api/v2/contas
-     * Criar nova conta
+     * Criar nova conta.
      */
-    public function store(): void
+    public function store(): Response
     {
-        $userId = Auth::id();
-        $data = $this->getRequestPayload();
+        $userId = $this->requireApiUserIdOrFail();
 
-        // 🔒 VERIFICAR LIMITE DO PLANO
-        $planLimitService = new PlanLimitService();
-        $limitCheck = $planLimitService->canCreateConta($userId);
-
-        if (!$limitCheck['allowed']) {
-            LogService::warning('🚫 LIMITE - Tentativa de criar conta bloqueada', [
-                'user_id' => $userId,
-                'limite' => $limitCheck['limit'],
-                'usado' => $limitCheck['used']
-            ]);
-
-            Response::error($limitCheck['message'], 403, [
-                'limit_reached' => true,
-                'upgrade_url' => $limitCheck['upgrade_url'],
-                'limit_info' => [
-                    'limit' => $limitCheck['limit'],
-                    'used' => $limitCheck['used'],
-                    'remaining' => $limitCheck['remaining']
-                ]
-            ]);
-            return;
-        }
-
-        // LOG: Início da criação
-        LogService::info('📥 INÍCIO - Criação de conta', [
-            'user_id' => $userId,
-            'request_id' => uniqid('req_'),
-            'ip' => $_SERVER['REMOTE_ADDR'] ?? null,
-            'user_agent' => substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 100),
-            'data_recebida' => $data
-        ]);
-
-        $dto = CreateContaDTO::fromArray($data, $userId);
-
-        // LOG: DTO criado
-        LogService::info('📋 DTO criado para nova conta', [
-            'user_id' => $userId,
-            'nome' => $dto->nome,
-            'instituicao_id' => $dto->instituicaoFinanceiraId,
-            'tipo_conta' => $dto->tipoConta,
-            'saldo_inicial' => $dto->saldoInicial
-        ]);
-
-        $resultado = $this->service->criarConta($dto);
-
-        if (!$resultado['success']) {
-            // LOG: Erro na criação
-            LogService::warning('❌ ERRO ao criar conta', [
-                'user_id' => $userId,
-                'erro' => $resultado['message'],
-                'errors' => $resultado['errors'] ?? null
-            ]);
-
-            Response::error($resultado['message'], 422, $resultado['errors'] ?? null);
-            return;
-        }
-
-        // LOG: Conta criada com sucesso
-        LogService::info('✅ SUCESSO - Conta criada', [
-            'user_id' => $userId,
-            'conta_id' => $resultado['id'],
-            'nome' => $resultado['data']['nome'] ?? null
-        ]);
-
-        Response::success([
-            'id' => $resultado['id'],
-            'data' => $resultado['data'],
-            'csrf_token' => CsrfMiddleware::generateToken('default'),
-        ], 'Success', 201);
+        return $this->respondWorkflowResult($this->workflowService->createAccount($userId, $this->getRequestPayload()));
     }
 
     /**
      * PUT /api/v2/contas/{id}
-     * Atualizar conta
+     * Atualizar conta.
      */
-    public function update(int $id): void
+    public function update(int $id): Response
     {
-        $userId = Auth::id();
-        $data = $this->getRequestPayload();
+        $userId = $this->requireApiUserIdOrFail();
 
-        // LOG: Dados recebidos
-        LogService::info('📝 INÍCIO - Atualização de conta', [
-            'user_id' => $userId,
-            'conta_id' => $id,
-            'data_recebida' => $data,
-            'method' => $_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN'
-        ]);
-
-        $dto = UpdateContaDTO::fromArray($data);
-
-        // LOG: DTO criado
-        LogService::info('📋 DTO criado para atualização', [
-            'dto_array' => $dto->toArray()
-        ]);
-
-        $resultado = $this->service->atualizarConta($id, $userId, $dto);
-
-        if (!$resultado['success']) {
-            LogService::warning('❌ ERRO ao atualizar conta', [
-                'user_id' => $userId,
-                'conta_id' => $id,
-                'erro' => $resultado['message'],
-                'errors' => $resultado['errors'] ?? null
-            ]);
-
-            Response::error($resultado['message'], isset($resultado['message']) && str_contains($resultado['message'], 'não encontrada') ? 404 : 422, $resultado['errors'] ?? null);
-            return;
-        }
-
-        // LOG: Sucesso
-        LogService::info('✅ SUCESSO - Conta atualizada', [
-            'user_id' => $userId,
-            'conta_id' => $id
-        ]);
-
-        Response::success([
-            'data' => $resultado['data'],
-            'csrf_token' => CsrfMiddleware::generateToken('default'),
-        ]);
+        return $this->respondWorkflowResult($this->workflowService->updateAccount($id, $userId, $this->getRequestPayload()));
     }
 
     /**
      * POST /api/v2/contas/{id}/archive
-     * Arquivar conta
+     * Arquivar conta.
      */
-    public function archive(int $id): void
+    public function archive(int $id): Response
     {
-        $userId = Auth::id();
-        $resultado = $this->service->arquivarConta($id, $userId);
+        $userId = $this->requireApiUserIdOrFail();
 
-        if (!$resultado['success']) {
-            Response::error($resultado['message'], 404);
-            return;
-        }
-
-        Response::success($resultado);
+        return $this->respondWorkflowResult($this->workflowService->archiveAccount($id, $userId));
     }
 
     /**
      * POST /api/v2/contas/{id}/restore
-     * Restaurar conta
+     * Restaurar conta.
      */
-    public function restore(int $id): void
+    public function restore(int $id): Response
     {
-        $userId = Auth::id();
-        $resultado = $this->service->restaurarConta($id, $userId);
+        $userId = $this->requireApiUserIdOrFail();
 
-        if (!$resultado['success']) {
-            Response::error($resultado['message'], 404);
-            return;
-        }
-
-        Response::success($resultado);
+        return $this->respondWorkflowResult($this->workflowService->restoreAccount($id, $userId));
     }
 
     /**
      * DELETE /api/v2/contas/{id}
-     * Excluir conta
+     * Excluir conta.
      */
-    public function destroy(int $id): void
+    public function destroy(int $id): Response
     {
-        $userId = Auth::id();
-        $data = $this->getRequestPayload();
-        $force = (int) ($_GET['force'] ?? 0) === 1 || filter_var($data['force'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $userId = $this->requireApiUserIdOrFail();
 
-        $resultado = $this->service->excluirConta($id, $userId, $force);
-
-        if (!$resultado['success']) {
-            $statusCode = isset($resultado['requires_confirmation']) && $resultado['requires_confirmation'] ? 422 : 404;
-            Response::error($resultado['message'], $statusCode, [
-                'requires_confirmation' => $resultado['requires_confirmation'] ?? false,
-                'counts' => $resultado['counts'] ?? null,
-            ]);
-            return;
-        }
-
-        Response::success($resultado);
+        return $this->respondWorkflowResult($this->workflowService->deleteAccount(
+            $id,
+            $userId,
+            $this->getRequestPayload(),
+            ['force' => $this->getIntQuery('force', 0)]
+        ));
     }
 
     /**
      * POST /api/accounts/{id}/delete
-     * Exclusão permanente de conta (hard delete)
-     * Alias para destroy com suporte a POST
+     * Exclusao permanente de conta (hard delete).
      */
-    public function hardDelete(int $id): void
+    public function hardDelete(int $id): Response
     {
-        $this->destroy($id);
+        return $this->destroy($id);
     }
 
     /**
      * GET /api/contas/instituicoes
-     * Listar instituições financeiras disponíveis
+     * Listar instituicoes financeiras disponiveis.
      */
-    public function instituicoes(): void
+    public function instituicoes(): Response
     {
         try {
-            $tipo = isset($_GET['tipo']) ? trim((string) $_GET['tipo']) : null;
+            $tipo = $this->getQuery('tipo');
+            $tipo = is_string($tipo) ? trim($tipo) : null;
 
-            $query = InstituicaoFinanceira::ativas();
-
-            if ($tipo) {
-                $query->porTipo($tipo);
-            }
-
-            $instituicoes = $query->orderBy('nome')->get()->map(function ($inst) {
-                return [
-                    'id' => $inst->id,
-                    'nome' => $inst->nome,
-                    'codigo' => $inst->codigo,
-                    'tipo' => $inst->tipo,
-                    'cor_primaria' => $inst->cor_primaria,
-                    'cor_secundaria' => $inst->cor_secundaria,
-                    'logo_url' => $inst->logo_url,
-                ];
-            });
-
-            Response::success($instituicoes);
-        } catch (\Throwable $e) {
-            LogService::error('Erro ao listar instituições', [
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ]);
-            Response::error('Erro ao carregar instituições: ' . $e->getMessage(), 500);
+            return $this->respondWorkflowResult($this->workflowService->listInstituicoes($tipo));
+        } catch (Throwable $e) {
+            return $this->internalErrorResponse($e, 'Erro ao carregar instituicoes.');
         }
     }
 
     /**
      * POST /api/instituicoes
-     * Criar nova instituição financeira personalizada
+     * Criar nova instituicao financeira personalizada.
      */
-    public function createInstituicao(): void
+    public function createInstituicao(): Response
     {
         try {
-            $data = $this->getJson();
-
-            // Validações
-            if (empty($data['nome'])) {
-                Response::error('Nome da instituição é obrigatório', 400);
-                return;
-            }
-
-            $nome = trim($data['nome']);
-            $tipo = $data['tipo'] ?? 'outro';
-            $corPrimaria = $data['cor_primaria'] ?? '#757575';
-            $corSecundaria = $data['cor_secundaria'] ?? '#FFFFFF';
-
-            // Gerar código único baseado no nome
-            $codigo = $this->generateUniqueCode($nome);
-
-            // Verificar se já existe com o mesmo nome
-            $exists = InstituicaoFinanceira::where('nome', $nome)->exists();
-            if ($exists) {
-                Response::error('Já existe uma instituição com este nome', 400);
-                return;
-            }
-
-            // Criar a instituição
-            $instituicao = InstituicaoFinanceira::create([
-                'nome' => $nome,
-                'codigo' => $codigo,
-                'tipo' => $tipo,
-                'cor_primaria' => $corPrimaria,
-                'cor_secundaria' => $corSecundaria,
-                'logo_path' => '/assets/img/banks/outro.svg', // Logo padrão
-                'ativo' => true,
-            ]);
-
-            Response::success([
-                'id' => $instituicao->id,
-                'nome' => $instituicao->nome,
-                'codigo' => $instituicao->codigo,
-                'tipo' => $instituicao->tipo,
-                'cor_primaria' => $instituicao->cor_primaria,
-                'cor_secundaria' => $instituicao->cor_secundaria,
-                'logo_url' => $instituicao->logo_url,
-            ], 'Instituição criada com sucesso!', 201);
-        } catch (\Throwable $e) {
-            LogService::error('Erro ao criar instituição', [
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ]);
-            Response::error('Erro ao criar instituição: ' . $e->getMessage(), 500);
+            return $this->respondWorkflowResult($this->workflowService->createInstituicao($this->getJson()));
+        } catch (Throwable $e) {
+            return $this->internalErrorResponse($e, 'Erro ao criar instituicao.');
         }
     }
 
     /**
-     * Gerar código único para instituição
+     * @param array<string, mixed> $result
      */
-    private function generateUniqueCode(string $nome): string
+    private function respondWorkflowResult(array $result): Response
     {
-        // Converter para minúsculas e remover acentos
-        $codigo = strtolower(trim($nome));
-        $codigo = preg_replace('/[áàãâä]/u', 'a', $codigo);
-        $codigo = preg_replace('/[éèêë]/u', 'e', $codigo);
-        $codigo = preg_replace('/[íìîï]/u', 'i', $codigo);
-        $codigo = preg_replace('/[óòõôö]/u', 'o', $codigo);
-        $codigo = preg_replace('/[úùûü]/u', 'u', $codigo);
-        $codigo = preg_replace('/[ç]/u', 'c', $codigo);
-        // Remover caracteres especiais e substituir espaços por underscore
-        $codigo = preg_replace('/[^a-z0-9]/', '_', $codigo);
-        $codigo = preg_replace('/_+/', '_', $codigo);
-        $codigo = trim($codigo, '_');
+        if (!$result['success']) {
+            $errors = $result['errors'] ?? null;
+            if ($errors === []) {
+                $errors = null;
+            }
 
-        // Se já existe, adicionar sufixo numérico
-        $baseCode = $codigo;
-        $counter = 1;
-        while (InstituicaoFinanceira::where('codigo', $codigo)->exists()) {
-            $codigo = $baseCode . '_' . $counter;
-            $counter++;
+            return Response::errorResponse(
+                $result['message'],
+                $result['status'] ?? 400,
+                $errors
+            );
         }
 
-        return $codigo;
+        return Response::successResponse(
+            $result['data'] ?? null,
+            $result['message'] ?? 'Success',
+            $result['status'] ?? 200
+        );
     }
 }

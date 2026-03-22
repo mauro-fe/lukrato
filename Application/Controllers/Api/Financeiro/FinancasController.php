@@ -11,113 +11,94 @@ use Application\Services\Financeiro\OrcamentoService;
 use Application\Validators\MetaValidator;
 use Application\Validators\OrcamentoValidator;
 
-/**
- * Controller API para o módulo Finanças (Metas + Orçamentos)
- */
 class FinancasController extends BaseController
 {
     private MetaService $metaService;
     private OrcamentoService $orcamentoService;
 
-    public function __construct()
-    {
+    public function __construct(
+        ?MetaService $metaService = null,
+        ?OrcamentoService $orcamentoService = null
+    ) {
         parent::__construct();
-        $this->metaService = new MetaService();
-        $this->orcamentoService = new OrcamentoService();
+        $this->metaService = $metaService ?? new MetaService();
+        $this->orcamentoService = $orcamentoService ?? new OrcamentoService();
     }
 
-    // ============================================================
-    // DASHBOARD FINANÇAS
-    // ============================================================
-
-    /**
-     * GET /api/financas/resumo — Dashboard geral
-     */
-    public function resumo(): void
+    public function resumo(): Response
     {
-        $this->requireAuthApi();
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
-            $mes = (int) ($this->getQuery('mes') ?: date('m'));
-            $ano = (int) ($this->getQuery('ano') ?: date('Y'));
+            $mes = $this->getIntQuery('mes', (int) date('m'));
+            $ano = $this->getIntQuery('ano', (int) date('Y'));
 
-            $orcamentoResumo = $this->orcamentoService->resumo($this->userId, $mes, $ano);
-            $metasResumo = $this->metaService->resumo($this->userId);
-            $insights = $this->orcamentoService->getInsights($this->userId, $mes, $ano);
+            $orcamentoResumo = $this->orcamentoService->resumo($userId, $mes, $ano);
+            $metasResumo = $this->metaService->resumo($userId);
+            $insights = $this->orcamentoService->getInsights($userId, $mes, $ano);
 
-            Response::success([
+            return Response::successResponse([
                 'orcamento' => $orcamentoResumo,
-                'metas'     => $metasResumo,
-                'insights'  => $insights,
-                'mes'       => $mes,
-                'ano'       => $ano,
+                'metas' => $metasResumo,
+                'insights' => $insights,
+                'mes' => $mes,
+                'ano' => $ano,
             ], 'Resumo financeiro carregado');
         } catch (\Throwable $e) {
-            $this->failAndLog($e, 'Erro ao carregar resumo financeiro.');
+            return $this->failAndLogResponse($e, 'Erro ao carregar resumo financeiro.');
         }
     }
 
-    // ============================================================
-    // METAS
-    // ============================================================
-
-    /**
-     * GET /api/financas/metas — Listar metas
-     */
-    public function metasIndex(): void
+    public function metasIndex(): Response
     {
-        $this->requireAuthApi();
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
             $status = $this->getQuery('status');
-            $metas = $this->metaService->listar($this->userId, $status);
+            $metas = $this->metaService->listar($userId, $status);
 
-            Response::success($metas, 'Metas carregadas');
+            return Response::successResponse($metas, 'Metas carregadas');
         } catch (\Throwable $e) {
-            $this->failAndLog($e, 'Erro ao carregar metas.');
+            return $this->failAndLogResponse($e, 'Erro ao carregar metas.');
         }
     }
 
-    /**
-     * POST /api/financas/metas — Criar meta
-     */
-    public function metasStore(): void
+    public function metasStore(): Response
     {
-        $this->requireAuthApi();
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
             $payload = $this->getRequestPayload();
             $errors = MetaValidator::validateCreate($payload);
 
             if (!empty($errors)) {
-                Response::validationError($errors);
-                return;
+                return Response::validationErrorResponse($errors);
             }
 
-            $meta = $this->metaService->criar($this->userId, $payload);
+            $meta = $this->metaService->criar($userId, $payload);
 
-            // Verificar conquistas desbloqueadas
             $achievementService = new \Application\Services\Gamification\AchievementService();
-            $newAchievements = $achievementService->checkAndUnlockAchievements($this->userId, 'meta_criada');
+            $newAchievements = $achievementService->checkAndUnlockAchievements($userId, 'meta_criada');
             $gamification = [];
             if (!empty($newAchievements)) {
                 $gamification['achievements'] = $newAchievements;
             }
 
-            Response::success(array_merge(['meta' => $meta], $gamification ? ['gamification' => $gamification] : []), 'Meta criada com sucesso!', 201);
+            return Response::successResponse(
+                array_merge(['meta' => $meta], $gamification ? ['gamification' => $gamification] : []),
+                'Meta criada com sucesso!',
+                201
+            );
         } catch (\DomainException $e) {
-            $this->fail($e->getMessage(), 403);
+            return $this->domainErrorResponse($e, 'Nao foi possivel criar a meta.', 403);
         } catch (\Throwable $e) {
-            $this->failAndLog($e, 'Erro ao criar meta.');
+            return $this->failAndLogResponse($e, 'Erro ao criar meta.');
         }
     }
 
-    /**
-     * PUT /api/financas/metas/{id} — Atualizar meta
-     */
-    public function metasUpdate(mixed $id = null): void
+    public function metasUpdate(mixed $id = null): Response
     {
-        $this->requireAuthApi();
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
             $id = (int) $id;
@@ -125,28 +106,23 @@ class FinancasController extends BaseController
             $errors = MetaValidator::validateUpdate($payload);
 
             if (!empty($errors)) {
-                Response::validationError($errors);
-                return;
+                return Response::validationErrorResponse($errors);
             }
 
-            $meta = $this->metaService->atualizar($this->userId, $id, $payload);
+            $meta = $this->metaService->atualizar($userId, $id, $payload);
             if (!$meta) {
-                Response::notFound('Meta não encontrada.');
-                return;
+                return Response::notFoundResponse('Meta não encontrada.');
             }
 
-            Response::success($meta, 'Meta atualizada com sucesso!');
+            return Response::successResponse($meta, 'Meta atualizada com sucesso!');
         } catch (\Throwable $e) {
-            $this->failAndLog($e, 'Erro ao atualizar meta.');
+            return $this->failAndLogResponse($e, 'Erro ao atualizar meta.');
         }
     }
 
-    /**
-     * POST /api/financas/metas/{id}/aporte — Adicionar aporte
-     */
-    public function metasAporte(mixed $id = null): void
+    public function metasAporte(mixed $id = null): Response
     {
-        $this->requireAuthApi();
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
             $id = (int) $id;
@@ -154,212 +130,182 @@ class FinancasController extends BaseController
             $errors = MetaValidator::validateAporte($payload);
 
             if (!empty($errors)) {
-                Response::validationError($errors);
-                return;
+                return Response::validationErrorResponse($errors);
             }
 
-            $meta = $this->metaService->adicionarAporte($this->userId, $id, (float) $payload['valor']);
+            $meta = $this->metaService->adicionarAporte($userId, $id, (float) $payload['valor']);
             if (!$meta) {
-                Response::notFound('Meta não encontrada.');
-                return;
+                return Response::notFoundResponse('Meta não encontrada.');
             }
 
-            // Verificar conquistas desbloqueadas (meta pode ter sido concluída)
             $achievementService = new \Application\Services\Gamification\AchievementService();
-            $newAchievements = $achievementService->checkAndUnlockAchievements($this->userId, 'meta_aporte');
+            $newAchievements = $achievementService->checkAndUnlockAchievements($userId, 'meta_aporte');
             $gamification = [];
             if (!empty($newAchievements)) {
                 $gamification['achievements'] = $newAchievements;
             }
 
-            Response::success(array_merge(['meta' => $meta], $gamification ? ['gamification' => $gamification] : []), 'Aporte registrado com sucesso!');
+            return Response::successResponse(
+                array_merge(['meta' => $meta], $gamification ? ['gamification' => $gamification] : []),
+                'Aporte registrado com sucesso!'
+            );
         } catch (\DomainException $e) {
-            $this->fail($e->getMessage(), 400);
+            return $this->domainErrorResponse($e, 'Nao foi possivel registrar o aporte.', 400);
         } catch (\Throwable $e) {
-            $this->failAndLog($e, 'Erro ao registrar aporte.');
+            return $this->failAndLogResponse($e, 'Erro ao registrar aporte.');
         }
     }
 
-    /**
-     * DELETE /api/financas/metas/{id} — Remover meta
-     */
-    public function metasDestroy(mixed $id = null): void
+    public function metasDestroy(mixed $id = null): Response
     {
-        $this->requireAuthApi();
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
             $id = (int) $id;
-            $deleted = $this->metaService->remover($this->userId, $id);
+            $deleted = $this->metaService->remover($userId, $id);
 
             if (!$deleted) {
-                Response::notFound('Meta não encontrada.');
-                return;
+                return Response::notFoundResponse('Meta não encontrada.');
             }
 
-            Response::success(null, 'Meta removida com sucesso!');
+            return Response::successResponse(null, 'Meta removida com sucesso!');
         } catch (\Throwable $e) {
-            $this->failAndLog($e, 'Erro ao remover meta.');
+            return $this->failAndLogResponse($e, 'Erro ao remover meta.');
         }
     }
 
-    /**
-     * GET /api/financas/metas/templates — Templates de metas
-     */
-    public function metasTemplates(): void
+    public function metasTemplates(): Response
     {
-        $this->requireAuthApi();
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
             $templates = $this->metaService->getTemplates();
-            $sugestaoEmergencia = $this->metaService->sugerirReservaEmergencia($this->userId);
+            $sugestaoEmergencia = $this->metaService->sugerirReservaEmergencia($userId);
 
-            // Adicionar sugestão de valor ao template de emergência
-            foreach ($templates as &$t) {
-                if ($t['tipo'] === 'emergencia' && $sugestaoEmergencia > 0) {
-                    $t['valor_sugerido'] = $sugestaoEmergencia;
+            foreach ($templates as &$template) {
+                if (($template['tipo'] ?? null) === 'emergencia' && $sugestaoEmergencia > 0) {
+                    $template['valor_sugerido'] = $sugestaoEmergencia;
                 }
             }
+            unset($template);
 
-            Response::success($templates, 'Templates carregados');
+            return Response::successResponse($templates, 'Templates carregados');
         } catch (\Throwable $e) {
-            $this->failAndLog($e, 'Erro ao carregar templates.');
+            return $this->failAndLogResponse($e, 'Erro ao carregar templates.');
         }
     }
 
-    // ============================================================
-    // ORÇAMENTOS
-    // ============================================================
-
-    /**
-     * GET /api/financas/orcamentos — Listar orçamentos do mês
-     */
-    public function orcamentosIndex(): void
+    public function orcamentosIndex(): Response
     {
-        $this->requireAuthApi();
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
-            $mes = (int) ($this->getQuery('mes') ?: date('m'));
-            $ano = (int) ($this->getQuery('ano') ?: date('Y'));
+            $mes = $this->getIntQuery('mes', (int) date('m'));
+            $ano = $this->getIntQuery('ano', (int) date('Y'));
 
-            $orcamentos = $this->orcamentoService->listarComProgresso($this->userId, $mes, $ano);
-            Response::success($orcamentos, 'Orçamentos carregados');
+            $orcamentos = $this->orcamentoService->listarComProgresso($userId, $mes, $ano);
+
+            return Response::successResponse($orcamentos, 'Orçamentos carregados');
         } catch (\Throwable $e) {
-            $this->failAndLog($e, 'Erro ao carregar orçamentos.');
+            return $this->failAndLogResponse($e, 'Erro ao carregar orçamentos.');
         }
     }
 
-    /**
-     * POST /api/financas/orcamentos — Salvar orçamento individual
-     */
-    public function orcamentosStore(): void
+    public function orcamentosStore(): Response
     {
-        $this->requireAuthApi();
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
             $payload = $this->getRequestPayload();
             $errors = OrcamentoValidator::validateSave($payload);
 
             if (!empty($errors)) {
-                Response::validationError($errors);
-                return;
+                return Response::validationErrorResponse($errors);
             }
 
             $mes = (int) ($payload['mes'] ?? date('m'));
             $ano = (int) ($payload['ano'] ?? date('Y'));
 
             $orcamentos = $this->orcamentoService->salvar(
-                $this->userId,
+                $userId,
                 (int) $payload['categoria_id'],
                 $mes,
                 $ano,
                 $payload
             );
 
-            Response::success($orcamentos, 'Orçamento salvo com sucesso!');
+            return Response::successResponse($orcamentos, 'Orçamento salvo com sucesso!');
         } catch (\DomainException $e) {
-            $this->fail($e->getMessage(), 403);
+            return $this->domainErrorResponse($e, 'Nao foi possivel salvar o orcamento.', 403);
         } catch (\Throwable $e) {
-            $this->failAndLog($e, 'Erro ao salvar orçamento.');
+            return $this->failAndLogResponse($e, 'Erro ao salvar orçamento.');
         }
     }
 
-    /**
-     * POST /api/financas/orcamentos/bulk — Salvar múltiplos orçamentos
-     */
-    public function orcamentosBulk(): void
+    public function orcamentosBulk(): Response
     {
-        $this->requireAuthApi();
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
             $payload = $this->getRequestPayload();
             $errors = OrcamentoValidator::validateBulk($payload);
 
             if (!empty($errors)) {
-                Response::validationError($errors);
-                return;
+                return Response::validationErrorResponse($errors);
             }
 
             $mes = (int) ($payload['mes'] ?? date('m'));
             $ano = (int) ($payload['ano'] ?? date('Y'));
 
             $result = $this->orcamentoService->salvarMultiplos(
-                $this->userId,
+                $userId,
                 $mes,
                 $ano,
                 $payload['orcamentos']
             );
 
-            Response::success($result, 'Orçamentos salvos com sucesso!');
+            return Response::successResponse($result, 'Orçamentos salvos com sucesso!');
         } catch (\DomainException $e) {
-            $this->fail($e->getMessage(), 403);
+            return $this->domainErrorResponse($e, 'Nao foi possivel salvar os orcamentos.', 403);
         } catch (\Throwable $e) {
-            $this->failAndLog($e, 'Erro ao salvar orçamentos.');
+            return $this->failAndLogResponse($e, 'Erro ao salvar orçamentos.');
         }
     }
 
-    /**
-     * DELETE /api/financas/orcamentos/{id} — Remover orçamento
-     */
-    public function orcamentosDestroy(mixed $id = null): void
+    public function orcamentosDestroy(mixed $id = null): Response
     {
-        $this->requireAuthApi();
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
             $id = (int) $id;
-            $deleted = $this->orcamentoService->remover($this->userId, $id);
+            $deleted = $this->orcamentoService->remover($userId, $id);
 
             if (!$deleted) {
-                Response::notFound('Orçamento não encontrado.');
-                return;
+                return Response::notFoundResponse('Orçamento não encontrado.');
             }
 
-            Response::success(null, 'Orçamento removido com sucesso!');
+            return Response::successResponse(null, 'Orçamento removido com sucesso!');
         } catch (\Throwable $e) {
-            $this->failAndLog($e, 'Erro ao remover orçamento.');
+            return $this->failAndLogResponse($e, 'Erro ao remover orçamento.');
         }
     }
 
-    /**
-     * GET /api/financas/orcamentos/sugestoes — Auto-sugestão inteligente
-     */
-    public function orcamentosSugestoes(): void
+    public function orcamentosSugestoes(): Response
     {
-        $this->requireAuthApi();
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
-            $sugestoes = $this->orcamentoService->autoSugerir($this->userId);
-            Response::success($sugestoes, 'Sugestões calculadas');
+            $sugestoes = $this->orcamentoService->autoSugerir($userId);
+
+            return Response::successResponse($sugestoes, 'Sugestões calculadas');
         } catch (\Throwable $e) {
-            $this->failAndLog($e, 'Erro ao gerar sugestões.');
+            return $this->failAndLogResponse($e, 'Erro ao gerar sugestões.');
         }
     }
 
-    /**
-     * POST /api/financas/orcamentos/aplicar-sugestoes — Aplicar sugestões de uma vez
-     */
-    public function orcamentosAplicarSugestoes(): void
+    public function orcamentosAplicarSugestoes(): Response
     {
-        $this->requireAuthApi();
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
             $payload = $this->getRequestPayload();
@@ -367,47 +313,44 @@ class FinancasController extends BaseController
             $ano = (int) ($payload['ano'] ?? date('Y'));
             $sugestoes = $payload['sugestoes'] ?? [];
 
-            $result = $this->orcamentoService->aplicarSugestoes($this->userId, $mes, $ano, $sugestoes);
-            Response::success($result, 'Sugestões aplicadas com sucesso!');
+            $result = $this->orcamentoService->aplicarSugestoes($userId, $mes, $ano, $sugestoes);
+
+            return Response::successResponse($result, 'Sugestões aplicadas com sucesso!');
         } catch (\Throwable $e) {
-            $this->failAndLog($e, 'Erro ao aplicar sugestões.');
+            return $this->failAndLogResponse($e, 'Erro ao aplicar sugestões.');
         }
     }
 
-    /**
-     * POST /api/financas/orcamentos/copiar-mes — Copiar do mês anterior
-     */
-    public function orcamentosCopiarMes(): void
+    public function orcamentosCopiarMes(): Response
     {
-        $this->requireAuthApi();
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
             $payload = $this->getRequestPayload();
             $mes = (int) ($payload['mes'] ?? date('m'));
             $ano = (int) ($payload['ano'] ?? date('Y'));
 
-            $result = $this->orcamentoService->copiarMesAnterior($this->userId, $mes, $ano);
-            Response::success($result, "{$result['copiados']} orçamentos copiados!");
+            $result = $this->orcamentoService->copiarMesAnterior($userId, $mes, $ano);
+
+            return Response::successResponse($result, "{$result['copiados']} orçamentos copiados!");
         } catch (\Throwable $e) {
-            $this->failAndLog($e, 'Erro ao copiar orçamentos.');
+            return $this->failAndLogResponse($e, 'Erro ao copiar orçamentos.');
         }
     }
 
-    /**
-     * GET /api/financas/insights — Insights automáticos
-     */
-    public function insights(): void
+    public function insights(): Response
     {
-        $this->requireAuthApi();
+        $userId = $this->requireApiUserIdOrFail();
 
         try {
-            $mes = (int) ($this->getQuery('mes') ?: date('m'));
-            $ano = (int) ($this->getQuery('ano') ?: date('Y'));
+            $mes = $this->getIntQuery('mes', (int) date('m'));
+            $ano = $this->getIntQuery('ano', (int) date('Y'));
 
-            $insights = $this->orcamentoService->getInsights($this->userId, $mes, $ano);
-            Response::success($insights, 'Insights carregados');
+            $insights = $this->orcamentoService->getInsights($userId, $mes, $ano);
+
+            return Response::successResponse($insights, 'Insights carregados');
         } catch (\Throwable $e) {
-            $this->failAndLog($e, 'Erro ao gerar insights.');
+            return $this->failAndLogResponse($e, 'Erro ao gerar insights.');
         }
     }
 }

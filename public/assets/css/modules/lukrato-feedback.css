@@ -81,6 +81,11 @@
     margin-bottom: 8px;
 }
 
+.swal2-popup{
+    background: var(--color-bg) !important;
+  color: var(--text-color);
+}
+
 /* Toast customization */
 .swal2-popup.swal2-toast {
     padding: 12px 16px !important;

@@ -9,6 +9,7 @@
 
 import { STATE, Utils, Modules } from './state.js';
 import { refreshIcons } from '../shared/ui.js';
+import { getApiPayload, getErrorMessage } from '../shared/api.js';
 
 export const ContasModal = {
     syncScrollLock() {
@@ -177,21 +178,22 @@ export const ContasModal = {
 
         try {
             const result = await Modules.API.createInstituicao(data);
+            const instituicao = getApiPayload(result, null);
 
-            if (result.data) {
-                STATE.instituicoes.push(result.data);
+            if (instituicao) {
+                STATE.instituicoes.push(instituicao);
                 Modules.Render.renderInstituicoesSelect();
 
                 const select = document.getElementById('instituicaoFinanceiraSelect');
                 if (select) {
-                    select.value = result.data.id;
+                    select.value = instituicao.id;
                 }
             }
 
             ContasModal.closeNovaInstituicaoModal();
             Utils.showToast('Instituicao criada com sucesso!', 'success');
         } catch (error) {
-            Utils.showToast(error.message, 'error');
+            Utils.showToast(getErrorMessage(error, 'Erro ao criar instituicao'), 'error');
         }
     },
 

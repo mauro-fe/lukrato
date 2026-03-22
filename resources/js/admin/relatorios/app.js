@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ============================================================================
  * LUKRATO — Relatórios / App
  * ============================================================================
@@ -14,6 +14,7 @@ import {
     escapeHtml, computeInitialMonth, safeColor, getChartColor
 } from './state.js';
 import { ChartManager } from './charts.js';
+import { apiGet, getErrorMessage } from '../shared/api.js';
 
 // ─── Local Aliases (keep method bodies identical to original) ────────────────
 
@@ -97,21 +98,27 @@ async function showRestrictionAlert(message) {
 async function handleRestrictedAccess(response) {
     if (!response) return false;
 
-    if (response.status === 401) {
+    const status = Number(response.status || response?.data?.status || 0);
+
+    if (status === 401) {
         const current = encodeURIComponent(location.pathname + location.search);
         location.href = `${CONFIG.BASE_URL}login?return=${current}`;
         return true;
     }
 
-    if (response.status === 403) {
+    if (status === 403) {
         let message = PAYWALL_MESSAGE;
-        try {
-            const payload = await response.clone().json();
-            if (payload?.message) {
-                message = payload.message;
+        if (response?.data?.message) {
+            message = response.data.message;
+        } else if (typeof response?.clone === 'function') {
+            try {
+                const payload = await response.clone().json();
+                if (payload?.message) {
+                    message = payload.message;
+                }
+            } catch {
+                // ignora problemas ao converter JSON
             }
-        } catch {
-            // ignora problemas ao converter JSON
         }
 
         if (!STATE.accessRestricted) {
@@ -146,48 +153,31 @@ export const API = {
     async fetchReportData() {
         STATE.lastReportError = null;
 
-        const params = new URLSearchParams({
-            type: Utils.getReportType(),
-            year: STATE.currentMonth.split('-')[0],
-            month: STATE.currentMonth.split('-')[1]
-        });
-
-        if (STATE.currentAccount) {
-            params.set('account_id', STATE.currentAccount);
-        }
-
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT);
 
         try {
-            const response = await fetch(`${CONFIG.BASE_URL}api/reports?${params}`, {
-                credentials: 'include',
-                headers: { 'Accept': 'application/json' },
-                signal: controller.signal
+            const json = await apiGet(`${CONFIG.BASE_URL}api/reports`, {
+                type: Utils.getReportType(),
+                year: STATE.currentMonth.split('-')[0],
+                month: STATE.currentMonth.split('-')[1],
+                account_id: STATE.currentAccount || undefined
             });
-
             clearTimeout(timeoutId);
-
-            if (await handleRestrictedAccess(response)) {
-                return null;
-            }
-
-            if (!response.ok) throw new Error('API request failed');
 
             STATE.accessRestricted = false;
             STATE.lastReportError = null;
-
-            const json = await response.json();
             return json.data || json;
         } catch (error) {
             clearTimeout(timeoutId);
+            if (await handleRestrictedAccess(error)) {
+                return null;
+            }
             STATE.lastReportError = error.name === 'AbortError'
-                ? 'A requisicao demorou demais. Tente novamente em instantes.'
-                : 'Nao foi possivel carregar o relatorio agora. Verifique a conexao e tente novamente.';
+                ? 'A requisição demorou demais. Tente novamente em instantes.'
+                : 'Não foi possível carregar o relatório agora. Verifique a conexão e tente novamente.';
             console.error('Error fetching report data:', error);
-            showErrorToast(error.name === 'AbortError'
-                ? 'A requisição demorou demais. Tente novamente.'
-                : 'Erro ao carregar relatório. Verifique sua conexão.');
+            showErrorToast(getErrorMessage(error, 'Erro ao carregar relatório. Verifique sua conexão.'));
             return null;
         }
     },
@@ -208,13 +198,7 @@ export const API = {
         }
 
         try {
-            const response = await fetch(`${CONFIG.BASE_URL}api/reports?${params}`, {
-                credentials: 'include',
-                headers: { 'Accept': 'application/json' }
-            });
-
-            if (!response.ok) return null;
-            const json = await response.json();
+            const json = await apiGet(`${CONFIG.BASE_URL}api/reports`, Object.fromEntries(params.entries()));
             return json.data || json;
         } catch {
             return null;
@@ -223,26 +207,17 @@ export const API = {
 
     async fetchAccounts() {
         try {
-            const response = await fetch(`${CONFIG.BASE_URL}api/contas`, {
-                credentials: 'include',
-                headers: { 'Accept': 'application/json' }
-            });
-
-            if (await handleRestrictedAccess(response)) {
-                return [];
-            }
-
-            if (!response.ok) throw new Error('Failed to fetch accounts');
-
+            const json = await apiGet(`${CONFIG.BASE_URL}api/contas`);
             STATE.accessRestricted = false;
-
-            const json = await response.json();
             const items = json.data || json.items || json || [];
             return (Array.isArray(items) ? items : []).map(acc => ({
                 id: Number(acc.id),
                 name: acc.nome || acc.apelido || acc.instituicao || `Conta #${acc.id}`
             }));
         } catch (error) {
+            if (await handleRestrictedAccess(error)) {
+                return [];
+            }
             console.error('Error fetching accounts:', error);
             return [];
         }
@@ -253,18 +228,12 @@ export const API = {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT);
         try {
-            const response = await fetch(
-                `${CONFIG.BASE_URL}api/reports/summary?year=${year}&month=${month}`,
-                {
-                    credentials: 'include',
-                    headers: { 'Accept': 'application/json' },
-                    signal: controller.signal
-                }
-            );
-
+            const json = await apiGet(`${CONFIG.BASE_URL}api/reports/summary`, { year, month });
             clearTimeout(timeoutId);
-
-            if (await handleRestrictedAccess(response)) {
+            return json.data || json;
+        } catch (error) {
+            clearTimeout(timeoutId);
+            if (await handleRestrictedAccess(error)) {
                 return {
                     totalReceitas: 0,
                     totalDespesas: 0,
@@ -272,13 +241,6 @@ export const API = {
                     totalCartoes: 0
                 };
             }
-
-            if (!response.ok) throw new Error('Failed to fetch summary stats');
-
-            const json = await response.json();
-            return json.data || json;
-        } catch (error) {
-            clearTimeout(timeoutId);
             console.error('Error fetching summary stats:', error);
             return {
                 totalReceitas: 0,
@@ -294,23 +256,12 @@ export const API = {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT);
         try {
-            const response = await fetch(
-                `${CONFIG.BASE_URL}api/reports/insights?year=${year}&month=${month}`,
-                {
-                    credentials: 'include',
-                    headers: { 'Accept': 'application/json' },
-                    signal: controller.signal
-                }
-            );
-
+            const json = await apiGet(`${CONFIG.BASE_URL}api/reports/insights`, { year, month });
             clearTimeout(timeoutId);
-            if (await handleRestrictedAccess(response)) return { insights: [] };
-            if (!response.ok) throw new Error('Failed to fetch insights');
-
-            const json = await response.json();
             return json.data || json;
         } catch (error) {
             clearTimeout(timeoutId);
+            if (await handleRestrictedAccess(error)) return { insights: [] };
             console.error('Error fetching insights:', error);
             return { insights: [] };
         }
@@ -321,19 +272,8 @@ export const API = {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT);
         try {
-            const response = await fetch(
-                `${CONFIG.BASE_URL}api/reports/insights-teaser?year=${year}&month=${month}`,
-                {
-                    credentials: 'include',
-                    headers: { 'Accept': 'application/json' },
-                    signal: controller.signal
-                }
-            );
-
+            const json = await apiGet(`${CONFIG.BASE_URL}api/reports/insights-teaser`, { year, month });
             clearTimeout(timeoutId);
-            if (!response.ok) throw new Error('Failed to fetch insights teaser');
-
-            const json = await response.json();
             return json.data || json;
         } catch (error) {
             clearTimeout(timeoutId);
@@ -351,23 +291,12 @@ export const API = {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT);
         try {
-            const response = await fetch(
-                `${CONFIG.BASE_URL}api/reports/comparatives?${params}`,
-                {
-                    credentials: 'include',
-                    headers: { 'Accept': 'application/json' },
-                    signal: controller.signal
-                }
-            );
-
+            const json = await apiGet(`${CONFIG.BASE_URL}api/reports/comparatives`, Object.fromEntries(params.entries()));
             clearTimeout(timeoutId);
-            if (await handleRestrictedAccess(response)) return null;
-            if (!response.ok) throw new Error('Failed to fetch comparatives');
-
-            const json = await response.json();
             return json.data || json;
         } catch (error) {
             clearTimeout(timeoutId);
+            if (await handleRestrictedAccess(error)) return null;
             console.error('Error fetching comparatives:', error);
             return null;
         }
@@ -408,7 +337,7 @@ export const UI = {
         const periodLabel = getCurrentPeriodLabel();
         const scopeHint = scopeName
             ? `Nenhum dado foi encontrado para ${scopeName} em ${periodLabel}.`
-            : `Nao ha lancamentos suficientes para montar este recorte em ${periodLabel}.`;
+            : `Não há lançamentos suficientes para montar este recorte em ${periodLabel}.`;
 
         UI.setContent(`
             <div class="empty-state report-empty-state">
@@ -418,7 +347,7 @@ export const UI = {
                 <div class="report-state-actions">
                     <a href="${CONFIG.BASE_URL}lancamentos" class="empty-cta">
                         <i data-lucide="plus"></i>
-                        <span>Adicionar lancamento</span>
+                        <span>Adicionar lançamento</span>
                     </a>
                     ${scopeName ? `
                         <button type="button" class="btn btn-secondary" data-action="clear-report-account">
@@ -432,7 +361,7 @@ export const UI = {
     },
 
     showErrorState(message) {
-        const safeMessage = escapeHtml(message || 'Nao foi possivel carregar este relatorio.');
+        const safeMessage = escapeHtml(message || 'Não foi possível carregar este relatório.');
         UI.setContent(`
             <div class="error-state report-error-state">
                 <i data-lucide="triangle-alert"></i>
@@ -564,8 +493,8 @@ export const UI = {
         summaryEl.innerHTML = chips.join('');
         noteEl.classList.remove('hidden');
         noteEl.innerHTML = STATE.currentAccount
-            ? '<i data-lucide="info"></i><span>O resumo do topo continua consolidado. O filtro por conta afeta este grafico e a aba Comparativos.</span>'
-            : '<i data-lucide="info"></i><span>Use o filtro de conta para analisar um recorte especifico sem perder o consolidado do topo.</span>';
+            ? '<i data-lucide="info"></i><span>O resumo do topo continua consolidado. O filtro por conta afeta este gráfico e a aba Comparativos.</span>'
+            : '<i data-lucide="info"></i><span>Use o filtro de conta para analisar um recorte específico sem perder o consolidado do topo.</span>';
 
         if (window.lucide) lucide.createIcons();
     },
@@ -688,7 +617,7 @@ export async function renderReport() {
     renderChartInsight(data);
 }
 
-// ─── Trend Badge Helper ─────────────────────────────────────────────────────
+// ─── Trend Badge Helper ──────────────────────────────────────────────────────
 
 function updateTrendBadge(elementId, current, previous, invertColors = false) {
     const el = document.getElementById(elementId);
@@ -715,7 +644,7 @@ function updateTrendBadge(elementId, current, previous, invertColors = false) {
     }
 }
 
-// ─── Chart Insight Annotation ───────────────────────────────────────────────
+// ─── Chart Insight Annotation ────────────────────────────────────────────────
 
 function renderChartInsight(data) {
     const existing = document.querySelector('.chart-insight-line');
@@ -922,7 +851,7 @@ async function updateInsightsSection() {
     if (window.lucide) lucide.createIcons();
 }
 
-// ─── Overview Section ───────────────────────────────────────────────────────
+// ─── Overview Section ────────────────────────────────────────────────────────
 
 let overviewCharts = [];
 
@@ -933,7 +862,7 @@ async function updateOverviewSection() {
     const compChartEl = document.getElementById('overviewComparisonChart');
 
     // Destroy previous mini charts
-    overviewCharts.forEach(c => { try { c.destroy(); } catch {} });
+    overviewCharts.forEach(c => { try { c.destroy(); } catch { } });
     overviewCharts = [];
 
     // Fetch data in parallel
@@ -1309,7 +1238,7 @@ function renderTaxaEconomia(data) {
     `;
 }
 
-// ── Formas de pagamento ─────────────────────────────────
+// ── Formas de pagamento ──────────────────────────────────
 function renderFormasPagamento(formas) {
     if (!formas || formas.length === 0) return '';
 
@@ -1362,14 +1291,8 @@ function renderFormasPagamento(formas) {
 
 function renderComparative(title, data, period) {
     const getTrendIcon = (value, isDespesa = false) => {
-        // Para despesas, aumento é ruim (vermelho), redução é bom (verde)
-        if (isDespesa) {
-            if (value > 0) return '<i data-lucide="arrow-up"></i>';
-            if (value < 0) return '<i data-lucide="arrow-down"></i>';
-        } else {
-            if (value > 0) return '<i data-lucide="arrow-up"></i>';
-            if (value < 0) return '<i data-lucide="arrow-down"></i>';
-        }
+        if (value > 0) return '<i data-lucide="arrow-up"></i>';
+        if (value < 0) return '<i data-lucide="arrow-down"></i>';
         return '<i data-lucide="equal"></i>';
     };
 
@@ -1387,17 +1310,12 @@ function renderComparative(title, data, period) {
     const getTrendText = (value, isDespesa = false) => {
         if (Math.abs(value) < 0.1) return 'Sem alteração';
 
-        if (isDespesa) {
-            if (value > 0) return `Aumentou ${Math.abs(value).toFixed(1)}%`;
-            if (value < 0) return `Reduziu ${Math.abs(value).toFixed(1)}%`;
-        } else {
-            if (value > 0) return `Aumentou ${Math.abs(value).toFixed(1)}%`;
-            if (value < 0) return `Reduziu ${Math.abs(value).toFixed(1)}%`;
-        }
+        if (value > 0) return `Aumentou ${Math.abs(value).toFixed(1)}%`;
+        if (value < 0) return `Reduziu ${Math.abs(value).toFixed(1)}%`;
+
         return 'Sem alteração';
     };
 
-    // Formatar período atual e anterior
     const getCurrentPeriod = () => {
         if (period.includes('mês')) {
             const [year, month] = STATE.currentMonth.split('-');
@@ -1501,7 +1419,6 @@ function renderCardsReport(data) {
     const reportArea = document.getElementById('reportArea');
     if (!reportArea) return;
 
-    // Renderizar resumo consolidado apenas se houver cartões
     const resumoHTML = (data.resumo_consolidado && data.cards && data.cards.length > 0) ? `
         <div class="consolidated-summary">
             <div class="summary-header">
@@ -1601,7 +1518,6 @@ function renderCardsReport(data) {
                          data-action="open-card-detail"
                          role="button"
                          tabindex="0">
-                        <!-- Header -->
                         <div class="card-header-gradient">
                             <div class="card-brand">
                                 <div class="card-icon-wrapper" style="background: linear-gradient(135deg, ${cardColor}, ${cardColor}99);">
@@ -1622,7 +1538,6 @@ function renderCardsReport(data) {
                             ` : ''}
                         </div>
 
-                        <!-- Tendência compacta -->
                         ${card.historico_6_meses && card.historico_6_meses.length > 0 ? `
                             <div class="card-trend-compact">
                                 <span class="trend-label">ÚLTIMOS 6 MESES</span>
@@ -1632,7 +1547,6 @@ function renderCardsReport(data) {
                             </div>
                         ` : ''}
 
-                        <!-- Alertas -->
                         ${card.alertas && card.alertas.length > 0 ? `
                             <div class="card-alerts">
                                 ${card.alertas.map(alert => `
@@ -1645,7 +1559,6 @@ function renderCardsReport(data) {
                         ` : ''}
 
 
-                        <!-- Stats principais -->
                         <div class="card-balance">
                             <div class="balance-main">
                                 <span class="balance-label">FATURA DO MÊS</span>
@@ -1669,7 +1582,6 @@ function renderCardsReport(data) {
                         </div>
 
 
-                        <!-- Barra de utilização -->
                         <div class="card-usage-new">
                             <div class="usage-header">
                                 <span class="usage-label">UTILIZAÇÃO DO LIMITE</span>
@@ -1681,7 +1593,6 @@ function renderCardsReport(data) {
                             </div>
                         </div>
 
-                        <!-- Resumo rápido de informações adicionais -->
                         ${card.parcelamentos && card.parcelamentos.ativos > 0 || (card.proximos_meses && card.proximos_meses.length > 0 && card.proximos_meses.some(m => m.valor > 0)) ? `
                             <div class="card-quick-info">
                                 ${card.parcelamentos && card.parcelamentos.ativos > 0 ? `
@@ -1806,7 +1717,7 @@ export async function handleExport() {
                 const errorData = await response.json();
                 if (errorData?.message) errorMsg = errorData.message;
                 else if (errorData?.errors) errorMsg = Object.values(errorData.errors).flat().join(', ');
-            } catch (_) { /* response body not JSON */ }
+            } catch (_) { }
             throw new Error(errorMsg);
         }
 
@@ -1838,18 +1749,19 @@ export async function handleExport() {
         }
     } catch (error) {
         console.error('Export error:', error);
+        const message = getErrorMessage(error, 'Erro ao exportar relatório. Tente novamente.');
         if (typeof Swal !== 'undefined') {
             Swal.fire({
                 toast: true,
                 position: 'top-end',
                 icon: 'error',
                 title: 'Erro ao exportar',
-                text: error.message || 'Tente novamente.',
+                text: message,
                 showConfirmButton: false,
                 timer: 3000
             });
         } else {
-            alert(error.message || 'Erro ao exportar relatório. Tente novamente.');
+            alert(message);
         }
     } finally {
         if (exportBtn) {
@@ -1866,8 +1778,6 @@ export async function refreshActiveSection(section) {
     if (section === 'overview') {
         await updateOverviewSection();
     } else if (section === 'relatorios') {
-        // Re-render chart — it may have been initially drawn while the panel
-        // was display:none (overview is the default), causing 0px measurements.
         await renderReport();
     } else if (section === 'insights') {
         await updateInsightsSection();

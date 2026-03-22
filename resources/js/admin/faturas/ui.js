@@ -7,6 +7,7 @@
  */
 import { CONFIG, DOM, STATE, Utils, Modules, getCategoryIconColor } from './state.js';
 import { refreshIcons } from '../shared/ui.js';
+import { getApiPayload, getErrorMessage } from '../shared/api.js';
 
 // ─── FaturasUI ──────────────────────────────────────────────────────────────
 
@@ -302,7 +303,7 @@ export const FaturasUI = {
     async showDetalhes(id) {
         try {
             const response = await Modules.API.buscarParcelamento(id);
-            const parc = response.data;
+            const parc = getApiPayload(response, null);
 
             if (!parc) {
                 // Fatura não existe mais - fechar modal se estiver aberto
@@ -343,7 +344,7 @@ export const FaturasUI = {
             Swal.fire({
                 icon: 'error',
                 title: 'Erro',
-                text: error.message
+                text: getErrorMessage(error, 'Não foi possível carregar os detalhes da fatura')
             });
         }
     },
@@ -991,7 +992,7 @@ export const FaturasUI = {
             Swal.fire({
                 icon: 'error',
                 title: 'Erro',
-                text: error.message || 'Erro ao processar operação',
+                text: getErrorMessage(error, 'Erro ao processar operação'),
                 heightAuto: false,
                 customClass: {
                     container: 'swal-above-modal'
@@ -1101,7 +1102,7 @@ export const FaturasUI = {
             Swal.fire({
                 icon: 'error',
                 title: 'Erro',
-                text: error.message || 'Não foi possível atualizar o item.',
+                text: getErrorMessage(error, 'Não foi possível atualizar o item.'),
                 heightAuto: false
             });
         }
@@ -1228,7 +1229,7 @@ export const FaturasUI = {
             Swal.fire({
                 icon: 'error',
                 title: 'Erro',
-                text: error.message || 'Não foi possível excluir o item.',
+                text: getErrorMessage(error, 'Não foi possível excluir o item.'),
                 heightAuto: false,
                 customClass: {
                     container: 'swal-above-modal'
@@ -1325,7 +1326,7 @@ export const FaturasUI = {
             Swal.fire({
                 icon: 'error',
                 title: 'Erro',
-                text: error.message || 'Não foi possível excluir o parcelamento.',
+                text: getErrorMessage(error, 'Não foi possível excluir o parcelamento.'),
                 heightAuto: false,
                 customClass: {
                     container: 'swal-above-modal'
@@ -1362,18 +1363,18 @@ export const FaturasUI = {
                 Modules.API.listarContas()
             ]);
 
-            const fatura = faturaResponse;
-            const contas = contasResponse.data || contasResponse || [];
+            const fatura = getApiPayload(faturaResponse, null);
+            const contas = getApiPayload(contasResponse, []);
 
-            if (!fatura.data || !fatura.data.cartao) {
+            if (!fatura?.cartao) {
                 throw new Error('Dados da fatura incompletos');
             }
 
-            const cartaoId = fatura.data.cartao.id;
-            const contaPadraoId = fatura.data.cartao.conta_id || null;
+            const cartaoId = fatura.cartao.id;
+            const contaPadraoId = fatura.cartao.conta_id || null;
 
             // Extrair mês/ano da descrição da fatura (ex: "Fatura 2/2026")
-            const descricao = fatura.data.descricao || '';
+            const descricao = fatura.descricao || '';
             const match = descricao.match(/(\d+)\/(\d+)/);
             const mes = match ? match[1] : null;
             const ano = match ? match[2] : null;
@@ -1477,7 +1478,7 @@ export const FaturasUI = {
                     <div style="margin: 1rem 0; padding: 0.75rem; background: #f0fdf4; border-radius: 8px;">
                         <div style="font-size: 0.875rem; color: #047857;">Valor debitado:</div>
                         <div style="font-size: 1.25rem; font-weight: bold; color: #059669;">
-                            ${Utils.formatMoney(response.data?.valor_pago || valorTotal)}
+                            ${Utils.formatMoney(getApiPayload(response, {})?.valor_pago || valorTotal)}
                         </div>
                     </div>
                     <div style="color: #059669;">
@@ -1507,7 +1508,7 @@ export const FaturasUI = {
             Swal.fire({
                 icon: 'error',
                 title: 'Erro ao pagar fatura',
-                text: error.message || 'Não foi possível processar o pagamento. Tente novamente.',
+                text: getErrorMessage(error, 'Não foi possível processar o pagamento. Tente novamente.'),
                 heightAuto: false,
                 customClass: {
                     container: 'swal-above-modal'

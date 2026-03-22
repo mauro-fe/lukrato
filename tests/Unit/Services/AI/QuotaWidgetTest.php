@@ -15,7 +15,7 @@ use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
  *
  * Verifica:
  * - OpenAIProvider captura rate limits corretamente
- * - CacheService serializa/deserializa arrays round-trip
+ * - CacheService serializa/deserializa arrays round-trip em qualquer backend
  * - Estrutura dos rate limits está completa
  * - getLastRateLimits retorna estrutura esperada
  */
@@ -68,10 +68,6 @@ class QuotaWidgetTest extends TestCase
     {
         $cache = new CacheService();
 
-        if (!$cache->isEnabled()) {
-            $this->markTestSkipped('Redis não disponível — CacheService desabilitado');
-        }
-
         $testKey = 'test:quota_widget_roundtrip_' . time();
         $rateLimits = [
             'requests_limit'     => 10000,
@@ -107,10 +103,6 @@ class QuotaWidgetTest extends TestCase
     {
         $cache = new CacheService();
 
-        if (!$cache->isEnabled()) {
-            $this->markTestSkipped('Redis não disponível — CacheService desabilitado');
-        }
-
         $testKey = 'test:quota_widget_zero_' . time();
         $rateLimits = [
             'requests_limit'     => 0,
@@ -135,10 +127,6 @@ class QuotaWidgetTest extends TestCase
     public function testCacheServiceReturnsDefaultWhenKeyMissing(): void
     {
         $cache = new CacheService();
-
-        if (!$cache->isEnabled()) {
-            $this->markTestSkipped('Redis não disponível — CacheService desabilitado');
-        }
 
         $result = $cache->get('test:nonexistent_key_' . time(), null);
         $this->assertNull($result, 'Chave inexistente deve retornar default (null)');

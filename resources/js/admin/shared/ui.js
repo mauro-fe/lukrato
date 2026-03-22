@@ -241,8 +241,10 @@ function _domToast(message, type = 'info') {
     }
     const toast = document.createElement('div');
     toast.className = `lk-toast lk-toast-${type}`;
-    toast.innerHTML = `<span>${message}</span>`;
+    const label = document.createElement('span');
+    label.textContent = String(message ?? '');
     toast.style.cssText = 'padding:14px 20px;border-radius:10px;background:var(--color-surface,#fff);border-left:4px solid var(--color-primary,#e67e22);box-shadow:0 4px 12px rgba(0,0,0,.15);color:var(--color-text,#333);opacity:0;transition:opacity .3s;';
+    toast.appendChild(label);
     container.appendChild(toast);
     requestAnimationFrame(() => (toast.style.opacity = '1'));
     setTimeout(() => {

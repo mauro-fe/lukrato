@@ -5,72 +5,77 @@ declare(strict_types=1);
 namespace Application\Controllers\Auth;
 
 use Application\Controllers\BaseController;
-use Application\Services\Auth\EmailVerificationService;
+use Application\Core\Exceptions\ValidationException;
+use Application\Core\Response;
 use Application\Middlewares\CsrfMiddleware;
 use Application\Models\Usuario;
-use Application\Core\Response;
-use Application\Core\Exceptions\ValidationException;
-use Application\Services\Infrastructure\LogService;
+use Application\Services\Auth\EmailVerificationService;
+use Application\Services\Infrastructure\CacheService;
 
-/**
- * Controller para verificação de email
- */
 class EmailVerificationController extends BaseController
 {
     private EmailVerificationService $verificationService;
 
-    public function __construct()
+    public function __construct(
+        ?EmailVerificationService $verificationService = null,
+        ?CacheService $cache = null
+    )
     {
-        parent::__construct();
-        $this->verificationService = new EmailVerificationService();
+        parent::__construct(cache: $cache);
+        $this->verificationService = $verificationService ?? new EmailVerificationService();
     }
 
-    /**
-     * Verifica o email usando o token da URL
-     */
-    public function verify(): void
+    public function verify(): Response
     {
         $token = $this->request->get('token', '');
-
-        $result = $this->verificationService->verifyEmail($token);
+        $selector = $this->request->get('selector', '');
+        $validator = $this->request->get('validator', '');
+        $result = $this->verificationService->verifyEmail($token, $selector, $validator);
 
         if ($result['success']) {
             $_SESSION['success'] = $result['message'];
-            Response::redirectTo(BASE_URL . 'login');
-            return;
+
+            return $this->buildRedirectResponse('login');
         }
 
-        // Se o token expirou, mostra opção de reenviar
         if (!empty($result['expired']) && !empty($result['user_id'])) {
             $_SESSION['verification_expired'] = true;
             $_SESSION['verification_user_id'] = $result['user_id'];
         }
 
         $_SESSION['error'] = $result['message'];
-        Response::redirectTo(BASE_URL . 'login');
+
+        return $this->buildRedirectResponse('login');
     }
 
-    /**
-     * Reenvia email de verificação
-     */
-    public function resend(): void
+    public function resend(): Response
     {
-        // Valida CSRF — aceita token da página de verificação OU do login
+        $isAjax = $this->request->isAjax();
+
         try {
             CsrfMiddleware::handle($this->request, 'verify_email_form');
         } catch (ValidationException) {
             CsrfMiddleware::handle($this->request, 'login_form');
         }
 
-        $isAjax = $this->request->isAjax();
+        try {
+            $ip = $this->request->ip() ?? 'unknown';
+            $this->cache->checkRateLimit('email-verification-resend:' . $ip, 3, 60);
+        } catch (ValidationException $e) {
+            if ($isAjax) {
+                return Response::errorResponse('Muitas tentativas. Aguarde 1 minuto e tente novamente.', 429, $e->getErrors());
+            }
 
-        // Tenta buscar usuário por email ou pelo ID da sessão
+            $_SESSION['error'] = 'Muitas tentativas. Aguarde 1 minuto e tente novamente.';
+
+            return $this->buildRedirectResponse('login');
+        }
+
         $email = $this->request->post('email', '');
         $userId = $_SESSION['verification_user_id'] ?? null;
-
         $user = null;
 
-        if (!empty($email)) {
+        if ($email !== '') {
             $user = Usuario::whereRaw('LOWER(email) = ?', [strtolower(trim($email))])->first();
         } elseif ($userId) {
             $user = Usuario::find($userId);
@@ -78,27 +83,24 @@ class EmailVerificationController extends BaseController
 
         if (!$user) {
             if ($isAjax) {
-                Response::error('Usuário não encontrado.', 404);
-                return;
+                return Response::errorResponse('Usuario nao encontrado.', 404);
             }
 
-            $_SESSION['error'] = 'Usuário não encontrado. Verifique o email informado.';
-            Response::redirectTo(BASE_URL . 'login');
-            return;
+            $_SESSION['error'] = 'Usuario nao encontrado. Verifique o email informado.';
+
+            return $this->buildRedirectResponse('login');
         }
 
         $result = $this->verificationService->resendVerificationEmail($user);
 
-        // Limpa dados da sessão
         unset($_SESSION['verification_expired'], $_SESSION['verification_user_id']);
 
         if ($isAjax) {
             if ($result['success']) {
-                Response::success(['message' => $result['message']]);
-            } else {
-                Response::error($result['message'], 429);
+                return Response::successResponse(['message' => $result['message']]);
             }
-            return;
+
+            return Response::errorResponse($result['message'], 429);
         }
 
         if ($result['success']) {
@@ -107,24 +109,17 @@ class EmailVerificationController extends BaseController
             $_SESSION['error'] = $result['message'];
         }
 
-        Response::redirectTo(BASE_URL . 'login');
+        return $this->buildRedirectResponse('login');
     }
 
-    /**
-     * Exibe página de aviso para verificar email (para usuários não verificados)
-     */
-    public function notice(): void
+    public function notice(): Response
     {
-        // Se não tem usuário identificado, redireciona para login
         if (empty($_SESSION['unverified_email'])) {
-            Response::redirectTo(BASE_URL . 'login');
-            return;
+            return $this->buildRedirectResponse('login');
         }
 
-        $email = $_SESSION['unverified_email'];
-
-        $this->render('admin/auth/verify-email', [
-            'email' => $email,
+        return $this->renderResponse('admin/auth/verify-email', [
+            'email' => $_SESSION['unverified_email'],
             'message' => 'Por favor, verifique seu email antes de fazer login.',
         ]);
     }

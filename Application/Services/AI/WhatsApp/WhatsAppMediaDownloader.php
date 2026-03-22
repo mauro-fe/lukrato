@@ -38,7 +38,7 @@ class WhatsAppMediaDownloader
     public function downloadByMediaId(string $mediaId, ?string $filename = null): ?array
     {
         if ($this->token === '') {
-            error_log('[WhatsAppMediaDownloader] WHATSAPP_TOKEN nao configurado.');
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[WhatsAppMediaDownloader] WHATSAPP_TOKEN nao configurado.');
             return null;
         }
 
@@ -48,7 +48,7 @@ class WhatsAppMediaDownloader
             $url = $meta['url'] ?? null;
 
             if (!is_string($url) || $url === '') {
-                error_log('[WhatsAppMediaDownloader] URL de media ausente para ' . $mediaId);
+                \Application\Services\Infrastructure\LogService::safeErrorLog('[WhatsAppMediaDownloader] URL de media ausente para ' . $mediaId);
                 return null;
             }
 
@@ -60,7 +60,7 @@ class WhatsAppMediaDownloader
 
             $content = $downloadResponse->getBody()->getContents();
             if (strlen($content) > self::MAX_FILE_SIZE) {
-                error_log('[WhatsAppMediaDownloader] Arquivo excede limite de 25MB.');
+                \Application\Services\Infrastructure\LogService::safeErrorLog('[WhatsAppMediaDownloader] Arquivo excede limite de 25MB.');
                 return null;
             }
 
@@ -71,7 +71,7 @@ class WhatsAppMediaDownloader
                 'filename' => $filename,
             ];
         } catch (GuzzleException $e) {
-            error_log('[WhatsAppMediaDownloader] Erro ao baixar media: ' . $e->getMessage());
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[WhatsAppMediaDownloader] Erro ao baixar media: ' . $e->getMessage());
             return null;
         }
     }

@@ -9,6 +9,7 @@
  */
 
 import { createParticles, createConfetti, initTogglePassword, getBaseUrl } from '../shared.js';
+import { apiFetch, apiGet, apiPost, getErrorMessage } from '../../shared/api.js';
 
 const BASE = getBaseUrl();
 
@@ -141,21 +142,7 @@ TurnstileManager.init();
 // =====================
 
 async function refreshCsrfForForm(tokenId) {
-    const response = await fetch(BASE + 'api/csrf/refresh', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({ token_id: tokenId })
-    });
-
-    if (!response.ok) {
-        throw new Error(`Falha ao renovar CSRF (${response.status})`);
-    }
-
-    const data = await response.json();
+    const data = await apiPost(BASE + 'api/csrf/refresh', { token_id: tokenId });
     const payload = data?.data && typeof data.data === 'object' ? data.data : data;
     const token = typeof payload?.token === 'string' ? payload.token : '';
 
@@ -183,6 +170,37 @@ async function refreshCsrfForForm(tokenId) {
     throw new Error('Token não recebido');
 }
 
+function getFormCsrfToken(formId, tokenId) {
+    const formToken = document.querySelector(`#${formId} input[name="csrf_token"]`)?.value;
+    if (formToken) {
+        return formToken;
+    }
+
+    if (tokenId === 'register_form') {
+        return document.querySelector('meta[name="csrf-token-register"]')?.content || '';
+    }
+
+    return document.querySelector(`meta[data-csrf-id="${tokenId}"]`)?.content
+        || document.querySelector('meta[name="csrf-token"]')?.content
+        || '';
+}
+
+async function resolveApiResult(request) {
+    try {
+        const data = await request();
+        return {
+            response: { ok: true, status: 200 },
+            data,
+            error: null,
+        };
+    } catch (error) {
+        return {
+            response: { ok: false, status: Number(error?.status || 0) },
+            data: error?.data || null,
+            error,
+        };
+    }
+}
 function isCsrfError(response, data) {
     if (response.status === 419) return true;
     if (response.status === 403 && data?.errors?.csrf_token) return true;
@@ -345,13 +363,9 @@ function isCsrfError(response, data) {
         }
 
         try {
-            const response = await fetch(
-                `${BASE}api/referral/validate?code=${encodeURIComponent(code)}`,
-                { headers: { 'Accept': 'application/json' } }
-            );
-            const data = await response.json();
+            const data = await apiGet(`${BASE}api/referral/validate`, { code });
 
-            if (response.ok && data.success) {
+            if (data?.success) {
                 referralHint.innerHTML =
                     `<i data-lucide="check"></i> Indicado por <strong>${data.data.referrer_name}</strong> - Você ganha ${data.data.reward_days} dias de PRO!`;
                 referralHint.className = 'field-hint valid';
@@ -361,17 +375,16 @@ function isCsrfError(response, data) {
             } else {
                 referralHint.textContent = '';
                 referralHint.className = 'field-hint';
-                referralError.textContent = data.message || 'Código inválido';
+                referralError.textContent = getErrorMessage({ data }, 'Código inválido');
                 validatedReferralCode = null;
             }
         } catch (err) {
             referralHint.textContent = '';
             referralHint.className = 'field-hint';
-            referralError.textContent = 'Erro ao validar código';
+            referralError.textContent = getErrorMessage(err, 'Erro ao validar código');
             validatedReferralCode = null;
         }
     }
-
     if (referralInput) {
         referralInput.addEventListener('input', (e) => {
             e.target.value = e.target.value.toUpperCase();
@@ -479,7 +492,6 @@ function clearErrors(form) {
             async function attemptLogin() {
                 const formData = new FormData(loginForm);
 
-                // Injetar token Turnstile se o CAPTCHA está visível
                 if (TurnstileManager.loginRequired) {
                     const turnstileToken = TurnstileManager.getLoginToken();
                     if (!turnstileToken) {
@@ -489,32 +501,29 @@ function clearErrors(form) {
                         btn.innerHTML = originalBtnHtml;
                         return { response: { ok: false, status: 422 }, data: { success: false, message: 'Complete a verificação de segurança.', _captchaBlock: true } };
                     }
-                    // Limpa mensagem de captcha anterior
                     const captchaError = document.getElementById('captchaError');
                     if (captchaError) captchaError.textContent = '';
                     formData.set('cf-turnstile-response', turnstileToken);
                 }
 
-                const response = await fetch(loginForm.action, {
+                const result = await resolveApiResult(() => apiFetch(loginForm.action, {
                     method: 'POST',
                     body: formData,
                     headers: {
+                        'X-CSRF-Token': getFormCsrfToken('loginForm', 'login_form'),
                         'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'application/json'
                     }
-                });
+                }));
 
-                let data = null;
-                try { data = await response.json(); } catch (e) { /* non-JSON */ }
-
-                if (isCsrfError(response, data) && !hasRetried) {
+                if (isCsrfError(result.response, result.data) && !hasRetried) {
                     hasRetried = true;
                     try {
                         await refreshCsrfForForm('login_form');
                         return attemptLogin();
                     } catch (refreshErr) {
                         return {
-                            response,
+                            response: result.response,
                             data: {
                                 success: false,
                                 message: 'Sessão expirada. Por favor, recarregue a página e tente novamente.'
@@ -523,9 +532,8 @@ function clearErrors(form) {
                     }
                 }
 
-                return { response, data };
+                return result;
             }
-
             try {
                 const { response, data } = await attemptLogin();
 
@@ -573,7 +581,7 @@ function clearErrors(form) {
                                     const csrfInput = document.querySelector('#loginForm input[name="csrf_token"]');
                                     if (csrfInput) fd.append('csrf_token', csrfInput.value);
 
-                                    const res = await fetch(BASE + 'verificar-email/reenviar', {
+                                    const resData = await apiFetch(BASE + 'verificar-email/reenviar', {
                                         method: 'POST',
                                         body: fd,
                                         headers: {
@@ -582,16 +590,15 @@ function clearErrors(form) {
                                             'X-CSRF-TOKEN': csrfToken
                                         }
                                     });
-                                    const resData = await res.json();
                                     Swal.fire({
-                                        icon: res.ok ? 'success' : 'error',
-                                        title: res.ok ? 'E-mail reenviado!' : 'Erro',
-                                        text: resData.message || (res.ok ? 'Verifique sua caixa de entrada.' : 'Tente novamente.'),
+                                        icon: resData?.success === false ? 'error' : 'success',
+                                        title: resData?.success === false ? 'Erro' : 'E-mail reenviado!',
+                                        text: resData?.message || 'Verifique sua caixa de entrada.',
                                         timer: 3000,
                                         showConfirmButton: false
                                     });
-                                } catch {
-                                    Swal.fire({ icon: 'error', title: 'Erro', text: 'Erro de conexão. Tente novamente.', timer: 2500, showConfirmButton: false });
+                                } catch (resendError) {
+                                    Swal.fire({ icon: 'error', title: 'Erro', text: getErrorMessage(resendError, 'Erro de conexão. Tente novamente.'), timer: 2500, showConfirmButton: false });
                                 }
                             }
                         });
@@ -722,7 +729,6 @@ function clearErrors(form) {
             async function attemptRegister() {
                 const formData = new FormData(registerForm);
 
-                // Injetar token Turnstile no registro
                 if (TurnstileManager.registerWidgetId !== null) {
                     const turnstileToken = TurnstileManager.getRegisterToken();
                     if (!turnstileToken) {
@@ -733,19 +739,17 @@ function clearErrors(form) {
                     formData.set('cf-turnstile-response', turnstileToken);
                 }
 
-                const response = await fetch(registerForm.action, {
+                const result = await resolveApiResult(() => apiFetch(registerForm.action, {
                     method: 'POST',
                     body: formData,
                     headers: {
+                        'X-CSRF-Token': getFormCsrfToken('registerForm', 'register_form'),
                         'Accept': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest'
                     }
-                });
+                }));
 
-                let data = null;
-                try { data = await response.json(); } catch (e) { /* non-JSON */ }
-
-                if (isCsrfError(response, data) && !hasRetried) {
+                if (isCsrfError(result.response, result.data) && !hasRetried) {
                     hasRetried = true;
                     try {
                         await refreshCsrfForForm('register_form');
@@ -755,9 +759,8 @@ function clearErrors(form) {
                     }
                 }
 
-                return { response, data };
+                return result;
             }
-
             try {
                 const { response, data } = await attemptRegister();
 
@@ -821,7 +824,7 @@ function clearErrors(form) {
                 }, 2000);
 
             } catch (err) {
-                const message = err.message || 'Erro ao criar conta.';
+                const message = getErrorMessage(err, 'Erro ao criar conta.');
 
                 if (message.toLowerCase().includes('sessão expirada') || message.toLowerCase().includes('csrf')) {
                     Swal.fire({

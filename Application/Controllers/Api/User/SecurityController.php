@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Api\User;
 
 use Application\Controllers\BaseController;
@@ -9,7 +11,7 @@ use Application\Services\Infrastructure\LogService;
 
 class SecurityController extends BaseController
 {
-    public function refreshCsrf(): void
+    public function refreshCsrf(): Response
     {
         if (session_status() !== PHP_SESSION_ACTIVE) {
             session_start();
@@ -22,17 +24,15 @@ class SecurityController extends BaseController
 
         LogService::info('CSRF token renovado', [
             'token_id' => $tokenId,
-            'session_id' => session_id(),
-            'old_token_prefix' => $oldToken ? substr($oldToken, 0, 8) : 'none',
-            'new_token_prefix' => substr($token, 0, 8),
             'user_id' => $_SESSION['user_id'] ?? null,
+            'rotated' => $oldToken !== null,
         ]);
 
         // Forçar escrita da sessão para garantir que o novo token esteja persistido
         // antes de enviar a resposta ao cliente
         $this->releaseSession();
 
-        Response::success([
+        return Response::successResponse([
             'token'    => $token,
             'token_id' => $tokenId,
             'ttl'      => CsrfMiddleware::ttl(),

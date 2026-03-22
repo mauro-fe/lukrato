@@ -6,6 +6,7 @@ namespace Tests\Unit\Services\AI;
 
 use Application\Services\AI\NLP\TextNormalizer;
 use Application\Services\AI\NLP\NumberNormalizer;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -28,9 +29,7 @@ class NLPNormalizerTest extends TestCase
 
     // ─── TextNormalizer ──────────────────────────────────────────
 
-    /**
-     * @dataProvider textNormalizerProvider
-     */
+    #[DataProvider('textNormalizerProvider')]
     public function testTextNormalizer(string $input, string $expected, string $notes): void
     {
         $result = TextNormalizer::normalize($input);
@@ -49,9 +48,7 @@ class NLPNormalizerTest extends TestCase
 
     // ─── NumberNormalizer::normalize ─────────────────────────────
 
-    /**
-     * @dataProvider numberNormalizerProvider
-     */
+    #[DataProvider('numberNormalizerProvider')]
     public function testNumberNormalizer(string $input, string $expected, string $notes): void
     {
         $result = NumberNormalizer::normalize($input);
@@ -70,9 +67,7 @@ class NLPNormalizerTest extends TestCase
 
     // ─── NumberNormalizer::parseValue ────────────────────────────
 
-    /**
-     * @dataProvider parseValueProvider
-     */
+    #[DataProvider('parseValueProvider')]
     public function testParseValue(string $input, float $expected, string $notes): void
     {
         $result = NumberNormalizer::parseValue($input);

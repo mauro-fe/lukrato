@@ -6,12 +6,19 @@ use Application\Models\Conta;
 use Application\Models\Lancamento;
 use Application\DTO\CreateContaDTO;
 use Application\DTO\UpdateContaDTO;
+use Application\Services\User\OnboardingProgressService;
 use Application\Validators\ContaValidator;
 use Illuminate\Database\Capsule\Manager as DB;
 use Throwable;
 
 class ContaService
 {
+    private OnboardingProgressService $onboardingProgressService;
+
+    public function __construct(?OnboardingProgressService $onboardingProgressService = null)
+    {
+        $this->onboardingProgressService = $onboardingProgressService ?? new OnboardingProgressService();
+    }
 
     /**
      * Lista contas do usuário com filtros
@@ -71,6 +78,8 @@ class ContaService
 
             DB::commit();
 
+            $this->syncOnboardingContaCreated($dto->userId);
+
             return [
                 'success' => true,
                 'data' => $conta->fresh()->load('instituicaoFinanceira')->toArray(),
@@ -78,9 +87,13 @@ class ContaService
             ];
         } catch (Throwable $e) {
             DB::rollBack();
+            \Application\Services\Infrastructure\LogService::captureException($e, \Application\Enums\LogCategory::GENERAL, [
+                'action' => 'criar_conta',
+                'user_id' => $dto->userId,
+            ]);
             return [
                 'success' => false,
-                'message' => 'Erro ao criar conta: ' . $e->getMessage(),
+                'message' => 'Erro ao criar conta.',
             ];
         }
     }
@@ -176,7 +189,7 @@ class ContaService
 
             return [
                 'success' => false,
-                'message' => 'Erro ao atualizar conta: ' . $e->getMessage(),
+                'message' => 'Erro ao atualizar conta.',
             ];
         }
     }
@@ -252,6 +265,8 @@ class ContaService
             // Excluir conta
             $conta->delete();
         });
+
+        $this->syncOnboardingStateAfterDeletion($userId);
 
         return [
             'success' => true,
@@ -377,5 +392,29 @@ class ContaService
     {
         $saldos = $this->calcularSaldos($userId, [$contaId], date('Y-m'));
         return (float) ($saldos[$contaId]['saldoAtual'] ?? 0);
+    }
+
+    private function syncOnboardingContaCreated(int $userId): void
+    {
+        try {
+            $this->onboardingProgressService->markContaCreated($userId);
+        } catch (Throwable $e) {
+            \Application\Services\Infrastructure\LogService::captureException($e, \Application\Enums\LogCategory::GENERAL, [
+                'action' => 'sync_onboarding_conta_created',
+                'user_id' => $userId,
+            ]);
+        }
+    }
+
+    private function syncOnboardingStateAfterDeletion(int $userId): void
+    {
+        try {
+            $this->onboardingProgressService->resyncState($userId);
+        } catch (Throwable $e) {
+            \Application\Services\Infrastructure\LogService::captureException($e, \Application\Enums\LogCategory::GENERAL, [
+                'action' => 'sync_onboarding_after_conta_delete',
+                'user_id' => $userId,
+            ]);
+        }
     }
 }

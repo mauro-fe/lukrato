@@ -1,16 +1,12 @@
 /**
  * Support + Assistente IA
  */
+import { apiFetch, apiGet, apiPost, getErrorMessage, logClientError } from '../shared/api.js';
+import { toastError, toastSuccess, toastWarning } from '../shared/ui.js';
+import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
+
 (function () {
     'use strict';
-
-    const BASE = (window.BASE_URL || document.querySelector('meta[name="base-url"]')?.content || '/').replace(/\/?$/, '/');
-    const CSRF = () => document.querySelector('meta[name="csrf-token"]')?.content || '';
-    const JSON_HEADERS = () => ({
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-CSRF-Token': CSRF(),
-    });
 
     const dom = {
         fabContainer: document.getElementById('lkFabContainer'),
@@ -72,17 +68,10 @@
     }
 
     function showToast(message, type) {
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: type,
-                title: message,
-                showConfirmButton: false,
-                timer: 4000,
-                timerProgressBar: true,
-            });
-        }
+        if (type === 'success') return toastSuccess(message);
+        if (type === 'warning') return toastWarning(message);
+        if (type === 'error') return toastError(message);
+        return toastSuccess(message);
     }
 
     function isVideoFile(file) {
@@ -205,14 +194,7 @@
         }
     }
 
-    function escapeHtml(value) {
-        return String(value ?? '')
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
+    const escapeHtml = sharedEscapeHtml;
 
     function escapeAttribute(value) {
         return escapeHtml(value).replace(/`/g, '&#96;');
@@ -346,12 +328,7 @@
         }
 
         try {
-            const res = await fetch(`${BASE}api/suporte/enviar`, {
-                method: 'POST',
-                headers: JSON_HEADERS(),
-                body: JSON.stringify({ message, retorno }),
-            });
-            const data = await res.json();
+            const data = await apiPost('api/suporte/enviar', { message, retorno });
 
             if (data.success) {
                 if (dom.supportMsg) dom.supportMsg.value = '';
@@ -361,8 +338,8 @@
                 showToast(data.message || 'Erro ao enviar mensagem.', 'error');
             }
         } catch (error) {
-            console.error('[Lukrato AI] Falha ao enviar suporte:', error);
-            showToast('Erro de conexao. Tente novamente.', 'error');
+            logClientError('[Lukrato AI] Falha ao enviar suporte', error, 'Falha ao enviar suporte');
+            showToast(getErrorMessage(error, 'Erro de conexao. Tente novamente.'), 'error');
         } finally {
             if (dom.btnSendSupport) {
                 dom.btnSendSupport.disabled = false;
@@ -450,11 +427,7 @@
 
     async function loadOrCreateConversation() {
         try {
-            const res = await fetch(`${BASE}api/ai/conversations`, {
-                headers: JSON_HEADERS(),
-                signal: AbortSignal.timeout(15000),
-            });
-            const data = await res.json();
+            const data = await apiFetch('api/ai/conversations', { method: 'GET' }, { timeout: 15000 });
 
             if (data.success && Array.isArray(data.data) && data.data.length > 0) {
                 const [latest] = data.data.sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
@@ -473,7 +446,7 @@
 
             await loadQuota();
         } catch (error) {
-            console.error('[Lukrato AI] Falha ao carregar conversas:', error);
+            logClientError('[Lukrato AI] Falha ao carregar conversas', error, 'Falha ao carregar conversas');
             clearMessages(true);
             appendAIMessage('assistant', 'Nao foi possivel conectar ao assistente. Tente novamente.', false, {
                 quickReplies: [{ label: 'Tentar de novo', message: 'oi', mode: 'send' }],
@@ -484,18 +457,14 @@
 
     async function createConversation() {
         try {
-            const res = await fetch(`${BASE}api/ai/conversations`, {
-                method: 'POST',
-                headers: JSON_HEADERS(),
-            });
-            const data = await res.json();
+            const data = await apiPost('api/ai/conversations', {});
 
             if (data.success && data.data?.id) {
                 state.currentConvId = data.data.id;
                 return true;
             }
         } catch (error) {
-            console.error('[Lukrato AI] Falha ao criar conversa:', error);
+            logClientError('[Lukrato AI] Falha ao criar conversa', error, 'Falha ao criar conversa');
         }
 
         return false;
@@ -503,10 +472,7 @@
 
     async function loadMessages(convId) {
         try {
-            const res = await fetch(`${BASE}api/ai/conversations/${encodeURIComponent(convId)}/messages`, {
-                headers: JSON_HEADERS(),
-            });
-            const data = await res.json();
+            const data = await apiGet(`api/ai/conversations/${encodeURIComponent(convId)}/messages`);
 
             if (data.success && Array.isArray(data.data) && data.data.length > 0) {
                 clearMessages(false);
@@ -517,7 +483,7 @@
                 setAIStatus('Conversa pronta. Escolha um atalho ou escreva do seu jeito.', 'neutral');
             }
         } catch (error) {
-            console.error('[Lukrato AI] Falha ao carregar mensagens:', error);
+            logClientError('[Lukrato AI] Falha ao carregar mensagens', error, 'Falha ao carregar mensagens');
             setAIStatus('Nao consegui recuperar as mensagens agora.', 'error');
         }
     }
@@ -623,22 +589,21 @@
         const typingEl = appendAIMessage('assistant', '● ● ●', true);
 
         try {
-            const res = await fetch(`${BASE}api/ai/conversations/${encodeURIComponent(state.currentConvId)}/messages`, {
+            const data = await apiFetch(`api/ai/conversations/${encodeURIComponent(state.currentConvId)}/messages`, {
                 method: 'POST',
-                headers: JSON_HEADERS(),
-                body: JSON.stringify({ message }),
-                signal: AbortSignal.timeout(120000),
-            });
+                body: { message },
+            }, { timeout: 120000 });
 
+            const res = { status: 200, ok: true, json: async () => data };
             await handleAssistantResponse(res, message, typingEl);
         } catch (error) {
             if (typingEl) typingEl.remove();
-            const timeout = error?.name === 'TimeoutError';
+            const timeout = /demorou demais|timeout|excedeu o tempo/i.test(String(error?.message || ''));
             appendAIMessage(
                 'assistant',
                 timeout
                     ? 'A resposta demorou demais. Tente novamente em alguns instantes.'
-                    : 'Erro de conexao com o assistente.',
+                    : getErrorMessage(error, 'Erro de conexao com o assistente.'),
                 false,
                 { quickReplies: getRetryQuickReplies() }
             );
@@ -675,22 +640,18 @@
             formData.append('attachment', file);
             if (textMsg) formData.append('message', textMsg);
 
-            const res = await fetch(`${BASE}api/ai/conversations/${encodeURIComponent(state.currentConvId)}/messages`, {
+            const data = await apiFetch(`api/ai/conversations/${encodeURIComponent(state.currentConvId)}/messages`, {
                 method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-Token': CSRF(),
-                },
                 body: formData,
-                signal: AbortSignal.timeout(120000),
-            });
+            }, { timeout: 120000 });
 
+            const res = { status: 200, ok: true, json: async () => data };
             await handleAssistantResponse(res, textMsg || `analise o arquivo ${displayLabel}`, typingEl, 'Anexo enviado para analise.');
         } catch (error) {
             if (typingEl) typingEl.remove();
-            const timeout = error?.name === 'TimeoutError';
-            appendAIMessage('assistant', timeout ? 'A resposta demorou demais. Tente novamente.' : 'Erro de conexao com o assistente.');
-            setAIStatus(timeout ? 'A analise do arquivo excedeu o tempo limite.' : 'Falha ao enviar o arquivo.', 'error');
+            const timeout = /demorou demais|timeout|excedeu o tempo/i.test(String(error?.message || ''));
+            appendAIMessage('assistant', timeout ? 'A resposta demorou demais. Tente novamente.' : getErrorMessage(error, 'Erro de conexao com o assistente.'));
+            setAIStatus(timeout ? 'A analise do arquivo excedeu o tempo limite.' : getErrorMessage(error, 'Falha ao enviar o arquivo.'), 'error');
         } finally {
             finishAIRequest();
         }
@@ -770,21 +731,19 @@
         if (categorySelect?.value) payload.categoria_id = Number(categorySelect.value);
 
         try {
-            const res = await fetch(`${BASE}api/ai/actions/${encodeURIComponent(pendingId)}/confirm`, {
+            const data = await apiFetch(`api/ai/actions/${encodeURIComponent(pendingId)}/confirm`, {
                 method: 'POST',
-                headers: JSON_HEADERS(),
-                body: JSON.stringify(payload),
+                body: payload,
             });
-            const data = await res.json();
 
             wrapper.remove();
             appendAIMessage('assistant', data.data?.message || (data.success ? 'Acao confirmada com sucesso.' : 'Erro ao confirmar a acao.'));
             setAIStatus(data.success ? 'Acao confirmada.' : 'Falha ao confirmar a acao.', data.success ? 'success' : 'error');
         } catch (error) {
-            console.error('[Lukrato AI] Erro ao confirmar acao:', error);
+            logClientError('[Lukrato AI] Erro ao confirmar ação', error, 'Falha ao confirmar ação');
             wrapper.remove();
-            appendAIMessage('assistant', 'Erro de conexao ao confirmar a acao.');
-            setAIStatus('Falha ao confirmar a acao.', 'error');
+            appendAIMessage('assistant', getErrorMessage(error, 'Erro de conexao ao confirmar a acao.'));
+            setAIStatus(getErrorMessage(error, 'Falha ao confirmar a acao.'), 'error');
         }
     }
 
@@ -792,20 +751,16 @@
         disableConfirmButtons(wrapper);
 
         try {
-            const res = await fetch(`${BASE}api/ai/actions/${encodeURIComponent(pendingId)}/reject`, {
-                method: 'POST',
-                headers: JSON_HEADERS(),
-            });
-            const data = await res.json();
+            const data = await apiPost(`api/ai/actions/${encodeURIComponent(pendingId)}/reject`, {});
 
             wrapper.remove();
             appendAIMessage('assistant', data.data?.message || 'Acao cancelada.');
             setAIStatus('Acao cancelada.', 'success');
         } catch (error) {
-            console.error('[Lukrato AI] Erro ao cancelar acao:', error);
+            logClientError('[Lukrato AI] Erro ao cancelar ação', error, 'Falha ao cancelar ação');
             wrapper.remove();
-            appendAIMessage('assistant', 'Erro de conexao ao cancelar a acao.');
-            setAIStatus('Falha ao cancelar a acao.', 'error');
+            appendAIMessage('assistant', getErrorMessage(error, 'Erro de conexao ao cancelar a acao.'));
+            setAIStatus(getErrorMessage(error, 'Falha ao cancelar a acao.'), 'error');
         }
     }
 
@@ -813,8 +768,7 @@
         if (!dom.aiQuotaText || state.planTier === 'ultra') return;
 
         try {
-            const res = await fetch(`${BASE}api/ai/quota`, { headers: JSON_HEADERS() });
-            const data = await res.json();
+            const data = await apiGet('api/ai/quota');
             const chat = data.data?.chat;
 
             if (!data.success || !chat) return;
@@ -835,7 +789,7 @@
                 hideExhaustedOverlay();
             }
         } catch (error) {
-            console.error('[Lukrato AI] Falha ao carregar quota:', error);
+            logClientError('[Lukrato AI] Falha ao carregar quota', error, 'Falha ao carregar quota');
         }
     }
 
@@ -931,7 +885,7 @@
 
             setAIStatus('Gravando audio... toque de novo para parar.', 'loading');
         } catch (error) {
-            console.error('[Lukrato AI] Erro ao acessar microfone:', error);
+            logClientError('[Lukrato AI] Erro ao acessar microfone', error, 'Falha ao acessar microfone');
             showToast('Nao foi possivel acessar o microfone. Verifique as permissoes.', 'error');
             setAIStatus('Microfone indisponivel no momento.', 'error');
         }

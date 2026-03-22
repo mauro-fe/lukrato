@@ -1,14 +1,15 @@
 /**
  * ============================================================================
- * LUKRATO — Forgot Password Page (Vite Module)
+ * LUKRATO - Forgot Password Page (Vite Module)
  * ============================================================================
  */
 
 import { createParticles, createConfetti, getBaseUrl } from '../shared.js';
+import { apiFetch, getErrorMessage } from '../../shared/api.js';
 
 const BASE = getBaseUrl();
 
-// ── Init particles ─────────────────────────────────────────────────────────
+// -- Init particles ---------------------------------------------------------
 createParticles();
 
 // =====================
@@ -52,7 +53,7 @@ createParticles();
 
             try {
                 const formData = new FormData(form);
-                const response = await fetch(form.action, {
+                const data = await apiFetch(form.action, {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -61,19 +62,16 @@ createParticles();
                     }
                 });
 
-                const data = await response.json();
-
-                if (response.ok && data.success) {
+                if (data?.success) {
                     form.style.display = 'none';
                     showMessage(data.message || 'Link de recuperação enviado para seu e-mail!', 'success');
                     createConfetti(150);
                 } else {
-                    showMessage(data.message || 'Erro ao enviar link de recuperação.');
-                    btn.disabled = false;
-                    btn.innerHTML = originalHtml;
+                    showMessage(getErrorMessage({ data }, 'Erro ao enviar link de recuperação.'));
                 }
             } catch (err) {
-                showMessage('Erro de conexão. Tente novamente.');
+                showMessage(getErrorMessage(err, 'Erro de conexão. Tente novamente.'));
+            } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalHtml;
             }

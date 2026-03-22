@@ -7,6 +7,7 @@
  * ============================================================================
  */
 
+import { getCSRFToken as getStoredCSRFToken, refreshCSRFToken } from '../shared/api.js';
 import { formatMoney, parseMoney, escapeHtml, normalizeText, getTipoClass, debounce, calcularRecorrenciaFim } from '../shared/utils.js';
 import { toastSuccess, toastError, showConfirm, confirmDelete, showLoading, hideLoading, refreshIcons } from '../shared/ui.js';
 import { setupMoneyMask, setMoneyValue, getMoneyValue, applyMoneyMask } from '../shared/money-mask.js';
@@ -57,25 +58,14 @@ export const Utils = {
      */
     async getCSRFToken() {
         try {
-            // Tentar buscar token fresco da API
-            const response = await fetch(`${CONFIG.BASE_URL}api/csrf-token.php`);
-            if (response.ok) {
-                const data = await response.json();
-                if (data.token) {
-                    // Atualizar meta tag
-                    const metaTag = document.querySelector('meta[name="csrf-token"]');
-                    if (metaTag) {
-                        metaTag.setAttribute('content', data.token);
-                    }
-                    return data.token;
-                }
-            }
+            const token = await refreshCSRFToken();
+            if (token) return token;
         } catch (error) {
             console.warn('Erro ao buscar token fresco, usando fallback:', error);
         }
 
         // Fallback: tentar meta tag
-        const metaToken = document.querySelector('meta[name="csrf-token"]')?.content;
+        const metaToken = getStoredCSRFToken();
         if (metaToken) {
             return metaToken;
         }
@@ -273,12 +263,17 @@ export const Utils = {
         // Criar elemento de toast
         const toast = document.createElement('div');
         toast.className = `lk-toast lk-toast-${type}`;
-        toast.innerHTML = `
-            <div class="lk-toast-content">
-                <i data-lucide="${type === 'success' ? 'circle-check' : type === 'error' ? 'circle-alert' : 'info'}"></i>
-                <span>${message}</span>
-            </div>
-        `;
+        const content = document.createElement('div');
+        const icon = document.createElement('i');
+        const label = document.createElement('span');
+
+        content.className = 'lk-toast-content';
+        icon.setAttribute('data-lucide', type === 'success' ? 'circle-check' : type === 'error' ? 'circle-alert' : 'info');
+        label.textContent = String(message ?? '');
+
+        content.appendChild(icon);
+        content.appendChild(label);
+        toast.appendChild(content);
 
         // Adicionar ao body
         document.body.appendChild(toast);

@@ -91,7 +91,7 @@ class AudioTranscriptionService
             );
         } catch (GuzzleException $e) {
             $durationMs = (int) ((hrtime(true) - $startTime) / 1_000_000);
-            error_log('[AudioTranscription] Erro Speech API: ' . $e->getMessage());
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[AudioTranscription] Erro Speech API: ' . $e->getMessage());
 
             return new TranscriptionResult(
                 success: false,

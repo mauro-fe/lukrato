@@ -214,6 +214,7 @@
    SWEETALERT2 - MODAL DE SUPORTE
    =================================================================== */
 .swal2-popup.lk-support-modal {
+  color: var(--text-color);
     background: var(--color-bg);
     border-radius: var(--radius-xl);
     padding: 2rem;

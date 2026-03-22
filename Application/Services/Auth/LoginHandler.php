@@ -72,10 +72,18 @@ class LoginHandler implements AuthHandlerInterface
                 'redirect' => Helpers::baseUrl('dashboard')
             ];
         } catch (Throwable $e) {
-            LogService::captureException($e, LogCategory::AUTH, [
-                'action' => 'login_handler',
-                'email' => $credentials->email,
-            ]);
+            if ($e instanceof ValidationException) {
+                LogService::warning($e->getMessage() !== '' ? $e->getMessage() : 'Falha de validação no login', [
+                    'action' => 'login_handler',
+                    'email' => $credentials->email,
+                    'errors' => $e->getErrors(),
+                ]);
+            } else {
+                LogService::captureException($e, LogCategory::AUTH, [
+                    'action' => 'login_handler',
+                    'email' => $credentials->email,
+                ]);
+            }
             throw $e;
         }
     }

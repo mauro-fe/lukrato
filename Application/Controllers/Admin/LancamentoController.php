@@ -3,20 +3,18 @@
 namespace Application\Controllers\Admin;
 
 use Application\Controllers\BaseController;
-use Application\Lib\Auth;
+use Application\Core\Response;
 use Application\Models\Usuario;
 
 class LancamentoController extends BaseController
 {
-
-    public function index(): void
+    public function index(): Response
     {
-        $this->requireAuth();
-
-        $user = Usuario::find(Auth::id());
+        $userId = $this->requireUserId();
+        $user = Usuario::find($userId);
         $isPro = $user ? $user->isPro() : false;
 
-        $this->render(
+        return $this->renderResponse(
             'admin/lancamentos/index',
             [
                 'pageTitle' => 'Lançamentos',

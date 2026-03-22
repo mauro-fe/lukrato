@@ -120,7 +120,6 @@ class CsrfMiddleware
             return;
         }
 
-        $expected = $_SESSION['csrf_tokens'][$tokenId]['value'] ?? null;
         $storedTime = $_SESSION['csrf_tokens'][$tokenId]['time'] ?? null;
         $age = $storedTime ? (time() - $storedTime) : null;
 
@@ -131,16 +130,11 @@ class CsrfMiddleware
             'content_type'   => $_SERVER['CONTENT_TYPE'] ?? null,
             'has_token'      => $token ? true : false,
             'token_source'   => $source,
-            'expected_len'   => is_string($expected) ? strlen($expected) : null,
-            'provided_len'   => is_string($token) ? strlen($token) : null,
-            'expected_prefix' => is_string($expected) ? substr($expected, 0, 8) : null,
-            'provided_prefix' => is_string($token) ? substr($token, 0, 8) : null,
             'token_age_seconds' => $age,
             'ttl_remaining' => $age !== null ? max(0, self::TOKEN_TTL - $age) : null,
             'reason'         => !isset($_SESSION['csrf_tokens'][$tokenId]) ? 'missing_expected'
                 : ($token ? 'mismatch_or_expired' : 'missing_client_token'),
-            'session_id'     => session_id(),
-            'user_id'        => $_SESSION['user_id'] ?? $_SESSION['admin_id'] ?? null,
+            'user_id'        => $_SESSION['user_id'] ?? null,
         ]);
 
         $remainingTtl = self::getTokenRemainingTtl($tokenId);
@@ -157,14 +151,13 @@ class CsrfMiddleware
     }
 
     /**
-     * Tries to extract the token from headers, form/query, or JSON body.
-     * Header is checked first for better retry support.
+     * Tries to extract the token from headers or request body.
+     * Query string is intentionally ignored to avoid leaks via URL, logs and referer.
      *
      * @return array{0: string, 1: string}
      */
     private static function extractToken(Request $request): array
     {
-        // Check headers FIRST - better for retry scenarios where body may have stale token
         $headersToCheck = [
             'X-CSRF-TOKEN',
             'X-CSRF-Token',
@@ -182,21 +175,16 @@ class CsrfMiddleware
             return [$hv, 'header'];
         }
 
-        // Then check form/query body
-        $token = (string) ($request->get('csrf_token') ?? $request->get('_token') ?? '');
+        $token = (string) ($request->post('csrf_token') ?? $request->post('_token') ?? '');
         if ($token !== '') {
             return [$token, 'body'];
         }
 
-        // Finally check JSON body
-        $raw = file_get_contents('php://input');
-        if (is_string($raw) && $raw !== '') {
-            $json = json_decode($raw, true);
-            if (json_last_error() === JSON_ERROR_NONE && is_array($json)) {
-                $jToken = (string) ($json['csrf_token'] ?? $json['_token'] ?? '');
-                if ($jToken !== '') {
-                    return [$jToken, 'json'];
-                }
+        $json = $request->json();
+        if (is_array($json)) {
+            $jsonToken = (string) ($json['csrf_token'] ?? $json['_token'] ?? '');
+            if ($jsonToken !== '') {
+                return [$jsonToken, 'json'];
             }
         }
 

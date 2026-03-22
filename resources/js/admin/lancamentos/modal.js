@@ -1,12 +1,13 @@
-/**
- * LUKRATO — Lançamentos / ModalManager + OptionsManager
+﻿/**
+ * LUKRATO â€” LanÃ§amentos / ModalManager + OptionsManager
  */
 
 import { CONFIG, DOM, STATE, Utils, MoneyMask, Notifications, Modules } from './state.js';
 import { sugerirCategoriaIA as _sugerirCategoriaIA } from '../shared/ai-categorization.js';
+import { apiGet, getErrorMessage } from '../shared/api.js';
 
 // ============================================================================
-// GERENCIAMENTO DE OPÇÕES (SELECTS)
+// GERENCIAMENTO DE OPÃ‡Ã•ES (SELECTS)
 // ============================================================================
 
 const OptionsManager = {
@@ -35,7 +36,7 @@ const OptionsManager = {
         if (currentValue && select.value !== currentValue) {
             const fallback = document.createElement('option');
             fallback.value = currentValue;
-            fallback.textContent = 'Categoria indisponível';
+            fallback.textContent = 'Categoria indisponÃ­vel';
             fallback.selected = true;
             select.appendChild(fallback);
         }
@@ -62,13 +63,8 @@ const OptionsManager = {
             if (group) group.classList.add('hidden');
             return;
         }
-
         try {
-            const res = await fetch(`${CONFIG.BASE_URL}api/categorias/${categoriaId}/subcategorias`, {
-                headers: { 'Accept': 'application/json' }
-            });
-            if (!res.ok) throw new Error();
-            const json = await res.json();
+            const json = await apiGet(`${CONFIG.BASE_URL}api/categorias/${categoriaId}/subcategorias`);
             const subs = json?.data?.subcategorias ?? (Array.isArray(json?.data) ? json.data : []);
 
             const selectedVal = selectedSubcatId ? String(selectedSubcatId) : '';
@@ -90,7 +86,6 @@ const OptionsManager = {
             if (group) group.classList.add('hidden');
         }
     },
-
     populateContaSelect: (select, selectedId) => {
         if (!select) return;
 
@@ -109,7 +104,7 @@ const OptionsManager = {
         if (currentValue && select.value !== currentValue) {
             const fallback = document.createElement('option');
             fallback.value = currentValue;
-            fallback.textContent = 'Conta indisponível';
+            fallback.textContent = 'Conta indisponÃ­vel';
             fallback.selected = true;
             select.appendChild(fallback);
         }
@@ -225,7 +220,7 @@ const ModalManager = {
     },
 
     /**
-     * Sugerir categoria usando IA no modal de edição
+     * Sugerir categoria usando IA no modal de ediÃ§Ã£o
      */
     sugerirCategoriaIA: async () => {
         await _sugerirCategoriaIA({
@@ -385,7 +380,7 @@ const ModalManager = {
 
         const valorFloat = Math.abs(Number(MoneyMask.unformat(valorValue)));
         if (!Number.isFinite(valorFloat) || valorFloat <= 0) {
-            if (DOM.editTransAlert) { DOM.editTransAlert.textContent = 'Informe um valor válido.'; DOM.editTransAlert.classList.remove('d-none'); }
+            if (DOM.editTransAlert) { DOM.editTransAlert.textContent = 'Informe um valor vÃ¡lido.'; DOM.editTransAlert.classList.remove('d-none'); }
             return;
         }
 
@@ -402,10 +397,9 @@ const ModalManager = {
         const submitBtn = DOM.formTrans?.querySelector('button[type="submit"]');
         submitBtn?.setAttribute('disabled', 'disabled');
         try {
-            const res = await Modules.API.updateLancamento(STATE.editingLancamentoId, payload);
-            const json = await res.json().catch(() => null);
-            if (!res.ok || (json && !json.success)) {
-                const msg = json?.message || (json?.errors ? Object.values(json.errors).join('\n') : 'Falha ao atualizar transferência.');
+            const json = await Modules.API.updateLancamento(STATE.editingLancamentoId, payload);
+            if (json && json.success === false) {
+                const msg = getErrorMessage({ data: json }, 'Falha ao atualizar transferencia.');
                 throw new Error(msg);
             }
 
@@ -413,13 +407,16 @@ const ModalManager = {
             Notifications.toast('Transferência atualizada com sucesso!');
             await Modules.DataManager.load();
         } catch (err) {
-            if (DOM.editTransAlert) { DOM.editTransAlert.textContent = err.message || 'Falha ao atualizar.'; DOM.editTransAlert.classList.remove('d-none'); }
+            if (DOM.editTransAlert) {
+                DOM.editTransAlert.textContent = getErrorMessage(err, 'Falha ao atualizar.');
+                DOM.editTransAlert.classList.remove('d-none');
+            }
         } finally {
             submitBtn?.removeAttribute('disabled');
         }
     },
 
-    // Inicializa modal de visualização
+    // Inicializa modal de visualizaÃ§Ã£o
     ensureViewModal: () => {
         if (!STATE.modalViewLanc && DOM.modalViewLancEl) {
             STATE.modalViewLanc = new bootstrap.Modal(DOM.modalViewLancEl);
@@ -427,7 +424,7 @@ const ModalManager = {
         return STATE.modalViewLanc;
     },
 
-    // Abre modal de visualização de lançamento
+    // Abre modal de visualizaÃ§Ã£o de lanÃ§amento
     openViewLancamento: (data) => {
         const modal = ModalManager.ensureViewModal();
         if (!modal || !data) return;
@@ -482,7 +479,7 @@ const ModalManager = {
             DOM.viewLancConta.textContent = data.conta_nome || data.conta || '-';
         }
 
-        // Cartão
+        // CartÃ£o
         if (DOM.viewLancCartaoItem && DOM.viewLancCartao) {
             if (data.cartao_credito_id && data.cartao_nome) {
                 DOM.viewLancCartaoItem.classList.remove('d-none');
@@ -502,7 +499,7 @@ const ModalManager = {
             }
         }
 
-        // Descrição
+        // DescriÃ§Ã£o
         if (DOM.viewLancDescricaoCard && DOM.viewLancDescricao) {
             if (data.descricao && data.descricao.trim()) {
                 DOM.viewLancDescricaoCard.classList.remove('d-none');
@@ -524,7 +521,7 @@ const ModalManager = {
             }
         }
 
-        // Observação
+        // ObservaÃ§Ã£o
         if (DOM.viewLancObservacaoCard && DOM.viewLancObservacao) {
             if (data.observacao && data.observacao.trim()) {
                 DOM.viewLancObservacaoCard.classList.remove('d-none');
@@ -580,13 +577,13 @@ const ModalManager = {
         const descricaoValue = (DOM.inputLancDescricao?.value || '').trim();
         const formaPagamentoValue = DOM.selectLancFormaPagamento?.value || '';
 
-        if (!dataValue) return ModalManager.showLancAlert('Informe a data do lançamento.');
-        if (!tipoValue) return ModalManager.showLancAlert('Selecione o tipo do lançamento.');
+        if (!dataValue) return ModalManager.showLancAlert('Informe a data do lanÃ§amento.');
+        if (!tipoValue) return ModalManager.showLancAlert('Selecione o tipo do lanÃ§amento.');
         if (!contaValue) return ModalManager.showLancAlert('Selecione a conta.');
 
         const valorFloat = Math.abs(Number(MoneyMask.unformat(valorValue)));
         if (!Number.isFinite(valorFloat) || valorFloat <= 0) {
-            return ModalManager.showLancAlert('Informe um valor válido maior que zero.');
+            return ModalManager.showLancAlert('Informe um valor vÃ¡lido maior que zero.');
         }
 
         const payload = {
@@ -602,18 +599,15 @@ const ModalManager = {
             forma_pagamento: formaPagamentoValue || null
         };
 
-        // Continuar com lógica normal de atualização...
+        // Continuar com lÃ³gica normal de atualizaÃ§Ã£o...
         const submitBtn = DOM.formLanc.querySelector('button[type="submit"]');
         submitBtn?.setAttribute('disabled', 'disabled');
 
         try {
-            const res = await Modules.API.updateLancamento(STATE.editingLancamentoId, payload);
-            const json = await res.json().catch(() => null);
+            const json = await Modules.API.updateLancamento(STATE.editingLancamentoId, payload);
 
-            if (!res.ok || (json && !json.success)) {
-                const msg = json?.message ||
-                    (json?.errors ? Object.values(json.errors).join('\n') :
-                        'Falha ao atualizar lançamento.');
+            if (json && json.success === false) {
+                const msg = getErrorMessage({ data: json }, 'Falha ao atualizar lancamento.');
                 throw new Error(msg);
             }
 
@@ -629,7 +623,7 @@ const ModalManager = {
                 }
             }));
         } catch (err) {
-            const errorMsg = err.message || 'Falha ao atualizar lançamento.';
+            const errorMsg = getErrorMessage(err, 'Falha ao atualizar lancamento.');
             ModalManager.showLancAlert(errorMsg);
             Notifications.toast(errorMsg, 'error');
         } finally {
@@ -639,13 +633,13 @@ const ModalManager = {
 };
 
 // ============================================================================
-// REGISTRO NO MÓDULO GLOBAL
+// REGISTRO NO MÃ“DULO GLOBAL
 // ============================================================================
 
 Modules.OptionsManager = OptionsManager;
 Modules.ModalManager = ModalManager;
 
-// Expor sugerirCategoriaIA para onclick inline do modal de edição
+// Expor sugerirCategoriaIA para onclick inline do modal de ediÃ§Ã£o
 window._editLancSugerirCategoriaIA = ModalManager.sugerirCategoriaIA;
 
 export { OptionsManager, ModalManager };

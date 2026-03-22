@@ -5,6 +5,7 @@ namespace Application\Services\Conta;
 use Application\Models\Lancamento;
 use Application\Models\Conta;
 use Application\Repositories\ContaRepository;
+use Application\Services\User\OnboardingProgressService;
 use Illuminate\Database\Capsule\Manager as DB;
 use ValueError;
 use Throwable;
@@ -12,10 +13,15 @@ use Throwable;
 class TransferenciaService
 {
     private ContaRepository $contaRepo;
+    private OnboardingProgressService $onboardingProgressService;
 
-    public function __construct(?ContaRepository $contaRepo = null)
+    public function __construct(
+        ?ContaRepository $contaRepo = null,
+        ?OnboardingProgressService $onboardingProgressService = null
+    )
     {
         $this->contaRepo = $contaRepo ?? new ContaRepository();
+        $this->onboardingProgressService = $onboardingProgressService ?? new OnboardingProgressService();
     }
 
     /**
@@ -75,6 +81,7 @@ class TransferenciaService
             ]);
 
             DB::commit();
+            $this->syncOnboardingLancamentoCreated($userId, $transferencia->created_at);
             return $transferencia;
         } catch (Throwable $e) {
             DB::rollBack();
@@ -140,5 +147,17 @@ class TransferenciaService
             ->orderBy('data', 'desc')
             ->orderBy('id', 'desc')
             ->get();
+    }
+
+    private function syncOnboardingLancamentoCreated(int $userId, \DateTimeInterface|string|null $createdAt = null): void
+    {
+        try {
+            $this->onboardingProgressService->markLancamentoCreated($userId, $createdAt);
+        } catch (Throwable $e) {
+            \Application\Services\Infrastructure\LogService::captureException($e, \Application\Enums\LogCategory::GENERAL, [
+                'action' => 'sync_onboarding_transferencia_created',
+                'user_id' => $userId,
+            ]);
+        }
     }
 }

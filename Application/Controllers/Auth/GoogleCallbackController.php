@@ -5,15 +5,13 @@ declare(strict_types=1);
 namespace Application\Controllers\Auth;
 
 use Application\Controllers\BaseController;
+use Application\Core\Response;
+use Application\Enums\LogCategory;
 use Application\Services\Auth\GoogleAuthService;
 use Application\Services\Infrastructure\LogService;
-use Application\Enums\LogCategory;
 use Exception;
 use Throwable;
 
-/**
- * Controller para processar callback do Google OAuth
- */
 class GoogleCallbackController extends BaseController
 {
     private GoogleAuthService $googleAuthService;
@@ -24,24 +22,20 @@ class GoogleCallbackController extends BaseController
         $this->googleAuthService = $googleAuthService ?? new GoogleAuthService();
     }
 
-    public function callback(): void
+    public function callback(): Response
     {
         try {
             LogService::info('Google callback iniciado', [
                 'query_params' => $_GET,
-                'env_redirect_uri' => $_ENV['GOOGLE_REDIRECT_URI'] ?? 'NÃO DEFINIDO',
+                'env_redirect_uri' => $_ENV['GOOGLE_REDIRECT_URI'] ?? 'NAO DEFINIDO',
                 'base_url' => BASE_URL,
             ]);
 
-            // Se já estiver logado, redireciona para dashboard
             if ($this->isAuthenticated()) {
-                $this->redirect('dashboard');
-                return;
+                return $this->buildRedirectResponse('dashboard');
             }
 
-            // Valida parâmetros do callback
             $this->validateCallbackParams();
-
             $code = $this->getQuery('code');
 
             LogService::info('Processando callback do Google', [
@@ -50,94 +44,77 @@ class GoogleCallbackController extends BaseController
                 'code_received' => !empty($code),
             ]);
 
-            // Processa autenticação via Google (verifica se usuário existe)
             $result = $this->googleAuthService->handleCallback($code);
 
-            // Se precisa confirmar criação de conta
             if ($result['needs_confirmation'] ?? false) {
                 $_SESSION['google_pending_user'] = $result['user_info'];
-                $this->redirect('auth/google/confirm-page');
-                return;
+                return $this->buildRedirectResponse('auth/google/confirm-page');
             }
 
             $usuario = $result['usuario'];
             $isNew = $result['is_new'];
 
-            // Obtém dados do usuário para sessão
             $userInfo = [
                 'id' => $usuario->google_id,
                 'email' => $usuario->email,
                 'picture' => $_SESSION['google_user_picture'] ?? null,
             ];
 
-            // Realiza login
             $this->googleAuthService->loginUser($usuario, $userInfo);
 
-            // Redireciona para intended URL ou dashboard
             $intended = $_SESSION['login_intended'] ?? '';
             unset($_SESSION['login_intended']);
 
             if ($isNew) {
-                $this->redirect('dashboard?welcome=1');
-            } elseif ($intended !== '' && preg_match('#^[a-zA-Z0-9/_\-]+$#', $intended)) {
-                $this->redirect($intended);
-            } else {
-                $this->redirect('dashboard');
+                return $this->buildRedirectResponse('dashboard?welcome=1');
             }
+
+            if ($intended !== '' && preg_match('#^[a-zA-Z0-9/_\-]+$#', $intended)) {
+                return $this->buildRedirectResponse($intended);
+            }
+
+            return $this->buildRedirectResponse('dashboard');
         } catch (Exception $e) {
-            $this->handleCallbackError($e);
+            return $this->handleCallbackError($e);
         } catch (Throwable $e) {
-            $this->handleCallbackError($e);
+            return $this->handleCallbackError($e);
         }
     }
 
-    /**
-     * Exibe página de confirmação para criar conta
-     */
-    public function confirmPage(): void
+    public function confirmPage(): Response
     {
         if ($this->isAuthenticated()) {
-            $this->redirect('dashboard');
-            return;
+            return $this->buildRedirectResponse('dashboard');
         }
 
-        if (empty($_SESSION['google_pending_user'])) {
-            $this->redirect('login');
-            return;
+        $googleData = $_SESSION['google_pending_user'] ?? null;
+        if (!$googleData) {
+            return $this->buildRedirectResponse('login');
         }
 
-        require BASE_PATH . '/views/site/auth/google-confirm.php';
+        return $this->renderResponse('site/auth/google-confirm', [
+            'googleData' => $googleData,
+        ]);
     }
 
-    /**
-     * Confirma criação da conta via Google
-     */
-    public function confirm(): void
+    public function confirm(): Response
     {
         try {
             if ($this->isAuthenticated()) {
-                $this->redirect('dashboard');
-                return;
+                return $this->buildRedirectResponse('dashboard');
             }
 
             $pendingUser = $_SESSION['google_pending_user'] ?? null;
             if (!$pendingUser) {
                 $this->setError('Sessão expirada. Tente novamente.');
-                $this->redirect('login');
-                return;
+                return $this->buildRedirectResponse('login');
             }
 
-            // Recupera código de indicação da sessão (se existir)
             $referralCode = $_SESSION['pending_referral_code'] ?? '';
-
-            // Cria o usuário
             $usuario = $this->googleAuthService->createUserFromPending($pendingUser, $referralCode);
 
-            // Limpa dados pendentes
-            unset($_SESSION['google_pending_user']);
-            unset($_SESSION['pending_referral_code']);
+            unset($_SESSION['google_pending_user'], $_SESSION['pending_referral_code']);
 
-            // Faz login
             $userInfo = [
                 'id' => $usuario->google_id,
                 'email' => $usuario->email,
@@ -145,7 +122,6 @@ class GoogleCallbackController extends BaseController
             ];
             $this->googleAuthService->loginUser($usuario, $userInfo);
 
-            // Limpa intended (conta nova vai para welcome)
             unset($_SESSION['login_intended']);
 
             LogService::info('Conta criada via Google após confirmação', [
@@ -153,28 +129,30 @@ class GoogleCallbackController extends BaseController
                 'email' => $usuario->email,
             ]);
 
-            $this->redirect('dashboard?welcome=1');
+            return $this->buildRedirectResponse('dashboard?welcome=1');
         } catch (Exception $e) {
             LogService::captureException($e, LogCategory::AUTH, [
                 'action' => 'google_confirm_account',
             ]);
-            $this->setError('Erro ao criar conta: ' . $e->getMessage());
-            $this->redirect('login');
+            $this->setError($this->internalErrorMessage(
+                $e,
+                'Erro ao criar conta com Google. Tente novamente.',
+                ['action' => 'google_confirm_account']
+            ));
+
+            return $this->buildRedirectResponse('login');
         }
     }
 
-    /**
-     * Cancela criação da conta via Google
-     */
-    public function cancel(): void
+    public function cancel(): Response
     {
         unset($_SESSION['google_pending_user']);
         $this->setError('Cadastro cancelado.');
-        $this->redirect('login');
+
+        return $this->buildRedirectResponse('login');
     }
 
     /**
-     * Valida parâmetros recebidos no callback
      * @throws Exception
      */
     private function validateCallbackParams(): void
@@ -199,17 +177,19 @@ class GoogleCallbackController extends BaseController
         }
     }
 
-    /**
-     * Trata erros do callback
-     */
-    private function handleCallbackError(Throwable $e): void
+    private function handleCallbackError(Throwable $e): Response
     {
         LogService::captureException($e, LogCategory::AUTH, [
             'action' => 'google_callback',
             'code' => $this->getQuery('code', 'N/A'),
         ]);
 
-        $this->setError('Erro ao processar login com Google: ' . $e->getMessage());
-        $this->redirect('login');
+        $this->setError($this->internalErrorMessage(
+            $e,
+            'Erro ao processar login com Google. Tente novamente.',
+            ['action' => 'google_callback']
+        ));
+
+        return $this->buildRedirectResponse('login');
     }
 }

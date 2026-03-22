@@ -10,22 +10,18 @@ use Application\Middlewares\RateLimitMiddleware;
 
 class RateLimitSecurityCheck extends AbstractSecurityCheck
 {
-    private ?CacheService $cache;
+    private CacheService $cache;
     private string $prefix;
 
     public function __construct(Request $request, ?CacheService $cache = null, string $prefix = 'login')
     {
         parent::__construct($request);
-        $this->cache = $cache;
+        $this->cache = $cache ?? new CacheService();
         $this->prefix = $prefix;
     }
 
     protected function performCheck(Request $request): void
     {
-        if ($this->cache === null) {
-            return; // Falha aberta
-        }
-
         $rateLimiter = new RateLimitMiddleware($this->cache);
         $identifier = RateLimitMiddleware::getIdentifier($request);
         $rateLimiter->handle($request, $this->prefix . ':' . $identifier);

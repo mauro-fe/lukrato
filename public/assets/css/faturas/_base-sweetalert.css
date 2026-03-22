@@ -9,11 +9,13 @@
 
 .swal2-container.swal-above-modal .swal2-popup {
   z-index: 999999 !important;
+  background: var(--color-bg) !important;
+  color: var(--text-color);
+
 }
 
 .swal2-container.swal2-backdrop-show.swal-above-modal {
   z-index: 999998 !important;
-  background: var(--color-bg) !important;
 }
 
 .swal2-container {

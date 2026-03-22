@@ -1,68 +1,60 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Api\User;
 
 use Application\Controllers\BaseController;
+use Application\Core\Exceptions\ValidationException;
 use Application\Core\Response;
-use Application\Models\Usuario;
 use Application\Models\Telefone;
+use Application\Models\Usuario;
 use Application\Services\Communication\MailService;
 use Application\Services\Infrastructure\CacheService;
 
 class SupportController extends BaseController
 {
-    public function send(): void
-    {
-        $this->requireAuthApi();
+    private MailService $mailService;
 
-        $data    = json_decode(file_get_contents('php://input'), true) ?? [];
-        $message = trim($data['message'] ?? '');
-        $retorno = $data['retorno'] ?? null; // "email" ou "whatsapp"
+    public function __construct(?MailService $mailService = null, ?CacheService $cache = null)
+    {
+        parent::__construct(cache: $cache);
+        $this->mailService = $mailService ?? new MailService();
+    }
+
+    public function send(): Response
+    {
+        $userId = $this->requireApiUserIdOrFail();
+
+        $data = $this->getRequestPayload();
+        $message = trim((string) ($data['message'] ?? ''));
+        $retorno = $data['retorno'] ?? null;
 
         if (!in_array($retorno, ['email', 'whatsapp'], true)) {
             $retorno = null;
         }
 
+        $messageValidation = 'Mensagem é obrigatória e deve ter pelo menos 10 caracteres.';
+
         if ($message === '' || mb_strlen($message) < 10) {
-            (new Response())
-                ->jsonBody([
-                    'success' => false,
-                    'message' => 'Mensagem é obrigatória e deve ter pelo menos 10 caracteres.',
-                    'errors'  => ['message' => 'Mensagem é obrigatória e deve ter pelo menos 10 caracteres.'],
-                ])
-                ->send();
-            return;
-        }
-
-        $userId = $this->userId;
-
-        if (!$userId) {
-            (new Response())
-                ->jsonBody([
-                    'success' => false,
-                    'message' => 'Não foi possível identificar o usuário logado.',
-                ])
-                ->send();
-            return;
+            return Response::jsonResponse([
+                'success' => false,
+                'message' => $messageValidation,
+                'errors' => ['message' => $messageValidation],
+            ]);
         }
 
         $usuario = Usuario::find($userId);
-
         if (!$usuario) {
-            (new Response())
-                ->jsonBody([
-                    'success' => false,
-                    'message' => 'Usuário não encontrado.',
-                ])
-                ->send();
-            return;
+            return Response::jsonResponse([
+                'success' => false,
+                'message' => 'Usuário não encontrado.',
+            ]);
         }
 
-        $nome = trim($usuario->nome ?? 'Usuário Lukrato');
+        $nome = trim((string) ($usuario->nome ?? 'Usuário Lukrato'));
+        $email = trim((string) ($usuario->email ?? ''));
 
-        $email = trim($usuario->email ?? '');
-
-        // Busca telefone + DDD na tabela telefones (com relação ddd)
         $telefoneModel = Telefone::with('ddd')
             ->where('id_usuario', $usuario->id ?? $usuario->id_usuario ?? null)
             ->first();
@@ -70,8 +62,8 @@ class SupportController extends BaseController
         $foneFormatado = null;
 
         if ($telefoneModel) {
-            $ddd  = $telefoneModel->ddd->codigo ?? null;   // precisa da relação ddd() no model Telefone
-            $num  = trim($telefoneModel->numero ?? '');
+            $ddd = $telefoneModel->ddd->codigo ?? null;
+            $num = trim((string) ($telefoneModel->numero ?? ''));
 
             if ($num !== '') {
                 $foneFormatado = $ddd
@@ -81,23 +73,16 @@ class SupportController extends BaseController
         }
 
         try {
-            // Rate limit: máximo 3 mensagens de suporte por hora por usuário
-            $cache = new CacheService();
-            $cache->checkRateLimit("support:{$userId}", 3, 3600);
-        } catch (\Application\Core\Exceptions\ValidationException $e) {
-            (new Response())
-                ->jsonBody([
-                    'success' => false,
-                    'message' => 'Você já enviou várias mensagens recentemente. Aguarde um pouco antes de enviar outra.',
-                ])
-                ->send();
-            return;
+            $this->cache?->checkRateLimit("support:{$userId}", 3, 3600);
+        } catch (ValidationException $e) {
+            return Response::jsonResponse([
+                'success' => false,
+                'message' => 'Você já enviou várias mensagens recentemente. Aguarde um pouco antes de enviar outra.',
+            ]);
         }
 
         try {
-            $mailService = new MailService();
-
-            $mailService->sendSupportMessage(
+            $this->mailService->sendSupportMessage(
                 $email,
                 $nome,
                 $message,
@@ -105,26 +90,21 @@ class SupportController extends BaseController
                 $retorno
             );
 
-            (new Response())
-                ->jsonBody([
-                    'success' => true,
-                    'message' => 'Mensagem enviada com sucesso. Em breve entraremos em contato.',
-                ])
-                ->send();
+            return Response::jsonResponse([
+                'success' => true,
+                'message' => 'Mensagem enviada com sucesso. Em breve entraremos em contato.',
+            ]);
         } catch (\InvalidArgumentException $e) {
-            (new Response())
-                ->jsonBody([
-                    'success' => false,
-                    'message' => $e->getMessage(),
-                ])
-                ->send();
+            return $this->domainErrorResponse(
+                $e,
+                'Não foi possível validar a mensagem de suporte.',
+                422
+            );
         } catch (\Throwable $e) {
-            (new Response())
-                ->jsonBody([
-                    'success' => false,
-                    'message' => 'Não foi possível enviar sua mensagem de suporte. Tente novamente mais tarde.',
-                ])
-                ->send();
+            return $this->failAndLogResponse(
+                $e,
+                'Não foi possível enviar sua mensagem de suporte. Tente novamente mais tarde.'
+            );
         }
     }
 }

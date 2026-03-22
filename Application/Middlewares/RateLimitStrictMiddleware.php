@@ -59,7 +59,30 @@ class RateLimitStrictMiddleware
         }
 
         $attempts[] = $now;
-        $this->cacheService->set($cacheKey, $attempts, self::TIME_WINDOW);
+        $stored = $this->cacheService->set($cacheKey, $attempts, self::TIME_WINDOW);
+
+        if ($stored) {
+            return;
+        }
+
+        LogService::persist(
+            level: LogLevel::ERROR,
+            category: LogCategory::SECURITY,
+            message: 'Falha ao persistir estado de rate limit estrito',
+            context: [
+                'ip' => $request->ip(),
+                'identifier' => $identifier,
+                'uri' => $_SERVER['REQUEST_URI'] ?? '',
+                'method' => $_SERVER['REQUEST_METHOD'] ?? '',
+                'tier' => 'strict',
+            ],
+        );
+
+        throw new ValidationException(
+            ['rate_limit' => 'Protecao temporariamente indisponivel. Tente novamente em instantes.'],
+            'Validation failed',
+            429
+        );
     }
 
     public static function getIdentifier(Request $request): string

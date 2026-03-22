@@ -6,86 +6,68 @@ namespace Application\Controllers\Api\Plan;
 
 use Application\Controllers\BaseController;
 use Application\Core\Response;
-use Application\Lib\Auth;
-use Application\Services\Plan\PlanLimitService;
-use Application\Services\Infrastructure\LogService;
 use Application\Enums\LogCategory;
+use Application\Services\Infrastructure\LogService;
+use Application\Services\Plan\PlanLimitService;
 
 /**
- * Controller para consultar limites e status do plano do usuário
+ * Controller para consultar limites e status do plano do usuario
  */
 class PlanController extends BaseController
 {
     private PlanLimitService $limitService;
 
-    public function __construct()
+    public function __construct(?PlanLimitService $limitService = null)
     {
         parent::__construct();
-        $this->limitService = new PlanLimitService();
+        $this->limitService = $limitService ?? new PlanLimitService();
     }
 
     /**
      * GET /api/plan/limits
-     * Retorna todos os limites e uso atual do usuário
+     * Retorna todos os limites e uso atual do usuario
      */
-    public function limits(): void
+    public function limits(): Response
     {
-        $userId = Auth::id();
-
-        if (!$userId) {
-            Response::error('Não autenticado', 401);
-            return;
-        }
-
-        $this->releaseSession();
+        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
 
         try {
             $summary = $this->limitService->getLimitsSummary($userId);
 
-            Response::success($summary);
+            return Response::successResponse($summary);
         } catch (\Throwable $e) {
             LogService::captureException($e, LogCategory::SUBSCRIPTION, [
                 'action' => 'get_plan_limits',
                 'user_id' => $userId,
             ], $userId);
 
-            // Retornar resposta padrão com limites do plano free para não liberar acesso indevido
             $freeConfig = $this->limitService->getConfig()['limits']['free'] ?? [];
-            Response::success(
-                [
-                    'plan' => 'free',
-                    'is_pro' => false,
-                    'contas' => ['allowed' => true, 'limit' => $freeConfig['max_contas'] ?? 2, 'used' => 0],
-                    'cartoes' => ['allowed' => true, 'limit' => $freeConfig['max_cartoes'] ?? 1, 'used' => 0],
-                    'categorias' => ['allowed' => true, 'limit' => $freeConfig['max_categorias_custom'] ?? 10, 'used' => 0],
-                    'metas' => ['allowed' => true, 'limit' => $freeConfig['max_metas'] ?? 2, 'used' => 0],
-                    'historico' => ['restricted' => true, 'months_limit' => $freeConfig['historico_meses'] ?? 3],
-                    'features' => [],
-                    'upgrade_url' => '/assinatura',
-                ]
-            );
+
+            return Response::successResponse([
+                'plan' => 'free',
+                'is_pro' => false,
+                'contas' => ['allowed' => true, 'limit' => $freeConfig['max_contas'] ?? 2, 'used' => 0],
+                'cartoes' => ['allowed' => true, 'limit' => $freeConfig['max_cartoes'] ?? 1, 'used' => 0],
+                'categorias' => ['allowed' => true, 'limit' => $freeConfig['max_categorias_custom'] ?? 10, 'used' => 0],
+                'metas' => ['allowed' => true, 'limit' => $freeConfig['max_metas'] ?? 2, 'used' => 0],
+                'historico' => ['restricted' => true, 'months_limit' => $freeConfig['historico_meses'] ?? 3],
+                'features' => [],
+                'upgrade_url' => '/assinatura',
+            ]);
         }
     }
 
     /**
      * GET /api/plan/features
-     * Retorna as features disponíveis para o usuário
+     * Retorna as features disponiveis para o usuario
      */
-    public function features(): void
+    public function features(): Response
     {
-        $userId = Auth::id();
-
-        if (!$userId) {
-            Response::error('Não autenticado', 401);
-            return;
-        }
-
-        $this->releaseSession();
-
+        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
         $isPro = $this->limitService->isPro($userId);
         $features = $this->limitService->getFeatures($userId);
 
-        Response::success([
+        return Response::successResponse([
             'plan' => $isPro ? 'pro' : 'free',
             'is_pro' => $isPro,
             'features' => $features,
@@ -94,54 +76,35 @@ class PlanController extends BaseController
 
     /**
      * GET /api/plan/can-create/{resource}
-     * Verifica se o usuário pode criar um recurso específico
+     * Verifica se o usuario pode criar um recurso especifico
      */
-    public function canCreate(string $resource): void
+    public function canCreate(string $resource): Response
     {
-        $userId = Auth::id();
-
-        if (!$userId) {
-            Response::error('Não autenticado', 401);
-            return;
-        }
-
-        $this->releaseSession();
+        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
 
         $result = match ($resource) {
-            'conta', 'contas', 'account', 'accounts'
-            => $this->limitService->canCreateConta($userId),
-            'cartao', 'cartoes', 'card', 'cards'
-            => $this->limitService->canCreateCartao($userId),
-            'categoria', 'categorias', 'category', 'categories'
-            => $this->limitService->canCreateCategoria($userId),
-            'meta', 'metas', 'goal', 'goals'
-            => $this->limitService->canCreateMeta($userId),
+            'conta', 'contas', 'account', 'accounts' => $this->limitService->canCreateConta($userId),
+            'cartao', 'cartoes', 'card', 'cards' => $this->limitService->canCreateCartao($userId),
+            'categoria', 'categorias', 'category', 'categories' => $this->limitService->canCreateCategoria($userId),
+            'meta', 'metas', 'goal', 'goals' => $this->limitService->canCreateMeta($userId),
             default => [
                 'allowed' => true,
-                'error' => 'Recurso não rastreado',
+                'error' => 'Recurso nao rastreado',
             ],
         };
 
-        Response::success(['resource' => $resource, ...$result]);
+        return Response::successResponse(['resource' => $resource, ...$result]);
     }
 
     /**
      * GET /api/plan/history-restriction
-     * Retorna informações sobre restrição de histórico
+     * Retorna informacoes sobre restricao de historico
      */
-    public function historyRestriction(): void
+    public function historyRestriction(): Response
     {
-        $userId = Auth::id();
-
-        if (!$userId) {
-            Response::error('Não autenticado', 401);
-            return;
-        }
-
-        $this->releaseSession();
-
+        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
         $restriction = $this->limitService->getHistoryRestriction($userId);
 
-        Response::success($restriction);
+        return Response::successResponse($restriction);
     }
 }

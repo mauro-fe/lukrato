@@ -8,15 +8,23 @@ use Application\DTO\CreateCartaoCreditoDTO;
 use Application\DTO\UpdateCartaoCreditoDTO;
 use Application\Validators\CartaoCreditoValidator;
 use Application\Services\Infrastructure\LogService;
+use Application\Services\User\OnboardingProgressService;
 use Application\Enums\LogCategory;
 use Illuminate\Database\Capsule\Manager as DB;
 use Throwable;
 
 class CartaoCreditoService
 {
+    private CartaoCreditoValidator $validator;
+    private OnboardingProgressService $onboardingProgressService;
+
     public function __construct(
-        private readonly CartaoCreditoValidator $validator = new CartaoCreditoValidator()
-    ) {}
+        ?CartaoCreditoValidator $validator = null,
+        ?OnboardingProgressService $onboardingProgressService = null
+    ) {
+        $this->validator = $validator ?? new CartaoCreditoValidator();
+        $this->onboardingProgressService = $onboardingProgressService ?? new OnboardingProgressService();
+    }
 
     /**
      * Listar cartões do usuário
@@ -106,10 +114,11 @@ class CartaoCreditoService
             DB::rollBack();
             LogService::captureException($e, LogCategory::CARTAO, [
                 'action' => 'criar_cartao',
+                'user_id' => $dto->userId,
             ]);
             return [
                 'success' => false,
-                'message' => 'Erro ao criar cartão: ' . $e->getMessage(),
+                'message' => 'Erro ao criar cartão.',
             ];
         }
     }
@@ -171,9 +180,14 @@ class CartaoCreditoService
             ];
         } catch (Throwable $e) {
             DB::rollBack();
+            LogService::captureException($e, LogCategory::CARTAO, [
+                'action' => 'atualizar_cartao',
+                'cartao_id' => $cartaoId,
+                'user_id' => $userId,
+            ]);
             return [
                 'success' => false,
-                'message' => 'Erro ao atualizar cartão: ' . $e->getMessage(),
+                'message' => 'Erro ao atualizar cartão.',
             ];
         }
     }
@@ -313,6 +327,8 @@ class CartaoCreditoService
             $cartao->delete();
         });
 
+        $this->syncOnboardingStateAfterDeletion($userId);
+
         return [
             'success' => true,
             'message' => 'Cartão e todos os dados vinculados foram excluídos permanentemente.',
@@ -330,6 +346,18 @@ class CartaoCreditoService
     {
         // Por segurança, redireciona para arquivar
         return $this->arquivarCartao($cartaoId, $userId);
+    }
+
+    private function syncOnboardingStateAfterDeletion(int $userId): void
+    {
+        try {
+            $this->onboardingProgressService->resyncState($userId);
+        } catch (Throwable $e) {
+            LogService::captureException($e, LogCategory::GENERAL, [
+                'action' => 'sync_onboarding_after_cartao_delete',
+                'user_id' => $userId,
+            ]);
+        }
     }
 
     /**
@@ -353,9 +381,14 @@ class CartaoCreditoService
                 'percentual_uso' => $cartao->percentual_uso,
             ];
         } catch (Throwable $e) {
+            LogService::captureException($e, LogCategory::CARTAO, [
+                'action' => 'atualizar_limite_disponivel',
+                'cartao_id' => $cartaoId,
+                'user_id' => $userId,
+            ]);
             return [
                 'success' => false,
-                'message' => 'Erro ao atualizar limite: ' . $e->getMessage(),
+                'message' => 'Erro ao atualizar limite.',
             ];
         }
     }

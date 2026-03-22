@@ -2,95 +2,156 @@
 
 namespace Application\Middlewares;
 
+use Application\Core\Exceptions\HttpResponseException;
+use Application\Core\Exceptions\ValidationException;
 use Application\Core\Request;
 use Application\Core\Router;
-use Application\Core\Exceptions\ValidationException;
-
+use Application\Enums\LogCategory;
+use Application\Enums\LogLevel;
 use Application\Services\Infrastructure\CacheService;
 use Application\Services\Infrastructure\LogService;
-use Application\Enums\LogLevel;
-use Application\Enums\LogCategory;
 
 class RateLimitMiddleware
 {
     private int $maxAttempts;
     private int $timeWindow;
-
     private CacheService $cacheService;
+    private bool $customMaxAttempts;
+    private bool $customTimeWindow;
 
-    /**
-     * Construtor do middleware. Injeta a dependência do CacheService.
-     */
     public function __construct(CacheService $cacheService, ?int $maxAttempts = null, ?int $timeWindow = null)
     {
         $this->cacheService = $cacheService;
+        $this->customMaxAttempts = $maxAttempts !== null;
+        $this->customTimeWindow = $timeWindow !== null;
         $this->maxAttempts = $maxAttempts ?? (int) ($_ENV['RATELIMIT_MAX_ATTEMPTS'] ?? 60);
         $this->timeWindow = $timeWindow ?? (int) ($_ENV['RATELIMIT_TIME_WINDOW'] ?? 60);
     }
 
     /**
-     * Lida com a requisição de entrada para verificar e aplicar a limitação de taxa.
-     *
-     * @param Request $request A instância da requisição HTTP.
-     * @param string $identifier Um identificador único para a taxa (ex: IP do cliente, ID do usuário).
-     * @param string $endpoint Identificador do endpoint para separação de limites.
-     * @throws ValidationException Se o limite de requisições for excedido.
+     * @throws ValidationException
      */
     public function handle(Request $request, string $identifier, string $endpoint = 'global'): void
     {
         $now = time();
-        $cacheKey = "ratelimit:{$endpoint}:{$identifier}";
+        [$resolvedEndpoint, $maxAttempts, $timeWindow, $tier] = $this->resolvePolicy($request, $endpoint);
+        $cacheKey = "ratelimit:{$resolvedEndpoint}:{$identifier}";
 
-        // Recupera as tentativas anteriores do cache (Redis)
         $attempts = $this->cacheService->get($cacheKey, []);
+        $attempts = array_filter($attempts, fn($time) => ($now - $time) < $timeWindow);
 
-        // Limpa as tentativas que estão fora da janela de tempo
-        $attempts = array_filter($attempts, fn($time) => ($now - $time) < $this->timeWindow);
-
-        // Verifica se o número de tentativas excede o limite
-        if (count($attempts) >= $this->maxAttempts) {
+        if (count($attempts) >= $maxAttempts) {
             LogService::persist(
                 level: LogLevel::WARNING,
                 category: LogCategory::SECURITY,
                 message: 'Rate limit excedido',
                 context: [
-                    'ip'         => $request->ip(),
+                    'ip' => $request->ip(),
                     'identifier' => $identifier,
-                    'endpoint'   => $endpoint,
-                    'uri'        => $_SERVER['REQUEST_URI'] ?? '',
-                    'method'     => $_SERVER['REQUEST_METHOD'] ?? '',
-                    'attempts'   => count($attempts),
-                    'limit'      => $this->maxAttempts,
-                    'window'     => $this->timeWindow . 's',
-                    'tier'       => 'standard',
+                    'endpoint' => $resolvedEndpoint,
+                    'uri' => $_SERVER['REQUEST_URI'] ?? '',
+                    'method' => $_SERVER['REQUEST_METHOD'] ?? '',
+                    'attempts' => count($attempts),
+                    'limit' => $maxAttempts,
+                    'window' => $timeWindow . 's',
+                    'tier' => $tier,
                 ],
             );
 
-            // API/AJAX: resposta JSON via exception
             if ($request->wantsJson() || $request->isAjax()) {
-                throw new ValidationException(['rate_limit' => 'Muitas requisições. Por favor, tente novamente em breve.'], 429);
+                throw new ValidationException(
+                    ['rate_limit' => 'Muitas requisições. Por favor, tente novamente em breve.'],
+                    'Validation failed',
+                    429
+                );
             }
 
-            // Web: página HTML de erro 429
-            Router::handleTooManyRequests($request, $this->timeWindow);
+            throw new HttpResponseException(Router::tooManyRequestsResponse($request, $timeWindow));
         }
 
-        // Adiciona a tentativa atual
         $attempts[] = $now;
+        $stored = $this->cacheService->set($cacheKey, $attempts, $timeWindow);
 
-        // Salva as tentativas atualizadas no cache com o TTL da janela de tempo
-        $this->cacheService->set($cacheKey, $attempts, $this->timeWindow);
+        if ($stored) {
+            return;
+        }
 
-        // Se chegou até aqui, a requisição é permitida.
+        LogService::persist(
+            level: LogLevel::ERROR,
+            category: LogCategory::SECURITY,
+            message: 'Falha ao persistir estado de rate limit',
+            context: [
+                'ip' => $request->ip(),
+                'identifier' => $identifier,
+                'endpoint' => $resolvedEndpoint,
+                'uri' => $_SERVER['REQUEST_URI'] ?? '',
+                'method' => $_SERVER['REQUEST_METHOD'] ?? '',
+                'tier' => $tier,
+            ],
+        );
+
+        if ($request->wantsJson() || $request->isAjax()) {
+            throw new ValidationException(
+                ['rate_limit' => 'Protecao temporariamente indisponivel. Tente novamente em instantes.'],
+                'Validation failed',
+                429
+            );
+        }
+
+        throw new HttpResponseException(Router::tooManyRequestsResponse($request, $timeWindow));
+    }
+
+    public static function getIdentifier(Request $request): string
+    {
+        return $request->ip();
     }
 
     /**
-     * Gera um identificador padrão para rate limiting (ex: IP do cliente).
-     * @param Request $request
-     * @return string
+     * @return array{0:string,1:int,2:int,3:string}
      */
-    public static function getIdentifier(Request $request): string
+    private function resolvePolicy(Request $request, string $endpoint): array
     {
-        return $request->ip(); // Utiliza o método ip() da classe Request
+        if ($this->customMaxAttempts || $this->customTimeWindow) {
+            return [$endpoint, $this->maxAttempts, $this->timeWindow, 'custom'];
+        }
+
+        $path = $this->normalizeRequestPath();
+
+        if ($path === '/login/entrar') {
+            return ['auth-login', 5, 60, 'auth-login'];
+        }
+
+        if (in_array($path, ['/recuperar-senha', '/resetar-senha', '/verificar-email/reenviar'], true)) {
+            return ['auth-sensitive', 3, 60, 'auth-sensitive'];
+        }
+
+        if ($this->isAdminPath($path)) {
+            return ['admin', 20, 60, 'admin'];
+        }
+
+        return [$endpoint, $this->maxAttempts, $this->timeWindow, 'standard'];
+    }
+
+    private function isAdminPath(string $path): bool
+    {
+        return str_starts_with($path, '/api/sysadmin')
+            || str_starts_with($path, '/api/cupons')
+            || str_starts_with($path, '/api/campaigns')
+            || $path === '/api/config';
+    }
+
+    private function normalizeRequestPath(): string
+    {
+        $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: '/';
+
+        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+        $basePath = str_replace('/index.php', '', dirname($scriptName));
+        $basePath = rtrim($basePath, '/');
+
+        if ($basePath !== '' && strpos($path, $basePath) === 0) {
+            $path = substr($path, strlen($basePath));
+        }
+
+        return rtrim($path, '/') ?: '/';
     }
 }

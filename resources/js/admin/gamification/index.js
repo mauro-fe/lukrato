@@ -9,7 +9,7 @@
  * ============================================================================
  */
 
-import { getBaseUrl, getCSRFToken } from '../shared/api.js';
+import { apiGet, getBaseUrl, getErrorMessage } from '../shared/api.js';
 import { toastError } from '../shared/ui.js';
 import { escapeHtml, formatDate as sharedFormatDate } from '../shared/utils.js';
 
@@ -68,10 +68,10 @@ let cachedAchievements = null; // Cache conquistas para filtro local
 async function loadAllData() {
     try {
         const [progressData, achievementsData, historyData, leaderboardData] = await Promise.all([
-            fetch(`${BASE_URL}api/gamification/progress`, { credentials: 'same-origin' }).then(r => r.json()),
-            fetch(`${BASE_URL}api/gamification/achievements`, { credentials: 'same-origin' }).then(r => r.json()),
-            fetch(`${BASE_URL}api/gamification/history?limit=20`, { credentials: 'same-origin' }).then(r => r.json()),
-            fetch(`${BASE_URL}api/gamification/leaderboard`, { credentials: 'same-origin' }).then(r => r.json())
+            apiGet(`${BASE_URL}api/gamification/progress`),
+            apiGet(`${BASE_URL}api/gamification/achievements`),
+            apiGet(`${BASE_URL}api/gamification/history`, { limit: 20 }),
+            apiGet(`${BASE_URL}api/gamification/leaderboard`)
         ]);
 
         updateProgressSection(progressData);
@@ -80,7 +80,7 @@ async function loadAllData() {
         updateLeaderboard(leaderboardData);
     } catch (error) {
         console.error('[PAGE] Erro ao carregar dados:', error);
-        toastError('Não foi possível carregar os dados da gamificação');
+        toastError(getErrorMessage(error, 'Nao foi possivel carregar os dados da gamificacao'));
     }
 }
 
@@ -396,8 +396,7 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
             renderAchievements(cachedAchievements);
         } else {
             // Fallback: buscar da API se cache não disponível
-            fetch(`${BASE_URL}api/gamification/achievements`, { credentials: 'same-origin' })
-                .then(r => r.json())
+            apiGet(`${BASE_URL}api/gamification/achievements`)
                 .then(data => {
                     if (data.data?.achievements) {
                         cachedAchievements = data.data.achievements;

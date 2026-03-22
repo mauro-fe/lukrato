@@ -1,68 +1,25 @@
 /**
  * ============================================================================
- * LUKRATO — SysAdmin Cupons Page (Vite Module)
+ * LUKRATO - SysAdmin Cupons Page (Vite Module)
  * ============================================================================
- * Extraído de views/admin/sysadmin/cupons.php
- *
  * Coupon CRUD, statistics, mobile details, eligibility toggles.
  * ============================================================================
  */
 
-const BASE_URL = (() => {
-    const meta = document.querySelector('meta[name="base-url"]')?.content || '';
-    return meta.replace(/\/?$/, '/');
-})();
+import { apiDelete, apiGet, apiPost, getBaseUrl, getErrorMessage } from '../shared/api.js';
+import { escapeHtml } from '../shared/utils.js';
 
-// Função para obter o CSRF Token
-function getCsrfToken() {
-    // Tentar do CSRFManager global primeiro
-    if (window.CSRFManager) {
-        if (typeof window.CSRFManager.getToken === 'function') {
-            const token = window.CSRFManager.getToken();
-            if (token) return token;
-        }
-        if (window.CSRFManager.token) {
-            return window.CSRFManager.token;
-        }
-    }
-
-    // Tentar pegar do meta tag
-    const metaToken = document.querySelector('meta[name="csrf-token"]')?.content;
-    if (metaToken) return metaToken;
-
-    // Meta tag é a fonte canônica em módulos Vite
-    // (sessão PHP não está disponível em ES modules)
-
-    console.warn('CSRF Token não encontrado!');
-    return '';
-}
+const BASE_URL = getBaseUrl();
 
 let cupons = [];
 
-// Helper: escape HTML para prevenir XSS
-function escapeHtml(str) {
-    if (!str) return '';
-    const div = document.createElement('div');
-    div.appendChild(document.createTextNode(str));
-    return div.innerHTML;
-}
-
-// Carregar cupons ao iniciar
 document.addEventListener('DOMContentLoaded', () => {
     carregarCupons();
 });
 
 async function carregarCupons() {
     try {
-        const response = await fetch(`${BASE_URL}api/cupons`, {
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': getCsrfToken()
-            },
-            credentials: 'include'
-        });
-
-        const data = await response.json();
+        const data = await apiGet(`${BASE_URL}api/cupons`);
 
         if (data.success) {
             cupons = data.data.cupons;
@@ -72,7 +29,7 @@ async function carregarCupons() {
         }
     } catch (error) {
         console.error('Erro ao carregar cupons:', error);
-        LKFeedback.error(error.message);
+        LKFeedback.error(getErrorMessage(error, 'Erro ao carregar cupons.'));
     } finally {
         document.getElementById('loading').style.display = 'none';
     }
@@ -91,8 +48,7 @@ function renderizarCupons() {
         return;
     }
 
-    // Atualizar estatísticas
-    const cuponsAtivos = cupons.filter(c => c.is_valid).length;
+    const cuponsAtivos = cupons.filter((c) => c.is_valid).length;
     const totalUsos = cupons.reduce((sum, c) => sum + c.uso_atual, 0);
 
     document.getElementById('statTotalCupons').textContent = cupons.length;
@@ -103,51 +59,50 @@ function renderizarCupons() {
     table.style.display = 'table';
     emptyState.style.display = 'none';
 
-    tbody.innerHTML = cupons.map(cupom => {
-        const statusBadge = cupom.is_valid ?
-            '<span class="badge badge-ativo"><i data-lucide="circle-check"></i> Válido</span>' :
-            '<span class="badge badge-inativo"><i data-lucide="x-circle"></i> Inválido</span>';
+    tbody.innerHTML = cupons.map((cupom) => {
+        const statusBadge = cupom.is_valid
+            ? '<span class="badge badge-ativo"><i data-lucide="circle-check"></i> Valido</span>'
+            : '<span class="badge badge-inativo"><i data-lucide="x-circle"></i> Invalido</span>';
 
-        const tipoBadge = cupom.tipo_desconto === 'percentual' ?
-            '<span class="badge badge-percentual"><i data-lucide="percent"></i> Percentual</span>' :
-            '<span class="badge badge-fixo"><i data-lucide="dollar-sign"></i> Fixo</span>';
+        const tipoBadge = cupom.tipo_desconto === 'percentual'
+            ? '<span class="badge badge-percentual"><i data-lucide="percent"></i> Percentual</span>'
+            : '<span class="badge badge-fixo"><i data-lucide="dollar-sign"></i> Fixo</span>';
 
         let usoBadge = '';
         if (cupom.limite_uso > 0) {
             const percentual = (cupom.uso_atual / cupom.limite_uso) * 100;
             const classe = percentual >= 80 ? 'esgotado' : (percentual >= 50 ? 'limitado' : '');
-            usoBadge =
-                `<span class="uso-badge ${classe}"><i data-lucide="pie-chart"></i> ${cupom.uso_atual}/${cupom.limite_uso}</span>`;
+            usoBadge = `<span class="uso-badge ${classe}"><i data-lucide="pie-chart"></i> ${cupom.uso_atual}/${cupom.limite_uso}</span>`;
         } else {
-            usoBadge =
-                `<span class="uso-badge"><i data-lucide="infinity"></i> ${cupom.uso_atual} usos</span>`;
+            usoBadge = `<span class="uso-badge"><i data-lucide="infinity"></i> ${cupom.uso_atual} usos</span>`;
         }
 
         return `
-                    <tr>
-                        <td><span class="cupom-codigo">${escapeHtml(cupom.codigo)}</span></td>
-                        <td><span class="desconto-valor">${escapeHtml(cupom.desconto_formatado)}</span></td>
-                        <td>${tipoBadge}</td>
-                        <td><i data-lucide="calendar-days" style="margin-right: 0.375rem; opacity: 0.5;"></i>${escapeHtml(cupom.valido_ate)}</td>
-                        <td>${usoBadge}</td>
-                        <td>${statusBadge}</td>
-                        <td>
-                            <button class="btn-action btn-detalhes-mobile" data-action="verDetalhesMobile" data-cupom-id="${cupom.id}" title="Ver detalhes">
-                                <i data-lucide="eye"></i>
-                            </button>
-                            <button class="btn-action btn-ver" data-action="verEstatisticas" data-cupom-id="${cupom.id}" title="Ver estatísticas">
-                                <i data-lucide="bar-chart-3"></i> Ver
-                            </button>
-                            <button class="btn-action btn-excluir" data-action="excluirCupom" data-cupom-id="${cupom.id}" data-cupom-codigo="${escapeHtml(cupom.codigo)}" title="Excluir">
-                                <i data-lucide="trash-2"></i> Excluir
-                            </button>
-                        </td>
-                    </tr>
-                `;
+            <tr>
+                <td><span class="cupom-codigo">${escapeHtml(cupom.codigo)}</span></td>
+                <td><span class="desconto-valor">${escapeHtml(cupom.desconto_formatado)}</span></td>
+                <td>${tipoBadge}</td>
+                <td><i data-lucide="calendar-days" style="margin-right: 0.375rem; opacity: 0.5;"></i>${escapeHtml(cupom.valido_ate)}</td>
+                <td>${usoBadge}</td>
+                <td>${statusBadge}</td>
+                <td>
+                    <button class="btn-action btn-detalhes-mobile" data-action="verDetalhesMobile" data-cupom-id="${cupom.id}" title="Ver detalhes">
+                        <i data-lucide="eye"></i>
+                    </button>
+                    <button class="btn-action btn-ver" data-action="verEstatisticas" data-cupom-id="${cupom.id}" title="Ver estatisticas">
+                        <i data-lucide="bar-chart-3"></i> Ver
+                    </button>
+                    <button class="btn-action btn-excluir" data-action="excluirCupom" data-cupom-id="${cupom.id}" data-cupom-codigo="${escapeHtml(cupom.codigo)}" title="Excluir">
+                        <i data-lucide="trash-2"></i> Excluir
+                    </button>
+                </td>
+            </tr>
+        `;
     }).join('');
 
-    // Renderizar ícones Lucide nos elementos dinâmicos
-    if (typeof lucide !== 'undefined') lucide.createIcons();
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
 }
 
 function abrirModalCriarCupom() {
@@ -204,27 +159,15 @@ document.getElementById('formCupom').addEventListener('submit', async (e) => {
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData.entries());
 
-    // Converter valores
     data.valor_desconto = parseFloat(data.valor_desconto);
-    data.limite_uso = parseInt(data.limite_uso) || 0;
+    data.limite_uso = parseInt(data.limite_uso, 10) || 0;
     data.ativo = true;
     data.apenas_primeira_assinatura = document.getElementById('apenas_primeira_assinatura').checked;
     data.permite_reativacao = document.getElementById('permite_reativacao').checked;
-    data.meses_inatividade_reativacao = parseInt(document.getElementById('meses_inatividade_reativacao').value) || 3;
-
+    data.meses_inatividade_reativacao = parseInt(document.getElementById('meses_inatividade_reativacao').value, 10) || 3;
 
     try {
-        const response = await fetch(`${BASE_URL}api/cupons`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': getCsrfToken()
-            },
-            credentials: 'include',
-            body: JSON.stringify(data)
-        });
-
-        const result = await response.json();
+        const result = await apiPost(`${BASE_URL}api/cupons`, data);
 
         if (result.success) {
             LKFeedback.success(result.message, { toast: true });
@@ -234,14 +177,14 @@ document.getElementById('formCupom').addEventListener('submit', async (e) => {
             throw new Error(result.message || 'Erro ao criar cupom');
         }
     } catch (error) {
-        console.error('Erro:', error);
-        LKFeedback.error(error.message);
+        console.error('Erro ao criar cupom:', error);
+        LKFeedback.error(getErrorMessage(error, 'Erro ao criar cupom.'));
     }
 });
 
 async function excluirCupom(id, codigo) {
     const result = await LKFeedback.confirm(`Deseja realmente excluir o cupom "${codigo}"?`, {
-        title: 'Confirmar exclusão?',
+        title: 'Confirmar exclusao?',
         icon: 'warning',
         isDanger: true,
         confirmButtonText: 'Sim, excluir',
@@ -251,26 +194,7 @@ async function excluirCupom(id, codigo) {
     if (!result.isConfirmed) return;
 
     try {
-        const csrfToken = getCsrfToken();
-
-        const response = await fetch(`${BASE_URL}api/cupons`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': csrfToken
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-                id: id
-            })
-        });
-
-
-        if (!response.ok) {
-            throw new Error(`Erro HTTP: ${response.status}`);
-        }
-
-        const data = await response.json();
+        const data = await apiDelete(`${BASE_URL}api/cupons`, { id });
 
         if (data.success) {
             LKFeedback.success(data.message, { toast: true });
@@ -279,110 +203,95 @@ async function excluirCupom(id, codigo) {
             throw new Error(data.message || 'Erro ao excluir cupom');
         }
     } catch (error) {
-        console.error('❌ Erro ao excluir:', error);
-        LKFeedback.error(error.message || 'Erro ao excluir cupom');
+        console.error('Erro ao excluir cupom:', error);
+        LKFeedback.error(getErrorMessage(error, 'Erro ao excluir cupom.'));
     }
 }
 
 async function verEstatisticas(cupomId) {
     try {
-        const response = await fetch(`${BASE_URL}api/cupons/estatisticas?id=${cupomId}`, {
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': getCsrfToken()
-            },
-            credentials: 'include'
-        });
+        const data = await apiGet(`${BASE_URL}api/cupons/estatisticas`, { id: cupomId });
 
-        const data = await response.json();
-
-        if (data.success) {
-            const {
-                cupom,
-                estatisticas,
-                usos
-            } = data.data;
-
-            let usosHtml = '';
-            if (usos.length > 0) {
-                usosHtml =
-                    '<div style="max-height: 300px; overflow-y: auto; margin-top: 1rem;"><table style="width: 100%; font-size: 0.9rem;"><thead><tr><th style="text-align: left; padding: 0.5rem; border-bottom: 1px solid #ddd;">Usuário</th><th style="text-align: left; padding: 0.5rem; border-bottom: 1px solid #ddd;">Desconto</th><th style="text-align: left; padding: 0.5rem; border-bottom: 1px solid #ddd;">Data</th></tr></thead><tbody>';
-                usos.forEach(uso => {
-                    usosHtml +=
-                        `<tr><td style="padding: 0.5rem; border-bottom: 1px solid #eee;">${escapeHtml(uso.usuario)}<br><small>${escapeHtml(uso.email)}</small></td><td style="padding: 0.5rem; border-bottom: 1px solid #eee;">${escapeHtml(uso.desconto_aplicado)}</td><td style="padding: 0.5rem; border-bottom: 1px solid #eee;">${escapeHtml(uso.usado_em)}</td></tr>`;
-                });
-                usosHtml += '</tbody></table></div>';
-            } else {
-                usosHtml =
-                    '<p style="text-align: center; color: #999; margin-top: 1rem;">Nenhum uso registrado ainda</p>';
-            }
-
-            Swal.fire({
-                title: `Estatísticas: ${escapeHtml(cupom.codigo)}`,
-                html: `
-                            <div style="text-align: left;">
-                                <p><strong>Desconto:</strong> ${escapeHtml(cupom.desconto_formatado)}</p>
-                                <p><strong>Usos:</strong> ${cupom.uso_atual} ${cupom.limite_uso > 0 ? '/ ' + cupom.limite_uso : '(ilimitado)'}</p>
-                                <hr style="margin: 1rem 0;">
-                                <p><strong>Total de Desconto Concedido:</strong> R$ ${estatisticas.total_desconto}</p>
-                                <p><strong>Valor Total Original:</strong> R$ ${estatisticas.total_valor_original}</p>
-                                ${usosHtml}
-                            </div>
-                        `,
-                width: 700,
-                confirmButtonText: 'Fechar'
-            });
-        } else {
-            throw new Error(data.message);
+        if (!data.success) {
+            throw new Error(data.message || 'Erro ao carregar estatisticas');
         }
+
+        const { cupom, estatisticas, usos } = data.data;
+
+        let usosHtml = '';
+        if (usos.length > 0) {
+            usosHtml = '<div style="max-height: 300px; overflow-y: auto; margin-top: 1rem;"><table style="width: 100%; font-size: 0.9rem;"><thead><tr><th style="text-align: left; padding: 0.5rem; border-bottom: 1px solid #ddd;">Usuario</th><th style="text-align: left; padding: 0.5rem; border-bottom: 1px solid #ddd;">Desconto</th><th style="text-align: left; padding: 0.5rem; border-bottom: 1px solid #ddd;">Data</th></tr></thead><tbody>';
+            usos.forEach((uso) => {
+                usosHtml += `<tr><td style="padding: 0.5rem; border-bottom: 1px solid #eee;">${escapeHtml(uso.usuario)}<br><small>${escapeHtml(uso.email)}</small></td><td style="padding: 0.5rem; border-bottom: 1px solid #eee;">${escapeHtml(uso.desconto_aplicado)}</td><td style="padding: 0.5rem; border-bottom: 1px solid #eee;">${escapeHtml(uso.usado_em)}</td></tr>`;
+            });
+            usosHtml += '</tbody></table></div>';
+        } else {
+            usosHtml = '<p style="text-align: center; color: #999; margin-top: 1rem;">Nenhum uso registrado ainda</p>';
+        }
+
+        Swal.fire({
+            title: `Estatisticas: ${escapeHtml(cupom.codigo)}`,
+            html: `
+                <div style="text-align: left;">
+                    <p><strong>Desconto:</strong> ${escapeHtml(cupom.desconto_formatado)}</p>
+                    <p><strong>Usos:</strong> ${cupom.uso_atual} ${cupom.limite_uso > 0 ? '/ ' + cupom.limite_uso : '(ilimitado)'}</p>
+                    <hr style="margin: 1rem 0;">
+                    <p><strong>Total de Desconto Concedido:</strong> R$ ${estatisticas.total_desconto}</p>
+                    <p><strong>Valor Total Original:</strong> R$ ${estatisticas.total_valor_original}</p>
+                    ${usosHtml}
+                </div>
+            `,
+            width: 700,
+            confirmButtonText: 'Fechar'
+        });
     } catch (error) {
-        LKFeedback.error(error.message);
+        LKFeedback.error(getErrorMessage(error, 'Erro ao carregar estatisticas do cupom.'));
     }
 }
 
 function verDetalhesMobile(cupomId) {
-    const cupom = cupons.find(c => c.id === cupomId);
+    const cupom = cupons.find((c) => c.id === cupomId);
     if (!cupom) return;
 
-    const statusText = cupom.is_valid ? '✅ Válido' : '❌ Inválido';
-    const tipoText = cupom.tipo_desconto === 'percentual' ? '📊 Percentual' : '💵 Valor Fixo';
-    const usoText = cupom.limite_uso > 0 ?
-        `${cupom.uso_atual} de ${cupom.limite_uso} usos` :
-        `${cupom.uso_atual} usos (ilimitado)`;
+    const statusText = cupom.is_valid ? 'Valido' : 'Invalido';
+    const tipoText = cupom.tipo_desconto === 'percentual' ? 'Percentual' : 'Valor Fixo';
+    const usoText = cupom.limite_uso > 0
+        ? `${cupom.uso_atual} de ${cupom.limite_uso} usos`
+        : `${cupom.uso_atual} usos (ilimitado)`;
 
     Swal.fire({
         title: escapeHtml(cupom.codigo),
         html: `
             <div style="text-align: left; padding: 1rem;">
                 <div style="margin-bottom: 1rem; padding: 0.75rem; background: rgba(230, 126, 34, 0.1); border-radius: 8px;">
-                    <strong style="color: var(--color-primary);">💰 Desconto:</strong><br>
+                    <strong style="color: var(--color-primary);">Desconto:</strong><br>
                     <span style="font-size: 1.5rem; font-weight: bold; color: var(--color-primary);">${escapeHtml(cupom.desconto_formatado)}</span>
                 </div>
 
                 <div style="display: grid; gap: 0.75rem;">
                     <div>
-                        <strong>📋 Tipo:</strong><br>
+                        <strong>Tipo:</strong><br>
                         <span>${tipoText}</span>
                     </div>
 
                     <div>
-                        <strong>📅 Validade:</strong><br>
+                        <strong>Validade:</strong><br>
                         <span>${escapeHtml(cupom.valido_ate)}</span>
                     </div>
 
                     <div>
-                        <strong>📊 Uso:</strong><br>
+                        <strong>Uso:</strong><br>
                         <span>${usoText}</span>
                     </div>
 
                     <div>
-                        <strong>✅ Status:</strong><br>
+                        <strong>Status:</strong><br>
                         <span>${statusText}</span>
                     </div>
 
                     ${cupom.descricao ? `
                     <div>
-                        <strong>📝 Descrição:</strong><br>
+                        <strong>Descricao:</strong><br>
                         <span>${escapeHtml(cupom.descricao)}</span>
                     </div>
                     ` : ''}
@@ -391,7 +300,7 @@ function verDetalhesMobile(cupomId) {
                 <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd; display: flex; gap: 0.5rem; justify-content: center;">
                     <button data-action="verEstatisticasFromSwal" data-cupom-id="${cupom.id}"
                         style="padding: 0.5rem 1rem; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
-                        <i data-lucide="bar-chart-3"></i> Ver Estatísticas
+                        <i data-lucide="bar-chart-3"></i> Ver Estatisticas
                     </button>
                     <button data-action="excluirCupomFromSwal" data-cupom-id="${cupom.id}" data-cupom-codigo="${escapeHtml(cupom.codigo)}"
                         style="padding: 0.5rem 1rem; background: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
@@ -407,16 +316,12 @@ function verDetalhesMobile(cupomId) {
     });
 }
 
-// ============================================================================
-// EVENT DELEGATION (substitui onclick/onchange handlers em módulos Vite)
-// ============================================================================
-
 document.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
 
     const action = btn.dataset.action;
-    const cupomId = btn.dataset.cupomId ? parseInt(btn.dataset.cupomId) : null;
+    const cupomId = btn.dataset.cupomId ? parseInt(btn.dataset.cupomId, 10) : null;
     const cupomCodigo = btn.dataset.cupomCodigo || '';
 
     switch (action) {
@@ -434,8 +339,7 @@ document.addEventListener('change', (e) => {
     const el = e.target.closest('[data-action]');
     if (!el) return;
 
-    const action = el.dataset.action;
-    switch (action) {
+    switch (el.dataset.action) {
         case 'atualizarPlaceholder': atualizarPlaceholder(); break;
         case 'toggleReativacao': toggleReativacao(); break;
         case 'toggleMesesInatividade': toggleMesesInatividade(); break;

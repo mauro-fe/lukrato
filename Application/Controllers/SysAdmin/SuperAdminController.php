@@ -3,39 +3,32 @@
 namespace Application\Controllers\SysAdmin;
 
 use Application\Controllers\BaseController;
-use Application\Lib\Auth;
+use Application\Core\Response;
 use Application\Models\Usuario;
 
 class SuperAdminController extends BaseController
 {
-    public function index(): void
+    public function index(): Response
     {
-        $this->requireAuth();
-        $user = Auth::user();
+        $this->requireAdminUser();
 
-        // Usar comparação não-estrita para funcionar com string "1" ou int 1
-        if (!$user || $user->is_admin != 1) {
-            $this->redirect('login');
-            return;
-        }
-
-        $totalUsers   = Usuario::count();
-        $totalAdmins  = Usuario::where('is_admin', 1)->count();
-        $newToday     = Usuario::whereDate('created_at', date('Y-m-d'))->count();
-        $recentUsers  = Usuario::orderByDesc('id')
+        $totalUsers = Usuario::count();
+        $totalAdmins = Usuario::where('is_admin', 1)->count();
+        $newToday = Usuario::whereDate('created_at', date('Y-m-d'))->count();
+        $recentUsers = Usuario::orderByDesc('id')
             ->limit(8)
             ->get(['id', 'nome', 'email', 'is_admin', 'created_at']);
 
-        $this->render(
+        return $this->renderResponse(
             'admin/sysadmin/index',
             [
                 'pageTitle' => 'Área Restrita do Dono',
                 'subTitle' => 'Conteúdo exclusivo para administradores',
                 'skipPlanLimits' => true,
                 'metrics' => [
-                    'totalUsers'  => $totalUsers,
+                    'totalUsers' => $totalUsers,
                     'totalAdmins' => $totalAdmins,
-                    'newToday'    => $newToday,
+                    'newToday' => $newToday,
                 ],
                 'recentUsers' => $recentUsers,
             ],

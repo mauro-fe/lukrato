@@ -1,166 +1,86 @@
-/**
- * ============================================================================
- * LUKRATO — Notification Manager
- * ============================================================================
- * Gerencia o sino de notificações, popover e polling de contagem.
- * Extraído de: views/admin/partials/notificacoes/bell.php
- * ============================================================================
- */
+import { apiGet, apiPost, getBaseUrl, getErrorMessage } from '../shared/api.js';
+import { toastError, toastSuccess } from '../shared/ui.js';
+import { escapeHtml } from '../shared/utils.js';
 
 (() => {
-    // Evita múltiplas instâncias
     if (window.__lkNotificationManagerInitialized) {
         return;
     }
     window.__lkNotificationManagerInitialized = true;
 
-    /* ============ Utility/Helper Functions ============ */
-
-    /**
-     * Safely gets base URL from global config or meta tags.
-     * @returns {string} The base URL.
-     */
-    const getBaseUrl = () =>
-        (window.LK?.getBase?.() ??
-            document.querySelector('meta[name="base-url"]')?.content ??
-            '/').replace(/\/$/, '') + '/';
-
-    /**
-     * Safely gets CSRF token.
-     * @returns {string} The CSRF token.
-     */
-    const getCSRF = () =>
-    (window.LK?.getCSRF?.() ??
-        document.querySelector('meta[name="csrf"]')?.content ??
-        document.querySelector('meta[name="csrf-token"]')?.content ??
-        document.getElementById('lk-bell-menu')?.dataset?.csrf ??
-        '');
-
-    /**
-     * Handles common fetch errors (401, 403).
-     * @param {Response} res The fetch response.
-     * @returns {Promise<boolean>} True if an error was handled (redirection/alert).
-     */
-    async function handleFetch403(res) {
-        const base = getBaseUrl();
-        if (res.status === 401) {
-            const here = encodeURIComponent(location.pathname + location.search);
-            location.href = `${base}login?return=${here}`;
-            return true;
-        }
-        if (res.status === 403) {
-            let msg = 'Acesso não permitido.';
-            try {
-                const j = await res.clone().json();
-                msg = j?.message || msg;
-            } catch { }
-            window.Swal?.fire ? Swal.fire('Acesso restrito', msg, 'warning') : alert(msg);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Escapes HTML special characters.
-     * @param {string} s The string to escape.
-     * @returns {string} The escaped string.
-     */
-    function escapeHtml(s) {
-        return String(s ?? '').replace(/[&<>"']/g, m => ({
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#39;'
-        }[m]));
-    }
-
-    /**
-     * Formats notification date/time to a friendly string.
-     * Falls back to raw value if parsing fails.
-     * @param {string|number|Date} value
-     * @returns {string}
-     */
     function formatNotificationTime(value) {
         if (!value) return '';
-        const d = new Date(value);
-        if (Number.isNaN(d.getTime())) return String(value);
-        return d.toLocaleString('pt-BR', {
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return String(value);
+
+        return date.toLocaleString('pt-BR', {
             dateStyle: 'short',
             timeStyle: 'short'
         });
     }
 
-    /* ============ API Service Module ============ */
+    async function handleApiError(error, fallbackTitle = 'Erro') {
+        if (error?.status === 401) {
+            const here = encodeURIComponent(location.pathname + location.search);
+            location.href = `${getBaseUrl()}login?return=${here}`;
+            return true;
+        }
+
+        if (error?.status === 403) {
+            toastError(getErrorMessage(error, 'Acesso nao permitido.'));
+            return true;
+        }
+
+        if (fallbackTitle) {
+            toastError(getErrorMessage(error, fallbackTitle));
+        }
+
+        return false;
+    }
 
     const NotificationApi = {
-        /**
-         * Fetches the list of notifications.
-         * @returns {Promise<Array<object>>} The list of notification items.
-         */
         async fetchList() {
-            const url = `${getBaseUrl()}api/notificacoes`;
-            const r = await fetch(url, {
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json'
+            try {
+                const response = await apiGet('api/notificacoes');
+                const items = response?.data?.itens ?? response?.itens ?? [];
+                return Array.isArray(items) ? items : [];
+            } catch (error) {
+                if (await handleApiError(error, null)) {
+                    return [];
                 }
-            });
-            if (await handleFetch403(r)) return [];
-
-            if (!r.ok) throw new Error(`Falha ao buscar avisos: HTTP ${r.status}`);
-            const j = await r.json();
-
-            const items = j?.data?.itens ?? j?.itens ?? [];
-            return Array.isArray(items) ? items : [];
+                throw error;
+            }
         },
 
-        /**
-         * Fetches the current unread count.
-         * @returns {Promise<number>} The unread count.
-         */
         async fetchUnreadCount() {
-            const url = `${getBaseUrl()}api/notificacoes/unread`;
-            const r = await fetch(url, {
-                credentials: 'include'
-            });
-            if (await handleFetch403(r)) return 0;
-
-            if (!r.ok) throw new Error(`Falha ao buscar contagem: HTTP ${r.status}`);
-            const j = await r.json();
-            return Number(j?.data?.unread ?? j?.unread ?? 0);
+            try {
+                const response = await apiGet('api/notificacoes/unread');
+                return Number(response?.data?.unread ?? response?.unread ?? 0);
+            } catch (error) {
+                if (await handleApiError(error, null)) {
+                    return 0;
+                }
+                throw error;
+            }
         },
 
-        /**
-         * Marks all notifications as read.
-         * @returns {Promise<boolean>} True if successful.
-         */
         async markAllRead() {
-            const token = getCSRF();
-            const body = new FormData();
-            if (token) {
-                body.append('_token', token);
-                body.append('csrf_token', token);
-            }
-
-            const r = await fetch(`${getBaseUrl()}api/notificacoes/marcar-todas`, {
-                method: 'POST',
-                body,
-                credentials: 'include'
-            });
-            if (await handleFetch403(r)) return false;
-
-            // Se retornar 422, pode ser porque só há alertas dinâmicos (não salvos no banco)
-            if (r.status === 422) {
+            try {
+                await apiPost('api/notificacoes/marcar-todas', {});
                 return true;
-            }
+            } catch (error) {
+                if (error?.status === 422) {
+                    return true;
+                }
 
-            if (!r.ok) throw new Error(`Falha ao marcar como lidas: HTTP ${r.status}`);
-            return r.ok;
+                if (await handleApiError(error, null)) {
+                    return false;
+                }
+
+                throw error;
+            }
         }
     };
-
-    /* ============ Notification Manager Class ============ */
 
     class NotificationManager {
         constructor() {
@@ -169,13 +89,14 @@
             this.listEl = document.getElementById('lk-bell-list');
             this.badge = document.getElementById('lk-bell-badge');
             this.markReadBtn = document.getElementById('lk-mark-read');
-
             this.isMenuOpen = false;
             this.loadedOnce = false;
             this.isRefreshing = false;
             this.refreshTimeout = null;
 
-            if (!this.bellBtn || !this.menu || !this.listEl) return;
+            if (!this.bellBtn || !this.menu || !this.listEl) {
+                return;
+            }
 
             const initialText = (this.badge?.textContent ?? '').trim();
             this.initialUnread = Number.parseInt(initialText, 10) || 0;
@@ -186,7 +107,6 @@
 
             this.initEvents();
             this.startPolling();
-            // Primeira atualização após 1 segundo
             setTimeout(() => this.refreshUnread(), 1000);
         }
 
@@ -204,21 +124,16 @@
             document.addEventListener('lukrato:notifications-changed', () => {
                 this.refreshUnread();
             });
-
-            // Recarrega o popover *apenas* quando for visível
             this.menu.addEventListener('transitionend', (event) => {
-                if (event.target !== this.menu) return;
-                if (event.propertyName !== 'opacity') return;
+                if (event.target !== this.menu || event.propertyName !== 'opacity') return;
                 if (this.menu.classList.contains('visible')) {
                     this.loadList();
                 }
             });
         }
 
-        /* ============ UI Control ============ */
-
-        toggleMenu(e) {
-            e?.stopPropagation();
+        toggleMenu(event) {
+            event?.stopPropagation();
             this.isMenuOpen ? this.closeMenu() : this.openMenu();
         }
 
@@ -228,7 +143,9 @@
             this.menu.classList.remove('hidden');
             this.bellBtn.setAttribute('aria-expanded', 'true');
 
-            if (!this.loadedOnce) this.loadList();
+            if (!this.loadedOnce) {
+                this.loadList();
+            }
         }
 
         closeMenu() {
@@ -238,25 +155,26 @@
             this.bellBtn.setAttribute('aria-expanded', 'false');
         }
 
-        handleOutsideClick(e) {
-            if (this.isMenuOpen && !this.menu.contains(e.target) && e.target !== this.bellBtn) {
+        handleOutsideClick(event) {
+            if (this.isMenuOpen && !this.menu.contains(event.target) && event.target !== this.bellBtn) {
                 this.closeMenu();
             }
         }
 
-        handleEsc(e) {
-            if (e.key === 'Escape' && this.isMenuOpen) {
+        handleEsc(event) {
+            if (event.key === 'Escape' && this.isMenuOpen) {
                 this.closeMenu();
             }
         }
 
-        setBadge(n) {
+        setBadge(value) {
             if (!this.badge) return;
-            const v = Number(n || 0);
-            this.unreadCount = v;
-            const label = v > 99 ? '99+' : String(v);
 
-            if (v > 0) {
+            const unread = Number(value || 0);
+            this.unreadCount = unread;
+            const label = unread > 99 ? '99+' : String(unread);
+
+            if (unread > 0) {
                 this.badge.classList.remove('hidden');
                 this.badge.textContent = label;
             } else {
@@ -264,42 +182,40 @@
             }
 
             if (this.bellBtn) {
-                this.bellBtn.classList.toggle('lk-bell-alert', v > 0);
+                this.bellBtn.classList.toggle('lk-bell-alert', unread > 0);
             }
+
             if (this.markReadBtn) {
-                this.markReadBtn.disabled = v === 0;
+                this.markReadBtn.disabled = unread === 0;
             }
         }
 
         renderList(items) {
-            if (!Array.isArray(items) || !items.length) {
-                this.listEl.innerHTML = `
-                    <div class="py-3 text-center" style="opacity:.75">
-                        Nenhum aviso.
-                    </div>`;
+            if (!Array.isArray(items) || items.length === 0) {
+                this.listEl.innerHTML = '<div class="py-3 text-center" style="opacity:.75">Nenhum aviso.</div>';
                 this.setBadge(0);
                 return;
             }
 
-            const unread = items.filter(it => {
-                const r = (it.lida ?? it.read ?? it.is_read ?? false);
-                return r === false || r === 0 || r === '0';
+            const unread = items.filter((item) => {
+                const read = item.lida ?? item.read ?? item.is_read ?? false;
+                return read === false || read === 0 || read === '0';
             }).length;
 
             this.setBadge(unread);
 
-            this.listEl.innerHTML = items.map((it) => {
-                const title = it.titulo || it.title || 'Aviso';
-                const body = it.mensagem || it.body || it.descricao || '';
-                const timeRaw = it.data || it.created_at || it.timestamp || '';
+            this.listEl.innerHTML = items.map((item) => {
+                const title = item.titulo || item.title || 'Aviso';
+                const body = item.mensagem || item.body || item.descricao || '';
+                const timeRaw = item.data || item.created_at || item.timestamp || '';
                 const time = formatNotificationTime(timeRaw);
-                const isRead = (it.lida ?? it.read ?? it.is_read ?? false) ? true : false;
+                const isRead = Boolean(item.lida ?? item.read ?? item.is_read ?? false);
                 const readClass = isRead ? 'is-read' : '';
                 const tagClass = isRead ? 'lk-item-tag-read' : 'lk-item-tag-new';
                 const tagText = isRead ? 'Lida' : 'Novo';
 
                 return `
-                    <div class="lk-popover-item ${readClass}" data-id="${it.id || ''}">
+                    <div class="lk-popover-item ${readClass}" data-id="${item.id || ''}">
                         <div class="lk-popover-item-content">
                             <div class="lk-item-header">
                                 <strong class="lk-item-title">${escapeHtml(title)}</strong>
@@ -308,30 +224,32 @@
                             <div class="lk-item-body">${escapeHtml(body)}</div>
                             ${time ? `<div class="lk-item-time">${escapeHtml(time)}</div>` : ''}
                         </div>
-                    </div>`;
+                    </div>
+                `;
             }).join('');
         }
 
-        /* ============ Data Management ============ */
-
         async loadList() {
             this.listEl.innerHTML = '<div class="py-3 text-center">Carregando...</div>';
-            this.markReadBtn.disabled = true;
+            if (this.markReadBtn) {
+                this.markReadBtn.disabled = true;
+            }
 
             try {
                 const items = await NotificationApi.fetchList();
                 this.renderList(items);
                 this.loadedOnce = true;
-            } catch (e) {
-                console.error('Erro ao carregar lista de avisos:', e);
-                this.listEl.innerHTML =
-                    '<div class="py-3 text-center text-danger">Falha ao carregar avisos.</div>';
+            } catch (error) {
+                console.error('Erro ao carregar lista de avisos:', error);
+                this.listEl.innerHTML = '<div class="py-3 text-center text-danger">Falha ao carregar avisos.</div>';
                 this.setBadge(this.unreadCount);
             }
         }
 
         async refreshUnread() {
-            if (this.isRefreshing) return;
+            if (this.isRefreshing) {
+                return;
+            }
 
             if (this.refreshTimeout) {
                 clearTimeout(this.refreshTimeout);
@@ -347,11 +265,9 @@
                     if (this.isMenuOpen && count > previous) {
                         this.loadList();
                     }
-                } catch (e) {
-                    if (e instanceof TypeError && e.message.includes('NetworkError')) {
-                        // Silencia erros de rede transitórios
-                    } else if (e.message && !e.message.includes('500')) {
-                        console.warn('Falha ao atualizar contagem:', e.message);
+                } catch (error) {
+                    if (!(error instanceof TypeError && error.message.includes('NetworkError'))) {
+                        console.warn('Falha ao atualizar contagem:', error?.message || error);
                     }
                 } finally {
                     this.isRefreshing = false;
@@ -363,24 +279,24 @@
             setInterval(() => this.refreshUnread(), 30000);
         }
 
-        /* ============ Actions ============ */
-
         async handleMarkAllRead() {
+            if (!this.markReadBtn) return;
+
             this.markReadBtn.disabled = true;
             this.markReadBtn.textContent = 'Aguarde...';
 
             try {
                 const ok = await NotificationApi.markAllRead();
-                if (ok) {
-                    this.setBadge(0);
-                    await this.loadList();
-                    window.Swal?.fire?.('Pronto', 'Avisos marcados como lidos.', 'success');
-                } else {
-                    throw new Error('Falha desconhecida ao marcar como lidas.');
+                if (!ok) {
+                    throw new Error('Falha ao marcar como lidas.');
                 }
-            } catch (e) {
-                console.error('Erro ao marcar como lidas:', e);
-                window.Swal?.fire?.('Erro', e.message || 'Falha ao marcar como lidas.', 'error');
+
+                this.setBadge(0);
+                await this.loadList();
+                toastSuccess('Avisos marcados como lidos.');
+            } catch (error) {
+                console.error('Erro ao marcar como lidas:', error);
+                toastError(error?.message || 'Falha ao marcar como lidas.');
             } finally {
                 this.markReadBtn.textContent = 'Marcar como lidas';
                 this.markReadBtn.disabled = this.unreadCount === 0;
@@ -388,10 +304,8 @@
         }
     }
 
-    // Inicializa o gerenciador
     const manager = new NotificationManager();
 
-    // Expõe helpers globais para interação externa
     window.lkNotify = {
         refresh: manager.loadList.bind(manager),
         setUnread: manager.setBadge.bind(manager),
