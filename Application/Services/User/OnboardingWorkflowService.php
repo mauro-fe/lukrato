@@ -6,8 +6,10 @@ namespace Application\Services\User;
 
 use Application\DTO\CreateContaDTO;
 use Application\DTO\ServiceResultDTO;
+use Application\Enums\GamificationAction;
 use Application\Models\Usuario;
 use Application\Services\Conta\ContaService;
+use Application\Services\Gamification\GamificationService;
 use Application\Services\Lancamento\LancamentoCreationService;
 
 class OnboardingWorkflowService
@@ -33,7 +35,7 @@ class OnboardingWorkflowService
     {
         $user = $this->findUser($userId);
         if (!$user) {
-            return $this->failure('Usuário não encontrado', 404);
+            return $this->failure('Usuario nao encontrado', 404);
         }
 
         $progress = $this->progressService->getProgress($userId);
@@ -50,80 +52,13 @@ class OnboardingWorkflowService
     }
 
     /**
-     * @param array<string, mixed> $payload
-     * @return array<string, mixed>
-     */
-    public function storeConta(int $userId, array $payload): array
-    {
-        $name = trim((string) ($payload['nome'] ?? ''));
-        $institutionId = isset($payload['instituicao_financeira_id'])
-            ? (int) $payload['instituicao_financeira_id']
-            : 0;
-        $initialBalance = $this->normalizeCurrencyToFloat($payload['saldo_inicial'] ?? '0,00');
-
-        if ($name === '') {
-            return $this->webFailure('O nome da conta é obrigatório.');
-        }
-
-        if ($institutionId <= 0) {
-            return $this->webFailure('A instituição financeira é obrigatória.');
-        }
-
-        $dto = new CreateContaDTO(
-            userId: $userId,
-            nome: $name,
-            instituicaoFinanceiraId: $institutionId,
-            saldoInicial: $initialBalance,
-        );
-
-        $result = $this->contaService->criarConta($dto);
-        if (!$result['success']) {
-            return $this->webFailure((string) ($result['message'] ?? 'Erro ao criar conta.'));
-        }
-
-        return [
-            'success' => true,
-            'redirect' => 'onboarding',
-        ];
-    }
-
-    /**
-     * @param array<string, mixed> $payload
-     * @return array<string, mixed>
-     */
-    public function storeLancamento(int $userId, array $payload): array
-    {
-        $result = $this->lancamentoCreationService->createFromPayload(
-            $userId,
-            $this->buildOnboardingLancamentoPayload($payload)
-        );
-
-        if ($result->isError()) {
-            return $this->webFailure($this->resolveLancamentoFailureMessage($result));
-        }
-
-        $user = $this->findUser($userId);
-        if ($user) {
-            $this->markUserOnboardingComplete($user, 'complete');
-        }
-
-        $this->progressService->markCompleted($userId);
-
-        return [
-            'success' => true,
-            'redirect' => 'dashboard',
-            'just_completed' => true,
-        ];
-    }
-
-    /**
      * @return array<string, mixed>
      */
     public function complete(int $userId): array
     {
         $user = $this->findUser($userId);
         if (!$user) {
-            return $this->failure('Usuário não encontrado', 404);
+            return $this->failure('Usuario nao encontrado', 404);
         }
 
         $progress = $this->progressService->getProgress($userId);
@@ -132,16 +67,16 @@ class OnboardingWorkflowService
         }
 
         if (!$progress->has_conta) {
-            return $this->failure('Você precisa criar pelo menos uma conta antes de continuar.', 422);
+            return $this->failure('Voce precisa criar pelo menos uma conta antes de continuar.', 422);
         }
 
-        $this->markUserOnboardingComplete($user, 'skipped');
+        $this->markUserOnboardingComplete($user, 'skipped', 'v2');
         $this->progressService->markCompleted($userId);
 
         return [
             'success' => true,
             'data' => [
-                'message' => 'Onboarding concluído!',
+                'message' => 'Onboarding concluido!',
                 'redirect' => BASE_URL . 'dashboard',
             ],
             'just_completed' => true,
@@ -155,7 +90,7 @@ class OnboardingWorkflowService
     {
         $user = $this->findUser($userId);
         if (!$user) {
-            return $this->failure('Usuário não encontrado', 404);
+            return $this->failure('Usuario nao encontrado', 404);
         }
 
         $user->skipOnboardingTour();
@@ -167,13 +102,118 @@ class OnboardingWorkflowService
     }
 
     /**
+     * @param array<string, mixed> $payload
+     * @return array<string, mixed>
+     */
+    public function storeGoal(int $userId, array $payload): array
+    {
+        $goal = trim((string) ($payload['goal'] ?? ''));
+
+        if ($goal === '') {
+            return $this->failure('Objetivo nao pode estar vazio.');
+        }
+
+        $user = $this->findUser($userId);
+        if (!$user) {
+            return $this->failure('Usuario nao encontrado.', 404);
+        }
+
+        $user->onboarding_goal = $goal;
+        $user->save();
+
+        return [
+            'success' => true,
+            'data' => ['goal' => $goal],
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array<string, mixed>
+     */
+    public function storeContaJson(int $userId, array $payload): array
+    {
+        $name = trim((string) ($payload['nome'] ?? ''));
+        $institutionId = isset($payload['instituicao_financeira_id'])
+            ? (int) $payload['instituicao_financeira_id']
+            : 0;
+        $institutionName = trim((string) ($payload['instituicao'] ?? ''));
+        $initialBalance = $this->normalizeCurrencyToFloat($payload['saldo_inicial'] ?? '0,00');
+
+        if ($name === '') {
+            return $this->failure('O nome da conta e obrigatorio.');
+        }
+
+        if ($institutionId <= 0 && $institutionName === '') {
+            $institutionName = $name;
+        }
+
+        $dto = new CreateContaDTO(
+            userId: $userId,
+            nome: $name,
+            instituicaoFinanceiraId: $institutionId > 0 ? $institutionId : null,
+            instituicao: $institutionName !== '' ? $institutionName : null,
+            saldoInicial: $initialBalance,
+        );
+
+        $result = $this->contaService->criarConta($dto);
+        if (!$result['success']) {
+            return $this->failure((string) ($result['message'] ?? 'Erro ao criar conta.'));
+        }
+
+        return [
+            'success' => true,
+            'data' => [
+                'id' => $result['data']['id'] ?? null,
+                'nome' => $name,
+                'saldo' => $initialBalance,
+                'instituicao_financeira_id' => $institutionId > 0 ? $institutionId : null,
+                'instituicao' => $institutionName !== '' ? $institutionName : $name,
+            ],
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array<string, mixed>
+     */
+    public function storeLancamentoJson(int $userId, array $payload): array
+    {
+        $result = $this->lancamentoCreationService->createFromPayload(
+            $userId,
+            $this->buildOnboardingLancamentoPayload($payload)
+        );
+
+        if ($result->isError()) {
+            return $this->failure($this->resolveLancamentoFailureMessage($result));
+        }
+
+        $user = $this->findUser($userId);
+        if ($user) {
+            $this->markUserOnboardingComplete($user, 'complete', 'v2');
+        }
+
+        $this->progressService->markCompleted($userId);
+
+        return [
+            'success' => true,
+            'data' => [
+                'id' => $result->data['id'] ?? null,
+                'descricao' => $payload['descricao'] ?? '',
+                'valor' => $payload['valor'] ?? 0,
+            ],
+            'just_completed' => true,
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function reset(int $userId): array
     {
         $user = $this->findUser($userId);
         if (!$user) {
-            return $this->failure('Usuário não encontrado', 404);
+            return $this->failure('Usuario nao encontrado', 404);
         }
 
         $user->onboarding_completed_at = null;
@@ -200,8 +240,8 @@ class OnboardingWorkflowService
         $items = [
             [
                 'key' => 'primeira_transacao',
-                'label' => 'Adicionar primeira transação',
-                'description' => 'Registre seu primeiro lançamento',
+                'label' => 'Adicionar primeira transacao',
+                'description' => 'Registre seu primeiro lancamento',
                 'icon' => 'plus-circle',
                 'color' => '#10b981',
                 'href' => 'lancamentos?tipo=receita',
@@ -211,8 +251,8 @@ class OnboardingWorkflowService
             ],
             [
                 'key' => 'segunda_transacao',
-                'label' => 'Adicionar segunda transação',
-                'description' => 'Construa o hábito',
+                'label' => 'Adicionar segunda transacao',
+                'description' => 'Construa o habito',
                 'icon' => 'plus-circle',
                 'color' => '#3b82f6',
                 'href' => 'lancamentos',
@@ -223,7 +263,7 @@ class OnboardingWorkflowService
             [
                 'key' => 'explorar_health_score',
                 'label' => 'Explorar Health Score',
-                'description' => 'Entenda sua saúde financeira',
+                'description' => 'Entenda sua saude financeira',
                 'icon' => 'heart-handshake',
                 'color' => '#ec4899',
                 'href' => 'dashboard#health-score',
@@ -245,7 +285,7 @@ class OnboardingWorkflowService
             [
                 'key' => 'meta',
                 'label' => 'Definir meta mensal',
-                'description' => 'Estabeleça um objetivo de poupança',
+                'description' => 'Estabeleca um objetivo de poupanca',
                 'icon' => 'target',
                 'color' => '#06b6d4',
                 'href' => 'financas',
@@ -255,8 +295,8 @@ class OnboardingWorkflowService
             ],
             [
                 'key' => 'conta_conectada',
-                'label' => 'Adicionar segunda conta/cartão',
-                'description' => 'Tenha visão completa do seu dinheiro',
+                'label' => 'Adicionar segunda conta/cartao',
+                'description' => 'Tenha visao completa do seu dinheiro',
                 'icon' => 'wallet',
                 'color' => '#f59e0b',
                 'href' => 'contas',
@@ -266,7 +306,7 @@ class OnboardingWorkflowService
             ],
             [
                 'key' => 'orcamento',
-                'label' => 'Configurar orçamentos',
+                'label' => 'Configurar orcamentos',
                 'description' => 'Controle seus gastos por categoria',
                 'icon' => 'pie-chart',
                 'color' => '#f97316',
@@ -278,7 +318,7 @@ class OnboardingWorkflowService
             [
                 'key' => 'convidar_amigo',
                 'label' => 'Convidar amigo (Referral)',
-                'description' => 'Compartilhe o Lukrato e ganhe bônus',
+                'description' => 'Compartilhe o Lukrato e ganhe bonus',
                 'icon' => 'share-2',
                 'color' => '#f43f5e',
                 'href' => 'perfil?tab=referral',
@@ -323,18 +363,6 @@ class OnboardingWorkflowService
     }
 
     /**
-     * @return array<string, mixed>
-     */
-    private function webFailure(string $message): array
-    {
-        return [
-            'success' => false,
-            'redirect' => 'onboarding',
-            'error_message' => $message,
-        ];
-    }
-
-    /**
      * @param array<string, mixed> $payload
      * @return array<string, mixed>
      */
@@ -361,14 +389,23 @@ class OnboardingWorkflowService
             }
         }
 
-        return $result->message !== '' ? $result->message : 'Erro ao salvar lançamento.';
+        return $result->message !== '' ? $result->message : 'Erro ao salvar lancamento.';
     }
 
-    private function markUserOnboardingComplete(Usuario $user, string $mode): void
+    private function markUserOnboardingComplete(Usuario $user, string $mode, string $version = 'v2'): void
     {
         $user->onboarding_completed_at = now();
         $user->onboarding_mode = $mode;
+        $user->onboarding_version = $version;
         $user->save();
+
+        $gamificationService = new GamificationService();
+        $gamificationService->addPoints(
+            (int) $user->id,
+            GamificationAction::COMPLETE_ONBOARDING,
+            (int) $user->id,
+            'onboarding'
+        );
     }
 
     private function normalizeCurrencyToFloat(mixed $value): float

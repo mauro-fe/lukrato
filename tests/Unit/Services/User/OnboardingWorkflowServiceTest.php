@@ -27,7 +27,7 @@ class OnboardingWorkflowServiceTest extends TestCase
 
         $this->assertFalse($result['success']);
         $this->assertSame(404, $result['status']);
-        $this->assertSame('Usuário não encontrado', $result['message']);
+        $this->assertSame('Usuario nao encontrado', $result['message']);
     }
 
     public function testGetStatusReturnsFlagsFromPersistedProgress(): void
@@ -64,22 +64,22 @@ class OnboardingWorkflowServiceTest extends TestCase
         ], $result['data']);
     }
 
-    public function testStoreContaReturnsValidationErrorWhenNameIsMissing(): void
+    public function testStoreContaJsonReturnsValidationErrorWhenNameIsMissing(): void
     {
         $service = $this->makeService();
 
-        $result = $service->storeConta(30, [
+        $result = $service->storeContaJson(30, [
             'nome' => '',
             'instituicao_financeira_id' => '8',
             'saldo_inicial' => '100,00',
         ]);
 
         $this->assertFalse($result['success']);
-        $this->assertSame('onboarding', $result['redirect']);
-        $this->assertSame('O nome da conta é obrigatório.', $result['error_message']);
+        $this->assertSame(400, $result['status']);
+        $this->assertSame('O nome da conta e obrigatorio.', $result['message']);
     }
 
-    public function testStoreLancamentoReturnsFirstValidationMessageFromCreationService(): void
+    public function testStoreLancamentoJsonReturnsFirstValidationMessageFromCreationService(): void
     {
         $creationService = Mockery::mock(LancamentoCreationService::class);
         $creationService
@@ -91,14 +91,14 @@ class OnboardingWorkflowServiceTest extends TestCase
                     && $payload['pago'] === true;
             }))
             ->andReturn(ServiceResultDTO::validationFail([
-                'tipo' => 'Tipo inválido.',
+                'tipo' => 'Tipo invalido.',
             ]));
 
         $service = $this->makeService(
             lancamentoCreationService: $creationService
         );
 
-        $result = $service->storeLancamento(40, [
+        $result = $service->storeLancamentoJson(40, [
             'tipo' => 'transferencia',
             'valor' => '10,00',
             'categoria_id' => '2',
@@ -107,8 +107,8 @@ class OnboardingWorkflowServiceTest extends TestCase
         ]);
 
         $this->assertFalse($result['success']);
-        $this->assertSame('onboarding', $result['redirect']);
-        $this->assertSame('Tipo inválido.', $result['error_message']);
+        $this->assertSame(400, $result['status']);
+        $this->assertSame('Tipo invalido.', $result['message']);
     }
 
     public function testCompleteRequiresAtLeastOneAccountInProgress(): void
@@ -148,7 +148,7 @@ class OnboardingWorkflowServiceTest extends TestCase
 
         $this->assertFalse($result['success']);
         $this->assertSame(422, $result['status']);
-        $this->assertSame('Você precisa criar pelo menos uma conta antes de continuar.', $result['message']);
+        $this->assertSame('Voce precisa criar pelo menos uma conta antes de continuar.', $result['message']);
     }
 
     public function testChecklistUsesPersistedProgressAndMetrics(): void

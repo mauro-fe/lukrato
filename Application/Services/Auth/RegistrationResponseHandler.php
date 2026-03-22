@@ -71,12 +71,15 @@ class RegistrationResponseHandler
     /**
      * Responde erro geral
      */
-    public function generalError(string $message = 'Falha ao cadastrar. Tente novamente mais tarde.'): Response
+    public function generalError(
+        string $message = 'Falha ao cadastrar. Tente novamente mais tarde.',
+        int $statusCode = 500
+    ): Response
     {
         $isAjax = $this->request->isAjax();
 
         if ($isAjax) {
-            return Response::errorResponse($message, 500);
+            return Response::errorResponse($message, $statusCode);
         }
 
         $_SESSION['error'] = $message;

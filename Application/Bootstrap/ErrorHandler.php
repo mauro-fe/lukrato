@@ -63,6 +63,8 @@ class ErrorHandler
                 'file' => $file,
                 'line' => $line,
             ]));
+
+            return true;
         }
 
         echo "<b>Erro:</b> $message<br><small>$file:$line</small>";
@@ -75,11 +77,13 @@ class ErrorHandler
         if ($this->isAjaxRequest()) {
             $this->emit($this->buildJsonErrorResponse([
                 'success' => false,
-                'message' => 'Exceção não tratada',
+                'message' => 'Excecao nao tratada',
                 'exception' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
             ]));
+
+            return;
         }
 
         $this->emit($this->buildDevelopmentExceptionResponse($e));
@@ -150,7 +154,7 @@ class ErrorHandler
 
     private function buildDevelopmentExceptionResponse(\Throwable $e): Response
     {
-        $html = '<h2>Exceção não tratada:</h2>';
+        $html = '<h2>Excecao nao tratada:</h2>';
         $html .= '<p><b>' . htmlspecialchars($e->getMessage()) . '</b></p>';
         $html .= '<pre>' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
 
@@ -177,7 +181,7 @@ class ErrorHandler
 
     private function buildRequestErrorResponse(\Throwable $e): Response
     {
-        $html = '<h1>Erro na requisição:</h1>';
+        $html = '<h1>Erro na requisicao:</h1>';
         $html .= '<pre>' . htmlspecialchars($e->getMessage()) . '</pre>';
         $html .= '<h2>Stack Trace:</h2>';
         $html .= '<pre>' . htmlspecialchars($e->getTraceAsString()) . '</pre>';

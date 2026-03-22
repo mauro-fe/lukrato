@@ -1,4 +1,5 @@
-import { apiGet } from '../shared/api.js';
+import { logClientError } from '../shared/api.js';
+import { getDashboardOverview, invalidateDashboardOverview } from './dashboard-data.js';
 
 /**
  * Dashboard Greeting Component
@@ -10,6 +11,7 @@ class DashboardGreeting {
     this.container = document.getElementById(containerId);
     const fullName = window.__LK_CONFIG?.username || 'Usuário';
     this.userName = fullName.split(' ')[0];
+    this._listeningDataChanged = false;
   }
 
   render() {
@@ -70,18 +72,27 @@ class DashboardGreeting {
     emoji.style.animation = 'greeting-pulse 2s ease-in-out infinite';
   }
 
-  async loadInsight() {
+  async loadInsight({ force = false } = {}) {
     try {
-      const data = await apiGet(`${window.BASE_URL || '/'}api/dashboard/greeting-insight`);
+      const response = await getDashboardOverview(undefined, { force });
+      const data = response?.data ?? response;
 
-      if (data.success && data.data) {
-        this.displayInsight(data.data);
+      if (data?.greeting_insight) {
+        this.displayInsight(data.greeting_insight);
       } else {
         this.displayFallbackInsight();
       }
     } catch (error) {
-      console.error('Error loading insight:', error);
+      logClientError('Error loading greeting insight', error, 'Falha ao carregar insight');
       this.displayFallbackInsight();
+    }
+
+    if (!this._listeningDataChanged) {
+      this._listeningDataChanged = true;
+      document.addEventListener('lukrato:data-changed', () => {
+        invalidateDashboardOverview();
+        this.loadInsight({ force: true });
+      });
     }
   }
 

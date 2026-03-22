@@ -1,4 +1,4 @@
-import { apiGet } from '../shared/api.js';
+import { getOnboardingChecklist, invalidateOnboardingChecklist } from './dashboard-data.js';
 
 /**
  * ============================================================================
@@ -20,6 +20,9 @@ function storageKey(name) {
 let previousChecklistState = null;
 
 export function initOnboardingChecklist() {
+    if (window.__LK_ONBOARDING_CHECKLIST_INIT__) return;
+    window.__LK_ONBOARDING_CHECKLIST_INIT__ = true;
+
     const firstVisit = !!window.__lkFirstVisit;
     const SKIP_KEY = storageKey('lk_checklist_skipped');
     const STATE_KEY = storageKey('lk_checklist_state');
@@ -36,14 +39,15 @@ export function initOnboardingChecklist() {
 
     fetchAndRenderChecklist(el, firstVisit);
 
-    // Refetch a cada 30 segundos para detectar mudanças
+    // Refetch periódico mais leve para manter sincronização sem poluir a API
     setInterval(() => {
-        fetchAndRenderChecklist(el, firstVisit);
-    }, 30000);
+        fetchAndRenderChecklist(el, firstVisit, { force: true });
+    }, 120000);
 
     // Listen para eventos de data changed (transações, categorias, etc)
     document.addEventListener('lukrato:data-changed', () => {
-        setTimeout(() => fetchAndRenderChecklist(el, firstVisit), 500);
+        invalidateOnboardingChecklist();
+        setTimeout(() => fetchAndRenderChecklist(el, firstVisit, { force: true }), 500);
     });
 
     // Dismiss → confirm skip
@@ -79,8 +83,8 @@ export function initOnboardingChecklist() {
     }
 }
 
-function fetchAndRenderChecklist(el, firstVisit) {
-    apiGet(BASE_URL + 'api/onboarding/checklist')
+function fetchAndRenderChecklist(el, firstVisit, { force = false } = {}) {
+    getOnboardingChecklist({ force })
         .then(function (res) {
             if (!res.success) return;
             const data = res.data;

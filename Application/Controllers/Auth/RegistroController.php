@@ -14,6 +14,7 @@ use Application\Services\Auth\GoogleAuthService;
 use Application\Services\Auth\RegistrationResponseHandler;
 use Application\Services\Infrastructure\LogService;
 use Application\Services\Infrastructure\TurnstileService;
+use InvalidArgumentException;
 use Throwable;
 
 class RegistroController extends BaseController
@@ -144,7 +145,37 @@ class RegistroController extends BaseController
             'ip' => $this->request->ip() ?? 'unknown',
         ]);
 
-        return $this->responseHandler->generalError();
+        return $this->responseHandler->generalError(
+            $this->resolveRegistrationErrorMessage($e),
+            $this->resolveRegistrationErrorStatus($e)
+        );
+    }
+
+    private function resolveRegistrationErrorMessage(Throwable $e): string
+    {
+        if ($e instanceof InvalidArgumentException) {
+            $message = trim($e->getMessage());
+            if ($message !== '') {
+                return $message;
+            }
+        }
+
+        return 'Falha ao cadastrar. Tente novamente mais tarde.';
+    }
+
+    private function resolveRegistrationErrorStatus(Throwable $e): int
+    {
+        if (!$e instanceof InvalidArgumentException) {
+            return 500;
+        }
+
+        $message = mb_strtolower(trim($e->getMessage()));
+
+        if (str_contains($message, 'limite')) {
+            return 429;
+        }
+
+        return 422;
     }
 
     private function getSessionErrors(): ?array

@@ -1,4 +1,4 @@
-import { apiGet } from '../shared/api.js';
+import { apiGetCached } from '../shared/api-store.js';
 
 /**
  * ============================================
@@ -49,6 +49,8 @@ import { apiGet } from '../shared/api.js';
 
     let limitsData = null;
     let lastFetch = 0;
+    let initPromise = null;
+    let apiInterceptorInstalled = false;
 
     // ============================================
     // API
@@ -63,7 +65,11 @@ import { apiGet } from '../shared/api.js';
         }
 
         try {
-            const result = await apiGet(`${CONFIG.apiBase}api/plan/limits`);
+            const result = await apiGetCached(`${CONFIG.apiBase}api/plan/limits`, {}, {
+                cacheKey: 'global:plan-limits',
+                ttlMs: CONFIG.cacheTTL,
+                force,
+            });
 
             if (result.success) {
                 limitsData = result.data;
@@ -383,6 +389,11 @@ import { apiGet } from '../shared/api.js';
     // ============================================
 
     function setupApiInterceptor() {
+        if (apiInterceptorInstalled) {
+            return;
+        }
+
+        apiInterceptorInstalled = true;
         const originalFetch = window.fetch;
 
         window.fetch = async function (...args) {
@@ -489,12 +500,50 @@ import { apiGet } from '../shared/api.js';
         });
     }
 
+    async function initOnce(force = false) {
+        if (!force && initPromise) {
+            return initPromise;
+        }
+
+        if (!force) {
+            initPromise = init();
+            return initPromise;
+        }
+
+        limitsData = null;
+        lastFetch = 0;
+
+        initPromise = (async () => {
+            await fetchLimits(true);
+
+            if (!limitsData || limitsData.is_pro) {
+                return;
+            }
+
+            updateAddButtons();
+            applyHistoryRestriction();
+        })();
+
+        return initPromise;
+    }
+
+    async function refresh() {
+        return initOnce(true);
+    }
+
+    document.addEventListener('lukrato:data-changed', () => {
+        if (!limitsData?.is_pro) {
+            refresh().catch(() => { /* ignore */ });
+        }
+    });
+
     // ============================================
     // EXPORTAR API PÚBLICA
     // ============================================
 
     window.PlanLimits = {
-        init,
+        init: initOnce,
+        refresh,
         fetchLimits,
         isPro,
         canCreate,
@@ -509,9 +558,9 @@ import { apiGet } from '../shared/api.js';
 
     // Auto-inicializar quando o DOM estiver pronto
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', () => initOnce());
     } else {
-        init();
+        initOnce();
     }
 
 })();

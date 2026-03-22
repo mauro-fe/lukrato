@@ -55,12 +55,31 @@ class RegistrationResponseHandlerTest extends TestCase
         $request->shouldReceive('isAjax')->once()->andReturn(false);
 
         $handler = new RegistrationResponseHandler($request);
-        $response = $handler->validationError(['email' => 'Email já cadastrado']);
+        $response = $handler->validationError(['email' => 'Email ja cadastrado']);
 
         $this->assertInstanceOf(Response::class, $response);
         $this->assertSame(302, $response->getStatusCode());
         $this->assertSame('http://localhost/lukrato/login', $response->getHeaders()['Location']);
-        $this->assertSame('Email já cadastrado', $_SESSION['error']);
+        $this->assertSame('Email ja cadastrado', $_SESSION['error']);
         $this->assertSame('register', $_SESSION['auth_active_tab']);
+    }
+
+    public function testGeneralErrorReturnsProvidedMessageAndStatusForAjax(): void
+    {
+        $request = Mockery::mock(Request::class);
+        $request->shouldReceive('isAjax')->once()->andReturn(true);
+
+        $handler = new RegistrationResponseHandler($request);
+        $response = $handler->generalError(
+            'Limite de novas contas atingido para sua rede. Tente novamente mais tarde.',
+            429
+        );
+
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertSame(429, $response->getStatusCode());
+        $this->assertSame([
+            'success' => false,
+            'message' => 'Limite de novas contas atingido para sua rede. Tente novamente mais tarde.',
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 }

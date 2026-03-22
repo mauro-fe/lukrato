@@ -1,4 +1,5 @@
-import { apiGet } from '../shared/api.js';
+import { logClientError } from '../shared/api.js';
+import { getDashboardOverview, invalidateDashboardOverview } from './dashboard-data.js';
 
 /**
  * Health Score Insights Component
@@ -14,11 +15,17 @@ class HealthScoreInsights {
 
   init() {
     if (!this.container) return;
+    if (this._initialized) return;
+    this._initialized = true;
+
     this.renderSkeleton();
     this.loadInsights();
 
-    setInterval(() => this.loadInsights(), 300000);
-    document.addEventListener('lukrato:data-changed', () => this.loadInsights());
+    this._intervalId = setInterval(() => this.loadInsights({ force: true }), 300000);
+    document.addEventListener('lukrato:data-changed', () => {
+      invalidateDashboardOverview();
+      this.loadInsights({ force: true });
+    });
   }
 
   renderSkeleton() {
@@ -30,17 +37,18 @@ class HealthScoreInsights {
     `;
   }
 
-  async loadInsights() {
+  async loadInsights({ force = false } = {}) {
     try {
-      const data = await apiGet(`${this.baseURL}api/dashboard/health-score/insights`);
+      const response = await getDashboardOverview(undefined, { force });
+      const data = response?.data ?? response;
 
-      if (data.success && data.data) {
-        this.renderInsights(data.data);
+      if (data?.health_score_insights) {
+        this.renderInsights(data.health_score_insights);
       } else {
         this.renderEmpty();
       }
     } catch (error) {
-      console.error('Error loading health score insights:', error);
+      logClientError('Error loading health score insights', error, 'Falha ao carregar insights');
       this.renderEmpty();
     }
   }

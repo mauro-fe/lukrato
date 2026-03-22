@@ -59,14 +59,17 @@ Router::add('GET',  '/api/onboarding/checklist', 'Api\\User\\OnboardingControlle
 Router::add('POST', '/api/onboarding/complete',  'Api\\User\\OnboardingController@complete', ['auth', 'csrf', 'ratelimit']);
 Router::add('POST', '/api/onboarding/skip-tour', 'Api\\User\\OnboardingController@skipTour', ['auth', 'csrf', 'ratelimit']);
 Router::add('POST', '/api/onboarding/reset',     'Api\\User\\OnboardingController@reset',    ['auth', 'csrf', 'ratelimit']);
-Router::add('POST', '/api/onboarding/conta',       'Api\\User\\OnboardingController@storeConta',      ['auth', 'csrf']);
-Router::add('POST', '/api/onboarding/lancamento',  'Api\\User\\OnboardingController@storeLancamento', ['auth', 'csrf']);
+
+Router::add('POST', '/api/onboarding/goal',            'Api\\User\\OnboardingController@storeGoal',          ['auth', 'csrf']);
+Router::add('POST', '/api/onboarding/conta/json',      'Api\\User\\OnboardingController@storeContaJson',     ['auth', 'csrf']);
+Router::add('POST', '/api/onboarding/lancamento/json', 'Api\\User\\OnboardingController@storeLancamentoJson', ['auth', 'csrf']);
 
 // ============================================
 // DASHBOARD
 // ============================================
 
 Router::add('GET', '/api/dashboard/metrics',      'Api\\Financeiro\\FinanceiroController@metrics',      ['auth']);
+Router::add('GET', '/api/dashboard/overview',     'Api\\Financeiro\\DashboardController@overview',      ['auth']);
 Router::add('GET', '/api/dashboard/transactions', 'Api\\Financeiro\\DashboardController@transactions',  ['auth']);
 Router::add('GET', '/api/dashboard/comparativo-competencia', 'Api\\Financeiro\\DashboardController@comparativoCompetenciaCaixa', ['auth']);
 Router::add('GET', '/api/dashboard/provisao',     'Api\\Financeiro\\DashboardController@provisao',       ['auth']);

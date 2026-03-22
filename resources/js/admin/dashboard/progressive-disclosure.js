@@ -1,4 +1,5 @@
-import { apiGet } from '../shared/api.js';
+import { logClientError } from '../shared/api.js';
+import { getDashboardOverview, invalidateDashboardOverview } from './dashboard-data.js';
 
 const ONBOARDING_STORAGE_PREFIX = `lk_user_${window.__LK_CONFIG?.userId ?? 'anon'}_`;
 
@@ -44,24 +45,23 @@ class ProgressiveDisclosure {
     // Listen untuk data changes
     document.addEventListener('lukrato:data-changed', (e) => {
       if (e.detail?.resource === 'transactions') {
-        this.checkTransactionCount();
+        invalidateDashboardOverview();
+        this.checkTransactionCount({ force: true });
       }
     });
   }
 
-  async checkTransactionCount() {
+  async checkTransactionCount({ force = false } = {}) {
     try {
-      const json = await apiGet(`${window.BASE_URL || '/'}api/dashboard/metrics`, {
-        month: this.getCurrentMonth()
-      });
-      const data = json?.data ?? json;
+      const response = await getDashboardOverview(this.getCurrentMonth(), { force });
+      const data = (response?.data ?? response)?.metrics || null;
 
       if (data && typeof data.count !== 'undefined') {
         this.state.transactionCount = parseInt(data.count) || 0;
         this.updateHiddenSections();
       }
     } catch (err) {
-      console.error('Error checking transaction count:', err);
+      logClientError('Error checking transaction count', err, 'Falha ao verificar transações');
     }
   }
 

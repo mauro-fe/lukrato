@@ -173,7 +173,10 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                 <a href="<?= BASE_URL ?>dashboard" class="nav-item <?= $active('dashboard') ?>"
                     <?= $aria('dashboard') ?> title="Dashboard">
                     <i data-lucide="home"></i>
-                    <span>Dashboard</span>
+                    <span class="nav-item-content">
+                        <span class="nav-item-title">Dashboard</span>
+                        <small class="nav-item-subtitle">Resumo da sua vida financeira</small>
+                    </span>
                 </a>
             </div>
 
@@ -183,22 +186,34 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                 <a href="<?= BASE_URL ?>contas" class="nav-item <?= $active('contas') ?>" <?= $aria('contas') ?>
                     title="Contas">
                     <i data-lucide="landmark"></i>
-                    <span>Contas</span>
+                    <span class="nav-item-content">
+                        <span class="nav-item-title">Contas</span>
+                        <small class="nav-item-subtitle">Suas contas e saldos</small>
+                    </span>
                 </a>
                 <a href="<?= BASE_URL ?>cartoes" class="nav-item <?= $active('cartoes') ?>" <?= $aria('cartoes') ?>
                     title="Cartões de Crédito">
                     <i data-lucide="credit-card"></i>
-                    <span>Cartões</span>
+                    <span class="nav-item-content">
+                        <span class="nav-item-title">Cartões</span>
+                        <small class="nav-item-subtitle">Gerencie seus cartões</small>
+                    </span>
                 </a>
                 <a href="<?= BASE_URL ?>faturas" class="nav-item <?= $active('faturas') ?>" <?= $aria('faturas') ?>
                     title="Faturas de Cartão">
                     <i data-lucide="file-text"></i>
-                    <span>Faturas</span>
+                    <span class="nav-item-content">
+                        <span class="nav-item-title">Faturas</span>
+                        <small class="nav-item-subtitle">Acompanhe suas faturas</small>
+                    </span>
                 </a>
                 <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>"
                     <?= $aria('lancamentos') ?> title="Lançamentos">
                     <i data-lucide="layers"></i>
-                    <span>Lançamentos</span>
+                    <span class="nav-item-content">
+                        <span class="nav-item-title">Lançamentos</span>
+                        <small class="nav-item-subtitle">Tudo que você gastou e recebeu</small>
+                    </span>
                 </a>
             </div>
 
@@ -208,17 +223,26 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                 <a href="<?= BASE_URL ?>categorias" class="nav-item <?= $active('categorias') ?>"
                     <?= $aria('categorias') ?> title="Categorias">
                     <i data-lucide="tags"></i>
-                    <span>Categorias</span>
+                    <span class="nav-item-content">
+                        <span class="nav-item-title">Categorias</span>
+                        <small class="nav-item-subtitle">Organize seus gastos</small>
+                    </span>
                 </a>
                 <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios') ?>"
                     <?= $aria('relatorios') ?> title="Relatórios">
                     <i data-lucide="pie-chart"></i>
-                    <span>Relatórios</span>
+                    <span class="nav-item-content">
+                        <span class="nav-item-title">Relatórios</span>
+                        <small class="nav-item-subtitle">Veja para onde vai seu dinheiro</small>
+                    </span>
                 </a>
                 <a href="<?= BASE_URL ?>financas" class="nav-item <?= $active('financas') ?>" <?= $aria('financas') ?>
                     title="Finanças">
                     <i data-lucide="wallet"></i>
-                    <span>Finanças</span>
+                    <span class="nav-item-content">
+                        <span class="nav-item-title">Finanças</span>
+                        <small class="nav-item-subtitle">Visão geral das suas finanças</small>
+                    </span>
                 </a>
             </div>
 
@@ -228,7 +252,10 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                 <a href="<?= BASE_URL ?>gamification" class="nav-item <?= $active('gamification') ?>"
                     <?= $aria('gamification') ?> title="Gamificação">
                     <i data-lucide="trophy"></i>
-                    <span>Conquistas</span>
+                    <span class="nav-item-content">
+                        <span class="nav-item-title">Conquistas</span>
+                        <small class="nav-item-subtitle">Suas medalhas e progresso</small>
+                    </span>
                 </a>
             </div>
 
@@ -241,22 +268,34 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                 <div class="sidebar-avatar" id="sidebarAvatar">
                     <span class="avatar-initials-xs"><?= mb_substr($topNavFirstName ?? $username ?? 'U', 0, 1) ?></span>
                 </div>
-                <span>Perfil</span>
+                <span class="nav-item-content">
+                    <span class="nav-item-title">Perfil</span>
+                    <small class="nav-item-subtitle">Suas configurações</small>
+                </span>
             </a>
             <?php if ($isSysAdmin): ?>
                 <a href="<?= BASE_URL ?>super_admin" class="nav-item <?= $active('super_admin') ?>"
                     <?= $aria('super_admin') ?> title="SysAdmin">
                     <i data-lucide="shield-check"></i>
-                    <span>SysAdmin</span>
+                    <span class="nav-item-content">
+                        <span class="nav-item-title">SysAdmin</span>
+                        <small class="nav-item-subtitle">Painel administrativo</small>
+                    </span>
                 </a>
             <?php endif; ?>
             <a href="#" class="nav-item" id="sidebarSuggestionBtn" title="Enviar sugestão">
                 <i data-lucide="message-circle"></i>
-                <span>Sugestão</span>
+                <span class="nav-item-content">
+                    <span class="nav-item-title">Sugestão</span>
+                    <small class="nav-item-subtitle">Envie seu feedback</small>
+                </span>
             </a>
             <a id="btn-logout" class="nav-item" href="<?= BASE_URL ?>logout" title="Sair">
                 <i data-lucide="log-out"></i>
-                <span>Sair</span>
+                <span class="nav-item-content">
+                    <span class="nav-item-title">Sair</span>
+                    <small class="nav-item-subtitle">Encerrar sessão</small>
+                </span>
             </a>
             <?php if ($showUpgradeCTA): ?>
                 <div class="sidebar-pro-cta">

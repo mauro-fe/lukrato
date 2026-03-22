@@ -26,6 +26,27 @@ class ReferralAntifraudService
     const MIN_ACCOUNT_AGE_FOR_REFERRAL = 24;     // Horas mínimas de conta para poder indicar
 
     /**
+     * Permite desabilitar as travas de criação de conta apenas no ambiente local
+     * do desenvolvedor, via variável de ambiente opt-in.
+     */
+    private function shouldBypassRegistrationAntifraud(?string $ip): bool
+    {
+        $bypassEnabled = defined('DEV_BYPASS_REGISTRATION_ANTIFRAUD')
+            ? DEV_BYPASS_REGISTRATION_ANTIFRAUD
+            : filter_var($_ENV['DEV_BYPASS_REGISTRATION_ANTIFRAUD'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        if (!$bypassEnabled) {
+            return false;
+        }
+
+        if ((defined('APP_ENV') ? APP_ENV : ($_ENV['APP_ENV'] ?? 'production')) !== 'development') {
+            return false;
+        }
+
+        return in_array((string) $ip, ['127.0.0.1', '::1'], true);
+    }
+
+    /**
      * Hash de email para armazenamento seguro
      */
     public function hashEmail(string $email): string
@@ -86,6 +107,18 @@ class ReferralAntifraudService
      */
     public function canCreateAccount(string $email, ?string $ip = null): array
     {
+        if ($this->shouldBypassRegistrationAntifraud($ip)) {
+            LogService::info('[ReferralAntifraud] Bypass local de cadastro habilitado para desenvolvimento', [
+                'ip' => $ip,
+            ]);
+
+            return [
+                'allowed' => true,
+                'reason' => null,
+                'quarantine_until' => null,
+            ];
+        }
+
         $emailHash = $this->hashEmail($email);
 
         // 1. Verifica se o email está em quarentena (conta excluída recentemente)

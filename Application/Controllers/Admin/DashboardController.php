@@ -22,6 +22,7 @@ class DashboardController extends BaseController
                 'pageTitle' => 'Dashboard',
                 'showOnboardingCongrats' => $showOnboardingCongrats,
                 'showMonthSelector' => true,
+                'showGuidedTour' => $showOnboardingCongrats, // Show guided tour on first completed onboarding
             ],
             'admin/partials/header',
             'admin/partials/footer'

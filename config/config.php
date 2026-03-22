@@ -28,6 +28,13 @@ function defineApplicationConstants(): void
         define('APP_DEBUG', filter_var($_ENV['APP_DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN));
     }
 
+    if (!defined('DEV_BYPASS_REGISTRATION_ANTIFRAUD')) {
+        define(
+            'DEV_BYPASS_REGISTRATION_ANTIFRAUD',
+            filter_var($_ENV['DEV_BYPASS_REGISTRATION_ANTIFRAUD'] ?? false, FILTER_VALIDATE_BOOLEAN)
+        );
+    }
+
     // Cloudflare Turnstile (CAPTCHA progressivo)
     if (!defined('TURNSTILE_SITE_KEY')) {
         define('TURNSTILE_SITE_KEY', $_ENV['TURNSTILE_SITE_KEY'] ?? '');

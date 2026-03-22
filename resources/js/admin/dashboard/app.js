@@ -17,12 +17,19 @@ import {
     getThemeColors,
     escapeHtml
 } from './state.js';
-import { apiDelete, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
+import { apiDelete, apiGet, apiPost, getApiPayload, getErrorMessage, logClientError } from '../shared/api.js';
+import { getDashboardOverview, invalidateDashboardOverview } from './dashboard-data.js';
+import { initDashboardTour } from './guided-tour.js';
 
 // ==================== API ====================
 // Usa LK.api (facade unificada) quando disponível, com fallback local
 
 export const API = {
+    getOverview: async (month, options = {}) => {
+        const response = await getDashboardOverview(month, options);
+        return getApiPayload(response, {});
+    },
+
     fetch: async (url) => {
         if (window.LK?.api) {
             const res = await LK.api.get(url);
@@ -35,26 +42,23 @@ export const API = {
     },
 
     getMetrics: async (month) => {
-        return await API.fetch(
-            `${CONFIG.API_URL}dashboard/metrics?month=${encodeURIComponent(month)}`
-        );
+        const overview = await API.getOverview(month);
+        return overview.metrics || {};
     },
 
     getAccountsBalances: async (month) => {
-        return await API.fetch(
-            `${CONFIG.API_URL}contas?with_balances=1&month=${encodeURIComponent(month)}&only_active=1`
-        );
+        const overview = await API.getOverview(month);
+        return Array.isArray(overview.accounts_balances) ? overview.accounts_balances : [];
     },
 
     getTransactions: async (month, limit) => {
-        const url1 = `${CONFIG.API_URL}lancamentos?month=${encodeURIComponent(month)}&limit=${limit}`;
-        try {
-            const data = await API.fetch(url1);
-            return Array.isArray(data) ? data : (data.items || data.data || data.lancamentos || []);
-        } catch {
-            const url2 = `${CONFIG.API_URL}dashboard/transactions?month=${encodeURIComponent(month)}&limit=${limit}`;
-            return await API.fetch(url2);
-        }
+        const overview = await API.getOverview(month, { limit });
+        return Array.isArray(overview.recent_transactions) ? overview.recent_transactions : [];
+    },
+
+    getChartData: async (month) => {
+        const overview = await API.getOverview(month);
+        return Array.isArray(overview.chart) ? overview.chart : [];
     },
 
     deleteTransaction: async (id) => {
@@ -289,7 +293,7 @@ export const Renderers = {
 
             Utils.removeLoadingClass();
         } catch (err) {
-            console.error('Erro ao renderizar KPIs:', err);
+            logClientError('Erro ao renderizar KPIs', err, 'Falha ao carregar indicadores');
             ['saldoValue', 'receitasValue', 'despesasValue', 'saldoMesValue'].forEach(id => {
                 const element = document.getElementById(id);
                 if (element) {
@@ -412,7 +416,7 @@ export const Renderers = {
                 });
             }
         } catch (err) {
-            console.error('Erro ao renderizar transações:', err);
+            logClientError('Erro ao renderizar transações', err, 'Falha ao carregar transações');
 
             if (DOM.emptyState) {
                 DOM.emptyState.style.display = 'block';
@@ -439,13 +443,9 @@ export const Renderers = {
             const months = Utils.getPreviousMonths(month, CONFIG.CHART_MONTHS);
             const labels = months.map(m => Utils.formatMonthShort(m));
 
-            const results = await Promise.allSettled(
-                months.map(m => API.getMetrics(m))
-            );
-
-            const data = results.map(result =>
-                result.status === 'fulfilled' ? Number(result.value?.resultado || 0) : 0
-            );
+            const chartData = await API.getChartData(month);
+            const chartMap = new Map(chartData.map((item) => [item.month, Number(item.resultado || 0)]));
+            const data = months.map((itemMonth) => chartMap.get(itemMonth) || 0);
 
             const {
                 xTickColor,
@@ -516,7 +516,7 @@ export const Renderers = {
             });
             STATE.chartInstance.render();
         } catch (err) {
-            console.error('Erro ao renderizar gráfico:', err);
+            logClientError('Erro ao renderizar gráfico', err, 'Falha ao carregar gráfico');
         } finally {
             if (DOM.chartLoading) {
                 setTimeout(() => {
@@ -583,29 +583,11 @@ export const Provisao = {
     isProUser: null,
 
     checkProStatus: async () => {
-        // Ensure PlanLimits has finished loading before checking
-        if (window.PlanLimits?.init) {
-            try {
-                await window.PlanLimits.init();
-            } catch { /* ignore */ }
-        }
-
-        if (window.PlanLimits?.isPro) {
-            Provisao.isProUser = window.PlanLimits.isPro();
-            return Provisao.isProUser;
-        }
-
-        // Fallback: fetch directly from API
         try {
-            const data = await API.fetch(`${CONFIG.API_URL}plan/limits`);
-            Provisao.isProUser = data?.is_pro === true;
+            const overview = await API.getOverview(Utils.getCurrentMonth());
+            Provisao.isProUser = overview?.plan?.is_pro === true;
         } catch {
-            try {
-                const data = await API.fetch(`${CONFIG.API_URL}gamification/progress`);
-                Provisao.isProUser = data?.is_pro === true;
-            } catch {
-                Provisao.isProUser = false;
-            }
+            Provisao.isProUser = false;
         }
 
         return Provisao.isProUser;
@@ -626,12 +608,10 @@ export const Provisao = {
         if (overlay) overlay.style.display = 'none';
 
         try {
-            const data = await API.fetch(
-                `${CONFIG.API_URL}dashboard/provisao?month=${encodeURIComponent(month)}&is_pro=${isPro ? '1' : '0'}`
-            );
-            Provisao.renderData(data, isPro);
+            const overview = await API.getOverview(month);
+            Provisao.renderData(overview.provisao || null, isPro);
         } catch (err) {
-            console.error('Erro ao carregar provisão:', err);
+            logClientError('Erro ao carregar provisão', err, 'Falha ao carregar previsão');
         }
     },
 
@@ -867,12 +847,16 @@ export const Provisao = {
 // ==================== DASHBOARD MANAGER ====================
 
 export const DashboardManager = {
-    refresh: async () => {
+    refresh: async ({ force = false } = {}) => {
         if (STATE.isLoading) return;
 
         STATE.isLoading = true;
         const month = Utils.getCurrentMonth();
         STATE.currentMonth = month;
+
+        if (force) {
+            invalidateDashboardOverview(month);
+        }
 
         try {
             Renderers.updateMonthLabel(month);
@@ -884,14 +868,14 @@ export const DashboardManager = {
                 Provisao.render(month)
             ]);
         } catch (err) {
-            console.error('Erro ao atualizar dashboard:', err);
+            logClientError('Erro ao atualizar dashboard', err, 'Falha ao atualizar dashboard');
         } finally {
             STATE.isLoading = false;
         }
     },
 
     init: async () => {
-        await DashboardManager.refresh();
+        await DashboardManager.refresh({ force: false });
     }
 };
 
@@ -899,6 +883,11 @@ export const DashboardManager = {
 
 export const EventListeners = {
     init: () => {
+        if (STATE.eventListenersInitialized) {
+            return;
+        }
+        STATE.eventListenersInitialized = true;
+
         // Event listener para tabela desktop
         DOM.tableBody?.addEventListener('click', async (e) => {
             const btn = e.target.closest('.btn-del');
@@ -930,16 +919,20 @@ export const EventListeners = {
         });
 
         document.addEventListener('lukrato:data-changed', () => {
-            DashboardManager.refresh();
+            invalidateDashboardOverview(STATE.currentMonth || Utils.getCurrentMonth());
+            DashboardManager.refresh({ force: false });
         });
 
         document.addEventListener('lukrato:month-changed', () => {
-            DashboardManager.refresh();
+            DashboardManager.refresh({ force: false });
         });
 
         document.addEventListener('lukrato:theme-changed', () => {
-            DashboardManager.refresh();
+            Renderers.renderChart(STATE.currentMonth || Utils.getCurrentMonth());
         });
+
+        // Initialize guided tour for first-time visitors
+        initDashboardTour();
     }
 };
 

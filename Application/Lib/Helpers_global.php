@@ -174,8 +174,6 @@ if (!function_exists('loadPageJs')) {
             'admin-auth-reset-password' => 'admin/auth/reset-password/index.js',
             'admin-auth-verify-email'   => 'admin/auth/verify-email/index.js',
             'admin-contas-arquivadas'   => 'admin/contas-arquivadas/index.js',
-            'admin-onboarding-index'    => 'admin/onboarding/index.js',
-            'admin-onboarding-lancamento' => 'admin/onboarding/lancamento.js',
             'admin-sysadmin-communications' => 'admin/sysadmin/communications.js',
             'admin-sysadmin-cupons'     => 'admin/sysadmin/cupons.js',
             'admin-sysadmin-blog'       => 'admin/sysadmin/blog.js',

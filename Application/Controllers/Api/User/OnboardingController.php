@@ -28,66 +28,6 @@ class OnboardingController extends BaseController
         }
     }
 
-    public function storeConta(): Response
-    {
-        $userId = $this->requireApiUserIdOrFail();
-
-        try {
-            $result = $this->workflow()->storeConta($userId, $this->request->only([
-                'nome',
-                'instituicao_financeira_id',
-                'saldo_inicial',
-            ]));
-
-            if (!$result['success'] && isset($result['error_message'])) {
-                $this->setError($result['error_message']);
-            }
-
-            return $this->buildRedirectResponse($result['redirect'] ?? 'onboarding');
-        } catch (Throwable $e) {
-            $this->setError($this->internalErrorMessage(
-                $e,
-                'Erro inesperado ao criar conta. Tente novamente.',
-                ['action' => 'onboarding_store_conta', 'user_id' => $userId]
-            ));
-
-            return $this->buildRedirectResponse('onboarding');
-        }
-    }
-
-    public function storeLancamento(): Response
-    {
-        $userId = $this->requireApiUserIdOrFail();
-
-        try {
-            $result = $this->workflow()->storeLancamento($userId, $this->request->only([
-                'tipo',
-                'valor',
-                'categoria_id',
-                'descricao',
-                'conta_id',
-            ]));
-
-            if (!$result['success'] && isset($result['error_message'])) {
-                $this->setError($result['error_message']);
-            }
-
-            if (($result['just_completed'] ?? false) === true) {
-                $_SESSION['onboarding_just_completed'] = true;
-            }
-
-            return $this->buildRedirectResponse($result['redirect'] ?? 'onboarding');
-        } catch (Throwable $e) {
-            $this->setError($this->internalErrorMessage(
-                $e,
-                'Erro inesperado ao salvar lancamento. Tente novamente.',
-                ['action' => 'onboarding_store_lancamento', 'user_id' => $userId]
-            ));
-
-            return $this->buildRedirectResponse('onboarding');
-        }
-    }
-
     public function complete(): Response
     {
         $userId = $this->requireApiUserIdOrFail();
@@ -135,6 +75,78 @@ class OnboardingController extends BaseController
             return $this->respondWorkflowResult($this->workflow()->getChecklist($userId));
         } catch (Throwable $e) {
             return $this->failAndLogResponse($e, 'Erro ao buscar checklist do onboarding');
+        }
+    }
+
+    /**
+     * POST /api/onboarding/goal
+     */
+    public function storeGoal(): Response
+    {
+        $userId = $this->requireApiUserIdOrFail();
+
+        try {
+            $result = $this->workflow()->storeGoal(
+                $userId,
+                array_intersect_key($this->getRequestPayload(), array_flip(['goal']))
+            );
+
+            return $this->respondWorkflowResult($result);
+        } catch (Throwable $e) {
+            return $this->failAndLogResponse($e, 'Erro ao salvar objetivo');
+        }
+    }
+
+    /**
+     * POST /api/onboarding/conta/json
+     */
+    public function storeContaJson(): Response
+    {
+        $userId = $this->requireApiUserIdOrFail();
+
+        try {
+            $result = $this->workflow()->storeContaJson(
+                $userId,
+                array_intersect_key($this->getRequestPayload(), array_flip([
+                    'nome',
+                    'instituicao_financeira_id',
+                    'instituicao',
+                    'saldo_inicial',
+                ]))
+            );
+
+            return $this->respondWorkflowResult($result);
+        } catch (Throwable $e) {
+            return $this->failAndLogResponse($e, 'Erro ao criar conta');
+        }
+    }
+
+    /**
+     * POST /api/onboarding/lancamento/json
+     */
+    public function storeLancamentoJson(): Response
+    {
+        $userId = $this->requireApiUserIdOrFail();
+
+        try {
+            $result = $this->workflow()->storeLancamentoJson(
+                $userId,
+                array_intersect_key($this->getRequestPayload(), array_flip([
+                    'tipo',
+                    'valor',
+                    'categoria_id',
+                    'descricao',
+                    'conta_id',
+                ]))
+            );
+
+            if ($result['success'] && ($result['just_completed'] ?? false)) {
+                $_SESSION['onboarding_just_completed'] = true;
+            }
+
+            return $this->respondWorkflowResult($result);
+        } catch (Throwable $e) {
+            return $this->failAndLogResponse($e, 'Erro ao registrar lancamento');
         }
     }
 

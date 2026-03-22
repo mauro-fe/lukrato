@@ -4,15 +4,20 @@ namespace Application\Controllers\Api\Financeiro;
 
 use Application\Controllers\BaseController;
 use Application\Core\Response;
+use Application\Models\Conta;
+use Application\Models\Lancamento;
 use Application\Repositories\LancamentoRepository;
 use Application\Repositories\MetaRepository;
 use Application\Repositories\OrcamentoRepository;
+use Application\Services\Conta\ContaService;
 use Application\Services\Financeiro\DashboardProvisaoService;
 use Application\Services\Financeiro\HealthScoreService;
 use Application\Services\Financeiro\DashboardInsightService;
 use Application\Services\Financeiro\HealthScoreInsightService;
 use Application\Services\Infrastructure\LogService;
 use Application\Services\Financeiro\DashboardHealthSummaryService;
+use Application\Services\Plan\PlanLimitService;
+use DateTimeImmutable;
 use Throwable;
 
 class DashboardController extends BaseController
@@ -25,6 +30,8 @@ class DashboardController extends BaseController
     private DashboardInsightService $dashboardInsightService;
     private HealthScoreInsightService $healthScoreInsightService;
     private DashboardHealthSummaryService $dashboardHealthSummaryService;
+    private PlanLimitService $planLimitService;
+    private ContaService $contaService;
 
     public function __construct(
         ?LancamentoRepository $lancamentoRepo = null,
@@ -34,7 +41,9 @@ class DashboardController extends BaseController
         ?HealthScoreService $healthScoreService = null,
         ?DashboardInsightService $dashboardInsightService = null,
         ?HealthScoreInsightService $healthScoreInsightService = null,
-        ?DashboardHealthSummaryService $dashboardHealthSummaryService = null
+        ?DashboardHealthSummaryService $dashboardHealthSummaryService = null,
+        ?PlanLimitService $planLimitService = null,
+        ?ContaService $contaService = null
     ) {
         parent::__construct();
 
@@ -52,6 +61,8 @@ class DashboardController extends BaseController
                 $this->healthScoreService,
                 $this->healthScoreInsightService
             );
+        $this->planLimitService = $planLimitService ?? new PlanLimitService();
+        $this->contaService = $contaService ?? new ContaService();
     }
 
     private function normalizeMonth(string $monthInput): array
@@ -61,12 +72,155 @@ class DashboardController extends BaseController
 
     private function getCurrentMonth(): string
     {
-        return (new \DateTimeImmutable('first day of this month'))->format('Y-m');
+        return (new DateTimeImmutable('first day of this month'))->format('Y-m');
     }
 
     private function getPreviousMonth(): string
     {
-        return (new \DateTimeImmutable('first day of last month'))->format('Y-m');
+        return (new DateTimeImmutable('first day of last month'))->format('Y-m');
+    }
+
+    private function getPreviousMonthFrom(string $month): string
+    {
+        $date = DateTimeImmutable::createFromFormat('!Y-m', $month);
+        if (!$date) {
+            return $this->getPreviousMonth();
+        }
+
+        return $date->modify('first day of last month')->format('Y-m');
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function getPreviousMonths(string $currentMonth, int $count): array
+    {
+        $date = DateTimeImmutable::createFromFormat('!Y-m', $currentMonth) ?: new DateTimeImmutable('first day of this month');
+        $months = [];
+
+        for ($i = $count - 1; $i >= 0; $i--) {
+            $months[] = $date->modify(sprintf('-%d month', $i))->format('Y-m');
+        }
+
+        return $months;
+    }
+
+    private function buildMetricsPayload(int $userId, string $month, string $viewType = 'caixa'): array
+    {
+        $period = $this->normalizeMonth($month);
+        $startStr = $period['start'];
+        $endStr = $period['end'];
+        $summary = $this->lancamentoRepo->getResumoMes($userId, $month);
+
+        if ($viewType === 'competencia') {
+            $receitas = $this->lancamentoRepo->sumReceitasCompetencia($userId, $startStr, $endStr);
+            $despesas = $this->lancamentoRepo->sumDespesasCompetencia($userId, $startStr, $endStr);
+        } else {
+            $receitas = $this->lancamentoRepo->sumReceitasCaixa($userId, $startStr, $endStr);
+            $despesas = $this->lancamentoRepo->sumDespesasCaixa($userId, $startStr, $endStr);
+        }
+
+        $resultado = $receitas - $despesas;
+        $saldoAcumulado = $this->calculateSaldoAcumulado($userId, $endStr);
+
+        return [
+            'saldo' => $saldoAcumulado,
+            'receitas' => $receitas,
+            'despesas' => $despesas,
+            'resultado' => $resultado,
+            'saldoAcumulado' => $saldoAcumulado,
+            'view' => $viewType,
+            'count' => (int) ($summary['count'] ?? 0),
+            'categories' => (int) ($summary['categories'] ?? 0),
+        ];
+    }
+
+    private function calculateSaldoAcumulado(int $userId, string $untilDate): float
+    {
+        $saldosIniciais = (float) Conta::forUser($userId)
+            ->ativas()
+            ->sum('saldo_inicial');
+
+        $receitas = (float) Lancamento::where('user_id', $userId)
+            ->where('tipo', 'receita')
+            ->where('eh_transferencia', 0)
+            ->where('pago', 1)
+            ->where('afeta_caixa', 1)
+            ->where('data', '<=', $untilDate)
+            ->sum('valor');
+
+        $despesas = (float) Lancamento::where('user_id', $userId)
+            ->where('tipo', 'despesa')
+            ->where('eh_transferencia', 0)
+            ->where('pago', 1)
+            ->where('afeta_caixa', 1)
+            ->where('data', '<=', $untilDate)
+            ->sum('valor');
+
+        return $saldosIniciais + $receitas - $despesas;
+    }
+
+    /**
+     * GET /api/dashboard/overview
+     * Endpoint agregado para reduzir fanout de requests no dashboard.
+     */
+    public function overview(): Response
+    {
+        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+        $month = null;
+        $limit = max(1, min($this->getIntQuery('limit', 5), 20));
+        $viewType = $this->getStringQuery('view', 'caixa');
+
+        try {
+            $normalized = $this->normalizeMonth($this->getStringQuery('month', $this->getCurrentMonth()));
+            $month = $normalized['month'];
+            $previousMonth = $this->getPreviousMonthFrom($month);
+            $metrics = $this->buildMetricsPayload($userId, $month, $viewType);
+            $chartMonths = $this->getPreviousMonths($month, 6);
+
+            $chart = array_map(function (string $chartMonth) use ($userId, $viewType): array {
+                $chartMetrics = $this->buildMetricsPayload($userId, $chartMonth, $viewType);
+
+                return [
+                    'month' => $chartMonth,
+                    'resultado' => (float) ($chartMetrics['resultado'] ?? 0),
+                ];
+            }, $chartMonths);
+
+            $overview = [
+                'month' => $month,
+                'metrics' => $metrics,
+                'accounts_balances' => $this->contaService->listarContas(
+                    userId: $userId,
+                    arquivadas: false,
+                    apenasAtivas: true,
+                    comSaldos: true,
+                    mes: $month
+                ),
+                'recent_transactions' => $this->dashboardInsightService->getRecentTransactions(
+                    $userId,
+                    $normalized['start'],
+                    $normalized['end'],
+                    $limit
+                ),
+                'chart' => $chart,
+                'provisao' => $this->provisaoService->generate($userId, $month)->toArray(),
+                'health_score' => $this->healthScoreService->calculateUserHealthScore($userId, $month),
+                'health_score_insights' => $this->healthScoreInsightService->generate($userId, $month),
+                'greeting_insight' => $this->dashboardInsightService->generateGreetingInsight($userId, $month, $previousMonth),
+                'plan' => $this->planLimitService->getLimitsSummary($userId),
+            ];
+
+            return Response::successResponse($overview);
+        } catch (Throwable $e) {
+            $this->logDashboardError('Erro ao gerar overview do dashboard', $e, $userId, [
+                'month' => $month,
+                'limit' => $limit,
+                'view' => $viewType,
+            ]);
+
+            return $this->internalErrorResponse($e, 'Erro ao carregar overview do dashboard.');
+        }
     }
 
     public function comparativoCompetenciaCaixa(): Response
@@ -102,10 +256,7 @@ class DashboardController extends BaseController
         try {
             $normalized = $this->normalizeMonth($this->getStringQuery('month', $this->getCurrentMonth()));
             $month = $normalized['month'];
-            $from = $normalized['start'];
-            $to = $normalized['end'];
-
-            $out = $this->dashboardInsightService->getRecentTransactions($userId, $from, $to, $limit);
+            $out = $this->dashboardInsightService->getRecentTransactions($userId, $normalized['start'], $normalized['end'], $limit);
 
             return Response::successResponse($out);
         } catch (Throwable $e) {
@@ -225,4 +376,5 @@ class DashboardController extends BaseController
             return $this->internalErrorResponse($e, 'Erro ao gerar resumo.');
         }
     }
+
 }

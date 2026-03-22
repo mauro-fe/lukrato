@@ -1,4 +1,5 @@
-import { apiGet } from '../shared/api.js';
+import { logClientError } from '../shared/api.js';
+import { getDashboardOverview, invalidateDashboardOverview } from './dashboard-data.js';
 
 /**
  * Financial Health Score Component
@@ -72,21 +73,25 @@ class HealthScoreWidget {
     this.updateIcons();
   }
 
-  async load() {
+  async load({ force = false } = {}) {
     try {
-      const data = await apiGet(`${window.BASE_URL || '/'}api/dashboard/health-score`);
+      const response = await getDashboardOverview(undefined, { force });
+      const data = response?.data ?? response;
 
-      if (data.success && data.data) {
-        this.updateScore(data.data);
+      if (data?.health_score) {
+        this.updateScore(data.health_score);
       }
     } catch (error) {
-      console.error('Error loading health score:', error);
+      logClientError('Error loading health score', error, 'Falha ao carregar health score');
       this.showError();
     }
 
     if (!this._listeningDataChanged) {
       this._listeningDataChanged = true;
-      document.addEventListener('lukrato:data-changed', () => this.load());
+      document.addEventListener('lukrato:data-changed', () => {
+        invalidateDashboardOverview();
+        this.load({ force: true });
+      });
     }
   }
 
