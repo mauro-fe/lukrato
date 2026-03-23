@@ -145,9 +145,9 @@ $isLandingPage = $isLandingPage ?? false;
     <!-- Tailwind CSS (compilado via Vite) -->
     <?= function_exists('vite_css') ? vite_css('site-app') : '' ?>
 
-    <!-- Alpine.js + Plugins -->
+    <!-- Alpine.js CSP-compatible + Plugins -->
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/csp@3.x.x/dist/cdn.min.js"></script>
 
     <!-- AOS (Animate On Scroll) -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
