@@ -69,8 +69,11 @@
         <!-- Left: Create Campaign Form -->
         <div class="form-section" data-aos="fade-right" data-aos-delay="200">
             <div class="section-card">
-                <div class="section-header">
-                    <h2><i data-lucide="circle-plus"></i> Nova Campanha</h2>
+                <div class="section-header section-header--stackable">
+                    <div class="section-header-copy">
+                        <h2><i data-lucide="circle-plus"></i> Nova Campanha</h2>
+                        <p class="section-subtitle">Defina mensagem, segmentação, canais e agendamento em um único fluxo.</p>
+                    </div>
                     <span class="preview-count" id="previewCount">
                         <i data-lucide="users"></i>
                         <span id="recipientCount">-</span> usuários
@@ -252,8 +255,11 @@
         <!-- Right: History -->
         <div class="history-section" data-aos="fade-left" data-aos-delay="300">
             <div class="section-card">
-                <div class="section-header">
-                    <h2><i data-lucide="history"></i> Histórico de Campanhas</h2>
+                <div class="section-header section-header--stackable">
+                    <div class="section-header-copy">
+                        <h2><i data-lucide="history"></i> Histórico de Campanhas</h2>
+                        <p class="section-subtitle" id="historySummary">Acompanhe status, entrega e segmentação das últimas campanhas.</p>
+                    </div>
                     <button class="btn-refresh" data-action="loadCampaigns" title="Atualizar">
                         <i data-lucide="refresh-cw"></i>
                     </button>
