@@ -1,9 +1,6 @@
 /**
- * =====================================================================
- * FLOATING ACTION BUTTON (FAB) Component
- * Componente acionável flutuante para "Adicionar Transação"
- * Menu expandível com ícones para Receita, Despesa, Transferência
- * ===================================================================== */
+ * Floating Action Button for quick transaction creation.
+ */
 
 const ONBOARDING_STORAGE_PREFIX = `lk_user_${window.__LK_CONFIG?.userId ?? 'anon'}_`;
 
@@ -16,7 +13,7 @@ class FloatingActionButton {
     this.config = {
       baseURL: config.baseURL || window.BASE_URL || '/',
       firstTime: config.firstTime || false,
-      ...config
+      ...config,
     };
 
     this.container = null;
@@ -34,28 +31,23 @@ class FloatingActionButton {
     }
   }
 
-  /**
-   * Esconde o FAB antigo (botao-lancamento.php) para evitar duplicação
-   */
   hideOldFab() {
     const oldFab = document.getElementById('fabButton');
-    if (oldFab) {
-      const oldContainer = oldFab.closest('.fab-container');
-      if (oldContainer) {
-        oldContainer.style.display = 'none';
-      }
+    if (!oldFab) return;
+
+    const oldContainer = oldFab.closest('.fab-container');
+    if (oldContainer) {
+      oldContainer.style.display = 'none';
     }
   }
 
   render() {
-    // Criar container
     this.container = document.createElement('div');
     this.container.className = 'fab-container';
     this.container.id = 'fabContainer';
 
-    // HTML principal
     this.container.innerHTML = `
-      <button class="fab-main" id="fabMain" title="Adicionar Transação" aria-label="Menu de ações">
+      <button class="fab-main" id="fabMain" title="Adicionar transacao" aria-label="Menu de acoes">
         <div class="fab-icon">
           <i data-lucide="plus" style="width:32px;height:32px;"></i>
         </div>
@@ -70,14 +62,13 @@ class FloatingActionButton {
           <div class="fab-label">Despesa</div>
           <i data-lucide="arrow-up" style="width:24px;height:24px;"></i>
         </button>
-        <button class="fab-item fab-transferencia" data-action="transferencia" title="Adicionar transferência">
-          <div class="fab-label">Transferência</div>
+        <button class="fab-item fab-transferencia" data-action="transferencia" title="Adicionar transferencia">
+          <div class="fab-label">Transferencia</div>
           <i data-lucide="arrow-right-left" style="width:24px;height:24px;"></i>
         </button>
       </div>
     `;
 
-    // Criar backdrop
     const backdrop = document.createElement('div');
     backdrop.className = 'fab-backdrop';
     backdrop.id = 'fabBackdrop';
@@ -85,7 +76,6 @@ class FloatingActionButton {
     document.body.appendChild(this.container);
     document.body.appendChild(backdrop);
 
-    // Atualizar ícones Lucide
     if (typeof window.lucide !== 'undefined') {
       window.lucide.createIcons();
     }
@@ -96,25 +86,20 @@ class FloatingActionButton {
     const backdrop = document.getElementById('fabBackdrop');
     const items = document.querySelectorAll('.fab-item');
 
-    // Toggle menu ao clicar no botão principal
     mainBtn?.addEventListener('click', () => this.toggle());
-
-    // Fechar menu ao clicar no backdrop
     backdrop?.addEventListener('click', () => this.close());
 
-    // Actions dos items
-    items.forEach(item => {
-      item.addEventListener('click', (e) => {
-        e.preventDefault();
+    items.forEach((item) => {
+      item.addEventListener('click', (event) => {
+        event.preventDefault();
         const action = item.getAttribute('data-action');
         this.handleAction(action);
         this.close();
       });
     });
 
-    // Fechar com ESC
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && this.isExpanded) {
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && this.isExpanded) {
         this.close();
       }
     });
@@ -132,45 +117,37 @@ class FloatingActionButton {
     if (!this.container) return;
     this.container.classList.add('expanded');
     this.isExpanded = true;
-
-    // A11y
-    const mainBtn = document.getElementById('fabMain');
-    mainBtn?.setAttribute('aria-expanded', 'true');
+    document.getElementById('fabMain')?.setAttribute('aria-expanded', 'true');
   }
 
   close() {
     if (!this.container) return;
     this.container.classList.remove('expanded');
     this.isExpanded = false;
-
-    // A11y
-    const mainBtn = document.getElementById('fabMain');
-    mainBtn?.setAttribute('aria-expanded', 'false');
+    document.getElementById('fabMain')?.setAttribute('aria-expanded', 'false');
   }
 
   handleAction(action) {
     const urls = {
       receita: `${this.config.baseURL}lancamentos?tipo=receita`,
       despesa: `${this.config.baseURL}lancamentos?tipo=despesa`,
-      transferencia: `${this.config.baseURL}lancamentos?tipo=transferencia`
+      transferencia: `${this.config.baseURL}lancamentos?tipo=transferencia`,
     };
 
-    if (urls[action]) {
-      // Trigger custom event for modal if available
-      if (window.LK?.modals?.openLancamentoModal) {
-        window.LK.modals.openLancamentoModal({ tipo: action });
-      } else {
-        // Fallback: navigate to page
-        window.location.href = urls[action];
-      }
+    if (!urls[action]) return;
+
+    if (window.LK?.modals?.openLancamentoModal) {
+      window.LK.modals.openLancamentoModal({ tipo: action });
+      return;
     }
+
+    window.location.href = urls[action];
   }
 
   activateFirstTimeMode() {
     if (!this.container) return;
     this.container.classList.add('first-time');
 
-    // Mostrar tooltip ancorado ao FAB
     const tooltip = document.createElement('div');
     tooltip.style.cssText = `
       position: absolute;
@@ -189,19 +166,25 @@ class FloatingActionButton {
       animation: fadeInUp 0.4s ease;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     `;
+
     tooltip.innerHTML = `
-      <div style="display: flex; gap: 8px; align-items: flex-start;">
-        <span style="font-size: 16px;">👋</span>
+      <div style="display:flex;gap:8px;align-items:flex-start;">
+        <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:999px;background:rgba(230,126,34,0.16);color:var(--color-primary);flex-shrink:0;">
+          <i data-lucide="sparkles" style="width:14px;height:14px;"></i>
+        </span>
         <div>
-          <strong>Comece aqui!</strong><br>
-          <small>Clique para adicionar sua primeira transação</small>
+          <strong>Comece aqui</strong><br>
+          <small>Clique para adicionar sua primeira transacao</small>
         </div>
       </div>
     `;
 
     this.container.appendChild(tooltip);
 
-    // Remover tooltip após 8 segundos
+    if (typeof window.lucide !== 'undefined') {
+      window.lucide.createIcons();
+    }
+
     setTimeout(() => {
       tooltip.style.opacity = '0';
       tooltip.style.transform = 'translateY(8px)';
@@ -215,16 +198,14 @@ class FloatingActionButton {
 
     this.container.classList.add('celebrating');
 
-    // Confetti
     if (typeof confetti === 'function') {
       confetti({
         particleCount: 40,
         spread: 60,
-        origin: { x: 0.95, y: 0.9 }
+        origin: { x: 0.95, y: 0.9 },
       });
     }
 
-    // Remove celebrating class
     setTimeout(() => {
       this.container?.classList.remove('celebrating');
     }, 600);
@@ -232,8 +213,8 @@ class FloatingActionButton {
 
   showSuccess() {
     if (!this.container) return;
-    const mainBtn = document.getElementById('fabMain');
 
+    const mainBtn = document.getElementById('fabMain');
     mainBtn?.classList.add('fab-success');
 
     setTimeout(() => {
@@ -242,22 +223,19 @@ class FloatingActionButton {
   }
 }
 
-// ─── Export & Initialize ──────────────────────────────────────────────
 window.FloatingActionButton = FloatingActionButton;
 
-// Auto-init se elemento existir no DOM
 document.addEventListener('DOMContentLoaded', () => {
-  // Só iniciar se não existir ainda
   if (!document.getElementById('fabContainer')) {
-    const firstTime = window.__lkFirstVisit || localStorage.getItem(storageKey('lukrato_onboarding_completed')) !== 'true';
+    const firstTime = window.__lkFirstVisit
+      || localStorage.getItem(storageKey('lukrato_onboarding_completed')) !== 'true';
+
     window.fab = new FloatingActionButton({ firstTime });
   }
 });
 
-// Listener para celebrate quando transação adicionada
 document.addEventListener('lukrato:transaction-added', () => {
-  if (window.fab) {
-    window.fab.celebrate();
-    window.fab.showSuccess();
-  }
+  if (!window.fab) return;
+  window.fab.celebrate();
+  window.fab.showSuccess();
 });

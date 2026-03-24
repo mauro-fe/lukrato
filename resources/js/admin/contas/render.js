@@ -2,12 +2,211 @@
  * ============================================================================
  * LUKRATO - Contas / Render
  * ============================================================================
- * Rendering helpers: account cards, institution selects, stats.
+ * Rendering helpers: portfolio summary, distribution, account cards and states.
  * ============================================================================
  */
 
 import { CONFIG, STATE, Utils, Modules, escapeHtml } from './state.js';
 import { refreshIcons } from '../shared/ui.js';
+
+const RESERVE_TYPES = new Set(['conta_poupanca', 'conta_investimento']);
+
+const TYPE_META = {
+    conta_corrente: {
+        label: 'Conta corrente',
+        icon: 'landmark',
+        color: '#3b82f6',
+    },
+    conta_poupanca: {
+        label: 'Poupanca',
+        icon: 'piggy-bank',
+        color: '#10b981',
+    },
+    conta_investimento: {
+        label: 'Reserva',
+        icon: 'shield-check',
+        color: '#0ea5a4',
+    },
+    carteira_digital: {
+        label: 'Carteira digital',
+        icon: 'smartphone',
+        color: '#8b5cf6',
+    },
+    dinheiro: {
+        label: 'Dinheiro',
+        icon: 'wallet',
+        color: '#f59e0b',
+    },
+};
+
+function normalizeBalance(conta) {
+    const value = Number(conta?.saldoAtual ?? conta?.saldoInicial ?? conta?.saldo_inicial ?? 0);
+    return Math.abs(value) < 0.01 ? 0 : value;
+}
+
+function getContaType(conta) {
+    return conta?.tipo_conta || conta?.tipo || 'conta_corrente';
+}
+
+function getInstitution(conta) {
+    return conta?.instituicao_financeira || Utils.getInstituicao(conta?.instituicao_financeira_id);
+}
+
+function getTypeMeta(tipo) {
+    return TYPE_META[tipo] || {
+        label: Utils.formatTipoConta(tipo),
+        icon: 'wallet',
+        color: '#64748b',
+    };
+}
+
+function formatPercent(value) {
+    const safeValue = Number.isFinite(value) ? Math.max(value, 0) : 0;
+    const decimals = safeValue >= 10 ? 0 : 1;
+    return `${safeValue.toLocaleString('pt-BR', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+    })}%`;
+}
+
+function pluralizeContas(value) {
+    return `${value} ${value === 1 ? 'conta' : 'contas'}`;
+}
+
+function calculatePortfolio(contas = STATE.contas) {
+    const normalized = (Array.isArray(contas) ? contas : []).map((conta) => {
+        const saldo = normalizeBalance(conta);
+        const tipo = getContaType(conta);
+        const instituicao = getInstitution(conta);
+        const meta = getTypeMeta(tipo);
+
+        return {
+            ...conta,
+            saldoAtualNormalizado: saldo,
+            tipoContaNormalizado: tipo,
+            instituicaoNormalizada: instituicao,
+            typeMeta: meta,
+            positiveBalance: Math.max(saldo, 0),
+            isReserve: RESERVE_TYPES.has(tipo),
+        };
+    });
+
+    const totalBalance = normalized.reduce((sum, conta) => sum + conta.saldoAtualNormalizado, 0);
+    const positiveAllocationTotal = normalized.reduce((sum, conta) => sum + conta.positiveBalance, 0);
+    const reserveBalance = normalized
+        .filter((conta) => conta.isReserve)
+        .reduce((sum, conta) => sum + conta.positiveBalance, 0);
+
+    const primaryAccount = normalized
+        .slice()
+        .sort((a, b) => b.saldoAtualNormalizado - a.saldoAtualNormalizado)[0] || null;
+
+    const distribution = Object.values(normalized.reduce((acc, conta) => {
+        if (conta.positiveBalance <= 0) return acc;
+
+        const key = conta.tipoContaNormalizado;
+        if (!acc[key]) {
+            acc[key] = {
+                tipo: key,
+                label: conta.typeMeta.label,
+                icon: conta.typeMeta.icon,
+                color: conta.typeMeta.color,
+                total: 0,
+                count: 0,
+            };
+        }
+
+        acc[key].total += conta.positiveBalance;
+        acc[key].count += 1;
+        return acc;
+    }, {})).map((item) => ({
+        ...item,
+        percent: positiveAllocationTotal > 0 ? (item.total / positiveAllocationTotal) * 100 : 0,
+    })).sort((a, b) => b.total - a.total);
+
+    const primaryShare = primaryAccount && positiveAllocationTotal > 0 && primaryAccount.positiveBalance > 0
+        ? (primaryAccount.positiveBalance / positiveAllocationTotal) * 100
+        : 0;
+
+    const reserveShare = positiveAllocationTotal > 0
+        ? (reserveBalance / positiveAllocationTotal) * 100
+        : 0;
+
+    const topType = distribution[0] || null;
+
+    return {
+        contas: normalized,
+        totalAccounts: normalized.length,
+        totalBalance,
+        positiveAllocationTotal,
+        reserveBalance,
+        reserveShare,
+        primaryAccount,
+        primaryShare,
+        distribution,
+        topType,
+    };
+}
+
+function buildInsight(portfolio) {
+    const {
+        totalAccounts,
+        totalBalance,
+        reserveBalance,
+        reserveShare,
+        primaryAccount,
+        primaryShare,
+    } = portfolio;
+
+    if (totalAccounts === 0) {
+        return {
+            title: 'Seu dinheiro aparece aqui assim que a primeira conta for criada.',
+            description: 'Cadastre uma conta para ver onde o saldo esta concentrado e quanto voce ja separou em reserva.',
+        };
+    }
+
+    if (totalBalance <= 0) {
+        return {
+            title: 'Seu saldo total merece atencao.',
+            description: 'Hoje o valor consolidado nao esta positivo. Vale revisar as contas com saldo menor e reforcar sua reserva.',
+        };
+    }
+
+    if (!primaryAccount) {
+        return {
+            title: 'Seu dinheiro total ja esta consolidado.',
+            description: 'Assim que houver saldo positivo, mostramos qual conta concentra a maior parte dele.',
+        };
+    }
+
+    if (primaryShare >= 70 && totalAccounts > 1) {
+        return {
+            title: `Sua maior parte do dinheiro esta em ${primaryAccount.nome}.`,
+            description: reserveBalance > 0
+                ? 'Existe concentracao em uma unica conta. Considere distribuir melhor para reduzir dependencia.'
+                : 'Existe concentracao em uma unica conta e ainda nao ha reserva separada. Vale distribuir melhor.',
+        };
+    }
+
+    if (reserveBalance <= 0) {
+        return {
+            title: `Sua maior parte do dinheiro esta em ${primaryAccount.nome}.`,
+            description: 'Quase todo o saldo esta em contas de uso diario. Considere separar parte do valor em reserva.',
+        };
+    }
+
+    if (reserveShare >= 35) {
+        return {
+            title: `${Utils.formatCurrency(reserveBalance)} ja estao guardados.`,
+            description: `A reserva representa ${formatPercent(reserveShare)} do seu dinheiro total e melhora sua seguranca financeira.`,
+        };
+    }
+
+    return {
+        title: `Sua maior parte do dinheiro esta em ${primaryAccount.nome}.`,
+        description: `${formatPercent(primaryShare)} do valor positivo esta nessa conta. Sua distribuicao esta equilibrada, mas ainda pode ficar melhor.`,
+    };
+}
 
 export const ContasRender = {
     getFilteredContas() {
@@ -15,14 +214,14 @@ export const ContasRender = {
         const typeFilter = STATE.typeFilter || 'all';
 
         return STATE.contas.filter((conta) => {
-            const tipoConta = conta.tipo_conta || conta.tipo || 'conta_corrente';
+            const tipoConta = getContaType(conta);
             if (typeFilter !== 'all' && tipoConta !== typeFilter) {
                 return false;
             }
 
             if (!query) return true;
 
-            const instituicao = conta.instituicao_financeira || Utils.getInstituicao(conta.instituicao_financeira_id);
+            const instituicao = getInstitution(conta);
             const haystack = [
                 conta.nome,
                 instituicao?.nome,
@@ -36,57 +235,40 @@ export const ContasRender = {
         });
     },
 
+    sortContasForDisplay(contas, portfolio) {
+        const primaryId = portfolio.primaryAccount?.id ?? null;
+
+        return contas.slice().sort((a, b) => {
+            if (a.id === primaryId && b.id !== primaryId) return -1;
+            if (b.id === primaryId && a.id !== primaryId) return 1;
+
+            const balanceDiff = normalizeBalance(b) - normalizeBalance(a);
+            if (Math.abs(balanceDiff) > 0.009) return balanceDiff;
+
+            return String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR');
+        });
+    },
+
     updatePageContext(contasVisiveis = ContasRender.getFilteredContas()) {
+        const titleEl = document.getElementById('contasListTitle');
+        const descriptionEl = document.getElementById('contasListDescription');
         const query = String(STATE.searchQuery || '').trim();
         const typeFilter = STATE.typeFilter || 'all';
-        const titleEl = document.getElementById('contasContextTitle');
-        const descriptionEl = document.getElementById('contasContextDescription');
-        const chipsEl = document.getElementById('contasContextChips');
-        const negativeEl = document.getElementById('contasNegativasCount');
-        const positiveEl = document.getElementById('contasPositivasCount');
-        const allCount = STATE.contas.length;
-
-        const negativeCount = contasVisiveis.filter((conta) => (conta.saldoAtual ?? 0) < -0.009).length;
-        const positiveCount = contasVisiveis.filter((conta) => (conta.saldoAtual ?? 0) >= -0.009).length;
 
         if (titleEl) {
             titleEl.textContent = query || typeFilter !== 'all'
-                ? `${contasVisiveis.length} conta(s) na visualiza\u00e7\u00e3o atual`
-                : 'Suas contas ativas em tempo real';
+                ? `${contasVisiveis.length} conta(s) na visualizacao atual`
+                : 'Suas contas ativas';
         }
 
         if (descriptionEl) {
-            if (STATE.lastLoadError && !STATE.contas.length) {
+            if (STATE.lastLoadError && STATE.contas.length === 0) {
                 descriptionEl.textContent = STATE.lastLoadError;
             } else if (query || typeFilter !== 'all') {
-                descriptionEl.textContent = 'A lista abaixo est\u00e1 filtrada, mas os cards do topo continuam mostrando o saldo total atual da carteira.';
+                descriptionEl.textContent = 'Busca e filtros afetam apenas a lista abaixo. O resumo no topo continua considerando todas as contas ativas.';
             } else {
-                descriptionEl.textContent = 'Esta p\u00e1gina mostra a posi\u00e7\u00e3o atual das contas ativas e das reservas separadas. Para an\u00e1lises por per\u00edodo, use os relat\u00f3rios.';
+                descriptionEl.textContent = 'A conta com maior saldo aparece primeiro, seguida pelas demais em ordem de saldo.';
             }
-        }
-
-        if (negativeEl) negativeEl.textContent = negativeCount;
-        if (positiveEl) positiveEl.textContent = positiveCount;
-
-        if (chipsEl) {
-            const chips = [
-                '<span class="contas-context-chip info">Exclus\u00e3o permanente fica em Arquivadas</span>',
-                `<span class="contas-context-chip neutral">Mostrando ${contasVisiveis.length} de ${allCount} conta(s)</span>`,
-            ];
-
-            if (STATE.lastLoadedAt) {
-                chips.push(`<span class="contas-context-chip success">Atualizado em ${escapeHtml(Utils.formatDateTime(STATE.lastLoadedAt))}</span>`);
-            }
-
-            if (query) {
-                chips.push(`<span class="contas-context-chip accent">Busca: ${escapeHtml(query)}</span>`);
-            }
-
-            if (typeFilter !== 'all') {
-                chips.push(`<span class="contas-context-chip warning">Tipo: ${escapeHtml(Utils.formatTipoConta(typeFilter))}</span>`);
-            }
-
-            chipsEl.innerHTML = chips.join('');
         }
     },
 
@@ -97,7 +279,7 @@ export const ContasRender = {
         const query = String(STATE.searchQuery || '').trim();
         const typeFilter = STATE.typeFilter || 'all';
 
-        if (STATE.lastLoadError && !STATE.contas.length) {
+        if (STATE.lastLoadError && STATE.contas.length === 0) {
             summaryEl.innerHTML = `
                 <div class="contas-filter-summary-text error">
                     <i data-lucide="triangle-alert"></i>
@@ -111,7 +293,7 @@ export const ContasRender = {
             summaryEl.innerHTML = `
                 <div class="contas-filter-summary-text">
                     <i data-lucide="info"></i>
-                    <span>Os saldos acima representam a posi\u00e7\u00e3o atual consolidada das contas ativas e reservas.</span>
+                    <span>Use busca e filtro para localizar contas rapidamente sem perder a visao consolidada do topo.</span>
                 </div>
             `;
             return;
@@ -120,7 +302,7 @@ export const ContasRender = {
         summaryEl.innerHTML = `
             <div class="contas-filter-summary-text">
                 <i data-lucide="filter"></i>
-                <span>Filtros ativos: ${contasVisiveis.length} conta(s) encontradas. ${query ? `Busca por "${escapeHtml(query)}". ` : ''}${typeFilter !== 'all' ? `Tipo ${escapeHtml(Utils.formatTipoConta(typeFilter))}.` : ''}</span>
+                <span>${contasVisiveis.length} conta(s) encontradas.${query ? ` Busca por "${escapeHtml(query)}".` : ''}${typeFilter !== 'all' ? ` Tipo ${escapeHtml(Utils.formatTipoConta(typeFilter))}.` : ''}</span>
                 <button type="button" class="contas-inline-action" data-action="clear-contas-filters">Limpar filtros</button>
             </div>
         `;
@@ -145,7 +327,7 @@ export const ContasRender = {
                     <i data-lucide="wallet"></i>
                 </div>
                 <h3>Nenhuma conta cadastrada</h3>
-                <p>Comece criando sua primeira conta para acompanhar seu saldo atual em um s\u00f3 lugar.</p>
+                <p>Cadastre sua primeira conta para enxergar onde o dinheiro esta e quanto voce ja separou em reserva.</p>
                 <button class="btn btn-primary btn-lg" data-action="create-first-account">
                     <i data-lucide="plus"></i> Criar primeira conta
                 </button>
@@ -160,12 +342,56 @@ export const ContasRender = {
                     <i data-lucide="search-x"></i>
                 </div>
                 <h3>Nenhuma conta encontrada</h3>
-                <p>Ajuste a busca ou o tipo selecionado para voltar a ver suas contas ativas.</p>
+                <p>Ajuste a busca ou o tipo selecionado para voltar a ver as contas da sua carteira.</p>
                 <button class="btn btn-light" data-action="clear-contas-filters">
                     <i data-lucide="x"></i> Limpar filtros
                 </button>
             </div>
         `;
+    },
+
+    renderDistribution(portfolio) {
+        const listEl = document.getElementById('contasDistributionList');
+        const summaryEl = document.getElementById('contasDistributionSummary');
+
+        if (!listEl || !summaryEl) return;
+
+        if (!portfolio.distribution.length) {
+            summaryEl.textContent = 'Quando houver saldo positivo nas contas, mostramos a distribuicao por tipo aqui.';
+            listEl.innerHTML = `
+                <div class="contas-distribution-empty">
+                    <i data-lucide="wallet"></i>
+                    <span>Sem saldo positivo para distribuir no momento.</span>
+                </div>
+            `;
+            return;
+        }
+
+        const topType = portfolio.distribution[0];
+        summaryEl.textContent = `${topType.label} concentra ${formatPercent(topType.percent)} do seu dinheiro positivo hoje.`;
+
+        listEl.innerHTML = portfolio.distribution.map((item) => `
+            <article class="contas-distribution-item" style="--distribution-color:${item.color};">
+                <div class="contas-distribution-item-head">
+                    <div class="contas-distribution-item-label">
+                        <span class="contas-distribution-item-icon">
+                            <i data-lucide="${item.icon}"></i>
+                        </span>
+                        <div>
+                            <strong>${escapeHtml(item.label)}</strong>
+                            <span>${pluralizeContas(item.count)}</span>
+                        </div>
+                    </div>
+                    <div class="contas-distribution-item-values">
+                        <strong>${Utils.formatCurrency(item.total)}</strong>
+                        <span>${formatPercent(item.percent)}</span>
+                    </div>
+                </div>
+                <div class="contas-distribution-bar">
+                    <span style="width:${Math.max(item.percent, 4)}%;"></span>
+                </div>
+            </article>
+        `).join('');
     },
 
     renderContas() {
@@ -175,7 +401,12 @@ export const ContasRender = {
             return;
         }
 
-        const contasVisiveis = ContasRender.getFilteredContas();
+        const portfolio = calculatePortfolio(STATE.contas);
+        const contasVisiveis = ContasRender.sortContasForDisplay(
+            ContasRender.getFilteredContas(),
+            portfolio
+        );
+
         container.setAttribute('aria-busy', STATE.isLoadingContas ? 'true' : 'false');
 
         if (STATE.lastLoadError && STATE.contas.length === 0) {
@@ -204,64 +435,89 @@ export const ContasRender = {
             return;
         }
 
-        container.innerHTML = contasVisiveis.map((conta) => ContasRender.createContaCard(conta)).join('');
+        container.innerHTML = contasVisiveis
+            .map((conta) => ContasRender.createContaCard(conta, portfolio))
+            .join('');
+
         ContasRender.updatePageContext(contasVisiveis);
         ContasRender.updateFilterSummary(contasVisiveis);
         refreshIcons();
         Modules.Events?.attachContaCardListeners?.();
     },
 
-    createContaCard(conta) {
-        const instituicao = conta.instituicao_financeira || Utils.getInstituicao(conta.instituicao_financeira_id);
+    createContaCard(conta, portfolio = calculatePortfolio(STATE.contas)) {
+        const instituicao = getInstitution(conta);
         const logoUrl = instituicao?.logo_url || `${CONFIG.BASE_URL}assets/img/banks/default.svg`;
-        const corPrimaria = instituicao?.cor_primaria || '#667eea';
-
-        let saldo = conta.saldoAtual ?? 0;
-        if (Math.abs(saldo) < 0.01) saldo = 0;
-
-        const saldoClass = saldo >= 0 ? 'positive' : 'negative';
-        const tipoConta = conta.tipo_conta || conta.tipo || 'conta_corrente';
-        const tipoLabel = Utils.formatTipoConta(tipoConta);
-        const tipoClass = Utils.getTipoContaClass(tipoConta);
+        const accentColor = instituicao?.cor_primaria || conta?.typeMeta?.color || '#667eea';
+        const balance = normalizeBalance(conta);
+        const type = getContaType(conta);
+        const typeLabel = Utils.formatTipoConta(type);
+        const typeClass = Utils.getTipoContaClass(type);
+        const positiveAllocationTotal = portfolio.positiveAllocationTotal;
+        const share = balance > 0 && positiveAllocationTotal > 0
+            ? (balance / positiveAllocationTotal) * 100
+            : 0;
+        const shareLabel = balance > 0 ? formatPercent(share) : '0%';
+        const shareText = balance > 0
+            ? `${shareLabel} do seu dinheiro`
+            : balance < 0
+                ? 'Saldo negativo'
+                : 'Sem saldo no momento';
+        const progressWidth = balance > 0 ? Math.max(Math.min(share, 100), 6) : 0;
+        const isFeatured = portfolio.primaryAccount?.id === conta.id && balance >= 0;
+        const isReserve = RESERVE_TYPES.has(type);
+        const balanceClass = balance >= 0 ? 'positive' : 'negative';
+        const featuredBadge = isFeatured
+            ? '<span class="account-chip account-chip--featured"><i data-lucide="sparkles"></i> Maior saldo</span>'
+            : '';
+        const reserveBadge = isReserve
+            ? '<span class="account-chip account-chip--reserve"><i data-lucide="piggy-bank"></i> Guardado</span>'
+            : '';
 
         return `
-            <div class="account-card" data-account-id="${conta.id}">
-                <div class="account-header" style="background: ${corPrimaria};">
+            <article class="account-card ${isFeatured ? 'is-featured' : ''}" data-account-id="${conta.id}" style="--account-accent:${accentColor};">
+                <div class="account-media">
                     <div class="account-logo">
                         <img src="${logoUrl}" alt="${escapeHtml(conta.nome)}" />
                     </div>
-                    <div class="account-actions">
-                        <button class="btn-icon" onclick="contasManager.editConta(${conta.id})" title="Editar">
-                            <i data-lucide="pencil"></i>
-                        </button>
-                        <button class="btn-icon" onclick="contasManager.moreConta(${conta.id}, event)" title="Mais op\u00e7\u00f5es">
-                            <i data-lucide="more-vertical"></i>
-                        </button>
-                    </div>
                 </div>
-                <div class="account-body">
+
+                <div class="account-content">
+                    <div class="account-card-badges">
+                        <span class="account-type-badge ${typeClass}">${escapeHtml(typeLabel)}</span>
+                        ${featuredBadge}
+                        ${reserveBadge}
+                    </div>
                     <h3 class="account-name">${escapeHtml(conta.nome)}</h3>
-                    <div class="account-institution">${escapeHtml(instituicao ? instituicao.nome : 'Institui\u00e7\u00e3o n\u00e3o definida')}</div>
-                    <span class="account-type-badge ${tipoClass}">${escapeHtml(tipoLabel)}</span>
-                    <div class="account-balance ${saldoClass}">
-                        ${Utils.formatCurrency(saldo)}
-                    </div>
-                    <div class="account-info">
-                        <button class="btn-new-transaction" data-conta-id="${conta.id}" title="Novo lan\u00e7amento">
-                            <i data-lucide="circle-plus"></i> Novo Lan\u00e7amento
-                        </button>
-                    </div>
-                    ${ContasRender.renderCartoesBadge(conta)}
+                    <p class="account-institution">${escapeHtml(instituicao?.nome || 'Instituicao nao definida')}</p>
                 </div>
-                <div class="account-list-actions">
-                    <button class="btn-icon" onclick="contasManager.editConta(${conta.id})" title="Editar">
-                        <i data-lucide="pencil"></i>
-                    </button>
-                    <button class="btn-icon" onclick="contasManager.moreConta(${conta.id}, event)" title="Mais op\u00e7\u00f5es">
-                        <i data-lucide="more-vertical"></i>
+
+                <div class="account-share-panel">
+                    <strong class="account-share-value">${shareLabel}</strong>
+                    <span class="account-share-label">do total</span>
+                </div>
+
+                <div class="account-balance-panel">
+                    <span class="account-balance-caption">${balance >= 0 ? 'Saldo disponivel' : 'Saldo atual'}</span>
+                    <strong class="account-balance ${balanceClass}">${Utils.formatCurrency(balance)}</strong>
+                </div>
+
+                <div class="account-menu">
+                    <button class="btn-icon btn-icon--soft" onclick="contasManager.moreConta(${conta.id}, event)" title="Mais acoes">
+                        <i data-lucide="more-horizontal"></i>
                     </button>
                 </div>
-            </div>
+
+                <div class="account-progress">
+                    <div class="account-progress-head">
+                        <span>${shareText}</span>
+                        <span>${isReserve ? 'Reserva' : escapeHtml(typeLabel)}</span>
+                    </div>
+                    <div class="account-progress-bar">
+                        <span style="width:${progressWidth}%;"></span>
+                    </div>
+                </div>
+            </article>
         `;
     },
 
@@ -274,8 +530,7 @@ export const ContasRender = {
         if (!select) return;
 
         const grupos = Utils.groupByTipo(STATE.instituicoes);
-
-        select.innerHTML = '<option value="">Selecione uma institui\u00e7\u00e3o</option>';
+        select.innerHTML = '<option value="">Selecione uma instituicao</option>';
 
         Object.keys(grupos).forEach((tipo) => {
             const optgroup = document.createElement('optgroup');
@@ -295,22 +550,52 @@ export const ContasRender = {
     },
 
     updateStats() {
-        const totalContas = STATE.contas.length;
-        const tiposReserva = new Set(['conta_poupanca', 'conta_investimento']);
-        const contasCaixa = STATE.contas.filter((conta) => !tiposReserva.has(conta.tipo_conta || conta.tipo));
-        const contasReserva = STATE.contas.filter((conta) => tiposReserva.has(conta.tipo_conta || conta.tipo));
-
-        const saldoCaixa = contasCaixa.reduce((sum, conta) => sum + (conta.saldoAtual ?? 0), 0);
-        const saldoReservas = contasReserva.reduce((sum, conta) => sum + (conta.saldoAtual ?? 0), 0);
-        const saldoTotal = saldoCaixa + saldoReservas;
-
+        const portfolio = calculatePortfolio(STATE.contas);
+        const insight = buildInsight(portfolio);
         const totalContasEl = document.getElementById('totalContas');
         const saldoTotalEl = document.getElementById('saldoTotal');
         const saldoReservasEl = document.getElementById('saldoReservas');
+        const contextTitleEl = document.getElementById('contasContextTitle');
+        const contextDescriptionEl = document.getElementById('contasContextDescription');
+        const mainAccountNameEl = document.getElementById('contasMainAccountName');
+        const mainAccountValueEl = document.getElementById('contasMainAccountValue');
+        const mainAccountShareEl = document.getElementById('contasMainAccountShare');
+        const reserveLabelEl = document.getElementById('contasReserveLabel');
+        const reserveShareEl = document.getElementById('contasReserveShare');
 
-        if (totalContasEl) totalContasEl.textContent = totalContas;
-        if (saldoTotalEl) saldoTotalEl.textContent = Utils.formatCurrency(saldoTotal);
-        if (saldoReservasEl) saldoReservasEl.textContent = Utils.formatCurrency(saldoReservas);
+        if (totalContasEl) totalContasEl.textContent = pluralizeContas(portfolio.totalAccounts);
+        if (saldoTotalEl) saldoTotalEl.textContent = Utils.formatCurrency(portfolio.totalBalance);
+        if (saldoReservasEl) saldoReservasEl.textContent = Utils.formatCurrency(portfolio.reserveBalance);
+        if (contextTitleEl) contextTitleEl.textContent = insight.title;
+        if (contextDescriptionEl) contextDescriptionEl.textContent = insight.description;
+
+        if (mainAccountNameEl) {
+            mainAccountNameEl.textContent = portfolio.primaryAccount?.nome || 'Nenhuma conta';
+        }
+
+        if (mainAccountValueEl) {
+            mainAccountValueEl.textContent = portfolio.primaryAccount
+                ? Utils.formatCurrency(portfolio.primaryAccount.saldoAtualNormalizado)
+                : 'R$ 0,00';
+        }
+
+        if (mainAccountShareEl) {
+            mainAccountShareEl.textContent = portfolio.primaryAccount && portfolio.primaryShare > 0
+                ? `${formatPercent(portfolio.primaryShare)} do seu dinheiro esta aqui`
+                : 'Sem concentracao relevante no momento';
+        }
+
+        if (reserveLabelEl) {
+            reserveLabelEl.textContent = `${Utils.formatCurrency(portfolio.reserveBalance)} guardados`;
+        }
+
+        if (reserveShareEl) {
+            reserveShareEl.textContent = portfolio.reserveShare > 0
+                ? `${formatPercent(portfolio.reserveShare)} do total esta em reserva`
+                : 'Nenhum valor guardado em reserva';
+        }
+
+        ContasRender.renderDistribution(portfolio);
     },
 
     showLoading(show) {
@@ -328,7 +613,7 @@ export const ContasRender = {
         }
 
         grid.setAttribute('aria-busy', 'false');
-    }
+    },
 };
 
 Modules.Render = ContasRender;

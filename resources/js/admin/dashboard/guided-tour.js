@@ -1,9 +1,9 @@
-/**
+﻿/**
  * ============================================================================
- * LUKRATO — Dashboard Guided Tour
+ * LUKRATO â€” Dashboard Guided Tour
  * ============================================================================
  * Sistema de tooltips guiados para primeira visita ao dashboard
- * Ajuda o usuário a entender onde estão as principais funcionalidades
+ * Ajuda o usuÃ¡rio a entender onde estÃ£o as principais funcionalidades
  * ============================================================================
  */
 
@@ -11,42 +11,42 @@ const BASE_URL = window.__LK_CONFIG?.baseUrl || '/';
 const TOUR_STORAGE_KEY = 'lk_dashboard_tour_completed';
 
 /**
- * Configuração dos passos do tour
+ * ConfiguraÃ§Ã£o dos passos do tour
  */
 const TOUR_STEPS = [
     {
         target: '.lk-health-score',
-        title: 'Sua Saúde Financeira',
-        content: 'Este número mostra como estão suas finanças. Quanto mais alto, melhor!',
+        title: 'Sua SaÃºde Financeira',
+        content: 'Este nÃºmero mostra como estÃ£o suas finanÃ§as. Quanto mais alto, melhor!',
         position: 'bottom',
         icon: 'heart-pulse'
     },
     {
         target: '.lk-kpi-cards',
         title: 'Resumo Financeiro',
-        content: 'Veja seu saldo, receitas e despesas do mês em um só lugar.',
+        content: 'Veja seu saldo, receitas e despesas do mÃªs em um sÃ³ lugar.',
         position: 'bottom',
         icon: 'bar-chart-3'
     },
     {
         target: '#addTransactionBtn, .fab, [data-action="add-transaction"]',
-        title: 'Adicionar Lançamentos',
-        content: 'Use este botão para registrar suas receitas e despesas.',
+        title: 'Adicionar LanÃ§amentos',
+        content: 'Use este botÃ£o para registrar suas receitas e despesas.',
         position: 'top',
         icon: 'plus-circle',
         highlight: true
     },
     {
         target: '.sidebar .nav-item[href*="lancamentos"]',
-        title: 'Todos os Lançamentos',
-        content: 'Aqui você vê o histórico completo de tudo que entrou e saiu.',
+        title: 'Todos os LanÃ§amentos',
+        content: 'Aqui vocÃª vÃª o histÃ³rico completo de tudo que entrou e saiu.',
         position: 'right',
         icon: 'layers'
     },
     {
         target: '.sidebar .nav-item[href*="relatorios"]',
-        title: 'Relatórios',
-        content: 'Descubra para onde vai seu dinheiro com gráficos detalhados.',
+        title: 'RelatÃ³rios',
+        content: 'Descubra para onde vai seu dinheiro com grÃ¡ficos detalhados.',
         position: 'right',
         icon: 'pie-chart'
     }
@@ -67,7 +67,7 @@ class DashboardTour {
      * Verifica se deve mostrar o tour
      */
     shouldShowTour() {
-        // Verificar se é primeira visita via URL parameter ou global flag
+        // Verificar se Ã© primeira visita via URL parameter ou global flag
         const isFirstVisitParam = new URLSearchParams(window.location.search).get('first_visit') === '1';
         const isFirstVisitFlag = window.__lkFirstVisit === true;
         const tourCompleted = localStorage.getItem(TOUR_STORAGE_KEY) === 'true';
@@ -128,7 +128,7 @@ class DashboardTour {
         const target = document.querySelector(step.target);
 
         if (!target) {
-            // Skip para próximo se target não existe
+            // Skip para prÃ³ximo se target nÃ£o existe
             this.showStep(index + 1);
             return;
         }
@@ -146,7 +146,7 @@ class DashboardTour {
         // Criar tooltip
         this.createTooltip(target, step, index);
 
-        // Scroll para elemento se necessário
+        // Scroll para elemento se necessÃ¡rio
         this.scrollToElement(target);
     }
 
@@ -215,7 +215,7 @@ class DashboardTour {
                     <div class="lk-tour-tooltip-actions">
                         <button class="lk-tour-btn-skip" type="button">Pular</button>
                         <button class="lk-tour-btn-next" type="button">
-                            ${isLast ? 'Concluir' : 'Próximo'}
+                            ${isLast ? 'Concluir' : 'PrÃ³ximo'}
                             <i data-lucide="${isLast ? 'check' : 'arrow-right'}"></i>
                         </button>
                     </div>
@@ -304,7 +304,7 @@ class DashboardTour {
     }
 
     /**
-     * Próximo passo
+     * PrÃ³ximo passo
      */
     next() {
         this.trackEvent('tour_step_completed', { step: this.currentStep });
@@ -318,7 +318,7 @@ class DashboardTour {
         if (typeof Swal !== 'undefined') {
             Swal.fire({
                 title: 'Pular o tour?',
-                text: 'Você pode acessar o tour novamente pelo menu de ajuda.',
+                text: 'VocÃª pode acessar o tour novamente pelo menu de ajuda.',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: 'var(--color-primary, #e67e22)',
@@ -331,7 +331,7 @@ class DashboardTour {
                 }
             });
         } else {
-            if (confirm('Pular o tour? Você pode acessá-lo novamente pelo menu de ajuda.')) {
+            if (confirm('Pular o tour? VocÃª pode acessÃ¡-lo novamente pelo menu de ajuda.')) {
                 this.skip();
             }
         }
@@ -354,14 +354,14 @@ class DashboardTour {
         this.cleanup();
         localStorage.setItem(TOUR_STORAGE_KEY, 'true');
 
-        // Mostrar mensagem de conclusão
+        // Mostrar mensagem de conclusao
         if (typeof Swal !== 'undefined') {
             Swal.fire({
-                title: 'Tour concluído! 🎉',
-                text: 'Agora você conhece o básico do Lukrato. Bora organizar suas finanças!',
+                title: 'Tour concluido',
+                text: 'Agora voce conhece o basico do Lukrato. Vamos organizar suas financas.',
                 icon: 'success',
                 confirmButtonColor: 'var(--color-primary, #e67e22)',
-                confirmButtonText: 'Vamos lá!'
+                confirmButtonText: 'Continuar'
             });
         }
     }
@@ -653,3 +653,4 @@ if (typeof window !== 'undefined') {
         reset: resetTour
     };
 }
+

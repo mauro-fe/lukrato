@@ -1,6 +1,6 @@
-/**
+﻿/**
  * ============================================================================
- * LUKRATO — Dashboard / App (Main Application Logic)
+ * LUKRATO â€” Dashboard / App (Main Application Logic)
  * ============================================================================
  * API layer, Notifications, Gamification, Renderers, TransactionManager,
  * Provisao (financial forecasting), DashboardManager, and EventListeners.
@@ -22,7 +22,7 @@ import { getDashboardOverview, invalidateDashboardOverview } from './dashboard-d
 import { initDashboardTour } from './guided-tour.js';
 
 // ==================== API ====================
-// Usa LK.api (facade unificada) quando disponível, com fallback local
+// Usa LK.api (facade unificada) quando disponÃ­vel, com fallback local
 
 export const API = {
     getOverview: async (month, options = {}) => {
@@ -63,12 +63,12 @@ export const API = {
 
     deleteTransaction: async (id) => {
         if (window.LK?.api) {
-            // Tenta o endpoint primário via facade
+            // Tenta o endpoint primÃ¡rio via facade
             const res = await LK.api.delete(`${CONFIG.API_URL}lancamentos/${id}`);
             if (res.ok) return res.data;
             throw new Error(res.message || 'Erro ao excluir');
         }
-        // Fallback com múltiplos endpoints
+        // Fallback com mÃºltiplos endpoints
         const endpoints = [
             { request: () => apiDelete(`${CONFIG.API_URL}lancamentos/${id}`) },
             { request: () => apiPost(`${CONFIG.API_URL}lancamentos/${id}/delete`, {}) },
@@ -83,7 +83,7 @@ export const API = {
                 }
             }
         }
-        throw new Error('Endpoint de exclusão não encontrado.');
+        throw new Error('Endpoint de exclusÃ£o nÃ£o encontrado.');
     }
 };
 
@@ -92,7 +92,7 @@ export const API = {
 
 export const Notifications = {
     ensureSwal: async () => {
-        // SweetAlert2 já é carregado globalmente no header
+        // SweetAlert2 jÃ¡ Ã© carregado globalmente no header
         if (window.Swal) return;
     },
 
@@ -133,14 +133,13 @@ export const Notifications = {
 
 export const Gamification = {
     badges: [
-        { id: 'first', emoji: '🎯', name: 'Início', condition: (data) => data.totalTransactions >= 1 },
-        { id: 'week', emoji: '📊', name: '7 Dias', condition: (data) => data.streak >= 7 },
-        { id: 'month', emoji: '💎', name: '30 Dias', condition: (data) => data.streak >= 30 },
-        { id: 'saver', emoji: '💰', name: 'Economia', condition: (data) => data.savingsRate >= 10 },
-        { id: 'diverse', emoji: '🎨', name: 'Diverso', condition: (data) => data.uniqueCategories >= 5 },
-        { id: 'master', emoji: '👑', name: 'Mestre', condition: (data) => data.totalTransactions >= 100 }
+        { id: 'first', icon: 'target', name: 'Inicio', condition: (data) => data.totalTransactions >= 1 },
+        { id: 'week', icon: 'bar-chart-3', name: '7 Dias', condition: (data) => data.streak >= 7 },
+        { id: 'month', icon: 'gem', name: '30 Dias', condition: (data) => data.streak >= 30 },
+        { id: 'saver', icon: 'coins', name: 'Economia', condition: (data) => data.savingsRate >= 10 },
+        { id: 'diverse', icon: 'palette', name: 'Diverso', condition: (data) => data.uniqueCategories >= 5 },
+        { id: 'master', icon: 'crown', name: 'Mestre', condition: (data) => data.totalTransactions >= 100 }
     ],
-
     calculateStreak: (transactions) => {
         if (!Array.isArray(transactions) || transactions.length === 0) return 0;
 
@@ -528,9 +527,9 @@ export const Renderers = {
               </td>
               <td data-label="Categoria">${categoriaDisplay}</td>
               <td data-label="Conta">${contaNome}</td>
-              <td data-label="Descrição">${descricao}</td>
+              <td data-label="DescriÃ§Ã£o">${descricao}</td>
               <td data-label="Valor" class="valor-cell ${tipoClass}">${Utils.money(valor)}</td>
-              <td data-label="Ações" class="text-end">
+              <td data-label="AÃ§Ãµes" class="text-end">
                 <div class="actions-cell">
                   <button class="lk-btn danger btn-del" data-id="${transaction.id}" title="Excluir">
                     <i data-lucide="trash-2"></i>
@@ -569,7 +568,7 @@ export const Renderers = {
                   </div>
                   ${descricao !== '--' ? `
                   <div class="transaction-info-row">
-                    <span class="transaction-label">Descrição</span>
+                    <span class="transaction-label">DescriÃ§Ã£o</span>
                     <span class="transaction-description">${descricao}</span>
                   </div>
                   ` : ''}
@@ -586,7 +585,7 @@ export const Renderers = {
                 });
             }
         } catch (err) {
-            logClientError('Erro ao renderizar transações', err, 'Falha ao carregar transações');
+            logClientError('Erro ao renderizar transaÃ§Ãµes', err, 'Falha ao carregar transaÃ§Ãµes');
 
             if (DOM.emptyState) {
                 DOM.emptyState.style.display = 'block';
@@ -641,7 +640,7 @@ export const Renderers = {
                     background: 'transparent',
                     fontFamily: 'Inter, Arial, sans-serif',
                 },
-                series: [{ name: 'Resultado do Mês', data }],
+                series: [{ name: 'Resultado do MÃªs', data }],
                 xaxis: {
                     categories: labels,
                     labels: { style: { colors: xTickColor } },
@@ -687,7 +686,7 @@ export const Renderers = {
             });
             STATE.chartInstance.render();
         } catch (err) {
-            logClientError('Erro ao renderizar gráfico', err, 'Falha ao carregar gráfico');
+            logClientError('Erro ao renderizar grÃ¡fico', err, 'Falha ao carregar grÃ¡fico');
         } finally {
             if (DOM.chartLoading) {
                 setTimeout(() => {
@@ -706,8 +705,8 @@ export const TransactionManager = {
             await Notifications.ensureSwal();
 
             const confirmed = await Notifications.confirm(
-                'Excluir lançamento?',
-                'Esta ação não pode ser desfeita.'
+                'Excluir lanÃ§amento?',
+                'Esta aÃ§Ã£o nÃ£o pode ser desfeita.'
             );
 
             if (!confirmed) return;
@@ -717,7 +716,7 @@ export const TransactionManager = {
             await API.deleteTransaction(Number(id));
 
             Notifications.close();
-            Notifications.toast('success', 'Lançamento excluído com sucesso!');
+            Notifications.toast('success', 'LanÃ§amento excluÃ­do com sucesso!');
 
             if (rowElement) {
                 rowElement.style.opacity = '0';
@@ -741,14 +740,14 @@ export const TransactionManager = {
                 }
             }));
         } catch (err) {
-            console.error('Erro ao excluir lançamento:', err);
+            console.error('Erro ao excluir lanÃ§amento:', err);
             await Notifications.ensureSwal();
-            Notifications.error('Erro', getErrorMessage(err, 'Falha ao excluir lançamento'));
+            Notifications.error('Erro', getErrorMessage(err, 'Falha ao excluir lanÃ§amento'));
         }
     }
 };
 
-// ==================== PREVISÃO FINANCEIRA ====================
+// ==================== PREVISÃƒO FINANCEIRA ====================
 
 export const Provisao = {
     isProUser: null,
@@ -774,7 +773,7 @@ export const Provisao = {
         const overlay = document.getElementById('provisaoProOverlay');
         const isPro = Provisao.isProUser;
 
-        // Sempre carrega dados reais (Free mostra só faturas, Pro mostra tudo)
+        // Sempre carrega dados reais (Free mostra sÃ³ faturas, Pro mostra tudo)
         section.classList.remove('is-locked');
         if (overlay) overlay.style.display = 'none';
 
@@ -782,7 +781,7 @@ export const Provisao = {
             const overview = await API.getOverview(month);
             Provisao.renderData(overview.provisao || null, isPro);
         } catch (err) {
-            logClientError('Erro ao carregar provisão', err, 'Falha ao carregar previsão');
+            logClientError('Erro ao carregar provisÃ£o', err, 'Falha ao carregar previsÃ£o');
         }
     },
 
@@ -804,13 +803,13 @@ export const Provisao = {
                 : 'A previsao indica aperto no fim do mes se o ritmo atual continuar.';
         }
 
-        // Atualizar título e link conforme plano
+        // Atualizar tÃ­tulo e link conforme plano
         const titleEl = document.getElementById('provisaoProximosTitle');
         const verTodosEl = document.getElementById('provisaoVerTodos');
         if (titleEl) {
             titleEl.innerHTML = isPro
-                ? '<i data-lucide="clock"></i> Próximos Vencimentos'
-                : '<i data-lucide="credit-card"></i> Próximas Faturas';
+                ? '<i data-lucide="clock"></i> PrÃ³ximos Vencimentos'
+                : '<i data-lucide="credit-card"></i> PrÃ³ximas Faturas';
         }
         if (verTodosEl) {
             verTodosEl.href = isPro
@@ -826,7 +825,7 @@ export const Provisao = {
         const receberCount = document.getElementById('provisaoReceberCount');
         const projetadoLabel = document.getElementById('provisaoProjetadoLabel');
 
-        // Card A Receber - só mostra dados para Pro
+        // Card A Receber - sÃ³ mostra dados para Pro
         const receberCard = receber?.closest('.provisao-card');
 
         if (pagar) pagar.textContent = money(p.a_pagar || 0);
@@ -845,7 +844,7 @@ export const Provisao = {
             projetado.style.color = (p.saldo_projetado || 0) >= 0 ? '' : 'var(--color-danger)';
         }
 
-        // Contador de A Pagar com faturas de cartão
+        // Contador de A Pagar com faturas de cartÃ£o
         if (pagarCount) {
             const countAgend = p.count_pagar || 0;
             const countFat = p.count_faturas || 0;
@@ -853,7 +852,7 @@ export const Provisao = {
             if (isPro) {
                 let pagarText = `${countAgend} pendente${countAgend !== 1 ? 's' : ''}`;
                 if (countFat > 0) {
-                    pagarText += ` • ${countFat} fatura${countFat !== 1 ? 's' : ''}`;
+                    pagarText += ` â€¢ ${countFat} fatura${countFat !== 1 ? 's' : ''}`;
                 }
                 pagarCount.textContent = pagarText;
             } else {
@@ -873,7 +872,7 @@ export const Provisao = {
         // Alertas de vencidos (separados por tipo)
         const vencidos = data.vencidos || {};
 
-        // Alerta de despesas vencidas (só Pro)
+        // Alerta de despesas vencidas (sÃ³ Pro)
         const alertDespesas = document.getElementById('provisaoAlertDespesas');
         if (alertDespesas) {
             const despesas = vencidos.despesas || {};
@@ -888,7 +887,7 @@ export const Provisao = {
             }
         }
 
-        // Alerta de receitas vencidas (não recebidas) - só Pro
+        // Alerta de receitas vencidas (nÃ£o recebidas) - sÃ³ Pro
         const alertReceitas = document.getElementById('provisaoAlertReceitas');
         if (alertReceitas) {
             const receitas = vencidos.receitas || {};
@@ -918,7 +917,7 @@ export const Provisao = {
             }
         }
 
-        // Próximos vencimentos
+        // PrÃ³ximos vencimentos
         const list = document.getElementById('provisaoProximosList');
         const emptyEl = document.getElementById('provisaoEmpty');
         let proximos = data.proximos || [];
@@ -955,7 +954,7 @@ export const Provisao = {
                     if (isHoje) badges += '<span class="provisao-item-badge vence-hoje">Hoje</span>';
 
                     if (isFatura) {
-                        // Badge especial para fatura de cartão
+                        // Badge especial para fatura de cartÃ£o
                         badges += '<span class="provisao-item-badge fatura"><i data-lucide="credit-card"></i> Fatura</span>';
                         if (item.cartao_ultimos_digitos) {
                             badges += `<span>****${item.cartao_ultimos_digitos}</span>`;
@@ -978,7 +977,7 @@ export const Provisao = {
                     el.innerHTML = `
                             <div class="provisao-item-dot ${tipoClass}"></div>
                             <div class="provisao-item-info">
-                                <div class="provisao-item-titulo">${escapeHtml(item.titulo || 'Sem título')}</div>
+                                <div class="provisao-item-titulo">${escapeHtml(item.titulo || 'Sem tÃ­tulo')}</div>
                                 <div class="provisao-item-meta">${badges}</div>
                             </div>
                             <span class="provisao-item-valor ${tipoClass}">${money(item.valor || 0)}</span>
@@ -1000,7 +999,7 @@ export const Provisao = {
             }
         }
 
-        // Parcelas ativas (só Pro)
+        // Parcelas ativas (sÃ³ Pro)
         const parcelasEl = document.getElementById('provisaoParcelas');
         const parcelas = data.parcelas || {};
         if (parcelasEl) {
@@ -1009,7 +1008,7 @@ export const Provisao = {
                 const textEl = document.getElementById('provisaoParcelasText');
                 const valorEl = document.getElementById('provisaoParcelasValor');
                 if (textEl) textEl.textContent = `${parcelas.ativas} parcelamento${parcelas.ativas !== 1 ? 's' : ''} ativo${parcelas.ativas !== 1 ? 's' : ''}`;
-                if (valorEl) valorEl.textContent = `${money(parcelas.total_mensal || 0)}/mês`;
+                if (valorEl) valorEl.textContent = `${money(parcelas.total_mensal || 0)}/mÃªs`;
             } else {
                 parcelasEl.style.display = 'none';
             }
@@ -1119,7 +1118,7 @@ export const EventListeners = {
     }
 };
 
-// ─── Register as Modules.App ─────────────────────────────────────────────────
+// â”€â”€â”€ Register as Modules.App â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 Modules.App = {
     API,
     Notifications,
@@ -1130,5 +1129,8 @@ Modules.App = {
     DashboardManager,
     EventListeners
 };
+
+
+
 
 
