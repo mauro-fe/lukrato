@@ -113,6 +113,14 @@
     flex-direction: column;
   }
 
+  .dashboard-hero-header {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-hero-side {
+    width: 100%;
+  }
+
   .dashboard-balance-value {
     font-size: 2.8rem !important;
   }
@@ -191,6 +199,12 @@
 
   .transaction-text {
     font-size: 12px !important;
+  }
+}
+
+@media (max-width: 1100px) {
+  .dashboard-hero-header {
+    grid-template-columns: 1fr;
   }
 }
 

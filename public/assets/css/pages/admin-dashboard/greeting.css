@@ -1,34 +1,44 @@
 .dashboard-greeting--compact {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
+  min-height: 168px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 18%, var(--glass-border));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+    color-mix(in srgb, var(--color-surface) 70%, transparent);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.08);
 }
 
 .dashboard-greeting--compact .greeting-date {
   margin: 0;
-  font-size: 0.76rem;
+  font-size: 0.78rem;
   color: var(--color-text-muted);
   text-transform: capitalize;
 }
 
 .dashboard-greeting--compact .greeting-title {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 1.22rem;
   font-weight: 700;
   color: var(--color-text);
+  line-height: 1.25;
 }
 
 .dashboard-greeting--compact .greeting-insight {
-  margin-top: 6px;
+  margin-top: auto;
   min-height: 24px;
 }
 
 .dashboard-greeting--compact .insight-content {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
-  border-radius: 999px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.05);
 }
 
@@ -45,7 +55,7 @@
 
 .dashboard-greeting--compact .insight-message {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   color: var(--color-text-muted);
   line-height: 1.4;
 }
@@ -67,8 +77,13 @@
 }
 
 @media (max-width: 768px) {
+  .dashboard-greeting--compact {
+    min-height: 0;
+    padding: 16px;
+    border-radius: 18px;
+  }
+
   .dashboard-greeting--compact .insight-content {
-    border-radius: 14px;
     align-items: flex-start;
   }
 }

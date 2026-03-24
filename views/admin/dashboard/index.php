@@ -13,7 +13,6 @@ $onboardingCompleted = !empty($currentUser?->onboarding_completed_at);
         <div class="dashboard-hero-card" id="saldoCard">
             <div class="dashboard-hero-header">
                 <div class="dashboard-hero-copy">
-                    <div id="greetingContainer" class="dashboard-hero-greeting-slot"></div>
                     <span class="dashboard-hero-eyebrow">Resumo do mes</span>
                     <h1 class="dashboard-hero-title">Quanto voce tem hoje</h1>
                     <div class="dashboard-balance-value kpi-value loading" id="saldoValue">R$ 0,00</div>
@@ -23,28 +22,32 @@ $onboardingCompleted = !empty($currentUser?->onboarding_completed_at);
                     </p>
                 </div>
 
-                <?php if (!$onboardingCompleted): ?>
-                    <div class="lk-onboarding-widget" id="onboardingChecklist" style="display:none;">
-                        <div class="lk-onboarding-widget-head">
-                            <a href="<?= BASE_URL ?>onboarding" class="lk-onboarding-widget-title" id="checklistPrimaryLink">
-                                <span>Complete seu setup</span>
-                                <strong id="checklistBadge">0/0</strong>
-                            </a>
-                            <button class="lk-onboarding-widget-dismiss" id="checklistDismiss" type="button" title="Ocultar widget">
-                                <i data-lucide="x" style="width:14px;height:14px;"></i>
-                            </button>
+                <aside class="dashboard-hero-side">
+                    <div id="greetingContainer" class="dashboard-hero-greeting-slot"></div>
+
+                    <?php if (!$onboardingCompleted): ?>
+                        <div class="lk-onboarding-widget" id="onboardingChecklist" style="display:none;">
+                            <div class="lk-onboarding-widget-head">
+                                <a href="<?= BASE_URL ?>onboarding" class="lk-onboarding-widget-title" id="checklistPrimaryLink">
+                                    <span>Complete seu setup</span>
+                                    <strong id="checklistBadge">0/0</strong>
+                                </a>
+                                <button class="lk-onboarding-widget-dismiss" id="checklistDismiss" type="button" title="Ocultar widget">
+                                    <i data-lucide="x" style="width:14px;height:14px;"></i>
+                                </button>
+                            </div>
+                            <div class="lk-onboarding-widget-progress">
+                                <div class="lk-onboarding-widget-progress-fill" id="checklistProgressFill"></div>
+                            </div>
+                            <div class="lk-onboarding-widget-items" id="checklistItems">
+                                <a href="<?= BASE_URL ?>contas" class="lk-onboarding-widget-item">
+                                    <span class="lk-onboarding-widget-item-label">Adicione sua primeira conta</span>
+                                    <span class="lk-onboarding-widget-item-desc">Conecte sua base financeira.</span>
+                                </a>
+                            </div>
                         </div>
-                        <div class="lk-onboarding-widget-progress">
-                            <div class="lk-onboarding-widget-progress-fill" id="checklistProgressFill"></div>
-                        </div>
-                        <div class="lk-onboarding-widget-items" id="checklistItems">
-                            <a href="<?= BASE_URL ?>contas" class="lk-onboarding-widget-item">
-                                <span class="lk-onboarding-widget-item-label">Adicione sua primeira conta</span>
-                                <span class="lk-onboarding-widget-item-desc">Conecte sua base financeira.</span>
-                            </a>
-                        </div>
-                    </div>
-                <?php endif; ?>
+                    <?php endif; ?>
+                </aside>
             </div>
 
             <div class="kpi-grid dashboard-summary-grid" role="region" aria-label="Indicadores principais">
