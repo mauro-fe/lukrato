@@ -241,6 +241,7 @@ class FinanceOverview {
     }
 
     const cor = proxima.cor || 'var(--color-primary)';
+    const iconName = this.normalizeIconName(proxima.icone);
     const pct = Math.round(proxima.progresso || 0);
     const faltam = Math.max(Number(proxima.valor_alvo || 0) - Number(proxima.valor_atual || 0), 0);
 
@@ -257,7 +258,7 @@ class FinanceOverview {
 
       <div class="fo-meta-destaque">
         <div class="fo-meta-icon" style="color:${cor}; background:${cor}18;">
-          <i data-lucide="${proxima.icone || 'target'}" style="width:16px;height:16px;"></i>
+          <i data-lucide="${iconName}" style="width:16px;height:16px;"></i>
         </div>
         <div class="fo-meta-info">
           <span class="fo-meta-titulo">${proxima.titulo}</span>
@@ -348,6 +349,31 @@ class FinanceOverview {
     if (pct >= 100) return '#ef4444';
     if (pct >= 80) return '#f59e0b';
     return '#10b981';
+  }
+
+  normalizeIconName(icon) {
+    const value = String(icon || '').trim();
+    if (!value) return 'target';
+
+    const faToLucide = {
+      'fa-bullseye': 'target',
+      'fa-target': 'target',
+      'fa-wallet': 'wallet',
+      'fa-university': 'landmark',
+      'fa-plane': 'plane',
+      'fa-car': 'car',
+      'fa-home': 'house',
+      'fa-heart': 'heart',
+      'fa-briefcase': 'briefcase-business',
+      'fa-piggy-bank': 'piggy-bank',
+      'fa-shield': 'shield',
+      'fa-graduation-cap': 'graduation-cap',
+      'fa-store': 'store',
+      'fa-baby': 'baby',
+      'fa-hand-holding-usd': 'hand-coins',
+    };
+
+    return faToLucide[value] || value.replace(/^fa-/, '') || 'target';
   }
 
   money(value) {

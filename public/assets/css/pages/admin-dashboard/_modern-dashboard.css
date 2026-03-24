@@ -276,7 +276,7 @@
 
 /* Modern KPI Card */
 .modern-kpi {
-  background: var(--glass-bg);
+  background: var(--color-bg);
   backdrop-filter: var(--glass-backdrop);
   -webkit-backdrop-filter: var(--glass-backdrop);
   border: 1px solid var(--glass-border);
@@ -287,6 +287,7 @@
   transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   cursor: default;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: var(--spacing-3);
 }
 
 .dashboard-summary-grid {

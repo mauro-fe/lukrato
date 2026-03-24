@@ -24,6 +24,61 @@
         'stroke-width': 2,
     };
 
+    const LEGACY_ICON_MAP = {
+        'fa-bullseye': 'target',
+        'fa-target': 'target',
+        'fa-wallet': 'wallet',
+        'fa-university': 'landmark',
+        'fa-arrow-down': 'arrow-down',
+        'fa-arrow-up': 'arrow-up',
+        'fa-calendar-alt': 'calendar-days',
+        'fa-check': 'check',
+        'fa-check-circle': 'circle-check',
+        'fa-chevron-right': 'chevron-right',
+        'fa-credit-card': 'credit-card',
+        'fa-exclamation-circle': 'circle-alert',
+        'fa-exclamation-triangle': 'triangle-alert',
+        'fa-eye': 'eye',
+        'fa-eye-slash': 'eye-off',
+        'fa-home': 'house',
+        'fa-hand-holding-usd': 'hand-coins',
+        'fa-info-circle': 'info',
+        'fa-pencil': 'pencil',
+        'fa-pencil-alt': 'pencil',
+        'fa-plane': 'plane',
+        'fa-plus': 'plus',
+        'fa-plus-circle': 'circle-plus',
+        'fa-redo': 'refresh-cw',
+        'fa-shopping-cart': 'shopping-cart',
+        'fa-sort': 'arrow-up-down',
+        'fa-sort-down': 'arrow-down',
+        'fa-sort-up': 'arrow-up',
+        'fa-spinner': 'loader-2',
+        'fa-times': 'x',
+        'fa-trash': 'trash-2',
+        'fa-undo': 'undo-2',
+    };
+
+    function normalizeLegacyIconName(name) {
+        var raw = String(name || '').trim();
+        if (!raw) return raw;
+        if (LEGACY_ICON_MAP[raw]) return LEGACY_ICON_MAP[raw];
+        if (raw.indexOf('fa-') === 0) return raw.replace(/^fa-/, '');
+        return raw;
+    }
+
+    function normalizeLegacyIconAttrs(root) {
+        var scope = root || document;
+        var icons = scope.querySelectorAll ? scope.querySelectorAll('i[data-lucide]') : [];
+        for (var i = 0; i < icons.length; i++) {
+            var current = icons[i].getAttribute('data-lucide');
+            var normalized = normalizeLegacyIconName(current);
+            if (normalized && normalized !== current) {
+                icons[i].setAttribute('data-lucide', normalized);
+            }
+        }
+    }
+
     // ── STRIP SVG SIZE ATTRS ─────────────────────────────────────
     // Lucide JS hardcodes width="24" height="24" como atributos HTML no SVG.
     // Esses atributos conflitam com CSS em produção (podem ter prioridade
@@ -88,6 +143,7 @@
 
         // Garantir que o patch esteja ativo antes de qualquer chamada
         patchCreateIcons();
+        normalizeLegacyIconAttrs(document);
 
         try {
             lucide.createIcons({
