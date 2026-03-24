@@ -1,32 +1,34 @@
 /**
- * Finance Overview — Orçamento + Metas cards
+ * Finance Overview - Metas e limites no dashboard
  */
 
-/* ========== GRID LAYOUT ========== */
+.finance-overview-section {
+  margin-bottom: 24px;
+}
+
 .fo-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
-  margin-bottom: 1.5rem;
 }
 
-/* ========== CARD BASE ========== */
 .fo-card {
   background: var(--glass-bg);
-  border: 1px solid var(--color-card-border);
-  border-radius: 16px;
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  transition: box-shadow var(--transition-normal);
+  transition: box-shadow var(--transition-normal), border-color var(--transition-normal), transform var(--transition-normal);
 }
 
 .fo-card:hover {
   box-shadow: var(--shadow-md);
+  border-color: color-mix(in srgb, var(--color-primary) 18%, var(--glass-border));
+  transform: translateY(-2px);
 }
 
-/* ========== HEADER ========== */
 .fo-card-header {
   display: flex;
   align-items: center;
@@ -35,11 +37,11 @@
 }
 
 .fo-card-title {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.94rem;
+  font-weight: 700;
   color: var(--color-text);
   text-decoration: none;
 }
@@ -49,26 +51,24 @@ a.fo-card-title:hover {
 }
 
 .fo-badge {
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
   background: var(--color-surface-muted);
   color: var(--color-text-muted);
   white-space: nowrap;
 }
 
-/* ========== PROGRESS BARS ========== */
 .fo-bar-track {
-  height: 4px;
+  height: 6px;
   background: var(--color-surface-muted);
-  border-radius: 2px;
+  border-radius: 999px;
   overflow: hidden;
 }
 
 .fo-bar-track--main {
-  height: 6px;
-  border-radius: 3px;
+  height: 8px;
 }
 
 .fo-bar-fill {
@@ -77,18 +77,18 @@ a.fo-card-title:hover {
   transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ========== ORCAMENTO ITEMS ========== */
 .fo-orc-summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.75rem;
+  gap: 12px;
+  font-size: 0.82rem;
   color: var(--color-text-muted);
+  flex-wrap: wrap;
 }
 
-.fo-alert {
-  color: #ef4444;
-  font-weight: 600;
+.fo-summary-status {
+  font-weight: 700;
 }
 
 .fo-orc-list {
@@ -102,41 +102,38 @@ a.fo-card-title:hover {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 4px;
+  gap: 12px;
 }
 
 .fo-orc-item-name {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-  font-weight: 500;
+  font-size: 0.8rem;
+  color: var(--color-text);
+  font-weight: 600;
 }
 
 .fo-orc-item-pct {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
-/* ========== META DESTAQUE ========== */
 .fo-meta-destaque {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px;
-  background: var(--color-bglk-forma-btn);
-  border-radius: 10px;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  border: 1px solid var(--color-card-border);
 }
 
 .fo-meta-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  
 }
 
 .fo-meta-info {
@@ -144,12 +141,12 @@ a.fo-card-title:hover {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .fo-meta-titulo {
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.92rem;
+  font-weight: 700;
   color: var(--color-text);
   white-space: nowrap;
   overflow: hidden;
@@ -157,102 +154,89 @@ a.fo-card-title:hover {
 }
 
 .fo-meta-detail {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
 }
 
 .fo-meta-pct {
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: 0.92rem;
+  font-weight: 800;
   flex-shrink: 0;
 }
 
-/* ========== METAS SUMMARY ========== */
 .fo-metas-summary {
   display: flex;
-  gap: 1.5rem;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .fo-metas-stat {
+  min-width: 120px;
   display: flex;
   flex-direction: column;
 }
 
 .fo-metas-stat-value {
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--color-text);
 }
 
 .fo-metas-stat-label {
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   color: var(--color-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.06em;
 }
 
-.fo-text-danger {
-  color: #ef4444;
-}
-
-/* ========== FOOTER LINK ========== */
 .fo-link {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 700;
   color: var(--color-primary) !important;
   text-decoration: none;
   margin-top: auto;
-  transition: gap 0.2s ease;
 }
 
 .fo-link:hover {
   gap: 8px;
 }
 
-/* ========== EMPTY STATE ========== */
 .fo-empty {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  flex: 1;
-  text-align: center;
-  padding: 1rem 0;
-  gap: 8px;
+  min-height: 148px;
+  gap: 10px;
 }
 
 .fo-empty p {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: var(--color-text-muted);
+  line-height: 1.5;
 }
 
 .fo-cta {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 14px;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
   background: linear-gradient(135deg, var(--color-primary) 0%, #f39c12 100%);
   color: var(--color-text) !important;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
   text-decoration: none;
-  transition: all 0.2s ease;
 }
 
-.fo-cta:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
-}
-
-/* ========== SKELETON ========== */
 .fo-skeleton {
-  height: 120px;
-  border-radius: 8px;
+  height: 140px;
+  border-radius: 14px;
   position: relative;
   overflow: hidden;
   background: var(--color-surface-muted);
@@ -275,23 +259,22 @@ a.fo-card-title:hover {
   100% { background-position: -200% 0; }
 }
 
-/* ========== RESPONSIVE ========== */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .fo-grid {
     grid-template-columns: 1fr;
-  }
-
-  .fo-card {
-    padding: 1rem;
   }
 }
 
 @media (max-width: 480px) {
-  .fo-meta-detail {
-    font-size: 0.6rem;
+  .fo-card {
+    padding: 1rem;
   }
 
-  .fo-orc-item-name {
-    font-size: 0.7rem;
+  .fo-empty {
+    min-height: 120px;
+  }
+
+  .fo-meta-destaque {
+    align-items: flex-start;
   }
 }

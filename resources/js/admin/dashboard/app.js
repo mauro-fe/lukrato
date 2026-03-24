@@ -256,6 +256,128 @@ export const Renderers = {
         DOM.monthLabel.textContent = Utils.formatMonth(month);
     },
 
+    toggleAlertsSection: () => {
+        const section = document.getElementById('dashboardAlertsSection');
+        const overview = document.getElementById('dashboardAlertsOverview');
+        const budget = document.getElementById('dashboardAlertsBudget');
+
+        if (!section) return;
+
+        const hasOverview = overview && overview.innerHTML.trim() !== '';
+        const hasBudget = budget && budget.innerHTML.trim() !== '';
+        section.style.display = hasOverview || hasBudget ? 'block' : 'none';
+    },
+
+    setSignedState: (elementId, cardId, value) => {
+        const element = document.getElementById(elementId);
+        const card = document.getElementById(cardId);
+        if (!element || !card) return;
+
+        element.classList.remove('is-positive', 'is-negative', 'income', 'expense');
+        card.classList.remove('is-positive', 'is-negative');
+
+        if (value > 0) {
+            element.classList.add('is-positive');
+            card.classList.add('is-positive');
+        } else if (value < 0) {
+            element.classList.add('is-negative');
+            card.classList.add('is-negative');
+        }
+    },
+
+    renderHeroNarrative: ({ saldo, receitas, despesas, resultado }) => {
+        const statusEl = document.getElementById('dashboardHeroStatus');
+        const messageEl = document.getElementById('dashboardHeroMessage');
+
+        if (!statusEl || !messageEl) return;
+
+        statusEl.className = 'dashboard-status-chip';
+        messageEl.className = 'dashboard-hero-message';
+
+        if (despesas > receitas) {
+            statusEl.classList.add('dashboard-status-chip--negative');
+            messageEl.classList.add('dashboard-hero-message--negative');
+            statusEl.textContent = 'Mes em alerta';
+            messageEl.textContent = 'Atencao: voce gastou mais do que ganhou neste mes.';
+            return;
+        }
+
+        if (resultado > 0) {
+            statusEl.classList.add('dashboard-status-chip--positive');
+            messageEl.classList.add('dashboard-hero-message--positive');
+            statusEl.textContent = saldo >= 0 ? 'Mes saudavel' : 'Recuperando o mes';
+            messageEl.textContent = 'Voce conseguiu guardar dinheiro esse mes.';
+            return;
+        }
+
+        if (resultado === 0) {
+            statusEl.classList.add('dashboard-status-chip--neutral');
+            statusEl.textContent = 'Mes equilibrado';
+            messageEl.textContent = 'O que entrou foi praticamente o que saiu neste mes.';
+            return;
+        }
+
+        statusEl.classList.add('dashboard-status-chip--negative');
+        messageEl.classList.add('dashboard-hero-message--negative');
+        statusEl.textContent = 'Mes em alerta';
+        messageEl.textContent = 'Seu saldo do mes ficou negativo e vale rever os gastos agora.';
+    },
+
+    renderOverviewAlerts: ({ receitas, despesas }) => {
+        const container = document.getElementById('dashboardAlertsOverview');
+        if (!container) return;
+
+        if (despesas > receitas) {
+            container.innerHTML = `
+                <a href="${CONFIG.BASE_URL}lancamentos?tipo=despesa" class="dashboard-alert dashboard-alert--danger">
+                    <div class="dashboard-alert-icon">
+                        <i data-lucide="triangle-alert" style="width:18px;height:18px;"></i>
+                    </div>
+                    <div class="dashboard-alert-content">
+                        <strong>Voce gastou mais do que ganhou</strong>
+                        <span>Entraram ${Utils.money(receitas)} e sairam ${Utils.money(despesas)} neste mes.</span>
+                    </div>
+                    <i data-lucide="arrow-right" class="dashboard-alert-arrow" style="width:16px;height:16px;"></i>
+                </a>
+            `;
+
+            if (typeof window.lucide !== 'undefined') {
+                window.lucide.createIcons();
+            }
+        } else {
+            container.innerHTML = '';
+        }
+
+        Renderers.toggleAlertsSection();
+    },
+
+    renderChartInsight: (months, data) => {
+        const insightEl = document.getElementById('chartInsight');
+        if (!insightEl) return;
+
+        if (!Array.isArray(data) || data.length === 0 || data.every((value) => Number(value) === 0)) {
+            insightEl.textContent = 'Seu historico aparece aqui conforme voce usa o Lukrato mais vezes.';
+            return;
+        }
+
+        let worstIndex = 0;
+        data.forEach((value, index) => {
+            if (Number(value) < Number(data[worstIndex])) {
+                worstIndex = index;
+            }
+        });
+
+        const worstMonth = months[worstIndex];
+        const worstValue = Number(data[worstIndex] || 0);
+
+        if (worstValue < 0) {
+            insightEl.textContent = `Seu pior mes foi ${Utils.formatMonth(worstMonth)} (${Utils.money(worstValue)}).`;
+            return;
+        }
+
+        insightEl.textContent = `Seu pior mes foi ${Utils.formatMonth(worstMonth)} e mesmo assim fechou em ${Utils.money(worstValue)}.`;
+    },
+
     renderKPIs: async (month) => {
         try {
             const [metrics, accounts] = await Promise.all([
@@ -284,12 +406,26 @@ export const Renderers = {
                 return sum + (isFinite(value) ? Number(value) : 0);
             }, 0);
 
-            // SEMPRE usar a soma dos saldos das contas
-            const saldoFinal = totalSaldoContas;
+            const saldoFinal = (Array.isArray(accounts) && accounts.length > 0)
+                ? totalSaldoContas
+                : saldoAcumulado;
 
             if (DOM.saldoValue) {
                 DOM.saldoValue.textContent = Utils.money(saldoFinal);
             }
+
+            Renderers.setSignedState('saldoValue', 'saldoCard', saldoFinal);
+            Renderers.setSignedState('saldoMesValue', 'saldoMesCard', Number(metrics.resultado || 0));
+            Renderers.renderHeroNarrative({
+                saldo: saldoFinal,
+                receitas: Number(metrics.receitas || 0),
+                despesas: Number(metrics.despesas || 0),
+                resultado: Number(metrics.resultado || 0)
+            });
+            Renderers.renderOverviewAlerts({
+                receitas: Number(metrics.receitas || 0),
+                despesas: Number(metrics.despesas || 0)
+            });
 
             Utils.removeLoadingClass();
         } catch (err) {
@@ -446,6 +582,7 @@ export const Renderers = {
             const chartData = await API.getChartData(month);
             const chartMap = new Map(chartData.map((item) => [item.month, Number(item.resultado || 0)]));
             const data = months.map((itemMonth) => chartMap.get(itemMonth) || 0);
+            Renderers.renderChartInsight(months, data);
 
             const {
                 xTickColor,
@@ -620,6 +757,18 @@ export const Provisao = {
 
         const p = data.provisao || {};
         const money = Utils.money;
+        const titleSummaryEl = document.getElementById('provisaoTitle');
+        const headlineEl = document.getElementById('provisaoHeadline');
+
+        if (titleSummaryEl) {
+            titleSummaryEl.textContent = `Se continuar assim, voce termina o mes com ${money(p.saldo_projetado || 0)}`;
+        }
+
+        if (headlineEl) {
+            headlineEl.textContent = (p.saldo_projetado || 0) >= 0
+                ? 'A previsao abaixo considera seu saldo atual, o que ainda vai entrar e o que ainda vai sair.'
+                : 'A previsao indica aperto no fim do mes se o ritmo atual continuar.';
+        }
 
         // Atualizar título e link conforme plano
         const titleEl = document.getElementById('provisaoProximosTitle');

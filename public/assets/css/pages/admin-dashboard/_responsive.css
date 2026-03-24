@@ -102,6 +102,25 @@
     padding: 0 !important;
   }
 
+  .dashboard-hero-card,
+  .dashboard-alerts-section {
+    padding: 18px !important;
+    border-radius: 22px !important;
+  }
+
+  .dashboard-hero-header,
+  .dashboard-section-heading {
+    flex-direction: column;
+  }
+
+  .dashboard-balance-value {
+    font-size: 2.8rem !important;
+  }
+
+  .dashboard-summary-grid {
+    grid-template-columns: 1fr !important;
+  }
+
   .kpi-grid {
     grid-template-columns: 1fr !important;
     gap: 16px !important;
@@ -176,6 +195,15 @@
 }
 
 @media (max-width: 480px) {
+  .dashboard-hero-card,
+  .dashboard-alerts-section {
+    padding: 16px !important;
+  }
+
+  .dashboard-hero-title {
+    font-size: 1.8rem !important;
+  }
+
   .kpi-grid {
     grid-template-columns: 1fr;
     gap: var(--spacing-4);

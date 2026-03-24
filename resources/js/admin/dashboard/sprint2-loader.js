@@ -1,9 +1,8 @@
 /**
  * Sprint 2 Dashboard Components
- * Carrega Health Score e Greeting dinamicamente
+ * Carrega Health Score, Greeting e Finance Overview.
  */
 
-// Injeta CSS dos componentes
 function injectStyles() {
   const base = window.BASE_URL || window.__LK_CONFIG?.baseUrl || '/';
   const styles = [
@@ -12,7 +11,7 @@ function injectStyles() {
     'assets/css/pages/admin-dashboard/health-score-insights.css'
   ];
 
-  styles.forEach(path => {
+  styles.forEach((path) => {
     const href = base + path;
     if (!document.querySelector(`link[href="${href}"]`)) {
       const link = document.createElement('link');
@@ -24,7 +23,6 @@ function injectStyles() {
   });
 }
 
-// Aguarda os componentes estarem disponíveis globalmente
 function waitForComponents() {
   return new Promise((resolve) => {
     let attempts = 0;
@@ -33,8 +31,8 @@ function waitForComponents() {
         clearInterval(check);
         resolve();
       }
+
       if (attempts++ > 50) {
-        // Timeout após 5s, procede mesmo assim
         clearInterval(check);
         resolve();
       }
@@ -42,13 +40,16 @@ function waitForComponents() {
   });
 }
 
-// Inicializa os componentes
+function ensureContainer(id, fallbackFactory) {
+  const existing = document.getElementById(id);
+  if (existing) return existing;
+  return fallbackFactory();
+}
+
 async function initializeComponents() {
   injectStyles();
-
   await waitForComponents();
 
-  // Aguarda o DOM estar pronto
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initDashboardComponents);
   } else {
@@ -57,73 +58,72 @@ async function initializeComponents() {
 }
 
 function initDashboardComponents() {
-  // Encontra a seção do dashboard
   const dashboard = document.querySelector('.modern-dashboard');
   if (!dashboard) return;
 
-  // Greeting Component
   if (typeof window.DashboardGreeting !== 'undefined') {
-    const greetingDiv = document.createElement('div');
-    greetingDiv.id = 'greetingContainer';
-    dashboard.insertBefore(greetingDiv, dashboard.firstChild);
+    ensureContainer('greetingContainer', () => {
+      const greetingDiv = document.createElement('div');
+      greetingDiv.id = 'greetingContainer';
+      dashboard.insertBefore(greetingDiv, dashboard.firstChild);
+      return greetingDiv;
+    });
 
     const greeting = new window.DashboardGreeting();
     greeting.render();
   }
 
-  // Health Score Component
   if (typeof window.HealthScoreWidget !== 'undefined') {
-    const healthDiv = document.createElement('div');
-    healthDiv.id = 'healthScoreContainer';
-
-    // Insere após KPI grid
-    const kpiGrid = dashboard.querySelector('.kpi-grid');
-    if (kpiGrid) {
-      kpiGrid.insertAdjacentElement('afterend', healthDiv);
-    } else {
-      dashboard.insertBefore(healthDiv, dashboard.children[1]);
-    }
+    const healthDiv = ensureContainer('healthScoreContainer', () => {
+      const el = document.createElement('div');
+      el.id = 'healthScoreContainer';
+      const kpiGrid = dashboard.querySelector('.kpi-grid');
+      if (kpiGrid) {
+        kpiGrid.insertAdjacentElement('afterend', el);
+      } else {
+        dashboard.insertBefore(el, dashboard.children[1] || null);
+      }
+      return el;
+    });
 
     const healthScore = new window.HealthScoreWidget();
     healthScore.render();
     healthScore.load();
 
-    // Health Score Insights — container separado, fora do card
     if (typeof window.HealthScoreInsights !== 'undefined') {
-      const insightsDiv = document.createElement('div');
-      insightsDiv.id = 'healthScoreInsights';
-      insightsDiv.className = 'health-score-insights-section';
-      healthDiv.insertAdjacentElement('afterend', insightsDiv);
+      ensureContainer('healthScoreInsights', () => {
+        const insightsDiv = document.createElement('div');
+        insightsDiv.id = 'healthScoreInsights';
+        insightsDiv.className = 'health-score-insights-section';
+        healthDiv.insertAdjacentElement('afterend', insightsDiv);
+        return insightsDiv;
+      });
+
       window.healthScoreInsights = new window.HealthScoreInsights();
     }
   }
 
-  // Finance Overview (Orçamento + Metas)
   if (typeof window.FinanceOverview !== 'undefined') {
-    const foDiv = document.createElement('div');
-    foDiv.id = 'financeOverviewContainer';
-
-    // Insere após insights, ou após health score, ou antes de provisão
-    const insightsEl = document.getElementById('healthScoreInsights');
-    const provisao = dashboard.querySelector('.provisao-section');
-    if (insightsEl) {
-      insightsEl.insertAdjacentElement('afterend', foDiv);
-    } else if (provisao) {
-      provisao.insertAdjacentElement('beforebegin', foDiv);
-    } else {
-      dashboard.appendChild(foDiv);
-    }
+    ensureContainer('financeOverviewContainer', () => {
+      const foDiv = document.createElement('div');
+      foDiv.id = 'financeOverviewContainer';
+      const provisao = dashboard.querySelector('.provisao-section');
+      if (provisao) {
+        provisao.insertAdjacentElement('afterend', foDiv);
+      } else {
+        dashboard.appendChild(foDiv);
+      }
+      return foDiv;
+    });
 
     const fo = new window.FinanceOverview();
     fo.render();
     fo.load();
   }
 
-  // Atualiza ícones
   if (typeof window.lucide !== 'undefined') {
     window.lucide.createIcons();
   }
 }
 
-// Inicia quando o script é carregado
 initializeComponents();

@@ -1,38 +1,57 @@
-/**
- * Health Score Widget — Compact Modern Design
- */
-
 .health-score-widget {
   background: var(--glass-bg);
-  border: 1px solid var(--color-card-border);
-  border-radius: 16px;
-  padding: 1.25rem 1.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: var(--shadow-sm);
-  transition: box-shadow var(--transition-normal);
+  border: 1px solid var(--glass-border);
+  border-radius: 22px;
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.08);
 }
 
 .health-score-widget:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12);
 }
 
-/* ========== MAIN LAYOUT (gauge | info) ========== */
-.hs-main {
+.hs-header {
   display: flex;
-  align-items: center;
-  gap: 1.5rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
 }
 
-/* ========== GAUGE ========== */
+.hs-header-copy {
+  max-width: 720px;
+}
+
+.hs-summary-title {
+  margin: 0;
+  font-size: 1.3rem;
+  line-height: 1.2;
+  color: var(--color-text);
+}
+
+.hs-summary-text {
+  margin: 8px 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.hs-main {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 20px;
+  align-items: center;
+}
+
 .hs-gauge-area {
-  flex-shrink: 0;
-  width: 96px;
-  height: 96px;
+  width: 120px;
+  height: 120px;
 }
 
 .hs-gauge {
-  width: 96px;
-  height: 96px;
+  width: 120px;
+  height: 120px;
   transform: rotate(-90deg);
 }
 
@@ -40,7 +59,7 @@
   fill: none;
   stroke: var(--color-surface-muted);
   stroke-width: 7;
-  opacity: 0.5;
+  opacity: 0.55;
 }
 
 .hs-gauge-fill {
@@ -55,62 +74,42 @@
   transform: rotate(90deg);
   transform-origin: 60px 60px;
   text-anchor: middle;
-  font-size: 1.75rem;
-  font-weight: 800;
+  font-size: 1.8rem;
+  font-weight: 900;
   fill: var(--color-text);
-  dominant-baseline: auto;
 }
 
 .hs-gauge-label {
   transform: rotate(90deg);
   transform-origin: 60px 60px;
   text-anchor: middle;
-  font-size: 0.6rem;
-  font-weight: 500;
+  font-size: 0.62rem;
+  font-weight: 600;
   fill: var(--color-text-muted);
-  dominant-baseline: auto;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
-/* ========== INFO AREA ========== */
 .hs-info {
-  flex: 1;
   min-width: 0;
 }
 
-.hs-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.hs-title {
-  margin: 0;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-/* ========== STATUS BADGE ========== */
 .hs-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
   white-space: nowrap;
   background: var(--color-surface-muted);
   color: var(--color-text-muted);
 }
 
 .hs-badge-dot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: currentColor;
   animation: hs-pulse 2s ease-in-out infinite;
@@ -118,26 +117,26 @@
 
 @keyframes hs-pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  50% { opacity: 0.45; }
 }
 
 .hs-badge--excellent {
-  background: rgba(16, 185, 129, 0.12);
+  background: rgba(16, 185, 129, 0.14);
   color: #10b981;
 }
 
 .hs-badge--good {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.14);
+  color: #60a5fa;
 }
 
 .hs-badge--warning {
-  background: rgba(245, 158, 11, 0.12);
+  background: rgba(245, 158, 11, 0.14);
   color: #f59e0b;
 }
 
 .hs-badge--critical {
-  background: rgba(239, 68, 68, 0.12);
+  background: rgba(239, 68, 68, 0.14);
   color: #ef4444;
 }
 
@@ -146,41 +145,42 @@
   color: var(--color-text-muted);
 }
 
-/* ========== METRICS BREAKDOWN ========== */
 .hs-breakdown {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0;
+  border: 1px solid var(--color-card-border);
+  border-radius: 18px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .hs-metric {
-  flex: 1;
-  text-align: center;
+  padding: 18px 16px;
+  text-align: left;
 }
 
 .hs-metric-divider {
   width: 1px;
-  height: 28px;
   background: var(--color-card-border);
-  flex-shrink: 0;
 }
 
 .hs-metric-label {
   display: block;
-  font-size: 0.7rem;
-  font-weight: 500;
-  color: var(--color-text-muted);
+  margin-bottom: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 2px;
+  color: var(--color-text-muted);
 }
 
 .hs-metric-value {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
+  line-height: 1.35;
   font-weight: 700;
   color: var(--color-text);
-  white-space: nowrap;
 }
 
 .hs-metric-value.color-success { color: #10b981; }
@@ -188,57 +188,39 @@
 .hs-metric-value.color-danger { color: #ef4444; }
 .hs-metric-value.color-muted { color: var(--color-text-muted); }
 
-/* ========== RESPONSIVE ========== */
-@media (max-width: 640px) {
-  .hs-main {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .hs-title-row {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .hs-gauge-area {
-    width: 80px;
-    height: 80px;
-  }
-
-  .hs-gauge {
-    width: 80px;
-    height: 80px;
-  }
-
-  .hs-gauge-value {
-    font-size: 1.5rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .health-score-widget {
-    padding: 1rem;
-  }
-
-  .hs-breakdown {
-    gap: 0;
-  }
-
-  .hs-metric-label {
-    font-size: 0.65rem;
-  }
-
-  .hs-metric-value {
-    font-size: 0.8rem;
-  }
-}
-
-/* ─── HEALTH SCORE INSIGHTS SECTION (standalone, abaixo do card) ───── */
-
 .health-score-insights-section {
-  margin-bottom: 1.5rem;
+  margin-bottom: 24px;
 }
 
 .health-score-insights-section:empty {
   display: none;
+}
+
+@media (max-width: 860px) {
+  .hs-header {
+    flex-direction: column;
+  }
+
+  .hs-main {
+    grid-template-columns: 1fr;
+  }
+
+  .hs-gauge-area {
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .health-score-widget {
+    padding: 20px;
+  }
+
+  .hs-breakdown {
+    grid-template-columns: 1fr;
+  }
+
+  .hs-metric-divider {
+    width: auto;
+    height: 1px;
+  }
 }
