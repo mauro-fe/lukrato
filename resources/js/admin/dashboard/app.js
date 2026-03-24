@@ -291,6 +291,19 @@ export const Renderers = {
         return `${prefix}${Utils.money(Math.abs(amount))}`;
     },
 
+    renderStatusChip: (element, icon, text) => {
+        if (!element) return;
+
+        element.innerHTML = `
+            <i data-lucide="${icon}" class="dashboard-status-chip-icon" style="width:16px;height:16px;"></i>
+            <span>${text}</span>
+        `;
+
+        if (typeof window.lucide !== 'undefined') {
+            window.lucide.createIcons();
+        }
+    },
+
     renderHeroNarrative: ({ saldo, receitas, despesas, resultado }) => {
         const statusEl = document.getElementById('dashboardHeroStatus');
         const messageEl = document.getElementById('dashboardHeroMessage');
@@ -308,31 +321,35 @@ export const Renderers = {
         if (despesasValue > receitasValue) {
             statusEl.classList.add('dashboard-status-chip--negative');
             messageEl.classList.add('dashboard-hero-message--negative');
-            statusEl.textContent = `M\u00eas no vermelho (${Renderers.formatSignedMoney(resultadoValue)})`;
-            messageEl.textContent = `Aten\u00e7\u00e3o: voc\u00ea gastou mais do que ganhou (${Renderers.formatSignedMoney(resultadoValue)}) \u26A0\uFE0F`;
+            Renderers.renderStatusChip(statusEl, 'triangle-alert', `M\u00eas no vermelho (${Renderers.formatSignedMoney(resultadoValue)})`);
+            messageEl.textContent = `Aten\u00e7\u00e3o: voc\u00ea gastou mais do que ganhou (${Renderers.formatSignedMoney(resultadoValue)}).`;
             return;
         }
 
         if (resultadoValue > 0) {
             statusEl.classList.add('dashboard-status-chip--positive');
             messageEl.classList.add('dashboard-hero-message--positive');
-            statusEl.textContent = saldo >= 0
-                ? `M\u00eas positivo (${Renderers.formatSignedMoney(resultadoValue)})`
-                : `Recuperando o m\u00eas (${Renderers.formatSignedMoney(resultadoValue)})`;
-            messageEl.textContent = `Voc\u00ea est\u00e1 positivo este m\u00eas (${Renderers.formatSignedMoney(resultadoValue)}) \u{1F44D}`;
+            Renderers.renderStatusChip(
+                statusEl,
+                saldo >= 0 ? 'piggy-bank' : 'trending-up',
+                saldo >= 0
+                    ? `M\u00eas positivo (${Renderers.formatSignedMoney(resultadoValue)})`
+                    : `Recuperando o m\u00eas (${Renderers.formatSignedMoney(resultadoValue)})`
+            );
+            messageEl.textContent = `Voc\u00ea est\u00e1 positivo este m\u00eas (${Renderers.formatSignedMoney(resultadoValue)}).`;
             return;
         }
 
         if (resultadoValue === 0) {
             statusEl.classList.add('dashboard-status-chip--neutral');
-            statusEl.textContent = 'M\u00eas zerado (R$ 0,00)';
+            Renderers.renderStatusChip(statusEl, 'scale', 'M\u00eas zerado (R$ 0,00)');
             messageEl.textContent = `Entrou ${Utils.money(receitasValue)} e saiu ${Utils.money(despesasValue)}. Seu saldo do m\u00eas est\u00e1 em R$ 0,00.`;
             return;
         }
 
         statusEl.classList.add('dashboard-status-chip--negative');
         messageEl.classList.add('dashboard-hero-message--negative');
-        statusEl.textContent = `Resultado do m\u00eas ${Renderers.formatSignedMoney(resultadoValue)}`;
+        Renderers.renderStatusChip(statusEl, 'wallet', `Resultado do m\u00eas ${Renderers.formatSignedMoney(resultadoValue)}`);
         messageEl.textContent = `Seu resultado mensal est\u00e1 em ${Renderers.formatSignedMoney(resultadoValue)}. Vale rever os gastos mais pesados agora.`;
     },
 
@@ -351,7 +368,7 @@ export const Renderers = {
                         <i data-lucide="triangle-alert" style="width:18px;height:18px;"></i>
                     </div>
                     <div class="dashboard-alert-content">
-                        <strong>Aten\u00e7\u00e3o: voc\u00ea gastou mais do que ganhou \u26A0\uFE0F</strong>
+                        <strong>Aten\u00e7\u00e3o: voc\u00ea gastou mais do que ganhou</strong>
                         <span>Entrou ${Utils.money(receitasValue)} e saiu ${Utils.money(despesasValue)}. Diferen\u00e7a do m\u00eas: ${Renderers.formatSignedMoney(resultadoValue)}.</span>
                     </div>
                     <i data-lucide="arrow-right" class="dashboard-alert-arrow" style="width:16px;height:16px;"></i>
