@@ -97,26 +97,28 @@ $onboardingCompleted = !empty($currentUser?->onboarding_completed_at);
     <!-- ============================================================
          SEÇÕES OPCIONAIS — toggled via modal de personalização
          ============================================================ -->
-    <section class="dash-optional-section" id="sectionMetas" style="display:none;">
-        <div class="dash-section-header">
-            <h2 class="dash-section-title">Metas</h2>
-        </div>
-        <p class="dash-placeholder">Suas metas financeiras aparecerão aqui em breve.</p>
-    </section>
+    <div class="dash-optional-grid" id="optionalGrid" style="display:none;">
+        <section class="dash-optional-section" id="sectionMetas" style="display:none;">
+            <div class="dash-section-header">
+                <h2 class="dash-section-title">Metas</h2>
+            </div>
+            <p class="dash-placeholder">Suas metas financeiras aparecerão aqui em breve.</p>
+        </section>
 
-    <section class="dash-optional-section" id="sectionCartoes" style="display:none;">
-        <div class="dash-section-header">
-            <h2 class="dash-section-title">Cartões</h2>
-        </div>
-        <p class="dash-placeholder">Resumo dos seus cartões aparecerá aqui em breve.</p>
-    </section>
+        <section class="dash-optional-section" id="sectionCartoes" style="display:none;">
+            <div class="dash-section-header">
+                <h2 class="dash-section-title">Cartões</h2>
+            </div>
+            <p class="dash-placeholder">Resumo dos seus cartões aparecerá aqui em breve.</p>
+        </section>
 
-    <section class="dash-optional-section" id="sectionContas" style="display:none;">
-        <div class="dash-section-header">
-            <h2 class="dash-section-title">Contas</h2>
-        </div>
-        <p class="dash-placeholder">Saldos das suas contas aparecerão aqui em breve.</p>
-    </section>
+        <section class="dash-optional-section" id="sectionContas" style="display:none;">
+            <div class="dash-section-header">
+                <h2 class="dash-section-title">Contas</h2>
+            </div>
+            <p class="dash-placeholder">Saldos das suas contas aparecerão aqui em breve.</p>
+        </section>
+    </div>
 
     <!-- ============================================================
          PERSONALIZAR DASHBOARD — Botão + Modal

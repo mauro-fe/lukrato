@@ -176,6 +176,43 @@ class PerfilController extends BaseController
         }
     }
 
+    public function getDashboardPreferences(): Response
+    {
+        $user = $this->requireApiUserAndReleaseSessionOrFail();
+
+        return Response::successResponse([
+            'preferences' => $user->dashboard_preferences ?? [],
+        ]);
+    }
+
+    public function updateDashboardPreferences(): Response
+    {
+        $user = $this->requireApiUserOrFail();
+
+        try {
+            $payload = $this->getRequestPayload();
+            $allowed = ['toggleGrafico', 'toggleMetas', 'toggleCartoes', 'toggleContas'];
+            $prefs = [];
+
+            foreach ($allowed as $key) {
+                if (array_key_exists($key, $payload)) {
+                    $prefs[$key] = (bool) $payload[$key];
+                }
+            }
+
+            $user->dashboard_preferences = $prefs;
+            $user->save();
+
+            return Response::successResponse([
+                'preferences' => $prefs,
+            ], 'Preferências do dashboard atualizadas');
+        } catch (Throwable $e) {
+            $this->logPerfilException($e, 'update_dashboard_preferences');
+
+            return Response::errorResponse('Erro ao salvar preferências do dashboard', 500);
+        }
+    }
+
     public function delete(): Response
     {
         $user = $this->requireApiUserOrFail();

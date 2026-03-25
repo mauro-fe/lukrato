@@ -5,13 +5,13 @@
  * Gerencia o modal de personalização do dashboard:
  * - Abrir/fechar modal
  * - Checkboxes para seções opcionais
- * - Persistência em localStorage
+ * - Persistência no banco via API (com localStorage como cache/fallback)
  * - Toggle de visibilidade das seções
- * Preparado para integração com backend (POST /api/preferences).
  * ============================================================================
  */
 
-import { Modules } from './state.js';
+import { CONFIG, Modules } from './state.js';
+import { apiGet, apiPost } from '../shared/api.js';
 
 const STORAGE_KEY = 'lk_dashboard_prefs';
 
@@ -31,24 +31,53 @@ const DEFAULTS = {
     toggleContas: false
 };
 
-/* ─── Helpers ─────────────────────────────────────────────────────────── */
+/* ─── Persistence (API + localStorage cache) ──────────────────────────── */
 
-function loadPrefs() {
+function loadLocalCache() {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return { ...DEFAULTS };
+        if (!raw) return null;
         return { ...DEFAULTS, ...JSON.parse(raw) };
     } catch {
-        return { ...DEFAULTS };
+        return null;
     }
 }
 
-function savePrefs(prefs) {
+function saveLocalCache(prefs) {
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
     } catch {
-        // localStorage cheio ou indisponível — falha silenciosa
+        // silently ignore
     }
+}
+
+async function loadPrefsFromApi() {
+    try {
+        const res = await apiGet(`${CONFIG.API_URL}perfil/dashboard-preferences`);
+        const data = res?.data ?? res;
+        const prefs = data?.preferences;
+        if (prefs && typeof prefs === 'object' && Object.keys(prefs).length > 0) {
+            const merged = { ...DEFAULTS, ...prefs };
+            saveLocalCache(merged);
+            return merged;
+        }
+    } catch {
+        // API unavailable — fall through to cache
+    }
+    return null;
+}
+
+async function savePrefsToApi(prefs) {
+    saveLocalCache(prefs);
+    try {
+        await apiPost(`${CONFIG.API_URL}perfil/dashboard-preferences`, prefs);
+    } catch {
+        // Saved locally, will sync on next successful load
+    }
+}
+
+function loadPrefs() {
+    return loadLocalCache() ?? { ...DEFAULTS };
 }
 
 /* ─── Apply ───────────────────────────────────────────────────────────── */
@@ -59,6 +88,13 @@ function applyPrefs(prefs) {
         if (!section) return;
         section.style.display = prefs[checkboxId] ? '' : 'none';
     });
+
+    // Show/hide the optional grid container based on whether any optional section is visible
+    const grid = document.getElementById('optionalGrid');
+    if (grid) {
+        const anyVisible = ['toggleMetas', 'toggleCartoes', 'toggleContas'].some(k => prefs[k]);
+        grid.style.display = anyVisible ? '' : 'none';
+    }
 }
 
 function syncCheckboxes(prefs) {
@@ -103,9 +139,9 @@ function saveAndClose() {
         prefs[checkboxId] = checkbox ? checkbox.checked : DEFAULTS[checkboxId];
     });
 
-    savePrefs(prefs);
     applyPrefs(prefs);
     closeModal();
+    savePrefsToApi(prefs);
 
     // Re-render ícones Lucide nas seções que podem ter sido reveladas
     if (typeof window.lucide !== 'undefined') {
@@ -116,9 +152,16 @@ function saveAndClose() {
 /* ─── Init ────────────────────────────────────────────────────────────── */
 
 export function initCustomize() {
-    // Aplicar preferências salvas na carga da página
-    const prefs = loadPrefs();
-    applyPrefs(prefs);
+    // 1) Aplicar cache local imediatamente (evita flash)
+    const cached = loadPrefs();
+    applyPrefs(cached);
+
+    // 2) Buscar do banco em background e reaplicar se diferente
+    loadPrefsFromApi().then((apiPrefs) => {
+        if (apiPrefs) {
+            applyPrefs(apiPrefs);
+        }
+    });
 
     // Botão de abrir
     const btnOpen = document.getElementById('btnCustomizeDashboard');

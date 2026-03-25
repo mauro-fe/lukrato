@@ -47,6 +47,8 @@ Router::add('POST', '/api/perfil/senha', 'Api\\User\\PerfilController@updatePass
 Router::add('POST', '/api/perfil/tema', 'Api\\User\\PerfilController@updateTheme', ['auth', 'csrf', 'ratelimit']);
 Router::add('POST', '/api/perfil/avatar', 'Api\\User\\PerfilController@uploadAvatar', ['auth', 'csrf', 'ratelimit']);
 Router::add('POST', '/api/perfil/avatar/preferences', 'Api\\User\\PerfilController@updateAvatarPreferences', ['auth', 'csrf', 'ratelimit']);
+Router::add('GET',  '/api/perfil/dashboard-preferences', 'Api\\User\\PerfilController@getDashboardPreferences', ['auth']);
+Router::add('POST', '/api/perfil/dashboard-preferences', 'Api\\User\\PerfilController@updateDashboardPreferences', ['auth', 'csrf', 'ratelimit']);
 Router::add('DELETE', '/api/perfil/avatar', 'Api\\User\\PerfilController@removeAvatar', ['auth', 'csrf', 'ratelimit']);
 Router::add('DELETE', '/api/perfil/delete', 'Api\\User\\PerfilController@delete', ['auth', 'csrf', 'ratelimit_strict']);
 

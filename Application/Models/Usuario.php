@@ -45,6 +45,7 @@ class Usuario extends Model
         'data_nascimento',
         'id_sexo',
         'theme_preference',
+        'dashboard_preferences',
         'onboarding_completed_at',
         'onboarding_version',
         'onboarding_mode',
@@ -79,6 +80,7 @@ class Usuario extends Model
     protected $casts = [
         'data_nascimento' => 'date:Y-m-d',
         'is_admin' => 'integer',
+        'dashboard_preferences' => 'array',
         'onboarding_completed_at' => 'datetime',
         'onboarding_tour_skipped_at' => 'datetime',
         'email_verified_at' => 'datetime',

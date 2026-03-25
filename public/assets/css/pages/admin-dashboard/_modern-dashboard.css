@@ -306,13 +306,20 @@
   font-size: var(--font-size-sm);
 }
 
-/* â”€â”€â”€ OPTIONAL SECTIONS â€” Stubs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --- OPTIONAL GRID --- */
+.dash-optional-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-8);
+}
+
 .dash-optional-section {
-  margin-bottom: var(--spacing-6);
-  padding: var(--spacing-6);
+  padding: var(--spacing-5);
   background: var(--color-card-bg);
   border: 1px solid var(--color-card-border);
   border-radius: var(--radius-md);
+  min-width: 0;
 }
 
 .dash-placeholder {
