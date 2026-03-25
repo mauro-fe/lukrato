@@ -411,7 +411,6 @@
 }
 
 .quota-status-badge.loading {
-    background: var(--color-surface-muted);
     color: var(--color-text-muted);
 }
 

@@ -191,7 +191,18 @@ class PerfilController extends BaseController
 
         try {
             $payload = $this->getRequestPayload();
-            $allowed = ['toggleGrafico', 'toggleMetas', 'toggleCartoes', 'toggleContas'];
+            $allowed = [
+                'toggleHealthScore',
+                'toggleAlertas',
+                'toggleGrafico',
+                'togglePrevisao',
+                'toggleMetas',
+                'toggleCartoes',
+                'toggleContas',
+                'toggleOrcamentos',
+                'toggleFaturas',
+                'toggleGamificacao',
+            ];
             $prefs = [];
 
             foreach ($allowed as $key) {

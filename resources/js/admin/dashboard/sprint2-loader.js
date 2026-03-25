@@ -74,32 +74,18 @@ function initDashboardComponents() {
   }
 
   if (typeof window.HealthScoreWidget !== 'undefined') {
-    const healthDiv = ensureContainer('healthScoreContainer', () => {
-      const el = document.createElement('div');
-      el.id = 'healthScoreContainer';
-      const kpiGrid = dashboard.querySelector('.kpi-grid');
-      if (kpiGrid) {
-        kpiGrid.insertAdjacentElement('afterend', el);
-      } else {
-        dashboard.insertBefore(el, dashboard.children[1] || null);
-      }
-      return el;
-    });
-
-    const healthScore = new window.HealthScoreWidget();
-    healthScore.render();
-    healthScore.load();
+    const healthDiv = document.getElementById('healthScoreContainer');
+    if (healthDiv) {
+      const healthScore = new window.HealthScoreWidget();
+      healthScore.render();
+      healthScore.load();
+    }
 
     if (typeof window.HealthScoreInsights !== 'undefined') {
-      ensureContainer('healthScoreInsights', () => {
-        const insightsDiv = document.createElement('div');
-        insightsDiv.id = 'healthScoreInsights';
-        insightsDiv.className = 'health-score-insights-section';
-        healthDiv.insertAdjacentElement('afterend', insightsDiv);
-        return insightsDiv;
-      });
-
-      window.healthScoreInsights = new window.HealthScoreInsights();
+      const insightsDiv = document.getElementById('healthScoreInsights');
+      if (insightsDiv) {
+        window.healthScoreInsights = new window.HealthScoreInsights();
+      }
     }
   }
 

@@ -15,6 +15,8 @@ $modules = [
     '_cards.css',
     '_charts-grid.css',
     '_table-card.css',
+    '_provisao.css',
+    '_gamification.css',
     '_responsive.css',
     '_customize-modal.css',
     '_light-theme.css',

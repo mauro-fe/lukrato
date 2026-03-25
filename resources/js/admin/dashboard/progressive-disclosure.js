@@ -61,7 +61,7 @@ class ProgressiveDisclosure {
 
   updateHiddenSections() {
     const sections = [
-      { id: 'provisaoSection', threshold: 0, label: 'Previsao' },
+      { id: 'sectionPrevisao', threshold: 0, label: 'Previsao' },
       { id: 'chart-section', threshold: 2, label: 'Grafico' },
       { id: 'table-section', threshold: 0, label: 'Transacoes' },
     ];

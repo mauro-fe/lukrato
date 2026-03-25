@@ -15,7 +15,7 @@
 
 .dash-modal {
   width: 100%;
-  max-width: 420px;
+  max-width: 460px;
   background: var(--color-surface);
   border: 1px solid var(--color-card-border);
   border-radius: var(--radius-lg);
@@ -58,6 +58,8 @@
 
 .dash-modal__body {
   padding: var(--spacing-5);
+  max-height: 65vh;
+  overflow-y: auto;
 }
 
 .dash-modal__desc {
@@ -128,6 +130,32 @@
   font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--color-text);
+}
+
+/* Toggle groups */
+.dash-toggle-group {
+  margin-bottom: var(--spacing-4);
+}
+
+.dash-toggle-group:last-child {
+  margin-bottom: 0;
+}
+
+.dash-toggle-group__title {
+  display: block;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-2);
+  padding-bottom: var(--spacing-2);
+  border-bottom: 1px solid var(--color-card-border);
+}
+
+.dash-toggle-group + .dash-toggle-group {
+  margin-top: var(--spacing-4);
+  padding-top: var(--spacing-2);
 }
 
 .dash-modal__footer {

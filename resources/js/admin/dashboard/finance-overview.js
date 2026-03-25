@@ -23,7 +23,7 @@ class FinanceOverview {
             <h2 class="dashboard-section-title">Seu proximo objetivo</h2>
             <p class="dashboard-section-copy" id="foGoalsHeadline">Faltam R$ 0,00 para alcancar sua meta.</p>
           </div>
-          <a href="${this.baseURL}financas#metas" class="dashboard-section-link">Abrir metas</a>
+          <a href="${this.baseURL}financas#metas" class="dashboard-section-link">Criar metas</a>
         </div>
 
         <div class="fo-grid">

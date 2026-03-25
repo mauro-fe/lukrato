@@ -14,21 +14,37 @@ import { CONFIG, Modules } from './state.js';
 import { apiGet, apiPost } from '../shared/api.js';
 
 const STORAGE_KEY = 'lk_dashboard_prefs';
+let prefsVersion = 0;
 
 /** Mapeamento: checkbox ID → seção do dashboard */
 const SECTION_MAP = {
+    // Principais
+    toggleHealthScore: 'sectionHealthScore',
+    toggleAlertas: 'sectionAlertas',
     toggleGrafico: 'chart-section',
+    togglePrevisao: 'sectionPrevisao',
+    // Extras (grid)
     toggleMetas: 'sectionMetas',
     toggleCartoes: 'sectionCartoes',
-    toggleContas: 'sectionContas'
+    toggleContas: 'sectionContas',
+    toggleOrcamentos: 'sectionOrcamentos',
+    toggleFaturas: 'sectionFaturas',
+    // Standalone
+    toggleGamificacao: 'sectionGamificacao'
 };
 
 /** Preferências padrão */
 const DEFAULTS = {
+    toggleHealthScore: true,
+    toggleAlertas: true,
     toggleGrafico: true,
+    togglePrevisao: true,
     toggleMetas: false,
     toggleCartoes: false,
-    toggleContas: false
+    toggleContas: false,
+    toggleOrcamentos: false,
+    toggleFaturas: false,
+    toggleGamificacao: false
 };
 
 /* ─── Persistence (API + localStorage cache) ──────────────────────────── */
@@ -92,10 +108,11 @@ function applyPrefs(prefs) {
         section.style.display = prefs[checkboxId] ? '' : 'none';
     });
 
-    // Show/hide the optional grid container based on whether any optional section is visible
+    // Show/hide the optional grid container based on whether any grid section is visible
     const grid = document.getElementById('optionalGrid');
     if (grid) {
-        const anyVisible = ['toggleMetas', 'toggleCartoes', 'toggleContas'].some(k => prefs[k]);
+        const GRID_TOGGLES = ['toggleMetas', 'toggleCartoes', 'toggleContas', 'toggleOrcamentos', 'toggleFaturas'];
+        const anyVisible = GRID_TOGGLES.some(k => prefs[k]);
         grid.style.display = anyVisible ? '' : 'none';
     }
 }
@@ -142,6 +159,8 @@ function saveAndClose() {
         prefs[checkboxId] = checkbox ? checkbox.checked : DEFAULTS[checkboxId];
     });
 
+    prefsVersion += 1;
+    saveLocalCache(prefs);
     applyPrefs(prefs);
     closeModal();
     savePrefsToApi(prefs);
@@ -155,15 +174,13 @@ function saveAndClose() {
 /* ─── Init ────────────────────────────────────────────────────────────── */
 
 export function initCustomize() {
-    // 1) Limpar cache antigo do localStorage para evitar dados obsoletos
-    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    // 1) Aplicar cache local imediatamente para evitar flicker e preservar a última escolha do usuário
+    applyPrefs(loadPrefs());
 
-    // 2) Sempre aplicar defaults primeiro (seções opcionais ocultas)
-    applyPrefs(DEFAULTS);
-
-    // 3) Buscar do banco — se tiver preferências salvas, reaplicar
+    // 2) Buscar do banco — se tiver preferências salvas, reaplicar
+    const initialVersion = prefsVersion;
     loadPrefsFromApi().then((apiPrefs) => {
-        if (apiPrefs) {
+        if (apiPrefs && prefsVersion === initialVersion) {
             applyPrefs(apiPrefs);
         }
     });

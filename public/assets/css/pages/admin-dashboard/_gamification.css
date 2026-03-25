@@ -1,12 +1,24 @@
 .gamification-section {
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  padding: 24px;
-  margin-bottom: 24px;
   position: relative;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 0;
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(230, 126, 34, 0.08);
-  background-color: var(--color-bg) !important;
+  box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.20),
+    0 20px 40px rgba(0, 0, 0, 0.25);
+  transform: translateY(0);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  container-type: inline-size;
+}
+
+.gamification-section:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.25),
+    0 30px 60px rgba(0, 0, 0, 0.30);
 }
 
 .gamification-section::before {
@@ -29,7 +41,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   position: relative;
   z-index: 1;
 }
@@ -37,14 +49,14 @@
 .gamification-title {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 18px;
+  gap: 10px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--color-text);
 }
 
 .gamification-title i {
-  font-size: 24px;
+  font-size: 20px;
   color: var(--color-primary);
   animation: pulse 2s ease-in-out infinite;
 }
@@ -52,11 +64,11 @@
 .level-badge {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
+  gap: 6px;
+  padding: 6px 12px;
   background: linear-gradient(135deg, #f59e0b, #f97316, #fb923c);
-  border-radius: 12px;
-  font-size: 14px;
+  border-radius: 10px;
+  font-size: 13px;
   font-weight: 700;
   color: white;
   box-shadow:
@@ -68,114 +80,84 @@
 }
 
 .level-badge i {
-  font-size: 16px;
+  font-size: 14px;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
+/* Grid: 1 coluna por padrão, adapta ao container */
 .gamification-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 16px;
+  gap: 12px;
   position: relative;
   z-index: 1;
 }
 
-@media (min-width: 640px) {
+/* Quando o container tem espaço, streak + badges lado a lado, progresso embaixo */
+@container (min-width: 400px) {
   .gamification-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  /* Reordenar cards - Streak e Conquistas na primeira linha */
-  .streak-card {
-    order: 1;
-  }
-
-  .badges-card {
-    order: 2;
-  }
-
-  /* Progresso ocupa toda a segunda linha */
-  .level-progress-card {
-    order: 3;
-    grid-column: 1 / -1;
-  }
-}
-
-@media (min-width: 1024px) {
-  .gamification-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-  }
-
-  /* Resetar ordem para desktop */
-  .streak-card,
-  .level-progress-card,
-  .badges-card {
-    order: initial;
-    grid-column: initial;
-  }
+  .streak-card { order: 1; }
+  .badges-card { order: 2; }
+  .level-progress-card { order: 3; grid-column: 1 / -1; }
 }
 
 /* Streak Card */
 .streak-card {
-  background: var(--glass-bg);
-  border-radius: 16px;
-  padding: 20px;
+  border-radius: 12px;
+  padding: 16px;
   text-align: center;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  border: 1px solid var(--color-bg);
+  border: 2px solid var(--color-card-border, #e5e7eb);
 }
 
 .streak-card::before {
-  content: "🔥";
+  content: "\01f525";
   position: absolute;
-  font-size: 140px;
+  font-size: 100px;
   opacity: 0.06;
-  top: -30px;
-  right: -30px;
+  top: -20px;
+  right: -20px;
   transform: rotate(15deg);
   animation: float 3s ease-in-out infinite;
 }
 
 .streak-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 16px 32px var(--color-bg);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px var(--color-bg);
   border-color: var(--color-bg);
 }
 
 .streak-icon {
-  font-size: 48px;
-  margin-bottom: 12px;
+  font-size: 36px;
+  margin-bottom: 8px;
   display: inline-block;
   animation: flame 1.5s ease-in-out infinite;
 }
 
 @keyframes flame {
-  0%,
-  100% {
-    transform: scale(1) rotate(-5deg);
-  }
-  50% {
-    transform: scale(1.1) rotate(5deg);
-  }
+  0%, 100% { transform: scale(1) rotate(-5deg); }
+  50% { transform: scale(1.1) rotate(5deg); }
 }
 
 .streak-number {
-  font-size: 42px;
+  font-size: 32px;
   font-weight: 900;
   background: linear-gradient(135deg, #ef4444, #f97316);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   line-height: 1;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   filter: drop-shadow(0 2px 4px rgba(239, 68, 68, 0.2));
 }
 
 .streak-label {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--color-text-muted);
   text-transform: uppercase;
@@ -184,33 +166,29 @@
 
 /* Progress Card */
 .progress-card {
-  background: var(--glass-bg);
-  border: 2px solid rgba(59, 130, 246, 0.25);
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15);
+  border-radius: 12px;
+  padding: 16px;
   transition: all 0.3s ease;
 }
 
 .progress-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
 }
 
 .progress-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .progress-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--color-text);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .progress-title i {
@@ -218,7 +196,7 @@
 }
 
 .progress-percentage {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 900;
   background: linear-gradient(135deg, #3b82f6, #60a5fa);
   -webkit-background-clip: text;
@@ -227,11 +205,11 @@
 }
 
 .progress-bar-container {
-  height: 12px;
+  height: 10px;
   background: rgba(59, 130, 246, 0.1);
-  border-radius: 10px;
+  border-radius: 8px;
   overflow: hidden;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   position: relative;
 }
 
@@ -239,7 +217,7 @@
   height: 100%;
   background: linear-gradient(90deg, #3b82f6, #60a5fa, #3b82f6);
   background-size: 200% 100%;
-  border-radius: 10px;
+  border-radius: 8px;
   transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -264,26 +242,25 @@
 }
 
 .progress-text {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--color-text-muted);
   text-align: center;
 }
 
 /* Badges Card */
 .badges-card {
-  background: var(--glass-bg);
-  border-radius: 16px;
-  padding: 20px;
+  border-radius: 12px;
+  padding: 16px;
 }
 
 .badges-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--color-text);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .badges-title i {
@@ -293,17 +270,17 @@
 .badges-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 8px;
 }
 
 .badge-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 12px 8px;
+  gap: 4px;
+  padding: 10px 6px;
   background: rgba(168, 85, 247, 0.05);
-  border-radius: 12px;
+  border-radius: 10px;
   transition: all 0.3s ease;
   cursor: pointer;
   position: relative;
@@ -333,26 +310,18 @@
 }
 
 @keyframes badgeUnlock {
-  0% {
-    transform: scale(0.5) rotate(0deg);
-    opacity: 0;
-  }
-  50% {
-    transform: scale(1.2) rotate(10deg);
-  }
-  100% {
-    transform: scale(1) rotate(0deg);
-    opacity: 1;
-  }
+  0% { transform: scale(0.5) rotate(0deg); opacity: 0; }
+  50% { transform: scale(1.2) rotate(10deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
 }
 
 .badge-icon {
-  font-size: 28px;
+  font-size: 24px;
   line-height: 1;
 }
 
 .badge-name {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
   color: var(--color-text);
   text-align: center;
@@ -361,16 +330,16 @@
 
 .badge-item .badge-check {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 16px;
-  height: 16px;
+  top: 3px;
+  right: 3px;
+  width: 14px;
+  height: 14px;
   background: #22c55e;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 9px;
   color: white;
 }
 
@@ -378,23 +347,22 @@
 .stats-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-top: 20px;
+  gap: 8px;
+  margin-top: 14px;
   position: relative;
   z-index: 1;
 }
 
-@media (min-width: 640px) {
+@container (min-width: 400px) {
   .stats-row {
     grid-template-columns: repeat(4, 1fr);
   }
 }
 
 .stat-mini {
-  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--glass-border);
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 10px;
+  padding: 12px 8px;
   text-align: center;
   transition: all 0.2s ease;
 }
@@ -406,18 +374,17 @@
 }
 
 .stat-mini-value {
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 800;
   color: var(--color-text);
   line-height: 1;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .stat-mini-label {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-

@@ -5,12 +5,10 @@
 
 /* ===== SECTION: GAMIFICAÃ‡ÃƒO ===== */
 .gamification-section {
-  background-color: var(--glass-bg) !important;
   border-radius: 16px;
   padding: 2rem;
   margin-bottom: 2rem;
   box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.08));
-  border: 1px solid var(--color-primary) !important;
 }
 
 .gamification-header {
@@ -75,17 +73,13 @@
 .level-progress-card {
   border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border: 1px solid var(--color-bg);
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
-  background-color: var(--glass-bg);
 }
 
 .level-progress-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.15);
 }
 
 .level-progress-header {
@@ -218,11 +212,11 @@
 
 /* ===== STREAK CARD ===== */
 .streak-card {
-  background: var(--glass-bg) !important;
   border-radius: 16px;
+  border: 2px solid var(--color-card-border, #e5e7eb);
   padding: 1.5rem;
   text-align: center;
-  color: white;
+  color: var(--color-text);
   transition:
     transform 0.3s ease,
     box-shadow 0.3s ease;
@@ -298,7 +292,6 @@
 
 /* ===== PROGRESS CARD ===== */
 .progress-card {
-  background: var(--color-card-bg, #fff);
   border: 2px solid var(--color-card-border, #e5e7eb);
   border-radius: 16px;
   padding: 1.5rem;
@@ -364,7 +357,8 @@
 
 /* ===== BADGES CARD ===== */
 .badges-card {
-  border: 1px solid var(--color-bg) !important;
+  border: 2px solid var(--color-card-border, #e5e7eb);
+
   border-radius: 16px;
   padding: 1.5rem;
 }
@@ -423,18 +417,17 @@
   max-width: 100px;
   min-height: 90px;
   box-sizing: border-box;
+  color: var(--color-text);
 }
 
 .badge-item.unlocked {
   border: 1px solid var(--color-bg);
-  background-color: var(--glass-bg);
 }
 
 .badge-item.unlocked-past {
   border: 1px solid var(--color-text);
 
   opacity: 0.75;
-  background-color: var(--glass-bg);
 }
 
 .badge-item.locked {
@@ -516,7 +509,6 @@
 .stat-mini {
   text-align: center;
   padding: 1rem;
-  background: var(--bg-secondary, #f9fafb);
   border-radius: 12px;
   transition:
     transform 0.2s ease,

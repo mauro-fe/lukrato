@@ -1,46 +1,46 @@
-/* ==================== LAYOUT PRINCIPAL (OLD) ==================== */
-.dashboard-page {
-  margin-inline: auto;
-  box-sizing: border-box;
-  animation: fadeIn 0.6s ease-out;
-}
-.lucide{
-  color: var(--color-text) !important;
-}
-/* ==================== CARDS BASE ==================== */
-.card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-backdrop);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-xl);
-  padding: var(--spacing-6);
-  transition: var(--transition-normal);
-  animation: fadeIn 0.5s ease-in-out;
-}
+  /* ==================== LAYOUT PRINCIPAL (OLD) ==================== */
+  .dashboard-page {
+    margin-inline: auto;
+    box-sizing: border-box;
+    animation: fadeIn 0.6s ease-out;
+  }
+  .lucide{
+    color: var(--color-text) !important;
+  }
+  /* ==================== CARDS BASE ==================== */
+  .card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-backdrop);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-6);
+    transition: var(--transition-normal);
+    animation: fadeIn 0.5s ease-in-out;
+  }
 
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-xl);
-  border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
-}
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+    border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+  }
 
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-4);
-  margin-bottom: var(--spacing-4);
-}
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-4);
+  }
 
-.card-title {
-  font-size: var(--font-size-xl);
-  font-weight: 600;
-  color: var(--color-text);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-}
+  .card-title {
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    color: var(--color-text);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+  }
 
-.card-title::before {
-  font-size: 1.2em;
-}
+  .card-title::before {
+    font-size: 1.2em;
+  }
 

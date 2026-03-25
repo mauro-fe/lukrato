@@ -28,7 +28,6 @@ html,
 body {
   height: 100%;
   font-family: var(--font-primary);
-  background: #092741;
   color: var(--text);
 }
 

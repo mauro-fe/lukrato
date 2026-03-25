@@ -1,31 +1,32 @@
 /* ==================== PREVISÃƒÆ’O FINANCEIRA ==================== */
 .provisao-section {
   position: relative;
-  background: var(--glass-bg);
   backdrop-filter: var(--glass-backdrop);
   -webkit-backdrop-filter: var(--glass-backdrop);
-  border: 1px solid var(--glass-border);
-  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-lg);
   padding: 24px;
-  margin-bottom: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
+  margin-bottom: 0;
+  box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.20),
+    0 20px 40px rgba(0, 0, 0, 0.25);
+  transform: translateY(0);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
   overflow: hidden;
+  container-type: inline-size;
 }
 
 .provisao-section:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 20%,
-    var(--glass-border)
-  );
+  transform: translateY(-4px);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.25),
+    0 30px 60px rgba(0, 0, 0, 0.30);
 }
 
 @media (min-width: 1024px) {
   .provisao-section {
     padding: 32px;
-    margin-bottom: 32px;
+    margin-bottom: 0;
   }
 }
 
@@ -167,7 +168,7 @@
   margin-bottom: 24px;
 }
 
-@media (min-width: 640px) {
+@container (min-width: 500px) {
   .provisao-grid {
     grid-template-columns: repeat(3, 1fr);
   }

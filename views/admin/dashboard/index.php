@@ -58,6 +58,22 @@ $onboardingCompleted = !empty($currentUser?->onboarding_completed_at);
     </section>
 
     <!-- ============================================================
+         SAÚDE FINANCEIRA — toggled via personalização
+         ============================================================ -->
+    <section class="dash-prominent-section" id="sectionHealthScore" style="display:none;">
+        <div id="healthScoreContainer"></div>
+        <div id="healthScoreInsights"></div>
+    </section>
+
+    <!-- ============================================================
+         ALERTAS — toggled via personalização
+         ============================================================ -->
+    <section class="dash-prominent-section" id="sectionAlertas" style="display:none;">
+        <div id="dashboardAlertsOverview"></div>
+        <div id="dashboardAlertsBudget"></div>
+    </section>
+
+    <!-- ============================================================
          GRID — Gráfico + Transações lado a lado
          ============================================================ -->
     <div class="dash-duo-row">
@@ -95,6 +111,181 @@ $onboardingCompleted = !empty($currentUser?->onboarding_completed_at);
     </div>
 
     <!-- ============================================================
+         PREVISÃO + GAMIFICAÇÃO — lado a lado
+         ============================================================ -->
+    <div class="dash-duo-row dash-duo-row--flexible">
+
+    <!-- PREVISÃO FINANCEIRA — toggled via personalização -->
+    <section class="provisao-section" id="sectionPrevisao" style="display:none;">
+        <h2 class="provisao-title" id="provisaoTitle">Previsão financeira</h2>
+        <p class="provisao-headline" id="provisaoHeadline"></p>
+
+        <!-- Alertas de vencidos -->
+        <div class="provisao-alerts-container">
+            <div class="provisao-alert despesas" id="provisaoAlertDespesas" style="display:none;">
+                <div class="provisao-alert-icon"><i data-lucide="alert-triangle"></i></div>
+                <span class="provisao-alert-text">
+                    <strong id="provisaoAlertDespesasCount">0</strong> despesa(s) vencida(s) totalizando
+                    <strong id="provisaoAlertDespesasTotal">R$ 0,00</strong>
+                </span>
+                <a href="<?= BASE_URL ?>lancamentos?status=vencido" class="provisao-alert-link">
+                    Ver <i data-lucide="arrow-right"></i>
+                </a>
+            </div>
+            <div class="provisao-alert receitas" id="provisaoAlertReceitas" style="display:none;">
+                <div class="provisao-alert-icon"><i data-lucide="alert-circle"></i></div>
+                <span class="provisao-alert-text">
+                    <strong id="provisaoAlertReceitasCount">0</strong> receita(s) não recebida(s) totalizando
+                    <strong id="provisaoAlertReceitasTotal">R$ 0,00</strong>
+                </span>
+                <a href="<?= BASE_URL ?>lancamentos?tipo=receita&status=vencido" class="provisao-alert-link">
+                    Ver <i data-lucide="arrow-right"></i>
+                </a>
+            </div>
+            <div class="provisao-alert faturas" id="provisaoAlertFaturas" style="display:none;">
+                <div class="provisao-alert-icon"><i data-lucide="credit-card"></i></div>
+                <span class="provisao-alert-text">
+                    <strong id="provisaoAlertFaturasCount">0</strong> fatura(s) vencida(s) totalizando
+                    <strong id="provisaoAlertFaturasTotal">R$ 0,00</strong>
+                </span>
+                <a href="<?= BASE_URL ?>faturas" class="provisao-alert-link">
+                    Ver <i data-lucide="arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Cards de resumo -->
+        <div class="provisao-grid">
+            <div class="provisao-card pagar">
+                <div class="provisao-card-icon"><i data-lucide="arrow-up-right"></i></div>
+                <div class="provisao-card-body">
+                    <span class="provisao-card-label">A pagar</span>
+                    <span class="provisao-card-value" id="provisaoPagar">R$ 0,00</span>
+                    <span class="provisao-card-count" id="provisaoPagarCount">0 pendentes</span>
+                </div>
+            </div>
+            <div class="provisao-card receber">
+                <div class="provisao-card-icon"><i data-lucide="arrow-down-left"></i></div>
+                <div class="provisao-card-body">
+                    <span class="provisao-card-label">A receber</span>
+                    <span class="provisao-card-value" id="provisaoReceber">R$ 0,00</span>
+                    <span class="provisao-card-count" id="provisaoReceberCount">0 pendentes</span>
+                </div>
+            </div>
+            <div class="provisao-card projetado">
+                <div class="provisao-card-icon"><i data-lucide="trending-up"></i></div>
+                <div class="provisao-card-body">
+                    <span class="provisao-card-label">Saldo projetado</span>
+                    <span class="provisao-card-value" id="provisaoProjetado">R$ 0,00</span>
+                    <span class="provisao-card-count" id="provisaoProjetadoLabel">saldo atual: R$ 0,00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Próximos vencimentos -->
+        <div class="provisao-proximos">
+            <div class="provisao-proximos-header">
+                <span class="provisao-proximos-title" id="provisaoProximosTitle">
+                    <i data-lucide="clock"></i> Próximos Vencimentos
+                </span>
+                <a href="<?= BASE_URL ?>lancamentos" class="provisao-ver-todos" id="provisaoVerTodos">
+                    Ver todos <i data-lucide="arrow-right"></i>
+                </a>
+            </div>
+            <div class="provisao-proximos-list" id="provisaoProximosList">
+                <div class="provisao-empty" id="provisaoEmpty" style="display:none;">
+                    <i data-lucide="check-circle"></i>
+                    <span>Nenhum vencimento pendente</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parcelas ativas -->
+        <div class="provisao-parcelas" id="provisaoParcelas" style="display:none;">
+            <div class="provisao-parcelas-icon"><i data-lucide="layers"></i></div>
+            <span class="provisao-parcelas-text" id="provisaoParcelasText">0 parcelamentos ativos</span>
+            <span class="provisao-parcelas-valor" id="provisaoParcelasValor">R$ 0,00/mês</span>
+        </div>
+
+        <!-- PRO overlay -->
+        <div class="provisao-pro-overlay" id="provisaoProOverlay" style="display:none;">
+            <div class="provisao-pro-content">
+                <div class="provisao-pro-icon"><i data-lucide="crown"></i></div>
+                <h3>Previsão completa</h3>
+                <p>Veja receitas, despesas e saldo projetado com o plano Pro.</p>
+                <a href="<?= BASE_URL ?>billing" class="provisao-pro-btn">
+                    <i data-lucide="gem"></i> Assinar Pro
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         GAMIFICAÇÃO — toggled via personalização
+         ============================================================ -->
+    <section class="gamification-section" id="sectionGamificacao" style="display:none;">
+        <div class="gamification-header">
+            <h2 class="gamification-title"><i data-lucide="trophy"></i> Gamificação</h2>
+            <div class="level-badge" id="userLevel"><i data-lucide="star"></i> <span>Nível 1</span></div>
+        </div>
+
+        <div class="gamification-grid">
+            <div class="streak-card">
+                <div class="streak-icon">&#128293;</div>
+                <div class="streak-number" id="streakDays">0</div>
+                <div class="streak-label">Dias seguidos</div>
+                <div class="streak-protection" id="streakProtection" style="display:none;">
+                    <i data-lucide="shield"></i> Proteção ativa
+                </div>
+            </div>
+
+            <div class="level-progress-card progress-card">
+                <div class="progress-header">
+                    <span class="progress-title"><i data-lucide="bar-chart-3"></i> Progresso</span>
+                    <span class="progress-percentage" id="levelProgressText"></span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="levelProgressBar" style="width:0%;"></div>
+                </div>
+                <div class="progress-text" id="levelProgressPoints">0 / 300 pontos</div>
+            </div>
+
+            <div class="badges-card">
+                <h3 class="badges-title"><i data-lucide="medal"></i> Conquistas</h3>
+                <div class="badges-grid" id="badgesGrid"></div>
+            </div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-mini">
+                <div class="stat-mini-value" id="totalLancamentos">0</div>
+                <div class="stat-mini-label">Lançamentos</div>
+            </div>
+            <div class="stat-mini">
+                <div class="stat-mini-value" id="totalCategorias">0</div>
+                <div class="stat-mini-label">Categorias</div>
+            </div>
+            <div class="stat-mini">
+                <div class="stat-mini-value" id="mesesAtivos">0</div>
+                <div class="stat-mini-label">Meses ativos</div>
+            </div>
+            <div class="stat-mini">
+                <div class="stat-mini-value" id="pontosTotal">0</div>
+                <div class="stat-mini-label">Pontos</div>
+            </div>
+        </div>
+
+        <div id="proCTA" style="display:none;">
+            <button class="btn-pro-upgrade">
+                <i data-lucide="gem"></i> Desbloqueie mais com o Pro
+            </button>
+        </div>
+        <span id="proBadge" style="display:none;" class="pro-badge-inline">PRO</span>
+    </section>
+
+    </div><!-- /dash-duo-row--flexible -->
+
+    <!-- ============================================================
          SEÇÕES OPCIONAIS — toggled via modal de personalização
          ============================================================ -->
     <div class="dash-optional-grid" id="optionalGrid" style="display:none;">
@@ -102,21 +293,45 @@ $onboardingCompleted = !empty($currentUser?->onboarding_completed_at);
             <div class="dash-section-header">
                 <h2 class="dash-section-title">Metas</h2>
             </div>
-            <p class="dash-placeholder">Suas metas financeiras aparecerão aqui em breve.</p>
+            <div class="dash-optional-body" id="sectionMetasBody">
+                <p class="dash-placeholder">Suas metas financeiras aparecerão aqui em breve.</p>
+            </div>
         </section>
 
         <section class="dash-optional-section" id="sectionCartoes" style="display:none;">
             <div class="dash-section-header">
                 <h2 class="dash-section-title">Cartões</h2>
             </div>
-            <p class="dash-placeholder">Resumo dos seus cartões aparecerá aqui em breve.</p>
+            <div class="dash-optional-body" id="sectionCartoesBody">
+                <p class="dash-placeholder">Resumo dos seus cartões aparecerá aqui em breve.</p>
+            </div>
         </section>
 
         <section class="dash-optional-section" id="sectionContas" style="display:none;">
             <div class="dash-section-header">
                 <h2 class="dash-section-title">Contas</h2>
             </div>
-            <p class="dash-placeholder">Saldos das suas contas aparecerão aqui em breve.</p>
+            <div class="dash-optional-body" id="sectionContasBody">
+                <p class="dash-placeholder">Saldos das suas contas aparecerão aqui em breve.</p>
+            </div>
+        </section>
+
+        <section class="dash-optional-section" id="sectionOrcamentos" style="display:none;">
+            <div class="dash-section-header">
+                <h2 class="dash-section-title">Orçamentos</h2>
+            </div>
+            <div class="dash-optional-body" id="sectionOrcamentosBody">
+                <p class="dash-placeholder">Seus limites de categorias aparecerão aqui.</p>
+            </div>
+        </section>
+
+        <section class="dash-optional-section" id="sectionFaturas" style="display:none;">
+            <div class="dash-section-header">
+                <h2 class="dash-section-title">Faturas</h2>
+            </div>
+            <div class="dash-optional-body" id="sectionFaturasBody">
+                <p class="dash-placeholder">Resumo das suas faturas de cartão aparecerá aqui.</p>
+            </div>
         </section>
     </div>
 
@@ -140,22 +355,54 @@ $onboardingCompleted = !empty($currentUser?->onboarding_completed_at);
             </div>
             <div class="dash-modal__body">
                 <p class="dash-modal__desc">Escolha o que deseja ver no seu dashboard.</p>
-                <label class="dash-toggle">
-                    <input type="checkbox" id="toggleGrafico" checked>
-                    <span class="dash-toggle__label">Mostrar gráfico</span>
-                </label>
-                <label class="dash-toggle">
-                    <input type="checkbox" id="toggleMetas">
-                    <span class="dash-toggle__label">Mostrar metas</span>
-                </label>
-                <label class="dash-toggle">
-                    <input type="checkbox" id="toggleCartoes">
-                    <span class="dash-toggle__label">Mostrar cartões</span>
-                </label>
-                <label class="dash-toggle">
-                    <input type="checkbox" id="toggleContas">
-                    <span class="dash-toggle__label">Mostrar contas</span>
-                </label>
+
+                <div class="dash-toggle-group">
+                    <span class="dash-toggle-group__title">Principais</span>
+                    <label class="dash-toggle">
+                        <input type="checkbox" id="toggleHealthScore" checked>
+                        <span class="dash-toggle__label">Saúde financeira</span>
+                    </label>
+                    <label class="dash-toggle">
+                        <input type="checkbox" id="toggleAlertas" checked>
+                        <span class="dash-toggle__label">Alertas</span>
+                    </label>
+                    <label class="dash-toggle">
+                        <input type="checkbox" id="toggleGrafico" checked>
+                        <span class="dash-toggle__label">Gráfico de categorias</span>
+                    </label>
+                    <label class="dash-toggle">
+                        <input type="checkbox" id="togglePrevisao" checked>
+                        <span class="dash-toggle__label">Previsão financeira</span>
+                    </label>
+                </div>
+
+                <div class="dash-toggle-group">
+                    <span class="dash-toggle-group__title">Extras</span>
+                    <label class="dash-toggle">
+                        <input type="checkbox" id="toggleMetas">
+                        <span class="dash-toggle__label">Metas</span>
+                    </label>
+                    <label class="dash-toggle">
+                        <input type="checkbox" id="toggleCartoes">
+                        <span class="dash-toggle__label">Cartões</span>
+                    </label>
+                    <label class="dash-toggle">
+                        <input type="checkbox" id="toggleContas">
+                        <span class="dash-toggle__label">Contas</span>
+                    </label>
+                    <label class="dash-toggle">
+                        <input type="checkbox" id="toggleOrcamentos">
+                        <span class="dash-toggle__label">Orçamentos</span>
+                    </label>
+                    <label class="dash-toggle">
+                        <input type="checkbox" id="toggleFaturas">
+                        <span class="dash-toggle__label">Faturas de cartão</span>
+                    </label>
+                    <label class="dash-toggle">
+                        <input type="checkbox" id="toggleGamificacao">
+                        <span class="dash-toggle__label">Gamificação</span>
+                    </label>
+                </div>
             </div>
             <div class="dash-modal__footer">
                 <button class="dash-btn dash-btn--primary" id="btnSaveCustomize" type="button">Salvar</button>
@@ -165,13 +412,7 @@ $onboardingCompleted = !empty($currentUser?->onboarding_completed_at);
 
     <!-- Containers ocultos para compatibilidade com JS antigos -->
     <div id="greetingContainer" style="display:none;"></div>
-    <div id="healthScoreContainer" style="display:none;"></div>
-    <div id="healthScoreInsights" style="display:none;"></div>
     <div id="financeOverviewContainer" style="display:none;"></div>
-    <div id="dashboardAlertsSection" style="display:none;">
-        <div id="dashboardAlertsOverview"></div>
-        <div id="dashboardAlertsBudget"></div>
-    </div>
 
     <!-- Container oculto para tabela desktop (compatibilidade com app.js) -->
     <table id="transactionsTable" style="display:none;">

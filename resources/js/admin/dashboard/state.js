@@ -59,7 +59,12 @@ export const DOM = {
     transactionsList: document.getElementById('transactionsList'),
     emptyState: document.getElementById('emptyState'),
 
-    // Compatibilidade: containers antigos (ocultos no novo HTML)
+    metasBody: document.getElementById('sectionMetasBody'),
+    cartoesBody: document.getElementById('sectionCartoesBody'),
+    contasBody: document.getElementById('sectionContasBody'),
+    orcamentosBody: document.getElementById('sectionOrcamentosBody'),
+    faturasBody: document.getElementById('sectionFaturasBody'),
+
     chartContainer: document.getElementById('categoryChart'),
     tableBody: document.getElementById('transactionsTableBody'),
     table: document.getElementById('transactionsTable'),

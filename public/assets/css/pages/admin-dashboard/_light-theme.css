@@ -1,4 +1,30 @@
 /* ==================== LIGHT MODE ADJUSTMENTS ==================== */
+
+/* Elevated cards — softer shadows in light mode */
+:root[data-theme="light"] .dash-kpi,
+:root[data-theme="light"] .dash-chart-section,
+:root[data-theme="light"] .dash-transactions-section,
+:root[data-theme="light"] .dash-optional-section,
+:root[data-theme="light"] .provisao-section,
+:root[data-theme="light"] .gamification-section {
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.06),
+    0 20px 40px rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="light"] .dash-kpi:hover,
+:root[data-theme="light"] .dash-chart-section:hover,
+:root[data-theme="light"] .dash-transactions-section:hover,
+:root[data-theme="light"] .dash-optional-section:hover,
+:root[data-theme="light"] .provisao-section:hover,
+:root[data-theme="light"] .gamification-section:hover {
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.10),
+    0 30px 60px rgba(0, 0, 0, 0.12);
+}
+
+/* Gamification inner cards */
 :root[data-theme="light"] .badges-card,
 :root[data-theme="light"] .streak-card {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
