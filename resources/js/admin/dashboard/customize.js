@@ -61,6 +61,9 @@ async function loadPrefsFromApi() {
             saveLocalCache(merged);
             return merged;
         }
+        // API responded but no prefs saved yet — apply defaults and clear stale cache
+        saveLocalCache(DEFAULTS);
+        return { ...DEFAULTS };
     } catch {
         // API unavailable — fall through to cache
     }
