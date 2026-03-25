@@ -155,11 +155,10 @@ function saveAndClose() {
 /* ─── Init ────────────────────────────────────────────────────────────── */
 
 export function initCustomize() {
-    // 1) Aplicar cache local imediatamente (evita flash)
-    const cached = loadPrefs();
-    applyPrefs(cached);
+    // 1) Sempre aplicar defaults primeiro (seções opcionais ocultas)
+    applyPrefs(DEFAULTS);
 
-    // 2) Buscar do banco em background e reaplicar se diferente
+    // 2) Buscar do banco — se tiver preferências salvas, reaplicar
     loadPrefsFromApi().then((apiPrefs) => {
         if (apiPrefs) {
             applyPrefs(apiPrefs);
