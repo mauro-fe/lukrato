@@ -256,15 +256,9 @@ export const Renderers = {
     },
 
     toggleAlertsSection: () => {
+        // Alerts section is hidden in the new fintech layout
         const section = document.getElementById('dashboardAlertsSection');
-        const overview = document.getElementById('dashboardAlertsOverview');
-        const budget = document.getElementById('dashboardAlertsBudget');
-
-        if (!section) return;
-
-        const hasOverview = overview && overview.innerHTML.trim() !== '';
-        const hasBudget = budget && budget.innerHTML.trim() !== '';
-        section.style.display = hasOverview || hasBudget ? 'block' : 'none';
+        if (section) section.style.display = 'none';
     },
 
     setSignedState: (elementId, cardId, value) => {
@@ -355,6 +349,10 @@ export const Renderers = {
     renderOverviewAlerts: ({ receitas, despesas }) => {
         const container = document.getElementById('dashboardAlertsOverview');
         if (!container) return;
+
+        // Keep alerts section hidden in the new fintech layout
+        const section = document.getElementById('dashboardAlertsSection');
+        if (section) section.style.display = 'none';
 
         const receitasValue = Number(receitas || 0);
         const despesasValue = Number(despesas || 0);
@@ -477,23 +475,11 @@ export const Renderers = {
         try {
             const transactions = await API.getTransactions(month, CONFIG.TRANSACTIONS_LIMIT);
 
-            // Limpar ambos
+            // Limpar ambos (containers ocultos — só populam dados para compatibilidade)
             if (DOM.tableBody) DOM.tableBody.innerHTML = '';
             if (DOM.cardsContainer) DOM.cardsContainer.innerHTML = '';
 
             const hasData = Array.isArray(transactions) && transactions.length > 0;
-
-            if (DOM.emptyState) {
-                DOM.emptyState.style.display = hasData ? 'none' : 'block';
-            }
-
-            if (DOM.table) {
-                DOM.table.style.display = hasData ? 'table' : 'none';
-            }
-
-            if (DOM.cardsContainer) {
-                DOM.cardsContainer.style.display = hasData ? 'flex' : 'none';
-            }
 
             if (hasData) {
                 transactions.forEach(transaction => {
@@ -585,19 +571,7 @@ export const Renderers = {
                 });
             }
         } catch (err) {
-            logClientError('Erro ao renderizar transaÃ§Ãµes', err, 'Falha ao carregar transaÃ§Ãµes');
-
-            if (DOM.emptyState) {
-                DOM.emptyState.style.display = 'block';
-            }
-
-            if (DOM.table) {
-                DOM.table.style.display = 'none';
-            }
-
-            if (DOM.cardsContainer) {
-                DOM.cardsContainer.style.display = 'none';
-            }
+            logClientError('Erro ao renderizar transações', err, 'Falha ao carregar transações');
         }
     },
 
@@ -635,10 +609,10 @@ export const Renderers = {
                         </div>
                         <div class="dash-tx__info">
                             <span class="dash-tx__desc">${descricao}</span>
-                            <span class="dash-tx__cat">${escapeHtml(categoriaNome)}</span>
+                            <span class="dash-tx__category">${escapeHtml(categoriaNome)}</span>
                         </div>
                     </div>
-                    <span class="dash-tx__amount ${isIncome ? 'income' : 'expense'}">${isIncome ? '+' : '-'}${Utils.money(Math.abs(valor))}</span>
+                    <span class="dash-tx__amount dash-tx__amount--${isIncome ? 'income' : 'expense'}">${isIncome ? '+' : '-'}${Utils.money(Math.abs(valor))}</span>
                 `;
                 DOM.transactionsList.appendChild(el);
             });
