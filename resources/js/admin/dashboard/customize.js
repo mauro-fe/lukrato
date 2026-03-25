@@ -155,10 +155,13 @@ function saveAndClose() {
 /* ─── Init ────────────────────────────────────────────────────────────── */
 
 export function initCustomize() {
-    // 1) Sempre aplicar defaults primeiro (seções opcionais ocultas)
+    // 1) Limpar cache antigo do localStorage para evitar dados obsoletos
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+
+    // 2) Sempre aplicar defaults primeiro (seções opcionais ocultas)
     applyPrefs(DEFAULTS);
 
-    // 2) Buscar do banco — se tiver preferências salvas, reaplicar
+    // 3) Buscar do banco — se tiver preferências salvas, reaplicar
     loadPrefsFromApi().then((apiPrefs) => {
         if (apiPrefs) {
             applyPrefs(apiPrefs);
