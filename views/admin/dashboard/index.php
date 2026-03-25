@@ -58,42 +58,41 @@ $onboardingCompleted = !empty($currentUser?->onboarding_completed_at);
     </section>
 
     <!-- ============================================================
-         GRÁFICO — Despesas por categoria (donut)
+         GRID — Gráfico + Transações lado a lado
          ============================================================ -->
-    <section class="dash-chart-section" id="chart-section">
-        <div class="dash-section-header">
-            <h2 class="dash-section-title">Despesas por categoria</h2>
-        </div>
-        <div class="dash-chart-wrap">
-            <div class="chart-loading" id="chartLoading"></div>
-            <div id="categoryChart" role="img" aria-label="Gráfico de despesas por categoria"></div>
-        </div>
-    </section>
+    <div class="dash-duo-row">
+        <section class="dash-chart-section" id="chart-section">
+            <div class="dash-section-header">
+                <h2 class="dash-section-title">Despesas por categoria</h2>
+            </div>
+            <div class="dash-chart-wrap">
+                <div class="chart-loading" id="chartLoading"></div>
+                <div id="categoryChart" role="img" aria-label="Gráfico de despesas por categoria"></div>
+            </div>
+        </section>
 
-    <!-- ============================================================
-         TRANSAÇÕES RECENTES — Lista simples
-         ============================================================ -->
-    <section class="dash-transactions-section" id="table-section">
-        <div class="dash-section-header">
-            <h2 class="dash-section-title">Transações recentes</h2>
-            <a href="<?= BASE_URL ?>lancamentos" class="dash-section-link">
-                Ver todas <i data-lucide="arrow-right"></i>
-            </a>
-        </div>
+        <section class="dash-transactions-section" id="table-section">
+            <div class="dash-section-header">
+                <h2 class="dash-section-title">Últimas transações</h2>
+                <a href="<?= BASE_URL ?>lancamentos" class="dash-section-link">
+                    Ver todas <i data-lucide="arrow-right"></i>
+                </a>
+            </div>
 
-        <!-- Estado vazio -->
-        <div class="dash-empty" id="emptyState" style="display:none;">
-            <i data-lucide="receipt"></i>
-            <p>Nenhuma movimentação recente</p>
-            <button class="dash-btn dash-btn--primary"
-                onclick="if (window.fab) { window.fab.open(); } else { window.location.href = window.BASE_URL + 'lancamentos'; }">
-                <i data-lucide="plus"></i> Adicionar
-            </button>
-        </div>
+            <!-- Estado vazio -->
+            <div class="dash-empty" id="emptyState" style="display:none;">
+                <i data-lucide="receipt"></i>
+                <p>Nenhuma movimentação recente</p>
+                <button class="dash-btn dash-btn--primary"
+                    onclick="if (window.fab) { window.fab.open(); } else { window.location.href = window.BASE_URL + 'lancamentos'; }">
+                    <i data-lucide="plus"></i> Adicionar
+                </button>
+            </div>
 
-        <!-- Lista renderizada pelo JS -->
-        <div class="dash-transactions-list" id="transactionsList"></div>
-    </section>
+            <!-- Lista renderizada pelo JS -->
+            <div class="dash-transactions-list" id="transactionsList"></div>
+        </section>
+    </div>
 
     <!-- ============================================================
          SEÇÕES OPCIONAIS — toggled via modal de personalização
