@@ -57,15 +57,6 @@ function normalizeInstitutions(instituicoes = []) {
         .sort((first, second) => first.nome.localeCompare(second.nome, 'pt-BR'));
 }
 
-function findInstitutionByQuery(institutions, query) {
-    const normalizedQuery = normalizeText(query);
-    if (normalizedQuery === '') {
-        return null;
-    }
-
-    return institutions.find((institution) => institution.searchKey === normalizedQuery) || null;
-}
-
 export function renderAccountStep(container, instituicoes = []) {
     const { state, saveAccount, nextStep, prevStep } = useOnboarding();
     const accountState = state.data.account || {};
@@ -75,7 +66,6 @@ export function renderAccountStep(container, instituicoes = []) {
         ? institutions.find((institution) => String(institution.id) === String(accountState.instituicao_financeira_id)) || null
         : institutions.find((institution) => normalizeText(institution.nome) === normalizeText(accountState?.instituicao || '')) || null;
     const initialName = accountState?.nome || initialInstitution?.nome || accountState?.instituicao || '';
-    const initialInstitutionQuery = initialInstitution?.nome || accountState?.instituicao || '';
     const initialBalance = Number.isFinite(Number(accountState?.saldo))
         ? formatCurrency(Number(accountState.saldo))
         : '0,00';
@@ -88,9 +78,7 @@ export function renderAccountStep(container, instituicoes = []) {
                         <i data-lucide="wallet"></i>
                     </div>
                     <h1 class="lk-ob2-title">Como voce chama sua conta principal?</h1>
-                    <p class="lk-ob2-subtitle">
-                        Use um nome simples como Nubank, Carteira ou Banco. Os detalhes ficam para depois.
-                    </p>
+                   
                 </div>
 
                 <div class="lk-ob2-account-intro">
@@ -123,36 +111,26 @@ export function renderAccountStep(container, instituicoes = []) {
                     </div>
 
                     <div class="lk-ob2-form-group">
-                        <label class="lk-ob2-label" for="accountInstitutionSearch">
+                        <label class="lk-ob2-label" for="accountInstitution">
                             <i data-lucide="building-2"></i>
                             Instituicao
                             <span class="lk-ob2-label-hint">(opcional)</span>
                         </label>
-
-                        <div class="lk-ob2-institution-toolbar">
-                            <div class="lk-ob2-search-field">
-                                <i data-lucide="search"></i>
-                                <input
-                                    type="search"
-                                    class="lk-ob2-input lk-ob2-search-input"
-                                    id="accountInstitutionSearch"
-                                    placeholder="Busque sua instituicao"
-                                    value="${escapeHtml(initialInstitutionQuery)}"
-                                    autocomplete="off">
-                            </div>
-                            <button type="button" class="lk-ob2-btn-ghost" id="btnInstitutionClear">
-                                <i data-lucide="eraser"></i>
-                                <span>Depois</span>
-                            </button>
-                        </div>
-
-                        <div class="lk-ob2-combobox-results" id="institutionResults" hidden></div>
-                        <div class="lk-ob2-combobox-empty" id="institutionEmpty" hidden>
-                            Nenhuma instituicao encontrada. Voce pode seguir sem escolher agora.
-                        </div>
-
+                        <select
+                            class="lk-ob2-select"
+                            id="accountInstitution"
+                            name="instituicao_financeira_id">
+                            <option value="">Selecionar depois</option>
+                            ${institutions.map((institution) => `
+                                <option
+                                    value="${escapeHtml(institution.id)}"
+                                    ${initialInstitution && String(initialInstitution.id) === String(institution.id) ? 'selected' : ''}>
+                                    ${escapeHtml(institution.nome)}
+                                </option>
+                            `).join('')}
+                        </select>
                         <div class="lk-ob2-account-caption">
-                            Buscar aqui e opcional. Se selecionar uma instituicao, usamos como sugestao de nome.
+                            Se voce escolher agora, usamos a instituicao como sugestao de nome.
                         </div>
                     </div>
 
@@ -224,10 +202,7 @@ export function renderAccountStep(container, instituicoes = []) {
 
     const form = container.querySelector('#accountForm');
     const nameInput = container.querySelector('#accountName');
-    const searchInput = container.querySelector('#accountInstitutionSearch');
-    const clearInstitutionBtn = container.querySelector('#btnInstitutionClear');
-    const resultsEl = container.querySelector('#institutionResults');
-    const emptyEl = container.querySelector('#institutionEmpty');
+    const institutionSelect = container.querySelector('#accountInstitution');
     const balanceInput = container.querySelector('#accountBalance');
     const previewName = container.querySelector('#accountPreviewName');
     const previewInstitution = container.querySelector('#accountPreviewInstitution');
@@ -235,21 +210,8 @@ export function renderAccountStep(container, instituicoes = []) {
     const errorEl = container.querySelector('#accountError');
     const backBtn = container.querySelector('#btnAccountBack');
     const submitBtn = container.querySelector('#btnAccountNext');
-
     let selectedInstitution = initialInstitution || null;
     let lastSuggestedName = selectedInstitution?.nome || '';
-    let isInstitutionMenuOpen = false;
-
-    function getVisibleInstitutions(query) {
-        const normalizedQuery = normalizeText(query);
-        if (normalizedQuery === '') {
-            return institutions.slice(0, 8);
-        }
-
-        return institutions
-            .filter((institution) => institution.searchKey.includes(normalizedQuery))
-            .slice(0, 8);
-    }
 
     function updatePreview() {
         if (previewName) {
@@ -265,81 +227,6 @@ export function renderAccountStep(container, instituicoes = []) {
         if (previewBalance) {
             previewBalance.textContent = `R$ ${balanceInput.value || '0,00'}`;
         }
-    }
-
-    function selectInstitution(institution) {
-        selectedInstitution = institution;
-        searchInput.value = institution?.nome || '';
-        isInstitutionMenuOpen = false;
-
-        const currentName = nameInput.value.trim();
-        if (institution && (currentName === '' || currentName === lastSuggestedName)) {
-            nameInput.value = institution.nome;
-            lastSuggestedName = institution.nome;
-        }
-
-        updatePreview();
-        renderInstitutionResults();
-    }
-
-    function clearInstitutionSelection(clearQuery = true) {
-        selectedInstitution = null;
-        if (clearQuery) {
-            searchInput.value = '';
-        }
-        isInstitutionMenuOpen = false;
-        updatePreview();
-        renderInstitutionResults();
-    }
-
-    function renderInstitutionResults() {
-        if (!resultsEl || !emptyEl) {
-            return;
-        }
-
-        if (!isInstitutionMenuOpen) {
-            resultsEl.hidden = true;
-            emptyEl.hidden = true;
-            resultsEl.innerHTML = '';
-            return;
-        }
-
-        const visibleInstitutions = getVisibleInstitutions(searchInput.value);
-        if (visibleInstitutions.length === 0) {
-            resultsEl.hidden = true;
-            resultsEl.innerHTML = '';
-            emptyEl.hidden = false;
-            return;
-        }
-
-        emptyEl.hidden = true;
-        resultsEl.hidden = false;
-        resultsEl.innerHTML = visibleInstitutions.map((institution) => `
-            <button
-                type="button"
-                class="lk-ob2-combobox-item ${selectedInstitution && String(selectedInstitution.id) === String(institution.id) ? 'selected' : ''}"
-                data-institution-id="${escapeHtml(institution.id)}">
-                <span class="lk-ob2-combobox-item-name">${escapeHtml(institution.nome)}</span>
-                <span class="lk-ob2-combobox-item-badge">
-                    ${selectedInstitution && String(selectedInstitution.id) === String(institution.id) ? 'Selecionada' : 'Usar'}
-                </span>
-            </button>
-        `).join('');
-
-        resultsEl.querySelectorAll('.lk-ob2-combobox-item').forEach((button) => {
-            button.addEventListener('mousedown', (event) => {
-                event.preventDefault();
-            });
-
-            button.addEventListener('click', () => {
-                const institution = institutions.find((item) => String(item.id) === String(button.dataset.institutionId));
-                if (!institution) {
-                    return;
-                }
-
-                selectInstitution(institution);
-            });
-        });
     }
 
     function showError(message) {
@@ -379,47 +266,19 @@ export function renderAccountStep(container, instituicoes = []) {
 
     nameInput.addEventListener('input', updatePreview);
 
-    searchInput.addEventListener('focus', () => {
-        isInstitutionMenuOpen = true;
-        renderInstitutionResults();
-    });
+    if (institutionSelect) {
+        institutionSelect.addEventListener('change', () => {
+            selectedInstitution = institutions.find((institution) => String(institution.id) === institutionSelect.value) || null;
 
-    searchInput.addEventListener('input', () => {
-        const typedValue = searchInput.value.trim();
-
-        if (!typedValue) {
-            selectedInstitution = null;
-            lastSuggestedName = '';
-        } else if (selectedInstitution && normalizeText(typedValue) !== selectedInstitution.searchKey) {
-            selectedInstitution = null;
-        }
-
-        isInstitutionMenuOpen = true;
-        updatePreview();
-        renderInstitutionResults();
-    });
-
-    searchInput.addEventListener('blur', () => {
-        setTimeout(() => {
-            const matchedInstitution = selectedInstitution || findInstitutionByQuery(institutions, searchInput.value);
-            if (!selectedInstitution && matchedInstitution && normalizeText(searchInput.value) === matchedInstitution.searchKey) {
-                selectInstitution(matchedInstitution);
-                return;
+            const currentName = nameInput.value.trim();
+            if (selectedInstitution && (currentName === '' || currentName === lastSuggestedName)) {
+                nameInput.value = selectedInstitution.nome;
+                lastSuggestedName = selectedInstitution.nome;
+            } else if (!selectedInstitution && currentName === lastSuggestedName) {
+                lastSuggestedName = '';
             }
 
-            isInstitutionMenuOpen = false;
-            renderInstitutionResults();
-        }, 120);
-    });
-
-    if (clearInstitutionBtn) {
-        clearInstitutionBtn.addEventListener('mousedown', (event) => {
-            event.preventDefault();
-        });
-
-        clearInstitutionBtn.addEventListener('click', (event) => {
-            event.preventDefault();
-            clearInstitutionSelection();
+            updatePreview();
         });
     }
 
@@ -434,8 +293,6 @@ export function renderAccountStep(container, instituicoes = []) {
             return;
         }
 
-        const matchedInstitution = selectedInstitution || findInstitutionByQuery(institutions, searchInput.value);
-
         submitBtn.classList.add('loading');
         submitBtn.disabled = true;
 
@@ -443,8 +300,8 @@ export function renderAccountStep(container, instituicoes = []) {
             await saveAccount({
                 nome: name,
                 saldo_inicial: parseCurrency(balanceInput.value),
-                instituicao_financeira_id: matchedInstitution?.id || null,
-                instituicao: matchedInstitution?.nome || name
+                instituicao_financeira_id: selectedInstitution?.id || null,
+                instituicao: selectedInstitution?.nome || name
             });
 
             nextStep();
@@ -460,7 +317,6 @@ export function renderAccountStep(container, instituicoes = []) {
     }
 
     updatePreview();
-    renderInstitutionResults();
 
     setTimeout(() => {
         nameInput?.focus();

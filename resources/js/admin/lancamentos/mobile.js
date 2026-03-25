@@ -79,6 +79,36 @@ const MobileCards = {
         };
     },
 
+    getDateGroupKey(item) {
+        const raw = item?.data || item?.created_at || '';
+        if (!raw) return 'sem-data';
+        if (typeof raw === 'string' && /^\d{4}-\d{2}-\d{2}/.test(raw)) {
+            return raw.slice(0, 10);
+        }
+        const parsed = new Date(raw);
+        if (Number.isNaN(parsed.getTime())) return 'sem-data';
+        const year = parsed.getFullYear();
+        const month = String(parsed.getMonth() + 1).padStart(2, '0');
+        const day = String(parsed.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    },
+
+    renderDateGroupHeader(item) {
+        const key = this.getDateGroupKey(item);
+        if (key === 'sem-data') {
+            return '<div class="lan-feed-group-label">Sem data</div>';
+        }
+
+        const [year, month, day] = key.split('-').map(Number);
+        const date = new Date(year, month - 1, day);
+        const monthLabel = new Intl.DateTimeFormat('pt-BR', { month: 'short' })
+            .format(date)
+            .replace('.', '')
+            .toUpperCase();
+
+        return `<div class="lan-feed-group-label">${String(day).padStart(2, '0')} ${monthLabel}</div>`;
+    },
+
 
     renderPage() {
         if (!DOM.lanCards) return;
@@ -121,6 +151,7 @@ const MobileCards = {
         }
 
         const parts = [];
+        let currentDateKey = null;
 
         // Cabeçalho
         parts.push(`
@@ -142,6 +173,14 @@ const MobileCards = {
 
 
         for (const item of list) {
+            if (this.sortField === 'data') {
+                const dateKey = this.getDateGroupKey(item);
+                if (dateKey !== currentDateKey) {
+                    parts.push(this.renderDateGroupHeader(item));
+                    currentDateKey = dateKey;
+                }
+            }
+
             const id = item.id;
             const isGroup = Boolean(item._isParcelamentoGroup);
             const groupParcelas = isGroup && Array.isArray(item._parcelas) ? item._parcelas : [];
@@ -195,6 +234,12 @@ const MobileCards = {
             const isPago = Boolean(item.pago);
             const isTransfer = Boolean(item.eh_transferencia);
             const isPagamentoFatura = item.origem_tipo === 'pagamento_fatura';
+            const isCancelado = !!item.cancelado_em;
+            const dataLanc = new Date(item.data || item.created_at);
+            const hojeCard = new Date();
+            hojeCard.setHours(0, 0, 0, 0);
+            const isFuturo = !isPago && dataLanc > hojeCard;
+            const isOverdue = !isPago && !isTransfer && !isCancelado && !isFuturo && dataLanc < hojeCard;
             let statusClass = '';
             let statusLabel = '';
             let statusLucideIcon = '';
@@ -202,6 +247,10 @@ const MobileCards = {
                 statusClass = 'status-transferencia';
                 statusLabel = 'Transferência';
                 statusLucideIcon = 'repeat';
+            } else if (isOverdue) {
+                statusClass = 'status-atrasado';
+                statusLabel = 'Atrasado';
+                statusLucideIcon = 'triangle-alert';
             } else if (isPago) {
                 statusClass = 'status-pago';
                 statusLabel = 'Pago';
@@ -219,9 +268,13 @@ const MobileCards = {
                 pagoEmClass = 'status-transferencia';
                 pagoEmLabel = 'Transf.';
                 pagoEmLucideIcon = 'repeat';
+            } else if (isOverdue) {
+                pagoEmClass = 'status-atrasado';
+                pagoEmLabel = 'Atrasado';
+                pagoEmLucideIcon = 'triangle-alert';
             } else if (isPago && dataPagamentoFmt && dataPagamentoFmt !== '-') {
                 pagoEmClass = 'status-pago';
-                pagoEmLabel = dataPagamentoFmt;
+                pagoEmLabel = 'Pago';
                 pagoEmLucideIcon = 'circle-check';
             } else if (isPago) {
                 pagoEmClass = 'status-pago';
@@ -235,11 +288,6 @@ const MobileCards = {
 
             // Badges de recorrência/status para card view
             const isRecorrente = item.recorrente == 1 || item.recorrente === true;
-            const isCancelado = !!item.cancelado_em;
-            const dataLanc = new Date(item.data || item.created_at);
-            const hojeCard = new Date();
-            hojeCard.setHours(0, 0, 0, 0);
-            const isFuturo = !isPago && dataLanc > hojeCard;
             const temLembrete = Number(item.lembrar_antes_segundos || 0) > 0;
             let cardBadges = '';
             if (isCancelado) {
@@ -312,6 +360,22 @@ const MobileCards = {
                         </span>
                     </div>
 
+                    <div class="lan-card-summary">
+                        <div class="lan-card-summary-copy">
+                            <span class="lan-card-summary-title">${Utils.escapeHtml(descricao)}</span>
+                            <span class="lan-card-summary-subtitle">${Utils.escapeHtml(categoria || '-')}</span>
+                        </div>
+                        <span class="badge-status ${statusClass}"><i data-lucide="${statusLucideIcon}"></i> ${statusLabel}</span>
+                    </div>
+
+                    <div class="lan-card-summary">
+                        <div class="lan-card-summary-copy">
+                            <span class="lan-card-summary-title">${Utils.escapeHtml(descricao)}</span>
+                            <span class="lan-card-summary-subtitle">${Utils.escapeHtml(categoria || '-')}</span>
+                        </div>
+                        <span class="badge-status ${statusClass}"><i data-lucide="${statusLucideIcon}"></i> ${statusLabel}</span>
+                    </div>
+
                     <button class="lan-card-toggle card-toggle" type="button" data-toggle="details" aria-label="Ver detalhes do parcelamento">
                         <span class="lan-card-toggle-icon card-toggle-icon"><i data-lucide="chevron-right"></i></span>
                         <span class="detalhes"> Ver detalhes</span>
@@ -346,7 +410,7 @@ const MobileCards = {
                             <span class="lan-card-detail-label card-detail-label">AÇÕES</span>
                             <span class="lan-card-detail-value card-detail-value actions-slot" style="display:flex !important;gap:8px;">
                                 <div class="lk-dropdown">
-                                    <button class="lk-dropdown-trigger" type="button"><i data-lucide="more-vertical"></i></button>
+                                    <button class="lk-dropdown-trigger" type="button" title="Mais acoes" aria-label="Mais acoes"><i data-lucide="more-vertical"></i></button>
                                     <div class="lk-dropdown-menu">
                                         <button class="lk-dropdown-item toggle-parcelas-menu" data-parcelamento-id="${parcelamentoId}">
                                             <i data-lucide="list"></i> Ver Parcelas
@@ -391,7 +455,7 @@ const MobileCards = {
 
             const dropdownHtml = menuItems ? `
                 <div class="lk-dropdown">
-                    <button class="lk-dropdown-trigger" type="button"><i data-lucide="more-vertical"></i></button>
+                    <button class="lk-dropdown-trigger" type="button" title="Mais acoes" aria-label="Mais acoes"><i data-lucide="more-vertical"></i></button>
                     <div class="lk-dropdown-menu">${menuItems}</div>
                 </div>
             ` : '';

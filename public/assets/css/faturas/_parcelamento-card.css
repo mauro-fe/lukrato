@@ -1,236 +1,554 @@
-/* ==================== ESTILO FATURA (CARD) ==================== */
-.parcelamento-card .header-info {
+.parcelamento-card {
+  --fatura-header-height: 108px;
+  --fatura-accent: var(--color-primary);
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 88%, transparent);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent 54%),
+    color-mix(in srgb, var(--color-bg) 94%, transparent);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.14);
+  color: var(--color-text);
+  transition:
+    transform 0.24s ease,
+    box-shadow 0.24s ease,
+    border-color 0.24s ease;
+}
+
+.parcelamento-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--fatura-header-height);
+  pointer-events: none;
+  z-index: 0;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(4, 11, 20, 0.42) 0%,
+      rgba(4, 11, 20, 0.18) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      circle at top right,
+      color-mix(in srgb, var(--fatura-accent) 10%, transparent),
+      transparent 56%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--fatura-accent) 7%, transparent) 0%,
+      color-mix(in srgb, var(--fatura-accent) 3%, transparent) 62%,
+      transparent 100%
+    );
+}
+
+.parcelamento-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.parcelamento-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 38px rgba(15, 23, 42, 0.18);
+  border-color: color-mix(in srgb, var(--fatura-accent) 22%, var(--glass-border));
+}
+
+.parcelamento-card.status-cancelado {
+  opacity: 0.72;
+}
+
+.fatura-card-shell {
+  display: grid;
+  gap: 18px;
+  padding: 1.5rem;
+}
+
+.fatura-card-top {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  min-height: var(--fatura-header-height);
+  padding-bottom: 1rem;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--glass-border) 90%, transparent);
+}
+
+.fatura-card-media {
+  display: flex;
+  align-items: flex-start;
+}
+
+.fatura-card-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--fatura-accent) 10%, white 90%),
+      color-mix(in srgb, var(--fatura-accent) 4%, white 96%)
+    );
+  border: 1px solid color-mix(in srgb, var(--fatura-accent) 18%, transparent);
+  box-shadow:
+    0 12px 24px rgba(15, 23, 42, 0.12),
+    0 0 0 1px color-mix(in srgb, var(--fatura-accent) 6%, transparent);
+}
+
+.fatura-card-brand svg,
+.fatura-card-brand i {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.fatura-card-brand i {
+  width: 22px;
+  height: 22px;
+  color: color-mix(in srgb, var(--fatura-accent) 58%, var(--color-text));
+}
+
+.fatura-card-head {
+  min-width: 0;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  flex: 1;
-  gap: var(--spacing-4);
+  align-items: flex-start;
+  gap: 16px;
+  padding-top: 2px;
 }
 
-.parcelamento-card .cartao-info {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-1);
+.fatura-card-title-wrap {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
 }
 
-.parcelamento-card .cartao-nome {
-  font-size: var(--font-size-lg);
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.parcelamento-card .cartao-numero {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-  font-family: var(--font-mono);
-}
-
-.parcelamento-card .fatura-periodo {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-2) var(--spacing-4);
-  background: var(--color-surface-muted);
-  border-radius: var(--radius-sm);
-  font-weight: 600;
-  color: var(--color-text);
-  font-size: var(--font-size-sm);
-}
-
-.parcelamento-card .fatura-periodo i {
-  color: var(--color-primary);
-}
-
-.parcelamento-card .fatura-resumo-principal {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  padding: 1.25rem 1.25rem 0.85rem;
-  border-bottom: 1px solid
-    color-mix(in srgb, var(--glass-border) 60%, transparent);
-}
-
-.parcelamento-card .resumo-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.parcelamento-card .resumo-label {
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.parcelamento-card .resumo-valor {
-  font-size: 1.65rem;
+.fatura-card-title {
+  font-size: 1.15rem;
   font-weight: 800;
+  line-height: 1.15;
   color: var(--color-text);
-  letter-spacing: -0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fatura-card-subtitle {
+  color: color-mix(in srgb, var(--fatura-accent) 24%, var(--color-text-muted));
+  font-size: 0.92rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fatura-card-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.fatura-card-period,
+.parc-card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.fatura-card-period {
+  color: color-mix(in srgb, var(--fatura-accent) 42%, var(--color-text));
+  background: color-mix(in srgb, var(--fatura-accent) 10%, transparent);
+  border-color: color-mix(in srgb, var(--fatura-accent) 12%, transparent);
+}
+
+.fatura-card-period svg,
+.parc-card-badge svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.parc-card-badge[data-lk-tooltip],
+.fatura-card-period[data-lk-tooltip] {
+  cursor: help;
+}
+
+.parc-card-badge.badge-pendente {
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(52, 211, 153, 0.16);
+}
+
+.parc-card-badge.badge-parcial {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.14);
+  border-color: rgba(251, 191, 36, 0.18);
+}
+
+.parc-card-badge.badge-alerta {
+  color: #fb7185;
+  background: rgba(244, 63, 94, 0.12);
+  border-color: rgba(251, 113, 133, 0.18);
+}
+
+.parc-card-badge.badge-paga {
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(52, 211, 153, 0.16);
+}
+
+.parc-card-badge.badge-cancelado {
+  color: var(--color-text-muted);
+  background: rgba(148, 163, 184, 0.12);
+  border-color: rgba(148, 163, 184, 0.16);
+}
+
+.fatura-list-info,
+.fatura-status-col {
+  display: none;
+}
+
+.fatura-resumo-principal {
+  display: grid;
+  gap: 18px;
+}
+
+.fatura-card-main {
+  display: grid;
+  gap: 10px;
+}
+
+.resumo-label {
+  color: var(--color-text-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.resumo-valor {
+  margin: 0;
+  font-size: clamp(1.9rem, 1.25rem + 1vw, 2.4rem);
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.fatura-card-due-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.fatura-card-due-copy {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.fatura-card-due-line.is-warning .fatura-card-due-copy {
+  color: #fbbf24;
+}
+
+.fatura-card-due-line.is-danger .fatura-card-due-copy {
+  color: #fb7185;
+}
+
+.fatura-card-due-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+}
+
+.fatura-card-due-tag.is-warning {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.14);
+  border-color: rgba(251, 191, 36, 0.18);
+}
+
+.fatura-card-due-tag.is-danger {
+  color: #fb7185;
+  background: rgba(244, 63, 94, 0.12);
+  border-color: rgba(251, 113, 133, 0.18);
+}
+
+.fatura-card-note {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.fatura-card-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.fatura-card-detail {
+  display: grid;
+  gap: 8px;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 88%, transparent);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent),
+    color-mix(in srgb, var(--color-bg) 86%, transparent);
+}
+
+.fatura-card-detail.is-safe {
+  border-color: rgba(52, 211, 153, 0.16);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent),
+    rgba(16, 185, 129, 0.08);
+}
+
+.fatura-card-detail.is-warning {
+  border-color: rgba(251, 191, 36, 0.18);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent),
+    rgba(245, 158, 11, 0.09);
+}
+
+.fatura-card-detail.is-danger {
+  border-color: rgba(251, 113, 133, 0.18);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent),
+    rgba(244, 63, 94, 0.09);
+}
+
+.fatura-card-detail.is-muted {
+  border-color: rgba(148, 163, 184, 0.16);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent),
+    rgba(148, 163, 184, 0.08);
+}
+
+.fatura-card-detail-label {
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.fatura-card-detail-value {
+  color: var(--color-text);
+  font-size: 1rem;
+  font-weight: 800;
   line-height: 1.2;
 }
 
-.parcelamento-card .resumo-estornos .resumo-valor {
-  font-size: 0.95rem;
-  font-weight: 600;
+.fatura-card-detail-meta {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
 }
 
-/* Vencimento row inside resumo */
-.resumo-vencimento {
+.parc-progress-section {
+  display: grid;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 88%, transparent);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent),
+    color-mix(in srgb, var(--color-bg) 86%, transparent);
+}
+
+.parc-progress-section.is-safe {
+  border-color: rgba(52, 211, 153, 0.12);
+}
+
+.parc-progress-section.is-warning {
+  border-color: rgba(251, 191, 36, 0.16);
+}
+
+.parc-progress-section.is-danger {
+  border-color: rgba(251, 113, 133, 0.16);
+}
+
+.parc-progress-section.is-muted {
+  border-color: rgba(148, 163, 184, 0.14);
+}
+
+.parc-progress-header,
+.parc-progress-foot {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  background: color-mix(in srgb, var(--color-primary) 6%, transparent);
-  border-radius: 8px;
-  border: 1px solid color-mix(in srgb, var(--color-primary) 12%, transparent);
+  justify-content: space-between;
+  gap: 14px;
+  line-height: 1.4;
 }
 
-.resumo-vencimento svg.lucide {
-  width: 15px !important;
-  height: 15px !important;
-  color: var(--color-primary);
-  flex-shrink: 0;
-  opacity: 0.7;
+.parc-progress-text {
+  font-size: 0.82rem;
+  color: var(--color-text);
+  font-weight: 700;
 }
 
-.resumo-vencimento .vencimento-label {
-  font-size: 0.75rem;
+.parc-progress-percent {
+  font-size: 0.82rem;
+  font-weight: 700;
   color: var(--color-text-muted);
-  font-weight: 500;
 }
 
-.resumo-vencimento .vencimento-data {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--color-text);
-  margin-left: auto;
+.parc-progress-section.is-safe .parc-progress-percent {
+  color: #34d399;
 }
 
-.resumo-vencimento .vencimento-tag {
-  font-size: 0.6rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 0.15rem 0.45rem;
-  border-radius: 6px;
+.parc-progress-section.is-warning .parc-progress-percent {
+  color: #fbbf24;
 }
 
-.vencimento-tag.tag-atrasado {
-  background: #fee2e2;
-  color: #dc2626;
+.parc-progress-section.is-danger .parc-progress-percent {
+  color: #fb7185;
 }
 
-.vencimento-tag.tag-proximo {
-  background: #fef3c7;
-  color: #d97706;
+.parc-progress-section.is-muted .parc-progress-percent {
+  color: var(--color-text-muted);
 }
 
-/* Overdue vencimento styling */
-.resumo-vencimento.vencimento-atrasado {
-  background: color-mix(in srgb, #ef4444 8%, transparent);
-  border-color: color-mix(in srgb, #ef4444 20%, transparent);
+.parc-progress-bar {
+  position: relative;
+  height: 14px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 94%, transparent);
+  background:
+    linear-gradient(180deg, rgba(2, 10, 20, 0.88), rgba(255, 255, 255, 0.08));
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.32),
+    0 0 0 1px rgba(255, 255, 255, 0.02);
 }
 
-.resumo-vencimento.vencimento-atrasado svg.lucide {
-  color: #ef4444;
-  opacity: 1;
+.parc-progress-fill {
+  position: relative;
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transform-origin: left center;
+  animation: fatura-progress-reveal 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.resumo-vencimento.vencimento-atrasado .vencimento-data {
-  color: #ef4444;
+.parc-progress-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.36), transparent 38%);
+  opacity: 0.42;
 }
 
-/* Upcoming vencimento styling */
-.resumo-vencimento.vencimento-proximo {
-  background: color-mix(in srgb, #f59e0b 8%, transparent);
-  border-color: color-mix(in srgb, #f59e0b 18%, transparent);
+.parc-progress-fill.is-safe {
+  background: linear-gradient(90deg, #34d399, #10b981);
+  box-shadow:
+    0 0 0 1px rgba(52, 211, 153, 0.18),
+    0 8px 18px rgba(52, 211, 153, 0.18);
 }
 
-.resumo-vencimento.vencimento-proximo svg.lucide {
-  color: #f59e0b;
-  opacity: 1;
+.parc-progress-fill.is-warning {
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
+  box-shadow:
+    0 0 0 1px rgba(251, 191, 36, 0.2),
+    0 8px 18px rgba(245, 158, 11, 0.18);
 }
 
-.parcelamento-card .resumo-data {
-  font-size: var(--font-size-lg);
-  font-weight: 600;
-  color: var(--color-text);
+.parc-progress-fill.is-danger {
+  background: linear-gradient(90deg, #fb7185, #ef4444);
+  box-shadow:
+    0 0 0 1px rgba(251, 113, 133, 0.2),
+    0 8px 18px rgba(239, 68, 68, 0.18);
 }
 
-.parcelamento-card .fatura-itens-info {
-  margin: var(--spacing-4) 0;
+.parc-progress-fill.is-muted {
+  background: linear-gradient(90deg, #94a3b8, #64748b);
+  box-shadow:
+    0 0 0 1px rgba(148, 163, 184, 0.2),
+    0 8px 18px rgba(100, 116, 139, 0.16);
 }
 
-.parcelamento-card .itens-badge {
+.parc-progress-foot {
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+}
+
+.parc-card-actions {
+  padding: 0;
+}
+
+.parc-btn {
+  width: 100%;
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-2);
-  padding: 0.625rem var(--spacing-4);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-}
-
-.parcelamento-card .itens-pendentes {
-  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
-  color: color-mix(in srgb, var(--color-danger) 90%, black);
-  border: 1px solid color-mix(in srgb, var(--color-danger) 20%, transparent);
-}
-
-.parcelamento-card .itens-pendentes i {
-  color: var(--color-danger);
-}
-
-.parcelamento-card .itens-pagos {
-  background: color-mix(in srgb, var(--color-success) 10%, transparent);
-  color: color-mix(in srgb, var(--color-success) 90%, black);
-  border: 1px solid color-mix(in srgb, var(--color-success) 20%, transparent);
-  margin-top: var(--spacing-2);
-}
-
-.parcelamento-card .itens-pagos i {
-  color: var(--color-success);
-}
-
-/* Ajustes do card actions */
-.parcelamento-card .parc-card-actions {
-  padding: 0 1.25rem 1.25rem;
-}
-
-.parcelamento-card .parc-btn-view {
-  width: 100%;
   justify-content: center;
-  padding: 0.7rem 1rem;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 0.875rem;
-  background: linear-gradient(
-    135deg,
-    var(--color-primary),
-    color-mix(in srgb, var(--color-primary) 80%, #000)
-  );
-  color: white;
-  border: none;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.25s ease;
-  box-shadow: 0 4px 12px
-    color-mix(in srgb, var(--color-primary) 30%, transparent);
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+  font-size: 0.84rem;
+  font-weight: 800;
 }
 
-.parcelamento-card .parc-btn-view:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px
-    color-mix(in srgb, var(--color-primary) 45%, transparent);
+.parc-btn-view {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-primary) 24%, rgba(255, 255, 255, 0.03)),
+      color-mix(in srgb, var(--color-primary) 16%, var(--color-bg))
+    );
+  color: #ffd7a0;
+  border-color: color-mix(in srgb, var(--color-primary) 26%, transparent);
+  box-shadow: 0 14px 24px rgba(230, 126, 34, 0.16);
 }
 
-.parcelamento-card .parc-btn-view svg.lucide {
+.parc-btn-view:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 28px rgba(230, 126, 34, 0.18);
+}
+
+.parc-btn svg {
+  width: 16px;
+  height: 16px;
   color: inherit;
 }
 
+@keyframes fatura-progress-reveal {
+  from {
+    transform: scaleX(0);
+    opacity: 0.4;
+  }
+
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}

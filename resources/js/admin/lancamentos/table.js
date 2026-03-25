@@ -237,8 +237,22 @@ export const TableManager = {
         }
 
         // Render rows
-        const rows = pageData.map(item => this.renderRow(item)).join('');
-        DOM.tableBody.innerHTML = rows;
+        const rows = [];
+        let lastDateKey = null;
+
+        pageData.forEach((item) => {
+            if (STATE.sortField === 'data') {
+                const dateKey = this.getDateGroupKey(item);
+                if (dateKey !== lastDateKey) {
+                    rows.push(this.renderDateGroupRow(item));
+                    lastDateKey = dateKey;
+                }
+            }
+
+            rows.push(this.renderRow(item));
+        });
+
+        DOM.tableBody.innerHTML = rows.join('');
         if (window.lucide) lucide.createIcons();
 
         this.updatePagination();
@@ -265,6 +279,53 @@ export const TableManager = {
         if (window.lucide) lucide.createIcons();
         this.updatePagination();
         this.updateSelectionInfo();
+    },
+
+    getDateGroupKey(item) {
+        const raw = item?.data || item?.created_at || '';
+        if (!raw) return 'sem-data';
+        if (typeof raw === 'string' && /^\d{4}-\d{2}-\d{2}/.test(raw)) {
+            return raw.slice(0, 10);
+        }
+        const parsed = new Date(raw);
+        if (Number.isNaN(parsed.getTime())) return 'sem-data';
+        const year = parsed.getFullYear();
+        const month = String(parsed.getMonth() + 1).padStart(2, '0');
+        const day = String(parsed.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    },
+
+    formatDateGroupLabel(item) {
+        const key = this.getDateGroupKey(item);
+        if (key === 'sem-data') {
+            return { day: '--', month: 'SEM DATA', full: 'Sem data' };
+        }
+
+        const [year, month, day] = key.split('-').map(Number);
+        const date = new Date(year, month - 1, day);
+        const monthLabel = new Intl.DateTimeFormat('pt-BR', { month: 'short' })
+            .format(date)
+            .replace('.', '')
+            .toUpperCase();
+
+        return {
+            day: String(day).padStart(2, '0'),
+            month: monthLabel,
+            full: `${String(day).padStart(2, '0')} ${monthLabel}`
+        };
+    },
+
+    renderDateGroupRow(item) {
+        const label = this.formatDateGroupLabel(item);
+        return `
+            <tr class="lk-date-group-row" aria-hidden="true">
+                <td colspan="10">
+                    <div class="lk-date-group-pill">
+                        <span class="lk-date-group-day">${label.day}</span>
+                        <span class="lk-date-group-month">${label.month}</span>
+                    </div>
+                </td>
+            </tr>`;
     },
 
     /**
@@ -380,9 +441,11 @@ export const TableManager = {
         const dataLanc = new Date(item.data || item.created_at);
         const hoje = new Date();
         hoje.setHours(0, 0, 0, 0);
+        const isTransferFlag = Boolean(item.eh_transferencia);
         const isFuturo = !isPagoFlag && dataLanc > hoje;
         const temLembrete = item.lembrar_antes_segundos > 0;
         const isPagamentoFatura = item.origem_tipo === 'pagamento_fatura';
+        const isOverdue = !isPagoFlag && !isTransferFlag && !isCancelado && !isFuturo && dataLanc < hoje;
 
         let tagIcons = '';
         if (isCancelado) {
@@ -402,8 +465,8 @@ export const TableManager = {
         const tagsCell = `<td class="td-tags"><div class="lk-tags-wrap">${tagIcons}</div></td>`;
 
         // Pago Em column (replaces Status)
-        const isPago = Boolean(item.pago);
-        const isTransfer = Boolean(item.eh_transferencia);
+        const isPago = isPagoFlag;
+        const isTransfer = isTransferFlag;
         const dataPagamentoFormatted = Utils.fmtDate(item.data_pagamento);
         let pagoEmCell;
         if (isGroup) {
@@ -412,16 +475,18 @@ export const TableManager = {
             const cpIsPago = currentParcela && (currentParcela.pago == 1 || currentParcela.pago === true);
             const cpDataPag = cpIsPago && currentParcela.data_pagamento ? Utils.fmtDate(currentParcela.data_pagamento) : '';
             if (cpIsPago && cpDataPag && cpDataPag !== '-') {
-                pagoEmCell = `<td class="td-pago-em"><span class="lk-pago-badge lk-pago-ok"><i data-lucide="circle-check"></i> ${Utils.escapeHtml(cpDataPag)}</span></td>`;
+                pagoEmCell = `<td class="td-pago-em" title="Pago em ${Utils.escapeHtml(cpDataPag)}"><span class="lk-pago-badge lk-pago-ok"><i data-lucide="circle-check"></i> Pago</span></td>`;
             } else if (cpIsPago) {
                 pagoEmCell = `<td class="td-pago-em"><span class="lk-pago-badge lk-pago-ok"><i data-lucide="circle-check"></i> Pago</span></td>`;
             } else {
                 pagoEmCell = `<td class="td-pago-em"><span class="lk-pago-badge lk-pago-pendente"><i data-lucide="clock"></i> Pendente</span></td>`;
             }
         } else if (isTransfer) {
-            pagoEmCell = `<td class="td-pago-em"><span class="lk-pago-badge lk-pago-transfer"><i data-lucide="repeat"></i> Transf.</span></td>`;
+            pagoEmCell = `<td class="td-pago-em"><span class="lk-pago-badge lk-pago-transfer"><i data-lucide="repeat"></i> Transferencia</span></td>`;
+        } else if (isOverdue) {
+            pagoEmCell = `<td class="td-pago-em"><span class="lk-pago-badge lk-pago-atrasado"><i data-lucide="triangle-alert"></i> Atrasado</span></td>`;
         } else if (isPago && dataPagamentoFormatted && dataPagamentoFormatted !== '-') {
-            pagoEmCell = `<td class="td-pago-em"><span class="lk-pago-badge lk-pago-ok"><i data-lucide="circle-check"></i> ${Utils.escapeHtml(dataPagamentoFormatted)}</span></td>`;
+            pagoEmCell = `<td class="td-pago-em" title="Pago em ${Utils.escapeHtml(dataPagamentoFormatted)}"><span class="lk-pago-badge lk-pago-ok"><i data-lucide="circle-check"></i> Pago</span></td>`;
         } else if (isPago) {
             pagoEmCell = `<td class="td-pago-em"><span class="lk-pago-badge lk-pago-ok"><i data-lucide="circle-check"></i> Pago</span></td>`;
         } else {
@@ -457,7 +522,7 @@ export const TableManager = {
             actionsCell = `
                 <td class="td-acoes">
                     <div class="lk-dropdown">
-                        <button class="lk-dropdown-trigger" title="Ações">
+                        <button class="lk-dropdown-trigger" title="Mais acoes" aria-label="Mais acoes">
                             <i data-lucide="more-vertical"></i>
                         </button>
                         <div class="lk-dropdown-menu">
@@ -505,7 +570,7 @@ export const TableManager = {
             actionsCell = `
                 <td class="td-acoes">
                     <div class="lk-dropdown">
-                        <button class="lk-dropdown-trigger" title="Ações">
+                        <button class="lk-dropdown-trigger" title="Mais acoes" aria-label="Mais acoes">
                             <i data-lucide="more-vertical"></i>
                         </button>
                         <div class="lk-dropdown-menu">${menuItems}</div>
@@ -677,10 +742,33 @@ export const TableManager = {
             DOM.btnExcluirSel.toggleAttribute('disabled', count === 0);
         }
 
+        if (DOM.btnEditarSel) {
+            DOM.btnEditarSel.toggleAttribute('disabled', count !== 1);
+            DOM.btnEditarSel.title = count === 1
+                ? 'Editar lancamento selecionado'
+                : 'Selecione apenas 1 lancamento para editar';
+        }
+
+        if (DOM.selectionBulkBar) {
+            DOM.selectionBulkBar.hidden = count === 0;
+        }
+
+        if (DOM.selectionBulkCount) {
+            DOM.selectionBulkCount.textContent = `${count} selecionado${count === 1 ? '' : 's'}`;
+        }
+
+        if (DOM.selectionBulkText) {
+            DOM.selectionBulkText.textContent = count === 1
+                ? 'Edite ou exclua o lancamento selecionado.'
+                : count > 1
+                    ? 'Exclusao em massa disponivel. Para editar, selecione apenas 1 item.'
+                    : 'Acoes rapidas para os itens selecionados nesta pagina.';
+        }
+
         if (DOM.selectionScopeHint) {
             DOM.selectionScopeHint.textContent = count > 0
-                ? `${count} item${count > 1 ? 's' : ''} selecionado${count > 1 ? 's' : ''} nesta página.`
-                : 'Seleção em massa vale só para a página atual.';
+                ? `${count} item${count > 1 ? 's' : ''} selecionado${count > 1 ? 's' : ''} nesta pagina.`
+                : 'A selecao em massa vale apenas para a pagina atual.';
         }
 
         // Update select all checkbox state
@@ -854,6 +942,16 @@ export const TableManager = {
      */
     getSelectedIds() {
         return Array.from(STATE.selectedIds);
+    },
+
+    editSelected() {
+        const ids = this.getSelectedIds();
+        if (ids.length !== 1) return;
+
+        const item = STATE.filteredData.find((entry) => String(entry.id) === String(ids[0]));
+        if (!item || !Utils.canEditLancamento(item)) return;
+
+        handleEdit(item);
     },
 
     /**

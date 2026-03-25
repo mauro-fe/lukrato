@@ -18,6 +18,7 @@ const init = async () => {
 window.cartoesManager = {
     openModal: (mode = 'create', cartaoData = null) => CartoesUI.openModal(mode, cartaoData),
     closeModal: () => CartoesUI.closeModal(),
+    moreCartao: (id, event) => CartoesUI.showCardMenu(id, event),
     editCartao: (id) => Modules.API.editCartao(id),
     arquivarCartao: (id) => Modules.API.arquivarCartao(id),
     deleteCartao: (id) => Modules.API.deleteCartao(id),

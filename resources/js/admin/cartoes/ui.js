@@ -16,6 +16,12 @@ const FILTER_LABELS = {
 const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, Number(value) || 0));
 const hasActiveFilters = () => Boolean(STATE.searchTerm) || STATE.currentFilter !== 'all';
 const safeText = (value, fallback = '') => Utils.escapeHtml(String(value ?? fallback));
+const buildTooltipAttrs = (title, text) => `data-lk-tooltip-title="${safeText(title)}" data-lk-tooltip="${safeText(text)}"`;
+const formatPercent = (value, digits = 1) => `${(Number(value) || 0).toLocaleString('pt-BR', {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+})}%`;
+const COLOR_TOKEN_REGEX = /(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\))/;
 const getCurrentMonthKey = () => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -26,6 +32,56 @@ const getCardColor = (cartao) => (
     cartao?.instituicao_cor ||
     Utils.getAccentColor(cartao?.bandeira)
 );
+const getCardAccent = (cartao) => {
+    const fallback = Utils.getAccentColor(cartao?.bandeira);
+    const rawValue = String(
+        cartao?.cor_cartao ||
+        cartao?.conta?.instituicao_financeira?.cor_primaria ||
+        cartao?.instituicao_cor ||
+        fallback
+    ).trim();
+
+    if (!rawValue) {
+        return fallback;
+    }
+
+    if (/gradient/i.test(rawValue)) {
+        const match = rawValue.match(COLOR_TOKEN_REGEX);
+        return match?.[1] || fallback;
+    }
+
+    if (/^var\(/i.test(rawValue) || COLOR_TOKEN_REGEX.test(rawValue)) {
+        return rawValue;
+    }
+
+    return fallback;
+};
+const getUsageToneMeta = (percentualUso) => {
+    if (percentualUso >= 80) {
+        return {
+            className: 'is-danger',
+            label: 'Uso elevado',
+            summary: 'Perto do limite',
+            tooltip: 'Este cartao ja consumiu boa parte do limite. Vale revisar a fatura antes do fechamento.',
+        };
+    }
+
+    if (percentualUso >= 50) {
+        return {
+            className: 'is-warning',
+            label: 'Uso em atencao',
+            summary: 'Acompanhe o uso',
+            tooltip: 'O cartao ja passou da metade do limite. Vale acompanhar as proximas compras.',
+        };
+    }
+
+    return {
+        className: 'is-safe',
+        label: 'Uso saudavel',
+        summary: 'Dentro do limite',
+        tooltip: 'O limite ainda esta folgado para compras, assinaturas e despesas do ciclo atual.',
+    };
+};
 
 export const CartoesUI = {
     setupEventListeners() {
@@ -246,6 +302,7 @@ export const CartoesUI = {
             return;
         }
 
+        CartoesUI.closeCardMenu();
         grid.setAttribute('aria-busy', 'false');
         CartoesUI.updateEmptyState();
 
@@ -295,15 +352,127 @@ export const CartoesUI = {
             100
         );
         const percentualDisponivel = clamp(100 - percentualUso, 0, 100);
+        const progressWidth = percentualUso > 0 ? Math.max(percentualUso, 8) : 0;
         const brandIcon = Utils.getBrandIcon(cartao.bandeira);
-        const corBg = getCardColor(cartao) || Utils.getDefaultColor(cartao.bandeira);
-        const usageTone = percentualUso >= 90 ? 'is-danger' : percentualUso >= 70 ? 'is-warning' : 'is-safe';
+        const accentColor = getCardAccent(cartao);
+        const corBg = accentColor;
+        const usageTone = getUsageToneMeta(percentualUso);
         const contaNome = safeText(cartao.conta?.nome, 'Conta nao vinculada');
         const instituicaoNome = safeText(cartao.conta?.instituicao_financeira?.nome, 'Sem instituicao');
         const cardName = safeText(cartao.nome_cartao || cartao.nome, 'Cartao');
-        const brandName = safeText(cartao.bandeira, 'Cartao');
-        const closingLabel = cartao.dia_fechamento ? `Dia ${cartao.dia_fechamento}` : 'Nao informado';
-        const dueLabel = cartao.dia_vencimento ? `Dia ${cartao.dia_vencimento}` : 'Nao informado';
+        const brandName = safeText(Utils.formatBandeira(cartao.bandeira), 'Cartao');
+        const statusLabel = cartao.temFaturaPendente ? 'Fatura pendente' : 'Sem pendencias';
+        const closingLabel = cartao.dia_fechamento ? `Dia ${cartao.dia_fechamento}` : 'A definir';
+        const dueLabel = cartao.dia_vencimento ? `Dia ${cartao.dia_vencimento}` : 'A definir';
+        const actionLabel = cartao.temFaturaPendente ? 'Pagar fatura' : 'Ver fatura';
+        const actionIcon = cartao.temFaturaPendente ? 'wallet' : 'file-text';
+        const actionClass = cartao.temFaturaPendente ? 'is-highlight' : 'is-secondary';
+        const availableLabel = percentualDisponivel > 0
+            ? `${formatPercent(percentualDisponivel, 0)} do limite ainda livre`
+            : 'Limite comprometido';
+        const usageAlertChip = percentualUso >= 50
+            ? `<span class="card-meta-chip card-meta-chip--usage ${usageTone.className}" ${buildTooltipAttrs(usageTone.label, usageTone.tooltip)}>
+                    <i data-lucide="${percentualUso >= 80 ? 'triangle-alert' : 'activity'}"></i>
+                    ${usageTone.label}
+               </span>`
+            : '';
+
+        return `
+            <article
+                class="credit-card"
+                data-id="${cartao.id}"
+                data-brand="${String(cartao.bandeira || 'outros').toLowerCase()}"
+                style="--card-accent:${accentColor};"
+                tabindex="0"
+                role="button"
+                aria-label="Abrir detalhes do cartao ${cardName}, ${formatPercent(percentualUso)} do limite usado"
+            >
+                <div class="card-media">
+                    <div class="card-brand-mark">
+                        <img
+                            src="${brandIcon}"
+                            alt="${brandName}"
+                            class="brand-logo"
+                            onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';"
+                        >
+                        <i class="brand-icon-fallback" data-lucide="credit-card" style="display: none;" aria-hidden="true"></i>
+                    </div>
+                </div>
+
+                <div class="card-header">
+                    <div class="card-card-badges">
+                        <span class="card-meta-chip card-meta-chip--brand" ${buildTooltipAttrs(`Bandeira ${brandName}`, 'Rede de processamento usada por este cartao para compras e parcelamentos.')}>
+                            <i data-lucide="badge-check"></i>
+                            ${brandName}
+                        </span>
+                        <span class="card-meta-chip card-meta-chip--status ${cartao.temFaturaPendente ? 'is-pending' : 'is-ok'}" ${buildTooltipAttrs(statusLabel, cartao.temFaturaPendente
+                            ? 'Ha uma fatura aberta para este cartao que merece acompanhamento ou pagamento.'
+                            : 'Sem pendencias abertas para o ciclo atual deste cartao.')}>
+                            <i data-lucide="${cartao.temFaturaPendente ? 'circle-alert' : 'badge-check'}"></i>
+                            ${statusLabel}
+                        </span>
+                        ${usageAlertChip}
+                    </div>
+                </div>
+
+                <div class="card-content">
+                    <h3 class="card-name">${cardName}</h3>
+                    <p class="card-institution">${instituicaoNome}</p>
+                    <div class="card-subline">
+                        <span class="card-last-digits">Final ${safeText(cartao.ultimos_digitos, '0000')}</span>
+                        <span class="card-subline-dot" aria-hidden="true"></span>
+                        <span class="card-account" ${buildTooltipAttrs('Conta vinculada', 'Conta usada como referencia para organizar o pagamento da fatura deste cartao.')}>${contaNome}</span>
+                    </div>
+                </div>
+
+                <div class="card-actions">
+                    <button
+                        type="button"
+                        class="card-overflow-btn"
+                        data-card-interactive
+                        onclick="event.stopPropagation(); cartoesManager.moreCartao(${cartao.id}, event)"
+                        aria-label="Mais acoes"
+                        ${buildTooltipAttrs('Mais acoes', 'Abra o menu para ver a fatura, editar ou arquivar este cartao.')}>
+                        <i data-lucide="more-horizontal" aria-hidden="true"></i>
+                    </button>
+                </div>
+
+                <div class="card-limit-panel">
+                    <span class="card-balance-caption">Limite disponivel</span>
+                    <strong class="card-limit-available ${limiteDisponivel < 0 ? 'is-negative' : ''}">${Utils.formatMoney(limiteDisponivel)}</strong>
+                    <p class="card-limit-total">de ${Utils.formatMoney(limiteTotal)} de limite total</p>
+                </div>
+
+                <div class="card-details">
+                    <div class="card-detail-item ${usageTone.className}">
+                        <span class="card-detail-label">Uso do limite</span>
+                        <strong class="card-detail-value">${formatPercent(percentualUso)}</strong>
+                    </div>
+                    <div class="card-detail-item">
+                        <span class="card-detail-label">Fechamento</span>
+                        <strong class="card-detail-value">${closingLabel}</strong>
+                    </div>
+                    <div class="card-detail-item">
+                        <span class="card-detail-label">Vencimento</span>
+                        <strong class="card-detail-value">${dueLabel}</strong>
+                    </div>
+                </div>
+
+                <div class="card-progress">
+                    <div class="card-progress-head">
+                        <span>Uso do limite: ${formatPercent(percentualUso)}</span>
+                        <span>${usageTone.summary}</span>
+                    </div>
+                    <div class="limit-bar" aria-hidden="true">
+                        <span class="limit-fill ${usageTone.className}" style="width: ${progressWidth}%"></span>
+                    </div>
+                    <div class="card-progress-foot">
+                        <span>Ja utilizado ${Utils.formatMoney(limiteUtilizado)}</span>
+                        <span>${availableLabel}</span>
+                    </div>
+                </div>
+            </article>
+        `;
 
         return `
             <div
@@ -638,7 +807,7 @@ export const CartoesUI = {
     setupCardActions() {
         document.querySelectorAll('.credit-card').forEach((card) => {
             card.addEventListener('click', (event) => {
-                if (event.target.closest('.card-action-btn, .lk-info')) {
+                if (event.target.closest('[data-card-interactive], .card-context-menu')) {
                     return;
                 }
 
@@ -660,6 +829,127 @@ export const CartoesUI = {
                 }
             });
         });
+    },
+
+    closeCardMenu() {
+        document.querySelector('.card-context-menu')?.remove();
+
+        if (typeof CartoesUI._cardMenuCleanup === 'function') {
+            CartoesUI._cardMenuCleanup();
+            CartoesUI._cardMenuCleanup = null;
+        }
+    },
+
+    showCardMenu(id, event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+
+        const existingMenu = document.querySelector('.card-context-menu');
+        if (existingMenu && existingMenu.dataset.cartaoId === String(id)) {
+            CartoesUI.closeCardMenu();
+            return;
+        }
+
+        CartoesUI.closeCardMenu();
+
+        const menuEl = document.createElement('div');
+        menuEl.className = 'card-context-menu';
+        menuEl.dataset.cartaoId = String(id);
+        const cartao = STATE.cartoes.find((item) => item.id === id);
+        const invoiceLabel = cartao?.temFaturaPendente ? 'Pagar fatura' : 'Ver fatura';
+        const invoiceIcon = cartao?.temFaturaPendente ? 'wallet' : 'file-text';
+        menuEl.style.setProperty('--card-accent', getCardAccent(cartao));
+        menuEl.innerHTML = `
+            <button type="button" class="card-context-item" data-card-menu-action="invoice">
+                <i data-lucide="${invoiceIcon}"></i>
+                <span>${invoiceLabel}</span>
+            </button>
+            <button type="button" class="card-context-item" data-card-menu-action="edit">
+                <i data-lucide="pencil"></i>
+                <span>Editar</span>
+            </button>
+            <button type="button" class="card-context-item danger" data-card-menu-action="archive">
+                <i data-lucide="archive"></i>
+                <span>Arquivar</span>
+            </button>
+        `;
+
+        document.body.appendChild(menuEl);
+        refreshIcons();
+
+        const trigger = event?.target?.closest('.card-overflow-btn');
+        const positionMenu = () => {
+            if (!trigger) {
+                return;
+            }
+
+            const rect = trigger.getBoundingClientRect();
+            const menuWidth = menuEl.offsetWidth || 188;
+            const menuHeight = menuEl.offsetHeight || 156;
+            const left = Math.min(
+                window.scrollX + window.innerWidth - menuWidth - 12,
+                Math.max(window.scrollX + 12, rect.right + window.scrollX - menuWidth)
+            );
+            const top = Math.min(
+                window.scrollY + window.innerHeight - menuHeight - 12,
+                rect.bottom + window.scrollY + 8
+            );
+
+            menuEl.style.left = `${left}px`;
+            menuEl.style.top = `${top}px`;
+        };
+
+        requestAnimationFrame(positionMenu);
+
+        menuEl.querySelectorAll('[data-card-menu-action]').forEach((button) => {
+            button.addEventListener('click', (clickEvent) => {
+                clickEvent.stopPropagation();
+
+                switch (button.dataset.cardMenuAction) {
+                    case 'invoice':
+                        window.cartoesManager?.verFatura?.(id);
+                        break;
+                    case 'edit':
+                        window.cartoesManager?.editCartao?.(id);
+                        break;
+                    case 'archive':
+                        window.cartoesManager?.arquivarCartao?.(id);
+                        break;
+                    default:
+                        break;
+                }
+
+                CartoesUI.closeCardMenu();
+            });
+        });
+
+        const handleOutsideClick = (closeEvent) => {
+            if (!menuEl.contains(closeEvent.target) && !closeEvent.target.closest('.card-overflow-btn')) {
+                CartoesUI.closeCardMenu();
+            }
+        };
+
+        const handleEscape = (closeEvent) => {
+            if (closeEvent.key === 'Escape') {
+                CartoesUI.closeCardMenu();
+            }
+        };
+
+        const handleReposition = () => positionMenu();
+
+        document.addEventListener('click', handleOutsideClick);
+        document.addEventListener('keydown', handleEscape);
+        window.addEventListener('resize', handleReposition);
+        window.addEventListener('scroll', handleReposition, true);
+
+        CartoesUI._cardMenuCleanup = () => {
+            document.removeEventListener('click', handleOutsideClick);
+            document.removeEventListener('keydown', handleEscape);
+            window.removeEventListener('resize', handleReposition);
+            window.removeEventListener('scroll', handleReposition, true);
+        };
     },
 
     async showCardDetails(id) {

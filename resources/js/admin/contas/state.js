@@ -133,7 +133,7 @@ export const Utils = {
         const classes = {
             'conta_corrente': 'tipo-corrente',
             'conta_poupanca': 'tipo-poupanca',
-            'conta_investimento': 'tipo-poupanca',
+            'conta_investimento': 'tipo-investimento',
             'carteira_digital': 'tipo-carteira',
             'dinheiro': 'tipo-carteira'
         };

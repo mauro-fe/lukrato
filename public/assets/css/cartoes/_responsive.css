@@ -38,6 +38,14 @@
     grid-template-columns: 1fr;
     gap: var(--spacing-4);
   }
+
+  .credit-card {
+    --card-header-height: 108px;
+  }
+
+  .card-details {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 768px) {
@@ -167,50 +175,105 @@
 
   .credit-card,
   .cartao-card {
-    height: auto !important;
+    --card-header-height: 104px;
+    grid-template-columns: 56px minmax(0, 1fr) auto;
+    grid-template-rows: var(--card-header-height) auto auto auto auto;
+    grid-template-areas:
+      "media header actions"
+      "content content content"
+      "limit limit limit"
+      "details details details"
+      "progress progress progress";
     min-width: 100% !important;
     max-width: 100% !important;
-    min-height: 200px !important;
+    min-height: 0 !important;
     margin-top: 10px;
+    padding: 1.2rem;
+    gap: 16px;
   }
 
-  .card-chip {
-    width: 45px !important;
-    height: 36px !important;
+  .card-brand-mark {
+    width: 50px;
+    height: 50px;
+    border-radius: 16px;
   }
 
-  .card-number {
-    font-size: 16px !important;
-    letter-spacing: 2px !important;
+  .card-header {
+    align-self: start;
   }
 
-  .card-account {
-    max-width: 100% !important;
-    margin-bottom: 0.75rem !important;
+  .card-card-badges {
+    gap: 8px;
   }
 
-  .card-metrics {
+  .card-meta-chip {
+    min-height: 28px;
+    padding: 0 10px;
+    font-size: 0.7rem;
+  }
+
+  .card-actions {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0;
+  }
+
+  .card-overflow-btn {
+    width: 38px;
+    height: 38px;
+    opacity: 1;
+    transform: none;
+  }
+
+  .card-name {
+    font-size: 1.05rem;
+  }
+
+  .card-institution {
+    font-size: 0.86rem;
+  }
+
+  .card-subline {
+    gap: 0.4rem;
+    font-size: 0.78rem;
+  }
+
+  .card-limit-available {
+    font-size: clamp(1.72rem, 1.2rem + 2vw, 2.05rem);
+  }
+
+  .card-limit-total {
+    font-size: 0.86rem;
+  }
+
+  .card-details {
     grid-template-columns: 1fr !important;
-    gap: 0.5rem !important;
+    gap: 0.7rem !important;
   }
 
-  .card-metric {
-    padding: 0.65rem 0.75rem !important;
+  .card-detail-item {
+    padding: 0.88rem 0.92rem;
   }
 
-  .card-limit-summary {
-    gap: 0.4rem !important;
+  .card-progress {
+    padding: 14px 16px;
   }
 
-  .card-holder,
-  .card-expiry,
-  .card-brand {
-    font-size: 12px !important;
+  .card-progress-head,
+  .card-progress-foot {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
   }
 
-  .card-info-grid {
-    grid-template-columns: 1fr !important;
-    gap: var(--spacing-3) !important;
+  .card-progress-foot {
+    gap: 4px;
+  }
+
+  .empty-state-actions {
+    width: 100%;
+    flex-direction: column;
   }
 
   .modal-detalhes-cartao .modal-dialog {
@@ -237,100 +300,9 @@
     white-space: nowrap !important;
   }
 
-  .card-actions {
-    flex-direction: row !important;
-    gap: 0.5rem !important;
-    justify-content: flex-end !important;
-    flex-wrap: nowrap !important;
-  }
-
-  .card-action-btn {
-    width: 36px !important;
-    height: 36px !important;
-    border-radius: 10px !important;
-    background: rgba(255, 255, 255, 0.2) !important;
-    backdrop-filter: blur(10px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
-    font-size: 14px !important;
-    flex-shrink: 0 !important;
-  }
-
-  .card-action-btn:active {
-    transform: scale(0.92) !important;
-  }
-
-  .card-header {
-    margin-bottom: 1.5rem !important;
-    gap: 0.5rem !important;
-  }
-
-  .card-brand {
-    flex: 1 !important;
-    gap: 0.5rem !important;
-  }
-
-  .brand-logo {
-    height: 28px !important;
-    max-width: 50px !important;
-  }
-
-  .card-name {
-    font-size: 14px !important;
-    font-weight: 600 !important;
-  }
-
-  .card-number {
-    font-size: 16px !important;
-    letter-spacing: 2px !important;
-    margin-bottom: 1.25rem !important;
-    line-height: 1.5 !important;
-  }
-
-  .card-footer {
-    flex-direction: row !important;
-    justify-content: space-between !important;
-    gap: 1rem !important;
-  }
-
-  .card-holder {
-    flex: 1 !important;
-    min-width: 0 !important;
-  }
-
-  .card-label {
-    font-size: 9px !important;
-    margin-bottom: 0.25rem !important;
-  }
-
-  .card-value {
-    font-size: 13px !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-  }
-
-  .card-limit {
-    text-align: right !important;
-    flex-shrink: 0 !important;
-  }
-
-  .limit-bar {
-    width: 100px !important;
-    height: 6px !important;
-    margin-top: 0.4rem !important;
-  }
-
-  .card-badge-fatura {
-    top: 0.75rem !important;
-    left: 1rem !important;
-    padding: 0.35rem 0.6rem !important;
-    font-size: 10px !important;
-    border-radius: 8px !important;
-  }
-
-  .empty-state-actions {
-    width: 100%;
-    flex-direction: column;
+  .card-info-grid {
+    grid-template-columns: 1fr !important;
+    gap: var(--spacing-3) !important;
   }
 
   .faturas-list {
@@ -370,6 +342,10 @@
     text-align: left !important;
     font-size: 16px !important;
   }
+
+  .card-context-menu {
+    width: min(188px, calc(100vw - 24px));
+  }
 }
 
 @media (max-width: 480px) {
@@ -407,69 +383,69 @@
 
   .credit-card,
   .cartao-card {
-    height: auto !important;
-    padding: 1.25rem !important;
-    min-height: 0 !important;
+    --card-header-height: 124px;
+    grid-template-columns: 52px minmax(0, 1fr);
+    grid-template-rows: 52px auto auto auto auto auto;
+    grid-template-areas:
+      "media actions"
+      "header header"
+      "content content"
+      "limit limit"
+      "details details"
+      "progress progress";
+    padding: 1.05rem !important;
+    gap: 13px;
   }
 
-  .card-number {
-    font-size: 14px !important;
-    letter-spacing: 1px !important;
+  .card-media {
+    align-items: center;
   }
 
-  .card-header {
-    margin-bottom: 1rem !important;
+  .card-brand-mark {
+    width: 46px;
+    height: 46px;
   }
 
   .card-actions {
-    gap: 0.4rem !important;
+    justify-self: end;
+    flex-direction: row;
+    width: auto;
+    align-items: center;
+    gap: 0;
   }
 
-  .card-action-btn {
-    width: 32px !important;
-    height: 32px !important;
-    font-size: 13px !important;
+  .card-overflow-btn {
+    width: 36px;
+    height: 36px;
   }
 
-  .brand-logo {
-    height: 24px !important;
-    max-width: 45px !important;
+  .card-meta-chip {
+    min-height: 27px;
+    padding: 0 9px;
+    font-size: 0.68rem;
   }
 
   .card-name {
-    font-size: 13px !important;
+    font-size: 0.98rem;
   }
 
-  .card-number {
-    font-size: 14px !important;
-    letter-spacing: 1px !important;
-    margin-bottom: 1rem !important;
+  .card-institution,
+  .card-limit-total,
+  .card-subline {
+    font-size: 0.78rem;
   }
 
-  .card-account {
-    font-size: 11px !important;
+  .card-balance-caption,
+  .card-detail-label {
+    font-size: 0.68rem;
   }
 
-  .card-label {
-    font-size: 8px !important;
+  .card-detail-value {
+    font-size: 0.92rem;
   }
 
-  .card-value {
-    font-size: 12px !important;
-  }
-
-  .limit-bar {
-    width: 80px !important;
-    height: 5px !important;
-  }
-
-  .card-badge-fatura {
-    padding: 0.3rem 0.5rem !important;
-    font-size: 9px !important;
-  }
-
-  .card-footer {
-    gap: 0.75rem !important;
+  .credit-card .limit-bar {
+    height: 10px;
   }
 
   .filter-group {
@@ -516,4 +492,3 @@
 .table td {
   padding: 6px 4px !important;
 }
-

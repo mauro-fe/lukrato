@@ -155,9 +155,9 @@ export const ListContext = {
         if (loading && total === 0) {
             textEl.textContent = 'Carregando lançamentos...';
         } else if (loading) {
-            textEl.textContent = `Atualizando lista de ${periodLabel}...`;
+            textEl.textContent = `Atualizando ${periodLabel}...`;
         } else if (draftPeriod) {
-            textEl.textContent = `Complete a data inicial e final para aplicar um período personalizado. Exibindo ${periodLabel}.`;
+            textEl.textContent = `Complete a data inicial e final para usar um período personalizado. Exibindo ${periodLabel}.`;
         } else {
             const label = total === 1 ? 'lançamento' : 'lançamentos';
             const filterSuffix = activeFilters > 0
@@ -178,7 +178,7 @@ export const ListContext = {
             const selectedCount = STATE.selectedIds?.size || 0;
             hintEl.textContent = selectedCount > 0
                 ? `${selectedCount} item${selectedCount > 1 ? 's' : ''} selecionado${selectedCount > 1 ? 's' : ''} nesta página.`
-                : 'Seleção em massa vale só para a página atual.';
+                : 'A seleção em massa vale apenas para a página atual.';
         }
 
         this.setRefreshLoading(loading);

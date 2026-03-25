@@ -4,74 +4,47 @@
 }
 
 .cartoes-grid.list-view .credit-card {
-  height: auto;
-  min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.25rem;
-  padding: 1.5rem;
+  grid-template-columns: 72px minmax(260px, 1fr) minmax(240px, 0.92fr) auto;
+  grid-template-rows: var(--card-header-height) auto auto;
+  grid-template-areas:
+    "media header header actions"
+    "media content limit actions"
+    "media details progress actions";
+  align-items: start;
+  min-width: 0;
 }
 
-.cartoes-grid.list-view .card-header {
-  margin-bottom: 0;
-  flex: 1.2;
+.cartoes-grid.list-view .card-actions {
+  align-self: center;
 }
 
-.cartoes-grid.list-view .card-number {
-  margin: 0;
-  font-size: 1.15rem;
+.cartoes-grid.list-view .card-limit-panel {
+  align-self: center;
 }
 
-.cartoes-grid.list-view .card-account {
-  margin: 0;
+.cartoes-grid.list-view .card-details,
+.cartoes-grid.list-view .card-progress {
+  align-self: stretch;
 }
 
-.cartoes-grid.list-view .card-metrics {
-  flex: 1;
-  margin: 0;
-}
-
-.cartoes-grid.list-view .card-limit-summary {
-  flex: 1;
-  min-width: 220px;
+.cartoes-grid.list-view .card-progress {
+  min-width: 240px;
 }
 
 /* List View em Mobile */
 @media (max-width: 768px) {
   .cartoes-grid.list-view .credit-card {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    padding: 1.25rem !important;
-    height: auto !important;
-    min-height: 160px !important;
-  }
-
-  .cartoes-grid.list-view .card-header {
-    width: 100% !important;
-    margin-bottom: 1rem !important;
-  }
-
-  .cartoes-grid.list-view .card-account {
-    margin-bottom: 0.75rem !important;
-  }
-
-  .cartoes-grid.list-view .card-number {
-    margin: 1rem 0 !important;
-    width: 100% !important;
-    font-size: 15px !important;
-  }
-
-  .cartoes-grid.list-view .card-metrics,
-  .cartoes-grid.list-view .card-limit-summary {
-    width: 100% !important;
-    gap: 1rem !important;
+    grid-template-columns: 56px minmax(0, 1fr) auto;
+    grid-template-rows: auto auto auto auto auto;
+    grid-template-areas:
+      "media header actions"
+      "content content content"
+      "limit limit limit"
+      "details details details"
+      "progress progress progress";
   }
 
   .cartoes-grid.list-view .card-actions {
-    margin-top: 1rem !important;
-    width: 100% !important;
-    justify-content: flex-end !important;
+    align-self: start;
   }
 }
-

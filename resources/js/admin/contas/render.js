@@ -73,6 +73,22 @@ function pluralizeContas(value) {
     return `${value} ${value === 1 ? 'conta' : 'contas'}`;
 }
 
+function buildTooltipAttrs(title, text) {
+    return `data-lk-tooltip-title="${escapeHtml(title)}" data-lk-tooltip="${escapeHtml(text)}"`;
+}
+
+function getTypeTooltip(tipo) {
+    const tooltips = {
+        conta_corrente: 'Conta para entradas, pagamentos e movimentacoes do dia a dia.',
+        conta_poupanca: 'Conta voltada para guardar dinheiro com liquidez simples.',
+        conta_investimento: 'Conta separada para reserva, objetivos ou investimentos.',
+        carteira_digital: 'Saldo mantido em carteira digital para movimentacoes rapidas.',
+        dinheiro: 'Valor em especie acompanhado manualmente no painel.',
+    };
+
+    return tooltips[tipo] || 'Tipo usado para organizar como essa conta aparece no seu painel.';
+}
+
 function calculatePortfolio(contas = STATE.contas) {
     const normalized = (Array.isArray(contas) ? contas : []).map((conta) => {
         const saldo = normalizeBalance(conta);
@@ -448,30 +464,44 @@ export const ContasRender = {
     createContaCard(conta, portfolio = calculatePortfolio(STATE.contas)) {
         const instituicao = getInstitution(conta);
         const logoUrl = instituicao?.logo_url || `${CONFIG.BASE_URL}assets/img/banks/default.svg`;
-        const accentColor = instituicao?.cor_primaria || conta?.typeMeta?.color || '#667eea';
         const balance = normalizeBalance(conta);
         const type = getContaType(conta);
+        const typeMeta = conta?.typeMeta || getTypeMeta(type);
         const typeLabel = Utils.formatTipoConta(type);
         const typeClass = Utils.getTipoContaClass(type);
+        const accentColor = instituicao?.cor_primaria || typeMeta.color || '#667eea';
         const positiveAllocationTotal = portfolio.positiveAllocationTotal;
         const share = balance > 0 && positiveAllocationTotal > 0
             ? (balance / positiveAllocationTotal) * 100
             : 0;
         const shareLabel = balance > 0 ? formatPercent(share) : '0%';
         const shareText = balance > 0
-            ? `${shareLabel} do seu dinheiro`
+            ? (portfolio.primaryAccount?.id === conta.id
+                ? `Conta principal com ${shareLabel} do saldo positivo`
+                : `${shareLabel} do saldo positivo`)
             : balance < 0
-                ? 'Saldo negativo'
-                : 'Sem saldo no momento';
+                ? 'Saldo abaixo de zero no momento'
+                : 'Sem participacao no saldo positivo';
         const progressWidth = balance > 0 ? Math.max(Math.min(share, 100), 6) : 0;
         const isFeatured = portfolio.primaryAccount?.id === conta.id && balance >= 0;
         const isReserve = RESERVE_TYPES.has(type);
         const balanceClass = balance >= 0 ? 'positive' : 'negative';
+        const progressContext = isFeatured
+            ? 'Conta principal'
+            : isReserve
+                ? 'Saldo guardado'
+                : typeLabel;
         const featuredBadge = isFeatured
-            ? '<span class="account-chip account-chip--featured"><i data-lucide="sparkles"></i> Maior saldo</span>'
+            ? `<span class="account-chip account-chip--featured" ${buildTooltipAttrs('Conta principal', 'Hoje esta e a conta com maior saldo entre as contas ativas.')}>
+                    <i data-lucide="sparkles"></i>
+                    Conta principal
+               </span>`
             : '';
         const reserveBadge = isReserve
-            ? '<span class="account-chip account-chip--reserve"><i data-lucide="piggy-bank"></i> Guardado</span>'
+            ? `<span class="account-chip account-chip--reserve" ${buildTooltipAttrs('Saldo guardado', 'Essa conta esta marcada como reserva para dinheiro separado do uso do dia a dia.')}>
+                    <i data-lucide="piggy-bank"></i>
+                    Saldo guardado
+               </span>`
             : '';
 
         return `
@@ -482,19 +512,20 @@ export const ContasRender = {
                     </div>
                 </div>
 
-                <div class="account-content">
+                <div class="account-header">
                     <div class="account-card-badges">
-                        <span class="account-type-badge ${typeClass}">${escapeHtml(typeLabel)}</span>
+                        <span class="account-type-badge ${typeClass}" ${buildTooltipAttrs(typeLabel, getTypeTooltip(type))}>
+                            <i data-lucide="${typeMeta.icon}"></i>
+                            ${escapeHtml(typeLabel)}
+                        </span>
                         ${featuredBadge}
                         ${reserveBadge}
                     </div>
-                    <h3 class="account-name">${escapeHtml(conta.nome)}</h3>
-                    <p class="account-institution">${escapeHtml(instituicao?.nome || 'Instituicao nao definida')}</p>
                 </div>
 
-                <div class="account-share-panel">
-                    <strong class="account-share-value">${shareLabel}</strong>
-                    <span class="account-share-label">do total</span>
+                <div class="account-content">
+                    <h3 class="account-name">${escapeHtml(conta.nome)}</h3>
+                    <p class="account-institution">${escapeHtml(instituicao?.nome || 'Instituicao nao definida')}</p>
                 </div>
 
                 <div class="account-balance-panel">
@@ -503,7 +534,12 @@ export const ContasRender = {
                 </div>
 
                 <div class="account-menu">
-                    <button class="btn-icon btn-icon--soft" onclick="contasManager.moreConta(${conta.id}, event)" title="Mais acoes">
+                    <button
+                        type="button"
+                        class="btn-icon btn-icon--soft"
+                        onclick="contasManager.moreConta(${conta.id}, event)"
+                        aria-label="Abrir acoes da conta"
+                        ${buildTooltipAttrs('Acoes da conta', 'Abra o menu para editar ou arquivar esta conta.')}>
                         <i data-lucide="more-horizontal"></i>
                     </button>
                 </div>
@@ -511,7 +547,7 @@ export const ContasRender = {
                 <div class="account-progress">
                     <div class="account-progress-head">
                         <span>${shareText}</span>
-                        <span>${isReserve ? 'Reserva' : escapeHtml(typeLabel)}</span>
+                        <span>${escapeHtml(progressContext)}</span>
                     </div>
                     <div class="account-progress-bar">
                         <span style="width:${progressWidth}%;"></span>
@@ -581,7 +617,7 @@ export const ContasRender = {
 
         if (mainAccountShareEl) {
             mainAccountShareEl.textContent = portfolio.primaryAccount && portfolio.primaryShare > 0
-                ? `${formatPercent(portfolio.primaryShare)} do seu dinheiro esta aqui`
+                ? `${formatPercent(portfolio.primaryShare)} do saldo positivo esta concentrado aqui`
                 : 'Sem concentracao relevante no momento';
         }
 
@@ -591,7 +627,7 @@ export const ContasRender = {
 
         if (reserveShareEl) {
             reserveShareEl.textContent = portfolio.reserveShare > 0
-                ? `${formatPercent(portfolio.reserveShare)} do total esta em reserva`
+                ? `${formatPercent(portfolio.reserveShare)} do saldo positivo esta protegido em reserva`
                 : 'Nenhum valor guardado em reserva';
         }
 

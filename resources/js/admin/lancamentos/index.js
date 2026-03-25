@@ -113,6 +113,32 @@ export const API = {
 // Register API on shared Modules
 Modules.API = API;
 
+const UI = {
+    syncHeroMonthLabel() {
+        if (!DOM.lanHeroMonthLabel) return;
+        const label = Utils.formatMonthLabel(Utils.getCurrentMonth());
+        DOM.lanHeroMonthLabel.textContent = label ? label.charAt(0).toUpperCase() + label.slice(1) : 'Mes atual';
+    },
+
+    syncExportCard(forceOpen = false) {
+        if (!DOM.exportCardBody) return;
+        DOM.exportCardBody.hidden = !forceOpen;
+        DOM.exportCard?.classList.toggle('expanded', forceOpen);
+        DOM.toggleExportCard?.setAttribute('aria-expanded', forceOpen ? 'true' : 'false');
+    },
+
+    syncAdvancedPeriod(forceOpen = null) {
+        if (!DOM.advancedPeriodPanel) return;
+        const shouldOpen = typeof forceOpen === 'boolean'
+            ? forceOpen
+            : Boolean(Utils.getTrimmedDateValue(DOM.filtroDataInicio) || Utils.getTrimmedDateValue(DOM.filtroDataFim));
+
+        DOM.advancedPeriodPanel.hidden = !shouldOpen;
+        DOM.btnToggleAdvancedPeriod?.classList.toggle('active', shouldOpen);
+        DOM.btnToggleAdvancedPeriod?.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+    }
+};
+
 const EventListeners = {
     init() {
         // Money mask on edit modal value fields
@@ -175,6 +201,7 @@ const EventListeners = {
             if (DOM.filtroStatus) DOM.filtroStatus.value = '';
             if (DOM.filtroDataInicio) DOM.filtroDataInicio.value = '';
             if (DOM.filtroDataFim) DOM.filtroDataFim.value = '';
+            UI.syncAdvancedPeriod(false);
             updateChipActiveStates();
             document.dispatchEvent(new CustomEvent('lk:custom-select-sync'));
             DataManager.load();
@@ -199,6 +226,7 @@ const EventListeners = {
         const loadWhenPeriodComplete = () => {
             const startDate = Utils.getTrimmedDateValue(DOM.filtroDataInicio);
             const endDate = Utils.getTrimmedDateValue(DOM.filtroDataFim);
+            UI.syncAdvancedPeriod();
 
             if ((startDate && endDate) || (!startDate && !endDate)) {
                 DataManager.load();
@@ -232,7 +260,20 @@ const EventListeners = {
         DOM.btnUsarMesDoTopo?.addEventListener('click', () => {
             if (DOM.filtroDataInicio) DOM.filtroDataInicio.value = '';
             if (DOM.filtroDataFim) DOM.filtroDataFim.value = '';
+            UI.syncAdvancedPeriod(false);
             DataManager.load();
+        });
+
+        DOM.btnToggleAdvancedPeriod?.addEventListener('click', () => {
+            UI.syncAdvancedPeriod(DOM.advancedPeriodPanel?.hidden);
+        });
+
+        DOM.toggleExportCard?.addEventListener('click', () => {
+            UI.syncExportCard(DOM.exportCardBody?.hidden);
+        });
+
+        DOM.lanHeroMonthBtn?.addEventListener('click', () => {
+            window.LukratoHeader?.openMonthPicker?.();
         });
 
         // Botão de exportar
@@ -240,9 +281,12 @@ const EventListeners = {
 
         // Botão de excluir selecionados
         DOM.btnExcluirSel?.addEventListener('click', DataManager.bulkDelete);
+        DOM.btnEditarSel?.addEventListener('click', () => Modules.TableManager?.editSelected?.());
+        DOM.btnLimparSelecao?.addEventListener('click', () => Modules.TableManager?.clearSelection?.());
 
         // Eventos globais do sistema
         document.addEventListener('lukrato:month-changed', () => {
+            UI.syncHeroMonthLabel();
             const hasCustomRange = Utils.getTrimmedDateValue(DOM.filtroDataInicio) && Utils.getTrimmedDateValue(DOM.filtroDataFim);
             if (hasCustomRange) {
                 Modules.ListContext?.update?.();
@@ -292,6 +336,9 @@ const init = async () => {
     // Inicializar componentes
     ExportManager.initDefaults();
     EventListeners.init();
+    UI.syncHeroMonthLabel();
+    UI.syncExportCard(false);
+    UI.syncAdvancedPeriod();
 
     // Bind view buttons
     document.getElementById('btnNovoLancamento')?.addEventListener('click', () => {
@@ -306,6 +353,7 @@ const init = async () => {
     // Carregar dados iniciais
     await OptionsManager.loadFilterOptions();
     CustomSelectManager.syncAll();
+    if (window.lucide) lucide.createIcons();
     await DataManager.load();
 };
 

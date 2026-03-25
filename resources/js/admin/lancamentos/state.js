@@ -31,6 +31,8 @@ CONFIG.EXPORT_ENDPOINT = `${CONFIG.ENDPOINT}/export`;
 export const DOM = {};
 
 export function initDOM() {
+    DOM.lanHeroMonthBtn = document.getElementById('lanHeroMonthBtn');
+    DOM.lanHeroMonthLabel = document.getElementById('lanHeroMonthLabel');
     // Tabela
     DOM.tabContainer = document.getElementById('lancamentosTable');
     DOM.tableBody = document.getElementById('lancamentosTableBody');
@@ -58,8 +60,13 @@ export function initDOM() {
     DOM.filtroDataFim = document.getElementById('filtroDataFim');
     DOM.btnLimparFiltros = document.getElementById('btnLimparFiltros');
     DOM.btnUsarMesDoTopo = document.getElementById('btnUsarMesDoTopo');
+    DOM.btnToggleAdvancedPeriod = document.getElementById('btnToggleAdvancedPeriod');
+    DOM.advancedPeriodPanel = document.getElementById('advancedPeriodPanel');
     DOM.periodPresetButtons = Array.from(document.querySelectorAll('[data-period-preset]'));
     DOM.activeFilterBadges = document.getElementById('activeFilterBadges');
+    DOM.exportCard = document.getElementById('exportCard');
+    DOM.toggleExportCard = document.getElementById('toggleExportCard');
+    DOM.exportCardBody = document.getElementById('exportCardBody');
     // Exportação
     DOM.btnExportar = document.getElementById('btnExportar');
     DOM.inputExportStart = document.getElementById('exportStart');
@@ -70,11 +77,16 @@ export function initDOM() {
     DOM.exportTipo = document.getElementById('exportTipo');
     // Seleção e exclusão
     DOM.btnExcluirSel = document.getElementById('btnExcluirSel');
+    DOM.btnEditarSel = document.getElementById('btnEditarSel');
     DOM.selCountSpan = document.getElementById('selCount');
     DOM.btnRefreshPage = document.getElementById('btnRefreshPage');
     DOM.lancamentosContextText = document.getElementById('lancamentosContextText');
     DOM.lancamentosLimitNotice = document.getElementById('lancamentosLimitNotice');
     DOM.selectionScopeHint = document.getElementById('selectionScopeHint');
+    DOM.selectionBulkBar = document.getElementById('selectionBulkBar');
+    DOM.selectionBulkCount = document.getElementById('selectionBulkCount');
+    DOM.selectionBulkText = document.getElementById('selectionBulkText');
+    DOM.btnLimparSelecao = document.getElementById('btnLimparSelecao');
     // Modal de edição
     DOM.modalEditLancEl = document.getElementById('modalEditarLancamento');
     DOM.formLanc = document.getElementById('formLancamento');

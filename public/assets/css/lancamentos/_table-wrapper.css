@@ -4,11 +4,16 @@
 
 .modern-table-wrapper {
   background: var(--glass-bg);
-  backdrop-filter: var(--glass-backdrop);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: visible;
+
+}
+
+.modern-table-inner {
+  overflow: hidden;
+  border-radius: inherit;
 }
 
 .table-header-info {
