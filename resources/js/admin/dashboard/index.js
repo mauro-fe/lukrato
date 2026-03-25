@@ -17,6 +17,7 @@ import './sprint2-loader.js';
 import { Modules } from './state.js';
 import { DashboardManager, EventListeners } from './app.js';
 import { initOnboardingChecklist } from './onboarding.js';
+import { initCustomize } from './customize.js';
 
 // ─── Guard against double-loading ────────────────────────────────────────────
 if (!window.__LK_DASHBOARD_LOADER__) {
@@ -32,6 +33,7 @@ if (!window.__LK_DASHBOARD_LOADER__) {
         const bootstrap = () => {
             EventListeners.init();
             DashboardManager.init();
+            initCustomize();
         };
 
         initOnboardingChecklist();

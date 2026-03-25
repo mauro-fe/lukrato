@@ -1,94 +1,31 @@
-/* ==================== KPI CARDS ==================== */
-.kpi-card {
-  position: relative;
-  overflow: hidden;
-}
-
-.empty-icon {
-  color: var(--color-text) !important;
-}
-
-.kpi-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 100px;
-  height: 100px;
-  background: radial-gradient(circle, var(--color-primary) 0%, transparent 70%);
-  opacity: 0.1;
-  transition: var(--transition-smooth);
-}
-
-.kpi-card:hover::before {
-  transform: scale(1.5);
-  opacity: 0.15;
-}
-
-.kpi-card .card-header {
-  margin-bottom: var(--spacing-3);
-}
-
-.kpi-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--font-size-xl);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: var(--transition-smooth);
-}
-
-.kpi-card:hover .kpi-icon {
-  transform: scale(1.1) rotate(5deg);
-}
-
-.kpi-icon.saldo {
-  background: linear-gradient(
-    135deg,
-    var(--color-primary),
-    var(--color-warning)
-  );
-  color: var(--branco);
-}
-
-.kpi-icon.receitas {
-  background: linear-gradient(135deg, var(--color-success), #27ae60);
-  color: var(--branco);
-}
-
-.kpi-icon.despesas {
-  background: linear-gradient(135deg, var(--color-danger), #c0392b);
-  color: var(--branco);
-}
-
-.kpi-title {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
+/* ==================== KPI CARDS — Refactored (Fintech Clean) ==================== */
+/* Estilos dos KPI cards agora estão em _modern-dashboard.css (.dash-kpi) */
+/* Este arquivo mantém apenas estilos de compatibilidade para classes antigas */
 
 .kpi-value {
   font-size: var(--font-size-3xl);
   font-weight: 700;
   color: var(--color-text);
-  margin-top: var(--spacing-2);
   font-variant-numeric: tabular-nums;
 }
 
-.kpi-value.receitas {
+.kpi-value.income {
   color: var(--color-success);
 }
 
-.kpi-value.despesas {
+.kpi-value.expense {
   color: var(--color-danger);
 }
 
 .kpi-value.loading {
   animation: pulse 1.5s ease-in-out infinite;
+}
+
+.kpi-value.is-positive {
+  color: var(--color-success);
+}
+
+.kpi-value.is-negative {
+  color: var(--color-danger);
 }
 

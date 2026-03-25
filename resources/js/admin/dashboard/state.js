@@ -51,17 +51,23 @@ export const DOM = {
     despesasValue: document.getElementById('despesasValue'),
     saldoMesValue: document.getElementById('saldoMesValue'),
 
-    chartContainer: document.getElementById('evolutionChart'),
+    // Chart — novo donut de categorias
+    categoryChart: document.getElementById('categoryChart'),
     chartLoading: document.getElementById('chartLoading'),
 
+    // Transações — lista simplificada
+    transactionsList: document.getElementById('transactionsList'),
+    emptyState: document.getElementById('emptyState'),
+
+    // Compatibilidade: containers antigos (ocultos no novo HTML)
+    chartContainer: document.getElementById('categoryChart'),
     tableBody: document.getElementById('transactionsTableBody'),
     table: document.getElementById('transactionsTable'),
     cardsContainer: document.getElementById('transactionsCards'),
-    emptyState: document.getElementById('emptyState'),
 
     monthLabel: document.getElementById('currentMonthText'),
 
-    // Gamificação
+    // Gamificação (mantidos para compatibilidade)
     streakDays: document.getElementById('streakDays'),
     badgesGrid: document.getElementById('badgesGrid'),
     userLevel: document.getElementById('userLevel'),

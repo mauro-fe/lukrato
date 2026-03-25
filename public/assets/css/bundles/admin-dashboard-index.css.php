@@ -16,21 +16,9 @@ $modules = [
     '_charts-grid.css',
     '_table-card.css',
     '_responsive.css',
-    '_gamification.css',
-    '_print.css',
-    '_provisao.css',
+    '_customize-modal.css',
     '_light-theme.css',
-    'greeting.css',
-    'health-score.css',
-    'health-score-insights.css',
-    'celebration-animations.css',
-    'progressive-disclosure.css',
-    'floating-action-button.css',
-    'finance-overview.css',
-    'onboarding-checklist.css'
-
-
-
+    'floating-action-button.css'
 ];
 
 $lastModified = 0;
