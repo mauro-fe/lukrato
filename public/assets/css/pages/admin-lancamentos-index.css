@@ -1969,118 +1969,326 @@
   font-weight: 600;
 }
 
-/* ─── DROPDOWN MENU ───────────────────────────────────────────────────────── */
+/* ─── DROPDOWN MENU (3-dot actions) ───────────────────────────────────────── */
 
 .lk-dropdown {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+}
+
+.lk-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(8, 18, 31, 0.7);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.lk-dropdown-trigger:hover {
+  background: color-mix(in srgb, var(--color-primary) 10%, rgba(8, 18, 31, 0.84));
+  color: var(--color-text);
+  border-color: color-mix(in srgb, var(--color-primary) 34%, transparent);
+}
+
+.lk-dropdown-trigger:active {
+  transform: scale(0.92);
+}
+
+.lk-dropdown-trigger:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 18%, transparent);
+}
+
+.lk-dropdown-trigger svg,
+.lk-dropdown-trigger i {
+  width: 18px;
+  height: 18px;
 }
 
 .lk-dropdown-menu {
+  display: none;
   position: absolute;
   right: 0;
   top: 100%;
-  min-width: 160px;
-  padding: var(--spacing-2);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-md);
+  z-index: 9999;
+  min-width: 200px;
+  padding: 6px 0;
   background: var(--color-surface);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-  z-index: var(--z-dropdown);
-  display: none;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.35),
+    0 2px 10px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
 }
 
-.lk-dropdown-menu.show {
+.lk-dropdown-menu.open {
   display: block;
+  animation: lkDropdownIn 0.15s ease-out;
+}
+
+@keyframes lkDropdownIn {
+  from { opacity: 0; transform: translateY(-4px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .lk-dropdown-item {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
+  gap: 10px;
   width: 100%;
-  padding: var(--spacing-2) var(--spacing-3);
+  padding: 8px 14px;
   border: none;
-  border-radius: var(--radius-sm);
-  background: transparent;
+  background: none;
   color: var(--color-text);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-size: 0.82rem;
+  font-family: inherit;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background 0.12s ease;
+  white-space: nowrap;
   text-align: left;
 }
 
 .lk-dropdown-item:hover {
-  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
-  color: var(--color-primary);
+  background: var(--glass-bg);
 }
 
-.lk-dropdown-item.danger {
-  color: var(--color-danger);
+.lk-dropdown-item svg,
+.lk-dropdown-item i {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
 }
 
-.lk-dropdown-item.danger:hover {
-  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+.lk-dropdown-success { color: var(--color-success); }
+.lk-dropdown-success:hover { background: rgba(46, 204, 113, 0.1); }
+.lk-dropdown-warning { color: var(--color-warning); }
+.lk-dropdown-warning:hover { background: rgba(243, 156, 18, 0.1); }
+.lk-dropdown-danger { color: var(--color-danger); }
+.lk-dropdown-danger:hover { background: rgba(231, 76, 60, 0.1); }
+
+.lk-dropdown-divider {
+  height: 1px;
+  margin: 4px 10px;
+  background: var(--glass-border);
 }
 
-.lk-dropdown-item i,
-.lk-dropdown-item svg {
-  width: 14px;
-  height: 14px;
-}
+td .lk-dropdown { display: flex; justify-content: center; }
+
+.lan-card .lk-dropdown-trigger { width: 36px; height: 36px; }
+.lan-card .lk-dropdown-menu { min-width: 220px; }
+
+.parcelamento-grupo .lk-dropdown-trigger { color: var(--color-primary); }
+.parcelamento-grupo .lk-dropdown-trigger:hover { background: rgba(230, 126, 34, 0.12); }
 
 /* ─── CUSTOM SELECT (JS overlay) ──────────────────────────────────────────── */
 
-.lk-custom-select-dropdown {
-  position: absolute;
-  min-width: 180px;
-  max-height: 260px;
-  overflow-y: auto;
-  padding: var(--spacing-2);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-  z-index: var(--z-dropdown);
+/* Hide native select when custom UI is active */
+.lk-custom-select-ready {
+  display: none !important;
 }
 
-.lk-custom-select-option {
-  display: flex;
+.lk-filter-chip-select.has-custom-select > select[data-lk-custom-select="chip"],
+.export-filter-item > select.lk-custom-select-ready,
+.export-actions-group > select.lk-custom-select-ready {
+  display: none !important;
+}
+
+/* Hide the leading icon when custom select takes over */
+.lk-filter-chip-select.has-custom-select > i,
+.lk-filter-chip-select.has-custom-select > svg {
+  display: none;
+}
+
+.lk-filter-chip-select.active > i,
+.lk-filter-chip-select.active > svg {
+  display: none;
+}
+
+/* Container */
+.lk-custom-select {
+  position: relative;
+  min-width: 180px;
+}
+
+.lk-filter-chip-select.has-custom-select .lk-custom-select {
+  width: 100%;
+}
+
+/* Trigger button */
+.lk-custom-select-trigger {
+  display: inline-flex;
   align-items: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-2) var(--spacing-3);
+  justify-content: space-between;
+  gap: 10px;
+  width: 100% !important;
   border: none;
-  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  padding: var(--spacing-3) !important;
+}
+
+.lk-custom-select-trigger:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 40%, transparent);
+}
+
+.lk-custom-select-trigger:focus-visible {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 14%, transparent);
+}
+
+.lk-custom-select.is-open .lk-custom-select-trigger {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 14%, transparent);
+}
+
+.lk-custom-select.is-disabled .lk-custom-select-trigger {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Label + caret inside trigger */
+.lk-custom-select-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lk-custom-select-caret {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--color-text-muted);
+  opacity: 0.88;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.lk-custom-select.is-open .lk-custom-select-caret {
+  transform: rotate(180deg);
+}
+
+/* Dropdown menu */
+.lk-custom-select-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  display: none;
+  max-height: 280px;
+  z-index: 9999;
+  overflow: auto;
+  padding: 6px;
+  background: var(--color-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.38), 0 4px 14px rgba(0, 0, 0, 0.24);
+}
+
+.lk-custom-select.is-open .lk-custom-select-menu {
+  display: block;
+}
+
+/* Options */
+.lk-custom-select-option {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
   background: transparent;
   color: var(--color-text);
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-  width: 100%;
+  font-size: 0.82rem;
   text-align: left;
-  transition: background 0.15s ease;
+  cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease;
 }
 
 .lk-custom-select-option:hover,
-.lk-custom-select-option.selected {
-  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
-  color: var(--color-primary);
-}
-
-.lk-custom-select-search {
-  width: 100%;
-  padding: var(--spacing-2) var(--spacing-3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--color-text);
-  font-size: var(--font-size-sm);
+.lk-custom-select-option:focus-visible {
   outline: none;
-  margin-bottom: var(--spacing-2);
+  background: var(--glass-bg);
 }
 
-.lk-custom-select-search:focus {
+.lk-custom-select-option.is-selected {
+  background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.lk-custom-select-option:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Variant: chip (filter chips) */
+.lk-custom-select--chip .lk-custom-select-trigger {
+  min-height: 32px;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.2;
+  padding: 5px 28px 5px 12px !important;
+}
+
+.lk-filter-chip-select.active .lk-custom-select--chip .lk-custom-select-trigger,
+.lk-custom-select--chip.has-value .lk-custom-select-trigger {
+  border-color: color-mix(in srgb, var(--color-primary) 55%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+}
+
+/* Variant: export (export selects) */
+.lk-custom-select--export .lk-custom-select-trigger {
+  min-height: 44px;
+  border-radius: var(--radius-md);
+  font-size: 0.92rem;
+  font-weight: 600;
+  padding: 10px 14px !important;
+}
+
+.export-filter-item .lk-custom-select--export,
+.export-actions-group .lk-custom-select--export {
+  width: 100%;
+  flex: 1;
+}
+
+/* Arrow fallback for non-custom chips */
+.lk-filter-chip-select:not(.has-custom-select)::after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid var(--color-text-muted);
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.lk-filter-chip-select.has-custom-select::after {
+  display: none;
+}
+
+/* Active filter highlight */
+.lk-filter-chip-select.active select {
   border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 12%, transparent);
 }
 
 /* ─── PARCELAMENTO GROUPER ────────────────────────────────────────────────── */
@@ -2453,10 +2661,43 @@
 }
 
 :root[data-theme="light"] .lk-dropdown-menu,
-:root[data-theme="light"] .lk-custom-select-dropdown,
+:root[data-theme="light"] .lk-custom-select-menu,
 :root[data-theme="light"] .parcelas-modal {
   border-color: var(--color-card-border);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  background: var(--color-surface);
+}
+
+:root[data-theme="light"] .lk-custom-select-trigger {
+  background: var(--color-surface);
+}
+
+:root[data-theme="light"] .lk-custom-select-trigger:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 40%, var(--color-card-border));
+}
+
+:root[data-theme="light"] .lk-custom-select.is-open .lk-custom-select-trigger {
+  border-color: var(--color-primary);
+}
+
+:root[data-theme="light"] .lk-custom-select-option:hover,
+:root[data-theme="light"] .lk-custom-select-option:focus-visible {
+  background: var(--color-surface-muted);
+}
+
+:root[data-theme="light"] .lk-dropdown-trigger {
+  background: var(--color-surface);
+  border-color: var(--color-card-border);
+  color: var(--color-text-muted);
+}
+
+:root[data-theme="light"] .lk-dropdown-trigger:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
+:root[data-theme="light"] .lk-dropdown-item:hover {
+  background: var(--color-surface-muted);
 }
 
 :root[data-theme="light"] .lan-cards-header {
