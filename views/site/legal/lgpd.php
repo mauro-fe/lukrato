@@ -1,5 +1,3 @@
-<?php loadPageCss(); ?>
-
 <section class="lk-legal-page" data-page="lgpd">
     <div class="lk-legal-container">
         <a href="<?= BASE_URL ?>" class="lk-back-home">← Voltar para a Home</a>

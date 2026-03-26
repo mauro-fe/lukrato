@@ -1,5 +1,5 @@
 <?php
-// CSS: public/assets/css/modules/support-button.css (carregado via header.php)
+// CSS: resources/css/admin/base.css (carregado via Vite)
 // JS:  resources/js/admin/global/support-button.js (carregado via Vite bundle)
 // Variáveis: $supportName, $supportEmail, $supportTel, $supportDdd, $planTier (via BaseController::renderAdmin)
 

@@ -1,5 +1,5 @@
 <?php
-// CSS: public/assets/css/layout/top-navbar.css (carregado via header.php)
+// CSS: resources/css/admin/base.css (carregado via Vite)
 // JS:  resources/js/admin/global/theme-toggle.js (carregado via Vite bundle)
 // Variáveis: $topNavFirstName, $isPro, $planLabel, $currentBreadcrumbs (via BaseController::renderAdmin)
 

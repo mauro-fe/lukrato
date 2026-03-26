@@ -1,3 +1,7 @@
+@import "../vendor/lucide-compat.css";
+@import "../core/fonts.css";
+@import "../core/variables.css";
+
 :root {
   --orange: #e67e22;
   --orange-strong: #f39c12;

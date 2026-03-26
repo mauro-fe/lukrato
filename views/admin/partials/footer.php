@@ -19,9 +19,6 @@
 <script src="<?= BASE_URL ?>assets/js/plugins/perfect-scrollbar.min.js"></script>
 <script src="<?= BASE_URL ?>assets/js/plugins/smooth-scrollbar.min.js"></script>
 
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/birthday-modal.css">
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/layout/scroll-to-top.css">
-
 <?php loadPageJs(); ?>
 
 </body>

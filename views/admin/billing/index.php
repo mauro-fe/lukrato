@@ -3,9 +3,6 @@
      Página de planos e assinaturas (Refatorado)
      ============================================================================ -->
 
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/modal-pagamento.css">
-
-
 <?php
 // =============================================================================
 // PROCESSAMENTO DOS PLANOS

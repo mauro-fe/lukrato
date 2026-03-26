@@ -10,6 +10,48 @@
 
 defined('VITE_DEV_SERVER') || define('VITE_DEV_SERVER', 'http://localhost:5173');
 
+function vite_css_entry_paths(): array
+{
+    return [
+        'admin-base' => 'resources/css/admin/base.css',
+        'auth-login-style' => 'resources/css/admin/auth/admin-auth-login.css',
+        'auth-shared-style' => 'resources/css/admin/auth/auth-shared.css',
+        'auth-verify-email-style' => 'resources/css/admin/auth/auth-verify-email.css',
+        'onboarding-v2-style' => 'resources/css/admin/onboarding/v2/index.css',
+        'site-app' => 'resources/css/site/app.css',
+        'site-base' => 'resources/css/site/base.css',
+        'site-legal' => 'resources/css/site/legal.css',
+        'site-aprenda' => 'resources/css/site/aprenda.css',
+        'site-card-style' => 'resources/css/site/card.css',
+        'site-google-confirm' => 'resources/css/site/auth/google-confirm.css',
+        'error-page' => 'resources/css/errors/page.css',
+    ];
+}
+
+function vite_project_path(string $relativePath): string
+{
+    return dirname(__DIR__) . DIRECTORY_SEPARATOR
+        . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, ltrim($relativePath, '/\\'));
+}
+
+function vite_dev_css_url(string $entry): string
+{
+    $entryMap = vite_css_entry_paths();
+    $sourcePath = null;
+
+    if (isset($entryMap[$entry])) {
+        $sourcePath = vite_project_path($entryMap[$entry]);
+    } elseif (str_contains($entry, '/')) {
+        $sourcePath = vite_project_path('resources/js/' . ltrim($entry, '/'));
+    }
+
+    if ($sourcePath === null || !file_exists($sourcePath)) {
+        return '';
+    }
+
+    return VITE_DEV_SERVER . '/@fs/' . str_replace('\\', '/', realpath($sourcePath) ?: $sourcePath);
+}
+
 /**
  * Verifica se o Vite dev server está rodando
  */
@@ -188,14 +230,14 @@ function vite_scripts(string $entry): string
 function vite_css(string $entry): string
 {
     if (vite_is_dev()) {
-        if (!str_contains($entry, '/')) {
+        $devUrl = vite_dev_css_url($entry);
+        if ($devUrl === '') {
             return '';
         }
 
         return sprintf(
-            '<link rel="stylesheet" href="%s/%s">' . "\n",
-            VITE_DEV_SERVER,
-            $entry
+            '<link rel="stylesheet" href="%s">' . "\n",
+            $devUrl
         );
     }
 

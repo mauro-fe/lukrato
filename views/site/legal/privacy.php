@@ -1,5 +1,3 @@
-<?php loadPageCss(); ?>
-
 <section class="lk-legal-page" data-page="privacy">
     <div class="lk-legal-container">
 

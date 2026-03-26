@@ -6,7 +6,7 @@
  */
 ?>
 
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/aprenda.css">
+<?= function_exists('vite_css') ? vite_css('site-aprenda') : '' ?>
 
 <!-- Hero -->
 <section class="aprenda-hero mt-6">

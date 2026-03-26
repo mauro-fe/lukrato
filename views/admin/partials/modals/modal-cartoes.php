@@ -1,5 +1,3 @@
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/modal-cartoes.css?v=<?= time() ?>">
-
 <!-- Modal de Cartao de Credito -->
 <div class="lk-modal-overlay" id="modalCartaoOverlay">
     <div class="modal-container" id="modalCartao" role="dialog" aria-modal="true" aria-labelledby="modalCartaoTitulo"

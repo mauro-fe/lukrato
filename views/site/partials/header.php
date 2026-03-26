@@ -142,8 +142,9 @@ $isLandingPage = $isLandingPage ?? false;
     <link rel="dns-prefetch" href="https://unpkg.com">
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
 
-    <!-- Tailwind CSS (compilado via Vite) -->
+    <!-- Tailwind CSS + base visual do site (Vite) -->
     <?= function_exists('vite_css') ? vite_css('site-app') : '' ?>
+    <?= function_exists('vite_css') ? vite_css('site-base') : '' ?>
 
     <!-- Alpine.js CSP-compatible + Plugins -->
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
@@ -153,21 +154,13 @@ $isLandingPage = $isLandingPage ?? false;
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
-    <!-- Fonts (self-hosted) -->
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/fonts.css">
-
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/variables.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/site/landing-base.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/site/modal-override.css">
-
     <?php foreach ($extraCss as $css): ?>
-        <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/site/<?= htmlspecialchars($css) ?>.css">
+        <?= function_exists('vite_css') ? vite_css('site-' . (string) $css) : '' ?>
     <?php endforeach; ?>
 
     <!-- Lucide Icons + FA Brands (para ícones de marca) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/brands.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/vendor/lucide-compat.css">
     <script src="<?= BASE_URL ?>assets/js/lucide.min.js"></script>
 
     <?php if ($isLandingPage): ?>

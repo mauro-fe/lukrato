@@ -1,5 +1,3 @@
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
-
 <style>
 .maintenance-container {
     display: flex;

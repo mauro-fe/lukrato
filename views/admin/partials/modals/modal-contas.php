@@ -1,5 +1,3 @@
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/modal-contas.css?v=<?= time() ?>">
-
 <!-- Modal de Nova Conta -->
 <div class="lk-modal-overlay" id="modalContaOverlay">
     <div class="modal-container" id="modalConta" onclick="event.stopPropagation()">

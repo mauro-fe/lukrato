@@ -1,3 +1,7 @@
+@import "../vendor/lucide-compat.css";
+@import "../core/fonts.css";
+@import "../core/variables.css";
+
 /* ============================================
    Auth Shared Styles (forgot-password, reset-password)
    Dark theme with animated background

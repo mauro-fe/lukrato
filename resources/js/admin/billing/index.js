@@ -9,6 +9,7 @@
  */
 
 import '../../../css/admin/billing/index.css';
+import '../../../css/admin/modules/modal-pagamento.css';
 import { apiPost, getBaseUrl, getCSRFToken, getErrorMessage } from '../shared/api.js';
 import './modal-pagamento.js';
 

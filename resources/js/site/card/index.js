@@ -139,6 +139,9 @@
     /* ─── Init ────────────────────────────────────────────────────────────── */
 
     function init() {
+        if (typeof window.lucide !== 'undefined') {
+            window.lucide.createIcons();
+        }
         setupClickTracking();
         setupAnimations();
         setupShare();

@@ -39,11 +39,22 @@ export default defineConfig({
                 'auth-forgot-password': resolve(__dirname, 'resources/js/admin/auth/forgot-password/index.js'),
                 'auth-reset-password': resolve(__dirname, 'resources/js/admin/auth/reset-password/index.js'),
                 'auth-verify-email': resolve(__dirname, 'resources/js/admin/auth/verify-email/index.js'),
+                'admin-base': resolve(__dirname, 'resources/css/admin/base.css'),
+                'auth-login-style': resolve(__dirname, 'resources/css/admin/auth/admin-auth-login.css'),
+                'auth-shared-style': resolve(__dirname, 'resources/css/admin/auth/auth-shared.css'),
+                'auth-verify-email-style': resolve(__dirname, 'resources/css/admin/auth/auth-verify-email.css'),
+                'onboarding-v2-style': resolve(__dirname, 'resources/css/admin/onboarding/v2/index.css'),
                 // Site (público)
                 'landing-base': resolve(__dirname, 'resources/js/site/landing-base.js'),
                 'site-card': resolve(__dirname, 'resources/js/site/card/index.js'),
                 // CSS compilado do Tailwind (site público)
                 'site-app': resolve(__dirname, 'resources/css/site/app.css'),
+                'site-base': resolve(__dirname, 'resources/css/site/base.css'),
+                'site-legal': resolve(__dirname, 'resources/css/site/legal.css'),
+                'site-aprenda': resolve(__dirname, 'resources/css/site/aprenda.css'),
+                'site-card-style': resolve(__dirname, 'resources/css/site/card.css'),
+                'site-google-confirm': resolve(__dirname, 'resources/css/site/auth/google-confirm.css'),
+                'error-page': resolve(__dirname, 'resources/css/errors/page.css'),
             }
         }
     },

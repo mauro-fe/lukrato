@@ -1,5 +1,5 @@
 <?php
-// CSS: public/assets/css/layout/header-month-picker.css (carregado via header.php)
+// CSS: resources/css/admin/base.css (carregado via Vite)
 // JS:  resources/js/admin/global/month-picker.js (carregado via Vite bundle)
 
 use Application\Lib\Auth;

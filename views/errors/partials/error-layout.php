@@ -93,13 +93,11 @@ if ($_errorStandalone): ?>
     <meta name="robots" content="noindex, nofollow">
     <title><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?></title>
     <link rel="icon" type="image/png" sizes="32x32" href="<?= $base ?>assets/img/icone.png">
-    <link rel="stylesheet" href="<?= $base ?>assets/css/core/fonts.css">
-    <link rel="stylesheet" href="<?= $base ?>assets/css/core/variables.css">
-    <link rel="stylesheet" href="<?= $base ?>assets/css/pages/errors.css">
+    <?= function_exists('vite_css') ? vite_css('error-page') : '' ?>
 </head>
 <body>
 <?php else: ?>
-<link rel="stylesheet" href="<?= $base ?>assets/css/pages/errors.css">
+<?= function_exists('vite_css') ? vite_css('error-page') : '' ?>
 <?php endif; ?>
 
 <!-- ── Error Content ── -->

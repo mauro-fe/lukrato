@@ -16,6 +16,9 @@ const BASE = getBaseUrl();
 // ── Init shared features ───────────────────────────────────────────────────
 createParticles();
 initTogglePassword();
+if (typeof window.lucide !== 'undefined') {
+    window.lucide.createIcons();
+}
 // =====================
 // CLOUDFLARE TURNSTILE (CAPTCHA PROGRESSIVO)
 // =====================

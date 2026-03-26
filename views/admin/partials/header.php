@@ -43,7 +43,6 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
     <!-- Lucide Icons (substitui FA) + FA Brands (para ícones de marca) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/brands.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/vendor/lucide-compat.css?v=<?= time() ?>">
     <script src="<?= BASE_URL ?>assets/js/lucide.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -52,45 +51,15 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
     <!-- ============================================================================
          STYLES INTERNOS
          ============================================================================ -->
-    <!-- Fonts (self-hosted) -->
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/fonts.css">
+    <?= function_exists('vite_css') ? vite_css('admin-base') : '' ?>
 
-    <!-- Core -->
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/variables.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/animations.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/_loading-states.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/components.css">
 
-    <!-- Layout -->
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/layout/view-toggle-shared.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/layout/admin-partials-header.css?v=<?= time() ?>">
-    <?php loadPageCss('admin-partials-footer'); ?>
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/layout/top-navbar.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/layout/breadcrumbs.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/layout/notifications-bell.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/layout/header-month-picker.css?v=<?= time() ?>">
-
-    <!-- Modules -->
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/gamification.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/gamification-page.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/modal-contas-modern.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/plan-limits.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/tooltips.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/first-visit-tooltips.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/lukrato-feedback.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/modal-meses.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/aviso-lancamentos.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/support-button.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/feedback-collector.css?v=<?= time() ?>">
 
     <!-- Page-specific CSS (auto-detected) -->
-    <?php loadPageCss(); ?>
 
     <!-- Proteção contra internet lenta (timeout, retry, indicadores) -->
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/lukrato-fetch.css?v=<?= time() ?>">
 
     <!-- Enhancements por último para sobrescrever tudo -->
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/enhancements.css?v=<?= time() ?>">
 
     <!-- ============================================================================
          SIDEBAR PRE-RENDER (inline, antes de qualquer script externo)

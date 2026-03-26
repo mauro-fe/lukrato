@@ -17,11 +17,8 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
 
     <!-- Lucide Icons + FA Brands -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/brands.min.css">
-    <link rel="stylesheet" href="<?= rtrim(BASE_URL, '/') ?>/assets/css/vendor/lucide-compat.css">
     <script src="<?= rtrim(BASE_URL, '/') ?>/assets/js/lucide.min.js"></script>
-    <link rel="stylesheet" href="<?= rtrim(BASE_URL, '/') ?>/assets/css/core/fonts.css">
-    <link rel="stylesheet" href="<?= rtrim(BASE_URL, '/') ?>/assets/css/core/variables.css">
-    <?php loadPageCss('auth-shared'); ?>
+    <?= function_exists('vite_css') ? vite_css('auth-shared-style') : '' ?>
 </head>
 
 <body>
@@ -83,8 +80,6 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
     </main>
 
     <?php loadPageJs('admin-auth-forgot-password'); ?>
-    <script src="<?= rtrim(BASE_URL, '/') ?>/assets/js/lucide-init.js"></script>
-
 </body>
 
 </html>

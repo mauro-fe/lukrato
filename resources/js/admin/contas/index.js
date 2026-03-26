@@ -8,6 +8,7 @@
  */
 
 import '../../../css/admin/contas/index.css';
+import '../../../css/admin/modules/modal-contas.css';
 import { CONFIG } from './state.js';
 import { ContasAPI } from './api.js';
 import { ContasRender } from './render.js';

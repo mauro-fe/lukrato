@@ -9,7 +9,7 @@
 ?>
 
 
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/aprenda.css">
+<?= function_exists('vite_css') ? vite_css('site-aprenda') : '' ?>
 
 <!-- Schema.org BlogPosting (BreadcrumbList handled by header.php) -->
 <script type="application/ld+json">

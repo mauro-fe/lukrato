@@ -684,4 +684,4 @@
         </div>
     </div>
 </div>
-<!-- Estilos movidos para: public/assets/css/modal-lancamento.css -->
+<!-- Estilos movidos para: resources/css/admin/modal-lancamento/index.css -->

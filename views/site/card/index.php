@@ -7,12 +7,9 @@
     <meta name="description" content="Lukrato - Controle suas finanças de forma inteligente e simples">
     <meta name="theme-color" content="#e67e22">
     <title>Lukrato - Links</title>
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/fonts.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/variables.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/card.css">
+    <?= function_exists('vite_css') ? vite_css('site-card-style') : '' ?>
     <!-- Lucide Icons + FA Brands -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/brands.min.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/vendor/lucide-compat.css">
     <script src="<?= BASE_URL ?>assets/js/lucide.min.js"></script>
 </head>
 
@@ -134,7 +131,6 @@
     </div>
 
     <?= vite_scripts('site/card/index.js') ?>
-    <script src="<?= BASE_URL ?>assets/js/lucide-init.js"></script>
 </body>
 
 </html>

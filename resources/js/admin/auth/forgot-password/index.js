@@ -11,6 +11,9 @@ const BASE = getBaseUrl();
 
 // -- Init particles ---------------------------------------------------------
 createParticles();
+if (typeof window.lucide !== 'undefined') {
+    window.lucide.createIcons();
+}
 
 // =====================
 // Form Handler

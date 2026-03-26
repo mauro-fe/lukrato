@@ -8,7 +8,7 @@
  */
 ?>
 
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/aprenda.css">
+<?= function_exists('vite_css') ? vite_css('site-aprenda') : '' ?>
 
 <!-- Breadcrumbs -->
 <nav aria-label="Breadcrumb" class="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700" style="padding-top: 5rem;">

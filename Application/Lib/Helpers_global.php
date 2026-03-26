@@ -117,30 +117,27 @@ if (!function_exists('loadPageCss')) {
     function loadPageCss(?string $name = null): void
     {
         $view = $name ?: ($GLOBALS['current_view'] ?? '');
-        if ($view === '') return;
+        if ($view === '' || !function_exists('vite_css')) return;
 
-        // 1. Preferir concatenador PHP (.css.php) em bundles/
-        $phpPath = 'assets/css/bundles/' . $view . '.css.php';
-        $absPhp  = public_path($phpPath);
+        static $viteEntries = [
+            'admin-auth-login' => 'auth-login-style',
+            'auth-shared' => 'auth-shared-style',
+            'auth-verify-email' => 'auth-verify-email-style',
+            'site-legal-privacy' => 'site-legal',
+            'site-legal-terms' => 'site-legal',
+            'site-legal-lgpd' => 'site-legal',
+            'site-aprenda-index' => 'site-aprenda',
+            'site-aprenda-show' => 'site-aprenda',
+            'site-aprenda-categoria' => 'site-aprenda',
+            'errors-partials-error-layout' => 'error-page',
+        ];
 
-        if (is_file($absPhp)) {
-            $v = @filemtime($absPhp) ?: time();
-            echo '<link rel="stylesheet" href="' . asset_url($phpPath) . '?v=' . $v . '">' . PHP_EOL;
-            return;
+        if (isset($viteEntries[$view])) {
+            echo vite_css($viteEntries[$view]);
         }
+
 
         // 2. Fallback: CSS estático nas subpastas organizadas
-        $folders = ['pages', 'layout', 'modules', 'auth', 'core', ''];
-        foreach ($folders as $folder) {
-            $cssPath = 'assets/css/' . ($folder ? $folder . '/' : '') . $view . '.css';
-            $abs     = public_path($cssPath);
-
-            if (is_file($abs)) {
-                $v = @filemtime($abs) ?: time();
-                echo '<link rel="stylesheet" href="' . asset_url($cssPath) . '?v=' . $v . '">' . PHP_EOL;
-                return;
-            }
-        }
     }
 }
 

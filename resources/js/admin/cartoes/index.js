@@ -4,6 +4,7 @@
  */
 
 import '../../../css/admin/cartoes/index.css';
+import '../../../css/admin/modules/modal-cartoes.css';
 import { Modules } from './state.js';
 import { CartoesAPI } from './api.js';
 import { CartoesUI } from './ui.js';

@@ -612,9 +612,6 @@ import { apiFetch, getBaseUrl, getCSRFToken, logClientError } from '../shared/ap
                 return;
             }
 
-            // Injeta CSS
-            this.injectStyles();
-
             // Verifica status inicial
             this.checkSession();
 
@@ -646,13 +643,7 @@ import { apiFetch, getBaseUrl, getCSRFToken, logClientError } from '../shared/ap
 
         // Injeta os estilos CSS
         injectStyles() {
-            if (document.getElementById('lk-session-styles')) return;
-
-            const link = document.createElement('link');
-            link.id = 'lk-session-styles';
-            link.rel = 'stylesheet';
-            link.href = utils.getBaseUrl() + 'assets/css/modules/session-manager.css';
-            document.head.appendChild(link);
+            // CSS carregado pelo bundle base do admin via Vite.
         },
 
         // Configura listeners de atividade

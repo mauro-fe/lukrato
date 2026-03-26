@@ -1,5 +1,5 @@
 <?php
-// CSS: public/assets/css/layout/notifications-bell.css (carregado via header.php)
+// CSS: resources/css/admin/base.css (carregado via Vite)
 // JS:  resources/js/admin/global/notification-manager.js (carregado via Vite bundle)
 
 /** @var int $initialUnread */
