@@ -14,7 +14,6 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 960px;
   margin: 0 auto;
   padding: var(--spacing-6) var(--spacing-4);
   gap: var(--spacing-6);
@@ -59,7 +58,7 @@
 }
 
 .cont-hero__balance {
-  font-size: clamp(2.2rem, 4vw, 3.2rem);
+  font-size: 2rem;
   font-weight: 800;
   color: var(--color-text);
   line-height: 1.1;
@@ -95,7 +94,6 @@
   max-width: 520px;
   padding: var(--spacing-4);
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--color-primary) 6%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-primary) 12%, transparent);
 }
 
@@ -465,7 +463,7 @@
   padding: 0 42px 0 38px;
   border-radius: var(--radius-md);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  background: var(--color-bg);
+  background: var(--color-bg) !important;
   color: var(--color-text);
   font-size: var(--font-size-sm);
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);

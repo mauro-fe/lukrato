@@ -374,7 +374,7 @@
 }
 
 .modal-content {
-  background: var(--color-surface);
+  background: var(--color-bg);
   border-radius: var(--radius-xl);
   border: 2px solid var(--color-card-border);
   box-shadow:

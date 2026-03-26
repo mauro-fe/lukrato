@@ -14,7 +14,6 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 960px;
   margin: 0 auto;
   padding: var(--spacing-6) var(--spacing-4);
   gap: var(--spacing-6);
@@ -1218,7 +1217,7 @@
 
 .modern-modal .modal-content {
   color: var(--color-text);
-  background: var(--color-bg);
+  background: var(--color-bg) !important;  
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-lg);
   box-shadow:
@@ -2162,131 +2161,4 @@
     overflow-y: auto;
     min-height: auto;
   }
-}
-
-/* ─── LIGHT THEME ─────────────────────────────────────────────────────────── */
-
-[data-theme="light"] .parc-page .fat-hero,
-[data-theme="light"] .parc-page .filters-modern,
-[data-theme="light"] .parc-page .fat-list-section {
-  border-color: rgba(0, 0, 0, 0.08);
-  box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.06),
-    0 12px 28px rgba(0, 0, 0, 0.08);
-}
-
-[data-theme="light"] .parc-page .fat-hero:hover {
-  box-shadow:
-    0 8px 20px rgba(0, 0, 0, 0.08),
-    0 20px 40px rgba(0, 0, 0, 0.10);
-}
-
-[data-theme="light"] .parcelamento-card {
-  border-color: rgba(0, 0, 0, 0.08);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 12px 28px rgba(0, 0, 0, 0.08);
-  background: var(--color-bg);
-}
-
-[data-theme="light"] .parcelamento-card::before {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.2) 58%, transparent 100%),
-    radial-gradient(circle at top right, color-mix(in srgb, var(--fatura-accent) 8%, transparent), transparent 56%),
-    linear-gradient(180deg,
-      color-mix(in srgb, var(--fatura-accent) 5%, transparent) 0%,
-      transparent 100%);
-}
-
-[data-theme="light"] .parcelamento-card:hover {
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08), 0 20px 40px rgba(0, 0, 0, 0.10);
-  border-color: color-mix(in srgb, var(--fatura-accent) 22%, rgba(0, 0, 0, 0.08));
-}
-
-[data-theme="light"] .filter-select {
-  border-color: rgba(0, 0, 0, 0.12);
-  background: var(--color-bg);
-}
-
-[data-theme="light"] .filter-select:hover {
-  border-color: rgba(0, 0, 0, 0.2);
-}
-
-[data-theme="light"] .view-toggle {
-  border-color: rgba(0, 0, 0, 0.1);
-}
-
-[data-theme="light"] .view-btn:not(.active):hover {
-  background: rgba(0, 0, 0, 0.04);
-}
-
-[data-theme="light"] .parc-btn {
-  border-color: rgba(0, 0, 0, 0.1);
-}
-
-[data-theme="light"] .parc-btn:hover {
-  border-color: rgba(0, 0, 0, 0.15);
-  background: rgba(0, 0, 0, 0.03);
-}
-
-[data-theme="light"] .fatura-card-detail {
-  border-color: rgba(0, 0, 0, 0.06);
-  background: rgba(0, 0, 0, 0.02);
-}
-
-[data-theme="light"] .parc-progress-section {
-  border-color: rgba(0, 0, 0, 0.06);
-  background: rgba(0, 0, 0, 0.02);
-}
-
-[data-theme="light"] .parc-progress-bar {
-  background: rgba(0, 0, 0, 0.08);
-}
-
-[data-theme="light"] .faturas-list-header.visible {
-  border-color: rgba(0, 0, 0, 0.08) !important;
-  background: rgba(0, 0, 0, 0.02) !important;
-}
-
-[data-theme="light"] .detalhes-item {
-  background: rgba(0, 0, 0, 0.02);
-  border-color: rgba(0, 0, 0, 0.06);
-}
-
-[data-theme="light"] .detalhes-progresso {
-  background: rgba(0, 0, 0, 0.02);
-  border-color: rgba(0, 0, 0, 0.06);
-}
-
-[data-theme="light"] .parcela-card {
-  background: rgba(0, 0, 0, 0.01);
-  border-color: rgba(0, 0, 0, 0.08);
-}
-
-[data-theme="light"] .parcela-card-header {
-  background: rgba(0, 0, 0, 0.02);
-  border-color: rgba(0, 0, 0, 0.06);
-}
-
-[data-theme="light"] .modern-modal .modal-content {
-  border-color: rgba(0, 0, 0, 0.1);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15), 0 8px 20px rgba(0, 0, 0, 0.10);
-}
-
-[data-theme="light"] .modern-modal .btn-close {
-  filter: none;
-}
-
-[data-theme="light"] .btn-filter-clear {
-  border-color: rgba(0, 0, 0, 0.12);
-}
-
-[data-theme="light"] .filters-header {
-  border-bottom-color: rgba(0, 0, 0, 0.06);
-}
-
-[data-theme="light"] .filters-actions {
-  border-top-color: rgba(0, 0, 0, 0.06);
-}
-
-[data-theme="light"] .active-filters {
-  border-top-color: rgba(0, 0, 0, 0.06);
 }

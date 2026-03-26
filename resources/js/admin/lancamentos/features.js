@@ -182,10 +182,54 @@ export const ListContext = {
         }
 
         this.setRefreshLoading(loading);
+
+        SummaryCards.update();
     }
 };
 
 Modules.ListContext = ListContext;
+
+// ============================================================================
+// SUMMARY CARDS (PREMIUM)
+// ============================================================================
+
+export const SummaryCards = {
+    update() {
+        const items = STATE.filteredData?.length ? STATE.filteredData : STATE.lancamentos || [];
+        let totalReceitas = 0;
+        let totalDespesas = 0;
+        let count = items.length;
+
+        for (const item of items) {
+            const tipo = String(item.tipo || '').toLowerCase();
+            const valor = parseFloat(item.valor) || 0;
+            if (tipo === 'receita') totalReceitas += valor;
+            else if (tipo === 'despesa') totalDespesas += valor;
+        }
+
+        const saldo = totalReceitas - totalDespesas;
+
+        // Hero dynamic stats
+        if (DOM.lanHeroDynamic) DOM.lanHeroDynamic.style.display = count > 0 ? '' : 'none';
+        if (DOM.lanHeroTotalCount) DOM.lanHeroTotalCount.textContent = `${count} lançamento${count !== 1 ? 's' : ''}`;
+        if (DOM.lanHeroReceitas) DOM.lanHeroReceitas.textContent = Utils.fmtMoney(totalReceitas);
+        if (DOM.lanHeroDespesas) DOM.lanHeroDespesas.textContent = Utils.fmtMoney(totalDespesas);
+
+        // Summary strip cards
+        if (DOM.lanSummaryReceitas) DOM.lanSummaryReceitas.textContent = Utils.fmtMoney(totalReceitas);
+        if (DOM.lanSummaryDespesas) DOM.lanSummaryDespesas.textContent = Utils.fmtMoney(totalDespesas);
+        if (DOM.lanSummarySaldo) {
+            DOM.lanSummarySaldo.textContent = Utils.fmtMoney(saldo);
+            const card = DOM.lanSummarySaldo.closest('.lan-summary-card');
+            if (card) {
+                card.classList.toggle('is-positive', saldo >= 0);
+                card.classList.toggle('is-negative', saldo < 0);
+            }
+        }
+    }
+};
+
+Modules.SummaryCards = SummaryCards;
 
 // ============================================================================
 // BADGES DE FILTROS ATIVOS

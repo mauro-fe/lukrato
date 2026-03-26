@@ -33,6 +33,14 @@ export const DOM = {};
 export function initDOM() {
     DOM.lanHeroMonthBtn = document.getElementById('lanHeroMonthBtn');
     DOM.lanHeroMonthLabel = document.getElementById('lanHeroMonthLabel');
+    // Premium summary elements
+    DOM.lanHeroDynamic = document.getElementById('lanHeroDynamic');
+    DOM.lanHeroTotalCount = document.getElementById('lanHeroTotalCount');
+    DOM.lanHeroReceitas = document.getElementById('lanHeroReceitas');
+    DOM.lanHeroDespesas = document.getElementById('lanHeroDespesas');
+    DOM.lanSummaryReceitas = document.getElementById('lanSummaryReceitas');
+    DOM.lanSummaryDespesas = document.getElementById('lanSummaryDespesas');
+    DOM.lanSummarySaldo = document.getElementById('lanSummarySaldo');
     // Tabela
     DOM.tabContainer = document.getElementById('lancamentosTable');
     DOM.tableBody = document.getElementById('lancamentosTableBody');

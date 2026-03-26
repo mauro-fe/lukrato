@@ -9,11 +9,56 @@
             <div class="lan-hero-copy">
                 <span class="lan-hero-eyebrow">Fluxo financeiro</span>
                 <h1 class="lan-hero-title">Lancamentos</h1>
-                <p class="lan-hero-subtitle">Veja receitas, despesas e pendencias com leitura mais rapida e menos ruido
+                <p class="lan-hero-subtitle" id="lanHeroSubtitle">Veja receitas, despesas e pendencias com leitura mais rapida e menos ruido
                     visual.</p>
             </div>
+            <div class="lan-hero-dynamic" id="lanHeroDynamic" style="display:none;">
+                <span class="lan-hero-stat total">
+                    <span class="lan-hero-stat-dot"></span>
+                    <span id="lanHeroTotalCount">0 lancamentos</span>
+                </span>
+                <span class="lan-hero-stat receitas">
+                    <span class="lan-hero-stat-dot"></span>
+                    <span class="stat-value" id="lanHeroReceitas">R$ 0,00</span>
+                    <span>receitas</span>
+                </span>
+                <span class="lan-hero-stat despesas">
+                    <span class="lan-hero-stat-dot"></span>
+                    <span class="stat-value" id="lanHeroDespesas">R$ 0,00</span>
+                    <span>despesas</span>
+                </span>
+            </div>
+        </section>
 
-
+        <!-- Mini-cards de resumo -->
+        <section class="lan-summary-strip" id="lanSummaryStrip" data-aos="fade-up" data-aos-delay="100" aria-label="Resumo financeiro do periodo">
+            <div class="lan-summary-card receitas">
+                <div class="lan-summary-icon">
+                    <i data-lucide="trending-up"></i>
+                </div>
+                <div class="lan-summary-info">
+                    <span class="lan-summary-label">Receitas</span>
+                    <span class="lan-summary-value" id="lanSummaryReceitas">R$ 0,00</span>
+                </div>
+            </div>
+            <div class="lan-summary-card despesas">
+                <div class="lan-summary-icon">
+                    <i data-lucide="trending-down"></i>
+                </div>
+                <div class="lan-summary-info">
+                    <span class="lan-summary-label">Despesas</span>
+                    <span class="lan-summary-value" id="lanSummaryDespesas">R$ 0,00</span>
+                </div>
+            </div>
+            <div class="lan-summary-card saldo">
+                <div class="lan-summary-icon">
+                    <i data-lucide="wallet"></i>
+                </div>
+                <div class="lan-summary-info">
+                    <span class="lan-summary-label">Saldo do periodo</span>
+                    <span class="lan-summary-value" id="lanSummarySaldo">R$ 0,00</span>
+                </div>
+            </div>
         </section>
 
         <div class="modern-card export-card <?= !$isPro ? 'pro-locked' : '' ?>" data-aos="fade-up" data-aos-delay="100"

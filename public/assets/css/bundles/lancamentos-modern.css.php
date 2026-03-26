@@ -36,6 +36,7 @@ $modules = [
     '_table-badges-filters.css',
     '_dropdown.css',
     '_parcelas-modal.css',
+    '_premium-evolution.css',
 ];
 
 $lastModified = 0;

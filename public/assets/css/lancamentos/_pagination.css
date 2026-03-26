@@ -9,6 +9,7 @@
   padding: var(--spacing-4) var(--spacing-5);
   background: var(--color-bg);
   border-top: 1px solid var(--glass-border);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   gap: var(--spacing-4);
   flex-wrap: wrap;
 }
@@ -78,8 +79,8 @@
   color: var(--color-text);
   border-color: var(--color-primary);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px
-    color-mix(in srgb, var(--color-primary) 35%, transparent);
+  box-shadow: 0 4px 14px
+    color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
 .pagination-btn:disabled {
@@ -138,8 +139,8 @@
   );
   color: var(--color-text);
   border-color: transparent;
-  box-shadow: 0 4px 12px
-    color-mix(in srgb, var(--color-primary) 40%, transparent);
+  box-shadow: 0 4px 16px
+    color-mix(in srgb, var(--color-primary) 45%, transparent);
   cursor: default;
 }
 

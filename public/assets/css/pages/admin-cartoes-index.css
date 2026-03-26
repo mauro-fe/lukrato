@@ -14,7 +14,6 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 960px;
   margin: 0 auto;
   padding: var(--spacing-6) var(--spacing-4);
   gap: var(--spacing-6);
@@ -415,7 +414,7 @@
   padding: var(--spacing-2) var(--spacing-3) var(--spacing-2) 36px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-md);
-  background: transparent;
+  background: var(--color-bg) !important;
   color: var(--color-text);
   font-size: var(--font-size-sm);
   outline: none;

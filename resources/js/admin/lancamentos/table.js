@@ -298,7 +298,7 @@ export const TableManager = {
     formatDateGroupLabel(item) {
         const key = this.getDateGroupKey(item);
         if (key === 'sem-data') {
-            return { day: '--', month: 'SEM DATA', full: 'Sem data' };
+            return { day: '--', month: 'SEM DATA', full: 'Sem data', friendly: '' };
         }
 
         const [year, month, day] = key.split('-').map(Number);
@@ -308,21 +308,47 @@ export const TableManager = {
             .replace('.', '')
             .toUpperCase();
 
+        const friendly = this._getFriendlyDateLabel(date);
+
         return {
             day: String(day).padStart(2, '0'),
             month: monthLabel,
-            full: `${String(day).padStart(2, '0')} ${monthLabel}`
+            full: `${String(day).padStart(2, '0')} ${monthLabel}`,
+            friendly
         };
+    },
+
+    _getFriendlyDateLabel(date) {
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        const target = new Date(date);
+        target.setHours(0, 0, 0, 0);
+        const diffDays = Math.round((target - hoje) / 86400000);
+        if (diffDays === 0) return 'Hoje';
+        if (diffDays === -1) return 'Ontem';
+        if (diffDays === 1) return 'Amanhã';
+        if (diffDays > 1 && diffDays <= 6) {
+            return new Intl.DateTimeFormat('pt-BR', { weekday: 'long' }).format(target);
+        }
+        if (diffDays < -1 && diffDays >= -6) {
+            const weekday = new Intl.DateTimeFormat('pt-BR', { weekday: 'long' }).format(target);
+            return `${weekday} passada`;
+        }
+        return '';
     },
 
     renderDateGroupRow(item) {
         const label = this.formatDateGroupLabel(item);
+        const friendlyHtml = label.friendly
+            ? `<span class="lk-date-friendly">${label.friendly}</span>`
+            : '';
         return `
             <tr class="lk-date-group-row" aria-hidden="true">
                 <td colspan="10">
                     <div class="lk-date-group-pill">
                         <span class="lk-date-group-day">${label.day}</span>
                         <span class="lk-date-group-month">${label.month}</span>
+                        ${friendlyHtml}
                     </div>
                 </td>
             </tr>`;
@@ -580,7 +606,7 @@ export const TableManager = {
 
         // Build main row
         const mainRow = `
-            <tr class="${rowClasses.join(' ')}" data-id="${id}">
+            <tr class="${rowClasses.join(' ')}" data-id="${id}" data-tipo="${tipoRaw}">
                 ${checkboxCell}
                 ${expandCell}
                 <td class="td-data">${dataDisplay}</td>

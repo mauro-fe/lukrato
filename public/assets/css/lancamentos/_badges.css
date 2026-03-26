@@ -11,9 +11,9 @@
   padding: var(--spacing-1) var(--spacing-3);
   border-radius: var(--radius-md);
   font-size: var(--font-size-xs);
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.02em;
   background: color-mix(in srgb, var(--color-text-muted) 14%, transparent);
   color: var(--color-text);
   transition: var(--transition-fast);
@@ -35,20 +35,20 @@
 
 .badge-tipo.receita {
   color: var(--color-success);
-  background: color-mix(in srgb, var(--color-success) 20%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-success) 50%, transparent);
+  background: color-mix(in srgb, var(--color-success) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 30%, transparent);
 }
 
 .badge-tipo.despesa {
   color: var(--color-danger);
-  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-danger) 50%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 30%, transparent);
 }
 
 .badge-tipo.transferencia {
   color: var(--color-primary);
   background: color-mix(in srgb, var(--color-primary) 18%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
 }
 
 /* Chip de Categoria */
@@ -74,6 +74,7 @@
 .valor-cell {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
 
 .valor-cell.receita {

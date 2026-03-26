@@ -241,7 +241,7 @@ import { apiGetCached } from '../shared/api-store.js';
             <div class="modal fade" id="planUpgradeModal" tabindex="-1" role="dialog" aria-labelledby="upgradeModalTitle" aria-modal="true">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
-                        <div class="modal-header bg-gradient-primary text-white">
+                        <div class="modal-header">
                             <h5 class="modal-title" id="upgradeModalTitle">${title}</h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
                         </div>
@@ -355,7 +355,7 @@ import { apiGetCached } from '../shared/api-store.js';
                     const badge = document.createElement('span');
                     badge.className = 'limit-badge badge bg-danger ms-2';
                     badge.innerHTML = '<i data-lucide="lock" style="width:14px;height:14px;"></i>';
-                    if(window.lucide) lucide.createIcons({nodes:[badge]});
+                    if (window.lucide) lucide.createIcons({ nodes: [badge] });
                     btn.appendChild(badge);
 
                     // Interceptar clique

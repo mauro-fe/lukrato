@@ -3,12 +3,24 @@
    ============================================================================ */
 
 .modern-table-wrapper {
+  position: relative;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   overflow: visible;
+}
 
+.modern-table-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-success), var(--color-primary));
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  z-index: 2;
 }
 
 .modern-table-inner {
@@ -21,7 +33,7 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--spacing-4) var(--spacing-5);
-
+  background: color-mix(in srgb, var(--color-surface-muted) 50%, transparent);
   border-bottom: 1px solid var(--glass-border);
   gap: var(--spacing-4);
   flex-wrap: wrap;
@@ -125,57 +137,89 @@
   padding: var(--spacing-4);
 }
 
+/* Novo lançamento button premium glow */
+.btn-novo-lancamento {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--color-primary) 40%, transparent);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-novo-lancamento:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--color-primary) 50%, transparent);
+}
+
 .lk-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-12) var(--spacing-6);
   text-align: center;
-  padding: 3rem 1rem;
 }
 
 .lk-empty-icon {
-  width: 120px;
-  height: 120px;
-  margin: 0 auto 1.5rem;
-  background: var(--color-primary);
-  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: var(--spacing-5);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-primary) 30%, transparent);
+  animation: emptyIconFloat 3s ease-in-out infinite;
+}
+
+.lk-empty-icon i {
+  color: white;
+}
+
+@keyframes emptyIconFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 
 .lk-empty-title {
-  color: var(--color-text);
-  margin-bottom: 0.75rem;
-  font-size: 1.5rem;
+  font-size: var(--font-size-xl);
   font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-2);
 }
 
 .lk-empty-description {
+  font-size: var(--font-size-sm);
   color: var(--color-text-muted);
-  margin-bottom: 1.5rem;
-  font-size: 0.95rem;
+  margin: 0 0 var(--spacing-6);
+  max-width: 360px;
+  line-height: 1.6;
 }
 
 .lk-empty-actions {
   display: flex;
-  justify-content: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
 }
 
 .lk-empty-secondary-btn {
-  min-height: 44px;
-  padding: 0.75rem 1.15rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--glass-border);
   background: transparent;
-  color: var(--color-text);
-  font-weight: 600;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s ease;
 }
 
 .lk-empty-secondary-btn:hover {
-  border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
-  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  color: var(--color-primary);
 }
 
 .lk-list-loading {
@@ -183,8 +227,22 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  text-align: center;
+  padding: var(--spacing-8) var(--spacing-4);
+  gap: var(--spacing-3);
+}
+
+.lk-list-loading p {
+  font-size: var(--font-size-sm);
   color: var(--color-text-muted);
+  margin: 0;
+}
+
+.icon-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 

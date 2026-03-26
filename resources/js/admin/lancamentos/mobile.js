@@ -106,7 +106,31 @@ const MobileCards = {
             .replace('.', '')
             .toUpperCase();
 
-        return `<div class="lan-feed-group-label">${String(day).padStart(2, '0')} ${monthLabel}</div>`;
+        // Friendly label: Hoje, Ontem, day-of-week
+        const friendly = this._getFriendlyDateLabel(date);
+        const friendlyHtml = friendly ? ` <span style="opacity:0.7;font-weight:500;text-transform:none;letter-spacing:0;">· ${friendly}</span>` : '';
+
+        return `<div class="lan-feed-group-label">${String(day).padStart(2, '0')} ${monthLabel}${friendlyHtml}</div>`;
+    },
+
+    _getFriendlyDateLabel(date) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const target = new Date(date);
+        target.setHours(0, 0, 0, 0);
+        const diffMs = today.getTime() - target.getTime();
+        const diffDays = Math.round(diffMs / 86400000);
+
+        if (diffDays === 0) return 'Hoje';
+        if (diffDays === 1) return 'Ontem';
+        if (diffDays === -1) return 'Amanhã';
+        if (diffDays >= 2 && diffDays <= 6) {
+            return new Intl.DateTimeFormat('pt-BR', { weekday: 'long' }).format(target);
+        }
+        if (diffDays >= -6 && diffDays <= -2) {
+            return new Intl.DateTimeFormat('pt-BR', { weekday: 'long' }).format(target);
+        }
+        return '';
     },
 
 
@@ -346,8 +370,10 @@ const MobileCards = {
                 const percentual = totalParcelas > 0 ? Math.round((parcelasPagas / totalParcelas) * 100) : 0;
                 const parcelamentoId = String(id).replace('grupo_', '');
 
+                const statusKey = isTransfer ? 'transferencia' : (isOverdue ? 'atrasado' : (isPago ? 'pago' : 'pendente'));
+
                 parts.push(`
-                <article class="lan-card card-item" data-id="${id}" aria-expanded="false">
+                <article class="lan-card card-item" data-id="${id}" data-status="${statusKey}" aria-expanded="false">
                     <div class="lan-card-main card-main">
                         <span class="lan-card-date card-date">${Utils.escapeHtml(dataMain)}</span>
                         <span class="lan-card-type card-type">
@@ -358,14 +384,6 @@ const MobileCards = {
                         <span class="lan-card-value card-value ${tipoClass}">
                             ${Utils.escapeHtml(valorFmt)}
                         </span>
-                    </div>
-
-                    <div class="lan-card-summary">
-                        <div class="lan-card-summary-copy">
-                            <span class="lan-card-summary-title">${Utils.escapeHtml(descricao)}</span>
-                            <span class="lan-card-summary-subtitle">${Utils.escapeHtml(categoria || '-')}</span>
-                        </div>
-                        <span class="badge-status ${statusClass}"><i data-lucide="${statusLucideIcon}"></i> ${statusLabel}</span>
                     </div>
 
                     <div class="lan-card-summary">
@@ -525,8 +543,10 @@ const MobileCards = {
                     : ''
             ].join('');
 
+            const statusKey = isTransfer ? 'transferencia' : (isOverdue ? 'atrasado' : (isPago ? 'pago' : 'pendente'));
+
             parts.push(`
-                <article class="lan-card card-item" data-id="${id}" aria-expanded="false">
+                <article class="lan-card card-item" data-id="${id}" data-status="${statusKey}" aria-expanded="false">
                     <div class="lan-card-main card-main">
                         <span class="lan-card-date card-date">${Utils.escapeHtml(dataMain)}</span>
                         <span class="lan-card-type card-type">
@@ -537,6 +557,14 @@ const MobileCards = {
                         <span class="lan-card-value card-value ${tipoClass}">
                             ${Utils.escapeHtml(valorFmt)}
                         </span>
+                    </div>
+
+                    <div class="lan-card-summary">
+                        <div class="lan-card-summary-copy">
+                            <span class="lan-card-summary-title">${Utils.escapeHtml(descricao)}</span>
+                            <span class="lan-card-summary-subtitle">${Utils.escapeHtml(categoria || '-')}</span>
+                        </div>
+                        <span class="badge-status ${statusClass}"><i data-lucide="${statusLucideIcon}"></i> ${statusLabel}</span>
                     </div>
 
                     <button class="lan-card-toggle card-toggle" type="button" data-toggle="details" aria-label="Ver detalhes do lançamento">

@@ -10,11 +10,7 @@
   overflow: hidden;
   font-family: var(--font-primary);
   color: var(--color-text-muted);
-  background: linear-gradient(
-    180deg,
-    var(--color-surface) 0%,
-    var(--color-surface-muted) 100%
-  );
+  background: var(--color-bg);
   border-top: 1px solid var(--glass-border);
   backdrop-filter: var(--glass-backdrop);
   -webkit-backdrop-filter: var(--glass-backdrop);

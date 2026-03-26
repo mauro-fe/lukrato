@@ -5,6 +5,12 @@
   transition: transform 0.25s ease;
 }
 
+.lk-expand-btn:hover {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
 .lk-expand-btn.expanded svg {
   transform: rotate(90deg);
 }
@@ -22,6 +28,7 @@
   border-radius: 20px;
   white-space: nowrap;
   line-height: 1.3;
+  border: 1px solid transparent;
 }
 
 .lk-pago-badge svg {
@@ -37,6 +44,7 @@
     var(--color-success, #22c55e) 12%,
     transparent
   );
+  border-color: color-mix(in srgb, var(--color-success) 30%, transparent);
 }
 
 .lk-pago-pendente {
@@ -46,6 +54,7 @@
     var(--color-warning, #f59e0b) 12%,
     transparent
   );
+  border-color: color-mix(in srgb, var(--color-warning) 30%, transparent);
 }
 
 .lk-pago-parcial {
@@ -60,6 +69,7 @@
 .lk-pago-transfer {
   color: var(--color-info, #3b82f6);
   background: color-mix(in srgb, var(--color-info, #3b82f6) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
 }
 
 /* Table column width */
@@ -87,7 +97,20 @@
 }
 
 .lk-filters-section {
+  position: relative;
   margin-bottom: 18px;
+}
+
+.lk-filters-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-warning));
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  z-index: 1;
 }
 
 .lk-filters-section-head {
@@ -285,6 +308,13 @@
   border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
   background: color-mix(in srgb, var(--color-primary) 8%, var(--color-bg));
   transform: translateY(-1px);
+}
+
+.lk-period-preset-btn.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--color-primary) 30%, transparent);
 }
 
 .lk-period-month-btn {
@@ -538,8 +568,9 @@ padding: var(--spacing-3) !important;
 
 /* Highlight active filter (class toggled via JS) */
 .lk-filter-chip-select.active select {
-  border-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
-  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 12%, transparent);
 }
 .lk-filter-chip-select.active > i,
 .lk-filter-chip-select.active > svg {
@@ -560,9 +591,9 @@ padding: var(--spacing-3) !important;
   min-height: 38px;
   padding: 0 14px;
   border-radius: var(--radius-full, 999px);
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
-  background: var(--color-bg);
-  color: var(--color-text-muted);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 40%, var(--glass-border));
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  color: var(--color-danger);
   cursor: pointer;
   transition: all 0.2s;
   flex-shrink: 0;
@@ -575,13 +606,10 @@ padding: var(--spacing-3) !important;
 }
 
 .lk-filter-clear-btn:hover {
-  background: color-mix(in srgb, var(--color-danger, #ef4444) 10%, transparent);
-  border-color: color-mix(
-    in srgb,
-    var(--color-danger, #ef4444) 30%,
-    transparent
-  );
-  color: var(--color-danger, #ef4444);
+  background: color-mix(in srgb, var(--color-danger) 18%, transparent);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+  transform: translateY(-1px);
 }
 
 .lk-filter-clear-btn svg {
@@ -608,9 +636,16 @@ padding: var(--spacing-3) !important;
   font-weight: 500;
   padding: 3px 8px;
   border-radius: 20px;
-  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface));
   color: var(--color-primary);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 28%, transparent);
   line-height: 1.3;
+  animation: lk-badgeFadeIn 0.2s ease-out;
+}
+
+@keyframes lk-badgeFadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .lk-filter-badge button {
@@ -624,12 +659,15 @@ padding: var(--spacing-3) !important;
   cursor: pointer;
   padding: 0 1px;
   opacity: 0.7;
-  transition: opacity 0.15s;
+  transition: all 0.15s;
   line-height: 1;
+  border-radius: 50%;
 }
 
 .lk-filter-badge button:hover {
   opacity: 1;
+  background: var(--color-danger);
+  color: white;
 }
 
 /* ========================================
@@ -1288,15 +1326,50 @@ padding: var(--spacing-3) !important;
 
   .lk-table tbody tr.lk-table-row:hover::before {
     transform: translateY(-1px);
-    border-color: color-mix(in srgb, var(--color-primary) 28%, transparent);
-    box-shadow: 0 20px 42px rgba(5, 12, 22, 0.18);
+    border-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
+    box-shadow: 0 8px 32px rgba(230, 126, 34, 0.08), 0 20px 42px rgba(5, 12, 22, 0.18);
   }
 
   .lk-table tbody tr.lk-table-row.selected::before {
-    border-color: color-mix(in srgb, var(--color-primary) 42%, transparent);
+    border-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
     box-shadow:
       inset 3px 0 0 var(--color-primary),
+      0 0 0 1px color-mix(in srgb, var(--color-primary) 15%, transparent),
       0 20px 42px rgba(5, 12, 22, 0.2);
+  }
+
+  /* Alternating row subtle bg variation */
+  .lk-table tbody tr.lk-table-row:nth-child(even)::before {
+    background: color-mix(in srgb, var(--color-surface-muted) 30%, var(--color-bg));
+  }
+
+  /* Colored left accent based on tipo */
+  .lk-table tbody tr.lk-table-row::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 12px;
+    bottom: 12px;
+    width: 4px;
+    border-radius: 0 3px 3px 0;
+    z-index: 1;
+    transition: width 0.2s ease;
+  }
+
+  .lk-table tbody tr.lk-table-row[data-tipo="receita"]::after {
+    background: var(--color-success);
+  }
+
+  .lk-table tbody tr.lk-table-row[data-tipo="despesa"]::after {
+    background: var(--color-danger);
+  }
+
+  .lk-table tbody tr.lk-table-row[data-tipo="transferencia"]::after {
+    background: var(--color-primary);
+  }
+
+  .lk-table tbody tr.lk-table-row:hover::after {
+    width: 5px;
   }
 
   .lk-table tbody td {
@@ -1570,9 +1643,9 @@ padding: var(--spacing-3) !important;
    ========================================================================= */
 
 .lk-pago-atrasado {
-  color: color-mix(in srgb, var(--color-danger) 88%, #ffffff);
-  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
-  border-color: color-mix(in srgb, var(--color-danger) 26%, transparent);
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 18%, transparent);
+  border-color: color-mix(in srgb, var(--color-danger) 35%, transparent);
 }
 
 .badge-status.status-atrasado {
@@ -1619,19 +1692,39 @@ padding: var(--spacing-3) !important;
     align-items: center;
     gap: 8px;
     min-height: 28px;
-    padding: 0 12px;
+    padding: 4px 14px;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--color-text-muted) 9%, transparent);
+    background: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface));
+    border: 1px solid color-mix(in srgb, var(--color-primary) 25%, transparent);
     color: color-mix(in srgb, var(--color-text-muted) 82%, #ffffff);
     font-size: 0.72rem;
     font-weight: 800;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    opacity: 0.82;
+    opacity: 1;
   }
 
   .lk-date-group-day {
-    color: var(--color-text);
+    color: var(--color-primary);
+    font-size: 0.85rem;
+    font-weight: 800;
+  }
+
+  .lk-date-group-month {
+    color: var(--color-text-muted);
+    font-weight: 700;
+  }
+
+  /* Friendly date label (HOJE, ONTEM, etc) */
+  .lk-date-group-pill .lk-date-friendly {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-left: 6px;
+    padding-left: 8px;
+    border-left: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
+    text-transform: capitalize;
+    letter-spacing: 0;
   }
 
   .lk-table tbody tr.lk-table-row {
@@ -1667,6 +1760,7 @@ padding: var(--spacing-3) !important;
     font-size: clamp(1.24rem, 1.7vw, 1.48rem);
     font-weight: 900;
     letter-spacing: -0.05em;
+    font-variant-numeric: tabular-nums;
   }
 
   .td-valor .valor-cell.receita {
@@ -1702,6 +1796,12 @@ padding: var(--spacing-3) !important;
     width: 28px;
     height: 28px;
     border-radius: 9px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .lk-tag-icon:hover {
+    transform: scale(1.15);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   }
 
   .lk-selection-toolbar {
