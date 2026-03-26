@@ -5,6 +5,7 @@
   --orange-glow: rgba(230, 126, 34, 0.4);
   --bg-1: #0a0e1a;
   --bg-2: #0f1625;
+  --color-bg: #092741;
   --card: #141b2d;
   --card-2: #1a2332;
   --text: #f0f4f8;
@@ -59,7 +60,7 @@ main.lukrato-auth {
   justify-content: center;
   align-items: center;
   padding: 20px 10px;
-
+background:var(--color-bg);
   background-attachment: fixed;
   position: relative;
   overflow: hidden;

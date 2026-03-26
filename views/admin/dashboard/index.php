@@ -18,6 +18,12 @@ $onboardingCompleted = !empty($currentUser?->onboarding_completed_at);
         <div class="dash-hero__balance kpi-value loading" id="saldoValue">R$ 0,00</div>
         <div class="dash-hero__variation" id="dashboardHeroStatus"></div>
 
+        <!-- Mini sparkline — evolução do saldo 6 meses -->
+        <div class="dash-hero__sparkline" id="heroSparkline"></div>
+
+        <!-- Frase contextual de economia -->
+        <p class="dash-hero__context" id="heroContext" style="display:none;"></p>
+
         <!-- Mensagem oculta — usada pelo JS para narrativa -->
         <p class="dash-hero__message" id="dashboardHeroMessage" style="display:none;"></p>
     </section>
@@ -269,6 +275,14 @@ $onboardingCompleted = !empty($currentUser?->onboarding_completed_at);
         <section class="dash-chart-section" id="chart-section">
             <div class="dash-section-header">
                 <h2 class="dash-section-title">Despesas por categoria</h2>
+                <div class="dash-chart-toggle" id="chartToggle">
+                    <button class="dash-chart-toggle__btn is-active" data-mode="donut" type="button">
+                        <i data-lucide="pie-chart"></i>
+                    </button>
+                    <button class="dash-chart-toggle__btn" data-mode="compare" type="button">
+                        <i data-lucide="bar-chart-3"></i>
+                    </button>
+                </div>
             </div>
             <div class="dash-chart-wrap">
                 <div class="chart-loading" id="chartLoading"></div>

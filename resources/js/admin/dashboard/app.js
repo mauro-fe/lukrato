@@ -363,6 +363,79 @@ export const Renderers = {
         messageEl.textContent = `Seu resultado mensal est\u00e1 em ${Renderers.formatSignedMoney(resultadoValue)}. Vale rever os gastos mais pesados agora.`;
     },
 
+    renderHeroSparkline: async (month) => {
+        const container = document.getElementById('heroSparkline');
+        if (!container || typeof ApexCharts === 'undefined') return;
+
+        try {
+            const overview = await API.getOverview(month);
+            const chart = Array.isArray(overview.chart) ? overview.chart : [];
+            if (chart.length < 2) { container.innerHTML = ''; return; }
+
+            const series = chart.map(c => Number(c.resultado || 0));
+            const { isLightTheme } = getThemeColors();
+            const lastVal = series[series.length - 1] || 0;
+            const lineColor = lastVal >= 0 ? '#10b981' : '#ef4444';
+
+            if (STATE._heroSparkInstance) {
+                STATE._heroSparkInstance.destroy();
+                STATE._heroSparkInstance = null;
+            }
+
+            STATE._heroSparkInstance = new ApexCharts(container, {
+                chart: { type: 'area', height: 48, sparkline: { enabled: true }, background: 'transparent' },
+                series: [{ data: series }],
+                stroke: { width: 2, curve: 'smooth', colors: [lineColor] },
+                fill: {
+                    type: 'gradient',
+                    gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0, stops: [0, 100], colorStops: [{ offset: 0, color: lineColor, opacity: 0.25 }, { offset: 100, color: lineColor, opacity: 0 }] }
+                },
+                tooltip: {
+                    enabled: true,
+                    fixed: { enabled: false },
+                    x: { show: false },
+                    y: { formatter: (v) => Utils.money(v), title: { formatter: () => '' } },
+                    theme: isLightTheme ? 'light' : 'dark',
+                },
+                colors: [lineColor],
+            });
+            STATE._heroSparkInstance.render();
+        } catch { /* silent */ }
+    },
+
+    renderHeroContext: ({ receitas, despesas }) => {
+        const el = document.getElementById('heroContext');
+        if (!el) return;
+
+        const r = Number(receitas || 0);
+        const d = Number(despesas || 0);
+
+        if (r <= 0) { el.style.display = 'none'; return; }
+
+        const rate = ((r - d) / r) * 100;
+        let icon, text, cls;
+
+        if (rate >= 20) {
+            icon = 'piggy-bank';
+            text = `Você está economizando ${Math.round(rate)}% da renda — excelente!`;
+            cls = 'dash-hero__context--positive';
+        } else if (rate >= 1) {
+            icon = 'target';
+            text = `Economia de ${Math.round(rate)}% da renda — meta ideal é 20%.`;
+            cls = 'dash-hero__context--neutral';
+        } else {
+            icon = 'alert-triangle';
+            text = `Sem margem de economia este mês. Revise seus gastos.`;
+            cls = 'dash-hero__context--negative';
+        }
+
+        el.className = `dash-hero__context ${cls}`;
+        el.innerHTML = `<i data-lucide="${icon}" style="width:14px;height:14px;"></i> ${text}`;
+        el.style.display = '';
+
+        if (typeof window.lucide !== 'undefined') window.lucide.createIcons();
+    },
+
     renderOverviewAlerts: ({ receitas, despesas }) => {
         const container = document.getElementById('dashboardAlertsOverview');
         if (!container) return;
@@ -469,6 +542,11 @@ export const Renderers = {
                 receitas: Number(metrics.receitas || 0),
                 despesas: Number(metrics.despesas || 0),
                 resultado: Number(metrics.resultado || 0)
+            });
+            Renderers.renderHeroSparkline(month);
+            Renderers.renderHeroContext({
+                receitas: Number(metrics.receitas || 0),
+                despesas: Number(metrics.despesas || 0),
             });
             Renderers.renderOverviewAlerts({
                 receitas: Number(metrics.receitas || 0),
@@ -607,32 +685,59 @@ export const Renderers = {
 
             if (!hasData) return;
 
-            transactions.forEach(tx => {
-                const tipo = String(tx.tipo || '').toLowerCase();
-                const isIncome = tipo === 'receita';
-                const descricao = escapeHtml(tx.descricao || tx.observacao || '--');
-                const categoriaNome = tx.categoria_nome ??
-                    (typeof tx.categoria === 'string' ? tx.categoria : tx.categoria?.nome) ?? 'Sem categoria';
-                const valor = Number(tx.valor) || 0;
-                const icon = isIncome ? 'arrow-down-left' : 'arrow-up-right';
+            // Group transactions by date
+            const today = new Date().toISOString().slice(0, 10);
+            const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+            const grouped = new Map();
 
-                const el = document.createElement('div');
-                el.className = 'dash-tx-item';
-                el.setAttribute('data-id', tx.id);
-                el.innerHTML = `
-                    <div class="dash-tx__left">
-                        <div class="dash-tx__icon dash-tx__icon--${isIncome ? 'income' : 'expense'}">
-                            <i data-lucide="${icon}"></i>
-                        </div>
-                        <div class="dash-tx__info">
-                            <span class="dash-tx__desc">${descricao}</span>
-                            <span class="dash-tx__category">${escapeHtml(categoriaNome)}</span>
-                        </div>
-                    </div>
-                    <span class="dash-tx__amount dash-tx__amount--${isIncome ? 'income' : 'expense'}">${isIncome ? '+' : '-'}${Utils.money(Math.abs(valor))}</span>
-                `;
-                DOM.transactionsList.appendChild(el);
+            transactions.forEach(tx => {
+                const d = String(tx.data || '').split(/[T\s]/)[0];
+                if (!grouped.has(d)) grouped.set(d, []);
+                grouped.get(d).push(tx);
             });
+
+            for (const [date, txs] of grouped) {
+                let label;
+                if (date === today) label = 'Hoje';
+                else if (date === yesterday) label = 'Ontem';
+                else label = Utils.dateBR(date);
+
+                const header = document.createElement('div');
+                header.className = 'dash-tx-date-group';
+                header.textContent = label;
+                DOM.transactionsList.appendChild(header);
+
+                txs.forEach(tx => {
+                    const tipo = String(tx.tipo || '').toLowerCase();
+                    const isIncome = tipo === 'receita';
+                    const descricao = escapeHtml(tx.descricao || tx.observacao || '--');
+                    const categoriaNome = tx.categoria_nome ??
+                        (typeof tx.categoria === 'string' ? tx.categoria : tx.categoria?.nome) ?? 'Sem categoria';
+                    const valor = Number(tx.valor) || 0;
+                    const isPago = Boolean(tx.pago);
+                    const catIcon = tx.categoria_icone || (isIncome ? 'arrow-down-left' : 'arrow-up-right');
+
+                    const el = document.createElement('div');
+                    el.className = 'dash-tx-item';
+                    el.setAttribute('data-id', tx.id);
+                    el.innerHTML = `
+                        <div class="dash-tx__left">
+                            <div class="dash-tx__icon dash-tx__icon--${isIncome ? 'income' : 'expense'}">
+                                <i data-lucide="${escapeHtml(catIcon)}"></i>
+                            </div>
+                            <div class="dash-tx__info">
+                                <span class="dash-tx__desc">${descricao}</span>
+                                <span class="dash-tx__category">${escapeHtml(categoriaNome)}</span>
+                            </div>
+                        </div>
+                        <div class="dash-tx__right">
+                            <span class="dash-tx__amount dash-tx__amount--${isIncome ? 'income' : 'expense'}">${isIncome ? '+' : '-'}${Utils.money(Math.abs(valor))}</span>
+                            <span class="dash-tx__badge dash-tx__badge--${isPago ? 'paid' : 'pending'}">${isPago ? 'Pago' : 'Pendente'}</span>
+                        </div>
+                    `;
+                    DOM.transactionsList.appendChild(el);
+                });
+            }
 
             if (typeof window.lucide !== 'undefined') {
                 window.lucide.createIcons();
@@ -643,8 +748,11 @@ export const Renderers = {
         }
     },
 
-    renderChart: async (month) => {
+    renderChart: async (month, mode) => {
         if (!DOM.categoryChart || typeof ApexCharts === 'undefined') return;
+
+        if (!mode) mode = STATE._chartMode || 'donut';
+        STATE._chartMode = mode;
 
         if (DOM.chartLoading) {
             DOM.chartLoading.style.display = 'flex';
@@ -656,9 +764,6 @@ export const Renderers = {
                 ? overview.despesas_por_categoria
                 : [];
 
-            const labels = despesasCat.map(item => item.categoria);
-            const series = despesasCat.map(item => Math.abs(Number(item.valor) || 0));
-
             const { isLightTheme } = getThemeColors();
             const themeMode = isLightTheme ? 'light' : 'dark';
 
@@ -667,54 +772,97 @@ export const Renderers = {
                 STATE.chartInstance = null;
             }
 
-            if (labels.length === 0) {
+            if (despesasCat.length === 0) {
                 DOM.categoryChart.innerHTML = '<p style="text-align:center;padding:2rem;color:var(--color-text-muted);">Sem despesas no período</p>';
                 return;
             }
 
             const palette = ['#E67E22', '#2ecc71', '#e74c3c', '#3498db', '#9b59b6', '#1abc9c', '#f39c12', '#e91e63', '#00bcd4', '#8bc34a'];
 
-            STATE.chartInstance = new ApexCharts(DOM.categoryChart, {
-                chart: {
-                    type: 'donut',
-                    height: 280,
-                    background: 'transparent',
-                    fontFamily: 'Inter, Arial, sans-serif',
-                },
-                series,
-                labels,
-                colors: palette.slice(0, labels.length),
-                stroke: { width: 2, colors: [isLightTheme ? '#fff' : '#1e1e1e'] },
-                plotOptions: {
-                    pie: {
-                        donut: {
-                            size: '60%',
-                            labels: {
-                                show: true,
-                                value: {
-                                    formatter: (val) => Utils.money(Number(val)),
-                                },
-                                total: {
+            if (mode === 'compare') {
+                // Fetch previous month data for comparison
+                const prevMonths = Utils.getPreviousMonths(month, 2);
+                const prevMonth = prevMonths[0];
+                let prevData = [];
+                try {
+                    const prevOverview = await API.getOverview(prevMonth);
+                    prevData = Array.isArray(prevOverview.despesas_por_categoria) ? prevOverview.despesas_por_categoria : [];
+                } catch { /* silent */ }
+
+                // Merge categories from both months
+                const allCats = new Set([...despesasCat.map(c => c.categoria), ...prevData.map(c => c.categoria)]);
+                const labels = [...allCats];
+                const currentMap = Object.fromEntries(despesasCat.map(c => [c.categoria, Math.abs(Number(c.valor) || 0)]));
+                const prevMap = Object.fromEntries(prevData.map(c => [c.categoria, Math.abs(Number(c.valor) || 0)]));
+
+                const currentSeries = labels.map(l => currentMap[l] || 0);
+                const prevSeries = labels.map(l => prevMap[l] || 0);
+
+                STATE.chartInstance = new ApexCharts(DOM.categoryChart, {
+                    chart: { type: 'bar', height: 300, background: 'transparent', fontFamily: 'Inter, Arial, sans-serif', toolbar: { show: false } },
+                    series: [
+                        { name: Utils.formatMonthShort(month), data: currentSeries },
+                        { name: Utils.formatMonthShort(prevMonth), data: prevSeries },
+                    ],
+                    colors: ['#E67E22', 'rgba(230,126,34,0.35)'],
+                    xaxis: {
+                        categories: labels,
+                        labels: { style: { colors: isLightTheme ? '#555' : '#aaa', fontSize: '11px' }, rotate: -35, trim: true, maxHeight: 80 },
+                    },
+                    yaxis: { labels: { formatter: (v) => Utils.money(v), style: { colors: isLightTheme ? '#555' : '#aaa' } } },
+                    plotOptions: { bar: { borderRadius: 4, columnWidth: '55%' } },
+                    dataLabels: { enabled: false },
+                    legend: { position: 'top', fontSize: '12px', labels: { colors: isLightTheme ? '#555' : '#ccc' } },
+                    tooltip: { theme: themeMode, y: { formatter: (v) => Utils.money(v) } },
+                    grid: { borderColor: isLightTheme ? '#e5e5e5' : 'rgba(255,255,255,0.06)', strokeDashArray: 3 },
+                    theme: { mode: themeMode },
+                });
+            } else {
+                const labels = despesasCat.map(item => item.categoria);
+                const series = despesasCat.map(item => Math.abs(Number(item.valor) || 0));
+
+                STATE.chartInstance = new ApexCharts(DOM.categoryChart, {
+                    chart: {
+                        type: 'donut',
+                        height: 280,
+                        background: 'transparent',
+                        fontFamily: 'Inter, Arial, sans-serif',
+                    },
+                    series,
+                    labels,
+                    colors: palette.slice(0, labels.length),
+                    stroke: { width: 2, colors: [isLightTheme ? '#fff' : '#1e1e1e'] },
+                    plotOptions: {
+                        pie: {
+                            donut: {
+                                size: '60%',
+                                labels: {
                                     show: true,
-                                    label: 'Total',
-                                    formatter: (w) => Utils.money(w.globals.seriesTotals.reduce((a, b) => a + b, 0)),
+                                    value: {
+                                        formatter: (val) => Utils.money(Number(val)),
+                                    },
+                                    total: {
+                                        show: true,
+                                        label: 'Total',
+                                        formatter: (w) => Utils.money(w.globals.seriesTotals.reduce((a, b) => a + b, 0)),
+                                    }
                                 }
                             }
                         }
-                    }
-                },
-                legend: {
-                    position: 'bottom',
-                    fontSize: '13px',
-                    labels: { colors: isLightTheme ? '#555' : '#ccc' },
-                },
-                tooltip: {
-                    theme: themeMode,
-                    y: { formatter: (v) => Utils.money(v) },
-                },
-                dataLabels: { enabled: false },
-                theme: { mode: themeMode },
-            });
+                    },
+                    legend: {
+                        position: 'bottom',
+                        fontSize: '13px',
+                        labels: { colors: isLightTheme ? '#555' : '#ccc' },
+                    },
+                    tooltip: {
+                        theme: themeMode,
+                        y: { formatter: (v) => Utils.money(v) },
+                    },
+                    dataLabels: { enabled: false },
+                    theme: { mode: themeMode },
+                });
+            }
             STATE.chartInstance.render();
         } catch (err) {
             logClientError('Erro ao renderizar gráfico', err, 'Falha ao carregar gráfico');
@@ -1542,6 +1690,19 @@ export const EventListeners = {
         document.addEventListener('lukrato:theme-changed', () => {
             Renderers.renderChart(STATE.currentMonth || Utils.getCurrentMonth());
         });
+
+        // Chart mode toggle (donut vs compare)
+        const chartToggle = document.getElementById('chartToggle');
+        if (chartToggle) {
+            chartToggle.addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-mode]');
+                if (!btn) return;
+                const mode = btn.getAttribute('data-mode');
+                chartToggle.querySelectorAll('.dash-chart-toggle__btn').forEach(b => b.classList.remove('is-active'));
+                btn.classList.add('is-active');
+                Renderers.renderChart(STATE.currentMonth || Utils.getCurrentMonth(), mode);
+            });
+        }
 
         // Initialize guided tour for first-time visitors
         initDashboardTour();

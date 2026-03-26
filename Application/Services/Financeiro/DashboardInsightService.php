@@ -60,7 +60,9 @@ class DashboardInsightService
             'categoria_id' => (int)$r->categoria_id ?: null,
             'conta_id' => (int)$r->conta_id ?: null,
             'categoria' => (string)$r->categoria,
+            'categoria_icone' => (string)($r->categoria_icone ?? ''),
             'conta' => (string)$r->conta,
+            'pago' => (bool)($r->pago ?? false),
         ])->values()->all();
     }
 

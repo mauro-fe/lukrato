@@ -674,3 +674,116 @@
     font-size: var(--font-size-sm);
   }
 }
+
+/* ─── HERO SPARKLINE ──────────────────────────────────────────────────────── */
+.dash-hero__sparkline {
+  max-width: 220px;
+  margin: var(--spacing-3) auto 0;
+  opacity: 0.85;
+}
+
+/* ─── HERO CONTEXT PHRASE ─────────────────────────────────────────────────── */
+.dash-hero__context {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: var(--spacing-3) 0 0;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.dash-hero__context--positive { color: #10b981; }
+.dash-hero__context--neutral  { color: #f59e0b; }
+.dash-hero__context--negative { color: #ef4444; }
+
+/* ─── TRANSACTION DATE GROUP ──────────────────────────────────────────────── */
+.dash-tx-date-group {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  padding: var(--spacing-3) 0 var(--spacing-1);
+}
+
+.dash-tx-date-group:first-child {
+  padding-top: 0;
+}
+
+/* ─── TRANSACTION RIGHT SIDE (amount + badge) ────────────────────────────── */
+.dash-tx__right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+/* ─── TRANSACTION STATUS BADGE ────────────────────────────────────────────── */
+.dash-tx__badge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+.dash-tx__badge--paid {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.dash-tx__badge--pending {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+/* ─── CHART TOGGLE ────────────────────────────────────────────────────────── */
+.dash-chart-toggle {
+  display: inline-flex;
+  gap: 2px;
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+}
+
+.dash-chart-toggle__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  border: none;
+  border-radius: calc(var(--radius-sm) - 2px);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dash-chart-toggle__btn:hover {
+  color: var(--color-text);
+}
+
+.dash-chart-toggle__btn.is-active {
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.dash-chart-toggle__btn i,
+.dash-chart-toggle__btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+@media (max-width: 480px) {
+  .dash-hero__sparkline {
+    max-width: 160px;
+  }
+
+  .dash-tx__badge {
+    display: none;
+  }
+}

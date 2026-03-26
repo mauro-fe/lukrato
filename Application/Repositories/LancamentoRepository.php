@@ -827,9 +827,10 @@ class LancamentoRepository extends BaseRepository
             ->orderBy('l.id', 'desc')
             ->limit($limit)
             ->selectRaw('
-            l.id, l.data, l.tipo, l.valor, l.descricao,
+            l.id, l.data, l.tipo, l.valor, l.descricao, l.pago,
             l.categoria_id, l.conta_id,
             COALESCE(c.nome, "") as categoria,
+            COALESCE(c.icone, "") as categoria_icone,
             COALESCE(a.nome, a.instituicao, "") as conta
         ')
             ->get();

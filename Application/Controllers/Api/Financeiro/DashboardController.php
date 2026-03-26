@@ -194,13 +194,15 @@ class DashboardController extends BaseController
 
         $categoriaIds = $rows->pluck('categoria_id')->filter()->all();
         $categorias = Categoria::whereIn('id', $categoriaIds)
-            ->pluck('nome', 'id')
-            ->toArray();
+            ->get(['id', 'nome', 'icone'])
+            ->keyBy('id');
 
         return $rows->map(function ($row) use ($categorias) {
             $catId = $row->categoria_id;
+            $cat = $categorias[$catId] ?? null;
             return [
-                'categoria' => $categorias[$catId] ?? 'Sem categoria',
+                'categoria' => $cat->nome ?? 'Sem categoria',
+                'icone' => $cat->icone ?? null,
                 'valor' => (float) $row->total,
             ];
         })->sortByDesc('valor')->values()->toArray();
