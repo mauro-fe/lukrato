@@ -1,0 +1,87 @@
+/* ─── HERO ────────────────────────────────────────────────────────────────── */
+
+.lan-hero {
+  text-align: center;
+  padding: var(--spacing-8) var(--spacing-5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.20),
+    0 20px 40px rgba(0, 0, 0, 0.25);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.lan-hero:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.25),
+    0 30px 60px rgba(0, 0, 0, 0.30);
+}
+
+.lan-hero-eyebrow {
+  display: block;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-2);
+}
+
+.lan-hero-title {
+  margin: 0 0 var(--spacing-2);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.lan-hero-subtitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  max-width: 520px;
+  margin-inline: auto;
+  line-height: 1.5;
+}
+
+/* Hero dynamic stats */
+.lan-hero-dynamic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-5);
+  margin-top: var(--spacing-5);
+  padding-top: var(--spacing-5);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  flex-wrap: wrap;
+}
+
+.lan-hero-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.lan-hero-stat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.lan-hero-stat.total .lan-hero-stat-dot { background: var(--color-primary); }
+.lan-hero-stat.receitas .lan-hero-stat-dot { background: var(--color-success); }
+.lan-hero-stat.despesas .lan-hero-stat-dot { background: var(--color-danger); }
+
+.lan-hero-stat .stat-value {
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.lan-hero-stat.receitas .stat-value { color: var(--color-success); }
+.lan-hero-stat.despesas .stat-value { color: var(--color-danger); }

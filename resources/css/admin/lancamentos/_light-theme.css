@@ -1,0 +1,149 @@
+/* ─── LIGHT THEME ADJUSTMENTS ─────────────────────────────────────────────── */
+
+:root[data-theme="light"] .lan-hero,
+:root[data-theme="light"] .lan-summary-card,
+:root[data-theme="light"] .modern-card,
+:root[data-theme="light"] .lk-filters-section,
+:root[data-theme="light"] .modern-table-wrapper {
+  border-color: var(--color-card-border);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+:root[data-theme="light"] .lan-hero:hover,
+:root[data-theme="light"] .lan-summary-card:hover,
+:root[data-theme="light"] .modern-card:hover {
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.08),
+    0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .lk-filter-search-input,
+:root[data-theme="light"] .lk-filter-chip-select,
+:root[data-theme="light"] .lk-filter-clear-btn,
+:root[data-theme="light"] .lk-period-preset-btn,
+:root[data-theme="light"] .lk-period-month-btn,
+:root[data-theme="light"] .modern-input,
+:root[data-theme="light"] .modern-select,
+:root[data-theme="light"] .lk-filter-date-input,
+:root[data-theme="light"] .page-size-select,
+:root[data-theme="light"] .pagination-btn,
+:root[data-theme="light"] .lan-pager-btn,
+:root[data-theme="light"] .pager-btn,
+:root[data-theme="light"] .icon-btn,
+:root[data-theme="light"] .card-collapse-btn,
+:root[data-theme="light"] .modern-btn:not(.primary):not(.danger),
+:root[data-theme="light"] .lk-selection-clear-btn,
+:root[data-theme="light"] .lk-feed-sort-btn,
+:root[data-theme="light"] #pageNumbers button {
+  border-color: var(--color-card-border);
+}
+
+/* Card feed — light theme */
+:root[data-theme="light"] .lk-txn-card {
+  background: var(--color-surface);
+  border-color: var(--color-card-border);
+}
+
+:root[data-theme="light"] .lk-txn-card:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 30%, var(--color-card-border));
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+:root[data-theme="light"] .lk-txn-card.selected {
+  background: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface));
+  border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+:root[data-theme="light"] .lk-feed-toolbar {
+  border-bottom-color: var(--color-card-border);
+}
+
+:root[data-theme="light"] .lk-txn-expand-btn {
+  border-top-color: var(--color-card-border);
+}
+
+:root[data-theme="light"] .lk-txn-detail-panel {
+  border-top-color: var(--color-card-border);
+  background: color-mix(in srgb, var(--color-primary) 2%, var(--color-surface));
+}
+
+:root[data-theme="light"] .lk-detail-chip {
+  background: var(--color-surface-muted);
+  border-color: var(--color-card-border);
+}
+
+:root[data-theme="light"] .lk-feed-date-line {
+  background: linear-gradient(to right,
+    color-mix(in srgb, var(--color-primary) 20%, var(--color-card-border)),
+    transparent 80%);
+}
+
+:root[data-theme="light"] .card-header-icon,
+:root[data-theme="light"] .export-card-toolbar,
+:root[data-theme="light"] .lk-filters-section-head,
+:root[data-theme="light"] .lk-filters-row-secondary,
+:root[data-theme="light"] .lk-period-advanced,
+:root[data-theme="light"] .lk-active-filters,
+:root[data-theme="light"] .table-header-info,
+:root[data-theme="light"] .lk-table-context,
+:root[data-theme="light"] .lk-pagination,
+:root[data-theme="light"] .lan-hero-dynamic {
+  border-color: var(--color-card-border);
+}
+
+:root[data-theme="light"] .lk-dropdown-menu,
+:root[data-theme="light"] .lk-custom-select-menu,
+:root[data-theme="light"] .parcelas-modal {
+  border-color: var(--color-card-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  background: var(--color-surface);
+}
+
+:root[data-theme="light"] .lk-custom-select-trigger {
+  background: var(--color-surface);
+}
+
+:root[data-theme="light"] .lk-custom-select-trigger:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 40%, var(--color-card-border));
+}
+
+:root[data-theme="light"] .lk-custom-select.is-open .lk-custom-select-trigger {
+  border-color: var(--color-primary);
+}
+
+:root[data-theme="light"] .lk-custom-select-option:hover,
+:root[data-theme="light"] .lk-custom-select-option:focus-visible {
+  background: var(--color-surface-muted);
+}
+
+:root[data-theme="light"] .lk-dropdown-trigger {
+  background: var(--color-surface);
+  border-color: var(--color-card-border);
+  color: var(--color-text-muted);
+}
+
+:root[data-theme="light"] .lk-dropdown-trigger:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
+:root[data-theme="light"] .lk-dropdown-item:hover {
+  background: var(--color-surface-muted);
+}
+
+:root[data-theme="light"] .lan-cards-header {
+  background: var(--color-surface-muted);
+  border-color: var(--color-card-border);
+}
+
+:root[data-theme="light"] .lan-card {
+  border-color: var(--color-card-border);
+}
+
+:root[data-theme="light"] .lan-card + .lan-card {
+  border-top-color: var(--color-card-border);
+}

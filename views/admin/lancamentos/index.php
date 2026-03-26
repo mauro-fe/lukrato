@@ -1,5 +1,4 @@
-<!-- CSS Lancamentos — Fintech Clean Design -->
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/admin-lancamentos-index.css?v=<?= time() ?>">
+<!-- CSS Lancamentos — carregado via Vite (import no JS entry) -->
 
 <?php $isPro = $isPro ?? false; ?>
 
@@ -277,46 +276,37 @@
                 </div>
             </div>
 
-            <!-- Desktop table -->
+            <!-- Feed de lançamentos -->
             <div class="lan-table-container">
                 <section class="table-container tab-desktop">
-                    <div class="lk-table-wrapper">
-                        <table class="lk-table" id="lancamentosTable">
-                            <thead>
-                                <tr>
-                                    <th class="th-checkbox">
-                                        <input type="checkbox" id="selectAllLancamentos" class="lk-checkbox" title="Selecionar itens da pagina atual" aria-label="Selecionar itens da pagina atual">
-                                    </th>
-                                    <th class="th-expand"></th>
-                                    <th class="th-data sortable" data-sort="data">
-                                        <span>Data</span><i data-lucide="arrow-up-down" class="sort-icon"></i>
-                                    </th>
-                                    <th class="th-tipo sortable" data-sort="tipo">
-                                        <span>Tipo</span><i data-lucide="arrow-up-down" class="sort-icon"></i>
-                                    </th>
-                                    <th class="th-descricao">Descricao</th>
-                                    <th class="th-categoria">Categoria</th>
-                                    <th class="th-valor sortable" data-sort="valor">
-                                        <span>Valor</span><i data-lucide="arrow-up-down" class="sort-icon"></i>
-                                    </th>
-                                    <th class="th-tags">Sinais</th>
-                                    <th class="th-pago-em">Status</th>
-                                    <th class="th-acoes">Acoes</th>
-                                </tr>
-                            </thead>
-                            <tbody id="lancamentosTableBody">
-                                <tr class="lk-loading-row">
-                                    <td colspan="10" style="text-align:center;padding:3rem 1rem;">
-                                        <div class="lk-loading-state">
-                                            <div class="spinner-border" role="status" style="width:2rem;height:2rem;color:var(--color-primary);">
-                                                <span class="visually-hidden">Carregando...</span>
-                                            </div>
-                                            <p style="margin:1rem 0 0;color:var(--color-text-muted);font-size:0.9rem;">Carregando lancamentos...</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+
+                    <!-- Sort & Select controls -->
+                    <div class="lk-feed-toolbar">
+                        <div class="lk-feed-sort-controls">
+                            <button type="button" class="lk-feed-sort-btn active sortable" data-sort="data">
+                                <i data-lucide="calendar"></i><span>Data</span><i data-lucide="arrow-up-down" class="sort-icon"></i>
+                            </button>
+                            <button type="button" class="lk-feed-sort-btn sortable" data-sort="valor">
+                                <i data-lucide="dollar-sign"></i><span>Valor</span><i data-lucide="arrow-up-down" class="sort-icon"></i>
+                            </button>
+                            <button type="button" class="lk-feed-sort-btn sortable" data-sort="tipo">
+                                <i data-lucide="tag"></i><span>Tipo</span><i data-lucide="arrow-up-down" class="sort-icon"></i>
+                            </button>
+                        </div>
+                        <label class="lk-feed-select-all">
+                            <input type="checkbox" id="selectAllLancamentos" class="lk-checkbox" title="Selecionar itens da pagina atual" aria-label="Selecionar itens da pagina atual">
+                            <span>Selecionar todos</span>
+                        </label>
+                    </div>
+
+                    <!-- Transaction feed -->
+                    <div class="lk-feed" id="lancamentosFeed" role="list">
+                        <div class="lk-feed-loading">
+                            <div class="spinner-border" role="status" style="width:2rem;height:2rem;color:var(--color-primary);">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                            <p>Carregando lancamentos...</p>
+                        </div>
                     </div>
 
                     <div class="lk-pagination" id="desktopPagination">

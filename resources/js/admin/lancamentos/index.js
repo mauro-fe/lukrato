@@ -1,4 +1,5 @@
-﻿import { CONFIG, DOM, initDOM, STATE, Utils, MoneyMask, Notifications, Modules } from './state.js';
+﻿import '../../../css/admin/lancamentos/index.css';
+import { CONFIG, DOM, initDOM, STATE, Utils, MoneyMask, Notifications, Modules } from './state.js';
 import { TableManager } from './table.js';
 import { MobileCards } from './mobile.js';
 import { OptionsManager, ModalManager } from './modal.js';

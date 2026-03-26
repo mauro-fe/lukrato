@@ -1,0 +1,84 @@
+/* ─── SUMMARY STRIP ───────────────────────────────────────────────────────── */
+
+.lan-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-4);
+}
+
+.lan-summary-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.20),
+    0 20px 40px rgba(0, 0, 0, 0.25);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.lan-summary-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.25),
+    0 30px 60px rgba(0, 0, 0, 0.30);
+}
+
+.lan-summary-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.lan-summary-icon i,
+.lan-summary-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.lan-summary-card.receitas .lan-summary-icon {
+  background: color-mix(in srgb, var(--color-success) 15%, transparent);
+  color: var(--color-success);
+}
+
+.lan-summary-card.despesas .lan-summary-icon {
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  color: var(--color-danger);
+}
+
+.lan-summary-card.saldo .lan-summary-icon {
+  background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  color: var(--color-primary);
+}
+
+.lan-summary-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.lan-summary-label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.lan-summary-value {
+  font-size: var(--font-size-lg);
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+}
+
+.lan-summary-card.receitas .lan-summary-value { color: var(--color-success); }
+.lan-summary-card.despesas .lan-summary-value { color: var(--color-danger); }

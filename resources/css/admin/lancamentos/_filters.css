@@ -1,0 +1,337 @@
+/* ─── FILTERS SECTION ─────────────────────────────────────────────────────── */
+
+.lk-filters-section {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.20),
+    0 20px 40px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.lk-filters-section-head {
+  padding: var(--spacing-5);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.lk-filters-title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.lk-filters-subtitle {
+  margin: 2px 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.lk-filters-bar {
+  padding: var(--spacing-4) var(--spacing-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.lk-filters-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+}
+
+.lk-filters-row-secondary {
+  padding-top: var(--spacing-3);
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* Search */
+.lk-filter-search {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+}
+
+.lk-filter-search-icon {
+  position: absolute;
+  left: var(--spacing-3);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.lk-filter-search-input {
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-4) var(--spacing-3) 2.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lk-filter-search-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.lk-filter-search-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.12);
+}
+
+/* Filter chip selects */
+.lk-filter-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.lk-filter-chip-select {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full);
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  position: relative;
+}
+
+.lk-filter-chip-select:hover {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
+.lk-filter-chip-select i,
+.lk-filter-chip-select svg {
+  width: 14px;
+  height: 14px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.lk-filter-native {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  padding: 0;
+  padding-right: var(--spacing-4);
+  min-width: 70px;
+}
+
+.lk-filter-native option {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+/* Clear button */
+.lk-filter-clear-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.lk-filter-clear-btn:hover {
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.lk-filter-clear-btn i,
+.lk-filter-clear-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Period presets */
+.lk-period-presets {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.lk-period-preset-btn {
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.lk-period-preset-btn:hover,
+.lk-period-preset-btn.active {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+
+.lk-period-month-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.lk-period-month-btn i,
+.lk-period-month-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.lk-period-month-btn:hover {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+
+.lk-period-month-btn.is-secondary:hover {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* Advanced period */
+.lk-period-advanced {
+  padding: var(--spacing-4) 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.lk-period-filter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.lk-period-filter-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-primary);
+}
+
+.lk-period-filter-label i,
+.lk-period-filter-label svg {
+  width: 14px;
+  height: 14px;
+}
+
+.lk-period-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-3);
+}
+
+.lk-period-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.lk-period-field-label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.lk-filter-date-input {
+  width: 100%;
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lk-filter-date-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.12);
+}
+
+/* Active filter badges */
+.lk-active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  padding-top: var(--spacing-3);
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.lk-filter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: 0.3rem var(--spacing-3);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  animation: fadeIn 0.2s ease;
+}
+
+.lk-filter-badge-remove {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
+  color: var(--color-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  padding: 0;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.lk-filter-badge-remove:hover {
+  background: var(--color-primary);
+  color: #fff;
+}

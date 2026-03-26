@@ -41,9 +41,9 @@ export function initDOM() {
     DOM.lanSummaryReceitas = document.getElementById('lanSummaryReceitas');
     DOM.lanSummaryDespesas = document.getElementById('lanSummaryDespesas');
     DOM.lanSummarySaldo = document.getElementById('lanSummarySaldo');
-    // Tabela
-    DOM.tabContainer = document.getElementById('lancamentosTable');
-    DOM.tableBody = document.getElementById('lancamentosTableBody');
+    // Feed (replaces table)
+    DOM.tabContainer = document.getElementById('lancamentosFeed');
+    DOM.tableBody = document.getElementById('lancamentosFeed');
     DOM.selectAllCheckbox = document.getElementById('selectAllLancamentos');
     DOM.paginationInfo = document.getElementById('paginationInfo');
     DOM.pageSize = document.getElementById('pageSize');
