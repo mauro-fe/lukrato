@@ -1,123 +1,137 @@
-<div class="cont-page">
-    <section class="contas-hero" id="contasHero" aria-live="polite">
-        <div class="contas-hero-main">
-            <span class="contas-section-eyebrow">Visao consolidada</span>
-            <h1 class="contas-hero-title">Seu dinheiro total</h1>
-            <div class="contas-hero-value" id="saldoTotal">R$ 0,00</div>
+<section class="cont-page">
 
-            <div class="contas-hero-meta">
-                <article class="contas-hero-meta-item">
-                    <span class="contas-hero-meta-label">Distribuido em</span>
-                    <strong class="contas-hero-meta-value" id="totalContas">0 contas</strong>
-                </article>
-                <article class="contas-hero-meta-item">
-                    <span class="contas-hero-meta-label" id="saldoReservas">R$ 0,00</span>
-                    <strong class="contas-hero-meta-value">estao guardados</strong>
-                </article>
-            </div>
+    <!-- ============================================================
+         HERO — Saldo consolidado (igual dashboard-hero-section)
+         ============================================================ -->
+    <section class="cont-hero" id="contasHero" aria-live="polite">
+        <span class="cont-hero__eyebrow">Visão consolidada</span>
+        <h1 class="cont-hero__title">Seu dinheiro total</h1>
+        <div class="cont-hero__balance" id="saldoTotal">R$ 0,00</div>
 
-            <div class="contas-hero-insight">
-                <div class="contas-hero-insight-icon">
-                    <i data-lucide="sparkles"></i>
-                </div>
-                <div class="contas-hero-insight-copy">
-                    <p class="contas-hero-insight-title" id="contasContextTitle">Sua maior parte do dinheiro aparece aqui.</p>
-                    <p class="contas-hero-insight-text" id="contasContextDescription">
-                        Assim que suas contas carregarem, voce ve onde o dinheiro esta concentrado e se vale distribuir melhor.
-                    </p>
-                </div>
-            </div>
+        <div class="cont-hero__meta">
+            <span class="cont-hero__meta-item">
+                Distribuído em <strong id="totalContas">0 contas</strong>
+            </span>
+            <span class="cont-hero__meta-divider">·</span>
+            <span class="cont-hero__meta-item">
+                <strong id="saldoReservas">R$ 0,00</strong> guardados
+            </span>
         </div>
 
-        <aside class="contas-hero-side">
-            <article class="contas-side-card contas-side-card--featured">
-                <span class="contas-side-card-label">Conta principal</span>
-                <strong class="contas-side-card-title" id="contasMainAccountName">Nenhuma conta</strong>
-                <span class="contas-side-card-value" id="contasMainAccountValue">R$ 0,00</span>
-                <span class="contas-side-card-copy" id="contasMainAccountShare">0% do seu dinheiro esta aqui</span>
-            </article>
-
-            <article class="contas-side-card">
-                <span class="contas-side-card-label">Reserva acumulada</span>
-                <strong class="contas-side-card-title" id="contasReserveLabel">R$ 0,00 guardados</strong>
-                <span class="contas-side-card-copy" id="contasReserveShare">0% do total esta em reserva</span>
-            </article>
-        </aside>
-    </section>
-
-    <section class="contas-distribution-card" id="contasDistributionCard" aria-live="polite">
-        <div class="contas-section-heading">
+        <div class="cont-hero__insight">
+            <i data-lucide="sparkles"></i>
             <div>
-                <span class="contas-section-eyebrow">Distribuicao</span>
-                <h2 class="contas-section-title">Onde seu dinheiro esta</h2>
-                <p class="contas-section-copy" id="contasDistributionSummary">
-                    Veja como seus saldos positivos estao distribuidos por tipo de conta.
+                <p class="cont-hero__insight-title" id="contasContextTitle">Sua maior parte do dinheiro aparece aqui.</p>
+                <p class="cont-hero__insight-desc" id="contasContextDescription">
+                    Assim que suas contas carregarem, você vê onde o dinheiro está concentrado e se vale distribuir melhor.
                 </p>
             </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         KPIs — Conta principal · Reserva (estilo dash-kpis)
+         ============================================================ -->
+    <section class="cont-kpis">
+        <article class="cont-kpi">
+            <div class="cont-kpi__icon cont-kpi__icon--primary">
+                <i data-lucide="crown"></i>
+            </div>
+            <div class="cont-kpi__body">
+                <span class="cont-kpi__label">Conta principal</span>
+                <strong class="cont-kpi__value" id="contasMainAccountName">Nenhuma conta</strong>
+                <span class="cont-kpi__sub" id="contasMainAccountValue">R$ 0,00</span>
+                <span class="cont-kpi__detail" id="contasMainAccountShare">0% do seu dinheiro está aqui</span>
+            </div>
+        </article>
+
+        <article class="cont-kpi">
+            <div class="cont-kpi__icon cont-kpi__icon--reserve">
+                <i data-lucide="shield-check"></i>
+            </div>
+            <div class="cont-kpi__body">
+                <span class="cont-kpi__label">Reserva acumulada</span>
+                <strong class="cont-kpi__value" id="contasReserveLabel">R$ 0,00 guardados</strong>
+                <span class="cont-kpi__detail" id="contasReserveShare">0% do total está em reserva</span>
+            </div>
+        </article>
+    </section>
+
+    <!-- ============================================================
+         DISTRIBUIÇÃO — Onde seu dinheiro está
+         ============================================================ -->
+    <section class="cont-distribution" id="contasDistributionCard" aria-live="polite">
+        <div class="cont-section-header">
+            <span class="cont-section__eyebrow">Distribuição</span>
+            <h2 class="cont-section__title">Onde seu dinheiro está</h2>
+            <p class="cont-section__desc" id="contasDistributionSummary">
+                Veja como seus saldos positivos estão distribuídos por tipo de conta.
+            </p>
         </div>
 
         <div class="contas-distribution-list" id="contasDistributionList">
             <div class="contas-distribution-empty">
                 <i data-lucide="wallet"></i>
-                <span>Assim que houver saldo nas contas, a distribuicao aparece aqui.</span>
+                <span>Assim que houver saldo nas contas, a distribuição aparece aqui.</span>
             </div>
         </div>
     </section>
 
-    <div class="lk-accounts-wrap" data-aos="fade-up">
-        <div class="lk-acc-header">
-            <div class="lk-acc-heading">
-                <span class="contas-section-eyebrow">Contas</span>
-                <h2 class="contas-section-title" id="contasListTitle">Suas contas ativas</h2>
-                <p class="contas-section-copy" id="contasListDescription">
+    <!-- ============================================================
+         CONTAS — Lista principal
+         ============================================================ -->
+    <section class="cont-list-section">
+        <div class="cont-list-header">
+            <div class="cont-list-heading">
+                <span class="cont-section__eyebrow">Contas</span>
+                <h2 class="cont-section__title" id="contasListTitle">Suas contas ativas</h2>
+                <p class="cont-section__desc" id="contasListDescription">
                     A conta com maior saldo aparece primeiro para facilitar sua leitura.
                 </p>
             </div>
 
-            <div class="lk-acc-header-controls">
-                <div class="lk-acc-actions">
+            <div class="cont-list-controls">
+                <div class="cont-list-actions">
                     <button class="btn btn-primary" id="btnNovaConta" aria-label="Criar nova conta">
                         <i data-lucide="plus"></i> Nova conta
                     </button>
-
                     <button class="btn btn-ghost" id="btnReload" aria-label="Recarregar contas" title="Atualizar lista">
                         <i data-lucide="refresh-cw"></i>
                     </button>
                 </div>
 
-                <div class="lk-acc-right">
+                <div class="cont-list-right">
                     <div class="view-toggle" id="viewToggle">
-                        <button class="view-btn active" data-view="grid" title="Visualizacao em cards">
+                        <button class="view-btn active" data-view="grid" title="Visualização em cards">
                             <i data-lucide="layout-grid"></i>
                         </button>
-                        <button class="view-btn" data-view="list" title="Visualizacao compacta">
+                        <button class="view-btn" data-view="list" title="Visualização compacta">
                             <i data-lucide="list"></i>
                         </button>
                     </div>
-
-                    <a class="btn btn-light" href="<?= BASE_URL ?>contas/arquivadas" aria-label="Ver contas arquivadas">
+                    <a class="btn btn-ghost" href="<?= BASE_URL ?>contas/arquivadas" aria-label="Ver contas arquivadas">
                         <i data-lucide="archive"></i> Arquivadas
                     </a>
                 </div>
             </div>
         </div>
 
+        <!-- Toolbar — Busca + Filtro -->
         <div class="contas-toolbar">
             <div class="contas-search-wrapper">
                 <i data-lucide="search" class="contas-search-icon"></i>
                 <input type="text" id="contasSearchInput" class="contas-search-input"
-                    placeholder="Buscar conta, instituicao ou tipo..." autocomplete="off" />
+                    placeholder="Buscar conta, instituição ou tipo..." autocomplete="off" />
                 <button type="button" id="contasSearchClear" class="contas-search-clear d-none" title="Limpar busca">
                     <i data-lucide="x"></i>
                 </button>
             </div>
-
             <div class="contas-filter-wrapper">
                 <label class="visually-hidden" for="contasTypeFilter">Filtrar por tipo</label>
                 <select id="contasTypeFilter" class="contas-type-filter" aria-label="Filtrar contas por tipo">
                     <option value="all">Todos os tipos</option>
                     <option value="conta_corrente">Conta corrente</option>
-                    <option value="conta_poupanca">Poupanca</option>
+                    <option value="conta_poupanca">Poupança</option>
                     <option value="conta_investimento">Reserva</option>
                     <option value="carteira_digital">Carteira digital</option>
                     <option value="dinheiro">Dinheiro</option>
@@ -127,34 +141,33 @@
 
         <div class="contas-filter-summary" id="contasFilterSummary" aria-live="polite"></div>
 
-        <div class="lk-card">
-            <div id="contasListHeader" class="contas-list-header">
-                <span></span>
-                <span>Conta</span>
-                <span>% do total</span>
-                <span>Valor</span>
-                <span>Acoes</span>
-            </div>
-
-            <div class="acc-grid" id="accountsGrid" aria-live="polite" aria-busy="true">
-                <div class="lk-skeleton lk-skeleton--card" aria-hidden="true"></div>
-                <div class="lk-skeleton lk-skeleton--card" aria-hidden="true"></div>
-                <div class="lk-skeleton lk-skeleton--card" aria-hidden="true"></div>
-            </div>
-
-            <noscript>
-                <div class="empty-state" style="text-align:center;padding:3rem 1rem;">
-                    <div class="empty-icon" style="font-size:3rem;margin-bottom:1rem;">
-                        <i data-lucide="wallet" style="color:var(--color-primary);"></i>
-                    </div>
-                    <h3 style="color:var(--color-text);margin-bottom:0.5rem;">JavaScript necessario</h3>
-                    <p style="color:var(--color-text-muted);">
-                        Ative o JavaScript no seu navegador para visualizar suas contas.
-                    </p>
-                </div>
-            </noscript>
+        <!-- List-view header -->
+        <div id="contasListHeader" class="contas-list-header">
+            <span></span>
+            <span>Conta</span>
+            <span>% do total</span>
+            <span>Valor</span>
+            <span>Ações</span>
         </div>
-    </div>
-</div>
+
+        <!-- Grid de contas -->
+        <div class="acc-grid" id="accountsGrid" aria-live="polite" aria-busy="true">
+            <div class="lk-skeleton lk-skeleton--card" aria-hidden="true"></div>
+            <div class="lk-skeleton lk-skeleton--card" aria-hidden="true"></div>
+            <div class="lk-skeleton lk-skeleton--card" aria-hidden="true"></div>
+        </div>
+
+        <noscript>
+            <div class="empty-state" style="text-align:center;padding:3rem 1rem;">
+                <div class="empty-icon" style="font-size:3rem;margin-bottom:1rem;">
+                    <i data-lucide="wallet" style="color:var(--color-primary);"></i>
+                </div>
+                <h3 style="color:var(--color-text);margin-bottom:0.5rem;">JavaScript necessário</h3>
+                <p style="color:var(--color-text-muted);">Ative o JavaScript no navegador para visualizar suas contas.</p>
+            </div>
+        </noscript>
+    </section>
+
+</section>
 
 <?php include __DIR__ . '/../partials/modals/modal-contas.php'; ?>

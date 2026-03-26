@@ -1355,12 +1355,12 @@ export const Provisao = {
         const headlineEl = document.getElementById('provisaoHeadline');
 
         if (titleSummaryEl) {
-            titleSummaryEl.textContent = `Se continuar assim, voce termina o mes com ${money(p.saldo_projetado || 0)}`;
+            titleSummaryEl.textContent = `Se continuar assim, você termina o mês com ${money(p.saldo_projetado || 0)}`;
         }
 
         if (headlineEl) {
             headlineEl.textContent = (p.saldo_projetado || 0) >= 0
-                ? 'A previsao abaixo considera seu saldo atual, o que ainda vai entrar e o que ainda vai sair.'
+                ? 'A previsão abaixo considera seu saldo atual, o que ainda vai entrar e o que ainda vai sair.'
                 : 'A previsao indica aperto no fim do mes se o ritmo atual continuar.';
         }
 

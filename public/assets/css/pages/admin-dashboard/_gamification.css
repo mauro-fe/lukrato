@@ -12,6 +12,7 @@
   transform: translateY(0);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
   container-type: inline-size;
+  min-width: 0;
 }
 
 .gamification-section:hover {

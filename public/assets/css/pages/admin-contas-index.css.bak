@@ -1,0 +1,2799 @@
+
+
+/* ============================================================================
+   LAYOUT PRINCIPAL
+   ============================================================================ */
+
+.cont-page {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--spacing-5);
+  padding: 0 var(--spacing-4);
+}
+
+.contas-context-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr);
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-6);
+  padding: var(--spacing-5);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  background:var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  box-shadow: var(--shadow-lg);
+}
+
+.contas-context-copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.contas-context-kicker {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.contas-context-title {
+  margin: 0;
+  color: var(--color-text);
+  font-size: clamp(1.2rem, 1rem + 0.5vw, 1.65rem);
+  line-height: 1.1;
+}
+
+.contas-context-description {
+  margin: 0;
+  color: var(--color-text-muted);
+  max-width: 62ch;
+}
+
+.contas-context-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-3);
+}
+
+.contas-context-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--spacing-3);
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 75%, transparent);
+  background:var(--color-bg);
+}
+
+.contas-context-metric-value {
+  font-size: clamp(1.1rem, 0.95rem + 0.5vw, 1.5rem);
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.contas-context-metric-label {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.contas-context-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  grid-column: 1 / -1;
+}
+
+.contas-context-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-text-muted) 10%, transparent);
+}
+
+.contas-context-chip.info {
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 18%, transparent);
+}
+
+.contas-context-chip.success {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-success) 18%, transparent);
+}
+
+.contas-context-chip.warning {
+  color: #f59e0b;
+  background: color-mix(in srgb, #f59e0b 12%, transparent);
+  border-color: color-mix(in srgb, #f59e0b 18%, transparent);
+}
+
+.contas-context-chip.neutral {
+  color: var(--color-text-muted);
+  border-color: color-mix(in srgb, var(--color-text-muted) 18%, transparent);
+}
+
+.contas-context-chip.accent {
+  color: #8b5cf6;
+  background: color-mix(in srgb, #8b5cf6 12%, transparent);
+  border-color: color-mix(in srgb, #8b5cf6 18%, transparent);
+}
+
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-5);
+  margin-bottom: var(--spacing-8);
+}
+
+.stat-card {
+  background: var(--glass-bg) !important;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6);
+  text-align: center;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--glass-border);
+  transition: var(--transition-smooth);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.5s !important;
+}
+
+.stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-primary));
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+  border-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
+}
+
+.stat-card:hover::before {
+  opacity: 1;
+}
+
+.stat-icon {
+  font-size: 2.5rem;
+  margin-bottom: var(--spacing-3);
+  color: var(--color-primary);
+  opacity: 0.8;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-2);
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+/* ============================================================================
+   CONTAINER DE CONTAS
+   ============================================================================ */
+
+.lk-accounts-wrap {
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-backdrop);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-8);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--glass-border);
+  margin-bottom: var(--spacing-10);
+  transition: var(--transition-smooth);
+}
+
+.lk-accounts-wrap:hover {
+  box-shadow: var(--shadow-2xl);
+}
+
+.contas-toolbar {
+  display: flex;
+  gap: var(--spacing-3);
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-4);
+}
+
+.contas-search-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+}
+
+.contas-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.contas-search-input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 42px 0 38px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  background: var(--color-bg) !important;
+  color: var(--color-text);
+}
+
+.contas-search-input:focus,
+.contas-type-filter:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
+}
+
+.contas-search-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-text-muted);
+  color: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.contas-filter-wrapper {
+  min-width: 220px;
+}
+
+.contas-type-filter {
+  min-height: 42px;
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  padding: 0 12px;
+}
+
+.contas-filter-summary {
+  min-height: 24px;
+  margin-bottom: var(--spacing-4);
+}
+
+.contas-filter-summary-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: var(--color-text-muted);
+  font-size: 0.84rem;
+}
+
+.contas-filter-summary-text svg {
+  width: 15px;
+  height: 15px;
+  color: var(--color-primary);
+}
+
+.contas-filter-summary-text.error,
+.contas-filter-summary-text.error svg {
+  color: var(--color-danger);
+}
+
+.contas-inline-action {
+  border: none;
+  background: transparent;
+  color: var(--color-primary);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Header */
+.lk-acc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-5);
+  margin-bottom: var(--spacing-8);
+  flex-wrap: wrap;
+}
+
+.lk-acc-actions {
+  display: flex;
+  gap: var(--spacing-3);
+}
+
+.lk-acc-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+/* ============================================================================
+   GRID DE CONTAS
+   ============================================================================ */
+
+.acc-grid {
+  display: grid;
+  gap: var(--spacing-5);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  padding: var(--spacing-4);
+  transition: all 0.3s ease;
+}
+
+/* ============================================================================
+   LIST VIEW - CONTAS
+   ============================================================================ */
+
+/* Headers da lista */
+.contas-list-header {
+  display: none;
+}
+
+.contas-list-header.visible {
+  display: grid !important;
+  grid-template-columns: 80px 1fr 120px 100px 140px auto !important;
+  align-items: center !important;
+  padding: 0.75rem 0.5rem !important;
+  font-size: 0.7rem !important;
+  font-weight: 600 !important;
+  color: var(--color-text-muted) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  border-bottom: 1px solid var(--glass-border) !important;
+  gap: 1rem !important;
+  margin-bottom: 0.5rem !important;
+  background: var(--glass-bg) !important;
+  border-radius: 8px 8px 0 0 !important;
+}
+
+.contas-list-header span {
+  padding: 0 0.5rem;
+}
+
+.contas-list-header span:first-child {
+  padding-left: 0;
+  text-align: center;
+}
+
+.contas-list-header span:last-child {
+  text-align: right;
+  padding-right: 1rem;
+}
+
+.acc-grid.list-view {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.acc-grid.list-view .account-card {
+  display: grid;
+  grid-template-columns: 80px 1fr 120px 100px 140px auto;
+  align-items: center;
+  gap: 1rem;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.acc-grid.list-view .account-card .account-header {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 80px;
+  padding: 1rem;
+  min-height: auto;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.acc-grid.list-view .account-card .account-logo {
+  width: 48px;
+  height: 48px;
+  padding: 6px;
+}
+
+.acc-grid.list-view .account-card .account-actions {
+  display: none !important;
+}
+
+.account-list-actions {
+  display: none;
+}
+
+.acc-grid.list-view .account-card .account-list-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding-right: 1rem;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.acc-grid.list-view .account-card .account-body {
+  display: contents;
+}
+
+.acc-grid.list-view .account-card .account-name {
+  font-size: 1rem;
+  margin: 0;
+  padding: 0 0.5rem;
+}
+
+.acc-grid.list-view .account-card .account-institution {
+  font-size: 0.85rem;
+  padding: 0 0.5rem;
+  color: var(--color-text-muted);
+}
+
+.acc-grid.list-view .account-card .account-balance {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  padding: 0 0.5rem;
+  text-align: right;
+}
+
+.acc-grid.list-view .account-card .account-info {
+  display: none;
+}
+
+/* Badge do tipo de conta */
+.account-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.85rem;
+  background: color-mix(in srgb, var(--color-text-muted) 10%, transparent);
+  color: var(--color-text-muted);
+}
+
+/* Badge tipo de conta para list view */
+.acc-grid.list-view .account-card .account-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  border-radius: 4px;
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.acc-grid.list-view .account-card .account-type-badge.tipo-corrente {
+  background: var(--color-bg);
+
+  color: #3b82f6;
+}
+
+.acc-grid.list-view .account-card .account-type-badge.tipo-poupanca {
+  background: var(--color-bg);
+
+  color: #10b981;
+}
+
+.acc-grid.list-view .account-card .account-type-badge.tipo-investimento {
+  background: var(--color-bg);
+
+  color: #8b5cf6;
+}
+
+.acc-grid.list-view .account-card .account-type-badge.tipo-carteira {
+  background: var(--color-bg);
+
+  color: #f59e0b;
+}
+
+.account-type-badge.tipo-corrente {
+  color: #3b82f6;
+  background: color-mix(in srgb, #3b82f6 12%, transparent);
+}
+
+.account-type-badge.tipo-poupanca {
+  color: #10b981;
+  background: color-mix(in srgb, #10b981 12%, transparent);
+}
+
+.account-type-badge.tipo-investimento {
+  color: #8b5cf6;
+  background: color-mix(in srgb, #8b5cf6 12%, transparent);
+}
+
+.account-type-badge.tipo-carteira {
+  color: #f59e0b;
+  background: color-mix(in srgb, #f59e0b 12%, transparent);
+}
+
+.acc-grid.list-view .account-card .btn-new-transaction {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+}
+
+
+/* ============================================================================
+   CARD DE CONTA
+   ============================================================================ */
+
+.acc-card {
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-5);
+  background: var(--color-btn);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  transition: all 0.5s ease !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.acc-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary));
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.acc-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+}
+
+.acc-card:hover::before {
+  opacity: 1;
+}
+
+/* Header do card */
+.acc-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+.acc-head {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex: 1;
+}
+
+.acc-dot {
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--color-primary) 50%, transparent);
+}
+
+.acc-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.acc-name {
+  font-weight: 700;
+  font-size: var(--font-size-lg);
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.acc-sub {
+  opacity: 0.7;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: var(--spacing-1);
+}
+
+/* Badge de status */
+.acc-badge {
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  white-space: nowrap;
+}
+
+.acc-badge.active {
+  background: color-mix(in srgb, var(--color-success) 15%, transparent);
+  color: var(--color-success);
+  border: 1px solid color-mix(in srgb, var(--color-success) 35%, transparent);
+}
+
+.acc-badge.inactive {
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  color: var(--color-danger);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 35%, transparent);
+}
+
+/* Saldo */
+.acc-balance {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: var(--spacing-2) 0;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-2);
+}
+
+.acc-balance.positive {
+  color: var(--color-text);
+}
+
+.acc-balance.negative {
+  color: var(--color-danger);
+}
+
+.acc-currency {
+  opacity: 0.75;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+}
+
+.acc-actions {
+  display: flex;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+  padding-top: var(--spacing-3);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.acc-actions-btn {
+  display: flex;
+  gap: var(--spacing-2);
+  flex: 1 1 auto;
+}
+
+.acc-actions-btn .btn {
+  flex: 1 1 50%;
+}
+
+.acc-actions .btn {
+  flex: 1;
+  min-width: fit-content;
+  justify-content: center;
+  font-size: var(--font-size-xs);
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--color-primary);
+}
+
+/* ============================================================================
+   ESTADOS VAZIOS E ERROS
+   ============================================================================ */
+
+.lk-empty {
+  grid-column: 1 / -1;
+  padding: var(--spacing-12) var(--spacing-6);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-style: italic;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.lk-empty i {
+  font-size: 3rem;
+  opacity: 0.3;
+  color: var(--color-text-muted);
+}
+
+.lk-error {
+  color: var(--color-danger);
+}
+
+/* Error State - Para quando a API falha */
+.error-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-12) var(--spacing-6);
+  gap: var(--spacing-4);
+  text-align: center;
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--color-warning);
+}
+
+.error-state i {
+  font-size: 3rem;
+  color: var(--color-warning);
+  opacity: 0.8;
+}
+
+.error-state .error-message {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-base);
+  margin: 0;
+}
+
+.error-state .btn-retry {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-6);
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.error-state .btn-retry:hover {
+  background: var(--color-primary-hover);
+  transform: translateY(-2px);
+}
+
+.error-state .btn-retry i,
+.error-state .btn-retry svg {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+  color: white;
+  opacity: 1;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-4);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+}
+
+/* Constrain Lucide SVG icons inside buttons */
+.btn .lucide,
+.btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-light {
+  background: var(--color-bg) !important;
+  color: var(--color-text);
+  border: 1px solid var(--color-primary) !important;
+  transition: all 0.5s !important;
+}
+
+.btn-light:hover {
+  background: var(--color-primary) !important;
+  color: var(--color-text);
+  border-color: color-mix(in srgb, var(--glass-border) 80%, var(--color-text));
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--glass-border);
+  transition: all 0.5s !important;
+}
+
+.btn-ghost:hover {
+  background: var(--glass-bg);
+  color: var(--color-text);
+  border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+.btn-ghost.is-busy svg {
+  animation: contas-spin 1s linear infinite;
+}
+
+.btn-sm {
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-xs);
+}
+
+/* ============================================================================
+   MODAIS
+   ============================================================================ */
+
+.lk-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+  padding: var(--spacing-4);
+}
+
+.lk-modal.open {
+  display: flex;
+}
+
+.lk-modal-card {
+  width: 100%;
+  max-width: 600px;
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-8);
+  box-shadow: var(--shadow-2xl);
+  animation: slideUp 0.3s ease-out;
+  color: var(--color-text);
+  border: 1px solid var(--glass-border);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.lk-modal-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-6);
+}
+
+.lk-modal-t {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.lk-modal-f {
+  display: flex;
+  gap: var(--spacing-3);
+  justify-content: flex-end;
+  margin-top: var(--spacing-6);
+  padding-top: var(--spacing-6);
+  border-top: 1px solid var(--glass-border);
+}
+
+
+.lk-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-5);
+}
+
+.lk-form-grid .full {
+  grid-column: 1 / -1;
+}
+
+.lk-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.lk-field label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.lk-field input,
+.lk-field select {
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-4);
+  font-size: var(--font-size-base);
+  transition: all var(--transition-fast);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.lk-field input:focus,
+.lk-field select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-primary) 20%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--color-primary) 5%,
+    var(--color-bg)
+  );
+}
+
+.lk-field select option {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+
+@media (max-width: 1024px) {
+  .acc-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  /* Ocultar header de colunas no mobile */
+  .contas-list-header.visible {
+    display: none !important;
+  }
+
+  .acc-grid.list-view .account-card .account-list-actions {
+    display: none !important;
+  }
+
+  .cont-page {
+    padding: 0 var(--spacing-3);
+    margin-top: var(--spacing-3);
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-4);
+  }
+
+  .lk-accounts-wrap {
+    padding: var(--spacing-6);
+    margin-bottom: var(--spacing-6);
+  }
+
+  .lk-acc-header {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: var(--spacing-2);
+    justify-content: flex-start;
+  }
+  .lk-acc-header .btn {
+    padding: var(--spacing-2) var(--spacing-5);
+  }
+
+  .lk-acc-header .btn-light {
+    padding: var(--spacing-2) var(--spacing-4);
+  }
+
+  .lk-acc-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1px;
+    flex: 1 1 auto;
+  }
+
+  .lk-acc-actions .btn,
+  .lk-acc-header > .btn {
+    flex: 1 1 calc(33.33% - var(--spacing-2));
+  }
+
+  /* View Toggle Mobile */
+  .lk-acc-right {
+    width: 100%;
+    justify-content: flex-end;
+    order: -1;
+    margin-bottom: 0.5rem;
+  }
+
+  .view-toggle {
+    padding: 0.2rem;
+  }
+
+  .view-btn {
+    padding: 0.4rem 0.7rem;
+    font-size: 0.9rem;
+    min-width: 36px;
+  }
+
+  /* List View Mobile */
+  .acc-grid.list-view .account-card {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    grid-template-columns: none !important;
+  }
+
+  .acc-grid.list-view .account-card .account-header {
+    width: 100%;
+    min-width: 100%;
+    padding: 0.75rem;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .acc-grid.list-view .account-card .account-actions {
+    display: flex !important;
+    position: static;
+  }
+
+  .acc-grid.list-view .account-card .account-body {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+    padding: 1rem !important;
+  }
+
+  .acc-grid.list-view .account-card .account-name {
+    min-width: auto;
+  }
+
+  .acc-grid.list-view .account-card .account-institution {
+    padding: 0;
+  }
+
+  .acc-grid.list-view .account-card .account-type-badge {
+    display: inline-flex !important;
+  }
+
+  .acc-grid.list-view .account-card .account-balance {
+    text-align: left;
+    min-width: auto;
+    font-size: 1.5rem;
+  }
+
+  .acc-grid.list-view .account-card .account-info {
+    display: block !important;
+    width: 100%;
+  }
+
+  .acc-grid.list-view .account-card .btn-new-transaction {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .acc-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-4);
+  }
+
+  .acc-actions {
+    flex-direction: column;
+    gap: var(--spacing-2);
+  }
+
+  .acc-actions-btn {
+    width: 100%;
+  }
+
+  .acc-actions-btn .btn {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.7rem;
+    padding: var(--spacing-2);
+  }
+
+  .acc-actions > .btn {
+    width: 100%;
+    font-size: 0.7rem;
+    padding: var(--spacing-2);
+  }
+
+  .lk-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lk-modal-card {
+    padding: var(--spacing-6);
+  }
+
+  /* Account Cards Mobile */
+  .account-card {
+    border-radius: 12px;
+  }
+
+  .account-header {
+    padding: 1rem;
+    min-height: 70px;
+  }
+
+  .account-logo {
+    width: 48px;
+    height: 48px;
+  }
+
+  .btn-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 0.875rem;
+  }
+
+  .account-body {
+    padding: 1rem;
+  }
+
+  .account-name {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .account-institution {
+    font-size: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .account-balance {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .btn-new-transaction {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.8125rem;
+    width: 80%;
+    margin-left: 25px;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .acc-balance {
+    font-size: 1.5rem;
+  }
+
+  .acc-actions-btn .btn {
+    flex: 1;
+  }
+
+  /* Account Cards Mobile Small */
+  .account-header {
+    padding: 0.875rem;
+    min-height: 60px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .account-logo {
+    width: 44px;
+    height: 44px;
+    order: 1;
+  }
+
+  .account-actions {
+    width: auto;
+    justify-content: flex-end;
+    order: 2;
+  }
+
+  .btn-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8125rem;
+  }
+
+  .account-body {
+    padding: 0.875rem;
+  }
+
+  .account-name {
+    font-size: 0.9375rem;
+  }
+
+  .account-institution {
+    font-size: 0.6875rem;
+  }
+
+  .account-balance {
+    font-size: 1.375rem;
+    margin-bottom: 0.625rem;
+  }
+
+  .btn-new-transaction {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .acc-card-header {
+    flex-direction: column;
+  }
+
+  .acc-card {
+    gap: var(--spacing-1);
+    padding: var(--spacing-2) var(--spacing-5);
+  }
+  .acc-balance {
+    font-size: 1.2rem;
+  }
+  .acc-badge {
+    font-size: 0.6rem;
+  }
+  .lk-acc-header .btn {
+    font-size: 8px;
+  }
+}
+
+/* ============================================================================
+   ACESSIBILIDADE
+   ============================================================================ */
+
+.btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.acc-card:focus-within {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Melhor contraste para modo de alto contraste */
+@media (prefers-contrast: high) {
+  .acc-badge {
+    border-width: 2px;
+  }
+
+  .btn {
+    border: 2px solid currentColor;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================================
+   TEMA ESCURO - AJUSTES
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+  .lk-accounts-wrap:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  }
+
+  .acc-card:hover {
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45);
+  }
+}
+
+/* ============================================================================
+   IMPRESSÃƒÆ’O
+   ============================================================================ */
+
+@media print {
+  .lk-acc-actions,
+  .acc-actions,
+  .btn-archive,
+  .btn-restore,
+  .lk-modal {
+    display: none !important;
+  }
+
+  .cont-page {
+    margin: 0;
+    padding: 0;
+  }
+
+  .acc-card {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+}
+
+/* ============================================================================
+   ESTILOS COMPLEMENTARES (de contas-modern.css)
+   ============================================================================ */
+
+/* Account Card - Estilos modernos */
+.account-card {
+  background: var(--color-bg);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: 1px solid var(--color-card-border);
+}
+
+.account-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.account-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.account-logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.account-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.account-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.account-body {
+  padding: 1.25rem;
+  background-color: var(--color-bg);
+}
+
+.account-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-institution {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-balance {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.account-balance.positive {
+  color: #10b981;
+}
+
+.account-balance.negative {
+  color: #ef4444;
+}
+
+.account-info {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-new-transaction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(230, 126, 34, 0.2);
+}
+
+.btn-new-transaction:hover {
+  background: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(230, 126, 34, 0.3);
+}
+
+.btn-new-transaction:active {
+  transform: translateY(0);
+}
+
+/* Toast Notifications */
+.lk-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  min-width: 300px;
+  max-width: 500px;
+  padding: 1rem 1.5rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+  opacity: 0;
+  transform: translateX(400px);
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.lk-toast.lk-toast-show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.lk-toast-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.lk-toast-content i {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.lk-toast-content span {
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #1f2937;
+}
+
+.lk-toast-success {
+  border-left: 4px solid #10b981;
+  background: #f0fdf4;
+}
+
+.lk-toast-success i {
+  color: #10b981;
+}
+
+.lk-toast-success .lk-toast-content span {
+  color: #166534;
+}
+
+.lk-toast-error {
+  border-left: 4px solid #ef4444;
+  background: #fef2f2;
+}
+
+.lk-toast-error i {
+  color: #ef4444;
+}
+
+.lk-toast-error .lk-toast-content span {
+  color: #991b1b;
+}
+
+.lk-toast-info {
+  border-left: 4px solid #3b82f6;
+  background: #eff6ff;
+}
+
+.lk-toast-info i {
+  color: #3b82f6;
+}
+
+.lk-toast-info .lk-toast-content span {
+  color: #1e40af;
+}
+
+@media (max-width: 600px) {
+  .lk-toast {
+    top: auto;
+    bottom: 20px;
+    right: 10px;
+    left: 10px;
+    min-width: auto;
+    transform: translateY(400px);
+  }
+
+  .lk-toast.lk-toast-show {
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 390px) {
+  .account-card {
+    border-radius: 12px;
+  }
+
+  .account-header {
+    padding: 1rem;
+    min-height: 70px;
+    flex-direction: row;
+    gap: 0.75rem;
+  }
+
+  .account-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    padding: 5px;
+  }
+
+  .account-actions {
+    gap: 0.375rem;
+  }
+
+  .btn-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 0.875rem;
+  }
+
+  .account-body {
+    padding: 1rem;
+  }
+
+  .account-name {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+    line-height: 1.3;
+  }
+
+  .account-institution {
+    font-size: 0.75rem;
+    margin-bottom: 0.625rem;
+  }
+
+  .account-balance {
+    font-size: 1.5rem;
+    margin-bottom: 0.875rem;
+    word-break: break-all;
+  }
+
+  .btn-new-transaction {
+    width: 100%;
+    justify-content: center;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.8125rem;
+    gap: 0.375rem;
+  }
+
+  .btn-new-transaction i {
+    font-size: 0.875rem;
+  }
+}
+
+/* Media query para dispositivos muito pequenos (< 320px) */
+@media (max-width: 319px) {
+  .account-header {
+    padding: 0.875rem;
+    min-height: 65px;
+  }
+
+  .account-logo {
+    width: 42px;
+    height: 42px;
+    padding: 4px;
+  }
+
+  .btn-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8125rem;
+  }
+
+  .account-body {
+    padding: 0.875rem;
+  }
+
+  .account-name {
+    font-size: 0.9375rem;
+  }
+
+  .account-institution {
+    font-size: 0.6875rem;
+  }
+
+  .account-balance {
+    font-size: 1.375rem;
+  }
+
+  .btn-new-transaction {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* ============================================================================
+   ACCESSIBILITY - FOCUS VISIBLE
+   ============================================================================ */
+.view-btn:focus-visible,
+.btn-icon:focus-visible,
+.btn-new-transaction:focus-visible,
+.btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ============================================================================
+   TOUCH TARGETS
+   ============================================================================ */
+@media (pointer: coarse) {
+  .view-btn,
+  .btn-icon,
+  .btn-new-transaction {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .account-card .account-actions .btn-icon {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.5rem;
+  }
+}
+
+
+/* ================================================================
+   SweetAlert2 overrides extraidos de contas/index.php
+   ================================================================ */
+
+/* Estilos customizados para SweetAlert2 */
+
+.swal2-popup{
+    color: var(--text-color);
+    background: var(--color-bg);
+}
+
+.swal2-popup .swal2-actions {
+    gap: 1rem;
+}
+
+.swal2-popup .swal-confirm-btn,
+.swal2-popup .swal2-confirm {
+    background-color: #e67e22 !important;
+    color: white !important;
+    border: none !important;
+    padding: 0.75rem 2rem !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3) !important;
+}
+
+.swal2-popup .swal-confirm-btn:hover,
+.swal2-popup .swal2-confirm:hover {
+    background-color: #d35400 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(230, 126, 34, 0.4) !important;
+}
+
+.swal2-popup .swal-cancel-btn,
+.swal2-popup .swal2-cancel {
+    background-color: #6c757d !important;
+    color: white !important;
+    border: none !important;
+    padding: 0.75rem 2rem !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3) !important;
+}
+
+.swal2-popup .swal-cancel-btn:hover,
+.swal2-popup .swal2-cancel:hover {
+    background-color: #5a6268 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(108, 117, 125, 0.4) !important;
+}
+
+.swal2-popup .swal2-styled:focus {
+    box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.25) !important;
+}
+
+/* Garantir que ícones nos botões fiquem visíveis */
+.swal2-popup .swal2-styled i {
+    color: white !important;
+    margin-right: 0.5rem;
+}
+
+@keyframes contas-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.contas-empty-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-10) var(--spacing-6);
+  text-align: center;
+  border-radius: var(--radius-xl);
+  border: 1px dashed color-mix(in srgb, var(--color-primary) 24%, transparent);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-primary) 12%, transparent), transparent 44%),
+    var(--color-surface-muted);
+}
+
+.contas-empty-state .empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  color: var(--color-primary);
+}
+
+.contas-empty-state .empty-icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+.contas-empty-state h3 {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.contas-empty-state p {
+  margin: 0;
+  max-width: 44ch;
+  color: var(--color-text-muted);
+}
+
+.contas-inline-action:hover {
+  text-decoration: underline;
+}
+
+.contas-search-clear svg {
+  width: 14px;
+  height: 14px;
+}
+
+@media (max-width: 768px) {
+  .contas-context-card {
+    grid-template-columns: 1fr;
+    padding: var(--spacing-4);
+    margin-bottom: var(--spacing-5);
+  }
+
+  .contas-context-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .contas-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .contas-search-wrapper,
+  .contas-filter-wrapper {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .contas-filter-summary-text {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .contas-context-title {
+    font-size: 1.05rem;
+  }
+
+  .contas-context-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .contas-context-chip {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .contas-empty-state {
+    padding: var(--spacing-8) var(--spacing-4);
+  }
+}
+
+/* ============================================================================
+   CONTAS FINTECH REFRESH
+   ============================================================================ */
+
+.cont-page {
+  gap: var(--spacing-6);
+  margin-top: var(--spacing-4);
+}
+
+.contas-section-heading,
+.contas-section-eyebrow,
+.contas-section-title,
+.contas-section-copy {
+  margin: 0;
+}
+
+.contas-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-5);
+}
+
+.contas-section-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.contas-section-title {
+  font-size: clamp(1.15rem, 1rem + 0.7vw, 1.6rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--color-text);
+}
+
+.contas-section-copy {
+  margin-top: 8px;
+  max-width: 64ch;
+  color: var(--color-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.contas-hero,
+.contas-distribution-card,
+.lk-accounts-wrap {
+  border: 1px solid var(--glass-border);
+  border-radius: 28px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.12);
+}
+
+.contas-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 360px);
+  gap: 24px;
+  padding: 28px;
+  background:
+    radial-gradient(circle at top right, rgba(16, 185, 129, 0.12), transparent 30%),
+    radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.16), transparent 34%),
+    var(--glass-bg);
+}
+
+.contas-hero-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.contas-hero-title {
+  margin: 0 0 12px;
+  font-size: clamp(1.9rem, 2.5vw, 3rem);
+  line-height: 1.02;
+  letter-spacing: -0.05em;
+  color: var(--color-text);
+}
+
+.contas-hero-value {
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.06em;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.contas-hero-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.contas-hero-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 92px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 88%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 82%, transparent);
+}
+
+.contas-hero-meta-label {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.contas-hero-meta-value {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.contas-hero-insight {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-top: 22px;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 18%, var(--glass-border));
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.contas-hero-insight-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: rgba(230, 126, 34, 0.16);
+  color: var(--color-primary);
+}
+
+.contas-hero-insight-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.contas-hero-insight-title {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.contas-hero-insight-text {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.contas-hero-side {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.contas-side-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 148px;
+  padding: 22px;
+  border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 88%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 76%, transparent);
+}
+
+.contas-side-card--featured {
+  border-color: rgba(16, 185, 129, 0.24);
+  background:
+    linear-gradient(180deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.03)),
+    color-mix(in srgb, var(--color-bg) 80%, transparent);
+}
+
+.contas-side-card-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.contas-side-card-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--color-text);
+}
+
+.contas-side-card-value {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: var(--color-text);
+  letter-spacing: -0.04em;
+}
+
+.contas-side-card-copy {
+  color: var(--color-text-muted);
+  line-height: 1.45;
+}
+
+.contas-distribution-card {
+  padding: 24px;
+}
+
+.contas-distribution-list {
+  display: grid;
+  gap: 12px;
+}
+
+.contas-distribution-item {
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 88%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 84%, transparent);
+}
+
+.contas-distribution-item-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+}
+
+.contas-distribution-item-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.contas-distribution-item-label strong,
+.contas-distribution-item-values strong {
+  display: block;
+  color: var(--color-text);
+}
+
+.contas-distribution-item-label span,
+.contas-distribution-item-values span {
+  color: var(--color-text-muted);
+  font-size: 0.84rem;
+}
+
+.contas-distribution-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  color: var(--distribution-color);
+  background: color-mix(in srgb, var(--distribution-color) 16%, transparent);
+  flex-shrink: 0;
+}
+
+.contas-distribution-item-values {
+  text-align: right;
+}
+
+.contas-distribution-bar,
+.account-progress-bar {
+  margin-top: 12px;
+  height: 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--glass-border) 80%, transparent);
+  overflow: hidden;
+}
+
+.contas-distribution-bar span,
+.account-progress-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--distribution-color, var(--account-accent, var(--color-primary)));
+}
+
+.contas-distribution-empty {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px dashed color-mix(in srgb, var(--color-primary) 22%, transparent);
+  color: var(--color-text-muted);
+}
+
+.contas-distribution-empty svg {
+  width: 18px;
+  height: 18px;
+  color: var(--color-primary);
+}
+
+.lk-accounts-wrap {
+  padding: 24px;
+  margin-bottom: var(--spacing-8);
+}
+
+.lk-acc-header {
+  align-items: flex-end;
+  margin-bottom: 24px;
+}
+
+.lk-acc-heading {
+  max-width: 540px;
+}
+
+.lk-acc-header-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 14px;
+  align-items: center;
+  margin-left: auto;
+}
+
+.lk-acc-actions,
+.lk-acc-right {
+  align-items: center;
+}
+
+.contas-filter-summary {
+  margin-bottom: 20px;
+}
+
+.acc-grid {
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 16px;
+  padding: 0;
+}
+
+.cont-page .account-card {
+  --account-card-padding: 22px;
+  --account-header-height: 118px;
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  grid-template-rows: var(--account-header-height) auto auto auto;
+  grid-template-areas:
+    "media header menu"
+    "content content content"
+    "balance balance balance"
+    "progress progress progress";
+  gap: 16px;
+  padding: var(--account-card-padding);
+  border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 88%, transparent);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 50%),
+    color-mix(in srgb, var(--color-bg) 92%, transparent);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+  transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+}
+
+.cont-page .account-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--account-header-height);
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--account-accent) 18%, transparent), transparent 58%),
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--account-accent) 12%, transparent) 0%,
+      color-mix(in srgb, var(--account-accent) 7%, transparent) 56%,
+      transparent 100%);
+}
+
+.cont-page .account-card::after {
+  content: "";
+  position: absolute;
+  top: calc(var(--account-header-height) - 1px);
+  left: var(--account-card-padding);
+  right: var(--account-card-padding);
+  height: 1px;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--account-accent) 24%, transparent),
+    color-mix(in srgb, var(--glass-border) 88%, transparent) 48%,
+    transparent);
+}
+
+.cont-page .account-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.cont-page .account-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.12);
+  border-color: color-mix(in srgb, var(--account-accent) 22%, var(--glass-border));
+}
+
+.cont-page .account-card.is-featured {
+  border-color: color-mix(in srgb, var(--account-accent) 38%, var(--glass-border));
+}
+
+.cont-page .account-card.is-featured::before {
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--account-accent) 24%, transparent), transparent 56%),
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--account-accent) 16%, transparent) 0%,
+      color-mix(in srgb, var(--account-accent) 9%, transparent) 56%,
+      transparent 100%);
+}
+
+.cont-page .account-media {
+  grid-area: media;
+  display: flex;
+  align-items: flex-start;
+}
+
+.cont-page .account-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--account-accent) 16%, white 84%),
+      color-mix(in srgb, var(--account-accent) 8%, white 92%));
+  border: 1px solid color-mix(in srgb, var(--account-accent) 28%, transparent);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.14),
+    0 0 0 1px color-mix(in srgb, var(--account-accent) 10%, transparent);
+}
+
+.cont-page .account-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.cont-page .account-header {
+  grid-area: header;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.cont-page .account-content {
+  grid-area: content;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.cont-page .account-card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 0;
+  align-content: flex-start;
+}
+
+.cont-page .account-type-badge,
+.cont-page .account-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.cont-page .account-type-badge svg,
+.cont-page .account-chip svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.cont-page .account-type-badge[data-lk-tooltip],
+.cont-page .account-chip[data-lk-tooltip] {
+  cursor: help;
+}
+
+.cont-page .account-type-badge.tipo-corrente {
+  color: #60a5fa;
+  background: rgba(37, 99, 235, 0.16);
+  border-color: rgba(96, 165, 250, 0.18);
+}
+
+.cont-page .account-type-badge.tipo-poupanca {
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.14);
+  border-color: rgba(52, 211, 153, 0.16);
+}
+
+.cont-page .account-type-badge.tipo-investimento {
+  color: #2dd4bf;
+  background: rgba(13, 148, 136, 0.16);
+  border-color: rgba(45, 212, 191, 0.16);
+}
+
+.cont-page .account-type-badge.tipo-carteira {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(251, 191, 36, 0.16);
+}
+
+.cont-page .account-chip--featured {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.14);
+  border-color: rgba(251, 191, 36, 0.18);
+}
+
+.cont-page .account-chip--reserve {
+  color: #2dd4bf;
+  background: rgba(13, 148, 136, 0.16);
+  border-color: rgba(45, 212, 191, 0.18);
+}
+
+.cont-page .account-name {
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cont-page .account-institution {
+  margin: 0;
+  color: color-mix(in srgb, var(--account-accent) 22%, var(--color-text-muted));
+  font-size: 0.9rem;
+}
+
+
+
+.cont-page .account-share-value {
+  font-size: 1.04rem;
+  font-weight: 800;
+  color: color-mix(in srgb, var(--account-accent) 24%, var(--color-text));
+}
+
+.cont-page .account-share-label {
+  color: var(--color-text-muted);
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cont-page .account-balance-panel {
+  grid-area: balance;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cont-page .account-balance-caption {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.cont-page .account-balance {
+  margin: 0;
+  font-size: clamp(1.7rem, 1.2rem + 1vw, 2.15rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+.cont-page .account-balance.negative {
+  color: color-mix(in srgb, var(--color-danger) 78%, var(--color-text));
+}
+
+.cont-page .account-menu {
+  grid-area: menu;
+  justify-self: end;
+  align-self: start;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.cont-page .btn-icon--soft {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 82%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 82%, transparent);
+  color: var(--color-text);
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cont-page .btn-icon--soft:hover {
+  background: color-mix(in srgb, var(--account-accent) 14%, var(--color-bg));
+  color: var(--color-text);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 22px color-mix(in srgb, var(--account-accent) 16%, transparent);
+}
+
+.cont-page .btn-icon--soft:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--account-accent) 22%, transparent),
+    0 12px 22px color-mix(in srgb, var(--account-accent) 16%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cont-page .account-menu {
+    opacity: 0.56;
+    transform: translateY(2px);
+  }
+
+  .cont-page .account-card:hover .account-menu,
+  .cont-page .account-card:focus-within .account-menu {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cont-page .account-progress {
+  grid-area: progress;
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 84%, transparent);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent),
+    color-mix(in srgb, var(--color-bg) 84%, transparent);
+}
+
+.cont-page .account-progress-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--color-text-muted);
+}
+
+.cont-page .account-progress-head span:first-child {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.cont-page .account-progress-head span:last-child {
+  color: color-mix(in srgb, var(--account-accent) 42%, var(--color-text-muted));
+  font-weight: 700;
+}
+
+.cont-page .account-progress-bar {
+  margin-top: 0;
+  position: relative;
+  height: 12px;
+  background:
+    linear-gradient(180deg, rgba(4, 15, 28, 0.72), rgba(255, 255, 255, 0.05));
+  border: 1px solid color-mix(in srgb, var(--glass-border) 88%, transparent);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.26);
+}
+
+.cont-page .account-progress-bar span {
+  position: relative;
+  background:
+    linear-gradient(90deg,
+      color-mix(in srgb, var(--account-accent) 78%, white 22%),
+      var(--account-accent));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--account-accent) 26%, transparent),
+    0 8px 18px color-mix(in srgb, var(--account-accent) 24%, transparent);
+  transform-origin: left center;
+  animation: account-progress-reveal 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.cont-page .account-progress-bar span::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.36), transparent 38%);
+  opacity: 0.5;
+}
+
+.cont-page .account-card.is-featured .account-progress {
+  border-color: color-mix(in srgb, var(--account-accent) 20%, var(--glass-border));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent),
+    color-mix(in srgb, var(--account-accent) 7%, var(--color-bg));
+}
+
+@keyframes account-progress-reveal {
+  from {
+    transform: scaleX(0);
+    opacity: 0.4;
+  }
+
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+.cont-page .btn-new-transaction,
+.cont-page .account-list-actions,
+.cont-page .account-actions {
+  display: none !important;
+}
+
+.contas-list-header.visible {
+  display: grid !important;
+  grid-template-columns: 72px minmax(0, 1fr) 110px 150px 56px !important;
+  gap: 16px !important;
+  align-items: center !important;
+  padding: 0 0 12px !important;
+  margin-bottom: 12px !important;
+  background: transparent !important;
+  border-bottom: 1px solid var(--glass-border) !important;
+}
+
+.acc-grid.list-view {
+  grid-template-columns: 1fr;
+}
+
+.acc-grid.list-view .account-card {
+  --account-header-height: 92px;
+  grid-template-columns: 72px minmax(0, 1fr) 110px 150px 56px;
+  grid-template-rows: var(--account-header-height) auto auto;
+  grid-template-areas:
+    "media header share balance menu"
+    "media content share balance menu"
+    "progress progress progress progress progress";
+  align-items: start;
+  border-radius: 20px;
+}
+
+.acc-grid.list-view .account-card.is-featured {
+  grid-column: auto;
+}
+
+.acc-grid.list-view .account-header {
+  align-self: end;
+}
+
+.acc-grid.list-view .account-content {
+  padding-top: 6px;
+}
+
+
+.acc-grid.list-view .account-balance-panel {
+  text-align: right;
+}
+
+.acc-grid.list-view .account-progress {
+  margin-top: 4px;
+  padding: 12px 14px;
+}
+
+@media (min-width: 1180px) {
+  .acc-grid:not(.list-view) .account-card.is-featured {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 1100px) {
+  .contas-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .contas-hero-side {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lk-acc-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .lk-acc-header-controls {
+    width: 100%;
+    justify-content: space-between;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .cont-page {
+    padding: 0 var(--spacing-3);
+    gap: var(--spacing-5);
+  }
+
+  .contas-hero,
+  .contas-distribution-card,
+  .lk-accounts-wrap {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .contas-hero-meta,
+  .contas-hero-side {
+    grid-template-columns: 1fr;
+  }
+
+  .contas-distribution-item-head {
+    align-items: flex-start;
+  }
+
+  .lk-acc-header-controls,
+  .contas-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .lk-acc-actions,
+  .lk-acc-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .contas-list-header.visible {
+    display: none !important;
+  }
+
+  .acc-grid.list-view .account-card,
+  .cont-page .account-card {
+    --account-card-padding: 18px;
+    --account-header-height: 104px;
+    grid-template-columns: 56px minmax(0, 1fr) auto;
+    grid-template-rows: var(--account-header-height) auto auto auto;
+    grid-template-areas:
+      "media header menu"
+      "content content content"
+      "balance balance balance"
+      "progress progress progress";
+    padding: 18px;
+  }
+
+  .cont-page .account-progress,
+  .acc-grid.list-view .account-progress {
+    padding: 12px 14px;
+  }
+
+  .acc-grid.list-view .account-share-panel,
+  .acc-grid.list-view .account-balance-panel {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .cont-page .account-balance {
+    font-size: 1.65rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .contas-hero-value {
+    font-size: 2.55rem;
+  }
+
+  .contas-hero-meta-item,
+  .contas-side-card {
+    min-height: 0;
+    padding: 16px;
+  }
+
+  .contas-hero-insight {
+    padding: 16px;
+  }
+
+  .contas-distribution-item {
+    padding: 14px;
+  }
+
+  .contas-distribution-item-head {
+    flex-direction: column;
+  }
+
+  .contas-distribution-item-values {
+    width: 100%;
+    text-align: left;
+  }
+
+  .lk-acc-actions .btn,
+  .lk-acc-right .btn {
+    flex: 1 1 auto;
+  }
+}
