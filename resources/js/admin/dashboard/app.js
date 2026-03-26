@@ -651,20 +651,13 @@ export const Renderers = {
         }
 
         try {
-            const transactions = await API.getTransactions(month, 50);
-            const expenses = (Array.isArray(transactions) ? transactions : [])
-                .filter(tx => String(tx.tipo || '').toLowerCase() === 'despesa');
+            const overview = await API.getOverview(month);
+            const despesasCat = Array.isArray(overview.despesas_por_categoria)
+                ? overview.despesas_por_categoria
+                : [];
 
-            // Group by category
-            const categoryMap = new Map();
-            expenses.forEach(tx => {
-                const cat = tx.categoria_nome ??
-                    (typeof tx.categoria === 'string' ? tx.categoria : tx.categoria?.nome) ?? 'Sem categoria';
-                categoryMap.set(cat, (categoryMap.get(cat) || 0) + Math.abs(Number(tx.valor) || 0));
-            });
-
-            const labels = [...categoryMap.keys()];
-            const series = [...categoryMap.values()];
+            const labels = despesasCat.map(item => item.categoria);
+            const series = despesasCat.map(item => Math.abs(Number(item.valor) || 0));
 
             const { isLightTheme } = getThemeColors();
             const themeMode = isLightTheme ? 'light' : 'dark';
@@ -698,6 +691,9 @@ export const Renderers = {
                             size: '60%',
                             labels: {
                                 show: true,
+                                value: {
+                                    formatter: (val) => Utils.money(Number(val)),
+                                },
                                 total: {
                                     show: true,
                                     label: 'Total',
@@ -1075,10 +1071,11 @@ export const OptionalWidgets = {
                 return;
             }
 
-            const faturaAberta = Number(summary.fatura_aberta || 0);
+            const faturaAberta = Number(summary.fatura_aberta ?? summary.limite_utilizado ?? 0);
             const limiteTotal = Number(summary.limite_total || 0);
-            const usado = Number(summary.limite_usado || 0);
-            const pctUso = limiteTotal > 0 ? Math.round((usado / limiteTotal) * 100) : 0;
+            const pctUso = limiteTotal > 0
+                ? Math.round((faturaAberta / limiteTotal) * 100)
+                : Number(summary.percentual_uso || 0);
             const usageColor = OptionalWidgets.getUsageColor(pctUso);
 
             container.innerHTML = `

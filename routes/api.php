@@ -78,6 +78,7 @@ Router::add('GET', '/api/dashboard/provisao',     'Api\\Financeiro\\DashboardCon
 Router::add('GET', '/api/dashboard/health-score', 'Api\\Financeiro\\DashboardController@healthScore',    ['auth']);
 Router::add('GET', '/api/dashboard/health-score/insights', 'Api\\Financeiro\\DashboardController@healthScoreInsights', ['auth']);
 Router::add('GET', '/api/dashboard/greeting-insight', 'Api\\Financeiro\\DashboardController@greetingInsight', ['auth']);
+Router::add('GET', '/api/dashboard/evolucao',     'Api\\Financeiro\\DashboardController@evolucao',       ['auth']);
 Router::add('GET', '/api/options',                'Api\\Financeiro\\FinanceiroController@options',      ['auth']);
 
 // ============================================

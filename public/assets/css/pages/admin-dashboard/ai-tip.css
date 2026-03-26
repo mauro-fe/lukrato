@@ -1,5 +1,5 @@
 /* ============================================================================
-   AI TIP CARD — Dashboard Dica IA
+   AI TIP CARD — Dashboard Dicas do Lukrato (Modern v2)
    ============================================================================ */
 
 .ai-tip-card {
@@ -13,81 +13,132 @@
   flex-direction: column;
   gap: var(--spacing-4);
   height: 100%;
+  transform: translateY(0);
+  transition: all 0.25s ease;
+}
+
+#sectionAiTip:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.25),
+    0 30px 60px rgba(0, 0, 0, 0.30);
 }
 
 /* --- Header --- */
 .ai-tip-header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .ai-tip-header-icon {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   color: var(--color-primary);
   flex-shrink: 0;
+  filter: drop-shadow(0 0 6px rgba(230, 126, 34, 0.4));
 }
 
 .ai-tip-title {
   margin: 0;
   font-size: var(--font-size-base);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+}
+
+.ai-tip-badge {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: rgba(230, 126, 34, 0.12);
+  color: var(--color-primary);
+  white-space: nowrap;
 }
 
 /* --- Tip list --- */
 .ai-tip-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   flex: 1;
 }
 
 /* --- Individual tip item --- */
 .ai-tip-item {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 10px 12px;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
   border: 1px solid var(--color-card-border);
-  border-radius: var(--radius-sm);
+  border-radius: 10px;
   text-decoration: none;
   color: var(--color-text);
+  overflow: hidden;
   transition:
-    border-color var(--transition-fast),
-    background var(--transition-fast);
-  animation: aiTipSlideIn 0.3s ease both;
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+  animation: aiTipSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .ai-tip-item:hover {
   border-color: color-mix(in srgb, var(--color-primary) 40%, var(--color-card-border));
-  background: color-mix(in srgb, var(--color-primary) 4%, transparent);
+  background: rgba(255, 255, 255, 0.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
   text-decoration: none;
   color: var(--color-text);
 }
 
 .ai-tip-item:nth-child(2) { animation-delay: 80ms; }
 .ai-tip-item:nth-child(3) { animation-delay: 160ms; }
+.ai-tip-item:nth-child(4) { animation-delay: 240ms; }
 
 @keyframes aiTipSlideIn {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateX(-8px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
   }
+}
+
+/* --- Accent bar (left border) --- */
+.ai-tip-accent {
+  width: 3px;
+  flex-shrink: 0;
+  border-radius: 3px 0 0 3px;
+}
+
+.ai-tip-accent--critical { background: linear-gradient(180deg, #ef4444, #dc2626); }
+.ai-tip-accent--high { background: linear-gradient(180deg, #f59e0b, #d97706); }
+.ai-tip-accent--medium { background: linear-gradient(180deg, #3b82f6, #2563eb); }
+.ai-tip-accent--low { background: linear-gradient(180deg, #10b981, #059669); }
+.ai-tip-accent--positive { background: linear-gradient(180deg, #10b981, #059669); }
+.ai-tip-accent--info { background: linear-gradient(180deg, var(--color-primary), #d35400); }
+
+/* --- Tip content area --- */
+.ai-tip-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  flex: 1;
+  min-width: 0;
 }
 
 /* --- Tip icon --- */
 .ai-tip-item-icon {
-  width: 28px;
-  height: 28px;
-  min-width: 28px;
-  border-radius: var(--radius-sm);
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -95,33 +146,33 @@
 }
 
 .ai-tip-item-icon svg {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
 }
 
 .ai-tip-item-icon--critical {
-  background: rgba(239, 68, 68, 0.12);
+  background: rgba(239, 68, 68, 0.10);
   color: #ef4444;
 }
 
 .ai-tip-item-icon--high {
-  background: rgba(245, 158, 11, 0.12);
+  background: rgba(245, 158, 11, 0.10);
   color: #f59e0b;
 }
 
 .ai-tip-item-icon--medium {
-  background: rgba(59, 130, 246, 0.12);
+  background: rgba(59, 130, 246, 0.10);
   color: #3b82f6;
 }
 
 .ai-tip-item-icon--low,
 .ai-tip-item-icon--positive {
-  background: rgba(16, 185, 129, 0.12);
+  background: rgba(16, 185, 129, 0.10);
   color: #10b981;
 }
 
 .ai-tip-item-icon--info {
-  background: rgba(230, 126, 34, 0.12);
+  background: rgba(230, 126, 34, 0.10);
   color: var(--color-primary);
 }
 
@@ -135,27 +186,61 @@
 }
 
 .ai-tip-item-title {
-  font-size: var(--font-size-sm);
+  font-size: 13px;
   font-weight: 600;
   color: var(--color-text);
   line-height: 1.3;
 }
 
 .ai-tip-item-desc {
-  font-size: var(--font-size-xs);
+  font-size: 11px;
   color: var(--color-text-muted);
-  line-height: 1.4;
+  line-height: 1.35;
 }
+
+/* --- Metric chip (right side) --- */
+.ai-tip-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  flex-shrink: 0;
+  min-width: 52px;
+  border-left: 1px solid var(--color-card-border);
+}
+
+.ai-tip-metric-value {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-text);
+}
+
+.ai-tip-metric-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  line-height: 1.3;
+}
+
+/* Color metric values by priority */
+.ai-tip-item[data-priority="critical"] .ai-tip-metric-value { color: #ef4444; }
+.ai-tip-item[data-priority="high"] .ai-tip-metric-value { color: #f59e0b; }
+.ai-tip-item[data-priority="medium"] .ai-tip-metric-value { color: #3b82f6; }
+.ai-tip-item[data-priority="positive"] .ai-tip-metric-value { color: #10b981; }
 
 /* --- Arrow --- */
 .ai-tip-item-arrow {
   width: 14px;
   height: 14px;
   color: var(--color-text-muted);
-  opacity: 0.5;
+  opacity: 0.4;
   flex-shrink: 0;
-  margin-top: 3px;
-  transition: transform var(--transition-fast), opacity var(--transition-fast);
+  align-self: center;
+  margin-right: 4px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .ai-tip-item:hover .ai-tip-item-arrow {
@@ -170,30 +255,31 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-2);
+  gap: var(--spacing-3);
   flex: 1;
   text-align: center;
-  padding: var(--spacing-4) 0;
+  padding: var(--spacing-6) var(--spacing-4);
 }
 
 .ai-tip-empty-icon {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   color: var(--color-success);
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 .ai-tip-empty p {
   margin: 0;
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
-  line-height: 1.4;
+  line-height: 1.5;
+  max-width: 250px;
 }
 
 /* --- Skeleton --- */
 .ai-tip-skeleton {
-  height: 52px;
-  border-radius: var(--radius-sm);
+  height: 56px;
+  border-radius: 10px;
   background: var(--color-surface-muted);
   animation: pulse 1.5s ease-in-out infinite;
 }
@@ -202,6 +288,10 @@
 @media (max-width: 480px) {
   .ai-tip-card {
     padding: var(--spacing-4);
+  }
+
+  .ai-tip-metric {
+    display: none;
   }
 
   .ai-tip-item-desc {

@@ -1,6 +1,5 @@
 ﻿/* ==================== MODERN DASHBOARD â€” Refactored (Fintech Clean) ==================== */
 
-/* â”€â”€â”€ Layout principal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .modern-dashboard {
   width: 100%;
   max-width: 960px;
@@ -8,7 +7,6 @@
   padding: var(--spacing-6) var(--spacing-4);
 }
 
-/* â”€â”€â”€ HERO â€” Saldo principal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .dashboard-hero-section {
   text-align: center;
   padding: var(--spacing-8) var(--spacing-5);
@@ -86,7 +84,6 @@
   font-size: var(--font-size-sm);
 }
 
-/* â”€â”€â”€ KPI CARDS â€” 3 cards lado a lado â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .dash-kpis {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -203,13 +200,19 @@
 .dash-duo-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-4);
+  gap: var(--spacing-6);
   margin-bottom: var(--spacing-8);
 }
 
 /* Flexible variant: adapts when one child is hidden */
 .dash-duo-row--flexible {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
+}
+
+/* Height propagation: ensures health/ai-tip inner widgets fill the grid row height */
+#rowHealthAi > section,
+#rowHealthAi > section > div {
+  height: 100%;
 }
 
 .dash-chart-section {
@@ -361,7 +364,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
   max-width: 100%;
-  gap: var(--spacing-4);
+  gap: var(--spacing-6);
   margin-bottom: var(--spacing-8);
 }
 
@@ -627,7 +630,6 @@
   to { transform: rotate(360deg); }
 }
 
-/* â”€â”€â”€ RESPONSIVIDADE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media (max-width: 768px) {
   .modern-dashboard {
     padding: var(--spacing-3) var(--spacing-3);

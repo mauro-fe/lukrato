@@ -1,0 +1,148 @@
+/* ============================================================================
+   EVOLUÇÃO FINANCEIRA — Dashboard Widget
+   ============================================================================ */
+
+.evo-card {
+  padding: var(--spacing-5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.20),
+    0 20px 40px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+   transform: translateY(0);
+  transition: all 0.25s ease;
+}
+
+#evolucaoChartsContainer:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 12px 24px rgba(0, 0, 0, 0.25),
+    0 30px 60px rgba(0, 0, 0, 0.30);
+}
+
+/* --- Header ---------------------------------------------------------------- */
+.evo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+}
+
+.evo-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.evo-title-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.evo-title {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+}
+
+/* --- Tabs ------------------------------------------------------------------ */
+.evo-tabs {
+  display: flex;
+  background: var(--color-surface-muted, rgba(255,255,255,0.05));
+  border-radius: var(--radius-full);
+  padding: 3px;
+  gap: 2px;
+}
+
+.evo-tab {
+  padding: 5px 16px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+  white-space: nowrap;
+}
+
+.evo-tab--active {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.evo-tab:not(.evo-tab--active):hover {
+  color: var(--color-text);
+}
+
+/* --- Stats strip ----------------------------------------------------------- */
+.evo-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.evo-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+}
+
+.evo-stat__label {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.evo-stat__value {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.evo-stat__value--income  { color: var(--color-success); }
+.evo-stat__value--expense { color: var(--color-danger);  }
+
+/* --- Chart area ------------------------------------------------------------ */
+.evo-chart-wrap {
+  position: relative;
+  min-height: 220px;
+}
+
+.evo-chart {
+  width: 100%;
+}
+
+/* --- Responsive ------------------------------------------------------------ */
+@media (max-width: 480px) {
+  .evo-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-2);
+  }
+
+  .evo-stat__value {
+    font-size: 0.75rem;
+  }
+
+  .evo-tab {
+    padding: 4px 10px;
+  }
+}

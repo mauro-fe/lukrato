@@ -407,12 +407,23 @@ class CartaoCreditoService
             ? round(($totalUtilizado / $totalLimite) * 100, 2)
             : 0;
 
+        // Soma o valor dos itens de fatura não pagos do mês vigente
+        $mes = (int) date('n');
+        $ano = (int) date('Y');
+        $faturaAberta = (float) \Application\Models\FaturaCartaoItem::where('user_id', $userId)
+            ->where('pago', false)
+            ->whereNull('cancelado_em')
+            ->whereMonth('data_vencimento', $mes)
+            ->whereYear('data_vencimento', $ano)
+            ->sum('valor');
+
         return [
             'total_cartoes' => $cartoes->count(),
             'limite_total' => $totalLimite,
             'limite_disponivel' => $totalDisponivel,
             'limite_utilizado' => $totalUtilizado,
             'percentual_uso' => $percentualUsoGeral,
+            'fatura_aberta' => $faturaAberta,
             'cartoes' => $cartoes->toArray(),
         ];
     }

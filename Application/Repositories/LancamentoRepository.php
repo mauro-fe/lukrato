@@ -892,4 +892,52 @@ class LancamentoRepository extends BaseRepository
             ->pluck('total', 'categoria_id')
             ->toArray();
     }
+
+    /**
+     * Retorna totais diários de receitas e despesas (caixa) para um mês.
+     * Cada item: ['label' => 'DD', 'receitas' => float, 'despesas' => float]
+     *
+     * @return list<array{label:string,receitas:float,despesas:float}>
+     */
+    public function getDailyTotalsByMonth(int $userId, string $month): array
+    {
+        $period = $this->parseYearMonth($month);
+
+        $rows = Lancamento::withoutGlobalScopes()
+            ->selectRaw('DAY(data) as dia, tipo, SUM(valor) as total')
+            ->where('user_id', $userId)
+            ->where('pago', 1)
+            ->where('eh_transferencia', 0)
+            ->where('afeta_caixa', 1)
+            ->whereIn('tipo', ['receita', 'despesa'])
+            ->whereBetween('data', [$period['start'], $period['end']])
+            ->groupByRaw('DAY(data), tipo')
+            ->orderByRaw('DAY(data)')
+            ->get();
+
+        $byDay = [];
+        foreach ($rows as $row) {
+            $d = (int) $row->dia;
+            if (!isset($byDay[$d])) {
+                $byDay[$d] = ['receitas' => 0.0, 'despesas' => 0.0];
+            }
+            if ($row->tipo === 'receita') {
+                $byDay[$d]['receitas'] += (float) $row->total;
+            } else {
+                $byDay[$d]['despesas'] += (float) $row->total;
+            }
+        }
+
+        $daysInMonth = (int) date('t', strtotime($period['start']));
+        $result = [];
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            $result[] = [
+                'label'    => str_pad((string) $d, 2, '0', STR_PAD_LEFT),
+                'receitas' => $byDay[$d]['receitas'] ?? 0.0,
+                'despesas' => $byDay[$d]['despesas'] ?? 0.0,
+            ];
+        }
+
+        return $result;
+    }
 }

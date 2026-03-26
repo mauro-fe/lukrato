@@ -6,6 +6,7 @@ use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Models\Conta;
 use Application\Models\Lancamento;
+use Application\Models\Categoria;
 use Application\Repositories\LancamentoRepository;
 use Application\Repositories\MetaRepository;
 use Application\Repositories\OrcamentoRepository;
@@ -160,6 +161,51 @@ class DashboardController extends BaseController
         return $saldosIniciais + $receitas - $despesas;
     }
 
+    private function getDespesasPorCategoria(int $userId, string $month, string $viewType): array
+    {
+        $normalized = $this->normalizeMonth($month);
+        $start = $normalized['start'];
+        $end = $normalized['end'];
+
+        $query = Lancamento::where('user_id', $userId)
+            ->where('tipo', 'despesa')
+            ->where('eh_transferencia', 0);
+
+        if ($viewType === 'competencia') {
+            $query->where(function ($q) use ($start, $end) {
+                $q->where(function ($sub) use ($start, $end) {
+                    $sub->whereNotNull('data_competencia')
+                        ->whereBetween('data_competencia', [$start, $end]);
+                })->orWhere(function ($sub) use ($start, $end) {
+                    $sub->whereNull('data_competencia')
+                        ->whereBetween('data', [$start, $end]);
+                });
+            });
+        } else {
+            $query->where('pago', 1)
+                ->where('afeta_caixa', 1)
+                ->whereBetween('data', [$start, $end]);
+        }
+
+        $rows = $query
+            ->selectRaw('categoria_id, SUM(valor) as total')
+            ->groupBy('categoria_id')
+            ->get();
+
+        $categoriaIds = $rows->pluck('categoria_id')->filter()->all();
+        $categorias = Categoria::whereIn('id', $categoriaIds)
+            ->pluck('nome', 'id')
+            ->toArray();
+
+        return $rows->map(function ($row) use ($categorias) {
+            $catId = $row->categoria_id;
+            return [
+                'categoria' => $categorias[$catId] ?? 'Sem categoria',
+                'valor' => (float) $row->total,
+            ];
+        })->sortByDesc('valor')->values()->toArray();
+    }
+
     /**
      * GET /api/dashboard/overview
      * Endpoint agregado para reduzir fanout de requests no dashboard.
@@ -204,6 +250,7 @@ class DashboardController extends BaseController
                     $limit
                 ),
                 'chart' => $chart,
+                'despesas_por_categoria' => $this->getDespesasPorCategoria($userId, $month, $viewType),
                 'provisao' => $this->provisaoService->generate($userId, $month)->toArray(),
                 'health_score' => $this->healthScoreService->calculateUserHealthScore($userId, $month),
                 'health_score_insights' => $this->healthScoreInsightService->generate($userId, $month),
@@ -377,4 +424,49 @@ class DashboardController extends BaseController
         }
     }
 
+    /**
+     * GET /api/dashboard/evolucao
+     * Retorna dados de evolução financeira: mensal (diário) e anual (12 meses).
+     */
+    public function evolucao(): Response
+    {
+        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+        $month = null;
+
+        try {
+            $normalized = $this->normalizeMonth($this->getStringQuery('month', $this->getCurrentMonth()));
+            $month = $normalized['month'];
+            $viewType = $this->getStringQuery('view', 'caixa');
+
+            // ── Mensal: totais por dia no mês selecionado ─────────────────────
+            $mensal = $this->lancamentoRepo->getDailyTotalsByMonth($userId, $month);
+
+            // ── Anual: últimos 12 meses ────────────────────────────────────────
+            $annualMonths = $this->getPreviousMonths($month, 12);
+            $anual = array_map(function (string $m) use ($userId, $viewType): array {
+                $metrics = $this->buildMetricsPayload($userId, $m, $viewType);
+                $date = DateTimeImmutable::createFromFormat('!Y-m', $m);
+                $label = $date ? $date->format('M/y') : $m;
+                return [
+                    'label'    => $label,
+                    'month'    => $m,
+                    'receitas' => (float) ($metrics['receitas'] ?? 0),
+                    'despesas' => (float) ($metrics['despesas'] ?? 0),
+                    'saldo'    => (float) ($metrics['resultado'] ?? 0),
+                ];
+            }, $annualMonths);
+
+            return Response::successResponse([
+                'month'  => $month,
+                'mensal' => $mensal,
+                'anual'  => $anual,
+            ]);
+        } catch (Throwable $e) {
+            $this->logDashboardError('Erro ao gerar evolucao financeira', $e, $userId ?? 0, [
+                'month' => $month,
+            ]);
+
+            return $this->internalErrorResponse($e, 'Erro ao gerar evolucao.');
+        }
+    }
 }

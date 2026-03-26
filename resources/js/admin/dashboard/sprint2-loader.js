@@ -9,7 +9,8 @@ function injectStyles() {
     'assets/css/pages/admin-dashboard/health-score.css',
     'assets/css/pages/admin-dashboard/greeting.css',
     'assets/css/pages/admin-dashboard/health-score-insights.css',
-    'assets/css/pages/admin-dashboard/ai-tip.css'
+    'assets/css/pages/admin-dashboard/ai-tip.css',
+    'assets/css/pages/admin-dashboard/evolucao-charts.css',
   ];
 
   styles.forEach((path) => {
@@ -28,7 +29,7 @@ function waitForComponents() {
   return new Promise((resolve) => {
     let attempts = 0;
     const check = setInterval(() => {
-      if (window.HealthScoreWidget && window.DashboardGreeting && window.HealthScoreInsights && window.FinanceOverview) {
+      if (window.HealthScoreWidget && window.DashboardGreeting && window.HealthScoreInsights && window.FinanceOverview && window.EvolucaoCharts) {
         clearInterval(check);
         resolve();
       }
@@ -96,6 +97,15 @@ function initDashboardComponents() {
     if (aiTipDiv) {
       const aiTip = new window.AiTipCard();
       aiTip.init();
+    }
+  }
+
+  // Evolução Financeira — always init the widget; visibility is controlled by customize.js
+  if (typeof window.EvolucaoCharts !== 'undefined') {
+    const evoDiv = document.getElementById('evolucaoChartsContainer');
+    if (evoDiv) {
+      const evo = new window.EvolucaoCharts();
+      evo.init();
     }
   }
 

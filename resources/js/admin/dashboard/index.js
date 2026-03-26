@@ -12,6 +12,7 @@ import './health-score.js';
 import './health-score-insights.js';
 import './ai-tip.js';
 import './finance-overview.js';
+import './evolucao-charts.js';
 import './progressive-disclosure.js';
 import './celebration.js';
 import './sprint2-loader.js';

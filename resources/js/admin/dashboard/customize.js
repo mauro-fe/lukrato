@@ -21,6 +21,7 @@ const SECTION_MAP = {
     // Principais
     toggleHealthScore: 'sectionHealthScore',
     toggleAiTip: 'sectionAiTip',
+    toggleEvolucao: 'sectionEvolucao',
     toggleAlertas: 'sectionAlertas',
     toggleGrafico: 'chart-section',
     togglePrevisao: 'sectionPrevisao',
@@ -38,6 +39,7 @@ const SECTION_MAP = {
 const DEFAULTS = {
     toggleHealthScore: true,
     toggleAiTip: true,
+    toggleEvolucao: true,
     toggleAlertas: true,
     toggleGrafico: true,
     togglePrevisao: true,
