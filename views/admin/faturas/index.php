@@ -1,10 +1,20 @@
-<!-- CSS MODERNIZADO -->
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/bundles/faturas-modern.css.php?v=<?= time() ?>">
-
 <section class="parc-page">
 
-    <!-- ==================== FILTROS MODERNOS ==================== -->
-    <div class="filters-modern" data-aos="fade-up" data-aos-delay="100">
+    <!-- ============================================================
+         HERO — Visão geral (estilo dashboard-hero)
+         ============================================================ -->
+    <section class="fat-hero">
+        <span class="fat-hero__eyebrow">Faturas de cartão</span>
+        <h1 class="fat-hero__title">Suas faturas</h1>
+        <p class="fat-hero__subtitle">
+            Acompanhe o valor, vencimento e progresso de pagamento de cada fatura dos seus cartões.
+        </p>
+    </section>
+
+    <!-- ============================================================
+         FILTROS — Painel colapsável
+         ============================================================ -->
+    <div class="filters-modern collapsed">
         <div class="filters-header">
             <div class="filters-title">
                 <div class="filters-icon">
@@ -22,10 +32,9 @@
 
         <div class="filters-body" id="filtersBody">
             <div class="filters-grid">
-                <!-- Status -->
                 <div class="filter-item">
                     <label class="filter-label-modern" for="filtroStatus">
-                        <i data-lucide="circle-check" style="color: var(--color-primary)"></i>
+                        <i data-lucide="circle-check"></i>
                         Status
                     </label>
                     <div class="select-wrapper">
@@ -40,10 +49,9 @@
                     </div>
                 </div>
 
-                <!-- Cartão -->
                 <div class="filter-item">
                     <label class="filter-label-modern" for="filtroCartao">
-                        <i data-lucide="credit-card" style="color: var(--color-primary)"></i>
+                        <i data-lucide="credit-card"></i>
                         Cartão
                     </label>
                     <div class="select-wrapper">
@@ -54,10 +62,9 @@
                     </div>
                 </div>
 
-                <!-- Ano -->
                 <div class="filter-item">
                     <label class="filter-label-modern" for="filtroAno">
-                        <i data-lucide="calendar" style="color: var(--color-primary)"></i>
+                        <i data-lucide="calendar"></i>
                         Ano
                     </label>
                     <div class="select-wrapper">
@@ -68,10 +75,9 @@
                     </div>
                 </div>
 
-                <!-- Mês -->
                 <div class="filter-item">
                     <label class="filter-label-modern" for="filtroMes">
-                        <i data-lucide="calendar" style="color: var(--color-primary)"></i>
+                        <i data-lucide="calendar"></i>
                         Mês
                     </label>
                     <div class="select-wrapper">
@@ -95,7 +101,6 @@
                 </div>
             </div>
 
-            <!-- Botões de ação -->
             <div class="filters-actions">
                 <button type="button" id="btnLimparFiltros" class="btn-filter-clear">
                     <i data-lucide="x"></i>
@@ -108,63 +113,70 @@
             </div>
         </div>
 
-        <!-- Filtros ativos (badges) -->
-        <div class="active-filters" id="activeFilters" style="display: none;">
-            <!-- Badges de filtros ativos serão inseridos via JS -->
-        </div>
+        <div class="active-filters" id="activeFilters" style="display: none;"></div>
     </div>
 
-    <!-- ==================== HEADER COM TOGGLE ==================== -->
-    <div class="faturas-header" data-aos="fade-up" data-aos-delay="150">
-        <div class="faturas-title">
-            <i data-lucide="file-text"></i>
-            <span>Suas Faturas</span>
-        </div>
-        <div class="view-toggle">
-            <button class="view-btn active" data-view="grid" title="Visualização em Cards">
-                <i data-lucide="grip-horizontal"></i>
-            </button>
-            <button class="view-btn" data-view="list" title="Visualização em Lista">
-                <i data-lucide="list"></i>
-            </button>
-        </div>
-    </div>
+    <!-- ============================================================
+         LISTA DE FATURAS — Seção principal
+         ============================================================ -->
+    <section class="fat-list-section">
+        <div class="fat-list-header">
+            <div class="fat-list-heading">
+                <span class="fat-section__eyebrow">Faturas</span>
+                <h2 class="fat-section__title">Suas Faturas</h2>
+                <p class="fat-section__desc">
+                    Faturas pendentes e com valor elevado aparecem em destaque.
+                </p>
+            </div>
 
-    <!-- ==================== LOADING ==================== -->
-    <div id="loadingParcelamentos" class="lk-loading-state" style="display: none;">
-        <i data-lucide="loader-2"></i>
-        <p>Carregando faturas...</p>
-    </div>
-
-    <!-- ==================== LISTA DE FATURAS ==================== -->
-    <!-- Headers da lista (visível apenas em modo lista) -->
-    <div id="faturasListHeader" class="faturas-list-header">
-        <span></span>
-        <span>Cartão</span>
-        <span>Valor</span>
-        <span>Progresso</span>
-        <span>Status</span>
-        <span>Ações</span>
-    </div>
-    <div id="parcelamentosContainer" class="parcelamentos-grid" data-aos="fade-up" data-aos-delay="200">
-        <!-- Cards serão inseridos aqui via JS -->
-    </div>
-
-    <!-- ==================== EMPTY STATE ==================== -->
-    <div id="emptyState" class="empty-state" style="display: none;">
-        <div class="empty-icon">
-            <i data-lucide="credit-card"></i>
+            <div class="fat-list-controls">
+                <div class="view-toggle">
+                    <button class="view-btn active" data-view="grid" title="Visualização em Cards">
+                        <i data-lucide="layout-grid"></i>
+                    </button>
+                    <button class="view-btn" data-view="list" title="Visualização em Lista">
+                        <i data-lucide="list"></i>
+                    </button>
+                </div>
+            </div>
         </div>
-        <h3>Nenhuma fatura encontrada</h3>
-        <p>Suas faturas de cartão aparecerão aqui automaticamente quando você cadastrar compras parceladas</p>
-        <a href="<?= BASE_URL ?>lancamentos" class="btn-cta">
-            <i data-lucide="plus"></i>
-            Criar Lançamento Parcelado
-        </a>
-    </div>
+
+        <!-- Loading -->
+        <div id="loadingParcelamentos" class="lk-loading-state" style="display: none;">
+            <i data-lucide="loader-2"></i>
+            <p>Carregando faturas...</p>
+        </div>
+
+        <!-- Headers da lista (visível apenas em modo lista) -->
+        <div id="faturasListHeader" class="faturas-list-header">
+            <span></span>
+            <span>Cartão</span>
+            <span>Valor</span>
+            <span>Progresso</span>
+            <span>Status</span>
+            <span>Ações</span>
+        </div>
+
+        <!-- Grid de faturas (JS-rendered) -->
+        <div id="parcelamentosContainer" class="parcelamentos-grid"></div>
+
+        <!-- Empty state -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <div class="empty-icon">
+                <i data-lucide="credit-card"></i>
+            </div>
+            <h3>Nenhuma fatura encontrada</h3>
+            <p>Suas faturas de cartão aparecerão aqui automaticamente quando você cadastrar compras parceladas.</p>
+            <a href="<?= BASE_URL ?>lancamentos" class="btn-cta">
+                <i data-lucide="plus"></i>
+                Criar Lançamento Parcelado
+            </a>
+        </div>
+    </section>
+
 </section>
+
 <?php include __DIR__ . '/../partials/modals/modal-detalhes-faturas.php'; ?>
 
-
-<!-- JavaScript (CDN scripts já carregados no header) -->
-<!-- Page JS carregado automaticamente via loadPageJs() + Vite -->
+<!-- Styles -->
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/admin-faturas-index.css?v=<?= time() ?>"">
