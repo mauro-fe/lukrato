@@ -1,3 +1,4 @@
+import '../../../../css/admin/onboarding/v2/index.css';
 import { onboardingStore } from './context/OnboardingContext.js';
 import { STEP_ORDER, ONBOARDING_STEPS } from './types.js';
 import { createProgressBar } from './components/ProgressBar.js';

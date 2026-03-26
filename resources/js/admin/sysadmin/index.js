@@ -13,6 +13,7 @@
  * ============================================================================
  */
 
+import '../../../css/admin/sysadmin/index.css';
 import { apiDelete, apiGet, apiPost, apiPut, getErrorMessage } from '../shared/api.js';
 import { escapeHtml } from '../shared/utils.js';
 

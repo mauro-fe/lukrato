@@ -1,5 +1,3 @@
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/financas-modern.css?v=<?= time() ?>">
-
 <section class="fin-page">
 
     <!-- ==================== CARDS RESUMO: ORÇAMENTOS ==================== -->

@@ -184,9 +184,6 @@
 <?php include __DIR__ . '/../partials/modals/card-detail-modal.php'; ?>
 
 <!-- ==================== ESTILOS ==================== -->
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/admin-cartoes-index.css?v=<?= time() ?>">
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/relatorios/_modal-cartao.css?v=<?= time() ?>">
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/relatorios/_modal-responsive.css?v=<?= time() ?>">
 <?= vite_scripts('admin/card-modals/index.js') ?>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>

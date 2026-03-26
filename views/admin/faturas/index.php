@@ -179,4 +179,3 @@
 <?php include __DIR__ . '/../partials/modals/modal-detalhes-faturas.php'; ?>
 
 <!-- Styles -->
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/admin-faturas-index.css?v=<?= time() ?>"">

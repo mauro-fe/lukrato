@@ -1,3 +1,4 @@
+import '../../../css/admin/sysadmin/ai-chat.css';
 import { apiGet, apiPost, getBaseUrl, getErrorMessage } from '../shared/api.js';
 
 (function () {

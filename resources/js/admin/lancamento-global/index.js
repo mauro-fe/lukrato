@@ -9,6 +9,7 @@
  * ============================================================================
  */
 
+import '../../../css/admin/modal-lancamento/index.css';
 import { formatMoney, parseMoney, calcularRecorrenciaFim } from '../shared/utils.js';
 import { formatMoneyInput } from '../shared/utils.js';
 import { apiGet, apiPost, getBaseUrl, getErrorMessage, logClientError, logClientWarning } from '../shared/api.js';

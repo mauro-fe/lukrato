@@ -1,5 +1,3 @@
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/bundles/sysadmin-modern.css.php?v=<?= time() ?>">
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/communications.css?v=<?= time() ?>">
 
 <div class="sysadmin-container communications-page">
     <!-- Header Section -->

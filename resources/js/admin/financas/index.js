@@ -3,6 +3,7 @@
  * Orchestrates all modules and exposes backward-compatible global API
  */
 
+import '../../../css/admin/financas/index.css';
 import { CONFIG, STATE, Utils, Modules } from './state.js';
 import { FinancasApp } from './app.js';
 

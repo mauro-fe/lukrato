@@ -1,0 +1,21 @@
+/**
+ * Sysadmin Base CSS — Barrel Import
+ * Replaces the PHP concatenator bundle (sysadmin-modern.css.php)
+ * Shared base styles for all sysadmin pages.
+ */
+
+@import './_base.css';
+@import './_tabs.css';
+@import './_stats-grid.css';
+@import './_control-section.css';
+@import './_table-section.css';
+@import './_filters.css';
+@import './_pagination.css';
+@import './_responsive.css';
+@import './_swal-custom.css';
+@import './_view-user-btn.css';
+@import './_user-modal.css';
+@import './_user-modal-responsive.css';
+@import './_analytics.css';
+@import './_error-logs.css';
+@import './_feedback.css';

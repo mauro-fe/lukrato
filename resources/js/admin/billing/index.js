@@ -8,6 +8,7 @@
  * ============================================================================
  */
 
+import '../../../css/admin/billing/index.css';
 import { apiPost, getBaseUrl, getCSRFToken, getErrorMessage } from '../shared/api.js';
 import './modal-pagamento.js';
 

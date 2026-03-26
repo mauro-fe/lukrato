@@ -4,6 +4,7 @@
  * Imports all modules, wires up global window functions for PHP views,
  * and bootstraps the application on DOMContentLoaded.
  */
+import '../../../css/admin/faturas/index.css';
 import { CONFIG, DOM, STATE, Utils, Modules, initDOM } from './state.js';
 import { FaturasAPI } from './api.js';
 import { FaturasUI } from './ui.js';

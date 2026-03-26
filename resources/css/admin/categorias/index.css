@@ -1,0 +1,21 @@
+/**
+ * Categorias CSS — Barrel Import
+ * Replaces the PHP concatenator bundle (admin-categorias-index.css.php)
+ */
+
+@import './_base.css';
+@import './_icons.css';
+@import './_icon-picker-trigger.css';
+@import './_icon-picker-drawer.css';
+@import './_suggestions.css';
+@import './_edit-modal-picker.css';
+@import './_grid-categorias.css';
+@import './_toolbar.css';
+@import './_card-individual.css';
+@import './_orcamento-inline.css';
+@import './_responsive-base.css';
+@import './_responsive-tablet.css';
+@import './_responsive-mobile.css';
+@import './_responsive-small.css';
+@import './_modal-orcamento.css';
+@import './_subcategorias.css';

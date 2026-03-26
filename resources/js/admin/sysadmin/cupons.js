@@ -6,6 +6,7 @@
  * ============================================================================
  */
 
+import '../../../css/admin/sysadmin/cupons.css';
 import { apiDelete, apiGet, apiPost, getBaseUrl, getErrorMessage } from '../shared/api.js';
 import { escapeHtml } from '../shared/utils.js';
 

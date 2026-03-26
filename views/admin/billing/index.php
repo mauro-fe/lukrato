@@ -3,7 +3,6 @@
      Página de planos e assinaturas (Refatorado)
      ============================================================================ -->
 
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/billing.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/modal-pagamento.css">
 
 

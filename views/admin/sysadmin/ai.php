@@ -1,5 +1,3 @@
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/bundles/sysadmin-modern.css.php?v=<?= time() ?>">
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/ai-chat.css?v=<?= time() ?>">
 
 <div class="sysadmin-container ai-page">
 

@@ -3,6 +3,8 @@
  * Gerencia a pagina de cartoes de credito arquivados.
  */
 
+import '../../../css/admin/cartoes-shared/index.css';
+import '../../../css/admin/cartoes-arquivadas/index.css';
 import { apiFetch, getBaseUrl, getErrorMessage } from '../shared/api.js';
 import { escapeHtml, formatMoney } from '../shared/utils.js';
 import { toastSuccess, toastError, refreshIcons } from '../shared/ui.js';

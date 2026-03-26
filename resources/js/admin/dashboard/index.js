@@ -7,6 +7,7 @@
  * ============================================================================
  */
 
+import '../../../css/admin/dashboard/index.css';
 import './greeting.js';
 import './health-score.js';
 import './health-score-insights.js';

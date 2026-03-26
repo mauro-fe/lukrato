@@ -7,6 +7,7 @@
  * ============================================================================
  */
 
+import '../../../css/admin/relatorios/index.css';
 import { CONFIG, STATE, Utils, Modules, STORAGE_KEYS, TYPE_OPTIONS } from './state.js';
 import { ChartManager } from './charts.js';
 import {

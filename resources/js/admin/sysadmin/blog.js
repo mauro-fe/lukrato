@@ -6,6 +6,7 @@
  * ============================================================================
  */
 
+import '../../../css/admin/sysadmin/blog.css';
 import { apiFetch, getBaseUrl, getErrorMessage } from '../shared/api.js';
 import { escapeHtml } from '../shared/utils.js';
 

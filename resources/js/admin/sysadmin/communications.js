@@ -4,6 +4,7 @@
  * ============================================================================
  */
 
+import '../../../css/admin/sysadmin/communications.css';
 import { apiGet, apiPost, getBaseUrl, getErrorMessage, logClientError } from '../shared/api.js';
 import { debounce, escapeHtml } from '../shared/utils.js';
 

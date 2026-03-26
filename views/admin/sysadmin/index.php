@@ -1,4 +1,3 @@
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/bundles/sysadmin-modern.css.php?v=<?= time() ?>">
 
 <div class="sysadmin-container">
     <!-- Stats Grid -->

@@ -10,6 +10,8 @@
  * ============================================================================
  */
 
+import '../../../css/admin/relatorios/_modal-cartao.css';
+import '../../../css/admin/relatorios/_modal-responsive.css';
 import { apiFetch, getBaseUrl, getErrorMessage } from '../shared/api.js';
 import { escapeHtml } from '../shared/utils.js';
 

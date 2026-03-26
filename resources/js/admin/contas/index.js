@@ -7,6 +7,7 @@
  * ============================================================================
  */
 
+import '../../../css/admin/contas/index.css';
 import { CONFIG } from './state.js';
 import { ContasAPI } from './api.js';
 import { ContasRender } from './render.js';

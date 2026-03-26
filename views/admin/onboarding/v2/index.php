@@ -28,9 +28,6 @@
 
     <link rel="stylesheet"
         href="<?= htmlspecialchars((string) ($baseUrl ?? ''), ENT_QUOTES, 'UTF-8') ?>assets/css/core/variables.css">
-    <link rel="stylesheet"
-        href="<?= htmlspecialchars((string) ($baseUrl ?? ''), ENT_QUOTES, 'UTF-8') ?>assets/css/pages/onboarding-v2.css">
-
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js" defer></script>
 
     <script>

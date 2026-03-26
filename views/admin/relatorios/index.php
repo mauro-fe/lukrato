@@ -1,6 +1,5 @@
 <!-- Relatórios View -->
 <?php $isPro = $isPro ?? false; ?>
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/bundles/admin-relatorios-relatorios.css.php?v=<?= time() ?>">
 
 <div class="rel-page">
     <!-- ==================== CARDS DE RESUMO RÁPIDO ==================== -->

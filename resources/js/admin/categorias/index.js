@@ -8,6 +8,7 @@
  * ============================================================================
  */
 
+import '../../../css/admin/categorias/index.css';
 import { Modules } from './state.js';
 import { CategoriasManager, EventListeners } from './app.js';
 import { SubcategoriasModule } from './subcategorias.js';

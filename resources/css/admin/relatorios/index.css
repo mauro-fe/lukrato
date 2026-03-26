@@ -1,0 +1,20 @@
+/**
+ * Relatorios CSS — Barrel Import
+ * Replaces the PHP concatenator bundle (admin-relatorios-relatorios.css.php)
+ */
+
+@import './_layout.css';
+@import './_cards-charts.css';
+@import './_responsive.css';
+@import './_states-utils.css';
+@import './_responsive-extended.css';
+@import './_complementary.css';
+@import './_skeleton.css';
+@import './_cartoes.css';
+@import './_cartoes-responsive.css';
+@import './_insights.css';
+@import './_cartoes-credito.css';
+@import './_overview.css';
+@import './_subcategory-drilldown.css';
+@import './_modal-cartao.css';
+@import './_modal-responsive.css';

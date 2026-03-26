@@ -2,8 +2,6 @@
 // Header incluído automaticamente pelo framework render() — não duplicar
 ?>
 
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/blog-admin.css">
-
 <!-- TinyMCE CDN -->
 <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 

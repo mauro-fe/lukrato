@@ -1,0 +1,21 @@
+/**
+ * Cartoes Shared CSS — Barrel Import
+ * Replaces the PHP concatenator bundle (cartoes-modern.css.php)
+ * Shared component styles used by cartoes and cartoes-arquivadas pages.
+ */
+
+@import './_base-page.css';
+@import './_stats-grid.css';
+@import './_toolbar.css';
+@import './_container.css';
+@import './_credit-card.css';
+@import './_skeleton.css';
+@import './_list-view.css';
+@import './_responsive.css';
+@import './_modal-fatura.css';
+@import './_fatura-parcelamentos.css';
+@import './_dark-theme.css';
+@import './_header-actions.css';
+@import './_historico-faturas.css';
+@import './_alertas.css';
+@import './_error-state.css';

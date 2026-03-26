@@ -1,3 +1,4 @@
+import '../../../css/admin/perfil/index.css';
 import { apiDelete, apiFetch, apiGet, getBaseUrl, getErrorMessage } from '../shared/api.js';
 
 /**

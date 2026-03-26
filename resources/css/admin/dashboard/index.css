@@ -1,0 +1,30 @@
+/**
+ * Dashboard CSS — Barrel Import
+ * Replaces the PHP concatenator bundle (admin-dashboard-index.css.php)
+ * Now bundled by Vite via JS entry point.
+ */
+
+/* ── Core layout ─────────────────────────────────────── */
+@import './_modern-dashboard.css';
+@import './_dashboard-page.css';
+@import './_cards.css';
+@import './_charts-grid.css';
+@import './_table-card.css';
+@import './_provisao.css';
+@import './_gamification.css';
+@import './_responsive.css';
+@import './_customize-modal.css';
+@import './_light-theme.css';
+@import './_print.css';
+
+/* ── Components ──────────────────────────────────────── */
+@import './floating-action-button.css';
+@import './greeting.css';
+@import './health-score.css';
+@import './health-score-insights.css';
+@import './ai-tip.css';
+@import './finance-overview.css';
+@import './evolucao-charts.css';
+@import './onboarding-checklist.css';
+@import './progressive-disclosure.css';
+@import './celebration-animations.css';

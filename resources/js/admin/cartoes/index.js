@@ -3,6 +3,7 @@
  * Orchestrates all modules and exposes backward-compatible global API
  */
 
+import '../../../css/admin/cartoes/index.css';
 import { Modules } from './state.js';
 import { CartoesAPI } from './api.js';
 import { CartoesUI } from './ui.js';

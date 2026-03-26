@@ -1,3 +1,4 @@
+import '../../../css/admin/sysadmin/ai-logs.css';
 import { apiDelete, apiGet, getBaseUrl, getErrorMessage } from '../shared/api.js';
 
 (function () {

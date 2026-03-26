@@ -74,8 +74,6 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/gamification.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/gamification-page.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/modal-contas-modern.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/bundles/modal-lancamento.css.php?v=<?= time() ?>">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/modal-lancamento-mobile.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/plan-limits.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/tooltips.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/first-visit-tooltips.css?v=<?= time() ?>">

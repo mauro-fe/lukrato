@@ -1,0 +1,28 @@
+/**
+ * Modal Lancamento CSS — Barrel Import
+ * Replaces the PHP concatenator bundle (modal-lancamento.css.php)
+ * Global modal styles loaded on every admin page.
+ */
+
+@import './_base-overlay.css';
+@import './_header.css';
+@import './_body.css';
+@import './_conta-info.css';
+@import './_historico.css';
+@import './_tipo-movimentacao.css';
+@import './_agendamento.css';
+@import './_formulario.css';
+@import './_wizard-steps.css';
+@import './_checkbox.css';
+@import './_radio-buttons.css';
+@import './_preview-parcelamento.css';
+@import './_botao-voltar.css';
+@import './_footer.css';
+@import './_botoes.css';
+@import './_form-actions.css';
+@import './_validacao.css';
+@import './_responsive-tablet.css';
+@import './_responsive-mobile.css';
+@import './_forma-pagamento.css';
+@import './_datetime-inline.css';
+@import './_mobile.css';

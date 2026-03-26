@@ -2,8 +2,6 @@
 // Header incluído automaticamente pelo framework render() — não duplicar
 ?>
 
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/cupons.css">
-
 <div class="main-content">
     <div class="cupons-container">
         <!-- Botão Voltar -->

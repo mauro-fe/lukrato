@@ -1,5 +1,4 @@
 <!-- Incluir o CSS dos cartões modernos -->
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/bundles/cartoes-modern.css.php?v=<?= time() ?>">
 
 <div class="cont-page">
     <!-- ==================== HEADER ==================== -->

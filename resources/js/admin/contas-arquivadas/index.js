@@ -8,6 +8,7 @@
  * ============================================================================
  */
 
+import '../../../css/admin/contas-arquivadas/index.css';
 import { apiFetch } from '../shared/api.js';
 
 const BASE = (() => {
