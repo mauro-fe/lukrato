@@ -10,6 +10,7 @@
 import './greeting.js';
 import './health-score.js';
 import './health-score-insights.js';
+import './ai-tip.js';
 import './finance-overview.js';
 import './progressive-disclosure.js';
 import './celebration.js';

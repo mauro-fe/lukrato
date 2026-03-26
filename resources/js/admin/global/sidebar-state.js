@@ -2,10 +2,11 @@
  * ============================================================================
  * LUKRATO — Sidebar Collapsed State (Pre-render)
  * ============================================================================
- * Extraído de views/admin/partials/header.php (inline <script> block)
+ * A lógica principal agora é feita pelo script inline no <head> do header.php
+ * para garantir que execute ANTES do primeiro paint.
  *
- * Restaura o estado colapsado da sidebar antes do paint para evitar
- * flash de layout. Executa sincronamente antes do body render.
+ * Este módulo existe apenas como fallback e para manter compatibilidade
+ * com o import no index.js.
  * ============================================================================
  */
 
@@ -15,10 +16,12 @@
         const prefersCollapsed = localStorage.getItem(STORAGE_KEY) === '1';
         const isDesktop = window.matchMedia('(min-width: 993px)').matches;
 
-        if (prefersCollapsed && isDesktop) {
+        // O inline script no <head> normalmente já cuida disso,
+        // mas garantimos aqui como fallback
+        if (prefersCollapsed && isDesktop && !document.body.classList.contains('sidebar-collapsed')) {
             document.body.classList.add('sidebar-collapsed');
         }
     } catch (err) {
-        console.error('Erro ao restaurar estado da sidebar:', err);
+        // silently ignore
     }
 })();

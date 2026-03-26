@@ -8,7 +8,8 @@ function injectStyles() {
   const styles = [
     'assets/css/pages/admin-dashboard/health-score.css',
     'assets/css/pages/admin-dashboard/greeting.css',
-    'assets/css/pages/admin-dashboard/health-score-insights.css'
+    'assets/css/pages/admin-dashboard/health-score-insights.css',
+    'assets/css/pages/admin-dashboard/ai-tip.css'
   ];
 
   styles.forEach((path) => {
@@ -86,6 +87,15 @@ function initDashboardComponents() {
       if (insightsDiv) {
         window.healthScoreInsights = new window.HealthScoreInsights();
       }
+    }
+  }
+
+  // AI Tip Card
+  if (typeof window.AiTipCard !== 'undefined') {
+    const aiTipDiv = document.getElementById('aiTipContainer');
+    if (aiTipDiv) {
+      const aiTip = new window.AiTipCard();
+      aiTip.init();
     }
   }
 

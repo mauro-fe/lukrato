@@ -1,0 +1,210 @@
+/* ============================================================================
+   AI TIP CARD — Dashboard Dica IA
+   ============================================================================ */
+
+.ai-tip-card {
+  padding: var(--spacing-5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.20),
+    0 20px 40px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  height: 100%;
+}
+
+/* --- Header --- */
+.ai-tip-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-tip-header-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.ai-tip-title {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+}
+
+/* --- Tip list --- */
+.ai-tip-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+/* --- Individual tip item --- */
+.ai-tip-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: var(--color-text);
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast);
+  animation: aiTipSlideIn 0.3s ease both;
+}
+
+.ai-tip-item:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 40%, var(--color-card-border));
+  background: color-mix(in srgb, var(--color-primary) 4%, transparent);
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+.ai-tip-item:nth-child(2) { animation-delay: 80ms; }
+.ai-tip-item:nth-child(3) { animation-delay: 160ms; }
+
+@keyframes aiTipSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- Tip icon --- */
+.ai-tip-item-icon {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ai-tip-item-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.ai-tip-item-icon--critical {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+.ai-tip-item-icon--high {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+}
+
+.ai-tip-item-icon--medium {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+}
+
+.ai-tip-item-icon--low,
+.ai-tip-item-icon--positive {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+}
+
+.ai-tip-item-icon--info {
+  background: rgba(230, 126, 34, 0.12);
+  color: var(--color-primary);
+}
+
+/* --- Tip body --- */
+.ai-tip-item-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.ai-tip-item-title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.3;
+}
+
+.ai-tip-item-desc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+/* --- Arrow --- */
+.ai-tip-item-arrow {
+  width: 14px;
+  height: 14px;
+  color: var(--color-text-muted);
+  opacity: 0.5;
+  flex-shrink: 0;
+  margin-top: 3px;
+  transition: transform var(--transition-fast), opacity var(--transition-fast);
+}
+
+.ai-tip-item:hover .ai-tip-item-arrow {
+  transform: translateX(2px);
+  opacity: 1;
+  color: var(--color-primary);
+}
+
+/* --- Empty state --- */
+.ai-tip-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  flex: 1;
+  text-align: center;
+  padding: var(--spacing-4) 0;
+}
+
+.ai-tip-empty-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--color-success);
+  opacity: 0.7;
+}
+
+.ai-tip-empty p {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+/* --- Skeleton --- */
+.ai-tip-skeleton {
+  height: 52px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* --- Responsive --- */
+@media (max-width: 480px) {
+  .ai-tip-card {
+    padding: var(--spacing-4);
+  }
+
+  .ai-tip-item-desc {
+    display: none;
+  }
+}

@@ -19,12 +19,11 @@
   left: 270px;
   right: 0;
   height: 70px;
-  background: var(--glass-bg);
   backdrop-filter: var(--glass-backdrop);
   -webkit-backdrop-filter: var(--glass-backdrop);
   border-bottom: 1px solid var(--glass-border);
   z-index: 999;
-  transition: left var(--transition-fast);
+  transition: left var(--sidebar-transition);
 }
 
 /* Quando sidebar está collapsed */

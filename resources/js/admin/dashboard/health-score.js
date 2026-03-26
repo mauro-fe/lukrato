@@ -2,8 +2,7 @@ import { logClientError } from '../shared/api.js';
 import { getDashboardOverview, invalidateDashboardOverview } from './dashboard-data.js';
 
 /**
- * Financial Health Score Component
- * Score com explicacao simples e acionavel.
+ * Financial Health Score Component — Compact
  */
 
 class HealthScoreWidget {
@@ -17,65 +16,58 @@ class HealthScoreWidget {
   render() {
     if (!this.container) return;
 
-    const circumference = 339.29;
+    const r = 45;
+    this.circumference = 2 * Math.PI * r;
+    const circ = this.circumference;
 
     this.container.innerHTML = `
-      <div class="health-score-widget lk-health-score" data-aos="fade-up" data-aos-duration="500">
+      <div class="health-score-widget" data-aos="fade-up" data-aos-duration="400">
         <div class="hs-header">
-          <div class="hs-header-copy">
-            <span class="dashboard-section-eyebrow">Saude financeira</span>
-            <h2 class="hs-summary-title" id="healthSummaryTitle">Saude financeira: carregando</h2>
-            <p class="hs-summary-text" id="healthSummaryText">Assim que os dados carregarem, o Lukrato resume sua situacao do mes aqui.</p>
-          </div>
+          <h2 class="hs-title">Saude financeira</h2>
           <div class="hs-badge" id="healthIndicator">
             <span class="hs-badge-dot"></span>
-            <span class="hs-badge-text">Carregando</span>
+            <span class="hs-badge-text">...</span>
           </div>
         </div>
 
-        <div class="hs-main">
-          <div class="hs-gauge-area">
-            <svg class="hs-gauge" viewBox="0 0 120 120">
-              <defs>
-                <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#10b981"/>
-                  <stop offset="100%" stop-color="#3b82f6"/>
-                </linearGradient>
-              </defs>
-              <circle cx="60" cy="60" r="54" class="hs-gauge-track"/>
-              <circle cx="60" cy="60" r="54" class="hs-gauge-fill"
-                id="gaugeCircle"
-                stroke-dasharray="${circumference}"
-                stroke-dashoffset="${circumference}"
-              />
-              <text x="60" y="56" class="hs-gauge-value" id="gaugeValue">0</text>
-              <text x="60" y="72" class="hs-gauge-label">de 100</text>
-            </svg>
-          </div>
+        <div class="hs-gauge-area">
+          <svg class="hs-gauge" viewBox="0 0 100 100">
+            <defs>
+              <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#10b981"/>
+                <stop offset="100%" stop-color="#3b82f6"/>
+              </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="${r}" class="hs-gauge-track"/>
+            <circle cx="50" cy="50" r="${r}" class="hs-gauge-fill"
+              id="gaugeCircle"
+              stroke-dasharray="${circ}"
+              stroke-dashoffset="${circ}"
+            />
+            <text x="50" y="47" class="hs-gauge-value" id="gaugeValue">0</text>
+            <text x="50" y="60" class="hs-gauge-label">de 100</text>
+          </svg>
+        </div>
 
-          <div class="hs-info">
-            <div class="hs-breakdown">
-              <div class="hs-metric">
-                <span class="hs-metric-label">Seus registros</span>
-                <span class="hs-metric-value" id="hsLancamentos">--</span>
-              </div>
-              <div class="hs-metric-divider"></div>
-              <div class="hs-metric">
-                <span class="hs-metric-label">Limites</span>
-                <span class="hs-metric-value" id="hsOrcamento">--</span>
-              </div>
-              <div class="hs-metric-divider"></div>
-              <div class="hs-metric">
-                <span class="hs-metric-label">Metas</span>
-                <span class="hs-metric-value" id="hsMetas">--</span>
-              </div>
-            </div>
+        <p class="hs-message" id="healthMessage">Carregando...</p>
+
+        <div class="hs-breakdown">
+          <div class="hs-metric">
+            <span class="hs-metric-label">Registros</span>
+            <span class="hs-metric-value" id="hsLancamentos">--</span>
+          </div>
+          <div class="hs-metric">
+            <span class="hs-metric-label">Limites</span>
+            <span class="hs-metric-value" id="hsOrcamento">--</span>
+          </div>
+          <div class="hs-metric">
+            <span class="hs-metric-label">Metas</span>
+            <span class="hs-metric-value" id="hsMetas">--</span>
           </div>
         </div>
       </div>
     `;
 
-    this.circumference = circumference;
     this.updateIcons();
   }
 
@@ -117,7 +109,7 @@ class HealthScoreWidget {
     const valueText = document.getElementById('gaugeValue');
     if (!circle || !valueText) return;
 
-    const circumference = this.circumference || 339.29;
+    const circumference = this.circumference || (2 * Math.PI * 45);
     let currentScore = 0;
     const increment = targetScore / (this.animationDuration / 16);
 
@@ -144,7 +136,7 @@ class HealthScoreWidget {
 
     if (lancEl) {
       const count = data.lancamentos ?? 0;
-      lancEl.textContent = `${count} neste mes`;
+      lancEl.textContent = `${count}`;
       if (count >= 10) {
         lancEl.className = 'hs-metric-value color-success';
       } else if (count >= 5) {
@@ -158,10 +150,10 @@ class HealthScoreWidget {
       const total = data.orcamentos ?? 0;
       const ok = data.orcamentos_ok ?? 0;
       if (total === 0) {
-        orcEl.textContent = 'Nao definido';
+        orcEl.textContent = '--';
         orcEl.className = 'hs-metric-value color-muted';
       } else {
-        orcEl.textContent = `${ok}/${total} no limite`;
+        orcEl.textContent = `${ok}/${total}`;
         if (ok === total) {
           orcEl.className = 'hs-metric-value color-success';
         } else if (ok >= total / 2) {
@@ -176,13 +168,13 @@ class HealthScoreWidget {
       const ativas = data.metas_ativas ?? 0;
       const concluidas = data.metas_concluidas ?? 0;
       if (ativas === 0) {
-        metasEl.textContent = 'Nenhuma';
+        metasEl.textContent = '--';
         metasEl.className = 'hs-metric-value color-muted';
       } else if (concluidas > 0) {
-        metasEl.textContent = `${ativas} ativa${ativas !== 1 ? 's' : ''} e ${concluidas} concluida${concluidas !== 1 ? 's' : ''}`;
+        metasEl.textContent = `${ativas}+${concluidas}`;
         metasEl.className = 'hs-metric-value color-success';
       } else {
-        metasEl.textContent = `${ativas} ativa${ativas !== 1 ? 's' : ''}`;
+        metasEl.textContent = `${ativas}`;
         metasEl.className = 'hs-metric-value color-warning';
       }
     }
@@ -190,26 +182,25 @@ class HealthScoreWidget {
 
   updateStatusIndicator(score) {
     const indicator = document.getElementById('healthIndicator');
-    const title = document.getElementById('healthSummaryTitle');
-    const text = document.getElementById('healthSummaryText');
-    if (!indicator || !title || !text) return;
+    const messageEl = document.getElementById('healthMessage');
+    if (!indicator) return;
 
     let status = 'critical';
     let label = 'CRITICA';
-    let message = 'Seu mes pede ajustes rapidos para evitar aperto financeiro.';
+    let message = 'Ajustes rapidos podem evitar aperto financeiro.';
 
     if (score >= 70) {
       status = 'excellent';
       label = 'BOA';
-      message = 'Voce esta em uma faixa saudavel neste mes e segue no controle.';
+      message = 'Voce esta no controle. Continue assim!';
     } else if (score >= 50) {
       status = 'good';
       label = 'ESTAVEL';
-      message = 'Seu controle esta funcionando, mas ainda ha espaco para melhorar.';
+      message = 'Controle bom, mas ha espaco para melhorar.';
     } else if (score >= 30) {
       status = 'warning';
-      label = 'EM ATENCAO';
-      message = 'Alguns sinais pedem cuidado agora para o mes nao apertar.';
+      label = 'ATENCAO';
+      message = 'Alguns sinais pedem cuidado neste mes.';
     }
 
     indicator.className = `hs-badge hs-badge--${status}`;
@@ -218,8 +209,9 @@ class HealthScoreWidget {
       <span class="hs-badge-text">${label}</span>
     `;
 
-    title.textContent = `Saude financeira: ${label}`;
-    text.textContent = message;
+    if (messageEl) {
+      messageEl.textContent = message;
+    }
   }
 
   updateIcons() {
@@ -230,8 +222,7 @@ class HealthScoreWidget {
 
   showError() {
     const indicator = document.getElementById('healthIndicator');
-    const title = document.getElementById('healthSummaryTitle');
-    const text = document.getElementById('healthSummaryText');
+    const messageEl = document.getElementById('healthMessage');
 
     if (indicator) {
       indicator.className = 'hs-badge hs-badge--error';
@@ -241,12 +232,8 @@ class HealthScoreWidget {
       `;
     }
 
-    if (title) {
-      title.textContent = 'Saude financeira: indisponivel';
-    }
-
-    if (text) {
-      text.textContent = 'Nao foi possivel resumir sua saude financeira agora.';
+    if (messageEl) {
+      messageEl.textContent = 'Nao foi possivel carregar.';
     }
   }
 }

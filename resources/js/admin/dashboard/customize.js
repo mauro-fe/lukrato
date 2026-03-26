@@ -20,6 +20,7 @@ let prefsVersion = 0;
 const SECTION_MAP = {
     // Principais
     toggleHealthScore: 'sectionHealthScore',
+    toggleAiTip: 'sectionAiTip',
     toggleAlertas: 'sectionAlertas',
     toggleGrafico: 'chart-section',
     togglePrevisao: 'sectionPrevisao',
@@ -36,6 +37,7 @@ const SECTION_MAP = {
 /** Preferências padrão */
 const DEFAULTS = {
     toggleHealthScore: true,
+    toggleAiTip: true,
     toggleAlertas: true,
     toggleGrafico: true,
     togglePrevisao: true,

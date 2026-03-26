@@ -58,12 +58,19 @@ $onboardingCompleted = !empty($currentUser?->onboarding_completed_at);
     </section>
 
     <!-- ============================================================
-         SAÚDE FINANCEIRA — toggled via personalização
+         SAÚDE FINANCEIRA + DICA IA — lado a lado (duo-row)
          ============================================================ -->
-    <section class="dash-prominent-section" id="sectionHealthScore" style="display:none;">
-        <div id="healthScoreContainer"></div>
-        <div id="healthScoreInsights"></div>
-    </section>
+    <div class="dash-duo-row dash-duo-row--flexible" id="rowHealthAi">
+        <section id="sectionHealthScore" style="display:none;">
+            <div id="healthScoreContainer"></div>
+        </section>
+        <section id="sectionAiTip" style="display:none;">
+            <div id="aiTipContainer"></div>
+        </section>
+    </div>
+
+    <!-- Health Score Insights (full-width, below duo-row) -->
+    <div id="healthScoreInsights" class="dash-prominent-section"></div>
 
     <!-- ============================================================
          ALERTAS — toggled via personalização
@@ -361,6 +368,10 @@ $onboardingCompleted = !empty($currentUser?->onboarding_completed_at);
                     <label class="dash-toggle">
                         <input type="checkbox" id="toggleHealthScore" checked>
                         <span class="dash-toggle__label">Saúde financeira</span>
+                    </label>
+                    <label class="dash-toggle">
+                        <input type="checkbox" id="toggleAiTip" checked>
+                        <span class="dash-toggle__label">Dicas do Lukrato</span>
                     </label>
                     <label class="dash-toggle">
                         <input type="checkbox" id="toggleAlertas" checked>

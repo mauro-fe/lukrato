@@ -288,6 +288,10 @@ import { apiGet } from '../shared/api.js';
      * Gerencia o toggle da sidebar (colapso desktop + overlay mobile)
      */
     function initSidebarToggle() {
+        // Guard contra dupla inicialização
+        if (window.__sidebarToggleInitialized) return;
+        window.__sidebarToggleInitialized = true;
+
         const body = document.body;
         const aside = document.getElementById('sidebar-main');
         const btn = document.getElementById('edgeMenuBtn') ||
@@ -337,7 +341,6 @@ import { apiGet } from '../shared/api.js';
 
         const openMobile = () => {
             body.classList.add('sidebar-open-mobile');
-            aside?.classList.add('sidebar-animate-in');
             btn?.setAttribute('aria-expanded', 'true');
             mobileBtn?.setAttribute('aria-expanded', 'true');
             swapMobileIcon('x');
@@ -350,8 +353,6 @@ import { apiGet } from '../shared/api.js';
             mobileBtn?.setAttribute('aria-expanded', 'false');
             swapMobileIcon('menu');
             setIcon();
-            // Remove animate-in class after transition ends so it can replay next open
-            setTimeout(() => aside?.classList.remove('sidebar-animate-in'), 350);
         };
 
         // ====================================================================

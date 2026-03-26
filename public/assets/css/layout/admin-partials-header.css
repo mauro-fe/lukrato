@@ -58,26 +58,34 @@ h3 {
    5. LAYOUT - SIDEBAR
    ============================================================================ */
 
+/* Block all sidebar transitions on initial page load to prevent flash */
+.sidebar-no-transition .sidebar,
+.sidebar-no-transition .sidebar *,
+.sidebar-no-transition .content-wrapper,
+.sidebar-no-transition .top-navbar,
+.sidebar-no-transition .edge-menu-btn {
+  transition: none !important;
+}
+
 /* 5.1 Sidebar Structure */
 .sidebar {
   position: fixed;
   inset: 0 auto 0 0;
   width: var(--sidebar-width);
   height: 100vh;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-backdrop);
   border-right: 1px solid var(--glass-border);
   display: flex;
   flex-direction: column;
-  transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: width var(--sidebar-transition);
   overflow: hidden;
   z-index: 4;
+  will-change: width;
 }
 
 /* 5.2 Sidebar Header + Logo */
 .sidebar-header {
   height: 60px;
-  padding: 16px 16px 16px;
+  padding: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -147,13 +155,8 @@ h3 {
   justify-content: center;
   padding: 8px 0;
   border-radius: var(--radius-lg);
-  transition: all 0.3s ease;
   flex: 1;
   min-width: 0;
-}
-
-.sidebar .logo:hover {
-  transform: scale(1.02);
 }
 
 .sidebar .logo img {
@@ -161,18 +164,12 @@ h3 {
   max-width: 150px;
   max-height: 40px;
   object-fit: contain;
-  transition: all 0.3s ease;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .sidebar .logo img.logo-icon {
   max-width: 40px;
   max-height: 40px;
-}
-
-.sidebar .logo:hover img {
-  filter: drop-shadow(0 4px 8px rgba(230, 126, 34, 0.3));
-  transform: scale(1.05);
 }
 
 /* 5.3 Sidebar Navigation */
@@ -204,7 +201,7 @@ h3 {
 
 .sidebar-nav-label {
   display: block;
-  padding: var(--spacing-3) var(--spacing-5) var(--spacing-1);
+  padding: var(--spacing-3) 24px var(--spacing-1);
   font-size: 0.65rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -213,9 +210,14 @@ h3 {
   opacity: 0.6;
   white-space: nowrap;
   overflow: hidden;
-  transition: opacity var(--transition-fast);
+  transition: opacity 0.2s ease;
   user-select: none;
   pointer-events: none;
+}
+
+/* Expand: labels fade in with delay */
+body:not(.sidebar-collapsed) .sidebar-nav-label {
+  transition: opacity 0.3s ease 0.25s;
 }
 
 /* 5.3.2 Sidebar Footer (bottom-pinned) */
@@ -259,8 +261,9 @@ h3 {
 .sidebar .nav-item {
   display: flex;
   align-items: center;
-  gap: var(--spacing-3);
-  padding: 10px var(--spacing-5);
+  gap: 12px;
+  padding: 10px 24px;
+  margin: 2px 6px;
   color: var(--color-text);
   text-decoration: none;
   font-weight: 500;
@@ -269,11 +272,8 @@ h3 {
   position: relative;
   transition:
     background var(--transition-fast),
-    color var(--transition-fast),
-    transform var(--transition-fast);
+    color var(--transition-fast);
   white-space: nowrap;
-  overflow: hidden;
-  margin: 2px var(--spacing-3);
   min-height: 44px;
 }
 
@@ -281,30 +281,39 @@ h3 {
 .sidebar .nav-item i {
   font-size: var(--font-size-lg);
   min-width: 20px;
+  width: 20px;
   text-align: center;
   color: var(--color-text-muted) !important;
   opacity: 0.7;
+  flex-shrink: 0;
   transition:
     opacity var(--transition-fast),
-    color var(--transition-fast),
-    transform var(--transition-fast);
+    color var(--transition-fast);
 }
 
 .sidebar .nav-item svg.lucide,
 .sidebar .nav-item svg[class*="lucide-"] {
   color: var(--color-text-muted) !important;
   opacity: 0.7;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
   transition:
     opacity var(--transition-fast),
-    color var(--transition-fast),
-    transform var(--transition-fast);
+    color var(--transition-fast);
 }
 
 .sidebar .nav-item span {
-  transition:
-    opacity 0.3s ease,
-    width 0.3s ease,
-    transform 0.3s ease;
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* Expand: text fades in with delay (after sidebar width opens) */
+body:not(.sidebar-collapsed) .sidebar .nav-item span {
+  transition: opacity 0.3s ease 0.2s, transform 0.3s ease 0.2s;
 }
 
 /* 5.3.3 Nav Item Content (with subtitle/microcopy) */
@@ -314,9 +323,14 @@ h3 {
   gap: 1px;
   min-width: 0;
   flex: 1;
-  transition:
-    opacity 0.3s ease,
-    transform 0.3s ease;
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Expand: content fades in with delay */
+body:not(.sidebar-collapsed) .sidebar .nav-item .nav-item-content {
+  transition: opacity 0.3s ease 0.2s, transform 0.3s ease 0.2s;
 }
 
 .sidebar .nav-item .nav-item-title {
@@ -371,7 +385,6 @@ h3 {
 .sidebar .nav-item:hover {
   background: color-mix(in srgb, var(--color-text) 6%, transparent);
   color: var(--color-primary);
-  transform: translateX(2px);
 }
 
 .sidebar .nav-item:hover i,
@@ -379,7 +392,6 @@ h3 {
 .sidebar .nav-item:hover svg[class*="lucide-"] {
   color: var(--color-primary) !important;
   opacity: 1;
-  transform: scale(1.08);
 }
 
 .sidebar-nav .nav-item.active,
@@ -442,53 +454,58 @@ h3 {
   outline-offset: 2px;
 }
 
-/* 5.5 Sidebar Collapsed State */
+/* 5.5 Sidebar Collapsed State
+   REGRA: sidebar anima SÓ width. Texto esconde SÓ com opacity+transform.
+   Padding, margin, gap NÃO mudam. Layout interno é idêntico. */
 body.sidebar-collapsed .sidebar {
   width: var(--sidebar-collapsed-width);
-
 }
 
-body.sidebar-collapsed .sidebar .nav-item {
-  justify-content: center;
-  padding-left: 0;
-  padding-right: 0;
-}
-
+/* Collapsed: text hidden via opacity + transform (NO width:0, NO display:none) */
 body.sidebar-collapsed .sidebar .nav-item span,
 body.sidebar-collapsed .sidebar .nav-item .nav-item-content {
-  width: 0;
   opacity: 0;
-  pointer-events: none;
   transform: translateX(-8px);
+  pointer-events: none;
 }
 
-/* Logo switching on sidebar collapse */
+/* Logo switching on sidebar collapse — crossfade (no display:none reflow) */
 .sidebar .logo .logo-icon {
-  display: none !important;
+  position: absolute;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  pointer-events: none;
 }
 
 .sidebar .logo .logo-full {
-  display: block !important;
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+/* Expanding: logo-full fades in after sidebar width expands */
+body:not(.sidebar-collapsed) .sidebar .logo .logo-full {
+  transition: opacity 0.3s ease 0.25s, transform 0.3s ease 0.25s;
+}
+
+/* Expanding: logo-icon fades out quickly */
+body:not(.sidebar-collapsed) .sidebar .logo .logo-icon {
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
 body.sidebar-collapsed .sidebar .logo .logo-full {
-  display: none !important;
+  opacity: 0;
+  transform: scale(0.8);
+  pointer-events: none;
 }
 
 body.sidebar-collapsed .sidebar .logo .logo-icon {
-  display: block !important;
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
   max-height: 60px;
   max-width: 50px;
-}
-
-body.sidebar-collapsed .sidebar .nav-item {
-  transform: none;
-  margin: 2px var(--spacing-1);
-}
-
-/* Collapsed: no translate on hover */
-body.sidebar-collapsed .sidebar .nav-item:hover {
-  transform: none;
 }
 
 /* Collapsed: hide section labels */
@@ -511,19 +528,38 @@ body.sidebar-collapsed .sidebar-nav-group + .sidebar-nav-group::before {
   opacity: 0.5;
 }
 
-/* Collapsed: footer items */
-body.sidebar-collapsed .sidebar-footer .nav-item {
-  justify-content: center;
-  padding-left: 0;
-  padding-right: 0;
-}
-
+/* Collapsed: footer text hidden via opacity + transform */
 body.sidebar-collapsed .sidebar-footer .nav-item span,
 body.sidebar-collapsed .sidebar-footer .nav-item .nav-item-content {
-  width: 0;
   opacity: 0;
-  pointer-events: none;
   transform: translateX(-8px);
+  pointer-events: none;
+}
+
+/* 5.5.1 Collapsed Tooltips — CSS-only, shown on hover when sidebar is collapsed */
+body.sidebar-collapsed .sidebar .nav-item::after {
+  content: attr(title);
+  position: fixed;
+  left: calc(var(--sidebar-collapsed-width) + 6px);
+  top: auto;
+  transform: translateY(-50%);
+  padding: 6px 12px;
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 10000;
+  box-shadow: var(--shadow-md);
+  letter-spacing: 0.01em;
+}
+
+body.sidebar-collapsed .sidebar .nav-item:hover::after {
+  opacity: 1;
 }
 
 /* 5.6 Sidebar Toggle Button (Edge Button) */
@@ -616,8 +652,10 @@ body.sidebar-collapsed .sidebar-footer .nav-item .nav-item-content {
     0 4px 12px rgba(0, 0, 0, 0.25),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   transition:
-    all 0.5s ease-out,
-    left 0.3s ease;
+    left var(--sidebar-transition),
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
   z-index: 1000 !important;
   cursor: pointer;
   overflow: hidden;
@@ -677,7 +715,7 @@ body.sidebar-collapsed .sidebar-footer .nav-item .nav-item-content {
 .edge-menu-btn svg {
   position: relative;
   z-index: 1;
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform var(--sidebar-transition);
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 }
 
@@ -688,7 +726,7 @@ body.sidebar-collapsed .sidebar-footer .nav-item .nav-item-content {
 
 .edge-menu-btn:hover i,
 .edge-menu-btn:hover svg {
-  transform: scale(1.08);
+  /* no additional transform — CSS handles rotation via .sidebar-collapsed */
 }
 
 /* Rotate chevron when sidebar is collapsed */
@@ -699,7 +737,7 @@ body.sidebar-collapsed .edge-menu-btn svg {
 
 body.sidebar-collapsed .edge-menu-btn:hover i,
 body.sidebar-collapsed .edge-menu-btn:hover svg {
-  transform: rotate(180deg) scale(1.08);
+  transform: rotate(180deg);
 }
 
 /* Ocultar em mobile/tablet */
@@ -712,6 +750,7 @@ body.sidebar-collapsed .edge-menu-btn:hover svg {
 /* 5.7 Sidebar Pro CTA */
 .sidebar-pro-cta {
   padding: var(--spacing-3) var(--spacing-3) 0;
+  overflow: hidden;
 }
 
 .sidebar-pro-btn {
@@ -731,6 +770,7 @@ body.sidebar-collapsed .edge-menu-btn:hover svg {
     color-mix(in srgb, var(--color-primary) 55%, var(--color-secondary) 45%)
   );
   box-shadow: var(--shadow-md);
+  white-space: nowrap;
   transition:
     transform var(--transition-fast),
     box-shadow var(--transition-fast);
@@ -744,26 +784,22 @@ body.sidebar-collapsed .edge-menu-btn:hover svg {
 
 .sidebar-pro-btn i {
   font-size: 1rem;
+  flex-shrink: 0;
 }
 
 .sidebar-pro-btn span {
   color: #fff !important;
+  opacity: 1;
+  transition: opacity 0.2s ease;
 }
 
-body.sidebar-collapsed .sidebar-pro-cta {
-  padding: var(--spacing-4) var(--spacing-2) var(--spacing-5);
-}
-
-body.sidebar-collapsed .sidebar-pro-btn {
-  flex-direction: column;
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-xs);
-  padding: var(--spacing-3);
-  gap: var(--spacing-1);
+body:not(.sidebar-collapsed) .sidebar-pro-btn span {
+  transition: opacity 0.3s ease 0.2s;
 }
 
 body.sidebar-collapsed .sidebar-pro-btn span {
-  font-size: 0.7rem;
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* ============================================================================
@@ -774,7 +810,7 @@ body.sidebar-collapsed .sidebar-pro-btn span {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  transition: margin-left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: margin-left var(--sidebar-transition);
 }
 
 body.sidebar-collapsed .content-wrapper {
@@ -860,10 +896,9 @@ body.sidebar-open-mobile .sidebar-backdrop {
     width: 260px;
     height: 100dvh; /* dvh = dynamic viewport height, respeita barra do browser */
     height: 100vh;  /* fallback */
-    background: var(--color-surface);
     border-right: none;
     transform: translateX(-100%);
-    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform var(--sidebar-transition);
     z-index: 9998;
     box-shadow: none;
     will-change: transform;
@@ -912,42 +947,42 @@ body.sidebar-open-mobile .sidebar-backdrop {
     box-shadow: 4px 0 30px rgba(0, 0, 0, 0.4);
   }
 
-  /* Stagger animation nos nav-items ao abrir */
-  body.sidebar-open-mobile .sidebar.sidebar-animate-in .nav-item,
-  body.sidebar-open-mobile .sidebar.sidebar-animate-in .sidebar-nav-label,
-  body.sidebar-open-mobile .sidebar.sidebar-animate-in .sidebar-pro-cta {
+  /* Stagger animation nos nav-items ao abrir — CSS puro (sem classe JS intermediária) */
+  body.sidebar-open-mobile .sidebar .nav-item,
+  body.sidebar-open-mobile .sidebar .sidebar-nav-label,
+  body.sidebar-open-mobile .sidebar .sidebar-pro-cta {
     animation: sidebarItemFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
-  body.sidebar-open-mobile .sidebar.sidebar-animate-in .sidebar-header {
+  body.sidebar-open-mobile .sidebar .sidebar-header {
     animation: sidebarItemFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
     animation-delay: 0.04s;
   }
 
   /* Stagger delays para cada nav-item */
-  body.sidebar-open-mobile .sidebar.sidebar-animate-in .sidebar-nav .sidebar-nav-group:nth-child(1) .sidebar-nav-label { animation-delay: 0.06s; }
-  body.sidebar-open-mobile .sidebar.sidebar-animate-in .sidebar-nav .sidebar-nav-group:nth-child(1) .nav-item:nth-child(2) { animation-delay: 0.09s; }
+  body.sidebar-open-mobile .sidebar .sidebar-nav .sidebar-nav-group:nth-child(1) .sidebar-nav-label { animation-delay: 0.06s; }
+  body.sidebar-open-mobile .sidebar .sidebar-nav .sidebar-nav-group:nth-child(1) .nav-item:nth-child(2) { animation-delay: 0.09s; }
 
-  body.sidebar-open-mobile .sidebar.sidebar-animate-in .sidebar-nav .sidebar-nav-group:nth-child(2) .sidebar-nav-label { animation-delay: 0.12s; }
-  body.sidebar-open-mobile .sidebar.sidebar-animate-in .sidebar-nav .sidebar-nav-group:nth-child(2) .nav-item:nth-child(2) { animation-delay: 0.15s; }
-  body.sidebar-open-mobile .sidebar.sidebar-animate-in .sidebar-nav .sidebar-nav-group:nth-child(2) .nav-item:nth-child(3) { animation-delay: 0.18s; }
-  body.sidebar-open-mobile .sidebar.sidebar-animate-in .sidebar-nav .sidebar-nav-group:nth-child(2) .nav-item:nth-child(4) { animation-delay: 0.21s; }
-  body.sidebar-open-mobile .sidebar.sidebar-animate-in .sidebar-nav .sidebar-nav-group:nth-child(2) .nav-item:nth-child(5) { animation-delay: 0.24s; }
+  body.sidebar-open-mobile .sidebar .sidebar-nav .sidebar-nav-group:nth-child(2) .sidebar-nav-label { animation-delay: 0.12s; }
+  body.sidebar-open-mobile .sidebar .sidebar-nav .sidebar-nav-group:nth-child(2) .nav-item:nth-child(2) { animation-delay: 0.15s; }
+  body.sidebar-open-mobile .sidebar .sidebar-nav .sidebar-nav-group:nth-child(2) .nav-item:nth-child(3) { animation-delay: 0.18s; }
+  body.sidebar-open-mobile .sidebar .sidebar-nav .sidebar-nav-group:nth-child(2) .nav-item:nth-child(4) { animation-delay: 0.21s; }
+  body.sidebar-open-mobile .sidebar .sidebar-nav .sidebar-nav-group:nth-child(2) .nav-item:nth-child(5) { animation-delay: 0.24s; }
 
-  body.sidebar-open-mobile .sidebar.sidebar-animate-in .sidebar-nav .sidebar-nav-group:nth-child(3) .sidebar-nav-label { animation-delay: 0.27s; }
-  body.sidebar-open-mobile .sidebar.sidebar-animate-in .sidebar-nav .sidebar-nav-group:nth-child(3) .nav-item:nth-child(2) { animation-delay: 0.30s; }
-  body.sidebar-open-mobile .sidebar.sidebar-animate-in .sidebar-nav .sidebar-nav-group:nth-child(3) .nav-item:nth-child(3) { animation-delay: 0.33s; }
-  body.sidebar-open-mobile .sidebar.sidebar-animate-in .sidebar-nav .sidebar-nav-group:nth-child(3) .nav-item:nth-child(4) { animation-delay: 0.36s; }
+  body.sidebar-open-mobile .sidebar .sidebar-nav .sidebar-nav-group:nth-child(3) .sidebar-nav-label { animation-delay: 0.27s; }
+  body.sidebar-open-mobile .sidebar .sidebar-nav .sidebar-nav-group:nth-child(3) .nav-item:nth-child(2) { animation-delay: 0.30s; }
+  body.sidebar-open-mobile .sidebar .sidebar-nav .sidebar-nav-group:nth-child(3) .nav-item:nth-child(3) { animation-delay: 0.33s; }
+  body.sidebar-open-mobile .sidebar .sidebar-nav .sidebar-nav-group:nth-child(3) .nav-item:nth-child(4) { animation-delay: 0.36s; }
 
-  body.sidebar-open-mobile .sidebar.sidebar-animate-in .sidebar-nav .sidebar-nav-group:nth-child(4) .sidebar-nav-label { animation-delay: 0.39s; }
-  body.sidebar-open-mobile .sidebar.sidebar-animate-in .sidebar-nav .sidebar-nav-group:nth-child(4) .nav-item:nth-child(2) { animation-delay: 0.42s; }
+  body.sidebar-open-mobile .sidebar .sidebar-nav .sidebar-nav-group:nth-child(4) .sidebar-nav-label { animation-delay: 0.39s; }
+  body.sidebar-open-mobile .sidebar .sidebar-nav .sidebar-nav-group:nth-child(4) .nav-item:nth-child(2) { animation-delay: 0.42s; }
 
   /* Footer items stagger (após os nav groups) */
-  body.sidebar-open-mobile .sidebar.sidebar-animate-in .sidebar-footer .nav-item:nth-child(1) { animation-delay: 0.45s; }
-  body.sidebar-open-mobile .sidebar.sidebar-animate-in .sidebar-footer .nav-item:nth-child(2) { animation-delay: 0.48s; }
-  body.sidebar-open-mobile .sidebar.sidebar-animate-in .sidebar-footer .nav-item:nth-child(3) { animation-delay: 0.51s; }
-  body.sidebar-open-mobile .sidebar.sidebar-animate-in .sidebar-footer .nav-item:nth-child(4) { animation-delay: 0.54s; }
-  body.sidebar-open-mobile .sidebar.sidebar-animate-in .sidebar-footer .sidebar-pro-cta { animation-delay: 0.57s; }
+  body.sidebar-open-mobile .sidebar .sidebar-footer .nav-item:nth-child(1) { animation-delay: 0.45s; }
+  body.sidebar-open-mobile .sidebar .sidebar-footer .nav-item:nth-child(2) { animation-delay: 0.48s; }
+  body.sidebar-open-mobile .sidebar .sidebar-footer .nav-item:nth-child(3) { animation-delay: 0.51s; }
+  body.sidebar-open-mobile .sidebar .sidebar-footer .nav-item:nth-child(4) { animation-delay: 0.54s; }
+  body.sidebar-open-mobile .sidebar .sidebar-footer .sidebar-pro-cta { animation-delay: 0.57s; }
 
   /* Header sticky */
   .lk-header {

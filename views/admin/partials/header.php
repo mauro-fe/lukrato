@@ -95,6 +95,30 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core/enhancements.css?v=<?= time() ?>">
 
     <!-- ============================================================================
+         SIDEBAR PRE-RENDER (inline, antes de qualquer script externo)
+         Aplica sidebar-collapsed + desabilita transition no primeiro paint
+         ============================================================================ -->
+    <script>
+        (function() {
+            try {
+                var h = document.documentElement;
+                // 1) Bloquear transitions no first paint
+                h.classList.add('sidebar-no-transition');
+                // 2) Guardar estado para aplicar no body logo que existir
+                window.__lkSidebarCollapsed = (localStorage.getItem('lk.sidebar') === '1' && window.matchMedia('(min-width:993px)').matches);
+                // 3) Liberar transitions após o primeiro frame
+                window.addEventListener('load', function() {
+                    requestAnimationFrame(function() {
+                        requestAnimationFrame(function() {
+                            h.classList.remove('sidebar-no-transition');
+                        });
+                    });
+                });
+            } catch (e) {}
+        })();
+    </script>
+
+    <!-- ============================================================================
          SCRIPTS EXTERNOS
          ============================================================================ -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -142,6 +166,9 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
 </head>
 
 <body<?php if (!empty($showMonthSelector)) echo ' class="has-month-bar"'; ?>>
+    <script>
+        if (window.__lkSidebarCollapsed) document.body.classList.add('sidebar-collapsed');
+    </script>
     <div id="lkPageTransitionOverlay" aria-hidden="true"></div>
 
     <!-- ============================================================================
