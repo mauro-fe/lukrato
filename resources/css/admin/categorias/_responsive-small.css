@@ -2,6 +2,16 @@
    RESPONSIVIDADE - MOBILE PEQUENO
    ============================================================================ */
 @media (max-width: 360px) {
+  /* KPI: 1 coluna em telas muito pequenas */
+  .cat-kpis {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-2);
+  }
+
+  .cat-kpi {
+    padding: var(--spacing-3);
+  }
+
   .cat-card-name {
     font-size: 0.75rem;
   }
@@ -14,4 +24,3 @@
     padding-left: 0;
   }
 }
-

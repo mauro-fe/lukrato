@@ -9,6 +9,7 @@
 
 import { CONFIG, DOM, STATE, Utils, Notifications, Modules } from './state.js';
 import { handleMarcarPago, handleDesmarcarPago, handleCancelarRecorrencia, handleDelete, handleEdit } from './actions.js';
+import { closeAllDropdownMenus, closeDropdownMenu, resolveDropdownMenu, toggleDropdownMenu } from './dropdown.js';
 
 /* Category → Lucide icon mapping */
 const CATEGORY_ICONS = {
@@ -175,6 +176,7 @@ export const TableManager = {
 
     render() {
         if (!DOM.tableBody) return;
+        closeAllDropdownMenus();
         const total = STATE.filteredData.length;
         const totalPages = Math.max(1, Math.ceil(total / STATE.pageSize));
         STATE.currentPage = Math.min(STATE.currentPage, totalPages);
@@ -220,7 +222,20 @@ export const TableManager = {
             parts.push(this.renderRow(item));
         });
         DOM.tableBody.innerHTML = parts.join('');
-        if (window.lucide) lucide.createIcons();
+        // Render lucide icons — use LK.refreshIcons (patched) or fallback to direct call
+        if (window.LK?.refreshIcons) {
+            LK.refreshIcons();
+        } else if (window.lucide) {
+            lucide.createIcons();
+        }
+        // Deferred pass to catch any icons missed in the initial synchronous call
+        requestAnimationFrame(() => {
+            const pending = DOM.tableBody.querySelectorAll('i[data-lucide]');
+            if (pending.length) {
+                if (window.LK?.refreshIcons) LK.refreshIcons();
+                else if (window.lucide) lucide.createIcons();
+            }
+        });
         this.updatePagination();
         this.updateSelectionInfo();
         this.updateSortIndicators();
@@ -228,6 +243,7 @@ export const TableManager = {
 
     renderLoading() {
         if (!DOM.tableBody) return;
+        closeAllDropdownMenus();
         DOM.tableBody.innerHTML = `
             <div class="lk-feed-loading">
                 <div class="spinner-border" role="status" style="width:2rem;height:2rem;color:var(--color-primary);">
@@ -569,7 +585,7 @@ export const TableManager = {
         if (DOM.selectionBulkText) {
             DOM.selectionBulkText.textContent = count === 1 ? 'Edite ou exclua o lancamento selecionado.'
                 : count > 1 ? 'Exclusao em massa disponivel. Para editar, selecione apenas 1 item.'
-                : 'Acoes rapidas para os itens selecionados nesta pagina.';
+                    : 'Acoes rapidas para os itens selecionados nesta pagina.';
         }
         if (DOM.selectionScopeHint) {
             DOM.selectionScopeHint.textContent = count > 0
@@ -600,23 +616,23 @@ export const TableManager = {
             e.preventDefault();
             e.stopPropagation();
             const dropdown = dropdownTrigger.closest('.lk-dropdown');
-            const menu = dropdown?.querySelector('.lk-dropdown-menu');
+            const menu = resolveDropdownMenu(dropdown);
             if (!menu) return;
-            document.querySelectorAll('.lk-dropdown-menu.open').forEach(m => { if (m !== menu) m.classList.remove('open'); });
-            menu.classList.toggle('open');
-            const rect = dropdownTrigger.getBoundingClientRect();
-            if (window.innerHeight - rect.bottom < 200) { menu.style.bottom = '100%'; menu.style.top = 'auto'; }
-            else { menu.style.top = '100%'; menu.style.bottom = 'auto'; }
-            const closeHandler = (ev) => { if (!dropdown.contains(ev.target)) { menu.classList.remove('open'); document.removeEventListener('click', closeHandler, true); } };
-            setTimeout(() => document.addEventListener('click', closeHandler, true), 0);
-            if (menu.classList.contains('open') && window.lucide) lucide.createIcons({ nodes: [menu] });
+            const card = dropdownTrigger.closest('.lk-txn-card');
+            const opened = toggleDropdownMenu({
+                trigger: dropdownTrigger,
+                dropdown,
+                menu,
+                card
+            });
+            if (!opened) return;
+            if (window.lucide) lucide.createIcons();
             return;
         }
 
         const dropdownItem = e.target.closest('.lk-dropdown-item');
         if (dropdownItem) {
-            const menu = dropdownItem.closest('.lk-dropdown-menu');
-            if (menu) menu.classList.remove('open');
+            closeDropdownMenu(dropdownItem.closest('.lk-dropdown-menu'));
         }
 
         const btn = e.target.closest('button[data-action]');

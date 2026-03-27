@@ -1,7 +1,46 @@
 <section class="cat-page">
+    <!-- ==================== KPI CARDS (estilo dashboard) ==================== -->
+    <div class="cat-kpis">
+        <article class="cat-kpi">
+            <div class="cat-kpi__icon cat-kpi__icon--total">
+                <i data-lucide="layers"></i>
+            </div>
+            <div class="cat-kpi__body">
+                <span class="cat-kpi__label">Categorias</span>
+                <span class="cat-kpi__value" id="catTotalCount">0</span>
+            </div>
+        </article>
+        <article class="cat-kpi">
+            <div class="cat-kpi__icon cat-kpi__icon--sub">
+                <i data-lucide="git-branch"></i>
+            </div>
+            <div class="cat-kpi__body">
+                <span class="cat-kpi__label">Subcategorias</span>
+                <span class="cat-kpi__value" id="catSubCount">0</span>
+            </div>
+        </article>
+        <article class="cat-kpi">
+            <div class="cat-kpi__icon cat-kpi__icon--budget">
+                <i data-lucide="pie-chart"></i>
+            </div>
+            <div class="cat-kpi__body">
+                <span class="cat-kpi__label">Com orçamento</span>
+                <span class="cat-kpi__value" id="catBudgetCount">0</span>
+            </div>
+        </article>
+        <article class="cat-kpi">
+            <div class="cat-kpi__icon cat-kpi__icon--own">
+                <i data-lucide="user"></i>
+            </div>
+            <div class="cat-kpi__body">
+                <span class="cat-kpi__label">Personalizadas</span>
+                <span class="cat-kpi__value" id="catOwnCount">0</span>
+            </div>
+        </article>
+    </div>
+
     <!-- ==================== CARD DE NOVA CATEGORIA ==================== -->
     <div class="create-card-wrapper">
-        <div class="create-card-glow"></div>
         <div class="modern-card create-card">
             <div class="create-card-content">
                 <!-- Lado esquerdo: ícone preview -->
@@ -11,7 +50,6 @@
                             <i data-lucide="tag" class="create-main-icon" id="iconPreview"></i>
                         </div>
                     </div>
-                    <p class="create-hint">Nova categoria</p>
                     <button type="button" class="icon-picker-trigger" id="btnIconPicker" title="Escolher ícone">
                         <i data-lucide="palette"></i>
                         <span>Escolher ícone</span>
@@ -70,8 +108,8 @@
                         </div>
 
                         <button class="create-submit-btn" type="submit">
-                            <span class="create-btn-text">Adicionar</span>
-                            <i data-lucide="arrow-right" class="create-btn-icon"></i>
+                            <i data-lucide="plus" class="create-btn-icon"></i>
+                            <span class="create-btn-text">Adicionar categoria</span>
                         </button>
                     </form>
                 </div>
@@ -100,6 +138,7 @@
         </div>
     </div>
 
+    <!-- ==================== CONTEXTO + BUSCA UNIFICADOS ==================== -->
     <section class="cat-context-card" id="catContextCard" aria-live="polite">
         <div class="cat-context-copy">
             <p class="cat-context-kicker" id="catContextKicker">Categorias e subcategorias</p>
@@ -109,51 +148,31 @@
             </p>
         </div>
 
-        <div class="cat-context-stats">
-            <article class="cat-context-stat">
-                <span class="cat-context-stat-value" id="catTotalCount">0</span>
-                <span class="cat-context-stat-label">Categorias</span>
-            </article>
-            <article class="cat-context-stat">
-                <span class="cat-context-stat-value" id="catOwnCount">0</span>
-                <span class="cat-context-stat-label">Personalizadas</span>
-            </article>
-            <article class="cat-context-stat">
-                <span class="cat-context-stat-value" id="catSubCount">0</span>
-                <span class="cat-context-stat-label">Subcategorias</span>
-            </article>
-            <article class="cat-context-stat">
-                <span class="cat-context-stat-value" id="catBudgetCount">0</span>
-                <span class="cat-context-stat-label">Com limite no mês</span>
-            </article>
+        <div class="cat-context-right">
+            <div class="cat-search-wrapper">
+                <i data-lucide="search" class="cat-search-icon"></i>
+                <input type="text" id="catSearchInput" class="cat-search-input"
+                    placeholder="Buscar categoria ou subcategoria..." autocomplete="off" />
+                <button type="button" id="catSearchClear" class="cat-search-clear d-none" title="Limpar busca">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="cat-context-actions">
+                <button type="button" class="cat-context-btn" data-action="refresh-categorias" id="catRefreshButton">
+                    <i data-lucide="refresh-cw"></i>
+                    <span>Atualizar</span>
+                </button>
+                <button type="button" class="cat-context-btn ghost d-none" data-action="clear-categoria-search"
+                    id="catClearSearchButton">
+                    <i data-lucide="x"></i>
+                    <span>Limpar busca</span>
+                </button>
+            </div>
         </div>
 
         <div class="cat-context-chips" id="catContextChips"></div>
-
-        <div class="cat-context-actions">
-            <button type="button" class="cat-context-btn" data-action="refresh-categorias" id="catRefreshButton">
-                <i data-lucide="refresh-cw"></i>
-                <span>Atualizar dados</span>
-            </button>
-            <button type="button" class="cat-context-btn ghost d-none" data-action="clear-categoria-search"
-                id="catClearSearchButton">
-                <i data-lucide="x"></i>
-                <span>Limpar busca</span>
-            </button>
-        </div>
     </section>
-
-    <!-- ==================== BUSCA ==================== -->
-    <div class="cat-toolbar">
-        <div class="cat-search-wrapper">
-            <i data-lucide="search" class="cat-search-icon"></i>
-            <input type="text" id="catSearchInput" class="cat-search-input"
-                placeholder="Buscar categoria ou subcategoria..." autocomplete="off" />
-            <button type="button" id="catSearchClear" class="cat-search-clear d-none" title="Limpar busca">
-                <i data-lucide="x"></i>
-            </button>
-        </div>
-    </div>
 
     <div class="cat-filter-summary" id="catFilterSummary" aria-live="polite"></div>
 
@@ -164,7 +183,7 @@
             <div class="category-header receitas">
                 <div class="header-content">
                     <div class="header-icon">
-                        <i data-lucide="arrow-up"></i>
+                        <i data-lucide="trending-up"></i>
                     </div>
                     <div class="header-text">
                         <h3 class="category-title">Receitas</h3>
@@ -175,10 +194,6 @@
                         </p>
                     </div>
                 </div>
-                <button type="button" class="icon-btn refresh-btn" title="Atualizar categorias"
-                    data-action="refresh-categorias">
-                    <i data-lucide="refresh-cw"></i>
-                </button>
             </div>
 
             <div class="category-list" id="receitasList">
@@ -194,7 +209,7 @@
             <div class="category-header despesas">
                 <div class="header-content">
                     <div class="header-icon">
-                        <i data-lucide="arrow-down"></i>
+                        <i data-lucide="trending-down"></i>
                     </div>
                     <div class="header-text">
                         <h3 class="category-title">Despesas</h3>
@@ -205,10 +220,6 @@
                         </p>
                     </div>
                 </div>
-                <button type="button" class="icon-btn refresh-btn" title="Atualizar categorias"
-                    data-action="refresh-categorias">
-                    <i data-lucide="refresh-cw"></i>
-                </button>
             </div>
 
             <div class="category-list" id="despesasList">

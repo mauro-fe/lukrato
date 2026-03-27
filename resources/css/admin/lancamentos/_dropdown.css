@@ -43,10 +43,8 @@
 
 .lk-dropdown-menu {
   display: none;
-  position: absolute;
-  right: 0;
-  top: 100%;
-  z-index: 9999;
+  position: fixed;
+  z-index: 99999;
   min-width: 200px;
   padding: 6px 0;
   background: var(--color-surface);
@@ -115,4 +113,4 @@ td .lk-dropdown { display: flex; justify-content: center; }
 .lan-card .lk-dropdown-menu { min-width: 220px; }
 
 .parcelamento-grupo .lk-dropdown-trigger { color: var(--color-primary); }
-.parcelamento-grupo .lk-dropdown-trigger:hover { background: rgba(230, 126, 34, 0.12); }
+.parcelamento-grupo .lk-dropdown-trigger:hover { background: var(--glass-bg); }

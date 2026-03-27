@@ -269,6 +269,16 @@ const EventListeners = {
             UI.syncAdvancedPeriod(DOM.advancedPeriodPanel?.hidden);
         });
 
+        // Collapse/expand filters section
+        const btnToggleLanFilters = document.getElementById('btnToggleLanFilters');
+        const filtersSection = btnToggleLanFilters?.closest('.lk-filters-section');
+        if (btnToggleLanFilters && filtersSection) {
+            const header = filtersSection.querySelector('.lk-filters-header');
+            (header || btnToggleLanFilters).addEventListener('click', () => {
+                filtersSection.classList.toggle('collapsed');
+            });
+        }
+
         DOM.toggleExportCard?.addEventListener('click', () => {
             UI.syncExportCard(DOM.exportCardBody?.hidden);
         });

@@ -123,7 +123,9 @@ function registerAppRoutes(): void
     // Agendamentos removido - unificado em lançamentos
 
 
-    Router::add('GET', '/financas',           'Admin\\FinancasController@index',       ['auth', 'onboarding']);
+    Router::add('GET', '/financas',           'Admin\\OrcamentoController@index',      ['auth', 'onboarding']); // redirect legado
+    Router::add('GET', '/orcamento',          'Admin\\OrcamentoController@index',      ['auth', 'onboarding']);
+    Router::add('GET', '/metas',              'Admin\\MetasController@index',          ['auth', 'onboarding']);
 
     // Premium routes e webhook ficam em api.php e webhooks.php com middleware adequado
 }

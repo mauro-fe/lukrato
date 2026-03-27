@@ -17,6 +17,8 @@ export default defineConfig({
                 'faturas': resolve(__dirname, 'resources/js/admin/faturas/index.js'),
                 'cartoes': resolve(__dirname, 'resources/js/admin/cartoes/index.js'),
                 'financas': resolve(__dirname, 'resources/js/admin/financas/index.js'),
+                'orcamento': resolve(__dirname, 'resources/js/admin/orcamento/index.js'),
+                'metas': resolve(__dirname, 'resources/js/admin/metas/index.js'),
                 'relatorios': resolve(__dirname, 'resources/js/admin/relatorios/index.js'),
                 'dashboard': resolve(__dirname, 'resources/js/admin/dashboard/index.js'),
                 'categorias': resolve(__dirname, 'resources/js/admin/categorias/index.js'),

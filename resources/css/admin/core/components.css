@@ -800,7 +800,7 @@ body.sidebar-collapsed .fab-container {
 
 /* 6.1 Container */
 .table-container {
-  background: var(--color-surface);
+  background: var(--color-bg);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
@@ -1048,11 +1048,7 @@ body.sidebar-collapsed .fab-container {
   .tabulator-footer
   .tabulator-page:not(.disabled):hover,
 .table-container .tabulator .tabulator-footer .tabulator-page-size:hover {
-  background: color-mix(
-    in srgb,
-    var(--color-primary) 15%,
-    var(--color-surface)
-  );
+  background: var(--color-bg);
   border-color: var(--color-primary);
   color: var(--color-text);
 }

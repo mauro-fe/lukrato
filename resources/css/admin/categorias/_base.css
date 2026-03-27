@@ -2,42 +2,138 @@
  * ============================================================================
  * CATEGORIAS - DESIGN MODERNIZADO
  * ============================================================================
- * Sistema de categorias com design consistente
+ * Sistema de categorias com design consistente com o Dashboard
  * Foco em UX, produtividade e modernidade visual
  * ============================================================================
  */
 
 /* ============================================================================
-   PÃGINA PRINCIPAL
+   PAGINA PRINCIPAL
    ============================================================================ */
 
 .cat-page {
   visibility: hidden;
   min-height: 80vh;
-  padding: var(--spacing-3);
+  padding: var(--spacing-4);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-5);
+  gap: var(--spacing-6);
 }
 
-/* Página visível quando JS marcou .is-ready */
+/* Pagina visivel quando JS marcou .is-ready */
 .cat-page.is-ready {
   visibility: visible;
+  animation: catPageFadeIn 0.4s ease-out;
 }
 
-/* Fallback: se JS estiver desabilitado, mostra a página */
+@keyframes catPageFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Fallback: se JS estiver desabilitado, mostra a pagina */
 noscript + .cat-page,
 .no-js .cat-page {
   visibility: visible !important;
 }
 
-/* TransiÃ§Ã£o suave para listas ao re-renderizar apÃ³s CRUD */
+/* Transicao suave para listas ao re-renderizar apos CRUD */
 .category-list {
   transition: opacity 0.15s ease;
 }
 
 /* ============================================================================
-   ÃCONES
+   KPI CARDS (estilo dashboard)
+   ============================================================================ */
+
+.cat-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-4);
+}
+
+.cat-kpi {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.20),
+    0 20px 40px rgba(0, 0, 0, 0.25);
+  transform: translateY(0);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.cat-kpi:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.25),
+    0 30px 60px rgba(0, 0, 0, 0.30);
+}
+
+.cat-kpi__icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+}
+
+.cat-kpi__icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.cat-kpi__icon--total {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
+}
+
+.cat-kpi__icon--sub {
+  background: color-mix(in srgb, var(--color-info, #3a79d9) 12%, transparent);
+  color: var(--color-info, #3a79d9);
+}
+
+.cat-kpi__icon--budget {
+  background: color-mix(in srgb, var(--color-warning, #f59e0b) 12%, transparent);
+  color: var(--color-warning, #f59e0b);
+}
+
+.cat-kpi__icon--own {
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  color: var(--color-success);
+}
+
+.cat-kpi__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cat-kpi__label {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cat-kpi__value {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+
+/* ============================================================================
+   ICONES
    ============================================================================ */
 
 .fa-plus-circle,
@@ -45,5 +141,10 @@ noscript + .cat-page,
 [data-lucide="circle-plus"],
 .lucide-circle-plus {
   color: var(--color-text);
+}
+
+/* Spin animation for refresh buttons */
+@keyframes cat-spin {
+  to { transform: rotate(360deg); }
 }
 

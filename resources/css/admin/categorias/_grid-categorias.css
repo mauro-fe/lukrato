@@ -4,67 +4,97 @@
 
 .categories-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
   gap: var(--spacing-5);
 }
 
 /* ============================================================================
-   CARDS DE CATEGORIA
+   CARDS DE CATEGORIA (container receitas/despesas)
    ============================================================================ */
 
 .category-card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-backdrop);
-  border: 1px solid var(--glass-border);
+  /* Mesmo tratamento de sombra que os KPI cards do dashboard */
+  background: var(--color-bg);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.18),
+    0 20px 40px rgba(0, 0, 0, 0.22);
+  transform: translateY(0);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
   display: flex;
   flex-direction: column;
-  min-height: 400px;
+  min-height: 360px;
 }
 
 .category-card:hover {
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.22),
+    0 28px 56px rgba(0, 0, 0, 0.28);
 }
 
-/* Header das Categorias */
+/* ============================================================================
+   HEADER DAS COLUNAS — limpo, com accent colorido no topo
+   ============================================================================ */
+
 .category-header {
-  padding: var(--spacing-5);
+  padding: var(--spacing-4) var(--spacing-5);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-3);
   position: relative;
-  overflow: hidden;
+  /* Thin bottom divider */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
-.category-title {
-  color: var(--color-text);
-}
+
+/* 2px color accent at very top of the card */
 .category-header::before {
-  content: "";
+  content: '';
   position: absolute;
-  inset: 0;
-  opacity: 0.1;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 0;
 }
 
 .category-header.receitas {
-  background: linear-gradient(135deg, var(--color-success), #27ae60);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--color-success) 4%, transparent);
 }
 
 .category-header.receitas::before {
-  background: var(--color-text) !important;
+  background: linear-gradient(
+    90deg,
+    var(--color-success),
+    color-mix(in srgb, var(--color-success) 30%, transparent)
+  );
 }
 
 .category-header.despesas {
-  background: linear-gradient(135deg, var(--color-danger), #c0392b);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--color-danger) 4%, transparent);
 }
 
 .category-header.despesas::before {
-  background: var(--color-text) !important;
+  background: linear-gradient(
+    90deg,
+    var(--color-danger),
+    color-mix(in srgb, var(--color-danger) 30%, transparent)
+  );
+}
+
+/* ============================================================================
+   TIPOGRAFIA DO HEADER
+   ============================================================================ */
+
+.category-title {
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .header-content {
@@ -75,92 +105,92 @@
 }
 
 .header-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.category-header.receitas .header-icon {
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  color: var(--color-success);
+}
+
+.category-header.despesas .header-icon {
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  color: var(--color-danger);
+}
+
+.header-icon svg {
+  width: 18px;
+  height: 18px;
 }
 
 .header-text {
   flex: 1;
 }
 
-.category-title {
-  font-size: var(--font-size-xl);
-  font-weight: 700;
-  margin: 0 0 var(--spacing-1) 0;
-  letter-spacing: -0.02em;
-}
-
 .category-count {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   margin: 0;
-  opacity: 0.9;
-  font-weight: 600;
+  color: var(--color-text-muted);
+  font-weight: 500;
 }
 
 .category-count-divider {
-  opacity: 0.72;
+  opacity: 0.5;
   margin: 0 2px;
 }
 
-.category-header .refresh-btn {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: #ffffff;
-}
+/* ============================================================================
+   LISTA DE CATEGORIAS
+   ============================================================================ */
 
-.category-header .refresh-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.5);
-  transform: rotate(180deg);
-}
-
-/* Lista de Categorias */
 .category-list {
   flex: 1;
-  padding: var(--spacing-3);
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  padding: var(--spacing-2) var(--spacing-3);
+  display: flex;
+  flex-direction: column;
   gap: var(--spacing-2);
   overflow-y: auto;
   max-height: 600px;
   align-content: start;
 }
 
+/* ============================================================================
+   ESTADO VAZIO / ERRO
+   ============================================================================ */
+
 .category-state {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: var(--spacing-2);
-  padding: var(--spacing-4);
-  border: 1px dashed color-mix(in srgb, var(--glass-border) 80%, transparent);
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--color-surface) 78%, transparent);
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-8) var(--spacing-4);
+  text-align: center;
 }
 
 .category-state svg {
-  width: 18px;
-  height: 18px;
+  width: 28px;
+  height: 28px;
   color: var(--color-text-muted);
+  opacity: 0.35;
 }
 
 .category-state p {
   margin: 0;
   color: var(--color-text-muted);
   line-height: 1.45;
+  font-size: var(--font-size-sm);
 }
 
 .category-state.error {
-  border-style: solid;
-  border-color: color-mix(in srgb, var(--color-danger) 32%, transparent);
-  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--color-danger) 32%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-danger) 5%, transparent);
 }
 
 .category-state.error svg,
@@ -172,32 +202,68 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 34px;
-  padding: 0 12px;
-  border: 1px solid color-mix(in srgb, var(--color-primary) 18%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
-  color: var(--color-text);
-  font-size: 0.78rem;
+  min-height: 32px;
+  padding: 0 var(--spacing-4);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
+.category-state-btn:hover {
+  background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  transform: translateY(-1px);
+}
+
+/* ============================================================================
+   SCROLLBAR
+   ============================================================================ */
+
 .category-list::-webkit-scrollbar {
-  width: 8px;
+  width: 4px;
 }
 
 .category-list::-webkit-scrollbar-track {
-  background: var(--color-surface-muted);
-  border-radius: 4px;
+  background: transparent;
 }
 
 .category-list::-webkit-scrollbar-thumb {
-  background: var(--color-primary);
-  border-radius: 4px;
+  background: color-mix(in srgb, var(--color-text-muted) 20%, transparent);
+  border-radius: 2px;
 }
 
 .category-list::-webkit-scrollbar-thumb:hover {
-  background: var(--color-secondary);
+  background: color-mix(in srgb, var(--color-text-muted) 38%, transparent);
 }
 
+/* ============================================================================
+   ICON BUTTON (kept for compat)
+   ============================================================================ */
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.icon-btn:hover {
+  background: color-mix(in srgb, var(--color-text-muted) 10%, transparent);
+  color: var(--color-text);
+}
+
+.icon-btn svg {
+  width: 16px;
+  height: 16px;
+}

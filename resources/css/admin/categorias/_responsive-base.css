@@ -1,5 +1,5 @@
 /* ============================================================================
-   RESPONSIVIDADE
+   RESPONSIVIDADE - BASE
    ============================================================================ */
 
 .icon-btn {
@@ -18,13 +18,27 @@
 }
 
 .icon-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
 }
 
 @media (max-width: 1024px) {
+  .cat-kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .categories-grid {
     grid-template-columns: 1fr;
+  }
+
+  .cat-context-card {
+    grid-template-columns: 1fr;
+  }
+
+  .cat-context-right {
+    min-width: 0;
+    max-width: none;
+    width: 100%;
   }
 }
 

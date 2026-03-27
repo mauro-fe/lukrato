@@ -1,26 +1,10 @@
+/* ============================================================================
+   CREATE CARD — Layout e componentes do formulario de criacao
+   ============================================================================ */
 
-
-/* Wrapper com glow effect */
+/* Wrapper */
 .create-card-wrapper {
   position: relative;
-}
-
-.create-card-glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 70%;
-  height: 80%;
-  pointer-events: none;
-  filter: blur(40px);
-  z-index: 0;
-  opacity: 0;
-  transition: opacity 0.5s ease;
-}
-
-.create-card-wrapper:hover .create-card-glow {
-  opacity: 1;
 }
 
 /* Card principal */
@@ -29,120 +13,62 @@
   z-index: 1;
   padding: 0;
   overflow: hidden;
-  background: var(--glass-bg);
+  background: var(--color-bg);
   backdrop-filter: var(--glass-backdrop);
   -webkit-backdrop-filter: var(--glass-backdrop);
-  border: 1px solid
-    color-mix(in srgb, var(--color-primary) 15%, var(--glass-border));
+ border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-lg);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.20),
+    0 20px 40px rgba(0, 0, 0, 0.25);
+  transform: translateY(0);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .create-card.modern-card:hover {
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 40%,
-    var(--glass-border)
-  );
-  box-shadow: 0 12px 40px
-    color-mix(in srgb, var(--color-primary) 12%, transparent);
+
+   transform: translateY(-4px);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.25),
+    0 30px 60px rgba(0, 0, 0, 0.30);
 }
 
 .create-card-content {
   display: flex;
   align-items: stretch;
-  min-height: 180px;
+  min-height: 160px;
 }
 
-/* Ãrea do Ã­cone (lado esquerdo) */
+/* Area do icone (lado esquerdo) */
 .create-icon-area {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: var(--spacing-3);
-  padding: var(--spacing-6) var(--spacing-8);
+  padding: var(--spacing-5) var(--spacing-6);
   border-right: 1px solid var(--glass-border);
-  min-width: 160px;
+  min-width: 140px;
   position: relative;
-  overflow: hidden;
-}
-
-.create-icon-area::after {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  animation: icon-area-pulse 4s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes icon-area-pulse {
-  0%,
-  100% {
-    opacity: 0.3;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.05);
-  }
 }
 
 .create-icon-ring {
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  box-shadow:
-    0 4px 16px color-mix(in srgb, var(--color-primary) 15%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.create-icon-ring::before {
-  content: "";
-  position: absolute;
-  inset: -3px;
-  border-radius: 50%;
-  padding: 3px;
-  background: conic-gradient(
-    from 0deg,
-    var(--color-primary),
-    color-mix(in srgb, var(--color-primary) 40%, transparent),
-    var(--color-primary)
-  );
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  animation: ring-rotate 3s linear infinite paused;
-}
-
-.create-card-wrapper .create-icon-ring::before {
-  opacity: 1;
-  animation-play-state: running;
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  border: 2px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+  transition: all 0.3s ease;
 }
 
 .create-card-wrapper:hover .create-icon-ring {
   transform: scale(1.05);
-  box-shadow:
-    0 8px 24px color-mix(in srgb, var(--color-primary) 25%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-@keyframes ring-rotate {
-  to {
-    transform: rotate(360deg);
-  }
+  border-color: color-mix(in srgb, var(--color-primary) 40%, transparent);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--color-primary) 15%, transparent);
 }
 
 .create-icon-inner {
@@ -156,21 +82,11 @@
 
 .create-main-icon {
   color: var(--color-primary) !important;
-  width: 28px !important;
-  height: 28px !important;
+  width: 26px !important;
+  height: 26px !important;
 }
 
-.create-hint {
-  font-size: var(--font-size-xs);
-  color: var(--color-primary);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin: 0;
-  opacity: 0.8;
-}
-
-/* Ãrea do formulÃ¡rio (lado direito) */
+/* Area do formulario (lado direito) */
 .create-form-area {
   flex: 1;
   display: flex;
@@ -187,7 +103,7 @@
 }
 
 .create-form-title {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-lg);
   font-weight: 700;
   color: var(--color-text);
   margin: 0;
@@ -201,7 +117,7 @@
   font-weight: 400;
 }
 
-/* FormulÃ¡rio inline */
+/* Formulario inline */
 .create-form {
   display: flex;
   flex-direction: column;
@@ -218,7 +134,7 @@
   flex: 1;
 }
 
-/* Input com Ã­cone interno */
+/* Input com icone interno */
 .modern-input-wrapper {
   position: relative;
   display: flex;
@@ -251,7 +167,7 @@
   font-weight: 500;
   line-height: 1.5;
   border-radius: var(--radius-md) !important;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
 }
 
 .modern-input.create-input::placeholder {
@@ -260,11 +176,7 @@
 }
 
 .modern-input.create-input:hover {
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 35%,
-    var(--glass-border)
-  );
+  border-color: color-mix(in srgb, var(--color-primary) 35%, var(--glass-border));
 }
 
 .modern-input.create-input:focus {
@@ -303,7 +215,7 @@
   font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
   color: var(--color-text-muted);
   user-select: none;
   white-space: nowrap;
@@ -323,14 +235,9 @@
 
 /* Receita ativa */
 .type-toggle-input#tipoReceita:checked + .type-toggle-pill.receita {
-  background: color-mix(
-    in srgb,
-    var(--color-success) 18%,
-    var(--color-surface)
-  );
+  background: color-mix(in srgb, var(--color-success) 18%, var(--color-surface));
   color: var(--color-success);
-  box-shadow: 0 2px 8px
-    color-mix(in srgb, var(--color-success) 15%, transparent);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--color-success) 15%, transparent);
 }
 
 /* Despesa ativa */
@@ -340,7 +247,7 @@
   box-shadow: 0 2px 8px color-mix(in srgb, var(--color-danger) 15%, transparent);
 }
 
-/* BotÃ£o de submit premium */
+/* Botao de submit */
 .create-submit-btn {
   display: inline-flex;
   align-items: center;
@@ -348,48 +255,22 @@
   gap: var(--spacing-2);
   align-self: flex-start;
   padding: var(--spacing-3) var(--spacing-5);
-  background: linear-gradient(
-    135deg,
-    var(--color-primary),
-    color-mix(in srgb, var(--color-primary) 85%, #000)
-  );
+  background: var(--color-primary);
   color: #fff;
   border: none;
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
-  font-weight: 700;
+  font-weight: 600;
   font-family: var(--font-primary);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.create-submit-btn::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.15),
-    transparent
-  );
-  transition: left 0.5s ease;
-}
-
-.create-submit-btn:hover::before {
-  left: 100%;
+  transition: all 0.2s ease;
 }
 
 .create-submit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px
-    color-mix(in srgb, var(--color-primary) 35%, transparent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--color-primary) 30%, transparent);
+  filter: brightness(1.08);
 }
 
 .create-submit-btn:active {
@@ -406,10 +287,5 @@
   height: 16px !important;
   position: relative;
   z-index: 1;
-  transition: transform 0.3s ease;
-}
-
-.create-submit-btn:hover .create-btn-icon {
-  transform: translateX(3px);
 }
 

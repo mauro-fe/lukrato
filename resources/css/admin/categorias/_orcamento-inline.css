@@ -9,7 +9,7 @@
   width: 100%;
   cursor: pointer;
   transition: all 0.2s ease;
-  padding-left: 38px; /* alinha com texto apÃ³s o Ã­cone */
+  padding-left: 36px; /* icone 28px + gap var(--spacing-2) = 36px */
 }
 
 .cat-card-budget.has-budget:hover {
@@ -59,7 +59,7 @@
   font-size: 0.72rem;
   font-weight: 600;
   font-family: var(--font-primary);
-  padding: 4px 8px 4px 38px;
+  padding: 4px 8px 4px 36px;
   border-radius: var(--radius-sm);
   transition: all 0.2s ease;
   opacity: 0.4;

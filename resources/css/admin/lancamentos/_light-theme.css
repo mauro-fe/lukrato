@@ -21,6 +21,7 @@
 
 :root[data-theme="light"] .lk-filter-search-input,
 :root[data-theme="light"] .lk-filter-chip-select,
+:root[data-theme="light"] .lk-filter-select,
 :root[data-theme="light"] .lk-filter-clear-btn,
 :root[data-theme="light"] .lk-period-preset-btn,
 :root[data-theme="light"] .lk-period-month-btn,
@@ -84,8 +85,8 @@
 
 :root[data-theme="light"] .card-header-icon,
 :root[data-theme="light"] .export-card-toolbar,
-:root[data-theme="light"] .lk-filters-section-head,
-:root[data-theme="light"] .lk-filters-row-secondary,
+:root[data-theme="light"] .lk-filters-header,
+:root[data-theme="light"] .lk-filters-period-row,
 :root[data-theme="light"] .lk-period-advanced,
 :root[data-theme="light"] .lk-active-filters,
 :root[data-theme="light"] .table-header-info,
@@ -132,11 +133,11 @@
 }
 
 :root[data-theme="light"] .lk-dropdown-item:hover {
-  background: var(--color-surface-muted);
+  background: var(--color-bg);
 }
 
 :root[data-theme="light"] .lan-cards-header {
-  background: var(--color-surface-muted);
+  background: var(--color-bg);
   border-color: var(--color-card-border);
 }
 

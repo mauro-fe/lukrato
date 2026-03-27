@@ -1,0 +1,565 @@
+@import '../financas/_shared-modals.css';
+
+/**
+ * ============================================================================
+ * METAS — Página Dedicada
+ * ============================================================================
+ * Planejamento do futuro: objetivos financeiros que inspira e motiva
+ * Design consistente com o sistema Lukrato (glassmorphism, tokens)
+ * ============================================================================
+ */
+
+/* ============================================================================
+   PAGE LAYOUT
+   ============================================================================ */
+
+.met-page {
+  padding: var(--spacing-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
+  animation: metFadeIn 0.5s ease-out;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+@keyframes metFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================================
+   PAGE HEADER
+   ============================================================================ */
+
+.met-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+}
+
+.met-page-header__content { display: flex; flex-direction: column; }
+
+.met-page-header__title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.met-page-header__desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: var(--spacing-1) 0 0;
+  line-height: 1.4;
+}
+
+/* ============================================================================
+   SUMMARY CARDS GRID
+   ============================================================================ */
+
+.met-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-3);
+  transition: opacity 0.25s ease;
+}
+
+.met-summary-card {
+  background: var(--color-bg);
+  backdrop-filter: var(--glass-backdrop);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-4);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.20),
+    0 20px 40px rgba(0, 0, 0, 0.25);
+  transform: translateY(0);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.met-summary-card:hover {
+    transform: translateY(-4px);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.25),
+    0 30px 60px rgba(0, 0, 0, 0.30);
+}
+
+.met-summary-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.met-summary-card__icon--purple { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+.met-summary-card__icon--blue { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.met-summary-card__icon--indigo { background: rgba(99, 102, 241, 0.15); color: #6366f1; }
+.met-summary-card__icon--green { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+
+.met-summary-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.met-summary-card__label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.met-summary-card__value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================================================================
+   PROGRESS RING (Summary)
+   ============================================================================ */
+
+.met-summary-card--progress { position: relative; }
+
+.met-progress-ring {
+  width: 54px;
+  height: 54px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.met-progress-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.met-ring-bg {
+  fill: none;
+  stroke: var(--glass-border);
+  stroke-width: 3;
+}
+
+.met-ring-fill {
+  fill: none;
+  stroke: #8b5cf6;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dasharray 1s ease;
+}
+
+.met-ring-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+/* ============================================================================
+   ACTIONS BAR
+   ============================================================================ */
+
+.met-actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+}
+
+.met-actions-bar__left {
+  display: flex;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.met-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--color-bg);
+  backdrop-filter: var(--glass-backdrop);
+  color: var(--color-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+    box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.20),
+    0 20px 40px rgba(0, 0, 0, 0.25);
+  transform: translateY(0);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.met-action-btn:hover {
+   transform: translateY(-4px);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.25),
+    0 30px 60px rgba(0, 0, 0, 0.30);
+}
+
+.met-action-btn--primary {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: #fff;
+  border-color: transparent;
+}
+
+.met-action-btn--primary:hover {
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+}
+
+/* ============================================================================
+   METAS GRID
+   ============================================================================ */
+
+.met-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-3);
+}
+
+.met-card {
+  background: var(--color-bg);
+  backdrop-filter: var(--glass-backdrop);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  border-left: 4px solid var(--met-card-color, #8b5cf6);
+  box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.20),
+    0 20px 40px rgba(0, 0, 0, 0.25);
+  transform: translateY(0);
+}
+
+.met-card:hover {
+   transform: translateY(-4px);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.25),
+    0 30px 60px rgba(0, 0, 0, 0.30);
+}
+
+.met-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-3);
+}
+
+.met-card__title-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.met-card__icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.met-card__info { display: flex; flex-direction: column; }
+
+.met-card__name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-text);
+}
+
+.met-card__deadline {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.met-card__actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.met-card:hover .met-card__actions { opacity: 1; }
+
+.met-card__action-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.met-card__action-btn:hover {
+  background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  color: var(--color-primary);
+}
+
+.met-card__action-btn--deposit {
+  color: #8b5cf6;
+}
+
+.met-card__action-btn--deposit:hover {
+  background: rgba(139, 92, 246, 0.15);
+  color: #7c3aed;
+}
+
+.met-card__action-btn--danger:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+/* Progress Bar */
+.met-card__progress { margin-bottom: var(--spacing-3); }
+
+.met-card__progress-bar {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-text) 8%, transparent);
+  overflow: hidden;
+  margin-bottom: var(--spacing-2);
+}
+
+.met-card__progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--met-card-color, #8b5cf6);
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.met-card__progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.met-card__current {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.met-card__target {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+/* Footer */
+.met-card__footer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.met-card__pct {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--met-card-color, #8b5cf6) 12%, transparent);
+  color: var(--met-card-color, #8b5cf6);
+}
+
+.met-card__remaining-value {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.met-card__badge {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.met-card__badge--active {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+}
+
+.met-card__badge--completed {
+  background: rgba(139, 92, 246, 0.12);
+  color: #8b5cf6;
+}
+
+/* ============================================================================
+   EMPTY STATE
+   ============================================================================ */
+
+.met-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-8) var(--spacing-4);
+  gap: var(--spacing-4);
+}
+
+.met-empty-state__illustration {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.met-empty-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px dashed;
+  animation: metRingSpin 15s linear infinite;
+}
+
+.met-empty-ring--1 {
+  width: 100%;
+  height: 100%;
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.met-empty-ring--2 {
+  width: 75%;
+  height: 75%;
+  border-color: rgba(99, 102, 241, 0.25);
+  animation-direction: reverse;
+  animation-duration: 12s;
+}
+
+.met-empty-ring--3 {
+  width: 50%;
+  height: 50%;
+  border-color: rgba(59, 130, 246, 0.2);
+  animation-duration: 18s;
+}
+
+@keyframes metRingSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.met-empty-icon {
+  position: relative;
+  z-index: 2;
+  font-size: 2.2rem;
+  color: #8b5cf6;
+}
+
+.met-empty-state__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.met-empty-state__text {
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.6;
+  max-width: 400px;
+}
+
+.met-empty-state__actions {
+  display: flex;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ============================================================================
+   CELEBRATION (meta atingida)
+   ============================================================================ */
+
+.met-card--completed {
+  border-left-color: #10b981;
+}
+
+.met-card--completed .met-card__progress-fill {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.met-celebrate {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #10b981;
+  animation: metCelebrate 0.6s ease;
+}
+
+@keyframes metCelebrate {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .met-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .met-actions-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .met-actions-bar__left {
+    justify-content: center;
+  }
+
+  .met-action-btn {
+    justify-content: center;
+  }
+
+  .met-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .met-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+  }
+}
+
+@media (max-width: 480px) {
+  .met-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}

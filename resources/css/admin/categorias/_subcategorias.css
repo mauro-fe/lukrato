@@ -1,363 +1,248 @@
 /* ============================================================================
    SUBCATEGORIAS — Accordion panel, subcat items, edit-modal section
+   Usa apenas tokens do design system (nenhuma cor hardcoded)
    ============================================================================ */
 
-/* ---- Expand chevron button ---- */
+/* ============================================================================
+   BOTAO EXPAND (chevron)
+   ============================================================================ */
+
 .cat-card-btn.expand {
-    transition: transform 0.25s ease;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .cat-card-btn.expand.is-open {
-    transform: rotate(180deg);
+  transform: rotate(180deg);
 }
+
 .cat-card-btn.expand i,
 .cat-card-btn.expand svg {
-    width: 16px;
-    height: 16px;
-    color: var(--text-muted, #94a3b8);
-    transition: color 0.15s;
+  width: 15px;
+  height: 15px;
+  color: var(--color-text-muted);
+  transition: color 0.15s;
 }
+
 .cat-card-btn.expand:hover i,
 .cat-card-btn.expand:hover svg {
-    color: var(--primary, #6366f1);
-}
-
-/* ---- Subcategoria preview chips (collapsed state) ---- */
-.subcat-preview {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    padding: 2px 0 0;
-    cursor: pointer;
-}
-.subcat-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    font-size: 0.72rem;
-    color: var(--text-muted, #94a3b8);
-    background: var(--surface-2, rgba(255,255,255,0.04));
-    padding: 2px 8px;
-    border-radius: 12px;
-    white-space: nowrap;
-    max-width: 120px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    transition: background 0.15s;
-    line-height: 1.4;
-}
-.subcat-chip i,
-.subcat-chip svg {
-    width: 11px;
-    height: 11px;
-    flex-shrink: 0;
-}
-.subcat-preview:hover .subcat-chip {
-    background: color-mix(in srgb, var(--primary, #6366f1) 10%, var(--surface-2, rgba(255,255,255,0.04)));
-}
-.subcat-chip.more {
-    color: var(--primary, #6366f1);
-    font-weight: 600;
-    background: color-mix(in srgb, var(--primary, #6366f1) 8%, transparent);
-}
-
-.subcat-chip.match-highlight {
-    color: #8b5cf6;
-    background: color-mix(in srgb, #8b5cf6 12%, transparent);
-}
-
-/* ---- Accordion panel (max-height + aria-hidden) ---- */
-.cat-subcategorias-panel {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.25s ease;
-    opacity: 0;
-}
-.cat-subcategorias-panel.is-open {
-    max-height: 800px;   /* generous — accommodates list + inline form + icon picker */
-    opacity: 1;
-}
-.subcat-panel-inner {
-    padding: 6px 12px 10px;
-    border-top: 1px solid var(--border-color, rgba(255,255,255,0.06));
-}
-
-/* ---- Subcat list inside accordion ---- */
-.subcat-loading,
-.subcat-empty {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.78rem;
-    color: var(--text-muted, #94a3b8);
-    padding: 4px 0;
-}
-.subcat-loading svg,
-.subcat-empty svg {
-    width: 14px;
-    height: 14px;
-}
-
-.subcat-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 5px 4px;
-    border-radius: 6px;
-    transition: background 0.15s;
-}
-.subcat-item:hover {
-    background: var(--hover-bg, rgba(255,255,255,0.04));
-}
-.subcat-item-icon {
-    flex-shrink: 0;
-    width: 22px;
-    height: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.subcat-item-icon svg {
-    width: 14px;
-    height: 14px;
-}
-.subcat-item-name {
-    flex: 1;
-    font-size: 0.82rem;
-    color: var(--text-secondary, #cbd5e1);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.subcat-item-actions {
-    display: flex;
-    gap: 2px;
-    opacity: 0;
-    transition: opacity 0.15s;
-}
-.subcat-item:hover .subcat-item-actions {
-    opacity: 1;
-}
-
-.subcat-btn {
-    width: 24px;
-    height: 24px;
-    border: none;
-    background: transparent;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-    padding: 0;
-}
-.subcat-btn svg {
-    width: 13px;
-    height: 13px;
-}
-.subcat-btn.edit {
-    color: var(--primary, #6366f1);
-}
-.subcat-btn.edit:hover {
-    background: rgba(99,102,241, 0.12);
-}
-.subcat-btn.delete {
-    color: var(--text-muted, #94a3b8);
-}
-.subcat-btn.delete:hover {
-    color: #ef4444;
-    background: rgba(239,68,68, 0.12);
-}
-.subcat-badge-global {
-    font-size: 0.68rem;
-    color: var(--text-muted, #94a3b8);
-    background: var(--surface-2, rgba(255,255,255,0.05));
-    padding: 1px 6px;
-    border-radius: 4px;
-    white-space: nowrap;
-}
-
-/* ---- Inline edit input ---- */
-.subcat-edit-input {
-    flex: 1;
-    min-width: 0;
-    font-size: 0.82rem !important;
-    height: 28px !important;
-    padding: 2px 6px !important;
-}
-.subcat-edit-actions {
-    opacity: 1 !important;
-}
-.subcat-btn.save {
-    color: var(--color-success, #22c55e);
-}
-.subcat-btn.save:hover {
-    background: rgba(34, 197, 94, 0.12);
-}
-.subcat-btn.cancel {
-    color: var(--text-muted, #94a3b8);
-}
-.subcat-btn.cancel:hover {
-    color: #ef4444;
-    background: rgba(239, 68, 68, 0.12);
-}
-
-/* ---- Subcategoria count badge on expand button ---- */
-.subcat-count-badge {
-    font-size: 0.65rem;
-    font-weight: 600;
-    background: var(--primary, #6366f1);
-    color: #fff;
-    padding: 0 5px;
-    border-radius: 8px;
-    min-width: 16px;
-    text-align: center;
-    line-height: 16px;
-    margin-left: 2px;
-}
-.cat-card-btn.expand {
-    gap: 3px;
-}
-
-/* ---- Add subcategoria inline form (inside accordion) ---- */
-.subcat-add-form-inline {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid var(--border-color, rgba(255,255,255,0.06));
-}
-.subcat-add-form-inline .subcat-icon-btn {
-    width: 30px;
-    height: 30px;
-    border: 1px solid var(--border-color, rgba(255,255,255,0.1));
-    border-radius: 6px;
-    background: var(--surface-2, rgba(255,255,255,0.05));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: border-color 0.15s;
-    padding: 0;
-}
-.subcat-add-form-inline .subcat-icon-btn:hover {
-    border-color: var(--primary, #6366f1);
-}
-.subcat-add-form-inline .subcat-icon-btn svg {
-    width: 14px;
-    height: 14px;
-    color: var(--text-secondary, #cbd5e1);
-}
-.subcat-add-form-inline input[type="text"] {
-    flex: 1;
-    min-width: 0;
-    height: 30px;
-    font-size: 0.8rem;
-    padding: 4px 8px;
-}
-.subcat-add-form-inline .btn-add-subcat {
-    flex-shrink: 0;
-    width: 30px !important;
-    height: 30px;
-    padding: 0;
-    font-size: 0.8rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.subcat-add-form-inline .btn-add-subcat svg {
-    width: 14px;
-    height: 14px;
-}
-
-
-/* Icon picker panel inline (inside accordion) */
-.subcat-icon-picker-panel-inline {
-    margin-top: 6px;
-    margin-bottom: 2px;
-    border: 1px solid var(--border-color, rgba(255,255,255,0.08));
-    border-radius: 8px;
-    padding: 6px;
-    background: var(--surface-2, rgba(255,255,255,0.03));
-}
-.subcat-icon-picker-panel-inline .icon-search-input {
-    width: 100%;
-    margin-bottom: 6px;
-    font-size: 0.78rem;
-    padding: 4px 8px;
-}
-.subcat-icon-picker-panel-inline .subcat-icon-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
-    gap: 2px;
-    max-height: 100px;
-    overflow-y: auto;
-}
-.subcat-add-form .subcat-icon-btn {
-    width: 34px;
-    height: 34px;
-    border: 1px solid var(--border-color, rgba(255,255,255,0.1));
-    border-radius: 6px;
-    background: var(--surface-2, rgba(255,255,255,0.05));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: border-color 0.15s;
-}
-/* ---- Shared icon grid styles (used by inline icon picker) ---- */
-.subcat-icon-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
-    gap: 3px;
-    max-height: 120px;
-    overflow-y: auto;
-}
-.subcat-icon-grid .icon-grid-item {
-    width: 32px;
-    height: 32px;
-    border: none;
-    background: transparent;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.15s;
-}
-.subcat-icon-grid .icon-grid-item svg {
-    width: 16px;
-    height: 16px;
-    color: var(--text-muted, #94a3b8);
-}
-.subcat-icon-grid .icon-grid-item:hover {
-    background: rgba(99,102,241, 0.12);
-}
-.subcat-icon-grid .icon-grid-item.selected {
-    background: var(--primary, #6366f1);
-}
-.subcat-icon-grid .icon-grid-item.selected svg {
-    color: #fff;
+  color: var(--color-primary);
 }
 
 /* ============================================================================
-   LANCAMENTO MODAL — Subcategoria select
+   CHIPS DE PREVIEW (estado recolhido)
    ============================================================================ */
-.subcategoria-select-group {
-    transition: opacity 0.2s, max-height 0.25s;
+
+.subcat-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 2px 0 0;
+  cursor: pointer;
 }
-.subcategoria-select-group.hidden {
-    opacity: 0;
-    max-height: 0;
-    overflow: hidden;
-    margin: 0;
-    padding: 0;
+
+.subcat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+  background: color-mix(in srgb, var(--color-text-muted) 8%, transparent);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 0.15s ease, color 0.15s ease;
+  line-height: 1.5;
 }
-.subcategoria-select-group:not(.hidden) {
-    opacity: 1;
-    max-height: 80px;
+
+.subcat-chip i,
+.subcat-chip svg {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+}
+
+.subcat-preview:hover .subcat-chip {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: var(--color-primary);
+}
+
+.subcat-chip.more {
+  color: var(--color-primary);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
+.subcat-chip.match-highlight {
+  color: #8b5cf6;
+  background: color-mix(in srgb, #8b5cf6 12%, transparent);
+}
+
+/* ============================================================================
+   PAINEL ACCORDION (animacao fluida)
+   ============================================================================ */
+
+.cat-subcategorias-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition:
+    max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.25s ease;
+  opacity: 0;
+}
+
+.cat-subcategorias-panel.is-open {
+  max-height: 800px;
+  opacity: 1;
+}
+
+.subcat-panel-inner {
+  padding: var(--spacing-2) var(--spacing-4) var(--spacing-3);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ============================================================================
+   LISTA DE SUBCATEGORIAS
+   ============================================================================ */
+
+.subcat-loading,
+.subcat-empty {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  padding: 4px 0;
+}
+
+.subcat-loading svg,
+.subcat-empty svg {
+  width: 13px;
+  height: 13px;
+}
+
+.subcat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px var(--spacing-2);
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease;
+}
+
+.subcat-item:hover {
+  background: color-mix(in srgb, var(--color-text-muted) 7%, transparent);
+}
+
+.subcat-item-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.subcat-item-icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+.subcat-item-name {
+  flex: 1;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.subcat-item-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.subcat-item:hover .subcat-item-actions {
+  opacity: 1;
+}
+
+/* ============================================================================
+   BOTOES DAS SUBCATEGORIAS
+   ============================================================================ */
+
+.subcat-btn {
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  padding: 0;
+}
+
+.subcat-btn svg {
+  width: 12px;
+  height: 12px;
+}
+
+.subcat-btn.edit {
+  color: var(--color-primary);
+}
+
+.subcat-btn.edit:hover {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+.subcat-btn.delete {
+  color: var(--color-text-muted);
+}
+
+.subcat-btn.delete:hover {
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+}
+
+.subcat-badge-global {
+  font-size: 0.62rem;
+  color: var(--color-text-muted);
+  background: color-mix(in srgb, var(--color-text-muted) 8%, transparent);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+/* ============================================================================
+   INPUT DE EDICAO INLINE
+   ============================================================================ */
+
+.subcat-edit-input {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-size-xs) !important;
+  height: 26px !important;
+  padding: 2px 6px !important;
+}
+
+.subcat-edit-actions {
+  opacity: 1 !important;
+}
+
+.subcat-btn.save {
+  color: var(--color-success);
+}
+
+.subcat-btn.save:hover {
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+}
+
+.subcat-btn.cancel {
+  color: var(--color-text-muted);
 }

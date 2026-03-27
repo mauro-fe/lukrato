@@ -1,0 +1,637 @@
+@import '../financas/_shared-modals.css';
+
+/**
+ * ============================================================================
+ * ORÇAMENTO — Página Dedicada
+ * ============================================================================
+ * Controle do presente: quanto posso gastar e quanto já gastei
+ * Design consistente com o sistema Lukrato (glassmorphism, tokens)
+ * ============================================================================
+ */
+
+/* ============================================================================
+   PAGE LAYOUT
+   ============================================================================ */
+
+.orc-page {
+  padding: var(--spacing-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
+  animation: orcFadeIn 0.5s ease-out;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+@keyframes orcFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================================
+   PAGE HEADER
+   ============================================================================ */
+
+.orc-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+}
+
+.orc-page-header__title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.orc-page-header__desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: var(--spacing-1) 0 0;
+  line-height: 1.4;
+}
+
+/* ============================================================================
+   SUMMARY CARDS GRID
+   ============================================================================ */
+
+.orc-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-3);
+  transition: opacity 0.25s ease;
+}
+
+.orc-summary-card {
+  background: var(--color-bg);
+  backdrop-filter: var(--glass-backdrop);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-4);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.20),
+    0 20px 40px rgba(0, 0, 0, 0.25);
+  transform: translateY(0);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.orc-summary-card:hover{
+  transform: translateY(-4px);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.25),
+    0 30px 60px rgba(0, 0, 0, 0.30);
+}
+
+
+
+.orc-summary-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.orc-summary-card__icon--blue { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.orc-summary-card__icon--orange { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.orc-summary-card__icon--green { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+
+.orc-summary-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.orc-summary-card__label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.orc-summary-card__value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.orc-summary-card__status {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.orc-summary-card__status.orc-status--good { color: #10b981; }
+.orc-summary-card__status.orc-status--warn { color: #f59e0b; }
+.orc-summary-card__status.orc-status--bad { color: #ef4444; }
+
+/* ============================================================================
+   SAÚDE FINANCEIRA RING
+   ============================================================================ */
+
+.orc-summary-card--saude { position: relative; }
+
+.orc-saude-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.orc-saude-cta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  cursor: pointer;
+}
+
+.orc-saude-cta__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.orc-saude-cta__icon i {
+  font-size: 20px;
+  color: var(--color-primary);
+  animation: orcSaudePulse 2s ease-in-out infinite;
+}
+
+@keyframes orcSaudePulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+.orc-saude-cta__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.orc-saude-cta__msg {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+  max-width: 200px;
+}
+
+.orc-saude-ring {
+  width: 54px;
+  height: 54px;
+  position: relative;
+}
+
+.orc-saude-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.orc-ring-bg {
+  fill: none;
+  stroke: var(--glass-border);
+  stroke-width: 3;
+}
+
+.orc-ring-fill {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dasharray 1s ease, stroke 0.3s ease;
+}
+
+.orc-ring-fill.orc-score--good { stroke: #10b981; }
+.orc-ring-fill.orc-score--warn { stroke: #f59e0b; }
+.orc-ring-fill.orc-score--bad { stroke: #ef4444; }
+
+.orc-ring-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+/* ============================================================================
+   ACTIONS BAR
+   ============================================================================ */
+
+.orc-actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+}
+
+.orc-actions-bar__left {
+  display: flex;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.orc-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  color: var(--color-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.orc-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.orc-action-btn--primary {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: transparent;
+}
+
+.orc-action-btn--success {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+  border-color: transparent;
+}
+
+.orc-action-btn--success:hover {
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}
+
+/* ============================================================================
+   ORÇAMENTOS GRID
+   ============================================================================ */
+
+.orc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-3);
+}
+
+.orc-card {
+  background: var(--color-bg);
+  backdrop-filter: var(--glass-backdrop);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.20),
+    0 20px 40px rgba(0, 0, 0, 0.25);
+  transform: translateY(0);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.orc-card:hover{
+  transform: translateY(-4px);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.25),
+    0 30px 60px rgba(0, 0, 0, 0.30);
+}
+
+.orc-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  transition: background 0.3s ease;
+}
+
+.orc-card.ok::before { background: linear-gradient(90deg, #10b981, #34d399); }
+.orc-card.warn::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.orc-card.over::before { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+
+.orc-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-3);
+}
+
+.orc-card__category {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.orc-card__icon { font-size: 1.3rem; }
+
+.orc-card__name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-text);
+}
+
+.orc-card__actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.orc-card:hover .orc-card__actions { opacity: 1; }
+
+.orc-card__action-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.orc-card__action-btn:hover {
+  background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  color: var(--color-primary);
+}
+
+.orc-card__action-btn--danger:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+/* Progress Bar */
+.orc-card__progress { margin-bottom: var(--spacing-3); }
+
+.orc-card__progress-bar {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-text) 8%, transparent);
+  overflow: hidden;
+  margin-bottom: var(--spacing-2);
+}
+
+.orc-card__progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.orc-card__progress-fill.ok { background: linear-gradient(90deg, #10b981, #34d399); }
+.orc-card__progress-fill.warn { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.orc-card__progress-fill.over { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+.orc-card__progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.orc-card__spent {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.orc-card__limit {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+/* Footer */
+.orc-card__footer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.orc-card__pct {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.orc-card__pct.ok { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+.orc-card__pct.warn { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+.orc-card__pct.over { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+
+.orc-card__remaining {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.orc-card__remaining--negative {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.orc-card__badge {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.12);
+  color: #6366f1;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+/* ============================================================================
+   EMPTY STATE
+   ============================================================================ */
+
+.orc-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-8) var(--spacing-4);
+  gap: var(--spacing-3);
+}
+
+.orc-empty-state__icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: var(--color-primary);
+}
+
+.orc-empty-state__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.orc-empty-state__text {
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ============================================================================
+   INSIGHTS
+   ============================================================================ */
+
+.orc-section-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-3);
+}
+
+.orc-section-label i { color: var(--color-primary); font-size: 0.85rem; }
+
+.orc-insights-section { margin-top: var(--spacing-2); }
+
+.orc-insights-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.orc-insight-card {
+  background: var(--color-bg);
+  backdrop-filter: var(--glass-backdrop);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-4);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+    box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.20),
+    0 20px 40px rgba(0, 0, 0, 0.25);
+  transform: translateY(0);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.orc-insight-card:hover { 
+    transform: translateY(-4px);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.25),
+    0 30px 60px rgba(0, 0, 0, 0.30);
+   }
+
+
+.orc-insight-card.warning { border-left: 3px solid #f59e0b; }
+.orc-insight-card.danger { border-left: 3px solid #ef4444; }
+.orc-insight-card.success { border-left: 3px solid #10b981; }
+.orc-insight-card.info { border-left: 3px solid #6366f1; }
+
+.orc-insight-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.orc-insight-icon.warning { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.orc-insight-icon.danger { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+.orc-insight-icon.success { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+.orc-insight-icon.info { background: rgba(99, 102, 241, 0.15); color: #6366f1; }
+
+.orc-insight-content { flex: 1; min-width: 0; }
+
+.orc-insight-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.orc-insight-text {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .orc-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .orc-actions-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .orc-actions-bar__left {
+    justify-content: center;
+  }
+
+  .orc-action-btn {
+    justify-content: center;
+  }
+
+  .orc-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .orc-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .orc-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}

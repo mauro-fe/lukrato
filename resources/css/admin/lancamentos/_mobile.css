@@ -5,7 +5,9 @@
 }
 
 .lan-cards-container {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
 .lan-cards-pager {
@@ -60,7 +62,7 @@
   white-space: nowrap;
 }
 
-/* Mobile card items (JS-generated) */
+/* Mobile card header (column titles) */
 .lan-cards-header {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr 1.1fr;
@@ -77,52 +79,270 @@
   color: var(--color-text-muted);
 }
 
-.lan-card {
-  background: var(--color-surface);
-  border: 1px solid var(--glass-border);
-  border-top: none;
-  padding: 0.85rem 1rem 0.75rem;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  column-gap: var(--spacing-2);
-  row-gap: 0.35rem;
-  transition: background 0.2s ease;
-}
-
-.lan-card:last-child {
-  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-}
-
-.lan-card + .lan-card {
-  border-top: 1px solid rgba(255, 255, 255, 0.03);
-}
-
-.lan-card-main {
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr 1.1fr;
-  column-gap: var(--spacing-2);
+/* Column sort buttons */
+.lan-cards-header-btn,
+.cards-header-btn {
+  display: inline-flex;
   align-items: center;
+  gap: 4px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: inherit;
+  font-weight: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.2s ease;
 }
 
-.lan-card-date {
-  font-size: 0.875rem;
-  font-weight: 600;
+.lan-cards-header-btn:hover,
+.cards-header-btn:hover {
+  color: var(--color-primary);
+}
+
+.lan-cards-header-btn:active,
+.cards-header-btn:active {
   color: var(--color-text);
 }
 
+/* Sort indicator arrow */
+.lan-sort-indicator,
+.sort-indicator {
+  font-size: 0.65rem;
+  opacity: 0.5;
+}
+
+.lan-cards-header-btn.active,
+.cards-header-btn.active {
+  color: var(--color-primary);
+}
+
+.lan-cards-header-btn.active .lan-sort-indicator,
+.cards-header-btn.active .sort-indicator {
+  opacity: 1;
+}
+
+/* ─── CARD ITEM ───────────────────────────────────────────────────────────── */
+
+.lan-card {
+  background: var(--color-bg);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-2);
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lan-card:active {
+  border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+/* Main row: date / type / value */
+.lan-card-main {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  column-gap: var(--spacing-3);
+  align-items: center;
+  padding: var(--spacing-3) var(--spacing-4);
+}
+
+.lan-card-date {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+}
+
+.lan-card-type {
+  display: flex;
+  align-items: center;
+}
+
 .lan-card-value {
-  font-weight: 700;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
   font-size: 0.95rem;
+  font-family: var(--font-mono);
+  text-align: right;
 }
 
 .lan-card-value.receita { color: var(--color-success); }
 .lan-card-value.despesa { color: var(--color-danger); }
-.lan-card-value.transferencia { color: var(--color-primary); }
+.lan-card-value.transferencia { color: var(--color-info, #3498db); }
+
+/* ─── CARD SUMMARY (desc + category + status badge) ───────────────────────── */
+
+.lan-card-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: 0 var(--spacing-4) var(--spacing-3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.lan-card-summary-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.lan-card-summary-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lan-card-summary-subtitle {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+/* ─── CARD TOGGLE (Ver detalhes button) ───────────────────────────────────── */
+
+.lan-card-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  width: 100%;
+  padding: var(--spacing-2) var(--spacing-4);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.lan-card-toggle:hover,
+.lan-card-toggle:active {
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+}
+
+.lan-card-toggle-icon {
+  display: flex;
+  align-items: center;
+  transition: transform 0.25s ease;
+}
+
+.lan-card-toggle-icon i,
+.lan-card-toggle-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Rotate chevron when expanded */
+.lan-card[aria-expanded="true"] .lan-card-toggle-icon {
+  transform: rotate(90deg);
+}
+
+.lan-card[aria-expanded="true"] .lan-card-toggle {
+  color: var(--color-primary);
+}
+
+/* ─── CARD DETAILS (expandable panel) ─────────────────────────────────────── */
+
+.lan-card-details {
+  display: none;
+  padding: var(--spacing-3) var(--spacing-4) var(--spacing-4);
+  background: color-mix(in srgb, var(--color-primary) 3%, transparent);
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  animation: lanCardSlideIn 0.25s ease;
+}
+
+.lan-card[aria-expanded="true"] .lan-card-details {
+  display: block;
+}
+
+@keyframes lanCardSlideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Detail rows */
+.lan-card-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-2) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  gap: var(--spacing-2);
+}
+
+.lan-card-detail-row:last-child {
+  border-bottom: none;
+}
+
+.lan-card-detail-row.is-multiline {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.lan-card-detail-row.actions-row {
+  padding-top: var(--spacing-3);
+  margin-top: var(--spacing-1);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: none;
+}
+
+.lan-card-detail-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.lan-card-detail-value {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text);
+  text-align: right;
+  word-break: break-word;
+}
+
+.lan-card-detail-row.is-multiline .lan-card-detail-value {
+  text-align: left;
+  width: 100%;
+}
+
+/* ─── STATUS BADGES (atrasado addition) ───────────────────────────────────── */
+
+.badge-status.status-atrasado {
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  color: var(--color-danger);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 25%, transparent);
+}
+
+.badge-status i,
+.badge-status svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+/* ─── CARD ACTIONS (old grid-based, kept for compat) ──────────────────────── */
 
 .lan-card-actions {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.4rem;
 }
 
@@ -135,7 +355,8 @@
   padding: 0;
 }
 
-/* Card detail rows */
+/* ─── DETAIL TAGS (legacy) ────────────────────────────────────────────────── */
+
 .lan-card-detail {
   grid-column: 1 / -1;
   display: flex;

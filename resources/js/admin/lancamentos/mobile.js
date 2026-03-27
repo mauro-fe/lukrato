@@ -9,6 +9,7 @@
 
 import { CONFIG, DOM, STATE, Utils, Notifications, Modules } from './state.js';
 import { handleMarcarPago, handleDesmarcarPago, handleCancelarRecorrencia, handleDelete, handleEdit } from './actions.js';
+import { closeAllDropdownMenus, closeDropdownMenu, resolveDropdownMenu, toggleDropdownMenu } from './dropdown.js';
 
 // ─── MobileCards ─────────────────────────────────────────────────────────────
 
@@ -136,6 +137,7 @@ const MobileCards = {
 
     renderPage() {
         if (!DOM.lanCards) return;
+        closeAllDropdownMenus();
 
         const { list, total, page, totalPages } = this.getPagedData();
 
@@ -619,7 +621,8 @@ const MobileCards = {
         }
 
         DOM.lanCards.innerHTML = parts.join('');
-        if (window.lucide) lucide.createIcons();
+        if (window.LK?.refreshIcons) LK.refreshIcons();
+        else if (window.lucide) lucide.createIcons();
 
         this.updatePager(total, page, totalPages);
         this.updateSortIndicators();
@@ -656,6 +659,7 @@ const MobileCards = {
 
     renderLoading() {
         if (!DOM.lanCards) return;
+        closeAllDropdownMenus();
 
         DOM.lanCards.innerHTML = `
             <div class="lan-cards-header cards-header">
@@ -744,45 +748,24 @@ const MobileCards = {
             ev.preventDefault();
             ev.stopPropagation();
             const dropdown = trigger.closest('.lk-dropdown');
-            const menu = dropdown?.querySelector('.lk-dropdown-menu');
+            const menu = resolveDropdownMenu(dropdown);
             if (!menu) return;
-
-            // Fecha qualquer outro dropdown aberto
-            document.querySelectorAll('.lk-dropdown-menu.open').forEach(m => {
-                if (m !== menu) m.classList.remove('open');
+            const card = trigger.closest('.lk-txn-card');
+            const opened = toggleDropdownMenu({
+                trigger,
+                dropdown,
+                menu,
+                card
             });
-
-            const isOpen = menu.classList.toggle('open');
-            if (isOpen) {
-                // Posiciona acima ou abaixo conforme espaço
-                const rect = trigger.getBoundingClientRect();
-                const spaceBelow = window.innerHeight - rect.bottom;
-                if (spaceBelow < 200) {
-                    menu.style.bottom = '100%';
-                    menu.style.top = 'auto';
-                } else {
-                    menu.style.top = '100%';
-                    menu.style.bottom = 'auto';
-                }
-                if (window.lucide) lucide.createIcons({ nodes: menu.querySelectorAll('[data-lucide]') });
-
-                // Fechar ao clicar fora
-                const closeHandler = (e) => {
-                    if (!dropdown.contains(e.target)) {
-                        menu.classList.remove('open');
-                        document.removeEventListener('click', closeHandler, true);
-                    }
-                };
-                setTimeout(() => document.addEventListener('click', closeHandler, true), 0);
-            }
+            if (!opened) return;
+            if (window.lucide) lucide.createIcons();
             return;
         }
 
         // Fechar dropdown ao clicar em um item
         const dropdownItem = target.closest('.lk-dropdown-item');
         if (dropdownItem) {
-            const openMenu = dropdownItem.closest('.lk-dropdown-menu');
-            if (openMenu) openMenu.classList.remove('open');
+            closeDropdownMenu(dropdownItem.closest('.lk-dropdown-menu'));
         }
 
         // Clique nos títulos de ordenação (Data / Valor)

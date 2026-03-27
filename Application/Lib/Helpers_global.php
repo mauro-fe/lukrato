@@ -157,6 +157,8 @@ if (!function_exists('loadPageJs')) {
             'admin-contas-index'        => 'admin/contas/index.js',
             'admin-faturas-index'       => 'admin/faturas/index.js',
             'admin-financas-index'      => 'admin/financas/index.js',
+            'admin-orcamento-index'     => 'admin/orcamento/index.js',
+            'admin-metas-index'         => 'admin/metas/index.js',
             'admin-relatorios-index'    => 'admin/relatorios/index.js',
             'admin-categorias-index'    => 'admin/categorias/index.js',
             'admin-dashboard-index'     => 'admin/dashboard/index.js',

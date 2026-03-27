@@ -230,12 +230,20 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                         <small class="nav-item-subtitle">Veja para onde vai seu dinheiro</small>
                     </span>
                 </a>
-                <a href="<?= BASE_URL ?>financas" class="nav-item <?= $active('financas') ?>" <?= $aria('financas') ?>
-                    title="Finanças">
-                    <i data-lucide="wallet"></i>
+                <a href="<?= BASE_URL ?>orcamento" class="nav-item <?= $active('orcamento') ?>"
+                    <?= $aria('orcamento') ?> title="Orçamento">
+                    <i data-lucide="pie-chart"></i>
                     <span class="nav-item-content">
-                        <span class="nav-item-title">Finanças</span>
-                        <small class="nav-item-subtitle">Visão geral das suas finanças</small>
+                        <span class="nav-item-title">Orçamento</span>
+                        <small class="nav-item-subtitle">Controle seus gastos mensais</small>
+                    </span>
+                </a>
+                <a href="<?= BASE_URL ?>metas" class="nav-item <?= $active('metas') ?>"
+                    <?= $aria('metas') ?> title="Metas">
+                    <i data-lucide="target"></i>
+                    <span class="nav-item-content">
+                        <span class="nav-item-title">Metas</span>
+                        <small class="nav-item-subtitle">Planeje seus objetivos</small>
                     </span>
                 </a>
             </div>

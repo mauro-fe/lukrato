@@ -11,6 +11,56 @@
     padding: var(--spacing-3);
   }
 
+  /* KPI: 2 colunas compactas */
+  .cat-kpis {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-2);
+  }
+
+  .cat-kpi {
+    padding: var(--spacing-3);
+    gap: var(--spacing-2);
+  }
+
+  .cat-kpi__icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .cat-kpi__icon svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .cat-kpi__label {
+    font-size: 0.6rem;
+  }
+
+  .cat-kpi__value {
+    font-size: var(--font-size-base);
+  }
+
+  /* Context card mobile */
+  .cat-context-card {
+    grid-template-columns: 1fr;
+    padding: var(--spacing-3);
+    gap: var(--spacing-3);
+  }
+
+  .cat-context-right {
+    min-width: 0;
+    max-width: none;
+    width: 100%;
+  }
+
+  .cat-context-actions {
+    flex-direction: column;
+  }
+
+  .cat-context-btn {
+    width: 100%;
+  }
+
   /* Create card mobile compact */
   .create-card.modern-card {
     border-radius: var(--radius-md);
@@ -88,27 +138,6 @@
     padding: 3px 8px;
   }
 
-  .cat-context-card {
-    padding: var(--spacing-3);
-    gap: var(--spacing-3);
-  }
-
-  .cat-context-stats {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .cat-context-stat {
-    padding: var(--spacing-2);
-  }
-
-  .cat-context-actions {
-    flex-direction: column;
-  }
-
-  .cat-context-btn {
-    width: 100%;
-  }
-
   .type-toggle-pill {
     padding: var(--spacing-2) var(--spacing-3);
     font-size: var(--font-size-xs);
@@ -119,9 +148,8 @@
   }
 
   .header-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 18px;
+    width: 32px;
+    height: 32px;
   }
 
   .category-title {
@@ -137,7 +165,6 @@
   }
 
   .category-list {
-    grid-template-columns: 1fr;
     max-height: 400px;
   }
 
@@ -157,41 +184,4 @@
   .cat-card-emoji {
     font-size: 13px;
   }
-
-  .cat-card-name {
-    font-size: 0.8rem;
-  }
-
-  .cat-card-meta {
-    padding-left: 32px;
-  }
-
-  .cat-card-badge,
-  .cat-card-static-note {
-    font-size: 0.62rem;
-  }
-
-  .cat-card-actions {
-    opacity: 0.7;
-  }
-
-  .cat-card-btn {
-    width: 26px;
-    height: 26px;
-  }
-
-  .cat-card-budget {
-    padding-left: 32px;
-  }
-
-  .cat-card-budget.no-budget {
-    padding-left: 32px;
-    font-size: 0.65rem;
-  }
-
-  .cat-budget-text {
-    font-size: 0.55rem;
-  }
-
-  }
-
+}
