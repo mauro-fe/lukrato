@@ -356,11 +356,12 @@ class AchievementService
                     'unlocked_ever' => (bool)$unlockedEver, // Desbloqueada em algum momento
                     'unlocked_at' => $unlockedInMonth?->unlocked_at?->format('Y-m-d H:i:s'),
                     'can_unlock' => !$unlockedEver && $this->canUnlock($userId, $achievement->code, $user),
+                    'progress' => !$unlockedEver ? $this->getAchievementProgress($userId, $achievement->code) : null,
                 ];
             } else {
                 $unlocked = $unlockedQuery->first();
 
-                $result[] = [
+                $item = [
                     'id' => $achievement->id,
                     'code' => $achievement->code,
                     'name' => $achievement->name,
@@ -375,10 +376,97 @@ class AchievementService
                     'unlocked_at' => $unlocked?->unlocked_at?->format('Y-m-d H:i:s'),
                     'can_unlock' => !$unlocked && $this->canUnlock($userId, $achievement->code, $user),
                 ];
+
+                if (!$unlocked) {
+                    $progress = $this->getAchievementProgress($userId, $achievement->code);
+                    if ($progress) {
+                        $item['progress'] = $progress;
+                    }
+                }
+
+                $result[] = $item;
             }
         }
 
         return $result;
+    }
+
+    // ===== PROGRESSO DE CONQUISTAS =====
+
+    private function getAchievementProgress(int $userId, string $code): ?array
+    {
+        try {
+            $type = AchievementType::from($code);
+        } catch (\ValueError $e) {
+            return null;
+        }
+
+        $progress = UserProgress::where('user_id', $userId)->first();
+        $launches = null;
+        $categories = null;
+
+        return match ($type) {
+            // Lançamentos
+            AchievementType::FIRST_LAUNCH => $this->progressCount($userId, 'launches', 1),
+            AchievementType::TOTAL_10_LAUNCHES => $this->progressCount($userId, 'launches', 10),
+            AchievementType::TOTAL_100_LAUNCHES => $this->progressCount($userId, 'launches', 100),
+            AchievementType::TOTAL_250_LAUNCHES => $this->progressCount($userId, 'launches', 250),
+            AchievementType::TOTAL_500_LAUNCHES => $this->progressCount($userId, 'launches', 500),
+            AchievementType::TOTAL_1000_LAUNCHES => $this->progressCount($userId, 'launches', 1000),
+
+            // Streak / dias ativos
+            AchievementType::STREAK_3 => ['current' => min($progress?->current_streak ?? 0, 3), 'target' => 3],
+            AchievementType::STREAK_7 => ['current' => min($progress?->current_streak ?? 0, 7), 'target' => 7],
+            AchievementType::DAYS_50_ACTIVE => ['current' => min($progress?->current_streak ?? 0, 50), 'target' => 50],
+            AchievementType::DAYS_100_ACTIVE => ['current' => min($progress?->current_streak ?? 0, 100), 'target' => 100],
+            AchievementType::DAYS_365_ACTIVE => ['current' => min($progress?->current_streak ?? 0, 365), 'target' => 365],
+            AchievementType::CONSISTENCY_TOTAL => ['current' => min($progress?->current_streak ?? 0, 30), 'target' => 30],
+
+            // Categorias
+            AchievementType::TOTAL_5_CATEGORIES => $this->progressCount($userId, 'categories', 5),
+            AchievementType::TOTAL_15_CATEGORIES => $this->progressCount($userId, 'categories', 15),
+            AchievementType::TOTAL_25_CATEGORIES => $this->progressCount($userId, 'categories', 25),
+
+            // Níveis
+            AchievementType::LEVEL_5 => ['current' => min($progress?->current_level ?? 1, 5), 'target' => 5],
+            AchievementType::LEVEL_8 => ['current' => min($progress?->current_level ?? 1, 8), 'target' => 8],
+            AchievementType::LEVEL_10 => ['current' => min($progress?->current_level ?? 1, 10), 'target' => 10],
+            AchievementType::LEVEL_12 => ['current' => min($progress?->current_level ?? 1, 12), 'target' => 12],
+            AchievementType::LEVEL_15 => ['current' => min($progress?->current_level ?? 1, 15), 'target' => 15],
+
+            // Referências
+            AchievementType::FIRST_REFERRAL => $this->progressCount($userId, 'referrals', 1),
+            AchievementType::REFERRALS_5 => $this->progressCount($userId, 'referrals', 5),
+            AchievementType::REFERRALS_10 => $this->progressCount($userId, 'referrals', 10),
+            AchievementType::REFERRALS_25 => $this->progressCount($userId, 'referrals', 25),
+
+            default => null,
+        };
+    }
+
+    private function progressCount(int $userId, string $type, int $target): array
+    {
+        $current = match ($type) {
+            'launches' => Lancamento::where('user_id', $userId)->count(),
+            'categories' => $this->countCustomCategories($userId),
+            default => 0,
+        };
+
+        return ['current' => min($current, $target), 'target' => $target];
+    }
+
+    private function countCustomCategories(int $userId): int
+    {
+        $categoriaPadrao = [
+            'Moradia', 'Alimentação', 'Transporte', 'Contas e Serviços',
+            'Saúde', 'Educação', 'Vestuário', 'Lazer', 'Cartão de Crédito',
+            'Assinaturas', 'Compras', 'Outros Gastos', 'Salário', 'Freelance',
+            'Investimentos', 'Bônus', 'Vendas', 'Prêmios', 'Outras Receitas',
+        ];
+
+        return Categoria::where('user_id', $userId)
+            ->whereNotIn('nome', $categoriaPadrao)
+            ->count();
     }
 
     // ===== MÉTODOS DE VERIFICAÇÃO =====

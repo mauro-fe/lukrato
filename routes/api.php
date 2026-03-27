@@ -215,6 +215,7 @@ Router::add('GET',  '/api/gamification/stats',         'Api\\Gamification\\Gamif
 Router::add('GET',  '/api/gamification/history',       'Api\\Gamification\\GamificationController@getHistory',          ['auth']);
 Router::add('POST', '/api/gamification/achievements/mark-seen', 'Api\\Gamification\\GamificationController@markAchievementsSeen', ['auth', 'csrf', 'ratelimit']);
 Router::add('GET',  '/api/gamification/leaderboard',   'Api\\Gamification\\GamificationController@getLeaderboard',      ['auth']);
+Router::add('GET',  '/api/gamification/missions',      'Api\\Gamification\\GamificationController@getMissions',         ['auth']);
 
 // ============================================
 // FINANÇAS (Metas + Orçamentos)

@@ -12,6 +12,7 @@ use Application\Models\UserAchievement;
 use Application\Models\UserProgress;
 use Application\Services\Gamification\AchievementService;
 use Application\Services\Gamification\GamificationService;
+use Application\Services\Gamification\MissionService;
 use Application\Services\Gamification\StreakService;
 use Carbon\Carbon;
 use Throwable;
@@ -21,16 +22,19 @@ class GamificationController extends BaseController
     private GamificationService $gamificationService;
     private AchievementService $achievementService;
     private StreakService $streakService;
+    private MissionService $missionService;
 
     public function __construct(
         ?GamificationService $gamificationService = null,
         ?AchievementService $achievementService = null,
-        ?StreakService $streakService = null
+        ?StreakService $streakService = null,
+        ?MissionService $missionService = null
     ) {
         parent::__construct();
         $this->gamificationService = $gamificationService ?? new GamificationService();
         $this->achievementService = $achievementService ?? new AchievementService();
         $this->streakService = $streakService ?? new StreakService();
+        $this->missionService = $missionService ?? new MissionService();
     }
 
     /**
@@ -339,6 +343,30 @@ class GamificationController extends BaseController
         ];
 
         return $names[$action] ?? ucwords(str_replace('_', ' ', strtolower($action)));
+    }
+
+    /**
+     * GET /api/gamification/missions
+     * Retorna missões diárias do usuário.
+     */
+    public function getMissions(): Response
+    {
+        $user = $this->requireApiUserAndReleaseSessionOrFail();
+
+        try {
+            $missions = $this->missionService->getDailyMissions($this->userId, $user->isPro());
+            $completedCount = count(array_filter($missions, static fn(array $m): bool => $m['completed']));
+
+            return Response::successResponse([
+                'missions' => $missions,
+                'total' => count($missions),
+                'completed' => $completedCount,
+            ], 'Missões do dia');
+        } catch (Throwable $e) {
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[GAMIFICATION] Erro ao buscar missões: ' . $e->getMessage());
+
+            return Response::errorResponse('Erro ao buscar missões', 500);
+        }
     }
 
     private function getRelativeTime(?Carbon $date): string

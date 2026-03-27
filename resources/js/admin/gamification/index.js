@@ -2,7 +2,8 @@
  * ============================================================================
  * LUKRATO — Gamification Page (Vite Module)
  * ============================================================================
- * Página completa de gamificação: progresso, conquistas, histórico, ranking.
+ * Página completa de gamificação: progresso, conquistas, histórico, ranking,
+ * missões diárias e insights inteligentes.
  * Usa window.GAMIFICATION global (gamification-global.js).
  *
  * Substitui: public/assets/js/gamification-page.js
@@ -19,6 +20,8 @@ const GAM = window.GAMIFICATION;
 const formatNumber = GAM.formatNumber.bind(GAM);
 const formatDate = GAM.formatDate.bind(GAM);
 const BASE_URL = getBaseUrl();
+const CURRENT_USER_ID = window.__LK_CONFIG?.userId ?? null;
+const CURRENT_USERNAME = window.__LK_CONFIG?.username ?? '';
 
 // ─── Achievement icon colors (shared with dashboard) ────────────────────────
 
@@ -47,6 +50,8 @@ function getAchievementIconColor(icon) {
 // ─── DOM Elements ───────────────────────────────────────────────────────────
 
 const elements = {
+    pageHeaderTitle: document.getElementById('pageHeaderTitle'),
+    pageHeaderSubtitle: document.getElementById('pageHeaderSubtitle'),
     userLevelLarge: document.getElementById('userLevelLarge'),
     totalPointsCard: document.getElementById('totalPointsCard'),
     currentLevelCard: document.getElementById('currentLevelCard'),
@@ -55,29 +60,68 @@ const elements = {
     nextLevel: document.getElementById('nextLevel'),
     progressPointsLarge: document.getElementById('progressPointsLarge'),
     progressFillLarge: document.getElementById('progressFillLarge'),
+    progressRemaining: document.getElementById('progressRemaining'),
     achievementsGridPage: document.getElementById('achievementsGridPage'),
     pointsHistory: document.getElementById('pointsHistory'),
-    leaderboardContainer: document.getElementById('leaderboardContainer')
+    leaderboardContainer: document.getElementById('leaderboardContainer'),
+    leaderboardGap: document.getElementById('leaderboardGap'),
+    missionsSection: document.getElementById('missionsSection'),
+    missionsGrid: document.getElementById('missionsGrid'),
+    insightBanner: document.getElementById('insightBanner'),
+    insightText: document.getElementById('insightText'),
+    insightDismiss: document.getElementById('insightDismiss'),
 };
 
 let currentFilter = 'all';
-let cachedAchievements = null; // Cache conquistas para filtro local
+let cachedAchievements = null;
+let cachedProgress = null;
+
+// ─── Animated Number Counter ────────────────────────────────────────────────
+
+function animateValue(el, from, to, duration = 800) {
+    if (!el || from === to) {
+        if (el) el.textContent = typeof to === 'string' ? to : formatNumber(to);
+        return;
+    }
+    const startTime = performance.now();
+    const isNumeric = typeof to === 'number';
+    if (!isNumeric) {
+        el.textContent = to;
+        return;
+    }
+
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const t = Math.min(elapsed / duration, 1);
+        // easeOutCubic
+        const eased = 1 - Math.pow(1 - t, 3);
+        const current = Math.round(from + (to - from) * eased);
+        el.textContent = formatNumber(current);
+        if (t < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+}
 
 // ─── Data Loading ───────────────────────────────────────────────────────────
 
 async function loadAllData() {
     try {
-        const [progressData, achievementsData, historyData, leaderboardData] = await Promise.all([
+        const [progressData, achievementsData, historyData, leaderboardData, missionsData] = await Promise.all([
             apiGet(`${BASE_URL}api/gamification/progress`),
             apiGet(`${BASE_URL}api/gamification/achievements`),
             apiGet(`${BASE_URL}api/gamification/history`, { limit: 20 }),
-            apiGet(`${BASE_URL}api/gamification/leaderboard`)
+            apiGet(`${BASE_URL}api/gamification/leaderboard`).catch(() => null),
+            apiGet(`${BASE_URL}api/gamification/missions`).catch(() => null),
         ]);
 
         updateProgressSection(progressData);
         updateAchievements(achievementsData);
         updatePointsHistory(historyData);
         updateLeaderboard(leaderboardData);
+        updateMissions(missionsData);
+
+        // Generate insights after all data is loaded
+        generateInsights(progressData, missionsData);
     } catch (error) {
         console.error('[PAGE] Erro ao carregar dados:', error);
         toastError(getErrorMessage(error, 'Nao foi possivel carregar os dados da gamificacao'));
@@ -91,16 +135,25 @@ function updateProgressSection(data) {
     if (!isSuccess) return;
 
     const progress = data.data;
+    cachedProgress = progress;
     const level = progress.current_level || 1;
     const totalPoints = progress.total_points || 0;
     const streak = progress.current_streak || 0;
 
+    // Personalized header
+    const firstName = CURRENT_USERNAME ? CURRENT_USERNAME.split(' ')[0] : '';
+    if (elements.pageHeaderTitle && firstName) {
+        elements.pageHeaderTitle.textContent = `${firstName}, você está no Nível ${level}`;
+    }
+
     if (elements.userLevelLarge) {
         elements.userLevelLarge.querySelector('span').textContent = `Nível ${level}`;
     }
-    if (elements.totalPointsCard) elements.totalPointsCard.textContent = totalPoints;
-    if (elements.currentLevelCard) elements.currentLevelCard.textContent = level;
-    if (elements.currentStreakCard) elements.currentStreakCard.textContent = streak;
+
+    // Animate stat values
+    animateValue(elements.totalPointsCard, 0, totalPoints);
+    animateValue(elements.currentLevelCard, 0, level);
+    animateValue(elements.currentStreakCard, 0, streak);
 
     const progressData = GAM.calculateProgress(level, totalPoints);
     const nextLevel = level + 1;
@@ -113,9 +166,44 @@ function updateProgressSection(data) {
             ? `${formatNumber(totalPoints)} pontos (Máximo!)`
             : `${formatNumber(progressData.current)} / ${formatNumber(progressData.needed)}`;
     }
-    if (elements.progressFillLarge) {
-        elements.progressFillLarge.style.width = `${progressData.percentage}%`;
+
+    // Subtitle with points remaining
+    if (elements.pageHeaderSubtitle && !progressData.isMaxLevel) {
+        const remaining = progressData.needed - progressData.current;
+        elements.pageHeaderSubtitle.textContent = `Faltam ${formatNumber(remaining)} pts para o Nível ${nextLevel}`;
+    } else if (elements.pageHeaderSubtitle && progressData.isMaxLevel) {
+        elements.pageHeaderSubtitle.textContent = 'Você atingiu o nível máximo!';
     }
+
+    // Animated progress bar (start from 0, animate to real %)
+    if (elements.progressFillLarge) {
+        elements.progressFillLarge.style.width = '0%';
+        setTimeout(() => {
+            elements.progressFillLarge.style.width = `${progressData.percentage}%`;
+        }, 300);
+    }
+
+    // Update milestone dots
+    updateMilestones(progressData.percentage);
+
+    // "Faltam X pts" below bar
+    if (elements.progressRemaining && !progressData.isMaxLevel) {
+        const remaining = progressData.needed - progressData.current;
+        elements.progressRemaining.textContent = `Faltam ${formatNumber(remaining)} pontos para o próximo nível`;
+    } else if (elements.progressRemaining) {
+        elements.progressRemaining.textContent = '';
+    }
+}
+
+function updateMilestones(percentage) {
+    document.querySelectorAll('.milestone').forEach(dot => {
+        const pos = parseFloat(dot.style.left);
+        if (percentage >= pos) {
+            dot.classList.add('reached');
+        } else {
+            dot.classList.remove('reached');
+        }
+    });
 }
 
 // ─── Achievements ───────────────────────────────────────────────────────────
@@ -128,7 +216,6 @@ function updateAchievements(data) {
     const stats = data.data.stats || {};
     const unlockedCount = stats.unlocked_count || achievements.filter(a => a.unlocked).length;
 
-    // Cachear para filtro local (sem re-fetch)
     cachedAchievements = achievements;
 
     if (elements.achievementsCountCard) {
@@ -146,12 +233,27 @@ function renderAchievements(achievements) {
         const isUnlocked = achievement.unlocked;
         const cardClass = isUnlocked ? 'achievement-card unlocked' : 'achievement-card';
 
+        // Achievement progress bar for locked items with progress data
+        let progressHtml = '';
+        if (!isUnlocked && achievement.progress) {
+            const pct = achievement.progress.target > 0
+                ? Math.min(100, Math.round((achievement.progress.current / achievement.progress.target) * 100))
+                : 0;
+            progressHtml = `
+                <div class="achievement-progress">
+                    <div class="achievement-progress-fill" style="width:${pct}%"></div>
+                </div>
+                <span class="achievement-progress-label">${achievement.progress.current}/${achievement.progress.target}</span>
+            `;
+        }
+
         return `
             <div class="${cardClass}" data-achievement='${JSON.stringify(achievement).replace(/'/g, "&#39;")}' style="cursor: pointer;">
                 <div class="achievement-icon" style="color:${getAchievementIconColor(achievement.icon)}"><i data-lucide="${achievement.icon}"></i></div>
                 <div class="achievement-info">
                     <h3 class="achievement-title">${escapeHtml(achievement.name)}</h3>
                     <p class="achievement-description">${escapeHtml(achievement.description)}</p>
+                    ${progressHtml}
                     <div class="achievement-meta">
                         <span class="achievement-points">+${achievement.points_reward} pts</span>
                         ${isUnlocked
@@ -187,7 +289,14 @@ function filterAchievements(achievements, filter) {
 function updatePointsHistory(data) {
     const isSuccess = data.success === true;
     if (!isSuccess || !data.data) {
-        if (elements.pointsHistory) elements.pointsHistory.innerHTML = '<p class="empty-state">Nenhuma atividade recente</p>';
+        if (elements.pointsHistory) {
+            elements.pointsHistory.innerHTML = `
+                <div class="empty-state-enhanced">
+                    <i data-lucide="sparkles"></i>
+                    <p>Nenhuma atividade ainda.<br>Registre seu primeiro lançamento para começar a ganhar pontos!</p>
+                </div>`;
+            if (window.lucide) lucide.createIcons();
+        }
         return;
     }
 
@@ -195,7 +304,12 @@ function updatePointsHistory(data) {
     if (!elements.pointsHistory) return;
 
     if (history.length === 0) {
-        elements.pointsHistory.innerHTML = '<p class="empty-state">Nenhuma atividade recente</p>';
+        elements.pointsHistory.innerHTML = `
+            <div class="empty-state-enhanced">
+                <i data-lucide="sparkles"></i>
+                <p>Nenhuma atividade ainda.<br>Registre seu primeiro lançamento para começar a ganhar pontos!</p>
+            </div>`;
+        if (window.lucide) lucide.createIcons();
         return;
     }
 
@@ -203,8 +317,8 @@ function updatePointsHistory(data) {
         <div class="history-item">
             <div class="history-icon"><i data-lucide="${getActionIcon(action.action)}"></i></div>
             <div class="history-content">
-                <div class="history-title">${action.description || formatAction(action.action)}</div>
-                <div class="history-date">${action.relative_time || formatDate(action.created_at)}</div>
+                <div class="history-title">${escapeHtml(formatActionHumanized(action))}</div>
+                <div class="history-date">${escapeHtml(action.relative_time || formatDate(action.created_at))}</div>
             </div>
             <div class="history-points ${action.points >= 0 ? 'positive' : 'negative'}">
                 ${action.points >= 0 ? '+' : ''}${action.points} pts
@@ -215,56 +329,107 @@ function updatePointsHistory(data) {
     if (window.lucide) lucide.createIcons();
 }
 
-// ─── Leaderboard ────────────────────────────────────────────────────────────
+// ─── Missions ───────────────────────────────────────────────────────────────
 
-function updateLeaderboardLegacy(data) {
-    const isSuccess = data.success === true;
-    if (!isSuccess || !data.data?.leaderboard) return;
-
-    const leaderboard = data.data.leaderboard;
-    if (!elements.leaderboardContainer) return;
-
-    if (leaderboard.length === 0) {
-        elements.leaderboardContainer.innerHTML = '<p class="empty-state">Nenhum usuário no ranking</p>';
+function updateMissions(data) {
+    if (!data || !data.success || !data.data?.missions) {
+        if (elements.missionsSection) elements.missionsSection.style.display = 'none';
         return;
     }
 
-    elements.leaderboardContainer.innerHTML = `
-        <table class="leaderboard-table">
-            <thead><tr><th>Posição</th><th>Usuário</th><th>Nível</th><th>Pontos</th></tr></thead>
-            <tbody>
-                ${leaderboard.map(user => {
-        const rankClass = user.position <= 3 ? `rank-${user.position}` : '';
-        const rankIcon = user.position === 1 ? '<i data-lucide="medal" style="color:#fbbf24;"></i>'
-            : user.position === 2 ? '<i data-lucide="medal" style="color:#94a3b8;"></i>'
-                : user.position === 3 ? '<i data-lucide="medal" style="color:#d97706;"></i>' : '';
-        const nomeCurto = (user.user_name || '').trim().split(' ').slice(0, 2).join(' ');
-        const avatarHtml = user.avatar
-            ? `<img src="${escapeHtml(user.avatar)}" alt="" class="leaderboard-avatar">`
-            : `<span class="leaderboard-avatar leaderboard-avatar-fallback">${escapeHtml((nomeCurto || 'U')[0].toUpperCase())}</span>`;
+    const missions = data.data.missions;
+    if (missions.length === 0) {
+        if (elements.missionsSection) elements.missionsSection.style.display = 'none';
+        return;
+    }
+
+    if (elements.missionsSection) elements.missionsSection.style.display = '';
+
+    if (!elements.missionsGrid) return;
+
+    elements.missionsGrid.innerHTML = missions.map(mission => {
+        const pct = mission.progress.target > 0
+            ? Math.min(100, Math.round((mission.progress.current / mission.progress.target) * 100))
+            : 0;
+        const completedClass = mission.completed ? ' completed' : '';
+
         return `
-                        <tr class="${rankClass}">
-                            <td class="rank-cell">${rankIcon} ${user.position}º</td>
-                            <td class="user-cell"><div class="user-info">${avatarHtml}<strong>${escapeHtml(nomeCurto)}</strong></div></td>
-                            <td class="level-cell"><span class="level-badge">Nível ${user.current_level}</span></td>
-                            <td class="points-cell"><strong>${user.total_points}</strong> pts</td>
-                        </tr>
-                    `;
-    }).join('')}
-            </tbody>
-        </table>
-    `;
+            <div class="mission-card${completedClass}">
+                <div class="mission-header">
+                    <div class="mission-icon"><i data-lucide="${escapeHtml(mission.icon)}"></i></div>
+                    <div class="mission-info">
+                        <p class="mission-title">${escapeHtml(mission.title)}</p>
+                    </div>
+                    <span class="mission-reward">${mission.completed ? '<i data-lucide="check" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i>' : `+${mission.points_reward} pts`}</span>
+                </div>
+                <div class="mission-progress-bar">
+                    <div class="mission-progress-fill" style="width:${pct}%"></div>
+                </div>
+                <div class="mission-footer">
+                    <span class="mission-status">${mission.completed
+                ? '<i data-lucide="check-circle" style="width:12px;height:12px;display:inline-block;vertical-align:middle;"></i> Concluída'
+                : `${mission.progress.current}/${mission.progress.target}`
+            }</span>
+                    <span>${escapeHtml(mission.description)}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
 
     if (window.lucide) lucide.createIcons();
 }
 
-// ─── Achievement Detail Modal ───────────────────────────────────────────────
+// ─── Smart Insights ─────────────────────────────────────────────────────────
+
+function generateInsights(progressData, missionsData) {
+    if (!elements.insightBanner || !elements.insightText) return;
+
+    // Check sessionStorage for dismissed insights
+    const dismissed = sessionStorage.getItem('gamification_insight_dismissed');
+    if (dismissed === 'true') return;
+
+    const insights = [];
+    const progress = progressData?.data;
+    const missions = missionsData?.data?.missions;
+
+    if (progress) {
+        // Streak insight
+        if (progress.current_streak > 0 && progress.current_streak >= (progress.best_streak || 0)) {
+            insights.push(`Seu streak de ${progress.current_streak} dias é o seu melhor! Continue assim.`);
+        }
+
+        // Close to next level
+        const remaining = progress.points_to_next_level;
+        if (remaining > 0 && remaining <= 50) {
+            insights.push(`Você está a apenas ${formatNumber(remaining)} pontos do próximo nível!`);
+        }
+    }
+
+    // Mission proximity
+    if (missions) {
+        const almostDone = missions.find(m => !m.completed && m.progress.current === m.progress.target - 1);
+        if (almostDone) {
+            insights.push(`Falta apenas 1 ação para completar "${almostDone.title}" e ganhar +${almostDone.points_reward} pts!`);
+        }
+    }
+
+    if (insights.length === 0) return;
+
+    elements.insightText.textContent = insights[0];
+    elements.insightBanner.style.display = '';
+
+    if (window.lucide) lucide.createIcons();
+}
+
+// ─── Leaderboard ────────────────────────────────────────────────────────────
 
 function updateLeaderboard(data) {
+    if (!data) return;
     const isSuccess = data.success === true;
     if (!isSuccess || !data.data?.leaderboard) return;
 
     const leaderboard = data.data.leaderboard;
+    const userPosition = data.data.user_position;
     if (!elements.leaderboardContainer) return;
 
     if (leaderboard.length === 0) {
@@ -278,6 +443,8 @@ function updateLeaderboard(data) {
             <tbody>
                 ${leaderboard.map((user) => {
         const rankClass = user.position <= 3 ? `rank-${user.position}` : '';
+        const isCurrentUser = CURRENT_USER_ID && user.user_id === CURRENT_USER_ID;
+        const currentUserClass = isCurrentUser ? ' current-user' : '';
         const rankIcon = user.position === 1 ? '<i data-lucide="medal" style="color:#fbbf24;"></i>'
             : user.position === 2 ? '<i data-lucide="medal" style="color:#94a3b8;"></i>'
                 : user.position === 3 ? '<i data-lucide="medal" style="color:#d97706;"></i>' : '';
@@ -287,7 +454,7 @@ function updateLeaderboard(data) {
             : `<span class="leaderboard-avatar leaderboard-avatar-fallback">${escapeHtml((nomeCurto || 'U')[0].toUpperCase())}</span>`;
 
         return `
-                        <tr class="${rankClass}">
+                        <tr class="${rankClass}${currentUserClass}">
                             <td class="rank-cell" data-label="Posicao">
                                 <span class="rank-pill">${rankIcon}<span>${user.position}&ordm;</span></span>
                             </td>
@@ -295,7 +462,7 @@ function updateLeaderboard(data) {
                                 <div class="user-info">
                                     ${avatarHtml}
                                     <div class="user-meta">
-                                        <strong>${escapeHtml(nomeCurto)}</strong>
+                                        <strong>${escapeHtml(nomeCurto)}${isCurrentUser ? ' (Você)' : ''}</strong>
                                         <span class="user-meta-label">Ranking global</span>
                                     </div>
                                 </div>
@@ -314,8 +481,28 @@ function updateLeaderboard(data) {
         </table>
     `;
 
+    // Points gap message
+    if (elements.leaderboardGap && CURRENT_USER_ID && userPosition) {
+        const currentUserEntry = leaderboard.find(u => u.user_id === CURRENT_USER_ID);
+        if (currentUserEntry && currentUserEntry.position > 1) {
+            const above = leaderboard.find(u => u.position === currentUserEntry.position - 1);
+            if (above) {
+                const gap = above.total_points - currentUserEntry.total_points;
+                if (gap > 0) {
+                    elements.leaderboardGap.innerHTML = `<i data-lucide="trending-up"></i> Você está a <strong>${formatNumber(gap)} pts</strong> do ${currentUserEntry.position - 1}º lugar`;
+                    elements.leaderboardGap.style.display = '';
+                }
+            }
+        } else if (!currentUserEntry && userPosition > 10) {
+            elements.leaderboardGap.innerHTML = `<i data-lucide="trending-up"></i> Você está na posição <strong>${userPosition}º</strong>. Continue ganhando pontos para entrar no Top 10!`;
+            elements.leaderboardGap.style.display = '';
+        }
+    }
+
     if (window.lucide) lucide.createIcons();
 }
+
+// ─── Achievement Detail Modal ───────────────────────────────────────────────
 
 function showAchievementDetail(achievement) {
     if (typeof Swal === 'undefined') return;
@@ -331,6 +518,24 @@ function showAchievementDetail(achievement) {
         statusHtml = '<p style="color: #94a3b8; font-weight: 600; margin-top: 15px;"><i data-lucide="lock" style="width:16px;height:16px;display:inline-block;vertical-align:middle;"></i> Ainda não desbloqueada</p>';
     }
 
+    // Progress bar in modal for locked achievements
+    let progressHtml = '';
+    if (!achievement.unlocked && achievement.progress) {
+        const pct = achievement.progress.target > 0
+            ? Math.min(100, Math.round((achievement.progress.current / achievement.progress.target) * 100))
+            : 0;
+        progressHtml = `
+            <div style="margin-top:12px;">
+                <div style="display:flex;justify-content:space-between;font-size:13px;color:#94a3b8;margin-bottom:6px;">
+                    <span>Progresso</span><span>${achievement.progress.current}/${achievement.progress.target}</span>
+                </div>
+                <div style="height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;">
+                    <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#e67e22,#f59e0b);border-radius:3px;"></div>
+                </div>
+            </div>
+        `;
+    }
+
     const proTag = achievement.is_pro_only
         ? '<p style="color: #f59e0b; font-weight: 600; margin-top: 10px;"><i data-lucide="gem"></i> Conquista exclusiva PRO</p>'
         : '';
@@ -344,6 +549,7 @@ function showAchievementDetail(achievement) {
                 <i data-lucide="star" style="width:18px;height:18px;display:inline-block;vertical-align:middle;"></i> ${achievement.points_reward} pontos
             </p>
             ${proTag}
+            ${progressHtml}
             ${statusHtml}
         `,
         icon: isUnlocked ? 'success' : 'info',
@@ -356,46 +562,83 @@ function showAchievementDetail(achievement) {
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function formatAction(action) {
-    const actions = {
-        'CREATE_LANCAMENTO': 'Criou lançamento', 'CREATE_CATEGORIA': 'Criou categoria',
-        'VIEW_REPORT': 'Visualizou relatório', 'CREATE_META': 'Criou meta',
-        'CLOSE_MONTH': 'Fechou mês', 'DAILY_ACTIVITY': 'Atividade diária',
-        'STREAK_3_DAYS': 'Sequência de 3 dias', 'STREAK_7_DAYS': 'Sequência de 7 dias',
-        'STREAK_30_DAYS': 'Sequência de 30 dias', 'POSITIVE_MONTH': 'Mês positivo',
-        'LEVEL_UP': 'Subiu de nível'
+function formatActionHumanized(action) {
+    const humanized = {
+        'CREATE_LANCAMENTO': 'Você registrou um lançamento',
+        'create_lancamento': 'Você registrou um lançamento',
+        'CREATE_CATEGORIA': 'Você criou uma nova categoria',
+        'create_categoria': 'Você criou uma nova categoria',
+        'VIEW_REPORT': 'Você visualizou um relatório',
+        'view_report': 'Você visualizou um relatório',
+        'CREATE_META': 'Você definiu uma nova meta',
+        'create_meta': 'Você definiu uma nova meta',
+        'CLOSE_MONTH': 'Você fechou o mês',
+        'close_month': 'Você fechou o mês',
+        'DAILY_ACTIVITY': 'Atividade do dia registrada',
+        'daily_activity': 'Atividade do dia registrada',
+        'STREAK_3_DAYS': 'Sequência de 3 dias atingida!',
+        'streak_3_days': 'Sequência de 3 dias atingida!',
+        'STREAK_7_DAYS': 'Sequência de 7 dias atingida!',
+        'streak_7_days': 'Sequência de 7 dias atingida!',
+        'STREAK_30_DAYS': 'Sequência de 30 dias atingida!',
+        'streak_30_days': 'Sequência de 30 dias atingida!',
+        'POSITIVE_MONTH': 'Mês com saldo positivo!',
+        'positive_month': 'Mês com saldo positivo!',
+        'LEVEL_UP': 'Você subiu de nível!',
+        'level_up': 'Você subiu de nível!',
+        'COMPLETE_ONBOARDING': 'Onboarding concluído',
+        'complete_onboarding': 'Onboarding concluído',
+        'LAUNCH_CREATED': 'Você registrou um lançamento',
+        'LAUNCH_EDITED': 'Você editou um lançamento',
+        'LAUNCH_DELETED': 'Lançamento removido',
+        'CATEGORY_CREATED': 'Você criou uma categoria',
+        'DAILY_LOGIN': 'Acesso diário registrado',
+        'STREAK_BONUS': 'Bônus de sequência conquistado!',
+        'ACHIEVEMENT_UNLOCKED': 'Conquista desbloqueada!',
+        'FIRST_LAUNCH_DAY': 'Primeiro registro do dia',
+        'CARD_CREATED': 'Você cadastrou um cartão',
+        'INVOICE_PAID': 'Fatura do cartão paga',
     };
-    return actions[action] || action;
+
+    const desc = action.description;
+    if (desc && !desc.match(/^[A-Z_]+$/)) return desc;
+
+    return humanized[action.action] || action.description || action.action;
 }
 
 function getActionIcon(action) {
     const icons = {
         'LAUNCH_CREATED': 'coins', 'LAUNCH_EDITED': 'pencil', 'LAUNCH_DELETED': 'trash-2',
-        'CREATE_LANCAMENTO': 'coins', 'FIRST_LAUNCH_DAY': 'sunrise',
-        'CREATE_CATEGORIA': 'tag', 'CATEGORY_CREATED': 'tag',
-        'DAILY_LOGIN': 'hand', 'DAILY_ACTIVITY': 'check-circle', 'VIEW_REPORT': 'bar-chart-3',
-        'CREATE_META': 'target', 'META_ACHIEVED': 'trophy',
-        'CLOSE_MONTH': 'calendar', 'POSITIVE_MONTH': 'heart',
-        'STREAK_BONUS': 'flame', 'STREAK_3_DAYS': 'flame', 'STREAK_7_DAYS': 'flame', 'STREAK_30_DAYS': 'flame',
-        'LEVEL_UP': 'star', 'ACHIEVEMENT_UNLOCKED': 'medal',
-        'CARD_CREATED': 'credit-card', 'INVOICE_PAID': 'receipt'
+        'CREATE_LANCAMENTO': 'coins', 'create_lancamento': 'coins', 'FIRST_LAUNCH_DAY': 'sunrise',
+        'CREATE_CATEGORIA': 'tag', 'create_categoria': 'tag', 'CATEGORY_CREATED': 'tag',
+        'DAILY_LOGIN': 'hand', 'DAILY_ACTIVITY': 'check-circle', 'daily_activity': 'check-circle',
+        'VIEW_REPORT': 'bar-chart-3', 'view_report': 'bar-chart-3',
+        'CREATE_META': 'target', 'create_meta': 'target', 'META_ACHIEVED': 'trophy',
+        'CLOSE_MONTH': 'calendar', 'close_month': 'calendar',
+        'POSITIVE_MONTH': 'heart', 'positive_month': 'heart',
+        'STREAK_BONUS': 'flame', 'STREAK_3_DAYS': 'flame', 'streak_3_days': 'flame',
+        'STREAK_7_DAYS': 'flame', 'streak_7_days': 'flame',
+        'STREAK_30_DAYS': 'flame', 'streak_30_days': 'flame',
+        'LEVEL_UP': 'star', 'level_up': 'star',
+        'ACHIEVEMENT_UNLOCKED': 'medal',
+        'CARD_CREATED': 'credit-card', 'INVOICE_PAID': 'receipt',
+        'COMPLETE_ONBOARDING': 'graduation-cap', 'complete_onboarding': 'graduation-cap',
     };
     return icons[action] || 'circle-dot';
 }
 
 // ─── Event Listeners ────────────────────────────────────────────────────────
 
+// Achievement filters
 document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', function () {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
         currentFilter = this.dataset.filter;
 
-        // Usar dados cacheados ao invés de re-fetchar da API
         if (cachedAchievements) {
             renderAchievements(cachedAchievements);
         } else {
-            // Fallback: buscar da API se cache não disponível
             apiGet(`${BASE_URL}api/gamification/achievements`)
                 .then(data => {
                     if (data.data?.achievements) {
@@ -405,6 +648,19 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
                 });
         }
     });
+});
+
+// Insight dismiss
+if (elements.insightDismiss) {
+    elements.insightDismiss.addEventListener('click', () => {
+        if (elements.insightBanner) elements.insightBanner.style.display = 'none';
+        sessionStorage.setItem('gamification_insight_dismissed', 'true');
+    });
+}
+
+// Listen for data changes (new lancamento, etc.)
+document.addEventListener('lukrato:data-changed', () => {
+    loadAllData();
 });
 
 // ─── Init ───────────────────────────────────────────────────────────────────

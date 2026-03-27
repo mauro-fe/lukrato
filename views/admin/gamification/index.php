@@ -1,10 +1,19 @@
+<?php
+    $firstName = '';
+    if (!empty($currentUser->nome)) {
+        $firstName = explode(' ', trim($currentUser->nome))[0];
+    } elseif (!empty($username)) {
+        $firstName = explode(' ', trim($username))[0];
+    }
+    $firstName = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
+?>
 <div class="gamification-page">
     <div class="page-header">
         <div class="page-header-content">
             <div class="page-icon"><i data-lucide="trophy"></i></div>
             <div>
-                <h1>Sua Jornada de Gamificação</h1>
-                <p>Acompanhe seu progresso, conquistas e ranking</p>
+                <h1 id="pageHeaderTitle"><?= $firstName ? "{$firstName}, você está no Nível 1" : "Sua Jornada de Gamificação" ?></h1>
+                <p id="pageHeaderSubtitle">Acompanhe seu progresso, conquistas e ranking</p>
             </div>
         </div>
         <div class="level-badge-large" id="userLevelLarge">
@@ -13,27 +22,36 @@
         </div>
     </div>
 
+    <!-- Insight Banner -->
+    <div class="insight-banner" id="insightBanner" style="display:none;">
+        <div class="insight-icon"><i data-lucide="zap"></i></div>
+        <div class="insight-text" id="insightText"></div>
+        <button class="insight-dismiss" id="insightDismiss" aria-label="Fechar">
+            <i data-lucide="x"></i>
+        </button>
+    </div>
+
     <!-- Progresso Geral -->
     <section class="progress-section">
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon"><i data-lucide="star"></i></div>
                 <div class="stat-content">
-                    <div class="stat-value" id="totalPointsCard">0</div>
+                    <div class="stat-value" id="totalPointsCard" data-animate="true">0</div>
                     <div class="stat-label">Pontos Totais</div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon"><i data-lucide="bar-chart-3"></i></div>
                 <div class="stat-content">
-                    <div class="stat-value" id="currentLevelCard">1</div>
+                    <div class="stat-value" id="currentLevelCard" data-animate="true">1</div>
                     <div class="stat-label">Nível Atual</div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon"><i data-lucide="flame"></i></div>
                 <div class="stat-content">
-                    <div class="stat-value" id="currentStreakCard">0</div>
+                    <div class="stat-value" id="currentStreakCard" data-animate="true">0</div>
                     <div class="stat-label">Dias Ativos</div>
                 </div>
             </div>
@@ -54,7 +72,24 @@
             </div>
             <div class="progress-bar-large" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
                 aria-label="Progresso para o próximo nível">
+                <div class="progress-milestones">
+                    <span class="milestone" style="left:25%"></span>
+                    <span class="milestone" style="left:50%"></span>
+                    <span class="milestone" style="left:75%"></span>
+                </div>
                 <div class="progress-fill" id="progressFillLarge" style="width: 0%"></div>
+            </div>
+            <div class="progress-remaining" id="progressRemaining"></div>
+        </div>
+    </section>
+
+    <!-- Missões do Dia -->
+    <section class="missions-section" id="missionsSection" style="display:none;">
+        <h2><i data-lucide="target"></i> Missões do Dia</h2>
+        <div class="missions-grid" id="missionsGrid">
+            <div class="lk-loading-state" style="grid-column:1/-1;">
+                <i data-lucide="loader-2"></i>
+                <p>Carregando missões...</p>
             </div>
         </div>
     </section>
@@ -103,6 +138,7 @@
                     <p>Carregando ranking...</p>
                 </div>
             </div>
+            <div class="leaderboard-gap" id="leaderboardGap" style="display:none;"></div>
         <?php else: ?>
             <!-- CTA de Upgrade para acessar o Ranking -->
             <div class="leaderboard-locked">
