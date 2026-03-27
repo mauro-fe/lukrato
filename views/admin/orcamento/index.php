@@ -11,7 +11,7 @@
     <!-- ==================== CARDS RESUMO ==================== -->
     <div class="orc-summary-grid" id="summaryOrcamentos" data-aos="fade-up">
         <!-- Saúde Financeira -->
-        <div class="orc-summary-card orc-summary-card--saude">
+        <div class="orc-summary-card orc-summary-card--saude surface-card surface-card--interactive">
             <div class="orc-saude-content" id="saudeContent">
                 <div class="orc-summary-card__icon">
                     <div class="orc-saude-ring" id="saudeRing">
@@ -41,7 +41,7 @@
         </div>
 
         <!-- Total Orçado -->
-        <div class="orc-summary-card">
+        <div class="orc-summary-card surface-card surface-card--interactive">
             <div class="orc-summary-card__icon orc-summary-card__icon--blue">
                 <i data-lucide="wallet"></i>
             </div>
@@ -52,7 +52,7 @@
         </div>
 
         <!-- Total Gasto -->
-        <div class="orc-summary-card">
+        <div class="orc-summary-card surface-card surface-card--interactive">
             <div class="orc-summary-card__icon orc-summary-card__icon--orange">
                 <i data-lucide="receipt"></i>
             </div>
@@ -63,7 +63,7 @@
         </div>
 
         <!-- Disponível -->
-        <div class="orc-summary-card">
+        <div class="orc-summary-card surface-card surface-card--interactive">
             <div class="orc-summary-card__icon orc-summary-card__icon--green">
                 <i data-lucide="piggy-bank"></i>
             </div>

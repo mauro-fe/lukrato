@@ -417,6 +417,26 @@ import { apiGet, apiPost } from '../shared/api.js';
             14: 25000,
             15: 50000
         },
+        levelNames: {
+            1: 'Iniciante',
+            2: 'Aprendiz',
+            3: 'Explorador',
+            4: 'Organizador',
+            5: 'Estrategista',
+            6: 'Planejador',
+            7: 'Controlador',
+            8: 'Gestor',
+            9: 'Especialista',
+            10: 'Mestre',
+            11: 'Expert',
+            12: 'Guru Financeiro',
+            13: 'Conselheiro',
+            14: 'Visionário',
+            15: 'Lenda'
+        },
+        getLevelName: function (level) {
+            return this.levelNames[level] || 'Iniciante';
+        },
 
         /**
          * Obter threshold de pontos para um nível

@@ -66,7 +66,7 @@ export const FaturasUI = {
         const statusMeta = this.getStatusMeta(parc.status, progresso, dueMeta);
 
         const div = document.createElement('div');
-        div.className = `parcelamento-card status-${parc.status}`;
+        div.className = `parcelamento-card surface-card surface-card--interactive surface-card--clip status-${parc.status}`;
         div.dataset.id = parc.id;
         div.style.setProperty('--fatura-accent', this.getAccentColorSolid(parc.cartao));
 

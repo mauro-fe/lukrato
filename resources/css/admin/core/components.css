@@ -6,6 +6,55 @@
    ============================================================================ */
 
 /* ============================================================================
+   0. SURFACE CARDS
+   ============================================================================ */
+
+.surface-card {
+  --surface-card-bg: var(--color-bg);
+  --surface-card-border: rgba(255, 255, 255, 0.06);
+  --surface-card-radius: var(--radius-lg);
+  --surface-card-shadow: var(--shadow-lifted);
+  --surface-card-shadow-hover: var(--shadow-lifted-hover);
+  --surface-card-transform: var(--transform-lifted);
+  --surface-card-transform-hover: var(--transform-lifted-hover);
+
+  background: var(--surface-card-bg);
+  border: 1px solid var(--surface-card-border);
+  border-radius: var(--surface-card-radius);
+  box-shadow: var(--surface-card-shadow);
+  transform: var(--surface-card-transform);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  min-width: 0;
+}
+
+.surface-card--interactive:hover {
+  transform: var(--surface-card-transform-hover);
+  box-shadow: var(--surface-card-shadow-hover);
+}
+
+.surface-card--glass {
+  --surface-card-border: var(--glass-border);
+  --surface-card-radius: var(--radius-xl);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+}
+
+.surface-card--soft-hover {
+  --surface-card-shadow: none;
+  --surface-card-shadow-hover: var(--shadow-xl);
+  --surface-card-transform: translateY(0);
+  --surface-card-transform-hover: translateY(-2px);
+}
+
+.surface-card--accent-hover.surface-card--interactive:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+.surface-card--clip {
+  overflow: hidden;
+}
+
+/* ============================================================================
    1. MODAIS
    ============================================================================ */
 

@@ -67,6 +67,9 @@ const elements = {
     leaderboardGap: document.getElementById('leaderboardGap'),
     missionsSection: document.getElementById('missionsSection'),
     missionsGrid: document.getElementById('missionsGrid'),
+    missionsBadge: document.getElementById('missionsBadge'),
+    missionsCountdown: document.getElementById('missionsCountdown'),
+    missionsTotalReward: document.getElementById('missionsTotalReward'),
     insightBanner: document.getElementById('insightBanner'),
     insightText: document.getElementById('insightText'),
     insightDismiss: document.getElementById('insightDismiss'),
@@ -140,14 +143,15 @@ function updateProgressSection(data) {
     const totalPoints = progress.total_points || 0;
     const streak = progress.current_streak || 0;
 
-    // Personalized header
+    // Personalized header with level name
     const firstName = CURRENT_USERNAME ? CURRENT_USERNAME.split(' ')[0] : '';
+    const levelName = GAM.getLevelName(level);
     if (elements.pageHeaderTitle && firstName) {
-        elements.pageHeaderTitle.textContent = `${firstName}, você está no Nível ${level}`;
+        elements.pageHeaderTitle.textContent = `${firstName}, você é um ${levelName}!`;
     }
 
     if (elements.userLevelLarge) {
-        elements.userLevelLarge.querySelector('span').textContent = `Nível ${level}`;
+        elements.userLevelLarge.querySelector('span').textContent = `Nível ${level} · ${levelName}`;
     }
 
     // Animate stat values
@@ -167,12 +171,19 @@ function updateProgressSection(data) {
             : `${formatNumber(progressData.current)} / ${formatNumber(progressData.needed)}`;
     }
 
-    // Subtitle with points remaining
+    // Subtitle with contextual motivational message
     if (elements.pageHeaderSubtitle && !progressData.isMaxLevel) {
         const remaining = progressData.needed - progressData.current;
-        elements.pageHeaderSubtitle.textContent = `Faltam ${formatNumber(remaining)} pts para o Nível ${nextLevel}`;
+        const nextLevelName = GAM.getLevelName(nextLevel);
+        if (progressData.percentage >= 80) {
+            elements.pageHeaderSubtitle.textContent = `Quase lá! Só mais ${formatNumber(remaining)} pts para ${nextLevelName}`;
+        } else if (progressData.percentage >= 40) {
+            elements.pageHeaderSubtitle.textContent = `Bom ritmo! ${formatNumber(remaining)} pts para se tornar ${nextLevelName}`;
+        } else {
+            elements.pageHeaderSubtitle.textContent = `Nova jornada: conquiste ${formatNumber(remaining)} pts e se torne ${nextLevelName}`;
+        }
     } else if (elements.pageHeaderSubtitle && progressData.isMaxLevel) {
-        elements.pageHeaderSubtitle.textContent = 'Você atingiu o nível máximo!';
+        elements.pageHeaderSubtitle.textContent = 'Você alcançou o topo. Lenda do Lukrato!';
     }
 
     // Animated progress bar (start from 0, animate to real %)
@@ -186,10 +197,16 @@ function updateProgressSection(data) {
     // Update milestone dots
     updateMilestones(progressData.percentage);
 
-    // "Faltam X pts" below bar
+    // Contextual progress text below bar
     if (elements.progressRemaining && !progressData.isMaxLevel) {
         const remaining = progressData.needed - progressData.current;
-        elements.progressRemaining.textContent = `Faltam ${formatNumber(remaining)} pontos para o próximo nível`;
+        if (remaining <= 10) {
+            elements.progressRemaining.innerHTML = `<span class="progress-urgent">Só mais ${formatNumber(remaining)} pontos! Não pare agora!</span>`;
+        } else if (remaining <= 50) {
+            elements.progressRemaining.innerHTML = `<span class="progress-close">Quase lá! Apenas ${formatNumber(remaining)} pontos!</span>`;
+        } else {
+            elements.progressRemaining.textContent = `Faltam ${formatNumber(remaining)} pontos para o próximo nível`;
+        }
     } else if (elements.progressRemaining) {
         elements.progressRemaining.textContent = '';
     }
@@ -231,7 +248,21 @@ function renderAchievements(achievements) {
 
     elements.achievementsGridPage.innerHTML = filtered.map(achievement => {
         const isUnlocked = achievement.unlocked;
-        const cardClass = isUnlocked ? 'achievement-card unlocked' : 'achievement-card';
+
+        // Determine card state classes
+        let cardClass = 'achievement-card';
+        if (isUnlocked) {
+            cardClass += ' unlocked';
+            // Check if recently unlocked (within 24h)
+            if (achievement.unlocked_at) {
+                const unlockedTime = new Date(achievement.unlocked_at).getTime();
+                if (Date.now() - unlockedTime < 86400000) {
+                    cardClass += ' recently-unlocked';
+                }
+            }
+        } else if (achievement.progress && achievement.progress.current > 0) {
+            cardClass += ' in-progress';
+        }
 
         // Achievement progress bar for locked items with progress data
         let progressHtml = '';
@@ -243,12 +274,18 @@ function renderAchievements(achievements) {
                 <div class="achievement-progress">
                     <div class="achievement-progress-fill" style="width:${pct}%"></div>
                 </div>
-                <span class="achievement-progress-label">${achievement.progress.current}/${achievement.progress.target}</span>
+                <span class="achievement-progress-label">${achievement.progress.current}/${achievement.progress.target} — ${pct}%</span>
             `;
         }
 
+        // Status badge for recently unlocked
+        const newBadge = cardClass.includes('recently-unlocked')
+            ? '<span class="achievement-new-badge">NOVA!</span>'
+            : '';
+
         return `
             <div class="${cardClass}" data-achievement='${JSON.stringify(achievement).replace(/'/g, "&#39;")}' style="cursor: pointer;">
+                ${newBadge}
                 <div class="achievement-icon" style="color:${getAchievementIconColor(achievement.icon)}"><i data-lucide="${achievement.icon}"></i></div>
                 <div class="achievement-info">
                     <h3 class="achievement-title">${escapeHtml(achievement.name)}</h3>
@@ -257,7 +294,7 @@ function renderAchievements(achievements) {
                     <div class="achievement-meta">
                         <span class="achievement-points">+${achievement.points_reward} pts</span>
                         ${isUnlocked
-                ? `<span class="achievement-date"><i data-lucide="check" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i> ${formatDate(achievement.unlocked_at)}</span>`
+                ? `<span class="achievement-date"><i data-lucide="check-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i> ${formatDate(achievement.unlocked_at)}</span>`
                 : '<span class="achievement-locked"><i data-lucide="lock" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i> Bloqueada</span>'
             }
                     </div>
@@ -267,13 +304,37 @@ function renderAchievements(achievements) {
     }).join('');
 
     document.querySelectorAll('.achievement-card').forEach(card => {
+        card.classList.add('fade-target');
         card.addEventListener('click', function () {
             const achievement = JSON.parse(this.dataset.achievement);
             showAchievementDetail(achievement);
         });
     });
 
+    // IntersectionObserver for fade-in on scroll
+    observeAchievementCards();
+
     if (window.lucide) lucide.createIcons();
+}
+
+let achievementObserver = null;
+function observeAchievementCards() {
+    if (achievementObserver) achievementObserver.disconnect();
+    if (!('IntersectionObserver' in window)) {
+        document.querySelectorAll('.achievement-card.fade-target').forEach(c => c.classList.add('visible'));
+        return;
+    }
+    achievementObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                achievementObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.achievement-card.fade-target').forEach(card => {
+        achievementObserver.observe(card);
+    });
 }
 
 function filterAchievements(achievements, filter) {
@@ -313,8 +374,10 @@ function updatePointsHistory(data) {
         return;
     }
 
-    elements.pointsHistory.innerHTML = history.map(action => `
-        <div class="history-item">
+    elements.pointsHistory.innerHTML = history.map(action => {
+        const highValue = action.points > 50 ? ' high-value' : '';
+        return `
+        <div class="history-item${highValue}">
             <div class="history-icon"><i data-lucide="${getActionIcon(action.action)}"></i></div>
             <div class="history-content">
                 <div class="history-title">${escapeHtml(formatActionHumanized(action))}</div>
@@ -324,7 +387,8 @@ function updatePointsHistory(data) {
                 ${action.points >= 0 ? '+' : ''}${action.points} pts
             </div>
         </div>
-    `).join('');
+    `;
+    }).join('');
 
     if (window.lucide) lucide.createIcons();
 }
@@ -345,16 +409,42 @@ function updateMissions(data) {
 
     if (elements.missionsSection) elements.missionsSection.style.display = '';
 
+    // Missions badge (completed count)
+    const completedCount = missions.filter(m => m.completed).length;
+    if (elements.missionsBadge) {
+        elements.missionsBadge.textContent = `${completedCount}/${missions.length} concluídas`;
+        if (completedCount === missions.length) {
+            elements.missionsBadge.classList.add('all-done');
+        }
+    }
+
+    // Countdown to midnight
+    startMissionsCountdown();
+
+    // Total reward remaining
+    const remainingReward = missions.filter(m => !m.completed).reduce((sum, m) => sum + (m.points_reward || 0), 0);
+    if (elements.missionsTotalReward && remainingReward > 0) {
+        elements.missionsTotalReward.innerHTML = `<i data-lucide="zap" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i> Complete todas e ganhe <strong>+${remainingReward} pts</strong> hoje!`;
+        elements.missionsTotalReward.style.display = '';
+    } else if (elements.missionsTotalReward && completedCount === missions.length) {
+        elements.missionsTotalReward.innerHTML = `<i data-lucide="check-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i> Todas as missões concluídas hoje! Parabéns!`;
+        elements.missionsTotalReward.classList.add('all-complete');
+        elements.missionsTotalReward.style.display = '';
+    }
+
     if (!elements.missionsGrid) return;
 
     elements.missionsGrid.innerHTML = missions.map(mission => {
         const pct = mission.progress.target > 0
             ? Math.min(100, Math.round((mission.progress.current / mission.progress.target) * 100))
             : 0;
-        const completedClass = mission.completed ? ' completed' : '';
+        let extraClass = mission.completed ? ' completed' : '';
+        if (!mission.completed && mission.progress.current === mission.progress.target - 1) {
+            extraClass += ' almost-done';
+        }
 
         return `
-            <div class="mission-card${completedClass}">
+            <div class="mission-card${extraClass}">
                 <div class="mission-header">
                     <div class="mission-icon"><i data-lucide="${escapeHtml(mission.icon)}"></i></div>
                     <div class="mission-info">
@@ -379,6 +469,24 @@ function updateMissions(data) {
     if (window.lucide) lucide.createIcons();
 }
 
+let countdownInterval = null;
+function startMissionsCountdown() {
+    if (countdownInterval) clearInterval(countdownInterval);
+    function updateCountdown() {
+        const now = new Date();
+        const midnight = new Date(now);
+        midnight.setHours(23, 59, 59, 999);
+        const diff = midnight - now;
+        const hours = Math.floor(diff / 3600000);
+        const minutes = Math.floor((diff % 3600000) / 60000);
+        if (elements.missionsCountdown) {
+            elements.missionsCountdown.textContent = `Renovam em ${hours}h ${minutes}min`;
+        }
+    }
+    updateCountdown();
+    countdownInterval = setInterval(updateCountdown, 60000);
+}
+
 // ─── Smart Insights ─────────────────────────────────────────────────────────
 
 function generateInsights(progressData, missionsData) {
@@ -393,7 +501,7 @@ function generateInsights(progressData, missionsData) {
     const missions = missionsData?.data?.missions;
 
     if (progress) {
-        // Streak insight
+        // Streak insight (best ever)
         if (progress.current_streak > 0 && progress.current_streak >= (progress.best_streak || 0)) {
             insights.push(`Seu streak de ${progress.current_streak} dias é o seu melhor! Continue assim.`);
         }
@@ -403,6 +511,20 @@ function generateInsights(progressData, missionsData) {
         if (remaining > 0 && remaining <= 50) {
             insights.push(`Você está a apenas ${formatNumber(remaining)} pontos do próximo nível!`);
         }
+
+        // Points milestone
+        const milestones = [10000, 5000, 2000, 1000, 500];
+        for (const m of milestones) {
+            if (progress.total_points >= m) {
+                insights.push(`Você já passou dos ${formatNumber(m)} pontos!`);
+                break;
+            }
+        }
+
+        // Streak at risk (has streak but it's a new day signal)
+        if (progress.current_streak > 3 && progress.streak_today === false) {
+            insights.push(`Registre algo hoje para manter seu streak de ${progress.current_streak} dias!`);
+        }
     }
 
     // Mission proximity
@@ -411,12 +533,38 @@ function generateInsights(progressData, missionsData) {
         if (almostDone) {
             insights.push(`Falta apenas 1 ação para completar "${almostDone.title}" e ganhar +${almostDone.points_reward} pts!`);
         }
+        const allDone = missions.every(m => m.completed);
+        if (allDone && missions.length > 0) {
+            insights.push('Todas as missões do dia concluídas! Volte amanhã para novas missões.');
+        }
+    }
+
+    // Achievement proximity (if cached)
+    if (cachedAchievements) {
+        const nearComplete = cachedAchievements.find(a => !a.unlocked && a.progress && a.progress.target > 0 && (a.progress.current / a.progress.target) >= 0.75);
+        if (nearComplete) {
+            const pct = Math.round((nearComplete.progress.current / nearComplete.progress.target) * 100);
+            insights.push(`Sua conquista "${nearComplete.name}" está em ${pct}%! Falta pouco!`);
+        }
     }
 
     if (insights.length === 0) return;
 
     elements.insightText.textContent = insights[0];
     elements.insightBanner.style.display = '';
+
+    // Inline contextual insights
+    const inlineBeforeAchievements = document.getElementById('insightBeforeAchievements');
+    const inlineBeforeRanking = document.getElementById('insightBeforeRanking');
+
+    if (inlineBeforeAchievements && missions && missions.some(m => !m.completed)) {
+        inlineBeforeAchievements.innerHTML = '<i data-lucide="lightbulb" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i> Dica: Complete missões para desbloquear conquistas mais rápido';
+        inlineBeforeAchievements.style.display = '';
+    }
+    if (inlineBeforeRanking) {
+        inlineBeforeRanking.innerHTML = '<i data-lucide="lightbulb" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i> Cada ponto conta no ranking. Registre lançamentos diariamente!';
+        inlineBeforeRanking.style.display = '';
+    }
 
     if (window.lucide) lucide.createIcons();
 }
@@ -543,7 +691,7 @@ function showAchievementDetail(achievement) {
     Swal.fire({
         title: achievement.name,
         html: `
-            <div style="font-size:2.5rem;margin-bottom:10px;color:${getAchievementIconColor(achievement.icon)}"><i data-lucide="${achievement.icon}"></i></div>
+            <div style="font-size:2rem;margin-bottom:10px;color:${getAchievementIconColor(achievement.icon)}"><i data-lucide="${achievement.icon}"></i></div>
             <p style="font-size: 16px; color: #64748b; margin-bottom: 15px;">${achievement.description}</p>
             <p style="font-size: 18px; color: #f59e0b; font-weight: 700;">
                 <i data-lucide="star" style="width:18px;height:18px;display:inline-block;vertical-align:middle;"></i> ${achievement.points_reward} pontos
@@ -564,40 +712,40 @@ function showAchievementDetail(achievement) {
 
 function formatActionHumanized(action) {
     const humanized = {
-        'CREATE_LANCAMENTO': 'Você registrou um lançamento',
-        'create_lancamento': 'Você registrou um lançamento',
-        'CREATE_CATEGORIA': 'Você criou uma nova categoria',
-        'create_categoria': 'Você criou uma nova categoria',
-        'VIEW_REPORT': 'Você visualizou um relatório',
-        'view_report': 'Você visualizou um relatório',
-        'CREATE_META': 'Você definiu uma nova meta',
-        'create_meta': 'Você definiu uma nova meta',
-        'CLOSE_MONTH': 'Você fechou o mês',
-        'close_month': 'Você fechou o mês',
-        'DAILY_ACTIVITY': 'Atividade do dia registrada',
-        'daily_activity': 'Atividade do dia registrada',
-        'STREAK_3_DAYS': 'Sequência de 3 dias atingida!',
-        'streak_3_days': 'Sequência de 3 dias atingida!',
-        'STREAK_7_DAYS': 'Sequência de 7 dias atingida!',
-        'streak_7_days': 'Sequência de 7 dias atingida!',
-        'STREAK_30_DAYS': 'Sequência de 30 dias atingida!',
-        'streak_30_days': 'Sequência de 30 dias atingida!',
-        'POSITIVE_MONTH': 'Mês com saldo positivo!',
-        'positive_month': 'Mês com saldo positivo!',
-        'LEVEL_UP': 'Você subiu de nível!',
-        'level_up': 'Você subiu de nível!',
-        'COMPLETE_ONBOARDING': 'Onboarding concluído',
-        'complete_onboarding': 'Onboarding concluído',
-        'LAUNCH_CREATED': 'Você registrou um lançamento',
-        'LAUNCH_EDITED': 'Você editou um lançamento',
+        'CREATE_LANCAMENTO': 'Lançamento registrado — cada registro conta!',
+        'create_lancamento': 'Lançamento registrado — cada registro conta!',
+        'CREATE_CATEGORIA': 'Nova categoria criada — organização é poder!',
+        'create_categoria': 'Nova categoria criada — organização é poder!',
+        'VIEW_REPORT': 'Relatório visualizado — conhecimento é progresso!',
+        'view_report': 'Relatório visualizado — conhecimento é progresso!',
+        'CREATE_META': 'Nova meta definida — foco no objetivo!',
+        'create_meta': 'Nova meta definida — foco no objetivo!',
+        'CLOSE_MONTH': 'Mês fechado com sucesso!',
+        'close_month': 'Mês fechado com sucesso!',
+        'DAILY_ACTIVITY': 'Presença marcada! Mais um dia ativo ✓',
+        'daily_activity': 'Presença marcada! Mais um dia ativo ✓',
+        'STREAK_3_DAYS': '3 dias seguidos! O hábito está se formando!',
+        'streak_3_days': '3 dias seguidos! O hábito está se formando!',
+        'STREAK_7_DAYS': '7 dias seguidos! Você está on fire! 🔥',
+        'streak_7_days': '7 dias seguidos! Você está on fire! 🔥',
+        'STREAK_30_DAYS': '30 dias seguidos! Consistência de mestre! 🏆',
+        'streak_30_days': '30 dias seguidos! Consistência de mestre! 🏆',
+        'POSITIVE_MONTH': 'Mês no verde! Suas finanças agradecem 💰',
+        'positive_month': 'Mês no verde! Suas finanças agradecem 💰',
+        'LEVEL_UP': 'Level up! Novo patamar desbloqueado! ⭐',
+        'level_up': 'Level up! Novo patamar desbloqueado! ⭐',
+        'COMPLETE_ONBOARDING': 'Onboarding concluído — bem-vindo à jornada!',
+        'complete_onboarding': 'Onboarding concluído — bem-vindo à jornada!',
+        'LAUNCH_CREATED': 'Lançamento registrado — cada registro conta!',
+        'LAUNCH_EDITED': 'Lançamento ajustado — precisão é tudo!',
         'LAUNCH_DELETED': 'Lançamento removido',
-        'CATEGORY_CREATED': 'Você criou uma categoria',
-        'DAILY_LOGIN': 'Acesso diário registrado',
-        'STREAK_BONUS': 'Bônus de sequência conquistado!',
-        'ACHIEVEMENT_UNLOCKED': 'Conquista desbloqueada!',
-        'FIRST_LAUNCH_DAY': 'Primeiro registro do dia',
-        'CARD_CREATED': 'Você cadastrou um cartão',
-        'INVOICE_PAID': 'Fatura do cartão paga',
+        'CATEGORY_CREATED': 'Nova categoria criada — organização é poder!',
+        'DAILY_LOGIN': 'Presença marcada! Mais um dia ativo ✓',
+        'STREAK_BONUS': 'Bônus de sequência conquistado! 🔥',
+        'ACHIEVEMENT_UNLOCKED': 'Conquista desbloqueada! 🏆',
+        'FIRST_LAUNCH_DAY': 'Primeiro registro do dia — bom começo!',
+        'CARD_CREATED': 'Cartão cadastrado — controle total!',
+        'INVOICE_PAID': 'Fatura paga — responsabilidade em dia!',
     };
 
     const desc = action.description;

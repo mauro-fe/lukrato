@@ -1,7 +1,7 @@
 <section class="cat-page">
     <!-- ==================== KPI CARDS (estilo dashboard) ==================== -->
     <div class="cat-kpis">
-        <article class="cat-kpi">
+        <article class="cat-kpi surface-card surface-card--interactive">
             <div class="cat-kpi__icon cat-kpi__icon--total">
                 <i data-lucide="layers"></i>
             </div>
@@ -10,7 +10,7 @@
                 <span class="cat-kpi__value" id="catTotalCount">0</span>
             </div>
         </article>
-        <article class="cat-kpi">
+        <article class="cat-kpi surface-card surface-card--interactive">
             <div class="cat-kpi__icon cat-kpi__icon--sub">
                 <i data-lucide="git-branch"></i>
             </div>
@@ -19,7 +19,7 @@
                 <span class="cat-kpi__value" id="catSubCount">0</span>
             </div>
         </article>
-        <article class="cat-kpi">
+        <article class="cat-kpi surface-card surface-card--interactive">
             <div class="cat-kpi__icon cat-kpi__icon--budget">
                 <i data-lucide="pie-chart"></i>
             </div>
@@ -28,7 +28,7 @@
                 <span class="cat-kpi__value" id="catBudgetCount">0</span>
             </div>
         </article>
-        <article class="cat-kpi">
+        <article class="cat-kpi surface-card surface-card--interactive">
             <div class="cat-kpi__icon cat-kpi__icon--own">
                 <i data-lucide="user"></i>
             </div>
@@ -41,7 +41,7 @@
 
     <!-- ==================== CARD DE NOVA CATEGORIA ==================== -->
     <div class="create-card-wrapper">
-        <div class="modern-card create-card">
+        <div class="modern-card create-card surface-card surface-card--interactive surface-card--clip">
             <div class="create-card-content">
                 <!-- Lado esquerdo: ícone preview -->
                 <div class="create-icon-area">
@@ -139,7 +139,7 @@
     </div>
 
     <!-- ==================== CONTEXTO + BUSCA UNIFICADOS ==================== -->
-    <section class="cat-context-card" id="catContextCard" aria-live="polite">
+    <section class="cat-context-card surface-card surface-card--interactive" id="catContextCard" aria-live="polite">
         <div class="cat-context-copy">
             <p class="cat-context-kicker" id="catContextKicker">Categorias e subcategorias</p>
             <h3 class="cat-context-title" id="catContextTitle">Organize sua estrutura financeira com clareza</h3>
@@ -179,7 +179,7 @@
     <!-- ==================== CATEGORIAS SEPARADAS POR TIPO ==================== -->
     <div class="categories-grid">
         <!-- CATEGORIAS DE RECEITAS -->
-        <div class="category-card receitas-card">
+        <div class="category-card receitas-card surface-card surface-card--interactive surface-card--clip">
             <div class="category-header receitas">
                 <div class="header-content">
                     <div class="header-icon">
@@ -205,7 +205,7 @@
         </div>
 
         <!-- CATEGORIAS DE DESPESAS -->
-        <div class="category-card despesas-card">
+        <div class="category-card despesas-card surface-card surface-card--interactive surface-card--clip">
             <div class="category-header despesas">
                 <div class="header-content">
                     <div class="header-icon">

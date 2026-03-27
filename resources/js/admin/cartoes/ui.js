@@ -379,7 +379,7 @@ export const CartoesUI = {
 
         return `
             <article
-                class="credit-card"
+                class="credit-card surface-card surface-card--interactive surface-card--clip"
                 data-id="${cartao.id}"
                 data-brand="${String(cartao.bandeira || 'outros').toLowerCase()}"
                 style="--card-accent:${accentColor};"
@@ -476,7 +476,7 @@ export const CartoesUI = {
 
         return `
             <div
-                class="credit-card"
+                class="credit-card surface-card surface-card--interactive surface-card--clip"
                 data-id="${cartao.id}"
                 data-brand="${String(cartao.bandeira || 'outros').toLowerCase()}"
                 style="background: ${corBg};"

@@ -13,7 +13,7 @@ $onboardingCompleted = !empty($currentUser?->onboarding_completed_at);
     <!-- ============================================================
          HERO — Saldo principal + variação do mês
          ============================================================ -->
-    <section class="dashboard-hero-section" id="saldoCard">
+    <section class="dashboard-hero-section surface-card surface-card--interactive" id="saldoCard">
         <span class="dash-hero__label">Saldo atual</span>
         <div class="dash-hero__balance kpi-value loading" id="saldoValue">R$ 0,00</div>
         <div class="dash-hero__variation" id="dashboardHeroStatus"></div>
@@ -32,7 +32,7 @@ $onboardingCompleted = !empty($currentUser?->onboarding_completed_at);
          KPI ROW — 3 cards: Entradas · Saídas · Resultado
          ============================================================ -->
     <section class="dash-kpis" role="region" aria-label="Indicadores do mês">
-        <div class="dash-kpi dash-kpi--income" id="receitasCard">
+        <div class="dash-kpi dash-kpi--income surface-card surface-card--interactive" id="receitasCard">
             <div class="dash-kpi__icon dash-kpi__icon--income">
                 <i data-lucide="arrow-down-left"></i>
             </div>
@@ -42,7 +42,7 @@ $onboardingCompleted = !empty($currentUser?->onboarding_completed_at);
             </div>
         </div>
 
-        <div class="dash-kpi dash-kpi--expense" id="despesasCard">
+        <div class="dash-kpi dash-kpi--expense surface-card surface-card--interactive" id="despesasCard">
             <div class="dash-kpi__icon dash-kpi__icon--expense">
                 <i data-lucide="arrow-up-right"></i>
             </div>
@@ -52,7 +52,7 @@ $onboardingCompleted = !empty($currentUser?->onboarding_completed_at);
             </div>
         </div>
 
-        <div class="dash-kpi dash-kpi--result" id="saldoMesCard">
+        <div class="dash-kpi dash-kpi--result surface-card surface-card--interactive" id="saldoMesCard">
             <div class="dash-kpi__icon dash-kpi__icon--result">
                 <i data-lucide="scale"></i>
             </div>
@@ -99,7 +99,7 @@ $onboardingCompleted = !empty($currentUser?->onboarding_completed_at);
     <div class="dash-duo-row dash-duo-row--flexible">
 
         <!-- PREVISÃO FINANCEIRA — toggled via personalização -->
-        <section class="provisao-section" id="sectionPrevisao" style="display:none;">
+        <section class="provisao-section surface-card surface-card--interactive surface-card--clip" id="sectionPrevisao" style="display:none;">
             <h2 class="provisao-title" id="provisaoTitle">Previsão financeira</h2>
             <p class="provisao-headline" id="provisaoHeadline"></p>
 
@@ -206,7 +206,7 @@ $onboardingCompleted = !empty($currentUser?->onboarding_completed_at);
         <!-- ============================================================
          GAMIFICAÇÃO — toggled via personalização
          ============================================================ -->
-        <section class="gamification-section" id="sectionGamificacao" style="display:none;">
+        <section class="gamification-section surface-card surface-card--interactive surface-card--clip" id="sectionGamificacao" style="display:none;">
             <div class="gamification-header">
                 <h2 class="gamification-title"><i data-lucide="trophy"></i> Gamificação</h2>
                 <div class="level-badge" id="userLevel"><i data-lucide="star"></i> <span>Nível 1</span></div>
@@ -272,7 +272,7 @@ $onboardingCompleted = !empty($currentUser?->onboarding_completed_at);
          GRID — Gráfico + Transações lado a lado
          ============================================================ -->
     <div class="dash-duo-row">
-        <section class="dash-chart-section" id="chart-section">
+        <section class="dash-chart-section surface-card surface-card--interactive" id="chart-section">
             <div class="dash-section-header">
                 <h2 class="dash-section-title">Despesas por categoria</h2>
                 <div class="dash-chart-toggle" id="chartToggle">
@@ -290,7 +290,7 @@ $onboardingCompleted = !empty($currentUser?->onboarding_completed_at);
             </div>
         </section>
 
-        <section class="dash-transactions-section" id="table-section">
+        <section class="dash-transactions-section surface-card surface-card--interactive" id="table-section">
             <div class="dash-section-header">
                 <h2 class="dash-section-title">Últimas transações</h2>
                 <a href="<?= BASE_URL ?>lancamentos" class="dash-section-link">
@@ -317,7 +317,7 @@ $onboardingCompleted = !empty($currentUser?->onboarding_completed_at);
          SEÇÕES OPCIONAIS — toggled via modal de personalização
          ============================================================ -->
     <div class="dash-optional-grid" id="optionalGrid" style="display:none;">
-        <section class="dash-optional-section" id="sectionMetas" style="display:none;">
+        <section class="dash-optional-section surface-card surface-card--interactive" id="sectionMetas" style="display:none;">
             <div class="dash-section-header">
                 <h2 class="dash-section-title">Metas</h2>
             </div>

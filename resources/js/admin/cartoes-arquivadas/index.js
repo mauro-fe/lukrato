@@ -100,7 +100,7 @@ function renderCartoes(items) {
             : '<i data-lucide="credit-card" class="brand-icon-fallback"></i>';
 
         return `
-            <div class="credit-card" data-brand="${bandeira}" data-id="${cartao.id}" style="background: ${cor}">
+            <div class="credit-card surface-card surface-card--interactive surface-card--clip" data-brand="${bandeira}" data-id="${cartao.id}" style="background: ${cor}">
                 <div class="card-header">
                     <div class="card-brand">
                         ${brandHTML}

@@ -5,7 +5,7 @@
 <section class="lan-page">
 
     <!-- ─── HERO ──────────────────────────────────────────────────────── -->
-    <section class="lan-hero" data-aos="fade-up" data-aos-delay="50" aria-label="Resumo da pagina de lancamentos">
+    <section class="lan-hero surface-card surface-card--interactive" data-aos="fade-up" data-aos-delay="50" aria-label="Resumo da pagina de lancamentos">
         <div class="lan-hero-copy">
             <span class="lan-hero-eyebrow">Fluxo financeiro</span>
             <h1 class="lan-hero-title">Lancamentos</h1>
@@ -33,21 +33,21 @@
     <!-- ─── SUMMARY STRIP ─────────────────────────────────────────────── -->
     <section class="lan-summary-strip" id="lanSummaryStrip" data-aos="fade-up" data-aos-delay="100"
         aria-label="Resumo financeiro do periodo">
-        <div class="lan-summary-card receitas">
+        <div class="lan-summary-card receitas surface-card surface-card--interactive">
             <div class="lan-summary-icon"><i data-lucide="trending-up"></i></div>
             <div class="lan-summary-info">
                 <span class="lan-summary-label">Receitas</span>
                 <span class="lan-summary-value" id="lanSummaryReceitas">R$ 0,00</span>
             </div>
         </div>
-        <div class="lan-summary-card despesas">
+        <div class="lan-summary-card despesas surface-card surface-card--interactive">
             <div class="lan-summary-icon"><i data-lucide="trending-down"></i></div>
             <div class="lan-summary-info">
                 <span class="lan-summary-label">Despesas</span>
                 <span class="lan-summary-value" id="lanSummaryDespesas">R$ 0,00</span>
             </div>
         </div>
-        <div class="lan-summary-card saldo">
+        <div class="lan-summary-card saldo surface-card surface-card--interactive">
             <div class="lan-summary-icon"><i data-lucide="wallet"></i></div>
             <div class="lan-summary-info">
                 <span class="lan-summary-label">Saldo do periodo</span>
@@ -57,7 +57,7 @@
     </section>
 
     <!-- ─── EXPORT CARD ───────────────────────────────────────────────── -->
-    <div class="modern-card export-card <?= !$isPro ? 'pro-locked' : '' ?>" data-aos="fade-up" data-aos-delay="100"
+    <div class="modern-card export-card surface-card surface-card--interactive <?= !$isPro ? 'pro-locked' : '' ?>" data-aos="fade-up" data-aos-delay="100"
         id="exportCard">
         <div class="card-header-icon">
             <div class="icon-wrapper export">
@@ -155,7 +155,7 @@
     </div>
 
     <!-- ─── FILTERS ───────────────────────────────────────────────────── -->
-    <section class="lk-filters-section collapsed" data-aos="fade-up" data-aos-delay="200"
+    <section class="lk-filters-section collapsed surface-card" data-aos="fade-up" data-aos-delay="200"
         aria-label="Filtros de lancamentos">
         <div class="lk-filters-header">
             <div class="lk-filters-title-group">
@@ -282,7 +282,7 @@
     </section>
 
     <!-- ─── TABLE SECTION ─────────────────────────────────────────────── -->
-    <div class="modern-table-wrapper" data-aos="fade-up" data-aos-delay="300">
+    <div class="modern-table-wrapper surface-card surface-card--clip" data-aos="fade-up" data-aos-delay="300">
         <div class="modern-table-inner">
 
             <div class="table-header-info">

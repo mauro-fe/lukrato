@@ -3,7 +3,7 @@
     <!-- ============================================================
          HERO — Limite consolidado (estilo dashboard-hero)
          ============================================================ -->
-    <section class="cart-hero" aria-live="polite">
+    <section class="cart-hero surface-card surface-card--interactive" aria-live="polite">
         <span class="cart-hero__eyebrow">Visão consolidada</span>
         <h1 class="cart-hero__title">Seus cartões de crédito</h1>
         <p class="cart-hero__subtitle">
@@ -15,7 +15,7 @@
          KPIs — 4 indicadores (estilo dash-kpis)
          ============================================================ -->
     <section class="cart-kpis">
-        <article class="stat-card" data-stat="total">
+        <article class="stat-card surface-card surface-card--interactive" data-stat="total">
             <div class="stat-icon">
                 <i data-lucide="credit-card"></i>
             </div>
@@ -25,7 +25,7 @@
             </div>
         </article>
 
-        <article class="stat-card" data-stat="limite">
+        <article class="stat-card surface-card surface-card--interactive" data-stat="limite">
             <div class="stat-icon stat-icon--primary">
                 <i data-lucide="hand-coins"></i>
             </div>
@@ -35,7 +35,7 @@
             </div>
         </article>
 
-        <article class="stat-card" data-stat="disponivel">
+        <article class="stat-card surface-card surface-card--interactive" data-stat="disponivel">
             <div class="stat-icon stat-icon--success">
                 <i data-lucide="circle-check"></i>
             </div>
@@ -45,7 +45,7 @@
             </div>
         </article>
 
-        <article class="stat-card" data-stat="utilizado">
+        <article class="stat-card surface-card surface-card--interactive" data-stat="utilizado">
             <div class="stat-icon stat-icon--warning">
                 <i data-lucide="trending-up"></i>
             </div>
@@ -64,7 +64,7 @@
     <!-- ============================================================
          LISTA DE CARTÕES — Seção principal
          ============================================================ -->
-    <section class="cart-list-section">
+    <section class="cart-list-section surface-card">
         <div class="cart-list-header">
             <div class="cart-list-heading">
                 <span class="cart-section__eyebrow">Cartões</span>

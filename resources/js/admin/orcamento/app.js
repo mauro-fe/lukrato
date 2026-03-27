@@ -280,7 +280,7 @@ export const OrcamentoApp = {
                 : '';
 
             return `
-            <div class="orc-card ${statusClass}" data-aos="fade-up">
+            <div class="orc-card surface-card surface-card--interactive surface-card--clip ${statusClass}" data-aos="fade-up">
                 <div class="orc-card__header">
                     <div class="orc-card__category">
                         <span class="orc-card__icon"><i data-lucide="${catIcone}" style="color:${getCategoryIconColor(catIcone)}"></i></span>
@@ -334,7 +334,7 @@ export const OrcamentoApp = {
             const icon = Utils.getInsightIcon(insight.tipo);
             const level = insight.nivel || 'info';
             return `
-            <div class="orc-insight-card ${level}" data-aos="fade-up">
+            <div class="orc-insight-card surface-card surface-card--interactive ${level}" data-aos="fade-up">
                 <div class="orc-insight-icon ${level}">
                     <i data-lucide="${icon}"></i>
                 </div>

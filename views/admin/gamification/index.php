@@ -1,14 +1,14 @@
 <?php
-    $firstName = '';
-    if (!empty($currentUser->nome)) {
-        $firstName = explode(' ', trim($currentUser->nome))[0];
-    } elseif (!empty($username)) {
-        $firstName = explode(' ', trim($username))[0];
-    }
-    $firstName = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
+$firstName = '';
+if (!empty($currentUser->nome)) {
+    $firstName = explode(' ', trim($currentUser->nome))[0];
+} elseif (!empty($username)) {
+    $firstName = explode(' ', trim($username))[0];
+}
+$firstName = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
 ?>
 <div class="gamification-page">
-    <div class="page-header">
+    <div class="page-header surface-card surface-card--glass surface-card--soft-hover surface-card--interactive surface-card--accent-hover">
         <div class="page-header-content">
             <div class="page-icon"><i data-lucide="trophy"></i></div>
             <div>
@@ -23,7 +23,7 @@
     </div>
 
     <!-- Insight Banner -->
-    <div class="insight-banner" id="insightBanner" style="display:none;">
+    <div class="insight-banner surface-card surface-card--glass surface-card--soft-hover" id="insightBanner" style="display:none;">
         <div class="insight-icon"><i data-lucide="zap"></i></div>
         <div class="insight-text" id="insightText"></div>
         <button class="insight-dismiss" id="insightDismiss" aria-label="Fechar">
@@ -34,28 +34,28 @@
     <!-- Progresso Geral -->
     <section class="progress-section">
         <div class="stats-grid">
-            <div class="stat-card">
+            <div class="stat-card surface-card surface-card--glass surface-card--soft-hover surface-card--interactive surface-card--accent-hover">
                 <div class="stat-icon"><i data-lucide="star"></i></div>
                 <div class="stat-content">
                     <div class="stat-value" id="totalPointsCard" data-animate="true">0</div>
                     <div class="stat-label">Pontos Totais</div>
                 </div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card surface-card surface-card--glass surface-card--soft-hover surface-card--interactive surface-card--accent-hover">
                 <div class="stat-icon"><i data-lucide="bar-chart-3"></i></div>
                 <div class="stat-content">
                     <div class="stat-value" id="currentLevelCard" data-animate="true">1</div>
                     <div class="stat-label">Nível Atual</div>
                 </div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card surface-card surface-card--glass surface-card--soft-hover surface-card--interactive surface-card--accent-hover">
                 <div class="stat-icon"><i data-lucide="flame"></i></div>
                 <div class="stat-content">
                     <div class="stat-value" id="currentStreakCard" data-animate="true">0</div>
                     <div class="stat-label">Dias Ativos</div>
                 </div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card surface-card surface-card--glass surface-card--soft-hover surface-card--interactive surface-card--accent-hover">
                 <div class="stat-icon"><i data-lucide="target"></i></div>
                 <div class="stat-content">
                     <div class="stat-value" id="achievementsCountCard">0</div>
@@ -65,7 +65,7 @@
         </div>
 
         <!-- Barra de Progresso -->
-        <div class="level-progress-large">
+        <div class="level-progress-large surface-card surface-card--glass surface-card--soft-hover surface-card--interactive surface-card--accent-hover">
             <div class="progress-header">
                 <span>Progresso para o Nível <span id="nextLevel">2</span></span>
                 <span class="progress-points" id="progressPointsLarge">0 / 300</span>
@@ -84,18 +84,28 @@
     </section>
 
     <!-- Missões do Dia -->
-    <section class="missions-section" id="missionsSection" style="display:none;">
-        <h2><i data-lucide="target"></i> Missões do Dia</h2>
+    <section class="missions-section surface-card surface-card--glass surface-card--soft-hover surface-card--interactive surface-card--accent-hover" id="missionsSection" style="display:none;">
+        <div class="missions-header">
+            <h2><i data-lucide="target"></i> Missões do Dia</h2>
+            <div class="missions-meta">
+                <span class="missions-badge" id="missionsBadge"></span>
+                <span class="missions-countdown" id="missionsCountdown"></span>
+            </div>
+        </div>
         <div class="missions-grid" id="missionsGrid">
             <div class="lk-loading-state" style="grid-column:1/-1;">
                 <i data-lucide="loader-2"></i>
                 <p>Carregando missões...</p>
             </div>
         </div>
+        <div class="missions-total-reward" id="missionsTotalReward" style="display:none;"></div>
     </section>
 
+    <!-- Inline insight -->
+    <div class="insight-inline" id="insightBeforeAchievements" style="display:none;"></div>
+
     <!-- Conquistas -->
-    <section class="achievements-section">
+    <section class="achievements-section surface-card surface-card--glass surface-card--soft-hover surface-card--interactive surface-card--accent-hover">
         <h2><i data-lucide="medal"></i> Conquistas</h2>
 
         <div class="achievements-filter">
@@ -114,7 +124,7 @@
     </section>
 
     <!-- Histórico de Pontos -->
-    <section class="history-section">
+    <section class="history-section surface-card surface-card--glass surface-card--soft-hover surface-card--interactive surface-card--accent-hover">
         <h2><i data-lucide="history"></i> Histórico Recente</h2>
         <div class="history-list" id="pointsHistory">
             <!-- Loading state -->
@@ -125,8 +135,11 @@
         </div>
     </section>
 
+    <!-- Inline insight -->
+    <div class="insight-inline" id="insightBeforeRanking" style="display:none;"></div>
+
     <!-- Ranking -->
-    <section class="leaderboard-section">
+    <section class="leaderboard-section surface-card surface-card--glass surface-card--soft-hover surface-card--interactive surface-card--accent-hover">
         <h2><i data-lucide="trophy"></i> Ranking</h2>
 
         <?php if ($isPro ?? false): ?>
@@ -141,7 +154,7 @@
             <div class="leaderboard-gap" id="leaderboardGap" style="display:none;"></div>
         <?php else: ?>
             <!-- CTA de Upgrade para acessar o Ranking -->
-            <div class="leaderboard-locked">
+            <div class="leaderboard-locked surface-card surface-card--glass surface-card--soft-hover surface-card--clip">
                 <div class="locked-icon">
                     <i data-lucide="crown"></i>
                 </div>

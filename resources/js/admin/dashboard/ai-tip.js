@@ -33,7 +33,7 @@ class AiTipCard {
   render() {
     const tipCount = 4;
     this.container.innerHTML = `
-      <div class="ai-tip-card" data-aos="fade-up" data-aos-duration="400" data-aos-delay="100">
+      <div class="ai-tip-card surface-card surface-card--interactive" data-aos="fade-up" data-aos-duration="400" data-aos-delay="100">
         <div class="ai-tip-header">
           <i data-lucide="sparkles" class="ai-tip-header-icon"></i>
           <h2 class="ai-tip-title">Dicas do Lukrato</h2>

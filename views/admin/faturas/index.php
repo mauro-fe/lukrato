@@ -3,7 +3,7 @@
     <!-- ============================================================
          HERO — Visão geral (estilo dashboard-hero)
          ============================================================ -->
-    <section class="fat-hero">
+    <section class="fat-hero surface-card surface-card--interactive">
         <span class="fat-hero__eyebrow">Faturas de cartão</span>
         <h1 class="fat-hero__title">Suas faturas</h1>
         <p class="fat-hero__subtitle">
@@ -14,7 +14,7 @@
     <!-- ============================================================
          FILTROS — Painel colapsável
          ============================================================ -->
-    <div class="filters-modern collapsed">
+    <div class="filters-modern collapsed surface-card surface-card--clip">
         <div class="filters-header">
             <div class="filters-title">
                 <div class="filters-icon">
@@ -119,7 +119,7 @@
     <!-- ============================================================
          LISTA DE FATURAS — Seção principal
          ============================================================ -->
-    <section class="fat-list-section">
+    <section class="fat-list-section surface-card">
         <div class="fat-list-header">
             <div class="fat-list-heading">
                 <span class="fat-section__eyebrow">Faturas</span>

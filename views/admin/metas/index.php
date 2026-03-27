@@ -15,7 +15,7 @@
     <!-- ==================== CARDS RESUMO ==================== -->
     <div class="met-summary-grid" id="summaryMetas" data-aos="fade-up">
         <!-- Metas Ativas -->
-        <div class="met-summary-card">
+        <div class="met-summary-card surface-card surface-card--interactive">
             <div class="met-summary-card__icon met-summary-card__icon--purple">
                 <i data-lucide="target"></i>
             </div>
@@ -26,7 +26,7 @@
         </div>
 
         <!-- Total Acumulado -->
-        <div class="met-summary-card">
+        <div class="met-summary-card surface-card surface-card--interactive">
             <div class="met-summary-card__icon met-summary-card__icon--green">
                 <i data-lucide="coins"></i>
             </div>
@@ -37,7 +37,7 @@
         </div>
 
         <!-- Objetivo Total -->
-        <div class="met-summary-card">
+        <div class="met-summary-card surface-card surface-card--interactive">
             <div class="met-summary-card__icon met-summary-card__icon--blue">
                 <i data-lucide="flag"></i>
             </div>
@@ -48,7 +48,7 @@
         </div>
 
         <!-- Progresso Geral -->
-        <div class="met-summary-card">
+        <div class="met-summary-card surface-card surface-card--interactive">
             <div class="met-summary-card__icon">
                 <div class="met-progress-ring" id="metasProgressRing">
                     <svg viewBox="0 0 36 36">

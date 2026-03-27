@@ -21,7 +21,7 @@ class HealthScoreWidget {
     const circ = this.circumference;
 
     this.container.innerHTML = `
-      <div class="health-score-widget" data-aos="fade-up" data-aos-duration="400">
+      <div class="health-score-widget surface-card surface-card--interactive" data-aos="fade-up" data-aos-duration="400">
         <div class="hs-header">
           <h2 class="hs-title">Saude financeira</h2>
           <div class="hs-badge" id="healthIndicator">

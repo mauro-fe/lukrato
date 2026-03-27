@@ -69,25 +69,11 @@
 }
 
 .met-summary-card {
-  background: var(--color-bg);
   backdrop-filter: var(--glass-backdrop);
-  border-radius: var(--radius-lg);
   padding: var(--spacing-4);
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
-  box-shadow:
-    0 8px 16px rgba(0, 0, 0, 0.20),
-    0 20px 40px rgba(0, 0, 0, 0.25);
-  transform: translateY(0);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-
-.met-summary-card:hover {
-    transform: translateY(-4px);
-  box-shadow:
-    0 12px 24px rgba(0, 0, 0, 0.25),
-    0 30px 60px rgba(0, 0, 0, 0.30);
 }
 
 .met-summary-card__icon {
@@ -206,18 +192,14 @@
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
-    box-shadow:
-    0 8px 16px rgba(0, 0, 0, 0.20),
-    0 20px 40px rgba(0, 0, 0, 0.25);
-  transform: translateY(0);
+    box-shadow: var(--shadow-lifted);
+  transform: var(--transform-lifted);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .met-action-btn:hover {
-   transform: translateY(-4px);
-  box-shadow:
-    0 12px 24px rgba(0, 0, 0, 0.25),
-    0 30px 60px rgba(0, 0, 0, 0.30);
+   transform: var(--transform-lifted-hover);
+  box-shadow: var(--shadow-lifted-hover);
 }
 
 .met-action-btn--primary {
@@ -241,24 +223,10 @@
 }
 
 .met-card {
-  background: var(--color-bg);
   backdrop-filter: var(--glass-backdrop);
-  border-radius: var(--radius-lg);
   padding: var(--spacing-4);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   border-left: 4px solid var(--met-card-color, #8b5cf6);
-  box-shadow:
-    0 8px 16px rgba(0, 0, 0, 0.20),
-    0 20px 40px rgba(0, 0, 0, 0.25);
-  transform: translateY(0);
-}
-
-.met-card:hover {
-   transform: translateY(-4px);
-  box-shadow:
-    0 12px 24px rgba(0, 0, 0, 0.25),
-    0 30px 60px rgba(0, 0, 0, 0.30);
 }
 
 .met-card__header {

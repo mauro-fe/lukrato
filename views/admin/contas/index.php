@@ -3,7 +3,7 @@
     <!-- ============================================================
          HERO — Saldo consolidado (igual dashboard-hero-section)
          ============================================================ -->
-    <section class="cont-hero" id="contasHero" aria-live="polite">
+    <section class="cont-hero surface-card surface-card--interactive" id="contasHero" aria-live="polite">
         <span class="cont-hero__eyebrow">Visão consolidada</span>
         <h1 class="cont-hero__title">Seu dinheiro total</h1>
         <div class="cont-hero__balance" id="saldoTotal">R$ 0,00</div>
@@ -33,7 +33,7 @@
          KPIs — Conta principal · Reserva (estilo dash-kpis)
          ============================================================ -->
     <section class="cont-kpis">
-        <article class="cont-kpi">
+        <article class="cont-kpi surface-card surface-card--interactive">
             <div class="cont-kpi__icon cont-kpi__icon--primary">
                 <i data-lucide="crown"></i>
             </div>
@@ -45,7 +45,7 @@
             </div>
         </article>
 
-        <article class="cont-kpi">
+        <article class="cont-kpi surface-card surface-card--interactive">
             <div class="cont-kpi__icon cont-kpi__icon--reserve">
                 <i data-lucide="shield-check"></i>
             </div>
@@ -60,7 +60,7 @@
     <!-- ============================================================
          DISTRIBUIÇÃO — Onde seu dinheiro está
          ============================================================ -->
-    <section class="cont-distribution" id="contasDistributionCard" aria-live="polite">
+    <section class="cont-distribution surface-card surface-card--interactive" id="contasDistributionCard" aria-live="polite">
         <div class="cont-section-header">
             <span class="cont-section__eyebrow">Distribuição</span>
             <h2 class="cont-section__title">Onde seu dinheiro está</h2>
@@ -80,7 +80,7 @@
     <!-- ============================================================
          CONTAS — Lista principal
          ============================================================ -->
-    <section class="cont-list-section">
+    <section class="cont-list-section surface-card">
         <div class="cont-list-header">
             <div class="cont-list-heading">
                 <span class="cont-section__eyebrow">Contas</span>

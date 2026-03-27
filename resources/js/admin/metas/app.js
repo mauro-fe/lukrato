@@ -266,7 +266,7 @@ export const MetasApp = {
                 : '';
 
             return `
-            <div class="met-card ${isCompleted ? 'met-card--completed' : ''}" style="--met-card-color: ${cor}" data-aos="fade-up">
+            <div class="met-card surface-card surface-card--interactive ${isCompleted ? 'met-card--completed' : ''}" style="--met-card-color: ${cor}" data-aos="fade-up">
                 <div class="met-card__header">
                     <div class="met-card__title-group">
                         <span class="met-card__icon">${tipoEmoji}</span>

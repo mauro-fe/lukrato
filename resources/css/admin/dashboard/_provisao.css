@@ -3,25 +3,10 @@
   position: relative;
   backdrop-filter: var(--glass-backdrop);
   -webkit-backdrop-filter: var(--glass-backdrop);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: var(--radius-lg);
   padding: 24px;
   margin-bottom: 0;
-  box-shadow:
-    0 8px 16px rgba(0, 0, 0, 0.20),
-    0 20px 40px rgba(0, 0, 0, 0.25);
-  transform: translateY(0);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
   overflow: hidden;
   container-type: inline-size;
-  min-width: 0;
-}
-
-.provisao-section:hover {
-  transform: translateY(-4px);
-  box-shadow:
-    0 12px 24px rgba(0, 0, 0, 0.25),
-    0 30px 60px rgba(0, 0, 0, 0.30);
 }
 
 @media (min-width: 1024px) {

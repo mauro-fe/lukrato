@@ -35,7 +35,7 @@ class EvolucaoCharts {
 
     _render() {
         this.container.innerHTML = `
-      <div class="evo-card" data-aos="fade-up" data-aos-duration="400">
+      <div class="evo-card surface-card surface-card--interactive" data-aos="fade-up" data-aos-duration="400">
         <div class="evo-header">
           <div class="evo-title-group">
             <i data-lucide="trending-up" class="evo-title-icon"></i>
