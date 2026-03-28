@@ -2779,3 +2779,30 @@ body {
   border-radius: 16px !important;
   border-color: rgba(255, 255, 255, 0.08) !important;
 }
+
+/* ===============================
+   Novas Seções — CRO Landing
+   =============================== */
+
+/* Sticky CTA Mobile — padding no body para não sobrepor conteúdo */
+@media (max-width: 1023px) {
+  body.has-sticky-cta {
+    padding-bottom: 72px;
+  }
+}
+
+/* Calculadora de Vazamento — resultado com animação */
+.lk-vazamento-resultado {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

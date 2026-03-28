@@ -21,8 +21,6 @@
 }
 
 .lk-historico-list {
-  background: var(--glass-bg);
-  border: 2px solid var(--color-card-border);
   border-radius: var(--radius-md);
   padding: var(--spacing-4);
   max-height: 240px;

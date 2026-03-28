@@ -119,6 +119,15 @@ export function initDOM() {
     DOM.inputLancDescricao = document.getElementById('editLancDescricao');
     DOM.inputLancObservacao = document.getElementById('editLancObservacao');
     DOM.selectLancFormaPagamento = document.getElementById('editLancFormaPagamento');
+    // Modal de exclusao com escopo
+    DOM.modalDeleteScopeEl = document.getElementById('modalDeleteLancamentoScope');
+    DOM.deleteScopeForm = document.getElementById('deleteScopeForm');
+    DOM.deleteScopeTitle = document.getElementById('modalDeleteLancamentoScopeLabel');
+    DOM.deleteScopeSubtitle = document.getElementById('deleteScopeModalSubtitle');
+    DOM.deleteScopeLead = document.getElementById('deleteScopeModalLead');
+    DOM.deleteScopeHint = document.getElementById('deleteScopeModalHint');
+    DOM.deleteScopeOptions = document.getElementById('deleteScopeOptions');
+    DOM.btnConfirmDeleteScope = document.getElementById('btnConfirmDeleteScope');
     // Modal de visualização
     DOM.modalViewLancEl = document.getElementById('modalViewLancamento');
     DOM.viewLancData = document.getElementById('viewLancData');
@@ -150,9 +159,12 @@ export function initDOM() {
 export const STATE = {
     table: null,
     modalEditLanc: null,
+    modalDeleteScope: null,
     modalViewLanc: null,
     editingLancamentoId: null,
     viewingLancamento: null,
+    deleteScopeResolver: null,
+    deleteScopeResult: null,
     categoriaOptions: [],
     contaOptions: [],
     loadTimer: null,

@@ -6,12 +6,14 @@ namespace Application\Services\Report;
 
 use Application\Builders\ReportExportBuilder;
 use Application\DTO\ReportParameters;
+use Application\Enums\GamificationAction;
 use Application\Enums\ReportType;
 use Application\Models\FaturaCartaoItem;
 use Application\Models\Lancamento;
 use Application\Models\Usuario;
 use Application\Services\Financeiro\ComparativesService;
 use Application\Services\Financeiro\InsightsService;
+use Application\Services\Gamification\GamificationService;
 use Carbon\Carbon;
 use InvalidArgumentException;
 
@@ -23,7 +25,8 @@ class ReportApiWorkflowService
         private readonly PdfExportService $pdfExport = new PdfExportService(),
         private readonly ExcelExportService $excelExport = new ExcelExportService(),
         private readonly InsightsService $insightsService = new InsightsService(),
-        private readonly ComparativesService $comparativesService = new ComparativesService()
+        private readonly ComparativesService $comparativesService = new ComparativesService(),
+        private readonly ?GamificationService $gamificationService = null
     ) {
     }
 
@@ -31,7 +34,7 @@ class ReportApiWorkflowService
      * @param array<string, string|null> $query
      * @return array{result:array<string, mixed>, type:ReportType, params:ReportParameters}
      */
-    public function generateReport(int $userId, Usuario $user, array $query): array
+    public function generateReport(int $userId, Usuario $user, array $query, bool $trackView = true): array
     {
         $params = $this->buildReportParameters($userId, $query);
         $type = $this->resolveReportType($query);
@@ -40,6 +43,7 @@ class ReportApiWorkflowService
             $params,
             $this->shouldIncludeDetails($type, $user)
         );
+        $this->trackReportView($userId, $type, $params, $trackView);
 
         return [
             'result' => $result,
@@ -54,7 +58,7 @@ class ReportApiWorkflowService
      */
     public function exportReport(int $userId, Usuario $user, array $query): array
     {
-        $generated = $this->generateReport($userId, $user, $query);
+        $generated = $this->generateReport($userId, $user, $query, false);
         $format = $this->resolveExportFormat($query);
         $reportData = $this->exportBuilder->build(
             $generated['type'],
@@ -208,6 +212,29 @@ class ReportApiWorkflowService
             accountId: $this->resolveAccountId($query),
             userId: $userId,
             includeTransfers: $this->shouldIncludeTransfers($query)
+        );
+    }
+
+    private function trackReportView(
+        int $userId,
+        ReportType $type,
+        ReportParameters $params,
+        bool $trackView
+    ): void {
+        if (!$trackView || $this->gamificationService === null) {
+            return;
+        }
+
+        $this->gamificationService->addPoints(
+            $userId,
+            GamificationAction::VIEW_REPORT,
+            null,
+            null,
+            [
+                'report_type' => $type->value,
+                'period' => $params->start->format('Y-m'),
+                'account_id' => $params->accountId,
+            ]
         );
     }
 

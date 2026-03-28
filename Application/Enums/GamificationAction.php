@@ -103,6 +103,7 @@ enum GamificationAction: string
     public function isOncePerDay(): bool
     {
         return match ($this) {
+            self::VIEW_REPORT,
             self::DAILY_ACTIVITY => true,
             default => false,
         };

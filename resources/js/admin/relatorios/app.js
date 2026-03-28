@@ -393,7 +393,7 @@ export const UI = {
                 <i data-lucide="crown" aria-hidden="true"></i>
                 <h3>Recurso Premium</h3>
                 <p>${safeMessage}</p>
-                <button type="button" class="btn-upgrade" data-action="go-pro">
+                <button type="button" class="btn-upgrade surface-button surface-button--upgrade surface-button--lg" data-action="go-pro">
                     Fazer Upgrade para PRO
                 </button>
             </div>
@@ -439,28 +439,28 @@ export const UI = {
         descriptionEl.textContent = STATE.activeSection === 'relatorios' ? viewMeta.description : sectionMeta.description;
 
         const chips = [
-            `<span class="context-chip"><i data-lucide="calendar-range"></i><span>${escapeHtml(periodLabel)}</span></span>`
+            `<span class="context-chip surface-chip"><i data-lucide="calendar-range"></i><span>${escapeHtml(periodLabel)}</span></span>`
         ];
 
         if (STATE.activeSection === 'relatorios' && currentTypeLabel) {
-            chips.push(`<span class="context-chip context-chip-highlight"><i data-lucide="filter"></i><span>${escapeHtml(currentTypeLabel)}</span></span>`);
+            chips.push(`<span class="context-chip surface-chip surface-chip--highlight context-chip-highlight"><i data-lucide="filter"></i><span>${escapeHtml(currentTypeLabel)}</span></span>`);
         }
 
         if (accountName && scopedSection) {
-            chips.push(`<span class="context-chip context-chip-highlight"><i data-lucide="landmark"></i><span>${escapeHtml(accountName)}</span></span>`);
+            chips.push(`<span class="context-chip surface-chip surface-chip--highlight context-chip-highlight"><i data-lucide="landmark"></i><span>${escapeHtml(accountName)}</span></span>`);
         } else if (accountName && !scopedSection) {
-            chips.push(`<span class="context-chip"><i data-lucide="bookmark"></i><span>Filtro salvo: ${escapeHtml(accountName)}</span></span>`);
+            chips.push(`<span class="context-chip surface-chip"><i data-lucide="bookmark"></i><span>Filtro salvo: ${escapeHtml(accountName)}</span></span>`);
         } else {
-            chips.push(`<span class="context-chip"><i data-lucide="layers"></i><span>Consolidado</span></span>`);
+            chips.push(`<span class="context-chip surface-chip"><i data-lucide="layers"></i><span>Consolidado</span></span>`);
         }
 
         if (isPreview) {
-            chips.push(`<span class="context-chip context-chip-pro"><i data-lucide="crown"></i><span>Preview PRO</span></span>`);
+            chips.push(`<span class="context-chip surface-chip surface-chip--pro context-chip-pro"><i data-lucide="crown"></i><span>Preview PRO</span></span>`);
         }
 
         chipsEl.innerHTML = chips.join('');
         actionsEl.innerHTML = accountName ? `
-            <button type="button" class="context-action-btn" data-action="clear-report-account">
+            <button type="button" class="context-action-btn surface-button surface-button--subtle" data-action="clear-report-account">
                 <i data-lucide="eraser"></i>
                 <span>Limpar filtro de conta</span>
             </button>
@@ -475,19 +475,19 @@ export const UI = {
         if (!summaryEl || !noteEl) return;
 
         const chips = [
-            `<span class="report-filter-chip"><i data-lucide="calendar-range"></i><span>${escapeHtml(getCurrentPeriodLabel())}</span></span>`,
-            `<span class="report-filter-chip"><i data-lucide="bar-chart-3"></i><span>${escapeHtml(getViewMeta().title)}</span></span>`
+            `<span class="report-filter-chip surface-chip"><i data-lucide="calendar-range"></i><span>${escapeHtml(getCurrentPeriodLabel())}</span></span>`,
+            `<span class="report-filter-chip surface-chip"><i data-lucide="bar-chart-3"></i><span>${escapeHtml(getViewMeta().title)}</span></span>`
         ];
 
         const typeLabel = getCurrentTypeLabel();
         if (typeLabel) {
-            chips.push(`<span class="report-filter-chip"><i data-lucide="filter"></i><span>${escapeHtml(typeLabel)}</span></span>`);
+            chips.push(`<span class="report-filter-chip surface-chip"><i data-lucide="filter"></i><span>${escapeHtml(typeLabel)}</span></span>`);
         }
 
         if (STATE.currentAccount) {
-            chips.push(`<span class="report-filter-chip report-filter-chip-highlight"><i data-lucide="landmark"></i><span>${escapeHtml(getSelectedAccountName())}</span></span>`);
+            chips.push(`<span class="report-filter-chip surface-chip surface-chip--highlight report-filter-chip-highlight"><i data-lucide="landmark"></i><span>${escapeHtml(getSelectedAccountName())}</span></span>`);
         } else {
-            chips.push(`<span class="report-filter-chip"><i data-lucide="layers"></i><span>Todas as contas</span></span>`);
+            chips.push(`<span class="report-filter-chip surface-chip"><i data-lucide="layers"></i><span>Todas as contas</span></span>`);
         }
 
         summaryEl.innerHTML = chips.join('');
@@ -812,7 +812,7 @@ async function updateInsightsSection() {
     const insightsHTML = data.insights.map(insight => {
         const lucideIcon = faToLucide[insight.icon] || insight.icon;
         return `
-        <div class="insight-card insight-${insight.type}">
+        <div class="insight-card insight-${insight.type} surface-card surface-card--interactive">
             <div class="insight-icon">
                 <i data-lucide="${lucideIcon}"></i>
             </div>
@@ -840,7 +840,7 @@ async function updateInsightsSection() {
                     <i data-lucide="crown"></i>
                     <h4>${remainingLabel}</h4>
                     <p>Tenha uma visão completa da sua saúde financeira com análises detalhadas.</p>
-                    <a href="${CONFIG.BASE_URL}billing" class="btn-upgrade-cta">
+                    <a href="${CONFIG.BASE_URL}billing" class="btn-upgrade-cta surface-button surface-button--upgrade">
                         <i data-lucide="crown"></i> Fazer Upgrade
                     </a>
                 </div>
@@ -908,7 +908,7 @@ async function updateOverviewSection() {
             insightsEl.innerHTML = insightsData.insights.map(insight => {
                 const icon = faToLucide[insight.icon] || insight.icon;
                 return `
-                <div class="insight-card insight-${insight.type}">
+                <div class="insight-card insight-${insight.type} surface-card surface-card--interactive">
                     <div class="insight-icon"><i data-lucide="${icon}"></i></div>
                     <div class="insight-content">
                         <h4>${escapeHtml(insight.title)}</h4>
@@ -1091,7 +1091,7 @@ function renderCategoryComparison(categories) {
     }).join('');
 
     return `
-        <div class="comparative-card comp-full-width">
+        <div class="comparative-card comp-full-width surface-card surface-card--interactive">
             <div class="comparative-header">
                 <h3><i data-lucide="bar-chart-3"></i> Top Categorias de Despesa</h3>
                 <span class="comp-subtitle">Mês atual vs anterior</span>
@@ -1113,7 +1113,7 @@ function renderEvolucao(evolucao) {
     if (!evolucao || evolucao.length === 0) return '';
 
     return `
-        <div class="comparative-card comp-full-width">
+        <div class="comparative-card comp-full-width surface-card surface-card--interactive">
             <div class="comparative-header">
                 <h3><i data-lucide="line-chart"></i> Evolução dos Últimos 6 Meses</h3>
                 <span class="comp-subtitle">Receitas, despesas e saldo ao longo do tempo</span>
@@ -1191,7 +1191,7 @@ function renderMediaDiaria(data) {
     const varIcon = data.variacao > 0 ? 'arrow-up' : data.variacao < 0 ? 'arrow-down' : 'equal';
 
     return `
-        <div class="comparative-card comp-mini-card">
+        <div class="comparative-card comp-mini-card surface-card surface-card--interactive">
             <div class="comp-mini-icon" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
                 <i data-lucide="calendar-clock"></i>
             </div>
@@ -1219,7 +1219,7 @@ function renderTaxaEconomia(data) {
     const gradientColor = isPositive ? '#2ecc71, #27ae60' : '#e74c3c, #c0392b';
 
     return `
-        <div class="comparative-card comp-mini-card">
+        <div class="comparative-card comp-mini-card surface-card surface-card--interactive">
             <div class="comp-mini-icon" style="background: linear-gradient(135deg, ${gradientColor});">
                 <i data-lucide="piggy-bank" style= "color: white"></i>
             </div>
@@ -1277,7 +1277,7 @@ function renderFormasPagamento(formas) {
     }).join('');
 
     return `
-        <div class="comparative-card comp-full-width">
+        <div class="comparative-card comp-full-width surface-card surface-card--interactive">
             <div class="comparative-header">
                 <h3><i data-lucide="wallet"></i> Formas de Pagamento</h3>
                 <span class="comp-subtitle">Distribuição mês atual vs anterior</span>
@@ -1337,7 +1337,7 @@ function renderComparative(title, data, period) {
     };
 
     return `
-        <div class="comparative-card">
+        <div class="comparative-card surface-card surface-card--interactive">
             <div class="comparative-header">
                 <h3>${escapeHtml(title)}</h3>
                 <div class="period-labels">
@@ -1509,7 +1509,7 @@ function renderCardsReport(data) {
                 ${data.cards && data.cards.length > 0 ? data.cards.map(card => {
         const cardColor = safeColor(card.cor, '#E67E22');
         return `
-                    <div class="card-item ${card.status_saude.status}" 
+                    <div class="card-item surface-card surface-card--interactive surface-card--clip ${card.status_saude.status}"
                          style="--card-color: ${cardColor}; cursor: pointer;"
                          data-card-id="${card.id || ''}"
                          data-card-nome="${escapeHtml(card.nome)}"

@@ -24,9 +24,7 @@
 }
 
 .modal-container {
-    background: var(--color-surface);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-xl);
+    --surface-modal-accent: #3b82f6;
     max-width: 600px;
     width: 100%;
     max-height: 90vh;
@@ -61,12 +59,9 @@
 /* Header */
 #modalConta .modal-header {
     padding: 1rem 1.5rem;
-    border-bottom: 1px solid var(--glass-border);
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    background: var(--color-primary) !important;
-    color: white;
     position: relative;
 }
 
@@ -80,8 +75,6 @@
     width: 40px;
     height: 40px;
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.2);
-    border: 2px solid rgba(255, 255, 255, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -93,24 +86,17 @@
     font-size: 1.125rem;
     font-weight: 700;
     margin: 0;
-    color: white;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .modal-subtitle {
     font-size: 0.75rem;
-    opacity: 0.9;
     margin: 2px 0 0;
-    color: white;
 }
 
 .modal-close {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: white;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -123,8 +109,6 @@
 }
 
 .modal-close:hover {
-    background: rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.5);
     transform: rotate(90deg);
 }
 
@@ -256,11 +240,9 @@
 /* Footer */
 .modal-footer {
     padding: var(--spacing-6);
-    border-top: 1px solid var(--glass-border);
     display: flex;
     gap: var(--spacing-3);
-    justify-content: center;
-    background: var(--color-bg);
+    justify-content: flex-end;
 }
 
 .modal-footer .btn {
@@ -275,27 +257,6 @@
     gap: var(--spacing-2);
     transition: all var(--transition-normal);
     justify-content: center;
-}
-
-.btn-secondary {
-    background: var(--glass-bg);
-    color: var(--color-text);
-    border: 1px solid var(--glass-border);
-}
-
-.btn-secondary:hover {
-    background: var(--color-surface-muted);
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, var(--color-primary) 0%, #c0392b 100%);
-    color: white;
-    box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(230, 126, 34, 0.4);
 }
 
 /* Input with action button */

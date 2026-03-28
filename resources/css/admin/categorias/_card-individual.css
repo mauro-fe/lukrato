@@ -16,6 +16,7 @@
   border-radius: var(--radius-md);
   /* Left accent apenas */
   border-left: 2px solid transparent;
+  box-shadow: var(--shadow-lifted);
   transition:
     background 0.15s ease,
     border-left-color 0.15s ease,

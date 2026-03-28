@@ -5,10 +5,18 @@ declare(strict_types=1);
 namespace Tests\Unit\Services\Infrastructure;
 
 use Application\Services\Infrastructure\LogService;
+use Mockery;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
 
+#[RunTestsInSeparateProcesses]
+#[PreserveGlobalState(false)]
 class LogServiceTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     private string|false $previousErrorLog;
     private string $logFile;
 
@@ -110,5 +118,74 @@ class LogServiceTest extends TestCase
         $this->assertStringContainsString('token=[REDACTED]', $contents);
         $this->assertStringContainsString('j***@gmail.com', $contents);
         $this->assertStringContainsString('Bearer [REDACTED]', $contents);
+    }
+
+    public function testCleanupUsesResolvedAtForResolvedOnlyCleanup(): void
+    {
+        $this->forceDbAvailable();
+
+        $query = Mockery::mock();
+        $errorLogModel = Mockery::mock('alias:Application\Models\ErrorLog');
+
+        $errorLogModel
+            ->shouldReceive('query')
+            ->once()
+            ->andReturn($query);
+
+        $query
+            ->shouldReceive('whereNotNull')
+            ->once()
+            ->with('resolved_at')
+            ->andReturnSelf();
+
+        $query
+            ->shouldReceive('where')
+            ->once()
+            ->with('resolved_at', '<', Mockery::type(\Carbon\Carbon::class))
+            ->andReturnSelf();
+
+        $query
+            ->shouldReceive('delete')
+            ->once()
+            ->andReturn(8);
+
+        $this->assertSame(8, LogService::cleanup(30));
+    }
+
+    public function testCleanupCanIncludeUnresolvedLogsUsingCreatedAt(): void
+    {
+        $this->forceDbAvailable();
+
+        $query = Mockery::mock();
+        $errorLogModel = Mockery::mock('alias:Application\Models\ErrorLog');
+
+        $errorLogModel
+            ->shouldReceive('query')
+            ->once()
+            ->andReturn($query);
+
+        $query
+            ->shouldReceive('where')
+            ->once()
+            ->with('created_at', '<', Mockery::type(\Carbon\Carbon::class))
+            ->andReturnSelf();
+
+        $query
+            ->shouldReceive('delete')
+            ->once()
+            ->andReturn(21);
+
+        $this->assertSame(21, LogService::cleanup(90, true));
+    }
+
+    private function forceDbAvailable(): void
+    {
+        $dbEnabled = new \ReflectionProperty(LogService::class, 'dbEnabled');
+        $dbEnabled->setAccessible(true);
+        $dbEnabled->setValue(true);
+
+        $dbChecked = new \ReflectionProperty(LogService::class, 'dbChecked');
+        $dbChecked->setAccessible(true);
+        $dbChecked->setValue(true);
     }
 }

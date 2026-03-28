@@ -7,6 +7,6 @@
   gap: var(--spacing-4);
   margin-top: var(--spacing-8);
   padding-top: var(--spacing-6);
-  border-top: 2px solid var(--color-card-border);
+  border-top: 1px solid var(--surface-modal-border, var(--color-card-border));
 }
 

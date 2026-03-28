@@ -23,9 +23,12 @@
                 </h2>
 
                 <!-- Subtítulo -->
-                <p class="text-lg sm:text-xl text-center text-gray-600 mb-8 max-w-2xl mx-auto">
+                <p class="text-lg sm:text-xl text-center text-gray-600 mb-4 max-w-2xl mx-auto">
                     O Lukrato foi criado para simplificar sua vida financeira.
                     Você começa grátis e só evolui para o Pro se fizer sentido para você.
+                </p>
+                <p class="text-base text-center text-gray-500 mb-8 max-w-2xl mx-auto font-medium">
+                    O Lukrato <strong class="text-gray-700">nunca acessa sua conta bancária</strong>. Você registra manualmente ou via IA. Sempre no seu controle.
                 </p>
 
                 <!-- Lista de garantias -->
@@ -37,7 +40,7 @@
                         </div>
                         <div class="flex-1 pt-2">
                             <p class="text-lg text-gray-800 font-medium">
-                                Comece grátis, sem cartão de crédito
+                                Grátis de verdade — sem cartão, sem surpresas
                             </p>
                         </div>
                     </li>
@@ -49,7 +52,7 @@
                         </div>
                         <div class="flex-1 pt-2">
                             <p class="text-lg text-gray-800 font-medium">
-                                Cancele quando quiser, direto pelo sistema
+                                Cancele em 2 cliques, quando quiser
                             </p>
                         </div>
                     </li>
@@ -61,7 +64,7 @@
                         </div>
                         <div class="flex-1 pt-2">
                             <p class="text-lg text-gray-800 font-medium">
-                                Seus dados são privados e protegidos
+                                Criptografia + LGPD. Seus dados nunca são compartilhados.
                             </p>
                         </div>
                     </li>
@@ -69,15 +72,14 @@
 
                 <!-- CTA -->
                 <div class="text-center">
-                    <a href="<?= BASE_URL ?>login"
-                        class="inline-flex items-center justify-center px-10 py-5 text-lg font-semibold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 mb-4">
-                        Começar grátis agora
-                        <i data-lucide="arrow-right" class="ml-3"></i>
-                    </a>
-                    <p class="text-sm text-gray-500">
-                        <i data-lucide="clock" class="mr-2"></i>
-                        Leva menos de 2 minutos para começar
-                    </p>
+                    <div class="flex flex-col items-center">
+                        <a href="<?= BASE_URL ?>login"
+                            class="group inline-flex items-center justify-center px-10 py-5 text-lg font-bold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 mb-2">
+                            Criar conta segura e gratuita
+                            <i data-lucide="arrow-right" class="ml-3 group-hover:translate-x-1 transition-transform"></i>
+                        </a>
+                        <span class="text-xs text-gray-400 font-medium">Dados protegidos por criptografia</span>
+                    </div>
                 </div>
 
             </div>

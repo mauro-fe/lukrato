@@ -76,23 +76,4 @@
 
 .paywall-message .btn-upgrade {
   margin-top: var(--spacing-3);
-  padding: var(--spacing-4) var(--spacing-8);
-  font-size: var(--font-size-lg);
-  font-weight: 700;
-  background: linear-gradient(
-    135deg,
-    var(--color-primary),
-    color-mix(in srgb, var(--color-primary) 80%, black)
-  );
-  border: none;
-  color: white;
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  transition: all var(--transition-normal);
-  box-shadow: 0 4px 16px rgba(230, 126, 34, 0.3);
-}
-
-.paywall-message .btn-upgrade:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(230, 126, 34, 0.4);
 }

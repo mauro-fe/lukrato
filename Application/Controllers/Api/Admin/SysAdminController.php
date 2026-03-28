@@ -250,16 +250,34 @@ class SysAdminController extends BaseController
 
         $payload = $this->getRequestPayload();
         $days = isset($payload['days']) ? (int) $payload['days'] : $this->getIntQuery('days', 30);
+        $includeUnresolved = $this->toBool(
+            $payload['include_unresolved'] ?? $this->getQuery('include_unresolved'),
+            false
+        );
 
         try {
-            $deleted = $this->opsService->cleanupErrorLogs($days);
+            $deleted = $this->opsService->cleanupErrorLogs($days, $includeUnresolved);
+            $message = $includeUnresolved
+                ? "{$deleted} log(s) com mais de {$days} dia(s) removido(s)"
+                : "{$deleted} log(s) resolvido(s) há mais de {$days} dia(s) removido(s)";
 
             return Response::successResponse([
                 'count' => $deleted,
-            ], "{$deleted} log(s) antigo(s) removido(s)");
+                'days' => $days,
+                'include_unresolved' => $includeUnresolved,
+            ], $message);
         } catch (Throwable $e) {
             return $this->internalErrorResponse($e, 'Erro ao limpar logs.');
         }
+    }
+
+    private function toBool(mixed $value, bool $default = false): bool
+    {
+        if ($value === null || $value === '') {
+            return $default;
+        }
+
+        return in_array($value, [true, 1, '1', 'true', 'yes', 'on'], true);
     }
 
     public function clearCache(): Response

@@ -3,21 +3,17 @@
    Extraído de views/admin/partials/modals/modal-meses.php
    ============================================= */
 
+#monthModal,
+#yearModal {
+    --surface-modal-accent: var(--color-primary);
+}
+
 #monthModal .modal-content {
-    background: var(--color-bg) !important;
-    color: var(--color-text);
-    border-radius: var(--radius-xl);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-xl);
     font-family: var(--font-primary);
-    backdrop-filter: var(--glass-backdrop);
     overflow: hidden;
 }
 
 #monthModal .modal-header {
-    border: 0;
-    background: var(--glass-bg);
-    color: var(--color-text);
     padding: var(--spacing-5) var(--spacing-6);
     position: relative;
 }
@@ -37,16 +33,12 @@
 }
 
 #monthModal .modal-footer {
-    border: 0;
-    background: transparent;
-    color: var(--color-text);
     padding: var(--spacing-4) var(--spacing-6) var(--spacing-5);
 }
 
 #monthModal .modal-title {
     font-size: var(--font-size-xl);
     font-weight: 700;
-    color: var(--color-primary);
     letter-spacing: -0.02em;
 }
 
@@ -59,7 +51,6 @@
 }
 
 #monthModal .btn-close:hover {
-    opacity: 1;
     transform: rotate(90deg);
 }
 
@@ -115,31 +106,6 @@
     opacity: 0.1;
 }
 
-#monthModal .btn-outline-light,
-#monthModal .btn-secondary,
-#monthModal .btn-outline-secondary {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    color: var(--color-text);
-    padding: var(--spacing-2) var(--spacing-3);
-}
-
-#monthModal .btn-outline-light:hover,
-#monthModal .btn-secondary:hover,
-#monthModal .btn-outline-secondary:hover {
-    background: var(--color-primary);
-    color: white !important;
-    border-color: var(--color-primary);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-#monthModal .btn-outline-light:active,
-#monthModal .btn-secondary:active,
-#monthModal .btn-outline-secondary:active {
-    transform: translateY(0);
-}
-
 #monthModal .btn-outline-light.btn-sm {
     width: 36px;
     height: 36px;
@@ -147,21 +113,6 @@
     align-items: center;
     justify-content: center;
     padding: 0;
-}
-
-#monthModal .btn-primary {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
-    color: white;
-    padding: var(--spacing-3) var(--spacing-5);
-    font-weight: 600;
-}
-
-#monthModal .btn-primary:hover {
-    background: var(--color-secondary);
-    border-color: var(--color-secondary);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
 }
 
 #monthModal #mpTodayBtn {
@@ -378,16 +329,9 @@
 
 /* Year Modal */
 #yearModal .modal-content {
-    background: var(--color-bg) !important;
-    color: var(--color-text);
-    border-radius: var(--radius-xl);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-xl);
 }
 
 #yearModal .modal-header {
-    border: 0;
-    background: var(--glass-bg);
 }
 
 #yearModal .modal-body {

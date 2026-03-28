@@ -41,6 +41,24 @@ function getCategoryIcon(categoryName) {
 }
 
 export const TableManager = {
+    handleActionButton(btn) {
+        if (!btn) return;
+
+        const action = btn.dataset.action;
+        const id = btn.dataset.id;
+        if (!id) return;
+
+        const item = STATE.filteredData.find(i => String(i.id) === String(id));
+        if (!item) return;
+
+        if (action === 'expand') { this.toggleDetailPanel(id, btn); return; }
+        if (action === 'edit') handleEdit(item);
+        if (action === 'delete') handleDelete(id, item, btn);
+        if (action === 'marcar-pago') handleMarcarPago(id, btn);
+        if (action === 'desmarcar-pago') handleDesmarcarPago(id, btn);
+        if (action === 'cancelar-recorrencia') handleCancelarRecorrencia(id, btn);
+    },
+
     init() {
         // Sortable buttons (feed toolbar)
         const sortableHeaders = document.querySelectorAll('.lk-feed-sort-btn.sortable[data-sort], .sortable[data-sort]');
@@ -623,7 +641,8 @@ export const TableManager = {
                 trigger: dropdownTrigger,
                 dropdown,
                 menu,
-                card
+                card,
+                onItemClick: (itemBtn) => this.handleActionButton(itemBtn)
             });
             if (!opened) return;
             if (window.lucide) lucide.createIcons();
@@ -637,18 +656,7 @@ export const TableManager = {
 
         const btn = e.target.closest('button[data-action]');
         if (!btn) return;
-        const action = btn.dataset.action;
-        const id = btn.dataset.id;
-        if (!id) return;
-        const item = STATE.filteredData.find(i => String(i.id) === String(id));
-        if (!item) return;
-
-        if (action === 'expand') { this.toggleDetailPanel(id, btn); return; }
-        if (action === 'edit') handleEdit(item);
-        if (action === 'delete') handleDelete(id, item, btn);
-        if (action === 'marcar-pago') handleMarcarPago(id, btn);
-        if (action === 'desmarcar-pago') handleDesmarcarPago(id, btn);
-        if (action === 'cancelar-recorrencia') handleCancelarRecorrencia(id, btn);
+        this.handleActionButton(btn);
     },
 
     toggleDetailPanel(id, btn) {

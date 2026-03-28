@@ -22,9 +22,7 @@
 }
 
 .modal-container {
-    background: var(--color-bg);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-xl);
+    --surface-modal-accent: #0ea5e9;
     max-width: 600px;
     width: 100%;
     max-height: 90vh;
@@ -59,12 +57,9 @@
 /* Header */
 .modal-header {
     padding: var(--spacing-6);
-    border-bottom: 1px solid var(--glass-border);
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    background: var(--color-primary);
-    color: white;
     position: relative;
 }
 
@@ -78,7 +73,6 @@
     width: 48px;
     height: 48px;
     border-radius: var(--radius-md);
-    background: rgba(255, 255, 255, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -89,23 +83,17 @@
     font-size: var(--font-size-xl);
     font-weight: 700;
     margin: 0;
-    color: white;
 }
 
 .modal-subtitle {
     font-size: var(--font-size-sm);
-    opacity: 0.9;
     margin: var(--spacing-1) 0 0;
-    color: white;
 }
 
 .modal-close {
     width: 36px !important;
     height: 36px !important;
     border-radius: var(--radius-md) !important;
-    background: rgba(255, 255, 255, 0.15) !important;
-    border: none !important;
-    color: white !important;
     cursor: pointer !important;
     display: flex !important;
     align-items: center !important;
@@ -118,7 +106,6 @@
 }
 
 .modal-close:hover {
-    background: rgba(255, 255, 255, 0.25);
     transform: scale(1.1);
 }
 
@@ -240,10 +227,8 @@
 /* Footer */
 .modal-footer {
     padding: var(--spacing-6);
-    border-top: 1px solid var(--glass-border);
     display: flex;
     gap: var(--spacing-3);
-    background: var(--color-bg);
     justify-content: flex-end;
 }
 
@@ -259,27 +244,6 @@
     gap: var(--spacing-2);
     transition: all var(--transition-normal);
     justify-content: center;
-}
-
-.btn-secondary {
-    background: var(--glass-bg);
-    color: var(--color-text);
-    border: 1px solid var(--glass-border);
-}
-
-.btn-secondary:hover {
-    background: var(--color-surface-muted);
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, var(--color-primary) 0%, #c0392b 100%);
-    color: white;
-    box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(230, 126, 34, 0.4);
 }
 
 #btnSalvarCartao[aria-busy="true"] {
@@ -346,20 +310,6 @@
         margin: 0 !important;
     }
 
-    .modal-footer .btn-secondary {
-        background: rgba(30, 41, 59, 0.6) !important;
-        border: 2px solid rgba(148, 163, 184, 0.3) !important;
-        color: #e2e8f0 !important;
-    }
-
-    .modal-footer .btn-secondary:hover {
-        background: rgba(30, 41, 59, 0.8) !important;
-    }
-
-    .modal-footer .btn-primary {
-        background: linear-gradient(135deg, var(--color-primary) 0%, #c0392b 100%) !important;
-        border: none !important;
-    }
 }
 
 /* Para telas muito pequenas */

@@ -18,6 +18,12 @@ import { apiDelete, apiGet, apiPost, apiPut, getErrorMessage } from '../shared/a
 import { escapeHtml } from '../shared/utils.js';
 
 const BASE_URL = (window.LK?.getBase?.() || '/');
+const cleanupLogsModalEl = document.getElementById('cleanupLogsModal');
+const cleanupLogsDaysEl = document.getElementById('cleanupLogsDays');
+const cleanupLogsIncludeUnresolvedEl = document.getElementById('cleanupLogsIncludeUnresolved');
+const cleanupLogsHintEl = document.getElementById('cleanupLogsModalHint');
+const cleanupLogsConfirmBtn = document.getElementById('cleanupLogsConfirmBtn');
+let cleanupLogsModalInstance = null;
 
 function setButtonLoading(button, isLoading) {
     if (!button) return;
@@ -831,32 +837,70 @@ async function resolveErrorLog(logId) {
 }
 
 function confirmCleanupLogs() {
-    Swal.fire({
-        title: 'Limpar Logs Antigos?',
-        html: `<p class="text-muted mb-3">Remove logs <strong>resolvidos</strong> com mais de X dias.</p>
-            <select id="cleanupDays" class="swal2-select" style="width:100%;">
-                <option value="7">Mais de 7 dias</option><option value="15">Mais de 15 dias</option>
-                <option value="30" selected>Mais de 30 dias</option><option value="60">Mais de 60 dias</option>
-                <option value="90">Mais de 90 dias</option>
-            </select>`,
-        icon: 'warning', showCancelButton: true, confirmButtonColor: '#e74c3c', cancelButtonColor: '#95a5a6',
-        confirmButtonText: 'Sim, limpar!', cancelButtonText: 'Cancelar',
-        preConfirm: () => document.getElementById('cleanupDays').value
-    }).then(async (result) => {
-        if (result.isConfirmed) {
-            try {
-                const data = await window.CsrfManager.fetchJson(`${BASE_URL}api/sysadmin/error-logs/cleanup`, {
-                    method: 'DELETE', body: JSON.stringify({ days: parseInt(result.value) })
-                });
-                if (data.success) {
-                    LKFeedback.success(data.message || `${data.data?.deleted || 0} logs removidos.`, { toast: true });
-                    loadErrorLogs();
-                } else {
-                    LKFeedback.error(data.message || 'Erro na limpeza');
-                }
-            } catch (e) { console.error('Erro cleanup:', e); LKFeedback.error(getErrorMessage(e, 'Erro ao limpar logs')); }
+    if (!cleanupLogsModalEl || !window.bootstrap?.Modal) {
+        LKFeedback.error('Modal de limpeza indisponível no momento.');
+        return;
+    }
+
+    cleanupLogsDaysEl.value = '30';
+    cleanupLogsIncludeUnresolvedEl.checked = false;
+    updateCleanupLogsModalState();
+
+    cleanupLogsModalInstance ??= new window.bootstrap.Modal(cleanupLogsModalEl);
+    cleanupLogsModalInstance.show();
+}
+
+function updateCleanupLogsModalState() {
+    if (!cleanupLogsDaysEl || !cleanupLogsHintEl || !cleanupLogsConfirmBtn) return;
+
+    const days = Math.max(1, parseInt(cleanupLogsDaysEl.value || '30', 10));
+    const includeUnresolved = !!cleanupLogsIncludeUnresolvedEl?.checked;
+    const label = cleanupLogsConfirmBtn.querySelector('span');
+
+    if (includeUnresolved) {
+        cleanupLogsHintEl.innerHTML = `Serão removidos <strong>todos</strong> os logs criados há mais de <strong>${days} dias</strong>, inclusive não resolvidos. Use esta opção só quando quiser podar o histórico completo.`;
+        cleanupLogsHintEl.classList.add('is-danger');
+        if (label) label.textContent = 'Limpar todos os antigos';
+        return;
+    }
+
+    cleanupLogsHintEl.innerHTML = `Serão removidos apenas logs <strong>resolvidos</strong> há mais de <strong>${days} dias</strong>. Logs ainda abertos serão preservados.`;
+    cleanupLogsHintEl.classList.remove('is-danger');
+    if (label) label.textContent = 'Limpar resolvidos antigos';
+}
+
+async function submitCleanupLogs() {
+    if (!cleanupLogsDaysEl || !cleanupLogsConfirmBtn) return;
+
+    const days = Math.max(1, parseInt(cleanupLogsDaysEl.value || '30', 10));
+    const includeUnresolved = !!cleanupLogsIncludeUnresolvedEl?.checked;
+
+    try {
+        setButtonLoading(cleanupLogsConfirmBtn, true);
+
+        const data = await window.CsrfManager.fetchJson(`${BASE_URL}api/sysadmin/error-logs/cleanup`, {
+            method: 'DELETE',
+            body: JSON.stringify({
+                days,
+                include_unresolved: includeUnresolved,
+            })
+        });
+
+        if (!data.success) {
+            LKFeedback.error(data.message || 'Erro na limpeza');
+            return;
         }
-    });
+
+        cleanupLogsModalInstance?.hide();
+        LKFeedback.success(data.message || `${data.data?.count || 0} logs removidos.`, { toast: true });
+        errorLogsCurrentPage = 1;
+        loadErrorLogs(1);
+    } catch (e) {
+        console.error('Erro cleanup:', e);
+        LKFeedback.error(getErrorMessage(e, 'Erro ao limpar logs'));
+    } finally {
+        setButtonLoading(cleanupLogsConfirmBtn, false);
+    }
 }
 
 function startErrorLogsAutoRefresh() {
@@ -1327,6 +1371,20 @@ if (feedbackFiltersForm) {
         loadFeedbackList();
     });
 }
+
+if (cleanupLogsModalEl && window.lucide) {
+    lucide.createIcons({ nodes: [cleanupLogsModalEl] });
+}
+
+if (cleanupLogsModalEl) {
+    cleanupLogsModalEl.addEventListener('shown.bs.modal', () => {
+        cleanupLogsDaysEl?.focus();
+    });
+}
+
+cleanupLogsDaysEl?.addEventListener('change', updateCleanupLogsModalState);
+cleanupLogsIncludeUnresolvedEl?.addEventListener('change', updateCleanupLogsModalState);
+cleanupLogsConfirmBtn?.addEventListener('click', submitCleanupLogs);
 
 // Auto-refresh toggle
 const autoRefreshToggle = document.getElementById('errorLogsAutoRefresh');

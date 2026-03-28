@@ -40,7 +40,8 @@ class RelatoriosController extends BaseController
             $pdfExport,
             $excelExport,
             $insightsService,
-            $comparativesService
+            $comparativesService,
+            new \Application\Services\Gamification\GamificationService()
         );
     }
 

@@ -488,12 +488,12 @@ $isLandingPage = $isLandingPage ?? false;
                         aria-label="Entrar na sua conta">
                         <i data-lucide="user" class="text-sm transition-transform group-hover:scale-110"
                             aria-hidden="true"></i>
-                        <span>Entrar</span>
+                        <span>Entrar na minha conta</span>
                     </a>
                     <a href="<?= BASE_URL ?>login?tab=register"
                         class="inline-flex items-center gap-2 px-7 py-2.5 bg-gradient-to-r from-primary via-orange-500 to-orange-600 text-white font-bold rounded-full shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/40 hover:scale-105 active:scale-95 transition-all duration-300 group"
-                        aria-label="Começar a usar grátis">
-                        <span>Começar grátis</span>
+                        aria-label="Criar conta grátis">
+                        <span>Criar conta grátis</span>
                         <i data-lucide="arrow-right" class="text-sm transition-transform group-hover:translate-x-1"
                             aria-hidden="true"></i>
                     </a>
@@ -624,12 +624,12 @@ $isLandingPage = $isLandingPage ?? false;
                     class="inline-flex items-center justify-center gap-2 px-6 py-3 text-gray-700 dark:text-gray-200 hover:text-primary font-semibold border-2 border-gray-200 dark:border-white/20 rounded-xl hover:border-primary transition-all duration-300"
                     aria-label="Entrar">
                     <i data-lucide="user" aria-hidden="true"></i>
-                    <span>Entrar</span>
+                    <span>Entrar na minha conta</span>
                 </a>
                 <a href="<?= BASE_URL ?>login?tab=register"
                     class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary via-orange-500 to-orange-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
-                    aria-label="Começar a usar grátis">
-                    <span>Começar grátis</span>
+                    aria-label="Criar conta grátis">
+                    <span>Criar conta grátis</span>
                     <i data-lucide="arrow-right" aria-hidden="true"></i>
                 </a>
             </div>

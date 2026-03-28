@@ -438,3 +438,4 @@
 <?php include __DIR__ . '/../partials/modals/editar-lancamentos.php'; ?>
 <?php include __DIR__ . '/../partials/modals/visualizar-lancamento.php'; ?>
 <?php include __DIR__ . '/../partials/modals/editar-transferencia.php'; ?>
+<?php include __DIR__ . '/../partials/modals/excluir-lancamento-escopo.php'; ?>

@@ -7,7 +7,8 @@ function getMenuState(menu) {
             dropdown: null,
             card: null,
             placeholder: null,
-            cleanupFns: []
+            cleanupFns: [],
+            onItemClick: null
         };
     }
 
@@ -105,20 +106,32 @@ function bindCloseHandlers(menu, dropdown) {
         }
     };
 
+    const handleMenuItemClick = (event) => {
+        const item = event.target.closest('.lk-dropdown-item');
+        if (!item || !menu.contains(item)) {
+            return;
+        }
+
+        closeDropdownMenu(menu);
+        state.onItemClick?.(item, event);
+    };
+
     document.addEventListener('click', handleDocumentClick, true);
     window.addEventListener('scroll', handleWindowChange, true);
     window.addEventListener('resize', handleWindowChange);
     document.addEventListener('keydown', handleEscape, true);
+    menu.addEventListener('click', handleMenuItemClick);
 
     state.cleanupFns = [
         () => document.removeEventListener('click', handleDocumentClick, true),
         () => window.removeEventListener('scroll', handleWindowChange, true),
         () => window.removeEventListener('resize', handleWindowChange),
-        () => document.removeEventListener('keydown', handleEscape, true)
+        () => document.removeEventListener('keydown', handleEscape, true),
+        () => menu.removeEventListener('click', handleMenuItemClick)
     ];
 }
 
-export function toggleDropdownMenu({ trigger, dropdown, menu, card }) {
+export function toggleDropdownMenu({ trigger, dropdown, menu, card, onItemClick = null }) {
     if (!trigger || !dropdown || !menu) return false;
 
     if (menu.classList.contains('open')) {
@@ -131,6 +144,7 @@ export function toggleDropdownMenu({ trigger, dropdown, menu, card }) {
     const state = getMenuState(menu);
     state.dropdown = dropdown;
     state.card = card || trigger.closest('.lk-txn-card') || null;
+    state.onItemClick = typeof onItemClick === 'function' ? onItemClick : null;
     dropdown._lkDropdownMenu = menu;
 
     if (menu.parentElement !== document.body) {

@@ -546,18 +546,25 @@ class LancamentoGlobalManager {
             overlay.classList.remove('active');
             document.body.style.overflow = '';
             this.pendingTipo = null;
-            const headerGradient = overlay.querySelector('.lk-modal-header-gradient');
-            if (headerGradient) headerGradient.style.setProperty('background', 'var(--color-primary)', 'important');
+            this.restaurarCabecalhoPadrao();
             this.initWizard();
+        }
+    }
+
+    restaurarCabecalhoPadrao() {
+        const tituloEl = document.getElementById('modalLancamentoGlobalTitulo');
+        if (tituloEl) tituloEl.textContent = 'Nova Movimentação';
+
+        const headerGradient = document.querySelector('#modalLancamentoGlobalOverlay .lk-modal-header-gradient');
+        if (headerGradient) {
+            headerGradient.classList.remove('receita', 'despesa', 'transferencia', 'agendamento');
+            headerGradient.style.removeProperty('background');
         }
     }
 
     voltarEscolhaTipo() {
         this.goToStep(1);
-        const tituloEl = document.getElementById('modalLancamentoGlobalTitulo');
-        if (tituloEl) tituloEl.textContent = 'Nova Movimentação';
-        const headerGradient = document.querySelector('#modalLancamentoGlobalOverlay .lk-modal-header-gradient');
-        if (headerGradient) headerGradient.style.setProperty('background', 'var(--color-primary)', 'important');
+        this.restaurarCabecalhoPadrao();
         this.resetarFormulario();
     }
 
@@ -567,6 +574,7 @@ class LancamentoGlobalManager {
         this.tipoAtual = null;
         this.totalSteps = 5;
         this.resetarFormulario();
+        this.restaurarCabecalhoPadrao();
 
         const contaInfo = document.getElementById('globalContaInfo');
         if (contaInfo) {
@@ -708,6 +716,10 @@ class LancamentoGlobalManager {
         }
 
         if (prev < 1) prev = 1;
+        if (prev === 1) {
+            this.voltarEscolhaTipo();
+            return;
+        }
         this.goToStep(prev);
     }
 

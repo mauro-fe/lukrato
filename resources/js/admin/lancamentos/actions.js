@@ -83,36 +83,10 @@ export async function handleDelete(id, item, triggerBtn) {
     let scope = 'single';
     const isRecorrente = item.recorrente && item.recorrencia_pai_id;
     const isParcelamento = !!item.parcelamento_id;
-
-    if (isRecorrente || isParcelamento) {
-        const tipoLabel = isRecorrente ? 'recorrÃªncia' : 'parcelamento';
-        const result = await Swal.fire({
-            title: 'Excluir lanÃ§amento',
-            html: `<p>Este lanÃ§amento faz parte de uma <strong>${tipoLabel}</strong>. O que deseja fazer?</p>`,
-            icon: 'question',
-            input: 'radio',
-            inputOptions: {
-                'single': 'Apenas este lanÃ§amento',
-                'future': 'Este e todos os futuros nÃ£o pagos',
-                'all': `Toda a ${tipoLabel}`
-            },
-            inputValue: 'single',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Excluir',
-            cancelButtonText: 'Cancelar',
-            inputValidator: (value) => !value ? 'Selecione uma opÃ§Ã£o' : undefined
-        });
-        if (!result.isConfirmed) return;
-        scope = result.value;
-    } else {
-        const ok = await Notifications.ask(
-            'Excluir lanÃ§amento?',
-            'Esta aÃ§Ã£o nÃ£o pode ser desfeita.'
-        );
-        if (!ok) return;
-    }
+    const mode = isRecorrente ? 'recorrencia' : (isParcelamento ? 'parcelamento' : 'single');
+    const result = await Modules.ModalManager.openDeleteScopeModal({ mode });
+    if (!result?.scope) return;
+    scope = result.scope;
 
     if (triggerBtn) triggerBtn.disabled = true;
     const okDel = await Modules.API.deleteOne(id, scope);
@@ -121,14 +95,18 @@ export async function handleDelete(id, item, triggerBtn) {
     if (okDel) {
         STATE.selectedIds.delete(String(id));
         const msgs = {
-            single: 'LanÃ§amento excluÃ­do com sucesso!',
-            future: 'LanÃ§amentos futuros excluÃ­dos!',
-            all: 'Toda a sÃ©rie excluÃ­da!'
+            single: 'Lancamento excluido com sucesso!',
+            future: isParcelamento
+                ? 'Parcelas futuras excluidas!'
+                : 'Lancamentos futuros excluidos!',
+            all: isParcelamento
+                ? 'Todo o parcelamento foi excluido!'
+                : 'Toda a recorrencia foi excluida!'
         };
-        Notifications.toast(msgs[scope] || 'ExcluÃ­do!');
+        Notifications.toast(msgs[scope] || 'Excluido!');
         await Modules.DataManager.load();
     } else {
-        Notifications.toast('Falha ao excluir lanÃ§amento.', 'error');
+        Notifications.toast('Falha ao excluir lancamento.', 'error');
     }
 }
 

@@ -2,6 +2,10 @@
    MODAL DE ORÃ‡AMENTO
    ============================================================================ */
 
+#modalOrcamento {
+  --surface-modal-accent: var(--color-primary);
+}
+
 .modal-content {
   background: var(--color-bg);
 }
@@ -10,34 +14,19 @@
 }
 
 #modalOrcamento .modal-content {
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-lg);
   font-family: var(--font-primary);
 }
 
 #modalOrcamento .modal-header {
-  border: 0;
-  background: var(--color-bg);
   padding: var(--spacing-4) var(--spacing-5);
 }
 
 #modalOrcamento .modal-title {
   font-size: var(--font-size-lg);
   font-weight: 600;
-  color: var(--color-primary);
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
-}
-
-#modalOrcamento .btn-close-custom {
-  filter: brightness(0) saturate(100%) invert(59%) sepia(61%) saturate(2423%)
-    hue-rotate(351deg) brightness(99%) contrast(89%);
-  opacity: 1;
-}
-
-#modalOrcamento .btn-close-custom:hover {
-  opacity: 0.8;
 }
 
 #modalOrcamento .modal-body {
@@ -115,25 +104,8 @@
 }
 
 #modalOrcamento .modal-footer {
-  border: 0;
-  background: transparent;
   padding: var(--spacing-3) var(--spacing-5) var(--spacing-4);
   gap: var(--spacing-2);
-}
-
-#modalOrcamento .btn-primary {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-}
-
-#modalOrcamento .btn-primary:hover {
-  filter: brightness(1.1);
-}
-
-#modalOrcamento .btn-secondary {
-  background: var(--color-surface-muted, #333);
-  border-color: var(--glass-border);
-  color: var(--color-text-muted);
 }
 
 #modalOrcamento .btn-outline-danger {

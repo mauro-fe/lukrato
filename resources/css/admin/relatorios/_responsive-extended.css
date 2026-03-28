@@ -666,14 +666,6 @@ canvas {
 
 /* Hover apenas para dispositivos com mouse */
 @media (hover: hover) {
-  .card-item:hover {
-    transform: translateY(-6px);
-  }
-
-  .stat-card:hover {
-    transform: translateY(-5px);
-  }
-
   .comparative-item-new:hover {
     transform: translateY(-2px);
   }

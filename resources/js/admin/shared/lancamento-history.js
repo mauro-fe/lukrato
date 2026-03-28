@@ -69,7 +69,7 @@ export function renderLancamentoHistory(containerEl, lancamentos, contaId, empty
         const dataFormatada = formatHistoryDate(lancamento?.data);
 
         return `
-            <div class="lk-historico-item lk-historico-${tipoClass}">
+            <div class="lk-historico-item surface-card lk-historico-${tipoClass}">
                 <div class="lk-historico-icon">
                     <i data-lucide="${tipoIcon}"></i>
                 </div>

@@ -306,18 +306,11 @@
 .card-item {
   background: var(--color-bg);
   backdrop-filter: var(--glass-backdrop);
-  border: 1px solid var(--glass-border);
   border-top: 4px solid var(--card-color);
-  border-radius: var(--radius-xl);
-  transition: all var(--transition-smooth);
-  box-shadow: var(--shadow-md);
   position: relative;
-  overflow: hidden;
 }
 
 .card-item:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
   border-color: var(--card-color);
   border-top-width: 4px;
 }

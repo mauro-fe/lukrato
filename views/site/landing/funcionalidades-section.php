@@ -12,13 +12,13 @@
             </div>
             <h2 id="funcionalidades-titulo"
                 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight mb-4">
-                Tudo que você precisa para organizar suas
+                Tudo num só lugar.
                 <span class="bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
-                    finanças pessoais
+                    Sem complicação.
                 </span>
             </h2>
             <p class="text-lg sm:text-xl text-gray-600 leading-relaxed">
-                Ferramentas práticas e intuitivas para acompanhar cada centavo do seu dinheiro.
+                Ferramentas que fazem sentido para quem quer organizar o dinheiro de verdade.
             </p>
         </header>
 
@@ -32,10 +32,9 @@
                     aria-hidden="true">
                     <i data-lucide="line-chart" class="w-6 h-6"></i>
                 </div>
-                <h3 class="font-bold text-lg text-gray-900 mb-2">Dashboard inteligente</h3>
+                <h3 class="font-bold text-lg text-gray-900 mb-2">Visão completa do seu dinheiro</h3>
                 <p class="text-gray-600 text-sm leading-relaxed">
-                    Visão consolidada do mês com saldo, receitas, despesas e gráficos.
-                    Tudo que você precisa saber em uma única tela.
+                    Saldo, receitas, despesas e gráficos. Tudo o que importa numa única tela.
                 </p>
             </article>
 
@@ -46,10 +45,9 @@
                     aria-hidden="true">
                     <i data-lucide="receipt" class="w-6 h-6"></i>
                 </div>
-                <h3 class="font-bold text-lg text-gray-900 mb-2">Lançamentos completos</h3>
+                <h3 class="font-bold text-lg text-gray-900 mb-2">Registre tudo: receitas, despesas, parcelas</h3>
                 <p class="text-gray-600 text-sm leading-relaxed">
-                    Registre receitas, despesas, recorrências e marque como pago.
-                    Controle total sobre cada movimentação financeira.
+                    Recorrências, parcelamentos e marcação de pago. Controle cada movimentação.
                 </p>
             </article>
 
@@ -60,10 +58,9 @@
                     aria-hidden="true">
                     <i data-lucide="credit-card" class="w-6 h-6"></i>
                 </div>
-                <h3 class="font-bold text-lg text-gray-900 mb-2">Cartões de crédito</h3>
+                <h3 class="font-bold text-lg text-gray-900 mb-2">Controle total dos seus cartões</h3>
                 <p class="text-gray-600 text-sm leading-relaxed">
-                    Gerencie faturas, parcelas, recorrências e limites de cada cartão.
-                    Nunca mais perca o controle.
+                    Faturas, parcelas, recorrências e limites. Nunca mais perca o controle.
                 </p>
             </article>
 
@@ -74,10 +71,9 @@
                     aria-hidden="true">
                     <i data-lucide="pie-chart" class="w-6 h-6"></i>
                 </div>
-                <h3 class="font-bold text-lg text-gray-900 mb-2">Relatórios visuais</h3>
+                <h3 class="font-bold text-lg text-gray-900 mb-2">Gráficos que mostram a verdade</h3>
                 <p class="text-gray-600 text-sm leading-relaxed">
-                    Gráficos, comparativos e insights sobre seus hábitos de consumo.
-                    Entenda para onde vai o seu dinheiro.
+                    Comparativos e insights visuais sobre seus hábitos. Descubra para onde vai seu dinheiro.
                 </p>
             </article>
 
@@ -88,10 +84,9 @@
                     aria-hidden="true">
                     <i data-lucide="target" class="w-6 h-6"></i>
                 </div>
-                <h3 class="font-bold text-lg text-gray-900 mb-2">Metas financeiras</h3>
+                <h3 class="font-bold text-lg text-gray-900 mb-2">Defina metas e veja seu progresso</h3>
                 <p class="text-gray-600 text-sm leading-relaxed">
-                    Defina objetivos como viagens, reserva de emergência ou compras.
-                    Acompanhe o progresso dos seus aportes.
+                    Viagem, reserva, compra dos sonhos. Acompanhe cada aporte em tempo real.
                 </p>
             </article>
 
@@ -102,10 +97,9 @@
                     aria-hidden="true">
                     <i data-lucide="wallet" class="w-6 h-6"></i>
                 </div>
-                <h3 class="font-bold text-lg text-gray-900 mb-2">Orçamentos por categoria</h3>
+                <h3 class="font-bold text-lg text-gray-900 mb-2">Saiba quando parar de gastar</h3>
                 <p class="text-gray-600 text-sm leading-relaxed">
-                    Defina limites de gastos por categoria e receba alertas.
-                    Mantenha seu orçamento pessoal sempre sob controle.
+                    Limites por categoria com alertas automáticos. Seu orçamento sempre no controle.
                 </p>
             </article>
 
@@ -114,12 +108,15 @@
         <!-- CTA -->
         <div class="text-center" data-aos="fade-up">
             <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                <a href="<?= BASE_URL ?>login"
-                    class="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300"
-                    title="Começar a usar o Lukrato grátis" aria-label="Criar conta gratuita">
-                    Começar grátis
-                    <i data-lucide="arrow-right" class="ml-2 w-5 h-5" aria-hidden="true"></i>
-                </a>
+                <div class="flex flex-col items-center">
+                    <a href="<?= BASE_URL ?>login"
+                        class="group inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 hover:scale-[1.03] active:scale-[0.98] transition-all duration-300"
+                        title="Experimentar o Lukrato agora" aria-label="Experimentar agora">
+                        Experimentar agora
+                        <i data-lucide="arrow-right" class="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" aria-hidden="true"></i>
+                    </a>
+                    <span class="text-xs text-gray-400 mt-2 font-medium">Leva menos de 1 minuto</span>
+                </div>
 
                 <button type="button" id="openGalleryBtn" @click="$dispatch('open-gallery')"
                     onclick="document.getElementById('galleryModal').style.display='flex'"

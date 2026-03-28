@@ -123,9 +123,9 @@ class SysAdminOpsService
         return LogService::resolve($id, $userId);
     }
 
-    public function cleanupErrorLogs(int $days): int
+    public function cleanupErrorLogs(int $days, bool $includeUnresolved = false): int
     {
-        return LogService::cleanup(max(7, $days));
+        return LogService::cleanup(max(7, $days), $includeUnresolved);
     }
 
     /**

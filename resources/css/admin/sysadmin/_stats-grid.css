@@ -10,7 +10,6 @@
 }
 
 .stat-card {
-  background: var(--glass-bg);
   backdrop-filter: var(--glass-backdrop);
   -webkit-backdrop-filter: var(--glass-backdrop);
   border: 1px solid var(--glass-border);

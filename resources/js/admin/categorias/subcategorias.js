@@ -189,7 +189,7 @@ function renderSubcategoriaItem(sub, query = '') {
     return `
         <div class="subcat-item ${isMatch ? 'match-highlight' : ''}" data-subcat-id="${sub.id}">
             <div class="subcat-item-icon" style="color:${color}">
-                <i data-lucide="${icon}"></i>
+                <i data-lucide="${icon}" style="color:${color}"></i>
             </div>
             <span class="subcat-item-name">${escapeHtml(sub.nome)}</span>
             ${isOwn ? `
@@ -221,12 +221,13 @@ function refreshSubcategoriasList(categoriaId) {
  */
 function renderInlineAddForm(categoriaId) {
     const selectedIcon = STATE.inlineSubcategoriaIcon[categoriaId] || 'tag';
+    const selectedColor = ICON_COLORS[selectedIcon] || '#94a3b8';
     return `
         <div class="subcat-add-form-inline" data-inline-form-cat="${categoriaId}">
             <button type="button" class="subcat-icon-btn" data-inline-icon-picker="${categoriaId}"
                     title="Escolher ícone">
                 <span class="inline-icon-preview" data-inline-icon-preview="${categoriaId}">
-                    <i data-lucide="${selectedIcon}"></i>
+                    <i data-lucide="${selectedIcon}" style="color:${selectedColor}"></i>
                 </span>
             </button>
             <input type="text" class="form-control form-control-sm"
@@ -270,7 +271,7 @@ async function handleAddSubcategoriaInline(categoriaId) {
         delete STATE.inlineSubcategoriaIcon[categoriaId];
         const iconPreview = document.querySelector(`[data-inline-icon-preview="${categoriaId}"]`);
         if (iconPreview) {
-            iconPreview.innerHTML = '<i data-lucide="tag"></i>';
+            iconPreview.innerHTML = '<i data-lucide="tag" style="color:#94a3b8"></i>';
         }
 
         // Fechar icon picker se estiver aberto
@@ -389,6 +390,7 @@ function cancelInlineEdit(subcatId) {
 function toggleInlineIconPicker(categoriaId) {
     const panel = document.querySelector(`[data-inline-icon-panel="${categoriaId}"]`);
     if (!panel) return;
+    const selectedIcon = STATE.inlineSubcategoriaIcon[categoriaId] || 'tag';
 
     const isHidden = panel.classList.contains('d-none');
     if (isHidden) {
@@ -396,10 +398,11 @@ function toggleInlineIconPicker(categoriaId) {
         const grid = panel.querySelector(`[data-inline-icon-grid="${categoriaId}"]`);
         if (grid && !grid.dataset.ready) {
             grid.innerHTML = AVAILABLE_ICONS.map(ic => `
-                <button type="button" class="icon-grid-item" data-inline-select-icon="${ic.name}"
+                <button type="button" class="icon-grid-item ${selectedIcon === ic.name ? 'selected' : ''}" data-inline-select-icon="${ic.name}"
                         data-icon-cat="${categoriaId}"
-                        title="${ic.label}" aria-label="${ic.label}">
-                    <i data-lucide="${ic.name}"></i>
+                        title="${ic.label}" aria-label="${ic.label}"
+                        style="color:${ICON_COLORS[ic.name] || '#94a3b8'}">
+                    <i data-lucide="${ic.name}" style="color:${ICON_COLORS[ic.name] || '#94a3b8'}"></i>
                 </button>
             `).join('');
             grid.dataset.ready = '1';
@@ -416,9 +419,10 @@ function toggleInlineIconPicker(categoriaId) {
  */
 function selectInlineIcon(categoriaId, iconName) {
     STATE.inlineSubcategoriaIcon[categoriaId] = iconName;
+    const iconColor = ICON_COLORS[iconName] || '#94a3b8';
     const preview = document.querySelector(`[data-inline-icon-preview="${categoriaId}"]`);
     if (preview) {
-        preview.innerHTML = `<i data-lucide="${iconName}"></i>`;
+        preview.innerHTML = `<i data-lucide="${iconName}" style="color:${iconColor}"></i>`;
         Utils.processNewIcons();
     }
     // Highlight

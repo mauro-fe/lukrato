@@ -284,14 +284,24 @@ class LogService
     /**
      * Limpar logs antigos (executar via CLI/cron)
      */
-    public static function cleanup(int $daysToKeep = 30): int
+    public static function cleanup(int $daysToKeep = 30, bool $includeUnresolved = false): int
     {
         if (!self::isDbAvailable()) {
             return 0;
         }
 
-        return ErrorLog::where('created_at', '<', now()->subDays($daysToKeep))
+        $cutoff = now()->subDays($daysToKeep);
+        $query = ErrorLog::query();
+
+        if ($includeUnresolved) {
+            return $query
+                ->where('created_at', '<', $cutoff)
+                ->delete();
+        }
+
+        return $query
             ->whereNotNull('resolved_at')
+            ->where('resolved_at', '<', $cutoff)
             ->delete();
     }
 

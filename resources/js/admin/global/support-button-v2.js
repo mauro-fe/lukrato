@@ -33,6 +33,7 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
         aiStatus: document.getElementById('aiStatus'),
         aiComposerHint: document.getElementById('aiComposerHint'),
         aiExhaustedOverlay: document.getElementById('aiExhaustedOverlay'),
+        aiInputShell: document.querySelector('.lk-ai-input-shell'),
         aiInputRow: document.getElementById('aiInputRow'),
         aiNewConversation: document.getElementById('aiNewConversation'),
     };
@@ -260,25 +261,210 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
         `;
     }
 
+    const aiTimeFormatter = new Intl.DateTimeFormat('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+
+    const aiDayFormatter = new Intl.DateTimeFormat('pt-BR', {
+        day: '2-digit',
+        month: 'short',
+    });
+
+    function normalizeMessageDate(value) {
+        if (!value) return new Date();
+
+        const date = value instanceof Date ? value : new Date(value);
+        return Number.isNaN(date.getTime()) ? new Date() : date;
+    }
+
+    function getDayKey(date) {
+        return [
+            date.getFullYear(),
+            String(date.getMonth() + 1).padStart(2, '0'),
+            String(date.getDate()).padStart(2, '0'),
+        ].join('-');
+    }
+
+    function isSameCalendarDay(a, b) {
+        return getDayKey(a) === getDayKey(b);
+    }
+
+    function formatMessageDayLabel(date) {
+        const today = new Date();
+        if (isSameCalendarDay(date, today)) {
+            return 'Hoje';
+        }
+
+        const yesterday = new Date();
+        yesterday.setDate(today.getDate() - 1);
+        if (isSameCalendarDay(date, yesterday)) {
+            return 'Ontem';
+        }
+
+        return aiDayFormatter.format(date).replace('.', '');
+    }
+
+    function formatMessageTime(value) {
+        return aiTimeFormatter.format(normalizeMessageDate(value));
+    }
+
+    function getLastRenderedDayKey() {
+        if (!dom.aiMessages) return '';
+        const separators = dom.aiMessages.querySelectorAll('.lk-ai-day-separator');
+        const last = separators[separators.length - 1];
+        return last?.dataset.dayKey || '';
+    }
+
+    function ensureDayDivider(dateValue) {
+        if (!dom.aiMessages) return normalizeMessageDate(dateValue);
+
+        const date = normalizeMessageDate(dateValue);
+        const dayKey = getDayKey(date);
+
+        if (getLastRenderedDayKey() === dayKey) {
+            return date;
+        }
+
+        const divider = document.createElement('div');
+        divider.className = 'lk-ai-day-separator';
+        divider.dataset.dayKey = dayKey;
+        divider.innerHTML = `<span>${formatMessageDayLabel(date)}</span>`;
+        dom.aiMessages.appendChild(divider);
+
+        return date;
+    }
+
+    function resolveMessageTone(role, text, options = {}) {
+        if (options.tone) return options.tone;
+        if (role === 'user') return 'user';
+
+        const normalized = String(text || '').toLowerCase();
+        if (/(sucesso|registrad[oa]|confirmad[oa]|criad[oa]|salv[oa]|pronta para usar|adicionad[oa])/.test(normalized)) {
+            return 'success';
+        }
+
+        if (/(nao consegui|não consegui|erro|falha|limite|indisponivel|expirad[oa])/.test(normalized)) {
+            return 'danger';
+        }
+
+        if (/(deseja|posso|quer|confirme|selecione|escolha)/.test(normalized)) {
+            return 'action';
+        }
+
+        return 'default';
+    }
+
+    function buildContextualCtas(role, text, options = {}) {
+        if (Array.isArray(options.ctas) && options.ctas.length > 0) {
+            return options.ctas;
+        }
+
+        if (role !== 'assistant') {
+            return [];
+        }
+
+        const normalized = String(text || '').toLowerCase();
+        const isSuccess = /(sucesso|registrad[oa]|confirmad[oa]|criad[oa]|salv[oa]|adicionad[oa])/.test(normalized);
+
+        if (!isSuccess) {
+            return [];
+        }
+
+        if (/(receita|despesa|lancamento|transacao|gasto|entrada)/.test(normalized)) {
+            return [{ label: 'Ver lancamentos', href: '/lancamentos' }];
+        }
+
+        if (/meta/.test(normalized)) {
+            return [{ label: 'Abrir metas', href: '/metas' }];
+        }
+
+        if (/categoria/.test(normalized)) {
+            return [{ label: 'Abrir categorias', href: '/categorias' }];
+        }
+
+        if (/(saldo|dashboard|resumo)/.test(normalized)) {
+            return [{ label: 'Ver dashboard', href: '/dashboard' }];
+        }
+
+        return [];
+    }
+
+    function renderMessageCtas(ctas) {
+        if (!Array.isArray(ctas) || ctas.length === 0) {
+            return '';
+        }
+
+        return `
+            <div class="lk-ai-message-actions">
+                ${ctas.map((cta) => {
+            const label = escapeHtml(cta.label || 'Abrir');
+            if (cta.href) {
+                return `
+                            <a href="${escapeAttribute(cta.href)}" class="lk-ai-message-cta">
+                                ${label}
+                            </a>
+                        `;
+            }
+
+            return `
+                        <button
+                            type="button"
+                            class="lk-ai-message-cta"
+                            data-ai-message="${escapeAttribute(cta.message || '')}"
+                            data-ai-mode="${escapeAttribute(cta.mode || 'fill')}"
+                        >
+                            ${label}
+                        </button>
+                    `;
+        }).join('')}
+            </div>
+        `;
+    }
+
+    function renderTypingMarkup() {
+        return `
+            <div class="lk-ai-typing" aria-label="Assistente digitando">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        `;
+    }
+
     function appendAIMessage(role, text, isTyping = false, options = {}) {
         if (!dom.aiMessages) return null;
 
         setEmptyStateVisible(false);
+        const createdAt = ensureDayDivider(options.createdAt || new Date());
 
         const wrapper = document.createElement('div');
         wrapper.className = `lk-ai-msg ${role}${isTyping ? ' typing' : ''}`;
+        wrapper.dataset.role = role;
 
         const helperText = !isTyping && options.helperText
-            ? `<div class="lk-ai-msg-meta">${escapeHtml(options.helperText)}</div>`
+            ? `<div class="lk-ai-msg-helper">${escapeHtml(options.helperText)}</div>`
             : '';
         const quickReplies = !isTyping ? renderQuickReplies(options.quickReplies) : '';
+        const ctas = !isTyping ? renderMessageCtas(buildContextualCtas(role, text, options)) : '';
+        const bubbleTone = resolveMessageTone(role, text, options);
+        const timestamp = !isTyping
+            ? `<div class="lk-ai-msg-time">${formatMessageTime(createdAt)}</div>`
+            : '';
+        const contentMarkup = isTyping
+            ? renderTypingMarkup()
+            : `<div class="lk-ai-bubble-content">${formatText(text)}</div>`;
 
         wrapper.innerHTML = `
             <div class="avatar"><i data-lucide="${role === 'assistant' ? 'bot' : 'user'}" style="width:14px;height:14px;"></i></div>
-            <div class="bubble">
-                <div class="lk-ai-bubble-content">${formatText(text)}</div>
-                ${helperText}
-                ${quickReplies}
+            <div class="lk-ai-msg-stack">
+                <div class="bubble bubble--${bubbleTone}">
+                    ${contentMarkup}
+                    ${helperText}
+                    ${ctas}
+                    ${quickReplies}
+                </div>
+                ${timestamp}
             </div>
         `;
 
@@ -476,7 +662,9 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
 
             if (data.success && Array.isArray(data.data) && data.data.length > 0) {
                 clearMessages(false);
-                data.data.forEach((message) => appendAIMessage(message.role, message.content));
+                data.data.forEach((message) => appendAIMessage(message.role, message.content, false, {
+                    createdAt: message.created_at,
+                }));
                 setAIStatus('Conversa retomada. Pode continuar de onde parou.', 'success');
             } else {
                 clearMessages(true);
@@ -554,7 +742,10 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
             ? 'Arquivo analisado e convertido em texto para a IA.'
             : helperText;
 
-        appendAIMessage('assistant', content, false, buildMessageOptions(aiData, sourceMessage, derivedHelper));
+        appendAIMessage('assistant', content, false, {
+            ...buildMessageOptions(aiData, sourceMessage, derivedHelper),
+            createdAt: data.data?.assistant_message?.created_at || new Date(),
+        });
 
         if (aiData?.action === 'confirm' && aiData?.pending_id) {
             appendConfirmationButtons(aiData);
@@ -585,7 +776,7 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
         autoResizeInput();
         updateComposerState();
 
-        appendAIMessage('user', message);
+        appendAIMessage('user', message, false, { createdAt: new Date() });
         const typingEl = appendAIMessage('assistant', '● ● ●', true);
 
         try {
@@ -632,7 +823,9 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
             autoResizeInput();
         }
 
-        appendAIMessage('user', textMsg ? `Anexo: ${displayLabel}\n${textMsg}` : `Anexo: ${displayLabel}`);
+        appendAIMessage('user', textMsg ? `Anexo: ${displayLabel}\n${textMsg}` : `Anexo: ${displayLabel}`, false, {
+            createdAt: new Date(),
+        });
         const typingEl = appendAIMessage('assistant', '● ● ●', true);
 
         try {
@@ -737,12 +930,18 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
             });
 
             wrapper.remove();
-            appendAIMessage('assistant', data.data?.message || (data.success ? 'Acao confirmada com sucesso.' : 'Erro ao confirmar a acao.'));
+            appendAIMessage('assistant', data.data?.message || (data.success ? 'Acao confirmada com sucesso.' : 'Erro ao confirmar a acao.'), false, {
+                tone: data.success ? 'success' : 'danger',
+                createdAt: new Date(),
+            });
             setAIStatus(data.success ? 'Acao confirmada.' : 'Falha ao confirmar a acao.', data.success ? 'success' : 'error');
         } catch (error) {
             logClientError('[Lukrato AI] Erro ao confirmar ação', error, 'Falha ao confirmar ação');
             wrapper.remove();
-            appendAIMessage('assistant', getErrorMessage(error, 'Erro de conexao ao confirmar a acao.'));
+            appendAIMessage('assistant', getErrorMessage(error, 'Erro de conexao ao confirmar a acao.'), false, {
+                tone: 'danger',
+                createdAt: new Date(),
+            });
             setAIStatus(getErrorMessage(error, 'Falha ao confirmar a acao.'), 'error');
         }
     }
@@ -754,12 +953,17 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
             const data = await apiPost(`api/ai/actions/${encodeURIComponent(pendingId)}/reject`, {});
 
             wrapper.remove();
-            appendAIMessage('assistant', data.data?.message || 'Acao cancelada.');
+            appendAIMessage('assistant', data.data?.message || 'Acao cancelada.', false, {
+                createdAt: new Date(),
+            });
             setAIStatus('Acao cancelada.', 'success');
         } catch (error) {
             logClientError('[Lukrato AI] Erro ao cancelar ação', error, 'Falha ao cancelar ação');
             wrapper.remove();
-            appendAIMessage('assistant', getErrorMessage(error, 'Erro de conexao ao cancelar a acao.'));
+            appendAIMessage('assistant', getErrorMessage(error, 'Erro de conexao ao cancelar a acao.'), false, {
+                tone: 'danger',
+                createdAt: new Date(),
+            });
             setAIStatus(getErrorMessage(error, 'Falha ao cancelar a acao.'), 'error');
         }
     }
@@ -812,14 +1016,16 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
 
     function showExhaustedOverlay() {
         if (dom.aiExhaustedOverlay) dom.aiExhaustedOverlay.style.display = 'flex';
-        if (dom.aiInputRow) dom.aiInputRow.style.display = 'none';
+        if (dom.aiInputShell) dom.aiInputShell.style.display = 'none';
+        else if (dom.aiInputRow) dom.aiInputRow.style.display = 'none';
         if (dom.aiComposerHint) dom.aiComposerHint.style.display = 'none';
         updateComposerState();
     }
 
     function hideExhaustedOverlay() {
         if (dom.aiExhaustedOverlay) dom.aiExhaustedOverlay.style.display = 'none';
-        if (dom.aiInputRow) dom.aiInputRow.style.display = '';
+        if (dom.aiInputShell) dom.aiInputShell.style.display = '';
+        else if (dom.aiInputRow) dom.aiInputRow.style.display = '';
         if (dom.aiComposerHint) dom.aiComposerHint.style.display = '';
         updateComposerState();
     }

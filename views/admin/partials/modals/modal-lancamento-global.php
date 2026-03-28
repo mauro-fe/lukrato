@@ -23,7 +23,7 @@
                     <span id="globalContaSelectLabelText">Selecione a Conta</span>
                 </label>
                 <div class="lk-select-wrapper">
-                    <select id="globalContaSelect" class="lk-select" required
+                    <select id="globalContaSelect" class="lk-select surface-card" required
                         onchange="lancamentoGlobalManager.onContaChange()">
                         <option value="">Escolha uma conta...</option>
                     </select>
@@ -35,7 +35,7 @@
             </div>
 
             <!-- Saldo da Conta Selecionada -->
-            <div class="lk-conta-info" id="globalContaInfo" style="display: none;">
+            <div class="lk-conta-info surface-card" id="globalContaInfo" style="display: none;">
                 <div class="lk-conta-badge">
                     <i data-lucide="wallet"></i>
                     <span id="globalContaNome">Conta</span>
@@ -57,7 +57,7 @@
                         <i data-lucide="history"></i>
                         Ultimas Movimentacoes
                     </h3>
-                    <div class="lk-historico-list" id="globalLancamentoHistorico">
+                    <div class="lk-historico-list surface-card" id="globalLancamentoHistorico">
                         <div class="lk-historico-empty">
                             <i data-lucide="history"></i>
                             <p>Selecione uma conta para ver as ultimas movimentacoes.</p>
@@ -76,7 +76,7 @@
                 </div>
 
                 <div class="lk-tipo-grid lk-tipo-grid-3">
-                    <button type="button" class="lk-tipo-card lk-tipo-receita" data-requires-account="1"
+                    <button type="button" class="lk-tipo-card surface-card lk-tipo-receita" data-requires-account="1"
                         onclick="lancamentoGlobalManager.mostrarFormulario('receita')">
                         <div class="lk-tipo-icon">
                             <i data-lucide="arrow-down"></i>
@@ -86,7 +86,7 @@
                         <div class="lk-tipo-badge">+ Entrada</div>
                     </button>
 
-                    <button type="button" class="lk-tipo-card lk-tipo-despesa" data-requires-account="1"
+                    <button type="button" class="lk-tipo-card surface-card lk-tipo-despesa" data-requires-account="1"
                         onclick="lancamentoGlobalManager.mostrarFormulario('despesa')">
                         <div class="lk-tipo-icon">
                             <i data-lucide="arrow-up"></i>
@@ -96,8 +96,8 @@
                         <div class="lk-tipo-badge">- Saída</div>
                     </button>
 
-                    <button type="button" class="lk-tipo-card lk-tipo-transferencia" data-requires-account="1"
-                        onclick="lancamentoGlobalManager.mostrarFormulario('transferencia')">
+                    <button type="button" class="lk-tipo-card surface-card lk-tipo-transferencia"
+                        data-requires-account="1" onclick="lancamentoGlobalManager.mostrarFormulario('transferencia')">
                         <div class="lk-tipo-icon">
                             <i data-lucide="arrow-left-right"></i>
                         </div>
@@ -162,7 +162,8 @@
                                 <i data-lucide="zap"></i>
                                 Salvar rápido
                             </button>
-                            <button type="button" class="lk-btn lk-btn-primary" onclick="lancamentoGlobalManager.nextStep()">
+                            <button type="button" class="lk-btn lk-btn-primary"
+                                onclick="lancamentoGlobalManager.nextStep()">
                                 Próximo
                                 <i data-lucide="arrow-right"></i>
                             </button>
@@ -321,7 +322,8 @@
                         <div class="lk-checkbox-wrapper" style="margin-bottom: 0.5rem;">
                             <label class="lk-checkbox-label">
                                 <input type="checkbox" id="globalLancamentoAssinaturaCartao" name="recorrente_cartao"
-                                    value="1" class="lk-checkbox" onchange="lancamentoGlobalManager.toggleAssinaturaCartao()">
+                                    value="1" class="lk-checkbox"
+                                    onchange="lancamentoGlobalManager.toggleAssinaturaCartao()">
                                 <span class="lk-checkbox-custom"></span>
                                 <span class="lk-checkbox-text">
                                     <i data-lucide="refresh-cw"></i>
@@ -339,7 +341,8 @@
                                 Frequência da cobrança
                             </label>
                             <div class="lk-select-wrapper" style="margin-bottom: 0.75rem;">
-                                <select id="globalLancamentoAssinaturaFreq" name="recorrencia_freq_cartao" class="lk-select">
+                                <select id="globalLancamentoAssinaturaFreq" name="recorrencia_freq_cartao"
+                                    class="lk-select">
                                     <option value="mensal" selected>Mensal</option>
                                     <option value="bimestral">Bimestral</option>
                                     <option value="trimestral">Trimestral</option>
@@ -355,8 +358,8 @@
                             </label>
                             <div class="lk-radio-group" style="margin-bottom: 0.5rem;">
                                 <label class="lk-radio-label">
-                                    <input type="radio" name="global_assinatura_modo" value="infinito" class="lk-radio" checked
-                                        onchange="lancamentoGlobalManager.toggleAssinaturaCartaoFim()">
+                                    <input type="radio" name="global_assinatura_modo" value="infinito" class="lk-radio"
+                                        checked onchange="lancamentoGlobalManager.toggleAssinaturaCartaoFim()">
                                     <span class="lk-radio-custom"></span>
                                     <span class="lk-radio-text">Sem data de fim <small style="opacity:0.7">(cancelo
                                             quando quiser)</small></span>
@@ -401,7 +404,8 @@
                             </button>
                         </div>
                         <div class="lk-wizard-nav-right">
-                            <button type="button" class="lk-btn lk-btn-primary" onclick="lancamentoGlobalManager.nextStep()">
+                            <button type="button" class="lk-btn lk-btn-primary"
+                                onclick="lancamentoGlobalManager.nextStep()">
                                 Próximo
                                 <i data-lucide="arrow-right"></i>
                             </button>
@@ -428,14 +432,16 @@
                         <div class="lk-datetime-inline">
                             <div class="lk-datetime-date">
                                 <i data-lucide="calendar" class="lk-datetime-icon"></i>
-                                <input type="date" id="globalLancamentoData" name="data" class="lk-input lk-input-date" required>
+                                <input type="date" id="globalLancamentoData" name="data" class="lk-input lk-input-date"
+                                    required>
                             </div>
                             <div class="lk-datetime-sep">
                                 <span>às</span>
                             </div>
                             <div class="lk-datetime-time">
                                 <i data-lucide="clock" class="lk-datetime-icon"></i>
-                                <input type="time" id="globalLancamentoHora" name="hora_lancamento" class="lk-input lk-input-time" placeholder="--:--">
+                                <input type="time" id="globalLancamentoHora" name="hora_lancamento"
+                                    class="lk-input lk-input-time" placeholder="--:--">
                             </div>
                         </div>
                         <small class="lk-helper-text">Horário é opcional — útil para organizar e lembretes.</small>
@@ -454,7 +460,8 @@
                                 </span>
                             </label>
                         </div>
-                        <small class="lk-helper-text" id="globalPagoHelperText">Pendentes não alteram o saldo até serem confirmados.</small>
+                        <small class="lk-helper-text" id="globalPagoHelperText">Pendentes não alteram o saldo até serem
+                            confirmados.</small>
                     </div>
 
                     <!-- Nav -->
@@ -466,7 +473,8 @@
                             </button>
                         </div>
                         <div class="lk-wizard-nav-right" id="globalStep4NavRight">
-                            <button type="button" class="lk-btn lk-btn-primary" onclick="lancamentoGlobalManager.nextStep()">
+                            <button type="button" class="lk-btn lk-btn-primary"
+                                onclick="lancamentoGlobalManager.nextStep()">
                                 Próximo
                                 <i data-lucide="arrow-right"></i>
                             </button>
@@ -521,8 +529,7 @@
                                 <i data-lucide="chevron-down" class="lk-select-icon"></i>
                             </div>
                             <button type="button" class="lk-btn-ai-suggest" id="btnGlobalAiSuggestCategoria"
-                                onclick="lancamentoGlobalManager.sugerirCategoriaIA()"
-                                title="Sugerir categoria com IA">
+                                onclick="lancamentoGlobalManager.sugerirCategoriaIA()" title="Sugerir categoria com IA">
                                 <i data-lucide="sparkles" class="w-4 h-4"></i>
                             </button>
                         </div>
@@ -555,7 +562,8 @@
                                 </span>
                             </label>
                         </div>
-                        <small class="lk-helper-text" style="margin-top: -0.25rem; margin-bottom: 0.5rem;">Cria automaticamente este lançamento nos próximos períodos.</small>
+                        <small class="lk-helper-text" style="margin-top: -0.25rem; margin-bottom: 0.5rem;">Cria
+                            automaticamente este lançamento nos próximos períodos.</small>
 
                         <div id="globalRecorrenciaDetalhes" style="display: none;">
                             <label class="lk-label">
@@ -581,14 +589,15 @@
                             </label>
                             <div class="lk-radio-group" style="margin-bottom: 0.5rem;">
                                 <label class="lk-radio-label" id="globalRecorrenciaRadioInfinito">
-                                    <input type="radio" name="global_recorrencia_modo" value="infinito" class="lk-radio" checked
-                                        onchange="lancamentoGlobalManager.toggleRecorrenciaFim()">
+                                    <input type="radio" name="global_recorrencia_modo" value="infinito" class="lk-radio"
+                                        checked onchange="lancamentoGlobalManager.toggleRecorrenciaFim()">
                                     <span class="lk-radio-custom"></span>
-                                    <span class="lk-radio-text">Sem fim <small style="opacity:0.7">(ex: Spotify, Netflix)</small></span>
+                                    <span class="lk-radio-text">Sem fim <small style="opacity:0.7">(ex: Spotify,
+                                            Netflix)</small></span>
                                 </label>
                                 <label class="lk-radio-label">
-                                    <input type="radio" name="global_recorrencia_modo" value="quantidade" class="lk-radio"
-                                        onchange="lancamentoGlobalManager.toggleRecorrenciaFim()">
+                                    <input type="radio" name="global_recorrencia_modo" value="quantidade"
+                                        class="lk-radio" onchange="lancamentoGlobalManager.toggleRecorrenciaFim()">
                                     <span class="lk-radio-custom"></span>
                                     <span class="lk-radio-text">Após um número de vezes</span>
                                 </label>
@@ -610,7 +619,8 @@
                             </div>
 
                             <div id="globalRecorrenciaFimGroup" style="display: none;">
-                                <input type="date" id="globalLancamentoRecorrenciaFim" name="recorrencia_fim" class="lk-input">
+                                <input type="date" id="globalLancamentoRecorrenciaFim" name="recorrencia_fim"
+                                    class="lk-input">
                                 <small class="lk-helper-text">Data em que a repetição termina.</small>
                             </div>
                         </div>

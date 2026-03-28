@@ -529,3 +529,125 @@
     max-width: 150px;
   }
 }
+
+/* Cleanup modal */
+.cleanup-logs-modal-content {
+  max-width: 560px;
+}
+
+.cleanup-logs-modal-body {
+  display: grid;
+  gap: var(--spacing-4);
+}
+
+.cleanup-logs-modal-copy {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.65;
+}
+
+.cleanup-logs-form-group {
+  display: grid;
+  gap: 10px;
+}
+
+.cleanup-logs-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.cleanup-logs-label i,
+.cleanup-logs-label svg {
+  width: 16px;
+  height: 16px;
+  color: var(--color-primary);
+}
+
+.cleanup-logs-select {
+  background: var(--color-bg) !important;
+  color: var(--color-text);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  min-height: 48px;
+}
+
+.cleanup-logs-select:focus {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-danger) 16%, transparent);
+}
+
+.cleanup-logs-toggle {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--color-danger) 18%, var(--glass-border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-danger) 5%, transparent);
+  cursor: pointer;
+}
+
+.cleanup-logs-toggle input {
+  display: none;
+}
+
+.cleanup-logs-toggle__control {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--color-danger) 35%, var(--glass-border));
+  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.cleanup-logs-toggle__control::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, var(--color-danger), color-mix(in srgb, var(--color-danger) 72%, #000));
+  opacity: 0;
+  transform: scale(0.6);
+  transition: all 0.2s ease;
+}
+
+.cleanup-logs-toggle input:checked + .cleanup-logs-toggle__control::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.cleanup-logs-toggle__copy {
+  display: grid;
+  gap: 3px;
+}
+
+.cleanup-logs-toggle__copy strong {
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.cleanup-logs-toggle__copy small {
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.cleanup-logs-modal-hint {
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 7%, transparent);
+  color: var(--color-text);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.cleanup-logs-modal-hint.is-danger {
+  border-color: color-mix(in srgb, var(--color-danger) 28%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
+}

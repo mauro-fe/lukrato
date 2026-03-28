@@ -112,23 +112,23 @@
             </div>
 
             <div class="filter-group">
-                <button class="filter-btn active" data-filter="all">
+                <button class="filter-btn surface-filter surface-filter--pill active" data-filter="all">
                     <i data-lucide="grid-3x3"></i>
                     Todos
                 </button>
-                <button class="filter-btn" data-filter="visa">
+                <button class="filter-btn surface-filter surface-filter--pill" data-filter="visa">
                     <img src="<?= BASE_URL ?>assets/img/bandeiras/visa.png" alt="Visa" class="brand-logo-filter">
                     Visa
                 </button>
-                <button class="filter-btn" data-filter="mastercard">
+                <button class="filter-btn surface-filter surface-filter--pill" data-filter="mastercard">
                     <img src="<?= BASE_URL ?>assets/img/bandeiras/mastercard.png" alt="Mastercard" class="brand-logo-filter">
                     Master
                 </button>
-                <button class="filter-btn" data-filter="elo">
+                <button class="filter-btn surface-filter surface-filter--pill" data-filter="elo">
                     <img src="<?= BASE_URL ?>assets/img/bandeiras/elo.png" alt="Elo" class="brand-logo-filter">
                     Elo
                 </button>
-                <button class="filter-btn btn-clear-filters" id="btnLimparFiltrosCartoes" title="Limpar busca e filtros"
+                <button class="filter-btn surface-filter surface-filter--pill surface-filter--warning btn-clear-filters" id="btnLimparFiltrosCartoes" title="Limpar busca e filtros"
                     style="display:none;">
                     <i data-lucide="eraser"></i>
                     Limpar

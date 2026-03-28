@@ -7,10 +7,12 @@ namespace Tests\Unit\Services\Report;
 use Application\Builders\ReportExportBuilder;
 use Application\DTO\ReportData;
 use Application\DTO\ReportParameters;
+use Application\Enums\GamificationAction;
 use Application\Enums\ReportType;
 use Application\Models\Usuario;
 use Application\Services\Financeiro\ComparativesService;
 use Application\Services\Financeiro\InsightsService;
+use Application\Services\Gamification\GamificationService;
 use Application\Services\Report\ExcelExportService;
 use Application\Services\Report\PdfExportService;
 use Application\Services\Report\ReportApiWorkflowService;
@@ -73,6 +75,54 @@ class ReportApiWorkflowServiceTest extends TestCase
         $this->assertSame('2026-03-31', $result['params']->end->toDateString());
     }
 
+    public function testGenerateReportTracksReportViewInGamification(): void
+    {
+        $reportService = Mockery::mock(ReportService::class);
+        $reportService
+            ->shouldReceive('generateReport')
+            ->once()
+            ->andReturn(['labels' => ['Moradia'], 'values' => [500.0]]);
+
+        $gamificationService = Mockery::mock(GamificationService::class);
+        $gamificationService
+            ->shouldReceive('addPoints')
+            ->once()
+            ->with(
+                77,
+                GamificationAction::VIEW_REPORT,
+                null,
+                null,
+                Mockery::on(static function (array $metadata): bool {
+                    return $metadata['report_type'] === 'despesas_por_categoria'
+                        && $metadata['period'] === '2026-03'
+                        && $metadata['account_id'] === null;
+                })
+            )
+            ->andReturn(['success' => true]);
+
+        $service = new ReportApiWorkflowService(
+            $reportService,
+            Mockery::mock(ReportExportBuilder::class),
+            Mockery::mock(PdfExportService::class),
+            Mockery::mock(ExcelExportService::class),
+            Mockery::mock(InsightsService::class),
+            Mockery::mock(ComparativesService::class),
+            $gamificationService,
+        );
+
+        $user = new class extends Usuario {
+            public function isPro(): bool
+            {
+                return true;
+            }
+        };
+
+        $service->generateReport(77, $user, [
+            'month' => '2026-03',
+            'type' => 'despesas_por_categoria',
+        ]);
+    }
+
     public function testExportReportBuildsExcelFileMetadata(): void
     {
         $reportService = Mockery::mock(ReportService::class);
@@ -102,6 +152,11 @@ class ReportApiWorkflowServiceTest extends TestCase
             ->once()
             ->andReturn('XLSXDATA');
 
+        $gamificationService = Mockery::mock(GamificationService::class);
+        $gamificationService
+            ->shouldReceive('addPoints')
+            ->never();
+
         $service = new ReportApiWorkflowService(
             $reportService,
             $builder,
@@ -109,6 +164,7 @@ class ReportApiWorkflowServiceTest extends TestCase
             $excelExport,
             Mockery::mock(InsightsService::class),
             Mockery::mock(ComparativesService::class),
+            $gamificationService,
         );
 
         $user = new class extends Usuario {

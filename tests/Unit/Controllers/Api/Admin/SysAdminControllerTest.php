@@ -7,6 +7,7 @@ namespace Tests\Unit\Controllers\Api\Admin;
 use Application\Controllers\Api\Admin\SysAdminController;
 use Application\Core\Exceptions\AuthException;
 use Application\Models\Usuario;
+use Application\Services\Admin\SysAdminOpsService;
 use PHPUnit\Framework\TestCase;
 use Tests\Support\SessionIsolation;
 
@@ -85,6 +86,32 @@ class SysAdminControllerTest extends TestCase
         $this->assertTrue($payload['success']);
         $this->assertArrayHasKey('active', $payload['data']);
         $this->assertArrayHasKey('data', $payload['data']);
+    }
+
+    public function testCleanupErrorLogsPassesDaysAndScopeToService(): void
+    {
+        $this->seedAuthenticatedSession(2004, 'Admin User', true);
+        $_GET['days'] = '60';
+        $_GET['include_unresolved'] = '1';
+
+        $opsService = $this->createMock(SysAdminOpsService::class);
+        $opsService
+            ->expects($this->once())
+            ->method('cleanupErrorLogs')
+            ->with(60, true)
+            ->willReturn(12);
+
+        $controller = new SysAdminController(null, $opsService);
+
+        $response = $controller->cleanupErrorLogs();
+        $payload = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertTrue($payload['success']);
+        $this->assertSame('12 log(s) com mais de 60 dia(s) removido(s)', $payload['message']);
+        $this->assertSame(12, $payload['data']['count']);
+        $this->assertSame(60, $payload['data']['days']);
+        $this->assertTrue($payload['data']['include_unresolved']);
     }
 
     private function seedAuthenticatedSession(int $userId, string $name, bool $isAdmin): void

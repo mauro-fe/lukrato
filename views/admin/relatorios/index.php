@@ -4,7 +4,8 @@
 <div class="rel-page">
     <!-- ==================== CARDS DE RESUMO RÁPIDO ==================== -->
     <div class="quick-stats-grid">
-        <div class="stat-card stat-receitas" title="Total de entradas financeiras registradas neste mês" tabindex="0">
+        <div class="stat-card stat-receitas surface-card surface-card--interactive surface-card--clip"
+            title="Total de entradas financeiras registradas neste mês" tabindex="0">
             <div class="stat-icon">
                 <i data-lucide="trending-up"></i>
             </div>
@@ -16,7 +17,8 @@
             </div>
         </div>
 
-        <div class="stat-card stat-despesas" title="Total de saídas e gastos registrados neste mês" tabindex="0">
+        <div class="stat-card stat-despesas surface-card surface-card--interactive surface-card--clip"
+            title="Total de saídas e gastos registrados neste mês" tabindex="0">
             <div class="stat-icon">
                 <i data-lucide="trending-down"></i>
             </div>
@@ -28,8 +30,8 @@
             </div>
         </div>
 
-        <div class="stat-card stat-saldo" title="Diferença entre receitas e despesas (receitas - despesas)"
-            tabindex="0">
+        <div class="stat-card stat-saldo surface-card surface-card--interactive surface-card--clip"
+            title="Diferença entre receitas e despesas (receitas - despesas)" tabindex="0">
             <div class="stat-icon">
                 <i data-lucide="wallet" style="color: white"></i>
             </div>
@@ -41,8 +43,8 @@
             </div>
         </div>
 
-        <div class="stat-card stat-cartoes" title="Soma de todas as faturas de cartões de crédito neste mês"
-            tabindex="0">
+        <div class="stat-card stat-cartoes surface-card surface-card--interactive surface-card--clip"
+            title="Soma de todas as faturas de cartões de crédito neste mês" tabindex="0">
             <div class="stat-icon">
                 <i data-lucide="credit-card" style="color: white"></i>
             </div>
@@ -56,19 +58,7 @@
     </div>
 
     <!-- ==================== TABS DE SEÇÃO (estilo Perfil) ==================== -->
-    <section class="reports-context-card modern-card" id="reportsContextCard" aria-live="polite">
-        <div class="reports-context-copy">
-            <span class="reports-context-kicker" id="reportsContextKicker">Painel consolidado</span>
-            <h2 class="reports-context-title" id="reportsContextTitle">Leia seu mes com contexto</h2>
-            <p class="reports-context-description" id="reportsContextDescription">
-                Veja seu pulso financeiro, identifique sinais importantes e acompanhe a evolucao do periodo em um resumo rapido.
-            </p>
-        </div>
-        <div class="reports-context-side">
-            <div class="reports-context-chips" id="reportsContextChips"></div>
-            <div class="reports-context-actions" id="reportsContextActions"></div>
-        </div>
-    </section>
+
 
     <nav class="rel-section-tabs" role="tablist" aria-label="Seções de relatórios">
         <button type="button" class="rel-section-tab active" data-section="overview" role="tab" aria-selected="true"
@@ -81,17 +71,19 @@
             <span class="tab-icon"><i data-lucide="bar-chart-3" style="color:#e67e22"></i></span>
             <span class="tab-label">Relatórios</span>
         </button>
-        <button type="button" class="rel-section-tab" data-section="insights"
-            role="tab" aria-selected="false" aria-controls="section-insights">
+        <button type="button" class="rel-section-tab" data-section="insights" role="tab" aria-selected="false"
+            aria-controls="section-insights">
             <span class="tab-icon"><i data-lucide="lightbulb" style="color:#facc15"></i></span>
             <span class="tab-label">Insights Inteligentes</span>
-            <?php if (!$isPro): ?><span class="tab-pro-badge"><i data-lucide="crown"></i> PRO</span><?php endif; ?>
+            <?php if (!$isPro): ?><span class="tab-pro-badge surface-chip surface-chip--pro surface-chip--xs"><i
+                        data-lucide="crown"></i> PRO</span><?php endif; ?>
         </button>
         <button type="button" class="rel-section-tab<?= !$isPro ? ' pro-tab-locked' : '' ?>" data-section="comparativos"
             role="tab" aria-selected="false" aria-controls="section-comparativos">
             <span class="tab-icon"><i data-lucide="git-compare" style="color:#3b82f6"></i></span>
             <span class="tab-label">Comparativos</span>
-            <?php if (!$isPro): ?><span class="tab-pro-badge"><i data-lucide="crown"></i> PRO</span><?php endif; ?>
+            <?php if (!$isPro): ?><span class="tab-pro-badge surface-chip surface-chip--pro surface-chip--xs"><i
+                        data-lucide="crown"></i> PRO</span><?php endif; ?>
         </button>
     </nav>
 
@@ -99,7 +91,7 @@
     <div class="rel-section-panel active" id="section-overview" role="tabpanel">
         <div class="overview-grid">
             <!-- Pulso Mensal -->
-            <div class="modern-card overview-pulse-card">
+            <div class="modern-card overview-pulse-card surface-card surface-card--interactive surface-card--clip">
                 <div class="card-header">
                     <div class="header-left">
                         <i data-lucide="activity"></i>
@@ -118,7 +110,7 @@
             </div>
 
             <!-- Top Insights -->
-            <div class="modern-card overview-insights-card">
+            <div class="modern-card overview-insights-card surface-card surface-card--interactive surface-card--clip">
                 <div class="card-header">
                     <div class="header-left">
                         <i data-lucide="lightbulb"></i>
@@ -138,7 +130,7 @@
 
             <!-- Mini Charts Row -->
             <div class="overview-charts-row">
-                <div class="modern-card overview-mini-chart">
+                <div class="modern-card overview-mini-chart surface-card surface-card--interactive surface-card--clip">
                     <h4><i data-lucide="pie-chart"></i> Despesas por Categoria</h4>
                     <div id="overviewCategoryChart" class="mini-chart-container">
                         <div class="lk-loading-state">
@@ -146,7 +138,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="modern-card overview-mini-chart">
+                <div class="modern-card overview-mini-chart surface-card surface-card--interactive surface-card--clip">
                     <h4><i data-lucide="bar-chart-2"></i> Receitas x Despesas</h4>
                     <div id="overviewComparisonChart" class="mini-chart-container">
                         <div class="lk-loading-state">
@@ -158,16 +150,16 @@
 
             <!-- PRO CTA para usuários free -->
             <?php if (!$isPro): ?>
-            <div class="overview-pro-cta">
-                <i data-lucide="crown"></i>
-                <div>
-                    <h4>Desbloqueie todo o potencial</h4>
-                    <p>Com o plano PRO, acesse insights completos, comparativos, exportação e muito mais.</p>
+                <div class="overview-pro-cta">
+                    <i data-lucide="crown"></i>
+                    <div>
+                        <h4>Desbloqueie todo o potencial</h4>
+                        <p>Com o plano PRO, acesse insights completos, comparativos, exportação e muito mais.</p>
+                    </div>
+                    <a href="<?= BASE_URL ?>billing" class="btn-upgrade-cta surface-button surface-button--upgrade">
+                        <i data-lucide="crown"></i> Fazer Upgrade
+                    </a>
                 </div>
-                <a href="<?= BASE_URL ?>billing" class="btn-upgrade-cta">
-                    <i data-lucide="crown"></i> Fazer Upgrade
-                </a>
-            </div>
             <?php endif; ?>
         </div>
     </div>
@@ -176,7 +168,7 @@
     <div class="rel-section-panel" id="section-relatorios" role="tabpanel">
 
         <!-- Tabs de Visualização de Gráficos -->
-        <div class="modern-card tabs-card">
+        <div class="modern-card tabs-card surface-card surface-card--interactive surface-card--clip">
             <div class="tabs-container" role="tablist">
                 <div class="tab-group" data-group-label="Mensal">
                     <button class="tab-btn active" data-view="category" role="tab">
@@ -228,7 +220,8 @@
 
         <!-- Controles Adicionais -->
         <div class="controls-row">
-            <div class="control-group hidden" id="typeSelectWrapper">
+            <div class="control-group surface-control-box surface-control-box--interactive hidden"
+                id="typeSelectWrapper">
                 <label for="reportType">
                     <i data-lucide="filter" style="color: var(--color-primary)"></i>
                     Filtrar por
@@ -239,7 +232,8 @@
                 </select>
             </div>
 
-            <div class="control-group hidden" id="accountSelectWrapper">
+            <div class="control-group surface-control-box surface-control-box--interactive hidden"
+                id="accountSelectWrapper">
                 <label for="accountFilter">
                     <i data-lucide="landmark" style="color: var(--color-primary)"></i>
                     Conta
@@ -249,7 +243,8 @@
                 </select>
             </div>
 
-            <div class="control-group" id="clearFiltersWrapper" style="display:none; align-items: flex-end;">
+            <div class="control-group surface-control-box surface-control-box--interactive" id="clearFiltersWrapper"
+                style="display:none; align-items: flex-end;">
                 <button type="button" id="btnLimparFiltrosRel" class="btn btn-secondary"
                     title="Resetar filtros para padrão" style="white-space: nowrap;">
                     <i data-lucide="eraser"></i>
@@ -257,12 +252,14 @@
                 </button>
             </div>
 
-            <div class="control-group" id="exportControl" style="margin-left: auto; align-items: flex-end;">
+            <div class="control-group surface-control-box surface-control-box--interactive" id="exportControl"
+                style="margin-left: auto; align-items: flex-end;">
                 <button type="button" id="exportBtn" class="btn btn-secondary btn-compact-export"
                     <?= !$isPro ? 'disabled title="Recurso PRO"' : '' ?>>
                     <i data-lucide="download"></i>
                     <span>Exportar</span>
-                    <?php if (!$isPro): ?><span class="tab-pro-badge" style="margin-left:4px"><i data-lucide="crown"></i> PRO</span><?php endif; ?>
+                    <?php if (!$isPro): ?><span class="tab-pro-badge surface-chip surface-chip--pro surface-chip--xs"
+                            style="margin-left:4px"><i data-lucide="crown"></i> PRO</span><?php endif; ?>
                 </button>
             </div>
         </div>
@@ -271,7 +268,7 @@
         <div class="report-filter-summary" id="reportFilterSummary" aria-live="polite"></div>
         <div class="report-scope-note hidden" id="reportScopeNote" aria-live="polite"></div>
 
-        <div class="modern-card report-card">
+        <div class="modern-card report-card surface-card surface-card--interactive surface-card--clip">
             <div class="report-area" id="reportArea">
                 <div class="lk-loading-state">
                     <i data-lucide="loader-2"></i>
@@ -283,7 +280,7 @@
 
     <!-- ==================== SEÇÃO: INSIGHTS INTELIGENTES ==================== -->
     <div class="rel-section-panel" id="section-insights" role="tabpanel">
-        <div class="modern-card insights-card">
+        <div class="modern-card insights-card surface-card surface-card--interactive surface-card--clip">
             <div class="card-header">
                 <div class="header-left">
                     <i data-lucide="lightbulb"></i>
@@ -309,7 +306,8 @@
 
     <!-- ==================== SEÇÃO: COMPARATIVOS ==================== -->
     <div class="rel-section-panel" id="section-comparativos" role="tabpanel">
-        <div class="modern-card comparatives-card <?= !$isPro ? 'pro-locked' : '' ?>">
+        <div
+            class="modern-card comparatives-card surface-card surface-card--interactive surface-card--clip <?= !$isPro ? 'pro-locked' : '' ?>">
             <div class="card-header">
                 <div class="header-left">
                     <i data-lucide="line-chart"></i>
@@ -332,7 +330,7 @@
                                 Comparativos é exclusivo do <a href="<?= BASE_URL ?>billing"
                                     style="color:#60a5fa;text-decoration:underline">plano Pro</a>.
                             </p>
-                            <a href="<?= BASE_URL ?>billing" class="btn-upgrade-cta">
+                            <a href="<?= BASE_URL ?>billing" class="btn-upgrade-cta surface-button surface-button--upgrade">
                                 <i data-lucide="crown"></i> Fazer Upgrade
                             </a>
                         </div>

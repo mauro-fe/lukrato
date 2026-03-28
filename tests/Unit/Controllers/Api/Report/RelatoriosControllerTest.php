@@ -7,7 +7,6 @@ namespace Tests\Unit\Controllers\Api\Report;
 use Application\Builders\ReportExportBuilder;
 use Application\Controllers\Api\Report\RelatoriosController;
 use Application\Core\Exceptions\AuthException;
-use Application\DTO\ReportData;
 use Application\DTO\ReportParameters;
 use Application\Enums\ReportType;
 use Application\Models\Usuario;
@@ -15,7 +14,9 @@ use Application\Services\Financeiro\ComparativesService;
 use Application\Services\Financeiro\InsightsService;
 use Application\Services\Report\ExcelExportService;
 use Application\Services\Report\PdfExportService;
+use Application\Services\Report\ReportApiWorkflowService;
 use Application\Services\Report\ReportService;
+use Carbon\Carbon;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
@@ -49,27 +50,38 @@ class RelatoriosControllerTest extends TestCase
         $this->seedAuthenticatedSession(1401, 'Report User', false, true);
         $_GET['month'] = '2026-03';
 
-        $reportService = Mockery::mock(ReportService::class);
-        $reportService
+        $workflowService = Mockery::mock(ReportApiWorkflowService::class);
+        $workflowService
             ->shouldReceive('generateReport')
             ->once()
             ->with(
-                Mockery::on(static fn($type): bool => $type === ReportType::DESPESAS_POR_CATEGORIA),
-                Mockery::type(ReportParameters::class),
-                false
+                1401,
+                Mockery::type(TestRelatoriosUser::class),
+                Mockery::on(static fn(array $query): bool => ($query['month'] ?? null) === '2026-03')
             )
             ->andReturn([
-                'labels' => ['Moradia'],
-                'series' => [500.0],
+                'result' => [
+                    'labels' => ['Moradia'],
+                    'series' => [500.0],
+                ],
+                'type' => ReportType::DESPESAS_POR_CATEGORIA,
+                'params' => new ReportParameters(
+                    start: Carbon::parse('2026-03-01'),
+                    end: Carbon::parse('2026-03-31'),
+                    accountId: null,
+                    userId: 1401,
+                    includeTransfers: false
+                ),
             ]);
 
         $controller = new RelatoriosController(
-            $reportService,
+            Mockery::mock(ReportService::class),
             Mockery::mock(ReportExportBuilder::class),
             Mockery::mock(PdfExportService::class),
             Mockery::mock(ExcelExportService::class),
             Mockery::mock(InsightsService::class),
             Mockery::mock(ComparativesService::class),
+            $workflowService,
         );
 
         $response = $controller->index();
@@ -112,35 +124,29 @@ class RelatoriosControllerTest extends TestCase
         $this->seedAuthenticatedSession(1403, 'Report Pro User', true, true);
         $_GET['month'] = '2026-03';
 
-        $reportService = Mockery::mock(ReportService::class);
-        $reportService
-            ->shouldReceive('generateReport')
+        $workflowService = Mockery::mock(ReportApiWorkflowService::class);
+        $workflowService
+            ->shouldReceive('exportReport')
             ->once()
-            ->andReturn(['labels' => ['Moradia']]);
-
-        $builder = Mockery::mock(ReportExportBuilder::class);
-        $builder
-            ->shouldReceive('build')
-            ->once()
-            ->andReturn(new ReportData(
-                title: 'Relatório',
-                headers: ['Categoria', 'Valor'],
-                rows: [['Moradia', '500,00']]
-            ));
-
-        $pdfExport = Mockery::mock(PdfExportService::class);
-        $pdfExport
-            ->shouldReceive('export')
-            ->once()
-            ->andReturn('PDFDATA');
+            ->with(
+                1403,
+                Mockery::type(TestRelatoriosUser::class),
+                Mockery::on(static fn(array $query): bool => ($query['month'] ?? null) === '2026-03')
+            )
+            ->andReturn([
+                'content' => 'PDFDATA',
+                'filename' => 'relatorio_2026_03.pdf',
+                'mime' => 'application/pdf',
+            ]);
 
         $controller = new RelatoriosController(
-            $reportService,
-            $builder,
-            $pdfExport,
+            Mockery::mock(ReportService::class),
+            Mockery::mock(ReportExportBuilder::class),
+            Mockery::mock(PdfExportService::class),
             Mockery::mock(ExcelExportService::class),
             Mockery::mock(InsightsService::class),
             Mockery::mock(ComparativesService::class),
+            $workflowService,
         );
 
         $response = $controller->export();

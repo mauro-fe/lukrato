@@ -20,6 +20,38 @@ const MobileCards = {
     sortField: 'data',
     sortDir: 'desc',
 
+    handleActionButton(actionBtn) {
+        if (!actionBtn) return;
+
+        const action = actionBtn.dataset.action;
+        const id = Number(actionBtn.dataset.id);
+        if (!id) return;
+
+        const item = this.cache.find((l) => Number(l.id) === id);
+        if (!item) return;
+
+        if (action === 'edit') {
+            handleEdit(item);
+            return;
+        }
+
+        if (action === 'delete') {
+            handleDelete(id, item, actionBtn);
+        }
+
+        if (action === 'marcar-pago') {
+            handleMarcarPago(id, actionBtn);
+        }
+
+        if (action === 'desmarcar-pago') {
+            handleDesmarcarPago(id, actionBtn);
+        }
+
+        if (action === 'cancelar-recorrencia') {
+            handleCancelarRecorrencia(id, actionBtn);
+        }
+    },
+
     setItems(items, options = {}) {
         const { resetPage = true } = options;
         this.cache = Array.isArray(items) ? items : [];
@@ -755,7 +787,8 @@ const MobileCards = {
                 trigger,
                 dropdown,
                 menu,
-                card
+                card,
+                onItemClick: (itemBtn) => this.handleActionButton(itemBtn)
             });
             if (!opened) return;
             if (window.lucide) lucide.createIcons();
@@ -793,34 +826,7 @@ const MobileCards = {
         const actionBtn = target.closest('.lk-dropdown-item');
         if (!actionBtn) return;
 
-        const action = actionBtn.dataset.action;
-        const id = Number(actionBtn.dataset.id);
-        if (!id) return;
-
-        const item = MobileCards.cache.find(l => Number(l.id) === id);
-        if (!item) return;
-
-
-        if (action === 'edit') {
-            handleEdit(item);
-            return;
-        }
-
-        if (action === 'delete') {
-            handleDelete(id, item, actionBtn);
-        }
-
-        if (action === 'marcar-pago') {
-            handleMarcarPago(id, actionBtn);
-        }
-
-        if (action === 'desmarcar-pago') {
-            handleDesmarcarPago(id, actionBtn);
-        }
-
-        if (action === 'cancelar-recorrencia') {
-            handleCancelarRecorrencia(id, actionBtn);
-        }
+        this.handleActionButton(actionBtn);
     }
 };
 

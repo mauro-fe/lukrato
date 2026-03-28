@@ -628,33 +628,16 @@ export const ParcelamentoGrouper = {
      * Deleta parcelamento inteiro (CASCADE)
      */
     async deletar(parcelamentoId) {
-        const result = await Swal.fire({
-            title: 'Cancelar Parcelamento',
-            html: '<p>O que deseja fazer com este parcelamento?</p>',
-            icon: 'question',
-            input: 'radio',
-            inputOptions: {
-                'unpaid': 'Apenas parcelas pendentes (não pagas)',
-                'all': 'Todo o parcelamento (inclusive parcelas pagas)'
-            },
-            inputValue: 'unpaid',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Excluir',
-            cancelButtonText: 'Voltar',
-            inputValidator: (value) => !value ? 'Selecione uma opção' : undefined
-        });
+        const result = await Modules.ModalManager.openDeleteScopeModal({ mode: 'parcelamentoCascade' });
+        if (!result?.scope) return;
 
-        if (result.isConfirmed) {
-            const scope = result.value; // 'unpaid' or 'all'
-            try {
-                const data = await apiDelete(`${CONFIG.BASE_URL}api/parcelamentos/${parcelamentoId}?scope=${scope}`);
-                LKFeedback.success(data?.message || 'Parcelamento atualizado com sucesso', { toast: true });
-                await DataManager.load();
-            } catch (error) {
-                LKFeedback.error(getErrorMessage(error, 'Erro ao cancelar parcelamento'), { toast: true });
-            }
+        const scope = result.scope;
+        try {
+            const data = await apiDelete(`${CONFIG.BASE_URL}api/parcelamentos/${parcelamentoId}?scope=${scope}`);
+            LKFeedback.success(data?.message || 'Parcelamento atualizado com sucesso', { toast: true });
+            await DataManager.load();
+        } catch (error) {
+            LKFeedback.error(getErrorMessage(error, 'Erro ao cancelar parcelamento'), { toast: true });
         }
     },
 

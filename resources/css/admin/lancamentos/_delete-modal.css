@@ -1,0 +1,129 @@
+.lan-delete-modal {
+  --surface-modal-accent: var(--color-danger);
+}
+
+.lan-delete-modal .modal-dialog {
+  max-width: 560px;
+}
+
+.lan-delete-modal .modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
+}
+
+.lan-delete-scope-lead {
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  line-height: 1.7;
+}
+
+.lan-delete-scope-options {
+  display: grid;
+  gap: var(--spacing-3);
+}
+
+.lan-delete-scope-option {
+  display: block;
+  cursor: pointer;
+}
+
+.lan-delete-scope-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.lan-delete-scope-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-4);
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.lan-delete-scope-card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.lan-delete-scope-indicator {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--surface-modal-accent) 34%, transparent);
+  background: rgba(255, 255, 255, 0.03);
+  position: relative;
+  flex-shrink: 0;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lan-delete-scope-indicator::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: inherit;
+  background: transparent;
+  transition: background 0.2s ease;
+}
+
+.lan-delete-scope-option-title {
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.lan-delete-scope-option-text {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: 1.7;
+  padding-left: calc(18px + var(--spacing-3));
+}
+
+.lan-delete-scope-input:focus-visible + .lan-delete-scope-card {
+  outline: 2px solid color-mix(in srgb, var(--surface-modal-accent) 60%, transparent);
+  outline-offset: 2px;
+}
+
+.lan-delete-scope-input:checked + .lan-delete-scope-card {
+  border-color: color-mix(in srgb, var(--surface-modal-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--surface-modal-accent) 10%, transparent);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--surface-modal-accent) 18%, transparent);
+}
+
+.lan-delete-scope-input:checked + .lan-delete-scope-card .lan-delete-scope-indicator {
+  border-color: var(--surface-modal-accent);
+  background: color-mix(in srgb, var(--surface-modal-accent) 16%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--surface-modal-accent) 12%, transparent);
+}
+
+.lan-delete-scope-input:checked + .lan-delete-scope-card .lan-delete-scope-indicator::after {
+  background: linear-gradient(
+    135deg,
+    var(--surface-modal-accent),
+    color-mix(in srgb, var(--surface-modal-accent) 74%, #000)
+  );
+}
+
+.lan-delete-scope-hint {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: 1.7;
+}
+
+@media (max-width: 768px) {
+  .lan-delete-modal .modal-dialog {
+    max-width: 95%;
+  }
+
+  .lan-delete-scope-card {
+    padding: var(--spacing-3);
+  }
+
+  .lan-delete-scope-option-text {
+    padding-left: 0;
+  }
+}

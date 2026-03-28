@@ -8,22 +8,23 @@ if (!empty($currentUser->nome)) {
 $firstName = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
 ?>
 <div class="gamification-page">
-    <div class="page-header surface-card surface-card--glass surface-card--soft-hover surface-card--interactive surface-card--accent-hover">
+    <div class="page-header surface-card surface-card--interactive">
         <div class="page-header-content">
             <div class="page-icon"><i data-lucide="trophy"></i></div>
             <div>
-                <h1 id="pageHeaderTitle"><?= $firstName ? "{$firstName}, você está no Nível 1" : "Sua Jornada de Gamificação" ?></h1>
+                <h1 id="pageHeaderTitle">
+                    <?= $firstName ? "{$firstName}, você está no Nível 1" : "Sua Jornada de Gamificação" ?></h1>
                 <p id="pageHeaderSubtitle">Acompanhe seu progresso, conquistas e ranking</p>
             </div>
         </div>
-        <div class="level-badge-large" id="userLevelLarge">
+        <div class="level-badge-large surface-chip surface-chip--soft surface-chip--lg" id="userLevelLarge">
             <i data-lucide="star"></i>
             <span>Nível 1</span>
         </div>
     </div>
 
     <!-- Insight Banner -->
-    <div class="insight-banner surface-card surface-card--glass surface-card--soft-hover" id="insightBanner" style="display:none;">
+    <div class="insight-banner surface-card" id="insightBanner" style="display:none;">
         <div class="insight-icon"><i data-lucide="zap"></i></div>
         <div class="insight-text" id="insightText"></div>
         <button class="insight-dismiss" id="insightDismiss" aria-label="Fechar">
@@ -34,28 +35,28 @@ $firstName = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
     <!-- Progresso Geral -->
     <section class="progress-section">
         <div class="stats-grid">
-            <div class="stat-card surface-card surface-card--glass surface-card--soft-hover surface-card--interactive surface-card--accent-hover">
+            <div class="stat-card surface-card surface-card--interactive">
                 <div class="stat-icon"><i data-lucide="star"></i></div>
                 <div class="stat-content">
                     <div class="stat-value" id="totalPointsCard" data-animate="true">0</div>
                     <div class="stat-label">Pontos Totais</div>
                 </div>
             </div>
-            <div class="stat-card surface-card surface-card--glass surface-card--soft-hover surface-card--interactive surface-card--accent-hover">
+            <div class="stat-card surface-card surface-card--interactive">
                 <div class="stat-icon"><i data-lucide="bar-chart-3"></i></div>
                 <div class="stat-content">
                     <div class="stat-value" id="currentLevelCard" data-animate="true">1</div>
                     <div class="stat-label">Nível Atual</div>
                 </div>
             </div>
-            <div class="stat-card surface-card surface-card--glass surface-card--soft-hover surface-card--interactive surface-card--accent-hover">
+            <div class="stat-card surface-card surface-card--interactive">
                 <div class="stat-icon"><i data-lucide="flame"></i></div>
                 <div class="stat-content">
                     <div class="stat-value" id="currentStreakCard" data-animate="true">0</div>
                     <div class="stat-label">Dias Ativos</div>
                 </div>
             </div>
-            <div class="stat-card surface-card surface-card--glass surface-card--soft-hover surface-card--interactive surface-card--accent-hover">
+            <div class="stat-card surface-card surface-card--interactive">
                 <div class="stat-icon"><i data-lucide="target"></i></div>
                 <div class="stat-content">
                     <div class="stat-value" id="achievementsCountCard">0</div>
@@ -65,13 +66,13 @@ $firstName = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
         </div>
 
         <!-- Barra de Progresso -->
-        <div class="level-progress-large surface-card surface-card--glass surface-card--soft-hover surface-card--interactive surface-card--accent-hover">
+        <div class="level-progress-large surface-card surface-card--interactive">
             <div class="progress-header">
                 <span>Progresso para o Nível <span id="nextLevel">2</span></span>
                 <span class="progress-points" id="progressPointsLarge">0 / 300</span>
             </div>
-            <div class="progress-bar-large" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
-                aria-label="Progresso para o próximo nível">
+            <div class="progress-bar-large surface-card" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+                aria-valuemax="100" aria-label="Progresso para o próximo nível">
                 <div class="progress-milestones">
                     <span class="milestone" style="left:25%"></span>
                     <span class="milestone" style="left:50%"></span>
@@ -84,11 +85,12 @@ $firstName = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
     </section>
 
     <!-- Missões do Dia -->
-    <section class="missions-section surface-card surface-card--glass surface-card--soft-hover surface-card--interactive surface-card--accent-hover" id="missionsSection" style="display:none;">
+    <section class="missions-section surface-card surface-card--interactive" id="missionsSection" style="display:none;">
         <div class="missions-header">
             <h2><i data-lucide="target"></i> Missões do Dia</h2>
             <div class="missions-meta">
-                <span class="missions-badge" id="missionsBadge"></span>
+                <span class="missions-badge surface-chip surface-chip--highlight surface-chip--compact"
+                    id="missionsBadge"></span>
                 <span class="missions-countdown" id="missionsCountdown"></span>
             </div>
         </div>
@@ -105,13 +107,13 @@ $firstName = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
     <div class="insight-inline" id="insightBeforeAchievements" style="display:none;"></div>
 
     <!-- Conquistas -->
-    <section class="achievements-section surface-card surface-card--glass surface-card--soft-hover surface-card--interactive surface-card--accent-hover">
+    <section class="achievements-section surface-card surface-card--interactive">
         <h2><i data-lucide="medal"></i> Conquistas</h2>
 
         <div class="achievements-filter">
-            <button class="filter-btn active" data-filter="all">Todas</button>
-            <button class="filter-btn" data-filter="unlocked">Desbloqueadas</button>
-            <button class="filter-btn" data-filter="locked">Bloqueadas</button>
+            <button class="filter-btn surface-filter surface-filter--soft active" data-filter="all">Todas</button>
+            <button class="filter-btn surface-filter surface-filter--soft" data-filter="unlocked">Desbloqueadas</button>
+            <button class="filter-btn surface-filter surface-filter--soft" data-filter="locked">Bloqueadas</button>
         </div>
 
         <div class="achievements-grid" id="achievementsGridPage">
@@ -124,7 +126,7 @@ $firstName = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
     </section>
 
     <!-- Histórico de Pontos -->
-    <section class="history-section surface-card surface-card--glass surface-card--soft-hover surface-card--interactive surface-card--accent-hover">
+    <section class="history-section surface-card surface-card--interactive">
         <h2><i data-lucide="history"></i> Histórico Recente</h2>
         <div class="history-list" id="pointsHistory">
             <!-- Loading state -->
@@ -139,7 +141,7 @@ $firstName = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
     <div class="insight-inline" id="insightBeforeRanking" style="display:none;"></div>
 
     <!-- Ranking -->
-    <section class="leaderboard-section surface-card surface-card--glass surface-card--soft-hover surface-card--interactive surface-card--accent-hover">
+    <section class="leaderboard-section surface-card surface-card--interactive">
         <h2><i data-lucide="trophy"></i> Ranking</h2>
 
         <?php if ($isPro ?? false): ?>
@@ -154,7 +156,7 @@ $firstName = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
             <div class="leaderboard-gap" id="leaderboardGap" style="display:none;"></div>
         <?php else: ?>
             <!-- CTA de Upgrade para acessar o Ranking -->
-            <div class="leaderboard-locked surface-card surface-card--glass surface-card--soft-hover surface-card--clip">
+            <div class="leaderboard-locked surface-card surface-card--clip">
                 <div class="locked-icon">
                     <i data-lucide="crown"></i>
                 </div>
@@ -162,20 +164,21 @@ $firstName = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
                     Ranking Exclusivo PRO</h3>
                 <p>Compare seu progresso com outros usuários e veja sua posição no ranking global!</p>
                 <div class="locked-features">
-                    <div class="locked-feature">
+                    <div class="locked-feature surface-control-box">
                         <i data-lucide="medal"></i>
                         <span>Top 10 usuários</span>
                     </div>
-                    <div class="locked-feature">
+                    <div class="locked-feature surface-control-box">
                         <i data-lucide="line-chart"></i>
                         <span>Sua posição no ranking</span>
                     </div>
-                    <div class="locked-feature">
+                    <div class="locked-feature surface-control-box">
                         <i data-lucide="trophy"></i>
                         <span>Pontuação global</span>
                     </div>
                 </div>
-                <a href="<?= BASE_URL ?>billing" class="btn-upgrade-ranking">
+                <a href="<?= BASE_URL ?>billing"
+                    class="btn-upgrade-ranking surface-button surface-button--upgrade surface-button--lg">
                     <i data-lucide="crown"></i>
                     <span>Fazer Upgrade para PRO</span>
                 </a>

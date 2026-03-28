@@ -1266,8 +1266,8 @@ export const TransactionManager = {
             await Notifications.ensureSwal();
 
             const confirmed = await Notifications.confirm(
-                'Excluir lanÃ§amento?',
-                'Esta aÃ§Ã£o nÃ£o pode ser desfeita.'
+                'Excluir lançamento?',
+                'Esta ação não pode ser desfeita.'
             );
 
             if (!confirmed) return;

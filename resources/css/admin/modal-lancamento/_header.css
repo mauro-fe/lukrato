@@ -3,7 +3,6 @@
    ================================================ */
 
 .lk-modal-header-gradient {
-  background: var(--color-primary);
   padding: var(--spacing-4) var(--spacing-6);
   padding-right: 56px;
   position: relative;
@@ -13,92 +12,62 @@
   gap: var(--spacing-3);
 }
 
-.lk-modal-header-gradient::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background:
-    radial-gradient(
-      circle at 20% 50%,
-      rgba(255, 255, 255, 0.1) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      circle at 80% 80%,
-      rgba(255, 255, 255, 0.05) 0%,
-      transparent 50%
-    );
-  pointer-events: none;
-}
-
 /* Header Receita */
 .lk-modal-header-gradient.receita {
-  background: linear-gradient(135deg, var(--color-success) 0%, #27ae60 100%);
+  --surface-modal-accent: var(--color-success);
 }
 
 /* Header Despesa */
 .lk-modal-header-gradient.despesa {
-  background: linear-gradient(135deg, var(--color-danger) 0%, #c0392b 100%);
+  --surface-modal-accent: var(--color-danger);
 }
 
 /* Header Transferência */
 .lk-modal-header-gradient.transferencia {
-  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  --surface-modal-accent: #3498db;
 }
 
 /* Header Agendamento */
 .lk-modal-header-gradient.agendamento {
-  background: linear-gradient(135deg, var(--color-primary) 0%, #d35400 100%);
+  --surface-modal-accent: var(--color-primary);
 }
 
 /* Ícone do Header */
 .lk-modal-icon-wrapper {
   width: 40px;
   height: 40px;
-  background: rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0;
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  box-shadow: var(--shadow-md);
   flex-shrink: 0;
 }
 
 .lk-modal-icon-wrapper i {
   font-size: 1.25rem;
-  color: #fff;
 }
 
 /* Título do Modal */
 .lk-modal-title {
-  color: #fff;
   font-size: var(--font-size-lg);
   font-weight: 700;
   text-align: left;
   margin: 0;
   position: relative;
   z-index: 1;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   line-height: 1.4;
   display: block;
 }
 
 /* Subtítulo do Modal */
 .lk-modal-subtitle {
-  color: rgba(255, 255, 255, 0.9);
   font-size: var(--font-size-sm);
   font-weight: 400;
   text-align: left;
   margin: var(--spacing-1) 0 0;
   position: relative;
   z-index: 1;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
   line-height: 1.4;
   display: block;
   opacity: 0.95;
@@ -110,20 +79,15 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all var(--transition-fast);
   z-index: 10;
-  backdrop-filter: blur(10px);
 }
 
 .lk-modal-close-btn:hover {
-  background: rgba(255, 255, 255, 0.25);
   transform: rotate(90deg) scale(1.1);
 }
 

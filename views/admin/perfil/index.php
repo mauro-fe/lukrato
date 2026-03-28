@@ -1,7 +1,7 @@
 <!-- CSS carregado via loadPageCss() no header -->
 
 <div class="profile-page">
-    <div class="profile-header">
+    <div class="profile-header surface-card surface-card--interactive surface-card--clip">
         <!-- Avatar Upload -->
         <?php $avatarUrl = $currentUser?->avatar ? rtrim(BASE_URL, '/') . '/' . $currentUser->avatar : ''; ?>
         <div class="profile-avatar-wrapper">
@@ -31,33 +31,33 @@
     </div>
 
     <!-- Tab Navigation -->
-    <nav class="profile-tabs" role="tablist" aria-label="Seções do perfil">
-        <button type="button" class="profile-tab active" data-tab="dados" role="tab" aria-selected="true"
+    <nav class="profile-tabs surface-card surface-card--clip" role="tablist" aria-label="Seções do perfil">
+        <button type="button" class="profile-tab surface-filter surface-filter--soft active" data-tab="dados" role="tab" aria-selected="true"
             aria-controls="panel-dados">
             <span class="tab-icon"><i data-lucide="user" style="color:#3b82f6"></i></span>
             <span class="tab-label">Dados Pessoais</span>
         </button>
-        <button type="button" class="profile-tab" data-tab="endereco" role="tab" aria-selected="false"
+        <button type="button" class="profile-tab surface-filter surface-filter--soft" data-tab="endereco" role="tab" aria-selected="false"
             aria-controls="panel-endereco">
             <span class="tab-icon"><i data-lucide="map-pin" style="color:#ef4444"></i></span>
             <span class="tab-label">Endereço</span>
         </button>
-        <button type="button" class="profile-tab" data-tab="seguranca" role="tab" aria-selected="false"
+        <button type="button" class="profile-tab surface-filter surface-filter--soft" data-tab="seguranca" role="tab" aria-selected="false"
             aria-controls="panel-seguranca">
             <span class="tab-icon"><i data-lucide="lock" style="color:#f59e0b"></i></span>
             <span class="tab-label">Segurança</span>
         </button>
-        <button type="button" class="profile-tab" data-tab="plano" role="tab" aria-selected="false"
+        <button type="button" class="profile-tab surface-filter surface-filter--soft" data-tab="plano" role="tab" aria-selected="false"
             aria-controls="panel-plano">
             <span class="tab-icon"><i data-lucide="crown" style="color:#f59e0b"></i></span>
             <span class="tab-label">Plano & Indicação</span>
         </button>
-        <button type="button" class="profile-tab" data-tab="integracoes" role="tab" aria-selected="false"
+        <button type="button" class="profile-tab surface-filter surface-filter--soft" data-tab="integracoes" role="tab" aria-selected="false"
             aria-controls="panel-integracoes">
             <span class="tab-icon"><i data-lucide="plug" style="color:#0ea5e9"></i></span>
             <span class="tab-label">Integrações</span>
         </button>
-        <button type="button" class="profile-tab tab-danger" data-tab="perigo" role="tab" aria-selected="false"
+        <button type="button" class="profile-tab surface-filter surface-filter--soft tab-danger" data-tab="perigo" role="tab" aria-selected="false"
             aria-controls="panel-perigo">
             <span class="tab-icon"><i data-lucide="triangle-alert" style="color:#ef4444"></i></span>
             <span class="tab-label">Zona de Perigo</span>
@@ -70,7 +70,7 @@
 
         <!-- Tab: Dados Pessoais -->
         <div class="profile-tab-panel active" id="panel-dados" role="tabpanel" aria-labelledby="tab-dados">
-            <div class="profile-section">
+            <div class="profile-section surface-card surface-card--interactive">
                 <div class="section-header">
                     <div class="section-icon"><i data-lucide="user" style="color: white"></i></div>
                     <div class="section-header-text">
@@ -103,13 +103,10 @@
                     <div class="form-group">
                         <label class="form-label"><i data-lucide="tag" class="icon-label" style="color:#f97316"></i>
                             Código de Suporte</label>
-                        <div style="display:flex;align-items:center;gap:8px;">
-                            <input class="form-input" id="support_code" type="text" readonly
-                                style="font-family:var(--font-mono);font-weight:600;letter-spacing:1.5px;color:var(--color-primary);background:var(--color-bg-secondary);cursor:default;max-width:220px;"
-                                value="Carregando...">
-                            <button type="button" class="btn-copy-support" id="btn-copy-support" onclick="copySupportCode()"
-                                title="Copiar código"
-                                style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;background:var(--color-bg);cursor:pointer;color:var(--color-text-muted);transition:all .2s;">
+                        <div class="profile-inline-copy-row">
+                            <input class="form-input profile-code-input" id="support_code" type="text" readonly value="Carregando...">
+                            <button type="button" class="btn-copy-support surface-button surface-button--subtle surface-button--compact" id="btn-copy-support" onclick="copySupportCode()"
+                                title="Copiar código">
                                 <i data-lucide="copy"></i>
                             </button>
                         </div>
@@ -160,7 +157,7 @@
             </div>
 
             <div class="form-actions">
-                <button type="submit" class="btn-save" id="btn-save-dados">
+                <button type="submit" class="btn-save surface-button surface-button--primary" id="btn-save-dados">
                     <span><i data-lucide="save"></i> Salvar Dados Pessoais</span>
                 </button>
             </div>
@@ -168,7 +165,7 @@
 
         <!-- Tab: Endereço -->
         <div class="profile-tab-panel" id="panel-endereco" role="tabpanel" aria-labelledby="tab-endereco">
-            <div class="profile-section">
+            <div class="profile-section surface-card surface-card--interactive">
                 <div class="section-header">
                     <div class="section-icon"><i data-lucide="map-pin" style="color:white"></i></div>
                     <div class="section-header-text">
@@ -235,7 +232,7 @@
             </div>
 
             <div class="form-actions">
-                <button type="submit" class="btn-save" id="btn-save-endereco">
+                <button type="submit" class="btn-save surface-button surface-button--primary" id="btn-save-endereco">
                     <span><i data-lucide="save"></i> Salvar Endereço</span>
                 </button>
             </div>
@@ -243,7 +240,7 @@
 
         <!-- Tab: Segurança -->
         <div class="profile-tab-panel" id="panel-seguranca" role="tabpanel" aria-labelledby="tab-seguranca">
-            <div class="profile-section">
+            <div class="profile-section surface-card surface-card--interactive">
                 <div class="section-header">
                     <div class="section-icon"><i data-lucide="lock" style="color:white"></i></div>
                     <div class="section-header-text">
@@ -305,7 +302,7 @@
             </div>
 
             <div class="form-actions">
-                <button type="submit" class="btn-save" id="btn-save-seguranca">
+                <button type="submit" class="btn-save surface-button surface-button--primary" id="btn-save-seguranca">
                     <span><i data-lucide="lock-keyhole"></i> Alterar Senha</span>
                 </button>
             </div>
@@ -315,7 +312,7 @@
     <!-- Tab: Plano & Indicação -->
     <div class="profile-tab-panel" id="panel-plano" role="tabpanel" aria-labelledby="tab-plano">
         <!-- Seção de Plano -->
-        <div class="profile-section plan-section">
+        <div class="profile-section plan-section surface-card surface-card--interactive">
             <div class="section-header">
                 <div class="section-icon"><i data-lucide="crown" style="color:white"></i></div>
                 <div class="section-header-text">
@@ -332,7 +329,7 @@
                     $planIcon = $isPro ? 'crown' : 'leaf';
                     $planClass = $isPro ? 'pro' : 'free';
                     ?>
-                    <div class="current-plan <?= $planClass ?>">
+                    <div class="current-plan surface-chip <?= $isPro ? 'surface-chip--pro' : 'surface-chip--success' ?> <?= $planClass ?>">
                         <i data-lucide="<?= $planIcon ?>"></i>
                         <span class="plan-name">Plano <?= $planName ?></span>
                     </div>
@@ -346,7 +343,7 @@
                         <?php endif; ?>
                     </p>
                 </div>
-                <a href="<?= BASE_URL ?>billing" class="btn-manage-plan <?= $planClass ?>">
+                <a href="<?= BASE_URL ?>billing" class="btn-manage-plan surface-button <?= $isPro ? 'surface-button--subtle' : 'surface-button--upgrade' ?> <?= $planClass ?>">
                     <i data-lucide="<?= $isPro ? 'settings' : 'rocket' ?>"></i>
                     <span><?= $isPro ? 'Gerenciar Plano' : 'Fazer Upgrade' ?></span>
                 </a>
@@ -354,7 +351,7 @@
         </div>
 
         <!-- Seção de Indicação -->
-        <div class="profile-section referral-section">
+        <div class="profile-section referral-section surface-card surface-card--interactive">
             <div class="section-header">
                 <div class="section-icon"><i data-lucide="gift" style="color:white"></i></div>
                 <div class="section-header-text">
@@ -366,11 +363,11 @@
             <div class="referral-section-content">
                 <div class="referral-info">
                     <div class="referral-reward-info">
-                        <div class="reward-item">
+                        <div class="reward-item surface-control-box surface-control-box--interactive">
                             <span class="reward-icon"><i data-lucide="user" style="color:#3b82f6"></i></span>
                             <span class="reward-text">Você ganha <strong>15 dias</strong> de PRO</span>
                         </div>
-                        <div class="reward-item">
+                        <div class="reward-item surface-control-box surface-control-box--interactive">
                             <span class="reward-icon"><i data-lucide="users" style="color:#14b8a6"></i></span>
                             <span class="reward-text">Seu amigo ganha <strong>7 dias</strong> de PRO</span>
                         </div>
@@ -380,10 +377,10 @@
                 <div class="referral-container">
                     <div class="referral-code-container">
                         <label class="referral-label">Seu código de indicação:</label>
-                        <div class="referral-code-box">
+                        <div class="referral-code-box surface-control-box">
                             <input type="text" id="referral-code" class="referral-code-input" readonly
                                 value="Carregando...">
-                            <button type="button" class="btn-copy-code" id="btn-copy-code" title="Copiar código">
+                            <button type="button" class="btn-copy-code surface-button surface-button--subtle surface-button--compact" id="btn-copy-code" title="Copiar código">
                                 <i data-lucide="copy"></i>
                             </button>
                         </div>
@@ -391,10 +388,10 @@
 
                     <div class="referral-link-container">
                         <label class="referral-label">Ou compartilhe seu link:</label>
-                        <div class="referral-link-box">
+                        <div class="referral-link-box surface-control-box">
                             <input type="text" id="referral-link" class="referral-link-input" readonly
                                 value="Carregando...">
-                            <button type="button" class="btn-copy-link" id="btn-copy-link" title="Copiar link">
+                            <button type="button" class="btn-copy-link surface-button surface-button--subtle surface-button--compact" id="btn-copy-link" title="Copiar link">
                                 <i data-lucide="copy"></i>
                             </button>
                         </div>
@@ -402,7 +399,7 @@
                 </div>
 
                 <!-- Barra de limite mensal -->
-                <div class="referral-limit-bar" id="referral-limit-bar">
+                <div class="referral-limit-bar surface-card surface-card--clip" id="referral-limit-bar">
                     <div class="limit-bar-header">
                         <span class="limit-bar-title">Indicações este mês</span>
                         <span class="limit-bar-count"><span id="limit-current">0</span> / <span
@@ -415,15 +412,15 @@
                 </div>
 
                 <div class="referral-stats" id="referral-stats">
-                    <div class="stat-item">
+                    <div class="stat-item surface-card surface-card--interactive">
                         <span class="stat-value" id="stat-total">-</span>
                         <span class="stat-label">Total</span>
                     </div>
-                    <div class="stat-item">
+                    <div class="stat-item surface-card surface-card--interactive">
                         <span class="stat-value" id="stat-completed">-</span>
                         <span class="stat-label">Completadas</span>
                     </div>
-                    <div class="stat-item">
+                    <div class="stat-item surface-card surface-card--interactive">
                         <span class="stat-value" id="stat-days">-</span>
                         <span class="stat-label">Dias ganhos</span>
                     </div>
@@ -453,7 +450,7 @@
     <!-- Tab: Integrações -->
     <div class="profile-tab-panel" id="panel-integracoes" role="tabpanel" aria-labelledby="tab-integracoes">
         <!-- WhatsApp (oculto temporariamente — API ainda não disponível)
-        <div class="profile-section">
+        <div class="profile-section surface-card surface-card--interactive">
             <div class="section-header">
                 <div class="section-icon" style="background:#22c55e"><i data-lucide="message-circle" style="color:white"></i></div>
                 <div class="section-header-text">
@@ -510,7 +507,7 @@
         fim WhatsApp oculto -->
 
         <!-- Telegram -->
-        <div class="profile-section">
+        <div class="profile-section surface-card surface-card--interactive">
             <div class="section-header">
                 <div class="section-icon" style="background:#0ea5e9"><i data-lucide="send" style="color:white"></i></div>
                 <div class="section-header-text">
@@ -519,7 +516,7 @@
                 </div>
             </div>
 
-            <div class="integration-card" id="telegram-card">
+            <div class="integration-card surface-control-box surface-control-box--interactive" id="telegram-card">
                 <div class="integration-status" id="telegram-status">
                     <span class="status-indicator not-linked"></span>
                     <span class="status-text">Carregando...</span>
@@ -544,11 +541,9 @@
                             <li>Envie o código de 6 dígitos abaixo</li>
                             <li>Volte aqui enquanto confirmamos o vínculo</li>
                         </ol>
-                        <div style="display:flex;align-items:center;gap:8px;margin:12px 0">
-                            <input class="form-input" id="telegram-code-display" type="text" readonly
-                                style="font-family:var(--font-mono);font-weight:700;font-size:1.5rem;text-align:center;letter-spacing:4px;max-width:200px;color:var(--color-primary);background:var(--color-bg-secondary)">
-                            <button type="button" class="btn-copy-support" id="btn-copy-telegram-code" title="Copiar código"
-                                style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;background:var(--color-bg);cursor:pointer;color:var(--color-text-muted);transition:all .2s;">
+                        <div class="profile-inline-copy-row profile-inline-copy-row--telegram">
+                            <input class="form-input profile-code-input profile-code-input--telegram" id="telegram-code-display" type="text" readonly>
+                            <button type="button" class="btn-copy-support surface-button surface-button--subtle surface-button--compact" id="btn-copy-telegram-code" title="Copiar código">
                                 <i data-lucide="copy"></i>
                             </button>
                         </div>
@@ -590,7 +585,7 @@
 
     <!-- Tab: Zona de Perigo -->
     <div class="profile-tab-panel" id="panel-perigo" role="tabpanel" aria-labelledby="tab-perigo">
-        <div class="profile-section danger-zone">
+        <div class="profile-section danger-zone surface-card surface-card--interactive">
             <div class="section-header">
                 <div class="section-icon"><i data-lucide="triangle-alert" style="color:white"></i></div>
                 <div class="section-header-text">
@@ -631,7 +626,7 @@
                             PRO (se ativo) será cancelado automaticamente</li>
                     </ul>
                 </div>
-                <button type="button" class="btn-delete-account" id="btn-delete-account">
+                <button type="button" class="btn-delete-account surface-button surface-button--danger" id="btn-delete-account">
                     <i data-lucide="trash-2"></i>
                     <span>Excluir Minha Conta</span>
                 </button>

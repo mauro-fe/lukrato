@@ -1,4 +1,4 @@
-<!-- Hero Section -->
+<!-- Hero Section — Impacto emocional imediato -->
 <section
     class="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-white via-orange-50/40 to-white"
     aria-label="Seção principal - Controle financeiro pessoal" itemscope itemtype="https://schema.org/WebPageElement">
@@ -13,43 +13,49 @@
 
             <!-- Conteúdo Principal -->
             <article class="text-center lg:text-left space-y-6" data-aos="fade-up">
-                <!-- Badge -->
+                <!-- Badge — Prova social imediata -->
                 <div
                     class="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 border border-orange-100 rounded-full">
-                    <i data-lucide="shield-check" class="w-4 h-4 text-primary" aria-hidden="true"></i>
-                    <span class="text-sm font-medium text-gray-700">100% gratuito para começar</span>
+                    <i data-lucide="users" class="w-4 h-4 text-primary" aria-hidden="true"></i>
+                    <span class="text-sm font-medium text-gray-700">+1.000 pessoas já organizando suas finanças</span>
                 </div>
 
-                <!-- Título Principal -->
+                <!-- Título Principal — Ataca dor real -->
+                <!--
+                    A/B Test Variações:
+                    B: "Saiba exatamente para onde cada real vai"
+                    C: "Seu dinheiro está sumindo. Descubra para onde."
+                -->
                 <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                    Organize suas Finanças Pessoais de Forma Simples e
+                    Pare de perder dinheiro
                     <span class="bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
-                        Gratuita
+                        sem perceber
                     </span>
                 </h1>
 
-                <!-- Subtítulo -->
+                <!-- Subtítulo — Benefício + IA + simplicidade -->
                 <p class="text-lg sm:text-xl text-gray-600 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    O app brasileiro de controle financeiro gratuito com dashboard inteligente, gestão de cartões de
-                    crédito, relatórios visuais e controle de gastos.
-                    Tudo em um só lugar, sem complicação.
+                    O Lukrato mostra em segundos se você está gastando mais do que ganha — e te ajuda a virar o jogo com IA, sem planilha e sem complicação.
                 </p>
 
                 <!-- CTAs -->
                 <div class="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start pt-2">
-                    <a href="<?= BASE_URL ?>login"
-                        class="group inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 hover:scale-[1.02] transition-all duration-300"
-                        title="Criar conta gratuita no Lukrato" aria-label="Começar a usar o Lukrato gratuitamente">
-                        Começar grátis agora
-                        <i data-lucide="arrow-right" class="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform"
-                            aria-hidden="true"></i>
-                    </a>
+                    <div class="flex flex-col items-center sm:items-start">
+                        <a href="<?= BASE_URL ?>login"
+                            class="group inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 hover:scale-[1.03] active:scale-[0.98] transition-all duration-300"
+                            title="Criar conta gratuita no Lukrato" aria-label="Quero organizar meu dinheiro">
+                            Quero organizar meu dinheiro
+                            <i data-lucide="arrow-right" class="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform"
+                                aria-hidden="true"></i>
+                        </a>
+                        <span class="text-xs text-gray-400 mt-2 font-medium">Grátis · Sem cartão · Leva 1 minuto</span>
+                    </div>
 
                     <a href="#como-funciona"
                         class="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:border-primary/40 hover:text-primary shadow-sm hover:shadow-md transition-all duration-300"
                         title="Ver como funciona o Lukrato" aria-label="Entenda como funciona">
                         <i data-lucide="play-circle" class="mr-2 w-5 h-5" aria-hidden="true"></i>
-                        Ver como funciona
+                        Ver como funciona em 2 minutos
                     </a>
                 </div>
 
@@ -65,7 +71,7 @@
                     </div>
                     <div class="flex items-center gap-2 text-gray-500 text-sm">
                         <i data-lucide="circle-check" class="w-4 h-4 text-green-500" aria-hidden="true"></i>
-                        <span>LGPD compliant</span>
+                        <span>Dados protegidos (LGPD)</span>
                     </div>
                 </div>
             </article>

@@ -24,14 +24,14 @@
             </div>
 
             <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-                Transforme organização financeira em
+                Organizar dinheiro nunca foi tão
                 <span class="bg-gradient-to-r from-primary via-orange-500 to-orange-600 bg-clip-text text-transparent">
-                    uma jornada divertida
+                    viciante
                 </span>
             </h2>
             <p class="text-lg sm:text-xl text-gray-600 leading-relaxed">
-                Ganhe pontos, desbloqueie conquistas e suba de nível enquanto organiza suas finanças.
-                Transformamos cada ação em progresso visível!
+                Ganhe pontos por cada gasto registrado, suba de nível e desbloqueie conquistas.
+                O prêmio é sua vida financeira no controle.
             </p>
         </div>
 
@@ -234,7 +234,7 @@
                         </div>
                         <h4 class="text-xl font-bold mb-2">Motivação Extra</h4>
                         <p class="text-white/80 text-sm">
-                            Cada ação te aproxima de novas conquistas e recompensas
+                            Cada ação te deixa mais perto da próxima conquista
                         </p>
                     </div>
 
@@ -245,7 +245,7 @@
                         </div>
                         <h4 class="text-xl font-bold mb-2">Progresso Visível</h4>
                         <p class="text-white/80 text-sm">
-                            Veja sua evolução através de níveis, pontos e conquistas
+                            Veja sua evolução real em níveis e pontos
                         </p>
                     </div>
 
@@ -256,17 +256,20 @@
                         </div>
                         <h4 class="text-xl font-bold mb-2">Hábitos Positivos</h4>
                         <p class="text-white/80 text-sm">
-                            Crie consistência e mantenha sua organização financeira em dia
+                            Crie consistência sem nem perceber
                         </p>
                     </div>
                 </div>
 
                 <div class="text-center mt-10">
-                    <a href="<?= BASE_URL ?>login"
-                        class="inline-flex items-center justify-center px-8 py-4 text-lg font-bold bg-white text-primary rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
-                        Começar minha jornada
-                        <i data-lucide="arrow-right" class="ml-3"></i>
-                    </a>
+                    <div class="flex flex-col items-center">
+                        <a href="<?= BASE_URL ?>login"
+                            class="inline-flex items-center justify-center px-8 py-4 text-lg font-bold bg-white text-primary rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.03] active:scale-[0.98] transition-all duration-300">
+                            Começar minha jornada
+                            <i data-lucide="arrow-right" class="ml-3"></i>
+                        </a>
+                        <span class="text-xs text-white/60 mt-2">E ganhar meus primeiros pontos</span>
+                    </div>
                 </div>
             </div>
         </div>

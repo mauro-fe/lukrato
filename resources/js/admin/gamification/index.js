@@ -250,7 +250,7 @@ function renderAchievements(achievements) {
         const isUnlocked = achievement.unlocked;
 
         // Determine card state classes
-        let cardClass = 'achievement-card';
+        let cardClass = 'achievement-card surface-card surface-card--interactive';
         if (isUnlocked) {
             cardClass += ' unlocked';
             // Check if recently unlocked (within 24h)
@@ -377,7 +377,7 @@ function updatePointsHistory(data) {
     elements.pointsHistory.innerHTML = history.map(action => {
         const highValue = action.points > 50 ? ' high-value' : '';
         return `
-        <div class="history-item${highValue}">
+        <div class="history-item surface-card surface-card--interactive${highValue}">
             <div class="history-icon"><i data-lucide="${getActionIcon(action.action)}"></i></div>
             <div class="history-content">
                 <div class="history-title">${escapeHtml(formatActionHumanized(action))}</div>
@@ -413,9 +413,8 @@ function updateMissions(data) {
     const completedCount = missions.filter(m => m.completed).length;
     if (elements.missionsBadge) {
         elements.missionsBadge.textContent = `${completedCount}/${missions.length} concluídas`;
-        if (completedCount === missions.length) {
-            elements.missionsBadge.classList.add('all-done');
-        }
+        elements.missionsBadge.classList.toggle('all-done', completedCount === missions.length);
+        elements.missionsBadge.classList.toggle('surface-chip--success', completedCount === missions.length);
     }
 
     // Countdown to midnight
@@ -444,7 +443,7 @@ function updateMissions(data) {
         }
 
         return `
-            <div class="mission-card${extraClass}">
+            <div class="mission-card surface-card surface-card--interactive${extraClass}">
                 <div class="mission-header">
                     <div class="mission-icon"><i data-lucide="${escapeHtml(mission.icon)}"></i></div>
                     <div class="mission-info">
