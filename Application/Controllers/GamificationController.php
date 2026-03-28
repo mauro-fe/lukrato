@@ -23,7 +23,7 @@ class GamificationController extends BaseController
         return $this->renderResponse(
             'admin/gamification/index',
             [
-                'pageTitle' => 'Gamificacao - Lukrato',
+                'pageTitle' => 'Gamificação - Lukrato',
                 'isPro' => $isPro,
                 'currentUser' => $user,
             ],

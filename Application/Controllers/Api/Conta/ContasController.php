@@ -155,7 +155,7 @@ class ContasController extends BaseController
         try {
             return $this->respondWorkflowResult($this->workflowService->createInstituicao($this->getJson()));
         } catch (Throwable $e) {
-            return $this->internalErrorResponse($e, 'Erro ao criar instituicao.');
+            return $this->internalErrorResponse($e, 'Erro ao criar instituição.');
         }
     }
 

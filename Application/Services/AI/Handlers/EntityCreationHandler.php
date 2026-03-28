@@ -89,10 +89,16 @@ class EntityCreationHandler implements AIHandlerInterface
             // If we're in 'collecting_entity', extract new data and merge
             if ($convState['state'] === 'collecting_entity') {
                 $entityType = $convState['data']['entity_type'] ?? 'lancamento';
+                $partialData = $convState['data']['partial_data'] ?? [];
                 $newData = $this->extractByRegex($message, $entityType);
 
                 // Also try to extract single field values (user might just type "150" for valor)
                 $newData = $this->extractSingleFieldAnswer($message, $convState['data']['missing_fields'] ?? [], $newData);
+                $newData = $this->resolveEntityReferences(
+                    array_merge($partialData, $newData),
+                    $entityType,
+                    $userId
+                );
 
                 $result = ConversationStateService::updateEntityCollection($conversationId, $newData);
 
@@ -105,6 +111,17 @@ class EntityCreationHandler implements AIHandlerInterface
                 }
 
                 // Still missing fields — ask next question
+                $selectionResponse = $this->maybeStartSelection(
+                    $conversationId,
+                    $entityType,
+                    $result['data'],
+                    $result['missing'],
+                    $userId
+                );
+                if ($selectionResponse !== null) {
+                    return $selectionResponse;
+                }
+
                 $question = ConversationStateService::getNextQuestion($result['missing'], $entityType);
                 return AIResponseDTO::fromRule(
                     $question,
@@ -131,22 +148,35 @@ class EntityCreationHandler implements AIHandlerInterface
         if ($entityType === 'lancamento') {
             $extracted = $this->resolveCartaoCredito($extracted, $message, $userId);
         }
+        $extracted = $this->resolveEntityReferences($extracted, $entityType, $userId);
 
         // Se faltam campos obrigatórios, tentar LLM
         $missing = $this->getMissingFields($extracted, $entityType);
         if (!empty($missing) && $this->provider) {
             $extracted = $this->extractWithAI($message, $entityType, $extracted);
-            $missing = $this->getMissingFields($extracted, $entityType);
 
             // Re-resolver cartão após extração com LLM (pode ter extraído nome_cartao)
             if ($entityType === 'lancamento') {
                 $extracted = $this->resolveCartaoCredito($extracted, $message, $userId);
             }
+            $extracted = $this->resolveEntityReferences($extracted, $entityType, $userId);
+            $missing = $this->getMissingFields($extracted, $entityType);
         }
 
         // Se ainda faltam campos obrigatórios, iniciar coleta multi-turno
         if (!empty($missing)) {
             if ($conversationId !== null) {
+                $selectionResponse = $this->maybeStartSelection(
+                    $conversationId,
+                    $entityType,
+                    $extracted,
+                    $missing,
+                    $userId
+                );
+                if ($selectionResponse !== null) {
+                    return $selectionResponse;
+                }
+
                 ConversationStateService::startEntityCollection(
                     $conversationId,
                     $entityType,
@@ -182,6 +212,7 @@ class EntityCreationHandler implements AIHandlerInterface
     private function proceedToConfirmation(array $extracted, string $entityType, int $userId, AIRequestDTO $request): AIResponseDTO
     {
         $conversationId = $request->context['conversation_id'] ?? null;
+        $extracted = $this->resolveEntityReferences($extracted, $entityType, $userId);
 
         // Resolver categoria_sugerida → categoria_id (a IA extrai nome, precisamos do ID)
         if ($entityType === 'lancamento' && empty($extracted['categoria_id'])) {
@@ -384,6 +415,14 @@ class EntityCreationHandler implements AIHandlerInterface
                         $month = str_pad($m[2], 2, '0', STR_PAD_LEFT);
                         $year = isset($m[3]) ? (strlen($m[3]) === 2 ? '20' . $m[3] : $m[3]) : date('Y');
                         $existing['data'] = "{$year}-{$month}-{$day}";
+                    }
+                    break;
+
+                case 'categoria_id':
+                    $categoria = preg_replace('/^\s*(?:categoria\s*[:\-]?\s*)/iu', '', $msg);
+                    $categoria = trim((string) $categoria, " \t\n\r\0\x0B,.");
+                    if (mb_strlen($categoria) >= 2 && mb_strlen($categoria) <= 80) {
+                        $existing['categoria_sugerida'] = $categoria;
                     }
                     break;
             }
@@ -720,11 +759,14 @@ class EntityCreationHandler implements AIHandlerInterface
         // 2. Fallback: buscar por nome sugerido pela IA no banco
         $sugerida = $data['categoria_sugerida'] ?? null;
         if ($sugerida !== null && $sugerida !== '') {
-            $categoria = Categoria::where('user_id', $userId)
-                ->whereRaw('LOWER(nome) LIKE ?', ['%' . mb_strtolower(trim($sugerida)) . '%'])
-                ->first();
+            $categoria = $this->findCategoryByName(
+                (string) $sugerida,
+                $userId,
+                [$data['tipo'] ?? 'despesa', 'ambas']
+            );
             if ($categoria) {
                 $data['categoria_id'] = $categoria->id;
+                $data['categoria_nome'] = $categoria->nome;
                 return $data;
             }
         }
@@ -823,6 +865,166 @@ class EntityCreationHandler implements AIHandlerInterface
         };
     }
 
+    private function resolveEntityReferences(array $data, string $entityType, int $userId): array
+    {
+        return match ($entityType) {
+            'lancamento' => empty($data['categoria_id']) ? $this->resolveCategoria($data, $userId) : $data,
+            'orcamento'  => empty($data['categoria_id']) ? $this->resolveOrcamentoCategoria($data, $userId) : $data,
+            default      => $data,
+        };
+    }
+
+    private function resolveOrcamentoCategoria(array $data, int $userId): array
+    {
+        $sugerida = trim((string) ($data['categoria_sugerida'] ?? $data['categoria_nome'] ?? ''));
+        if ($sugerida === '') {
+            return $data;
+        }
+
+        $categoria = $this->findCategoryByName($sugerida, $userId, ['despesa', 'ambas']);
+        if ($categoria === null) {
+            return $data;
+        }
+
+        $data['categoria_id'] = $categoria->id;
+        $data['categoria_nome'] = $categoria->nome;
+
+        return $data;
+    }
+
+    private function findCategoryByName(string $name, int $userId, array $allowedTypes = []): ?Categoria
+    {
+        $normalized = mb_strtolower(trim($name));
+        if ($normalized === '') {
+            return null;
+        }
+
+        $buildQuery = function () use ($userId, $allowedTypes) {
+            $query = Categoria::query()
+                ->where(function ($q) use ($userId) {
+                    $q->whereNull('user_id')->orWhere('user_id', $userId);
+                });
+
+            if (!empty($allowedTypes)) {
+                $query->where(function ($q) use ($allowedTypes) {
+                    foreach ($allowedTypes as $index => $type) {
+                        if ($index === 0) {
+                            $q->where('tipo', $type);
+                            continue;
+                        }
+
+                        $q->orWhere('tipo', $type);
+                    }
+                });
+            }
+
+            return $query->orderByRaw('CASE WHEN user_id = ? THEN 0 ELSE 1 END', [$userId])
+                ->orderBy('nome');
+        };
+
+        $exact = $buildQuery()
+            ->whereRaw('LOWER(nome) = ?', [$normalized])
+            ->first();
+        if ($exact !== null) {
+            return $exact;
+        }
+
+        $startsWith = $buildQuery()
+            ->whereRaw('LOWER(nome) LIKE ?', [$normalized . '%'])
+            ->first();
+        if ($startsWith !== null) {
+            return $startsWith;
+        }
+
+        return $buildQuery()
+            ->whereRaw('LOWER(nome) LIKE ?', ['%' . $normalized . '%'])
+            ->first();
+    }
+
+    private function maybeStartSelection(
+        int $conversationId,
+        string $entityType,
+        array $partialData,
+        array $missingFields,
+        int $userId
+    ): ?AIResponseDTO {
+        if ($entityType !== 'orcamento' || $missingFields !== ['categoria_id']) {
+            return null;
+        }
+
+        $options = $this->buildBudgetCategoryOptions($userId);
+        if (empty($options)) {
+            return null;
+        }
+
+        ConversationStateService::startSelection(
+            $conversationId,
+            'budget_category',
+            $options,
+            array_merge($partialData, ['_entity_type' => $entityType])
+        );
+
+        return AIResponseDTO::fromRule(
+            "Qual categoria deseja limitar neste orçamento?\n\nEscolha uma opção abaixo ou digite o nome da categoria.",
+            [
+                'action' => 'awaiting_selection',
+                'entity_type' => $entityType,
+                'options' => $options,
+            ],
+            IntentType::CREATE_ENTITY
+        );
+    }
+
+    private function buildBudgetCategoryOptions(int $userId): array
+    {
+        return Categoria::query()
+            ->where(function ($q) use ($userId) {
+                $q->whereNull('user_id')->orWhere('user_id', $userId);
+            })
+            ->where(function ($q) {
+                $q->where('tipo', 'despesa')->orWhere('tipo', 'ambas');
+            })
+            ->orderByRaw('CASE WHEN user_id = ? THEN 0 ELSE 1 END', [$userId])
+            ->orderBy('nome')
+            ->get()
+            ->map(fn($categoria) => [
+                'categoria_id' => $categoria->id,
+                'categoria_nome' => $categoria->nome,
+                'nome' => $categoria->nome,
+            ])
+            ->values()
+            ->toArray();
+    }
+
+    private function extractBudgetCategorySuggestion(string $message): ?string
+    {
+        $patterns = [
+            '/\b(?:or[çc]amento|limite|teto)(?:.{0,40})\b(?:para|pra|com|em)\s+([\p{L}][\p{L}\s&\/-]{1,60})$/iu',
+            '/\bn[ãa]o\s+(?:quero\s+)?(?:gastar|passar)(?:.{0,40})\b(?:para|pra|com|em)\s+([\p{L}][\p{L}\s&\/-]{1,60})$/iu',
+            '/\bgastar\s+no\s+m[áa]ximo(?:.{0,40})\b(?:para|pra|com|em)\s+([\p{L}][\p{L}\s&\/-]{1,60})$/iu',
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (!preg_match($pattern, $message, $matches)) {
+                continue;
+            }
+
+            $categoria = trim((string) ($matches[1] ?? ''), " \t\n\r\0\x0B,.");
+            $categoria = preg_replace('/^(?:o|a|os|as|uma|um)\b\s+/iu', '', $categoria);
+            $categoria = trim((string) $categoria);
+
+            if (preg_match('/^(?:janeiro|fevereiro|mar[çc]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|m[eê]s)$/iu', $categoria)) {
+                continue;
+            }
+
+            if (mb_strlen($categoria) >= 2 && mb_strlen($categoria) <= 60) {
+                return $categoria;
+            }
+        }
+
+        return null;
+    }
+
     private function extractMeta(string $message): array
     {
         $data = [];
@@ -902,6 +1104,11 @@ class EntityCreationHandler implements AIHandlerInterface
             $data['ano'] = (int) $m[1];
         } else {
             $data['ano'] = (int) date('Y');
+        }
+
+        $categoriaSugerida = $this->extractBudgetCategorySuggestion($message);
+        if ($categoriaSugerida !== null) {
+            $data['categoria_sugerida'] = $categoriaSugerida;
         }
 
         return $data;
@@ -1172,7 +1379,7 @@ class EntityCreationHandler implements AIHandlerInterface
         $required = match ($entityType) {
             'lancamento'   => ['valor', 'descricao', 'tipo', 'data'],
             'meta'         => ['titulo', 'valor_alvo'],
-            'orcamento'    => ['valor_limite'],
+            'orcamento'    => ['valor_limite', 'categoria_id'],
             'categoria'    => ['nome', 'tipo'],
             'subcategoria' => ['nome'],
             'conta'        => ['nome'],
@@ -1183,6 +1390,13 @@ class EntityCreationHandler implements AIHandlerInterface
         foreach ($required as $field) {
             if (in_array($field, ['valor', 'valor_alvo', 'valor_limite'], true)) {
                 if (!isset($data[$field]) || !is_numeric($data[$field]) || (float) $data[$field] <= 0) {
+                    $missing[] = $field;
+                }
+                continue;
+            }
+
+            if ($field === 'categoria_id') {
+                if (!isset($data['categoria_id']) || !is_numeric($data['categoria_id']) || (int) $data['categoria_id'] <= 0) {
                     $missing[] = $field;
                 }
                 continue;
@@ -1388,7 +1602,19 @@ class EntityCreationHandler implements AIHandlerInterface
         $valor = 'R$ ' . number_format((float) ($d['valor_limite'] ?? 0), 2, ',', '.');
         $mes = str_pad((string) ($d['mes'] ?? date('m')), 2, '0', STR_PAD_LEFT);
         $ano = $d['ano'] ?? date('Y');
-        return "📊 **Orçamento**: {$valor}\n📅 Período: {$mes}/{$ano}";
+        $lines = ["📊 **Orçamento**: {$valor}"];
+
+        $categoriaNome = trim((string) ($d['categoria_nome'] ?? ''));
+        if ($categoriaNome === '' && !empty($d['categoria_id'])) {
+            $categoriaNome = (string) (Categoria::find($d['categoria_id'])?->nome ?? '');
+        }
+        if ($categoriaNome !== '') {
+            $lines[] = "📁 Categoria: **{$categoriaNome}**";
+        }
+
+        $lines[] = "📅 Período: {$mes}/{$ano}";
+
+        return implode("\n", $lines);
     }
 
     private function previewCategoria(array $d): string

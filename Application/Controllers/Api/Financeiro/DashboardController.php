@@ -497,11 +497,11 @@ class DashboardController extends BaseController
                 'anual'  => $anual,
             ]);
         } catch (Throwable $e) {
-            $this->logDashboardError('Erro ao gerar evolucao financeira', $e, $userId ?? 0, [
+            $this->logDashboardError('Erro ao gerar evolução financeira', $e, $userId ?? 0, [
                 'month' => $month,
             ]);
 
-            return $this->internalErrorResponse($e, 'Erro ao gerar evolucao.');
+            return $this->internalErrorResponse($e, 'Erro ao gerar evolução.');
         }
     }
 }

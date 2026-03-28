@@ -263,7 +263,7 @@ class ConversationStateService
             ],
             'orcamento' => [
                 'valor_limite'  => 'Qual o **valor limite** do orçamento? (ex: R$ 800)',
-                'categoria_id'  => 'Para qual **categoria**? (ex: Alimentação, Transporte)',
+                'categoria_id'  => 'Qual **categoria** deseja limitar no orçamento? (ex: Alimentação, Transporte)',
             ],
             'categoria' => [
                 'nome' => 'Qual o **nome** da categoria?',

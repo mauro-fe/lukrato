@@ -170,6 +170,30 @@ class EntityCreationPipelineTest extends TestCase
         $this->assertEquals(IntentType::CREATE_ENTITY, $result->intent);
     }
 
+    public function testExtractOrcamentoCapturaCategoriaSugerida(): void
+    {
+        $handler = new EntityCreationHandler();
+
+        $result = $this->extractOrcamento($handler, 'definir orçamento de 800 para alimentação');
+
+        $this->assertEqualsWithDelta(800.0, (float) ($result['valor_limite'] ?? 0), 0.01);
+        $this->assertEquals('alimentação', mb_strtolower((string) ($result['categoria_sugerida'] ?? '')));
+    }
+
+    public function testOrcamentoAgoraExigeCategoriaComoCampoFaltante(): void
+    {
+        $handler = new EntityCreationHandler();
+
+        $missing = $this->getMissingFields($handler, [
+            'valor_limite' => 400,
+            'mes' => (int) date('m'),
+            'ano' => (int) date('Y'),
+        ], 'orcamento');
+
+        $this->assertContains('categoria_id', $missing);
+        $this->assertNotContains('valor_limite', $missing);
+    }
+
     // ─── Regex extraction: categoria ───────────────────────
 
     public function testCriarCategoriaDetected(): void
@@ -260,6 +284,28 @@ class EntityCreationPipelineTest extends TestCase
 
         /** @var array $result */
         $result = $method->invoke($handler, $message);
+
+        return $result;
+    }
+
+    private function extractOrcamento(EntityCreationHandler $handler, string $message): array
+    {
+        $method = new \ReflectionMethod($handler, 'extractOrcamento');
+        $method->setAccessible(true);
+
+        /** @var array $result */
+        $result = $method->invoke($handler, $message);
+
+        return $result;
+    }
+
+    private function getMissingFields(EntityCreationHandler $handler, array $data, string $entityType): array
+    {
+        $method = new \ReflectionMethod($handler, 'getMissingFields');
+        $method->setAccessible(true);
+
+        /** @var array $result */
+        $result = $method->invoke($handler, $data, $entityType);
 
         return $result;
     }

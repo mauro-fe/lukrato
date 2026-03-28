@@ -256,7 +256,7 @@ class UserAiController extends BaseController
 
         $this->workflowService()->rejectPendingAction($pending);
 
-        return Response::successResponse(['message' => 'Acao cancelada com sucesso.']);
+        return Response::successResponse(['message' => 'Ação cancelada com sucesso.']);
     }
 
     public function deleteConversation(int $id): Response
@@ -296,7 +296,7 @@ class UserAiController extends BaseController
 
     private function validationError(InvalidArgumentException $e): Response
     {
-        return $this->domainErrorResponse($e, 'Dados invalidos para a operacao.', 422);
+        return $this->domainErrorResponse($e, 'Dados inválidos para a operação.', 422);
     }
 
     private function domainError(DomainException $e, int $defaultStatus): Response

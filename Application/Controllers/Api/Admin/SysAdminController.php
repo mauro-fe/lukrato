@@ -35,7 +35,7 @@ class SysAdminController extends BaseController
 
             return Response::successResponse($result['data'], $result['message']);
         } catch (Throwable $e) {
-            return $this->internalErrorResponse($e, 'Erro ao processar modo de manutencao.');
+            return $this->internalErrorResponse($e, 'Erro ao processar modo de manutenção.');
         }
     }
 
@@ -48,7 +48,7 @@ class SysAdminController extends BaseController
 
     public function grantAccess(): Response
     {
-        $admin = $this->requireApiAdminUserOrFail('Acesso negado. Apenas administradores podem executar esta acao.');
+        $admin = $this->requireApiAdminUserOrFail('Acesso negado. Apenas administradores podem executar esta acão.');
 
         try {
             $result = $this->userService->grantAccess(
@@ -63,7 +63,7 @@ class SysAdminController extends BaseController
         } catch (Throwable $e) {
             $this->logSysAdminError('Erro ao liberar acesso.', $e, ['admin_user_id' => $admin->id]);
 
-            return $this->internalErrorResponse($e, 'Erro ao processar solicitacao.', 500, [
+            return $this->internalErrorResponse($e, 'Erro ao processar solicitação.', 500, [
                 'admin_user_id' => $admin->id,
             ]);
         }
@@ -71,7 +71,7 @@ class SysAdminController extends BaseController
 
     public function revokeAccess(): Response
     {
-        $admin = $this->requireApiAdminUserOrFail('Acesso negado. Apenas administradores podem executar esta acao.');
+        $admin = $this->requireApiAdminUserOrFail('Acesso negado. Apenas administradores podem executar esta ação.');
 
         try {
             $result = $this->userService->revokeAccess(
@@ -86,7 +86,7 @@ class SysAdminController extends BaseController
         } catch (Throwable $e) {
             $this->logSysAdminError('Erro ao remover acesso.', $e, ['admin_user_id' => $admin->id]);
 
-            return $this->internalErrorResponse($e, 'Erro ao processar solicitacao.', 500, [
+            return $this->internalErrorResponse($e, 'Erro ao processar solicitação.', 500, [
                 'admin_user_id' => $admin->id,
             ]);
         }
