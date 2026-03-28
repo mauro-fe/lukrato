@@ -11,6 +11,7 @@ use Application\Repositories\LancamentoRepository;
 use Application\Repositories\MetaRepository;
 use Application\Repositories\OrcamentoRepository;
 use Application\Services\Conta\ContaService;
+use Application\Services\Demo\DemoPreviewService;
 use Application\Services\Financeiro\DashboardProvisaoService;
 use Application\Services\Financeiro\HealthScoreService;
 use Application\Services\Financeiro\DashboardInsightService;
@@ -33,6 +34,7 @@ class DashboardController extends BaseController
     private DashboardHealthSummaryService $dashboardHealthSummaryService;
     private PlanLimitService $planLimitService;
     private ContaService $contaService;
+    private DemoPreviewService $demoPreviewService;
 
     public function __construct(
         ?LancamentoRepository $lancamentoRepo = null,
@@ -44,7 +46,8 @@ class DashboardController extends BaseController
         ?HealthScoreInsightService $healthScoreInsightService = null,
         ?DashboardHealthSummaryService $dashboardHealthSummaryService = null,
         ?PlanLimitService $planLimitService = null,
-        ?ContaService $contaService = null
+        ?ContaService $contaService = null,
+        ?DemoPreviewService $demoPreviewService = null
     ) {
         parent::__construct();
 
@@ -64,6 +67,7 @@ class DashboardController extends BaseController
             );
         $this->planLimitService = $planLimitService ?? new PlanLimitService();
         $this->contaService = $contaService ?? new ContaService();
+        $this->demoPreviewService = $demoPreviewService ?? new DemoPreviewService();
     }
 
     private function normalizeMonth(string $monthInput): array
@@ -223,6 +227,17 @@ class DashboardController extends BaseController
             $normalized = $this->normalizeMonth($this->getStringQuery('month', $this->getCurrentMonth()));
             $month = $normalized['month'];
             $previousMonth = $this->getPreviousMonthFrom($month);
+
+            if ($this->demoPreviewService->shouldUsePreview($userId)) {
+                return Response::successResponse(
+                    $this->demoPreviewService->dashboardOverview(
+                        $month,
+                        $limit,
+                        $this->planLimitService->getLimitsSummary($userId)
+                    )
+                );
+            }
+
             $metrics = $this->buildMetricsPayload($userId, $month, $viewType);
             $chartMonths = $this->getPreviousMonths($month, 6);
 
@@ -235,16 +250,19 @@ class DashboardController extends BaseController
                 ];
             }, $chartMonths);
 
+            $accounts = $this->contaService->listarContas(
+                userId: $userId,
+                arquivadas: false,
+                apenasAtivas: true,
+                comSaldos: true,
+                mes: $month
+            );
+            $accountCount = is_countable($accounts) ? count($accounts) : 0;
+
             $overview = [
                 'month' => $month,
                 'metrics' => $metrics,
-                'accounts_balances' => $this->contaService->listarContas(
-                    userId: $userId,
-                    arquivadas: false,
-                    apenasAtivas: true,
-                    comSaldos: true,
-                    mes: $month
-                ),
+                'accounts_balances' => $accounts,
                 'recent_transactions' => $this->dashboardInsightService->getRecentTransactions(
                     $userId,
                     $normalized['start'],
@@ -258,6 +276,17 @@ class DashboardController extends BaseController
                 'health_score_insights' => $this->healthScoreInsightService->generate($userId, $month),
                 'greeting_insight' => $this->dashboardInsightService->generateGreetingInsight($userId, $month, $previousMonth),
                 'plan' => $this->planLimitService->getLimitsSummary($userId),
+                'meta' => [
+                    'is_demo' => false,
+                    'source' => 'real_data',
+                    'context' => 'dashboard',
+                    'primary_action' => $accountCount > 0 ? 'create_transaction' : 'create_account',
+                    'cta_label' => $accountCount > 0 ? 'Adicionar agora' : 'Criar primeira conta',
+                    'cta_url' => $accountCount > 0 ? 'lancamentos' : 'contas',
+                    'real_account_count' => $accountCount,
+                    'real_transaction_count' => (int) ($metrics['count'] ?? 0),
+                    'real_category_count' => (int) ($metrics['categories'] ?? 0),
+                ],
             ];
 
             return Response::successResponse($overview);
@@ -439,6 +468,10 @@ class DashboardController extends BaseController
             $normalized = $this->normalizeMonth($this->getStringQuery('month', $this->getCurrentMonth()));
             $month = $normalized['month'];
             $viewType = $this->getStringQuery('view', 'caixa');
+
+            if ($this->demoPreviewService->shouldUsePreview($userId)) {
+                return Response::successResponse($this->demoPreviewService->dashboardEvolucao($month));
+            }
 
             // ── Mensal: totais por dia no mês selecionado ─────────────────────
             $mensal = $this->lancamentoRepo->getDailyTotalsByMonth($userId, $month);

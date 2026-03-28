@@ -1656,8 +1656,7 @@ class LancamentoGlobalManager {
                     conta_id_destino: dados.conta_destino_id,
                     valor: dados.valor,
                     data: dados.data,
-                    descricao: dados.descricao,
-                    observacao: dados.observacao
+                    descricao: dados.descricao
                 };
             } else if (dados.eh_parcelado && dados.total_parcelas > 1 && !dados.cartao_credito_id) {
                 apiUrl = `${base}api/parcelamentos`;

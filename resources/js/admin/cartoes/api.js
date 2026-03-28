@@ -27,6 +27,17 @@ async function requestJson(url, { method = 'GET', data = null, headers = {}, tim
     }, { timeout });
 }
 
+function applyPreviewMeta(meta) {
+    STATE.previewMeta = meta?.is_demo ? meta : null;
+
+    if (STATE.previewMeta) {
+        window.LKDemoPreviewBanner?.show(STATE.previewMeta);
+        return;
+    }
+
+    window.LKDemoPreviewBanner?.hide();
+}
+
 export const CartoesAPI = {
     /**
      * Carregar cartões do servidor
@@ -56,7 +67,7 @@ export const CartoesAPI = {
             // Usar lkFetch se disponível (com timeout, retry e indicadores)
             let data;
             if (window.lkFetch) {
-                const result = await window.lkFetch.get(`${CONFIG.API_URL}/cartoes`, {
+                const result = await window.lkFetch.get(`${CONFIG.API_URL}/cartoes?preview=1`, {
                     timeout: 20000,      // 20 segundos
                     maxRetries: 2,       // 2 tentativas extras
                     showLoading: true,
@@ -64,16 +75,26 @@ export const CartoesAPI = {
                 });
                 data = getApiPayload(result, []);
             } else {
-                data = await requestJson(`${CONFIG.API_URL}/cartoes`);
+                data = await requestJson(`${CONFIG.API_URL}/cartoes?preview=1`);
             }
 
-            STATE.cartoes = Array.isArray(data) ? data : getApiPayload(data, []);
-            await CartoesAPI.verificarFaturasPendentes();
+            const payload = getApiPayload(data, {});
+            applyPreviewMeta(payload?.meta);
+            STATE.cartoes = Array.isArray(payload) ? payload : (Array.isArray(payload?.cartoes) ? payload.cartoes : []);
+
+            if (!STATE.previewMeta) {
+                await CartoesAPI.verificarFaturasPendentes();
+            }
             STATE.lastLoadedAt = new Date().toISOString();
 
             Modules.UI.updateStats();
             Modules.UI.filterCartoes();
-            await CartoesAPI.carregarAlertas();
+            if (!STATE.previewMeta) {
+                await CartoesAPI.carregarAlertas();
+            } else {
+                STATE.alertas = [];
+                CartoesAPI.renderAlertas();
+            }
 
         } catch (error) {
             logClientError('[Cartoes] Erro ao carregar cartões', error, 'Erro ao carregar cartões');
@@ -410,6 +431,10 @@ export const CartoesAPI = {
     async editCartao(id) {
         const cartao = STATE.cartoes.find(c => c.id === id);
         if (cartao) {
+            if (cartao.is_demo) {
+                Utils.showToast('info', 'Esse cartao e apenas um exemplo. Crie um cartao real para editar.');
+                return;
+            }
             Modules.UI.openModal('edit', cartao);
         }
     },
@@ -420,6 +445,10 @@ export const CartoesAPI = {
     async arquivarCartao(id) {
         const cartao = STATE.cartoes.find(c => c.id === id);
         if (!cartao) return;
+        if (cartao.is_demo) {
+            Utils.showToast('info', 'Esse cartao e apenas um exemplo. Crie um cartao real para arquivar ou editar.');
+            return;
+        }
 
         // Confirmação
         const confirmacao = await Utils.showConfirmDialog(

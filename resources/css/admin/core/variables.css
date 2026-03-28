@@ -52,7 +52,7 @@
   --transform-lifted-hover: translateY(-4px);
 
   /* Layout */
-  --sidebar-width: 270px;
+  --sidebar-width: 210px;
   --sidebar-transition: 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   --header-height: 80px;
   --container-padding: var(--spacing-6);

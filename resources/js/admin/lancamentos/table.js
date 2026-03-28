@@ -527,8 +527,6 @@ export const TableManager = {
                 chips += `<div class="lk-detail-chip lk-chip-lembrete"><i data-lucide="bell"></i><span class="lk-detail-label">Lembrete</span><span class="lk-detail-value">${t} · ${canais.join(', ') || 'Nenhum canal'}</span></div>`;
             }
             if (item.parcela_atual && item.total_parcelas) chips += `<div class="lk-detail-chip"><i data-lucide="layers"></i><span class="lk-detail-label">Parcela</span><span class="lk-detail-value">${item.parcela_atual}/${item.total_parcelas}</span></div>`;
-            if (item.observacao) chips += `<div class="lk-detail-chip lk-chip-full"><i data-lucide="message-square"></i><span class="lk-detail-label">Obs</span><span class="lk-detail-value">${Utils.escapeHtml(item.observacao)}</span></div>`;
-
             detailHtml = `<div class="lk-txn-detail-panel" data-detail-for="${id}" style="display:none;"><div class="lk-detail-chips">${chips}</div></div>`;
         }
 

@@ -80,6 +80,7 @@ h3 {
   overflow: hidden;
   z-index: 4;
   will-change: width;
+  background: var(--color-bg) ;
 }
 
 /* 5.2 Sidebar Header + Logo */
@@ -883,6 +884,7 @@ body.sidebar-open-mobile .sidebar-backdrop {
     overflow-x: hidden !important;
     display: flex;
     flex-direction: column;
+    background: var(--color-bg);
   }
 
   @supports (height: 100dvh) {

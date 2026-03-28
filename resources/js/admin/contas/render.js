@@ -503,6 +503,27 @@ export const ContasRender = {
                     Saldo guardado
                </span>`
             : '';
+        const demoBadge = conta?.is_demo
+            ? `<span class="account-chip account-chip--featured" ${buildTooltipAttrs('Conta de exemplo', 'Esta conta existe apenas para demonstrar como a tela funciona.')}>
+                    <i data-lucide="flask-conical"></i>
+                    Exemplo
+               </span>`
+            : '';
+        const menuMarkup = conta?.is_demo
+            ? `<span class="account-chip account-chip--reserve" ${buildTooltipAttrs('Somente visualizacao', 'Itens de exemplo nao podem ser editados nem arquivados.')}>
+                    <i data-lucide="eye"></i>
+                    Somente visualizacao
+               </span>`
+            : `
+                <button
+                    type="button"
+                    class="btn-icon btn-icon--soft"
+                    onclick="contasManager.moreConta(${conta.id}, event)"
+                    aria-label="Abrir acoes da conta"
+                    ${buildTooltipAttrs('Acoes da conta', 'Abra o menu para editar ou arquivar esta conta.')}>
+                    <i data-lucide="more-horizontal"></i>
+                </button>
+            `;
 
         return `
             <article class="account-card surface-card ${isFeatured ? 'is-featured' : ''}" data-account-id="${conta.id}" style="--account-accent:${accentColor};">
@@ -520,6 +541,7 @@ export const ContasRender = {
                         </span>
                         ${featuredBadge}
                         ${reserveBadge}
+                        ${demoBadge}
                     </div>
                 </div>
 
@@ -534,14 +556,7 @@ export const ContasRender = {
                 </div>
 
                 <div class="account-menu">
-                    <button
-                        type="button"
-                        class="btn-icon btn-icon--soft"
-                        onclick="contasManager.moreConta(${conta.id}, event)"
-                        aria-label="Abrir acoes da conta"
-                        ${buildTooltipAttrs('Acoes da conta', 'Abra o menu para editar ou arquivar esta conta.')}>
-                        <i data-lucide="more-horizontal"></i>
-                    </button>
+                    ${menuMarkup}
                 </div>
 
                 <div class="account-progress">

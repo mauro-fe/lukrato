@@ -38,6 +38,7 @@ import './admin-home-header.js';   // LK.initHeader, LK.initModals (sidebar, not
 import './birthday-modal.js';      // window.BirthdayModal
 
 // ─── 4. Banners & Avisos ────────────────────────────────────────────────────
+import './demo-preview-banner.js'; // Banner de dados de exemplo
 import '../shared/aviso-lancamentos.js'; // Usage banner (plano free)
 
 // ─── 5. Theme ───────────────────────────────────────────────────────────────

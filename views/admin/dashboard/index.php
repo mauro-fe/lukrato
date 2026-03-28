@@ -28,8 +28,8 @@
                 <div>
                     <span class="dash-first-run__eyebrow">Primeiro passo</span>
                     <h2>Comece adicionando sua primeira transação</h2>
-                    <p>Sem dados fictícios: assim que você registrar a primeira movimentação, saldo, gráfico e
-                        categorias aparecem aqui em tempo real.</p>
+                    <p>Enquanto você ainda não cadastrou nada, o Lukrato mostra um exemplo para você entender o fluxo.
+                        Assim que chegar seu primeiro dado real, a demonstração some automaticamente.</p>
                 </div>
                 <div class="dash-quick-start__badge">
                     <i data-lucide="sparkles"></i>
@@ -48,8 +48,8 @@
 
             <div class="dash-quick-start__notes">
                 <span><i data-lucide="wallet"></i> O saldo começa a reagir imediatamente</span>
-                <span><i data-lucide="pie-chart"></i> O gráfico só aparece com dados reais</span>
-                <span><i data-lucide="folder-kanban"></i> Categorias ganham contexto conforme você usa</span>
+                <span><i data-lucide="pie-chart"></i> Compare o exemplo com seus dados reais depois</span>
+                <span><i data-lucide="folder-kanban"></i> As categorias passam a refletir seu uso assim que você começar</span>
             </div>
         </section>
     </section>
@@ -350,8 +350,7 @@
                 <p>Seu histórico começa na primeira transação.</p>
                 <span class="dash-empty__subtext">Adicione um lançamento para ver saldo, gráfico e categorias ganhando
                     contexto real.</span>
-                <button class="dash-btn dash-btn--primary dash-btn--lg" id="dashboardEmptyStateCta"
-                    onclick="if (window.fab) { window.fab.open(); } else { window.location.href = window.BASE_URL + 'lancamentos'; }">
+                <button class="dash-btn dash-btn--primary dash-btn--lg" id="dashboardEmptyStateCta" type="button">
                     <i data-lucide="plus"></i> Adicionar agora
                 </button>
             </div>

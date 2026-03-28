@@ -19,14 +19,26 @@ import {
 } from './state.js';
 import { apiDelete, apiGet, apiPost, getApiPayload, getErrorMessage, logClientError } from '../shared/api.js';
 import { getDashboardOverview, invalidateDashboardOverview } from './dashboard-data.js';
+import { getDashboardPrimaryActionCopy, openPrimaryAction, resolvePrimaryActionMeta } from '../shared/primary-actions.js';
 
 // ==================== API ====================
 // Usa LK.api (facade unificada) quando disponÃ­vel, com fallback local
 
+function syncDemoPreviewBanner(meta) {
+    if (meta?.is_demo) {
+        window.LKDemoPreviewBanner?.show(meta);
+        return;
+    }
+
+    window.LKDemoPreviewBanner?.hide();
+}
+
 export const API = {
     getOverview: async (month, options = {}) => {
         const response = await getDashboardOverview(month, options);
-        return getApiPayload(response, {});
+        const payload = getApiPayload(response, {});
+        syncDemoPreviewBanner(payload?.meta);
+        return payload;
     },
 
     fetch: async (url) => {
@@ -500,10 +512,10 @@ export const Renderers = {
 
     renderKPIs: async (month) => {
         try {
-            const [metrics, accounts] = await Promise.all([
-                API.getMetrics(month),
-                API.getAccountsBalances(month)
-            ]);
+            const overview = await API.getOverview(month);
+            const metrics = overview?.metrics || {};
+            const accounts = Array.isArray(overview?.accounts_balances) ? overview.accounts_balances : [];
+            const previewMeta = overview?.meta || {};
 
             const kpiMap = {
                 receitasValue: metrics.receitas || 0,
@@ -552,12 +564,24 @@ export const Renderers = {
                 despesas: Number(metrics.despesas || 0)
             });
 
+            const realTransactionCount = Number(previewMeta?.real_transaction_count ?? metrics.count ?? 0);
+            const realCategoryCount = Number(previewMeta?.real_category_count ?? metrics.categories ?? 0);
+            const realAccountCount = Number(previewMeta?.real_account_count ?? accounts.length ?? 0);
+            const primaryAction = resolvePrimaryActionMeta(previewMeta, {
+                accountCount: realAccountCount,
+            });
+
             document.dispatchEvent(new CustomEvent('lukrato:dashboard-overview-rendered', {
                 detail: {
                     month,
-                    transactionCount: Number(metrics.count || 0),
-                    categoryCount: Number(metrics.categories || 0),
-                    hasData: Number(metrics.count || 0) > 0,
+                    accountCount: realAccountCount,
+                    transactionCount: realTransactionCount,
+                    categoryCount: realCategoryCount,
+                    hasData: realTransactionCount > 0,
+                    primaryAction: primaryAction.actionType,
+                    ctaLabel: primaryAction.ctaLabel,
+                    ctaUrl: primaryAction.ctaUrl,
+                    isDemo: !!previewMeta?.is_demo,
                 }
             }));
 
@@ -600,7 +624,7 @@ export const Renderers = {
                         : '<span class="categoria-empty">Sem categoria</span>';
 
                     const contaNome = escapeHtml(Utils.getContaLabel(transaction));
-                    const descricao = escapeHtml(transaction.descricao || transaction.observacao || '--');
+                    const descricao = escapeHtml(transaction.descricao || '--');
                     const tipoLabelSafe = escapeHtml(tipoLabel);
                     const valor = Number(transaction.valor) || 0;
                     const dataBR = Utils.dateBR(transaction.data);
@@ -718,7 +742,7 @@ export const Renderers = {
                 txs.forEach(tx => {
                     const tipo = String(tx.tipo || '').toLowerCase();
                     const isIncome = tipo === 'receita';
-                    const descricao = escapeHtml(tx.descricao || tx.observacao || '--');
+                    const descricao = escapeHtml(tx.descricao || '--');
                     const categoriaNome = tx.categoria_nome ??
                         (typeof tx.categoria === 'string' ? tx.categoria : tx.categoria?.nome) ?? 'Sem categoria';
                     const valor = Number(tx.valor) || 0;
@@ -781,23 +805,24 @@ export const Renderers = {
             }
 
             if (despesasCat.length === 0) {
+                const actionCopy = getDashboardPrimaryActionCopy(overview?.meta || {}, {
+                    accountCount: Number(overview?.meta?.real_account_count ?? 0),
+                });
+
                 DOM.categoryChart.innerHTML = `
                     <div class="dash-chart-empty">
                         <i data-lucide="pie-chart"></i>
-                        <strong>Seu gráfico aparece com dados reais</strong>
-                        <p>Registre sua primeira transação para começar a enxergar para onde o dinheiro está indo.</p>
+                        <strong>${escapeHtml(actionCopy.chartEmptyTitle)}</strong>
+                        <p>${escapeHtml(actionCopy.chartEmptyDescription)}</p>
                         <button class="dash-btn dash-btn--ghost" type="button" id="dashboardChartEmptyCta">
-                            <i data-lucide="plus"></i> Registrar transação
+                            <i data-lucide="plus"></i> ${escapeHtml(actionCopy.chartEmptyButton)}
                         </button>
                     </div>
                 `;
                 document.getElementById('dashboardChartEmptyCta')?.addEventListener('click', () => {
-                    if (window.lancamentoGlobalManager?.openModal) {
-                        window.lancamentoGlobalManager.openModal();
-                        return;
-                    }
-
-                    window.location.href = `${CONFIG.BASE_URL}lancamentos`;
+                    openPrimaryAction(overview?.meta || {}, {
+                        accountCount: Number(overview?.meta?.real_account_count ?? 0),
+                    });
                 });
 
                 if (typeof window.lucide !== 'undefined') {
@@ -1400,7 +1425,7 @@ export const Provisao = {
         if (titleEl) {
             titleEl.innerHTML = isPro
                 ? '<i data-lucide="clock"></i> Próximos Vencimentos'
-                : '<i data-lucide="credit-card"></i> PrÃ³ximas Faturas';
+                : '<i data-lucide="credit-card"></i> Próximas Faturas';
         }
         if (verTodosEl) {
             verTodosEl.href = isPro

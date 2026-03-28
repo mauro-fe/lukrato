@@ -78,6 +78,38 @@ function goToBilling() {
     }
 }
 
+function applyPreviewMeta(meta) {
+    STATE.previewMeta = meta?.is_demo ? meta : null;
+
+    if (STATE.previewMeta) {
+        window.LKDemoPreviewBanner?.show(STATE.previewMeta);
+        return;
+    }
+
+    window.LKDemoPreviewBanner?.hide();
+}
+
+function getCollectionPayload(data, key) {
+    if (Array.isArray(data)) {
+        return data;
+    }
+
+    return Array.isArray(data?.[key]) ? data[key] : [];
+}
+
+function isDemoItem(item) {
+    return item?.is_demo === true;
+}
+
+function preventDemoAction(item) {
+    if (!isDemoItem(item)) {
+        return false;
+    }
+
+    Utils.showToast('Esse item e apenas um exemplo. Crie um registro real para editar ou excluir.', 'info');
+    return true;
+}
+
 // ── Gamification helper ────────────────────────────────────────
 
 function processGamification(gamification) {
@@ -305,7 +337,10 @@ export const FinancasApp = {
     async loadResumo() {
         try {
             const res = await apiGet(`api/financas/resumo?mes=${STATE.currentMonth}&ano=${STATE.currentYear}`);
-            if (res.success !== false) FinancasApp.renderResumo(res.data);
+            if (res.success !== false) {
+                applyPreviewMeta(res.data?.meta);
+                FinancasApp.renderResumo(res.data);
+            }
         } catch (e) {
             console.error('Erro ao carregar resumo:', e);
         }
@@ -315,7 +350,8 @@ export const FinancasApp = {
         try {
             const res = await apiGet(`api/financas/orcamentos?mes=${STATE.currentMonth}&ano=${STATE.currentYear}`);
             if (res.success !== false) {
-                STATE.orcamentos = res.data || [];
+                applyPreviewMeta(res.data?.meta);
+                STATE.orcamentos = getCollectionPayload(res.data, 'orcamentos');
                 FinancasApp.renderOrcamentos();
             }
         } catch (e) {
@@ -327,7 +363,8 @@ export const FinancasApp = {
         try {
             const res = await apiGet('api/financas/metas');
             if (res.success !== false) {
-                STATE.metas = res.data || [];
+                applyPreviewMeta(res.data?.meta);
+                STATE.metas = getCollectionPayload(res.data, 'metas');
                 FinancasApp.renderMetas();
             }
         } catch (e) {
@@ -339,7 +376,8 @@ export const FinancasApp = {
         try {
             const res = await apiGet(`api/financas/insights?mes=${STATE.currentMonth}&ano=${STATE.currentYear}`);
             if (res.success !== false) {
-                FinancasApp.renderInsights(res.data || []);
+                applyPreviewMeta(res.data?.meta);
+                FinancasApp.renderInsights(getCollectionPayload(res.data, 'insights'));
             }
         } catch (e) {
             console.error('Erro ao carregar insights:', e);
@@ -462,6 +500,7 @@ export const FinancasApp = {
 
         grid.innerHTML = STATE.orcamentos.map(orc => {
             const pct = orc.percentual || 0;
+            const isDemo = isDemoItem(orc);
             const statusClass = pct >= 100 ? 'over' : pct >= 80 ? 'warn' : 'ok';
             const catNome = orc.categoria?.nome || orc.categoria_nome || 'Categoria';
             const catIcone = orc.categoria?.icone || 'tag';
@@ -471,6 +510,16 @@ export const FinancasApp = {
             const rolloverTag = orc.rollover && orc.rollover_valor > 0
                 ? `<span class="orc-badge rollover" title="Inclui R$ ${Utils.formatNumber(orc.rollover_valor)} do mês anterior">+${Utils.formatNumber(orc.rollover_valor)} rollover</span>`
                 : '';
+            const actionsMarkup = isDemo
+                ? '<span class="orc-badge rollover" title="Dado de exemplo">Exemplo</span>'
+                : `
+                    <button class="orc-action-btn" onclick="financasManager.openOrcamentoModal(${orc.id})" title="Editar">
+                        <i data-lucide="pencil"></i>
+                    </button>
+                    <button class="orc-action-btn danger" onclick="financasManager.deleteOrcamento(${orc.id})" title="Excluir">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                `;
 
             return `
             <div class="orc-card ${statusClass}" data-aos="fade-up">
@@ -480,12 +529,7 @@ export const FinancasApp = {
                         <span class="orc-name">${Utils.escHtml(catNome)}</span>
                     </div>
                     <div class="orc-actions">
-                        <button class="orc-action-btn" onclick="financasManager.openOrcamentoModal(${orc.id})" title="Editar">
-                            <i data-lucide="pencil"></i>
-                        </button>
-                        <button class="orc-action-btn danger" onclick="financasManager.deleteOrcamento(${orc.id})" title="Excluir">
-                            <i data-lucide="trash-2"></i>
-                        </button>
+                        ${actionsMarkup}
                     </div>
                 </div>
                 <div class="orc-progress">
@@ -527,12 +571,14 @@ export const FinancasApp = {
 
         grid.innerHTML = STATE.metas.map(meta => {
             const progresso = meta.progresso || 0;
+            const isDemo = isDemoItem(meta);
             const cor = meta.cor || '#6366f1';
             const tipoEmoji = Utils.getTipoEmoji(meta.tipo);
             const prioridadeTag = Utils.getPrioridadeTag(meta.prioridade);
             const statusTag = meta.status !== 'ativa'
                 ? `<span class="meta-status-badge ${meta.status}">${Utils.capitalize(meta.status)}</span>`
                 : '';
+            const demoTag = isDemo ? '<span class="meta-status-badge active">Exemplo</span>' : '';
             const diasRestantes = meta.dias_restantes;
             const prazoInfo = diasRestantes !== null && diasRestantes !== undefined
                 ? (diasRestantes > 0
@@ -553,18 +599,19 @@ export const FinancasApp = {
                         <span class="meta-emoji">${tipoEmoji}</span>
                         <h4 class="meta-titulo">${Utils.escHtml(meta.titulo)}</h4>
                         ${statusTag}
+                        ${demoTag}
                     </div>
                     <div class="meta-actions">
-                        ${meta.status === 'ativa' && !meta.conta_id ? `
+                        ${!isDemo && meta.status === 'ativa' && !meta.conta_id ? `
                         <button class="meta-action-btn" onclick="financasManager.openAporteModal(${meta.id})" title="Adicionar aporte">
                             <i data-lucide="circle-plus"></i>
                         </button>` : ''}
-                        <button class="meta-action-btn" onclick="financasManager.openMetaModal(${meta.id})" title="Editar">
+                        ${!isDemo ? `<button class="meta-action-btn" onclick="financasManager.openMetaModal(${meta.id})" title="Editar">
                             <i data-lucide="pencil"></i>
                         </button>
                         <button class="meta-action-btn danger" onclick="financasManager.deleteMeta(${meta.id})" title="Excluir">
                             <i data-lucide="trash-2"></i>
-                        </button>
+                        </button>` : ''}
                     </div>
                 </div>
                 <div class="meta-progress-section">
@@ -679,6 +726,7 @@ export const FinancasApp = {
         if (orcId) {
             const orc = STATE.orcamentos.find(o => o.id === orcId);
             if (!orc) return;
+            if (preventDemoAction(orc)) return;
             if (title) title.textContent = 'Editar Orçamento';
             document.getElementById('orcCategoria').value = orc.categoria_id;
             document.getElementById('orcCategoria').disabled = true;
@@ -738,6 +786,7 @@ export const FinancasApp = {
 
     async deleteOrcamento(id) {
         const orc = STATE.orcamentos.find(o => o.id === id);
+        if (preventDemoAction(orc)) return;
         const nome = orc?.categoria?.nome || 'este orçamento';
 
         const result = await Swal.fire({
@@ -949,6 +998,7 @@ export const FinancasApp = {
         if (metaId) {
             const meta = STATE.metas.find(m => m.id === metaId);
             if (!meta) return;
+            if (preventDemoAction(meta)) return;
             if (title) title.textContent = 'Editar Meta';
             document.getElementById('metaTitulo').value = meta.titulo || '';
             document.getElementById('metaValorAlvo').value = Utils.formatNumber(meta.valor_alvo);
@@ -1030,6 +1080,7 @@ export const FinancasApp = {
 
     async deleteMeta(id) {
         const meta = STATE.metas.find(m => m.id === id);
+        if (preventDemoAction(meta)) return;
         const result = await Swal.fire({
             title: 'Excluir meta',
             html: `Deseja excluir a meta <strong>${Utils.escHtml(meta?.titulo || '')}</strong>?`,
@@ -1061,6 +1112,7 @@ export const FinancasApp = {
     openAporteModal(metaId) {
         const meta = STATE.metas.find(m => m.id === metaId);
         if (!meta) return;
+        if (preventDemoAction(meta)) return;
 
         document.getElementById('aporteMetaId').value = metaId;
         document.getElementById('aporteValor').value = '';

@@ -211,7 +211,7 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                     <?= $aria('lancamentos') ?> title="Lançamentos">
                     <i data-lucide="arrow-left-right"></i>
                     <span class="nav-item-content">
-                        <span class="nav-item-title">Lançamentos</span>
+                        <span class="nav-item-title">Transações</span>
                     </span>
                 </a>
                 <a href="<?= BASE_URL ?>contas" class="nav-item <?= $active('contas') ?>" <?= $aria('contas') ?>
@@ -357,5 +357,6 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
          CONTENT WRAPPER
          ============================================================================ -->
     <div class="content-wrapper">
+        <div id="lk-demo-banner-root" hidden></div>
         <div id="lk-usage-banner-root"></div>
         <main class="lk-main">

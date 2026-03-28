@@ -7,7 +7,6 @@ namespace Application\Services\Communication;
 use Application\Models\Notification;
 use Application\Models\MessageCampaign;
 use Application\Models\Usuario;
-use Application\Models\UserProgress;
 use Application\Models\AssinaturaUsuario;
 use Application\Models\Plano;
 use Application\Services\Infrastructure\SchedulerExecutionLock;
@@ -436,22 +435,21 @@ class NotificationService
     private function buildFilteredUsersQuery(array $filters): Builder
     {
         $query = Usuario::query()
-            ->whereNull('deleted_at')
-            ->where('id', '>', 0); // Garantir query válida
+            ->where('usuarios.id', '>', 0); // Garantir query válida
 
         // Filtro por plano
         $plan = $filters['plan'] ?? 'all';
         if ($plan === 'free') {
             $proUserIds = $this->getProUserIds();
             if (!empty($proUserIds)) {
-                $query->whereNotIn('id', $proUserIds);
+                $query->whereNotIn('usuarios.id', $proUserIds);
             }
         } elseif ($plan === 'pro') {
             $proUserIds = $this->getProUserIds();
             if (empty($proUserIds)) {
                 $query->whereRaw('1 = 0'); // Nenhum usuário PRO
             } else {
-                $query->whereIn('id', $proUserIds);
+                $query->whereIn('usuarios.id', $proUserIds);
             }
         }
 
@@ -481,15 +479,15 @@ class NotificationService
         // Filtro por email verificado
         $emailVerified = $filters['email_verified'] ?? null;
         if ($emailVerified === true) {
-            $query->whereNotNull('email_verified_at');
+            $query->whereNotNull('usuarios.email_verified_at');
         } elseif ($emailVerified === false) {
-            $query->whereNull('email_verified_at');
+            $query->whereNull('usuarios.email_verified_at');
         }
 
         // Excluir admins
         $query->where(function ($q) {
-            $q->where('is_admin', '!=', 1)
-                ->orWhereNull('is_admin');
+            $q->where('usuarios.is_admin', '!=', 1)
+                ->orWhereNull('usuarios.is_admin');
         });
 
         return $query;

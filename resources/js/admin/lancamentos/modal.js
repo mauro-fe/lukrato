@@ -440,11 +440,112 @@ const ModalManager = {
         DOM.editLancAlert.classList.remove('d-none');
     },
 
+    getEditSelectLabel: (select, fallback = '') => {
+        if (!select) return fallback;
+
+        const currentValue = String(select.value || '').trim();
+        if (!currentValue) return fallback;
+
+        const option = select.options?.[select.selectedIndex];
+        const label = String(option?.textContent || '').trim();
+        return label || fallback;
+    },
+
+    getEditStatusMeta: () => {
+        const data = STATE.editingLancamentoData || {};
+        if (data?.cancelado_em) {
+            return { label: 'Cancelado', className: 'is-neutral' };
+        }
+
+        const rawPago = data?.pago;
+        const isPago = !(rawPago === false || rawPago === 0 || rawPago === '0' || rawPago === 'false');
+        return isPago
+            ? { label: 'Pago', className: 'is-success' }
+            : { label: 'Pendente', className: 'is-warning' };
+    },
+
+    formatEditSummaryDateTime: (dataValue, horaValue) => {
+        const dateLabel = dataValue ? Utils.fmtDate(dataValue) : 'Sem data';
+        return horaValue ? `${dateLabel} às ${horaValue}` : dateLabel;
+    },
+
+    syncEditSummary: () => {
+        const snapshot = STATE.editingLancamentoData || {};
+        const tipo = String(DOM.selectLancTipo?.value || snapshot?.tipo || 'despesa').toLowerCase();
+        const descricao = String(DOM.inputLancDescricao?.value || snapshot?.descricao || '').trim();
+        const contaLabel = ModalManager.getEditSelectLabel(DOM.selectLancConta, 'Conta não definida');
+        const categoriaLabel = ModalManager.getEditSelectLabel(DOM.selectLancCategoria, 'Sem categoria');
+        const dataValue = DOM.inputLancData?.value || snapshot?.data || '';
+        const horaValue = DOM.inputLancHora?.value || snapshot?.hora_lancamento || '';
+        const valorAtual = DOM.inputLancValor?.value
+            ? MoneyMask.unformat(DOM.inputLancValor.value)
+            : Math.abs(Number(snapshot?.valor ?? 0));
+        const statusMeta = ModalManager.getEditStatusMeta();
+
+        if (DOM.editLancSummaryTitle) {
+            DOM.editLancSummaryTitle.textContent = descricao || 'Sem descrição informada';
+        }
+
+        if (DOM.editLancSummaryMeta) {
+            const meta = [
+                contaLabel,
+                categoriaLabel,
+                ModalManager.formatEditSummaryDateTime(dataValue, horaValue)
+            ].filter(Boolean).join(' • ');
+
+            DOM.editLancSummaryMeta.textContent = meta || 'Conta, categoria e data aparecem aqui.';
+        }
+
+        if (DOM.editLancSummaryTipo) {
+            DOM.editLancSummaryTipo.textContent = tipo === 'receita' ? 'Receita' : 'Despesa';
+            DOM.editLancSummaryTipo.classList.remove('is-receita', 'is-despesa');
+            DOM.editLancSummaryTipo.classList.add(tipo === 'receita' ? 'is-receita' : 'is-despesa');
+        }
+
+        if (DOM.editLancSummaryStatus) {
+            DOM.editLancSummaryStatus.textContent = statusMeta.label;
+            DOM.editLancSummaryStatus.classList.remove('is-success', 'is-warning', 'is-neutral');
+            DOM.editLancSummaryStatus.classList.add(statusMeta.className);
+        }
+
+        if (DOM.editLancSummaryValor) {
+            const valor = Number.isFinite(Number(valorAtual)) ? Math.abs(Number(valorAtual)) : 0;
+            DOM.editLancSummaryValor.textContent = MoneyMask.format(valor);
+        }
+    },
+
+    resetEditSummary: () => {
+        if (DOM.editLancSummaryTitle) {
+            DOM.editLancSummaryTitle.textContent = 'Sem descrição informada';
+        }
+
+        if (DOM.editLancSummaryMeta) {
+            DOM.editLancSummaryMeta.textContent = 'Conta, categoria e data aparecem aqui.';
+        }
+
+        if (DOM.editLancSummaryTipo) {
+            DOM.editLancSummaryTipo.textContent = 'Despesa';
+            DOM.editLancSummaryTipo.classList.remove('is-receita', 'is-despesa');
+            DOM.editLancSummaryTipo.classList.add('is-despesa');
+        }
+
+        if (DOM.editLancSummaryStatus) {
+            DOM.editLancSummaryStatus.textContent = 'Pendente';
+            DOM.editLancSummaryStatus.classList.remove('is-success', 'is-warning', 'is-neutral');
+            DOM.editLancSummaryStatus.classList.add('is-warning');
+        }
+
+        if (DOM.editLancSummaryValor) {
+            DOM.editLancSummaryValor.textContent = 'R$ 0,00';
+        }
+    },
+
     openEditLancamento: (data) => {
         const modal = ModalManager.ensureLancModal();
         if (!modal || !Utils.canEditLancamento(data)) return;
 
         STATE.editingLancamentoId = data?.id ?? null;
+        STATE.editingLancamentoData = data ? { ...data } : null;
         if (!STATE.editingLancamentoId) return;
 
         ModalManager.clearLancAlert();
@@ -488,14 +589,12 @@ const ModalManager = {
             DOM.inputLancDescricao.value = data?.descricao || '';
         }
 
-        if (DOM.inputLancObservacao) {
-            DOM.inputLancObservacao.value = data?.observacao || '';
-        }
-
         if (DOM.selectLancFormaPagamento) {
             DOM.selectLancFormaPagamento.value = data?.forma_pagamento || '';
         }
 
+        ModalManager.syncEditSummary();
+        window.LK?.refreshIcons?.();
         modal.show();
     },
 
@@ -713,18 +812,6 @@ const ModalManager = {
             }
         }
 
-        // ObservaÃ§Ã£o
-        if (DOM.viewLancObservacaoCard && DOM.viewLancObservacao) {
-            if (data.observacao && data.observacao.trim()) {
-                DOM.viewLancObservacaoCard.classList.remove('d-none');
-                DOM.viewLancObservacaoCard.style.display = '';
-                DOM.viewLancObservacao.textContent = data.observacao;
-            } else {
-                DOM.viewLancObservacaoCard.classList.add('d-none');
-                DOM.viewLancObservacaoCard.style.display = 'none';
-            }
-        }
-
         // Lembrete
         if (DOM.viewLancLembreteCard) {
             const segundos = data.lembrar_antes_segundos;
@@ -784,7 +871,6 @@ const ModalManager = {
             tipo: tipoValue,
             valor: Number(valorFloat.toFixed(2)),
             descricao: descricaoValue,
-            observacao: (DOM.inputLancObservacao?.value || '').trim(),
             conta_id: Number(contaValue),
             categoria_id: categoriaValue ? Number(categoriaValue) : null,
             subcategoria_id: DOM.selectLancSubcategoria?.value ? Number(DOM.selectLancSubcategoria.value) : null,

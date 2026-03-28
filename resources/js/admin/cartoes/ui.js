@@ -83,6 +83,11 @@ const getUsageToneMeta = (percentualUso) => {
     };
 };
 
+const isDemoCard = (cartao) => cartao?.is_demo === true;
+const notifyDemoCardAction = () => {
+    Utils.showToast('info', 'Esse cartao e apenas um exemplo. Crie um cartao real para abrir fatura ou editar.');
+};
+
 export const CartoesUI = {
     setupEventListeners() {
         document.getElementById('btnNovoCartao')?.addEventListener('click', () => {
@@ -370,6 +375,12 @@ export const CartoesUI = {
         const availableLabel = percentualDisponivel > 0
             ? `${formatPercent(percentualDisponivel, 0)} do limite ainda livre`
             : 'Limite comprometido';
+        const demoChip = isDemoCard(cartao)
+            ? `<span class="card-meta-chip card-meta-chip--status is-ok" ${buildTooltipAttrs('Cartao de exemplo', 'Esse cartao existe so para demonstrar como o painel funciona.')}>
+                    <i data-lucide="flask-conical"></i>
+                    Exemplo
+               </span>`
+            : '';
         const usageAlertChip = percentualUso >= 50
             ? `<span class="card-meta-chip card-meta-chip--usage ${usageTone.className}" ${buildTooltipAttrs(usageTone.label, usageTone.tooltip)}>
                     <i data-lucide="${percentualUso >= 80 ? 'triangle-alert' : 'activity'}"></i>
@@ -411,6 +422,7 @@ export const CartoesUI = {
                             <i data-lucide="${cartao.temFaturaPendente ? 'circle-alert' : 'badge-check'}"></i>
                             ${statusLabel}
                         </span>
+                        ${demoChip}
                         ${usageAlertChip}
                     </div>
                 </div>
@@ -426,7 +438,11 @@ export const CartoesUI = {
                 </div>
 
                 <div class="card-actions">
-                    <button
+                    ${isDemoCard(cartao) ? `
+                    <span class="card-meta-chip card-meta-chip--brand" ${buildTooltipAttrs('Somente visualizacao', 'Esse cartao de exemplo nao abre menu nem fatura.')}>
+                        <i data-lucide="eye"></i>
+                        Visual
+                    </span>` : `<button
                         type="button"
                         class="card-overflow-btn"
                         data-card-interactive
@@ -434,7 +450,7 @@ export const CartoesUI = {
                         aria-label="Mais acoes"
                         ${buildTooltipAttrs('Mais acoes', 'Abra o menu para ver a fatura, editar ou arquivar este cartao.')}>
                         <i data-lucide="more-horizontal" aria-hidden="true"></i>
-                    </button>
+                    </button>`}
                 </div>
 
                 <div class="card-limit-panel">
@@ -507,7 +523,10 @@ export const CartoesUI = {
                     </div>
 
                     <div class="card-actions">
-                        <button
+                        ${isDemoCard(cartao) ? `<span class="card-meta-chip card-meta-chip--brand" ${buildTooltipAttrs('Cartao de exemplo', 'Esse cartao existe so para demonstrar a tela.')}>
+                            <i data-lucide="flask-conical" aria-hidden="true"></i>
+                            Exemplo
+                        </span>` : `<button
                             type="button"
                             class="lk-info"
                             data-lk-tooltip-title="Exclusao de cartoes"
@@ -542,7 +561,7 @@ export const CartoesUI = {
                             title="Arquivar"
                         >
                             <i data-lucide="archive" aria-hidden="true"></i>
-                        </button>
+                        </button>`}
                     </div>
                 </div>
 
@@ -858,6 +877,10 @@ export const CartoesUI = {
         menuEl.className = 'card-context-menu';
         menuEl.dataset.cartaoId = String(id);
         const cartao = STATE.cartoes.find((item) => item.id === id);
+        if (isDemoCard(cartao)) {
+            notifyDemoCardAction();
+            return;
+        }
         const invoiceLabel = cartao?.temFaturaPendente ? 'Pagar fatura' : 'Ver fatura';
         const invoiceIcon = cartao?.temFaturaPendente ? 'wallet' : 'file-text';
         menuEl.style.setProperty('--card-accent', getCardAccent(cartao));
@@ -955,6 +978,10 @@ export const CartoesUI = {
     async showCardDetails(id) {
         const cartao = STATE.cartoes.find((item) => item.id === id);
         if (!cartao) {
+            return;
+        }
+        if (isDemoCard(cartao)) {
+            notifyDemoCardAction();
             return;
         }
 

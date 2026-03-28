@@ -40,6 +40,7 @@ export const STATE = {
     sugestoes: [],
     editingOrcamentoId: null,
     editingMetaId: null,
+    previewMeta: null,
 };
 
 // ── Module registry (filled by app.js) ─────────────────────────

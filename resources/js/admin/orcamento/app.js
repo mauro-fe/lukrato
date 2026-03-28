@@ -57,6 +57,36 @@ function goToBilling() {
     else window.location.href = `${CONFIG.BASE_URL}billing`;
 }
 
+function applyPreviewMeta(meta) {
+    STATE.previewMeta = meta?.is_demo ? meta : null;
+
+    if (STATE.previewMeta) {
+        window.LKDemoPreviewBanner?.show(STATE.previewMeta);
+        return;
+    }
+
+    window.LKDemoPreviewBanner?.hide();
+}
+
+function getCollectionPayload(data, key) {
+    if (Array.isArray(data)) {
+        return data;
+    }
+
+    return Array.isArray(data?.[key]) ? data[key] : [];
+}
+
+function isDemoItem(item) {
+    return item?.is_demo === true;
+}
+
+function preventDemoAction(item) {
+    if (!isDemoItem(item)) return false;
+
+    Utils.showToast('Esse item e apenas um exemplo. Crie um registro real para editar ou excluir.', 'info');
+    return true;
+}
+
 // ── Initialization ─────────────────────────────────────────────
 
 export const OrcamentoApp = {
@@ -171,7 +201,10 @@ export const OrcamentoApp = {
     async loadResumo() {
         try {
             const res = await apiGet(`api/financas/resumo?mes=${STATE.currentMonth}&ano=${STATE.currentYear}`);
-            if (res.success !== false) OrcamentoApp.renderResumo(res.data);
+            if (res.success !== false) {
+                applyPreviewMeta(res.data?.meta);
+                OrcamentoApp.renderResumo(res.data);
+            }
         } catch (e) {
             console.error('Erro ao carregar resumo:', e);
         }
@@ -181,7 +214,8 @@ export const OrcamentoApp = {
         try {
             const res = await apiGet(`api/financas/orcamentos?mes=${STATE.currentMonth}&ano=${STATE.currentYear}`);
             if (res.success !== false) {
-                STATE.orcamentos = res.data || [];
+                applyPreviewMeta(res.data?.meta);
+                STATE.orcamentos = getCollectionPayload(res.data, 'orcamentos');
                 OrcamentoApp.renderOrcamentos();
             }
         } catch (e) {
@@ -192,7 +226,10 @@ export const OrcamentoApp = {
     async loadInsights() {
         try {
             const res = await apiGet(`api/financas/insights?mes=${STATE.currentMonth}&ano=${STATE.currentYear}`);
-            if (res.success !== false) OrcamentoApp.renderInsights(res.data || []);
+            if (res.success !== false) {
+                applyPreviewMeta(res.data?.meta);
+                OrcamentoApp.renderInsights(getCollectionPayload(res.data, 'insights'));
+            }
         } catch (e) {
             console.error('Erro ao carregar insights:', e);
         }
@@ -269,6 +306,7 @@ export const OrcamentoApp = {
 
         grid.innerHTML = STATE.orcamentos.map(orc => {
             const pct = orc.percentual || 0;
+            const isDemo = isDemoItem(orc);
             const statusClass = pct >= 100 ? 'over' : pct >= 80 ? 'warn' : 'ok';
             const catNome = orc.categoria?.nome || orc.categoria_nome || 'Categoria';
             const catIcone = orc.categoria?.icone || 'tag';
@@ -278,6 +316,16 @@ export const OrcamentoApp = {
             const rolloverTag = orc.rollover && orc.rollover_valor > 0
                 ? `<span class="orc-card__badge" title="Inclui R$ ${Utils.formatNumber(orc.rollover_valor)} do mês anterior">+${Utils.formatNumber(orc.rollover_valor)} rollover</span>`
                 : '';
+            const actionsMarkup = isDemo
+                ? '<span class="orc-card__badge">Exemplo</span>'
+                : `
+                    <button class="orc-card__action-btn" onclick="orcamentoManager.openOrcamentoModal(${orc.id})" title="Editar">
+                        <i data-lucide="pencil"></i>
+                    </button>
+                    <button class="orc-card__action-btn orc-card__action-btn--danger" onclick="orcamentoManager.deleteOrcamento(${orc.id})" title="Excluir">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                `;
 
             return `
             <div class="orc-card surface-card surface-card--interactive surface-card--clip ${statusClass}" data-aos="fade-up">
@@ -287,12 +335,7 @@ export const OrcamentoApp = {
                         <span class="orc-card__name">${Utils.escHtml(catNome)}</span>
                     </div>
                     <div class="orc-card__actions">
-                        <button class="orc-card__action-btn" onclick="orcamentoManager.openOrcamentoModal(${orc.id})" title="Editar">
-                            <i data-lucide="pencil"></i>
-                        </button>
-                        <button class="orc-card__action-btn orc-card__action-btn--danger" onclick="orcamentoManager.deleteOrcamento(${orc.id})" title="Excluir">
-                            <i data-lucide="trash-2"></i>
-                        </button>
+                        ${actionsMarkup}
                     </div>
                 </div>
                 <div class="orc-card__progress">
@@ -375,6 +418,7 @@ export const OrcamentoApp = {
         if (orcId) {
             const orc = STATE.orcamentos.find(o => o.id === orcId);
             if (!orc) return;
+            if (preventDemoAction(orc)) return;
             if (title) title.textContent = 'Editar Orçamento';
             document.getElementById('orcCategoria').value = orc.categoria_id;
             document.getElementById('orcCategoria').disabled = true;
@@ -433,6 +477,7 @@ export const OrcamentoApp = {
 
     async deleteOrcamento(id) {
         const orc = STATE.orcamentos.find(o => o.id === id);
+        if (preventDemoAction(orc)) return;
         const nome = orc?.categoria?.nome || 'este orçamento';
 
         const result = await Swal.fire({

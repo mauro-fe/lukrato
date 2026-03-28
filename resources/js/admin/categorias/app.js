@@ -75,8 +75,12 @@ async function loadOrcamentos() {
         const mes = STATE.mesSelecionado;
         const ano = STATE.anoSelecionado;
         const result = await apiGet(`${CONFIG.API_URL}financas/orcamentos`, { mes, ano });
-        if (result.success !== false && Array.isArray(result.data)) {
-            STATE.orcamentos = result.data;
+        if (result.success !== false) {
+            if (Array.isArray(result.data)) {
+                STATE.orcamentos = result.data;
+            } else if (Array.isArray(result.data?.orcamentos)) {
+                STATE.orcamentos = result.data.orcamentos;
+            }
         }
         return true;
     } catch (e) {

@@ -10,18 +10,21 @@ use Application\Enums\LogCategory;
 use Application\Services\Cartao\CartaoApiWorkflowService;
 use Application\Services\Cartao\CartaoCreditoService;
 use Application\Services\Cartao\CartaoFaturaService;
+use Application\Services\Demo\DemoPreviewService;
 use Application\Services\Infrastructure\LogService;
 use Application\Services\Plan\PlanLimitService;
 
 class CartoesController extends BaseController
 {
     private CartaoApiWorkflowService $workflowService;
+    private DemoPreviewService $demoPreviewService;
 
     public function __construct(
         ?CartaoCreditoService $service = null,
         ?CartaoFaturaService $faturaService = null,
         ?PlanLimitService $planLimitService = null,
-        ?CartaoApiWorkflowService $workflowService = null
+        ?CartaoApiWorkflowService $workflowService = null,
+        ?DemoPreviewService $demoPreviewService = null
     ) {
         parent::__construct();
 
@@ -31,11 +34,19 @@ class CartoesController extends BaseController
 
         $this->workflowService = $workflowService
             ?? new CartaoApiWorkflowService($service, $faturaService, $planLimitService);
+        $this->demoPreviewService = $demoPreviewService ?? new DemoPreviewService();
     }
 
     public function index(): Response
     {
         $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+
+        if (
+            $this->getIntQuery('preview', 0) === 1
+            && $this->demoPreviewService->shouldUsePreview($userId)
+        ) {
+            return Response::successResponse($this->demoPreviewService->cartoes());
+        }
 
         return Response::successResponse($this->workflowService->listCards(
             $userId,
@@ -141,7 +152,13 @@ class CartoesController extends BaseController
 
     public function summary(): Response
     {
-        return Response::successResponse($this->workflowService->getSummary($this->requireApiUserIdOrFail()));
+        $userId = $this->requireApiUserIdOrFail();
+
+        if ($this->demoPreviewService->shouldUsePreview($userId)) {
+            return Response::successResponse($this->demoPreviewService->cartoesResumo());
+        }
+
+        return Response::successResponse($this->workflowService->getSummary($userId));
     }
 
     public function fatura(int $id): Response

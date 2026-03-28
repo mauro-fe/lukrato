@@ -3,6 +3,7 @@ import '../../../css/admin/dashboard/_first-run.css';
 
 import { driver } from 'driver.js';
 import { apiPost, getErrorMessage, logClientError } from '../shared/api.js';
+import { getDashboardPrimaryActionCopy, openPrimaryAction } from '../shared/primary-actions.js';
 import { CONFIG } from './state.js';
 
 const STORAGE_PREFIX = `lk_user_${window.__LK_CONFIG?.userId ?? 'anon'}_`;
@@ -21,6 +22,8 @@ const STORAGE = {
 class DashboardFirstRunExperience {
   constructor() {
     this.state = {
+      accountCount: 0,
+      primaryAction: 'create_transaction',
       transactionCount: null,
       promptScheduled: false,
       tourPromptVisible: false,
@@ -37,8 +40,14 @@ class DashboardFirstRunExperience {
       displayNameDismiss: document.getElementById('dashboardDisplayNameDismiss'),
       displayNameFeedback: document.getElementById('dashboardDisplayNameFeedback'),
       quickStart: document.getElementById('dashboardQuickStart'),
+      quickStartTitle: document.querySelector('#dashboardQuickStart .dash-quick-start__header h2'),
+      quickStartDescription: document.querySelector('#dashboardQuickStart .dash-quick-start__header p'),
+      quickStartNotes: Array.from(document.querySelectorAll('#dashboardQuickStart .dash-quick-start__notes span')),
       firstTransactionCta: document.getElementById('dashboardFirstTransactionCta'),
       openTourPrompt: document.getElementById('dashboardOpenTourPrompt'),
+      emptyStateTitle: document.querySelector('#emptyState p'),
+      emptyStateDescription: document.querySelector('#emptyState .dash-empty__subtext'),
+      emptyStateCta: document.getElementById('dashboardEmptyStateCta'),
       fabButton: document.getElementById('fabButton'),
       chartSection: document.getElementById('chart-section'),
       saldoCard: document.getElementById('saldoCard'),
@@ -55,7 +64,8 @@ class DashboardFirstRunExperience {
   }
 
   bindEvents() {
-    this.elements.firstTransactionCta?.addEventListener('click', () => this.openTransactionModal());
+    this.elements.firstTransactionCta?.addEventListener('click', () => this.openPrimaryAction());
+    this.elements.emptyStateCta?.addEventListener('click', () => this.openPrimaryAction());
     this.elements.openTourPrompt?.addEventListener('click', () => this.startTour());
     this.elements.displayNameDismiss?.addEventListener('click', () => this.dismissDisplayNamePrompt());
     this.elements.displayNameForm?.addEventListener('submit', (event) => this.handleDisplayNameSubmit(event));
@@ -117,11 +127,20 @@ class DashboardFirstRunExperience {
     const previousCount = Number(this.state.transactionCount ?? 0);
     const currentCount = Number(detail.transactionCount || 0);
     const isFirstPayload = this.state.transactionCount === null;
+    const actionCopy = getDashboardPrimaryActionCopy(detail, {
+      accountCount: Number(detail.accountCount ?? 0),
+      actionType: detail.primaryAction,
+      ctaLabel: detail.ctaLabel,
+      ctaUrl: detail.ctaUrl,
+    });
 
+    this.state.accountCount = Number(actionCopy.action.accountCount || 0);
+    this.state.primaryAction = actionCopy.action.actionType;
     this.state.transactionCount = currentCount;
 
-    this.toggleQuickStart(currentCount === 0);
+    this.toggleQuickStart(currentCount === 0 && !detail.isDemo);
     this.togglePrimaryActionFocus(currentCount === 0);
+    this.syncPrimaryActionCopy(actionCopy);
     this.syncDisplayNamePrompt();
 
     if (!this.state.promptScheduled && this.shouldOfferTour()) {
@@ -145,6 +164,7 @@ class DashboardFirstRunExperience {
       && localStorage.getItem(STORAGE.TOUR_PROMPT_DISMISSED) !== '1'
       && localStorage.getItem(STORAGE.TOUR_COMPLETED) !== '1'
       && window.__LK_CONFIG?.tourCompleted !== true
+      && this.state.primaryAction === 'create_transaction'
       && Number(this.state.transactionCount ?? 0) === 0
       && !this.tour?.isActive();
   }
@@ -173,6 +193,58 @@ class DashboardFirstRunExperience {
     }
 
     this.elements.quickStart.style.display = shouldShow ? '' : 'none';
+  }
+
+  syncPrimaryActionCopy(copy) {
+    if (!copy) {
+      return;
+    }
+
+    if (this.elements.quickStartTitle) {
+      this.elements.quickStartTitle.textContent = copy.quickStartTitle;
+    }
+
+    if (this.elements.quickStartDescription) {
+      this.elements.quickStartDescription.textContent = copy.quickStartDescription;
+    }
+
+    if (this.elements.firstTransactionCta) {
+      this.elements.firstTransactionCta.innerHTML = `<i data-lucide="plus"></i> ${copy.quickStartButton}`;
+    }
+
+    this.elements.quickStartNotes.forEach((element, index) => {
+      if (!element) {
+        return;
+      }
+
+      const note = copy.quickStartNotes[index] || '';
+      const iconMarkup = element.querySelector('i, svg')?.outerHTML || '';
+      element.innerHTML = `${iconMarkup} ${note}`;
+    });
+
+    if (this.elements.emptyStateTitle) {
+      this.elements.emptyStateTitle.textContent = copy.emptyStateTitle;
+    }
+
+    if (this.elements.emptyStateDescription) {
+      this.elements.emptyStateDescription.textContent = copy.emptyStateDescription;
+    }
+
+    if (this.elements.emptyStateCta) {
+      this.elements.emptyStateCta.innerHTML = `<i data-lucide="plus"></i> ${copy.emptyStateButton}`;
+    }
+
+    if (this.elements.openTourPrompt) {
+      this.elements.openTourPrompt.style.display = copy.shouldOfferTour ? '' : 'none';
+    }
+
+    if (!copy.shouldOfferTour) {
+      this.hideTourPrompt();
+    }
+
+    if (typeof window.lucide !== 'undefined') {
+      window.lucide.createIcons();
+    }
   }
 
   syncDisplayNamePrompt() {
@@ -427,13 +499,11 @@ class DashboardFirstRunExperience {
     this.togglePrimaryActionFocus(false);
   }
 
-  openTransactionModal() {
-    if (window.lancamentoGlobalManager?.openModal) {
-      window.lancamentoGlobalManager.openModal();
-      return;
-    }
-
-    this.elements.fabButton?.click();
+  openPrimaryAction() {
+    openPrimaryAction({
+      primary_action: this.state.primaryAction,
+      real_account_count: this.state.accountCount,
+    });
   }
 }
 

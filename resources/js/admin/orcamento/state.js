@@ -31,6 +31,7 @@ export const STATE = {
     categorias: [],
     sugestoes: [],
     editingOrcamentoId: null,
+    previewMeta: null,
 };
 
 // ── Category icon color map ────────────────────────────────────

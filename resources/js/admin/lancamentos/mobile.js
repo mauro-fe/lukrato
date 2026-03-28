@@ -392,7 +392,6 @@ const MobileCards = {
                 else recorrenciaInfo += ' · sem fim';
             }
 
-            const observacao = String(item.observacao || '').trim();
             const parcelaInfo = item.parcela_atual && item.total_parcelas ? `${item.parcela_atual}/${item.total_parcelas}` : '-';
             const canceladoEm = isCancelado ? Utils.fmtDate(item.cancelado_em) : '-';
 
@@ -627,12 +626,6 @@ const MobileCards = {
                             </span>
                         </div>
                         ${trailingDetails}
-                        ${observacao ? `
-                        <div class="lan-card-detail-row card-detail-row is-multiline">
-                            <span class="lan-card-detail-label card-detail-label">Observação</span>
-                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(observacao)}</span>
-                        </div>
-                        ` : ''}
                         ${isPagamentoFatura ? `
                         <div class="lan-card-detail-row card-detail-row" style="justify-content:center;">
                             <button class="btn btn-sm toggle-fatura-detalhes-mobile" data-lancamento-id="${id}" 

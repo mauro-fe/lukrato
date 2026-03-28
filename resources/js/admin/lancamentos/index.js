@@ -152,13 +152,23 @@ const EventListeners = {
                 DOM.selectLancTipo.value,
                 DOM.selectLancCategoria?.value || ''
             );
+            ModalManager.syncEditSummary();
         });
+
+        DOM.inputLancData?.addEventListener('change', ModalManager.syncEditSummary);
+        DOM.inputLancHora?.addEventListener('change', ModalManager.syncEditSummary);
+        DOM.selectLancConta?.addEventListener('change', ModalManager.syncEditSummary);
+        DOM.selectLancCategoria?.addEventListener('change', ModalManager.syncEditSummary);
+        DOM.inputLancDescricao?.addEventListener('input', ModalManager.syncEditSummary);
+        DOM.inputLancValor?.addEventListener('input', ModalManager.syncEditSummary);
 
         // Modal fechou — limpar dados
         DOM.modalEditLancEl?.addEventListener('hidden.bs.modal', () => {
             STATE.editingLancamentoId = null;
+            STATE.editingLancamentoData = null;
             DOM.formLanc?.reset?.();
             ModalManager.clearLancAlert();
+            ModalManager.resetEditSummary();
         });
 
         // Submit do formulário de edição

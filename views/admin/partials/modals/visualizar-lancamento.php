@@ -105,15 +105,6 @@
                     </div>
                 </div>
 
-                <!-- Observação -->
-                <div class="info-card p-3 rounded-3 mt-3"
-                    style="background: var(--color-surface-muted); border: 1px solid var(--color-card-border); display: none;"
-                    id="viewLancObservacaoCard">
-                    <h6 class="mb-2" style="color: var(--color-primary);"><i
-                            data-lucide="message-square" class="me-2"></i>Observação</h6>
-                    <p id="viewLancObservacao" class="mb-0"></p>
-                </div>
-
                 <!-- Lembrete -->
                 <div class="info-card p-3 rounded-3 mt-3"
                     style="background: var(--color-surface-muted); border: 1px solid var(--color-card-border); display: none;"

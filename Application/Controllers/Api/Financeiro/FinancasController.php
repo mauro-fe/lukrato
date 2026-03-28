@@ -6,6 +6,7 @@ namespace Application\Controllers\Api\Financeiro;
 
 use Application\Controllers\BaseController;
 use Application\Core\Response;
+use Application\Services\Demo\DemoPreviewService;
 use Application\Services\Financeiro\MetaService;
 use Application\Services\Financeiro\OrcamentoService;
 use Application\Validators\MetaValidator;
@@ -15,14 +16,17 @@ class FinancasController extends BaseController
 {
     private MetaService $metaService;
     private OrcamentoService $orcamentoService;
+    private DemoPreviewService $demoPreviewService;
 
     public function __construct(
         ?MetaService $metaService = null,
-        ?OrcamentoService $orcamentoService = null
+        ?OrcamentoService $orcamentoService = null,
+        ?DemoPreviewService $demoPreviewService = null
     ) {
         parent::__construct();
         $this->metaService = $metaService ?? new MetaService();
         $this->orcamentoService = $orcamentoService ?? new OrcamentoService();
+        $this->demoPreviewService = $demoPreviewService ?? new DemoPreviewService();
     }
 
     public function resumo(): Response
@@ -32,6 +36,13 @@ class FinancasController extends BaseController
         try {
             $mes = $this->getIntQuery('mes', (int) date('m'));
             $ano = $this->getIntQuery('ano', (int) date('Y'));
+
+            if ($this->demoPreviewService->shouldUsePreview($userId)) {
+                return Response::successResponse(
+                    $this->demoPreviewService->financeSummary($mes, $ano),
+                    'Resumo financeiro carregado'
+                );
+            }
 
             $orcamentoResumo = $this->orcamentoService->resumo($userId, $mes, $ano);
             $metasResumo = $this->metaService->resumo($userId);
@@ -55,6 +66,14 @@ class FinancasController extends BaseController
 
         try {
             $status = $this->getQuery('status');
+
+            if ($this->demoPreviewService->shouldUsePreview($userId)) {
+                return Response::successResponse(
+                    $this->demoPreviewService->metas(is_string($status) ? $status : null),
+                    'Metas carregadas'
+                );
+            }
+
             $metas = $this->metaService->listar($userId, $status);
 
             return Response::successResponse($metas, 'Metas carregadas');
@@ -203,6 +222,13 @@ class FinancasController extends BaseController
             $mes = $this->getIntQuery('mes', (int) date('m'));
             $ano = $this->getIntQuery('ano', (int) date('Y'));
 
+            if ($this->demoPreviewService->shouldUsePreview($userId)) {
+                return Response::successResponse(
+                    $this->demoPreviewService->orcamentos($mes, $ano),
+                    'OrÃ§amentos carregados'
+                );
+            }
+
             $orcamentos = $this->orcamentoService->listarComProgresso($userId, $mes, $ano);
 
             return Response::successResponse($orcamentos, 'Orçamentos carregados');
@@ -345,6 +371,13 @@ class FinancasController extends BaseController
         try {
             $mes = $this->getIntQuery('mes', (int) date('m'));
             $ano = $this->getIntQuery('ano', (int) date('Y'));
+
+            if ($this->demoPreviewService->shouldUsePreview($userId)) {
+                return Response::successResponse(
+                    $this->demoPreviewService->financeInsights($mes, $ano),
+                    'Insights carregados'
+                );
+            }
 
             $insights = $this->orcamentoService->getInsights($userId, $mes, $ano);
 

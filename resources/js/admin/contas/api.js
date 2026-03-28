@@ -31,6 +31,17 @@ async function requestJson(url, { method = 'GET', data = null, headers = {}, tim
     }, { timeout });
 }
 
+function applyPreviewMeta(meta) {
+    STATE.previewMeta = meta?.is_demo ? meta : null;
+
+    if (STATE.previewMeta) {
+        window.LKDemoPreviewBanner?.show(STATE.previewMeta);
+        return;
+    }
+
+    window.LKDemoPreviewBanner?.hide();
+}
+
 export const ContasAPI = {
     setReloadState(isBusy) {
         const btnReload = document.getElementById('btnReload');
@@ -158,7 +169,8 @@ export const ContasAPI = {
 
             const params = new URLSearchParams({
                 with_balances: '1',
-                only_active: '1'
+                only_active: '1',
+                preview: '1',
             });
 
             const url = `${CONFIG.API_URL}/contas?${params}`;
@@ -177,6 +189,7 @@ export const ContasAPI = {
             }
 
             const payload = getApiPayload(data, {});
+            applyPreviewMeta(payload?.meta);
             STATE.contas = Array.isArray(payload) ? payload : (payload?.contas || []);
             STATE.lastLoadedAt = new Date();
 

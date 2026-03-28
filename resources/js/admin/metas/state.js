@@ -28,6 +28,7 @@ export const STATE = {
     metas: [],
     contas: [],
     editingMetaId: null,
+    previewMeta: null,
 };
 
 // ── Category icon color map ────────────────────────────────────

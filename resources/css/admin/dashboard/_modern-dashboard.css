@@ -225,7 +225,7 @@
 .dash-tx-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-around;
   padding: var(--spacing-3) 0;
   gap: var(--spacing-2);
   margin-bottom: var(--spacing-2);

@@ -205,6 +205,10 @@ export const ContasModal = {
 
         const conta = STATE.contas.find((item) => item.id === contaId);
         if (!conta) return;
+        if (conta.is_demo) {
+            Utils.showToast('Essa conta e apenas um exemplo. Crie uma conta real para editar ou arquivar.', 'info');
+            return;
+        }
 
         document.querySelectorAll('.context-menu').forEach((menu) => menu.remove());
 

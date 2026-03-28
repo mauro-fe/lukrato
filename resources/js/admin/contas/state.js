@@ -40,6 +40,7 @@ export const STATE = {
     lastLoadError: null,
     isLoadingContas: false,
     lastLoadedAt: null,
+    previewMeta: null,
 };
 
 // ─── MODULES REGISTRY (cross-module late-binding) ────────────────────────────

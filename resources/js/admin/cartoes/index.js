@@ -5,7 +5,7 @@
 
 import '../../../css/admin/cartoes/index.css';
 import '../../../css/admin/modules/modal-cartoes.css';
-import { Modules } from './state.js';
+import { Modules, STATE, Utils } from './state.js';
 import { CartoesAPI } from './api.js';
 import { CartoesUI } from './ui.js';
 import { FaturaModal } from './fatura.js';
@@ -14,6 +14,16 @@ const init = async () => {
     CartoesUI.setupEventListeners();
     CartoesUI.restoreViewPreference();
     await Modules.API.loadCartoes();
+};
+
+const guardDemoCard = (id) => {
+    const cartao = STATE.cartoes.find((item) => item.id === id);
+    if (cartao?.is_demo) {
+        Utils.showToast('info', 'Esse cartao e apenas um exemplo. Crie um cartao real para abrir a fatura.');
+        return true;
+    }
+
+    return false;
 };
 
 // Backward compat for onclick="cartoesManager.xxx()"
@@ -26,7 +36,10 @@ window.cartoesManager = {
     deleteCartao: (id) => Modules.API.deleteCartao(id),
     exportarRelatorio: () => CartoesUI.exportarRelatorio(),
     mostrarModalFatura: (cid, m, a) => FaturaModal.mostrarModalFatura(cid, m, a),
-    verFatura: (cid) => FaturaModal.verFatura(cid),
+    verFatura: (cid) => {
+        if (guardDemoCard(cid)) return;
+        FaturaModal.verFatura(cid);
+    },
     fecharModalFatura: () => FaturaModal.fecharModalFatura(),
     navegarMes: (cid, m, a, d) => FaturaModal.navegarMes(cid, m, a, d),
     pagarFatura: (cid, m, a) => FaturaModal.pagarFatura(cid, m, a),

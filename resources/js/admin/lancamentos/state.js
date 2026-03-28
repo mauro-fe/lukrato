@@ -99,6 +99,11 @@ export function initDOM() {
     DOM.modalEditLancEl = document.getElementById('modalEditarLancamento');
     DOM.formLanc = document.getElementById('formLancamento');
     DOM.editLancAlert = document.getElementById('editLancAlert');
+    DOM.editLancSummaryTitle = document.getElementById('editLancSummaryTitle');
+    DOM.editLancSummaryMeta = document.getElementById('editLancSummaryMeta');
+    DOM.editLancSummaryTipo = document.getElementById('editLancSummaryTipo');
+    DOM.editLancSummaryStatus = document.getElementById('editLancSummaryStatus');
+    DOM.editLancSummaryValor = document.getElementById('editLancSummaryValor');
     DOM.inputLancData = document.getElementById('editLancData');
     DOM.inputLancHora = document.getElementById('editLancHora');
     DOM.selectLancTipo = document.getElementById('editLancTipo');
@@ -117,7 +122,6 @@ export function initDOM() {
     DOM.inputTransDescricao = document.getElementById('editTransDescricao');
     DOM.inputLancValor = document.getElementById('editLancValor');
     DOM.inputLancDescricao = document.getElementById('editLancDescricao');
-    DOM.inputLancObservacao = document.getElementById('editLancObservacao');
     DOM.selectLancFormaPagamento = document.getElementById('editLancFormaPagamento');
     // Modal de exclusao com escopo
     DOM.modalDeleteScopeEl = document.getElementById('modalDeleteLancamentoScope');
@@ -144,8 +148,6 @@ export function initDOM() {
     DOM.viewLancDescricao = document.getElementById('viewLancDescricao');
     DOM.viewLancParcelamentoCard = document.getElementById('viewLancParcelamentoCard');
     DOM.viewLancParcela = document.getElementById('viewLancParcela');
-    DOM.viewLancObservacaoCard = document.getElementById('viewLancObservacaoCard');
-    DOM.viewLancObservacao = document.getElementById('viewLancObservacao');
     DOM.viewLancLembreteCard = document.getElementById('viewLancLembreteCard');
     DOM.viewLancLembreteTempo = document.getElementById('viewLancLembreteTempo');
     DOM.viewLancLembreteCanais = document.getElementById('viewLancLembreteCanais');
@@ -162,6 +164,7 @@ export const STATE = {
     modalDeleteScope: null,
     modalViewLanc: null,
     editingLancamentoId: null,
+    editingLancamentoData: null,
     viewingLancamento: null,
     deleteScopeResolver: null,
     deleteScopeResult: null,

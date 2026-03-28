@@ -57,6 +57,36 @@ function goToBilling() {
     else window.location.href = `${CONFIG.BASE_URL}billing`;
 }
 
+function applyPreviewMeta(meta) {
+    STATE.previewMeta = meta?.is_demo ? meta : null;
+
+    if (STATE.previewMeta) {
+        window.LKDemoPreviewBanner?.show(STATE.previewMeta);
+        return;
+    }
+
+    window.LKDemoPreviewBanner?.hide();
+}
+
+function getCollectionPayload(data, key) {
+    if (Array.isArray(data)) {
+        return data;
+    }
+
+    return Array.isArray(data?.[key]) ? data[key] : [];
+}
+
+function isDemoItem(item) {
+    return item?.is_demo === true;
+}
+
+function preventDemoAction(item) {
+    if (!isDemoItem(item)) return false;
+
+    Utils.showToast('Esse item e apenas um exemplo. Crie um registro real para editar ou excluir.', 'info');
+    return true;
+}
+
 // ── Gamification helper ────────────────────────────────────────
 
 function processGamification(gamification) {
@@ -187,7 +217,10 @@ export const MetasApp = {
     async loadResumo() {
         try {
             const res = await apiGet('api/financas/resumo');
-            if (res.success !== false) MetasApp.renderResumo(res.data);
+            if (res.success !== false) {
+                applyPreviewMeta(res.data?.meta);
+                MetasApp.renderResumo(res.data);
+            }
         } catch (e) {
             console.error('Erro ao carregar resumo:', e);
         }
@@ -197,7 +230,8 @@ export const MetasApp = {
         try {
             const res = await apiGet('api/financas/metas');
             if (res.success !== false) {
-                STATE.metas = res.data || [];
+                applyPreviewMeta(res.data?.meta);
+                STATE.metas = getCollectionPayload(res.data, 'metas');
                 MetasApp.renderMetas();
             }
         } catch (e) {
@@ -248,6 +282,7 @@ export const MetasApp = {
 
         grid.innerHTML = STATE.metas.map(meta => {
             const progresso = meta.progresso || 0;
+            const isDemo = isDemoItem(meta);
             const cor = meta.cor || '#8b5cf6';
             const tipoEmoji = Utils.getTipoEmoji(meta.tipo);
             const prioridadeTag = Utils.getPrioridadeTag(meta.prioridade);
@@ -255,6 +290,7 @@ export const MetasApp = {
             const statusTag = meta.status !== 'ativa'
                 ? `<span class="met-card__badge met-card__badge--${meta.status === 'concluida' ? 'completed' : 'active'}">${Utils.capitalize(meta.status)}</span>`
                 : `<span class="met-card__badge met-card__badge--active">Ativa</span>`;
+            const demoTag = isDemo ? '<span class="met-card__badge met-card__badge--active">Exemplo</span>' : '';
             const diasRestantes = meta.dias_restantes;
             const prazoInfo = diasRestantes !== null && diasRestantes !== undefined
                 ? (diasRestantes > 0
@@ -274,19 +310,20 @@ export const MetasApp = {
                             <span class="met-card__name">${Utils.escHtml(meta.titulo)}</span>
                             ${prazoInfo}
                             ${contaBadge}
+                            ${demoTag}
                         </div>
                     </div>
                     <div class="met-card__actions">
-                        ${meta.status === 'ativa' && !meta.conta_id ? `
+                        ${!isDemo && meta.status === 'ativa' && !meta.conta_id ? `
                         <button class="met-card__action-btn met-card__action-btn--deposit" onclick="metasManager.openAporteModal(${meta.id})" title="Adicionar aporte">
                             <i data-lucide="circle-plus"></i>
                         </button>` : ''}
-                        <button class="met-card__action-btn" onclick="metasManager.openMetaModal(${meta.id})" title="Editar">
+                        ${!isDemo ? `<button class="met-card__action-btn" onclick="metasManager.openMetaModal(${meta.id})" title="Editar">
                             <i data-lucide="pencil"></i>
                         </button>
                         <button class="met-card__action-btn met-card__action-btn--danger" onclick="metasManager.deleteMeta(${meta.id})" title="Excluir">
                             <i data-lucide="trash-2"></i>
-                        </button>
+                        </button>` : ''}
                     </div>
                 </div>
                 <div class="met-card__progress">
@@ -351,6 +388,7 @@ export const MetasApp = {
         if (metaId) {
             const meta = STATE.metas.find(m => m.id === metaId);
             if (!meta) return;
+            if (preventDemoAction(meta)) return;
             if (title) title.textContent = 'Editar Meta';
             document.getElementById('metaTitulo').value = meta.titulo || '';
             document.getElementById('metaValorAlvo').value = Utils.formatNumber(meta.valor_alvo);
@@ -429,6 +467,7 @@ export const MetasApp = {
 
     async deleteMeta(id) {
         const meta = STATE.metas.find(m => m.id === id);
+        if (preventDemoAction(meta)) return;
         const result = await Swal.fire({
             title: 'Excluir meta',
             html: `Deseja excluir a meta <strong>${Utils.escHtml(meta?.titulo || '')}</strong>?`,
@@ -460,6 +499,7 @@ export const MetasApp = {
     openAporteModal(metaId) {
         const meta = STATE.metas.find(m => m.id === metaId);
         if (!meta) return;
+        if (preventDemoAction(meta)) return;
 
         document.getElementById('aporteMetaId').value = metaId;
         document.getElementById('aporteValor').value = '';

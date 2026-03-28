@@ -27,6 +27,7 @@ export const STATE = {
     lastLoadedAt: null,
     isLoading: false,
     isSaving: false,
+    previewMeta: null,
 };
 
 // ── Module registry (filled by other modules) ─────────────────

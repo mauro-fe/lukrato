@@ -8,23 +8,27 @@ use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Services\Conta\ContaApiWorkflowService;
 use Application\Services\Conta\ContaService;
+use Application\Services\Demo\DemoPreviewService;
 use Application\Services\Plan\PlanLimitService;
 use Throwable;
 
 class ContasController extends BaseController
 {
     private ContaApiWorkflowService $workflowService;
+    private DemoPreviewService $demoPreviewService;
 
     public function __construct(
         ?ContaService $service = null,
         ?PlanLimitService $planLimitService = null,
-        ?ContaApiWorkflowService $workflowService = null
+        ?ContaApiWorkflowService $workflowService = null,
+        ?DemoPreviewService $demoPreviewService = null
     ) {
         parent::__construct();
 
         $service ??= new ContaService();
         $planLimitService ??= new PlanLimitService();
         $this->workflowService = $workflowService ?? new ContaApiWorkflowService($service, $planLimitService);
+        $this->demoPreviewService = $demoPreviewService ?? new DemoPreviewService();
     }
 
     /**
@@ -36,6 +40,16 @@ class ContasController extends BaseController
         $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
 
         try {
+            $previewRequested = $this->getIntQuery('preview', 0) === 1;
+
+            if ($previewRequested && $this->demoPreviewService->shouldUsePreview($userId)) {
+                $month = $this->getQuery('month');
+
+                return Response::successResponse(
+                    $this->demoPreviewService->contas(is_string($month) ? $month : null)
+                );
+            }
+
             return $this->respondWorkflowResult($this->workflowService->listAccounts($userId, [
                 'archived' => $this->getIntQuery('archived', 0),
                 'only_active' => $this->getQuery('only_active'),
