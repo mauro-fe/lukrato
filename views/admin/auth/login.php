@@ -15,7 +15,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
     <?php if (!empty($intended)): ?>
-        <meta name="intended-redirect" content="<?= htmlspecialchars($intended, ENT_QUOTES, 'UTF-8') ?>">
+    <meta name="intended-redirect" content="<?= htmlspecialchars($intended, ENT_QUOTES, 'UTF-8') ?>">
     <?php endif; ?>
 
     <!-- CSRF Meta Tags para renovação automática -->
@@ -31,31 +31,31 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
 
     <!-- Cloudflare Turnstile (carrega só se configurado) -->
     <?php if (!empty($turnstile_site_key)): ?>
-        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
-        <meta name="turnstile-site-key" content="<?= htmlspecialchars($turnstile_site_key, ENT_QUOTES, 'UTF-8') ?>">
-        <meta name="turnstile-required" content="<?= !empty($require_captcha) ? '1' : '0' ?>">
-        <style>
-            .turnstile-wrapper {
-                margin: 12px 0;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 6px;
-                animation: fadeInCaptcha 0.3s ease;
-            }
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+    <meta name="turnstile-site-key" content="<?= htmlspecialchars($turnstile_site_key, ENT_QUOTES, 'UTF-8') ?>">
+    <meta name="turnstile-required" content="<?= !empty($require_captcha) ? '1' : '0' ?>">
+    <style>
+    .turnstile-wrapper {
+        margin: 12px 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        animation: fadeInCaptcha 0.3s ease;
+    }
 
-            @keyframes fadeInCaptcha {
-                from {
-                    opacity: 0;
-                    transform: translateY(-8px);
-                }
+    @keyframes fadeInCaptcha {
+        from {
+            opacity: 0;
+            transform: translateY(-8px);
+        }
 
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-        </style>
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    </style>
     <?php endif; ?>
 
 </head>
@@ -94,11 +94,28 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                         </button>
                     </div>
 
+
                     <div class="flip-container">
                         <div class="flip-inner">
                             <!-- LOGIN -->
                             <div class="flip-face flip-login">
                                 <h3 class="card-title">Entrar</h3>
+
+                                <a href="<?= BASE_URL ?>auth/google/login" class="google-sign-in-button">
+                                    <svg class="google-icon" viewBox="0 0 48 48">
+                                        <path fill="#EA4335"
+                                            d="M24 9.5c3.3 0 6.2 1.1 8.5 3.2l6.3-6.3C34.6 2.4 29.7 0 24 0 14.6 0 6.6 5.4 2.7 13.2l7.4 5.7C12 13.1 17.5 9.5 24 9.5z" />
+                                        <path fill="#4285F4"
+                                            d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.4 5.7c4.3-4 6.8-9.8 6.8-17.4z" />
+                                        <path fill="#FBBC05"
+                                            d="M10.1 28.9c-.8-2.3-.8-4.8 0-7.1l-7.4-5.7c-3.2 6.4-3.2 13.9 0 20.3l7.4-5.7z" />
+                                        <path fill="#34A853"
+                                            d="M24 48c6.5 0 12.1-2.1 16.1-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.7 2.3-6.5 0-12-4.1-14-9.9l-7.4 5.7C6.6 42.6 14.6 48 24 48z" />
+                                    </svg>
+                                    <span>Com Google</span>
+                                </a>
+
+                                <div class="auth-separator"><span>ou</span></div>
 
                                 <form action="<?= BASE_URL ?>login/entrar" method="POST" id="loginForm" novalidate>
                                     <?= csrf_input('login_form') ?>
@@ -135,22 +152,6 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                                         <span>Entrar</span>
                                     </button>
 
-                                    <div class="auth-separator"><span>ou</span></div>
-
-                                    <a href="<?= BASE_URL ?>auth/google/login" class="google-sign-in-button">
-                                        <svg class="google-icon" viewBox="0 0 48 48">
-                                            <path fill="#EA4335"
-                                                d="M24 9.5c3.3 0 6.2 1.1 8.5 3.2l6.3-6.3C34.6 2.4 29.7 0 24 0 14.6 0 6.6 5.4 2.7 13.2l7.4 5.7C12 13.1 17.5 9.5 24 9.5z" />
-                                            <path fill="#4285F4"
-                                                d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.4 5.7c4.3-4 6.8-9.8 6.8-17.4z" />
-                                            <path fill="#FBBC05"
-                                                d="M10.1 28.9c-.8-2.3-.8-4.8 0-7.1l-7.4-5.7c-3.2 6.4-3.2 13.9 0 20.3l7.4-5.7z" />
-                                            <path fill="#34A853"
-                                                d="M24 48c6.5 0 12.1-2.1 16.1-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.7 2.3-6.5 0-12-4.1-14-9.9l-7.4 5.7C6.6 42.6 14.6 48 24 48z" />
-                                        </svg>
-                                        <span>Entrar com Google</span>
-                                    </a>
-
                                     <p class="extra-link">
                                         <a href="<?= BASE_URL ?>recuperar-senha">Esqueceu a senha?</a>
 
@@ -165,14 +166,22 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                             <div class="flip-face flip-register">
                                 <h3 class="card-title">Cadastrar</h3>
 
+                                <a href="<?= BASE_URL ?>auth/google/register" class="google-sign-in-button">
+                                    <svg class="google-icon" viewBox="0 0 48 48">
+                                        <path fill="#EA4335"
+                                            d="M24 9.5c3.3 0 6.2 1.1 8.5 3.2l6.3-6.3C34.6 2.4 29.7 0 24 0 14.6 0 6.6 5.4 2.7 13.2l7.4 5.7C12 13.1 17.5 9.5 24 9.5z" />
+                                        <path fill="#4285F4"
+                                            d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.4 5.7c4.3-4 6.8-9.8 6.8-17.4z" />
+                                        <path fill="#FBBC05"
+                                            d="M10.1 28.9c-.8-2.3-.8-4.8 0-7.1l-7.4-5.7c-3.2 6.4-3.2 13.9 0 20.3l7.4-5.7z" />
+                                        <path fill="#34A853"
+                                            d="M24 48c6.5 0 12.1-2.1 16.1-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.7 2.3-6.5 0-12-4.1-14-9.9l-7.4 5.7C6.6 42.6 14.6 48 24 48z" />
+                                    </svg>
+                                    <span>Com Google</span>
+                                </a>
+                                <div class="auth-separator"><span>ou</span></div>
                                 <form action="<?= BASE_URL ?>register/criar" method="POST" id="registerForm" novalidate>
                                     <?= csrf_input('register_form') ?>
-                                    <div class="field">
-                                        <input type="text" id="name" name="name" placeholder="Nome completo"
-                                            aria-label="Nome completo" required>
-                                        <small class="field-error" id="nameError"></small>
-                                    </div>
-
                                     <div class="field">
                                         <input type="email" id="reg_email" name="email" placeholder="E-mail"
                                             aria-label="E-mail" required>
@@ -251,22 +260,6 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                                         <a href="<?= BASE_URL ?>termos">Termos de Uso</a> e a
                                         <a href="<?= BASE_URL ?>privacidade">Política de Privacidade</a>.
                                     </div>
-
-                                    <div class="auth-separator"><span>ou</span></div>
-
-                                    <a href="<?= BASE_URL ?>auth/google/register" class="google-sign-in-button">
-                                        <svg class="google-icon" viewBox="0 0 48 48">
-                                            <path fill="#EA4335"
-                                                d="M24 9.5c3.3 0 6.2 1.1 8.5 3.2l6.3-6.3C34.6 2.4 29.7 0 24 0 14.6 0 6.6 5.4 2.7 13.2l7.4 5.7C12 13.1 17.5 9.5 24 9.5z" />
-                                            <path fill="#4285F4"
-                                                d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.4 5.7c4.3-4 6.8-9.8 6.8-17.4z" />
-                                            <path fill="#FBBC05"
-                                                d="M10.1 28.9c-.8-2.3-.8-4.8 0-7.1l-7.4-5.7c-3.2 6.4-3.2 13.9 0 20.3l7.4-5.7z" />
-                                            <path fill="#34A853"
-                                                d="M24 48c6.5 0 12.1-2.1 16.1-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.7 2.3-6.5 0-12-4.1-14-9.9l-7.4 5.7C6.6 42.6 14.6 48 24 48z" />
-                                        </svg>
-                                        <span>Cadastrar com Google</span>
-                                    </a>
 
                                     <div id="registerGeneralError"
                                         class="msg msg-error general-message <?= !empty($registerErrorMessage) ? 'show' : '' ?>">

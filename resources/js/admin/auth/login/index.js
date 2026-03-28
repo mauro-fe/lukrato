@@ -677,16 +677,10 @@ function clearErrors(form) {
             e.preventDefault();
             clearErrors(registerForm);
 
-            const name = document.getElementById('name').value.trim();
             const email = document.getElementById('reg_email').value.trim();
             const password = document.getElementById('reg_password').value;
             const confirmVal = document.getElementById('reg_password_confirm').value;
             let hasError = false;
-
-            if (!name) {
-                showError('name', 'nameError', 'Digite seu nome completo');
-                hasError = true;
-            }
 
             if (!email) {
                 showError('reg_email', 'regEmailError', 'Digite seu e-mail');
@@ -776,10 +770,6 @@ function clearErrors(form) {
                         if (data.errors.email) {
                             showError('reg_email', 'regEmailError',
                                 Array.isArray(data.errors.email) ? data.errors.email[0] : data.errors.email);
-                        }
-                        if (data.errors.name) {
-                            showError('name', 'nameError',
-                                Array.isArray(data.errors.name) ? data.errors.name[0] : data.errors.name);
                         }
                         if (data.errors.password) {
                             showError('reg_password', 'regPasswordError',

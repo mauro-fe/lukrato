@@ -91,7 +91,7 @@
                 icon: 'circle-check'
             },
             {
-                selector: '.cartoes-toolbar .search-box',
+                selector: '.cart-search-wrapper, #searchCartoes',
                 title: 'Busca Rápida',
                 message: 'Encontre rapidamente um cartão específico digitando o nome ou bandeira.',
                 position: 'bottom',
@@ -130,12 +130,35 @@
                 icon: 'lightbulb'
             },
             {
-                selector: '.export-card',
+                selector: '#exportBtn, #exportControl',
                 title: 'Exportar Relatório',
                 message: 'Baixe seus relatórios em PDF ou Excel. Recurso exclusivo do plano Pro.',
                 position: 'left',
                 icon: 'file-output',
                 proOnly: true
+            }
+        ],
+        'metas': [
+            {
+                selector: '#btnNovaMetaHeader, #btnNovaMeta, #btnNovaMetaEmpty',
+                title: 'Crie sua primeira meta',
+                message: 'Defina valor e prazo para acompanhar seu objetivo sem depender de planilha.',
+                position: 'bottom',
+                icon: 'circle-plus'
+            },
+            {
+                selector: '#summaryMetas, .met-summary-grid',
+                title: 'Resumo das metas',
+                message: 'Aqui vocÃª enxerga metas ativas, total acumulado e o progresso geral do que estÃ¡ construindo.',
+                position: 'bottom',
+                icon: 'target'
+            },
+            {
+                selector: '#metasGrid, .met-grid',
+                title: 'Acompanhamento',
+                message: 'Cada card mostra quanto falta, o percentual jÃ¡ atingido e onde vale concentrar seus aportes.',
+                position: 'top',
+                icon: 'flag'
             }
         ],
         'contas': [
@@ -287,6 +310,7 @@
             '/cartoes': 'cartoes',
             '/faturas': 'faturas',
             '/relatorios': 'relatorios',
+            '/metas': 'metas',
             '/contas': 'contas',
             '/categorias': 'categorias',
             '/agendamentos': 'agendamentos',

@@ -114,6 +114,9 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
         isSysAdmin: <?= json_encode($isSysAdmin) ?>,
         userId: <?= json_encode($currentUser?->id ?? null) ?>,
         username: <?= json_encode($username) ?>,
+        userEmail: <?= json_encode($currentUser?->email ?? '') ?>,
+        needsDisplayNamePrompt: <?= json_encode(trim((string) ($currentUser?->nome ?? '')) === '') ?>,
+        tourCompleted: <?= json_encode(!empty($currentUser?->tour_completed_at)) ?>,
         userAvatar: <?= json_encode($currentUser?->avatar ? rtrim(BASE_URL, '/') . '/' . $currentUser->avatar : '') ?>,
         userAvatarSettings: <?= json_encode([
                                     'position_x' => max(0, min(100, (int) ($currentUser?->avatar_focus_x ?? 50))),

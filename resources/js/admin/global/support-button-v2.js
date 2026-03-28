@@ -250,7 +250,7 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
                 ${replies.map((reply) => `
                     <button
                         type="button"
-                        class="lk-ai-chip lk-ai-chip--inline"
+                        class="lk-ai-chip surface-card lk-ai-chip--inline"
                         data-ai-message="${escapeAttribute(reply.message)}"
                         data-ai-mode="${escapeAttribute(reply.mode)}"
                     >
@@ -539,28 +539,28 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
         const normalized = String(sourceMessage || '').trim() || 'isso';
 
         switch (aiData?.action_hint) {
-        case 'create_lancamento':
-            return [
-                { label: 'Registrar agora', message: `registre este gasto: ${normalized}`, mode: 'fill' },
-                { label: 'Ver gastos do mes', message: 'quanto gastei este mes?', mode: 'send' },
-            ];
-        case 'create_lancamento_receita':
-            return [
-                { label: 'Registrar receita', message: `registre esta receita: ${normalized}`, mode: 'fill' },
-                { label: 'Ver saldo atual', message: 'qual e o meu saldo atual?', mode: 'send' },
-            ];
-        case 'create_meta':
-            return [
-                { label: 'Criar meta', message: `quero criar uma meta para ${normalized}`, mode: 'fill' },
-                { label: 'Planejar valor mensal', message: 'me ajude a planejar quanto guardar por mes', mode: 'send' },
-            ];
-        case 'create_orcamento':
-            return [
-                { label: 'Criar orcamento', message: 'quero criar um orcamento para controlar isso', mode: 'fill' },
-                { label: 'Analisar categoria', message: 'em que categoria estou gastando mais?', mode: 'send' },
-            ];
-        default:
-            return [];
+            case 'create_lancamento':
+                return [
+                    { label: 'Registrar agora', message: `registre este gasto: ${normalized}`, mode: 'fill' },
+                    { label: 'Ver gastos do mes', message: 'quanto gastei este mes?', mode: 'send' },
+                ];
+            case 'create_lancamento_receita':
+                return [
+                    { label: 'Registrar receita', message: `registre esta receita: ${normalized}`, mode: 'fill' },
+                    { label: 'Ver saldo atual', message: 'qual e o meu saldo atual?', mode: 'send' },
+                ];
+            case 'create_meta':
+                return [
+                    { label: 'Criar meta', message: `quero criar uma meta para ${normalized}`, mode: 'fill' },
+                    { label: 'Planejar valor mensal', message: 'me ajude a planejar quanto guardar por mes', mode: 'send' },
+                ];
+            case 'create_orcamento':
+                return [
+                    { label: 'Criar orcamento', message: 'quero criar um orcamento para controlar isso', mode: 'fill' },
+                    { label: 'Analisar categoria', message: 'em que categoria estou gastando mais?', mode: 'send' },
+                ];
+            default:
+                return [];
         }
     }
 
@@ -688,7 +688,7 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
 
     function beginAIRequest() {
         state.aiLoading = true;
-        setAIStatus('Lukra esta analisando sua mensagem...', 'loading');
+        setAIStatus('Luki esta analisando sua mensagem...', 'loading');
         updateComposerState();
     }
 

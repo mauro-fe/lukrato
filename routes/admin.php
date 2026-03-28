@@ -10,7 +10,6 @@ use Application\Core\Response;
  * ROTAS DO PAINEL ADMINISTRATIVO
  * ============================================
  * Todas as rotas exigem autenticação
- * Rotas com 'onboarding' middleware exigem onboarding completo
  */
 
 // Onboarding (SEM middleware de onboarding - senão dá loop)
@@ -19,31 +18,31 @@ Router::add('GET', '/onboarding', 'Admin\\OnboardingController@index', ['auth'])
 // Dashboard (definido em web.php)
 
 // Lançamentos
-Router::add('GET', '/lancamentos', 'Admin\\LancamentoController@index', ['auth', 'onboarding']);
+Router::add('GET', '/lancamentos', 'Admin\\LancamentoController@index', ['auth']);
 
 // Relatórios
-Router::add('GET', '/relatorios', 'Admin\\RelatoriosController@view', ['auth', 'onboarding']);
+Router::add('GET', '/relatorios', 'Admin\\RelatoriosController@view', ['auth']);
 
 // Configurações
-Router::add('GET',  '/config',     'Admin\\ConfigController@index', ['auth', 'onboarding']);
+Router::add('GET',  '/config',     'Admin\\ConfigController@index', ['auth']);
 Router::add('POST', '/api/config', 'Api\\Admin\\ConfigController@update',  ['auth', 'csrf', 'ratelimit']);
 
 // Perfil
-Router::add('GET', '/perfil', 'Admin\\PerfilController@index', ['auth', 'onboarding']);
+Router::add('GET', '/perfil', 'Admin\\PerfilController@index', ['auth']);
 
 // Contas
-Router::add('GET', '/contas',            'Admin\\ContasController@index',    ['auth', 'onboarding']);
-Router::add('GET', '/contas/arquivadas', 'Admin\\ContasController@archived', ['auth', 'onboarding']);
+Router::add('GET', '/contas',            'Admin\\ContasController@index',    ['auth']);
+Router::add('GET', '/contas/arquivadas', 'Admin\\ContasController@archived', ['auth']);
 
 // Categorias
-Router::add('GET', '/categorias', 'Admin\\CategoriaController@index', ['auth', 'onboarding']);
+Router::add('GET', '/categorias', 'Admin\\CategoriaController@index', ['auth']);
 
 
 // Gamificação
-Router::add('GET', '/gamification', 'GamificationController@index', ['auth', 'onboarding']);
+Router::add('GET', '/gamification', 'GamificationController@index', ['auth']);
 
 // Billing / Planos
-Router::add('GET', '/billing', 'Admin\\BillingController@index', ['auth', 'onboarding']);
+Router::add('GET', '/billing', 'Admin\\BillingController@index', ['auth']);
 
 // Super Admin
 Router::add('GET', '/super_admin', 'SysAdmin\\SuperAdminController@index', ['auth', 'sysadmin']);

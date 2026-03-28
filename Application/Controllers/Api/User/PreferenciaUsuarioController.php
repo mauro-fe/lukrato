@@ -102,6 +102,60 @@ class PreferenciaUsuarioController extends BaseController
      * Verifica se hoje é aniversário do usuário
      * GET /api/user/birthday-check
      */
+    /**
+     * Atualiza o nome de exibicao usado no produto.
+     * POST /api/user/display-name
+     */
+    public function updateDisplayName(): Response
+    {
+        $userId = $this->requireApiUserIdOrFail();
+        $displayNameInput = null;
+
+        try {
+            $displayNameInput = $this->getPayloadValue('display_name');
+            $displayName = trim((string) $displayNameInput);
+
+            if ($displayName === '') {
+                return Response::validationErrorResponse([
+                    'display_name' => 'Digite como prefere ser chamado.',
+                ]);
+            }
+
+            if (mb_strlen($displayName) < 2) {
+                return Response::validationErrorResponse([
+                    'display_name' => 'Use pelo menos 2 caracteres.',
+                ]);
+            }
+
+            if (mb_strlen($displayName) > 80) {
+                return Response::validationErrorResponse([
+                    'display_name' => 'Use no máximo 80 caracteres.',
+                ]);
+            }
+
+            $user = Usuario::find($userId);
+            if (!$user) {
+                return Response::errorResponse('Usuário não encontrado.', 404);
+            }
+
+            $user->nome = $displayName;
+            $user->save();
+
+            return Response::successResponse([
+                'message' => 'Nome de exibição salvo.',
+                'display_name' => $user->nome,
+                'first_name' => $user->primeiro_nome,
+            ]);
+        } catch (Throwable $e) {
+            LogService::error('Falha ao salvar nome de exibição', [
+                'exception' => $e->getMessage(),
+                'payload' => ['display_name' => $displayNameInput],
+            ]);
+
+            return Response::errorResponse('Falha ao salvar nome de exibição.', 500);
+        }
+    }
+
     public function birthdayCheck(): Response
     {
         $userId = $this->requireApiUserIdAndReleaseSessionOrFail();

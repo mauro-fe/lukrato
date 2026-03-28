@@ -74,8 +74,13 @@ class RegistrationHandler
 
     private function createUser(RegistrationDTO $registration, ?string $ip = null): Usuario
     {
+        $displayName = trim($registration->name);
+
         $user = new Usuario();
-        $user->nome = $registration->name;
+        // Mantemos string vazia quando o cadastro nao pede nome.
+        // Isso evita quebrar em bancos onde `usuarios.nome` ainda esta NOT NULL
+        // e preserva o prompt posterior de "como prefere ser chamado?" no dashboard.
+        $user->nome = $displayName;
         $user->email = $registration->email;
         $user->senha = $registration->password;
         $user->registration_ip = $ip;

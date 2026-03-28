@@ -336,11 +336,11 @@ main.lukrato-auth::before {
 }
 
 .card[data-active="register"].captcha-visible .flip-inner {
-  min-height: 900px;
+  min-height: 950px;
 }
 
 .card[data-active="register"].captcha-visible {
-  min-height: 900px;
+  min-height: 950px;
 }
 
 /* Altura do flip-inner para Cadastrar + rotaÃ§Ã£o */
@@ -696,6 +696,7 @@ main.lukrato-auth::before {
   gap: 10px;
   position: relative;
   overflow: hidden;
+  margin-bottom: var(--spacing-2);
 }
 
 .google-sign-in-button::before {

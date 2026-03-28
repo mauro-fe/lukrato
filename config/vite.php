@@ -17,7 +17,6 @@ function vite_css_entry_paths(): array
         'auth-login-style' => 'resources/css/admin/auth/admin-auth-login.css',
         'auth-shared-style' => 'resources/css/admin/auth/auth-shared.css',
         'auth-verify-email-style' => 'resources/css/admin/auth/auth-verify-email.css',
-        'onboarding-v2-style' => 'resources/css/admin/onboarding/v2/index.css',
         'site-app' => 'resources/css/site/app.css',
         'site-base' => 'resources/css/site/base.css',
         'site-legal' => 'resources/css/site/legal.css',

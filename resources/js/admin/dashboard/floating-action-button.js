@@ -2,12 +2,6 @@
  * Floating Action Button for quick transaction creation.
  */
 
-const ONBOARDING_STORAGE_PREFIX = `lk_user_${window.__LK_CONFIG?.userId ?? 'anon'}_`;
-
-function storageKey(name) {
-  return ONBOARDING_STORAGE_PREFIX + name;
-}
-
 class FloatingActionButton {
   constructor(config = {}) {
     this.config = {
@@ -227,8 +221,8 @@ window.FloatingActionButton = FloatingActionButton;
 
 document.addEventListener('DOMContentLoaded', () => {
   if (!document.getElementById('fabContainer')) {
-    const firstTime = window.__lkFirstVisit
-      || localStorage.getItem(storageKey('lukrato_onboarding_completed')) !== 'true';
+    const firstTime = Boolean(window.__lkFirstVisit)
+      || window.__LK_CONFIG?.needsDisplayNamePrompt === true;
 
     window.fab = new FloatingActionButton({ firstTime });
   }

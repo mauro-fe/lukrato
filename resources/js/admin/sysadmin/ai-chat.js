@@ -49,7 +49,7 @@ import { apiGet, apiPost, getBaseUrl, getErrorMessage } from '../shared/api.js';
         const icon = role === 'ai' ? 'bot' : 'user';
         wrap.innerHTML = `
             <div class="avatar"><i data-lucide="${icon}" style="width:16px;height:16px;"></i></div>
-            <div class="bubble">${formatText(text)}</div>
+            <div class="bubble surface-card">${formatText(text)}</div>
         `;
 
         messagesEl.appendChild(wrap);

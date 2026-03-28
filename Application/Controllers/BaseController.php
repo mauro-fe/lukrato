@@ -45,9 +45,9 @@ abstract class BaseController
 
         $this->userId = Auth::id();
         $user         = Auth::user();
-        $this->adminUsername = $user?->nome ?? null;
+        $this->adminUsername = $user?->nome ?: ($user?->email ?: 'usuario');
 
-        if (empty($this->userId) || empty($this->adminUsername)) {
+        if (empty($this->userId)) {
             $this->auth->logout();
             $this->throwRedirectResponse('login');
         }
@@ -62,9 +62,9 @@ abstract class BaseController
 
         $this->userId = Auth::id();
         $user = Auth::user();
-        $this->adminUsername = $user?->nome ?? null;
+        $this->adminUsername = $user?->nome ?: ($user?->email ?: 'usuario');
 
-        if (empty($this->userId) || empty($this->adminUsername)) {
+        if (empty($this->userId)) {
             $this->auth->logout();
             throw new AuthException('Sessao invalida', 401);
         }
@@ -197,6 +197,7 @@ abstract class BaseController
     private function injectAdminLayoutData(array $data): array
     {
         $currentUser = $data['currentUser'] ?? Auth::user();
+        $displayName = $this->resolveAdminDisplayName($currentUser);
 
         // Plan check — fonte de verdade: Usuario::isPro()
         $isPro = $data['isPro'] ?? (
@@ -204,7 +205,7 @@ abstract class BaseController
         );
 
         $data['currentUser']    = $currentUser;
-        $data['username']       = $data['username'] ?? ($currentUser?->nome ?? 'usuario');
+        $data['username']       = $data['username'] ?? $displayName;
         $data['isSysAdmin']     = $data['isSysAdmin'] ?? (((int)($currentUser?->is_admin ?? 0)) === 1);
         $data['isPro']          = $isPro;
         $data['planTier']       = $data['planTier'] ?? ($currentUser && method_exists($currentUser, 'planTier') ? $currentUser->planTier() : 'free');
@@ -227,15 +228,14 @@ abstract class BaseController
 
         // Top navbar
         if (!isset($data['topNavFirstName'])) {
-            $fullName = $currentUser->nome ?? ($currentUser->name ?? '');
-            $data['topNavFirstName'] = $fullName ? explode(' ', trim($fullName))[0] : '';
+            $data['topNavFirstName'] = $this->resolveAdminFirstName($currentUser);
         }
 
         $data['currentBreadcrumbs'] = $data['currentBreadcrumbs'] ?? $this->resolveBreadcrumbs($data['menu'] ?? '');
 
         // Botão suporte
         if (!isset($data['supportName'])) {
-            $data['supportName']  = $currentUser->nome ?? '';
+            $data['supportName']  = $displayName;
             $data['supportEmail'] = $currentUser->email ?? '';
             $userId = $currentUser->id_usuario ?? $currentUser->id ?? null;
             $telefoneModel = $userId ? Telefone::where('id_usuario', $userId)->first() : null;
@@ -252,6 +252,43 @@ abstract class BaseController
             $data['headerBlogCategorias'] = BlogCategoria::ordenadas()->get();
         }
         return $data;
+    }
+
+    private function resolveAdminDisplayName(?Usuario $currentUser): string
+    {
+        $fullName = trim((string) ($currentUser?->nome ?? ''));
+
+        return $fullName !== '' ? $fullName : $this->resolveEmailNickname($currentUser);
+    }
+
+    private function resolveAdminFirstName(?Usuario $currentUser): string
+    {
+        $fullName = trim((string) ($currentUser?->nome ?? ''));
+
+        if ($fullName !== '') {
+            return explode(' ', $fullName)[0] ?? '';
+        }
+
+        return $this->resolveEmailNickname($currentUser);
+    }
+
+    private function resolveEmailNickname(?Usuario $currentUser): string
+    {
+        $email = trim((string) ($currentUser?->email ?? ''));
+        if ($email === '' || !str_contains($email, '@')) {
+            return 'Voce';
+        }
+
+        $localPart = strtolower((string) strstr($email, '@', true));
+        $candidate = preg_split('/[._-]+/', $localPart)[0] ?? $localPart;
+        $candidate = preg_replace('/\d+$/', '', $candidate ?? '') ?? '';
+        $candidate = trim($candidate);
+
+        if ($candidate === '') {
+            return 'Voce';
+        }
+
+        return ucfirst($candidate);
     }
 
     private function resolveBreadcrumbs(string $menu): array

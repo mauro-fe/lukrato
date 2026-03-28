@@ -1,12 +1,6 @@
 import { logClientError } from '../shared/api.js';
 import { getDashboardOverview, invalidateDashboardOverview } from './dashboard-data.js';
 
-const ONBOARDING_STORAGE_PREFIX = `lk_user_${window.__LK_CONFIG?.userId ?? 'anon'}_`;
-
-function storageKey(name) {
-  return ONBOARDING_STORAGE_PREFIX + name;
-}
-
 /**
  * Progressive disclosure for first-time users.
  * Shows only the essentials and reveals more sections as the user engages.
@@ -137,8 +131,8 @@ class ProgressiveDisclosure {
 window.ProgressiveDisclosure = ProgressiveDisclosure;
 
 document.addEventListener('DOMContentLoaded', () => {
-  const isFirstTime = window.__lkFirstVisit
-    || localStorage.getItem(storageKey('lukrato_onboarding_completed')) !== 'true';
+  const isFirstTime = Boolean(window.__lkFirstVisit)
+    || window.__LK_CONFIG?.needsDisplayNamePrompt === true;
 
   if (isFirstTime) {
     window.progressiveDisclosure = new ProgressiveDisclosure({ isFirstTime: true });

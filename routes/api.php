@@ -53,20 +53,6 @@ Router::add('DELETE', '/api/perfil/avatar', 'Api\\User\\PerfilController@removeA
 Router::add('DELETE', '/api/perfil/delete', 'Api\\User\\PerfilController@delete', ['auth', 'csrf', 'ratelimit_strict']);
 
 // ============================================
-// ONBOARDING
-// ============================================
-
-Router::add('GET',  '/api/onboarding/status',    'Api\\User\\OnboardingController@status',   ['auth']);
-Router::add('GET',  '/api/onboarding/checklist', 'Api\\User\\OnboardingController@checklist', ['auth']);
-Router::add('POST', '/api/onboarding/complete',  'Api\\User\\OnboardingController@complete', ['auth', 'csrf', 'ratelimit']);
-Router::add('POST', '/api/onboarding/skip-tour', 'Api\\User\\OnboardingController@skipTour', ['auth', 'csrf', 'ratelimit']);
-Router::add('POST', '/api/onboarding/reset',     'Api\\User\\OnboardingController@reset',    ['auth', 'csrf', 'ratelimit']);
-
-Router::add('POST', '/api/onboarding/goal',            'Api\\User\\OnboardingController@storeGoal',          ['auth', 'csrf']);
-Router::add('POST', '/api/onboarding/conta/json',      'Api\\User\\OnboardingController@storeContaJson',     ['auth', 'csrf']);
-Router::add('POST', '/api/onboarding/lancamento/json', 'Api\\User\\OnboardingController@storeLancamentoJson', ['auth', 'csrf']);
-
-// ============================================
 // DASHBOARD
 // ============================================
 
@@ -254,6 +240,7 @@ Router::add('POST', '/api/notificacoes/referral-rewards/seen', 'Api\\Notificatio
 
 Router::add('GET',  '/api/user/theme', 'Api\\User\\PreferenciaUsuarioController@show',   ['auth']);
 Router::add('POST', '/api/user/theme', 'Api\\User\\PreferenciaUsuarioController@update', ['auth', 'csrf', 'ratelimit']);
+Router::add('POST', '/api/user/display-name', 'Api\\User\\PreferenciaUsuarioController@updateDisplayName', ['auth', 'csrf', 'ratelimit']);
 Router::add('GET',  '/api/user/birthday-check', 'Api\\User\\PreferenciaUsuarioController@birthdayCheck', ['auth']);
 
 // ============================================

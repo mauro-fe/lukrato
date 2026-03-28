@@ -61,7 +61,8 @@ $isLandingPage = $isLandingPage ?? false;
     <meta name="author" content="Lukrato">
 
     <!-- Facebook Domain Verification (WhatsApp Business API) -->
-    <meta name="facebook-domain-verification" content="<?= htmlspecialchars($_ENV['FACEBOOK_DOMAIN_VERIFICATION'] ?? '') ?>">
+    <meta name="facebook-domain-verification"
+        content="<?= htmlspecialchars($_ENV['FACEBOOK_DOMAIN_VERIFICATION'] ?? '') ?>">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
@@ -488,7 +489,7 @@ $isLandingPage = $isLandingPage ?? false;
                         aria-label="Entrar na sua conta">
                         <i data-lucide="user" class="text-sm transition-transform group-hover:scale-110"
                             aria-hidden="true"></i>
-                        <span>Entrar na minha conta</span>
+                        <span>Login</span>
                     </a>
                     <a href="<?= BASE_URL ?>login?tab=register"
                         class="inline-flex items-center gap-2 px-7 py-2.5 bg-gradient-to-r from-primary via-orange-500 to-orange-600 text-white font-bold rounded-full shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/40 hover:scale-105 active:scale-95 transition-all duration-300 group"
@@ -624,7 +625,7 @@ $isLandingPage = $isLandingPage ?? false;
                     class="inline-flex items-center justify-center gap-2 px-6 py-3 text-gray-700 dark:text-gray-200 hover:text-primary font-semibold border-2 border-gray-200 dark:border-white/20 rounded-xl hover:border-primary transition-all duration-300"
                     aria-label="Entrar">
                     <i data-lucide="user" aria-hidden="true"></i>
-                    <span>Entrar na minha conta</span>
+                    <span>Login</span>
                 </a>
                 <a href="<?= BASE_URL ?>login?tab=register"
                     class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary via-orange-500 to-orange-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"

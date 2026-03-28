@@ -8,12 +8,6 @@ import { apiGet, apiPost } from '../shared/api.js';
 (function () {
     'use strict';
 
-    const ONBOARDING_STORAGE_PREFIX = `lk_user_${window.__LK_CONFIG?.userId ?? 'anon'}_`;
-
-    function storageKey(name) {
-        return ONBOARDING_STORAGE_PREFIX + name;
-    }
-
     // Mapeamento de cores para ícones de conquistas
     function getAchievementIconColor(icon) {
         const colors = {
@@ -680,10 +674,9 @@ import { apiGet, apiPost } from '../shared/api.js';
     // Isto garante que conquistas desbloqueadas em outros contextos
     // (como verificação de email, ações em background) sejam notificadas
     function initPendingAchievementsCheck() {
-        const onboardingInProgress = localStorage.getItem(storageKey('lukrato_onboarding_in_progress')) === 'true';
 
         // Não verificar durante onboarding
-        if (onboardingInProgress || window.gamificationPaused === true) {
+        if (window.gamificationPaused === true) {
             return;
         }
 
@@ -845,11 +838,9 @@ import { apiGet, apiPost } from '../shared/api.js';
     // ====================================================================
     // Verificar se onboarding está completo ao carregar a página
     window.addEventListener('DOMContentLoaded', function () {
-        const onboardingCompleted = localStorage.getItem(storageKey('lukrato_onboarding_completed')) === 'true';
-        const onboardingInProgress = localStorage.getItem(storageKey('lukrato_onboarding_in_progress')) === 'true';
 
 
-        if (onboardingCompleted && !onboardingInProgress) {
+        if (window.gamificationPaused !== true) {
             // Garantir que gamificação não está pausada
             window.gamificationPaused = false;
 

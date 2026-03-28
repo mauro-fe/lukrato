@@ -100,32 +100,32 @@ function registerAppRoutes(): void
 
 {
 
-    Router::add('GET', '/dashboard',         'Admin\\DashboardController@dashboard', ['auth', 'onboarding']);
+    Router::add('GET', '/dashboard',         'Admin\\DashboardController@dashboard', ['auth']);
 
-    Router::add('GET', '/lancamentos',       'Admin\\LancamentoController@index',    ['auth', 'onboarding']);
+    Router::add('GET', '/lancamentos',       'Admin\\LancamentoController@index',    ['auth']);
 
-    Router::add('GET', '/faturas',           'Admin\FaturaController@index',  ['auth', 'onboarding']);
+    Router::add('GET', '/faturas',           'Admin\FaturaController@index',  ['auth']);
 
-    Router::add('GET', '/relatorios',        'Admin\\RelatoriosController@view',     ['auth', 'onboarding']);
+    Router::add('GET', '/relatorios',        'Admin\\RelatoriosController@view',     ['auth']);
 
 
-    Router::add('GET', '/perfil',            'Admin\\PerfilController@index',        ['auth', 'onboarding']);
+    Router::add('GET', '/perfil',            'Admin\\PerfilController@index',        ['auth']);
 
-    Router::add('GET', '/contas',            'Admin\\ContasController@index',        ['auth', 'onboarding']);
+    Router::add('GET', '/contas',            'Admin\\ContasController@index',        ['auth']);
 
-    Router::add('GET', '/contas/arquivadas', 'Admin\\ContasController@archived',     ['auth', 'onboarding']);
+    Router::add('GET', '/contas/arquivadas', 'Admin\\ContasController@archived',     ['auth']);
 
-    Router::add('GET', '/cartoes',           'Admin\\CartoesController@index',       ['auth', 'onboarding']);
+    Router::add('GET', '/cartoes',           'Admin\\CartoesController@index',       ['auth']);
 
-    Router::add('GET', '/cartoes/arquivadas', 'Admin\\CartoesController@archived',    ['auth', 'onboarding']);
+    Router::add('GET', '/cartoes/arquivadas', 'Admin\\CartoesController@archived',    ['auth']);
 
 
     // Agendamentos removido - unificado em lançamentos
 
 
-    Router::add('GET', '/financas',           'Admin\\OrcamentoController@index',      ['auth', 'onboarding']); // redirect legado
-    Router::add('GET', '/orcamento',          'Admin\\OrcamentoController@index',      ['auth', 'onboarding']);
-    Router::add('GET', '/metas',              'Admin\\MetasController@index',          ['auth', 'onboarding']);
+    Router::add('GET', '/financas',           'Admin\\OrcamentoController@index',      ['auth']); // redirect legado
+    Router::add('GET', '/orcamento',          'Admin\\OrcamentoController@index',      ['auth']);
+    Router::add('GET', '/metas',              'Admin\\MetasController@index',          ['auth']);
 
     // Premium routes e webhook ficam em api.php e webhooks.php com middleware adequado
 }

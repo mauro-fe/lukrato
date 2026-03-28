@@ -45,7 +45,7 @@ class RegistrationValidationStrategy extends AbstractValidationStrategy
     {
         $gump = new GUMP();
         $gump->validation_rules([
-            'nome' => 'required|min_len,3|max_len,150',
+            'nome' => 'max_len,150',
             'email' => 'required|valid_email|max_len,150',
             'senha' => 'required|min_len,8|max_len,72',
             'senha_confirmacao' => 'required|equalsfield,senha',

@@ -19,7 +19,6 @@ import {
 } from './state.js';
 import { apiDelete, apiGet, apiPost, getApiPayload, getErrorMessage, logClientError } from '../shared/api.js';
 import { getDashboardOverview, invalidateDashboardOverview } from './dashboard-data.js';
-import { initDashboardTour } from './guided-tour.js';
 
 // ==================== API ====================
 // Usa LK.api (facade unificada) quando disponÃ­vel, com fallback local
@@ -553,6 +552,15 @@ export const Renderers = {
                 despesas: Number(metrics.despesas || 0)
             });
 
+            document.dispatchEvent(new CustomEvent('lukrato:dashboard-overview-rendered', {
+                detail: {
+                    month,
+                    transactionCount: Number(metrics.count || 0),
+                    categoryCount: Number(metrics.categories || 0),
+                    hasData: Number(metrics.count || 0) > 0,
+                }
+            }));
+
             Utils.removeLoadingClass();
         } catch (err) {
             logClientError('Erro ao renderizar KPIs', err, 'Falha ao carregar indicadores');
@@ -773,7 +781,29 @@ export const Renderers = {
             }
 
             if (despesasCat.length === 0) {
-                DOM.categoryChart.innerHTML = '<p style="text-align:center;padding:2rem;color:var(--color-text-muted);">Sem despesas no período</p>';
+                DOM.categoryChart.innerHTML = `
+                    <div class="dash-chart-empty">
+                        <i data-lucide="pie-chart"></i>
+                        <strong>Seu gráfico aparece com dados reais</strong>
+                        <p>Registre sua primeira transação para começar a enxergar para onde o dinheiro está indo.</p>
+                        <button class="dash-btn dash-btn--ghost" type="button" id="dashboardChartEmptyCta">
+                            <i data-lucide="plus"></i> Registrar transação
+                        </button>
+                    </div>
+                `;
+                document.getElementById('dashboardChartEmptyCta')?.addEventListener('click', () => {
+                    if (window.lancamentoGlobalManager?.openModal) {
+                        window.lancamentoGlobalManager.openModal();
+                        return;
+                    }
+
+                    window.location.href = `${CONFIG.BASE_URL}lancamentos`;
+                });
+
+                if (typeof window.lucide !== 'undefined') {
+                    window.lucide.createIcons();
+                }
+
                 return;
             }
 
@@ -1704,8 +1734,6 @@ export const EventListeners = {
             });
         }
 
-        // Initialize guided tour for first-time visitors
-        initDashboardTour();
     }
 };
 

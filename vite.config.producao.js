@@ -43,7 +43,6 @@ export default defineConfig({
                 'card-modals': resolve(__dirname, 'resources/js/admin/card-modals/index.js'),
                 'sysadmin': resolve(__dirname, 'resources/js/admin/sysadmin/index.js'),
                 'contas-arquivadas': resolve(__dirname, 'resources/js/admin/contas-arquivadas/index.js'),
-                'onboarding-v2': resolve(__dirname, 'resources/js/admin/onboarding/v2/app.js'),
                 'sysadmin-communications': resolve(__dirname, 'resources/js/admin/sysadmin/communications.js'),
                 'sysadmin-cupons': resolve(__dirname, 'resources/js/admin/sysadmin/cupons.js'),
                 'sysadmin-blog': resolve(__dirname, 'resources/js/admin/sysadmin/blog.js'),
@@ -58,7 +57,6 @@ export default defineConfig({
                 'auth-login-style': resolve(__dirname, 'resources/css/admin/auth/admin-auth-login.css'),
                 'auth-shared-style': resolve(__dirname, 'resources/css/admin/auth/auth-shared.css'),
                 'auth-verify-email-style': resolve(__dirname, 'resources/css/admin/auth/auth-verify-email.css'),
-                'onboarding-v2-style': resolve(__dirname, 'resources/css/admin/onboarding/v2/index.css'),
                 // Site (público)
                 'landing-base': resolve(__dirname, 'resources/js/site/landing-base.js'),
                 'site-card': resolve(__dirname, 'resources/js/site/card/index.js'),

@@ -14,12 +14,11 @@ import './health-score-insights.js';
 import './ai-tip.js';
 import './finance-overview.js';
 import './evolucao-charts.js';
-import './progressive-disclosure.js';
 import './celebration.js';
 import './sprint2-loader.js';
+import './first-run.js';
 import { Modules } from './state.js';
 import { DashboardManager, EventListeners } from './app.js';
-import { initOnboardingChecklist } from './onboarding.js';
 import { initCustomize } from './customize.js';
 
 // ─── Guard against double-loading ────────────────────────────────────────────
@@ -38,8 +37,6 @@ if (!window.__LK_DASHBOARD_LOADER__) {
             DashboardManager.init();
             initCustomize();
         };
-
-        initOnboardingChecklist();
 
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', bootstrap);

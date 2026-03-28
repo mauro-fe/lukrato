@@ -32,7 +32,6 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
     const aiEmpty = document.getElementById('aiEmpty');
     const aiAttachBtn = document.getElementById('aiAttachBtn');
     const aiFileInput = document.getElementById('aiFileInput');
-    const aiMicBtn = document.getElementById('aiMicBtn');
     const aiNewConvBtn = document.getElementById('aiNewConversation');
     const aiExhaustedOverlay = document.getElementById('aiExhaustedOverlay');
     const aiInputRow = document.getElementById('aiInputRow');
@@ -44,9 +43,7 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
     const planTier = toggleBtn.dataset.planTier || 'free';
     let currentConvId = null;
     let aiLoading = false;
-    let mediaRecorder = null;
-    let audioChunks = [];
-    let isRecording = false;
+    let lastDateLabel = null;
 
     function refreshIcons() {
         if (typeof lucide !== 'undefined') {
@@ -77,7 +74,6 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
 
         if (aiSendBtn) aiSendBtn.disabled = isLoading;
         if (aiAttachBtn) aiAttachBtn.disabled = isLoading;
-        if (aiMicBtn) aiMicBtn.disabled = isLoading;
         if (aiNewConvBtn) aiNewConvBtn.disabled = isLoading;
     }
 
@@ -114,6 +110,36 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
         if (aiMessages) {
             aiMessages.innerHTML = '';
         }
+        lastDateLabel = null;
+    }
+
+    function getTimeString(date) {
+        const d = date instanceof Date ? date : new Date();
+        return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function getDateLabel(date) {
+        const d = date instanceof Date ? date : new Date();
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const target = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        const diff = Math.round((today - target) / 86400000);
+
+        if (diff === 0) return 'Hoje';
+        if (diff === 1) return 'Ontem';
+        return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+    }
+
+    function maybeInsertDaySeparator(date) {
+        if (!aiMessages) return;
+        const label = getDateLabel(date);
+        if (label === lastDateLabel) return;
+        lastDateLabel = label;
+
+        const sep = document.createElement('div');
+        sep.className = 'lk-ai-day-separator';
+        sep.innerHTML = `<span>${label}</span>`;
+        aiMessages.appendChild(sep);
     }
 
     function formatText(text) {
@@ -125,7 +151,7 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
             .replace(/\n/g, '<br>');
     }
 
-    function appendAIMessage(role, text, isTyping = false) {
+    function appendAIMessage(role, text, isTyping = false, timestamp = null) {
         if (!aiMessages) {
             return null;
         }
@@ -134,13 +160,36 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
             aiEmpty.style.display = 'none';
         }
 
+        const now = timestamp ? new Date(timestamp) : new Date();
+        if (!isTyping) {
+            maybeInsertDaySeparator(now);
+        }
+
         const wrap = document.createElement('div');
         wrap.className = `lk-ai-msg ${role}${isTyping ? ' typing' : ''}`;
 
-        const icon = role === 'assistant' ? 'bot' : 'user';
-        wrap.innerHTML = `
-            <div class="avatar"><i data-lucide="${icon}" style="width:14px;height:14px;"></i></div>
-            <div class="bubble">${formatText(text)}</div>`;
+        const time = getTimeString(now);
+        const readReceipt = role === 'user' ? ' <span class="lk-ai-read-receipt">✓✓</span>' : '';
+        const formattedText = isTyping ? text : formatText(text);
+
+        if (role === 'assistant') {
+            wrap.innerHTML = `
+                <div class="avatar"><i data-lucide="bot" style="width:14px;height:14px;"></i></div>
+                <div class="lk-ai-msg-stack">
+                    <div class="bubble surface-card">
+                        <div class="lk-ai-bubble-content">${formattedText}</div>
+                    </div>
+                    ${!isTyping ? `<div class="lk-ai-msg-time">${time}</div>` : ''}
+                </div>`;
+        } else {
+            wrap.innerHTML = `
+                <div class="lk-ai-msg-stack">
+                    <div class="bubble bubble--user">
+                        <div class="lk-ai-bubble-content">${formattedText}</div>
+                    </div>
+                    <div class="lk-ai-msg-time">${time}${readReceipt}</div>
+                </div>`;
+        }
 
         aiMessages.appendChild(wrap);
         aiMessages.scrollTop = aiMessages.scrollHeight;
@@ -155,27 +204,29 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
 
         if (exhausted) {
             aiQuotaText.className = 'quota-danger';
-            aiQuotaText.textContent = `Limite atingido (${limit || 0} msgs/mês)`;
+            aiQuotaText.textContent = `0 de ${limit || 0} restantes`;
             if (aiInput) aiInput.disabled = true;
             if (aiSendBtn) aiSendBtn.disabled = true;
             return;
         }
 
-        const pct = limit ? (remaining / limit * 100) : 100;
-        aiQuotaText.className = pct <= 20 ? 'quota-warn' : '';
-        aiQuotaText.textContent = `${remaining} de ${limit} mensagens restantes`;
+        const used = (limit || 0) - (remaining || 0);
+        aiQuotaText.className = remaining <= 1 ? 'quota-warn' : '';
+        aiQuotaText.textContent = `${used} de ${limit} mensagens usadas`;
         if (aiInput) aiInput.disabled = false;
         if (aiSendBtn) aiSendBtn.disabled = false;
     }
 
     function showExhaustedOverlay() {
         if (aiExhaustedOverlay) aiExhaustedOverlay.style.display = 'flex';
-        if (aiInputRow) aiInputRow.style.display = 'none';
+        if (aiInputRow) aiInputRow.style.pointerEvents = 'none';
+        if (aiInputRow) aiInputRow.style.opacity = '0.4';
     }
 
     function hideExhaustedOverlay() {
         if (aiExhaustedOverlay) aiExhaustedOverlay.style.display = 'none';
-        if (aiInputRow) aiInputRow.style.display = '';
+        if (aiInputRow) aiInputRow.style.pointerEvents = '';
+        if (aiInputRow) aiInputRow.style.opacity = '';
     }
 
     function handleAiRequestError(error, timeoutMessage) {
@@ -243,7 +294,7 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
             if (data.success && data.data?.length > 0) {
                 clearMessages();
                 data.data.forEach((message) => {
-                    appendAIMessage(message.role, message.content);
+                    appendAIMessage(message.role, message.content, false, message.created_at);
                 });
             }
         } catch (error) {
@@ -354,7 +405,7 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
         aiInput.style.height = 'auto';
 
         appendAIMessage('user', message);
-        const typingEl = appendAIMessage('assistant', '● ● ●', true);
+        const typingEl = appendAIMessage('assistant', '<span class="lk-ai-typing"><span></span><span></span><span></span></span>', true);
 
         try {
             const data = await apiFetch(
@@ -373,6 +424,9 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
                 appendAIMessage('assistant', content);
 
                 const aiData = data.data?.ai_data;
+                if (aiData?.card) {
+                    appendRichCard(aiData.card);
+                }
                 if (aiData?.action === 'confirm' && aiData?.pending_id) {
                     appendConfirmationButtons(aiData);
                 }
@@ -487,62 +541,6 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
         }
     }
 
-    function getSupportedAudioMime() {
-        const mimes = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/ogg'];
-
-        for (const mime of mimes) {
-            if (MediaRecorder.isTypeSupported(mime)) {
-                return mime;
-            }
-        }
-
-        return 'audio/webm';
-    }
-
-    async function startRecording() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream, { mimeType: getSupportedAudioMime() });
-            audioChunks = [];
-
-            mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) {
-                    audioChunks.push(event.data);
-                }
-            };
-
-            mediaRecorder.onstop = async () => {
-                stream.getTracks().forEach((track) => track.stop());
-                const blob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
-                const extension = mediaRecorder.mimeType.includes('webm') ? 'webm' : 'ogg';
-                const file = new File([blob], `audio.${extension}`, { type: mediaRecorder.mimeType });
-                await sendAIMessageWithFile(file, 'Audio');
-            };
-
-            mediaRecorder.start();
-            isRecording = true;
-            aiMicBtn?.classList.add('recording');
-            if (aiMicBtn) {
-                aiMicBtn.title = 'Parar gravação';
-            }
-        } catch (error) {
-            console.error('[Lukrato AI] Mic error:', error);
-            showToast('Não foi possível acessar o microfone. Verifique as permissões.', 'error');
-        }
-    }
-
-    function stopRecording() {
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-            mediaRecorder.stop();
-        }
-
-        isRecording = false;
-        aiMicBtn?.classList.remove('recording');
-        if (aiMicBtn) {
-            aiMicBtn.title = 'Gravar áudio';
-        }
-    }
-
     async function sendAIMessageWithFile(file, label) {
         if (aiLoading || !currentConvId) {
             return;
@@ -559,7 +557,7 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
         }
 
         appendAIMessage('user', textMsg ? `📎 ${displayLabel}\n${textMsg}` : `📎 ${displayLabel}`);
-        const typingEl = appendAIMessage('assistant', '● ● ●', true);
+        const typingEl = appendAIMessage('assistant', '<span class="lk-ai-typing"><span></span><span></span><span></span></span>', true);
 
         try {
             const formData = new FormData();
@@ -584,6 +582,9 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
                 appendAIMessage('assistant', content);
 
                 const aiData = data.data?.ai_data;
+                if (aiData?.card) {
+                    appendRichCard(aiData.card);
+                }
                 if (aiData?.action === 'confirm' && aiData?.pending_id) {
                     appendConfirmationButtons(aiData);
                 }
@@ -700,12 +701,20 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
         });
     }
 
-    aiMicBtn?.addEventListener('click', async () => {
-        if (isRecording) {
-            stopRecording();
-            return;
-        }
+    // Suggestion buttons (empty state)
+    document.querySelectorAll('.lk-ai-suggestion[data-ai-message]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            if (aiLoading || !aiInput) return;
+            const msg = btn.dataset.aiMessage;
+            const mode = btn.dataset.aiMode;
 
-        await startRecording();
+            if (mode === 'send') {
+                aiInput.value = msg;
+                sendAIMessage();
+            } else {
+                aiInput.value = msg;
+                aiInput.focus();
+            }
+        });
     });
 })();

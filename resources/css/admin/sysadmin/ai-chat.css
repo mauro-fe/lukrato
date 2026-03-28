@@ -146,14 +146,13 @@
 }
 
 .chat-msg.ai .bubble {
-    background: var(--color-surface-muted);
+    background: var(--color-bg);
     color: var(--color-text);
     border-bottom-left-radius: .2rem;
 }
 
 .chat-msg.user .bubble {
-    background: var(--blue-600);
-    color: #fff;
+    color: var(--text-color);
     border-bottom-right-radius: .2rem;
 }
 

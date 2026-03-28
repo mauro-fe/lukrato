@@ -20,7 +20,6 @@ class SecurityHeaders
         '/contas',
         '/cartoes',
         '/financas',
-        '/onboarding',
         '/categorias',
         '/gamification',
         '/billing',
