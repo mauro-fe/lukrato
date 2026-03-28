@@ -12,6 +12,8 @@ import { createParticles, createConfetti, initTogglePassword, getBaseUrl } from 
 import { apiFetch, apiGet, apiPost, getErrorMessage } from '../../shared/api.js';
 
 const BASE = getBaseUrl();
+let refreshAuthCardLayout = () => {};
+let setAuthCardTab = () => {};
 
 // ── Init shared features ───────────────────────────────────────────────────
 createParticles();
@@ -99,6 +101,9 @@ const TurnstileManager = {
         // Expandir containers para acomodar o widget
         const card = document.querySelector('.card');
         if (card) card.classList.add('captcha-visible');
+        refreshAuthCardLayout();
+        window.setTimeout(refreshAuthCardLayout, 120);
+        window.setTimeout(refreshAuthCardLayout, 320);
     },
 
     showRegisterCaptcha() {
@@ -114,6 +119,9 @@ const TurnstileManager = {
         // Expandir containers para acomodar o widget
         const card = document.querySelector('.card');
         if (card) card.classList.add('captcha-visible');
+        refreshAuthCardLayout();
+        window.setTimeout(refreshAuthCardLayout, 120);
+        window.setTimeout(refreshAuthCardLayout, 320);
     },
 
     resetLogin() {
@@ -276,7 +284,10 @@ function isCsrfError(response, data) {
             { cls: 's5', label: 'Forte' }
         ];
 
-        pwd.addEventListener('focus', () => panel.classList.add('visible'));
+        pwd.addEventListener('focus', () => {
+            panel.classList.add('visible');
+            refreshAuthCardLayout();
+        });
 
         pwd.addEventListener('input', () => {
             const val = pwd.value;
@@ -294,6 +305,7 @@ function isCsrfError(response, data) {
             levelEl.textContent = levels[score].label;
 
             if (confirmEl.value) checkMatch();
+            refreshAuthCardLayout();
         });
 
         function checkMatch() {
@@ -312,12 +324,119 @@ function isCsrfError(response, data) {
             icon.innerHTML = ok ? '<i data-lucide="check"></i>' : '<i data-lucide="x"></i>';
             text.textContent = ok ? 'Senhas coincidem' : 'Senhas não coincidem';
             if (typeof lucide !== 'undefined') lucide.createIcons();
+            refreshAuthCardLayout();
         }
 
         confirmEl.addEventListener('input', checkMatch);
         pwd.addEventListener('input', () => { if (confirmEl.value) checkMatch(); });
     }
 }
+
+// =====================
+// Auth Card Layout
+// =====================
+const AuthCard = (() => {
+    const card = document.querySelector('.card');
+    const flipContainer = card?.querySelector('.flip-container');
+    const flipInner = card?.querySelector('.flip-inner');
+    const tabBtns = Array.from(document.querySelectorAll('.tab-btn'));
+    const panels = {
+        login: card?.querySelector('.flip-login') || null,
+        register: card?.querySelector('.flip-register') || null,
+    };
+    let activeTab = card?.dataset.active === 'register' ? 'register' : 'login';
+    let rafId = 0;
+    let resizeObserver = null;
+
+    function getPanelHeight(tab) {
+        const panel = panels[tab];
+        return panel ? Math.ceil(panel.scrollHeight) : 0;
+    }
+
+    function syncTabState() {
+        tabBtns.forEach((btn) => {
+            const isActive = btn.dataset.tab === activeTab;
+            btn.classList.toggle('is-active', isActive);
+            btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            btn.setAttribute('tabindex', isActive ? '0' : '-1');
+        });
+
+        Object.entries(panels).forEach(([tab, panel]) => {
+            if (!panel) return;
+            const isActive = tab === activeTab;
+            panel.classList.toggle('is-active', isActive);
+            panel.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+        });
+    }
+
+    function syncLayout() {
+        if (!card || !flipContainer || !flipInner) return;
+
+        card.dataset.active = activeTab;
+
+        const loginHeight = getPanelHeight('login');
+        const registerHeight = getPanelHeight('register');
+        const activeHeight = activeTab === 'register' ? registerHeight : loginHeight;
+
+        flipContainer.style.height = `${Math.max(activeHeight, 1)}px`;
+        flipInner.style.height = `${Math.max(activeHeight, 1)}px`;
+        syncTabState();
+        card.classList.add('is-auth-ready');
+    }
+
+    function refresh() {
+        window.cancelAnimationFrame(rafId);
+        rafId = window.requestAnimationFrame(syncLayout);
+    }
+
+    function setActiveTab(tab) {
+        if (!panels[tab]) return;
+        if (activeTab === tab) return;
+        activeTab = tab;
+        if (card) {
+            card.dataset.active = activeTab;
+        }
+        syncTabState();
+        refresh();
+    }
+
+    function init() {
+        if (!card || !flipContainer || !flipInner) return;
+
+        tabBtns.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                setActiveTab(btn.dataset.tab);
+            });
+        });
+
+        if (typeof ResizeObserver === 'function') {
+            resizeObserver = new ResizeObserver(() => {
+                refresh();
+            });
+
+            Object.values(panels).forEach((panel) => {
+                if (panel) resizeObserver.observe(panel);
+            });
+        }
+
+        window.addEventListener('resize', refresh, { passive: true });
+        window.addEventListener('load', refresh, { once: true });
+        window.setTimeout(refresh, 180);
+        window.setTimeout(refresh, 420);
+        syncTabState();
+        refresh();
+    }
+
+    return {
+        init,
+        refresh,
+        setActiveTab,
+    };
+})();
+
+refreshAuthCardLayout = AuthCard.refresh;
+setAuthCardTab = AuthCard.setActiveTab;
+AuthCard.init();
 
 // =====================
 // Referral Code
@@ -337,14 +456,7 @@ function isCsrfError(response, data) {
             referralInput.value = refCode.toUpperCase();
             validateReferralCode(refCode);
             updateGoogleRegisterLink();
-
-            const card = document.querySelector('.card');
-            const registerBtn = document.querySelector('.tab-btn[data-tab="register"]');
-            if (card && registerBtn) {
-                card.dataset.active = 'register';
-                document.querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('is-active'));
-                registerBtn.classList.add('is-active');
-            }
+            setAuthCardTab('register');
         }
     }
 
@@ -362,6 +474,7 @@ function isCsrfError(response, data) {
             referralHint.className = 'field-hint';
             referralError.textContent = '';
             validatedReferralCode = null;
+            refreshAuthCardLayout();
             return;
         }
 
@@ -375,17 +488,20 @@ function isCsrfError(response, data) {
                 referralError.textContent = '';
                 validatedReferralCode = code;
                 if (typeof lucide !== 'undefined') lucide.createIcons();
+                refreshAuthCardLayout();
             } else {
                 referralHint.textContent = '';
                 referralHint.className = 'field-hint';
                 referralError.textContent = getErrorMessage({ data }, 'Código inválido');
                 validatedReferralCode = null;
+                refreshAuthCardLayout();
             }
         } catch (err) {
             referralHint.textContent = '';
             referralHint.className = 'field-hint';
             referralError.textContent = getErrorMessage(err, 'Erro ao validar código');
             validatedReferralCode = null;
+            refreshAuthCardLayout();
         }
     }
     if (referralInput) {
@@ -404,23 +520,6 @@ function isCsrfError(response, data) {
 }
 
 // =====================
-// Tabs
-// =====================
-{
-    const card = document.querySelector('.card');
-    const tabBtns = document.querySelectorAll('.tab-btn');
-
-    tabBtns.forEach((btn) => {
-        btn.addEventListener('click', () => {
-            const tab = btn.dataset.tab;
-            card.dataset.active = tab;
-            tabBtns.forEach((b) => b.classList.remove('is-active'));
-            btn.classList.add('is-active');
-        });
-    });
-}
-
-// =====================
 // Error Helpers
 // =====================
 
@@ -428,11 +527,13 @@ function showError(inputId, errorId, message) {
     const input = document.getElementById(inputId);
     const error = document.getElementById(errorId);
     if (error) error.textContent = message;
+    refreshAuthCardLayout();
     if (input) {
         input.style.borderColor = 'var(--error)';
         input.addEventListener('input', () => {
             input.style.borderColor = 'transparent';
             if (error) error.textContent = '';
+            refreshAuthCardLayout();
         }, { once: true });
     }
 }
@@ -444,6 +545,7 @@ function clearErrors(form) {
         el.textContent = '';
         el.classList.remove('show');
     });
+    refreshAuthCardLayout();
 }
 
 // =====================
@@ -620,6 +722,7 @@ function clearErrors(form) {
                     if (generalError) {
                         generalError.textContent = message;
                         generalError.classList.add('show');
+                        refreshAuthCardLayout();
                     }
 
                     if (data?.errors && typeof data.errors === 'object') {
@@ -641,6 +744,7 @@ function clearErrors(form) {
                 if (generalSuccess) {
                     generalSuccess.textContent = data.message || 'Login realizado com sucesso!';
                     generalSuccess.classList.add('show');
+                    refreshAuthCardLayout();
                 }
 
                 // Login OK: limpa contador de falhas
@@ -658,6 +762,7 @@ function clearErrors(form) {
                     generalError.textContent =
                         'Não foi possível realizar o login. Tente novamente em instantes.';
                     generalError.classList.add('show');
+                    refreshAuthCardLayout();
                 }
                 btn.disabled = false;
                 btn.innerHTML = originalBtnHtml;

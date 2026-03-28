@@ -218,6 +218,8 @@ main.lukrato-auth::before {
 
 .login-right {
   flex: 1;
+  width: 100%;
+  max-width: 560px;
   animation: slideInRight 0.8s ease;
 }
 
@@ -238,18 +240,12 @@ main.lukrato-auth::before {
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   position: relative;
   overflow: hidden;
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+  transition:
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
   height: auto;
-}
-
-/* Altura para aba Login (menor) */
-.card[data-active="login"] {
-  min-height: 600px;
-}
-
-/* Altura para aba Cadastrar (maior) */
-.card[data-active="register"] {
-  min-height: 800px;
 }
 
 .card:hover::before {
@@ -308,63 +304,73 @@ main.lukrato-auth::before {
 
 /* FLIP CONTAINER */
 .flip-container {
-  perspective: 1200px;
   margin-top: 0;
+  perspective: 1600px;
+  perspective-origin: center center;
+  overflow: hidden;
+  will-change: height;
 }
 
 .flip-inner {
   position: relative;
   width: 100%;
   transform-style: preserve-3d;
-  transition:
-    transform 0.7s cubic-bezier(0.4, 0, 0.2, 1),
-    min-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-transform-style: preserve-3d;
+  will-change: transform;
 }
 
 /* Altura do flip-inner para Login */
-.card[data-active="login"] .flip-inner {
-  min-height: 400px;
-}
 
 
 /* Altura expandida quando CAPTCHA está visível */
-.card[data-active="login"].captcha-visible .flip-inner {
-  min-height: 560px;
-}
 
-.card[data-active="login"].captcha-visible {
-  min-height: 740px;
-}
 
-.card[data-active="register"].captcha-visible .flip-inner {
-  min-height: 950px;
-}
 
-.card[data-active="register"].captcha-visible {
-  min-height: 950px;
-}
 
 /* Altura do flip-inner para Cadastrar + rotaÃ§Ã£o */
-.card[data-active="register"] .flip-inner {
-  min-height: 650px;
-  transform: rotateY(180deg);
-}
 
 .flip-face {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  padding: 15px 20px 20px;
+  padding: 18px 24px 24px;
   backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  pointer-events: none;
+  user-select: none;
 }
 
 .flip-login {
-  transform: rotateY(0deg);
+  transform: rotateY(0deg) translateZ(1px);
 }
 
 .flip-register {
+  transform: rotateY(180deg) translateZ(1px);
+}
+
+.card[data-active="login"] .flip-inner {
+  transform: rotateY(0deg);
+}
+
+.card[data-active="register"] .flip-inner {
   transform: rotateY(180deg);
+}
+
+.card[data-active="login"] .flip-login,
+.card[data-active="register"] .flip-register,
+.flip-face.is-active {
+  pointer-events: auto;
+  user-select: auto;
+}
+
+.card.is-auth-ready .flip-container {
+  transition: height 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.card.is-auth-ready .flip-inner {
+  transition: transform 0.72s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: center center;
 }
 
 .card-title {
@@ -394,9 +400,17 @@ main.lukrato-auth::before {
   box-shadow: 0 2px 10px var(--orange-glow);
 }
 
+#loginForm,
+#registerForm {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
 /* FIELDS */
 .field {
   position: relative;
+  margin-bottom: 0;
 }
 
 .field label {
@@ -549,8 +563,11 @@ main.lukrato-auth::before {
   color: var(--error);
   font-size: 13px;
   margin-top: 6px;
+  display: none;
+}
+
+.field-error:not(:empty) {
   display: block;
-  min-height: 18px;
   animation: slideDown 0.3s ease;
 }
 
@@ -867,17 +884,12 @@ main.lukrato-auth::before {
     width: 100% !important;
   }
 
+  .login-right {
+    margin: 0 auto;
+  }
+
   .card {
     height: auto;
-    min-height: 600px;
-  }
-
-  .card[data-active="login"].captcha-visible {
-    min-height: 600px;
-  }
-
-  .card[data-active="register"].captcha-visible {
-    min-height: 900px;
   }
 
   .imagem-logo img {
@@ -894,26 +906,6 @@ main.lukrato-auth::before {
 }
 
 @media (max-width: 600px) {
-  .card[data-active="register"] {
-    min-height: 750px;
-  }
-
-  .card[data-active="login"].captcha-visible {
-    min-height: 740px;
-  }
-
-  .card[data-active="login"].captcha-visible .flip-inner {
-    min-height: 580px;
-  }
-
-  .card[data-active="register"].captcha-visible {
-    min-height: 960px;
-  }
-
-  .card[data-active="register"].captcha-visible .flip-inner {
-    min-height: 810px;
-  }
-
   main.lukrato-auth {
     padding: 24px 16px;
   }
@@ -927,7 +919,7 @@ main.lukrato-auth::before {
   }
 
   .flip-face {
-    padding: 24px 20px;
+    padding: 22px 18px 20px;
   }
 
   .card-title {
@@ -937,29 +929,11 @@ main.lukrato-auth::before {
   .imagem-logo img {
     width: 180px;
   }
-
-  .flip-inner {
-    min-height: 620px;
-    width: 100%;
-  }
-
-  .login-right {
-    width: 400px;
-  }
 }
 
 @media (max-width: 480px) {
   .card {
     border-radius: 16px;
-    min-height: 580px;
-  }
-
-  .card[data-active="login"].captcha-visible {
-    min-height: 740px;
-  }
-
-  .card[data-active="login"].captcha-visible .flip-inner {
-    min-height: 600px;
   }
 
   .card-title {
@@ -995,9 +969,14 @@ main.lukrato-auth::before {
   }
 }
 
-@media (max-width: 390px) {
-  .login-right {
-    width: 300px;
+@media (prefers-reduced-motion: reduce) {
+  .card.is-auth-ready .flip-container {
+    transition-duration: 0.22s !important;
+  }
+
+  .card.is-auth-ready .flip-inner {
+    transition-duration: 0.42s !important;
+    transition-timing-function: ease !important;
   }
 }
 
@@ -1037,12 +1016,15 @@ main.lukrato-auth::before {
 }
 
 .field-hint {
-  display: block;
+  display: none;
   margin-top: 6px;
   font-size: 12px;
   color: var(--muted);
-  min-height: 18px;
   transition: all 0.2s ease;
+}
+
+.field-hint:not(:empty) {
+  display: block;
 }
 
 .field-hint.valid {

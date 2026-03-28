@@ -83,13 +83,16 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
 
             <section class="login-right">
                 <div class="card" data-active="<?= $activeTab ?>">
-                    <div class="tabs">
+                    <div class="tabs" role="tablist" aria-label="Entrar ou cadastrar">
                         <button class="tab-btn <?= $activeTab === 'login' ? 'is-active' : '' ?>" data-tab="login"
-                            type="button">
+                            type="button" role="tab" aria-selected="<?= $activeTab === 'login' ? 'true' : 'false' ?>"
+                            aria-controls="authPanelLogin" id="authTabLogin">
                             Entrar
                         </button>
                         <button class="tab-btn <?= $activeTab === 'register' ? 'is-active' : '' ?>" data-tab="register"
-                            type="button">
+                            type="button" role="tab"
+                            aria-selected="<?= $activeTab === 'register' ? 'true' : 'false' ?>"
+                            aria-controls="authPanelRegister" id="authTabRegister">
                             Cadastrar
                         </button>
                     </div>
@@ -98,7 +101,8 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                     <div class="flip-container">
                         <div class="flip-inner">
                             <!-- LOGIN -->
-                            <div class="flip-face flip-login">
+                            <div class="flip-face flip-login <?= $activeTab === 'login' ? 'is-active' : '' ?>" id="authPanelLogin" role="tabpanel"
+                                aria-labelledby="authTabLogin" aria-hidden="<?= $activeTab === 'login' ? 'false' : 'true' ?>">
                                 <h3 class="card-title">Entrar</h3>
 
                                 <a href="<?= BASE_URL ?>auth/google/login" class="google-sign-in-button">
@@ -163,7 +167,8 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                             </div>
 
                             <!-- REGISTER -->
-                            <div class="flip-face flip-register">
+                            <div class="flip-face flip-register <?= $activeTab === 'register' ? 'is-active' : '' ?>" id="authPanelRegister" role="tabpanel"
+                                aria-labelledby="authTabRegister" aria-hidden="<?= $activeTab === 'register' ? 'false' : 'true' ?>">
                                 <h3 class="card-title">Cadastrar</h3>
 
                                 <a href="<?= BASE_URL ?>auth/google/register" class="google-sign-in-button">

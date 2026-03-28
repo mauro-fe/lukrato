@@ -34,8 +34,9 @@
                 </h1>
 
                 <!-- Subtítulo — Benefício + IA + simplicidade -->
-                <p class="text-lg sm:text-xl text-gray-600 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    O Lukrato mostra em segundos se você está gastando mais do que ganha — e te ajuda a virar o jogo com IA, sem planilha e sem complicação.
+                <p class="text-lg sm:text-xl text-gray-900 leading-relaxed max-w-xl mx-auto lg:mx-0">
+                    O Lukrato mostra em segundos se você está gastando mais do que ganha — e te ajuda a virar o jogo com
+                    IA, sem planilha e sem complicação.
                 </p>
 
                 <!-- CTAs -->
@@ -45,7 +46,8 @@
                             class="group inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 hover:scale-[1.03] active:scale-[0.98] transition-all duration-300"
                             title="Criar conta gratuita no Lukrato" aria-label="Quero organizar meu dinheiro">
                             Quero organizar meu dinheiro
-                            <i data-lucide="arrow-right" class="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform"
+                            <i data-lucide="arrow-right"
+                                class="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform"
                                 aria-hidden="true"></i>
                         </a>
                         <span class="text-xs text-gray-400 mt-2 font-medium">Grátis · Sem cartão · Leva 1 minuto</span>

@@ -1,6 +1,6 @@
 {
   "../css/admin/auth/admin-auth-login.css": {
-    "file": "assets/auth-login-style-DBhd4tep.css",
+    "file": "assets/auth-login-style-Dxs9Dxu6.css",
     "src": "../css/admin/auth/admin-auth-login.css",
     "isEntry": true,
     "name": "auth-login-style",
@@ -167,7 +167,7 @@
     ]
   },
   "admin/auth/login/index.js": {
-    "file": "assets/auth-login-B9tyLM5s.js",
+    "file": "assets/auth-login-CVAHsq8D.js",
     "name": "auth-login",
     "src": "admin/auth/login/index.js",
     "isEntry": true,
