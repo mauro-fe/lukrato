@@ -93,6 +93,7 @@
   animation: gradientShift 8s ease infinite;
   position: relative;
   display: inline-block;
+  color: var(--text-color);
 }
 
 .billing-header__title::after {

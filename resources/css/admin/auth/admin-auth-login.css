@@ -326,6 +326,7 @@ main.lukrato-auth::before {
   min-height: 400px;
 }
 
+
 /* Altura expandida quando CAPTCHA está visível */
 .card[data-active="login"].captcha-visible .flip-inner {
   min-height: 560px;
