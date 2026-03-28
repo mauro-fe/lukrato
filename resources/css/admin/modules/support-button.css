@@ -1347,6 +1347,21 @@
     }
 }
 
+@keyframes lk-ai-recording-pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow:
+            0 0 0 4px color-mix(in srgb, var(--color-danger) 14%, transparent),
+            0 10px 26px color-mix(in srgb, var(--color-danger) 22%, transparent);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow:
+            0 0 0 6px color-mix(in srgb, var(--color-danger) 20%, transparent),
+            0 14px 30px color-mix(in srgb, var(--color-danger) 34%, transparent);
+    }
+}
+
 /* ── Confirmation Buttons ───────────────────────────────── */
 .lk-ai-confirm-actions {
     display: flex;
@@ -1572,6 +1587,23 @@
     color: var(--color-primary);
     border-color: color-mix(in srgb, var(--color-primary) 34%, transparent);
     background: color-mix(in srgb, var(--color-primary) 9%, transparent);
+}
+
+.lk-ai-media-btn.recording {
+    color: #fff;
+    border-color: color-mix(in srgb, var(--color-danger) 55%, transparent);
+    background:
+        linear-gradient(135deg,
+            color-mix(in srgb, var(--color-danger) 92%, #ef4444),
+            color-mix(in srgb, #dc2626 88%, #7f1d1d));
+    box-shadow:
+        0 0 0 4px color-mix(in srgb, var(--color-danger) 16%, transparent),
+        0 10px 26px color-mix(in srgb, var(--color-danger) 28%, transparent);
+    animation: lk-ai-recording-pulse 1.1s ease-in-out infinite;
+}
+
+.lk-ai-media-btn.recording i {
+    color: #fff !important;
 }
 
 .lk-ai-media-btn:disabled {

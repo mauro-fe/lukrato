@@ -169,6 +169,10 @@ $planTier     = $planTier     ?? 'free';
                         aria-label="Anexar arquivo">
                         <i data-lucide="paperclip" style="width:16px;height:16px;"></i>
                     </button>
+                    <button class="lk-ai-media-btn" id="aiMicBtn" type="button" title="Gravar audio"
+                        aria-label="Gravar audio">
+                        <i data-lucide="mic" style="width:16px;height:16px;"></i>
+                    </button>
                     <input type="file" id="aiFileInput" accept="image/jpeg,image/png,image/webp,application/pdf"
                         style="display:none;">
                     <textarea id="aiChatInput" class="lk-ai-textarea" placeholder="Pergunte algo..." rows="1"
