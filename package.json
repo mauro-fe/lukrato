@@ -2,7 +2,8 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build --config vite.config.producao.js",
+    "build:local": "vite build",
     "preview": "vite preview"
   },
   "devDependencies": {

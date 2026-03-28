@@ -10,6 +10,14 @@
 
 defined('VITE_DEV_SERVER') || define('VITE_DEV_SERVER', 'http://localhost:5173');
 
+function vite_manifest_paths(): array
+{
+    return [
+        dirname(__DIR__) . '/public/build/manifest.json',
+        dirname(__DIR__) . '/public/build/.vite/manifest.json',
+    ];
+}
+
 function vite_css_entry_paths(): array
 {
     return [
@@ -68,6 +76,12 @@ function vite_is_dev(): bool
     // Checar se existe o arquivo de hot reload do Vite
     $hotFile = dirname(__DIR__) . '/public/build/.vite/hot';
     if (file_exists($hotFile)) {
+        $hotTarget = trim((string) @file_get_contents($hotFile));
+        if ($hotTarget !== '' && preg_match('#^https?://(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?(?:/|$)#i', $hotTarget) !== 1) {
+            $isDev = false;
+            return false;
+        }
+
         $isDev = true;
         return true;
     }
@@ -84,13 +98,16 @@ function vite_manifest(): array
     static $manifest = null;
     if ($manifest !== null) return $manifest;
 
-    $manifestPath = dirname(__DIR__) . '/public/build/.vite/manifest.json';
-    if (!file_exists($manifestPath)) {
-        $manifest = [];
+    foreach (vite_manifest_paths() as $manifestPath) {
+        if (!file_exists($manifestPath)) {
+            continue;
+        }
+
+        $manifest = json_decode(file_get_contents($manifestPath), true) ?: [];
         return $manifest;
     }
 
-    $manifest = json_decode(file_get_contents($manifestPath), true) ?: [];
+    $manifest = [];
     return $manifest;
 }
 

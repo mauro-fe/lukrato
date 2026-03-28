@@ -3,11 +3,11 @@ import { resolve } from 'path';
 
 export default defineConfig({
     root: resolve(__dirname, 'resources/js'),
-    base: '/lukrato/public/build/',
+    base: './',
     build: {
         outDir: resolve(__dirname, 'public/build'),
         emptyOutDir: true,
-        manifest: true,
+        manifest: 'manifest.json',
         rollupOptions: {
             input: {
                 'global': resolve(__dirname, 'resources/js/admin/global/index.js'),

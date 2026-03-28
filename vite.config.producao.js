@@ -10,11 +10,11 @@ import { resolve } from 'path';
 
 export default defineConfig({
     root: resolve(__dirname, 'resources/js'),
-    base: '/build/',
+    base: './',
     build: {
         outDir: resolve(__dirname, 'public/build'),
         emptyOutDir: true,
-        manifest: true,
+        manifest: 'manifest.json',
         sourcemap: false,
         minify: 'terser',
         terserOptions: {
