@@ -10,7 +10,7 @@ export default function AppLayout() {
     return (
       <AuthLoadingScreen
         title="Validando sua sessao"
-        description="Assim o app so abre a area interna quando souber exatamente onde voce deve cair."
+        description="Assim o app so abre a area interna quando souber exatamente onde você deve cair."
       />
     );
   }

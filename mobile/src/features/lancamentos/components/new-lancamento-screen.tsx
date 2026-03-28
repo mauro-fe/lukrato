@@ -155,7 +155,7 @@ export function NewLancamentoScreen() {
           <DataSourceBanner source={dataSource} fallbackMessage={sourceMessage} />
 
           <AppCard>
-            <Text style={styles.cardTitle}>1. O que voce quer registrar?</Text>
+            <Text style={styles.cardTitle}>1. O que você quer registrar?</Text>
             <View style={styles.modeGrid}>
               {MODE_OPTIONS.map((option) => {
                 const isActive = option.id === mode;

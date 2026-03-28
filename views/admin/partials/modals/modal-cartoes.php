@@ -40,7 +40,7 @@
                     </select>
                     <small class="form-help" id="contaVinculadaHelp">Conta onde o pagamento da fatura sera debitado.</small>
                     <p class="form-inline-warning" id="cartaoContaEmptyHint" hidden>
-                        Voce precisa criar uma conta antes de cadastrar um cartao.
+                        você precisa criar uma conta antes de cadastrar um cartao.
                         <a href="<?= BASE_URL ?>contas">Ir para contas</a>
                     </p>
                 </div>

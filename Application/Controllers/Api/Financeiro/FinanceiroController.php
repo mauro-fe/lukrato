@@ -202,7 +202,7 @@ class FinanceiroController extends BaseController
             try {
                 $usage = $this->limitService->assertCanCreate($uid, (string) ($payload['data'] ?? ''));
             } catch (DomainException $e) {
-                return $this->domainErrorResponse($e, 'Nao foi possivel criar o lancamento.', 402);
+                return $this->domainErrorResponse($e, 'Não foi possível criar o lancamento.', 402);
             }
 
             $dto = CreateLancamentoDTO::fromRequest(

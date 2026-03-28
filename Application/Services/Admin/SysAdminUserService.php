@@ -305,7 +305,7 @@ class SysAdminUserService
         if (isset($updateData['is_admin'])) {
             $updateData['is_admin'] = (int) $updateData['is_admin'];
             if ($targetUser->id === $adminUserId && $updateData['is_admin'] === 0) {
-                throw new ClientErrorException(400, 'Voce nao pode remover seu proprio status de administrador');
+                throw new ClientErrorException(400, 'você nao pode remover seu proprio status de administrador');
             }
         }
 
@@ -357,7 +357,7 @@ class SysAdminUserService
         }
 
         if ($targetUser->id === $adminUserId) {
-            throw new ClientErrorException(400, 'Voce nao pode excluir sua propria conta');
+            throw new ClientErrorException(400, 'você nao pode excluir sua propria conta');
         }
 
         $userName = $targetUser->nome;

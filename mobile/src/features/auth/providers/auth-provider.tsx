@@ -97,11 +97,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
         await authRepository.logout();
       }
 
-      setSession(createSignedOutSnapshot('Voce saiu do app com seguranca.'));
+      setSession(createSignedOutSnapshot('você saiu do app com seguranca.'));
     } catch {
       setSession(
         createSignedOutSnapshot(
-          'Voce saiu deste aparelho. Se a conexao falhou, o servidor pode levar um pouco mais para refletir isso.'
+          'você saiu deste aparelho. Se a conexao falhou, o servidor pode levar um pouco mais para refletir isso.'
         )
       );
     } finally {

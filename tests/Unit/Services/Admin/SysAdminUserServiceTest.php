@@ -43,7 +43,7 @@ class SysAdminUserServiceTest extends TestCase
         $service = new SysAdminUserService();
 
         $this->expectException(ClientErrorException::class);
-        $this->expectExceptionMessage('Voce nao pode remover seu proprio status de administrador');
+        $this->expectExceptionMessage('você nao pode remover seu proprio status de administrador');
 
         $service->updateUser(10, 'Admin', 10, ['is_admin' => 0]);
     }
@@ -55,9 +55,7 @@ class SysAdminUserServiceTest extends TestCase
             public string $nome = 'Admin';
             public string $email = 'admin@example.com';
 
-            public function delete(): void
-            {
-            }
+            public function delete(): void {}
         };
 
         $userModel = Mockery::mock('alias:Application\Models\Usuario');
@@ -66,7 +64,7 @@ class SysAdminUserServiceTest extends TestCase
         $service = new SysAdminUserService();
 
         $this->expectException(ClientErrorException::class);
-        $this->expectExceptionMessage('Voce nao pode excluir sua propria conta');
+        $this->expectExceptionMessage('você nao pode excluir sua propria conta');
 
         $service->deleteUser(20, 'Admin', 20);
     }

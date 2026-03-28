@@ -50,7 +50,7 @@ export function PerfilSupportCard({
       <TextInput
         value={message}
         onChangeText={onChangeMessage}
-        placeholder="Explique sua duvida do jeito que voce contaria para uma pessoa."
+        placeholder="Explique sua duvida do jeito que você contaria para uma pessoa."
         placeholderTextColor={tokens.colors.textMuted}
         multiline
         textAlignVertical="top"

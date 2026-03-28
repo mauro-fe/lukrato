@@ -53,7 +53,7 @@ class FaturasController extends BaseController
         try {
             return $this->respondWorkflowResult($this->workflowService->showInvoice($id, $userId));
         } catch (InvalidArgumentException $e) {
-            return $this->domainErrorResponse($e, 'Nao foi possivel buscar a fatura.', 400);
+            return $this->domainErrorResponse($e, 'Não foi possivel buscar a fatura.', 400);
         } catch (Throwable $e) {
             $this->logError("Erro ao buscar fatura {$id}", $e);
             return Response::errorResponse('Erro ao buscar fatura', 500);
@@ -84,7 +84,7 @@ class FaturasController extends BaseController
         try {
             return $this->respondWorkflowResult($this->workflowService->deleteInvoice($id, $userId));
         } catch (InvalidArgumentException $e) {
-            return $this->domainErrorResponse($e, 'Nao foi possivel cancelar a fatura.', 400);
+            return $this->domainErrorResponse($e, 'Não foi possivel cancelar a fatura.', 400);
         } catch (Throwable $e) {
             $this->logError("Erro ao cancelar fatura {$id}", $e);
             return Response::errorResponse('Erro ao cancelar fatura', 500);
@@ -109,7 +109,7 @@ class FaturasController extends BaseController
                 'error' => $e->getMessage(),
             ]);
 
-            return $this->domainErrorResponse($e, 'Nao foi possivel atualizar o item da fatura.', 400);
+            return $this->domainErrorResponse($e, 'Não foi possivel atualizar o item da fatura.', 400);
         } catch (Throwable $e) {
             $this->logError("Erro ao atualizar item {$itemId} da fatura {$faturaId}", $e);
             LogService::error('Erro geral ao atualizar item da fatura', [
@@ -141,7 +141,7 @@ class FaturasController extends BaseController
                 'error' => $e->getMessage(),
             ]);
 
-            return $this->domainErrorResponse($e, 'Nao foi possivel atualizar o item da fatura.', 400);
+            return $this->domainErrorResponse($e, 'Não foi possivel atualizar o item da fatura.', 400);
         } catch (Throwable $e) {
             $this->logError("Erro ao atualizar item {$itemId} da fatura {$faturaId}", $e);
             LogService::error('Erro geral ao atualizar item da fatura', [
@@ -168,7 +168,7 @@ class FaturasController extends BaseController
                 'error' => $e->getMessage(),
             ]);
 
-            return $this->domainErrorResponse($e, 'Nao foi possivel excluir o item da fatura.', 400);
+            return $this->domainErrorResponse($e, 'Não foi possivel excluir o item da fatura.', 400);
         } catch (Throwable $e) {
             $this->logError("Erro ao excluir item {$itemId} da fatura {$faturaId}", $e);
             return $this->internalErrorResponse($e, 'Erro ao excluir item da fatura.');
@@ -188,7 +188,7 @@ class FaturasController extends BaseController
 
             return $this->respondWorkflowResult($this->workflowService->deleteInstallment($faturaId, $itemId, $userId));
         } catch (InvalidArgumentException $e) {
-            return $this->domainErrorResponse($e, 'Nao foi possivel excluir o parcelamento.', 400);
+            return $this->domainErrorResponse($e, 'Não foi possivel excluir o parcelamento.', 400);
         } catch (Throwable $e) {
             $this->logError("Erro ao excluir parcelamento do item {$itemId}", $e);
             return Response::errorResponse('Erro ao excluir parcelamento', 500);

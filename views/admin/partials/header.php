@@ -13,6 +13,31 @@ $currentUser    = $currentUser    ?? null;
 $isSysAdmin     = $isSysAdmin     ?? false;
 $showUpgradeCTA = $showUpgradeCTA ?? true;
 $userTheme      = $userTheme      ?? 'dark';
+$dashboardPreferences = is_array($currentUser?->dashboard_preferences ?? null)
+    ? $currentUser->dashboard_preferences
+    : [];
+$rawHelpCenterPreferences = is_array($dashboardPreferences['help_center'] ?? null)
+    ? $dashboardPreferences['help_center']
+    : [];
+$rawHelpSettings = is_array($rawHelpCenterPreferences['settings'] ?? null)
+    ? $rawHelpCenterPreferences['settings']
+    : [];
+$helpCenterPreferences = [
+    'settings' => [
+        'auto_offer' => array_key_exists('auto_offer', $rawHelpSettings)
+            ? (bool) $rawHelpSettings['auto_offer']
+            : true,
+    ],
+    'tour_completed' => is_array($rawHelpCenterPreferences['tour_completed'] ?? null)
+        ? $rawHelpCenterPreferences['tour_completed']
+        : [],
+    'offer_dismissed' => is_array($rawHelpCenterPreferences['offer_dismissed'] ?? null)
+        ? $rawHelpCenterPreferences['offer_dismissed']
+        : [],
+    'tips_seen' => is_array($rawHelpCenterPreferences['tips_seen'] ?? null)
+        ? $rawHelpCenterPreferences['tips_seen']
+        : [],
+];
 
 // Helpers para menu ativo
 $active = fn(string $key): string => (!empty($menu) && $menu === $key) ? 'active' : '';
@@ -66,24 +91,24 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
          Aplica sidebar-collapsed + desabilita transition no primeiro paint
          ============================================================================ -->
     <script>
-    (function() {
-        try {
-            var h = document.documentElement;
-            // 1) Bloquear transitions no first paint
-            h.classList.add('sidebar-no-transition');
-            // 2) Guardar estado para aplicar no body logo que existir
-            window.__lkSidebarCollapsed = (localStorage.getItem('lk.sidebar') === '1' && window.matchMedia(
-                '(min-width:993px)').matches);
-            // 3) Liberar transitions após o primeiro frame
-            window.addEventListener('load', function() {
-                requestAnimationFrame(function() {
+        (function() {
+            try {
+                var h = document.documentElement;
+                // 1) Bloquear transitions no first paint
+                h.classList.add('sidebar-no-transition');
+                // 2) Guardar estado para aplicar no body logo que existir
+                window.__lkSidebarCollapsed = (localStorage.getItem('lk.sidebar') === '1' && window.matchMedia(
+                    '(min-width:993px)').matches);
+                // 3) Liberar transitions após o primeiro frame
+                window.addEventListener('load', function() {
                     requestAnimationFrame(function() {
-                        h.classList.remove('sidebar-no-transition');
+                        requestAnimationFrame(function() {
+                            h.classList.remove('sidebar-no-transition');
+                        });
                     });
                 });
-            });
-        } catch (e) {}
-    })();
+            } catch (e) {}
+        })();
     </script>
 
     <!-- ============================================================================
@@ -107,23 +132,25 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
          BRIDGE PHP → JS (configuração global centralizada)
          ============================================================================ -->
     <script>
-    window.__LK_CONFIG = {
-        baseUrl: <?= json_encode(rtrim(BASE_URL, '/') . '/', JSON_UNESCAPED_SLASHES) ?>,
-        csrfTtl: <?= (int) \Application\Middlewares\CsrfMiddleware::TOKEN_TTL ?>,
-        isPro: <?= json_encode(!$showUpgradeCTA) ?>,
-        isSysAdmin: <?= json_encode($isSysAdmin) ?>,
-        userId: <?= json_encode($currentUser?->id ?? null) ?>,
-        username: <?= json_encode($username) ?>,
-        userEmail: <?= json_encode($currentUser?->email ?? '') ?>,
-        needsDisplayNamePrompt: <?= json_encode(trim((string) ($currentUser?->nome ?? '')) === '') ?>,
-        tourCompleted: <?= json_encode(!empty($currentUser?->tour_completed_at)) ?>,
-        userAvatar: <?= json_encode($currentUser?->avatar ? rtrim(BASE_URL, '/') . '/' . $currentUser->avatar : '') ?>,
-        userAvatarSettings: <?= json_encode([
+        window.__LK_CONFIG = {
+            baseUrl: <?= json_encode(rtrim(BASE_URL, '/') . '/', JSON_UNESCAPED_SLASHES) ?>,
+            csrfTtl: <?= (int) \Application\Middlewares\CsrfMiddleware::TOKEN_TTL ?>,
+            isPro: <?= json_encode(!$showUpgradeCTA) ?>,
+            isSysAdmin: <?= json_encode($isSysAdmin) ?>,
+            userId: <?= json_encode($currentUser?->id ?? null) ?>,
+            username: <?= json_encode($username) ?>,
+            userEmail: <?= json_encode($currentUser?->email ?? '') ?>,
+            currentMenu: <?= json_encode($menu ?: 'dashboard') ?>,
+            needsDisplayNamePrompt: <?= json_encode(trim((string) ($currentUser?->nome ?? '')) === '') ?>,
+            tourCompleted: <?= json_encode(!empty($currentUser?->tour_completed_at)) ?>,
+            helpCenter: <?= json_encode($helpCenterPreferences, JSON_UNESCAPED_SLASHES) ?>,
+            userAvatar: <?= json_encode($currentUser?->avatar ? rtrim(BASE_URL, '/') . '/' . $currentUser->avatar : '') ?>,
+            userAvatarSettings: <?= json_encode([
                                     'position_x' => max(0, min(100, (int) ($currentUser?->avatar_focus_x ?? 50))),
                                     'position_y' => max(0, min(100, (int) ($currentUser?->avatar_focus_y ?? 50))),
                                     'zoom' => max(1, min(2, round((float) ($currentUser?->avatar_zoom ?? 1), 2))),
                                 ]) ?>
-    };
+        };
     </script>
 
     <!-- ============================================================================
@@ -138,7 +165,7 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
 
 <body<?php if (!empty($showMonthSelector)) echo ' class="has-month-bar"'; ?>>
     <script>
-    if (window.__lkSidebarCollapsed) document.body.classList.add('sidebar-collapsed');
+        if (window.__lkSidebarCollapsed) document.body.classList.add('sidebar-collapsed');
     </script>
     <div id="lkPageTransitionOverlay" aria-hidden="true"></div>
 
@@ -173,20 +200,25 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                     <i data-lucide="home"></i>
                     <span class="nav-item-content">
                         <span class="nav-item-title">Dashboard</span>
-                        <small class="nav-item-subtitle">Resumo da sua vida financeira</small>
                     </span>
                 </a>
             </div>
 
-            <!-- Grupo: Financeiro -->
+            <!-- Grupo: Finanças -->
             <div class="sidebar-nav-group">
-                <span class="sidebar-nav-label">Financeiro</span>
+                <span class="sidebar-nav-label">Finanças</span>
+                <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>"
+                    <?= $aria('lancamentos') ?> title="Lançamentos">
+                    <i data-lucide="arrow-left-right"></i>
+                    <span class="nav-item-content">
+                        <span class="nav-item-title">Lançamentos</span>
+                    </span>
+                </a>
                 <a href="<?= BASE_URL ?>contas" class="nav-item <?= $active('contas') ?>" <?= $aria('contas') ?>
                     title="Contas">
                     <i data-lucide="landmark"></i>
                     <span class="nav-item-content">
                         <span class="nav-item-title">Contas</span>
-                        <small class="nav-item-subtitle">Suas contas e saldos</small>
                     </span>
                 </a>
                 <a href="<?= BASE_URL ?>cartoes" class="nav-item <?= $active('cartoes') ?>" <?= $aria('cartoes') ?>
@@ -194,7 +226,6 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                     <i data-lucide="credit-card"></i>
                     <span class="nav-item-content">
                         <span class="nav-item-title">Cartões</span>
-                        <small class="nav-item-subtitle">Gerencie seus cartões</small>
                     </span>
                 </a>
                 <a href="<?= BASE_URL ?>faturas" class="nav-item <?= $active('faturas') ?>" <?= $aria('faturas') ?>
@@ -202,44 +233,18 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                     <i data-lucide="receipt"></i>
                     <span class="nav-item-content">
                         <span class="nav-item-title">Faturas</span>
-                        <small class="nav-item-subtitle">Acompanhe suas faturas</small>
-                    </span>
-                </a>
-                <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>"
-                    <?= $aria('lancamentos') ?> title="Lançamentos">
-                    <i data-lucide="arrow-left-right"></i>
-                    <span class="nav-item-content">
-                        <span class="nav-item-title">Lançamentos</span>
-                        <small class="nav-item-subtitle">Tudo que você gastou e recebeu</small>
                     </span>
                 </a>
             </div>
 
-            <!-- Grupo: Gestão -->
+            <!-- Grupo: Planejamento -->
             <div class="sidebar-nav-group">
-                <span class="sidebar-nav-label">Gestão</span>
-                <a href="<?= BASE_URL ?>categorias" class="nav-item <?= $active('categorias') ?>"
-                    <?= $aria('categorias') ?> title="Categorias">
-                    <i data-lucide="tags"></i>
-                    <span class="nav-item-content">
-                        <span class="nav-item-title">Categorias</span>
-                        <small class="nav-item-subtitle">Organize seus gastos</small>
-                    </span>
-                </a>
-                <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios') ?>"
-                    <?= $aria('relatorios') ?> title="Relatórios">
-                    <i data-lucide="bar-chart"></i>
-                    <span class="nav-item-content">
-                        <span class="nav-item-title">Relatórios</span>
-                        <small class="nav-item-subtitle">Veja para onde vai seu dinheiro</small>
-                    </span>
-                </a>
+                <span class="sidebar-nav-label">Planejamento</span>
                 <a href="<?= BASE_URL ?>orcamento" class="nav-item <?= $active('orcamento') ?>"
-                    <?= $aria('orcamento') ?> title="Orçamento">
+                    <?= $aria('orcamento') ?> title="Orçamentos">
                     <i data-lucide="piggy-bank"></i>
                     <span class="nav-item-content">
-                        <span class="nav-item-title">Orçamento</span>
-                        <small class="nav-item-subtitle">Controle seus gastos mensais</small>
+                        <span class="nav-item-title">Orçamentos</span>
                     </span>
                 </a>
                 <a href="<?= BASE_URL ?>metas" class="nav-item <?= $active('metas') ?>" <?= $aria('metas') ?>
@@ -247,7 +252,30 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                     <i data-lucide="target"></i>
                     <span class="nav-item-content">
                         <span class="nav-item-title">Metas</span>
-                        <small class="nav-item-subtitle">Planeje seus objetivos</small>
+                    </span>
+                </a>
+            </div>
+
+            <!-- Grupo: Análise -->
+            <div class="sidebar-nav-group">
+                <span class="sidebar-nav-label">Análise</span>
+                <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios') ?>"
+                    <?= $aria('relatorios') ?> title="Relatórios">
+                    <i data-lucide="bar-chart"></i>
+                    <span class="nav-item-content">
+                        <span class="nav-item-title">Relatórios</span>
+                    </span>
+                </a>
+            </div>
+
+            <!-- Grupo: Organização -->
+            <div class="sidebar-nav-group">
+                <span class="sidebar-nav-label">Organização</span>
+                <a href="<?= BASE_URL ?>categorias" class="nav-item <?= $active('categorias') ?>"
+                    <?= $aria('categorias') ?> title="Categorias">
+                    <i data-lucide="tags"></i>
+                    <span class="nav-item-content">
+                        <span class="nav-item-title">Categorias</span>
                     </span>
                 </a>
             </div>
@@ -260,8 +288,6 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                     <i data-lucide="trophy"></i>
                     <span class="nav-item-content">
                         <span class="nav-item-title">Conquistas</span>
-                        <small class="nav-item-subtitle">Suas medalhas e progresso</small>
-                    </span>
                 </a>
             </div>
 
@@ -276,18 +302,16 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                 </div>
                 <span class="nav-item-content">
                     <span class="nav-item-title">Perfil</span>
-                    <small class="nav-item-subtitle">Suas configurações</small>
                 </span>
             </a>
             <?php if ($isSysAdmin): ?>
-            <a href="<?= BASE_URL ?>super_admin" class="nav-item <?= $active('super_admin') ?>"
-                <?= $aria('super_admin') ?> title="SysAdmin">
-                <i data-lucide="shield"></i>
-                <span class="nav-item-content">
-                    <span class="nav-item-title">SysAdmin</span>
-                    <small class="nav-item-subtitle">Painel administrativo</small>
-                </span>
-            </a>
+                <a href="<?= BASE_URL ?>super_admin" class="nav-item <?= $active('super_admin') ?>"
+                    <?= $aria('super_admin') ?> title="SysAdmin">
+                    <i data-lucide="shield"></i>
+                    <span class="nav-item-content">
+                        <span class="nav-item-title">SysAdmin</span>
+                    </span>
+                </a>
             <?php endif; ?>
             <a href="#" class="nav-item" id="sidebarSuggestionBtn" title="Enviar sugestão">
                 <i data-lucide="message-circle"></i>
@@ -304,12 +328,12 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
                 </span>
             </a>
             <?php if ($showUpgradeCTA): ?>
-            <div class="sidebar-pro-cta">
-                <a href="<?= BASE_URL ?>billing" class="sidebar-pro-btn">
-                    <i data-lucide="star"></i>
-                    <span>Pro</span>
-                </a>
-            </div>
+                <div class="sidebar-pro-cta">
+                    <a href="<?= BASE_URL ?>billing" class="sidebar-pro-btn">
+                        <i data-lucide="star"></i>
+                        <span>Pro</span>
+                    </a>
+                </div>
             <?php endif; ?>
         </div>
     </aside>

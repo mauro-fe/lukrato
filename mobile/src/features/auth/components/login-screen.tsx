@@ -61,7 +61,7 @@ export function LoginScreen() {
             </View>
             <Text style={styles.title}>Abra o Lukrato sem pensar demais no caminho</Text>
             <Text style={styles.description}>
-              Primeiro voce entra. Depois o app mostra o saldo, os proximos passos e os atalhos mais usados sem menu escondido.
+              Primeiro você entra. Depois o app mostra o saldo, os proximos passos e os atalhos mais usados sem menu escondido.
             </Text>
           </View>
 
@@ -78,7 +78,7 @@ export function LoginScreen() {
           ) : null}
 
           <AppCard>
-            <Text style={styles.cardTitle}>O que voce vai encontrar logo depois do login</Text>
+            <Text style={styles.cardTitle}>O que você vai encontrar logo depois do login</Text>
             <FeaturePoint
               icon="home-outline"
               title="Inicio ja organizado"
@@ -111,7 +111,7 @@ export function LoginScreen() {
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="email-address"
-              placeholder="voce@exemplo.com"
+              placeholder="você@exemplo.com"
               placeholderTextColor={tokens.colors.textMuted}
               style={[styles.fieldInput, errors.email && styles.fieldInputError]}
             />

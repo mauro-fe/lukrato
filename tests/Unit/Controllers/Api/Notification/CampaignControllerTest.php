@@ -7,6 +7,7 @@ namespace Tests\Unit\Controllers\Api\Notification;
 use Application\Controllers\Api\Notification\CampaignController;
 use Application\Core\Exceptions\AuthException;
 use Application\Models\Usuario;
+use Application\Services\Communication\CampaignApiWorkflowService;
 use Application\Services\Communication\NotificationService;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
@@ -104,12 +105,46 @@ class CampaignControllerTest extends TestCase
         $this->assertArrayHasKey('inactive_days', $payload['data']);
     }
 
+    public function testProcessDueReturnsSuccessResponse(): void
+    {
+        $this->seedAdminSession(904, 'Campaign Admin');
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $workflow = Mockery::mock(CampaignApiWorkflowService::class);
+        $workflow
+            ->shouldReceive('processDueCampaigns')
+            ->once()
+            ->andReturn([
+                'processed' => 2,
+                'sent' => 1,
+                'partial' => 0,
+                'failed' => 1,
+                'stuck_recovered' => 0,
+            ]);
+
+        $controller = new CampaignController(Mockery::mock(NotificationService::class), $workflow);
+        $response = $controller->processDue();
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame([
+            'success' => true,
+            'message' => 'Fila de campanhas sincronizada com sucesso',
+            'data' => [
+                'processed' => 2,
+                'sent' => 1,
+                'partial' => 0,
+                'failed' => 1,
+                'stuck_recovered' => 0,
+            ],
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+    }
+
     public function testIndexThrowsAuthExceptionWhenSessionIsMissing(): void
     {
         $controller = new CampaignController(Mockery::mock(NotificationService::class));
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->index();
     }

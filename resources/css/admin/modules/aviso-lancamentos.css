@@ -4,7 +4,6 @@
    ============================================= */
 
 #lk-usage-banner-root {
-    margin: 0 0 16px 0;
     animation: lk-slideInDown 0.4s ease-out;
     width: 100%;
 }

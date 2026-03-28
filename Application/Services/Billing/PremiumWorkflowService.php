@@ -28,8 +28,7 @@ class PremiumWorkflowService
         private readonly AsaasService $asaas = new AsaasService(),
         private readonly CustomerService $customerService = new CustomerService(),
         private readonly CheckoutValidator $validator = new CheckoutValidator()
-    ) {
-    }
+    ) {}
 
     /**
      * @param array<string, mixed> $payload
@@ -936,7 +935,7 @@ class PremiumWorkflowService
 
                 throw new \RuntimeException(
                     "Este cupom é válido para ex-assinantes inativos há pelo menos {$mesesInatividade} meses. "
-                    . "Você está inativo há apenas {$mesesDesdeInativacao} meses."
+                        . "Você está inativo há apenas {$mesesDesdeInativacao} meses."
                 );
             }
         }
@@ -1012,11 +1011,11 @@ class PremiumWorkflowService
         }
 
         $safeMessages = [
-            'Voce ja possui uma assinatura ativa.',
-            'Voce ja possui uma assinatura em andamento.',
+            'você ja possui uma assinatura ativa.',
+            'você ja possui uma assinatura em andamento.',
             'Cupom nao encontrado.',
             'Cupom invalido ou expirado.',
-            'Voce ja utilizou este cupom anteriormente.',
+            'você ja utilizou este cupom anteriormente.',
             'Este cupom e valido apenas para a primeira assinatura.',
             'Este cupom e valido para ex-assinantes inativos',
         ];

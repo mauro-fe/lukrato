@@ -244,7 +244,7 @@ function buildFocus(
     title: monthlyResult >= 0 ? 'Seu mes esta positivo ate aqui' : 'Seu mes pede ajuste',
     description:
       monthlyResult >= 0
-        ? 'Sem pendencias urgentes, o dashboard reforca o resultado do mes para voce decidir o proximo passo.'
+        ? 'Sem pendencias urgentes, o dashboard reforca o resultado do mes para você decidir o proximo passo.'
         : 'Sem vencidos urgentes, o resultado mensal vira o melhor ponto de partida para reorganizar o caixa.',
     amount: monthlyResult,
     supportText:

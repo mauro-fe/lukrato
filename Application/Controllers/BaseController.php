@@ -57,7 +57,7 @@ abstract class BaseController
     protected function requireAuthApiOrFail(): void
     {
         if (!Auth::isLoggedIn()) {
-            throw new AuthException('Nao autenticado', 401);
+            throw new AuthException('Não autenticado', 401);
         }
 
         $this->userId = Auth::id();
@@ -276,7 +276,7 @@ abstract class BaseController
     {
         $email = trim((string) ($currentUser?->email ?? ''));
         if ($email === '' || !str_contains($email, '@')) {
-            return 'Voce';
+            return 'Você';
         }
 
         $localPart = strtolower((string) strstr($email, '@', true));
@@ -285,7 +285,7 @@ abstract class BaseController
         $candidate = trim($candidate);
 
         if ($candidate === '') {
-            return 'Voce';
+            return 'você';
         }
 
         return ucfirst($candidate);
@@ -637,7 +637,7 @@ abstract class BaseController
 
     protected function notFoundFromThrowable(
         Throwable $e,
-        string $fallbackMessage = 'Recurso nao encontrado.',
+        string $fallbackMessage = 'Recurso não encontrado.',
         array $extra = []
     ): Response {
         return $this->domainErrorResponse($e, $fallbackMessage, 404, $extra, 'RESOURCE_NOT_FOUND');

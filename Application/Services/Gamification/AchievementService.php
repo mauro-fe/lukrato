@@ -457,16 +457,7 @@ class AchievementService
 
     private function countCustomCategories(int $userId): int
     {
-        $categoriaPadrao = [
-            'Moradia', 'Alimentação', 'Transporte', 'Contas e Serviços',
-            'Saúde', 'Educação', 'Vestuário', 'Lazer', 'Cartão de Crédito',
-            'Assinaturas', 'Compras', 'Outros Gastos', 'Salário', 'Freelance',
-            'Investimentos', 'Bônus', 'Vendas', 'Prêmios', 'Outras Receitas',
-        ];
-
-        return Categoria::where('user_id', $userId)
-            ->whereNotIn('nome', $categoriaPadrao)
-            ->count();
+        return $this->customRootCategoriesQuery($userId)->count();
     }
 
     // ===== MÉTODOS DE VERIFICAÇÃO =====
@@ -517,35 +508,21 @@ class AchievementService
 
     private function checkTotalCategories(int $userId, int $total): bool
     {
-        // Categorias padrão criadas automaticamente no registro (nomes limpos, sem emoji)
-        $categoriaPadrao = [
-            'Moradia',
-            'Alimentação',
-            'Transporte',
-            'Contas e Serviços',
-            'Saúde',
-            'Educação',
-            'Vestuário',
-            'Lazer',
-            'Cartão de Crédito',
-            'Assinaturas',
-            'Compras',
-            'Outros Gastos',
-            'Salário',
-            'Freelance',
-            'Investimentos',
-            'Bônus',
-            'Vendas',
-            'Prêmios',
-            'Outras Receitas',
-        ];
+        return $this->countCustomCategories($userId) >= $total;
+    }
 
-        // Contar apenas categorias PERSONALIZADAS (não padrão) do usuário
-        $count = Categoria::where('user_id', $userId)
-            ->whereNotIn('nome', $categoriaPadrao)
-            ->count();
-
-        return $count >= $total;
+    /**
+     * Conta apenas categorias raiz realmente criadas pelo usuário.
+     * Ignora categorias e subcategorias seedadas no cadastro.
+     */
+    private function customRootCategoriesQuery(int $userId)
+    {
+        return Categoria::where('user_id', $userId)
+            ->whereNull('parent_id')
+            ->where(function ($q) {
+                $q->where('is_seeded', false)
+                    ->orWhereNull('is_seeded');
+            });
     }
 
     private function checkMasterOrganization(int $userId, Usuario $user): bool

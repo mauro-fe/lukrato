@@ -40,7 +40,7 @@ class SubcategoriaController extends BaseController
 
             return Response::successResponse($result);
         } catch (\DomainException $e) {
-            return $this->notFoundFromThrowable($e, 'Categoria nao encontrada.');
+            return $this->notFoundFromThrowable($e, 'Categoria não encontrada.');
         }
     }
 
@@ -87,7 +87,7 @@ class SubcategoriaController extends BaseController
         } catch (\DomainException $e) {
             $code = str_contains($e->getMessage(), 'Limite') ? 403 : 409;
 
-            return $this->domainErrorResponse($e, 'Nao foi possivel criar a subcategoria.', $code);
+            return $this->domainErrorResponse($e, 'Não foi possivel criar a subcategoria.', $code);
         }
     }
 
@@ -122,7 +122,7 @@ class SubcategoriaController extends BaseController
 
             return $this->domainErrorResponse(
                 $e,
-                $code === 404 ? 'Subcategoria nao encontrada.' : 'Nao foi possivel atualizar a subcategoria.',
+                $code === 404 ? 'Subcategoria não encontrada.' : 'ão foi possível atualizar a subcategoria.',
                 $code,
                 [],
                 $code === 404 ? 'RESOURCE_NOT_FOUND' : null
@@ -151,7 +151,7 @@ class SubcategoriaController extends BaseController
 
             return Response::successResponse(['deleted' => true], 'Subcategoria excluída com sucesso');
         } catch (\DomainException $e) {
-            return $this->notFoundFromThrowable($e, 'Subcategoria nao encontrada.');
+            return $this->notFoundFromThrowable($e, 'Subcategoria não encontrada.');
         }
     }
 

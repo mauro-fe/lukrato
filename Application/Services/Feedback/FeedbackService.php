@@ -151,7 +151,7 @@ class FeedbackService
     {
         $count = $this->repo->countTodayByUserAndContext($userId, Feedback::TIPO_ACAO, $contexto);
         return $count >= 1
-            ? ['allowed' => false, 'message' => 'Voce ja enviou feedback para esta acao hoje.']
+            ? ['allowed' => false, 'message' => 'você ja enviou feedback para esta acao hoje.']
             : ['allowed' => true];
     }
 

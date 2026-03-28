@@ -702,7 +702,7 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
         if (typingEl) typingEl.remove();
 
         if (res.status === 429) {
-            appendAIMessage('assistant', 'Voce usou suas mensagens de IA deste mes. Faça upgrade para continuar.');
+            appendAIMessage('assistant', 'você usou suas mensagens de IA deste mes. Faça upgrade para continuar.');
             showExhaustedOverlay();
             updateQuotaDisplay(0, true, 5);
             setAIStatus('Seu limite mensal de IA acabou.', 'error');
@@ -727,7 +727,7 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
             appendAIMessage('assistant', errorMessage, false, {
                 quickReplies: getRetryQuickReplies(),
             });
-            setAIStatus('A resposta falhou. Voce pode tentar novamente.', 'error');
+            setAIStatus('A resposta falhou. você pode tentar novamente.', 'error');
             return;
         }
 
@@ -751,7 +751,7 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
             appendConfirmationButtons(aiData);
         }
 
-        setAIStatus('Resposta pronta. Voce pode continuar por texto ou usar um atalho.', 'success');
+        setAIStatus('Resposta pronta. você pode continuar por texto ou usar um atalho.', 'success');
         await loadQuota();
     }
 

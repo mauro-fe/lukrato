@@ -498,95 +498,100 @@ class LancamentoCreationService
                     continue;
                 }
 
-                // Encontrar a data do último filho gerado
-                $ultimoFilho = \Application\Models\Lancamento::where('recorrencia_pai_id', $pai->id)
-                    ->whereNull('cancelado_em')
+                // Usa toda a série, inclusive ocorrências apagadas, para não travar
+                // o cursor em uma data já consumida e para não "compensar" meses extras.
+                $ultimoGerado = \Application\Models\Lancamento::withTrashed()
+                    ->where('recorrencia_pai_id', $paiLocked->id)
                     ->orderBy('data', 'desc')
+                    ->orderBy('id', 'desc')
                     ->first();
 
-                $ultimaData = $ultimoFilho
-                    ? new \DateTime($ultimoFilho->data)
-                    : new \DateTime($pai->data);
+                $ultimaData = $ultimoGerado
+                    ? new \DateTime($ultimoGerado->data)
+                    : new \DateTime($paiLocked->data);
 
-                // Avançar para o próximo ciclo com base no último lançamento da série.
-                $dataProx = clone $ultimaData;
-                $freq->advance($dataProx);
+                while (true) {
+                    $dataProx = clone $ultimaData;
+                    $freq->advance($dataProx);
 
-                // Ainda não chegou a data do próximo ciclo.
-                if ($dataProx > $hoje) {
-                    DB::commit();
-                    continue;
-                }
+                    // Ainda não chegou o próximo ciclo.
+                    if ($dataProx > $hoje) {
+                        break;
+                    }
 
-                // Recorrência por data fim: não gera além do fim.
-                if ($pai->recorrencia_fim !== null) {
-                    $fim = new \DateTimeImmutable($pai->recorrencia_fim);
-                    if ($dataProx > $fim) {
-                        DB::commit();
+                    // Respeita recorrência com data fim.
+                    if ($paiLocked->recorrencia_fim !== null) {
+                        $fim = new \DateTimeImmutable($paiLocked->recorrencia_fim);
+                        if ($dataProx > $fim) {
+                            break;
+                        }
+                    }
+
+                    // Em séries por quantidade, cada slot consumido conta, mesmo se foi apagado.
+                    if ($paiLocked->recorrencia_total !== null && $paiLocked->recorrencia_total > 0) {
+                        $totalSerie = \Application\Models\Lancamento::withTrashed()
+                            ->where('recorrencia_pai_id', $paiLocked->id)
+                            ->count();
+
+                        if ($totalSerie >= (int) $paiLocked->recorrencia_total) {
+                            break;
+                        }
+                    }
+
+                    $dataProxFormatada = $dataProx->format('Y-m-d');
+
+                    // Se já houve ocorrência para esta data, apenas avança o cursor.
+                    $jaExiste = \Application\Models\Lancamento::withTrashed()
+                        ->where('recorrencia_pai_id', $paiLocked->id)
+                        ->where('data', $dataProxFormatada)
+                        ->exists();
+
+                    if ($jaExiste) {
+                        $ultimaData = $dataProx;
                         continue;
                     }
-                }
 
-                // Recorrência por quantidade: respeita o total definido.
-                if ($pai->recorrencia_total !== null && $pai->recorrencia_total > 0) {
-                    $totalSerie = \Application\Models\Lancamento::where('recorrencia_pai_id', $pai->id)
-                        ->whereNull('cancelado_em')
-                        ->count();
-
-                    if ($totalSerie >= (int) $pai->recorrencia_total) {
-                        DB::commit();
-                        continue;
-                    }
-                }
-
-                // Verificação de duplicata (idempotência)
-                $jaExiste = \Application\Models\Lancamento::where('recorrencia_pai_id', $pai->id)
-                    ->where('data', $dataProx->format('Y-m-d'))
-                    ->whereNull('cancelado_em')
-                    ->exists();
-
-                if (!$jaExiste) {
                     $dados = [
-                        'user_id'            => $pai->user_id,
-                        'tipo'               => $pai->tipo,
-                        'data'               => $dataProx->format('Y-m-d'),
-                        'hora_lancamento'    => $pai->hora_lancamento,
-                        'valor'              => $pai->valor,
-                        'descricao'          => $pai->descricao,
-                        'observacao'         => $pai->observacao,
-                        'categoria_id'       => $pai->categoria_id,
-                        'subcategoria_id'    => $pai->subcategoria_id,
-                        'conta_id'           => $pai->conta_id,
+                        'user_id'            => $paiLocked->user_id,
+                        'tipo'               => $paiLocked->tipo,
+                        'data'               => $dataProxFormatada,
+                        'hora_lancamento'    => $paiLocked->hora_lancamento,
+                        'valor'              => $paiLocked->valor,
+                        'descricao'          => $paiLocked->descricao,
+                        'observacao'         => $paiLocked->observacao,
+                        'categoria_id'       => $paiLocked->categoria_id,
+                        'subcategoria_id'    => $paiLocked->subcategoria_id,
+                        'conta_id'           => $paiLocked->conta_id,
                         'pago'               => 0,
                         'afeta_caixa'        => 0,
                         'data_pagamento'     => null,
-                        'forma_pagamento'    => $pai->forma_pagamento,
+                        'forma_pagamento'    => $paiLocked->forma_pagamento,
                         'recorrente'         => 1,
-                        'recorrencia_freq'   => $pai->recorrencia_freq,
-                        'recorrencia_fim'    => $pai->recorrencia_fim,
-                        'recorrencia_total'  => $pai->recorrencia_total,
-                        'recorrencia_pai_id' => $pai->id,
+                        'recorrencia_freq'   => $paiLocked->recorrencia_freq,
+                        'recorrencia_fim'    => $paiLocked->recorrencia_fim,
+                        'recorrencia_total'  => $paiLocked->recorrencia_total,
+                        'recorrencia_pai_id' => $paiLocked->id,
                         'origem_tipo'        => \Application\Models\Lancamento::ORIGEM_RECORRENCIA,
-                        'lembrar_antes_segundos' => $pai->lembrar_antes_segundos,
-                        'canal_email'        => $pai->canal_email,
-                        'canal_inapp'        => $pai->canal_inapp,
+                        'lembrar_antes_segundos' => $paiLocked->lembrar_antes_segundos,
+                        'canal_email'        => $paiLocked->canal_email,
+                        'canal_inapp'        => $paiLocked->canal_inapp,
                     ];
 
                     try {
                         $this->lancamentoRepo->create($dados);
                         $totalCriados++;
                     } catch (\Throwable $e) {
-                        // Com unique key ativa, corrida concorrente pode bater aqui.
-                        // Se for duplicado, tratamos como idempotente.
                         if (str_contains(strtolower($e->getMessage()), 'duplicate')) {
                             LogService::info('[RECORRENCIA] Duplicata evitada por unique key', [
-                                'pai_id' => $pai->id,
-                                'data' => $dataProx->format('Y-m-d'),
+                                'pai_id' => $paiLocked->id,
+                                'data' => $dataProxFormatada,
                             ]);
                         } else {
                             throw $e;
                         }
                     }
+
+                    $ultimaData = $dataProx;
                 }
 
                 DB::commit();

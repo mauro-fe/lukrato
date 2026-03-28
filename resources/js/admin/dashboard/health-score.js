@@ -192,15 +192,15 @@ class HealthScoreWidget {
     if (score >= 70) {
       status = 'excellent';
       label = 'BOA';
-      message = 'Voce esta no controle. Continue assim!';
+      message = 'Você está no controle. Continue assim!';
     } else if (score >= 50) {
       status = 'good';
       label = 'ESTAVEL';
-      message = 'Controle bom, mas ha espaco para melhorar.';
+      message = 'Controle bom, mas há espaço para melhorar.';
     } else if (score >= 30) {
       status = 'warning';
       label = 'ATENCAO';
-      message = 'Alguns sinais pedem cuidado neste mes.';
+      message = 'Alguns sinais pedem cuidado neste mês.';
     }
 
     indicator.className = `hs-badge hs-badge--${status}`;

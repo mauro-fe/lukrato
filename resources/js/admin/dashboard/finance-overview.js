@@ -83,7 +83,7 @@ class FinanceOverview {
     estourados.slice(0, 2).forEach((item) => {
       alerts.push({
         variant: 'danger',
-        title: `Voce ja passou do limite em ${item.categoria_nome}`,
+        title: `Você já passou do limite em ${item.categoria_nome}`,
         message: `Excedido em ${this.money(item.excedido || 0)}.`,
       });
     });
@@ -198,7 +198,7 @@ class FinanceOverview {
         </span>
       </div>
       <div class="fo-empty">
-        <p>Voce ainda nao definiu limites para acompanhar categorias.</p>
+        <p>você ainda nao definiu limites para acompanhar categorias.</p>
         <a href="${this.baseURL}financas#orcamentos" class="fo-cta">Definir limite</a>
       </div>
     `;
@@ -219,7 +219,7 @@ class FinanceOverview {
     const pctGeral = Math.round(data.progresso_geral || 0);
 
     if (!proxima) {
-      this.updateGoalsHeadline('Voce tem metas ativas, mas nenhuma esta proxima de concluir.');
+      this.updateGoalsHeadline('você tem metas ativas, mas nenhuma esta proxima de concluir.');
       el.innerHTML = `
         <div class="fo-card-header">
           <a href="${this.baseURL}financas#metas" class="fo-card-title">
@@ -301,7 +301,7 @@ class FinanceOverview {
         </span>
       </div>
       <div class="fo-empty">
-        <p>Voce ainda nao definiu uma meta ativa.</p>
+        <p>você ainda nao definiu uma meta ativa.</p>
         <a href="${this.baseURL}financas#metas" class="fo-cta">Criar meta</a>
       </div>
     `;

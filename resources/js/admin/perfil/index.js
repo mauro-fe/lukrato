@@ -928,7 +928,7 @@ import { apiDelete, apiFetch, apiGet, getBaseUrl, getErrorMessage } from '../sha
                     Swal.fire({
                         icon: 'success',
                         title: 'Telegram vinculado',
-                        text: 'Agora voce pode usar o bot normalmente.',
+                        text: 'Agora você pode usar o bot normalmente.',
                         confirmButtonColor: '#0ea5e9',
                         timer: 2500,
                         timerProgressBar: true,

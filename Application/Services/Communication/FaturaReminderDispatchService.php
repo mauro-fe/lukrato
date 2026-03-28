@@ -15,8 +15,7 @@ class FaturaReminderDispatchService
 {
     public function __construct(
         private readonly ?MailService $mailService = null
-    ) {
-    }
+    ) {}
 
     /**
      * @return array<string, int>
@@ -171,7 +170,7 @@ class FaturaReminderDispatchService
                         'Lembrete de Fatura',
                         "Cartao {$nomeCartao} - Vencimento {$dataFormatada}",
                         $conteudo,
-                        'Este e um lembrete automatico configurado por voce no Lukrato.'
+                        'Este e um lembrete automatico configurado por você no Lukrato.'
                     );
 
                     $mailService->send(

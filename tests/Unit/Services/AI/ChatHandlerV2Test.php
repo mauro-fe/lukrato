@@ -27,7 +27,7 @@ class ChatHandlerV2Test extends TestCase
 
         $request = new AIRequestDTO(
             userId: 1,
-            message: 'Voce nao consegue lancar pra mim?',
+            message: 'você nao consegue lancar pra mim?',
             intent: IntentType::CHAT,
             channel: AIChannel::WEB
         );

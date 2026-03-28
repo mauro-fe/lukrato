@@ -111,7 +111,7 @@ export function EditPerfilScreen() {
             <TextInput
               value={profile.email}
               onChangeText={(value) => updateField('email', value)}
-              placeholder="voce@exemplo.com"
+              placeholder="você@exemplo.com"
               placeholderTextColor={tokens.colors.textMuted}
               style={styles.fieldInput}
               keyboardType="email-address"

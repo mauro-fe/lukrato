@@ -81,7 +81,7 @@ class LancamentoGlobalManager {
         const hint = document.getElementById('globalContaContextHint');
         if (hint) {
             hint.textContent = contexto.source === 'contas'
-                ? 'Abrimos com a conta desta tela. Se precisar, voce pode trocar antes de continuar.'
+                ? 'Abrimos com a conta desta tela. Se precisar, você pode trocar antes de continuar.'
                 : 'Escolha a conta para ver saldo e as ultimas movimentacoes.';
         }
 
@@ -1140,6 +1140,7 @@ class LancamentoGlobalManager {
         const radios = document.querySelectorAll('input[name="global_recorrencia_modo"]');
         radios.forEach(r => r.checked = r.value === defaultModo);
 
+        this.syncPagoRecorrenciaState();
         this.configurarEventosLembrete();
         this.syncReminderVisibility();
     }
@@ -1157,6 +1158,34 @@ class LancamentoGlobalManager {
             const defaultModo = 'infinito';
             document.querySelectorAll('input[name="global_recorrencia_modo"]').forEach(r => r.checked = r.value === defaultModo);
         }
+
+        this.syncPagoRecorrenciaState();
+        this.syncReminderVisibility();
+    }
+
+    syncPagoRecorrenciaState() {
+        const recorrente = document.getElementById('globalLancamentoRecorrente')?.checked === true;
+        const pagoCheck = document.getElementById('globalLancamentoPago');
+        const pagoGroup = document.getElementById('globalPagoGroup');
+        const pagoHelper = document.getElementById('globalPagoHelperText');
+
+        if (!pagoCheck || !pagoGroup || !pagoHelper) {
+            return;
+        }
+
+        if (recorrente) {
+            pagoCheck.checked = false;
+            pagoCheck.disabled = true;
+            pagoGroup.classList.add('lk-form-group-disabled');
+            pagoHelper.textContent = 'Recorrencias comecam como pendentes. Voce pode marcar cada ocorrencia como paga depois.';
+            return;
+        }
+
+        pagoCheck.disabled = false;
+        pagoGroup.classList.remove('lk-form-group-disabled');
+        pagoHelper.textContent = this.tipoAtual === 'receita'
+            ? 'Desmarque se ainda nao foi recebido.'
+            : 'Desmarque se ainda nao foi pago.';
     }
 
     toggleRecorrenciaFim() {
@@ -1356,6 +1385,7 @@ class LancamentoGlobalManager {
             if (assinaturaDetalhes) assinaturaDetalhes.style.display = 'none';
         }
 
+        this.syncPagoRecorrenciaState();
         this.syncReminderVisibility();
     }
 
@@ -1401,6 +1431,7 @@ class LancamentoGlobalManager {
             if (pagoGroup) pagoGroup.style.display = 'block';
         }
 
+        this.syncPagoRecorrenciaState();
         this.syncReminderVisibility();
     }
 
@@ -1573,6 +1604,7 @@ class LancamentoGlobalManager {
             dados.pago = document.getElementById('globalLancamentoPago')?.checked ? true : false;
 
             if (document.getElementById('globalLancamentoRecorrente')?.checked) {
+                dados.pago = false;
                 dados.recorrente = '1';
                 dados.recorrencia_freq = document.getElementById('globalLancamentoRecorrenciaFreq')?.value || 'mensal';
                 const modo = document.querySelector('input[name="global_recorrencia_modo"]:checked')?.value || 'infinito';

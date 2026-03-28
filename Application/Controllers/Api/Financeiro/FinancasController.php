@@ -90,7 +90,7 @@ class FinancasController extends BaseController
                 201
             );
         } catch (\DomainException $e) {
-            return $this->domainErrorResponse($e, 'Nao foi possivel criar a meta.', 403);
+            return $this->domainErrorResponse($e, 'Não foi possivel criar a meta.', 403);
         } catch (\Throwable $e) {
             return $this->failAndLogResponse($e, 'Erro ao criar meta.');
         }
@@ -150,7 +150,7 @@ class FinancasController extends BaseController
                 'Aporte registrado com sucesso!'
             );
         } catch (\DomainException $e) {
-            return $this->domainErrorResponse($e, 'Nao foi possivel registrar o aporte.', 400);
+            return $this->domainErrorResponse($e, 'Não foi possivel registrar o aporte.', 400);
         } catch (\Throwable $e) {
             return $this->failAndLogResponse($e, 'Erro ao registrar aporte.');
         }
@@ -236,7 +236,7 @@ class FinancasController extends BaseController
 
             return Response::successResponse($orcamentos, 'Orçamento salvo com sucesso!');
         } catch (\DomainException $e) {
-            return $this->domainErrorResponse($e, 'Nao foi possivel salvar o orcamento.', 403);
+            return $this->domainErrorResponse($e, 'Não foi possivel salvar o orcamento.', 403);
         } catch (\Throwable $e) {
             return $this->failAndLogResponse($e, 'Erro ao salvar orçamento.');
         }
@@ -266,7 +266,7 @@ class FinancasController extends BaseController
 
             return Response::successResponse($result, 'Orçamentos salvos com sucesso!');
         } catch (\DomainException $e) {
-            return $this->domainErrorResponse($e, 'Nao foi possivel salvar os orcamentos.', 403);
+            return $this->domainErrorResponse($e, 'Não foi possivel salvar os orçamentos.', 403);
         } catch (\Throwable $e) {
             return $this->failAndLogResponse($e, 'Erro ao salvar orçamentos.');
         }

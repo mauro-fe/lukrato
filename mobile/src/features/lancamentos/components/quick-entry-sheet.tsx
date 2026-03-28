@@ -29,7 +29,7 @@ export function QuickEntrySheet({
         <Pressable style={styles.backdrop} onPress={onClose} />
         <View style={styles.sheet}>
           <View style={styles.handle} />
-          <Text style={styles.title}>O que voce quer registrar agora?</Text>
+          <Text style={styles.title}>O que você quer registrar agora?</Text>
           <Text style={styles.description}>
             Antes do formulario, o app ajuda o usuario a escolher a intencao correta.
           </Text>

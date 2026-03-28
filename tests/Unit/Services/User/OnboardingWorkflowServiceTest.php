@@ -148,7 +148,7 @@ class OnboardingWorkflowServiceTest extends TestCase
 
         $this->assertFalse($result['success']);
         $this->assertSame(422, $result['status']);
-        $this->assertSame('Voce precisa criar pelo menos uma conta antes de continuar.', $result['message']);
+        $this->assertSame('você precisa criar pelo menos uma conta antes de continuar.', $result['message']);
     }
 
     public function testChecklistUsesPersistedProgressAndMetrics(): void
@@ -198,7 +198,7 @@ class OnboardingWorkflowServiceTest extends TestCase
         $lancamentoCreationService ??= Mockery::mock(LancamentoCreationService::class);
         $progressService ??= Mockery::mock(OnboardingProgressService::class);
 
-        return new class ($contaService, $lancamentoCreationService, $progressService, $user) extends OnboardingWorkflowService {
+        return new class($contaService, $lancamentoCreationService, $progressService, $user) extends OnboardingWorkflowService {
             public function __construct(
                 ContaService $contaService,
                 LancamentoCreationService $lancamentoCreationService,

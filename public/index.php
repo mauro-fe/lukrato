@@ -61,6 +61,25 @@ try {
     emitGenericBootstrapFailure('Falha ao carregar configurações de ambiente.', $e);
 }
 
+if (PHP_SAPI !== 'cli') {
+    register_shutdown_function(static function (): void {
+        try {
+            if (function_exists('fastcgi_finish_request')) {
+                @session_write_close();
+                @fastcgi_finish_request();
+            }
+
+            (new \Application\Services\Communication\ScheduledCampaignHeartbeatService())->tick();
+        } catch (Throwable $e) {
+            if (class_exists(\Application\Services\Infrastructure\LogService::class)) {
+                \Application\Services\Infrastructure\LogService::safeErrorLog(
+                    '[scheduled_campaign_heartbeat] ' . $e->getMessage()
+                );
+            }
+        }
+    });
+}
+
 ini_set('session.cookie_lifetime', '0');
 ini_set('session.use_strict_mode', '1');
 ini_set('session.use_only_cookies', '1');

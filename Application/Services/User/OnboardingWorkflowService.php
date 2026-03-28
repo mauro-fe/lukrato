@@ -67,7 +67,7 @@ class OnboardingWorkflowService
         }
 
         if (!$progress->has_conta) {
-            return $this->failure('Voce precisa criar pelo menos uma conta antes de continuar.', 422);
+            return $this->failure('você precisa criar pelo menos uma conta antes de continuar.', 422);
         }
 
         $this->markUserOnboardingComplete($user, 'skipped', 'v2');

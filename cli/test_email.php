@@ -41,7 +41,7 @@ try {
         'Teste Lukrato',
         '✅ Teste de Email - Lukrato',
         '<h2 style="color:#e67e22;">Teste de Email</h2><p>Se você está lendo isso, o envio de emails está funcionando corretamente no localhost! 🎉</p><p><small>Enviado em: ' . date('d/m/Y H:i:s') . '</small></p>',
-        'Teste de Email - Se voce esta lendo isso, o envio de emails esta funcionando corretamente no localhost!'
+        'Teste de Email - Se você esta lendo isso, o envio de emails esta funcionando corretamente no localhost!'
     );
 
     if ($result) {

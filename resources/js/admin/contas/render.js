@@ -177,7 +177,7 @@ function buildInsight(portfolio) {
     if (totalAccounts === 0) {
         return {
             title: 'Seu dinheiro aparece aqui assim que a primeira conta for criada.',
-            description: 'Cadastre uma conta para ver onde o saldo esta concentrado e quanto voce ja separou em reserva.',
+            description: 'Cadastre uma conta para ver onde o saldo esta concentrado e quanto você ja separou em reserva.',
         };
     }
 
@@ -273,7 +273,7 @@ export const ContasRender = {
 
         if (titleEl) {
             titleEl.textContent = query || typeFilter !== 'all'
-                ? `${contasVisiveis.length} conta(s) na visualizacao atual`
+                ? `${contasVisiveis.length} conta(s) na visualização atual`
                 : 'Suas contas ativas';
         }
 
@@ -343,7 +343,7 @@ export const ContasRender = {
                     <i data-lucide="wallet"></i>
                 </div>
                 <h3>Nenhuma conta cadastrada</h3>
-                <p>Cadastre sua primeira conta para enxergar onde o dinheiro esta e quanto voce ja separou em reserva.</p>
+                <p>Cadastre sua primeira conta para enxergar onde o dinheiro esta e quanto você ja separou em reserva.</p>
                 <button class="btn btn-primary btn-lg" data-action="create-first-account">
                     <i data-lucide="plus"></i> Criar primeira conta
                 </button>
@@ -505,7 +505,7 @@ export const ContasRender = {
             : '';
 
         return `
-            <article class="account-card ${isFeatured ? 'is-featured' : ''}" data-account-id="${conta.id}" style="--account-accent:${accentColor};">
+            <article class="account-card surface-card ${isFeatured ? 'is-featured' : ''}" data-account-id="${conta.id}" style="--account-accent:${accentColor};">
                 <div class="account-media">
                     <div class="account-logo">
                         <img src="${logoUrl}" alt="${escapeHtml(conta.nome)}" />

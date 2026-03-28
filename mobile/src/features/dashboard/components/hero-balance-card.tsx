@@ -26,7 +26,7 @@ export function HeroBalanceCard({
       <View style={styles.header}>
         <View>
           <Text style={styles.label}>Saldo para movimentar agora</Text>
-          <Text style={styles.helper}>Resumo feito para voce entender rapido</Text>
+          <Text style={styles.helper}>Resumo feito para você entender rapido</Text>
         </View>
         <View style={styles.badge}>
           <Text style={styles.badgeText}>Mes atual</Text>

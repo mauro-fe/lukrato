@@ -77,7 +77,7 @@ class ErrorHandler
         if ($this->isAjaxRequest()) {
             $this->emit($this->buildJsonErrorResponse([
                 'success' => false,
-                'message' => 'Excecao nao tratada',
+                'message' => 'Exceção não tratada',
                 'exception' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
@@ -154,7 +154,7 @@ class ErrorHandler
 
     private function buildDevelopmentExceptionResponse(\Throwable $e): Response
     {
-        $html = '<h2>Excecao nao tratada:</h2>';
+        $html = '<h2>Exceção não tratada:</h2>';
         $html .= '<p><b>' . htmlspecialchars($e->getMessage()) . '</b></p>';
         $html .= '<pre>' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
 

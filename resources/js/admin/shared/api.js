@@ -412,39 +412,42 @@ export function apiGet(url, params = {}) {
  * POST request
  * @param {string} url
  * @param {Object} data
+ * @param {Object} extra
  * @returns {Promise<any>}
  */
-export function apiPost(url, data = {}) {
+export function apiPost(url, data = {}, extra = {}) {
     return apiFetch(url, {
         method: 'POST',
         body: data,
-    });
+    }, extra);
 }
 
 /**
  * PUT request
  * @param {string} url
  * @param {Object} data
+ * @param {Object} extra
  * @returns {Promise<any>}
  */
-export function apiPut(url, data = {}) {
+export function apiPut(url, data = {}, extra = {}) {
     return apiFetch(url, {
         method: 'PUT',
         body: data,
-    });
+    }, extra);
 }
 
 /**
  * DELETE request
  * @param {string} url
  * @param {Object|null} data
+ * @param {Object} extra
  * @returns {Promise<any>}
  */
-export function apiDelete(url, data = null) {
+export function apiDelete(url, data = null, extra = {}) {
     return apiFetch(url, {
         method: 'DELETE',
         body: data ?? undefined,
-    });
+    }, extra);
 }
 
 async function parseResponsePayload(response) {

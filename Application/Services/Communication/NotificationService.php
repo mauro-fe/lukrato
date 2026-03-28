@@ -10,6 +10,7 @@ use Application\Models\Usuario;
 use Application\Models\UserProgress;
 use Application\Models\AssinaturaUsuario;
 use Application\Models\Plano;
+use Application\Services\Infrastructure\SchedulerExecutionLock;
 use Application\Services\Mail\EmailTemplate;
 use Carbon\Carbon;
 use Exception;
@@ -31,12 +32,18 @@ class NotificationService
 {
     private MailService $mailService;
     private LoggerInterface $logger;
+    private CampaignDeliveryStatusResolver $deliveryStatusResolver;
     private ?array $cachedProUserIds = null;
 
-    public function __construct(?MailService $mailService = null, ?LoggerInterface $logger = null)
+    public function __construct(
+        ?MailService $mailService = null,
+        ?LoggerInterface $logger = null,
+        ?CampaignDeliveryStatusResolver $deliveryStatusResolver = null
+    )
     {
         $this->mailService = $mailService ?? new MailService();
         $this->logger = $logger ?? new NullLogger();
+        $this->deliveryStatusResolver = $deliveryStatusResolver ?? new CampaignDeliveryStatusResolver();
     }
 
     /**
@@ -249,6 +256,8 @@ class NotificationService
                 return $campaign;
             }
 
+            $notificationsDelivered = 0;
+            $emailEligible = 0;
             $emailsSent = 0;
             $emailsFailed = 0;
 
@@ -263,7 +272,7 @@ class NotificationService
 
             // Processar em lotes para evitar estouro de memória
             $this->buildFilteredUsersQuery($campaign->filters ?? [])
-                ->chunk(200, function ($users) use ($campaign, $cupom, $notificationMessage, &$emailsSent, &$emailsFailed) {
+                ->chunk(200, function ($users) use ($campaign, $cupom, $notificationMessage, &$notificationsDelivered, &$emailEligible, &$emailsSent, &$emailsFailed) {
                     foreach ($users as $user) {
                         // Criar notificação interna
                         if ($campaign->send_notification) {
@@ -275,13 +284,25 @@ class NotificationService
                                 $campaign->link,
                                 $campaign->id
                             );
+                            $notificationsDelivered++;
                         }
 
                         // Enviar email
                         if ($campaign->send_email && !empty($user->email)) {
+                            $emailEligible++;
+
                             try {
-                                $this->sendCampaignEmail($user, $campaign);
-                                $emailsSent++;
+                                $emailSent = $this->sendCampaignEmail($user, $campaign);
+
+                                if ($emailSent) {
+                                    $emailsSent++;
+                                } else {
+                                    $emailsFailed++;
+                                    $this->logger->warning('[NotificationService] MailService retornou falha sem excecao', [
+                                        'campaign_id' => $campaign->id,
+                                        'user_id' => $user->id,
+                                    ]);
+                                }
                             } catch (Exception $e) {
                                 $emailsFailed++;
                                 $this->logger->error('[NotificationService] Falha ao enviar email', [
@@ -297,17 +318,25 @@ class NotificationService
             // Atualizar estatísticas
             $campaign->emails_sent = $emailsSent;
             $campaign->emails_failed = $emailsFailed;
-            $campaign->status = $emailsFailed > 0 && $emailsSent > 0
-                ? MessageCampaign::STATUS_PARTIAL
-                : MessageCampaign::STATUS_SENT;
+            $campaign->status = $this->deliveryStatusResolver->resolve(
+                (bool) $campaign->send_notification,
+                $notificationsDelivered,
+                (bool) $campaign->send_email,
+                $emailEligible,
+                $emailsSent,
+                $emailsFailed
+            );
             $campaign->sent_at = Carbon::now();
             $campaign->save();
 
             $this->logger->info('[NotificationService] Campanha enviada', [
                 'campaign_id' => $campaign->id,
                 'total_recipients' => $totalRecipients,
+                'notifications_delivered' => $notificationsDelivered,
+                'email_eligible' => $emailEligible,
                 'emails_sent' => $emailsSent,
                 'emails_failed' => $emailsFailed,
+                'status' => $campaign->status,
             ]);
 
             return $campaign;
@@ -329,8 +358,17 @@ class NotificationService
      */
     public function processScheduledCampaigns(): array
     {
-        $stats = ['processed' => 0, 'sent' => 0, 'failed' => 0, 'stuck_recovered' => 0];
+        $stats = ['processed' => 0, 'sent' => 0, 'partial' => 0, 'failed' => 0, 'stuck_recovered' => 0];
+        $lock = new SchedulerExecutionLock();
 
+        try {
+            $lock->acquire('dispatch-scheduled-campaigns');
+        } catch (Exception) {
+            $this->logger->info('[NotificationService] Fila de campanhas agendadas ja esta em processamento');
+            return $stats;
+        }
+
+        try {
         // Recuperar campanhas presas em "sending" por mais de 10 minutos
         $stuckCampaigns = MessageCampaign::where('status', MessageCampaign::STATUS_SENDING)
             ->where('updated_at', '<', Carbon::now()->subMinutes(10))
@@ -353,11 +391,19 @@ class NotificationService
         foreach ($campaigns as $campaign) {
             $stats['processed']++;
             try {
-                $this->executeCampaignSend($campaign);
-                $stats['sent']++;
+                $processedCampaign = $this->executeCampaignSend($campaign);
+
+                if ($processedCampaign->status === MessageCampaign::STATUS_SENT) {
+                    $stats['sent']++;
+                } elseif ($processedCampaign->status === MessageCampaign::STATUS_PARTIAL) {
+                    $stats['partial']++;
+                } else {
+                    $stats['failed']++;
+                }
 
                 $this->logger->info('[NotificationService] Campanha agendada enviada', [
                     'campaign_id' => $campaign->id,
+                    'status' => $processedCampaign->status,
                 ]);
             } catch (Exception $e) {
                 $stats['failed']++;
@@ -368,7 +414,10 @@ class NotificationService
             }
         }
 
-        return $stats;
+            return $stats;
+        } finally {
+            $lock->release();
+        }
     }
 
     /**
@@ -748,8 +797,16 @@ class NotificationService
             // Enviar email se configurado
             if ($sendEmail && !empty($user->email)) {
                 try {
-                    $this->sendBirthdayEmail($user, $age);
-                    $stats['emails_sent']++;
+                    $emailSent = $this->sendBirthdayEmail($user, $age);
+
+                    if ($emailSent) {
+                        $stats['emails_sent']++;
+                    } else {
+                        $stats['emails_failed']++;
+                        $this->logger->warning(
+                            "Envio de email de aniversario retornou false para {$user->email}"
+                        );
+                    }
                 } catch (Exception $e) {
                     $stats['emails_failed']++;
                     $this->logger->error("Erro ao enviar email de aniversário para {$user->email}: " . $e->getMessage());

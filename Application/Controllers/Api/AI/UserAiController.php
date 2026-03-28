@@ -95,7 +95,7 @@ class UserAiController extends BaseController
             return Response::successResponse($categoryData);
         }
 
-        return Response::errorResponse('Nao foi possivel sugerir categoria.', 422);
+        return Response::errorResponse('Não foi possivel sugerir categoria.', 422);
     }
 
     public function analyze(): Response
@@ -175,7 +175,7 @@ class UserAiController extends BaseController
         $conversation = $this->workflowService()->findConversation($userId, $id);
 
         if ($conversation === null) {
-            return Response::errorResponse('Conversa nao encontrada.', 404);
+            return Response::errorResponse('Conversa não encontrada.', 404);
         }
 
         return Response::successResponse($this->workflowService()->getConversationMessages($conversation));
@@ -187,7 +187,7 @@ class UserAiController extends BaseController
         $conversation = $this->workflowService()->findConversation($userId, $id);
 
         if ($conversation === null) {
-            return Response::errorResponse('Conversa nao encontrada.', 404);
+            return Response::errorResponse('Conversa não encontrada.', 404);
         }
 
         $payload = $this->getRequestPayload();
@@ -222,7 +222,7 @@ class UserAiController extends BaseController
         $pending = $this->workflowService()->findPendingAction($userId, $id);
 
         if ($pending === null) {
-            return Response::errorResponse('Acao nao encontrada ou ja processada.', 404);
+            return Response::errorResponse('Ação não encontrada ou já processada.', 404);
         }
 
         try {
@@ -251,7 +251,7 @@ class UserAiController extends BaseController
         $pending = $this->workflowService()->findPendingAction($userId, $id);
 
         if ($pending === null) {
-            return Response::errorResponse('Acao nao encontrada ou ja processada.', 404);
+            return Response::errorResponse('Ação não encontrada ou já processada.', 404);
         }
 
         $this->workflowService()->rejectPendingAction($pending);
@@ -265,7 +265,7 @@ class UserAiController extends BaseController
         $conversation = $this->workflowService()->findConversation($userId, $id);
 
         if ($conversation === null) {
-            return Response::errorResponse('Conversa nao encontrada.', 404);
+            return Response::errorResponse('Conversa não encontrada.', 404);
         }
 
         $this->workflowService()->deleteConversation($conversation);
@@ -305,7 +305,7 @@ class UserAiController extends BaseController
 
         return $this->domainErrorResponse(
             $e,
-            $status === 404 ? 'Recurso nao encontrado.' : 'Nao foi possivel concluir a operacao.',
+            $status === 404 ? 'Recurso não encontrado.' : 'Não foi possível concluir a operação.',
             $status,
             [],
             $status === 404 ? 'RESOURCE_NOT_FOUND' : null

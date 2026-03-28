@@ -112,16 +112,11 @@ class CampaignApiWorkflowService
             ];
         }
 
-        LogService::info('Campanha enviada', [
-            'campaign_id' => $campaign->id,
-            'admin_id' => $adminId,
-            'admin_name' => $adminName,
-            'total_recipients' => $campaign->total_recipients,
-        ]);
+        $this->logImmediateCampaignResult($campaign, $adminId, $adminName);
 
         return [
             'success' => true,
-            'message' => 'Campanha enviada com sucesso',
+            'message' => $this->buildImmediateCampaignMessage($campaign),
             'data' => [
                 'campaign_id' => $campaign->id,
                 'title' => $campaign->title,
@@ -131,6 +126,20 @@ class CampaignApiWorkflowService
                 'status' => $campaign->status,
             ],
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function processDueCampaigns(): array
+    {
+        $result = $this->notificationService->processScheduledCampaigns();
+
+        if (($result['processed'] ?? 0) > 0 || ($result['stuck_recovered'] ?? 0) > 0) {
+            LogService::info('Fila de campanhas sincronizada manualmente', $result);
+        }
+
+        return $result;
     }
 
     /**
@@ -383,6 +392,40 @@ class CampaignApiWorkflowService
             'status' => $status,
             'message' => $message,
         ];
+    }
+
+    private function buildImmediateCampaignMessage(MessageCampaign $campaign): string
+    {
+        return match ($campaign->status) {
+            MessageCampaign::STATUS_PARTIAL => 'Campanha enviada parcialmente. Confira as falhas no histÃ³rico.',
+            MessageCampaign::STATUS_FAILED => 'Campanha processada, mas falhou em todos os canais selecionados.',
+            default => 'Campanha enviada com sucesso',
+        };
+    }
+
+    private function logImmediateCampaignResult(MessageCampaign $campaign, int $adminId, string $adminName): void
+    {
+        $context = [
+            'campaign_id' => $campaign->id,
+            'admin_id' => $adminId,
+            'admin_name' => $adminName,
+            'total_recipients' => $campaign->total_recipients,
+            'emails_sent' => $campaign->emails_sent,
+            'emails_failed' => $campaign->emails_failed,
+            'status' => $campaign->status,
+        ];
+
+        if ($campaign->status === MessageCampaign::STATUS_FAILED) {
+            LogService::warning('Campanha falhou', $context);
+            return;
+        }
+
+        if ($campaign->status === MessageCampaign::STATUS_PARTIAL) {
+            LogService::warning('Campanha enviada parcialmente', $context);
+            return;
+        }
+
+        LogService::info('Campanha enviada', $context);
     }
 
     protected function findCampaign(int $id): ?MessageCampaign

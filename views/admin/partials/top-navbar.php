@@ -84,6 +84,45 @@ $currentBreadcrumbs = $currentBreadcrumbs ?? [];
                 </a>
             <?php endif; ?>
 
+            <div class="top-nav-help" id="topNavHelpCenter">
+                <button id="topNavHelpToggle" type="button" class="top-nav-btn help-btn"
+                    aria-label="Abrir ajuda desta tela" aria-expanded="false" aria-haspopup="true"
+                    title="Tutoriais e dicas">
+                    <i data-lucide="message-circle-question"></i>
+                    <span class="btn-text">Ajuda</span>
+                </button>
+
+                <div class="top-nav-help-menu surface-card surface-card--clip" id="topNavHelpMenu" hidden>
+                    <div class="top-nav-help-menu__header">
+                        <div>
+                            <span class="top-nav-help-menu__eyebrow">Ajuda contextual</span>
+                            <strong id="topNavHelpCurrentPage">Tutorial desta pagina</strong>
+                        </div>
+                        <span class="top-nav-help-menu__status" id="topNavHelpStatus">Opcional</span>
+                    </div>
+
+                    <div class="top-nav-help-menu__actions">
+                        <button type="button" class="top-nav-help-action" id="topNavHelpTourBtn">
+                            <i data-lucide="play-circle"></i>
+                            <span>Ver tutorial</span>
+                        </button>
+                        <button type="button" class="top-nav-help-action" id="topNavHelpTipsBtn">
+                            <i data-lucide="message-circle"></i>
+                            <span>Ver dicas rapidas</span>
+                        </button>
+                        <button type="button" class="top-nav-help-action" id="topNavHelpAutoOfferBtn">
+                            <i data-lucide="bell"></i>
+                            <span>Desativar convite automatico</span>
+                        </button>
+                        <button type="button" class="top-nav-help-action top-nav-help-action--muted"
+                            id="topNavHelpResetBtn">
+                            <i data-lucide="rotate-ccw"></i>
+                            <span>Recomeçar tutoriais</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Theme Toggle -->
             <button id="topNavThemeToggle" type="button" class="top-nav-btn theme-toggle" aria-label="Alternar tema"
                 title="Modo claro/escuro">

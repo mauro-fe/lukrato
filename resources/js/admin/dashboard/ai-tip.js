@@ -412,7 +412,7 @@ class AiTipCard {
         : '';
 
       return `
-        <${tag}${href} class="ai-tip-item" data-priority="${tip.priority}" style="animation-delay: ${i * 70}ms;">
+        <${tag}${href} class="ai-tip-item surface-card" data-priority="${tip.priority}" style="animation-delay: ${i * 70}ms;">
           <div class="ai-tip-accent ${accentClass}"></div>
           <div class="ai-tip-content">
             <div class="ai-tip-item-icon ${iconClass}">

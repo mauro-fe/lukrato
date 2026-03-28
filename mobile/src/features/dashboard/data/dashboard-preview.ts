@@ -11,7 +11,7 @@ export const dashboardPreview: DashboardSnapshot = {
   mainFocus: {
     title: 'Sua prioridade de hoje',
     description:
-      'Voce tem uma fatura para revisar antes do vencimento. O app vai sempre tentar mostrar primeiro o que pede atencao imediata.',
+      'você tem uma fatura para revisar antes do vencimento. O app vai sempre tentar mostrar primeiro o que pede atencao imediata.',
     amount: 684.3,
     supportText: 'Fatura Nubank vence em 18 mar',
   },
@@ -32,7 +32,7 @@ export const dashboardPreview: DashboardSnapshot = {
     {
       id: '3',
       title: 'Por ultimo revise o que vence logo',
-      description: 'Assim voce evita esquecer boleto, cartao e pagamento pendente.',
+      description: 'Assim você evita esquecer boleto, cartao e pagamento pendente.',
       cta: 'Ver vencimentos',
     },
   ],
@@ -65,7 +65,7 @@ export const dashboardPreview: DashboardSnapshot = {
   insights: [
     {
       id: '1',
-      title: 'Voce esta positivo no mes.',
+      title: 'você esta positivo no mes.',
       description: 'Entrou mais dinheiro do que saiu, entao o saldo mensal esta respirando bem.',
     },
     {
@@ -75,7 +75,7 @@ export const dashboardPreview: DashboardSnapshot = {
     },
     {
       id: '3',
-      title: 'Voce ja reservou dinheiro.',
+      title: 'você ja reservou dinheiro.',
       description: 'A quantia guardada evita que a fatura aperte o caixa no fim do mes.',
     },
   ],

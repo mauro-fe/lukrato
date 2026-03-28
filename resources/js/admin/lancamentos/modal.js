@@ -268,7 +268,7 @@ const DELETE_SCOPE_CONTENT = {
     },
     parcelamentoCascade: {
         title: 'Excluir parcelamento',
-        subtitle: 'Voce esta gerenciando um parcelamento inteiro.',
+        subtitle: 'você esta gerenciando um parcelamento inteiro.',
         lead: 'Escolha se deseja cancelar apenas parcelas pendentes ou a serie completa.',
         hint: 'Excluir tudo remove inclusive parcelas ja pagas.',
         showOptions: true,

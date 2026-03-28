@@ -21,6 +21,9 @@
         tooltipDuration: 8000, // 8 segundos
         animationDuration: 300,
         maxTooltipsPerPage: 3,
+        viewportMargin: 20,
+        floatingTooltipGap: 14,
+        visibleTargetThreshold: 0.18,
     };
 
     // ============================================
@@ -368,54 +371,189 @@
         return tooltip;
     }
 
-    function positionTooltip(tooltip, target, position) {
-        const targetRect = target.getBoundingClientRect();
-        const tooltipRect = tooltip.getBoundingClientRect();
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+    function clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
+    }
 
-        let top, left;
+    function getViewportSafeArea() {
+        const margin = CONFIG.viewportMargin;
+        const topNavbar = document.querySelector('.top-navbar');
+        const navbarBottom = topNavbar ? topNavbar.getBoundingClientRect().bottom : 0;
+
+        return {
+            top: Math.max(margin, navbarBottom + 16),
+            right: margin,
+            bottom: margin,
+            left: margin,
+        };
+    }
+
+    function getVisibleMetrics(rect) {
+        const visibleWidth = Math.max(0, Math.min(rect.right, window.innerWidth) - Math.max(rect.left, 0));
+        const visibleHeight = Math.max(0, Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0));
+        const visibleArea = visibleWidth * visibleHeight;
+        const totalArea = Math.max(1, rect.width * rect.height);
+
+        return {
+            visibleWidth,
+            visibleHeight,
+            visibleArea,
+            visibleRatio: visibleArea / totalArea,
+        };
+    }
+
+    function resolveTooltipTarget(selector) {
+        const candidates = Array.from(document.querySelectorAll(selector))
+            .map((element) => {
+                const rect = element.getBoundingClientRect();
+                if (rect.width === 0 || rect.height === 0) {
+                    return null;
+                }
+
+                const { visibleRatio } = getVisibleMetrics(rect);
+                const centerX = rect.left + (rect.width / 2);
+                const centerY = rect.top + (rect.height / 2);
+                const distanceToViewportCenter = Math.abs(centerX - (window.innerWidth / 2))
+                    + Math.abs(centerY - (window.innerHeight / 2));
+
+                return {
+                    element,
+                    visibleRatio,
+                    distanceToViewportCenter,
+                };
+            })
+            .filter(Boolean)
+            .sort((a, b) => {
+                if (b.visibleRatio !== a.visibleRatio) {
+                    return b.visibleRatio - a.visibleRatio;
+                }
+
+                return a.distanceToViewportCenter - b.distanceToViewportCenter;
+            });
+
+        return candidates[0]?.element || null;
+    }
+
+    function shouldDetachTooltip(targetRect) {
+        return getVisibleMetrics(targetRect).visibleRatio < CONFIG.visibleTargetThreshold;
+    }
+
+    function getDetachedTooltipPosition(tooltipRect, index) {
+        const safeArea = getViewportSafeArea();
+        const gap = CONFIG.floatingTooltipGap;
+        const maxTop = Math.max(safeArea.top, window.innerHeight - tooltipRect.height - safeArea.bottom);
+
+        return {
+            top: clamp(
+                safeArea.top + (index * (tooltipRect.height + gap)),
+                safeArea.top,
+                maxTop
+            ),
+            left: clamp(
+                window.innerWidth - tooltipRect.width - safeArea.right,
+                safeArea.left,
+                Math.max(safeArea.left, window.innerWidth - tooltipRect.width - safeArea.right)
+            ),
+            detached: true,
+            appliedPosition: 'floating',
+        };
+    }
+
+    function getAnchoredTooltipPosition(targetRect, tooltipRect, position) {
+        const safeArea = getViewportSafeArea();
         const offset = 12;
+        const minLeft = safeArea.left;
+        const maxLeft = Math.max(minLeft, window.innerWidth - tooltipRect.width - safeArea.right);
+        const minTop = safeArea.top;
+        const maxTop = Math.max(minTop, window.innerHeight - tooltipRect.height - safeArea.bottom);
+
+        let top;
+        let left;
 
         switch (position) {
             case 'top':
-                top = targetRect.top + scrollTop - tooltipRect.height - offset;
-                left = targetRect.left + scrollLeft + (targetRect.width / 2) - (tooltipRect.width / 2);
+                top = targetRect.top - tooltipRect.height - offset;
+                left = targetRect.left + (targetRect.width / 2) - (tooltipRect.width / 2);
                 break;
             case 'bottom':
-                top = targetRect.bottom + scrollTop + offset;
-                left = targetRect.left + scrollLeft + (targetRect.width / 2) - (tooltipRect.width / 2);
+                top = targetRect.bottom + offset;
+                left = targetRect.left + (targetRect.width / 2) - (tooltipRect.width / 2);
                 break;
             case 'left':
-                top = targetRect.top + scrollTop + (targetRect.height / 2) - (tooltipRect.height / 2);
-                left = targetRect.left + scrollLeft - tooltipRect.width - offset;
+                top = targetRect.top + (targetRect.height / 2) - (tooltipRect.height / 2);
+                left = targetRect.left - tooltipRect.width - offset;
                 break;
             case 'right':
-                top = targetRect.top + scrollTop + (targetRect.height / 2) - (tooltipRect.height / 2);
-                left = targetRect.right + scrollLeft + offset;
+                top = targetRect.top + (targetRect.height / 2) - (tooltipRect.height / 2);
+                left = targetRect.right + offset;
                 break;
             default:
-                top = targetRect.bottom + scrollTop + offset;
-                left = targetRect.left + scrollLeft;
+                top = targetRect.bottom + offset;
+                left = targetRect.left;
         }
 
-        // Ajustar se sair da tela
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
+        return {
+            top: clamp(top, minTop, maxTop),
+            left: clamp(left, minLeft, maxLeft),
+            detached: false,
+            appliedPosition: position,
+        };
+    }
 
-        if (left < 10) left = 10;
-        if (left + tooltipRect.width > viewportWidth - 10) {
-            left = viewportWidth - tooltipRect.width - 10;
-        }
-        if (top < scrollTop + 10) top = scrollTop + 10;
+    function syncTargetHighlight(target, shouldHighlight) {
+        if (!target) return;
+        target.classList.toggle('fvt-highlighted', shouldHighlight);
+    }
 
-        tooltip.style.top = `${top}px`;
-        tooltip.style.left = `${left}px`;
-        tooltip.dataset.position = position;
+    function positionTooltip(tooltip, target, position, index = 0) {
+        if (!tooltip || !target) return;
+
+        const tooltipRect = tooltip.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+        const coordinates = shouldDetachTooltip(targetRect)
+            ? getDetachedTooltipPosition(tooltipRect, index)
+            : getAnchoredTooltipPosition(targetRect, tooltipRect, position);
+
+        tooltip.style.top = `${coordinates.top}px`;
+        tooltip.style.left = `${coordinates.left}px`;
+        tooltip.dataset.position = coordinates.appliedPosition;
+        tooltip.classList.toggle('fvt-detached', coordinates.detached);
+
+        syncTargetHighlight(target, !coordinates.detached);
+    }
+
+    function repositionActiveTooltips() {
+        activeTooltips = activeTooltips.filter((tooltip) => {
+            const target = tooltip.__fvtTarget;
+            if (!tooltip.isConnected || !target || !target.isConnected) {
+                tooltip.remove();
+                return false;
+            }
+
+            positionTooltip(
+                tooltip,
+                target,
+                tooltip.__fvtPreferredPosition,
+                tooltip.__fvtIndex || 0
+            );
+
+            return true;
+        });
+    }
+
+    let repositionFrame = 0;
+
+    function scheduleTooltipReposition() {
+        if (repositionFrame) return;
+
+        repositionFrame = requestAnimationFrame(() => {
+            repositionFrame = 0;
+            repositionActiveTooltips();
+        });
     }
 
     function showTooltip(config, index = 0) {
-        const target = document.querySelector(config.selector);
+        const target = resolveTooltipTarget(config.selector);
         if (!target) return null;
 
         // Verificar se elemento está visível
@@ -428,21 +566,20 @@
         }
 
         const tooltip = createTooltipElement(config);
+        tooltip.__fvtTarget = target;
+        tooltip.__fvtPreferredPosition = config.position;
+        tooltip.__fvtIndex = index;
         document.body.appendChild(tooltip);
 
         // Aguardar renderização para posicionar
         requestAnimationFrame(() => {
-            positionTooltip(tooltip, target, config.position);
+            positionTooltip(tooltip, target, config.position, index);
 
             // Animar entrada
             setTimeout(() => {
                 tooltip.classList.add('fvt-visible');
             }, 50 + (index * 200)); // Delay escalonado
         });
-
-        // Highlight no elemento alvo
-        target.classList.add('fvt-highlighted');
-
         // Eventos de fechamento
         const closeBtn = tooltip.querySelector('.fvt-close');
         const gotItBtn = tooltip.querySelector('.fvt-got-it');
@@ -489,6 +626,10 @@
         }
     }
 
+    function hasTooltipsForPage(page) {
+        return Array.isArray(PAGE_TOOLTIPS[page]) && PAGE_TOOLTIPS[page].length > 0;
+    }
+
     function init() {
         loadVisitedPages();
 
@@ -533,13 +674,20 @@
         resetVisitedPages,
         hasVisitedPage,
         markPageVisited,
+        hasTooltipsForPage,
+        getCurrentPage,
     };
 
     // Auto-inicializar
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        setTimeout(init, 500);
+    window.addEventListener('resize', scheduleTooltipReposition, { passive: true });
+    window.addEventListener('scroll', scheduleTooltipReposition, { passive: true });
+
+    if (!window.__LK_HELP_CENTER_MANAGED) {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            setTimeout(init, 500);
+        }
     }
 
 })();

@@ -84,6 +84,62 @@ class CampaignApiWorkflowServiceTest extends TestCase
         ], $result['data']);
     }
 
+    public function testCreateCampaignReturnsFailedMessageWhenAllChannelsFail(): void
+    {
+        $campaign = new MessageCampaign();
+        $campaign->id = 12;
+        $campaign->title = 'Falha total';
+        $campaign->status = MessageCampaign::STATUS_FAILED;
+        $campaign->total_recipients = 57;
+        $campaign->emails_sent = 0;
+        $campaign->emails_failed = 57;
+
+        $notificationService = Mockery::mock(NotificationService::class);
+        $notificationService
+            ->shouldReceive('sendCampaign')
+            ->once()
+            ->andReturn($campaign);
+
+        $service = new CampaignApiWorkflowService($notificationService);
+
+        $result = $service->createCampaign(7, 'Admin Master', [
+            'title' => 'Falha total',
+            'message' => 'Mensagem para todos',
+            'send_notification' => false,
+            'send_email' => true,
+        ]);
+
+        $this->assertTrue($result['success']);
+        $this->assertSame('Campanha processada, mas falhou em todos os canais selecionados.', $result['message']);
+        $this->assertSame(MessageCampaign::STATUS_FAILED, $result['data']['status']);
+    }
+
+    public function testProcessDueCampaignsReturnsNotificationServiceStats(): void
+    {
+        $notificationService = Mockery::mock(NotificationService::class);
+        $notificationService
+            ->shouldReceive('processScheduledCampaigns')
+            ->once()
+            ->andReturn([
+                'processed' => 3,
+                'sent' => 1,
+                'partial' => 1,
+                'failed' => 1,
+                'stuck_recovered' => 2,
+            ]);
+
+        $service = new CampaignApiWorkflowService($notificationService);
+        $result = $service->processDueCampaigns();
+
+        $this->assertSame([
+            'processed' => 3,
+            'sent' => 1,
+            'partial' => 1,
+            'failed' => 1,
+            'stuck_recovered' => 2,
+        ], $result);
+    }
+
     public function testCancelScheduledRejectsNonScheduledCampaign(): void
     {
         $campaign = new MessageCampaign();

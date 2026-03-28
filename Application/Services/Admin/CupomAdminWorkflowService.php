@@ -24,7 +24,7 @@ class CupomAdminWorkflowService
             $cupons = Cupom::orderBy('created_at', 'desc')->get();
 
             return $this->success([
-                'cupons' => $cupons->map(fn (Cupom $cupom): array => $this->formatCoupon($cupom, true)),
+                'cupons' => $cupons->map(fn(Cupom $cupom): array => $this->formatCoupon($cupom, true)),
             ]);
         } catch (Throwable $e) {
             return $this->internalFailure($e, 'Erro ao listar cupons.', [
@@ -163,7 +163,7 @@ class CupomAdminWorkflowService
                 ->exists();
 
             if ($jaUsou) {
-                return $this->failure('Voce ja utilizou este cupom anteriormente', 400);
+                return $this->failure('você ja utilizou este cupom anteriormente', 400);
             }
 
             $elegibilidadeErro = $this->verificarElegibilidade($user, $cupom);
@@ -334,7 +334,7 @@ class CupomAdminWorkflowService
                 ->exists();
 
             if ($temAtiva) {
-                return 'Voce ja possui uma assinatura ativa.';
+                return 'você ja possui uma assinatura ativa.';
             }
 
             $ultimaAssinatura = AssinaturaUsuario::where('user_id', $user->id)

@@ -57,7 +57,7 @@ function renderEmpty() {
                 <i data-lucide="credit-card" style="color: white;"></i>
             </div>
             <h3>Nenhum cartao arquivado</h3>
-            <p>Voce nao possui cartoes arquivados no momento</p>
+            <p>você nao possui cartoes arquivados no momento</p>
         </div>
     `;
     refreshIcons();

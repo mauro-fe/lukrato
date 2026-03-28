@@ -21,6 +21,18 @@
   margin-bottom: var(--spacing-6);
 }
 
+.lk-form-group.lk-form-group-disabled {
+  opacity: 0.72;
+}
+
+.lk-form-group.lk-form-group-disabled .lk-checkbox-label {
+  cursor: not-allowed;
+}
+
+.lk-form-group.lk-form-group-disabled .lk-helper-text {
+  color: var(--color-warning, #f59e0b);
+}
+
 .lk-label {
   display: flex;
   align-items: center;

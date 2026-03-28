@@ -24,7 +24,7 @@ export const perfilPreview: PerfilSnapshot = {
   guidedSteps: [
     {
       id: '1',
-      title: 'Confirme os dados que voce usa de verdade',
+      title: 'Confirme os dados que você usa de verdade',
       description: 'Nome, telefone e endereco corretos evitam duvida quando precisar de suporte ou recuperar acesso.',
       done: true,
     },

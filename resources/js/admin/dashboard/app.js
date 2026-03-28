@@ -476,7 +476,7 @@ export const Renderers = {
         if (!insightEl) return;
 
         if (!Array.isArray(data) || data.length === 0 || data.every((value) => Number(value) === 0)) {
-            insightEl.textContent = 'Seu historico aparece aqui conforme voce usa o Lukrato mais vezes.';
+            insightEl.textContent = 'Seu historico aparece aqui conforme você usa o Lukrato mais vezes.';
             return;
         }
 
@@ -726,7 +726,7 @@ export const Renderers = {
                     const catIcon = tx.categoria_icone || (isIncome ? 'arrow-down-left' : 'arrow-up-right');
 
                     const el = document.createElement('div');
-                    el.className = 'dash-tx-item';
+                    el.className = 'dash-tx-item surface-card';
                     el.setAttribute('data-id', tx.id);
                     el.innerHTML = `
                         <div class="dash-tx__left">

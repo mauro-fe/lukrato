@@ -31,6 +31,7 @@ import './enhancements.js';        // window.showToast, debounce, copyToClipboar
 // ─── 3. UI Components ──────────────────────────────────────────────────────
 import './lucide-init.js';         // LK.refreshIcons (MutationObserver p/ ícones dinâmicos)
 import './accessibility.js';       // window.LKAccessibility (ARIA, focus trap)
+import './help-center.js';         // LKHelpCenter (tours por pagina + replay no navbar)
 import './first-visit-tooltips.js';// window.FirstVisitTooltips (tour primeira visita)
 import './tooltips.js';            // Tooltips customizados (hover)
 import './admin-home-header.js';   // LK.initHeader, LK.initModals (sidebar, notificações)

@@ -73,7 +73,7 @@ export async function sugerirCategoriaIA(opts) {
         }
 
         if (error?.status === 429) {
-            notify('Voce usou suas sugestoes gratuitas de categoria neste mes. Faca upgrade para continuar.', 'warning');
+            notify('você usou suas sugestoes gratuitas de categoria neste mes. Faca upgrade para continuar.', 'warning');
             return;
         }
 

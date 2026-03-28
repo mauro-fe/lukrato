@@ -32,6 +32,12 @@ let totalPages = 1;
 let isInitialized = false;
 let previewRequestSeq = 0;
 let campaignsRequestSeq = 0;
+let queueSyncIntervalId = null;
+let isProcessingDueCampaigns = false;
+
+const CAMPAIGN_SEND_TIMEOUT = 180000;
+const CAMPAIGN_QUEUE_SYNC_TIMEOUT = 120000;
+const CAMPAIGN_QUEUE_SYNC_INTERVAL = 60000;
 
 function lucideIcon(faClass) {
     return faToLucide[faClass] || String(faClass || '').replace('fa-', '');
@@ -104,6 +110,90 @@ function updateHistorySummary(pagination) {
     }
 
     summary.textContent = `${total.toLocaleString('pt-BR')} campanha(s) registradas • pagina ${page} de ${totalPagesValue}.`;
+}
+
+function buildCampaignDeliverySummary(payload) {
+    const recipients = Number(payload?.total_recipients || 0).toLocaleString('pt-BR');
+    const emailsSent = Number(payload?.emails_sent || 0);
+    const emailsFailed = Number(payload?.emails_failed || 0);
+    const parts = [`Destinatarios processados: ${recipients}.`];
+
+    if (emailsSent > 0 || emailsFailed > 0) {
+        parts.push(`E-mails enviados: ${emailsSent.toLocaleString('pt-BR')}.`);
+    }
+
+    if (emailsFailed > 0) {
+        parts.push(`Falhas de e-mail: ${emailsFailed.toLocaleString('pt-BR')}.`);
+    }
+
+    return parts.join(' ');
+}
+
+async function syncCampaignQueue(options = {}) {
+    const { silent = true, refreshAfterSync = false } = options;
+
+    if (isProcessingDueCampaigns) {
+        return null;
+    }
+
+    isProcessingDueCampaigns = true;
+
+    try {
+        const response = await apiPost(`${BASE}api/campaigns/process-due`, {}, {
+            timeout: CAMPAIGN_QUEUE_SYNC_TIMEOUT
+        });
+
+        if (response?.success === false) {
+            if (!silent) {
+                LKFeedback.warning(response?.message || 'Nao foi possivel sincronizar a fila de campanhas.');
+            }
+
+            return null;
+        }
+
+        const payload = response?.data ?? response;
+        const hasRelevantChange = Number(payload?.processed || 0) > 0 || Number(payload?.stuck_recovered || 0) > 0;
+
+        if (refreshAfterSync && hasRelevantChange) {
+            await loadCampaigns(currentPage);
+        }
+
+        return payload;
+    } catch (error) {
+        logClientError('[Communications] Erro ao sincronizar fila de campanhas', error, 'Falha ao sincronizar fila');
+
+        if (!silent) {
+            LKFeedback.error(getErrorMessage(error, 'Nao foi possivel sincronizar a fila de campanhas.'));
+        }
+
+        return null;
+    } finally {
+        isProcessingDueCampaigns = false;
+    }
+}
+
+function stopCampaignQueuePolling() {
+    if (queueSyncIntervalId) {
+        clearInterval(queueSyncIntervalId);
+        queueSyncIntervalId = null;
+    }
+}
+
+function startCampaignQueuePolling() {
+    stopCampaignQueuePolling();
+
+    queueSyncIntervalId = window.setInterval(async () => {
+        if (document.hidden) {
+            return;
+        }
+
+        const payload = await syncCampaignQueue({ silent: true });
+        const hasRelevantChange = Number(payload?.processed || 0) > 0 || Number(payload?.stuck_recovered || 0) > 0;
+
+        if (hasRelevantChange) {
+            await loadCampaigns(currentPage);
+        }
+    }, CAMPAIGN_QUEUE_SYNC_INTERVAL);
 }
 
 async function updatePreview() {
@@ -283,6 +373,8 @@ async function loadCampaigns(page = 1) {
         </div>
     `;
     renderIcons();
+
+    await syncCampaignQueue({ silent: true });
 
     try {
         const response = await apiGet(`${BASE}api/campaigns`, {
@@ -519,7 +611,7 @@ async function handleFormSubmit(event) {
     const channelText = [sendNotification ? 'Notificacao' : '', sendEmail ? 'E-mail' : ''].filter(Boolean).join(' + ');
     const confirmMsg = isScheduled
         ? `Campanha sera agendada para ${new Date(scheduledAt).toLocaleString('pt-BR')}.\nDestinatarios estimados: ${recipientCount}. Canais: ${channelText}`
-        : `Voce esta prestes a enviar uma campanha para ${recipientCount} usuarios. Canais: ${channelText}`;
+        : `você esta prestes a enviar uma campanha para ${recipientCount} usuarios. Canais: ${channelText}`;
 
     const confirmResult = await LKFeedback.confirm(confirmMsg, {
         title: isScheduled ? 'Confirmar agendamento?' : 'Confirmar envio?',
@@ -554,10 +646,13 @@ async function handleFormSubmit(event) {
                 status: document.getElementById('filterStatus')?.value || '',
                 days_inactive: document.getElementById('filterDaysInactive')?.value || null
             }
+        }, {
+            timeout: CAMPAIGN_SEND_TIMEOUT
         });
 
         if (response?.success === false) {
             LKFeedback.error(response?.message || 'Ocorreu um erro ao enviar a campanha.');
+            await loadCampaigns(1);
             return;
         }
 
@@ -566,14 +661,24 @@ async function handleFormSubmit(event) {
         if (payload?.scheduled_at) {
             LKFeedback.success(`Campanha agendada para ${payload.scheduled_at}.`, { toast: true });
         } else {
-            LKFeedback.success(`${Number(payload?.total_recipients || 0).toLocaleString('pt-BR')} usuarios receberao sua mensagem.${payload?.emails_sent > 0 ? ` E-mails enviados: ${payload.emails_sent}` : ''}${payload?.emails_failed > 0 ? ` E-mails com falha: ${payload.emails_failed}` : ''}`, { toast: true });
+            const summary = buildCampaignDeliverySummary(payload);
+
+            if (payload?.status === 'failed') {
+                LKFeedback.error(`A campanha falhou em todos os canais. ${summary}`);
+            } else if (payload?.status === 'partial') {
+                LKFeedback.warning(`A campanha foi enviada parcialmente. ${summary}`);
+            } else {
+                LKFeedback.success(summary, { toast: true });
+            }
         }
 
-        form.reset();
-        document.getElementById('titleCount').textContent = '0';
-        document.getElementById('sendNotification').checked = true;
-        document.getElementById('scheduleEnabled').checked = false;
-        syncScheduleState();
+        if (payload?.status !== 'failed') {
+            form.reset();
+            document.getElementById('titleCount').textContent = '0';
+            document.getElementById('sendNotification').checked = true;
+            document.getElementById('scheduleEnabled').checked = false;
+            syncScheduleState();
+        }
 
         await loadCampaigns(1);
         await updatePreview();
@@ -664,6 +769,7 @@ function initCommunicationsPage() {
     isInitialized = true;
     setupFormListeners();
     syncScheduleState();
+    startCampaignQueuePolling();
     loadCampaigns();
     updatePreview();
 }
@@ -676,3 +782,19 @@ document.addEventListener('DOMContentLoaded', initCommunicationsPage);
 if (document.readyState !== 'loading') {
     initCommunicationsPage();
 }
+
+document.addEventListener('visibilitychange', () => {
+    if (!isInitialized) {
+        return;
+    }
+
+    if (document.hidden) {
+        stopCampaignQueuePolling();
+        return;
+    }
+
+    startCampaignQueuePolling();
+    syncCampaignQueue({ silent: true, refreshAfterSync: true });
+});
+
+window.addEventListener('beforeunload', stopCampaignQueuePolling);

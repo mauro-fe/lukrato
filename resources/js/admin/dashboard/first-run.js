@@ -46,7 +46,10 @@ class DashboardFirstRunExperience {
   }
 
   init() {
-    this.createTourPrompt();
+    if (!window.LKHelpCenter?.isManagingAutoOffers?.()) {
+      this.createTourPrompt();
+    }
+
     this.bindEvents();
     this.syncDisplayNamePrompt();
   }
@@ -138,7 +141,8 @@ class DashboardFirstRunExperience {
   }
 
   shouldOfferTour() {
-    return localStorage.getItem(STORAGE.TOUR_PROMPT_DISMISSED) !== '1'
+    return !window.LKHelpCenter?.isManagingAutoOffers?.()
+      && localStorage.getItem(STORAGE.TOUR_PROMPT_DISMISSED) !== '1'
       && localStorage.getItem(STORAGE.TOUR_COMPLETED) !== '1'
       && window.__LK_CONFIG?.tourCompleted !== true
       && Number(this.state.transactionCount ?? 0) === 0
@@ -340,6 +344,11 @@ class DashboardFirstRunExperience {
   }
 
   startTour() {
+    if (window.LKHelpCenter?.startCurrentPageTutorial) {
+      window.LKHelpCenter.startCurrentPageTutorial({ source: 'dashboard-first-run' });
+      return;
+    }
+
     const steps = this.buildTour();
     if (steps.length === 0) {
       return;

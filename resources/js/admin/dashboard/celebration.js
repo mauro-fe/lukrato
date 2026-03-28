@@ -50,7 +50,7 @@ class CelebrationSystem {
   playLevelUpAnimation(level) {
     this.showCelebrationToast({
       title: `Nivel ${level}`,
-      subtitle: 'Voce subiu de nivel.',
+      subtitle: 'você subiu de nivel.',
       icon: 'star',
       duration: 3000,
     });
@@ -68,10 +68,10 @@ class CelebrationSystem {
 
   playStreakAnimation(days) {
     const messages = {
-      7: { title: 'Semana perfeita', subtitle: 'Voce chegou a 7 dias seguidos.' },
-      14: { title: 'Duas semanas', subtitle: 'Voce chegou a 14 dias seguidos.' },
-      30: { title: 'Mes epico', subtitle: 'Voce chegou a 30 dias seguidos.' },
-      100: { title: 'Marco historico', subtitle: 'Voce chegou a 100 dias seguidos.' },
+      7: { title: 'Semana perfeita', subtitle: 'você chegou a 7 dias seguidos.' },
+      14: { title: 'Duas semanas', subtitle: 'você chegou a 14 dias seguidos.' },
+      30: { title: 'Mes epico', subtitle: 'você chegou a 30 dias seguidos.' },
+      100: { title: 'Marco historico', subtitle: 'você chegou a 100 dias seguidos.' },
     };
 
     const message = messages[days] || {
@@ -86,7 +86,7 @@ class CelebrationSystem {
   playGoalAnimation(goalName) {
     this.showCelebrationToast({
       title: 'Meta atingida',
-      subtitle: `Voce completou: ${goalName}`,
+      subtitle: `você completou: ${goalName}`,
       icon: 'target',
       duration: 3500,
     });
@@ -130,7 +130,7 @@ class CelebrationSystem {
   showCelebrationToast(options) {
     const {
       title = 'Parabens',
-      subtitle = 'Voce fez progresso.',
+      subtitle = 'você fez progresso.',
       icon = 'party-popper',
       duration = 3000,
     } = options;

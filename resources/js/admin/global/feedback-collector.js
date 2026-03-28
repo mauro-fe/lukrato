@@ -173,7 +173,7 @@ import { apiGet, apiPost } from '../shared/api.js';
             html: `
                 <div class="lk-nps-container">
                     <p style="font-size:0.85rem;color:var(--color-text-muted,#94a3b8);margin-bottom:4px;">
-                        De 0 a 10, quanto voce recomendaria o Lukrato para um amigo?
+                        De 0 a 10, quanto você recomendaria o Lukrato para um amigo?
                     </p>
                     <div class="lk-nps-scale">${scaleButtons}</div>
                     <div class="lk-nps-labels">
@@ -258,9 +258,9 @@ import { apiGet, apiPost } from '../shared/api.js';
 
         const types = [
             { id: 'sugestao', label: 'Sugestão', icon: 'lightbulb' },
-            { id: 'critica',  label: 'Crítica',  icon: 'alert-triangle' },
-            { id: 'elogio',   label: 'Elogio',   icon: 'heart' },
-            { id: 'bug',      label: 'Bug',       icon: 'bug' },
+            { id: 'critica', label: 'Crítica', icon: 'alert-triangle' },
+            { id: 'elogio', label: 'Elogio', icon: 'heart' },
+            { id: 'bug', label: 'Bug', icon: 'bug' },
         ];
 
         const typeChips = types.map(t =>

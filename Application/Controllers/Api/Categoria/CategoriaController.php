@@ -113,7 +113,7 @@ class CategoriaController extends BaseController
                 $gamificationResult['achievements'] = $newAchievements;
             }
         } catch (\Exception) {
-            // Gamificacao e secundaria e nao bloqueia a criacao.
+            // Gamificacao e secundaria e não bloqueia a criacao.
         }
 
         UserCategoryLoader::invalidate($userId);

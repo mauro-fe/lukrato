@@ -59,7 +59,7 @@ class SysAdminController extends BaseController
 
             return Response::successResponse($result['data'], $result['message']);
         } catch (ClientErrorException $e) {
-            return $this->domainErrorResponse($e, 'Nao foi possivel liberar o acesso.', $e->statusCode);
+            return $this->domainErrorResponse($e, 'Não foi possivel liberar o acesso.', $e->statusCode);
         } catch (Throwable $e) {
             $this->logSysAdminError('Erro ao liberar acesso.', $e, ['admin_user_id' => $admin->id]);
 
@@ -82,7 +82,7 @@ class SysAdminController extends BaseController
 
             return Response::successResponse($result['data'], $result['message']);
         } catch (ClientErrorException $e) {
-            return $this->domainErrorResponse($e, 'Nao foi possivel remover o acesso.', $e->statusCode);
+            return $this->domainErrorResponse($e, 'Não foi possivel remover o acesso.', $e->statusCode);
         } catch (Throwable $e) {
             $this->logSysAdminError('Erro ao remover acesso.', $e, ['admin_user_id' => $admin->id]);
 
@@ -114,7 +114,7 @@ class SysAdminController extends BaseController
         } catch (ClientErrorException $e) {
             return $this->domainErrorResponse(
                 $e,
-                'Usuario nao encontrado.',
+                'Usuario não encontrado.',
                 $e->statusCode,
                 [],
                 $e->statusCode === 404 ? 'RESOURCE_NOT_FOUND' : null
@@ -144,7 +144,7 @@ class SysAdminController extends BaseController
         } catch (ClientErrorException $e) {
             return $this->domainErrorResponse(
                 $e,
-                'Nao foi possivel atualizar o usuario.',
+                'Não foi possivel atualizar o usuario.',
                 $e->statusCode,
                 [],
                 $e->statusCode === 404 ? 'RESOURCE_NOT_FOUND' : null
@@ -173,7 +173,7 @@ class SysAdminController extends BaseController
         } catch (ClientErrorException $e) {
             return $this->domainErrorResponse(
                 $e,
-                'Nao foi possivel excluir o usuario.',
+                'Não foi possivel excluir o usuario.',
                 $e->statusCode,
                 [],
                 $e->statusCode === 404 ? 'RESOURCE_NOT_FOUND' : null
@@ -238,7 +238,7 @@ class SysAdminController extends BaseController
                 return Response::successResponse(null, 'Log marcado como resolvido');
             }
 
-            return Response::errorResponse('Log nao encontrado', 404);
+            return Response::errorResponse('Log não encontrado', 404);
         } catch (Throwable $e) {
             return $this->internalErrorResponse($e, 'Erro ao resolver log.');
         }

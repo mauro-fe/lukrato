@@ -406,8 +406,8 @@ export const CartoesUI = {
                             ${brandName}
                         </span>
                         <span class="card-meta-chip card-meta-chip--status ${cartao.temFaturaPendente ? 'is-pending' : 'is-ok'}" ${buildTooltipAttrs(statusLabel, cartao.temFaturaPendente
-                            ? 'Ha uma fatura aberta para este cartao que merece acompanhamento ou pagamento.'
-                            : 'Sem pendencias abertas para o ciclo atual deste cartao.')}>
+            ? 'Ha uma fatura aberta para este cartao que merece acompanhamento ou pagamento.'
+            : 'Sem pendencias abertas para o ciclo atual deste cartao.')}>
                             <i data-lucide="${cartao.temFaturaPendente ? 'circle-alert' : 'badge-check'}"></i>
                             ${statusLabel}
                         </span>
@@ -761,7 +761,7 @@ export const CartoesUI = {
             titulo.textContent = 'Novo cartao de credito';
             subtitle.textContent = contasDisponiveis
                 ? 'Cadastre o cartao e vincule a conta usada para pagar a fatura.'
-                : 'Antes de cadastrar um cartao, voce precisa ter ao menos uma conta.';
+                : 'Antes de cadastrar um cartao, você precisa ter ao menos uma conta.';
 
             if (modalHeader) {
                 modalHeader.style.background = '';

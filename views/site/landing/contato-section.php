@@ -121,7 +121,7 @@
                     <label for="lk_email" class="block text-sm font-semibold text-gray-700 mb-2">
                         Seu e-mail
                     </label>
-                    <input id="lk_email" name="email" type="email" placeholder="voce@email.com" required
+                    <input id="lk_email" name="email" type="email" placeholder="você@email.com" required
                         class="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-orange-200 outline-none transition-all">
                 </div>
 

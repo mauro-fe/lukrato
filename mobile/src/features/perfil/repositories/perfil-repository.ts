@@ -219,7 +219,7 @@ function buildFocus(
     return {
       title: 'Seu perfil ainda precisa de alguns detalhes',
       description:
-        'Completar os dados reduz duvida quando voce precisar de ajuda ou quiser ligar algum recurso mais avancado.',
+        'Completar os dados reduz duvida quando você precisar de ajuda ou quiser ligar algum recurso mais avancado.',
       valueLabel: `${completion.score}% completo`,
       supportText: 'Telefone, avatar e endereco costumam ser os pontos que faltam primeiro.',
       tone: 'warning',
@@ -239,7 +239,7 @@ function buildFocus(
 
   if (referral.pendingInvites > 0) {
     return {
-      title: 'Voce tem indicacoes esperando fechar o ciclo',
+      title: 'você tem indicacoes esperando fechar o ciclo',
       description:
         'O perfil mostra o progresso do programa de indicacao sem misturar isso com configuracoes sensiveis.',
       valueLabel: `${referral.pendingInvites} pendente(s)`,
@@ -313,7 +313,7 @@ function buildSnapshot(
       },
       {
         id: '2',
-        title: 'Guarde o codigo de suporte onde voce lembra',
+        title: 'Guarde o codigo de suporte onde você lembra',
         description: 'Ele acelera ajuda humana sem obrigar o usuario a explicar tudo do zero.',
         done: supportCode !== 'Sem codigo',
       },
@@ -458,26 +458,26 @@ class PerfilRepository {
 
       const referral = referralPayload
         ? {
-            code: normalizeValue(referralPayload.referral_code, 'Sem codigo ainda'),
-            link: String(referralPayload.referral_link ?? '').trim(),
-            rewardDays: Number(referralPayload.dias_ganhos ?? 0),
-            totalInvites: Number(referralPayload.total_indicacoes ?? 0),
-            completedInvites: Number(referralPayload.indicacoes_completadas ?? 0),
-            pendingInvites: Number(referralPayload.indicacoes_pendentes ?? 0),
-            monthlyUsed: Number(referralPayload.indicacoes_mes ?? 0),
-            monthlyLimit: Number(referralPayload.limite_mensal ?? 0),
-            monthlyRemaining: Number(referralPayload.indicacoes_restantes ?? 0),
-          }
+          code: normalizeValue(referralPayload.referral_code, 'Sem codigo ainda'),
+          link: String(referralPayload.referral_link ?? '').trim(),
+          rewardDays: Number(referralPayload.dias_ganhos ?? 0),
+          totalInvites: Number(referralPayload.total_indicacoes ?? 0),
+          completedInvites: Number(referralPayload.indicacoes_completadas ?? 0),
+          pendingInvites: Number(referralPayload.indicacoes_pendentes ?? 0),
+          monthlyUsed: Number(referralPayload.indicacoes_mes ?? 0),
+          monthlyLimit: Number(referralPayload.limite_mensal ?? 0),
+          monthlyRemaining: Number(referralPayload.indicacoes_restantes ?? 0),
+        }
         : buildEmptyReferral();
 
       const telegram = telegramPayload
         ? {
-            linked: Boolean(telegramPayload.linked),
-            username: telegramPayload.username ?? null,
-            helperText: telegramPayload.linked
-              ? 'Telegram vinculado. O usuario consegue ver isso sem medo de mexer em configuracao sensivel.'
-              : 'Conecte o Telegram apenas se fizer sentido para registrar coisas sem abrir o app inteiro.',
-          }
+          linked: Boolean(telegramPayload.linked),
+          username: telegramPayload.username ?? null,
+          helperText: telegramPayload.linked
+            ? 'Telegram vinculado. O usuario consegue ver isso sem medo de mexer em configuracao sensivel.'
+            : 'Conecte o Telegram apenas se fizer sentido para registrar coisas sem abrir o app inteiro.',
+        }
         : buildEmptyTelegram();
 
       return {

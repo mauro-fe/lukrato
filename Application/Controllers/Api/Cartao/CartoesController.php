@@ -157,7 +157,7 @@ class CartoesController extends BaseController
         try {
             return Response::successResponse($this->workflowService->getInvoice($id, $mes, $ano, $userId));
         } catch (\Exception $e) {
-            return $this->notFoundFromThrowable($e, 'Fatura nao encontrada.');
+            return $this->notFoundFromThrowable($e, 'Fatura não encontrada.');
         }
     }
 
@@ -168,7 +168,7 @@ class CartoesController extends BaseController
         try {
             return Response::successResponse($this->workflowService->payInvoice($id, $userId, $this->getRequestPayload()));
         } catch (\Exception $e) {
-            return $this->domainErrorResponse($e, 'Nao foi possivel pagar a fatura.', 400);
+            return $this->domainErrorResponse($e, 'Não foi possivel pagar a fatura.', 400);
         }
     }
 
@@ -184,7 +184,7 @@ class CartoesController extends BaseController
         try {
             return Response::successResponse($this->workflowService->payInstallments($id, $userId, $payload));
         } catch (\Exception $e) {
-            return $this->domainErrorResponse($e, 'Nao foi possivel pagar as parcelas.', 400);
+            return $this->domainErrorResponse($e, 'Não foi possivel pagar as parcelas.', 400);
         }
     }
 
@@ -195,7 +195,7 @@ class CartoesController extends BaseController
 
             return Response::successResponse(['meses' => $meses]);
         } catch (\Exception $e) {
-            return $this->notFoundFromThrowable($e, 'Cartao nao encontrado.');
+            return $this->notFoundFromThrowable($e, 'Cartao não encontrado.');
         }
     }
 
@@ -207,7 +207,7 @@ class CartoesController extends BaseController
         try {
             return Response::successResponse($this->workflowService->getInvoiceHistory($id, $userId, $limite));
         } catch (\Exception $e) {
-            return $this->notFoundFromThrowable($e, 'Cartao nao encontrado.');
+            return $this->notFoundFromThrowable($e, 'Cartao não encontrado.');
         }
     }
 
@@ -304,7 +304,7 @@ class CartoesController extends BaseController
                 'user_id' => $userId,
             ]);
 
-            return $this->domainErrorResponse($e, 'Nao foi possivel desfazer o pagamento da fatura.', 400);
+            return $this->domainErrorResponse($e, 'Não foi possivel desfazer o pagamento da fatura.', 400);
         }
     }
 
@@ -321,7 +321,7 @@ class CartoesController extends BaseController
                 'user_id' => $userId,
             ]);
 
-            return $this->domainErrorResponse($e, 'Nao foi possivel desfazer o pagamento da parcela.', 400);
+            return $this->domainErrorResponse($e, 'Não foi possivel desfazer o pagamento da parcela.', 400);
         }
     }
 

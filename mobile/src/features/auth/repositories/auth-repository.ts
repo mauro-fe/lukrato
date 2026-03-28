@@ -76,7 +76,7 @@ export function createPreviewSnapshot(): AuthSessionSnapshot {
     source: 'preview',
     userName: 'Visitante',
     helperMessage:
-      'Voce entrou na demonstracao local. Os dados reais voltam assim que fizer login.',
+      'você entrou na demonstracao local. Os dados reais voltam assim que fizer login.',
   });
 }
 
@@ -87,7 +87,7 @@ function getSessionFailureMessage(error: unknown) {
     }
 
     if (error.code === 'NO_BASE_URL') {
-      return 'A URL da API ainda nao foi configurada. Voce pode testar a demo enquanto isso.';
+      return 'A URL da API ainda nao foi configurada. você pode testar a demo enquanto isso.';
     }
 
     return error.message;

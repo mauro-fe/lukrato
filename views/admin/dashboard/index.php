@@ -8,14 +8,8 @@
             </div>
             <form class="dash-display-name-card__form" id="dashboardDisplayNameForm">
                 <label class="visually-hidden" for="dashboardDisplayNameInput">Como você prefere ser chamado?</label>
-                <input
-                    type="text"
-                    id="dashboardDisplayNameInput"
-                    class="lk-input"
-                    maxlength="80"
-                    placeholder="Ex.: Mauro"
-                    autocomplete="nickname"
-                >
+                <input type="text" id="dashboardDisplayNameInput" class="lk-input" maxlength="80"
+                    placeholder="Ex.: Mauro" autocomplete="nickname">
                 <div class="dash-display-name-card__actions">
                     <button type="submit" class="dash-btn dash-btn--primary" id="dashboardDisplayNameSubmit">
                         Salvar nome
@@ -28,12 +22,14 @@
             </form>
         </section>
 
-        <section class="dash-quick-start surface-card surface-card--interactive" id="dashboardQuickStart" style="display:none;">
+        <section class="dash-quick-start surface-card surface-card--interactive" id="dashboardQuickStart"
+            style="display:none;">
             <div class="dash-quick-start__header">
                 <div>
                     <span class="dash-first-run__eyebrow">Primeiro passo</span>
                     <h2>Comece adicionando sua primeira transação</h2>
-                    <p>Sem dados fictícios: assim que você registrar a primeira movimentação, saldo, gráfico e categorias aparecem aqui em tempo real.</p>
+                    <p>Sem dados fictícios: assim que você registrar a primeira movimentação, saldo, gráfico e
+                        categorias aparecem aqui em tempo real.</p>
                 </div>
                 <div class="dash-quick-start__badge">
                     <i data-lucide="sparkles"></i>
@@ -147,7 +143,8 @@
     <div class="dash-duo-row dash-duo-row--flexible">
 
         <!-- PREVISÃO FINANCEIRA — toggled via personalização -->
-        <section class="provisao-section surface-card surface-card--interactive surface-card--clip" id="sectionPrevisao" style="display:none;">
+        <section class="provisao-section surface-card surface-card--interactive surface-card--clip" id="sectionPrevisao"
+            style="display:none;">
             <h2 class="provisao-title" id="provisaoTitle">Previsão financeira</h2>
             <p class="provisao-headline" id="provisaoHeadline"></p>
 
@@ -254,7 +251,8 @@
         <!-- ============================================================
          GAMIFICAÇÃO — toggled via personalização
          ============================================================ -->
-        <section class="gamification-section surface-card surface-card--interactive surface-card--clip" id="sectionGamificacao" style="display:none;">
+        <section class="gamification-section surface-card surface-card--interactive surface-card--clip"
+            id="sectionGamificacao" style="display:none;">
             <div class="gamification-header">
                 <h2 class="gamification-title"><i data-lucide="trophy"></i> Gamificação</h2>
                 <div class="level-badge" id="userLevel"><i data-lucide="star"></i> <span>Nível 1</span></div>
@@ -350,7 +348,8 @@
             <div class="dash-empty" id="emptyState" style="display:none;">
                 <i data-lucide="receipt"></i>
                 <p>Seu histórico começa na primeira transação.</p>
-                <span class="dash-empty__subtext">Adicione um lançamento para ver saldo, gráfico e categorias ganhando contexto real.</span>
+                <span class="dash-empty__subtext">Adicione um lançamento para ver saldo, gráfico e categorias ganhando
+                    contexto real.</span>
                 <button class="dash-btn dash-btn--primary dash-btn--lg" id="dashboardEmptyStateCta"
                     onclick="if (window.fab) { window.fab.open(); } else { window.location.href = window.BASE_URL + 'lancamentos'; }">
                     <i data-lucide="plus"></i> Adicionar agora
@@ -366,7 +365,8 @@
          SEÇÕES OPCIONAIS — toggled via modal de personalização
          ============================================================ -->
     <div class="dash-optional-grid" id="optionalGrid" style="display:none;">
-        <section class="dash-optional-section surface-card surface-card--interactive" id="sectionMetas" style="display:none;">
+        <section class="dash-optional-section surface-card surface-card--interactive" id="sectionMetas"
+            style="display:none;">
             <div class="dash-section-header">
                 <h2 class="dash-section-title">Metas</h2>
             </div>
@@ -375,7 +375,7 @@
             </div>
         </section>
 
-        <section class="dash-optional-section" id="sectionCartoes" style="display:none;">
+        <section class="dash-optional-section surface-card" id="sectionCartoes" style="display:none;">
             <div class="dash-section-header">
                 <h2 class="dash-section-title">Cartões</h2>
             </div>
@@ -384,7 +384,7 @@
             </div>
         </section>
 
-        <section class="dash-optional-section" id="sectionContas" style="display:none;">
+        <section class="dash-optional-section surface-card" id="sectionContas" style="display:none;">
             <div class="dash-section-header">
                 <h2 class="dash-section-title">Contas</h2>
             </div>
@@ -393,7 +393,7 @@
             </div>
         </section>
 
-        <section class="dash-optional-section" id="sectionOrcamentos" style="display:none;">
+        <section class="dash-optional-section surface-card" id="sectionOrcamentos" style="display:none;">
             <div class="dash-section-header">
                 <h2 class="dash-section-title">Orçamentos</h2>
             </div>
@@ -402,7 +402,7 @@
             </div>
         </section>
 
-        <section class="dash-optional-section" id="sectionFaturas" style="display:none;">
+        <section class="dash-optional-section surface-card" id="sectionFaturas" style="display:none;">
             <div class="dash-section-header">
                 <h2 class="dash-section-title">Faturas</h2>
             </div>

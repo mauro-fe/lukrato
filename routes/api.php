@@ -241,6 +241,8 @@ Router::add('POST', '/api/notificacoes/referral-rewards/seen', 'Api\\Notificatio
 Router::add('GET',  '/api/user/theme', 'Api\\User\\PreferenciaUsuarioController@show',   ['auth']);
 Router::add('POST', '/api/user/theme', 'Api\\User\\PreferenciaUsuarioController@update', ['auth', 'csrf', 'ratelimit']);
 Router::add('POST', '/api/user/display-name', 'Api\\User\\PreferenciaUsuarioController@updateDisplayName', ['auth', 'csrf', 'ratelimit']);
+Router::add('GET',  '/api/user/help-preferences', 'Api\\User\\PreferenciaUsuarioController@showHelpPreferences', ['auth']);
+Router::add('POST', '/api/user/help-preferences', 'Api\\User\\PreferenciaUsuarioController@updateHelpPreferences', ['auth', 'csrf', 'ratelimit']);
 Router::add('GET',  '/api/user/birthday-check', 'Api\\User\\PreferenciaUsuarioController@birthdayCheck', ['auth']);
 
 // ============================================
@@ -381,6 +383,7 @@ Router::add('GET',  '/api/campaigns/stats',          'Api\\Notification\\Campaig
 Router::add('GET',  '/api/campaigns/options',        'Api\\Notification\\CampaignController@options',      ['auth', 'sysadmin']);
 Router::add('GET',  '/api/campaigns/birthdays',      'Api\\Notification\\CampaignController@birthdays',    ['auth', 'sysadmin']);
 Router::add('POST', '/api/campaigns/birthdays/send', 'Api\\Notification\\CampaignController@sendBirthdays', ['auth', 'sysadmin', 'csrf', 'ratelimit']);
+Router::add('POST', '/api/campaigns/process-due',    'Api\\Notification\\CampaignController@processDue',   ['auth', 'sysadmin', 'csrf', 'ratelimit']);
 Router::add('GET',  '/api/campaigns/{id}',           'Api\\Notification\\CampaignController@show',         ['auth', 'sysadmin']);
 Router::add('POST', '/api/campaigns/{id}/cancel',    'Api\\Notification\\CampaignController@cancelScheduled', ['auth', 'sysadmin', 'csrf', 'ratelimit']);
 

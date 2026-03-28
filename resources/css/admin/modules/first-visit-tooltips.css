@@ -7,7 +7,7 @@
 
 /* Tooltip Container */
 .fvt-tooltip {
-    position: absolute;
+    position: fixed;
     z-index: 10000;
     max-width: 320px;
     opacity: 0;
@@ -197,6 +197,11 @@
     left: -6px;
     top: 50%;
     margin-top: -6px;
+}
+
+.fvt-tooltip.fvt-detached .fvt-arrow,
+.fvt-tooltip[data-position="floating"] .fvt-arrow {
+    display: none;
 }
 
 /* Highlighted element */

@@ -53,7 +53,7 @@ class CampaignController extends BaseController
 
     public function store(): Response
     {
-        $admin = $this->requireAdminOrFail();
+        $admin = $this->requireApiAdminUserAndReleaseSessionOrFail('Acesso negado. Apenas administradores podem acessar este recurso.');
 
         try {
             $result = $this->workflowService->createCampaign($admin->id, $admin->nome, $this->getRequestPayload());
@@ -144,6 +144,20 @@ class CampaignController extends BaseController
             return Response::successResponse($result['data'], $result['message']);
         } catch (Throwable $e) {
             return $this->internalErrorResponse($e, 'Erro ao cancelar campanha.');
+        }
+    }
+
+    public function processDue(): Response
+    {
+        $this->requireApiAdminUserAndReleaseSessionOrFail('Acesso negado. Apenas administradores podem acessar este recurso.');
+
+        try {
+            return Response::successResponse(
+                $this->workflowService->processDueCampaigns(),
+                'Fila de campanhas sincronizada com sucesso'
+            );
+        } catch (Throwable $e) {
+            return $this->internalErrorResponse($e, 'Erro ao sincronizar fila de campanhas.');
         }
     }
 

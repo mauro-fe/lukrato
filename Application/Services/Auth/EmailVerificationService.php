@@ -121,7 +121,7 @@ class EmailVerificationService
 
         return [
             'success' => true,
-            'message' => 'Email verificado com sucesso! Voce ja pode fazer login.',
+            'message' => 'Email verificado com sucesso! você ja pode fazer login.',
             'user_id' => $user->id,
         ];
     }
@@ -146,8 +146,8 @@ class EmailVerificationService
 
                 $this->createReferralNotification(
                     $user->id,
-                    'Voce ganhou ' . ReferralService::REFERRED_REWARD_DAYS . ' dias PRO!',
-                    'Parabens! Por ter sido indicado, voce ganhou ' . ReferralService::REFERRED_REWARD_DAYS . ' dias de acesso PRO gratuito. Aproveite todas as funcionalidades premium!',
+                    'você ganhou ' . ReferralService::REFERRED_REWARD_DAYS . ' dias PRO!',
+                    'Parabens! Por ter sido indicado, você ganhou ' . ReferralService::REFERRED_REWARD_DAYS . ' dias de acesso PRO gratuito. Aproveite todas as funcionalidades premium!',
                     'referred'
                 );
 
@@ -163,8 +163,8 @@ class EmailVerificationService
                 $referredName = $user->nome ?? 'Um amigo';
                 $this->createReferralNotification(
                     $referrer->id,
-                    'Voce ganhou ' . ReferralService::REFERRER_REWARD_DAYS . ' dias PRO!',
-                    "{$referredName} verificou o email e agora voce ganhou " . ReferralService::REFERRER_REWARD_DAYS . ' dias de acesso PRO gratuito. Continue indicando amigos para ganhar mais!',
+                    'você ganhou ' . ReferralService::REFERRER_REWARD_DAYS . ' dias PRO!',
+                    "{$referredName} verificou o email e agora você ganhou " . ReferralService::REFERRER_REWARD_DAYS . ' dias de acesso PRO gratuito. Continue indicando amigos para ganhar mais!',
                     'referrer'
                 );
 

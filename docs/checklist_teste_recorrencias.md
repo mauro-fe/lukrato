@@ -4,7 +4,7 @@
 1. Garantir que o scheduler/cron esteja configurado para rodar as tarefas de recorrencia.
 2. Rodar diagnostico de duplicados (dry-run):
    - `php cli/sanear_duplicados_recorrencias.php`
-3. Se houver duplicados e voce quiser sanear:
+3. Se houver duplicados e você quiser sanear:
    - `php cli/sanear_duplicados_recorrencias.php --apply`
 4. Aplicar migration de blindagem de duplicidade:
    - `php cli/run_unique_recorrencias_migration.php`

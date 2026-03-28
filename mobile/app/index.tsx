@@ -10,7 +10,7 @@ export default function IndexRoute() {
     return (
       <AuthLoadingScreen
         title="Abrindo seu app"
-        description="Organizando a entrada para levar voce direto ao ponto certo."
+        description="Organizando a entrada para levar você direto ao ponto certo."
       />
     );
   }

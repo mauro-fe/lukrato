@@ -193,6 +193,8 @@ class PerfilController extends BaseController
             $payload = $this->getRequestPayload();
             $allowed = [
                 'toggleHealthScore',
+                'toggleAiTip',
+                'toggleEvolucao',
                 'toggleAlertas',
                 'toggleGrafico',
                 'togglePrevisao',
@@ -203,7 +205,7 @@ class PerfilController extends BaseController
                 'toggleFaturas',
                 'toggleGamificacao',
             ];
-            $prefs = [];
+            $prefs = is_array($user->dashboard_preferences) ? $user->dashboard_preferences : [];
 
             foreach ($allowed as $key) {
                 if (array_key_exists($key, $payload)) {
