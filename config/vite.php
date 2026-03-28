@@ -137,6 +137,74 @@ function vite_find_manifest_entry(string $entry, array $manifest): ?array
     return null;
 }
 
+function vite_find_built_asset_file(array $prefixes, string $extension): ?string
+{
+    $assetsDir = dirname(__DIR__) . '/public/build/assets';
+    if (!is_dir($assetsDir)) {
+        return null;
+    }
+
+    $matches = [];
+    foreach ($prefixes as $prefix) {
+        $safePrefix = trim((string) $prefix);
+        if ($safePrefix === '') {
+            continue;
+        }
+
+        $pattern = $assetsDir . '/' . $safePrefix . '-*.' . ltrim($extension, '.');
+        foreach (glob($pattern) ?: [] as $filePath) {
+            if (is_file($filePath)) {
+                $matches[$filePath] = filemtime($filePath) ?: 0;
+            }
+        }
+    }
+
+    if ($matches === []) {
+        return null;
+    }
+
+    arsort($matches, SORT_NUMERIC);
+    $firstMatch = array_key_first($matches);
+
+    return $firstMatch ? 'assets/' . basename($firstMatch) : null;
+}
+
+function vite_script_asset_candidates(string $entry): array
+{
+    $normalizedEntry = ltrim(str_replace('\\', '/', $entry), '/');
+    $filename = pathinfo($normalizedEntry, PATHINFO_FILENAME);
+    $dirname = basename(dirname($normalizedEntry));
+    $parentDir = basename(dirname(dirname($normalizedEntry)));
+
+    $candidates = [];
+
+    if ($filename === 'index') {
+        if ($dirname !== '' && $dirname !== '.') {
+            $candidates[] = $dirname;
+        }
+    } else {
+        $candidates[] = $filename;
+
+        if ($dirname !== '' && $dirname !== '.') {
+            $candidates[] = $dirname . '-' . $filename;
+        }
+
+        if (str_contains($filename, '-')) {
+            $baseName = preg_replace('/-[^-]+$/', '', $filename) ?: $filename;
+            if ($dirname !== '' && $dirname !== '.') {
+                $candidates[] = $dirname . '-' . $baseName;
+            }
+            $candidates[] = $baseName;
+        }
+    }
+
+    if ($parentDir !== '' && $parentDir !== '.' && $dirname !== '' && $dirname !== '.') {
+        $candidates[] = $parentDir . '-' . ($filename === 'index' ? $dirname : $filename);
+    }
+
+    return array_values(array_unique(array_filter($candidates)));
+}
+
 /**
  * Retorna a URL do asset Vite
  * 
@@ -232,6 +300,28 @@ function vite_scripts(string $entry): string
             BASE_URL,
             $manifestEntry['file']
         );
+
+        return $html;
+    }
+
+    $fallbackCandidates = vite_script_asset_candidates($entry);
+    $fallbackCss = vite_find_built_asset_file($fallbackCandidates, 'css');
+    $fallbackJs = vite_find_built_asset_file($fallbackCandidates, 'js');
+
+    if ($fallbackCss) {
+        $html .= sprintf(
+            '<link rel="stylesheet" href="%sbuild/%s">' . "\n",
+            BASE_URL,
+            $fallbackCss
+        );
+    }
+
+    if ($fallbackJs) {
+        $html .= sprintf(
+            '<script type="module" src="%sbuild/%s"></script>' . "\n",
+            BASE_URL,
+            $fallbackJs
+        );
     }
 
     return $html;
@@ -289,6 +379,15 @@ function vite_css(string $entry): string
                 $file
             );
         }
+    }
+
+    $fallbackCss = vite_find_built_asset_file([$entry], 'css');
+    if ($fallbackCss) {
+        return sprintf(
+            '<link rel="stylesheet" href="%sbuild/%s">' . "\n",
+            BASE_URL,
+            $fallbackCss
+        );
     }
 
     // Fallback seguro: evita apontar para arquivo inexistente (retornaria HTML e erro de MIME)

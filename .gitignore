@@ -4,7 +4,7 @@
 *.log
 *.txt
 node_modules/
-/public/build/
+/public/build/.vite/
 .idea/
 .DS_Store
 *.zip
