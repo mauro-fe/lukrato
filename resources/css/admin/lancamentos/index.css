@@ -11,6 +11,7 @@
 @import './_layout.css';
 @import './_hero.css';
 @import './_summary.css';
+@import '../shared/_planning-alerts.css';
 @import './_export.css';
 @import './_filters.css';
 @import './_wrapper.css';
@@ -23,7 +24,6 @@
 @import './_delete-modal.css';
 @import './_edit-modal.css';
 @import './_parcelas-modal.css';
-@import './_custom-select.css';
 @import './_animations.css';
 @import './_responsive.css';
 @import './_light-theme.css';

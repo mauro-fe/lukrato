@@ -4,6 +4,7 @@
 @import "./core/animations.css";
 @import "./core/_loading-states.css";
 @import "./core/components.css";
+@import "./shared/_custom-select.css";
 @import "./layout/view-toggle-shared.css";
 @import "./layout/admin-partials-header.css";
 @import "./layout/admin-partials-footer.css";

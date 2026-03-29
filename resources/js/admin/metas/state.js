@@ -29,6 +29,12 @@ export const STATE = {
     contas: [],
     editingMetaId: null,
     previewMeta: null,
+    resumo: null,
+    ui: {
+        query: '',
+        filter: 'all',
+        sort: 'deadline',
+    },
 };
 
 // ── Category icon color map ────────────────────────────────────

@@ -128,6 +128,23 @@ export const OrcamentoApp = {
         document.getElementById('btnNovoOrcamento')?.addEventListener('click', () => OrcamentoApp.openOrcamentoModal());
         document.getElementById('formOrcamento')?.addEventListener('submit', (e) => OrcamentoApp.handleOrcamentoSubmit(e));
         document.getElementById('btnAplicarSugestoes')?.addEventListener('click', () => OrcamentoApp.aplicarSugestoes());
+        document.getElementById('orcSearchInput')?.addEventListener('input', (e) => {
+            STATE.ui.query = e.target.value || '';
+            OrcamentoApp.renderOrcamentos();
+        });
+        document.getElementById('orcSortSelect')?.addEventListener('change', (e) => {
+            STATE.ui.sort = e.target.value || 'usage';
+            OrcamentoApp.renderOrcamentos();
+        });
+        document.querySelectorAll('#orcFilterChips [data-filter]').forEach((button) => {
+            button.addEventListener('click', () => {
+                STATE.ui.filter = button.dataset.filter || 'all';
+                document.querySelectorAll('#orcFilterChips [data-filter]').forEach((chip) => {
+                    chip.classList.toggle('is-active', chip === button);
+                });
+                OrcamentoApp.renderOrcamentos();
+            });
+        });
 
         document.getElementById('orcCategoria')?.addEventListener('change', (e) => OrcamentoApp.loadCategorySuggestion(e.target.value));
 
@@ -169,6 +186,7 @@ export const OrcamentoApp = {
                 OrcamentoApp.loadOrcamentos(),
                 OrcamentoApp.loadInsights()
             ]);
+            OrcamentoApp.renderFocusPanel();
         } catch (error) {
             console.error('Erro ao carregar dados:', error);
         }
@@ -203,6 +221,7 @@ export const OrcamentoApp = {
             const res = await apiGet(`api/financas/resumo?mes=${STATE.currentMonth}&ano=${STATE.currentYear}`);
             if (res.success !== false) {
                 applyPreviewMeta(res.data?.meta);
+                STATE.resumo = res.data;
                 OrcamentoApp.renderResumo(res.data);
             }
         } catch (e) {
@@ -216,6 +235,7 @@ export const OrcamentoApp = {
             if (res.success !== false) {
                 applyPreviewMeta(res.data?.meta);
                 STATE.orcamentos = getCollectionPayload(res.data, 'orcamentos');
+                OrcamentoApp.renderFocusPanel();
                 OrcamentoApp.renderOrcamentos();
             }
         } catch (e) {
@@ -228,7 +248,9 @@ export const OrcamentoApp = {
             const res = await apiGet(`api/financas/insights?mes=${STATE.currentMonth}&ano=${STATE.currentYear}`);
             if (res.success !== false) {
                 applyPreviewMeta(res.data?.meta);
-                OrcamentoApp.renderInsights(getCollectionPayload(res.data, 'insights'));
+                STATE.insights = getCollectionPayload(res.data, 'insights');
+                OrcamentoApp.renderFocusPanel();
+                OrcamentoApp.renderInsights(STATE.insights);
             }
         } catch (e) {
             console.error('Erro ao carregar insights:', e);
@@ -283,12 +305,323 @@ export const OrcamentoApp = {
 
         const totalOrcado = orc.total_limite ?? orc.total_orcado ?? 0;
         const totalGasto = orc.total_gasto ?? 0;
+        const totalDisponivel = orc.total_disponivel ?? Math.max(0, totalOrcado - totalGasto);
         Utils.setText('totalOrcado', Utils.formatCurrency(totalOrcado));
         Utils.setText('totalGasto', Utils.formatCurrency(totalGasto));
-        Utils.setText('totalDisponivel', Utils.formatCurrency(totalOrcado - totalGasto));
+        Utils.setText('totalDisponivel', Utils.formatCurrency(totalDisponivel));
     },
 
     // ==================== RENDER: ORÇAMENTOS ====================
+
+    getPeriodBudgetContext() {
+        const totalDays = new Date(STATE.currentYear, STATE.currentMonth, 0).getDate();
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1;
+        const selectedKey = (STATE.currentYear * 12) + STATE.currentMonth;
+        const currentKey = (currentYear * 12) + currentMonth;
+
+        if (selectedKey < currentKey) {
+            return {
+                phase: 'past',
+                totalDays,
+                remainingDays: 0,
+                elapsedDays: totalDays,
+            };
+        }
+
+        if (selectedKey > currentKey) {
+            return {
+                phase: 'future',
+                totalDays,
+                remainingDays: totalDays,
+                elapsedDays: 0,
+            };
+        }
+
+        const today = Math.min(now.getDate(), totalDays);
+
+        return {
+            phase: 'current',
+            totalDays,
+            remainingDays: Math.max(1, totalDays - today + 1),
+            elapsedDays: today,
+        };
+    },
+
+    formatDayWindow(days, fallback = 'periodo') {
+        if (!days || days <= 0) return fallback;
+        return `${days} dia${days === 1 ? '' : 's'}`;
+    },
+
+    getDailyBudgetInfo(orc) {
+        const context = OrcamentoApp.getPeriodBudgetContext();
+        const gasto = Number(orc?.gasto_real || 0);
+        const limiteBase = Number(orc?.valor_limite || 0);
+        const limiteEfetivo = Number(orc?.limite_efetivo || limiteBase);
+        const disponivel = Number(orc?.disponivel ?? Math.max(0, limiteEfetivo - gasto));
+        const excedido = Number(orc?.excedido ?? Math.max(0, gasto - limiteEfetivo));
+
+        if (context.phase === 'past') {
+            const mediaReal = context.totalDays > 0 ? gasto / context.totalDays : 0;
+            return {
+                tone: 'neutral',
+                label: 'Media real por dia',
+                value: `${Utils.formatCurrency(mediaReal)}/dia`,
+                hint: `Periodo encerrado em ${context.totalDays} dias.`,
+            };
+        }
+
+        if (context.phase === 'future') {
+            const planejado = context.totalDays > 0 ? limiteEfetivo / context.totalDays : 0;
+            return {
+                tone: 'info',
+                label: 'Planejado por dia',
+                value: `${Utils.formatCurrency(planejado)}/dia`,
+                hint: `Distribuindo o limite pelos ${context.totalDays} dias do periodo.`,
+            };
+        }
+
+        if (excedido > 0) {
+            const corteDiario = context.remainingDays > 0 ? excedido / context.remainingDays : excedido;
+            return {
+                tone: 'danger',
+                label: 'Corte necessario por dia',
+                value: `${Utils.formatCurrency(corteDiario)}/dia`,
+                hint: `Para compensar ${Utils.formatCurrency(excedido)} nos proximos ${OrcamentoApp.formatDayWindow(context.remainingDays)}.`,
+            };
+        }
+
+        const diarioDisponivel = context.remainingDays > 0 ? disponivel / context.remainingDays : 0;
+        return {
+            tone: diarioDisponivel > 0 ? 'success' : 'warning',
+            label: 'Pode gastar por dia',
+            value: `${Utils.formatCurrency(diarioDisponivel)}/dia`,
+            hint: `Pelos proximos ${OrcamentoApp.formatDayWindow(context.remainingDays)} sem estourar.`,
+        };
+    },
+
+    getFilteredOrcamentos() {
+        const query = STATE.ui.query.trim().toLowerCase();
+
+        return STATE.orcamentos.filter((orc) => {
+            const catNome = (orc.categoria?.nome || orc.categoria_nome || '').toLowerCase();
+            if (query && !catNome.includes(query)) {
+                return false;
+            }
+
+            const pct = orc.percentual || 0;
+            switch (STATE.ui.filter) {
+                case 'over':
+                    return pct > 100;
+                case 'warn':
+                    return pct >= 80 && pct <= 100;
+                case 'ok':
+                    return pct < 80;
+                case 'rollover':
+                    return !!orc.rollover && (orc.rollover_valor || 0) > 0;
+                default:
+                    return true;
+            }
+        }).sort((a, b) => OrcamentoApp.compareOrcamentos(a, b, STATE.ui.sort));
+    },
+
+    compareOrcamentos(a, b, sort) {
+        const aRemaining = a.disponivel ?? 0;
+        const bRemaining = b.disponivel ?? 0;
+        const aExceeded = a.excedido ?? 0;
+        const bExceeded = b.excedido ?? 0;
+
+        switch (sort) {
+            case 'exceeded':
+                return bExceeded - aExceeded;
+            case 'remaining':
+                return bRemaining - aRemaining;
+            case 'alpha':
+                return (a.categoria?.nome || a.categoria_nome || '').localeCompare((b.categoria?.nome || b.categoria_nome || ''), 'pt-BR');
+            case 'usage':
+            default:
+                return (b.percentual || 0) - (a.percentual || 0);
+        }
+    },
+
+    renderFocusPanel() {
+        const focus = document.getElementById('orcFocusContent');
+        const stats = document.getElementById('orcFocusStats');
+        if (!focus || !stats) return;
+
+        const periodContext = OrcamentoApp.getPeriodBudgetContext();
+        const resumo = STATE.resumo?.orcamento || STATE.resumo?.orcamentos || {};
+        const emAlerta = resumo.em_alerta ?? STATE.orcamentos.filter((orc) => (orc.percentual || 0) >= 80 && (orc.percentual || 0) <= 100).length;
+        const estourados = resumo.estourados ?? STATE.orcamentos.filter((orc) => (orc.percentual || 0) > 100).length;
+        const usoGeral = resumo.percentual_geral ?? 0;
+        const totalOrcado = resumo.total_limite ?? resumo.total_orcado ?? STATE.orcamentos.reduce((sum, orc) => sum + (orc.limite_efetivo || orc.valor_limite || 0), 0);
+        const totalGasto = resumo.total_gasto ?? STATE.orcamentos.reduce((sum, orc) => sum + (orc.gasto_real || 0), 0);
+        const disponivelTotal = resumo.total_disponivel ?? STATE.orcamentos.reduce((sum, orc) => sum + (orc.disponivel ?? 0), 0);
+        const topPressure = [...STATE.orcamentos].sort((a, b) => (b.percentual || 0) - (a.percentual || 0))[0];
+        const dailyTotal = periodContext.phase === 'past'
+            ? (periodContext.totalDays > 0 ? totalGasto / periodContext.totalDays : 0)
+            : (periodContext.phase === 'future'
+                ? (periodContext.totalDays > 0 ? totalOrcado / periodContext.totalDays : 0)
+                : (periodContext.remainingDays > 0 ? disponivelTotal / periodContext.remainingDays : 0));
+        const dailyTotalLabel = periodContext.phase === 'past'
+            ? 'Media diaria'
+            : (periodContext.phase === 'future' ? 'Plano diario' : 'Folga por dia');
+
+        stats.innerHTML = `
+            <div class="orc-focus-stat">
+                <span class="orc-focus-stat__label">Em alerta</span>
+                <strong class="orc-focus-stat__value">${emAlerta}</strong>
+            </div>
+            <div class="orc-focus-stat">
+                <span class="orc-focus-stat__label">Estourados</span>
+                <strong class="orc-focus-stat__value">${estourados}</strong>
+            </div>
+            <div class="orc-focus-stat">
+                <span class="orc-focus-stat__label">Uso geral</span>
+                <strong class="orc-focus-stat__value">${Math.round(usoGeral)}%</strong>
+            </div>
+            <div class="orc-focus-stat">
+                <span class="orc-focus-stat__label">${dailyTotalLabel}</span>
+                <strong class="orc-focus-stat__value">${Utils.formatCurrency(dailyTotal)}/dia</strong>
+            </div>
+        `;
+
+        if (!topPressure) {
+            focus.innerHTML = `
+                <div class="orc-focus-callout">
+                    <div>
+                        <h2 class="orc-focus-callout__title">Nenhum orcamento criado ainda.</h2>
+                        <p class="orc-focus-callout__text">Comece com sugestoes automaticas ou crie manualmente as categorias que mais pesam no seu mes.</p>
+                    </div>
+                    <div class="orc-focus-callout__actions">
+                        <button type="button" class="orc-action-btn orc-action-btn--primary" onclick="orcamentoManager.openSugestoes()">
+                            <i data-lucide="wand-2"></i>
+                            <span>Sugestao Inteligente</span>
+                        </button>
+                        <button type="button" class="orc-action-btn orc-action-btn--success" onclick="orcamentoManager.openOrcamentoModal()">
+                            <i data-lucide="plus"></i>
+                            <span>Novo Orcamento</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
+        const topName = topPressure.categoria?.nome || topPressure.categoria_nome || 'Categoria';
+        const topDailyInfo = OrcamentoApp.getDailyBudgetInfo(topPressure);
+        const topRemaining = topPressure.percentual > 100
+            ? `Excedido em <strong>${Utils.formatCurrency(topPressure.excedido || 0)}</strong>.`
+            : `Restam <strong>${Utils.formatCurrency(topPressure.disponivel || 0)}</strong> nesta categoria.`;
+        const helper = disponivelTotal > 0
+            ? `Voce ainda tem ${Utils.formatCurrency(disponivelTotal)} de folga no total do periodo.`
+            : 'Seu limite total do periodo ja foi consumido.';
+
+        focus.innerHTML = `
+            <div class="orc-focus-callout">
+                <div>
+                    <h2 class="orc-focus-callout__title">${Utils.escHtml(topName)}</h2>
+                    <p class="orc-focus-callout__text">${topRemaining} ${helper} ${Utils.escHtml(topDailyInfo.hint)}</p>
+                    <div class="orc-focus-callout__meta">
+                        <span class="orc-focus-callout__pill">${Math.round(topPressure.percentual || 0)}% usado</span>
+                        <span class="orc-focus-callout__pill">${Utils.escHtml(topDailyInfo.label)}: ${Utils.escHtml(topDailyInfo.value)}</span>
+                        ${topPressure.rollover && (topPressure.rollover_valor || 0) > 0
+                ? `<span class="orc-focus-callout__pill">Rollover de ${Utils.formatCurrency(topPressure.rollover_valor || 0)}</span>`
+                : ''}
+                    </div>
+                </div>
+                <div class="orc-focus-callout__actions">
+                    <button type="button" class="orc-action-btn orc-action-btn--success" onclick="orcamentoManager.openOrcamentoModal(${topPressure.id})">
+                        <i data-lucide="pencil"></i>
+                        <span>Ajustar limite</span>
+                    </button>
+                    <button type="button" class="orc-action-btn" onclick="orcamentoManager.openSugestoes()">
+                        <i data-lucide="wand-2"></i>
+                        <span>Comparar sugestao</span>
+                    </button>
+                </div>
+            </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+    },
+
+    buildDerivedInsights() {
+        const periodContext = OrcamentoApp.getPeriodBudgetContext();
+        const resumo = STATE.resumo?.orcamento || STATE.resumo?.orcamentos || {};
+        const totalGasto = resumo.total_gasto ?? STATE.orcamentos.reduce((sum, orc) => sum + (orc.gasto_real || 0), 0);
+        const percentualGeral = resumo.percentual_geral ?? 0;
+        const derived = [];
+
+        if (percentualGeral >= 90 && totalGasto > 0) {
+            derived.push({
+                tipo: 'perigo',
+                titulo: 'Mês apertado no consolidado',
+                mensagem: `Você já consumiu ${Math.round(percentualGeral)}% do limite total deste período.`,
+                icone: 'siren',
+            });
+        } else if (percentualGeral >= 70 && totalGasto > 0) {
+            derived.push({
+                tipo: 'alerta',
+                titulo: 'Uso geral pede atenção',
+                mensagem: `Seu uso geral está em ${Math.round(percentualGeral)}%. Vale revisar as categorias mais pressionadas.`,
+                icone: 'gauge',
+            });
+        }
+
+        if (totalGasto > 0) {
+            const topSpender = [...STATE.orcamentos].sort((a, b) => (b.gasto_real || 0) - (a.gasto_real || 0))[0];
+            const share = topSpender ? ((topSpender.gasto_real || 0) / totalGasto) * 100 : 0;
+            if (topSpender && share >= 40) {
+                derived.push({
+                    tipo: 'info',
+                    titulo: `${topSpender.categoria?.nome || topSpender.categoria_nome} concentra boa parte do gasto`,
+                    mensagem: `Essa categoria representa ${Math.round(share)}% do total gasto no periodo.`,
+                    icone: 'pie-chart',
+                    categoria_id: topSpender.categoria_id,
+                });
+            }
+        }
+
+        const topPressure = [...STATE.orcamentos].sort((a, b) => (b.percentual || 0) - (a.percentual || 0))[0];
+        if (topPressure && periodContext.phase !== 'past') {
+            const dailyInfo = OrcamentoApp.getDailyBudgetInfo(topPressure);
+            derived.push({
+                tipo: topPressure.percentual > 100 ? 'perigo' : 'info',
+                titulo: `${topPressure.categoria?.nome || topPressure.categoria_nome} pede ritmo diario claro`,
+                mensagem: `${dailyInfo.label}: ${dailyInfo.value}. ${dailyInfo.hint}`,
+                icone: topPressure.percentual > 100 ? 'triangle-alert' : 'calendar-range',
+                categoria_id: topPressure.categoria_id,
+            });
+        }
+
+        const rolloverWin = STATE.orcamentos.find((orc) => (orc.rollover_valor || 0) > 0 && (orc.percentual || 0) < 80);
+        if (rolloverWin) {
+            derived.push({
+                tipo: 'positivo',
+                titulo: `${rolloverWin.categoria?.nome || rolloverWin.categoria_nome} esta respirando melhor`,
+                mensagem: `O rollover adicionou ${Utils.formatCurrency(rolloverWin.rollover_valor || 0)} de folga nesta categoria.`,
+                icone: 'refresh-cw',
+                categoria_id: rolloverWin.categoria_id,
+            });
+        }
+
+        const slackCandidate = [...STATE.orcamentos]
+            .filter((orc) => (orc.percentual || 0) <= 35 && (orc.disponivel || 0) > 0)
+            .sort((a, b) => (b.disponivel || 0) - (a.disponivel || 0))[0];
+        if (slackCandidate) {
+            derived.push({
+                tipo: 'positivo',
+                titulo: `${slackCandidate.categoria?.nome || slackCandidate.categoria_nome} está com folga relevante`,
+                mensagem: `Ainda sobram ${Utils.formatCurrency(slackCandidate.disponivel || 0)}. Talvez o limite possa ser refinado no próximo ciclo.`,
+                icone: 'sparkles',
+                categoria_id: slackCandidate.categoria_id,
+            });
+        }
+
+        return derived;
+    },
 
     renderOrcamentos() {
         const grid = document.getElementById('orcamentosGrid');
@@ -303,19 +636,42 @@ export const OrcamentoApp = {
 
         grid.style.display = '';
         empty.style.display = 'none';
+        const filteredOrcamentos = OrcamentoApp.getFilteredOrcamentos();
 
-        grid.innerHTML = STATE.orcamentos.map(orc => {
+        if (!filteredOrcamentos.length) {
+            grid.innerHTML = `
+                <div class="orc-soft-empty surface-card">
+                    <i data-lucide="search-x"></i>
+                    <p>Nenhum orcamento encontrado para os filtros atuais.</p>
+                </div>
+            `;
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
+        grid.innerHTML = filteredOrcamentos.map(orc => {
             const pct = orc.percentual || 0;
             const isDemo = isDemoItem(orc);
             const statusClass = pct >= 100 ? 'over' : pct >= 80 ? 'warn' : 'ok';
             const catNome = orc.categoria?.nome || orc.categoria_nome || 'Categoria';
             const catIcone = orc.categoria?.icone || 'tag';
             const gasto = orc.gasto_real || 0;
-            const limite = orc.valor_limite || 0;
-            const disponivel = limite - gasto;
+            const limiteBase = orc.valor_limite || 0;
+            const limiteEfetivo = orc.limite_efetivo || limiteBase;
+            const disponivel = orc.disponivel ?? Math.max(0, limiteEfetivo - gasto);
+            const excedido = orc.excedido ?? Math.max(0, gasto - limiteEfetivo);
             const rolloverTag = orc.rollover && orc.rollover_valor > 0
                 ? `<span class="orc-card__badge" title="Inclui R$ ${Utils.formatNumber(orc.rollover_valor)} do mês anterior">+${Utils.formatNumber(orc.rollover_valor)} rollover</span>`
                 : '';
+            const limitHint = limiteEfetivo > limiteBase
+                ? `<span class="orc-card__limit-hint">Base ${Utils.formatCurrency(limiteBase)} • Efetivo ${Utils.formatCurrency(limiteEfetivo)}</span>`
+                : `<span class="orc-card__limit-hint">Limite do periodo ${Utils.formatCurrency(limiteBase)}</span>`;
+            const dailyInfo = OrcamentoApp.getDailyBudgetInfo(orc);
+            const dailyIcon = dailyInfo.tone === 'danger'
+                ? 'triangle-alert'
+                : (dailyInfo.tone === 'info'
+                    ? 'calendar-range'
+                    : (dailyInfo.tone === 'neutral' ? 'receipt' : 'wallet'));
             const actionsMarkup = isDemo
                 ? '<span class="orc-card__badge">Exemplo</span>'
                 : `
@@ -344,13 +700,22 @@ export const OrcamentoApp = {
                     </div>
                     <div class="orc-card__progress-info">
                         <span class="orc-card__spent">${Utils.formatCurrency(gasto)}</span>
-                        <span class="orc-card__limit">de ${Utils.formatCurrency(limite)}</span>
+                        <span class="orc-card__limit">de ${Utils.formatCurrency(limiteEfetivo)}</span>
+                    </div>
+                    ${limitHint}
+                    <div class="orc-card__daily orc-card__daily--${dailyInfo.tone}">
+                        <div class="orc-card__daily-label">
+                            <i data-lucide="${dailyIcon}"></i>
+                            <span>${Utils.escHtml(dailyInfo.label)}</span>
+                        </div>
+                        <strong class="orc-card__daily-value">${Utils.escHtml(dailyInfo.value)}</strong>
+                        <span class="orc-card__daily-hint">${Utils.escHtml(dailyInfo.hint)}</span>
                     </div>
                 </div>
                 <div class="orc-card__footer">
                     <span class="orc-card__pct ${statusClass}">${pct.toFixed(0)}%</span>
-                    <span class="orc-card__remaining ${disponivel < 0 ? 'orc-card__remaining--negative' : ''}">
-                        ${disponivel >= 0 ? 'Resta' : 'Excedido'} ${Utils.formatCurrency(Math.abs(disponivel))}
+                    <span class="orc-card__remaining ${excedido > 0 ? 'orc-card__remaining--negative' : ''}">
+                        ${excedido > 0 ? 'Excedido' : 'Resta'} ${Utils.formatCurrency(excedido > 0 ? excedido : disponivel)}
                     </span>
                     ${rolloverTag}
                 </div>
@@ -365,17 +730,26 @@ export const OrcamentoApp = {
         const section = document.getElementById('insightsSection');
         const grid = document.getElementById('insightsGrid');
         if (!grid) return;
+        const combinedInsights = [...(insights || []), ...OrcamentoApp.buildDerivedInsights()];
+        const dedupedInsights = Array.from(new Map(combinedInsights.map((item) => [`${item.tipo}:${item.titulo}`, item])).values()).slice(0, 8);
 
-        if (!insights.length) {
+        if (!dedupedInsights.length) {
             if (section) section.style.display = 'none';
             return;
         }
 
         if (section) section.style.display = '';
 
-        grid.innerHTML = insights.map(insight => {
-            const icon = Utils.getInsightIcon(insight.tipo);
-            const level = insight.nivel || 'info';
+        grid.innerHTML = dedupedInsights.map(insight => {
+            const icon = insight.icone || Utils.getInsightIcon(insight.tipo);
+            const levelMap = { alerta: 'warning', perigo: 'danger', positivo: 'success', info: 'info' };
+            const level = insight.nivel || levelMap[insight.tipo] || 'info';
+            const cta = insight.categoria_id
+                ? `<button type="button" class="orc-insight-action" onclick="orcamentoManager.openOrcamentoModalByCategoria(${insight.categoria_id})">
+                        <i data-lucide="pencil"></i>
+                        <span>Ajustar</span>
+                   </button>`
+                : '';
             return `
             <div class="orc-insight-card surface-card surface-card--interactive ${level}" data-aos="fade-up">
                 <div class="orc-insight-icon ${level}">
@@ -385,6 +759,7 @@ export const OrcamentoApp = {
                     <span class="orc-insight-title">${Utils.escHtml(insight.titulo || '')}</span>
                     <p class="orc-insight-text">${Utils.escHtml(insight.mensagem || '')}</p>
                 </div>
+                ${cta}
             </div>`;
         }).join('');
         if (window.lucide) lucide.createIcons();
@@ -409,6 +784,21 @@ export const OrcamentoApp = {
     },
 
     // ==================== ORÇAMENTO: CRUD ====================
+
+    openOrcamentoModalByCategoria(categoriaId) {
+        const existing = STATE.orcamentos.find((orc) => String(orc.categoria_id) === String(categoriaId));
+        if (existing) {
+            OrcamentoApp.openOrcamentoModal(existing.id);
+            return;
+        }
+
+        OrcamentoApp.openOrcamentoModal();
+        const select = document.getElementById('orcCategoria');
+        if (select) {
+            select.value = String(categoriaId);
+            OrcamentoApp.loadCategorySuggestion(categoriaId);
+        }
+    },
 
     openOrcamentoModal(orcId = null) {
         STATE.editingOrcamentoId = orcId;

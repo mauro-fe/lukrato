@@ -5,6 +5,22 @@
 import { CONFIG, DOM, STATE, Utils, MoneyMask, Notifications, Modules } from './state.js';
 import { sugerirCategoriaIA as _sugerirCategoriaIA } from '../shared/ai-categorization.js';
 import { apiGet, getErrorMessage } from '../shared/api.js';
+import { syncCustomSelects } from './custom-select.js';
+import {
+    computeAccountEffect,
+    computeSnapshotAccountEffect,
+    getPlanningAlertsStore,
+    resolvePlanningPeriod,
+    isSamePlanningPeriod,
+} from '../shared/planning-alerts.js';
+
+const planningStore = getPlanningAlertsStore();
+let editPlanningRenderSeq = 0;
+
+function syncModalSelects(root) {
+    if (!root) return;
+    syncCustomSelects(root);
+}
 
 // ============================================================================
 // GERENCIAMENTO DE OPÃ‡Ã•ES (SELECTS)
@@ -65,7 +81,8 @@ const OptionsManager = {
         }
         try {
             const json = await apiGet(`${CONFIG.BASE_URL}api/categorias/${categoriaId}/subcategorias`);
-            const subs = json?.data?.subcategorias ?? (Array.isArray(json?.data) ? json.data : []);
+            const subs = [...(json?.data?.subcategorias ?? (Array.isArray(json?.data) ? json.data : []))]
+                .sort((a, b) => String(a?.nome || '').localeCompare(String(b?.nome || ''), 'pt-BR', { sensitivity: 'base' }));
 
             const selectedVal = selectedSubcatId ? String(selectedSubcatId) : '';
             select.innerHTML = '<option value="">Sem subcategoria</option>';
@@ -113,7 +130,7 @@ const OptionsManager = {
     loadFilterOptions: async () => {
         const [categorias, contas] = await Promise.all([
             DOM.selectCategoria ? Modules.API.fetchJsonList(`${CONFIG.BASE_URL}api/categorias`) : Promise.resolve([]),
-            DOM.selectConta ? Modules.API.fetchJsonList(`${CONFIG.BASE_URL}api/contas?only_active=1`) : Promise.resolve([])
+            DOM.selectConta ? Modules.API.fetchJsonList(`${CONFIG.BASE_URL}api/contas?only_active=1&with_balances=1`) : Promise.resolve([])
         ]);
 
         // Inicializar seletores de filtro
@@ -149,7 +166,8 @@ const OptionsManager = {
                     const nome = String(acc?.nome ?? '').trim();
                     const instituicao = String(acc?.instituicao ?? '').trim();
                     const label = nome || instituicao || `Conta #${id}`;
-                    return { id, label };
+                    const saldo = Number(acc?.saldoAtual ?? acc?.saldo ?? acc?.saldo_inicial ?? 0);
+                    return { id, label, nome, saldo };
                 })
                 .filter((acc) => Number.isFinite(acc.id) && acc.id > 0 && acc.label)
                 .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR', { sensitivity: 'base' }));
@@ -426,6 +444,7 @@ const ModalManager = {
                 Notifications.toast(msg, iconMap[type] || 'info');
             },
         });
+        void ModalManager.renderPlanningAlerts();
     },
 
     clearLancAlert: () => {
@@ -540,6 +559,196 @@ const ModalManager = {
         }
     },
 
+    clearPlanningAlerts: () => {
+        if (!DOM.editLancPlanningAlerts) return;
+        DOM.editLancPlanningAlerts.innerHTML = '';
+        DOM.editLancPlanningAlerts.hidden = true;
+    },
+
+    getEditContaOption: (contaId) => {
+        const targetId = String(contaId ?? DOM.selectLancConta?.value ?? '').trim();
+        if (!targetId) return null;
+        return STATE.contaOptions.find((item) => String(item.id) === targetId) || null;
+    },
+
+    summarizeMetaTitles: (metas = []) => {
+        const titles = metas
+            .map((meta) => String(meta?.titulo || '').trim())
+            .filter(Boolean);
+
+        if (titles.length === 0) return 'suas metas';
+        if (titles.length === 1) return titles[0];
+        if (titles.length === 2) return `${titles[0]} e ${titles[1]}`;
+        return `${titles[0]}, ${titles[1]} e mais ${titles.length - 2}`;
+    },
+
+    buildPlanningAlertCard: ({ tone = 'info', icon = 'target', eyebrow, title, message }) => `
+        <div class="lk-planning-alert is-${tone}">
+            <div class="lk-planning-alert__icon">
+                <i data-lucide="${icon}"></i>
+            </div>
+            <div class="lk-planning-alert__body">
+                <span class="lk-planning-alert__eyebrow">${Utils.escapeHtml(eyebrow || 'Planejamento')}</span>
+                <strong class="lk-planning-alert__title">${Utils.escapeHtml(title || '')}</strong>
+                <p class="lk-planning-alert__message">${Utils.escapeHtml(message || '')}</p>
+            </div>
+        </div>
+    `,
+
+    buildEditMetaAlert: () => {
+        const snapshot = STATE.editingLancamentoData || {};
+        const conta = ModalManager.getEditContaOption(DOM.selectLancConta?.value || snapshot?.conta_id);
+        if (!conta) return '';
+
+        const metas = planningStore.getMetasByConta(conta.id);
+        if (!metas.length) return '';
+
+        const tipo = String(DOM.selectLancTipo?.value || snapshot?.tipo || 'despesa').toLowerCase();
+        const formaPagamento = DOM.selectLancFormaPagamento?.value || snapshot?.forma_pagamento || '';
+        const valorAtual = DOM.inputLancValor?.value
+            ? Math.abs(Number(MoneyMask.unformat(DOM.inputLancValor.value)))
+            : Math.abs(Number(snapshot?.valor ?? 0));
+        const saldoAtual = Number(conta.saldo ?? 0);
+        const efeitoAtual = computeAccountEffect({
+            type: tipo,
+            value: valorAtual,
+            paymentMethod: formaPagamento,
+            isPaid: snapshot?.pago
+        });
+        const efeitoOriginal = computeSnapshotAccountEffect(snapshot, conta.id);
+        const ajusteLiquido = -efeitoOriginal + efeitoAtual;
+        const saldoProjetado = saldoAtual + ajusteLiquido;
+        const principal = [...metas].sort((a, b) => (a.valor_restante || 0) - (b.valor_restante || 0))[0] || metas[0];
+        const progressoProjetado = principal?.valor_alvo > 0
+            ? Math.max(0, Math.min(100, (saldoProjetado / principal.valor_alvo) * 100))
+            : null;
+        const resumoMetas = ModalManager.summarizeMetaTitles(metas);
+        const isCartaoCredito = tipo === 'despesa' && formaPagamento === 'cartao_credito';
+        const isPendente = snapshot?.pago === false || snapshot?.pago === 0 || snapshot?.pago === '0' || snapshot?.pago === 'false';
+
+        const title = metas.length === 1
+            ? `Conta vinculada a ${principal.titulo}`
+            : `Conta ligada a ${metas.length} metas`;
+
+        let tone = 'info';
+        let message = '';
+
+        if (ajusteLiquido === 0) {
+            if (isCartaoCredito) {
+                message = `Como o pagamento esta no cartao de credito, o saldo da conta nao muda agora. ${metas.length === 1 ? `A meta segue sincronizada com ${Utils.fmtMoney(saldoAtual)}.` : `As metas ${resumoMetas} continuam sincronizadas com o saldo atual.`}`;
+            } else if (isPendente) {
+                message = `Esse lancamento segue pendente, entao o saldo da conta nao muda. ${metas.length === 1 ? `A meta continua em ${Utils.fmtMoney(saldoAtual)}.` : `As metas ${resumoMetas} so mudam quando a movimentacao for confirmada.`}`;
+            } else {
+                message = metas.length === 1
+                    ? `Este ajuste mantem o saldo da conta em ${Utils.fmtMoney(saldoAtual)}.`
+                    : `Este ajuste nao muda o saldo atual que alimenta ${resumoMetas}.`;
+            }
+        } else {
+            tone = saldoProjetado < 0 ? 'danger' : (ajusteLiquido < 0 ? 'warning' : 'success');
+            message = `Saldo estimado apos salvar: ${Utils.fmtMoney(saldoProjetado)}.`;
+
+            if (metas.length === 1 && progressoProjetado !== null) {
+                message += ` ${principal.titulo} ficaria em ${progressoProjetado.toFixed(1)}% do alvo de ${Utils.fmtMoney(principal.valor_alvo)}.`;
+            } else {
+                message += ` ${resumoMetas} vao refletir esse novo saldo automaticamente.`;
+            }
+        }
+
+        return ModalManager.buildPlanningAlertCard({
+            tone,
+            icon: saldoProjetado < 0 ? 'triangle-alert' : 'target',
+            eyebrow: 'Meta vinculada',
+            title,
+            message
+        });
+    },
+
+    buildEditBudgetAlert: async () => {
+        const snapshot = STATE.editingLancamentoData || {};
+        const tipo = String(DOM.selectLancTipo?.value || snapshot?.tipo || '').toLowerCase();
+        if (tipo !== 'despesa') return '';
+
+        const categoriaId = DOM.selectLancCategoria?.value || snapshot?.categoria_id || '';
+        if (!categoriaId) return '';
+
+        const dataValue = DOM.inputLancData?.value || snapshot?.data || '';
+        const period = resolvePlanningPeriod(dataValue);
+        const orcamento = await planningStore.getBudgetByCategoria(categoriaId, dataValue);
+        if (!orcamento) return '';
+
+        const valorAtual = DOM.inputLancValor?.value
+            ? Math.abs(Number(MoneyMask.unformat(DOM.inputLancValor.value)))
+            : Math.abs(Number(snapshot?.valor ?? 0));
+        const gastoAtual = Number(orcamento.gasto_real ?? 0);
+        const limiteEfetivo = Number(orcamento.limite_efetivo ?? orcamento.valor_limite ?? 0);
+        const mesmaCategoriaOriginal = String(snapshot?.categoria_id ?? '') === String(categoriaId);
+        const mesmaCompetenciaOriginal = isSamePlanningPeriod(snapshot?.data, period);
+        const originalContribution = mesmaCategoriaOriginal
+            && mesmaCompetenciaOriginal
+            && String(snapshot?.tipo || '').toLowerCase() === 'despesa'
+            ? Math.abs(Number(snapshot?.valor ?? 0))
+            : 0;
+        const gastoBase = Math.max(0, gastoAtual - originalContribution);
+        const gastoProjetado = gastoBase + valorAtual;
+        const restante = Math.max(0, limiteEfetivo - gastoProjetado);
+        const excesso = Math.max(0, gastoProjetado - limiteEfetivo);
+        const percentual = limiteEfetivo > 0 ? (gastoProjetado / limiteEfetivo) * 100 : 0;
+        const rollover = Number(orcamento.rollover_valor ?? 0);
+        const categoriaNome = String(orcamento.categoria_nome || orcamento.categoria?.nome || 'categoria').trim();
+
+        let tone = 'info';
+        let title = `${categoriaNome} tem orcamento ativo`;
+        let message = `Limite efetivo de ${Utils.fmtMoney(limiteEfetivo)}. Com este ajuste, restam ${Utils.fmtMoney(restante)} no periodo (${percentual.toFixed(1)}% usado).`;
+
+        if (excesso > 0) {
+            tone = 'danger';
+            title = `${categoriaNome} estoura o orcamento`;
+            message = `Limite efetivo de ${Utils.fmtMoney(limiteEfetivo)}. O gasto projetado vai para ${Utils.fmtMoney(gastoProjetado)} e passa ${Utils.fmtMoney(excesso)} do limite.`;
+        } else if (percentual >= 80) {
+            tone = 'warning';
+            title = `${categoriaNome} entra em alerta`;
+            message = `Limite efetivo de ${Utils.fmtMoney(limiteEfetivo)}. Depois deste ajuste, sobram ${Utils.fmtMoney(restante)} no periodo (${percentual.toFixed(1)}% usado).`;
+        }
+
+        if (rollover > 0) {
+            message += ` O limite inclui ${Utils.fmtMoney(rollover)} de rollover.`;
+        }
+
+        return ModalManager.buildPlanningAlertCard({
+            tone,
+            icon: excesso > 0 ? 'triangle-alert' : 'wallet',
+            eyebrow: 'Orcamento do periodo',
+            title,
+            message
+        });
+    },
+
+    renderPlanningAlerts: async () => {
+        if (!DOM.editLancPlanningAlerts) return;
+
+        const renderId = ++editPlanningRenderSeq;
+        await planningStore.ensureMetas();
+        if (renderId !== editPlanningRenderSeq) return;
+
+        const notices = [];
+        const metaNotice = ModalManager.buildEditMetaAlert();
+        if (metaNotice) notices.push(metaNotice);
+
+        const budgetNotice = await ModalManager.buildEditBudgetAlert();
+        if (renderId !== editPlanningRenderSeq) return;
+        if (budgetNotice) notices.push(budgetNotice);
+
+        if (!notices.length) {
+            ModalManager.clearPlanningAlerts();
+            return;
+        }
+
+        DOM.editLancPlanningAlerts.innerHTML = notices.join('');
+        DOM.editLancPlanningAlerts.hidden = false;
+        window.LK?.refreshIcons?.();
+        window.lucide?.createIcons?.();
+    },
+
     openEditLancamento: (data) => {
         const modal = ModalManager.ensureLancModal();
         if (!modal || !Utils.canEditLancamento(data)) return;
@@ -593,7 +802,9 @@ const ModalManager = {
             DOM.selectLancFormaPagamento.value = data?.forma_pagamento || '';
         }
 
+        syncModalSelects(DOM.modalEditLancEl);
         ModalManager.syncEditSummary();
+        void ModalManager.renderPlanningAlerts();
         window.LK?.refreshIcons?.();
         modal.show();
     },
@@ -634,6 +845,7 @@ const ModalManager = {
         if (DOM.selectTransConta) OptionsManager.populateContaSelect(DOM.selectTransConta, data?.conta_id ?? null);
         if (DOM.selectTransContaDestino) OptionsManager.populateContaSelect(DOM.selectTransContaDestino, data?.conta_id_destino ?? null);
 
+        syncModalSelects(DOM.modalEditTransEl);
         modal.show();
     },
 

@@ -316,6 +316,7 @@ class OrcamentoService
                 $disponivel = $orc['disponivel'];
                 $insights[] = [
                     'tipo'      => 'alerta',
+                    'categoria_id' => $orc['categoria_id'],
                     'icone'     => 'triangle-alert',
                     'cor'       => '#f59e0b',
                     'titulo'    => "{$orc['categoria_nome']} está em {$orc['percentual']}%",
@@ -327,6 +328,7 @@ class OrcamentoService
             if ($orc['percentual'] > 100) {
                 $insights[] = [
                     'tipo'      => 'perigo',
+                    'categoria_id' => $orc['categoria_id'],
                     'icone'     => 'circle-alert',
                     'cor'       => '#ef4444',
                     'titulo'    => "{$orc['categoria_nome']} estourou o orçamento!",
@@ -341,6 +343,7 @@ class OrcamentoService
                     $direcao = $variacao > 0 ? 'mais' : 'menos';
                     $insights[] = [
                         'tipo'      => $variacao > 0 ? 'info' : 'positivo',
+                        'categoria_id' => $orc['categoria_id'],
                         'icone'     => $variacao > 0 ? 'trending-up' : 'trending-down',
                         'cor'       => $variacao > 0 ? '#f97316' : '#10b981',
                         'titulo'    => "{$orc['categoria_nome']}: " . abs(round($variacao)) . "% {$direcao}",
@@ -353,6 +356,7 @@ class OrcamentoService
             if ($orc['percentual'] <= 30 && $orc['gasto_real'] > 0) {
                 $insights[] = [
                     'tipo'      => 'positivo',
+                    'categoria_id' => $orc['categoria_id'],
                     'icone'     => 'circle-check',
                     'cor'       => '#10b981',
                     'titulo'    => "{$orc['categoria_nome']} está sob controle",

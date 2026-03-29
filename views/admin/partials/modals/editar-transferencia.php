@@ -26,11 +26,17 @@
                     <div class="row g-3 mt-1">
                         <div class="col-md-6">
                             <label for="editTransConta" class="form-label">Conta Origem</label>
-                            <select class="form-select form-select-sm" id="editTransConta" required aria-required="true"></select>
+                            <select class="form-select form-select-sm" id="editTransConta" required
+                                aria-required="true" data-lk-custom-select="compact"
+                                data-lk-select-search="true" data-lk-select-sort="alpha"
+                                data-lk-select-search-placeholder="Buscar conta de origem..."></select>
                         </div>
                         <div class="col-md-6">
                             <label for="editTransContaDestino" class="form-label">Conta Destino</label>
-                            <select class="form-select form-select-sm" id="editTransContaDestino" required aria-required="true"></select>
+                            <select class="form-select form-select-sm" id="editTransContaDestino" required
+                                aria-required="true" data-lk-custom-select="compact"
+                                data-lk-select-search="true" data-lk-select-sort="alpha"
+                                data-lk-select-search-placeholder="Buscar conta de destino..."></select>
                         </div>
                     </div>
                     <div class="row g-3 mt-1">

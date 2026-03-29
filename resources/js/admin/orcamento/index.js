@@ -16,6 +16,8 @@ const init = async () => {
 
 window.orcamentoManager = {
     openOrcamentoModal: (id) => OrcamentoApp.openOrcamentoModal(id),
+    openOrcamentoModalByCategoria: (categoriaId) => OrcamentoApp.openOrcamentoModalByCategoria(categoriaId),
+    openSugestoes: () => OrcamentoApp.openSugestoes(),
     deleteOrcamento: (id) => OrcamentoApp.deleteOrcamento(id),
     formatarDinheiro: (input) => Utils.formatarDinheiro(input),
     loadAll: () => OrcamentoApp.loadAll(),

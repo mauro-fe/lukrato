@@ -3,7 +3,7 @@ import { CONFIG, DOM, initDOM, STATE, Utils, MoneyMask, Notifications, Modules }
 import { TableManager } from './table.js';
 import { MobileCards } from './mobile.js';
 import { OptionsManager, ModalManager } from './modal.js';
-import { CustomSelectManager } from './custom-select.js';
+import { CustomSelectManager, syncCustomSelects } from './custom-select.js';
 import {
     ExportManager,
     FilterBadges,
@@ -153,14 +153,30 @@ const EventListeners = {
                 DOM.selectLancCategoria?.value || ''
             );
             ModalManager.syncEditSummary();
+            void ModalManager.renderPlanningAlerts();
         });
 
-        DOM.inputLancData?.addEventListener('change', ModalManager.syncEditSummary);
+        DOM.inputLancData?.addEventListener('change', () => {
+            ModalManager.syncEditSummary();
+            void ModalManager.renderPlanningAlerts();
+        });
         DOM.inputLancHora?.addEventListener('change', ModalManager.syncEditSummary);
-        DOM.selectLancConta?.addEventListener('change', ModalManager.syncEditSummary);
-        DOM.selectLancCategoria?.addEventListener('change', ModalManager.syncEditSummary);
+        DOM.selectLancConta?.addEventListener('change', () => {
+            ModalManager.syncEditSummary();
+            void ModalManager.renderPlanningAlerts();
+        });
+        DOM.selectLancCategoria?.addEventListener('change', () => {
+            ModalManager.syncEditSummary();
+            void ModalManager.renderPlanningAlerts();
+        });
         DOM.inputLancDescricao?.addEventListener('input', ModalManager.syncEditSummary);
-        DOM.inputLancValor?.addEventListener('input', ModalManager.syncEditSummary);
+        DOM.inputLancValor?.addEventListener('input', () => {
+            ModalManager.syncEditSummary();
+            void ModalManager.renderPlanningAlerts();
+        });
+        DOM.selectLancFormaPagamento?.addEventListener('change', () => {
+            void ModalManager.renderPlanningAlerts();
+        });
 
         // Modal fechou — limpar dados
         DOM.modalEditLancEl?.addEventListener('hidden.bs.modal', () => {
@@ -169,6 +185,13 @@ const EventListeners = {
             DOM.formLanc?.reset?.();
             ModalManager.clearLancAlert();
             ModalManager.resetEditSummary();
+            ModalManager.clearPlanningAlerts();
+            syncCustomSelects(DOM.modalEditLancEl);
+        });
+
+        DOM.modalEditTransEl?.addEventListener('hidden.bs.modal', () => {
+            DOM.formTrans?.reset?.();
+            syncCustomSelects(DOM.modalEditTransEl);
         });
 
         // Submit do formulário de edição

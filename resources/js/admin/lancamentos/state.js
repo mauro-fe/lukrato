@@ -110,6 +110,7 @@ export function initDOM() {
     DOM.selectLancConta = document.getElementById('editLancConta');
     DOM.selectLancCategoria = document.getElementById('editLancCategoria');
     DOM.selectLancSubcategoria = document.getElementById('editLancSubcategoria');
+    DOM.editLancPlanningAlerts = document.getElementById('editLancPlanningAlerts');
     DOM.subcategoriaGroup = document.getElementById('editSubcategoriaGroup');
     // Modal de edição transferência
     DOM.modalEditTransEl = document.getElementById('modalEditarTransferencia');

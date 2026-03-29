@@ -118,6 +118,23 @@ export const MetasApp = {
         document.getElementById('btnNovaMetaEmpty')?.addEventListener('click', () => MetasApp.openMetaModal());
         document.getElementById('formMeta')?.addEventListener('submit', (e) => MetasApp.handleMetaSubmit(e));
         document.getElementById('formAporte')?.addEventListener('submit', (e) => MetasApp.handleAporteSubmit(e));
+        document.getElementById('metSearchInput')?.addEventListener('input', (e) => {
+            STATE.ui.query = e.target.value || '';
+            MetasApp.renderMetas();
+        });
+        document.getElementById('metSortSelect')?.addEventListener('change', (e) => {
+            STATE.ui.sort = e.target.value || 'deadline';
+            MetasApp.renderMetas();
+        });
+        document.querySelectorAll('#metFilterChips [data-filter]').forEach((button) => {
+            button.addEventListener('click', () => {
+                STATE.ui.filter = button.dataset.filter || 'all';
+                document.querySelectorAll('#metFilterChips [data-filter]').forEach((chip) => {
+                    chip.classList.toggle('is-active', chip === button);
+                });
+                MetasApp.renderMetas();
+            });
+        });
 
         // Color picker
         document.querySelectorAll('#metaCorPicker .color-dot').forEach(dot => {
@@ -174,6 +191,8 @@ export const MetasApp = {
                 MetasApp.loadResumo(),
                 MetasApp.loadMetas(),
             ]);
+            MetasApp.renderFocusPanel();
+            MetasApp.renderInsights();
         } catch (error) {
             console.error('Erro ao carregar dados:', error);
         }
@@ -219,6 +238,7 @@ export const MetasApp = {
             const res = await apiGet('api/financas/resumo');
             if (res.success !== false) {
                 applyPreviewMeta(res.data?.meta);
+                STATE.resumo = res.data;
                 MetasApp.renderResumo(res.data);
             }
         } catch (e) {
@@ -232,7 +252,9 @@ export const MetasApp = {
             if (res.success !== false) {
                 applyPreviewMeta(res.data?.meta);
                 STATE.metas = getCollectionPayload(res.data, 'metas');
+                MetasApp.renderFocusPanel();
                 MetasApp.renderMetas();
+                MetasApp.renderInsights();
             }
         } catch (e) {
             console.error('Erro ao carregar metas:', e);
@@ -249,19 +271,287 @@ export const MetasApp = {
         const totalAtual = met.total_atual ?? 0;
         const totalAlvo = met.total_alvo ?? 0;
         const progressoGeral = met.progresso_geral ?? 0;
+        const atrasadas = met.atrasadas ?? 0;
 
         Utils.setText('metasAtivas', `${totalMetas} ativa${totalMetas !== 1 ? 's' : ''}`);
         Utils.setText('metasTotalAtual', Utils.formatCurrency(totalAtual));
         Utils.setText('metasTotalAlvo', Utils.formatCurrency(totalAlvo));
 
-        // Progress ring
         const ringFill = document.getElementById('metasProgressRingFill');
         const scoreEl = document.getElementById('metasProgressScore');
+        const labelEl = document.getElementById('metasProgressLabel');
 
         if (ringFill) {
             ringFill.style.strokeDasharray = `${progressoGeral}, 100`;
+            ringFill.classList.remove('met-ring-fill--good', 'met-ring-fill--warn', 'met-ring-fill--bad');
+            if (atrasadas > 0 || progressoGeral < 30) ringFill.classList.add('met-ring-fill--bad');
+            else if (progressoGeral < 70) ringFill.classList.add('met-ring-fill--warn');
+            else ringFill.classList.add('met-ring-fill--good');
         }
         if (scoreEl) scoreEl.textContent = `${Math.round(progressoGeral)}%`;
+        if (labelEl) {
+            labelEl.className = 'met-summary-card__status';
+            if (atrasadas > 0) {
+                labelEl.textContent = `${atrasadas} atrasada${atrasadas > 1 ? 's' : ''}`;
+                labelEl.classList.add('met-status--bad');
+            } else if (totalMetas === 0) {
+                labelEl.textContent = 'Nenhuma meta';
+            } else if (progressoGeral >= 80) {
+                labelEl.textContent = 'Quase la';
+                labelEl.classList.add('met-status--good');
+            } else {
+                labelEl.textContent = 'Em progresso';
+                labelEl.classList.add('met-status--good');
+            }
+        }
+    },
+
+    getFilteredMetas() {
+        const query = STATE.ui.query.trim().toLowerCase();
+
+        return STATE.metas.filter((meta) => {
+            if (query && !(meta.titulo || '').toLowerCase().includes(query)) {
+                return false;
+            }
+
+            switch (STATE.ui.filter) {
+                case 'ativa':
+                    return meta.status === 'ativa';
+                case 'atrasada':
+                    return meta.is_atrasada === true || ((meta.dias_restantes ?? 1) < 0 && meta.status === 'ativa');
+                case 'concluida':
+                    return meta.status === 'concluida';
+                default:
+                    return true;
+            }
+        }).sort((a, b) => MetasApp.compareMetas(a, b, STATE.ui.sort));
+    },
+
+    compareMetas(a, b, sort) {
+        const priorityWeight = { alta: 0, media: 1, baixa: 2 };
+
+        switch (sort) {
+            case 'progress':
+                return (b.progresso || 0) - (a.progresso || 0);
+            case 'remaining':
+                return (b.valor_restante || 0) - (a.valor_restante || 0);
+            case 'priority':
+                return (priorityWeight[a.prioridade] ?? 99) - (priorityWeight[b.prioridade] ?? 99);
+            case 'title':
+                return (a.titulo || '').localeCompare(b.titulo || '', 'pt-BR');
+            case 'deadline':
+            default: {
+                const aDeadline = a.dias_restantes ?? Number.POSITIVE_INFINITY;
+                const bDeadline = b.dias_restantes ?? Number.POSITIVE_INFINITY;
+                if (aDeadline !== bDeadline) return aDeadline - bDeadline;
+                return (b.progresso || 0) - (a.progresso || 0);
+            }
+        }
+    },
+
+    renderFocusPanel() {
+        const focus = document.getElementById('metFocusContent');
+        const stats = document.getElementById('metFocusStats');
+        if (!focus || !stats) return;
+
+        const activeMetas = STATE.metas.filter((meta) => meta.status === 'ativa');
+        const overdueMetas = activeMetas.filter((meta) => meta.is_atrasada === true || (meta.dias_restantes ?? 1) < 0);
+        const completedMetas = STATE.metas.filter((meta) => meta.status === 'concluida');
+        const recommendedMonthly = activeMetas.reduce((sum, meta) => sum + (meta.aporte_mensal_sugerido || 0), 0);
+        const nextMeta = [...activeMetas].sort((a, b) => {
+            const progressDiff = (b.progresso || 0) - (a.progresso || 0);
+            if (progressDiff !== 0) return progressDiff;
+            return (a.valor_restante || 0) - (b.valor_restante || 0);
+        })[0];
+
+        stats.innerHTML = `
+            <div class="met-focus-stat">
+                <span class="met-focus-stat__label">Em risco</span>
+                <strong class="met-focus-stat__value">${overdueMetas.length}</strong>
+            </div>
+            <div class="met-focus-stat">
+                <span class="met-focus-stat__label">Aporte sugerido</span>
+                <strong class="met-focus-stat__value">${recommendedMonthly > 0 ? Utils.formatCurrency(recommendedMonthly) : 'Sem prazo'}</strong>
+            </div>
+            <div class="met-focus-stat">
+                <span class="met-focus-stat__label">Concluidas</span>
+                <strong class="met-focus-stat__value">${completedMetas.length}</strong>
+            </div>
+        `;
+
+        if (!nextMeta) {
+            focus.innerHTML = `
+                <div class="met-focus-callout">
+                    <div>
+                        <h2 class="met-focus-callout__title">Voce ainda nao tem uma meta ativa.</h2>
+                        <p class="met-focus-callout__text">Use um template para sair do zero mais rapido ou crie uma meta com valor e prazo.</p>
+                    </div>
+                    <div class="met-focus-callout__actions">
+                        <button type="button" class="met-action-btn met-action-btn--success" onclick="metasManager.openMetaModal()">
+                            <i data-lucide="plus"></i>
+                            <span>Criar Meta</span>
+                        </button>
+                        <button type="button" class="met-action-btn" onclick="metasManager.openTemplates()">
+                            <i data-lucide="wand-sparkles"></i>
+                            <span>Usar Template</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
+        const monthlyHint = nextMeta.aporte_mensal_sugerido > 0
+            ? `${Utils.formatCurrency(nextMeta.aporte_mensal_sugerido)}/mes sugeridos`
+            : 'Sem prazo definido para calculo de aporte';
+        const deadlineHint = nextMeta.dias_restantes == null
+            ? 'Sem prazo definido.'
+            : (nextMeta.dias_restantes < 0
+                ? 'Prazo vencido.'
+                : `${nextMeta.dias_restantes} dia${nextMeta.dias_restantes === 1 ? '' : 's'} restantes.`);
+        const primaryAction = nextMeta.status === 'ativa' && !nextMeta.conta_id && !isDemoItem(nextMeta)
+            ? `<button type="button" class="met-action-btn met-action-btn--success" onclick="metasManager.openAporteModal(${nextMeta.id})">
+                    <i data-lucide="circle-plus"></i>
+                    <span>Registrar aporte</span>
+               </button>`
+            : `<button type="button" class="met-action-btn met-action-btn--success" onclick="metasManager.openMetaModal(${nextMeta.id})">
+                    <i data-lucide="pencil"></i>
+                    <span>Revisar meta</span>
+               </button>`;
+
+        focus.innerHTML = `
+            <div class="met-focus-callout">
+                <div>
+                    <h2 class="met-focus-callout__title">${Utils.escHtml(nextMeta.titulo)}</h2>
+                    <p class="met-focus-callout__text">
+                        Faltam <strong>${Utils.formatCurrency(nextMeta.valor_restante || Math.max(0, (nextMeta.valor_alvo || 0) - (nextMeta.valor_atual || 0)))}</strong>
+                        para concluir. ${deadlineHint}
+                    </p>
+                    <div class="met-focus-callout__meta">
+                        <span class="met-focus-callout__pill">${(nextMeta.progresso || 0).toFixed(1)}% concluido</span>
+                        <span class="met-focus-callout__pill">${monthlyHint}</span>
+                    </div>
+                </div>
+                <div class="met-focus-callout__actions">
+                    ${primaryAction}
+                    <button type="button" class="met-action-btn" onclick="metasManager.openMetaModal(${nextMeta.id})">
+                        <i data-lucide="sliders-horizontal"></i>
+                        <span>Ajustar meta</span>
+                    </button>
+                </div>
+            </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+    },
+
+    buildInsights() {
+        const activeMetas = STATE.metas.filter((meta) => meta.status === 'ativa');
+        const completedMetas = STATE.metas.filter((meta) => meta.status === 'concluida');
+        const overdueMetas = activeMetas.filter((meta) => meta.is_atrasada === true || (meta.dias_restantes ?? 1) < 0);
+        const highestPriority = [...activeMetas]
+            .filter((meta) => meta.prioridade === 'alta')
+            .sort((a, b) => (a.progresso || 0) - (b.progresso || 0))[0];
+        const closestMeta = [...activeMetas]
+            .sort((a, b) => (a.valor_restante || 0) - (b.valor_restante || 0))[0];
+        const monthlyRequired = activeMetas.reduce((sum, meta) => sum + (meta.aporte_mensal_sugerido || 0), 0);
+        const insights = [];
+
+        if (monthlyRequired > 0) {
+            insights.push({
+                tipo: 'info',
+                titulo: 'Ritmo mensal das metas',
+                mensagem: `Para cumprir os prazos atuais, reserve cerca de ${Utils.formatCurrency(monthlyRequired)} por mes.`,
+                icon: 'calendar-range',
+            });
+        }
+
+        if (overdueMetas.length > 0) {
+            const overdue = overdueMetas[0];
+            insights.push({
+                tipo: 'danger',
+                titulo: `${overdue.titulo} esta atrasada`,
+                mensagem: overdue.aporte_mensal_sugerido > 0
+                    ? `Para recuperar o prazo, tente reforcar em ${Utils.formatCurrency(overdue.aporte_mensal_sugerido)} por mes.`
+                    : `Faltam ${Utils.formatCurrency(overdue.valor_restante || 0)} para concluir esta meta.`,
+                icon: 'triangle-alert',
+                action: overdue.conta_id ? 'review' : 'deposit',
+                metaId: overdue.id,
+            });
+        }
+
+        if (closestMeta) {
+            insights.push({
+                tipo: 'success',
+                titulo: `${closestMeta.titulo} esta mais perto de sair do papel`,
+                mensagem: `Faltam ${Utils.formatCurrency(closestMeta.valor_restante || 0)} para concluir.`,
+                icon: 'target',
+                action: closestMeta.conta_id ? 'review' : 'deposit',
+                metaId: closestMeta.id,
+            });
+        }
+
+        if (highestPriority) {
+            insights.push({
+                tipo: 'warning',
+                titulo: `Sua meta de alta prioridade pede atencao`,
+                mensagem: `${highestPriority.titulo} ainda esta em ${(highestPriority.progresso || 0).toFixed(1)}% de progresso.`,
+                icon: 'flag',
+                action: 'review',
+                metaId: highestPriority.id,
+            });
+        }
+
+        if (completedMetas.length > 0) {
+            insights.push({
+                tipo: 'success',
+                titulo: `Voce ja concluiu ${completedMetas.length} meta${completedMetas.length > 1 ? 's' : ''}`,
+                mensagem: 'Vale usar esse embalo para abrir o proximo objetivo e manter a consistencia.',
+                icon: 'party-popper',
+            });
+        }
+
+        return insights.slice(0, 5);
+    },
+
+    renderInsights() {
+        const section = document.getElementById('metInsightsSection');
+        const grid = document.getElementById('metInsightsGrid');
+        if (!section || !grid) return;
+
+        const insights = MetasApp.buildInsights();
+        if (!insights.length) {
+            section.style.display = 'none';
+            return;
+        }
+
+        section.style.display = '';
+        grid.innerHTML = insights.map((insight) => {
+            const action = insight.metaId
+                ? (insight.action === 'deposit'
+                    ? `<button type="button" class="met-insight-action" onclick="metasManager.openAporteModal(${insight.metaId})">
+                            <i data-lucide="circle-plus"></i>
+                            <span>Aportar</span>
+                       </button>`
+                    : `<button type="button" class="met-insight-action" onclick="metasManager.openMetaModal(${insight.metaId})">
+                            <i data-lucide="pencil"></i>
+                            <span>Revisar</span>
+                       </button>`)
+                : '';
+            return `
+                <div class="met-insight-card surface-card surface-card--interactive ${insight.tipo}">
+                    <div class="met-insight-icon ${insight.tipo}">
+                        <i data-lucide="${insight.icon}"></i>
+                    </div>
+                    <div class="met-insight-content">
+                        <span class="met-insight-title">${Utils.escHtml(insight.titulo)}</span>
+                        <p class="met-insight-text">${Utils.escHtml(insight.mensagem)}</p>
+                    </div>
+                    ${action}
+                </div>
+            `;
+        }).join('');
+        if (window.lucide) lucide.createIcons();
     },
 
     // ==================== RENDER: METAS ====================
@@ -279,8 +569,20 @@ export const MetasApp = {
 
         grid.style.display = '';
         empty.style.display = 'none';
+        const filteredMetas = MetasApp.getFilteredMetas();
 
-        grid.innerHTML = STATE.metas.map(meta => {
+        if (!filteredMetas.length) {
+            grid.innerHTML = `
+                <div class="met-soft-empty surface-card">
+                    <i data-lucide="search-x"></i>
+                    <p>Nenhuma meta encontrada para os filtros atuais.</p>
+                </div>
+            `;
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
+        grid.innerHTML = filteredMetas.map(meta => {
             const progresso = meta.progresso || 0;
             const isDemo = isDemoItem(meta);
             const cor = meta.cor || '#8b5cf6';
@@ -297,8 +599,11 @@ export const MetasApp = {
                     ? `<span class="met-card__deadline">${diasRestantes} dias restantes</span>`
                     : `<span class="met-card__deadline" style="color:#ef4444">Prazo vencido!</span>`)
                 : '';
+            const aporteInfo = meta.aporte_mensal_sugerido > 0
+                ? `<span class="met-card__hint"><i data-lucide="calendar-range" style="width:12px;height:12px"></i> ${Utils.formatCurrency(meta.aporte_mensal_sugerido)}/mes sugeridos</span>`
+                : '';
             const contaBadge = meta.conta_id
-                ? `<span class="met-card__deadline"><i data-lucide="landmark" style="width:12px;height:12px"></i> ${Utils.escHtml(meta.conta_nome || 'Conta vinculada')}</span>`
+                ? `<span class="met-card__hint"><i data-lucide="landmark" style="width:12px;height:12px"></i> ${Utils.escHtml(meta.conta_nome || 'Conta vinculada')} • saldo sincronizado</span>`
                 : '';
 
             return `
@@ -309,6 +614,7 @@ export const MetasApp = {
                         <div class="met-card__info">
                             <span class="met-card__name">${Utils.escHtml(meta.titulo)}</span>
                             ${prazoInfo}
+                            ${aporteInfo}
                             ${contaBadge}
                             ${demoTag}
                         </div>

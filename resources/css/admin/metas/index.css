@@ -115,6 +115,15 @@
   text-overflow: ellipsis;
 }
 
+.met-summary-card__status {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.met-status--good { color: #10b981; }
+.met-status--warn { color: #f59e0b; }
+.met-status--bad { color: #ef4444; }
+
 /* ============================================================================
    PROGRESS RING (Summary)
    ============================================================================ */
@@ -146,6 +155,117 @@
   stroke-width: 3;
   stroke-linecap: round;
   transition: stroke-dasharray 1s ease;
+}
+
+.met-ring-fill--good { stroke: #10b981; }
+.met-ring-fill--warn { stroke: #f59e0b; }
+.met-ring-fill--bad { stroke: #ef4444; }
+
+/* ============================================================================
+   FOCUS PANEL
+   ============================================================================ */
+
+.met-focus-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr);
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+}
+
+.met-focus-panel__main,
+.met-focus-panel__stats {
+  min-width: 0;
+}
+
+.met-focus-panel__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: var(--spacing-3);
+  font-size: .76rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.met-focus-callout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+}
+
+.met-focus-callout__title {
+  margin: 0 0 .45rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+}
+
+.met-focus-callout__text {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.met-focus-callout__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+  margin-top: var(--spacing-3);
+}
+
+.met-focus-callout__pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: .35rem .75rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 9%, transparent);
+  color: var(--color-text);
+  font-size: .78rem;
+  font-weight: 600;
+}
+
+.met-focus-callout__actions {
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+  min-width: 220px;
+}
+
+.met-focus-callout__actions .met-action-btn {
+  justify-content: center;
+}
+
+.met-focus-panel__stats {
+  display: grid;
+  gap: .75rem;
+}
+
+.met-focus-stat {
+  padding: 1rem 1.1rem;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 90%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-bg) 94%, transparent);
+  display: grid;
+  gap: .2rem;
+}
+
+.met-focus-stat__label {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.met-focus-stat__value {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--color-text);
 }
 
 .met-ring-text {
@@ -212,6 +332,74 @@
 }
 
 /* ============================================================================
+   TOOLBAR
+   ============================================================================ */
+
+.met-toolbar {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.1fr) minmax(0, 1fr) auto;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  align-items: center;
+}
+
+.met-toolbar__search {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  min-height: 46px;
+  padding: 0 .95rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--glass-bg);
+  color: var(--color-text-muted);
+}
+
+.met-toolbar__search input {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  outline: none;
+}
+
+.met-toolbar__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+}
+
+.met-chip {
+  min-height: 36px;
+  padding: .4rem .9rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 92%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 96%, transparent);
+  color: var(--color-text-muted);
+  font-size: .8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.met-chip:hover,
+.met-chip.is-active {
+  color: var(--color-primary);
+  border-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 11%, transparent);
+}
+
+.met-toolbar__sort {
+  display: grid;
+  gap: .35rem;
+  color: var(--color-text-muted);
+  font-size: .76rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+/* ============================================================================
    METAS GRID
    ============================================================================ */
 
@@ -256,6 +444,14 @@
 
 .met-card__deadline {
   font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.met-card__hint {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: 0.74rem;
   color: var(--color-text-muted);
 }
 
@@ -377,6 +573,111 @@
 .met-card__badge--completed {
   background: rgba(139, 92, 246, 0.12);
   color: #8b5cf6;
+}
+
+.met-soft-empty {
+  min-height: 220px;
+  grid-column: 1 / -1;
+  display: grid;
+  place-items: center;
+  gap: .75rem;
+  padding: var(--spacing-6);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.met-soft-empty i {
+  color: var(--color-primary);
+}
+
+/* ============================================================================
+   INSIGHTS
+   ============================================================================ */
+
+.met-section-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-3);
+}
+
+.met-section-label i { color: var(--color-primary); font-size: 0.85rem; }
+
+.met-insights-section { margin-top: var(--spacing-2); }
+
+.met-insights-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.met-insight-card {
+  backdrop-filter: var(--glass-backdrop);
+  padding: var(--spacing-4);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+}
+
+.met-insight-card.warning { border-left: 3px solid #f59e0b; }
+.met-insight-card.danger { border-left: 3px solid #ef4444; }
+.met-insight-card.success { border-left: 3px solid #10b981; }
+.met-insight-card.info { border-left: 3px solid #6366f1; }
+
+.met-insight-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.met-insight-icon.warning { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.met-insight-icon.danger { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+.met-insight-icon.success { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+.met-insight-icon.info { background: rgba(99, 102, 241, 0.15); color: #6366f1; }
+
+.met-insight-content { flex: 1; min-width: 0; }
+
+.met-insight-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.met-insight-text {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.met-insight-action {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-height: 36px;
+  padding: .45rem .85rem;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.met-insight-action:hover {
+  background: color-mix(in srgb, var(--color-primary) 16%, transparent);
 }
 
 /* ============================================================================
@@ -504,6 +805,23 @@
   .met-actions-bar {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .met-focus-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .met-focus-callout {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .met-focus-callout__actions {
+    min-width: 0;
+  }
+
+  .met-toolbar {
+    grid-template-columns: 1fr;
   }
 
   .met-actions-bar__left {

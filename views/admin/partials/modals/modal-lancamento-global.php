@@ -24,6 +24,8 @@
                 </label>
                 <div class="lk-select-wrapper">
                     <select id="globalContaSelect" class="lk-select surface-card" required
+                        data-lk-custom-select="modal" data-lk-select-search="true"
+                        data-lk-select-sort="alpha" data-lk-select-search-placeholder="Buscar conta..."
                         onchange="lancamentoGlobalManager.onContaChange()">
                         <option value="">Escolha uma conta...</option>
                     </select>
@@ -44,6 +46,8 @@
                     Saldo atual: <strong id="globalContaSaldo">R$ 0,00</strong>
                 </div>
             </div>
+
+            <div class="lk-planning-alerts" id="globalContaPlanningAlerts" hidden></div>
 
             <!-- Wizard Progress (dots) -->
             <div class="lk-wizard-progress" id="globalWizardProgress" style="display: none;">
@@ -188,7 +192,10 @@
                             Conta de Destino
                         </label>
                         <div class="lk-select-wrapper">
-                            <select id="globalLancamentoContaDestino" name="conta_destino_id" class="lk-select">
+                            <select id="globalLancamentoContaDestino" name="conta_destino_id" class="lk-select"
+                                data-lk-custom-select="modal" data-lk-select-search="true"
+                                data-lk-select-sort="alpha"
+                                data-lk-select-search-placeholder="Buscar conta de destino...">
                                 <option value="">Selecione a conta de destino</option>
                             </select>
                             <i data-lucide="chevron-down" class="lk-select-icon"></i>
@@ -278,6 +285,8 @@
                         </label>
                         <div class="lk-select-wrapper">
                             <select id="globalLancamentoCartaoCredito" name="cartao_credito_id" class="lk-select"
+                                data-lk-custom-select="modal" data-lk-select-search="true"
+                                data-lk-select-sort="alpha" data-lk-select-search-placeholder="Buscar cartao..."
                                 onchange="typeof lancamentoGlobalManager !== 'undefined' && lancamentoGlobalManager.onCartaoEstornoChange && lancamentoGlobalManager.onCartaoEstornoChange()">
                                 <option value="">Selecione o cartão</option>
                             </select>
@@ -293,7 +302,9 @@
                             Em qual fatura aplicar o estorno?
                         </label>
                         <div class="lk-select-wrapper">
-                            <select id="globalLancamentoFaturaEstorno" name="fatura_mes_ano" class="lk-select">
+                            <select id="globalLancamentoFaturaEstorno" name="fatura_mes_ano" class="lk-select"
+                                data-lk-custom-select="modal" data-lk-select-search="true"
+                                data-lk-select-search-placeholder="Buscar fatura...">
                                 <option value="">Carregando faturas...</option>
                             </select>
                             <i data-lucide="chevron-down" class="lk-select-icon"></i>
@@ -342,7 +353,8 @@
                             </label>
                             <div class="lk-select-wrapper" style="margin-bottom: 0.75rem;">
                                 <select id="globalLancamentoAssinaturaFreq" name="recorrencia_freq_cartao"
-                                    class="lk-select">
+                                    class="lk-select" data-lk-custom-select="modal" data-lk-select-search="true"
+                                    data-lk-select-search-placeholder="Buscar frequencia...">
                                     <option value="mensal" selected>Mensal</option>
                                     <option value="bimestral">Bimestral</option>
                                     <option value="trimestral">Trimestral</option>
@@ -523,7 +535,10 @@
                         </label>
                         <div class="lk-ai-category-row">
                             <div class="lk-select-wrapper" style="flex:1">
-                                <select id="globalLancamentoCategoria" name="categoria_id" class="lk-select">
+                                <select id="globalLancamentoCategoria" name="categoria_id" class="lk-select"
+                                    data-lk-custom-select="modal" data-lk-select-search="true"
+                                    data-lk-select-sort="alpha"
+                                    data-lk-select-search-placeholder="Buscar categoria...">
                                     <option value="">Sem categoria</option>
                                 </select>
                                 <i data-lucide="chevron-down" class="lk-select-icon"></i>
@@ -535,6 +550,8 @@
                         </div>
                     </div>
 
+                    <div class="lk-planning-alerts" id="globalCategoriaPlanningAlerts" hidden></div>
+
                     <!-- Subcategoria -->
                     <div class="lk-form-group subcategoria-select-group" id="globalSubcategoriaGroup">
                         <label for="globalLancamentoSubcategoria" class="lk-label">
@@ -542,7 +559,10 @@
                             Subcategoria
                         </label>
                         <div class="lk-select-wrapper">
-                            <select id="globalLancamentoSubcategoria" name="subcategoria_id" class="lk-select">
+                            <select id="globalLancamentoSubcategoria" name="subcategoria_id" class="lk-select"
+                                data-lk-custom-select="modal" data-lk-select-search="true"
+                                data-lk-select-sort="alpha"
+                                data-lk-select-search-placeholder="Buscar subcategoria...">
                                 <option value="">Sem subcategoria</option>
                             </select>
                             <i data-lucide="chevron-down" class="lk-select-icon"></i>
@@ -571,7 +591,9 @@
                                 Frequência
                             </label>
                             <div class="lk-select-wrapper" style="margin-bottom: 0.75rem;">
-                                <select id="globalLancamentoRecorrenciaFreq" name="recorrencia_freq" class="lk-select">
+                                <select id="globalLancamentoRecorrenciaFreq" name="recorrencia_freq" class="lk-select"
+                                    data-lk-custom-select="modal" data-lk-select-search="true"
+                                    data-lk-select-search-placeholder="Buscar frequencia...">
                                     <option value="semanal">Semanalmente</option>
                                     <option value="quinzenal">Quinzenalmente</option>
                                     <option value="mensal" selected>Mensalmente</option>
@@ -634,7 +656,9 @@
                             <span class="lk-optional-badge">opcional</span>
                         </label>
                         <div class="lk-select-wrapper">
-                            <select id="globalLancamentoTempoAviso" name="lembrar_antes_segundos" class="lk-select">
+                            <select id="globalLancamentoTempoAviso" name="lembrar_antes_segundos" class="lk-select"
+                                data-lk-custom-select="modal" data-lk-select-search="true"
+                                data-lk-select-search-placeholder="Buscar lembrete...">
                                 <option value="">Sem lembrete</option>
                                 <option value="86400">1 dia antes</option>
                                 <option value="172800">2 dias antes</option>

@@ -14,6 +14,7 @@ window.metasManager = {
     deleteMeta: (id) => MetasApp.deleteMeta(id),
     openAporteModal: (id) => MetasApp.openAporteModal(id),
     useTemplate: (tmpl) => MetasApp.useTemplate(tmpl),
+    openTemplates: () => MetasApp.openTemplates(),
     loadAll: () => MetasApp.loadAll(),
     formatarDinheiro: (input) => Utils.formatarDinheiro(input),
 };

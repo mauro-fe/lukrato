@@ -8,6 +8,7 @@
 @import './_header.css';
 @import './_body.css';
 @import './_conta-info.css';
+@import '../shared/_planning-alerts.css';
 @import './_historico.css';
 @import './_tipo-movimentacao.css';
 @import './_agendamento.css';

@@ -66,7 +66,9 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label for="editLancTipo" class="form-label">Tipo</label>
-                                    <select class="form-select" id="editLancTipo" required aria-required="true">
+                                    <select class="form-select" id="editLancTipo" required aria-required="true"
+                                        data-lk-custom-select="form" data-lk-select-search="true"
+                                        data-lk-select-search-placeholder="Buscar tipo...">
                                         <option value="receita">Receita</option>
                                         <option value="despesa">Despesa</option>
                                     </select>
@@ -91,12 +93,18 @@
                                 <div class="col-md-6">
                                     <label for="editLancConta" class="form-label">Conta</label>
                                     <select class="form-select" id="editLancConta" required
+                                        data-lk-custom-select="form" data-lk-select-search="true"
+                                        data-lk-select-sort="alpha"
+                                        data-lk-select-search-placeholder="Buscar conta..."
                                         aria-required="true"></select>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="editLancCategoria" class="form-label">Categoria</label>
                                     <div class="lk-edit-lanc-category-row">
-                                        <select class="form-select" id="editLancCategoria"></select>
+                                        <select class="form-select" id="editLancCategoria"
+                                            data-lk-custom-select="form" data-lk-select-search="true"
+                                            data-lk-select-sort="alpha"
+                                            data-lk-select-search-placeholder="Buscar categoria..."></select>
                                         <button type="button" class="lk-btn-ai-suggest" id="btnEditAiSuggestCategoria"
                                             onclick="window._editLancSugerirCategoriaIA()"
                                             title="Sugerir categoria com IA" aria-label="Sugerir categoria com IA">
@@ -106,11 +114,16 @@
                                 </div>
                                 <div class="col-12 subcategoria-select-group" id="editSubcategoriaGroup">
                                     <label for="editLancSubcategoria" class="form-label">Subcategoria</label>
-                                    <select class="form-select" id="editLancSubcategoria">
+                                    <select class="form-select" id="editLancSubcategoria"
+                                        data-lk-custom-select="form" data-lk-select-search="true"
+                                        data-lk-select-sort="alpha"
+                                        data-lk-select-search-placeholder="Buscar subcategoria...">
                                         <option value="">Sem subcategoria</option>
                                     </select>
                                 </div>
                             </div>
+
+                            <div id="editLancPlanningAlerts" class="lk-planning-alerts" hidden></div>
                         </section>
 
                         <section class="lk-edit-lanc-card lk-edit-lanc-card--wide">
@@ -129,7 +142,9 @@
                                 </div>
                                 <div class="col-md-5">
                                     <label for="editLancFormaPagamento" class="form-label">Forma de pagamento</label>
-                                    <select class="form-select" id="editLancFormaPagamento">
+                                    <select class="form-select" id="editLancFormaPagamento"
+                                        data-lk-custom-select="form" data-lk-select-search="true"
+                                        data-lk-select-search-placeholder="Buscar forma de pagamento...">
                                         <option value="">Não informada</option>
                                         <option value="pix">📱 PIX</option>
                                         <option value="cartao_credito">💳 Cartão de Crédito</option>

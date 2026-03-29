@@ -4,7 +4,7 @@
     <header class="met-page-header" data-aos="fade-up">
         <div class="met-page-header__text">
             <h1 class="met-page-header__title">Metas</h1>
-            <p class="met-page-header__desc">Quanto você já juntou e quanto falta para atingir seus objetivos</p>
+            <p class="met-page-header__desc">Quanto voce ja juntou e quanto falta para atingir seus objetivos</p>
         </div>
         <button class="met-action-btn met-action-btn--success met-header-cta" id="btnNovaMetaHeader">
             <i data-lucide="plus"></i>
@@ -14,7 +14,6 @@
 
     <!-- ==================== CARDS RESUMO ==================== -->
     <div class="met-summary-grid" id="summaryMetas" data-aos="fade-up">
-        <!-- Metas Ativas -->
         <div class="met-summary-card surface-card surface-card--interactive">
             <div class="met-summary-card__icon met-summary-card__icon--purple">
                 <i data-lucide="target"></i>
@@ -25,7 +24,6 @@
             </div>
         </div>
 
-        <!-- Total Acumulado -->
         <div class="met-summary-card surface-card surface-card--interactive">
             <div class="met-summary-card__icon met-summary-card__icon--green">
                 <i data-lucide="coins"></i>
@@ -36,7 +34,6 @@
             </div>
         </div>
 
-        <!-- Objetivo Total -->
         <div class="met-summary-card surface-card surface-card--interactive">
             <div class="met-summary-card__icon met-summary-card__icon--blue">
                 <i data-lucide="flag"></i>
@@ -47,7 +44,6 @@
             </div>
         </div>
 
-        <!-- Progresso Geral -->
         <div class="met-summary-card surface-card surface-card--interactive">
             <div class="met-summary-card__icon">
                 <div class="met-progress-ring" id="metasProgressRing">
@@ -67,7 +63,38 @@
         </div>
     </div>
 
-    <!-- ==================== AÇÕES ==================== -->
+    <!-- ==================== FOCO DO MOMENTO ==================== -->
+    <section class="met-focus-panel surface-card surface-card--interactive" id="metFocusPanel" data-aos="fade-up"
+        data-aos-delay="80">
+        <div class="met-focus-panel__main">
+            <div class="met-focus-panel__eyebrow">
+                <i data-lucide="sparkles"></i>
+                <span>Seu proximo passo</span>
+            </div>
+            <div class="met-focus-panel__content" id="metFocusContent">
+                <div class="lk-loading-state">
+                    <i data-lucide="loader-2"></i>
+                    <p>Analisando suas metas...</p>
+                </div>
+            </div>
+        </div>
+        <div class="met-focus-panel__stats" id="metFocusStats">
+            <div class="met-focus-stat">
+                <span class="met-focus-stat__label">Em risco</span>
+                <strong class="met-focus-stat__value">--</strong>
+            </div>
+            <div class="met-focus-stat">
+                <span class="met-focus-stat__label">Aporte sugerido</span>
+                <strong class="met-focus-stat__value">--</strong>
+            </div>
+            <div class="met-focus-stat">
+                <span class="met-focus-stat__label">Concluidas</span>
+                <strong class="met-focus-stat__value">--</strong>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== ACOES ==================== -->
     <div class="met-actions-bar" data-aos="fade-up" data-aos-delay="100">
         <div class="met-actions-bar__left">
             <button class="met-action-btn" id="btnTemplates">
@@ -81,12 +108,45 @@
         </button>
     </div>
 
+    <!-- ==================== FILTROS ==================== -->
+    <section class="met-toolbar surface-card" data-aos="fade-up" data-aos-delay="120">
+        <label class="met-toolbar__search">
+            <i data-lucide="search"></i>
+            <input type="search" id="metSearchInput" placeholder="Buscar meta por nome">
+        </label>
+        <div class="met-toolbar__chips" id="metFilterChips">
+            <button type="button" class="met-chip is-active" data-filter="all">Todas</button>
+            <button type="button" class="met-chip" data-filter="ativa">Ativas</button>
+            <button type="button" class="met-chip" data-filter="atrasada">Atrasadas</button>
+            <button type="button" class="met-chip" data-filter="concluida">Concluidas</button>
+        </div>
+        <label class="met-toolbar__sort">
+            <span>Ordenar</span>
+            <select id="metSortSelect" class="fin-select">
+                <option value="deadline">Prazo mais proximo</option>
+                <option value="progress">Maior progresso</option>
+                <option value="remaining">Maior valor restante</option>
+                <option value="priority">Prioridade</option>
+                <option value="title">Nome</option>
+            </select>
+        </label>
+    </section>
+
     <!-- ==================== GRID DE METAS ==================== -->
     <div class="met-grid" id="metasGrid" data-aos="fade-up" data-aos-delay="150">
         <div class="lk-loading-state">
             <i data-lucide="loader-2"></i>
             <p>Carregando metas...</p>
         </div>
+    </div>
+
+    <!-- ==================== INSIGHTS ==================== -->
+    <div class="met-insights-section" id="metInsightsSection" style="display:none;" data-aos="fade-up">
+        <div class="met-section-label">
+            <i data-lucide="lightbulb"></i>
+            <span>Insights</span>
+        </div>
+        <div class="met-insights-grid" id="metInsightsGrid"></div>
     </div>
 
     <!-- ==================== ESTADO VAZIO ==================== -->
@@ -103,7 +163,7 @@
         </div>
         <h3 class="met-empty-state__title">Comece a planejar seu futuro!</h3>
         <p class="met-empty-state__text">Crie sua primeira meta financeira e acompanhe seu progresso.<br>
-            Seja economizar para uma viagem, quitar uma dívida ou construir sua reserva de emergência.</p>
+            Seja economizar para uma viagem, quitar uma divida ou construir sua reserva de emergencia.</p>
         <div class="met-empty-state__actions">
             <button class="met-action-btn met-action-btn--success" id="btnNovaMetaEmpty">
                 <i data-lucide="plus"></i>
@@ -131,18 +191,18 @@
             <?= csrf_input('default') ?>
             <div class="fin-modal-body">
                 <div class="fin-form-group">
-                    <label class="fin-label"><i data-lucide="pencil"></i> Título</label>
-                    <input type="text" id="metaTitulo" class="fin-input" placeholder="Ex: Reserva de emergência"
+                    <label class="fin-label"><i data-lucide="pencil"></i> Titulo</label>
+                    <input type="text" id="metaTitulo" class="fin-input" placeholder="Ex: Reserva de emergencia"
                         required maxlength="150">
                 </div>
                 <div class="fin-form-group">
                     <label class="fin-label"><i data-lucide="landmark"></i> Vincular a uma conta <span
                             class="fin-badge-optional">opcional</span></label>
                     <select id="metaContaId" class="fin-select">
-                        <option value="">— Sem vínculo (aporte manual) —</option>
+                        <option value="">- Sem vinculo (aporte manual) -</option>
                     </select>
                     <span class="fin-hint" id="metaContaHint" style="display:none"><i data-lucide="info"></i> O
-                        progresso será atualizado automaticamente com o saldo da conta.</span>
+                        progresso sera atualizado automaticamente com o saldo da conta.</span>
                 </div>
                 <div class="fin-form-row-2">
                     <div class="fin-form-group">
@@ -158,26 +218,26 @@
                     <div class="fin-form-group">
                         <label class="fin-label"><i data-lucide="tag"></i> Tipo</label>
                         <select id="metaTipo" class="fin-select">
-                            <option value="economia">💰 Economia</option>
-                            <option value="compra">🛒 Compra</option>
-                            <option value="quitacao">💳 Quitar Dívida</option>
-                            <option value="emergencia">🛡️ Emergência</option>
-                            <option value="viagem">✈️ Viagem</option>
-                            <option value="educacao">🎓 Educação</option>
-                            <option value="moradia">🏠 Moradia</option>
-                            <option value="veiculo">🚗 Veículo</option>
-                            <option value="saude">🏥 Saúde</option>
-                            <option value="negocio">🏪 Negócio</option>
-                            <option value="aposentadoria">🏖️ Aposentadoria</option>
-                            <option value="outro">🎯 Outro</option>
+                            <option value="economia">Economia</option>
+                            <option value="compra">Compra</option>
+                            <option value="quitacao">Quitar Divida</option>
+                            <option value="emergencia">Emergencia</option>
+                            <option value="viagem">Viagem</option>
+                            <option value="educacao">Educacao</option>
+                            <option value="moradia">Moradia</option>
+                            <option value="veiculo">Veiculo</option>
+                            <option value="saude">Saude</option>
+                            <option value="negocio">Negocio</option>
+                            <option value="aposentadoria">Aposentadoria</option>
+                            <option value="outro">Outro</option>
                         </select>
                     </div>
                     <div class="fin-form-group">
                         <label class="fin-label"><i data-lucide="flag"></i> Prioridade</label>
                         <select id="metaPrioridade" class="fin-select">
-                            <option value="baixa">🟢 Baixa</option>
-                            <option value="media" selected>🟡 Média</option>
-                            <option value="alta">🔴 Alta</option>
+                            <option value="baixa">Baixa</option>
+                            <option value="media" selected>Media</option>
+                            <option value="alta">Alta</option>
                         </select>
                     </div>
                 </div>

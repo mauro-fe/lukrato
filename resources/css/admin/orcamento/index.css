@@ -206,6 +206,108 @@
 .orc-ring-fill.orc-score--warn { stroke: #f59e0b; }
 .orc-ring-fill.orc-score--bad { stroke: #ef4444; }
 
+/* ============================================================================
+   FOCUS PANEL
+   ============================================================================ */
+
+.orc-focus-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr);
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+}
+
+.orc-focus-panel__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: var(--spacing-3);
+  font-size: .76rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.orc-focus-callout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+}
+
+.orc-focus-callout__title {
+  margin: 0 0 .45rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+}
+
+.orc-focus-callout__text {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.orc-focus-callout__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+  margin-top: var(--spacing-3);
+}
+
+.orc-focus-callout__pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: .35rem .75rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: var(--color-text);
+  font-size: .78rem;
+  font-weight: 600;
+}
+
+.orc-focus-callout__actions {
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+  min-width: 220px;
+}
+
+.orc-focus-callout__actions .orc-action-btn {
+  justify-content: center;
+}
+
+.orc-focus-panel__stats {
+  display: grid;
+  gap: .75rem;
+}
+
+.orc-focus-stat {
+  padding: 1rem 1.1rem;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 90%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-bg) 94%, transparent);
+  display: grid;
+  gap: .2rem;
+}
+
+.orc-focus-stat__label {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.orc-focus-stat__value {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
 .orc-ring-text {
   position: absolute;
   top: 50%;
@@ -270,6 +372,74 @@
 
 .orc-action-btn--success:hover {
   box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}
+
+/* ============================================================================
+   TOOLBAR
+   ============================================================================ */
+
+.orc-toolbar {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.1fr) minmax(0, 1fr) auto;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  align-items: center;
+}
+
+.orc-toolbar__search {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  min-height: 46px;
+  padding: 0 .95rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--glass-bg);
+  color: var(--color-text-muted);
+}
+
+.orc-toolbar__search input {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  outline: none;
+}
+
+.orc-toolbar__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+}
+
+.orc-chip {
+  min-height: 36px;
+  padding: .4rem .9rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 92%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 96%, transparent);
+  color: var(--color-text-muted);
+  font-size: .8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.orc-chip:hover,
+.orc-chip.is-active {
+  color: var(--color-primary);
+  border-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 11%, transparent);
+}
+
+.orc-toolbar__sort {
+  display: grid;
+  gap: .35rem;
+  color: var(--color-text-muted);
+  font-size: .76rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
 }
 
 /* ============================================================================
@@ -398,6 +568,89 @@
 .orc-card__limit {
   font-size: 0.8rem;
   color: var(--color-text-muted);
+}
+
+.orc-card__limit-hint {
+  display: inline-flex;
+  margin-top: .45rem;
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+}
+
+.orc-card__daily {
+  display: grid;
+  gap: .2rem;
+  margin-top: .8rem;
+  padding: .8rem .9rem;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 90%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-bg) 94%, transparent);
+}
+
+.orc-card__daily-label {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.orc-card__daily-label i {
+  width: 14px;
+  height: 14px;
+}
+
+.orc-card__daily-value {
+  font-size: .98rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.orc-card__daily-hint {
+  font-size: .76rem;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+.orc-card__daily--success {
+  border-color: color-mix(in srgb, var(--color-success) 22%, var(--glass-border));
+  background: color-mix(in srgb, var(--color-success) 8%, var(--color-bg));
+}
+
+.orc-card__daily--success .orc-card__daily-label {
+  color: var(--color-success);
+}
+
+.orc-card__daily--warning {
+  border-color: color-mix(in srgb, var(--color-warning) 24%, var(--glass-border));
+  background: color-mix(in srgb, var(--color-warning) 9%, var(--color-bg));
+}
+
+.orc-card__daily--warning .orc-card__daily-label {
+  color: #f59e0b;
+}
+
+.orc-card__daily--danger {
+  border-color: color-mix(in srgb, var(--color-danger) 26%, var(--glass-border));
+  background: color-mix(in srgb, var(--color-danger) 9%, var(--color-bg));
+}
+
+.orc-card__daily--danger .orc-card__daily-label {
+  color: #ef4444;
+}
+
+.orc-card__daily--info,
+.orc-card__daily--neutral {
+  border-color: color-mix(in srgb, var(--color-primary) 24%, var(--glass-border));
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-bg));
+}
+
+.orc-card__daily--info .orc-card__daily-label,
+.orc-card__daily--neutral .orc-card__daily-label {
+  color: var(--color-primary);
 }
 
 /* Footer */
@@ -552,6 +805,39 @@
   line-height: 1.5;
 }
 
+.orc-insight-action {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-height: 36px;
+  padding: .45rem .85rem;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.orc-insight-action:hover {
+  background: color-mix(in srgb, var(--color-primary) 16%, transparent);
+}
+
+.orc-soft-empty {
+  min-height: 220px;
+  grid-column: 1 / -1;
+  display: grid;
+  place-items: center;
+  gap: .75rem;
+  padding: var(--spacing-6);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.orc-soft-empty i {
+  color: var(--color-primary);
+}
+
 /* ============================================================================
    RESPONSIVE
    ============================================================================ */
@@ -564,6 +850,23 @@
   .orc-actions-bar {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .orc-focus-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .orc-focus-callout {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .orc-focus-callout__actions {
+    min-width: 0;
+  }
+
+  .orc-toolbar {
+    grid-template-columns: 1fr;
   }
 
   .orc-actions-bar__left {
