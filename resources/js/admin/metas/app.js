@@ -461,7 +461,7 @@ export const MetasApp = {
             insights.push({
                 tipo: 'info',
                 titulo: 'Ritmo mensal das metas',
-                mensagem: `Para cumprir os prazos atuais, reserve cerca de ${Utils.formatCurrency(monthlyRequired)} por mes.`,
+                mensagem: `Para cumprir os prazos atuais, reserve cerca de ${Utils.formatCurrency(monthlyRequired)} por mês.`,
                 icon: 'calendar-range',
             });
         }
@@ -472,7 +472,7 @@ export const MetasApp = {
                 tipo: 'danger',
                 titulo: `${overdue.titulo} esta atrasada`,
                 mensagem: overdue.aporte_mensal_sugerido > 0
-                    ? `Para recuperar o prazo, tente reforcar em ${Utils.formatCurrency(overdue.aporte_mensal_sugerido)} por mes.`
+                    ? `Para recuperar o prazo, tente reforcar em ${Utils.formatCurrency(overdue.aporte_mensal_sugerido)} por mês.`
                     : `Faltam ${Utils.formatCurrency(overdue.valor_restante || 0)} para concluir esta meta.`,
                 icon: 'triangle-alert',
                 action: overdue.conta_id ? 'review' : 'deposit',
@@ -494,8 +494,8 @@ export const MetasApp = {
         if (highestPriority) {
             insights.push({
                 tipo: 'warning',
-                titulo: `Sua meta de alta prioridade pede atencao`,
-                mensagem: `${highestPriority.titulo} ainda esta em ${(highestPriority.progresso || 0).toFixed(1)}% de progresso.`,
+                titulo: `Sua meta de alta prioridade pede atenção`,
+                mensagem: `${highestPriority.titulo} ainda está em ${(highestPriority.progresso || 0).toFixed(1)}% de progresso.`,
                 icon: 'flag',
                 action: 'review',
                 metaId: highestPriority.id,
@@ -505,8 +505,8 @@ export const MetasApp = {
         if (completedMetas.length > 0) {
             insights.push({
                 tipo: 'success',
-                titulo: `Voce ja concluiu ${completedMetas.length} meta${completedMetas.length > 1 ? 's' : ''}`,
-                mensagem: 'Vale usar esse embalo para abrir o proximo objetivo e manter a consistencia.',
+                titulo: `Você já concluiu ${completedMetas.length} meta${completedMetas.length > 1 ? 's' : ''}`,
+                mensagem: 'Vale usar esse embalo para abrir o próximo objetivo e manter a consistência.',
                 icon: 'party-popper',
             });
         }

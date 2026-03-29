@@ -552,7 +552,7 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
             case 'create_meta':
                 return [
                     { label: 'Criar meta', message: `quero criar uma meta para ${normalized}`, mode: 'fill' },
-                    { label: 'Planejar valor mensal', message: 'me ajude a planejar quanto guardar por mes', mode: 'send' },
+                    { label: 'Planejar valor mensal', message: 'me ajude a planejar quanto guardar por mês', mode: 'send' },
                 ];
             case 'create_orcamento':
                 return [

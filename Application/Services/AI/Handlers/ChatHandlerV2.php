@@ -20,22 +20,22 @@ class ChatHandlerV2 implements AIHandlerInterface
 
     private const TRIVIAL_PATTERNS = [
         '^teste$|^test$|^testing$|^testando$' =>
-            'Teste recebido! Estou funcionando. Como posso ajudar?',
+        'Teste recebido! Estou funcionando. Como posso ajudar?',
         '^ok$|^beleza$|^blz$|^valeu$|^obrigad|^thanks|^thx' =>
-            'Estou por aqui se quiser continuar.',
+        'Estou por aqui se quiser continuar.',
         'quem [eé] voc[eê]|o que voc[eê] faz|como funciona|qual seu nome|teu nome' =>
-            'Sou o Lukra, assistente financeiro do Lukrato. Posso ajudar a registrar gastos e receitas, analisar seus gastos e organizar metas e orcamentos.',
+        'Sou o Lukra, assistente financeiro do Lukrato. Posso ajudar a registrar gastos e receitas, analisar seus gastos e organizar metas e orcamentos.',
     ];
 
     private const ACTION_HINTS = [
         'gast[eio]|comprei|paguei|pag[ao]|cust[eo]u|torrei|larguei|meti\s+\d|soltei|boleto|fatura|prestac' =>
-            ['action_hint' => 'create_lancamento', 'suggestion' => 'Quer transformar isso em um lancamento agora?'],
+        ['action_hint' => 'create_lancamento', 'suggestion' => 'Quer transformar isso em um lancamento agora?'],
         'ganhei|recebi|dep[oó]sit|entrou|sal[áa]rio|freelance|freela' =>
-            ['action_hint' => 'create_lancamento_receita', 'suggestion' => 'Posso te ajudar a registrar essa receita.'],
+        ['action_hint' => 'create_lancamento_receita', 'suggestion' => 'Posso te ajudar a registrar essa receita.'],
         'quero comprar|sonho|quero viajar|juntar\s+dinheiro|economizar\s+para|guardar\s+para|objetivo' =>
-            ['action_hint' => 'create_meta', 'suggestion' => 'Vale a pena transformar isso em uma meta acompanhavel.'],
+        ['action_hint' => 'create_meta', 'suggestion' => 'Vale a pena transformar isso em uma meta acompanhavel.'],
         'gastando\s+muito|gasto\s+demais|preciso\s+economizar|estou\s+no\s+vermelho|apertad[oa]|sem\s+dinheiro|quebrad[oa]|endividad[oa]' =>
-            ['action_hint' => 'create_orcamento', 'suggestion' => 'Um orcamento pode te dar mais controle sobre isso.'],
+        ['action_hint' => 'create_orcamento', 'suggestion' => 'Um orcamento pode te dar mais controle sobre isso.'],
     ];
 
     private const CAPABILITY_PATTERNS = [
@@ -237,7 +237,7 @@ class ChatHandlerV2 implements AIHandlerInterface
             ],
             'create_meta' => [
                 ['label' => 'Criar meta', 'message' => "quero criar uma meta para {$normalizedMessage}", 'mode' => 'fill'],
-                ['label' => 'Planejar valor mensal', 'message' => 'me ajude a planejar quanto guardar por mes', 'mode' => 'send'],
+                ['label' => 'Planejar valor mensal', 'message' => 'me ajude a planejar quanto guardar por mês', 'mode' => 'send'],
             ],
             'create_orcamento' => [
                 ['label' => 'Criar orcamento', 'message' => 'quero criar um orcamento para controlar isso', 'mode' => 'fill'],
