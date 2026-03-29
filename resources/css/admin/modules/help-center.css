@@ -408,8 +408,8 @@
 
 @media (max-width: 768px) {
   .top-nav-help-menu {
-    right: 0;
-    width: calc(100vw - 16px);
+    right: -60px;
+    width: calc(100vw - 100px);
     max-height: min(520px, calc(100vh - 92px));
     padding: 14px;
   }
