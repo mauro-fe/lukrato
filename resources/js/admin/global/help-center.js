@@ -2,9 +2,21 @@ import '../../../css/admin/modules/help-center.css';
 
 window.__LK_HELP_CENTER_MANAGED = true;
 
-const DEFAULT_VERSION = 'v1';
+const DEFAULT_VERSION = 'v2';
+const NAVIGATION_VERSION = 'v1';
+const MOBILE_VIEWPORT_MAX = 992;
 const OFFER_DELAY = 1800;
 const OFFER_SESSION_PREFIX = `lk_help_offer_${window.__LK_CONFIG?.userId ?? 'anon'}_`;
+
+const TUTORIAL_TYPES = {
+    PAGE: 'page',
+    NAVIGATION: 'navigation',
+};
+
+const TUTORIAL_VARIANTS = {
+    DESKTOP: 'desktop',
+    MOBILE: 'mobile',
+};
 
 const PAGE_LABELS = {
     dashboard: 'Dashboard',
@@ -29,64 +41,145 @@ const TOUR_CONFIGS = {
         steps: [
             {
                 selector: '#saldoCard',
-                title: 'Resumo do mês',
-                description: 'Aqui você enxerga saldo, entradas e saídas sem navegar por várias telas.',
+                title: 'Resumo do mes',
+                description: 'Aqui voce enxerga saldo, entradas e saidas sem trocar de tela.',
                 side: 'bottom',
                 align: 'center',
             },
             {
+                selector: '.dash-kpis',
+                title: 'Indicadores principais',
+                description: 'Este bloco resume entradas, saidas e resultado do periodo.',
+                side: 'bottom',
+                align: 'start',
+            },
+            {
                 selector: ['#dashboardFirstTransactionCta', '#dashboardEmptyStateCta', '#fabContainer', '.fab-container', '#fabMain', '#fabButton'],
-                title: 'Adicionar lançamento',
-                description: 'Esse é o atalho principal. O valor do Lukrato aparece rápido depois da primeira transação.',
+                title: 'Adicionar lancamento',
+                description: 'Atalho principal para registrar sua proxima movimentacao.',
                 side: 'top',
                 align: 'center',
             },
             {
-                selector: '#chart-section',
-                title: 'Gráfico',
-                description: 'Quando houver dados reais, este bloco mostra para onde o dinheiro está indo.',
+                selector: '#table-section',
+                title: 'Ultimas transacoes',
+                description: 'Acompanhe historico recente e abra itens para revisar.',
                 side: 'bottom',
                 align: 'center',
             },
             {
-                selector: () => document.querySelector('.sidebar .nav-item[href*="categorias"], .sidebar-nav-group .nav-item[href*="categorias"], a[href*="categorias"].nav-item'),
-                title: 'Categorias',
-                description: 'Categorias deixam relatórios, insights e metas muito mais claros.',
-                side: 'right',
+                selector: '#chart-section',
+                title: 'Grafico por categoria',
+                description: 'Use este bloco para identificar concentracao de gastos.',
+                side: 'top',
+                align: 'center',
+            },
+        ],
+        mobileSteps: [
+            {
+                selector: '#saldoCard',
+                title: 'Resumo rapido',
+                description: 'Saldo e variacao do mes em um unico card.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: ['#dashboardFirstTransactionCta', '#dashboardEmptyStateCta', '#fabButton'],
+                title: 'Novo lancamento',
+                description: 'Registre uma entrada ou despesa por este atalho.',
+                side: 'top',
+                align: 'center',
+            },
+            {
+                selector: '#table-section',
+                title: 'Historico recente',
+                description: 'Lista de transacoes para revisao rapida.',
+                side: 'top',
+                align: 'center',
+            },
+            {
+                selector: '#btnCustomizeDashboard',
+                title: 'Personalizar tela',
+                description: 'Mostre apenas os blocos que importam para voce.',
+                side: 'top',
                 align: 'center',
             },
         ],
     },
     lancamentos: {
-        label: 'Lançamentos',
+        label: 'Lancamentos',
         version: DEFAULT_VERSION,
         primarySelector: ['#btnNovoLancamento', '#fabButton'],
         steps: [
             {
                 selector: '.lan-summary-strip',
-                title: 'Resumo do período',
-                description: 'Veja receitas, despesas e saldo do mês de forma imediata.',
+                title: 'Resumo do periodo',
+                description: 'Receitas, despesas e saldo do mes em leitura imediata.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: ['#btnNovoLancamento', '#fabButton'],
-                title: 'Novo lançamento',
-                description: 'Comece por aqui quando quiser registrar uma entrada, gasto ou transferência.',
+                title: 'Novo lancamento',
+                description: 'Use este atalho para entrada, despesa ou transferencia.',
                 side: 'left',
                 align: 'center',
             },
             {
                 selector: '.lk-filters-section',
-                title: 'Filtros rápidos',
-                description: 'Use período, tipo, categoria e conta para encontrar qualquer registro sem rolar a página.',
+                title: 'Filtros principais',
+                description: 'Refine por texto, tipo, categoria, conta e status.',
                 side: 'bottom',
                 align: 'start',
             },
             {
+                selector: ['#filtroDataInicio', '#filtroDataFim'],
+                title: 'Periodo personalizado',
+                description: 'Ajuste intervalo manual para consultas mais especificas.',
+                side: 'top',
+                align: 'start',
+            },
+            {
                 selector: ['#lancamentosFeed', '.modern-table-wrapper'],
-                title: 'Ações da lista',
-                description: 'Cada item permite editar, marcar como pago ou excluir com poucos cliques.',
+                title: 'Lista de lancamentos',
+                description: 'Historico com acoes rapidas em cada item.',
+                side: 'top',
+                align: 'center',
+            },
+            {
+                selector: '#exportCard',
+                title: 'Exportacao',
+                description: 'Exporte quando precisar compartilhar ou arquivar.',
+                side: 'top',
+                align: 'start',
+            },
+        ],
+        mobileSteps: [
+            {
+                selector: '.lan-summary-strip',
+                title: 'Resumo do periodo',
+                description: 'Resumo do mes antes de entrar nos detalhes.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: ['#btnNovoLancamento', '#fabButton'],
+                title: 'Novo lancamento',
+                description: 'Registre rapidamente sua movimentacao.',
+                side: 'top',
+                align: 'center',
+            },
+            {
+                selector: '#btnToggleLanFilters',
+                title: 'Abrir filtros',
+                description: 'No mobile, os filtros ficam recolhidos por padrao.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '#lancamentosFeed',
+                title: 'Feed de transacoes',
+                description: 'Role para revisar e editar cada registro.',
                 side: 'top',
                 align: 'center',
             },
@@ -99,29 +192,73 @@ const TOUR_CONFIGS = {
         steps: [
             {
                 selector: '#contasHero',
-                title: 'Visão consolidada',
-                description: 'Aqui você acompanha o total guardado e onde seu dinheiro está concentrado.',
+                title: 'Visao consolidada',
+                description: 'Veja seu total e a concentracao do dinheiro.',
                 side: 'bottom',
+                align: 'start',
+            },
+            {
+                selector: '.cont-kpis',
+                title: 'Indicadores de contas',
+                description: 'Conta principal e reserva acumulada em um bloco.',
+                side: 'bottom',
+                align: 'start',
+            },
+            {
+                selector: '#contasDistributionCard',
+                title: 'Distribuicao',
+                description: 'Entenda em quais contas o saldo esta distribuido.',
+                side: 'top',
                 align: 'start',
             },
             {
                 selector: '#btnNovaConta',
                 title: 'Nova conta',
-                description: 'Cadastre banco, carteira, reserva ou dinheiro em caixa para centralizar seus saldos.',
+                description: 'Cadastre banco, carteira ou reserva para centralizar saldos.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '.contas-toolbar',
+                title: 'Busca e filtros',
+                description: 'Filtre por nome e tipo para achar contas rapidamente.',
+                side: 'bottom',
+                align: 'start',
+            },
+            {
+                selector: '#accountsGrid',
+                title: 'Cards das contas',
+                description: 'A grade mostra saldo e atalhos para editar cada conta.',
+                side: 'top',
+                align: 'center',
+            },
+        ],
+        mobileSteps: [
+            {
+                selector: '#contasHero',
+                title: 'Resumo de contas',
+                description: 'Total consolidado da sua base de contas.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '#btnNovaConta',
+                title: 'Criar conta',
+                description: 'Cadastre uma nova conta por aqui.',
                 side: 'bottom',
                 align: 'center',
             },
             {
                 selector: '#viewToggle',
-                title: 'Cards ou lista',
-                description: 'Troque a visualização para ler contas do jeito que ficar mais confortável.',
-                side: 'left',
+                title: 'Trocar visualizacao',
+                description: 'Alterne entre cards e lista.',
+                side: 'top',
                 align: 'center',
             },
             {
                 selector: '#accountsGrid',
                 title: 'Suas contas',
-                description: 'A grade mostra saldo, percentual do total e acessos rápidos para gerenciar cada conta.',
+                description: 'Acompanhe saldo e acessos rapidos.',
                 side: 'top',
                 align: 'center',
             },
@@ -133,30 +270,74 @@ const TOUR_CONFIGS = {
         primarySelector: ['#btnNovoCartao', '#btnNovoCartaoEmpty'],
         steps: [
             {
-                selector: ['#btnNovoCartao', '#btnNovoCartaoEmpty'],
-                title: 'Adicionar cartão',
-                description: 'Cadastre cartões para acompanhar limite, compras e faturas sem planilhas.',
-                side: 'bottom',
-                align: 'center',
-            },
-            {
                 selector: ['.cart-kpis', '.quick-stats-grid', '.cart-summary-grid'],
-                title: 'Visao rapida',
-                description: 'Os indicadores ajudam a enxergar limite livre, uso atual e alertas importantes.',
+                title: 'Resumo dos cartoes',
+                description: 'Acompanhe limite usado, disponivel e alertas.',
                 side: 'bottom',
                 align: 'start',
             },
             {
-                selector: ['.cartoes-toolbar', '.cart-search-wrapper', '#searchCartoes'],
-                title: 'Busca e filtros',
-                description: 'Use busca, filtros e alternancia de layout para chegar rapido ao cartao certo.',
+                selector: ['#btnNovoCartao', '#btnNovoCartaoEmpty'],
+                title: 'Adicionar cartao',
+                description: 'Cadastre cartoes para controlar compras e faturas.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '.cartoes-toolbar',
+                title: 'Barra de controle',
+                description: 'Busca, filtros e ajustes de visualizacao.',
+                side: 'bottom',
+                align: 'start',
+            },
+            {
+                selector: ['#searchCartoes', '.cart-search-wrapper'],
+                title: 'Busca rapida',
+                description: 'Encontre um cartao por nome ou bandeira.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: ['#cartoesGrid', '.cartoes-grid'],
+                title: 'Cards de cartao',
+                description: 'Cada card mostra limite, fechamento e atalhos.',
+                side: 'top',
+                align: 'center',
+            },
+            {
+                selector: '.view-toggle',
+                title: 'Modo de visualizacao',
+                description: 'Troque layout conforme sua preferencia.',
+                side: 'left',
+                align: 'center',
+            },
+        ],
+        mobileSteps: [
+            {
+                selector: ['.cart-kpis', '.quick-stats-grid', '.cart-summary-grid'],
+                title: 'Resumo principal',
+                description: 'Panorama dos limites antes dos cards.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: ['#btnNovoCartao', '#btnNovoCartaoEmpty'],
+                title: 'Novo cartao',
+                description: 'Cadastre seu cartao por este botao.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: ['#searchCartoes', '.cart-search-wrapper'],
+                title: 'Buscar cartao',
+                description: 'Filtro rapido para localizar o cartao certo.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: ['#cartoesGrid', '.cartoes-grid'],
                 title: 'Lista de cartoes',
-                description: 'Os cards mostram limite, fechamento e atalhos para editar ou consultar faturas.',
+                description: 'Role a lista para abrir detalhes e atalhos.',
                 side: 'top',
                 align: 'center',
             },
@@ -168,23 +349,67 @@ const TOUR_CONFIGS = {
         primarySelector: ['#btnFiltrar', '[data-action="pagar"]', '.btn-pagar'],
         steps: [
             {
-                selector: ['.filters-modern', '.faturas-toolbar', '#btnFiltrar'],
-                title: 'Contexto do período',
-                description: 'Comece pelos filtros para ver a fatura certa e reduzir ruído.',
+                selector: '.filters-modern',
+                title: 'Filtros da fatura',
+                description: 'Defina status, cartao e periodo antes de analisar itens.',
                 side: 'bottom',
                 align: 'start',
             },
             {
-                selector: ['.view-toggle', '.faturas-view-toggle'],
-                title: 'Modo de leitura',
-                description: 'Alterne a visualização para focar em parcelas, histórico ou lista compacta.',
+                selector: '#btnFiltrar',
+                title: 'Aplicar filtros',
+                description: 'Atualize a lista com os parametros escolhidos.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '.view-toggle',
+                title: 'Trocar visualizacao',
+                description: 'Alterne entre cards e lista.',
                 side: 'left',
                 align: 'center',
             },
             {
-                selector: ['#parcelamentosContainer', '.faturas-grid', '.parcelamentos-grid'],
+                selector: '#faturasListHeader',
+                title: 'Cabecalho da listagem',
+                description: 'Resumo rapido da visualizacao ativa.',
+                side: 'bottom',
+                align: 'start',
+            },
+            {
+                selector: '#parcelamentosContainer',
                 title: 'Itens da fatura',
-                description: 'Aqui você acompanha parcelas, status e os atalhos para pagar ou revisar um item.',
+                description: 'Parcelas, status e acoes disponiveis.',
+                side: 'top',
+                align: 'center',
+            },
+        ],
+        mobileSteps: [
+            {
+                selector: '.filters-modern',
+                title: 'Contexto do periodo',
+                description: 'Escolha filtros para reduzir ruido.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '#btnFiltrar',
+                title: 'Atualizar listagem',
+                description: 'Recarregue resultados apos ajustar filtros.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '.view-toggle',
+                title: 'Cards ou lista',
+                description: 'Troque o modo de leitura com um toque.',
+                side: 'top',
+                align: 'center',
+            },
+            {
+                selector: '#parcelamentosContainer',
+                title: 'Suas faturas',
+                description: 'Role a listagem para revisar e pagar itens.',
                 side: 'top',
                 align: 'center',
             },
@@ -196,24 +421,68 @@ const TOUR_CONFIGS = {
         primarySelector: ['#formNova button[type="submit"]', '.create-card button[type="submit"]', '.create-card'],
         steps: [
             {
+                selector: '.cat-kpis',
+                title: 'Painel de categorias',
+                description: 'Resumo de categorias, subcategorias e cobertura de orcamento.',
+                side: 'bottom',
+                align: 'start',
+            },
+            {
                 selector: ['.create-card', '#formNova'],
                 title: 'Criar categoria',
-                description: 'Crie categorias do seu jeito para deixar relatórios e metas mais inteligentes.',
+                description: 'Cadastre categorias para melhorar relatorios e filtros.',
+                side: 'bottom',
+                align: 'start',
+            },
+            {
+                selector: '#catContextCard',
+                title: 'Busca e contexto',
+                description: 'Use busca para localizar categorias e manter estrutura limpa.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: '.receitas-card',
-                title: 'Receitas',
-                description: 'Separe entradas por origem para entender melhor o que sustenta seu caixa.',
+                title: 'Grupo de receitas',
+                description: 'Organize entradas por origem para analise mais clara.',
                 side: 'right',
                 align: 'center',
             },
             {
                 selector: '.despesas-card',
-                title: 'Despesas',
-                description: 'Organize gastos por contexto. Isso melhora filtros, IA e leitura dos relatórios.',
+                title: 'Grupo de despesas',
+                description: 'Organize gastos por contexto para comparar comportamento.',
                 side: 'left',
+                align: 'center',
+            },
+        ],
+        mobileSteps: [
+            {
+                selector: ['.create-card', '#formNova'],
+                title: 'Criar categoria',
+                description: 'Formulario principal para novas categorias.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '#catContextCard',
+                title: 'Busca de categorias',
+                description: 'Filtre por nome para achar itens rapidamente.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '.receitas-card',
+                title: 'Receitas',
+                description: 'Categorias de entradas financeiras.',
+                side: 'top',
+                align: 'center',
+            },
+            {
+                selector: '.despesas-card',
+                title: 'Despesas',
+                description: 'Categorias de gastos para controle diario.',
+                side: 'top',
                 align: 'center',
             },
         ],
@@ -225,30 +494,60 @@ const TOUR_CONFIGS = {
         steps: [
             {
                 selector: '.quick-stats-grid',
-                title: 'Resumo do mês',
-                description: 'As quatro caixas principais resumem o período antes de você mergulhar nos detalhes.',
+                title: 'Resumo do periodo',
+                description: 'As metricas principais mostram contexto antes do detalhe.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: '.rel-section-tabs',
-                title: 'Troca de seção',
-                description: 'Use as abas para sair de visão geral e ir direto para relatórios, insights ou comparativos.',
+                title: 'Secoes do modulo',
+                description: 'Navegue entre visao geral, relatorios e comparativos.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: '.tabs-card',
-                title: 'Modelos de análise',
-                description: 'Escolha por categoria, saldo diário, contas, cartões ou visão anual em um clique.',
+                title: 'Modelos de analise',
+                description: 'Escolha categoria, saldo diario, contas, cartoes ou anual.',
                 side: 'top',
                 align: 'center',
             },
             {
                 selector: '#exportControl',
-                title: 'Exportação',
-                description: 'Quando precisar compartilhar ou guardar o estudo, exporte daqui.',
+                title: 'Exportacao',
+                description: 'Exporte quando precisar compartilhar ou arquivar.',
                 side: 'left',
+                align: 'center',
+            },
+        ],
+        mobileSteps: [
+            {
+                selector: '.quick-stats-grid',
+                title: 'Resumo do mes',
+                description: 'Comece pelas metricas principais.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '.rel-section-tabs',
+                title: 'Trocar secao',
+                description: 'Use as abas para abrir a visao desejada.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '.tabs-card',
+                title: 'Tipo de relatorio',
+                description: 'Selecione o modelo de analise.',
+                side: 'top',
+                align: 'center',
+            },
+            {
+                selector: '#exportControl',
+                title: 'Exportar',
+                description: 'Baixe o relatorio no formato desejado.',
+                side: 'top',
                 align: 'center',
             },
         ],
@@ -260,29 +559,59 @@ const TOUR_CONFIGS = {
         steps: [
             {
                 selector: '#summaryOrcamentos',
-                title: 'Visão do mês',
-                description: 'Aqui você descobre rápido onde o limite está sob controle e onde precisa agir.',
+                title: 'Resumo do mes',
+                description: 'Veja rapidamente onde o limite esta sob controle.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: ['#btnAutoSugerir', '#btnAutoSugerirEmpty'],
-                title: 'Sugestão automática',
-                description: 'Se não quiser montar tudo do zero, o sistema sugere limites com base no seu histórico.',
+                title: 'Sugestao automatica',
+                description: 'Gere limites sugeridos com base no historico.',
                 side: 'bottom',
                 align: 'center',
             },
             {
                 selector: '#btnNovoOrcamento',
                 title: 'Novo limite',
-                description: 'Crie um limite manual para a categoria que você quiser controlar de perto.',
+                description: 'Crie um limite manual para categoria especifica.',
                 side: 'bottom',
                 align: 'center',
             },
             {
                 selector: ['#orcamentosGrid', '.orc-grid', '.fin-grid'],
                 title: 'Cards de acompanhamento',
-                description: 'Cada card mostra gasto atual, folga e alertas para o restante do mês.',
+                description: 'Cada card mostra gasto atual, folga e alertas.',
+                side: 'top',
+                align: 'center',
+            },
+        ],
+        mobileSteps: [
+            {
+                selector: '#summaryOrcamentos',
+                title: 'Resumo do mes',
+                description: 'Panorama rapido dos limites no periodo.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: ['#btnAutoSugerir', '#btnAutoSugerirEmpty'],
+                title: 'Sugerir limites',
+                description: 'Crie estrutura inicial sem montar tudo manualmente.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '#btnNovoOrcamento',
+                title: 'Novo orcamento',
+                description: 'Cadastre limite manual por categoria.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: ['#orcamentosGrid', '.orc-grid', '.fin-grid'],
+                title: 'Seus limites',
+                description: 'Role os cards para acompanhar consumo.',
                 side: 'top',
                 align: 'center',
             },
@@ -296,21 +625,79 @@ const TOUR_CONFIGS = {
             {
                 selector: ['#btnNovaMetaHeader', '#btnNovaMeta', '#btnNovaMetaEmpty'],
                 title: 'Criar meta',
-                description: 'Defina valor e prazo para transformar um objetivo em plano acompanhado pelo sistema.',
+                description: 'Defina valor e prazo para transformar objetivo em plano.',
                 side: 'bottom',
                 align: 'center',
             },
             {
                 selector: ['#summaryMetas', '.met-summary-grid'],
                 title: 'Resumo das metas',
-                description: 'Veja rapidamente quanto já acumulou, quantas metas estão ativas e o ritmo do progresso.',
+                description: 'Acompanhe total acumulado, metas ativas e progresso geral.',
+                side: 'bottom',
+                align: 'start',
+            },
+            {
+                selector: '#metFocusPanel',
+                title: 'Foco do momento',
+                description: 'O sistema sugere proximo passo e prioridade da vez.',
+                side: 'bottom',
+                align: 'start',
+            },
+            {
+                selector: '.met-actions-bar',
+                title: 'Acoes rapidas',
+                description: 'Crie metas ou use templates para acelerar configuracao.',
+                side: 'bottom',
+                align: 'start',
+            },
+            {
+                selector: '.met-toolbar',
+                title: 'Busca e filtros',
+                description: 'Use busca, chips e ordenacao para achar metas relevantes.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: ['#metasGrid', '.met-grid'],
                 title: 'Cards das metas',
-                description: 'Cada card mostra valor atual, percentual atingido e onde vale concentrar novos aportes.',
+                description: 'Cada card mostra valor atual, percentual e valor restante.',
+                side: 'top',
+                align: 'center',
+            },
+            {
+                selector: '#metInsightsSection',
+                title: 'Insights',
+                description: 'Quando houver sinal de risco ou oportunidade, aparece aqui.',
+                side: 'top',
+                align: 'start',
+            },
+        ],
+        mobileSteps: [
+            {
+                selector: ['#btnNovaMetaHeader', '#btnNovaMeta', '#btnNovaMetaEmpty'],
+                title: 'Criar meta',
+                description: 'Botao principal para comecar uma nova meta.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: ['#summaryMetas', '.met-summary-grid'],
+                title: 'Resumo geral',
+                description: 'Veja progresso e total acumulado do periodo.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '.met-toolbar',
+                title: 'Filtrar metas',
+                description: 'Refine por busca, status e ordenacao.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: ['#metasGrid', '.met-grid'],
+                title: 'Lista de metas',
+                description: 'Role os cards para revisar e agir.',
                 side: 'top',
                 align: 'center',
             },
@@ -323,22 +710,45 @@ const TOUR_CONFIGS = {
         steps: [
             {
                 selector: ['.stats-grid', '.gamification-stats'],
-                title: 'Seu progresso',
-                description: 'Os indicadores do topo mostram pontos, nível, dias ativos e conquistas liberadas.',
+                title: 'Resumo de progresso',
+                description: 'Veja nivel, pontos e sequencia ativa.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: '#missionsSection',
-                title: 'Missões do dia',
-                description: 'Aqui você encontra pequenas ações que aceleram o hábito de usar o Lukrato.',
+                title: 'Missoes do dia',
+                description: 'Acoes curtas para manter consistencia.',
                 side: 'bottom',
                 align: 'center',
             },
             {
                 selector: ['.achievements-section', '.achievement-card'],
                 title: 'Conquistas',
-                description: 'As conquistas registram marcos importantes e ajudam a deixar a rotina mais motivadora.',
+                description: 'Historico de marcos importantes da sua jornada.',
+                side: 'top',
+                align: 'center',
+            },
+        ],
+        mobileSteps: [
+            {
+                selector: ['.stats-grid', '.gamification-stats'],
+                title: 'Seu nivel atual',
+                description: 'Resumo de pontuacao e sequencia.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '#missionsSection',
+                title: 'Missoes',
+                description: 'Complete tarefas para subir de nivel.',
+                side: 'top',
+                align: 'center',
+            },
+            {
+                selector: ['.achievements-section', '.achievement-card'],
+                title: 'Conquistas',
+                description: 'Consulte badges e progresso acumulado.',
                 side: 'top',
                 align: 'center',
             },
@@ -351,22 +761,45 @@ const TOUR_CONFIGS = {
         steps: [
             {
                 selector: '.billing-header',
-                title: 'Comparação de planos',
-                description: 'O topo resume o que muda entre Free e Pro antes de você decidir.',
+                title: 'Comparacao de planos',
+                description: 'Contexto inicial do que muda entre Free e Pro.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: ['.plan-billing-toggle', '.billing-cycle-toggle', '.cycle-toggle'],
-                title: 'Ciclo de cobrança',
-                description: 'Troque entre mensal, semestral e anual para ver o custo que faz mais sentido para você.',
+                title: 'Ciclo de cobranca',
+                description: 'Troque periodicidade para comparar custo total.',
                 side: 'bottom',
                 align: 'center',
             },
             {
                 selector: '.plans-grid',
-                title: 'Escolha do plano',
-                description: 'Os cards mostram recursos, limites e o caminho para assinar ou trocar de plano.',
+                title: 'Cards dos planos',
+                description: 'Compare recursos, limites e acao principal.',
+                side: 'top',
+                align: 'center',
+            },
+        ],
+        mobileSteps: [
+            {
+                selector: '.billing-header',
+                title: 'Escolha seu plano',
+                description: 'Visao geral da comparacao de planos.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: ['.plan-billing-toggle', '.billing-cycle-toggle', '.cycle-toggle'],
+                title: 'Trocar ciclo',
+                description: 'Alterne mensal, semestral e anual.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '.plans-grid',
+                title: 'Comparar planos',
+                description: 'Role os cards e escolha a melhor opcao.',
                 side: 'top',
                 align: 'center',
             },
@@ -380,33 +813,158 @@ const TOUR_CONFIGS = {
             {
                 selector: '.profile-header',
                 title: 'Seu perfil',
-                description: 'Este bloco concentra identidade visual, plano e dados principais da conta.',
+                description: 'Visao geral da sua conta e dados principais.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: '#avatarEditBtn',
                 title: 'Foto e identidade',
-                description: 'Atualize a foto quando quiser deixar o produto mais pessoal.',
+                description: 'Atualize foto para deixar o painel mais pessoal.',
                 side: 'bottom',
                 align: 'center',
             },
             {
                 selector: '.profile-tabs',
-                title: 'Seções do perfil',
-                description: 'Troque entre dados, segurança e preferências sem perder o contexto da página.',
+                title: 'Secoes do perfil',
+                description: 'Troque entre dados, seguranca e preferencias.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: '#btn-save-dados',
                 title: 'Salvar ajustes',
-                description: 'Fez alguma alteração? Salve aqui para manter tudo sincronizado.',
+                description: 'Depois de editar, salve para aplicar as mudancas.',
+                side: 'top',
+                align: 'center',
+            },
+        ],
+        mobileSteps: [
+            {
+                selector: '.profile-header',
+                title: 'Identidade da conta',
+                description: 'Resumo da sua conta no topo da pagina.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '#avatarEditBtn',
+                title: 'Editar foto',
+                description: 'Atualize avatar com um toque.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '.profile-tabs',
+                title: 'Navegar no perfil',
+                description: 'Use abas para trocar de secao.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '#btn-save-dados',
+                title: 'Salvar',
+                description: 'Confirme mudancas no botao de salvar.',
                 side: 'top',
                 align: 'center',
             },
         ],
     },
+};
+
+const NAVIGATION_TOUR_CONFIG = {
+    label: 'Navegacao',
+    version: NAVIGATION_VERSION,
+    primarySelector: {
+        desktop: ['#edgeMenuBtn', '.sidebar .nav-item[href*="dashboard"]'],
+        mobile: ['#mobileMenuBtn'],
+    },
+    steps: [
+        {
+            selector: '#edgeMenuBtn',
+            title: 'Expandir ou recolher menu',
+            description: 'No desktop, este botao alterna o tamanho da barra lateral.',
+            side: 'right',
+            align: 'center',
+        },
+        {
+            selector: '.sidebar .nav-item[href*="dashboard"]',
+            title: 'Inicio rapido',
+            description: 'Dashboard mostra panorama financeiro geral.',
+            side: 'right',
+            align: 'center',
+        },
+        {
+            selector: '.sidebar .nav-item[href*="lancamentos"]',
+            title: 'Fluxo diario',
+            description: 'Lancamentos e a tela principal para registros.',
+            side: 'right',
+            align: 'center',
+        },
+        {
+            selector: ['.sidebar .nav-item[href*="orcamento"]', '.sidebar .nav-item[href*="metas"]'],
+            title: 'Planejamento',
+            description: 'Orcamento e metas ajudam a manter foco.',
+            side: 'right',
+            align: 'center',
+        },
+        {
+            selector: '.sidebar .nav-item[href*="relatorios"]',
+            title: 'Analise',
+            description: 'Relatorios mostram padroes para decisoes.',
+            side: 'right',
+            align: 'center',
+        },
+        {
+            selector: ['.sidebar-footer .nav-item[href*="perfil"]', '#sidebarSuggestionBtn'],
+            title: 'Acoes finais',
+            description: 'No rodape voce encontra perfil e feedback.',
+            side: 'right',
+            align: 'center',
+        },
+    ],
+    mobileSteps: [
+        {
+            selector: '#mobileMenuBtn',
+            title: 'Abrir menu',
+            description: 'No mobile, toque aqui para abrir a navegacao.',
+            side: 'bottom',
+            align: 'center',
+            ensureSidebarClosed: true,
+        },
+        {
+            selector: '.sidebar',
+            title: 'Menu lateral',
+            description: 'Com o menu aberto, voce acessa todas as telas.',
+            side: 'right',
+            align: 'center',
+            ensureSidebarOpen: true,
+        },
+        {
+            selector: '.sidebar .nav-item[href*="lancamentos"]',
+            title: 'Lancamentos',
+            description: 'Atalho para registrar movimentacoes do dia.',
+            side: 'right',
+            align: 'center',
+            ensureSidebarOpen: true,
+        },
+        {
+            selector: '.sidebar .nav-item[href*="relatorios"]',
+            title: 'Relatorios',
+            description: 'Acesse analises e visoes comparativas.',
+            side: 'right',
+            align: 'center',
+            ensureSidebarOpen: true,
+        },
+        {
+            selector: ['.sidebar .sidebar-close-btn', '#sidebarBackdrop'],
+            title: 'Fechar menu',
+            description: 'Toque no X ou fora do menu para voltar ao conteudo.',
+            side: 'right',
+            align: 'center',
+            ensureSidebarOpen: true,
+        },
+    ],
 };
 
 function isVisibleElement(element) {
@@ -450,6 +1008,37 @@ function resolveElement(target) {
     if (typeof target === 'string') {
         const element = document.querySelector(target);
         return isVisibleElement(element) ? element : null;
+    }
+
+    return null;
+}
+
+function resolveElementCandidate(target) {
+    if (!target) {
+        return null;
+    }
+
+    if (typeof target === 'function') {
+        return resolveElementCandidate(target());
+    }
+
+    if (Array.isArray(target)) {
+        for (const item of target) {
+            const resolved = resolveElementCandidate(item);
+            if (resolved) {
+                return resolved;
+            }
+        }
+
+        return null;
+    }
+
+    if (target instanceof HTMLElement) {
+        return target;
+    }
+
+    if (typeof target === 'string') {
+        return document.querySelector(target);
     }
 
     return null;
@@ -600,6 +1189,7 @@ class HelpCenter {
             helpCurrentPage: document.getElementById('topNavHelpCurrentPage'),
             helpStatus: document.getElementById('topNavHelpStatus'),
             helpTourBtn: document.getElementById('topNavHelpTourBtn'),
+            helpNavigationTourBtn: document.getElementById('topNavHelpNavigationTourBtn'),
             helpTipsBtn: document.getElementById('topNavHelpTipsBtn'),
             helpAutoOfferBtn: document.getElementById('topNavHelpAutoOfferBtn'),
             helpResetBtn: document.getElementById('topNavHelpResetBtn'),
@@ -648,56 +1238,139 @@ class HelpCenter {
         return 'dashboard';
     }
 
-    getCurrentConfig() {
-        return TOUR_CONFIGS[this.currentPage] || null;
-    }
-
-    getCurrentVersion() {
-        return this.getCurrentConfig()?.version || DEFAULT_VERSION;
-    }
-
     getPageLabel(page = this.currentPage) {
         return PAGE_LABELS[page] || 'Esta tela';
     }
 
+    isMobileViewport() {
+        return window.matchMedia(`(max-width: ${MOBILE_VIEWPORT_MAX}px)`).matches;
+    }
+
+    getViewportVariant() {
+        return this.isMobileViewport() ? TUTORIAL_VARIANTS.MOBILE : TUTORIAL_VARIANTS.DESKTOP;
+    }
+
+    getPageTourConfig(page = this.currentPage) {
+        return TOUR_CONFIGS[page] || null;
+    }
+
+    getPageTutorialTarget(page = this.currentPage) {
+        const config = this.getPageTourConfig(page);
+        if (!config) {
+            return null;
+        }
+
+        const variant = this.getViewportVariant();
+        return {
+            type: TUTORIAL_TYPES.PAGE,
+            page,
+            variant,
+            key: `${page}.${variant}`,
+            baseKey: page,
+            label: config.label || this.getPageLabel(page),
+            version: config.version || DEFAULT_VERSION,
+            config,
+        };
+    }
+
+    getNavigationTutorialTarget() {
+        if (!NAVIGATION_TOUR_CONFIG) {
+            return null;
+        }
+
+        const variant = this.getViewportVariant();
+        return {
+            type: TUTORIAL_TYPES.NAVIGATION,
+            page: 'navigation',
+            variant,
+            key: `navigation.${variant}`,
+            baseKey: 'navigation',
+            label: NAVIGATION_TOUR_CONFIG.label || 'Navegacao',
+            version: NAVIGATION_TOUR_CONFIG.version || NAVIGATION_VERSION,
+            config: NAVIGATION_TOUR_CONFIG,
+        };
+    }
+
+    getCurrentConfig() {
+        return this.getPageTourConfig(this.currentPage);
+    }
+
+    getCurrentVersion() {
+        return this.getPageTutorialTarget()?.version || DEFAULT_VERSION;
+    }
+
     hasTutorial(page = this.currentPage) {
-        return Boolean(TOUR_CONFIGS[page]);
+        return Boolean(this.getPageTourConfig(page));
+    }
+
+    hasNavigationTutorial() {
+        return Boolean(NAVIGATION_TOUR_CONFIG);
     }
 
     hasTips(page = this.currentPage) {
         return Boolean(window.FirstVisitTooltips?.hasTooltipsForPage?.(page));
     }
 
-    getOfferSessionKey(page = this.currentPage) {
-        return `${OFFER_SESSION_PREFIX}${page}_${this.getCurrentVersion()}`;
+    getOfferSessionKey(target = this.getPageTutorialTarget()) {
+        if (!target) {
+            return `${OFFER_SESSION_PREFIX}${this.currentPage}_${DEFAULT_VERSION}`;
+        }
+
+        return `${OFFER_SESSION_PREFIX}${target.key}_${target.version}`;
     }
 
-    wasOfferShownThisSession(page = this.currentPage) {
+    wasOfferShownThisSession(target = this.getPageTutorialTarget()) {
         try {
-            return sessionStorage.getItem(this.getOfferSessionKey(page)) === '1';
+            return sessionStorage.getItem(this.getOfferSessionKey(target)) === '1';
         } catch (_error) {
             return false;
         }
     }
 
-    markOfferShownThisSession(page = this.currentPage) {
+    markOfferShownThisSession(target = this.getPageTutorialTarget()) {
         try {
-            sessionStorage.setItem(this.getOfferSessionKey(page), '1');
+            sessionStorage.setItem(this.getOfferSessionKey(target), '1');
         } catch (_error) {
             // ignore sessionStorage failures
         }
     }
 
-    isCompleted(page = this.currentPage) {
-        return this.preferences.tour_completed?.[page] === this.getCurrentVersion();
+    clearOfferSessionCache() {
+        try {
+            for (let i = sessionStorage.length - 1; i >= 0; i -= 1) {
+                const key = sessionStorage.key(i);
+                if (key?.startsWith(OFFER_SESSION_PREFIX)) {
+                    sessionStorage.removeItem(key);
+                }
+            }
+        } catch (_error) {
+            // ignore sessionStorage failures
+        }
     }
 
-    isDismissed(page = this.currentPage) {
-        return this.preferences.offer_dismissed?.[page] === this.getCurrentVersion();
+    isCompleted(target = this.getPageTutorialTarget()) {
+        if (!target) {
+            return false;
+        }
+
+        const completed = this.preferences.tour_completed || {};
+        return completed[target.key] === target.version
+            || completed[target.baseKey] === target.version;
+    }
+
+    isDismissed(target = this.getPageTutorialTarget()) {
+        if (!target) {
+            return false;
+        }
+
+        const dismissed = this.preferences.offer_dismissed || {};
+        return dismissed[target.key] === target.version
+            || dismissed[target.baseKey] === target.version;
     }
 
     shouldOffer() {
-        if (!this.currentPage) {
+        const target = this.getPageTutorialTarget();
+        if (!target) {
             return false;
         }
 
@@ -705,19 +1378,15 @@ class HelpCenter {
             return false;
         }
 
-        if (!this.hasTutorial()) {
+        if (this.isCompleted(target) || this.isDismissed(target)) {
             return false;
         }
 
-        if (this.isCompleted() || this.isDismissed()) {
+        if (this.wasOfferShownThisSession(target)) {
             return false;
         }
 
-        if (this.wasOfferShownThisSession()) {
-            return false;
-        }
-
-        const availableSteps = this.buildSteps();
+        const availableSteps = this.buildSteps(target);
         return availableSteps.length > 1;
     }
 
@@ -752,13 +1421,13 @@ class HelpCenter {
         });
 
         offer.querySelector('[data-help-offer="tips"]')?.addEventListener('click', async () => {
-            await this.markDismissed();
+            await this.markDismissed(this.getPageTutorialTarget());
             this.hideOffer();
             this.showCurrentPageTips();
         });
 
         offer.querySelector('[data-help-offer="dismiss"]')?.addEventListener('click', async () => {
-            await this.markDismissed();
+            await this.markDismissed(this.getPageTutorialTarget());
             this.hideOffer();
             this.renderMenuState();
             this.highlightPrimaryAction();
@@ -779,6 +1448,11 @@ class HelpCenter {
         this.elements.helpTourBtn?.addEventListener('click', () => {
             this.toggleMenu(false);
             this.startCurrentPageTutorial({ source: 'menu' });
+        });
+
+        this.elements.helpNavigationTourBtn?.addEventListener('click', () => {
+            this.toggleMenu(false);
+            this.startNavigationTutorial({ source: 'menu' });
         });
 
         this.elements.helpTipsBtn?.addEventListener('click', () => {
@@ -839,11 +1513,7 @@ class HelpCenter {
 
             window.FirstVisitTooltips?.resetVisitedPages?.();
 
-            try {
-                sessionStorage.removeItem(this.getOfferSessionKey());
-            } catch (_error) {
-                // ignore
-            }
+            this.clearOfferSessionCache();
 
             if (window.LK?.toast) {
                 window.LK.toast.success('Tutoriais liberados novamente.');
@@ -879,8 +1549,11 @@ class HelpCenter {
     }
 
     renderMenuState() {
+        const pageTarget = this.getPageTutorialTarget();
+        const navigationTarget = this.getNavigationTutorialTarget();
         const label = this.getPageLabel();
-        const tutorialAvailable = this.hasTutorial();
+        const tutorialAvailable = Boolean(pageTarget);
+        const navigationTutorialAvailable = Boolean(navigationTarget);
         const tipsAvailable = this.hasTips();
 
         if (this.elements.helpCurrentPage) {
@@ -894,7 +1567,7 @@ class HelpCenter {
 
             if (!tutorialAvailable && !tipsAvailable) {
                 status = 'Sem guia';
-            } else if (this.isCompleted()) {
+            } else if (this.isCompleted(pageTarget)) {
                 status = 'Concluido';
             } else if (!this.preferences.settings.auto_offer) {
                 status = 'Manual';
@@ -906,6 +1579,11 @@ class HelpCenter {
         if (this.elements.helpTourBtn) {
             this.elements.helpTourBtn.disabled = !tutorialAvailable;
             this.elements.helpTourBtn.classList.toggle('is-disabled', !tutorialAvailable);
+        }
+
+        if (this.elements.helpNavigationTourBtn) {
+            this.elements.helpNavigationTourBtn.disabled = !navigationTutorialAvailable;
+            this.elements.helpNavigationTourBtn.classList.toggle('is-disabled', !navigationTutorialAvailable);
         }
 
         if (this.elements.helpTipsBtn) {
@@ -943,11 +1621,12 @@ class HelpCenter {
     }
 
     scheduleOffer(force = false) {
-        if (!this.hasTutorial()) {
+        const target = this.getPageTutorialTarget();
+        if (!target) {
             return;
         }
 
-        if (this.buildSteps().length <= 1) {
+        if (this.buildSteps(target).length <= 1) {
             return;
         }
 
@@ -956,7 +1635,7 @@ class HelpCenter {
         }
 
         window.setTimeout(() => {
-            if (this.buildSteps().length <= 1) {
+            if (this.buildSteps(target).length <= 1) {
                 return;
             }
 
@@ -964,16 +1643,16 @@ class HelpCenter {
                 return;
             }
 
-            this.showOffer();
+            this.showOffer(target);
         }, OFFER_DELAY);
     }
 
-    showOffer() {
+    showOffer(target = this.getPageTutorialTarget()) {
         if (!this.offerElement || this.offerVisible) {
             return;
         }
 
-        this.markOfferShownThisSession();
+        this.markOfferShownThisSession(target);
         this.offerVisible = true;
         this.offerElement.classList.add('is-visible');
     }
@@ -987,13 +1666,21 @@ class HelpCenter {
         this.offerElement.classList.remove('is-visible');
     }
 
-    buildSteps(page = this.currentPage) {
-        const config = TOUR_CONFIGS[page];
-        if (!config) {
+    buildSteps(target = this.getPageTutorialTarget()) {
+        if (!target?.config) {
             return [];
         }
 
-        return config.steps.reduce((steps, step) => {
+        const config = target.config;
+        const sourceSteps = target.variant === TUTORIAL_VARIANTS.MOBILE && Array.isArray(config.mobileSteps)
+            ? config.mobileSteps
+            : config.steps;
+
+        if (!Array.isArray(sourceSteps)) {
+            return [];
+        }
+
+        return sourceSteps.reduce((steps, step) => {
             if (step.selector === null) {
                 steps.push({
                     popover: {
@@ -1002,14 +1689,31 @@ class HelpCenter {
                         side: step.side || 'over',
                         align: step.align || 'center',
                     },
+                    ensureSidebarOpen: step.ensureSidebarOpen === true,
+                    ensureSidebarClosed: step.ensureSidebarClosed === true,
                 });
 
                 return steps;
             }
 
-            const element = resolveElement(step.selector);
-            if (!element) {
-                return steps;
+            const shouldDeferElementResolution = target.type === TUTORIAL_TYPES.NAVIGATION
+                && target.variant === TUTORIAL_VARIANTS.MOBILE
+                && (step.ensureSidebarOpen === true || step.ensureSidebarClosed === true);
+
+            let element = null;
+
+            if (shouldDeferElementResolution) {
+                const candidate = resolveElementCandidate(step.selector);
+                if (!candidate) {
+                    return steps;
+                }
+
+                element = step.selector;
+            } else {
+                element = resolveElement(step.selector);
+                if (!element) {
+                    return steps;
+                }
             }
 
             steps.push({
@@ -1020,6 +1724,8 @@ class HelpCenter {
                     side: step.side || 'bottom',
                     align: step.align || 'start',
                 },
+                ensureSidebarOpen: step.ensureSidebarOpen === true,
+                ensureSidebarClosed: step.ensureSidebarClosed === true,
             });
 
             return steps;
@@ -1268,6 +1974,60 @@ class HelpCenter {
         });
     }
 
+    openMobileSidebarIfNeeded() {
+        if (!this.isMobileViewport()) {
+            return;
+        }
+
+        if (document.body.classList.contains('sidebar-open-mobile')) {
+            return;
+        }
+
+        const button = document.getElementById('mobileMenuBtn');
+        if (button) {
+            button.click();
+            return;
+        }
+
+        document.body.classList.add('sidebar-open-mobile');
+    }
+
+    closeMobileSidebarIfNeeded() {
+        if (!this.isMobileViewport()) {
+            return;
+        }
+
+        if (!document.body.classList.contains('sidebar-open-mobile')) {
+            return;
+        }
+
+        const button = document.getElementById('mobileMenuBtn');
+        if (button) {
+            button.click();
+            return;
+        }
+
+        document.body.classList.remove('sidebar-open-mobile');
+    }
+
+    syncNavigationUIForStep(state, step) {
+        if (state?.target?.type !== TUTORIAL_TYPES.NAVIGATION) {
+            return;
+        }
+
+        if (state.target.variant !== TUTORIAL_VARIANTS.MOBILE) {
+            return;
+        }
+
+        if (step?.ensureSidebarClosed) {
+            this.closeMobileSidebarIfNeeded();
+        }
+
+        if (step?.ensureSidebarOpen) {
+            this.openMobileSidebarIfNeeded();
+        }
+    }
+
     goToTourStep(index) {
         const state = this.tour;
         if (!state || !state.isActive()) {
@@ -1278,6 +2038,7 @@ class HelpCenter {
         state.index = nextIndex;
 
         const step = state.steps[nextIndex];
+        this.syncNavigationUIForStep(state, step);
         const target = resolveElement(step?.element);
         if (target) {
             ensureElementInViewport(target, {
@@ -1326,23 +2087,30 @@ class HelpCenter {
         window.removeEventListener('scroll', state.repositionHandler);
         document.removeEventListener('keydown', state.keydownHandler);
 
+        if (state.target?.type === TUTORIAL_TYPES.NAVIGATION
+            && state.target.variant === TUTORIAL_VARIANTS.MOBILE) {
+            this.closeMobileSidebarIfNeeded();
+        }
+
         if (!silent) {
             if (markCompleted) {
-                await this.markCompleted();
-                this.highlightPrimaryAction(true);
+                await this.markCompleted(state.target);
+                if (state.target?.type === TUTORIAL_TYPES.PAGE) {
+                    this.highlightPrimaryAction(true);
+                }
             } else if (markDismissed) {
-                await this.markDismissed();
+                await this.markDismissed(state.target);
             }
 
             this.renderMenuState();
         }
     }
 
-    async startCurrentPageTutorial(_options = {}) {
-        const steps = this.buildSteps();
+    async startTutorial(target) {
+        const steps = this.buildSteps(target);
 
         if (steps.length === 0) {
-            window.LK?.toast?.info('Ainda nao existe tutorial pronto para esta tela.');
+            window.LK?.toast?.info('Ainda nao existe tutorial pronto para este fluxo.');
             return false;
         }
 
@@ -1358,6 +2126,7 @@ class HelpCenter {
         const { overlay, spotlight, popover } = this.createTourElements();
 
         const state = {
+            target,
             steps,
             index: 0,
             overlay,
@@ -1418,6 +2187,26 @@ class HelpCenter {
         return true;
     }
 
+    async startCurrentPageTutorial(_options = {}) {
+        const target = this.getPageTutorialTarget();
+        if (!target) {
+            window.LK?.toast?.info('Ainda nao existe tutorial pronto para esta tela.');
+            return false;
+        }
+
+        return this.startTutorial(target);
+    }
+
+    async startNavigationTutorial(_options = {}) {
+        const target = this.getNavigationTutorialTarget();
+        if (!target) {
+            window.LK?.toast?.info('Ainda nao existe tutorial de navegacao.');
+            return false;
+        }
+
+        return this.startTutorial(target);
+    }
+
     async showCurrentPageTips() {
         if (!this.hasTips()) {
             window.LK?.toast?.info('Ainda nao existe dica rapida para esta tela.');
@@ -1436,7 +2225,8 @@ class HelpCenter {
     }
 
     highlightPrimaryAction(scrollIntoView = false) {
-        const target = resolveElement(this.getCurrentConfig()?.primarySelector);
+        const pageTarget = this.getPageTutorialTarget();
+        const target = resolveElement(pageTarget?.config?.primarySelector);
         if (!target) {
             return;
         }
@@ -1454,33 +2244,46 @@ class HelpCenter {
         }
     }
 
-    async markCompleted() {
-        const page = this.currentPage;
-        const version = this.getCurrentVersion();
+    async markCompleted(target = this.getPageTutorialTarget()) {
+        if (!target) {
+            return;
+        }
 
-        this.preferences.tour_completed[page] = version;
-        delete this.preferences.offer_dismissed[page];
+        this.preferences.tour_completed[target.key] = target.version;
+        delete this.preferences.offer_dismissed[target.key];
         this.renderMenuState();
 
-        await this.persistPreference('complete_tour', { page, version }, { silent: true });
+        await this.persistPreference('complete_tour', {
+            page: target.key,
+            version: target.version,
+        }, { silent: true });
     }
 
-    async markDismissed() {
-        const page = this.currentPage;
-        const version = this.getCurrentVersion();
+    async markDismissed(target = this.getPageTutorialTarget()) {
+        if (!target) {
+            return;
+        }
 
-        this.preferences.offer_dismissed[page] = version;
+        this.preferences.offer_dismissed[target.key] = target.version;
         this.renderMenuState();
 
-        await this.persistPreference('dismiss_offer', { page, version }, { silent: true });
+        await this.persistPreference('dismiss_offer', {
+            page: target.key,
+            version: target.version,
+        }, { silent: true });
     }
 
     async markTipsSeen() {
-        const page = this.currentPage;
-        const version = this.getCurrentVersion();
+        const pageTarget = this.getPageTutorialTarget();
+        if (!pageTarget) {
+            return;
+        }
 
-        this.preferences.tips_seen[page] = version;
-        await this.persistPreference('view_tips', { page, version }, { silent: true });
+        this.preferences.tips_seen[pageTarget.baseKey] = pageTarget.version;
+        await this.persistPreference('view_tips', {
+            page: pageTarget.baseKey,
+            version: pageTarget.version,
+        }, { silent: true });
     }
 
     async persistPreference(action, extra = {}, options = {}) {
@@ -1530,3 +2333,4 @@ if (document.readyState === 'loading') {
 } else {
     bootHelpCenter();
 }
+

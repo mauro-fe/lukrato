@@ -19,7 +19,7 @@ enum ThemePreference: string
 
 class PreferenciaUsuarioController extends BaseController
 {
-    private const HELP_PAGE_KEYS = [
+    private const HELP_TUTORIAL_BASE_KEYS = [
         'dashboard',
         'lancamentos',
         'contas',
@@ -32,6 +32,12 @@ class PreferenciaUsuarioController extends BaseController
         'gamification',
         'billing',
         'perfil',
+        'navigation',
+    ];
+
+    private const HELP_TUTORIAL_VARIANTS = [
+        'desktop',
+        'mobile',
     ];
 
     private function getPayloadValue(string $key): mixed
@@ -68,7 +74,7 @@ class PreferenciaUsuarioController extends BaseController
                 continue;
             }
 
-            if (!in_array($pageKey, self::HELP_PAGE_KEYS, true)) {
+            if (!$this->isValidHelpKey($pageKey)) {
                 continue;
             }
 
@@ -76,6 +82,29 @@ class PreferenciaUsuarioController extends BaseController
         }
 
         return $normalized;
+    }
+
+    private function isValidHelpKey(string $key): bool
+    {
+        if (in_array($key, self::HELP_TUTORIAL_BASE_KEYS, true)) {
+            return true;
+        }
+
+        foreach (self::HELP_TUTORIAL_BASE_KEYS as $baseKey) {
+            foreach (self::HELP_TUTORIAL_VARIANTS as $variant) {
+                if ($key === "{$baseKey}.{$variant}") {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private function getHelpBaseKey(string $key): string
+    {
+        $parts = explode('.', $key);
+        return strtolower(trim((string) ($parts[0] ?? '')));
     }
 
     private function normalizeHelpPreferences(mixed $value): array
@@ -281,7 +310,7 @@ class PreferenciaUsuarioController extends BaseController
                     ]);
                 }
 
-                if (!in_array($pageInput, self::HELP_PAGE_KEYS, true)) {
+                if (!$this->isValidHelpKey($pageInput)) {
                     return Response::validationErrorResponse([
                         'page' => 'Pagina de ajuda invalida.',
                     ]);
@@ -315,9 +344,18 @@ class PreferenciaUsuarioController extends BaseController
                     break;
 
                 case 'reset_page':
-                    unset($helpPreferences['tour_completed'][$pageInput]);
-                    unset($helpPreferences['offer_dismissed'][$pageInput]);
-                    unset($helpPreferences['tips_seen'][$pageInput]);
+                    $baseKey = $this->getHelpBaseKey($pageInput);
+
+                    unset($helpPreferences['tour_completed'][$baseKey]);
+                    unset($helpPreferences['offer_dismissed'][$baseKey]);
+                    unset($helpPreferences['tips_seen'][$baseKey]);
+
+                    foreach (self::HELP_TUTORIAL_VARIANTS as $variant) {
+                        $scopedKey = "{$baseKey}.{$variant}";
+                        unset($helpPreferences['tour_completed'][$scopedKey]);
+                        unset($helpPreferences['offer_dismissed'][$scopedKey]);
+                        unset($helpPreferences['tips_seen'][$scopedKey]);
+                    }
                     break;
 
                 case 'reset_all':

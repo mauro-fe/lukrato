@@ -104,7 +104,11 @@ $currentBreadcrumbs = $currentBreadcrumbs ?? [];
                     <div class="top-nav-help-menu__actions">
                         <button type="button" class="top-nav-help-action" id="topNavHelpTourBtn">
                             <i data-lucide="play-circle"></i>
-                            <span>Ver tutorial</span>
+                            <span>Tutorial da pagina</span>
+                        </button>
+                        <button type="button" class="top-nav-help-action" id="topNavHelpNavigationTourBtn">
+                            <i data-lucide="compass"></i>
+                            <span>Tutorial de navegacao</span>
                         </button>
                         <button type="button" class="top-nav-help-action" id="topNavHelpTipsBtn">
                             <i data-lucide="message-circle"></i>

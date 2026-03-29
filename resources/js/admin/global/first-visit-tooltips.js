@@ -19,11 +19,15 @@
     const CONFIG = {
         storageKey: 'lukrato_visited_pages',
         tooltipDuration: 8000, // 8 segundos
+        mobileTooltipDuration: 12000,
         animationDuration: 300,
         maxTooltipsPerPage: 3,
+        maxMobileTooltipsPerPage: 3,
         viewportMargin: 20,
+        mobileViewportMargin: 12,
         floatingTooltipGap: 14,
         visibleTargetThreshold: 0.18,
+        mobileBreakpoint: 992,
     };
 
     // ============================================
@@ -267,6 +271,18 @@
     let visitedPages = new Set();
     let activeTooltips = [];
 
+    function isMobileViewport() {
+        return window.matchMedia(`(max-width: ${CONFIG.mobileBreakpoint}px)`).matches;
+    }
+
+    function getRuntimeTooltipDuration(index = 0) {
+        if (isMobileViewport()) {
+            return CONFIG.mobileTooltipDuration + (index * 1500);
+        }
+
+        return CONFIG.tooltipDuration + (index * 2000);
+    }
+
     // ============================================
     // STORAGE
     // ============================================
@@ -336,17 +352,47 @@
         return null;
     }
 
+    function adaptTooltipConfigForViewport(config) {
+        if (!isMobileViewport()) {
+            return config;
+        }
+
+        if (config?.skipOnMobile) {
+            return null;
+        }
+
+        return {
+            ...config,
+            selector: config.mobileSelector || config.selector,
+            message: config.mobileMessage || config.message,
+            position: config.mobilePosition || config.position || 'bottom',
+        };
+    }
+
     // ============================================
     // CRIAÇÃO DE TOOLTIPS
     // ============================================
 
-    function createTooltipElement(config) {
+    function createTooltipElement(config, options = {}) {
         const tooltip = document.createElement('div');
         tooltip.className = 'fvt-tooltip';
         tooltip.setAttribute('role', 'tooltip');
         tooltip.setAttribute('aria-live', 'polite');
 
         const proTag = config.proOnly ? '<span class="fvt-pro-tag">PRO</span>' : '';
+        const isMobileFlow = options.mobileFlow === true;
+        const step = Number(options.stepIndex || 0) + 1;
+        const total = Number(options.totalSteps || 0);
+        const isLastStep = step >= total;
+        const hintText = isMobileFlow && total > 0
+            ? `Dica ${step} de ${total}`
+            : 'Dica de primeira visita';
+        const primaryText = isMobileFlow
+            ? (isLastStep ? 'Concluir' : 'Proxima')
+            : 'Entendi';
+        const skipButton = isMobileFlow
+            ? '<button class="fvt-skip" type="button">Pular</button>'
+            : '';
 
         tooltip.innerHTML = `
             <div class="fvt-tooltip-content">
@@ -360,8 +406,11 @@
                 </div>
                 <p class="fvt-message">${config.message}</p>
                 <div class="fvt-footer">
-                    <span class="fvt-hint">Dica de primeira visita</span>
-                    <button class="fvt-got-it">Entendi</button>
+                    <span class="fvt-hint">${hintText}</span>
+                    <div class="fvt-actions">
+                        ${skipButton}
+                        <button class="fvt-got-it" type="button">${primaryText}</button>
+                    </div>
                 </div>
             </div>
             <div class="fvt-arrow"></div>
@@ -376,7 +425,7 @@
     }
 
     function getViewportSafeArea() {
-        const margin = CONFIG.viewportMargin;
+        const margin = isMobileViewport() ? CONFIG.mobileViewportMargin : CONFIG.viewportMargin;
         const topNavbar = document.querySelector('.top-navbar');
         const navbarBottom = topNavbar ? topNavbar.getBoundingClientRect().bottom : 0;
 
@@ -438,6 +487,28 @@
         return getVisibleMetrics(targetRect).visibleRatio < CONFIG.visibleTargetThreshold;
     }
 
+    function ensureTooltipTargetInViewport(target) {
+        if (!isMobileViewport() || !(target instanceof HTMLElement)) {
+            return;
+        }
+
+        const rect = target.getBoundingClientRect();
+        const safeArea = getViewportSafeArea();
+        const minVisibleTop = safeArea.top + 12;
+        const maxVisibleBottom = window.innerHeight - 220;
+        const needsScroll = rect.top < minVisibleTop || rect.bottom > maxVisibleBottom;
+
+        if (!needsScroll) {
+            return;
+        }
+
+        target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'nearest',
+        });
+    }
+
     function getDetachedTooltipPosition(tooltipRect, index) {
         const safeArea = getViewportSafeArea();
         const gap = CONFIG.floatingTooltipGap;
@@ -456,6 +527,27 @@
             ),
             detached: true,
             appliedPosition: 'floating',
+        };
+    }
+
+    function getMobileSheetPosition(tooltipRect) {
+        const safeArea = getViewportSafeArea();
+        const maxWidth = Math.max(280, window.innerWidth - (safeArea.left + safeArea.right));
+        const left = clamp(
+            (window.innerWidth - Math.min(tooltipRect.width, maxWidth)) / 2,
+            safeArea.left,
+            Math.max(safeArea.left, window.innerWidth - tooltipRect.width - safeArea.right)
+        );
+        const top = Math.max(
+            safeArea.top,
+            window.innerHeight - tooltipRect.height - safeArea.bottom
+        );
+
+        return {
+            top,
+            left,
+            detached: true,
+            appliedPosition: 'mobile-sheet',
         };
     }
 
@@ -510,22 +602,32 @@
 
         const tooltipRect = tooltip.getBoundingClientRect();
         const targetRect = target.getBoundingClientRect();
-        const coordinates = shouldDetachTooltip(targetRect)
-            ? getDetachedTooltipPosition(tooltipRect, index)
-            : getAnchoredTooltipPosition(targetRect, tooltipRect, position);
+        const coordinates = isMobileViewport()
+            ? getMobileSheetPosition(tooltipRect)
+            : (shouldDetachTooltip(targetRect)
+                ? getDetachedTooltipPosition(tooltipRect, index)
+                : getAnchoredTooltipPosition(targetRect, tooltipRect, position));
 
         tooltip.style.top = `${coordinates.top}px`;
         tooltip.style.left = `${coordinates.left}px`;
         tooltip.dataset.position = coordinates.appliedPosition;
         tooltip.classList.toggle('fvt-detached', coordinates.detached);
+        tooltip.classList.toggle('fvt-mobile-sheet', isMobileViewport());
 
-        syncTargetHighlight(target, !coordinates.detached);
+        const shouldHighlight = isMobileViewport()
+            ? getVisibleMetrics(targetRect).visibleRatio >= CONFIG.visibleTargetThreshold
+            : !coordinates.detached;
+        syncTargetHighlight(target, shouldHighlight);
     }
 
     function repositionActiveTooltips() {
         activeTooltips = activeTooltips.filter((tooltip) => {
             const target = tooltip.__fvtTarget;
             if (!tooltip.isConnected || !target || !target.isConnected) {
+                if (tooltip.__fvtAutoCloseTimer) {
+                    clearTimeout(tooltip.__fvtAutoCloseTimer);
+                    tooltip.__fvtAutoCloseTimer = null;
+                }
                 tooltip.remove();
                 return false;
             }
@@ -552,7 +654,10 @@
         });
     }
 
-    function showTooltip(config, index = 0) {
+    function showTooltip(inputConfig, index = 0, options = {}) {
+        const config = adaptTooltipConfigForViewport(inputConfig);
+        if (!config) return null;
+
         const target = resolveTooltipTarget(config.selector);
         if (!target) return null;
 
@@ -565,7 +670,9 @@
             // Ainda mostrar, mas com indicação de que é Pro
         }
 
-        const tooltip = createTooltipElement(config);
+        ensureTooltipTargetInViewport(target);
+
+        const tooltip = createTooltipElement(config, options);
         tooltip.__fvtTarget = target;
         tooltip.__fvtPreferredPosition = config.position;
         tooltip.__fvtIndex = index;
@@ -582,22 +689,46 @@
         });
         // Eventos de fechamento
         const closeBtn = tooltip.querySelector('.fvt-close');
+        const skipBtn = tooltip.querySelector('.fvt-skip');
         const gotItBtn = tooltip.querySelector('.fvt-got-it');
 
-        const closeTooltip = () => {
+        const closeTooltip = (reason = 'dismiss') => {
+            if (tooltip.__fvtClosed) {
+                return;
+            }
+
+            tooltip.__fvtClosed = true;
             tooltip.classList.remove('fvt-visible');
             target.classList.remove('fvt-highlighted');
+
+            if (tooltip.__fvtAutoCloseTimer) {
+                clearTimeout(tooltip.__fvtAutoCloseTimer);
+                tooltip.__fvtAutoCloseTimer = null;
+            }
+
             setTimeout(() => {
                 tooltip.remove();
                 activeTooltips = activeTooltips.filter(t => t !== tooltip);
+
+                if (reason === 'primary') {
+                    options.onPrimary?.();
+                    return;
+                }
+
+                options.onDismiss?.();
             }, CONFIG.animationDuration);
         };
 
-        closeBtn?.addEventListener('click', closeTooltip);
-        gotItBtn?.addEventListener('click', closeTooltip);
+        closeBtn?.addEventListener('click', () => closeTooltip('dismiss'));
+        skipBtn?.addEventListener('click', () => closeTooltip('dismiss'));
+        gotItBtn?.addEventListener('click', () => closeTooltip('primary'));
 
         // Auto-fechar após duração
-        setTimeout(closeTooltip, CONFIG.tooltipDuration + (index * 2000));
+        if (options.autoClose !== false) {
+            tooltip.__fvtAutoCloseTimer = setTimeout(() => {
+                closeTooltip('dismiss');
+            }, getRuntimeTooltipDuration(index));
+        }
 
         activeTooltips.push(tooltip);
         return tooltip;
@@ -610,6 +741,47 @@
     function showTooltipsForPage(page) {
         const tooltips = PAGE_TOOLTIPS[page];
         if (!tooltips || tooltips.length === 0) return;
+
+        if (isMobileViewport()) {
+            const queue = tooltips
+                .map((config) => adaptTooltipConfigForViewport(config))
+                .filter(Boolean)
+                .slice(0, CONFIG.maxMobileTooltipsPerPage);
+            if (queue.length === 0) return;
+
+            removeAllTooltips();
+
+            let stepIndex = 0;
+            const runMobileStep = () => {
+                if (stepIndex >= queue.length) {
+                    markPageVisited(page);
+                    return;
+                }
+
+                const currentIndex = stepIndex;
+                const tooltip = showTooltip(queue[currentIndex], currentIndex, {
+                    mobileFlow: true,
+                    stepIndex: currentIndex,
+                    totalSteps: queue.length,
+                    autoClose: false,
+                    onPrimary: () => {
+                        stepIndex += 1;
+                        runMobileStep();
+                    },
+                    onDismiss: () => {
+                        markPageVisited(page);
+                    },
+                });
+
+                if (!tooltip) {
+                    stepIndex += 1;
+                    runMobileStep();
+                }
+            };
+
+            runMobileStep();
+            return;
+        }
 
         // Mostrar até o máximo configurado
         let shown = 0;
@@ -627,7 +799,16 @@
     }
 
     function hasTooltipsForPage(page) {
-        return Array.isArray(PAGE_TOOLTIPS[page]) && PAGE_TOOLTIPS[page].length > 0;
+        const tooltips = PAGE_TOOLTIPS[page];
+        if (!Array.isArray(tooltips) || tooltips.length === 0) {
+            return false;
+        }
+
+        if (!isMobileViewport()) {
+            return true;
+        }
+
+        return tooltips.some((config) => Boolean(adaptTooltipConfigForViewport(config)));
     }
 
     function init() {
@@ -650,6 +831,12 @@
 
     function removeAllTooltips() {
         activeTooltips.forEach(tooltip => {
+            if (tooltip.__fvtAutoCloseTimer) {
+                clearTimeout(tooltip.__fvtAutoCloseTimer);
+                tooltip.__fvtAutoCloseTimer = null;
+            }
+
+            tooltip.__fvtClosed = true;
             tooltip.remove();
         });
         activeTooltips = [];

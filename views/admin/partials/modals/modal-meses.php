@@ -3,7 +3,7 @@
     <div class="modal-dialog modal-dialog-centered" style="max-width:600px;">
         <div class="modal-content border-0 rounded-3">
             <div class="modal-header border-0">
-                <h5 class="modal-title" id="monthModalLabel">Selecionar mes</h5>
+                <h5 class="modal-title" id="monthModalLabel">Selecionar mês</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
             <div class="modal-body pt-0">

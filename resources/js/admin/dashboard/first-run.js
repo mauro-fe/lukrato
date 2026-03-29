@@ -1,7 +1,5 @@
-import 'driver.js/dist/driver.css';
 import '../../../css/admin/dashboard/_first-run.css';
 
-import { driver } from 'driver.js';
 import { apiPost, getErrorMessage, logClientError } from '../shared/api.js';
 import { getDashboardPrimaryActionCopy, openPrimaryAction } from '../shared/primary-actions.js';
 import { CONFIG } from './state.js';
@@ -15,7 +13,6 @@ function storageKey(name) {
 const STORAGE = {
   DISPLAY_NAME_DISMISSED: storageKey('display_name_prompt_dismissed_v1'),
   TOUR_PROMPT_DISMISSED: storageKey('dashboard_tour_prompt_dismissed_v1'),
-  TOUR_COMPLETED: storageKey('dashboard_tour_completed_v2'),
   FIRST_ACTION_TOAST: storageKey('dashboard_first_action_toast_v1'),
 };
 
@@ -29,8 +26,6 @@ class DashboardFirstRunExperience {
       tourPromptVisible: false,
       awaitingFirstActionFeedback: false,
     };
-
-    this.tour = null;
 
     this.elements = {
       displayNameCard: document.getElementById('dashboardDisplayNamePrompt'),
@@ -49,8 +44,6 @@ class DashboardFirstRunExperience {
       emptyStateDescription: document.querySelector('#emptyState .dash-empty__subtext'),
       emptyStateCta: document.getElementById('dashboardEmptyStateCta'),
       fabButton: document.getElementById('fabButton'),
-      chartSection: document.getElementById('chart-section'),
-      saldoCard: document.getElementById('saldoCard'),
     };
   }
 
@@ -84,12 +77,6 @@ class DashboardFirstRunExperience {
     document.addEventListener('lukrato:data-changed', (event) => {
       if (event.detail?.resource === 'transactions' && event.detail?.action === 'create') {
         this.state.awaitingFirstActionFeedback = true;
-      }
-    });
-
-    window.addEventListener('resize', () => {
-      if (this.tour?.isActive()) {
-        this.tour.refresh();
       }
     });
   }
@@ -162,11 +149,9 @@ class DashboardFirstRunExperience {
   shouldOfferTour() {
     return !window.LKHelpCenter?.isManagingAutoOffers?.()
       && localStorage.getItem(STORAGE.TOUR_PROMPT_DISMISSED) !== '1'
-      && localStorage.getItem(STORAGE.TOUR_COMPLETED) !== '1'
       && window.__LK_CONFIG?.tourCompleted !== true
       && this.state.primaryAction === 'create_transaction'
-      && Number(this.state.transactionCount ?? 0) === 0
-      && !this.tour?.isActive();
+      && Number(this.state.transactionCount ?? 0) === 0;
   }
 
   showTourPrompt() {
@@ -349,111 +334,15 @@ class DashboardFirstRunExperience {
     }
   }
 
-  buildTour() {
-    const steps = [
-      {
-        element: this.elements.saldoCard,
-        popover: {
-          title: 'Resumo do mês',
-          description: 'Aqui você acompanha saldo, entradas e saídas sem precisar procurar em outras telas.',
-          side: 'bottom',
-          align: 'start',
-        },
-      },
-      {
-        element: this.elements.fabButton,
-        popover: {
-          title: 'Adicionar lançamento',
-          description: 'Esse é o atalho principal. Comece por aqui para registrar sua primeira transação.',
-          side: 'left',
-          align: 'center',
-        },
-      },
-      {
-        element: this.elements.chartSection,
-        popover: {
-          title: 'Gráfico',
-          description: 'Quando você registrar gastos, este bloco mostra rapidamente onde o dinheiro está concentrado.',
-          side: 'left',
-          align: 'start',
-        },
-      },
-      {
-        element: () => document.querySelector('.sidebar .nav-item[href*="categorias"]'),
-        popover: {
-          title: 'Categorias',
-          description: 'Categorias deixam relatórios e insights mais claros. Você pode ajustar isso quando quiser.',
-          side: 'right',
-          align: 'center',
-          doneBtnText: 'Concluir',
-        },
-        onNextClick: (_element, _step, { driver: driverInstance }) => {
-          this.persistTourCompletion();
-          driverInstance.destroy();
-          this.focusPrimaryAction();
-        },
-      },
-    ];
-
-    return steps.filter((step) => {
-      if (typeof step.element === 'function') {
-        return Boolean(step.element());
-      }
-
-      return Boolean(step.element);
-    });
-  }
-
-  async persistTourCompletion() {
-    localStorage.setItem(STORAGE.TOUR_COMPLETED, '1');
-    window.__LK_CONFIG.tourCompleted = true;
-
-    try {
-      await apiPost(`${CONFIG.BASE_URL}api/tour/complete`, {});
-    } catch (error) {
-      logClientError('Erro ao persistir conclusao do tour', error, 'Falha ao persistir conclusao do tour');
-    }
-  }
-
   startTour() {
-    if (window.LKHelpCenter?.startCurrentPageTutorial) {
-      window.LKHelpCenter.startCurrentPageTutorial({ source: 'dashboard-first-run' });
-      return;
-    }
-
-    const steps = this.buildTour();
-    if (steps.length === 0) {
+    if (!window.LKHelpCenter?.startCurrentPageTutorial) {
+      window.LK?.toast?.info('Tutorial indisponível no momento.');
       return;
     }
 
     localStorage.setItem(STORAGE.TOUR_PROMPT_DISMISSED, '1');
     this.hideTourPrompt();
-
-    this.tour = driver({
-      animate: true,
-      smoothScroll: true,
-      allowClose: true,
-      showProgress: true,
-      progressText: '{{current}} de {{total}}',
-      stagePadding: 12,
-      stageRadius: 18,
-      overlayOpacity: 0.72,
-      overlayColor: 'rgba(4, 18, 32, 0.78)',
-      popoverClass: 'lk-driver-popover',
-      nextBtnText: 'Próximo',
-      prevBtnText: 'Voltar',
-      doneBtnText: 'Concluir',
-      onCloseClick: (_element, _step, { driver: driverInstance }) => {
-        driverInstance.destroy();
-        this.focusPrimaryAction();
-      },
-      onDestroyed: () => {
-        this.togglePrimaryActionFocus(this.state.transactionCount === 0);
-      },
-    });
-
-    this.tour.setSteps(steps);
-    this.tour.drive();
+    window.LKHelpCenter.startCurrentPageTutorial({ source: 'dashboard-first-run' });
   }
 
   togglePrimaryActionFocus(shouldHighlight) {
