@@ -331,9 +331,7 @@ export const TableManager = {
         const isSelected = STATE.selectedIds.has(String(id));
 
         // Data
-        const dataValue = item.data || item.created_at || '';
-        const dataFormatted = Utils.fmtDate(dataValue);
-        const horaLanc = item.hora_lancamento || '';
+        const timelineMeta = Utils.getLancamentoTimelineMeta(item);
 
         // Tipo
         const tipoRaw = String(item.tipo || '').toLowerCase();
@@ -363,13 +361,11 @@ export const TableManager = {
         const isRecorrente = item.recorrente == 1 || item.recorrente === true;
         const isCancelado = !!item.cancelado_em;
         const isPago = Boolean(item.pago);
-        const dataLanc = new Date(item.data || item.created_at);
-        const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
         const isTransfer = Boolean(item.eh_transferencia);
-        const isFuturo = !isPago && dataLanc > hoje;
+        const isFuturo = timelineMeta.isFuturo;
         const temLembrete = item.lembrar_antes_segundos > 0;
         const isPagamentoFatura = item.origem_tipo === 'pagamento_fatura';
-        const isOverdue = !isPago && !isTransfer && !isCancelado && !isFuturo && dataLanc < hoje;
+        const isOverdue = timelineMeta.isOverdue;
 
         // Card classes
         const cardClasses = ['lk-txn-card'];
@@ -404,14 +400,20 @@ export const TableManager = {
                     <div class="lk-txn-progress"><div class="lk-txn-progress-bar ${tipoClass}" style="width:${pctP}%"></div></div>
                 </div>`;
         } else {
-            const dateText = horaLanc ? `${dataFormatted} · ${horaLanc}` : dataFormatted;
+            const paymentMetaHtml = timelineMeta.shouldShowSettlementInline
+                ? `
+                        <span class="lk-txn-dot">·</span>
+                        <span class="lk-txn-meta-payment">${Utils.escapeHtml(timelineMeta.settlementInlineText)}</span>
+                    `
+                : '';
             contentHtml = `
                 <div class="lk-txn-content">
                     <span class="lk-txn-desc">${Utils.escapeHtml(descricao)}</span>
                     <span class="lk-txn-meta">
                         <span class="lk-txn-category">${Utils.escapeHtml(categoria)}</span>
                         <span class="lk-txn-dot">·</span>
-                        <span class="lk-txn-date-text">${Utils.escapeHtml(dateText)}</span>
+                        <span class="lk-txn-date-text">${Utils.escapeHtml(timelineMeta.dataLancamentoComHora)}</span>
+                        ${paymentMetaHtml}
                         <span class="lk-txn-badge-tipo ${tipoClass}">${Utils.escapeHtml(tipoLabel)}</span>
                     </span>
                 </div>`;
@@ -489,7 +491,7 @@ export const TableManager = {
             if (isGroup) {
                 expandBtnHtml = `<button class="lk-txn-expand-btn toggle-parcelas" data-parcelamento-id="${String(id).replace('grupo_', '')}" title="Ver parcelas"><i data-lucide="layers"></i><span>Ver parcelas</span></button>`;
             } else {
-                expandBtnHtml = `<button class="lk-txn-expand-btn" data-action="expand" data-id="${id}" title="Ver detalhes"><i data-lucide="chevron-down"></i><span>Detalhes</span></button>`;
+                expandBtnHtml = `<button class="lk-txn-expand-btn" data-action="expand" data-id="${id}" title="Ver detalhes" aria-expanded="false"><i data-lucide="chevron-down"></i><span>Detalhes</span></button>`;
             }
         }
 
@@ -502,6 +504,8 @@ export const TableManager = {
             const formaPgto = Utils.formatFormaPagamento(item.forma_pagamento);
 
             let chips = '';
+            chips += `<div class="lk-detail-chip lk-chip-date"><i data-lucide="calendar-days"></i><span class="lk-detail-label">${Utils.escapeHtml(timelineMeta.labelPrimaria)}</span><span class="lk-detail-value">${Utils.escapeHtml(timelineMeta.dataLancamentoComHora)}</span></div>`;
+            if (timelineMeta.hasSettlementDate) chips += `<div class="lk-detail-chip lk-chip-paid-date"><i data-lucide="badge-check"></i><span class="lk-detail-label">${Utils.escapeHtml(timelineMeta.labelLiquidacao)}</span><span class="lk-detail-value">${Utils.escapeHtml(timelineMeta.dataPagamento)}</span></div>`;
             chips += `<div class="lk-detail-chip"><i data-lucide="wallet"></i><span class="lk-detail-label">Conta</span><span class="lk-detail-value">${Utils.escapeHtml(conta)}</span></div>`;
             if (formaPgto && formaPgto !== '-') chips += `<div class="lk-detail-chip"><i data-lucide="banknote"></i><span class="lk-detail-label">Pagamento</span><span class="lk-detail-value">${formaPgto}</span></div>`;
             if (cartaoDisplay) chips += `<div class="lk-detail-chip"><i data-lucide="credit-card"></i><span class="lk-detail-label">Cartão</span><span class="lk-detail-value">${Utils.escapeHtml(cartaoDisplay)}</span></div>`;
@@ -527,7 +531,12 @@ export const TableManager = {
                 chips += `<div class="lk-detail-chip lk-chip-lembrete"><i data-lucide="bell"></i><span class="lk-detail-label">Lembrete</span><span class="lk-detail-value">${t} · ${canais.join(', ') || 'Nenhum canal'}</span></div>`;
             }
             if (item.parcela_atual && item.total_parcelas) chips += `<div class="lk-detail-chip"><i data-lucide="layers"></i><span class="lk-detail-label">Parcela</span><span class="lk-detail-value">${item.parcela_atual}/${item.total_parcelas}</span></div>`;
-            detailHtml = `<div class="lk-txn-detail-panel" data-detail-for="${id}" style="display:none;"><div class="lk-detail-chips">${chips}</div></div>`;
+            detailHtml = `
+                <div class="lk-txn-detail-panel" data-detail-for="${id}" aria-hidden="true">
+                    <div class="lk-txn-detail-panel-inner">
+                        <div class="lk-detail-chips">${chips}</div>
+                    </div>
+                </div>`;
         }
 
         // ─── ASSEMBLE CARD ────────────────────────────────
@@ -660,14 +669,18 @@ export const TableManager = {
     toggleDetailPanel(id, btn) {
         const panel = DOM.tableBody.querySelector(`.lk-txn-detail-panel[data-detail-for="${id}"]`);
         if (!panel) return;
-        const isOpen = panel.style.display !== 'none';
-        if (isOpen) {
-            panel.style.display = 'none';
-            btn.classList.remove('expanded');
-        } else {
-            panel.style.display = '';
-            btn.classList.add('expanded');
-            if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [panel] });
+        const card = btn.closest('.lk-txn-card');
+        const isOpen = panel.classList.contains('is-open');
+
+        panel.classList.toggle('is-open', !isOpen);
+        panel.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
+        btn.classList.toggle('expanded', !isOpen);
+        btn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+        card?.classList.toggle('details-open', !isOpen);
+
+        if (!isOpen) {
+            if (window.LK?.refreshIcons) LK.refreshIcons();
+            else if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [panel] });
         }
     },
 

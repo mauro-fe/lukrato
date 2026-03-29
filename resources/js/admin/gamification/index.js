@@ -570,6 +570,19 @@ function generateInsights(progressData, missionsData) {
 
 // ─── Leaderboard ────────────────────────────────────────────────────────────
 
+function getLeaderboardDisplayName(user, isCurrentUser = false) {
+    const rawName = String(user?.user_name || '').trim();
+    const currentUserName = isCurrentUser ? String(CURRENT_USERNAME || '').trim() : '';
+    const resolvedName = rawName || currentUserName || 'Usuário';
+
+    return resolvedName.split(/\s+/).slice(0, 2).join(' ');
+}
+
+function getLeaderboardInitial(name) {
+    const firstChar = Array.from(String(name || '').trim()).find((char) => char.trim());
+    return (firstChar || 'U').toLocaleUpperCase('pt-BR');
+}
+
 function updateLeaderboard(data) {
     if (!data) return;
     const isSuccess = data.success === true;
@@ -595,10 +608,11 @@ function updateLeaderboard(data) {
         const rankIcon = user.position === 1 ? '<i data-lucide="medal" style="color:#fbbf24;"></i>'
             : user.position === 2 ? '<i data-lucide="medal" style="color:#94a3b8;"></i>'
                 : user.position === 3 ? '<i data-lucide="medal" style="color:#d97706;"></i>' : '';
-        const nomeCurto = (user.user_name || '').trim().split(' ').slice(0, 2).join(' ');
+        const nomeCurto = getLeaderboardDisplayName(user, isCurrentUser);
+        const avatarInitial = getLeaderboardInitial(nomeCurto);
         const avatarHtml = user.avatar
             ? `<img src="${escapeHtml(user.avatar)}" alt="" class="leaderboard-avatar">`
-            : `<span class="leaderboard-avatar leaderboard-avatar-fallback">${escapeHtml((nomeCurto || 'U')[0].toUpperCase())}</span>`;
+            : `<span class="leaderboard-avatar-fallback" aria-label="Avatar de ${escapeHtml(nomeCurto)}">${escapeHtml(avatarInitial)}</span>`;
 
         return `
                         <tr class="${rankClass}${currentUserClass}">

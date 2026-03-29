@@ -67,7 +67,7 @@
   border-top-color: var(--color-card-border);
 }
 
-:root[data-theme="light"] .lk-txn-detail-panel {
+:root[data-theme="light"] .lk-txn-detail-panel.is-open {
   border-top-color: var(--color-card-border);
   background: color-mix(in srgb, var(--color-primary) 2%, var(--color-surface));
 }
@@ -75,6 +75,21 @@
 :root[data-theme="light"] .lk-detail-chip {
   background: var(--color-surface-muted);
   border-color: var(--color-card-border);
+}
+
+:root[data-theme="light"] .lk-txn-meta-payment {
+  border-color: color-mix(in srgb, var(--color-primary) 20%, var(--color-card-border));
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+}
+
+:root[data-theme="light"] .lk-chip-date {
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  border-color: color-mix(in srgb, var(--color-primary) 24%, var(--color-card-border));
+}
+
+:root[data-theme="light"] .lk-chip-paid-date {
+  background: color-mix(in srgb, var(--color-success) 10%, var(--color-surface));
+  border-color: color-mix(in srgb, var(--color-success) 24%, var(--color-card-border));
 }
 
 :root[data-theme="light"] .lk-feed-date-line {
@@ -143,6 +158,11 @@
 
 :root[data-theme="light"] .lan-card {
   border-color: var(--color-card-border);
+}
+
+:root[data-theme="light"] .lan-card[aria-expanded="true"] .lan-card-details {
+  background: color-mix(in srgb, var(--color-primary) 2%, var(--color-surface));
+  border-top-color: var(--color-card-border);
 }
 
 :root[data-theme="light"] .lan-card + .lan-card {

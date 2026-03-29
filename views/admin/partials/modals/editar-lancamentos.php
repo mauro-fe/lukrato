@@ -1,7 +1,6 @@
 <!-- Modal de Edição de Lançamento (usado pela tabela) -->
 <div class="modal fade lk-edit-lanc-modal" id="modalEditarLancamento" tabindex="-1"
-    aria-labelledby="modalEditarLancamentoLabel" aria-hidden="true" data-bs-backdrop="static"
-    data-bs-keyboard="false">
+    aria-labelledby="modalEditarLancamentoLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable lk-edit-lanc-modal__dialog">
         <div class="modal-content lk-edit-lanc-modal__content">
             <div class="modal-header lk-edit-lanc-modal__header">
@@ -91,7 +90,8 @@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="editLancConta" class="form-label">Conta</label>
-                                    <select class="form-select" id="editLancConta" required aria-required="true"></select>
+                                    <select class="form-select" id="editLancConta" required
+                                        aria-required="true"></select>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="editLancCategoria" class="form-label">Categoria</label>
@@ -99,8 +99,7 @@
                                         <select class="form-select" id="editLancCategoria"></select>
                                         <button type="button" class="lk-btn-ai-suggest" id="btnEditAiSuggestCategoria"
                                             onclick="window._editLancSugerirCategoriaIA()"
-                                            title="Sugerir categoria com IA"
-                                            aria-label="Sugerir categoria com IA">
+                                            title="Sugerir categoria com IA" aria-label="Sugerir categoria com IA">
                                             <i data-lucide="sparkles"></i>
                                         </button>
                                     </div>

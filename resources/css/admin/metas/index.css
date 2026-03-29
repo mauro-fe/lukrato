@@ -19,7 +19,6 @@
   flex-direction: column;
   gap: var(--spacing-5);
   animation: metFadeIn 0.5s ease-out;
-  max-width: 1400px;
   margin: 0 auto;
   width: 100%;
 }

@@ -219,12 +219,13 @@ class GamificationController extends BaseController
                 ->get()
                 ->map(static function ($progress, int $index): array {
                     $avatar = $progress->user->avatar ?? null;
+                    $userName = trim((string) ($progress->user->nome ?? '')) ?: 'Usuário';
 
                     return [
                         'position' => $index + 1,
                         'user_id' => $progress->user_id,
-                        'user_name' => $progress->user->nome ?? 'Usuário',
                         'avatar' => $avatar ? rtrim(BASE_URL, '/') . '/' . $avatar : '',
+                        'user_name' => $userName,
                         'total_points' => $progress->total_points,
                         'current_level' => $progress->current_level,
                         'best_streak' => $progress->best_streak,

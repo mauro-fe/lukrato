@@ -493,12 +493,129 @@ export const ParcelamentoGrouper = {
         };
     },
 
+    closeModal() {
+        const overlay = document.querySelector('.parcelas-modal-overlay');
+        if (!overlay) return;
+
+        if (typeof overlay._parcelasCleanup === 'function') {
+            overlay._parcelasCleanup();
+        }
+
+        overlay.remove();
+    },
+
+    buildParcelaItem(parcela, idx, totalParcelas) {
+        const isPago = parcela.pago === true || parcela.pago == 1;
+        const num = parcela.numero_parcela || (idx + 1);
+        const dataPagFmt = isPago && parcela.data_pagamento ? Utils.fmtDate(parcela.data_pagamento) : '';
+        const statusText = isPago
+            ? (dataPagFmt ? `Pago em ${dataPagFmt}` : 'Pago')
+            : 'Pendente';
+        const statusIcon = isPago ? 'circle-check' : 'clock';
+        const toggleLabel = isPago ? 'Marcar como pendente' : 'Marcar como paga';
+        const toggleIcon = isPago ? 'clock' : 'circle-check';
+
+        return `
+            <li class="parcela-item ${isPago ? 'parcela-paga' : 'parcela-pendente'}">
+                <span class="parcela-num">${num}/${totalParcelas}</span>
+                <div class="parcela-info">
+                    <strong class="parcela-data">${Utils.fmtDate(parcela.data)}</strong>
+                    <span class="parcela-valor">${Utils.fmtMoney(parcela.valor)}</span>
+                </div>
+                <span class="parcela-status ${isPago ? 'parcela-status-pago' : 'parcela-status-pendente'}">
+                    <i data-lucide="${statusIcon}"></i>
+                    <span>${Utils.escapeHtml(statusText)}</span>
+                </span>
+                <button class="parcela-toggle-btn ${isPago ? 'toggle-despagar' : 'toggle-pagar'}"
+                        data-lancamento-id="${parcela.id}"
+                        data-pago="${isPago ? '0' : '1'}"
+                        title="${toggleLabel}"
+                        aria-label="${toggleLabel}">
+                    <i data-lucide="${toggleIcon}"></i>
+                    <span>${toggleLabel}</span>
+                </button>
+            </li>
+        `;
+    },
+
+    buildModalMarkup({ parcelamentoId, descricao, totalParcelas, pagas, abertas, pctPago, totalValor, totalPago, totalAberto, itemsHtml }) {
+        const progressoHint = abertas > 0
+            ? `${abertas} ${abertas === 1 ? 'parcela em aberto' : 'parcelas em aberto'}`
+            : 'Tudo quitado';
+
+        return `
+            <div class="parcelas-modal" data-parcelamento-id="${parcelamentoId}" role="dialog" aria-modal="true" aria-labelledby="parcelasModalTitle">
+                <div class="parcelas-modal-header">
+                    <div class="parcelas-modal-header-main">
+                        <div class="modal-icon parcelas-modal-icon">
+                            <i data-lucide="layers"></i>
+                        </div>
+                        <div class="parcelas-modal-header-copy">
+                            <span class="parcelas-modal-eyebrow">Parcelamento</span>
+                            <h3 class="parcelas-modal-title" id="parcelasModalTitle">${Utils.escapeHtml(descricao)} — ${totalParcelas}x</h3>
+                            <p class="parcelas-modal-subtitle">Acompanhe cada parcela e ajuste o status sem sair da lista.</p>
+                        </div>
+                    </div>
+                    <button class="parcelas-modal-close" type="button" data-action="close-parcelas" aria-label="Fechar modal">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+
+                <div class="parcelas-modal-summary">
+                    <article class="parcelas-summary-card">
+                        <span class="parcelas-summary-label">Parcelas</span>
+                        <strong class="parcelas-summary-value">${totalParcelas}</strong>
+                        <span class="parcelas-summary-meta">${abertas} em aberto</span>
+                    </article>
+                    <article class="parcelas-summary-card is-success">
+                        <span class="parcelas-summary-label">Pago</span>
+                        <strong class="parcelas-summary-value">${Utils.fmtMoney(totalPago)}</strong>
+                        <span class="parcelas-summary-meta">${pagas} quitadas</span>
+                    </article>
+                    <article class="parcelas-summary-card is-warning">
+                        <span class="parcelas-summary-label">Em aberto</span>
+                        <strong class="parcelas-summary-value">${Utils.fmtMoney(totalAberto)}</strong>
+                        <span class="parcelas-summary-meta">${progressoHint}</span>
+                    </article>
+                </div>
+
+                <div class="parcelas-modal-progress">
+                    <div class="parcelas-progress-copy">
+                        <span class="parcelas-progress-label">Progresso do parcelamento</span>
+                        <strong class="parcelas-progress-value">${pagas} de ${totalParcelas} pagas</strong>
+                    </div>
+                    <div class="parcelas-progress-track">
+                        <div class="parcelas-progress-bar" aria-hidden="true">
+                            <div class="parcelas-progress-fill" style="width:${pctPago}%"></div>
+                        </div>
+                        <span class="parcelas-progress-hint">${progressoHint}</span>
+                    </div>
+                    <span class="parcelas-progress-percent">${pctPago}%</span>
+                </div>
+
+                <div class="parcelas-modal-body">
+                    <div class="parcelas-list-head" aria-hidden="true">
+                        <span>Parcela</span>
+                        <span>Resumo</span>
+                        <span>Status</span>
+                        <span>Ação</span>
+                    </div>
+                    <ul class="parcela-list">${itemsHtml}</ul>
+                </div>
+
+                <div class="parcelas-modal-footer">
+                    <span class="parcelas-modal-total">Total comprometido: <strong>${Utils.fmtMoney(totalValor)}</strong></span>
+                    <button type="button" class="btn btn-secondary parcelas-modal-footer-btn" data-action="close-parcelas">Fechar</button>
+                </div>
+            </div>
+        `;
+    },
+
     /**
      * Abre modal de parcelas buscando TODAS do endpoint da API
      */
     async toggle(parcelamentoId) {
-        // Remove modal existente
-        document.querySelector('.parcelas-modal-overlay')?.remove();
+        this.closeModal();
 
         try {
             // Buscar TODAS as parcelas da API (não apenas as do mês atual)
@@ -514,85 +631,56 @@ export const ParcelamentoGrouper = {
             const totalValor = parcelas.reduce((s, p) => s + Number(p.valor || 0), 0);
             const totalPago = parcelas.filter(p => p.pago === true || p.pago == 1)
                 .reduce((s, p) => s + Number(p.valor || 0), 0);
+            const totalAberto = Math.max(0, totalValor - totalPago);
+            const abertas = Math.max(0, totalParcelas - pagas);
 
             const descricao = parcelamento.descricao || 'Parcelamento';
 
-            const itemsHtml = parcelas.map((parcela, idx) => {
-                const isPago = parcela.pago === true || parcela.pago == 1;
-                const num = parcela.numero_parcela || (idx + 1);
-                const dataPagFmt = isPago && parcela.data_pagamento ? Utils.fmtDate(parcela.data_pagamento) : '';
-                const statusText = isPago
-                    ? (dataPagFmt ? `Pago em ${dataPagFmt}` : 'Pago')
-                    : 'Pendente';
-                return `
-                    <li class="parcela-item ${isPago ? 'parcela-paga' : ''}">
-                        <span class="parcela-num">${num}/${totalParcelas}</span>
-                        <div class="parcela-info">
-                            <span class="parcela-data">${Utils.fmtDate(parcela.data)}</span>
-                            <span class="parcela-valor">${Utils.fmtMoney(parcela.valor)}</span>
-                        </div>
-                        <span class="parcela-status ${isPago ? 'parcela-status-pago' : 'parcela-status-pendente'}">
-                            ${statusText}
-                        </span>
-                        <button class="parcela-toggle-btn ${isPago ? 'toggle-despagar' : 'toggle-pagar'}"
-                                data-lancamento-id="${parcela.id}"
-                                data-pago="${isPago ? '0' : '1'}"
-                                title="${isPago ? 'Marcar como pendente' : 'Marcar como pago'}">
-                            <i data-lucide="${isPago ? 'circle-x' : 'circle-check'}"></i>
-                        </button>
-                    </li>
-                `;
-            }).join('');
+            const itemsHtml = parcelas.map((parcela, idx) => this.buildParcelaItem(parcela, idx, totalParcelas)).join('');
 
             const overlay = document.createElement('div');
             overlay.className = 'parcelas-modal-overlay';
-            overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;';
-            overlay.innerHTML = `
-                <div class="parcelas-modal" data-parcelamento-id="${parcelamentoId}">
-                    <div class="parcelas-modal-header">
-                        <h3 class="parcelas-modal-title">
-                            <i data-lucide="layers"></i>
-                            ${Utils.escapeHtml(descricao)} — ${totalParcelas}x
-                        </h3>
-                        <button class="parcelas-modal-close" data-action="close-parcelas">
-                            <i data-lucide="x"></i>
-                        </button>
-                    </div>
-                    <div class="parcelas-modal-progress">
-                        <span class="parcelas-progress-label">
-                            <strong>${pagas}</strong> de <strong>${totalParcelas}</strong> pagas (${pctPago}%)
-                        </span>
-                        <div class="parcelas-progress-bar">
-                            <div class="parcelas-progress-fill" style="width:${pctPago}%"></div>
-                        </div>
-                    </div>
-                    <div class="parcelas-modal-body">
-                        <ul class="parcela-list">${itemsHtml}</ul>
-                    </div>
-                    <div class="parcelas-modal-footer">
-                        <span class="parcelas-modal-total">
-                            Pago: <strong>${Utils.fmtMoney(totalPago)}</strong> / ${Utils.fmtMoney(totalValor)}
-                        </span>
-                    </div>
-                </div>
-            `;
+            overlay.innerHTML = this.buildModalMarkup({
+                parcelamentoId,
+                descricao,
+                totalParcelas,
+                pagas,
+                abertas,
+                pctPago,
+                totalValor,
+                totalPago,
+                totalAberto,
+                itemsHtml
+            });
 
             document.body.appendChild(overlay);
-            if (window.lucide) lucide.createIcons();
+            const previousOverflow = document.body.style.overflow;
+            document.body.style.overflow = 'hidden';
+
+            const escHandler = (e) => {
+                if (e.key === 'Escape') {
+                    this.closeModal();
+                }
+            };
+
+            overlay._parcelasCleanup = () => {
+                document.removeEventListener('keydown', escHandler);
+                document.body.style.overflow = previousOverflow;
+                overlay._parcelasCleanup = null;
+            };
+
+            if (window.LK?.refreshIcons) window.LK.refreshIcons();
+            else if (window.lucide) lucide.createIcons();
 
             // Fechar ao clicar no backdrop
             overlay.addEventListener('click', (e) => {
-                if (e.target === overlay) overlay.remove();
+                if (e.target === overlay) this.closeModal();
             });
 
-            // Fechar com ESC
-            const escHandler = (e) => {
-                if (e.key === 'Escape') {
-                    overlay.remove();
-                    document.removeEventListener('keydown', escHandler);
-                }
-            };
             document.addEventListener('keydown', escHandler);
+            requestAnimationFrame(() => {
+                overlay.querySelector('.parcelas-modal-close')?.focus?.();
+            });
 
         } catch (error) {
             logClientError('Erro ao abrir modal de parcelas', error, 'Erro ao carregar parcelas');
@@ -657,7 +745,7 @@ export const ParcelamentoGrouper = {
             // Fechar modal de parcelas
             if (e.target.closest('[data-action="close-parcelas"]')) {
                 e.preventDefault();
-                document.querySelector('.parcelas-modal-overlay')?.remove();
+                ParcelamentoGrouper.closeModal();
             }
 
             // Toggle pago/não pago de parcela (dentro do modal)

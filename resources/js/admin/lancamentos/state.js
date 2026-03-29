@@ -404,6 +404,56 @@ export const Utils = {
     hasSwal: () => !!window.Swal,
     getCSRFToken: () => (window.LK && typeof LK.getCSRF === 'function') ? LK.getCSRF() : '',
     getCurrentMonth: () => (window.LukratoHeader?.getMonth?.()) || (new Date()).toISOString().slice(0, 7)
+    ,
+
+    getLancamentoTimelineMeta: (item = {}) => {
+        const rawDate = item?.data || item?.created_at || '';
+        const baseDate = Utils.fmtDate(rawDate);
+        const horaLancamento = String(item?.hora_lancamento || '').trim();
+        const dataComHora = horaLancamento && baseDate !== '-' ? `${baseDate} · ${horaLancamento}` : baseDate;
+        const rawPaymentDate = item?.data_pagamento ? Utils.fmtDate(item.data_pagamento) : '';
+        const dataPagamento = rawPaymentDate && rawPaymentDate !== '-' ? rawPaymentDate : '';
+
+        const tipo = String(item?.tipo || '').toLowerCase();
+        const isReceita = tipo === 'receita';
+        const isPago = Boolean(item?.pago);
+        const isTransfer = Boolean(item?.eh_transferencia);
+        const isCancelado = Boolean(item?.cancelado_em);
+
+        const ymd = Utils.extractYMD(rawDate);
+        const dataBase = ymd ? new Date(ymd.year, (ymd.month || 1) - 1, ymd.day || 1) : null;
+        if (dataBase) dataBase.setHours(0, 0, 0, 0);
+
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+
+        const isFuturo = !isPago && dataBase instanceof Date && dataBase > hoje;
+        const isOverdue = !isPago && !isTransfer && !isCancelado && dataBase instanceof Date && dataBase < hoje;
+
+        let labelPrimaria = 'Data do lançamento';
+        if (isTransfer) labelPrimaria = 'Transferência em';
+        else if (isOverdue) labelPrimaria = 'Venceu em';
+        else if (isFuturo) labelPrimaria = 'Previsto para';
+
+        const labelLiquidacao = isTransfer
+            ? 'Transferida em'
+            : (isReceita ? 'Recebido em' : 'Pago em');
+
+        const shouldShowSettlementInline = Boolean(dataPagamento) && dataPagamento !== baseDate;
+
+        return {
+            dataLancamento: baseDate,
+            dataLancamentoComHora: dataComHora,
+            dataPagamento,
+            labelPrimaria,
+            labelLiquidacao,
+            isFuturo,
+            isOverdue,
+            hasSettlementDate: Boolean(dataPagamento),
+            shouldShowSettlementInline,
+            settlementInlineText: shouldShowSettlementInline ? `${labelLiquidacao} ${dataPagamento}` : ''
+        };
+    }
 };
 
 // ─── MoneyMask ───────────────────────────────────────────────────────────────

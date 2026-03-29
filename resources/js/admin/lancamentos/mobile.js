@@ -252,10 +252,8 @@ const MobileCards = {
                 : '-';
 
             const valorFmt = Utils.fmtMoney(valorBase);
-            const dataFmt = Utils.fmtDate(item.data || item.created_at);
-            const horaLanc = item.hora_lancamento || '';
-            const dataMain = horaLanc ? `${dataFmt} • ${horaLanc}` : dataFmt;
-            const dataPagamentoFmt = Utils.fmtDate(item.data_pagamento);
+            const timelineMeta = Utils.getLancamentoTimelineMeta(item);
+            const dataMain = timelineMeta.dataLancamentoComHora;
 
             const categoria =
                 item.categoria_nome ??
@@ -293,11 +291,8 @@ const MobileCards = {
             const isTransfer = Boolean(item.eh_transferencia);
             const isPagamentoFatura = item.origem_tipo === 'pagamento_fatura';
             const isCancelado = !!item.cancelado_em;
-            const dataLanc = new Date(item.data || item.created_at);
-            const hojeCard = new Date();
-            hojeCard.setHours(0, 0, 0, 0);
-            const isFuturo = !isPago && dataLanc > hojeCard;
-            const isOverdue = !isPago && !isTransfer && !isCancelado && !isFuturo && dataLanc < hojeCard;
+            const isFuturo = timelineMeta.isFuturo;
+            const isOverdue = timelineMeta.isOverdue;
             let statusClass = '';
             let statusLabel = '';
             let statusLucideIcon = '';
@@ -319,30 +314,6 @@ const MobileCards = {
                 statusLucideIcon = 'clock';
             }
 
-            let pagoEmClass = '';
-            let pagoEmLabel = '';
-            let pagoEmLucideIcon = '';
-            if (isTransfer) {
-                pagoEmClass = 'status-transferencia';
-                pagoEmLabel = 'Transf.';
-                pagoEmLucideIcon = 'repeat';
-            } else if (isOverdue) {
-                pagoEmClass = 'status-atrasado';
-                pagoEmLabel = 'Atrasado';
-                pagoEmLucideIcon = 'triangle-alert';
-            } else if (isPago && dataPagamentoFmt && dataPagamentoFmt !== '-') {
-                pagoEmClass = 'status-pago';
-                pagoEmLabel = 'Pago';
-                pagoEmLucideIcon = 'circle-check';
-            } else if (isPago) {
-                pagoEmClass = 'status-pago';
-                pagoEmLabel = 'Pago';
-                pagoEmLucideIcon = 'circle-check';
-            } else {
-                pagoEmClass = 'status-pendente';
-                pagoEmLabel = 'Pendente';
-                pagoEmLucideIcon = 'clock';
-            }
 
             // Badges de recorrência/status para card view
             const isRecorrente = item.recorrente == 1 || item.recorrente === true;
@@ -511,7 +482,23 @@ const MobileCards = {
                 </div>
             ` : '';
 
-            const showStatusRow = pagoEmLabel !== statusLabel || pagoEmClass !== statusClass;
+            const dateDetails = [
+                `
+                        <div class="lan-card-detail-row card-detail-row">
+                            <span class="lan-card-detail-label card-detail-label">${Utils.escapeHtml(timelineMeta.labelPrimaria)}</span>
+                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(timelineMeta.dataLancamentoComHora)}</span>
+                        </div>
+                    `,
+                timelineMeta.hasSettlementDate
+                    ? `
+                        <div class="lan-card-detail-row card-detail-row">
+                            <span class="lan-card-detail-label card-detail-label">${Utils.escapeHtml(timelineMeta.labelLiquidacao)}</span>
+                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(timelineMeta.dataPagamento)}</span>
+                        </div>
+                    `
+                    : ''
+            ].join('');
+
             const leadingDetails = [
                 cartaoDisplay && cartaoDisplay !== '-'
                     ? `
@@ -532,16 +519,14 @@ const MobileCards = {
             ].join('');
 
             const trailingDetails = [
-                showStatusRow
-                    ? `
+                `
                         <div class="lan-card-detail-row card-detail-row">
                             <span class="lan-card-detail-label card-detail-label">Status</span>
                             <span class="lan-card-detail-value card-detail-value">
                                 <span class="badge-status ${statusClass}"><i data-lucide="${statusLucideIcon}"></i> ${statusLabel}</span>
                             </span>
                         </div>
-                    `
-                    : '',
+                    `,
                 isRecorrente
                     ? `
                         <div class="lan-card-detail-row card-detail-row">
@@ -614,16 +599,11 @@ const MobileCards = {
                             <span class="lan-card-detail-label card-detail-label">Conta</span>
                             <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(conta || '-')}</span>
                         </div>
+                        ${dateDetails}
                         ${leadingDetails}
                         <div class="lan-card-detail-row card-detail-row is-badges is-multiline">
                             <span class="lan-card-detail-label card-detail-label">Descrição</span>
                             <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(descricao)}${cardBadges}</span>
-                        </div>
-                        <div class="lan-card-detail-row card-detail-row">
-                            <span class="lan-card-detail-label card-detail-label">Pago Em</span>
-                            <span class="lan-card-detail-value card-detail-value">
-                                <span class="badge-status ${pagoEmClass}"><i data-lucide="${pagoEmLucideIcon}"></i> ${Utils.escapeHtml(pagoEmLabel)}</span>
-                            </span>
                         </div>
                         ${trailingDetails}
                         ${isPagamentoFatura ? `
@@ -781,7 +761,7 @@ const MobileCards = {
                 dropdown,
                 menu,
                 card,
-                onItemClick: (itemBtn) => this.handleActionButton(itemBtn)
+                onItemClick: (itemBtn) => MobileCards.handleActionButton(itemBtn)
             });
             if (!opened) return;
             if (window.lucide) lucide.createIcons();
@@ -819,7 +799,7 @@ const MobileCards = {
         const actionBtn = target.closest('.lk-dropdown-item');
         if (!actionBtn) return;
 
-        this.handleActionButton(actionBtn);
+        MobileCards.handleActionButton(actionBtn);
     }
 };
 
