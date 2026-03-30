@@ -1401,7 +1401,7 @@ class HelpCenter {
                 </div>
                 <div class="lk-help-offer__content">
                     <span class="lk-help-offer__eyebrow">Tour opcional</span>
-                    <strong>Quer um tour rapido desta tela?</strong>
+                    <strong>Quer um tour rápido desta tela?</strong>
                     <p>Em menos de 30 segundos eu te mostro onde agir primeiro, sem travar sua navegação.</p>
                 </div>
                 <div class="lk-help-offer__actions">

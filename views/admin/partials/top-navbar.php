@@ -116,7 +116,7 @@ $currentBreadcrumbs = $currentBreadcrumbs ?? [];
                         </button>
                         <button type="button" class="top-nav-help-action" id="topNavHelpAutoOfferBtn">
                             <i data-lucide="bell"></i>
-                            <span>Desativar convite automatico</span>
+                            <span>Desativar convite automático</span>
                         </button>
                         <button type="button" class="top-nav-help-action top-nav-help-action--muted"
                             id="topNavHelpResetBtn">

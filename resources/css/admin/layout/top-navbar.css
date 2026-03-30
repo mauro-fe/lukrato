@@ -17,7 +17,7 @@
 .top-navbar {
   position: fixed;
   top: 0;
-  left: 270px;
+  left: 220px;
   right: 0;
   height: 70px;
   backdrop-filter: var(--glass-backdrop);

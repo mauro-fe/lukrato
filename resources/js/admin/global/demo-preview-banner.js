@@ -18,14 +18,14 @@ function createMarkup(meta = {}) {
     const title = escapeHtml(String(meta.title || 'Dados de exemplo'));
     const message = escapeHtml(String(
         meta.message
-        || 'Esses dados existem so para mostrar como o app funciona. Assim que voce criar seus primeiros registros reais, a demonstracao desaparece automaticamente.'
+        || 'Esses dados existem só para mostrar como o app funciona. Assim que você criar seus primeiros registros reais, a demonstração desaparece automaticamente.'
     ));
     const context = escapeHtml(String(meta.context || 'preview'));
-    const highlightLabel = escapeHtml(String(meta.highlight_label || 'Somente visualizacao'));
+    const highlightLabel = escapeHtml(String(meta.highlight_label || 'Somente visualização'));
     const guideItems = [
         {
             icon: 'database',
-            label: escapeHtml(String(meta.storage_note || 'Nao salva nada no banco')),
+            label: escapeHtml(String(meta.storage_note || 'Não salva nada no banco')),
         },
         {
             icon: 'refresh-cw',
@@ -52,7 +52,7 @@ function createMarkup(meta = {}) {
                     </div>
                     <strong class="lk-demo-banner__title">${title}</strong>
                     <p class="lk-demo-banner__message">${message}</p>
-                    <div class="lk-demo-banner__meta" aria-label="Informacoes sobre o preview">
+                    <div class="lk-demo-banner__meta" aria-label="Informações sobre o preview">
                         ${guideItems.map((item) => `
                             <span class="lk-demo-banner__meta-item">
                                 <i data-lucide="${item.icon}"></i>
