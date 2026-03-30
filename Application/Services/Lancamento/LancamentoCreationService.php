@@ -11,6 +11,7 @@ use Application\Repositories\LancamentoRepository;
 use Application\DTO\Requests\CreateLancamentoDTO;
 use Application\Validators\LancamentoValidator;
 use Application\Services\Cartao\CartaoCreditoLancamentoService;
+use Application\Services\Financeiro\MetaProgressService;
 use Application\Services\Gamification\GamificationService;
 use Application\Services\Gamification\AchievementService;
 use Application\Services\Plan\UserPlanService;
@@ -26,6 +27,7 @@ class LancamentoCreationService
     private LancamentoLimitService $limitService;
     private UserPlanService $planService;
     private OnboardingProgressService $onboardingProgressService;
+    private MetaProgressService $metaProgressService;
 
     public function __construct(
         ?CartaoCreditoLancamentoService $cartaoService = null,
@@ -33,7 +35,8 @@ class LancamentoCreationService
         ?GamificationService $gamificationService = null,
         ?LancamentoLimitService $limitService = null,
         ?UserPlanService $planService = null,
-        ?OnboardingProgressService $onboardingProgressService = null
+        ?OnboardingProgressService $onboardingProgressService = null,
+        ?MetaProgressService $metaProgressService = null
     ) {
         $this->cartaoService = $cartaoService ?? new CartaoCreditoLancamentoService();
         $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
@@ -41,6 +44,7 @@ class LancamentoCreationService
         $this->limitService = $limitService ?? new LancamentoLimitService();
         $this->planService = $planService ?? new UserPlanService();
         $this->onboardingProgressService = $onboardingProgressService ?? new OnboardingProgressService();
+        $this->metaProgressService = $metaProgressService ?? new MetaProgressService();
     }
 
     /**
@@ -79,6 +83,17 @@ class LancamentoCreationService
             $categoriaId = $payload['categoria_id'] ?? $payload['categoriaId'] ?? null;
             $categoriaId = is_scalar($categoriaId) ? (int) $categoriaId : null;
             $categoriaId = LancamentoValidator::validateCategoriaOwnership($categoriaId, $userId, $errors);
+
+            $metaId = $payload['meta_id'] ?? $payload['metaId'] ?? null;
+            $metaId = is_scalar($metaId) && $metaId !== '' ? (int) $metaId : null;
+            $metaId = LancamentoValidator::validateMetaOwnership($metaId, $userId, $errors);
+            LancamentoValidator::validateMetaLinkRules($metaId, [
+                'tipo' => $tipoLancamento,
+                'eh_transferencia' => false,
+            ], $errors);
+            if ($ehEstornoCartao && $metaId !== null) {
+                $errors['meta_id'] = 'Estornos de cartao nao podem ser vinculados a uma meta.';
+            }
 
             // Validar subcategoria (opcional)
             $subcategoriaId = $payload['subcategoria_id'] ?? $payload['subcategoriaId'] ?? null;
@@ -120,6 +135,7 @@ class LancamentoCreationService
                 'observacao'             => mb_substr(trim($payload['observacao'] ?? ''), 0, 500),
                 'categoria_id'           => $categoriaId,
                 'subcategoria_id'        => $subcategoriaId,
+                'meta_id'                => $metaId,
                 'conta_id'               => $contaId,
                 'pago'                   => $pago,
                 'forma_pagamento'        => $formaPagamento,
@@ -297,6 +313,10 @@ class LancamentoCreationService
         $totalCriados = 1;
         $pai->loadMissing(['categoria', 'conta']);
 
+        if (!empty($pai->meta_id)) {
+            $this->metaProgressService->recalculateMeta($userId, (int) $pai->meta_id, true);
+        }
+
         $this->syncOnboardingLancamentoCreated($userId, $pai->created_at);
 
         $gamification = $this->triggerGamification($userId, $pai->id);
@@ -337,6 +357,10 @@ class LancamentoCreationService
             $lancamentos[] = $this->lancamentoRepo->create($dados);
         }
 
+        if (!empty($lancamentos[0]->meta_id)) {
+            $this->metaProgressService->recalculateMeta($userId, (int) $lancamentos[0]->meta_id, true);
+        }
+
         $lancamentos[0]->loadMissing(['categoria', 'conta']);
         $this->syncOnboardingLancamentoCreated($userId, $lancamentos[0]->created_at ?? null);
 
@@ -356,6 +380,10 @@ class LancamentoCreationService
     {
         $lancamento = $this->lancamentoRepo->create($dto->toArray());
         $lancamento->loadMissing(['categoria', 'conta']);
+
+        if (!empty($lancamento->meta_id)) {
+            $this->metaProgressService->recalculateMeta($userId, (int) $lancamento->meta_id, true);
+        }
 
         $this->syncOnboardingLancamentoCreated($userId, $lancamento->created_at);
 
@@ -473,6 +501,7 @@ class LancamentoCreationService
     {
         $hoje = new \DateTimeImmutable('today');
         $totalCriados = 0;
+        $metaRefsAfetados = [];
 
         // Buscar todos os pais de recorrências ativas
         $pais = \Application\Models\Lancamento::where('recorrente', 1)
@@ -561,6 +590,7 @@ class LancamentoCreationService
                         'observacao'         => $paiLocked->observacao,
                         'categoria_id'       => $paiLocked->categoria_id,
                         'subcategoria_id'    => $paiLocked->subcategoria_id,
+                        'meta_id'            => $paiLocked->meta_id,
                         'conta_id'           => $paiLocked->conta_id,
                         'pago'               => 0,
                         'afeta_caixa'        => 0,
@@ -580,6 +610,12 @@ class LancamentoCreationService
                     try {
                         $this->lancamentoRepo->create($dados);
                         $totalCriados++;
+                        if (!empty($paiLocked->meta_id)) {
+                            $metaRefsAfetados[$paiLocked->user_id . ':' . $paiLocked->meta_id] = [
+                                'user_id' => (int) $paiLocked->user_id,
+                                'meta_id' => (int) $paiLocked->meta_id,
+                            ];
+                        }
                     } catch (\Throwable $e) {
                         if (str_contains(strtolower($e->getMessage()), 'duplicate')) {
                             LogService::info('[RECORRENCIA] Duplicata evitada por unique key', [
@@ -602,6 +638,10 @@ class LancamentoCreationService
                     'pai_id' => $pai->id,
                 ]);
             }
+        }
+
+        foreach ($metaRefsAfetados as $metaRef) {
+            $this->metaProgressService->recalculateMeta($metaRef['user_id'], $metaRef['meta_id']);
         }
 
         return $totalCriados;

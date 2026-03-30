@@ -277,6 +277,8 @@ const MobileCards = {
                     : '') ??
                 '';
             const descricao = descRaw || '--';
+            const metaTitulo = Utils.getLancamentoMetaTitle(item);
+            const summarySubtitle = metaTitulo ? `${categoria || '-'} • Meta: ${metaTitulo}` : (categoria || '-');
 
             // Cartão de crédito (igual ao desktop)
             const cartaoNome = item.cartao_nome || '';
@@ -393,7 +395,7 @@ const MobileCards = {
                     <div class="lan-card-summary">
                         <div class="lan-card-summary-copy">
                             <span class="lan-card-summary-title">${Utils.escapeHtml(descricao)}</span>
-                            <span class="lan-card-summary-subtitle">${Utils.escapeHtml(categoria || '-')}</span>
+                            <span class="lan-card-summary-subtitle">${Utils.escapeHtml(summarySubtitle)}</span>
                         </div>
                         <span class="badge-status ${statusClass}"><i data-lucide="${statusLucideIcon}"></i> ${statusLabel}</span>
                     </div>
@@ -500,6 +502,14 @@ const MobileCards = {
             ].join('');
 
             const leadingDetails = [
+                metaTitulo
+                    ? `
+                        <div class="lan-card-detail-row card-detail-row">
+                            <span class="lan-card-detail-label card-detail-label">Meta</span>
+                            <span class="lan-card-detail-value card-detail-value">${Utils.escapeHtml(metaTitulo)}</span>
+                        </div>
+                    `
+                    : '',
                 cartaoDisplay && cartaoDisplay !== '-'
                     ? `
                         <div class="lan-card-detail-row card-detail-row">
@@ -580,7 +590,7 @@ const MobileCards = {
                     <div class="lan-card-summary">
                         <div class="lan-card-summary-copy">
                             <span class="lan-card-summary-title">${Utils.escapeHtml(descricao)}</span>
-                            <span class="lan-card-summary-subtitle">${Utils.escapeHtml(categoria || '-')}</span>
+                            <span class="lan-card-summary-subtitle">${Utils.escapeHtml(summarySubtitle)}</span>
                         </div>
                         <span class="badge-status ${statusClass}"><i data-lucide="${statusLucideIcon}"></i> ${statusLabel}</span>
                     </div>

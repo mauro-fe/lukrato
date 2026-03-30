@@ -5,12 +5,13 @@
 <section class="lan-page">
 
     <!-- ─── HERO ──────────────────────────────────────────────────────── -->
-    <section class="lan-hero surface-card surface-card--interactive" data-aos="fade-up" data-aos-delay="50" aria-label="Resumo da pagina de lancamentos">
+    <section class="lan-hero surface-card surface-card--interactive" data-aos="fade-up" data-aos-delay="50"
+        aria-label="Resumo da pagina de lancamentos">
         <div class="lan-hero-copy">
             <span class="lan-hero-eyebrow">Fluxo financeiro</span>
             <h1 class="lan-hero-title">Lancamentos</h1>
-            <p class="lan-hero-subtitle" id="lanHeroSubtitle">Veja receitas, despesas e pendencias com leitura mais
-                rapida e menos ruido visual.</p>
+            <p class="lan-hero-subtitle" id="lanHeroSubtitle">Veja receitas, despesas e pendências com leitura mais
+                rápida e menos ruído visual.</p>
         </div>
         <div class="lan-hero-dynamic" id="lanHeroDynamic" style="display:none;">
             <span class="lan-hero-stat total">
@@ -57,8 +58,8 @@
     </section>
 
     <!-- ─── EXPORT CARD ───────────────────────────────────────────────── -->
-    <div class="modern-card export-card surface-card surface-card--interactive <?= !$isPro ? 'pro-locked' : '' ?>" data-aos="fade-up" data-aos-delay="100"
-        id="exportCard">
+    <div class="modern-card export-card surface-card surface-card--interactive <?= !$isPro ? 'pro-locked' : '' ?>"
+        data-aos="fade-up" data-aos-delay="100" id="exportCard">
         <div class="card-header-icon">
             <div class="icon-wrapper export">
                 <i data-lucide="file-output"></i>
@@ -68,7 +69,7 @@
                 <p class="card-subtitle">Exportacao rapida em PDF ou Excel.</p>
             </div>
             <?php if (!$isPro): ?>
-            <span class="pro-badge"><i data-lucide="crown"></i> PRO</span>
+                <span class="pro-badge"><i data-lucide="crown"></i> PRO</span>
             <?php endif; ?>
             <button type="button" class="card-collapse-btn" id="toggleExportCard" aria-expanded="false"
                 aria-controls="exportCardBody" title="Expandir exportacao">
@@ -98,14 +99,14 @@
 
         <div class="export-card-body" id="exportCardBody" hidden>
             <?php if (!$isPro): ?>
-            <div class="pro-overlay">
-                <div class="pro-message">
-                    <i data-lucide="crown"
-                        style="font-size:2.5rem;color:var(--color-warning);margin-bottom:var(--spacing-4);"></i>
-                    <h4>Recurso premium</h4>
-                    <p>Exportacao de lancamentos e exclusiva do <a href="<?= BASE_URL ?>billing">plano Pro</a>.</p>
+                <div class="pro-overlay">
+                    <div class="pro-message">
+                        <i data-lucide="crown"
+                            style="font-size:2.5rem;color:var(--color-warning);margin-bottom:var(--spacing-4);"></i>
+                        <h4>Recurso premium</h4>
+                        <p>Exportacao de lancamentos e exclusiva do <a href="<?= BASE_URL ?>billing">plano Pro</a>.</p>
+                    </div>
                 </div>
-            </div>
             <?php endif; ?>
 
             <div class="export-controls <?= !$isPro ? 'disabled-blur' : '' ?>">

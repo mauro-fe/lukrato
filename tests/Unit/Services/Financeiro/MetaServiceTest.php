@@ -6,10 +6,9 @@ namespace Tests\Unit\Services\Financeiro;
 
 use Application\Models\Meta;
 use Application\Repositories\MetaRepository;
-use Application\Services\Conta\ContaService;
+use Application\Services\Financeiro\MetaProgressService;
 use Application\Services\Financeiro\MetaService;
 use Application\Services\Plan\PlanLimitService;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
@@ -19,372 +18,254 @@ class MetaServiceTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
-    public function testCriarUsesPlanLimitAndInitializesLinkedAccountBalance(): void
+    public function testCriarUsesPlanLimitAndInitializesManualAllocation(): void
     {
         $repo = Mockery::mock(MetaRepository::class);
         $planLimit = Mockery::mock(PlanLimitService::class);
-        $contaService = Mockery::mock(ContaService::class);
+        $progress = Mockery::mock(MetaProgressService::class);
 
         $planLimit->shouldReceive('assertCanCreateMeta')
             ->once()
             ->with(77);
 
-        $contaService->shouldReceive('getSaldoAtual')
-            ->twice()
-            ->with(12, 77)
-            ->andReturn(450.0);
-
-        $meta = $this->makeMeta([
-            'id' => 9,
-            'titulo' => 'Reserva',
-            'tipo' => Meta::TIPO_EMERGENCIA,
-            'valor_alvo' => 1000.0,
-            'valor_atual' => 450.0,
-            'conta_id' => 12,
-            'status' => Meta::STATUS_ATIVA,
-            'data_inicio' => Carbon::parse('2026-03-18'),
-        ]);
-
         $repo->shouldReceive('createForUser')
             ->once()
-            ->with(77, Mockery::on(function (array $data): bool {
-                return $data['user_id'] === 77
-                    && $data['status'] === Meta::STATUS_ATIVA
-                    && $data['conta_id'] === 12
-                    && $data['valor_atual'] === 450.0
-                    && preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['data_inicio']) === 1;
-            }))
-            ->andReturn($meta);
+            ->withArgs(function (int $userId, array $data): bool {
+                return $userId === 77
+                    && $data['titulo'] === 'Reserva'
+                    && $data['valor_alvo'] === 1000.0
+                    && $data['valor_alocado'] === 250.0
+                    && $data['valor_aporte_manual'] === 250.0
+                    && $data['conta_id'] === null
+                    && $data['status'] === Meta::STATUS_ATIVA;
+            })
+            ->andReturn($this->makeMeta([
+                'id' => 15,
+                'titulo' => 'Reserva',
+                'valor_alvo' => 1000.0,
+                'valor_alocado' => 250.0,
+                'valor_aporte_manual' => 250.0,
+                'status' => Meta::STATUS_ATIVA,
+            ]));
 
-        $service = $this->makeService($repo, $planLimit, $contaService);
+        $progress->shouldReceive('recalculateMeta')
+            ->once()
+            ->with(77, 15, true)
+            ->andReturn($this->makeMeta([
+                'id' => 15,
+                'titulo' => 'Reserva',
+                'valor_alvo' => 1000.0,
+                'valor_alocado' => 250.0,
+                'valor_aporte_manual' => 250.0,
+                'status' => Meta::STATUS_ATIVA,
+            ]));
+
+        $service = new MetaService($repo, $planLimit, $progress);
 
         $result = $service->criar(77, [
             'titulo' => 'Reserva',
-            'tipo' => Meta::TIPO_EMERGENCIA,
             'valor_alvo' => 1000.0,
-            'conta_id' => 12,
+            'valor_alocado' => 250.0,
         ]);
 
-        $this->assertSame('Reserva', $result['titulo']);
-        $this->assertSame(450.0, $result['valor_atual']);
+        $this->assertSame(15, $result['id']);
+        $this->assertSame(250.0, $result['valor_alocado']);
+        $this->assertSame(250.0, $result['valor_atual']);
         $this->assertSame(Meta::STATUS_ATIVA, $result['status']);
-        $this->assertSame(0, $meta->saveCalls);
+        $this->assertNull($result['conta_id']);
     }
 
-    public function testAtualizarAutoConcludesManualGoalWhenTargetIsReached(): void
+    public function testCriarMarksMetaAsCompletedWhenInitialAllocationHitsTarget(): void
     {
-        $meta = $this->makeMeta([
-            'id' => 13,
+        $repo = Mockery::mock(MetaRepository::class);
+        $planLimit = Mockery::mock(PlanLimitService::class);
+        $progress = Mockery::mock(MetaProgressService::class);
+
+        $planLimit->shouldReceive('assertCanCreateMeta')
+            ->once()
+            ->with(11);
+
+        $repo->shouldReceive('createForUser')
+            ->once()
+            ->withArgs(function (int $userId, array $data): bool {
+                return $userId === 11
+                    && $data['valor_alvo'] === 500.0
+                    && $data['valor_alocado'] === 500.0
+                    && $data['status'] === Meta::STATUS_CONCLUIDA;
+            })
+            ->andReturn($this->makeMeta([
+                'id' => 3,
+                'titulo' => 'Viagem',
+                'valor_alvo' => 500.0,
+                'valor_alocado' => 500.0,
+                'valor_aporte_manual' => 500.0,
+                'status' => Meta::STATUS_CONCLUIDA,
+            ]));
+
+        $progress->shouldReceive('recalculateMeta')
+            ->once()
+            ->with(11, 3, true)
+            ->andReturn($this->makeMeta([
+                'id' => 3,
+                'titulo' => 'Viagem',
+                'valor_alvo' => 500.0,
+                'valor_alocado' => 500.0,
+                'valor_aporte_manual' => 500.0,
+                'status' => Meta::STATUS_CONCLUIDA,
+            ]));
+
+        $service = new MetaService($repo, $planLimit, $progress);
+
+        $result = $service->criar(11, [
             'titulo' => 'Viagem',
-            'tipo' => Meta::TIPO_VIAGEM,
-            'valor_alvo' => 1000.0,
-            'valor_atual' => 80.0,
-            'conta_id' => null,
-            'status' => Meta::STATUS_ATIVA,
-            'data_inicio' => Carbon::parse('2026-01-01'),
+            'valor_alvo' => 500.0,
+            'valor_alocado' => 500.0,
         ]);
 
+        $this->assertSame(Meta::STATUS_CONCLUIDA, $result['status']);
+    }
+
+    public function testAtualizarDelegatesManualAllocationSyncWhenProvided(): void
+    {
         $repo = Mockery::mock(MetaRepository::class);
+        $planLimit = Mockery::mock(PlanLimitService::class);
+        $progress = Mockery::mock(MetaProgressService::class);
+
+        $meta = Mockery::mock(Meta::class)->makePartial();
+        $meta->id = 13;
+        $meta->shouldReceive('update')
+            ->once()
+            ->with(['titulo' => 'Reserva revisada']);
+
         $repo->shouldReceive('findByIdAndUser')
             ->once()
             ->with(13, 77)
             ->andReturn($meta);
 
-        $service = $this->makeService($repo);
-
-        $result = $service->atualizar(77, 13, ['valor_atual' => 1000.0]);
-
-        $this->assertSame(1000.0, $result['valor_atual']);
-        $this->assertSame(Meta::STATUS_CONCLUIDA, $result['status']);
-        $this->assertSame([['valor_atual' => 1000.0], ['status' => Meta::STATUS_CONCLUIDA]], $meta->updateCalls);
-    }
-
-    public function testAdicionarAporteRejectsAccountLinkedGoal(): void
-    {
-        $meta = $this->makeMeta([
-            'id' => 21,
-            'titulo' => 'Entrada imóvel',
-            'tipo' => Meta::TIPO_MORADIA,
-            'valor_alvo' => 50000.0,
-            'valor_atual' => 12000.0,
-            'conta_id' => 5,
-            'status' => Meta::STATUS_ATIVA,
-        ]);
-
-        $repo = Mockery::mock(MetaRepository::class);
-        $repo->shouldReceive('findByIdAndUser')
+        $progress->shouldReceive('syncManualAllocationToTarget')
             ->once()
-            ->with(21, 77)
-            ->andReturn($meta);
+            ->with(77, 13, 350.0)
+            ->andReturn($this->makeMeta([
+                'id' => 13,
+                'titulo' => 'Reserva revisada',
+                'valor_alvo' => 1000.0,
+                'valor_alocado' => 350.0,
+                'valor_aporte_manual' => 350.0,
+                'status' => Meta::STATUS_ATIVA,
+            ]));
 
-        $service = $this->makeService($repo);
+        $service = new MetaService($repo, $planLimit, $progress);
 
-        $this->expectException(\DomainException::class);
-        $this->expectExceptionMessage('Esta meta está vinculada a uma conta');
-
-        $service->adicionarAporte(77, 21, 500.0);
-    }
-
-    public function testAdicionarAporteAutoConcludesReachedGoal(): void
-    {
-        $meta = $this->makeMeta([
-            'id' => 31,
-            'titulo' => 'Notebook',
-            'tipo' => Meta::TIPO_COMPRA,
-            'valor_alvo' => 100.0,
-            'valor_atual' => 80.0,
-            'conta_id' => null,
-            'status' => Meta::STATUS_ATIVA,
+        $result = $service->atualizar(77, 13, [
+            'titulo' => 'Reserva revisada',
+            'valor_alocado' => 350.0,
         ]);
 
+        $this->assertSame('Reserva revisada', $result['titulo']);
+        $this->assertSame(350.0, $result['valor_alocado']);
+    }
+
+    public function testAdicionarAporteUsesProgressService(): void
+    {
         $repo = Mockery::mock(MetaRepository::class);
-        $repo->shouldReceive('findByIdAndUser')
-            ->times(3)
-            ->with(31, 77)
-            ->andReturn($meta);
+        $planLimit = Mockery::mock(PlanLimitService::class);
+        $progress = Mockery::mock(MetaProgressService::class);
 
-        $repo->shouldReceive('atualizarValor')
+        $progress->shouldReceive('incrementManualAllocation')
             ->once()
-            ->with(31, 77, 105.0)
-            ->andReturnUsing(function () use ($meta): bool {
-                $meta->valor_atual = 105.0;
-                return true;
-            });
+            ->with(77, 8, 125.0)
+            ->andReturn($this->makeMeta([
+                'id' => 8,
+                'titulo' => 'Curso',
+                'valor_alvo' => 800.0,
+                'valor_alocado' => 325.0,
+                'valor_aporte_manual' => 325.0,
+                'status' => Meta::STATUS_ATIVA,
+            ]));
 
-        $service = $this->makeService($repo);
+        $service = new MetaService($repo, $planLimit, $progress);
 
-        $result = $service->adicionarAporte(77, 31, 25.0);
+        $result = $service->adicionarAporte(77, 8, 125.0);
 
-        $this->assertSame(105.0, $result['valor_atual']);
-        $this->assertSame(Meta::STATUS_CONCLUIDA, $result['status']);
-        $this->assertSame([['status' => Meta::STATUS_CONCLUIDA]], $meta->updateCalls);
+        $this->assertSame(325.0, $result['valor_alocado']);
+        $this->assertSame(Meta::STATUS_ATIVA, $result['status']);
     }
 
-    public function testResumoSynchronizesBalancesAndBuildsAggregatePayload(): void
+    public function testResumoUsesAllocatedValueAsProgressBase(): void
     {
-        $linked = $this->makeMeta([
-            'id' => 41,
-            'titulo' => 'Reserva vinculada',
-            'tipo' => Meta::TIPO_EMERGENCIA,
-            'valor_alvo' => 500.0,
-            'valor_atual' => 100.0,
-            'conta_id' => 8,
+        $repo = Mockery::mock(MetaRepository::class);
+        $planLimit = Mockery::mock(PlanLimitService::class);
+        $progress = Mockery::mock(MetaProgressService::class);
+
+        $meta1 = $this->makeMeta([
+            'id' => 1,
+            'titulo' => 'Reserva',
+            'valor_alvo' => 1000.0,
+            'valor_alocado' => 400.0,
             'status' => Meta::STATUS_ATIVA,
-            'data_inicio' => Carbon::parse('2026-01-01'),
         ]);
-        $manual = $this->makeMeta([
-            'id' => 42,
+        $meta2 = $this->makeMeta([
+            'id' => 2,
             'titulo' => 'Viagem',
-            'tipo' => Meta::TIPO_VIAGEM,
-            'valor_alvo' => 400.0,
-            'valor_atual' => 320.0,
-            'conta_id' => null,
+            'valor_alvo' => 500.0,
+            'valor_alocado' => 450.0,
             'status' => Meta::STATUS_ATIVA,
-            'data_inicio' => Carbon::parse('2026-02-01'),
         ]);
-        $manual->forcedAtrasada = true;
 
-        $repo = Mockery::mock(MetaRepository::class);
         $repo->shouldReceive('findByUser')
+            ->once()
             ->with(77)
-            ->once()
-            ->andReturn(new EloquentCollection([$linked, $manual]));
+            ->andReturn(new EloquentCollection([$meta1, $meta2]));
+
         $repo->shouldReceive('findByUser')
+            ->once()
             ->with(77, Meta::STATUS_ATIVA)
-            ->once()
-            ->andReturn(new EloquentCollection([$linked, $manual]));
+            ->andReturn(new EloquentCollection([$meta1, $meta2]));
 
-        $contaService = Mockery::mock(ContaService::class);
-        $contaService->shouldReceive('getSaldoAtual')
+        $progress->shouldReceive('recalculateMeta')
             ->once()
-            ->with(8, 77)
-            ->andReturn(250.0);
+            ->with(77, 1);
+        $progress->shouldReceive('recalculateMeta')
+            ->once()
+            ->with(77, 2);
 
-        $service = $this->makeService($repo, null, $contaService);
+        $service = new MetaService($repo, $planLimit, $progress);
 
         $summary = $service->resumo(77);
 
         $this->assertSame(2, $summary['total_metas']);
-        $this->assertSame(900.0, $summary['total_alvo']);
-        $this->assertSame(570.0, $summary['total_atual']);
-        $this->assertSame(63.3, $summary['progresso_geral']);
-        $this->assertSame(1, $summary['atrasadas']);
+        $this->assertSame(1500.0, $summary['total_alvo']);
+        $this->assertSame(850.0, $summary['total_atual']);
+        $this->assertSame(56.7, $summary['progresso_geral']);
         $this->assertSame('Viagem', $summary['proxima_concluir']['titulo']);
-        $this->assertSame(250.0, $linked->valor_atual);
-        $this->assertSame(1, $linked->saveCalls);
     }
 
-    public function testListarReactivatesCompletedLinkedGoalWhenBalanceDrops(): void
+    private function makeMeta(array $attributes): Meta
     {
-        $linked = $this->makeMeta([
-            'id' => 51,
-            'titulo' => 'Reserva vinculada',
-            'tipo' => Meta::TIPO_EMERGENCIA,
+        $payload = array_merge([
+            'id' => 1,
+            'titulo' => 'Meta',
+            'descricao' => null,
+            'tipo' => Meta::TIPO_ECONOMIA,
             'valor_alvo' => 1000.0,
-            'valor_atual' => 1200.0,
-            'conta_id' => 3,
-            'status' => Meta::STATUS_CONCLUIDA,
-            'data_inicio' => Carbon::parse('2026-01-01'),
-        ]);
-
-        $repo = Mockery::mock(MetaRepository::class);
-        $repo->shouldReceive('findByUser')
-            ->once()
-            ->with(77, Meta::STATUS_CONCLUIDA)
-            ->andReturn(new EloquentCollection([$linked]));
-
-        $contaService = Mockery::mock(ContaService::class);
-        $contaService->shouldReceive('getSaldoAtual')
-            ->once()
-            ->with(3, 77)
-            ->andReturn(800.0);
-
-        $service = $this->makeService($repo, null, $contaService);
-
-        $result = $service->listar(77, Meta::STATUS_CONCLUIDA);
-
-        $this->assertCount(1, $result);
-        $this->assertSame(800.0, $result[0]['valor_atual']);
-        $this->assertSame(Meta::STATUS_ATIVA, $result[0]['status']);
-        $this->assertSame([['status' => Meta::STATUS_ATIVA]], $linked->updateCalls);
-        $this->assertSame(1, $linked->saveCalls);
-    }
-
-    public function testObterReturnsNullWhenMetaIsMissingAndSynchronizesWhenFound(): void
-    {
-        $repo = Mockery::mock(MetaRepository::class);
-        $repo->shouldReceive('findByIdAndUser')
-            ->once()
-            ->with(88, 77)
-            ->andReturn(null);
-
-        $service = $this->makeService($repo);
-
-        $this->assertNull($service->obter(77, 88));
-
-        $meta = $this->makeMeta([
-            'id' => 89,
-            'titulo' => 'Carro',
-            'tipo' => Meta::TIPO_VEICULO,
-            'valor_alvo' => 20000.0,
-            'valor_atual' => 5000.0,
-            'conta_id' => 4,
+            'valor_alocado' => 0.0,
+            'valor_aporte_manual' => 0.0,
+            'data_inicio' => '2026-01-01',
+            'data_prazo' => null,
+            'icone' => 'target',
+            'cor' => '#6366f1',
+            'conta_id' => null,
+            'prioridade' => Meta::PRIORIDADE_MEDIA,
             'status' => Meta::STATUS_ATIVA,
-            'data_inicio' => Carbon::parse('2026-01-01'),
-        ]);
+        ], $attributes);
 
-        $repo = Mockery::mock(MetaRepository::class);
-        $repo->shouldReceive('findByIdAndUser')
-            ->once()
-            ->with(89, 77)
-            ->andReturn($meta);
+        $payload['valor_atual'] = $payload['valor_alocado'];
 
-        $contaService = Mockery::mock(ContaService::class);
-        $contaService->shouldReceive('getSaldoAtual')
-            ->once()
-            ->with(4, 77)
-            ->andReturn(6500.0);
+        $meta = new Meta();
+        $meta->forceFill($payload);
 
-        $service = $this->makeService($repo, null, $contaService);
-
-        $result = $service->obter(77, 89);
-
-        $this->assertSame(6500.0, $result['valor_atual']);
-        $this->assertSame(1, $meta->saveCalls);
-    }
-
-    public function testRemoverDelegatesToRepository(): void
-    {
-        $repo = Mockery::mock(MetaRepository::class);
-        $repo->shouldReceive('deleteForUser')
-            ->once()
-            ->with(14, 77)
-            ->andReturn(true);
-
-        $service = $this->makeService($repo);
-
-        $this->assertTrue($service->remover(77, 14));
-    }
-
-    public function testGetTemplatesReturnsExpectedCatalog(): void
-    {
-        $service = new MetaService();
-
-        $templates = $service->getTemplates();
-
-        $this->assertCount(9, $templates);
-        $this->assertSame('Reserva de Emergência', $templates[0]['titulo']);
-        $this->assertSame(Meta::TIPO_EMERGENCIA, $templates[0]['tipo']);
-        $this->assertArrayHasKey('icone', $templates[0]);
-        $this->assertArrayHasKey('cor', $templates[0]);
-    }
-
-    private function makeService(
-        ?MetaRepository $repo = null,
-        ?PlanLimitService $planLimit = null,
-        ?ContaService $contaService = null
-    ): MetaService {
-        $service = new MetaService();
-
-        $setter = \Closure::bind(function (
-            ?MetaRepository $repo,
-            ?PlanLimitService $planLimit,
-            ?ContaService $contaService
-        ): void {
-            if ($repo !== null) {
-                $this->repo = $repo;
-            }
-            if ($planLimit !== null) {
-                $this->planLimit = $planLimit;
-            }
-            if ($contaService !== null) {
-                $this->contaService = $contaService;
-            }
-        }, $service, MetaService::class);
-
-        $setter($repo, $planLimit, $contaService);
-
-        return $service;
-    }
-
-    private function makeMeta(array $attributes): TestMeta
-    {
-        $meta = new TestMeta();
-        $meta->fill($attributes);
         $meta->exists = true;
 
         return $meta;
-    }
-}
-
-final class TestMeta extends Meta
-{
-    public int $saveCalls = 0;
-    public array $updateCalls = [];
-    public ?bool $forcedAtrasada = null;
-
-    public function save(array $options = []): bool
-    {
-        $this->saveCalls++;
-
-        return true;
-    }
-
-    public function update(array $attributes = [], array $options = []): bool
-    {
-        $this->fill($attributes);
-        $this->updateCalls[] = $attributes;
-
-        return true;
-    }
-
-    public function fresh($with = []): static
-    {
-        return $this;
-    }
-
-    public function isAtrasada(): bool
-    {
-        return $this->forcedAtrasada ?? parent::isAtrasada();
     }
 }

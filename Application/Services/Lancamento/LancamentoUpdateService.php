@@ -10,6 +10,7 @@ use Application\Formatters\LancamentoResponseFormatter;
 use Application\Models\Lancamento;
 use Application\Repositories\LancamentoRepository;
 use Application\Services\AI\Rules\CategoryRuleEngine;
+use Application\Services\Financeiro\MetaProgressService;
 use Application\Validators\LancamentoValidator;
 
 /**
@@ -22,13 +23,16 @@ class LancamentoUpdateService
 {
     private LancamentoRepository $lancamentoRepo;
     private LancamentoStatusService $statusService;
+    private MetaProgressService $metaProgressService;
 
     public function __construct(
         ?LancamentoRepository $lancamentoRepo = null,
-        ?LancamentoStatusService $statusService = null
+        ?LancamentoStatusService $statusService = null,
+        ?MetaProgressService $metaProgressService = null
     ) {
         $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
         $this->statusService = $statusService ?? new LancamentoStatusService();
+        $this->metaProgressService = $metaProgressService ?? new MetaProgressService();
     }
 
     /**
@@ -50,6 +54,13 @@ class LancamentoUpdateService
         $contaId     = LancamentoValidator::validateContaOwnership($contaId, $userId, $errors);
         $categoriaId = is_scalar($mergedData['categoria_id']) ? (int) $mergedData['categoria_id'] : null;
         $categoriaId = LancamentoValidator::validateCategoriaOwnership($categoriaId, $userId, $errors);
+        $metaId = $mergedData['meta_id'] ?? null;
+        $metaId = is_scalar($metaId) && $metaId !== '' ? (int) $metaId : null;
+        $metaId = LancamentoValidator::validateMetaOwnership($metaId, $userId, $errors);
+        LancamentoValidator::validateMetaLinkRules($metaId, [
+            'tipo' => strtolower(trim((string) ($mergedData['tipo'] ?? $lancamento->tipo))),
+            'eh_transferencia' => (bool) ($lancamento->eh_transferencia ?? false),
+        ], $errors);
 
         // Validar subcategoria (opcional)
         $subcategoriaId = $mergedData['subcategoria_id'] ?? null;
@@ -79,11 +90,13 @@ class LancamentoUpdateService
             'observacao'      => mb_substr(trim($mergedData['observacao'] ?? ''), 0, 500),
             'categoria_id'    => $categoriaId,
             'subcategoria_id' => $subcategoriaId,
+            'meta_id'         => $metaId,
             'conta_id'        => $contaId,
             'forma_pagamento' => $mergedData['forma_pagamento'] ?? null,
         ]);
 
         $updateData = $dto->toArray();
+        $metaAnteriorId = (int) ($lancamento->meta_id ?? 0);
 
         // Tratar flag pago se enviado
         if (array_key_exists('pago', $payload)) {
@@ -104,7 +117,9 @@ class LancamentoUpdateService
         }
 
         $lancamento = $this->lancamentoRepo->find($lancamento->id);
-        $lancamento->loadMissing(['categoria', 'conta', 'subcategoria']);
+        $lancamento->loadMissing(['categoria', 'conta', 'subcategoria', 'meta']);
+
+        $this->recalculateAffectedMetas($userId, $metaAnteriorId, (int) ($lancamento->meta_id ?? 0));
 
         return ServiceResultDTO::ok(
             'Lançamento atualizado',
@@ -127,6 +142,9 @@ class LancamentoUpdateService
             'valor'           => $payload['valor'] ?? $lancamento->valor,
             'descricao'       => $payload['descricao'] ?? $lancamento->descricao,
             'observacao'      => $payload['observacao'] ?? $lancamento->observacao,
+            'meta_id'         => array_key_exists('meta_id', $payload)
+                ? $payload['meta_id']
+                : ($payload['metaId'] ?? $lancamento->meta_id),
             'conta_id'        => $payload['conta_id'] ?? $payload['contaId'] ?? $lancamento->conta_id,
             'categoria_id'    => $payload['categoria_id'] ?? $payload['categoriaId'] ?? $lancamento->categoria_id,
             'subcategoria_id' => $payload['subcategoria_id'] ?? $payload['subcategoriaId'] ?? $lancamento->subcategoria_id,
@@ -134,5 +152,14 @@ class LancamentoUpdateService
                 ? $payload['forma_pagamento']
                 : $lancamento->forma_pagamento,
         ];
+    }
+
+    private function recalculateAffectedMetas(int $userId, int ...$metaIds): void
+    {
+        $metaIds = array_values(array_unique(array_filter($metaIds, static fn(int $metaId): bool => $metaId > 0)));
+
+        foreach ($metaIds as $metaId) {
+            $this->metaProgressService->recalculateMeta($userId, $metaId);
+        }
     }
 }

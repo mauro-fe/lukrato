@@ -2,41 +2,45 @@
 
 namespace Application\Services\Conta;
 
-use Application\Models\Lancamento;
 use Application\Models\Conta;
+use Application\Models\Lancamento;
 use Application\Repositories\ContaRepository;
+use Application\Services\Financeiro\MetaProgressService;
 use Application\Services\User\OnboardingProgressService;
 use Illuminate\Database\Capsule\Manager as DB;
-use ValueError;
 use Throwable;
+use ValueError;
 
 class TransferenciaService
 {
     private ContaRepository $contaRepo;
     private OnboardingProgressService $onboardingProgressService;
+    private MetaProgressService $metaProgressService;
 
     public function __construct(
         ?ContaRepository $contaRepo = null,
-        ?OnboardingProgressService $onboardingProgressService = null
-    )
-    {
+        ?OnboardingProgressService $onboardingProgressService = null,
+        ?MetaProgressService $metaProgressService = null
+    ) {
         $this->contaRepo = $contaRepo ?? new ContaRepository();
         $this->onboardingProgressService = $onboardingProgressService ?? new OnboardingProgressService();
+        $this->metaProgressService = $metaProgressService ?? new MetaProgressService();
     }
 
     /**
-     * Executa uma transferência entre duas contas
-     * 
-     * @param int $userId ID do usuário
+     * Executa uma transferencia entre duas contas.
+     *
+     * @param int $userId ID do usuario
      * @param int $contaOrigemId ID da conta de origem
      * @param int $contaDestinoId ID da conta de destino
-     * @param float $valor Valor da transferência
-     * @param string $data Data da transferência (Y-m-d)
-     * @param string|null $descricao Descrição da transferência
-     * @param string|null $observacao Observações adicionais
-     * @return Lancamento Lançamento de transferência criado
-     * @throws ValueError Se as contas forem inválidas
-     * @throws Throwable Se houver erro na transação
+     * @param float $valor Valor da transferencia
+     * @param string $data Data da transferencia (Y-m-d)
+     * @param string|null $descricao Descricao da transferencia
+     * @param string|null $observacao Observacoes adicionais
+     * @param int|null $metaId Meta opcional para acumulo planejado
+     * @return Lancamento Lancamento de transferencia criado
+     * @throws ValueError Se as contas forem invalidas
+     * @throws Throwable Se houver erro na transacao
      */
     public function executarTransferencia(
         int $userId,
@@ -45,43 +49,48 @@ class TransferenciaService
         float $valor,
         string $data,
         ?string $descricao = null,
-        ?string $observacao = null
+        ?string $observacao = null,
+        ?int $metaId = null
     ): Lancamento {
-        // Validar IDs
         if ($contaOrigemId <= 0 || $contaDestinoId <= 0 || $contaOrigemId === $contaDestinoId) {
             throw new ValueError('Selecione contas de origem e destino diferentes.');
         }
 
-        // Validar valor
         if ($valor <= 0) {
             throw new ValueError('Valor deve ser maior que zero.');
         }
 
         DB::beginTransaction();
+
         try {
-            // Validar contas
             $origem = $this->validarConta($contaOrigemId, $userId);
             $destino = $this->validarConta($contaDestinoId, $userId);
 
-            // Criar lançamento de transferência
             $transferencia = Lancamento::create([
-                'user_id'           => $userId,
-                'tipo'              => Lancamento::TIPO_TRANSFERENCIA,
-                'data'              => $data,
-                'categoria_id'      => null,
-                'conta_id'          => $contaOrigemId,
-                'conta_id_destino'  => $contaDestinoId,
-                'descricao'         => $descricao ? trim($descricao) : "Transferência: {$origem->nome} → {$destino->nome}",
-                'observacao'        => $observacao ? trim($observacao) : null,
-                'valor'             => $valor,
-                'eh_transferencia'  => 1,
-                'eh_saldo_inicial'  => 0,
-                'pago'              => 1,
-                'afeta_caixa'       => 1,
+                'user_id' => $userId,
+                'tipo' => Lancamento::TIPO_TRANSFERENCIA,
+                'data' => $data,
+                'categoria_id' => null,
+                'meta_id' => $metaId,
+                'conta_id' => $contaOrigemId,
+                'conta_id_destino' => $contaDestinoId,
+                'descricao' => $descricao ? trim($descricao) : "Transferencia: {$origem->nome} -> {$destino->nome}",
+                'observacao' => $observacao ? trim($observacao) : null,
+                'valor' => $valor,
+                'eh_transferencia' => 1,
+                'eh_saldo_inicial' => 0,
+                'pago' => 1,
+                'afeta_caixa' => 1,
+                'origem_tipo' => Lancamento::ORIGEM_TRANSFERENCIA,
             ]);
+
+            if ($metaId !== null && $metaId > 0) {
+                $this->metaProgressService->recalculateMeta($userId, $metaId, true);
+            }
 
             DB::commit();
             $this->syncOnboardingLancamentoCreated($userId, $transferencia->created_at);
+
             return $transferencia;
         } catch (Throwable $e) {
             DB::rollBack();
@@ -90,31 +99,31 @@ class TransferenciaService
     }
 
     /**
-     * Valida se a conta existe e pertence ao usuário
-     * 
+     * Valida se a conta existe e pertence ao usuario.
+     *
      * @param int $contaId ID da conta
-     * @param int $userId ID do usuário
+     * @param int $userId ID do usuario
      * @return Conta Conta validada
-     * @throws ValueError Se a conta não existir ou não pertencer ao usuário
+     * @throws ValueError Se a conta nao existir ou nao pertencer ao usuario
      */
     private function validarConta(int $contaId, int $userId): Conta
     {
         $conta = Conta::forUser($userId)->find($contaId);
 
         if (!$conta) {
-            throw new ValueError('Conta de origem ou destino inválida.');
+            throw new ValueError('Conta de origem ou destino invalida.');
         }
 
         return $conta;
     }
 
     /**
-     * Cancela uma transferência (soft delete)
-     * 
-     * @param int $transferenciaId ID da transferência
-     * @param int $userId ID do usuário
+     * Cancela uma transferencia (soft delete).
+     *
+     * @param int $transferenciaId ID da transferencia
+     * @param int $userId ID do usuario
      * @return bool
-     * @throws ValueError Se a transferência não existir ou não pertencer ao usuário
+     * @throws ValueError Se a transferencia nao existir ou nao pertencer ao usuario
      */
     public function cancelarTransferencia(int $transferenciaId, int $userId): bool
     {
@@ -124,17 +133,24 @@ class TransferenciaService
             ->first();
 
         if (!$transferencia) {
-            throw new ValueError('Transferência não encontrada.');
+            throw new ValueError('Transferencia nao encontrada.');
         }
 
-        return $transferencia->delete();
+        $metaId = (int) ($transferencia->meta_id ?? 0);
+        $deleted = $transferencia->delete();
+
+        if ($deleted && $metaId > 0) {
+            $this->metaProgressService->recalculateMeta($userId, $metaId);
+        }
+
+        return $deleted;
     }
 
     /**
-     * Lista transferências de um usuário em um período
-     * 
-     * @param int $userId ID do usuário
-     * @param string $inicio Data de início (Y-m-d)
+     * Lista transferencias de um usuario em um periodo.
+     *
+     * @param int $userId ID do usuario
+     * @param string $inicio Data de inicio (Y-m-d)
      * @param string $fim Data de fim (Y-m-d)
      * @return \Illuminate\Support\Collection
      */
@@ -143,7 +159,7 @@ class TransferenciaService
         return Lancamento::where('user_id', $userId)
             ->where('eh_transferencia', 1)
             ->whereBetween('data', [$inicio, $fim])
-            ->with(['conta', 'contaDestino'])
+            ->with(['conta', 'contaDestino', 'meta'])
             ->orderBy('data', 'desc')
             ->orderBy('id', 'desc')
             ->get();

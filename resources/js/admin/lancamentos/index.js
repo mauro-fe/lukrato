@@ -152,6 +152,8 @@ const EventListeners = {
                 DOM.selectLancTipo.value,
                 DOM.selectLancCategoria?.value || ''
             );
+            ModalManager.syncEditMetaField();
+            syncCustomSelects(DOM.modalEditLancEl);
             ModalManager.syncEditSummary();
             void ModalManager.renderPlanningAlerts();
         });
@@ -169,12 +171,19 @@ const EventListeners = {
             ModalManager.syncEditSummary();
             void ModalManager.renderPlanningAlerts();
         });
+        DOM.selectLancMeta?.addEventListener('change', () => {
+            ModalManager.syncEditSummary();
+            void ModalManager.renderPlanningAlerts();
+        });
         DOM.inputLancDescricao?.addEventListener('input', ModalManager.syncEditSummary);
         DOM.inputLancValor?.addEventListener('input', () => {
             ModalManager.syncEditSummary();
             void ModalManager.renderPlanningAlerts();
         });
         DOM.selectLancFormaPagamento?.addEventListener('change', () => {
+            ModalManager.syncEditMetaField();
+            syncCustomSelects(DOM.modalEditLancEl);
+            ModalManager.syncEditSummary();
             void ModalManager.renderPlanningAlerts();
         });
 
@@ -190,6 +199,8 @@ const EventListeners = {
         });
 
         DOM.modalEditTransEl?.addEventListener('hidden.bs.modal', () => {
+            STATE.editingLancamentoId = null;
+            STATE.editingLancamentoData = null;
             DOM.formTrans?.reset?.();
             syncCustomSelects(DOM.modalEditTransEl);
         });

@@ -46,6 +46,20 @@
                                 aria-label="Descrição da transferência">
                         </div>
                     </div>
+                    <div class="row g-3 mt-1">
+                        <div class="col-12">
+                            <label for="editTransMeta" class="form-label">Meta vinculada</label>
+                            <select class="form-select form-select-sm" id="editTransMeta"
+                                data-lk-custom-select="compact" data-lk-select-search="true"
+                                data-lk-select-sort="alpha"
+                                data-lk-select-search-placeholder="Buscar meta...">
+                                <option value="">Nenhuma meta</option>
+                            </select>
+                            <small class="text-muted d-block mt-2">
+                                Se vinculada, esta transferencia soma na meta sem alterar a regra normal de saldo.
+                            </small>
+                        </div>
+                    </div>
                     <div class="mt-4 text-end">
                         <button type="submit" class="btn btn-primary">Salvar alteração</button>
                     </div>

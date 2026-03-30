@@ -4,7 +4,7 @@
     <header class="met-page-header" data-aos="fade-up">
         <div class="met-page-header__text">
             <h1 class="met-page-header__title">Metas</h1>
-            <p class="met-page-header__desc">Quanto voce ja juntou e quanto falta para atingir seus objetivos</p>
+            <p class="met-page-header__desc">Quanto você já juntou e quanto falta para atingir seus objetivos</p>
         </div>
         <button class="met-action-btn met-action-btn--success met-header-cta" id="btnNovaMetaHeader">
             <i data-lucide="plus"></i>
@@ -50,7 +50,8 @@
                     <svg viewBox="0 0 36 36">
                         <path class="met-ring-bg"
                             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                        <path class="met-ring-fill met-ring-fill--good" id="metasProgressRingFill" stroke-dasharray="0, 100"
+                        <path class="met-ring-fill met-ring-fill--good" id="metasProgressRingFill"
+                            stroke-dasharray="0, 100"
                             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                     </svg>
                     <span class="met-ring-text" id="metasProgressScore">0%</span>
@@ -69,7 +70,7 @@
         <div class="met-focus-panel__main">
             <div class="met-focus-panel__eyebrow">
                 <i data-lucide="sparkles"></i>
-                <span>Seu proximo passo</span>
+                <span>Seu próximo passo</span>
             </div>
             <div class="met-focus-panel__content" id="metFocusContent">
                 <div class="lk-loading-state">
@@ -84,11 +85,11 @@
                 <strong class="met-focus-stat__value">--</strong>
             </div>
             <div class="met-focus-stat">
-                <span class="met-focus-stat__label">Aporte sugerido</span>
+                <span class="met-focus-stat__label">Guardar sugerido</span>
                 <strong class="met-focus-stat__value">--</strong>
             </div>
             <div class="met-focus-stat">
-                <span class="met-focus-stat__label">Concluidas</span>
+                <span class="met-focus-stat__label">Concluídas</span>
                 <strong class="met-focus-stat__value">--</strong>
             </div>
         </div>
@@ -195,22 +196,13 @@
                     <input type="text" id="metaTitulo" class="fin-input" placeholder="Ex: Reserva de emergencia"
                         required maxlength="150">
                 </div>
-                <div class="fin-form-group">
-                    <label class="fin-label"><i data-lucide="landmark"></i> Vincular a uma conta <span
-                            class="fin-badge-optional">opcional</span></label>
-                    <select id="metaContaId" class="fin-select">
-                        <option value="">- Sem vinculo (aporte manual) -</option>
-                    </select>
-                    <span class="fin-hint" id="metaContaHint" style="display:none"><i data-lucide="info"></i> O
-                        progresso sera atualizado automaticamente com o saldo da conta.</span>
-                </div>
                 <div class="fin-form-row-2">
                     <div class="fin-form-group">
                         <label class="fin-label"><i data-lucide="target"></i> Valor da Meta</label>
                         <input type="text" id="metaValorAlvo" class="fin-input" placeholder="R$ 0,00" required>
                     </div>
                     <div class="fin-form-group">
-                        <label class="fin-label"><i data-lucide="coins"></i> Valor Atual</label>
+                        <label class="fin-label"><i data-lucide="coins"></i> Valor já guardado</label>
                         <input type="text" id="metaValorAtual" class="fin-input" placeholder="R$ 0,00" value="0">
                     </div>
                 </div>
@@ -305,7 +297,7 @@
 <div class="fin-modal-overlay" id="modalAporte">
     <div class="fin-modal small">
         <div class="fin-modal-header">
-            <h3><i data-lucide="plus-circle"></i> Registrar Aporte</h3>
+            <h3><i data-lucide="plus-circle"></i> Guardar mais</h3>
             <button class="fin-modal-close" data-close-modal="modalAporte">
                 <i data-lucide="x"></i>
             </button>

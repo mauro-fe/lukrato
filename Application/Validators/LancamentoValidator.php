@@ -6,6 +6,7 @@ namespace Application\Validators;
 
 use Application\Enums\LancamentoTipo;
 use Application\Enums\Recorrencia;
+use Application\Models\Meta;
 use Application\Repositories\CategoriaRepository;
 use Application\Repositories\ContaRepository;
 
@@ -141,6 +142,16 @@ class LancamentoValidator
             }
         }
 
+        $metaId = $data['meta_id'] ?? $data['metaId'] ?? null;
+        if ($metaId !== null && $metaId !== '') {
+            $metaId = (int) $metaId;
+            if ($metaId <= 0) {
+                $errors['meta_id'] = 'Meta invalida.';
+            } else {
+                self::validateMetaLinkRules($metaId, $data, $errors);
+            }
+        }
+
         // Validar lembrete
         $lembrar = $data['lembrar_antes_segundos'] ?? null;
         if ($lembrar !== null && $lembrar !== '') {
@@ -257,5 +268,40 @@ class LancamentoValidator
 
         $errors['conta_id'] = 'Conta invalida.';
         return null;
+    }
+
+    public static function validateMetaOwnership(?int $id, int $userId, array &$errors): ?int
+    {
+        if ($id === null || $id <= 0) {
+            return null;
+        }
+
+        $exists = Meta::where('id', $id)
+            ->where('user_id', $userId)
+            ->exists();
+
+        if ($exists) {
+            return $id;
+        }
+
+        $errors['meta_id'] = 'Meta invalida.';
+        return null;
+    }
+
+    public static function validateMetaLinkRules(?int $metaId, array $data, array &$errors): void
+    {
+        if ($metaId === null || $metaId <= 0) {
+            return;
+        }
+
+        $tipo = strtolower(trim((string) ($data['tipo'] ?? '')));
+        $ehTransferencia = (bool) ($data['eh_transferencia'] ?? false)
+            || $tipo === 'transferencia'
+            || !empty($data['conta_id_destino'])
+            || !empty($data['conta_destino_id']);
+
+        if (!$ehTransferencia && $tipo !== 'receita') {
+            $errors['meta_id'] = 'Somente receitas e transferencias podem ser vinculadas a uma meta.';
+        }
     }
 }

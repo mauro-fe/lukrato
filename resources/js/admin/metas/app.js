@@ -169,7 +169,7 @@ export const MetasApp = {
         document.getElementById('metaValorAtual')?.addEventListener('input', () => MetasApp.updateAporteSugerido());
 
         // Conta vinculada → toggle valor_atual field
-        document.getElementById('metaContaId')?.addEventListener('change', () => MetasApp.onMetaContaChange());
+        MetasApp.syncMetaAllocationField();
     },
 
     setupMoneyInputs() {
@@ -212,16 +212,20 @@ export const MetasApp = {
     },
 
     onMetaContaChange() {
-        const contaId = document.getElementById('metaContaId')?.value;
+        this.syncMetaAllocationField();
+    },
+
+    syncMetaAllocationField() {
+        const contaGroup = document.getElementById('metaContaId')?.closest('.fin-form-group');
         const valorAtualGroup = document.getElementById('metaValorAtual')?.closest('.fin-form-group');
+        const valorAtualLabel = valorAtualGroup?.querySelector('.fin-label');
         const hint = document.getElementById('metaContaHint');
-        if (contaId) {
-            if (valorAtualGroup) valorAtualGroup.style.display = 'none';
-            const conta = STATE.contas.find(c => String(c.id) === String(contaId));
-            const saldo = conta?.saldoAtual ?? 0;
+        const saldo = 0;
+        if (contaGroup) {
+            contaGroup.style.display = 'none';
             if (hint) {
                 hint.innerHTML = `<i data-lucide="info"></i> Saldo atual da conta: <strong>${Utils.formatCurrency(saldo)}</strong> — será usado como valor inicial. O progresso atualiza automaticamente.`;
-                hint.style.display = '';
+                hint.style.display = 'none';
                 if (window.lucide) lucide.createIcons();
             }
         } else {
@@ -230,6 +234,12 @@ export const MetasApp = {
                 hint.style.display = 'none';
                 hint.innerHTML = '';
             }
+        }
+        if (valorAtualGroup) valorAtualGroup.style.display = '';
+        if (valorAtualLabel) valorAtualLabel.innerHTML = '<i data-lucide="coins"></i> Valor ja alocado';
+        if (hint) {
+            hint.style.display = 'none';
+            hint.innerHTML = '';
         }
     },
 
@@ -374,7 +384,7 @@ export const MetasApp = {
                 <strong class="met-focus-stat__value">${recommendedMonthly > 0 ? Utils.formatCurrency(recommendedMonthly) : 'Sem prazo'}</strong>
             </div>
             <div class="met-focus-stat">
-                <span class="met-focus-stat__label">Concluidas</span>
+                <span class="met-focus-stat__label">Concluídas</span>
                 <strong class="met-focus-stat__value">${completedMetas.length}</strong>
             </div>
         `;
@@ -383,7 +393,7 @@ export const MetasApp = {
             focus.innerHTML = `
                 <div class="met-focus-callout">
                     <div>
-                        <h2 class="met-focus-callout__title">Voce ainda nao tem uma meta ativa.</h2>
+                        <h2 class="met-focus-callout__title">Você ainda não tem uma meta ativa.</h2>
                         <p class="met-focus-callout__text">Use um template para sair do zero mais rapido ou crie uma meta com valor e prazo.</p>
                     </div>
                     <div class="met-focus-callout__actions">
@@ -403,14 +413,14 @@ export const MetasApp = {
         }
 
         const monthlyHint = nextMeta.aporte_mensal_sugerido > 0
-            ? `${Utils.formatCurrency(nextMeta.aporte_mensal_sugerido)}/mes sugeridos`
+            ? `${Utils.formatCurrency(nextMeta.aporte_mensal_sugerido)}/mês sugeridos`
             : 'Sem prazo definido para calculo de aporte';
         const deadlineHint = nextMeta.dias_restantes == null
             ? 'Sem prazo definido.'
             : (nextMeta.dias_restantes < 0
                 ? 'Prazo vencido.'
                 : `${nextMeta.dias_restantes} dia${nextMeta.dias_restantes === 1 ? '' : 's'} restantes.`);
-        const primaryAction = nextMeta.status === 'ativa' && !nextMeta.conta_id && !isDemoItem(nextMeta)
+        const primaryAction = nextMeta.status === 'ativa' && !isDemoItem(nextMeta)
             ? `<button type="button" class="met-action-btn met-action-btn--success" onclick="metasManager.openAporteModal(${nextMeta.id})">
                     <i data-lucide="circle-plus"></i>
                     <span>Registrar aporte</span>
@@ -475,7 +485,7 @@ export const MetasApp = {
                     ? `Para recuperar o prazo, tente reforcar em ${Utils.formatCurrency(overdue.aporte_mensal_sugerido)} por mês.`
                     : `Faltam ${Utils.formatCurrency(overdue.valor_restante || 0)} para concluir esta meta.`,
                 icon: 'triangle-alert',
-                action: overdue.conta_id ? 'review' : 'deposit',
+                action: 'deposit',
                 metaId: overdue.id,
             });
         }
@@ -486,7 +496,7 @@ export const MetasApp = {
                 titulo: `${closestMeta.titulo} esta mais perto de sair do papel`,
                 mensagem: `Faltam ${Utils.formatCurrency(closestMeta.valor_restante || 0)} para concluir.`,
                 icon: 'target',
-                action: closestMeta.conta_id ? 'review' : 'deposit',
+                action: 'deposit',
                 metaId: closestMeta.id,
             });
         }
@@ -531,7 +541,7 @@ export const MetasApp = {
                 ? (insight.action === 'deposit'
                     ? `<button type="button" class="met-insight-action" onclick="metasManager.openAporteModal(${insight.metaId})">
                             <i data-lucide="circle-plus"></i>
-                            <span>Aportar</span>
+                            <span>Guardar</span>
                        </button>`
                     : `<button type="button" class="met-insight-action" onclick="metasManager.openMetaModal(${insight.metaId})">
                             <i data-lucide="pencil"></i>
@@ -600,7 +610,7 @@ export const MetasApp = {
                     : `<span class="met-card__deadline" style="color:#ef4444">Prazo vencido!</span>`)
                 : '';
             const aporteInfo = meta.aporte_mensal_sugerido > 0
-                ? `<span class="met-card__hint"><i data-lucide="calendar-range" style="width:12px;height:12px"></i> ${Utils.formatCurrency(meta.aporte_mensal_sugerido)}/mes sugeridos</span>`
+                ? `<span class="met-card__hint"><i data-lucide="calendar-range" style="width:12px;height:12px"></i> ${Utils.formatCurrency(meta.aporte_mensal_sugerido)}/mês sugeridos</span>`
                 : '';
             const contaBadge = meta.conta_id
                 ? `<span class="met-card__hint"><i data-lucide="landmark" style="width:12px;height:12px"></i> ${Utils.escHtml(meta.conta_nome || 'Conta vinculada')} • saldo sincronizado</span>`
@@ -734,7 +744,7 @@ export const MetasApp = {
         const data = {
             titulo: document.getElementById('metaTitulo').value.trim(),
             valor_alvo: Utils.parseMoney(document.getElementById('metaValorAlvo').value),
-            valor_atual: contaIdRaw ? 0 : Utils.parseMoney(document.getElementById('metaValorAtual').value),
+            valor_alocado: contaIdRaw ? 0 : Utils.parseMoney(document.getElementById('metaValorAtual').value),
             tipo: document.getElementById('metaTipo').value,
             prioridade: document.getElementById('metaPrioridade').value,
             data_prazo: document.getElementById('metaPrazo').value || null,

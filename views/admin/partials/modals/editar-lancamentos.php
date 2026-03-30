@@ -121,6 +121,18 @@
                                         <option value="">Sem subcategoria</option>
                                     </select>
                                 </div>
+                                <div class="col-12" id="editLancMetaGroup" hidden>
+                                    <label for="editLancMeta" class="form-label">Meta vinculada</label>
+                                    <select class="form-select" id="editLancMeta"
+                                        data-lk-custom-select="form" data-lk-select-search="true"
+                                        data-lk-select-sort="alpha"
+                                        data-lk-select-search-placeholder="Buscar meta...">
+                                        <option value="">Nenhuma meta</option>
+                                    </select>
+                                    <small class="lk-edit-lanc-field-help">
+                                        O valor desta receita sera somado ao valor alocado da meta sem mexer no saldo da conta.
+                                    </small>
+                                </div>
                             </div>
 
                             <div id="editLancPlanningAlerts" class="lk-planning-alerts" hidden></div>

@@ -242,7 +242,7 @@ export const FinancasApp = {
         document.getElementById('metaValorAtual')?.addEventListener('input', () => FinancasApp.updateAporteSugerido());
 
         // Conta vinculada → toggle valor_atual field
-        document.getElementById('metaContaId')?.addEventListener('change', () => FinancasApp.onMetaContaChange());
+        FinancasApp.syncMetaAllocationField();
     },
 
     setupMoneyInputs() {
@@ -298,10 +298,17 @@ export const FinancasApp = {
         }
     },
 
+    syncMetaAllocationField() {
+        this.onMetaContaChange();
+    },
+
     onMetaContaChange() {
+        const contaGroup = document.getElementById('metaContaId')?.closest('.fin-form-group');
         const contaId = document.getElementById('metaContaId')?.value;
         const valorAtualGroup = document.getElementById('metaValorAtual')?.closest('.fin-form-group');
+        const valorAtualLabel = valorAtualGroup?.querySelector('.fin-label');
         const hint = document.getElementById('metaContaHint');
+        const saldo = 0;
         if (contaId) {
             // Esconder campo manual de valor atual
             if (valorAtualGroup) valorAtualGroup.style.display = 'none';
@@ -319,6 +326,13 @@ export const FinancasApp = {
                 hint.style.display = 'none';
                 hint.innerHTML = '';
             }
+        }
+        if (contaGroup) contaGroup.style.display = 'none';
+        if (valorAtualGroup) valorAtualGroup.style.display = '';
+        if (valorAtualLabel) valorAtualLabel.innerHTML = '<i data-lucide="coins"></i> Valor ja alocado';
+        if (hint) {
+            hint.style.display = 'none';
+            hint.innerHTML = '';
         }
     },
 
@@ -1039,7 +1053,7 @@ export const FinancasApp = {
         const data = {
             titulo: document.getElementById('metaTitulo').value.trim(),
             valor_alvo: Utils.parseMoney(document.getElementById('metaValorAlvo').value),
-            valor_atual: contaIdRaw ? 0 : Utils.parseMoney(document.getElementById('metaValorAtual').value),
+            valor_alocado: contaIdRaw ? 0 : Utils.parseMoney(document.getElementById('metaValorAtual').value),
             tipo: document.getElementById('metaTipo').value,
             prioridade: document.getElementById('metaPrioridade').value,
             data_prazo: document.getElementById('metaPrazo').value || null,

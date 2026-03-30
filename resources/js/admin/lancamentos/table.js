@@ -352,6 +352,7 @@ export const TableManager = {
         let descricao = item.descricao ?? item.descricao_titulo ?? '';
         if (descricao && typeof descricao === 'object') descricao = descricao.texto ?? descricao.value ?? '';
         descricao = String(descricao || '-').trim();
+        const metaTitulo = Utils.getLancamentoMetaTitle(item);
 
         // Valor
         let valor = parseFloat(item.valor) || 0;
@@ -406,6 +407,15 @@ export const TableManager = {
                         <span class="lk-txn-meta-payment">${Utils.escapeHtml(timelineMeta.settlementInlineText)}</span>
                     `
                 : '';
+            const goalMetaHtml = metaTitulo
+                ? `
+                        <span class="lk-txn-dot">Â·</span>
+                        <span class="lk-txn-goal-badge">
+                            <i data-lucide="target"></i>
+                            <span>${Utils.escapeHtml(metaTitulo)}</span>
+                        </span>
+                    `
+                : '';
             contentHtml = `
                 <div class="lk-txn-content">
                     <span class="lk-txn-desc">${Utils.escapeHtml(descricao)}</span>
@@ -414,6 +424,7 @@ export const TableManager = {
                         <span class="lk-txn-dot">·</span>
                         <span class="lk-txn-date-text">${Utils.escapeHtml(timelineMeta.dataLancamentoComHora)}</span>
                         ${paymentMetaHtml}
+                        ${goalMetaHtml}
                         <span class="lk-txn-badge-tipo ${tipoClass}">${Utils.escapeHtml(tipoLabel)}</span>
                     </span>
                 </div>`;
@@ -507,6 +518,7 @@ export const TableManager = {
             chips += `<div class="lk-detail-chip lk-chip-date"><i data-lucide="calendar-days"></i><span class="lk-detail-label">${Utils.escapeHtml(timelineMeta.labelPrimaria)}</span><span class="lk-detail-value">${Utils.escapeHtml(timelineMeta.dataLancamentoComHora)}</span></div>`;
             if (timelineMeta.hasSettlementDate) chips += `<div class="lk-detail-chip lk-chip-paid-date"><i data-lucide="badge-check"></i><span class="lk-detail-label">${Utils.escapeHtml(timelineMeta.labelLiquidacao)}</span><span class="lk-detail-value">${Utils.escapeHtml(timelineMeta.dataPagamento)}</span></div>`;
             chips += `<div class="lk-detail-chip"><i data-lucide="wallet"></i><span class="lk-detail-label">Conta</span><span class="lk-detail-value">${Utils.escapeHtml(conta)}</span></div>`;
+            if (metaTitulo) chips += `<div class="lk-detail-chip lk-chip-meta"><i data-lucide="target"></i><span class="lk-detail-label">Meta</span><span class="lk-detail-value">${Utils.escapeHtml(metaTitulo)}</span></div>`;
             if (formaPgto && formaPgto !== '-') chips += `<div class="lk-detail-chip"><i data-lucide="banknote"></i><span class="lk-detail-label">Pagamento</span><span class="lk-detail-value">${formaPgto}</span></div>`;
             if (cartaoDisplay) chips += `<div class="lk-detail-chip"><i data-lucide="credit-card"></i><span class="lk-detail-label">Cartão</span><span class="lk-detail-value">${Utils.escapeHtml(cartaoDisplay)}</span></div>`;
             if (isRecorrente && !isCancelado) {

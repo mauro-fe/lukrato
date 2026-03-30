@@ -318,6 +318,27 @@
   letter-spacing: 0.02em;
 }
 
+.lk-txn-goal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 8px;
+  border-radius: var(--radius-full);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 28%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: color-mix(in srgb, var(--color-primary) 82%, var(--color-text) 18%);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.lk-txn-goal-badge i,
+.lk-txn-goal-badge svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
 .lk-txn-badge-tipo {
   display: inline-flex;
   align-items: center;
@@ -699,6 +720,11 @@
 .lk-chip-lembrete i,
 .lk-chip-lembrete svg {
   color: var(--color-warning);
+}
+
+.lk-chip-meta {
+  border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
 }
 
 /* Saldo inicial card (muted) */

@@ -17,6 +17,7 @@ use Application\DTO\Requests\UpdateLancamentoDTO;
 use Application\Repositories\LancamentoRepository;
 use Application\Repositories\CategoriaRepository;
 use Application\Repositories\ContaRepository;
+use Application\Services\Financeiro\MetaProgressService;
 use Application\Services\User\OnboardingProgressService;
 use ValueError;
 use Throwable;
@@ -31,6 +32,7 @@ class FinanceiroController extends BaseController
     private CategoriaRepository $categoriaRepo;
     private ContaRepository $contaRepo;
     private OnboardingProgressService $onboardingProgressService;
+    private MetaProgressService $metaProgressService;
 
     public function __construct(
         ?LancamentoLimitService $limitService = null,
@@ -38,7 +40,8 @@ class FinanceiroController extends BaseController
         ?LancamentoRepository $lancamentoRepo = null,
         ?CategoriaRepository $categoriaRepo = null,
         ?ContaRepository $contaRepo = null,
-        ?OnboardingProgressService $onboardingProgressService = null
+        ?OnboardingProgressService $onboardingProgressService = null,
+        ?MetaProgressService $metaProgressService = null
     ) {
         parent::__construct();
         $this->limitService = $limitService ?? new LancamentoLimitService();
@@ -47,6 +50,7 @@ class FinanceiroController extends BaseController
         $this->categoriaRepo = $categoriaRepo ?? new CategoriaRepository();
         $this->contaRepo = $contaRepo ?? new ContaRepository();
         $this->onboardingProgressService = $onboardingProgressService ?? new OnboardingProgressService();
+        $this->metaProgressService = $metaProgressService ?? new MetaProgressService();
     }
 
     /**
@@ -193,6 +197,12 @@ class FinanceiroController extends BaseController
 
             $contaId = $this->normalizeOptionalId($payload['conta_id'] ?? null);
             $categoriaId = $this->normalizeOptionalId($payload['categoria_id'] ?? null);
+            $metaId = $this->normalizeOptionalId($payload['meta_id'] ?? ($payload['metaId'] ?? null));
+            $metaId = LancamentoValidator::validateMetaOwnership($metaId, $uid, $errors);
+            LancamentoValidator::validateMetaLinkRules($metaId, [
+                'tipo' => $payload['tipo'] ?? null,
+                'eh_transferencia' => false,
+            ], $errors);
             $errors = array_merge($errors, $this->validateLancamentoRelations($uid, $contaId, $categoriaId));
 
             if (!empty($errors)) {
@@ -207,10 +217,11 @@ class FinanceiroController extends BaseController
 
             $dto = CreateLancamentoDTO::fromRequest(
                 $uid,
-                $this->buildLancamentoWriteData($payload, $contaId, $categoriaId)
+                $this->buildLancamentoWriteData($payload, $contaId, $categoriaId, $metaId)
             );
 
             $lancamento = $this->lancamentoRepo->create($dto->toArray());
+            $this->recalculateAffectedMetas($uid, $metaId ?? 0);
             $this->syncOnboardingLancamentoCreated($uid, $lancamento->created_at);
             $usage = $this->limitService->usage($uid, substr((string) ($payload['data'] ?? ''), 0, 7));
 
@@ -253,6 +264,12 @@ class FinanceiroController extends BaseController
 
             $contaId = $this->normalizeOptionalId($mergedData['conta_id'] ?? null);
             $categoriaId = $this->normalizeOptionalId($mergedData['categoria_id'] ?? null);
+            $metaId = $this->normalizeOptionalId($mergedData['meta_id'] ?? ($mergedData['metaId'] ?? null));
+            $metaId = LancamentoValidator::validateMetaOwnership($metaId, $uid, $errors);
+            LancamentoValidator::validateMetaLinkRules($metaId, [
+                'tipo' => $mergedData['tipo'] ?? $lancamento->tipo,
+                'eh_transferencia' => false,
+            ], $errors);
             $errors = array_merge($errors, $this->validateLancamentoRelations($uid, $contaId, $categoriaId));
 
             if (!empty($errors)) {
@@ -260,10 +277,12 @@ class FinanceiroController extends BaseController
             }
 
             $dto = UpdateLancamentoDTO::fromRequest(
-                $this->buildLancamentoWriteData($mergedData, $contaId, $categoriaId)
+                $this->buildLancamentoWriteData($mergedData, $contaId, $categoriaId, $metaId)
             );
 
+            $metaAnteriorId = (int) ($lancamento->meta_id ?? 0);
             $this->lancamentoRepo->update($lancamento->id, $dto->toArray());
+            $this->recalculateAffectedMetas($uid, $metaAnteriorId, $metaId ?? 0);
             return Response::successResponse(['id' => (int) $lancamento->id]);
         } catch (ValueError $e) {
             return $this->domainErrorResponse($e, 'Dados invalidos para atualizar lancamento.', 422);
@@ -289,7 +308,18 @@ class FinanceiroController extends BaseController
             }
 
             $origemId = (int) ($data['conta_id'] ?? 0);
-            $destinoId = (int) ($data['conta_id_destino'] ?? 0);
+            $destinoId = (int) ($data['conta_id_destino'] ?? ($data['conta_destino_id'] ?? 0));
+            $errors = [];
+            $metaId = $this->normalizeOptionalId($data['meta_id'] ?? ($data['metaId'] ?? null));
+            $metaId = LancamentoValidator::validateMetaOwnership($metaId, $uid, $errors);
+            LancamentoValidator::validateMetaLinkRules($metaId, [
+                'tipo' => 'transferencia',
+                'eh_transferencia' => true,
+            ], $errors);
+
+            if (!empty($errors)) {
+                return Response::validationErrorResponse($errors);
+            }
 
             $transferencia = $this->transferenciaService->executarTransferencia(
                 userId: $uid,
@@ -298,7 +328,8 @@ class FinanceiroController extends BaseController
                 valor: $valor,
                 data: $dataStr,
                 descricao: $data['descricao'] ?? null,
-                observacao: $data['observacao'] ?? null
+                observacao: $data['observacao'] ?? null,
+                metaId: $metaId
             );
 
             return Response::successResponse(['id' => (int) $transferencia->id], 'Success', 201);
@@ -334,7 +365,7 @@ class FinanceiroController extends BaseController
         return $errors;
     }
 
-    private function buildLancamentoWriteData(array $data, ?int $contaId, ?int $categoriaId): array
+    private function buildLancamentoWriteData(array $data, ?int $contaId, ?int $categoriaId, ?int $metaId = null): array
     {
         return [
             'tipo' => strtolower(trim((string) ($data['tipo'] ?? ''))),
@@ -343,6 +374,7 @@ class FinanceiroController extends BaseController
             'descricao' => mb_substr(trim((string) ($data['descricao'] ?? '')), 0, 190),
             'observacao' => mb_substr(trim((string) ($data['observacao'] ?? '')), 0, 500),
             'categoria_id' => $categoriaId,
+            'meta_id' => $metaId,
             'conta_id' => $contaId,
         ];
     }
@@ -360,9 +392,19 @@ class FinanceiroController extends BaseController
             'valor' => $payload['valor'] ?? $lancamento->valor,
             'descricao' => $payload['descricao'] ?? $lancamento->descricao,
             'observacao' => $payload['observacao'] ?? $lancamento->observacao,
+            'meta_id' => array_key_exists('meta_id', $payload) ? $payload['meta_id'] : ($payload['metaId'] ?? $lancamento->meta_id),
             'conta_id' => $payload['conta_id'] ?? $lancamento->conta_id,
             'categoria_id' => $payload['categoria_id'] ?? $lancamento->categoria_id,
         ];
+    }
+
+    private function recalculateAffectedMetas(int $userId, int ...$metaIds): void
+    {
+        $metaIds = array_values(array_unique(array_filter($metaIds, static fn(int $metaId): bool => $metaId > 0)));
+
+        foreach ($metaIds as $metaId) {
+            $this->metaProgressService->recalculateMeta($userId, $metaId);
+        }
     }
 
     private function syncOnboardingLancamentoCreated(int $userId, \DateTimeInterface|string|null $createdAt = null): void

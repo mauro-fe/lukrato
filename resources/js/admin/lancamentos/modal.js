@@ -7,8 +7,6 @@ import { sugerirCategoriaIA as _sugerirCategoriaIA } from '../shared/ai-categori
 import { apiGet, getErrorMessage } from '../shared/api.js';
 import { syncCustomSelects } from './custom-select.js';
 import {
-    computeAccountEffect,
-    computeSnapshotAccountEffect,
     getPlanningAlertsStore,
     resolvePlanningPeriod,
     isSamePlanningPeriod,
@@ -122,6 +120,60 @@ const OptionsManager = {
             const fallback = document.createElement('option');
             fallback.value = currentValue;
             fallback.textContent = 'Conta indisponÃ­vel';
+            fallback.selected = true;
+            select.appendChild(fallback);
+        }
+    },
+
+    formatMetaOptionLabel: (meta) => {
+        const titulo = String(meta?.titulo || 'Meta').trim();
+        const status = String(meta?.status || '').trim().toLowerCase();
+
+        if (status === 'concluida') return `${titulo} • Concluida`;
+        if (status === 'pausada') return `${titulo} • Pausada`;
+        if (status === 'cancelada') return `${titulo} • Cancelada`;
+
+        const progresso = Number(meta?.progresso ?? 0);
+        if (Number.isFinite(progresso) && progresso > 0) {
+            return `${titulo} • ${Utils.formatPercent(progresso)}`;
+        }
+
+        return titulo;
+    },
+
+    populateMetaSelect: async (select, selectedId, options = {}) => {
+        if (!select) return;
+
+        const {
+            emptyLabel = 'Nenhuma meta',
+            fallbackLabel = 'Meta indisponivel'
+        } = options;
+
+        const currentValue = selectedId !== undefined && selectedId !== null ? String(selectedId) : '';
+        const metas = await planningStore.ensureMetas();
+
+        select.innerHTML = `<option value="">${emptyLabel}</option>`;
+
+        (Array.isArray(metas) ? metas : []).forEach((meta) => {
+            const metaId = Number(meta?.id ?? 0);
+            if (!metaId) return;
+
+            const opt = document.createElement('option');
+            opt.value = String(metaId);
+            opt.textContent = OptionsManager.formatMetaOptionLabel(meta);
+            opt.dataset.status = String(meta?.status || '').trim().toLowerCase();
+
+            if (currentValue && String(metaId) === currentValue) {
+                opt.selected = true;
+            }
+
+            select.appendChild(opt);
+        });
+
+        if (currentValue && select.value !== currentValue) {
+            const fallback = document.createElement('option');
+            fallback.value = currentValue;
+            fallback.textContent = fallbackLabel;
             fallback.selected = true;
             select.appendChild(fallback);
         }
@@ -470,6 +522,38 @@ const ModalManager = {
         return label || fallback;
     },
 
+    canLinkMetaInLancamentoEdit: (tipo, formaPagamento = '') => {
+        const normalizedTipo = String(tipo || '').toLowerCase().trim();
+        const normalizedPayment = String(formaPagamento || '').toLowerCase().trim();
+        return normalizedTipo === 'receita' && normalizedPayment !== 'estorno_cartao';
+    },
+
+    getSelectedMetaId: (select) => {
+        const raw = String(select?.value || '').trim();
+        const parsed = Number(raw);
+        return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+    },
+
+    resolveMetaTitle: (metaId, fallback = '') => {
+        const title = String(planningStore.getMetaById(metaId)?.titulo || '').trim();
+        return title || String(fallback || '').trim() || 'Meta';
+    },
+
+    syncEditMetaField: () => {
+        const snapshot = STATE.editingLancamentoData || {};
+        const tipo = DOM.selectLancTipo?.value || snapshot?.tipo || '';
+        const formaPagamento = DOM.selectLancFormaPagamento?.value || snapshot?.forma_pagamento || '';
+        const shouldShow = ModalManager.canLinkMetaInLancamentoEdit(tipo, formaPagamento);
+
+        if (DOM.editLancMetaGroup) {
+            DOM.editLancMetaGroup.hidden = !shouldShow;
+        }
+
+        if (!shouldShow && DOM.selectLancMeta) {
+            DOM.selectLancMeta.value = '';
+        }
+    },
+
     getEditStatusMeta: () => {
         const data = STATE.editingLancamentoData || {};
         if (data?.cancelado_em) {
@@ -494,6 +578,11 @@ const ModalManager = {
         const descricao = String(DOM.inputLancDescricao?.value || snapshot?.descricao || '').trim();
         const contaLabel = ModalManager.getEditSelectLabel(DOM.selectLancConta, 'Conta não definida');
         const categoriaLabel = ModalManager.getEditSelectLabel(DOM.selectLancCategoria, 'Sem categoria');
+        const formaPagamento = DOM.selectLancFormaPagamento?.value || snapshot?.forma_pagamento || '';
+        const canLinkMeta = ModalManager.canLinkMetaInLancamentoEdit(tipo, formaPagamento);
+        const metaLabel = canLinkMeta
+            ? ModalManager.getEditSelectLabel(DOM.selectLancMeta, Utils.getLancamentoMetaTitle(snapshot))
+            : '';
         const dataValue = DOM.inputLancData?.value || snapshot?.data || '';
         const horaValue = DOM.inputLancHora?.value || snapshot?.hora_lancamento || '';
         const valorAtual = DOM.inputLancValor?.value
@@ -509,7 +598,8 @@ const ModalManager = {
             const meta = [
                 contaLabel,
                 categoriaLabel,
-                ModalManager.formatEditSummaryDateTime(dataValue, horaValue)
+                ModalManager.formatEditSummaryDateTime(dataValue, horaValue),
+                metaLabel ? `Meta: ${metaLabel}` : ''
             ].filter(Boolean).join(' • ');
 
             DOM.editLancSummaryMeta.textContent = meta || 'Conta, categoria e data aparecem aqui.';
@@ -565,12 +655,6 @@ const ModalManager = {
         DOM.editLancPlanningAlerts.hidden = true;
     },
 
-    getEditContaOption: (contaId) => {
-        const targetId = String(contaId ?? DOM.selectLancConta?.value ?? '').trim();
-        if (!targetId) return null;
-        return STATE.contaOptions.find((item) => String(item.id) === targetId) || null;
-    },
-
     summarizeMetaTitles: (metas = []) => {
         const titles = metas
             .map((meta) => String(meta?.titulo || '').trim())
@@ -597,68 +681,102 @@ const ModalManager = {
 
     buildEditMetaAlert: () => {
         const snapshot = STATE.editingLancamentoData || {};
-        const conta = ModalManager.getEditContaOption(DOM.selectLancConta?.value || snapshot?.conta_id);
-        if (!conta) return '';
-
-        const metas = planningStore.getMetasByConta(conta.id);
-        if (!metas.length) return '';
-
         const tipo = String(DOM.selectLancTipo?.value || snapshot?.tipo || 'despesa').toLowerCase();
-        const formaPagamento = DOM.selectLancFormaPagamento?.value || snapshot?.forma_pagamento || '';
+        const formaPagamento = String(DOM.selectLancFormaPagamento?.value || snapshot?.forma_pagamento || '').toLowerCase();
         const valorAtual = DOM.inputLancValor?.value
             ? Math.abs(Number(MoneyMask.unformat(DOM.inputLancValor.value)))
             : Math.abs(Number(snapshot?.valor ?? 0));
-        const saldoAtual = Number(conta.saldo ?? 0);
-        const efeitoAtual = computeAccountEffect({
-            type: tipo,
-            value: valorAtual,
-            paymentMethod: formaPagamento,
-            isPaid: snapshot?.pago
-        });
-        const efeitoOriginal = computeSnapshotAccountEffect(snapshot, conta.id);
-        const ajusteLiquido = -efeitoOriginal + efeitoAtual;
-        const saldoProjetado = saldoAtual + ajusteLiquido;
-        const principal = [...metas].sort((a, b) => (a.valor_restante || 0) - (b.valor_restante || 0))[0] || metas[0];
-        const progressoProjetado = principal?.valor_alvo > 0
-            ? Math.max(0, Math.min(100, (saldoProjetado / principal.valor_alvo) * 100))
+        const selectedMetaId = ModalManager.canLinkMetaInLancamentoEdit(tipo, formaPagamento)
+            ? ModalManager.getSelectedMetaId(DOM.selectLancMeta)
             : null;
-        const resumoMetas = ModalManager.summarizeMetaTitles(metas);
-        const isCartaoCredito = tipo === 'despesa' && formaPagamento === 'cartao_credito';
-        const isPendente = snapshot?.pago === false || snapshot?.pago === 0 || snapshot?.pago === '0' || snapshot?.pago === 'false';
+        const originalMetaId = Number(snapshot?.meta_id ?? 0) > 0 ? Number(snapshot.meta_id) : null;
+        const originalMetaTitle = Utils.getLancamentoMetaTitle(snapshot);
+        const originalTipo = String(snapshot?.tipo || '').toLowerCase();
+        const originalFormaPagamento = String(snapshot?.forma_pagamento || '').toLowerCase();
+        const originalContribution = originalMetaId && ModalManager.canLinkMetaInLancamentoEdit(originalTipo, originalFormaPagamento)
+            ? Math.abs(Number(snapshot?.valor ?? 0))
+            : 0;
 
-        const title = metas.length === 1
-            ? `Conta vinculada a ${principal.titulo}`
-            : `Conta ligada a ${metas.length} metas`;
+        if (!selectedMetaId && !originalMetaId) {
+            return '';
+        }
 
-        let tone = 'info';
-        let message = '';
+        if (selectedMetaId) {
+            const selectedMeta = planningStore.getMetaById(selectedMetaId);
+            const selectedTitle = ModalManager.resolveMetaTitle(
+                selectedMetaId,
+                ModalManager.getEditSelectLabel(DOM.selectLancMeta, originalMetaTitle)
+            );
+            const targetValue = Number(selectedMeta?.valor_alvo ?? 0);
+            const currentAllocated = Number(selectedMeta?.valor_alocado ?? 0);
+            const replacingOriginal = originalMetaId === selectedMetaId ? originalContribution : 0;
+            const projectedAllocation = Math.max(0, currentAllocated - replacingOriginal + valorAtual);
+            const progressPercent = targetValue > 0
+                ? Math.max(0, Math.min(100, (projectedAllocation / targetValue) * 100))
+                : null;
+            const remainingValue = targetValue > 0
+                ? Math.max(0, targetValue - projectedAllocation)
+                : 0;
 
-        if (ajusteLiquido === 0) {
-            if (isCartaoCredito) {
-                message = `Como o pagamento esta no cartao de credito, o saldo da conta nao muda agora. ${metas.length === 1 ? `A meta segue sincronizada com ${Utils.fmtMoney(saldoAtual)}.` : `As metas ${resumoMetas} continuam sincronizadas com o saldo atual.`}`;
-            } else if (isPendente) {
-                message = `Esse lancamento segue pendente, entao o saldo da conta nao muda. ${metas.length === 1 ? `A meta continua em ${Utils.fmtMoney(saldoAtual)}.` : `As metas ${resumoMetas} so mudam quando a movimentacao for confirmada.`}`;
-            } else {
-                message = metas.length === 1
-                    ? `Este ajuste mantem o saldo da conta em ${Utils.fmtMoney(saldoAtual)}.`
-                    : `Este ajuste nao muda o saldo atual que alimenta ${resumoMetas}.`;
+            let tone = projectedAllocation >= targetValue && targetValue > 0 ? 'success' : 'info';
+            if (progressPercent !== null && progressPercent >= 80 && projectedAllocation < targetValue) {
+                tone = 'warning';
             }
-        } else {
-            tone = saldoProjetado < 0 ? 'danger' : (ajusteLiquido < 0 ? 'warning' : 'success');
-            message = `Saldo estimado apos salvar: ${Utils.fmtMoney(saldoProjetado)}.`;
 
-            if (metas.length === 1 && progressoProjetado !== null) {
-                message += ` ${principal.titulo} ficaria em ${progressoProjetado.toFixed(1)}% do alvo de ${Utils.fmtMoney(principal.valor_alvo)}.`;
-            } else {
-                message += ` ${resumoMetas} vao refletir esse novo saldo automaticamente.`;
+            let message = `Ao salvar, este lancamento vai alocar ${Utils.fmtMoney(valorAtual)} em ${selectedTitle}.`;
+
+            if (targetValue > 0) {
+                message += ` Total projetado: ${Utils.fmtMoney(projectedAllocation)} de ${Utils.fmtMoney(targetValue)} (${Utils.formatPercent(progressPercent)}).`;
+                if (remainingValue > 0) {
+                    message += ` Faltariam ${Utils.fmtMoney(remainingValue)} para concluir.`;
+                } else {
+                    message += ' A meta fica concluida automaticamente.';
+                }
+            }
+
+            if (originalMetaId && originalMetaId !== selectedMetaId) {
+                message += ` O vinculo anterior com ${ModalManager.resolveMetaTitle(originalMetaId, originalMetaTitle)} sera removido.`;
+            }
+
+            return ModalManager.buildPlanningAlertCard({
+                tone,
+                icon: 'target',
+                eyebrow: 'Meta vinculada',
+                title: `Aporte em ${selectedTitle}`,
+                message
+            });
+        }
+
+        if (!originalMetaId || !originalContribution) {
+            return '';
+        }
+
+        const originalMeta = planningStore.getMetaById(originalMetaId);
+        const resolvedOriginalTitle = ModalManager.resolveMetaTitle(originalMetaId, originalMetaTitle);
+        const targetValue = Number(originalMeta?.valor_alvo ?? 0);
+        const currentAllocated = Number(originalMeta?.valor_alocado ?? 0);
+        const projectedAllocation = Math.max(0, currentAllocated - originalContribution);
+        const progressPercent = targetValue > 0
+            ? Math.max(0, Math.min(100, (projectedAllocation / targetValue) * 100))
+            : null;
+        const remainingValue = targetValue > 0
+            ? Math.max(0, targetValue - projectedAllocation)
+            : 0;
+
+        let message = `Ao salvar, este lancamento deixa de alocar ${Utils.fmtMoney(originalContribution)} em ${resolvedOriginalTitle}.`;
+
+        if (targetValue > 0) {
+            message += ` Total projetado da meta: ${Utils.fmtMoney(projectedAllocation)} de ${Utils.fmtMoney(targetValue)} (${Utils.formatPercent(progressPercent)}).`;
+            if (remainingValue > 0) {
+                message += ` Faltariam ${Utils.fmtMoney(remainingValue)} para concluir.`;
             }
         }
 
         return ModalManager.buildPlanningAlertCard({
-            tone,
-            icon: saldoProjetado < 0 ? 'triangle-alert' : 'target',
-            eyebrow: 'Meta vinculada',
-            title,
+            tone: 'warning',
+            icon: 'target',
+            eyebrow: 'Meta removida',
+            title: `Sem vinculo com ${resolvedOriginalTitle}`,
             message
         });
     },
@@ -749,7 +867,7 @@ const ModalManager = {
         window.lucide?.createIcons?.();
     },
 
-    openEditLancamento: (data) => {
+    openEditLancamento: async (data) => {
         const modal = ModalManager.ensureLancModal();
         if (!modal || !Utils.canEditLancamento(data)) return;
 
@@ -802,6 +920,13 @@ const ModalManager = {
             DOM.selectLancFormaPagamento.value = data?.forma_pagamento || '';
         }
 
+        await OptionsManager.populateMetaSelect(
+            DOM.selectLancMeta,
+            data?.meta_id ?? null,
+            { fallbackLabel: Utils.getLancamentoMetaTitle(data) || 'Meta vinculada' }
+        );
+
+        ModalManager.syncEditMetaField();
         syncModalSelects(DOM.modalEditLancEl);
         ModalManager.syncEditSummary();
         void ModalManager.renderPlanningAlerts();
@@ -823,11 +948,12 @@ const ModalManager = {
         return null;
     },
 
-    openEditTransferencia: (data) => {
+    openEditTransferencia: async (data) => {
         const modal = ModalManager.ensureTransModal();
         if (!modal || !Utils.canEditLancamento(data)) return;
 
         STATE.editingLancamentoId = data?.id ?? null;
+        STATE.editingLancamentoData = data ? { ...data } : null;
         if (!STATE.editingLancamentoId) return;
 
         // clear alerts
@@ -844,6 +970,11 @@ const ModalManager = {
         // popular selects de conta
         if (DOM.selectTransConta) OptionsManager.populateContaSelect(DOM.selectTransConta, data?.conta_id ?? null);
         if (DOM.selectTransContaDestino) OptionsManager.populateContaSelect(DOM.selectTransContaDestino, data?.conta_id_destino ?? null);
+        await OptionsManager.populateMetaSelect(
+            DOM.selectTransMeta,
+            data?.meta_id ?? null,
+            { fallbackLabel: Utils.getLancamentoMetaTitle(data) || 'Meta vinculada' }
+        );
 
         syncModalSelects(DOM.modalEditTransEl);
         modal.show();
@@ -863,6 +994,7 @@ const ModalManager = {
         const contaOrigem = DOM.selectTransConta?.value || '';
         const contaDestino = DOM.selectTransContaDestino?.value || '';
         const descricao = (DOM.inputTransDescricao?.value || '').trim();
+        const metaId = ModalManager.getSelectedMetaId(DOM.selectTransMeta);
 
         if (!dataValue) {
             if (DOM.editTransAlert) { DOM.editTransAlert.textContent = 'Informe a data.'; DOM.editTransAlert.classList.remove('d-none'); }
@@ -894,7 +1026,8 @@ const ModalManager = {
             descricao: descricao,
             conta_id: Number(contaOrigem),
             conta_id_destino: Number(contaDestino),
-            forma_pagamento: 'transferencia'
+            forma_pagamento: 'transferencia',
+            meta_id: metaId
         };
 
         const submitBtn = DOM.formTrans?.querySelector('button[type="submit"]');
@@ -909,6 +1042,14 @@ const ModalManager = {
             ModalManager.ensureTransModal()?.hide();
             Notifications.toast('Transferência atualizada com sucesso!');
             await Modules.DataManager.load();
+
+            document.dispatchEvent(new CustomEvent('lukrato:data-changed', {
+                detail: {
+                    resource: 'transactions',
+                    action: 'update',
+                    id: Number(STATE.editingLancamentoId)
+                }
+            }));
         } catch (err) {
             if (DOM.editTransAlert) {
                 DOM.editTransAlert.textContent = getErrorMessage(err, 'Falha ao atualizar.');
@@ -946,10 +1087,17 @@ const ModalManager = {
 
         // Tipo
         if (DOM.viewLancTipo) {
-            const tipo = String(data.tipo || '').toLowerCase();
-            const isTipoReceita = tipo === 'receita';
-            DOM.viewLancTipo.textContent = isTipoReceita ? 'Receita' : 'Despesa';
-            DOM.viewLancTipo.className = 'badge ' + (isTipoReceita ? 'bg-success' : 'bg-danger');
+            const tipo = String(data.tipo || (data.eh_transferencia ? 'transferencia' : '')).toLowerCase();
+            if (tipo === 'receita') {
+                DOM.viewLancTipo.textContent = 'Receita';
+                DOM.viewLancTipo.className = 'badge bg-success';
+            } else if (tipo === 'transferencia' || data.eh_transferencia) {
+                DOM.viewLancTipo.textContent = 'Transferencia';
+                DOM.viewLancTipo.className = 'badge bg-info text-dark';
+            } else {
+                DOM.viewLancTipo.textContent = 'Despesa';
+                DOM.viewLancTipo.className = 'badge bg-danger';
+            }
         }
 
         // Valor
@@ -999,6 +1147,18 @@ const ModalManager = {
                 DOM.viewLancFormaPgto.textContent = Utils.formatFormaPagamento ? Utils.formatFormaPagamento(data.forma_pagamento) : data.forma_pagamento;
             } else {
                 DOM.viewLancFormaPgtoItem.classList.add('d-none');
+            }
+        }
+
+        if (DOM.viewLancMetaItem && DOM.viewLancMeta) {
+            const metaTitle = Utils.getLancamentoMetaTitle(data);
+            if (metaTitle) {
+                DOM.viewLancMetaItem.classList.remove('d-none');
+                DOM.viewLancMetaItem.style.display = '';
+                DOM.viewLancMeta.textContent = metaTitle;
+            } else {
+                DOM.viewLancMetaItem.classList.add('d-none');
+                DOM.viewLancMetaItem.style.display = 'none';
             }
         }
 
@@ -1067,6 +1227,9 @@ const ModalManager = {
         const valorValue = DOM.inputLancValor?.value || '';
         const descricaoValue = (DOM.inputLancDescricao?.value || '').trim();
         const formaPagamentoValue = DOM.selectLancFormaPagamento?.value || '';
+        const metaId = ModalManager.canLinkMetaInLancamentoEdit(tipoValue, formaPagamentoValue)
+            ? ModalManager.getSelectedMetaId(DOM.selectLancMeta)
+            : null;
 
         if (!dataValue) return ModalManager.showLancAlert('Informe a data do lanÃ§amento.');
         if (!tipoValue) return ModalManager.showLancAlert('Selecione o tipo do lanÃ§amento.');
@@ -1086,7 +1249,8 @@ const ModalManager = {
             conta_id: Number(contaValue),
             categoria_id: categoriaValue ? Number(categoriaValue) : null,
             subcategoria_id: DOM.selectLancSubcategoria?.value ? Number(DOM.selectLancSubcategoria.value) : null,
-            forma_pagamento: formaPagamentoValue || null
+            forma_pagamento: formaPagamentoValue || null,
+            meta_id: metaId
         };
 
         // Continuar com lÃ³gica normal de atualizaÃ§Ã£o...

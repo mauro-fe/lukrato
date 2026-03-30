@@ -4,59 +4,33 @@ namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-/**
- * Model Meta - Metas financeiras do usuário
- *
- * @property int $id
- * @property int $user_id
- * @property string $titulo
- * @property string|null $descricao
- * @property string $tipo
- * @property float $valor_alvo
- * @property float $valor_atual
- * @property \Carbon\Carbon|string $data_inicio
- * @property \Carbon\Carbon|string|null $data_prazo
- * @property string $icone
- * @property string $cor
- * @property int|null $conta_id
- * @property string $prioridade
- * @property string $status
- * @property \Carbon\Carbon|string|null $created_at
- * @property \Carbon\Carbon|string|null $updated_at
- *
- * @method static \Illuminate\Database\Eloquent\Builder where(string $column, $operator = null, $value = null)
- * @method static \Illuminate\Database\Eloquent\Builder forUser(int $userId)
- * @method static \Illuminate\Database\Eloquent\Builder ativas()
- *
- * @mixin \Illuminate\Database\Eloquent\Builder
- */
 class Meta extends Model
 {
     protected $table = 'metas';
     public $timestamps = true;
 
-    public const TIPO_ECONOMIA      = 'economia';
-    public const TIPO_QUITACAO      = 'quitacao';
-    public const TIPO_INVESTIMENTO  = 'investimento';
-    public const TIPO_COMPRA        = 'compra';
-    public const TIPO_EMERGENCIA    = 'emergencia';
-    public const TIPO_VIAGEM        = 'viagem';
-    public const TIPO_EDUCACAO      = 'educacao';
-    public const TIPO_MORADIA       = 'moradia';
-    public const TIPO_VEICULO       = 'veiculo';
-    public const TIPO_SAUDE         = 'saude';
-    public const TIPO_NEGOCIO       = 'negocio';
+    public const TIPO_ECONOMIA = 'economia';
+    public const TIPO_QUITACAO = 'quitacao';
+    public const TIPO_INVESTIMENTO = 'investimento';
+    public const TIPO_COMPRA = 'compra';
+    public const TIPO_EMERGENCIA = 'emergencia';
+    public const TIPO_VIAGEM = 'viagem';
+    public const TIPO_EDUCACAO = 'educacao';
+    public const TIPO_MORADIA = 'moradia';
+    public const TIPO_VEICULO = 'veiculo';
+    public const TIPO_SAUDE = 'saude';
+    public const TIPO_NEGOCIO = 'negocio';
     public const TIPO_APOSENTADORIA = 'aposentadoria';
-    public const TIPO_OUTRO         = 'outro';
+    public const TIPO_OUTRO = 'outro';
 
-    public const STATUS_ATIVA       = 'ativa';
-    public const STATUS_CONCLUIDA   = 'concluida';
-    public const STATUS_PAUSADA     = 'pausada';
-    public const STATUS_CANCELADA   = 'cancelada';
+    public const STATUS_ATIVA = 'ativa';
+    public const STATUS_CONCLUIDA = 'concluida';
+    public const STATUS_PAUSADA = 'pausada';
+    public const STATUS_CANCELADA = 'cancelada';
 
-    public const PRIORIDADE_BAIXA   = 'baixa';
-    public const PRIORIDADE_MEDIA   = 'media';
-    public const PRIORIDADE_ALTA    = 'alta';
+    public const PRIORIDADE_BAIXA = 'baixa';
+    public const PRIORIDADE_MEDIA = 'media';
+    public const PRIORIDADE_ALTA = 'alta';
 
     protected $fillable = [
         'user_id',
@@ -64,6 +38,8 @@ class Meta extends Model
         'descricao',
         'tipo',
         'valor_alvo',
+        'valor_alocado',
+        'valor_aporte_manual',
         'valor_atual',
         'data_inicio',
         'data_prazo',
@@ -75,21 +51,24 @@ class Meta extends Model
     ];
 
     protected $casts = [
-        'user_id'     => 'int',
-        'valor_alvo'  => 'float',
+        'user_id' => 'int',
+        'valor_alvo' => 'float',
+        'valor_alocado' => 'float',
+        'valor_aporte_manual' => 'float',
         'valor_atual' => 'float',
-        'conta_id'    => 'int',
+        'conta_id' => 'int',
         'data_inicio' => 'date:Y-m-d',
-        'data_prazo'  => 'date:Y-m-d',
+        'data_prazo' => 'date:Y-m-d',
     ];
-
-    // ============================================================
-    // RELATIONSHIPS
-    // ============================================================
 
     public function usuario()
     {
         return $this->belongsTo(Usuario::class, 'user_id');
+    }
+
+    public function lancamentos()
+    {
+        return $this->hasMany(Lancamento::class, 'meta_id');
     }
 
     public function conta()
@@ -97,123 +76,142 @@ class Meta extends Model
         return $this->belongsTo(Conta::class, 'conta_id');
     }
 
-    // ============================================================
-    // SCOPES
-    // ============================================================
-
-    public function scopeForUser($q, int $userId)
+    public function scopeForUser($query, int $userId)
     {
-        return $q->where('user_id', $userId);
+        return $query->where('user_id', $userId);
     }
 
-    public function scopeAtivas($q)
+    public function scopeAtivas($query)
     {
-        return $q->where('status', self::STATUS_ATIVA);
+        return $query->where('status', self::STATUS_ATIVA);
     }
 
-    public function scopeConcluidas($q)
+    public function scopeConcluidas($query)
     {
-        return $q->where('status', self::STATUS_CONCLUIDA);
+        return $query->where('status', self::STATUS_CONCLUIDA);
     }
 
-    public function scopeByPrioridade($q, string $prioridade)
+    public function scopeByPrioridade($query, string $prioridade)
     {
-        return $q->where('prioridade', $prioridade);
+        return $query->where('prioridade', $prioridade);
     }
 
-    // ============================================================
-    // ACCESSORS / COMPUTED
-    // ============================================================
+    public function getValorAlocadoAttribute($value): float
+    {
+        if ($value !== null) {
+            return (float) $value;
+        }
 
-    /**
-     * Percentual de progresso (0-100)
-     */
+        return (float) ($this->attributes['valor_atual'] ?? 0);
+    }
+
+    public function setValorAlocadoAttribute($value): void
+    {
+        $normalized = number_format(round(max(0, (float) $value), 2), 2, '.', '');
+
+        $this->attributes['valor_alocado'] = $normalized;
+        $this->attributes['valor_atual'] = $normalized;
+    }
+
+    public function getValorAtualAttribute($value): float
+    {
+        if ($value !== null) {
+            return (float) $value;
+        }
+
+        return (float) ($this->attributes['valor_alocado'] ?? 0);
+    }
+
+    public function setValorAtualAttribute($value): void
+    {
+        $this->setValorAlocadoAttribute($value);
+    }
+
     public function getProgressoAttribute(): float
     {
-        if ($this->valor_alvo <= 0) return 100.0;
-        return min(100, round(($this->valor_atual / $this->valor_alvo) * 100, 1));
+        if ($this->valor_alvo <= 0) {
+            return 100.0;
+        }
+
+        return min(100, round(($this->valor_alocado / $this->valor_alvo) * 100, 1));
     }
 
-    /**
-     * Valor restante para atingir a meta
-     */
     public function getValorRestanteAttribute(): float
     {
-        return max(0, $this->valor_alvo - $this->valor_atual);
+        return max(0, $this->valor_alvo - $this->valor_alocado);
     }
 
-    /**
-     * Dias restantes até o prazo (null se sem prazo)
-     */
     public function getDiasRestantesAttribute(): ?int
     {
-        if (!$this->data_prazo) return null;
+        if (!$this->data_prazo) {
+            return null;
+        }
+
         $hoje = new \DateTime();
         $prazo = new \DateTime($this->data_prazo instanceof \Carbon\Carbon ? $this->data_prazo->format('Y-m-d') : $this->data_prazo);
         $diff = $hoje->diff($prazo);
+
         return $diff->invert ? -$diff->days : $diff->days;
     }
 
-    /**
-     * Valor mensal sugerido para atingir a meta no prazo
-     */
     public function getAporteMensalSugeridoAttribute(): ?float
     {
         $diasRestantes = $this->dias_restantes;
-        if ($diasRestantes === null || $diasRestantes <= 0) return null;
+        if ($diasRestantes === null || $diasRestantes <= 0) {
+            return null;
+        }
 
         $mesesRestantes = max(1, ceil($diasRestantes / 30));
         $valorRestante = $this->valor_restante;
 
-        if ($valorRestante <= 0) return 0;
+        if ($valorRestante <= 0) {
+            return 0;
+        }
+
         return round($valorRestante / $mesesRestantes, 2);
     }
 
-    /**
-     * Se a meta está atrasada (passou do prazo sem concluir)
-     */
     public function isAtrasada(): bool
     {
-        if ($this->status !== self::STATUS_ATIVA) return false;
+        if ($this->status !== self::STATUS_ATIVA) {
+            return false;
+        }
+
         $dias = $this->dias_restantes;
         return $dias !== null && $dias < 0;
     }
 
-    /**
-     * Se a meta foi concluída (valor_atual >= valor_alvo)
-     */
     public function isCompleta(): bool
     {
-        return $this->valor_atual >= $this->valor_alvo;
+        return $this->valor_alocado >= $this->valor_alvo;
     }
 
-    /**
-     * Retorna o array serializado para a API
-     */
     public function toApiArray(): array
     {
         return [
-            'id'                     => $this->id,
-            'titulo'                 => $this->titulo,
-            'descricao'              => $this->descricao,
-            'tipo'                   => $this->tipo,
-            'valor_alvo'             => $this->valor_alvo,
-            'valor_atual'            => $this->valor_atual,
-            'data_inicio'            => $this->data_inicio?->format('Y-m-d'),
-            'data_prazo'             => $this->data_prazo?->format('Y-m-d'),
-            'icone'                  => $this->icone,
-            'cor'                    => $this->cor,
-            'conta_id'               => $this->conta_id,
-            'prioridade'             => $this->prioridade,
-            'status'                 => $this->status,
-            'progresso'              => $this->progresso,
-            'valor_restante'         => $this->valor_restante,
-            'dias_restantes'         => $this->dias_restantes,
+            'id' => $this->id,
+            'titulo' => $this->titulo,
+            'descricao' => $this->descricao,
+            'tipo' => $this->tipo,
+            'valor_alvo' => $this->valor_alvo,
+            'valor_alocado' => $this->valor_alocado,
+            'valor_aporte_manual' => (float) ($this->valor_aporte_manual ?? 0),
+            'valor_atual' => $this->valor_atual,
+            'data_inicio' => $this->data_inicio?->format('Y-m-d'),
+            'data_prazo' => $this->data_prazo?->format('Y-m-d'),
+            'icone' => $this->icone,
+            'cor' => $this->cor,
+            'conta_id' => null,
+            'prioridade' => $this->prioridade,
+            'status' => $this->status,
+            'progresso' => $this->progresso,
+            'valor_restante' => $this->valor_restante,
+            'dias_restantes' => $this->dias_restantes,
             'aporte_mensal_sugerido' => $this->aporte_mensal_sugerido,
-            'is_atrasada'            => $this->isAtrasada(),
-            'is_completa'            => $this->isCompleta(),
-            'conta_nome'             => $this->conta?->nome,
-            'created_at'             => $this->created_at?->format('Y-m-d H:i:s'),
+            'is_atrasada' => $this->isAtrasada(),
+            'is_completa' => $this->isCompleta(),
+            'conta_nome' => null,
+            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
         ];
     }
 }

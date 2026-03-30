@@ -34,7 +34,8 @@
                 </div>
                 <div class="orc-saude-cta__text">
                     <span class="orc-summary-card__label">Saude Financeira</span>
-                    <span class="orc-saude-cta__msg">Defina orcamentos nas categorias para acompanhar sua saude financeira</span>
+                    <span class="orc-saude-cta__msg">Defina orcamentos nas categorias para acompanhar sua saude
+                        financeira</span>
                 </div>
             </div>
         </div>
@@ -107,7 +108,7 @@
             <button class="orc-action-btn orc-action-btn--primary" id="btnAutoSugerir"
                 title="A IA analisa seus ultimos 3 meses e sugere orcamentos automaticamente">
                 <i data-lucide="wand-2"></i>
-                <span>Sugestao Inteligente</span>
+                <span>Sugestão Inteligente</span>
             </button>
             <button class="orc-action-btn" id="btnCopiarMes" title="Copiar orcamentos do mes anterior">
                 <i data-lucide="copy"></i>

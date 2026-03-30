@@ -65,10 +65,9 @@ class MetaValidator
             }
         }
 
-        // Valor atual (opcional, para update)
-        $valorAtual = $data['valor_atual'] ?? null;
-        if ($valorAtual !== null && $valorAtual !== '' && (!is_numeric($valorAtual) || (float) $valorAtual < 0)) {
-            $errors['valor_atual'] = 'O valor atual deve ser zero ou positivo.';
+        $valorAlocado = $data['valor_alocado'] ?? $data['valor_atual'] ?? null;
+        if ($valorAlocado !== null && $valorAlocado !== '' && (!is_numeric($valorAlocado) || (float) $valorAlocado < 0)) {
+            $errors['valor_alocado'] = 'O valor alocado deve ser zero ou positivo.';
         }
 
         return $errors;
@@ -92,6 +91,13 @@ class MetaValidator
         if (isset($data['valor_alvo'])) {
             if (!is_numeric($data['valor_alvo']) || (float) $data['valor_alvo'] <= 0) {
                 $errors['valor_alvo'] = 'O valor deve ser maior que zero.';
+            }
+        }
+
+        if (array_key_exists('valor_alocado', $data) || array_key_exists('valor_atual', $data)) {
+            $valorAlocado = $data['valor_alocado'] ?? $data['valor_atual'];
+            if ($valorAlocado !== null && $valorAlocado !== '' && (!is_numeric($valorAlocado) || (float) $valorAlocado < 0)) {
+                $errors['valor_alocado'] = 'O valor alocado deve ser zero ou positivo.';
             }
         }
 

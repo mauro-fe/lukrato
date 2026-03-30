@@ -36,6 +36,7 @@ class LancamentoGlobalManager {
         this.contas = [];
         this.categorias = [];
         this.cartoes = [];
+        this.metas = [];
         this.tipoAtual = null;
         this.eventosConfigurados = false;
         this.salvando = false;
@@ -219,6 +220,21 @@ class LancamentoGlobalManager {
                     ? sortByLabel(cartoesData, (cartao) => cartao?.nome_cartao || cartao?.bandeira || '')
                     : [];
             }
+
+            const dataMetas = await apiGet(`${base}api/financas/metas`).catch(() => null);
+            if (!dataMetas) {
+                this.metas = [];
+            } else {
+                const metasData = Array.isArray(dataMetas)
+                    ? dataMetas
+                    : (Array.isArray(dataMetas?.data) ? dataMetas.data : []);
+
+                this.metas = sortByLabel(
+                    metasData.filter((meta) => meta?.status === 'ativa'),
+                    (meta) => meta?.titulo || ''
+                );
+            }
+            this.preencherMetas();
             this._dataLoaded = true;
         } catch (error) {
             console.error('Erro ao carregar dados:', error);
@@ -527,6 +543,22 @@ class LancamentoGlobalManager {
                 option.textContent = `${nomeConta} - ${formatMoney(saldo)}`;
                 select.appendChild(option);
             }
+        });
+
+        this.syncEnhancedSelects();
+    }
+
+    preencherMetas() {
+        const select = document.getElementById('globalLancamentoMeta');
+        if (!select) return;
+
+        select.innerHTML = '<option value="">Nenhuma meta</option>';
+
+        this.metas.forEach((meta) => {
+            const option = document.createElement('option');
+            option.value = meta.id;
+            option.textContent = meta.titulo;
+            select.appendChild(option);
         });
 
         this.syncEnhancedSelects();
@@ -1202,6 +1234,11 @@ class LancamentoGlobalManager {
         const pagoCheck = document.getElementById('globalLancamentoPago');
         if (pagoCheck) pagoCheck.checked = true;
 
+        const metaGroup = document.getElementById('globalMetaGroup');
+        if (metaGroup) metaGroup.style.display = 'none';
+        const metaSelect = document.getElementById('globalLancamentoMeta');
+        if (metaSelect) metaSelect.value = '';
+
         // Lembrete
         const lembreteGroup = document.getElementById('globalLembreteGroup');
         if (lembreteGroup) lembreteGroup.style.display = 'none';
@@ -1439,6 +1476,18 @@ class LancamentoGlobalManager {
         if (pagoCheck) pagoCheck.checked = true;
         const quickSaveButton = document.getElementById('globalBtnQuickSave');
         if (quickSaveButton) quickSaveButton.style.display = showStep5Fields ? 'inline-flex' : 'none';
+
+        const metaGroup = document.getElementById('globalMetaGroup');
+        const metaSelect = document.getElementById('globalLancamentoMeta');
+        const metaHelper = document.getElementById('globalMetaHelperText');
+        const podeVincularMeta = tipo === 'receita' || tipo === 'transferencia';
+        if (metaGroup) metaGroup.style.display = podeVincularMeta ? 'block' : 'none';
+        if (metaSelect) metaSelect.value = '';
+        if (metaHelper) {
+            metaHelper.textContent = tipo === 'transferencia'
+                ? 'O valor desta transferencia sera somado ao valor alocado da meta.'
+                : 'O valor desta receita sera somado ao valor alocado da meta.';
+        }
 
         const pagoLabel = document.getElementById('globalPagoLabel');
         const pagoHelper = document.getElementById('globalPagoHelperText');
@@ -1731,10 +1780,14 @@ class LancamentoGlobalManager {
         if (formaRecInput) formaRecInput.value = forma;
 
         const cartaoGroup = document.getElementById('globalCartaoCreditoGroup');
+        const metaGroup = document.getElementById('globalMetaGroup');
+        const metaSelect = document.getElementById('globalLancamentoMeta');
 
         if (forma === 'estorno_cartao') {
             if (cartaoGroup) { cartaoGroup.classList.add('active'); cartaoGroup.style.display = 'block'; }
             this.preencherCartoes(true);
+            if (metaGroup) metaGroup.style.display = 'none';
+            if (metaSelect) metaSelect.value = '';
             const parcelamentoGroup = document.getElementById('globalParcelamentoGroup');
             if (parcelamentoGroup) parcelamentoGroup.style.display = 'none';
             const numParcelasGroup = document.getElementById('globalNumeroParcelasGroup');
@@ -1756,6 +1809,7 @@ class LancamentoGlobalManager {
             if (cartaoGroup) { cartaoGroup.classList.remove('active'); cartaoGroup.style.display = 'none'; }
             const cartaoSelect = document.getElementById('globalLancamentoCartaoCredito');
             if (cartaoSelect) cartaoSelect.value = '';
+            if (metaGroup && this.tipoAtual === 'receita') metaGroup.style.display = 'block';
             const parcelamentoGroup = document.getElementById('globalParcelamentoGroup');
             if (parcelamentoGroup) parcelamentoGroup.style.display = 'block';
             const recorrenciaGroup = document.getElementById('globalRecorrenciaGroup');
@@ -1867,6 +1921,7 @@ class LancamentoGlobalManager {
             hora_lancamento: document.getElementById('globalLancamentoHora')?.value || null,
             categoria_id: document.getElementById('globalLancamentoCategoria').value || null,
             subcategoria_id: document.getElementById('globalLancamentoSubcategoria')?.value || null,
+            meta_id: document.getElementById('globalLancamentoMeta')?.value || null,
             pago: true
         };
 
@@ -1989,6 +2044,7 @@ class LancamentoGlobalManager {
                 requestData = {
                     conta_id: dados.conta_id,
                     conta_id_destino: dados.conta_destino_id,
+                    meta_id: dados.meta_id,
                     valor: dados.valor,
                     data: dados.data,
                     descricao: dados.descricao

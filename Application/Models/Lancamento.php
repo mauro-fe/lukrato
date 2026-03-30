@@ -42,6 +42,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property \Carbon\Carbon|string|null $data_competencia
  * @property int|null $categoria_id
  * @property int|null $subcategoria_id
+ * @property int|null $meta_id
  * @property int|null $conta_id
  * @property int|null $conta_id_destino
  * @property string|null $descricao
@@ -106,6 +107,7 @@ class Lancamento extends Model
         'hora_lancamento',
         'categoria_id',
         'subcategoria_id',
+        'meta_id',
         'conta_id',
         'conta_id_destino',
         'descricao',
@@ -147,6 +149,7 @@ class Lancamento extends Model
         'user_id'           => 'int',
         'categoria_id'      => 'int',
         'subcategoria_id'   => 'int',
+        'meta_id'           => 'int',
         'conta_id'          => 'int',
         'conta_id_destino'  => 'int',
         'data'              => 'date:Y-m-d',
@@ -257,6 +260,11 @@ class Lancamento extends Model
     public function subcategoria()
     {
         return $this->belongsTo(Categoria::class, 'subcategoria_id');
+    }
+
+    public function meta()
+    {
+        return $this->belongsTo(Meta::class, 'meta_id');
     }
 
     /**

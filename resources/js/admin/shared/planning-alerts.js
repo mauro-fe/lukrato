@@ -133,6 +133,7 @@ class PlanningAlertsStore {
     constructor() {
         this.metas = [];
         this.metasLoaded = false;
+        this.metasById = new Map();
         this.metasByConta = new Map();
         this.metaRequest = null;
         this.budgetCache = new Map();
@@ -142,6 +143,7 @@ class PlanningAlertsStore {
     invalidateMetas() {
         this.metas = [];
         this.metasLoaded = false;
+        this.metasById = new Map();
         this.metasByConta = new Map();
         this.metaRequest = null;
     }
@@ -152,14 +154,43 @@ class PlanningAlertsStore {
     }
 
     setMetas(metas) {
-        const activeMetas = Array.isArray(metas)
-            ? metas.filter((meta) => meta?.status === 'ativa' && meta?.conta_id)
+        const statusOrder = {
+            ativa: 0,
+            concluida: 1,
+            pausada: 2,
+            cancelada: 3
+        };
+
+        const normalizedMetas = Array.isArray(metas)
+            ? metas.filter((meta) => Number(meta?.id ?? 0) > 0)
             : [];
 
-        this.metas = activeMetas;
+        const sortedMetas = [...normalizedMetas].sort((a, b) => {
+            const statusA = String(a?.status || '').trim().toLowerCase();
+            const statusB = String(b?.status || '').trim().toLowerCase();
+            const rankA = statusOrder[statusA] ?? 99;
+            const rankB = statusOrder[statusB] ?? 99;
+
+            if (rankA !== rankB) {
+                return rankA - rankB;
+            }
+
+            return String(a?.titulo || '')
+                .localeCompare(String(b?.titulo || ''), 'pt-BR', { sensitivity: 'base' });
+        });
+
+        this.metas = sortedMetas;
         this.metasLoaded = true;
-        this.metasByConta = activeMetas.reduce((map, meta) => {
-            const key = String(meta.conta_id);
+        this.metasById = sortedMetas.reduce((map, meta) => {
+            map.set(String(meta.id), meta);
+            return map;
+        }, new Map());
+        this.metasByConta = sortedMetas.reduce((map, meta) => {
+            const key = String(meta?.conta_id ?? '').trim();
+            if (!key) {
+                return map;
+            }
+
             if (!map.has(key)) {
                 map.set(key, []);
             }
@@ -184,9 +215,9 @@ class PlanningAlertsStore {
             })
             .catch((error) => {
                 logClientWarning(
-                    'Avisos de planejamento: nao foi possivel carregar metas vinculadas',
+                    'Avisos de planejamento: nao foi possivel carregar metas',
                     error,
-                    'Falha ao carregar metas vinculadas'
+                    'Falha ao carregar metas'
                 );
                 return this.metas;
             })
@@ -195,6 +226,14 @@ class PlanningAlertsStore {
             });
 
         return this.metaRequest;
+    }
+
+    getMetas() {
+        return this.metas;
+    }
+
+    getMetaById(metaId) {
+        return this.metasById.get(String(metaId ?? '')) || null;
     }
 
     getMetasByConta(contaId) {

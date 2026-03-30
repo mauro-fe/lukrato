@@ -6,7 +6,6 @@ namespace Application\Repositories;
 
 use Application\Models\Meta;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model;
 
 class MetaRepository extends BaseRepository
 {
@@ -32,7 +31,7 @@ class MetaRepository extends BaseRepository
     /**
      * Busca meta por ID e user_id
      */
-    public function findByIdAndUser(int $id, int $userId): ?Model
+    public function findByIdAndUser(int $id, int $userId): ?Meta
     {
         return $this->query()->where('id', $id)->where('user_id', $userId)->first();
     }
@@ -40,7 +39,7 @@ class MetaRepository extends BaseRepository
     /**
      * Cria meta para o usuário
      */
-    public function createForUser(int $userId, array $data): Model
+    public function createForUser(int $userId, array $data): Meta
     {
         $data['user_id'] = $userId;
 
@@ -102,17 +101,17 @@ class MetaRepository extends BaseRepository
     public function atualizarValor(int $id, int $userId, float $novoValor): bool
     {
         $meta = $this->findByIdAndUser($id, $userId);
-        if (!$meta) return false;
+        if (!$meta) {
+            return false;
+        }
 
-        $meta->valor_atual = $novoValor;
+        $meta->valor_alocado = $novoValor;
 
-        // Auto-concluir se atingiu o alvo
-        if ($meta->valor_atual >= $meta->valor_alvo && $meta->status === Meta::STATUS_ATIVA) {
+        if ($meta->valor_alocado >= $meta->valor_alvo && $meta->status !== Meta::STATUS_CANCELADA) {
             $meta->status = Meta::STATUS_CONCLUIDA;
         }
 
-        // Reverter se caiu abaixo do alvo (metas vinculadas a conta)
-        if ($meta->valor_atual < $meta->valor_alvo && $meta->status === Meta::STATUS_CONCLUIDA && $meta->conta_id) {
+        if ($meta->valor_alocado < $meta->valor_alvo && $meta->status === Meta::STATUS_CONCLUIDA) {
             $meta->status = Meta::STATUS_ATIVA;
         }
 

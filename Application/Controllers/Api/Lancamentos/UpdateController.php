@@ -9,23 +9,28 @@ use Application\Core\Response;
 use Application\Formatters\LancamentoResponseFormatter;
 use Application\Repositories\ContaRepository;
 use Application\Repositories\LancamentoRepository;
+use Application\Services\Financeiro\MetaProgressService;
 use Application\Services\Lancamento\LancamentoUpdateService;
+use Application\Validators\LancamentoValidator;
 
 class UpdateController extends BaseController
 {
     private LancamentoRepository $lancamentoRepo;
     private LancamentoUpdateService $updateService;
     private ContaRepository $contaRepo;
+    private MetaProgressService $metaProgressService;
 
     public function __construct(
         ?LancamentoRepository $lancamentoRepo = null,
         ?LancamentoUpdateService $updateService = null,
-        ?ContaRepository $contaRepo = null
+        ?ContaRepository $contaRepo = null,
+        ?MetaProgressService $metaProgressService = null
     ) {
         parent::__construct();
         $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
         $this->updateService = $updateService ?? new LancamentoUpdateService();
         $this->contaRepo = $contaRepo ?? new ContaRepository();
+        $this->metaProgressService = $metaProgressService ?? new MetaProgressService();
     }
 
     public function __invoke(int $id): Response
@@ -61,9 +66,9 @@ class UpdateController extends BaseController
 
         $data = $payload['data'] ?? (string) $lancamento->data;
         if (empty($data)) {
-            $errors['data'] = 'A data é obrigatória.';
+            $errors['data'] = 'A data e obrigatoria.';
         } elseif (!preg_match('/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/', $data)) {
-            $errors['data'] = 'Data inválida. Use o formato YYYY-MM-DD.';
+            $errors['data'] = 'Data invalida. Use o formato YYYY-MM-DD.';
         }
 
         $valor = $payload['valor'] ?? $lancamento->valor;
@@ -77,19 +82,29 @@ class UpdateController extends BaseController
         }
 
         $contaOrigemId = isset($payload['conta_id']) ? (int) $payload['conta_id'] : (int) $lancamento->conta_id;
-        $contaDestinoId = isset($payload['conta_id_destino']) ? (int) $payload['conta_id_destino'] : (int) $lancamento->conta_id_destino;
+        $contaDestinoId = isset($payload['conta_id_destino'])
+            ? (int) $payload['conta_id_destino']
+            : (isset($payload['conta_destino_id']) ? (int) $payload['conta_destino_id'] : (int) $lancamento->conta_id_destino);
 
         if ($contaOrigemId === $contaDestinoId) {
             $errors['conta_id_destino'] = 'A conta de destino deve ser diferente da origem.';
         }
 
         if ($contaOrigemId && !$this->contaRepo->belongsToUser($contaOrigemId, $userId)) {
-            $errors['conta_id'] = 'Conta de origem inválida.';
+            $errors['conta_id'] = 'Conta de origem invalida.';
         }
 
         if ($contaDestinoId && !$this->contaRepo->belongsToUser($contaDestinoId, $userId)) {
-            $errors['conta_id_destino'] = 'Conta de destino inválida.';
+            $errors['conta_id_destino'] = 'Conta de destino invalida.';
         }
+
+        $metaId = array_key_exists('meta_id', $payload) ? $payload['meta_id'] : ($payload['metaId'] ?? $lancamento->meta_id);
+        $metaId = is_scalar($metaId) && $metaId !== '' ? (int) $metaId : null;
+        $metaId = LancamentoValidator::validateMetaOwnership($metaId, $userId, $errors);
+        LancamentoValidator::validateMetaLinkRules($metaId, [
+            'tipo' => 'transferencia',
+            'eh_transferencia' => true,
+        ], $errors);
 
         if (!empty($errors)) {
             return Response::validationErrorResponse($errors);
@@ -101,20 +116,38 @@ class UpdateController extends BaseController
             $destino = $this->contaRepo->findByIdAndUser($contaDestinoId, $userId);
             $nomeOrigem = $origem->nome ?? $origem->instituicao ?? 'Conta';
             $nomeDestino = $destino->nome ?? $destino->instituicao ?? 'Conta';
-            $descricao = "Transferência: {$nomeOrigem} → {$nomeDestino}";
+            $descricao = "Transferencia: {$nomeOrigem} -> {$nomeDestino}";
         }
+
+        $observacao = array_key_exists('observacao', $payload)
+            ? (trim((string) $payload['observacao']) ?: null)
+            : $lancamento->observacao;
+        $metaAnteriorId = (int) ($lancamento->meta_id ?? 0);
 
         $this->lancamentoRepo->update($lancamento->id, [
             'data' => $data,
             'valor' => $valor,
+            'meta_id' => $metaId,
             'conta_id' => $contaOrigemId,
             'conta_id_destino' => $contaDestinoId,
             'descricao' => mb_substr(trim($descricao), 0, 190),
+            'observacao' => $observacao !== null ? mb_substr($observacao, 0, 500) : null,
         ]);
 
+        $this->recalculateAffectedMetas($userId, $metaAnteriorId, (int) ($metaId ?? 0));
+
         $updated = $this->lancamentoRepo->findByIdAndUser($lancamento->id, $userId);
-        $updated->loadMissing(['categoria', 'conta', 'subcategoria']);
+        $updated->loadMissing(['categoria', 'conta', 'subcategoria', 'meta']);
 
         return Response::successResponse(LancamentoResponseFormatter::format($updated));
+    }
+
+    private function recalculateAffectedMetas(int $userId, int ...$metaIds): void
+    {
+        $metaIds = array_values(array_unique(array_filter($metaIds, static fn(int $metaId): bool => $metaId > 0)));
+
+        foreach ($metaIds as $metaId) {
+            $this->metaProgressService->recalculateMeta($userId, $metaId);
+        }
     }
 }

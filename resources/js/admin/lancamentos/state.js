@@ -110,6 +110,8 @@ export function initDOM() {
     DOM.selectLancConta = document.getElementById('editLancConta');
     DOM.selectLancCategoria = document.getElementById('editLancCategoria');
     DOM.selectLancSubcategoria = document.getElementById('editLancSubcategoria');
+    DOM.selectLancMeta = document.getElementById('editLancMeta');
+    DOM.editLancMetaGroup = document.getElementById('editLancMetaGroup');
     DOM.editLancPlanningAlerts = document.getElementById('editLancPlanningAlerts');
     DOM.subcategoriaGroup = document.getElementById('editSubcategoriaGroup');
     // Modal de edição transferência
@@ -120,6 +122,7 @@ export function initDOM() {
     DOM.inputTransValor = document.getElementById('editTransValor');
     DOM.selectTransConta = document.getElementById('editTransConta');
     DOM.selectTransContaDestino = document.getElementById('editTransContaDestino');
+    DOM.selectTransMeta = document.getElementById('editTransMeta');
     DOM.inputTransDescricao = document.getElementById('editTransDescricao');
     DOM.inputLancValor = document.getElementById('editLancValor');
     DOM.inputLancDescricao = document.getElementById('editLancDescricao');
@@ -145,6 +148,8 @@ export function initDOM() {
     DOM.viewLancCartao = document.getElementById('viewLancCartao');
     DOM.viewLancFormaPgtoItem = document.getElementById('viewLancFormaPgtoItem');
     DOM.viewLancFormaPgto = document.getElementById('viewLancFormaPgto');
+    DOM.viewLancMetaItem = document.getElementById('viewLancMetaItem');
+    DOM.viewLancMeta = document.getElementById('viewLancMeta');
     DOM.viewLancDescricaoCard = document.getElementById('viewLancDescricaoCard');
     DOM.viewLancDescricao = document.getElementById('viewLancDescricao');
     DOM.viewLancParcelamentoCard = document.getElementById('viewLancParcelamentoCard');
@@ -192,6 +197,14 @@ export const STATE = {
 
 export const Utils = {
     fmtMoney: (n) => formatMoney(n),
+    formatPercent: (value, digits = 1) => {
+        const num = Number(value);
+        if (!Number.isFinite(num)) return '0%';
+        const rounded = Number(num.toFixed(digits));
+        return Number.isInteger(rounded)
+            ? `${rounded.toFixed(0)}%`
+            : `${rounded.toFixed(digits)}%`;
+    },
 
     fmtDate: (iso) => {
         if (!iso) return '-';
@@ -216,6 +229,18 @@ export const Utils = {
         const tipo = String(data?.tipo || '').toLowerCase();
         const descricao = String(data?.descricao || '').toLowerCase();
         return tipo === 'saldo_inicial' || tipo === 'saldo inicial' || descricao.includes('saldo inicial');
+    },
+
+    getLancamentoMetaTitle: (data) => {
+        const direct = String(data?.meta_titulo ?? '').trim();
+        if (direct) return direct;
+
+        if (typeof data?.meta === 'object' && data.meta) {
+            const nested = String(data.meta?.titulo ?? data.meta?.nome ?? '').trim();
+            if (nested) return nested;
+        }
+
+        return '';
     },
 
     isTransferencia: (data) => Boolean(data?.eh_transferencia),

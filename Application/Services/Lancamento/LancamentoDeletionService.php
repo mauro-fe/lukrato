@@ -4,157 +4,189 @@ declare(strict_types=1);
 
 namespace Application\Services\Lancamento;
 
-use Application\Models\Lancamento;
+use Application\Enums\LogCategory;
 use Application\Models\Fatura;
 use Application\Models\FaturaCartaoItem;
+use Application\Models\Lancamento;
 use Application\Models\Parcelamento;
 use Application\Repositories\LancamentoRepository;
 use Application\Repositories\ParcelamentoRepository;
-use Application\Enums\LogCategory;
-use Application\Support\FaturaHelper;
+use Application\Services\Financeiro\MetaProgressService;
 use Application\Services\Infrastructure\LogService;
 use Application\Services\User\OnboardingProgressService;
+use Application\Support\FaturaHelper;
 use Illuminate\Database\Capsule\Manager as DB;
 
 /**
- * Service responsável pela exclusão de lançamentos.
+ * Service responsavel pela exclusao de lancamentos.
  *
- * Encapsula toda a lógica de negócio para deleção:
- * - Exclusão simples (single)
- * - Exclusão de todas as ocorrências de recorrência (all)
- * - Exclusão de ocorrências futuras de recorrência (future)
- * - Exclusão de parcelas de parcelamento (all/future)
- * - Reversão de pagamento de fatura ao excluir lançamento de pagamento
+ * Encapsula toda a logica de negocio para delecao:
+ * - Exclusao simples (single)
+ * - Exclusao de todas as ocorrencias de recorrencia (all)
+ * - Exclusao de ocorrencias futuras de recorrencia (future)
+ * - Exclusao de parcelas de parcelamento (all/future)
+ * - Reversao de pagamento de fatura ao excluir lancamento de pagamento
  */
 class LancamentoDeletionService
 {
     private LancamentoRepository $lancamentoRepo;
     private ParcelamentoRepository $parcelamentoRepo;
     private OnboardingProgressService $onboardingProgressService;
+    private MetaProgressService $metaProgressService;
 
     public function __construct(
         ?LancamentoRepository $lancamentoRepo = null,
         ?ParcelamentoRepository $parcelamentoRepo = null,
-        ?OnboardingProgressService $onboardingProgressService = null
+        ?OnboardingProgressService $onboardingProgressService = null,
+        ?MetaProgressService $metaProgressService = null
     ) {
         $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
         $this->parcelamentoRepo = $parcelamentoRepo ?? new ParcelamentoRepository();
         $this->onboardingProgressService = $onboardingProgressService ?? new OnboardingProgressService();
+        $this->metaProgressService = $metaProgressService ?? new MetaProgressService();
     }
 
     /**
-     * Exclui lançamento(s) conforme o escopo informado.
+     * Exclui lancamento(s) conforme o escopo informado.
      *
-     * @param Lancamento $lancamento O lançamento-alvo
-     * @param int $userId ID do usuário autenticado
+     * @param Lancamento $lancamento O lancamento-alvo
+     * @param int $userId ID do usuario autenticado
      * @param string $scope 'single', 'all' ou 'future'
      * @return array{ok: bool, message: string, excluidos: int}
      */
     public function delete(Lancamento $lancamento, int $userId, string $scope = 'single'): array
     {
-        $result = DB::transaction(function () use ($lancamento, $userId, $scope) {
-            // Se for um pagamento de fatura, reverter os itens antes de excluir
+        $transactionResult = DB::transaction(function () use ($lancamento, $userId, $scope): array {
+            $affectedMetaRefs = [];
+
             if ($lancamento->origem_tipo === 'pagamento_fatura' && $lancamento->cartao_credito_id) {
                 $this->reverterPagamentoFatura($lancamento);
             }
 
-            // Recorrência (all/future)
             if ($scope !== 'single' && $lancamento->recorrente && $lancamento->recorrencia_pai_id) {
-                return $this->deleteRecorrencia($lancamento, $userId, $scope);
+                $result = $this->deleteRecorrencia($lancamento, $userId, $scope, $affectedMetaRefs);
+
+                return [
+                    'result' => $result,
+                    'affected_meta_refs' => $affectedMetaRefs,
+                ];
             }
 
-            // Parcelamento (all/future)
             if ($scope !== 'single' && $lancamento->parcelamento_id) {
-                return $this->deleteParcelamento($lancamento, $userId, $scope);
+                $result = $this->deleteParcelamento($lancamento, $userId, $scope, $affectedMetaRefs);
+
+                return [
+                    'result' => $result,
+                    'affected_meta_refs' => $affectedMetaRefs,
+                ];
             }
 
-            // Exclusão simples
-            return $this->deleteSingle($lancamento, $userId);
+            $result = $this->deleteSingle($lancamento, $userId, $affectedMetaRefs);
+
+            return [
+                'result' => $result,
+                'affected_meta_refs' => $affectedMetaRefs,
+            ];
         });
 
+        $this->recalculateAffectedMetas($transactionResult['affected_meta_refs'] ?? []);
         $this->syncOnboardingStateAfterDeletion($userId);
 
-        return $result;
+        return $transactionResult['result'] ?? [
+            'ok' => false,
+            'message' => 'Erro ao excluir lancamento.',
+            'excluidos' => 0,
+        ];
     }
 
     /**
-     * Exclui lançamentos de recorrência conforme escopo (all ou future).
+     * Exclui lancamentos de recorrencia conforme escopo (all ou future).
      */
-    private function deleteRecorrencia(Lancamento $lancamento, int $userId, string $scope): array
+    private function deleteRecorrencia(Lancamento $lancamento, int $userId, string $scope, array &$affectedMetaRefs): array
     {
         $paiId = $lancamento->recorrencia_pai_id;
 
         if ($scope === 'all') {
-            $excluidos = Lancamento::where(function ($q) use ($paiId) {
+            $query = Lancamento::where(function ($q) use ($paiId) {
                 $q->where('recorrencia_pai_id', $paiId)->orWhere('id', $paiId);
-            })->where('user_id', $userId)->delete();
+            })->where('user_id', $userId);
+
+            $this->collectMetaRefsFromQuery($query, $affectedMetaRefs);
+            $excluidos = $query->delete();
 
             return [
-                'ok'        => true,
-                'message'   => "{$excluidos} lançamentos da recorrência excluídos",
+                'ok' => true,
+                'message' => "{$excluidos} lancamentos da recorrencia excluidos",
                 'excluidos' => $excluidos,
             ];
         }
 
-        // scope === 'future'
-        $excluidos = Lancamento::where(function ($q) use ($paiId) {
+        $query = Lancamento::where(function ($q) use ($paiId) {
             $q->where('recorrencia_pai_id', $paiId)->orWhere('id', $paiId);
         })
             ->where('user_id', $userId)
             ->where('data', '>=', $lancamento->data)
-            ->where('pago', 0)
-            ->delete();
+            ->where('pago', 0);
+
+        $this->collectMetaRefsFromQuery($query, $affectedMetaRefs);
+        $excluidos = $query->delete();
 
         return [
-            'ok'        => true,
-            'message'   => "{$excluidos} lançamentos futuros da recorrência excluídos",
+            'ok' => true,
+            'message' => "{$excluidos} lancamentos futuros da recorrencia excluidos",
             'excluidos' => $excluidos,
         ];
     }
 
     /**
-     * Exclui lançamentos de parcelamento conforme escopo (all ou future).
+     * Exclui lancamentos de parcelamento conforme escopo (all ou future).
      */
-    private function deleteParcelamento(Lancamento $lancamento, int $userId, string $scope): array
+    private function deleteParcelamento(Lancamento $lancamento, int $userId, string $scope, array &$affectedMetaRefs): array
     {
         $parcelamentoId = $lancamento->parcelamento_id;
 
         if ($scope === 'all') {
-            $excluidos = Lancamento::where('parcelamento_id', $parcelamentoId)
-                ->where('user_id', $userId)->delete();
+            $query = Lancamento::where('parcelamento_id', $parcelamentoId)
+                ->where('user_id', $userId);
+
+            $this->collectMetaRefsFromQuery($query, $affectedMetaRefs);
+            $excluidos = $query->delete();
 
             Parcelamento::where('id', $parcelamentoId)
-                ->where('user_id', $userId)->delete();
+                ->where('user_id', $userId)
+                ->delete();
 
             return [
-                'ok'        => true,
-                'message'   => "{$excluidos} parcelas excluídas",
+                'ok' => true,
+                'message' => "{$excluidos} parcelas excluidas",
                 'excluidos' => $excluidos,
             ];
         }
 
-        // scope === 'future'
-        $excluidos = Lancamento::where('parcelamento_id', $parcelamentoId)
+        $query = Lancamento::where('parcelamento_id', $parcelamentoId)
             ->where('user_id', $userId)
             ->where('data', '>=', $lancamento->data)
-            ->where('pago', 0)
-            ->delete();
+            ->where('pago', 0);
+
+        $this->collectMetaRefsFromQuery($query, $affectedMetaRefs);
+        $excluidos = $query->delete();
 
         $this->ajustarParcelamentoPosExclusao($parcelamentoId, $userId);
 
         return [
-            'ok'        => true,
-            'message'   => "{$excluidos} parcelas futuras excluídas",
+            'ok' => true,
+            'message' => "{$excluidos} parcelas futuras excluidas",
             'excluidos' => $excluidos,
         ];
     }
 
     /**
-     * Exclui um único lançamento e ajusta parcelamento se necessário.
+     * Exclui um unico lancamento e ajusta parcelamento se necessario.
      */
-    private function deleteSingle(Lancamento $lancamento, int $userId): array
+    private function deleteSingle(Lancamento $lancamento, int $userId, array &$affectedMetaRefs): array
     {
         $parcelamentoId = $lancamento->parcelamento_id;
+        $this->appendMetaRef($affectedMetaRefs, $userId, (int) ($lancamento->meta_id ?? 0));
 
         $this->lancamentoRepo->delete($lancamento->id);
 
@@ -163,16 +195,16 @@ class LancamentoDeletionService
         }
 
         return [
-            'ok'        => true,
-            'message'   => 'Lançamento excluído',
+            'ok' => true,
+            'message' => 'Lancamento excluido',
             'excluidos' => 1,
         ];
     }
 
     /**
-     * Ajusta o parcelamento após exclusão de parcelas.
-     * Se não restam parcelas, exclui o parcelamento.
-     * Se restam, atualiza o número de parcelas e recalcula pagas.
+     * Ajusta o parcelamento apos exclusao de parcelas.
+     * Se nao restam parcelas, exclui o parcelamento.
+     * Se restam, atualiza o numero de parcelas e recalcula pagas.
      */
     private function ajustarParcelamentoPosExclusao(int $parcelamentoId, int $userId): void
     {
@@ -180,7 +212,8 @@ class LancamentoDeletionService
 
         if ($restantes === 0) {
             Parcelamento::where('id', $parcelamentoId)
-                ->where('user_id', $userId)->delete();
+                ->where('user_id', $userId)
+                ->delete();
             return;
         }
 
@@ -193,8 +226,8 @@ class LancamentoDeletionService
     }
 
     /**
-     * Reverte o pagamento de uma fatura de cartão de crédito.
-     * Desmarca os itens como pagos e atualiza status da fatura e limite do cartão.
+     * Reverte o pagamento de uma fatura de cartao de credito.
+     * Desmarca os itens como pagos e atualiza status da fatura e limite do cartao.
      */
     private function reverterPagamentoFatura(Lancamento $lancamento): void
     {
@@ -216,10 +249,10 @@ class LancamentoDeletionService
             }
 
             $faturaIds = $itensPagos->pluck('fatura_id')->unique()->filter()->values();
-            $itemIds   = $itensPagos->pluck('id')->toArray();
+            $itemIds = $itensPagos->pluck('id')->toArray();
 
             FaturaCartaoItem::whereIn('id', $itemIds)->update([
-                'pago'           => false,
+                'pago' => false,
                 'data_pagamento' => null,
             ]);
 
@@ -236,10 +269,10 @@ class LancamentoDeletionService
             }
         } catch (\Exception $e) {
             LogService::captureException($e, LogCategory::FATURA, [
-                'action'        => 'reverter_pagamento_fatura',
+                'action' => 'reverter_pagamento_fatura',
                 'lancamento_id' => $lancamento->id,
-                'cartao_id'     => $lancamento->cartao_credito_id ?? null,
-                'user_id'       => $lancamento->user_id,
+                'cartao_id' => $lancamento->cartao_credito_id ?? null,
+                'user_id' => $lancamento->user_id,
             ]);
         }
     }
@@ -253,6 +286,40 @@ class LancamentoDeletionService
                 'action' => 'resync_onboarding_after_lancamento_delete',
                 'user_id' => $userId,
             ]);
+        }
+    }
+
+    private function collectMetaRefsFromQuery($query, array &$affectedMetaRefs): void
+    {
+        $metaRefs = (clone $query)
+            ->whereNotNull('meta_id')
+            ->get(['user_id', 'meta_id']);
+
+        foreach ($metaRefs as $metaRef) {
+            $this->appendMetaRef(
+                $affectedMetaRefs,
+                (int) ($metaRef->user_id ?? 0),
+                (int) ($metaRef->meta_id ?? 0)
+            );
+        }
+    }
+
+    private function appendMetaRef(array &$affectedMetaRefs, int $userId, int $metaId): void
+    {
+        if ($userId <= 0 || $metaId <= 0) {
+            return;
+        }
+
+        $affectedMetaRefs[$userId . ':' . $metaId] = [
+            'user_id' => $userId,
+            'meta_id' => $metaId,
+        ];
+    }
+
+    private function recalculateAffectedMetas(array $affectedMetaRefs): void
+    {
+        foreach ($affectedMetaRefs as $metaRef) {
+            $this->metaProgressService->recalculateMeta((int) $metaRef['user_id'], (int) $metaRef['meta_id']);
         }
     }
 }

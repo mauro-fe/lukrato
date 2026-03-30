@@ -152,6 +152,24 @@
                         </div>
                     </div>
 
+                    <div class="lk-form-group" id="globalMetaGroup" style="display: none;">
+                        <label for="globalLancamentoMeta" class="lk-label">
+                            <i data-lucide="target"></i>
+                            Vincular a uma meta
+                        </label>
+                        <div class="lk-select-wrapper">
+                            <select id="globalLancamentoMeta" name="meta_id" class="lk-select"
+                                data-lk-custom-select="modal" data-lk-select-search="true"
+                                data-lk-select-sort="alpha" data-lk-select-search-placeholder="Buscar meta...">
+                                <option value="">Nenhuma meta</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="lk-select-icon"></i>
+                        </div>
+                        <small class="lk-helper-text" id="globalMetaHelperText">
+                            O valor desta receita ou transferencia sera somado ao valor alocado da meta.
+                        </small>
+                    </div>
+
                     <!-- Nav -->
                     <div class="lk-wizard-nav">
                         <div class="lk-wizard-nav-left">

@@ -80,6 +80,11 @@
                                 <span>Forma Pagamento:</span>
                                 <strong id="viewLancFormaPgto"></strong>
                             </div>
+                            <div class="info-row d-flex justify-content-between mb-2" id="viewLancMetaItem"
+                                style="display: none !important;">
+                                <span>Meta:</span>
+                                <strong id="viewLancMeta"></strong>
+                            </div>
                         </div>
                     </div>
                 </div>
