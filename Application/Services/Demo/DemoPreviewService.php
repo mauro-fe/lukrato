@@ -229,7 +229,7 @@ class DemoPreviewService
             'context' => $context,
             'primary_action' => 'create_account',
             'title' => 'Dados de exemplo',
-            'message' => 'Esses dados existem so para mostrar como o Lukrato funciona. Assim que voce criar seus primeiros registros reais, a demonstracao desaparece automaticamente.',
+            'message' => 'Esses dados existem só para mostrar como o Lukrato funciona. Assim que você criar seus primeiros registros reais, a demonstração desaparece automaticamente.',
             'cta_label' => 'Criar primeira conta',
             'cta_url' => 'contas',
             'real_account_count' => 0,

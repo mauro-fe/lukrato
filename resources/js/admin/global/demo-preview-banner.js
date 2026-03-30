@@ -18,7 +18,7 @@ function createMarkup(meta = {}) {
     const title = escapeHtml(String(meta.title || 'Dados de exemplo'));
     const message = escapeHtml(String(
         meta.message
-        || 'Esses dados existem só para mostrar como o app funciona. Assim que você criar seus primeiros registros reais, a demonstração desaparece automaticamente.'
+        || 'Esses dados existem só para mostrar como o app funciona. Assim que você criar seus primeiros registros reais, a demonstração desapavimentacãrece automaticamente.'
     ));
     const context = escapeHtml(String(meta.context || 'preview'));
     const highlightLabel = escapeHtml(String(meta.highlight_label || 'Somente visualização'));

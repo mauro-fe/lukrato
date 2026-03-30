@@ -56,7 +56,7 @@ const TOUR_CONFIGS = {
             {
                 selector: ['#dashboardFirstTransactionCta', '#dashboardEmptyStateCta', '#fabContainer', '.fab-container', '#fabMain', '#fabButton'],
                 title: 'Adicionar lancamento',
-                description: 'Atalho principal para registrar sua próxima movimentacão.',
+                description: 'Atalho principal para registrar sua próxima movimentação.',
                 side: 'top',
                 align: 'center',
             },
