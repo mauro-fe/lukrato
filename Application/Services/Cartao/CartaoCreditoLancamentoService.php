@@ -185,6 +185,7 @@ class CartaoCreditoLancamentoService
         $dataCompra = $data['data'] ?? date('Y-m-d');
         $vencimento = $this->calcularDataVencimento($dataCompra, $cartao->dia_vencimento, $cartao->dia_fechamento);
         $competencia = $this->calcularCompetencia($dataCompra, $cartao->dia_fechamento);
+        $valorCompra = $this->moneyString($data['valor'] ?? 0);
 
         $fatura = $this->buscarOuCriarFatura(
             $userId,
@@ -218,7 +219,7 @@ class CartaoCreditoLancamentoService
             'fatura_id' => $fatura->id,
             'lancamento_id' => null,
             'descricao' => $data['descricao'],
-            'valor' => $data['valor'],
+            'valor' => $valorCompra,
             'data_compra' => $dataCompra,
             'data_vencimento' => $vencimento['data'],
             'categoria_id' => $data['categoria_id'] ?? null,
@@ -237,7 +238,7 @@ class CartaoCreditoLancamentoService
         LogService::info("[CARTAO] Item de fatura recorrente criado (assinatura)", [
             'item_id' => $item->id,
             'fatura_id' => $fatura->id,
-            'valor' => $data['valor'],
+            'valor' => $valorCompra,
             'freq' => $data['recorrencia_freq'] ?? 'mensal',
             'descricao' => $data['descricao'],
         ]);
