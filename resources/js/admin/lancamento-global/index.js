@@ -100,7 +100,7 @@ class LancamentoGlobalManager {
         if (hint) {
             hint.textContent = contexto.source === 'contas'
                 ? 'Abrimos com a conta desta tela. Se precisar, você pode trocar antes de continuar.'
-                : 'Escolha a conta para ver saldo e as ultimas movimentacoes.';
+                : 'Escolha a conta para ver saldo e as ultimas movimentações.';
         }
 
         const select = document.getElementById('globalContaSelect');
@@ -166,7 +166,7 @@ class LancamentoGlobalManager {
         if (!historicoContainer) return;
 
         if (!this.contaSelecionada) {
-            renderLancamentoHistoryPlaceholder(historicoContainer, 'Selecione uma conta para ver as ultimas movimentacoes.');
+            renderLancamentoHistoryPlaceholder(historicoContainer, 'Selecione uma conta para ver as ultimas movimentações.');
             return;
         }
 
@@ -912,7 +912,7 @@ class LancamentoGlobalManager {
         if (!this.contaSelecionada) {
             const historicoContainer = document.getElementById('globalLancamentoHistorico');
             if (historicoContainer) {
-                renderLancamentoHistoryPlaceholder(historicoContainer, 'Selecione uma conta para ver as ultimas movimentacoes.');
+                renderLancamentoHistoryPlaceholder(historicoContainer, 'Selecione uma conta para ver as ultimas movimentações.');
             }
         }
         // Hide progress dots on step 1

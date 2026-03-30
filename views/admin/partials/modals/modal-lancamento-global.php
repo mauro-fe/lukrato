@@ -32,7 +32,7 @@
                     <i data-lucide="chevron-down" class="lk-select-icon"></i>
                 </div>
                 <small class="lk-helper-text" id="globalContaContextHint">
-                    Escolha a conta para ver saldo e ultimas movimentacoes.
+                    Escolha a conta para ver saldo e ultimas movimentações.
                 </small>
             </div>
 
@@ -59,12 +59,12 @@
                 <div class="lk-historico-section">
                     <h3 class="lk-section-title">
                         <i data-lucide="history"></i>
-                        Ultimas Movimentacoes
+                        Ultimas movimentações
                     </h3>
                     <div class="lk-historico-list surface-card" id="globalLancamentoHistorico">
                         <div class="lk-historico-empty">
                             <i data-lucide="history"></i>
-                            <p>Selecione uma conta para ver as ultimas movimentacoes.</p>
+                            <p>Selecione uma conta para ver as ultimas movimentações.</p>
                         </div>
                     </div>
                 </div>

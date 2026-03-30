@@ -108,7 +108,7 @@ class HealthScoreInsights {
         action: { url: 'lancamentos?tipo=despesa' }
       },
       low_activity: {
-        title: 'Registre mais movimentacoes',
+        title: 'Registre mais movimentações',
         impact: 'Mais controle',
         action: { url: 'lancamentos' }
       },

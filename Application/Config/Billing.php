@@ -148,7 +148,7 @@ return [
         'default'             => '🚀 Desbloqueie todo o potencial do Lukrato',
         'ai_chat'             => '🤖 Assistente IA: tire dúvidas sobre suas finanças',
         'analise_ia'          => '🧠 Análise financeira com IA exclusiva do Ultra',
-        'insights_automaticos' => '💡 Insights automáticos sobre seus gastos com o Ultra',
+        'insights_automáticos' => '💡 Insights automáticos sobre seus gastos com o Ultra',
         'previsao_saldo'      => '📈 Previsão de saldo inteligente exclusiva do Ultra',
     ],
 
@@ -181,7 +181,7 @@ return [
             'metas_financeiras'       => true,    // Limitado a 3
             'ai_chat'                 => true,    // Degustação: 5 sugestões/mês
             'analise_financeira_ia'   => false,   // Exclusivo Ultra
-            'insights_automaticos'    => false,   // Exclusivo Ultra
+            'insights_automáticos'    => false,   // Exclusivo Ultra
             'previsao_saldo'          => false,   // Exclusivo Ultra
             'chat_financeiro_ia'      => false,   // Exclusivo Ultra
         ],
@@ -204,7 +204,7 @@ return [
             'metas_financeiras'       => true,
             'ai_chat'                 => true,
             'analise_financeira_ia'   => false,   // Exclusivo Ultra
-            'insights_automaticos'    => false,   // Exclusivo Ultra
+            'insights_automáticos'    => false,   // Exclusivo Ultra
             'previsao_saldo'          => false,   // Exclusivo Ultra
             'chat_financeiro_ia'      => false,   // Exclusivo Ultra
         ],
@@ -227,7 +227,7 @@ return [
             'metas_financeiras'       => true,
             'ai_chat'                 => true,
             'analise_financeira_ia'   => true,    // Exclusivo Ultra
-            'insights_automaticos'    => true,    // Exclusivo Ultra
+            'insights_automáticos'    => true,    // Exclusivo Ultra
             'previsao_saldo'          => true,    // Exclusivo Ultra
             'chat_financeiro_ia'      => true,    // Exclusivo Ultra
         ],

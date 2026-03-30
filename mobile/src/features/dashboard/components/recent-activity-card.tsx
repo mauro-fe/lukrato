@@ -57,7 +57,7 @@ export function RecentActivityCard({ transactions }: RecentActivityCardProps) {
           <View style={styles.emptyState}>
             <Text style={styles.emptyTitle}>Seus ultimos lancamentos aparecem aqui</Text>
             <Text style={styles.emptyDescription}>
-              Assim que a API devolver movimentacoes, a lista mostra o que entrou, saiu ou foi transferido.
+              Assim que a API devolver movimentações, a lista mostra o que entrou, saiu ou foi transferido.
             </Text>
           </View>
         )}

@@ -41,36 +41,36 @@ const TOUR_CONFIGS = {
         steps: [
             {
                 selector: '#saldoCard',
-                title: 'Resumo do mes',
-                description: 'Aqui voce enxerga saldo, entradas e saidas sem trocar de tela.',
+                title: 'Resumo do mês',
+                description: 'Aqui você enxerga saldo, entradas e saídas sem trocar de tela.',
                 side: 'bottom',
                 align: 'center',
             },
             {
                 selector: '.dash-kpis',
                 title: 'Indicadores principais',
-                description: 'Este bloco resume entradas, saidas e resultado do periodo.',
+                description: 'Este bloco resume entradas, saídas e resultado do periodo.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: ['#dashboardFirstTransactionCta', '#dashboardEmptyStateCta', '#fabContainer', '.fab-container', '#fabMain', '#fabButton'],
                 title: 'Adicionar lancamento',
-                description: 'Atalho principal para registrar sua proxima movimentacao.',
+                description: 'Atalho principal para registrar sua próxima movimentacão.',
                 side: 'top',
                 align: 'center',
             },
             {
                 selector: '#table-section',
                 title: 'Ultimas transacoes',
-                description: 'Acompanhe historico recente e abra itens para revisar.',
+                description: 'Acompanhe histórico recente e abra itens para revisar.',
                 side: 'bottom',
                 align: 'center',
             },
             {
                 selector: '#chart-section',
                 title: 'Grafico por categoria',
-                description: 'Use este bloco para identificar concentracao de gastos.',
+                description: 'Use este bloco para identificar concentração de gastos.',
                 side: 'top',
                 align: 'center',
             },
@@ -79,7 +79,7 @@ const TOUR_CONFIGS = {
             {
                 selector: '#saldoCard',
                 title: 'Resumo rapido',
-                description: 'Saldo e variacao do mes em um unico card.',
+                description: 'Saldo e variação do mês em um unico card.',
                 side: 'bottom',
                 align: 'center',
             },
@@ -93,7 +93,7 @@ const TOUR_CONFIGS = {
             {
                 selector: '#table-section',
                 title: 'Historico recente',
-                description: 'Lista de transacoes para revisao rapida.',
+                description: 'Lista de transacoes para revisão rapida.',
                 side: 'top',
                 align: 'center',
             },
@@ -114,14 +114,14 @@ const TOUR_CONFIGS = {
             {
                 selector: '.lan-summary-strip',
                 title: 'Resumo do periodo',
-                description: 'Receitas, despesas e saldo do mes em leitura imediata.',
+                description: 'Receitas, despesas e saldo do mês em leitura imediata.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: ['#btnNovoLancamento', '#fabButton'],
                 title: 'Novo lancamento',
-                description: 'Use este atalho para entrada, despesa ou transferencia.',
+                description: 'Use este atalho para entrada, despesa ou transferência.',
                 side: 'left',
                 align: 'center',
             },
@@ -142,13 +142,13 @@ const TOUR_CONFIGS = {
             {
                 selector: ['#lancamentosFeed', '.modern-table-wrapper'],
                 title: 'Lista de lancamentos',
-                description: 'Historico com acoes rapidas em cada item.',
+                description: 'Histórico com acões rápidas em cada item.',
                 side: 'top',
                 align: 'center',
             },
             {
                 selector: '#exportCard',
-                title: 'Exportacao',
+                title: 'Exportacão',
                 description: 'Exporte quando precisar compartilhar ou arquivar.',
                 side: 'top',
                 align: 'start',
@@ -158,21 +158,21 @@ const TOUR_CONFIGS = {
             {
                 selector: '.lan-summary-strip',
                 title: 'Resumo do periodo',
-                description: 'Resumo do mes antes de entrar nos detalhes.',
+                description: 'Resumo do mês antes de entrar nos detalhes.',
                 side: 'bottom',
                 align: 'center',
             },
             {
                 selector: ['#btnNovoLancamento', '#fabButton'],
                 title: 'Novo lancamento',
-                description: 'Registre rapidamente sua movimentacao.',
+                description: 'Registre rapidamente sua movimentação.',
                 side: 'top',
                 align: 'center',
             },
             {
                 selector: '#btnToggleLanFilters',
                 title: 'Abrir filtros',
-                description: 'No mobile, os filtros ficam recolhidos por padrao.',
+                description: 'No mobile, os filtros ficam recolhidos por padrão.',
                 side: 'bottom',
                 align: 'center',
             },
@@ -192,8 +192,8 @@ const TOUR_CONFIGS = {
         steps: [
             {
                 selector: '#contasHero',
-                title: 'Visao consolidada',
-                description: 'Veja seu total e a concentracao do dinheiro.',
+                title: 'Visão consolidada',
+                description: 'Veja seu total e a concentração do dinheiro.',
                 side: 'bottom',
                 align: 'start',
             },
@@ -206,7 +206,7 @@ const TOUR_CONFIGS = {
             },
             {
                 selector: '#contasDistributionCard',
-                title: 'Distribuicao',
+                title: 'Distribuição',
                 description: 'Entenda em quais contas o saldo esta distribuido.',
                 side: 'top',
                 align: 'start',
@@ -250,7 +250,7 @@ const TOUR_CONFIGS = {
             },
             {
                 selector: '#viewToggle',
-                title: 'Trocar visualizacao',
+                title: 'Trocar visualização',
                 description: 'Alterne entre cards e lista.',
                 side: 'top',
                 align: 'center',
@@ -278,7 +278,7 @@ const TOUR_CONFIGS = {
             },
             {
                 selector: ['#btnNovoCartao', '#btnNovoCartaoEmpty'],
-                title: 'Adicionar cartao',
+                title: 'Adicionar cartão',
                 description: 'Cadastre cartoes para controlar compras e faturas.',
                 side: 'bottom',
                 align: 'center',
@@ -286,27 +286,27 @@ const TOUR_CONFIGS = {
             {
                 selector: '.cartoes-toolbar',
                 title: 'Barra de controle',
-                description: 'Busca, filtros e ajustes de visualizacao.',
+                description: 'Busca, filtros e ajustes de visualização.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: ['#searchCartoes', '.cart-search-wrapper'],
                 title: 'Busca rapida',
-                description: 'Encontre um cartao por nome ou bandeira.',
+                description: 'Encontre um cartão por nome ou bandeira.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: ['#cartoesGrid', '.cartoes-grid'],
-                title: 'Cards de cartao',
+                title: 'Cards de cartão',
                 description: 'Cada card mostra limite, fechamento e atalhos.',
                 side: 'top',
                 align: 'center',
             },
             {
                 selector: '.view-toggle',
-                title: 'Modo de visualizacao',
+                title: 'Modo de visualização',
                 description: 'Troque layout conforme sua preferencia.',
                 side: 'left',
                 align: 'center',
@@ -322,21 +322,21 @@ const TOUR_CONFIGS = {
             },
             {
                 selector: ['#btnNovoCartao', '#btnNovoCartaoEmpty'],
-                title: 'Novo cartao',
-                description: 'Cadastre seu cartao por este botao.',
+                title: 'Novo cartão',
+                description: 'Cadastre seu cartão por este botão.',
                 side: 'bottom',
                 align: 'center',
             },
             {
                 selector: ['#searchCartoes', '.cart-search-wrapper'],
-                title: 'Buscar cartao',
-                description: 'Filtro rapido para localizar o cartao certo.',
+                title: 'Buscar cartão',
+                description: 'Filtro rapido para localizar o cartão certo.',
                 side: 'bottom',
                 align: 'center',
             },
             {
                 selector: ['#cartoesGrid', '.cartoes-grid'],
-                title: 'Lista de cartoes',
+                title: 'Lista de cartões',
                 description: 'Role a lista para abrir detalhes e atalhos.',
                 side: 'top',
                 align: 'center',
@@ -351,7 +351,7 @@ const TOUR_CONFIGS = {
             {
                 selector: '.filters-modern',
                 title: 'Filtros da fatura',
-                description: 'Defina status, cartao e periodo antes de analisar itens.',
+                description: 'Defina status, cartão e período antes de analisar itens.',
                 side: 'bottom',
                 align: 'start',
             },
@@ -364,7 +364,7 @@ const TOUR_CONFIGS = {
             },
             {
                 selector: '.view-toggle',
-                title: 'Trocar visualizacao',
+                title: 'Trocar visualizacão',
                 description: 'Alterne entre cards e lista.',
                 side: 'left',
                 align: 'center',
@@ -372,14 +372,14 @@ const TOUR_CONFIGS = {
             {
                 selector: '#faturasListHeader',
                 title: 'Cabecalho da listagem',
-                description: 'Resumo rapido da visualizacao ativa.',
+                description: 'Resumo rapido da visualizacão ativa.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: '#parcelamentosContainer',
                 title: 'Itens da fatura',
-                description: 'Parcelas, status e acoes disponiveis.',
+                description: 'Parcelas, status e ações disponíveis.',
                 side: 'top',
                 align: 'center',
             },
@@ -423,14 +423,14 @@ const TOUR_CONFIGS = {
             {
                 selector: '.cat-kpis',
                 title: 'Painel de categorias',
-                description: 'Resumo de categorias, subcategorias e cobertura de orcamento.',
+                description: 'Resumo de categorias, subcategorias e cobertura de orçamento.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: ['.create-card', '#formNova'],
                 title: 'Criar categoria',
-                description: 'Cadastre categorias para melhorar relatorios e filtros.',
+                description: 'Cadastre categorias para melhorar relatórios e filtros.',
                 side: 'bottom',
                 align: 'start',
             },
@@ -444,7 +444,7 @@ const TOUR_CONFIGS = {
             {
                 selector: '.receitas-card',
                 title: 'Grupo de receitas',
-                description: 'Organize entradas por origem para analise mais clara.',
+                description: 'Organize entradas por origem para análise mais clara.',
                 side: 'right',
                 align: 'center',
             },
@@ -495,27 +495,27 @@ const TOUR_CONFIGS = {
             {
                 selector: '.quick-stats-grid',
                 title: 'Resumo do periodo',
-                description: 'As metricas principais mostram contexto antes do detalhe.',
+                description: 'As métricas principais mostram contexto antes do detalhe.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: '.rel-section-tabs',
-                title: 'Secoes do modulo',
-                description: 'Navegue entre visao geral, relatorios e comparativos.',
+                title: 'Seções do módulo',
+                description: 'Navegue entre visão geral, relatórios e comparativos.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: '.tabs-card',
                 title: 'Modelos de analise',
-                description: 'Escolha categoria, saldo diario, contas, cartoes ou anual.',
+                description: 'Escolha categoria, saldo diário, contas, cartões ou anual.',
                 side: 'top',
                 align: 'center',
             },
             {
                 selector: '#exportControl',
-                title: 'Exportacao',
+                title: 'Exportacão',
                 description: 'Exporte quando precisar compartilhar ou arquivar.',
                 side: 'left',
                 align: 'center',
@@ -524,29 +524,29 @@ const TOUR_CONFIGS = {
         mobileSteps: [
             {
                 selector: '.quick-stats-grid',
-                title: 'Resumo do mes',
+                title: 'Resumo do mês',
                 description: 'Comece pelas metricas principais.',
                 side: 'bottom',
                 align: 'center',
             },
             {
                 selector: '.rel-section-tabs',
-                title: 'Trocar secao',
-                description: 'Use as abas para abrir a visao desejada.',
+                title: 'Trocar visualização',
+                description: 'Use as abas para abrir a visão desejada.',
                 side: 'bottom',
                 align: 'center',
             },
             {
                 selector: '.tabs-card',
-                title: 'Tipo de relatorio',
-                description: 'Selecione o modelo de analise.',
+                title: 'Tipo de relatório',
+                description: 'Selecione o modelo de análise.',
                 side: 'top',
                 align: 'center',
             },
             {
                 selector: '#exportControl',
                 title: 'Exportar',
-                description: 'Baixe o relatorio no formato desejado.',
+                description: 'Baixe o relatório no formato desejado.',
                 side: 'top',
                 align: 'center',
             },
@@ -559,15 +559,15 @@ const TOUR_CONFIGS = {
         steps: [
             {
                 selector: '#summaryOrcamentos',
-                title: 'Resumo do mes',
-                description: 'Veja rapidamente onde o limite esta sob controle.',
+                title: 'Resumo do mês',
+                description: 'Veja rapidamente onde o limite está sob controle.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: ['#btnAutoSugerir', '#btnAutoSugerirEmpty'],
-                title: 'Sugestao automatica',
-                description: 'Gere limites sugeridos com base no historico.',
+                title: 'Sugestão automática',
+                description: 'Gere limites sugeridos com base no histórico.',
                 side: 'bottom',
                 align: 'center',
             },
@@ -589,7 +589,7 @@ const TOUR_CONFIGS = {
         mobileSteps: [
             {
                 selector: '#summaryOrcamentos',
-                title: 'Resumo do mes',
+                title: 'Resumo do mês',
                 description: 'Panorama rapido dos limites no periodo.',
                 side: 'bottom',
                 align: 'center',
@@ -603,7 +603,7 @@ const TOUR_CONFIGS = {
             },
             {
                 selector: '#btnNovoOrcamento',
-                title: 'Novo orcamento',
+                title: 'Novo orçamento',
                 description: 'Cadastre limite manual por categoria.',
                 side: 'bottom',
                 align: 'center',
@@ -639,21 +639,21 @@ const TOUR_CONFIGS = {
             {
                 selector: '#metFocusPanel',
                 title: 'Foco do momento',
-                description: 'O sistema sugere proximo passo e prioridade da vez.',
+                description: 'O sistema sugere próximo passo e prioridade da vez.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: '.met-actions-bar',
-                title: 'Acoes rapidas',
-                description: 'Crie metas ou use templates para acelerar configuracao.',
+                title: 'Ações rápidas',
+                description: 'Crie metas ou use templates para acelerar configuracão.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: '.met-toolbar',
                 title: 'Busca e filtros',
-                description: 'Use busca, chips e ordenacao para achar metas relevantes.',
+                description: 'Use busca, chips e ordenacão para achar metas relevantes.',
                 side: 'bottom',
                 align: 'start',
             },
@@ -676,7 +676,7 @@ const TOUR_CONFIGS = {
             {
                 selector: ['#btnNovaMetaHeader', '#btnNovaMeta', '#btnNovaMetaEmpty'],
                 title: 'Criar meta',
-                description: 'Botao principal para comecar uma nova meta.',
+                description: 'Botão principal para começar uma nova meta.',
                 side: 'bottom',
                 align: 'center',
             },
@@ -690,7 +690,7 @@ const TOUR_CONFIGS = {
             {
                 selector: '.met-toolbar',
                 title: 'Filtrar metas',
-                description: 'Refine por busca, status e ordenacao.',
+                description: 'Refine por busca, status e ordenação.',
                 side: 'bottom',
                 align: 'center',
             },
@@ -734,7 +734,7 @@ const TOUR_CONFIGS = {
             {
                 selector: ['.stats-grid', '.gamification-stats'],
                 title: 'Seu nivel atual',
-                description: 'Resumo de pontuacao e sequencia.',
+                description: 'Resumo de pontuação e sequência.',
                 side: 'bottom',
                 align: 'center',
             },
@@ -761,14 +761,14 @@ const TOUR_CONFIGS = {
         steps: [
             {
                 selector: '.billing-header',
-                title: 'Comparacao de planos',
+                title: 'Comparação de planos',
                 description: 'Contexto inicial do que muda entre Free e Pro.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: ['.plan-billing-toggle', '.billing-cycle-toggle', '.cycle-toggle'],
-                title: 'Ciclo de cobranca',
+                title: 'Ciclo de cobrança',
                 description: 'Troque periodicidade para comparar custo total.',
                 side: 'bottom',
                 align: 'center',
@@ -776,7 +776,7 @@ const TOUR_CONFIGS = {
             {
                 selector: '.plans-grid',
                 title: 'Cards dos planos',
-                description: 'Compare recursos, limites e acao principal.',
+                description: 'Compare recursos, limites e ação principal.',
                 side: 'top',
                 align: 'center',
             },
@@ -785,7 +785,7 @@ const TOUR_CONFIGS = {
             {
                 selector: '.billing-header',
                 title: 'Escolha seu plano',
-                description: 'Visao geral da comparacao de planos.',
+                description: 'Visão geral da comparação de planos.',
                 side: 'bottom',
                 align: 'center',
             },
@@ -799,7 +799,7 @@ const TOUR_CONFIGS = {
             {
                 selector: '.plans-grid',
                 title: 'Comparar planos',
-                description: 'Role os cards e escolha a melhor opcao.',
+                description: 'Role os cards e escolha a melhor opção.',
                 side: 'top',
                 align: 'center',
             },
@@ -813,7 +813,7 @@ const TOUR_CONFIGS = {
             {
                 selector: '.profile-header',
                 title: 'Seu perfil',
-                description: 'Visao geral da sua conta e dados principais.',
+                description: 'Visão geral da sua conta e dados principais.',
                 side: 'bottom',
                 align: 'start',
             },
@@ -826,15 +826,15 @@ const TOUR_CONFIGS = {
             },
             {
                 selector: '.profile-tabs',
-                title: 'Secoes do perfil',
-                description: 'Troque entre dados, seguranca e preferencias.',
+                title: 'Seções do perfil',
+                description: 'Troque entre dados, segurança e preferências.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: '#btn-save-dados',
                 title: 'Salvar ajustes',
-                description: 'Depois de editar, salve para aplicar as mudancas.',
+                description: 'Depois de editar, salve para aplicar as mudanças.',
                 side: 'top',
                 align: 'center',
             },
@@ -857,14 +857,14 @@ const TOUR_CONFIGS = {
             {
                 selector: '.profile-tabs',
                 title: 'Navegar no perfil',
-                description: 'Use abas para trocar de secao.',
+                description: 'Use abas para trocar de seção.',
                 side: 'bottom',
                 align: 'center',
             },
             {
                 selector: '#btn-save-dados',
                 title: 'Salvar',
-                description: 'Confirme mudancas no botao de salvar.',
+                description: 'Confirme mudanças no botão de salvar.',
                 side: 'top',
                 align: 'center',
             },
@@ -883,7 +883,7 @@ const NAVIGATION_TOUR_CONFIG = {
         {
             selector: '#edgeMenuBtn',
             title: 'Expandir ou recolher menu',
-            description: 'No desktop, este botao alterna o tamanho da barra lateral.',
+            description: 'No desktop, este botão alterna o tamanho da barra lateral.',
             side: 'right',
             align: 'center',
         },
@@ -904,7 +904,7 @@ const NAVIGATION_TOUR_CONFIG = {
         {
             selector: ['.sidebar .nav-item[href*="orcamento"]', '.sidebar .nav-item[href*="metas"]'],
             title: 'Planejamento',
-            description: 'Orcamento e metas ajudam a manter foco.',
+            description: 'Orçamento e metas ajudam a manter foco.',
             side: 'right',
             align: 'center',
         },
@@ -927,7 +927,7 @@ const NAVIGATION_TOUR_CONFIG = {
         {
             selector: '#mobileMenuBtn',
             title: 'Abrir menu',
-            description: 'No mobile, toque aqui para abrir a navegacao.',
+            description: 'No mobile, toque aqui para abrir a navegação.',
             side: 'bottom',
             align: 'center',
             ensureSidebarClosed: true,
@@ -943,7 +943,7 @@ const NAVIGATION_TOUR_CONFIG = {
         {
             selector: '.sidebar .nav-item[href*="lancamentos"]',
             title: 'Lancamentos',
-            description: 'Atalho para registrar movimentacoes do dia.',
+            description: 'Atalho para registrar movimentações do dia.',
             side: 'right',
             align: 'center',
             ensureSidebarOpen: true,
@@ -1285,7 +1285,7 @@ class HelpCenter {
             variant,
             key: `navigation.${variant}`,
             baseKey: 'navigation',
-            label: NAVIGATION_TOUR_CONFIG.label || 'Navegacao',
+            label: NAVIGATION_TOUR_CONFIG.label || 'Navegação',
             version: NAVIGATION_TOUR_CONFIG.version || NAVIGATION_VERSION,
             config: NAVIGATION_TOUR_CONFIG,
         };
@@ -1402,12 +1402,12 @@ class HelpCenter {
                 <div class="lk-help-offer__content">
                     <span class="lk-help-offer__eyebrow">Tour opcional</span>
                     <strong>Quer um tour rapido desta tela?</strong>
-                    <p>Em menos de 30 segundos eu te mostro onde agir primeiro, sem travar sua navegacao.</p>
+                    <p>Em menos de 30 segundos eu te mostro onde agir primeiro, sem travar sua navegação.</p>
                 </div>
                 <div class="lk-help-offer__actions">
                     <button type="button" class="lk-help-btn lk-help-btn--primary" data-help-offer="start">Ver agora</button>
                     <button type="button" class="lk-help-btn lk-help-btn--ghost" data-help-offer="tips">Ver dicas</button>
-                    <button type="button" class="lk-help-btn lk-help-btn--subtle" data-help-offer="dismiss">Agora nao</button>
+                    <button type="button" class="lk-help-btn lk-help-btn--subtle" data-help-offer="dismiss">Agora não</button>
                 </div>
             </div>
         `;
@@ -1479,7 +1479,7 @@ class HelpCenter {
             if (window.LK?.toast) {
                 window.LK.toast.success(nextValue
                     ? 'Convites de tutorial reativados.'
-                    : 'Convites automaticos pausados.');
+                    : 'Convites automáticos pausados.');
             }
         });
 
@@ -1594,8 +1594,8 @@ class HelpCenter {
         if (this.elements.helpAutoOfferBtn) {
             const icon = this.preferences.settings.auto_offer ? 'bell' : 'bell-off';
             const text = this.preferences.settings.auto_offer
-                ? 'Desativar convite automatico'
-                : 'Ativar convite automatico';
+                ? 'Desativar convite automático'
+                : 'Ativar convite automático';
 
             this.elements.helpAutoOfferBtn.innerHTML = `
                 <i data-lucide="${icon}"></i>
@@ -2110,7 +2110,7 @@ class HelpCenter {
         const steps = this.buildSteps(target);
 
         if (steps.length === 0) {
-            window.LK?.toast?.info('Ainda nao existe tutorial pronto para este fluxo.');
+            window.LK?.toast?.info('Ainda não existe tutorial pronto para este fluxo.');
             return false;
         }
 
@@ -2190,7 +2190,7 @@ class HelpCenter {
     async startCurrentPageTutorial(_options = {}) {
         const target = this.getPageTutorialTarget();
         if (!target) {
-            window.LK?.toast?.info('Ainda nao existe tutorial pronto para esta tela.');
+            window.LK?.toast?.info('Ainda não existe tutorial pronto para esta tela.');
             return false;
         }
 
@@ -2200,7 +2200,7 @@ class HelpCenter {
     async startNavigationTutorial(_options = {}) {
         const target = this.getNavigationTutorialTarget();
         if (!target) {
-            window.LK?.toast?.info('Ainda nao existe tutorial de navegacao.');
+            window.LK?.toast?.info('Ainda não existe tutorial de navegação.');
             return false;
         }
 
@@ -2209,7 +2209,7 @@ class HelpCenter {
 
     async showCurrentPageTips() {
         if (!this.hasTips()) {
-            window.LK?.toast?.info('Ainda nao existe dica rapida para esta tela.');
+            window.LK?.toast?.info('Ainda não existe dica rapida para esta tela.');
             return false;
         }
 
@@ -2300,7 +2300,7 @@ class HelpCenter {
 
         if (!response?.ok) {
             if (!silent) {
-                window.LK?.toast?.error(response?.message || 'Nao foi possivel salvar sua preferencia de ajuda.');
+                window.LK?.toast?.error(response?.message || 'Não foi possivel salvar sua preferencia de ajuda.');
             }
 
             return false;

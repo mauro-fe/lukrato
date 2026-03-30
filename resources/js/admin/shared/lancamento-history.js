@@ -47,7 +47,7 @@ function resolveMovementMeta(lancamento, contaId) {
     };
 }
 
-export function renderLancamentoHistoryPlaceholder(containerEl, message = 'Selecione uma conta para ver as ultimas movimentacoes.') {
+export function renderLancamentoHistoryPlaceholder(containerEl, message = 'Selecione uma conta para ver as ultimas movimentações.') {
     if (!containerEl) return;
 
     containerEl.innerHTML = buildHistoryState('history', message);
@@ -104,7 +104,7 @@ export async function loadLancamentoRecentHistory({
         return [];
     }
 
-    containerEl.innerHTML = buildHistoryState('loader-2', 'Carregando ultimas movimentacoes...');
+    containerEl.innerHTML = buildHistoryState('loader-2', 'Carregando ultimas movimentações...');
     refreshIcons();
 
     const endDate = new Date();

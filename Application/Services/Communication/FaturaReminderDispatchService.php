@@ -170,7 +170,7 @@ class FaturaReminderDispatchService
                         'Lembrete de Fatura',
                         "Cartao {$nomeCartao} - Vencimento {$dataFormatada}",
                         $conteudo,
-                        'Este e um lembrete automatico configurado por você no Lukrato.'
+                        'Este e um lembrete automático configurado por você no Lukrato.'
                     );
 
                     $mailService->send(

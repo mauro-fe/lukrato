@@ -6,7 +6,7 @@
  * suporte a leitores de tela e navegação por teclado.
  */
 
-(function() {
+(function () {
     'use strict';
 
     // ============================================
@@ -53,7 +53,7 @@
     function announce(message, priority = 'polite') {
         const regionId = priority === 'assertive' ? 'lk-alert-region' : 'lk-live-region';
         const region = document.getElementById(regionId);
-        
+
         if (region) {
             // Limpar e depois adicionar para garantir que seja lido
             region.textContent = '';
@@ -78,7 +78,7 @@
                             enhanceModal(node);
                         }
                         // Modais customizados
-                        if (node.classList?.contains('lk-modal-overlay') || 
+                        if (node.classList?.contains('lk-modal-overlay') ||
                             node.classList?.contains('swal2-popup')) {
                             enhanceModal(node);
                         }
@@ -98,10 +98,10 @@
         if (!modal.getAttribute('role')) {
             modal.setAttribute('role', 'dialog');
         }
-        
+
         // Garantir aria-modal
         modal.setAttribute('aria-modal', 'true');
-        
+
         // Buscar título e associar
         const title = modal.querySelector('.modal-title, .lk-modal-title, .swal2-title, h2, h3');
         if (title && !modal.getAttribute('aria-labelledby')) {
@@ -109,7 +109,7 @@
             title.id = titleId;
             modal.setAttribute('aria-labelledby', titleId);
         }
-        
+
         // Buscar descrição
         const description = modal.querySelector('.modal-body p, .lk-modal-description, .swal2-html-container');
         if (description && !modal.getAttribute('aria-describedby')) {
@@ -117,7 +117,7 @@
             description.id = descId;
             modal.setAttribute('aria-describedby', descId);
         }
-        
+
         // Focus trap
         setupFocusTrap(modal);
     }
@@ -172,7 +172,7 @@
         document.addEventListener('invalid', (e) => {
             const field = e.target;
             field.setAttribute('aria-invalid', 'true');
-            
+
             // Anunciar erro
             const errorMsg = field.validationMessage || 'Campo inválido';
             announce(`Erro no campo: ${errorMsg}`, 'assertive');
@@ -245,7 +245,7 @@
             if (!table.getAttribute('role')) {
                 table.setAttribute('role', 'table');
             }
-            
+
             // Scope para headers
             table.querySelectorAll('th').forEach((th) => {
                 if (!th.getAttribute('scope')) {
@@ -310,9 +310,9 @@
             mutations.forEach((mutation) => {
                 if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
                     const target = mutation.target;
-                    const isLoading = target.classList.contains('loading') || 
-                                     target.classList.contains('is-loading');
-                    
+                    const isLoading = target.classList.contains('loading') ||
+                        target.classList.contains('is-loading');
+
                     if (isLoading) {
                         target.setAttribute('aria-busy', 'true');
                         announce('Carregando...');
@@ -349,7 +349,7 @@
 
         // Enter/Space ativa elementos focados
         document.addEventListener('keydown', (e) => {
-            if ((e.key === 'Enter' || e.key === ' ') && 
+            if ((e.key === 'Enter' || e.key === ' ') &&
                 e.target.matches('[role="button"], [tabindex="0"]')) {
                 e.preventDefault();
                 e.target.click();

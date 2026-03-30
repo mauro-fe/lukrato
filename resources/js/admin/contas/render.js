@@ -79,10 +79,10 @@ function buildTooltipAttrs(title, text) {
 
 function getTypeTooltip(tipo) {
     const tooltips = {
-        conta_corrente: 'Conta para entradas, pagamentos e movimentacoes do dia a dia.',
+        conta_corrente: 'Conta para entradas, pagamentos e movimentações do dia a dia.',
         conta_poupanca: 'Conta voltada para guardar dinheiro com liquidez simples.',
         conta_investimento: 'Conta separada para reserva, objetivos ou investimentos.',
-        carteira_digital: 'Saldo mantido em carteira digital para movimentacoes rapidas.',
+        carteira_digital: 'Saldo mantido em carteira digital para movimentações rapidas.',
         dinheiro: 'Valor em especie acompanhado manualmente no painel.',
     };
 
