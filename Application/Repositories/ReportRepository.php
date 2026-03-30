@@ -10,19 +10,19 @@ use Application\DTO\ReportParameters;
 use Application\Enums\LancamentoTipo;
 
 /**
- * Repositório para buscar dados brutos para os relatórios.
+ * RepositÃ³rio para buscar dados brutos para os relatÃ³rios.
  * Todo o SQL complexo vive aqui.
  */
 class ReportRepository
 {
-    // --- Métodos Públicos de Busca ---
+    // --- MÃ©todos PÃºblicos de Busca ---
 
     public function getCategoryTotals(string $tipo, ReportParameters $params): Collection
     {
         $query = $this->buildCategoryQuery($tipo, $params);
 
         if ($params->accountId === null) {
-            return $this->getGlobalCategoryTotals($query);
+            return $this->getGlobalCategoryTotals($query, $tipo);
         }
 
         return $this->getAccountCategoryTotals($query, $params->accountId, $tipo);
@@ -89,7 +89,7 @@ class ReportRepository
 
     public function saldoAte(Carbon $ate, ReportParameters $params, bool $useTransfers): float
     {
-        // 1. Calcular delta dos lançamentos (respeitando afeta_caixa)
+        // 1. Calcular delta dos lanÃ§amentos (respeitando afeta_caixa)
         $query = DB::table('lancamentos')
             ->where('lancamentos.pago', 1)
             ->where('lancamentos.data', '<=', $ate)
@@ -105,14 +105,14 @@ class ReportRepository
 
         $deltaLancamentos = (float)($query->value('saldo') ?? 0.0);
 
-        // 2. Adicionar saldo inicial das contas (apenas para visão global ou conta específica)
+        // 2. Adicionar saldo inicial das contas (apenas para visÃ£o global ou conta especÃ­fica)
         $saldoInicial = $this->getSaldoInicialContas($params);
 
         return $saldoInicial + $deltaLancamentos;
     }
 
     /**
-     * Obtém a soma dos saldos iniciais das contas do usuário.
+     * ObtÃ©m a soma dos saldos iniciais das contas do usuÃ¡rio.
      * Se accountId for especificado, retorna apenas o saldo inicial dessa conta.
      */
     private function getSaldoInicialContas(ReportParameters $params): float
@@ -133,7 +133,7 @@ class ReportRepository
 
     /**
      * Busca totais agrupados por categoria E subcategoria (double-grouping).
-     * Retorna hierarquia completa para drill-down nos relatórios PRO.
+     * Retorna hierarquia completa para drill-down nos relatÃ³rios PRO.
      */
     public function getCategoryWithSubcategoryTotals(string $tipo, ReportParameters $params): array
     {
@@ -158,13 +158,17 @@ class ReportRepository
             ? ['cat_id', 'is_transf', 'subcat_id']
             : ['cat_id', 'subcat_id'];
 
+        $sumExpression = $tipo === LancamentoTipo::DESPESA->value
+            ? $this->effectiveExpenseExpression('l')
+            : 'l.valor';
+
         $selectQuery = $query
             ->leftJoin('categorias as sc', 'sc.id', '=', 'l.subcategoria_id')
             ->selectRaw('COALESCE(c.id, 0) as cat_id')
             ->selectRaw($catLabelExpr)
             ->selectRaw('COALESCE(sc.id, 0) as subcat_id')
             ->selectRaw("COALESCE(MAX(sc.nome), 'Sem subcategoria') as subcat_label")
-            ->selectRaw('SUM(l.valor) as total');
+            ->selectRaw("SUM({$sumExpression}) as total");
 
         if ($isAccountFiltered) {
             $selectQuery->selectRaw('l.eh_transferencia as is_transf');
@@ -172,10 +176,10 @@ class ReportRepository
 
         $rows = $selectQuery
             ->groupBy(...$groupCols)
-            ->orderByDesc(DB::raw('SUM(l.valor)'))
+            ->orderByDesc(DB::raw("SUM({$sumExpression})"))
             ->get();
 
-        // Agrupar em hierarquia: categoria → subcategorias
+        // Agrupar em hierarquia: categoria â†’ subcategorias
         // For account-filtered views with transfers, combine entries with same cat_id
         $categories = [];
         foreach ($rows as $row) {
@@ -208,7 +212,7 @@ class ReportRepository
         return $result;
     }
 
-    // --- Builders de Query Específicos ---
+    // --- Builders de Query EspecÃ­ficos ---
 
     private function buildCategoryQuery(string $tipo, ReportParameters $params): QueryBuilder
     {
@@ -226,13 +230,17 @@ class ReportRepository
         return $this->applyUserScope($query, $params->userId, 'l');
     }
 
-    private function getGlobalCategoryTotals(QueryBuilder $query): Collection
+    private function getGlobalCategoryTotals(QueryBuilder $query, string $tipo): Collection
     {
+        $sumExpression = $tipo === LancamentoTipo::DESPESA->value
+            ? $this->effectiveExpenseExpression('l')
+            : 'l.valor';
+
         return $query
             ->where('l.eh_transferencia', 0)
             ->selectRaw('COALESCE(c.id, 0) as cat_id')
             ->selectRaw("COALESCE(MAX(c.nome), 'Sem categoria') as label")
-            ->selectRaw('SUM(l.valor) as total')
+            ->selectRaw("SUM({$sumExpression}) as total")
             ->groupBy('cat_id')
             ->orderByDesc('total')
             ->get();
@@ -240,11 +248,15 @@ class ReportRepository
 
     private function getAccountCategoryTotals(QueryBuilder $query, int $accountId, string $tipo): Collection
     {
+        $sumExpression = $tipo === LancamentoTipo::DESPESA->value
+            ? $this->effectiveExpenseExpression('l')
+            : 'l.valor';
+
         return $query
             ->where(fn($w) => $this->applyAccountCategoryFilter($w, $accountId, $tipo))
             ->where(fn($w) => $this->applyAccountTypeFilter($w, $tipo))
             ->selectRaw($this->selectCategoryLabel())
-            ->selectRaw('SUM(l.valor) as total')
+            ->selectRaw("SUM({$sumExpression}) as total")
             ->selectRaw('COALESCE(c.id, 0) as cat_id, l.eh_transferencia as is_transf')
             ->groupBy('is_transf', 'cat_id')
             ->orderByDesc('total')
@@ -316,7 +328,7 @@ class ReportRepository
             $query->where('lancamentos.eh_transferencia', 0);
         }
 
-        // Respeitar campo afeta_caixa para cálculos de saldo
+        // Respeitar campo afeta_caixa para cÃ¡lculos de saldo
         if ($respectAfetaCaixa) {
             $query->where('lancamentos.afeta_caixa', 1);
         }
@@ -357,7 +369,7 @@ class ReportRepository
         return $query->where('lancamentos.conta_id', $accountId);
     }
 
-    // --- Expressões SQL Reutilizáveis ---
+    // --- ExpressÃµes SQL ReutilizÃ¡veis ---
 
     private function deltaExpression(?int $accountId, string $alias = 'delta'): array
     {
@@ -400,6 +412,11 @@ class ReportRepository
 
     private function sumByType(string $alias, string $tipo): string
     {
+        if ($tipo === LancamentoTipo::DESPESA->value) {
+            $effectiveExpense = $this->effectiveExpenseExpression('lancamentos');
+            return "SUM(CASE WHEN lancamentos.tipo='{$tipo}' THEN {$effectiveExpense} ELSE 0 END) as {$alias}";
+        }
+
         return "SUM(CASE WHEN lancamentos.tipo='{$tipo}' THEN lancamentos.valor ELSE 0 END) as {$alias}";
     }
 
@@ -431,14 +448,39 @@ class ReportRepository
     {
         return "SUM(
             CASE
-                WHEN l.eh_transferencia = 0 AND l.tipo = 'despesa' AND l.conta_id = contas.id THEN l.valor
+                WHEN l.eh_transferencia = 0 AND l.tipo = 'despesa' AND l.conta_id = contas.id THEN {$this->effectiveExpenseExpression('l')}
                 WHEN l.eh_transferencia = 1 AND l.conta_id = contas.id THEN l.valor
                 ELSE 0
             END
         ) as despesas";
     }
 
-    // --- Sanitização ---
+
+    private function metaCoverageExpression(string $tableAlias = 'lancamentos'): string
+    {
+        $t = preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $tableAlias) ? $tableAlias : 'lancamentos';
+
+        return "CASE
+            WHEN {$t}.tipo <> 'despesa' THEN 0
+            WHEN {$t}.meta_id IS NULL THEN 0
+            WHEN (
+                {$t}.meta_operacao IN ('resgate', 'realizacao')
+                OR {$t}.meta_operacao IS NULL
+                OR {$t}.meta_operacao = ''
+            ) THEN LEAST({$t}.valor, GREATEST(COALESCE({$t}.meta_valor, {$t}.valor), 0))
+            ELSE 0
+        END";
+    }
+
+    private function effectiveExpenseExpression(string $tableAlias = 'lancamentos'): string
+    {
+        $t = preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $tableAlias) ? $tableAlias : 'lancamentos';
+        $coverage = $this->metaCoverageExpression($t);
+
+        return "GREATEST({$t}.valor - ({$coverage}), 0)";
+    }
+
+    // --- SanitizaÃ§Ã£o ---
 
     private function sanitizeAlias(string $alias): string
     {

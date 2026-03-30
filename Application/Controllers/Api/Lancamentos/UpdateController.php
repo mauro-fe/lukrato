@@ -7,6 +7,7 @@ namespace Application\Controllers\Api\Lancamentos;
 use Application\Controllers\BaseController;
 use Application\Core\Response;
 use Application\Formatters\LancamentoResponseFormatter;
+use Application\Models\Meta;
 use Application\Repositories\ContaRepository;
 use Application\Repositories\LancamentoRepository;
 use Application\Services\Financeiro\MetaProgressService;
@@ -101,9 +102,29 @@ class UpdateController extends BaseController
         $metaId = array_key_exists('meta_id', $payload) ? $payload['meta_id'] : ($payload['metaId'] ?? $lancamento->meta_id);
         $metaId = is_scalar($metaId) && $metaId !== '' ? (int) $metaId : null;
         $metaId = LancamentoValidator::validateMetaOwnership($metaId, $userId, $errors);
+        $meta = $metaId
+            ? Meta::where('id', $metaId)->where('user_id', $userId)->first()
+            : null;
+        $metaOperacao = $metaId
+            ? LancamentoValidator::resolveMetaOperationForContext(
+                LancamentoValidator::normalizeMetaOperation($payload['meta_operacao'] ?? ($payload['metaOperacao'] ?? $lancamento->meta_operacao ?? null)),
+                [
+                    'tipo' => 'transferencia',
+                    'eh_transferencia' => true,
+                ],
+                $meta
+            )
+            : null;
+        $metaValor = $metaId
+            ? (LancamentoValidator::sanitizeMetaValor($payload['meta_valor'] ?? ($payload['metaValor'] ?? $lancamento->meta_valor ?? null))
+                ?? $valor)
+            : null;
         LancamentoValidator::validateMetaLinkRules($metaId, [
             'tipo' => 'transferencia',
             'eh_transferencia' => true,
+            'meta_operacao' => $metaOperacao,
+            'meta_valor' => $metaValor,
+            'valor' => $valor,
         ], $errors);
 
         if (!empty($errors)) {
@@ -128,6 +149,8 @@ class UpdateController extends BaseController
             'data' => $data,
             'valor' => $valor,
             'meta_id' => $metaId,
+            'meta_operacao' => $metaOperacao,
+            'meta_valor' => $metaValor,
             'conta_id' => $contaOrigemId,
             'conta_id_destino' => $contaDestinoId,
             'descricao' => mb_substr(trim($descricao), 0, 190),

@@ -7,6 +7,7 @@ use Application\Enums\GamificationAction;
 use Application\Enums\LogCategory;
 use Application\Enums\Recorrencia;
 use Application\Formatters\LancamentoResponseFormatter;
+use Application\Models\Meta;
 use Application\Repositories\LancamentoRepository;
 use Application\DTO\Requests\CreateLancamentoDTO;
 use Application\Validators\LancamentoValidator;
@@ -87,9 +88,30 @@ class LancamentoCreationService
             $metaId = $payload['meta_id'] ?? $payload['metaId'] ?? null;
             $metaId = is_scalar($metaId) && $metaId !== '' ? (int) $metaId : null;
             $metaId = LancamentoValidator::validateMetaOwnership($metaId, $userId, $errors);
+            $meta = $metaId
+                ? Meta::where('id', $metaId)->where('user_id', $userId)->first()
+                : null;
+            $metaOperacao = $metaId
+                ? LancamentoValidator::resolveMetaOperationForContext(
+                    LancamentoValidator::normalizeMetaOperation($payload['meta_operacao'] ?? ($payload['metaOperacao'] ?? null)),
+                    [
+                        'tipo' => $tipoLancamento,
+                        'eh_transferencia' => false,
+                    ],
+                    $meta
+                )
+                : null;
+            $metaValor = $metaId
+                ? (LancamentoValidator::sanitizeMetaValor($payload['meta_valor'] ?? ($payload['metaValor'] ?? null))
+                    ?? LancamentoValidator::sanitizeValor($payload['valor'] ?? 0))
+                : null;
             LancamentoValidator::validateMetaLinkRules($metaId, [
                 'tipo' => $tipoLancamento,
                 'eh_transferencia' => false,
+                'forma_pagamento' => $formaPagamento,
+                'meta_operacao' => $metaOperacao,
+                'meta_valor' => $metaValor,
+                'valor' => $payload['valor'] ?? 0,
             ], $errors);
             if ($ehEstornoCartao && $metaId !== null) {
                 $errors['meta_id'] = 'Estornos de cartao nao podem ser vinculados a uma meta.';
@@ -136,6 +158,8 @@ class LancamentoCreationService
                 'categoria_id'           => $categoriaId,
                 'subcategoria_id'        => $subcategoriaId,
                 'meta_id'                => $metaId,
+                'meta_operacao'          => $metaOperacao,
+                'meta_valor'             => $metaValor,
                 'conta_id'               => $contaId,
                 'pago'                   => $pago,
                 'forma_pagamento'        => $formaPagamento,
@@ -591,6 +615,8 @@ class LancamentoCreationService
                         'categoria_id'       => $paiLocked->categoria_id,
                         'subcategoria_id'    => $paiLocked->subcategoria_id,
                         'meta_id'            => $paiLocked->meta_id,
+                        'meta_operacao'      => $paiLocked->meta_operacao,
+                        'meta_valor'         => $paiLocked->meta_valor,
                         'conta_id'           => $paiLocked->conta_id,
                         'pago'               => 0,
                         'afeta_caixa'        => 0,

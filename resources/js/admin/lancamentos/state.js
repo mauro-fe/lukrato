@@ -112,6 +112,10 @@ export function initDOM() {
     DOM.selectLancSubcategoria = document.getElementById('editLancSubcategoria');
     DOM.selectLancMeta = document.getElementById('editLancMeta');
     DOM.editLancMetaGroup = document.getElementById('editLancMetaGroup');
+    DOM.editLancMetaValorGroup = document.getElementById('editLancMetaValorGroup');
+    DOM.editLancMetaRealizacaoGroup = document.getElementById('editLancMetaRealizacaoGroup');
+    DOM.inputLancMetaValor = document.getElementById('editLancMetaValor');
+    DOM.checkLancMetaRealizacao = document.getElementById('editLancMetaRealizacao');
     DOM.editLancPlanningAlerts = document.getElementById('editLancPlanningAlerts');
     DOM.subcategoriaGroup = document.getElementById('editSubcategoriaGroup');
     // Modal de edição transferência

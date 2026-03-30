@@ -24,6 +24,11 @@ import { apiDelete, apiFetch, apiGet, getBaseUrl, getErrorMessage } from '../sha
     // ============================================
     const tabs = document.querySelectorAll('.profile-tab');
     const panels = document.querySelectorAll('.profile-tab-panel');
+    const isConfigPage = window.location.pathname.toLowerCase().includes('/config');
+    const tabStorageKey = isConfigPage ? 'configuracoes_tab' : 'perfil_tab';
+    const availableTabs = Array.from(tabs)
+        .map((tab) => tab.dataset.tab || '')
+        .filter(Boolean);
 
     function switchTab(tabId) {
         tabs.forEach(t => {
@@ -36,7 +41,7 @@ import { apiDelete, apiFetch, apiGet, getBaseUrl, getErrorMessage } from '../sha
         });
         // Persist
         try {
-            localStorage.setItem('perfil_tab', tabId);
+            localStorage.setItem(tabStorageKey, tabId);
         } catch (e) { }
         // Update hash without scroll
         history.replaceState(null, '', `#${tabId}`);
@@ -48,18 +53,21 @@ import { apiDelete, apiFetch, apiGet, getBaseUrl, getErrorMessage } from '../sha
 
     // Restore tab from hash or localStorage
     (() => {
+        if (availableTabs.length === 0) return;
+
         const hash = location.hash.replace('#', '');
-        const validTabs = ['dados', 'endereco', 'seguranca', 'plano', 'integracoes', 'perigo'];
-        let initial = 'dados';
-        if (hash && validTabs.includes(hash)) {
+        let initial = availableTabs[0];
+
+        if (hash && availableTabs.includes(hash)) {
             initial = hash;
         } else {
             try {
-                const stored = localStorage.getItem('perfil_tab');
-                if (stored && validTabs.includes(stored)) initial = stored;
+                const stored = localStorage.getItem(tabStorageKey);
+                if (stored && availableTabs.includes(stored)) initial = stored;
             } catch (e) { }
         }
-        if (initial !== 'dados') switchTab(initial);
+
+        switchTab(initial);
     })();
 
     // Campos do formulário
@@ -712,7 +720,9 @@ import { apiDelete, apiFetch, apiGet, getBaseUrl, getErrorMessage } from '../sha
     });
 
     // Carregar estatísticas de indicação
-    loadReferralStats();
+    if (document.getElementById('referral-stats')) {
+        loadReferralStats();
+    }
 
     // ============================================
     // INTEGRAÇÕES — WhatsApp & Telegram
@@ -1038,9 +1048,15 @@ import { apiDelete, apiFetch, apiGet, getBaseUrl, getErrorMessage } from '../sha
                 loadTelegramStatus();
             }
         } catch (e) { /* silent */ }
-    });    // Load integration statuses
-    if (document.getElementById('whatsapp-card')) loadWhatsAppStatus();
-    loadTelegramStatus();
+    });
+
+    // Load integration statuses
+    if (document.getElementById('whatsapp-card')) {
+        loadWhatsAppStatus();
+    }
+    if (document.getElementById('telegram-card')) {
+        loadTelegramStatus();
+    }
     loadProfile();
 })();
 

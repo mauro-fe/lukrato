@@ -133,6 +133,26 @@
                                         O valor desta receita sera somado ao valor alocado da meta sem mexer no saldo da conta.
                                     </small>
                                 </div>
+                                <div class="col-md-6" id="editLancMetaValorGroup" hidden>
+                                    <label for="editLancMetaValor" class="form-label">Quanto veio da meta?</label>
+                                    <input type="text" class="form-control money-mask" id="editLancMetaValor"
+                                        inputmode="decimal" placeholder="R$ 0,00">
+                                    <small class="lk-edit-lanc-field-help">
+                                        O restante continua como gasto normal do mes.
+                                    </small>
+                                </div>
+                                <div class="col-md-6" id="editLancMetaRealizacaoGroup" hidden>
+                                    <label class="form-label d-block">Realizacao da meta</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editLancMetaRealizacao">
+                                        <label class="form-check-label" for="editLancMetaRealizacao">
+                                            Este gasto realiza o objetivo da meta
+                                        </label>
+                                    </div>
+                                    <small class="lk-edit-lanc-field-help">
+                                        Marcado: a meta vai para realizada sem reduzir o reservado.
+                                    </small>
+                                </div>
                             </div>
 
                             <div id="editLancPlanningAlerts" class="lk-planning-alerts" hidden></div>

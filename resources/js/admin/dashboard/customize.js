@@ -1,31 +1,23 @@
 /**
- * ============================================================================
- * LUKRATO — Dashboard / Customize (Modal de Personalização)
- * ============================================================================
- * Gerencia o modal de personalização do dashboard:
- * - Abrir/fechar modal
- * - Checkboxes para seções opcionais
- * - Persistência no banco via API (com localStorage como cache/fallback)
- * - Toggle de visibilidade das seções
- * ============================================================================
+ * Dashboard customization entry.
+ * Uses shared page-customizer engine for first-run + presets + persistence.
  */
 
-import { CONFIG, Modules } from './state.js';
+import { Modules } from './state.js';
 import { apiGet, apiPost } from '../shared/api.js';
+import { createPageCustomizer } from '../shared/page-customizer.js';
+import { fetchUiPagePreferences, persistUiPagePreferences } from '../shared/ui-preferences.js';
 
-const STORAGE_KEY = 'lk_dashboard_prefs';
-let prefsVersion = 0;
-
-/** Mapeamento: checkbox ID → seção do dashboard */
+/** Map: checkbox ID -> dashboard section ID */
 const SECTION_MAP = {
-    // Principais
+    // Main
     toggleHealthScore: 'sectionHealthScore',
     toggleAiTip: 'sectionAiTip',
     toggleEvolucao: 'sectionEvolucao',
     toggleAlertas: 'sectionAlertas',
     toggleGrafico: 'chart-section',
     togglePrevisao: 'sectionPrevisao',
-    // Extras (grid)
+    // Extra grid
     toggleMetas: 'sectionMetas',
     toggleCartoes: 'sectionCartoes',
     toggleContas: 'sectionContas',
@@ -35,8 +27,7 @@ const SECTION_MAP = {
     toggleGamificacao: 'sectionGamificacao'
 };
 
-/** Preferências padrão */
-const DEFAULTS = {
+const COMPLETE_DEFAULTS = {
     toggleHealthScore: true,
     toggleAiTip: true,
     toggleEvolucao: true,
@@ -51,172 +42,55 @@ const DEFAULTS = {
     toggleGamificacao: false
 };
 
-/* ─── Persistence (API + localStorage cache) ──────────────────────────── */
+const ESSENTIAL_DEFAULTS = {
+    ...COMPLETE_DEFAULTS,
+    toggleHealthScore: false,
+    toggleAiTip: false,
+    toggleEvolucao: false,
+    togglePrevisao: false
+};
 
-function loadLocalCache() {
+async function loadDashboardPrefs() {
+    // New reusable endpoint
     try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return null;
-        return { ...DEFAULTS, ...JSON.parse(raw) };
+        return await fetchUiPagePreferences('dashboard');
     } catch {
-        return null;
+        // Backward compatibility while old endpoint exists
+        const legacyResponse = await apiGet('api/perfil/dashboard-preferences');
+        const legacyData = legacyResponse?.data ?? legacyResponse;
+        return legacyData?.preferences ?? {};
     }
 }
 
-function saveLocalCache(prefs) {
+async function saveDashboardPrefs(prefs) {
+    // New reusable endpoint
     try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
+        await persistUiPagePreferences('dashboard', prefs);
+        return;
     } catch {
-        // silently ignore
+        // Backward compatibility while old endpoint exists
+        await apiPost('api/perfil/dashboard-preferences', prefs);
     }
 }
 
-async function loadPrefsFromApi() {
-    try {
-        const res = await apiGet(`${CONFIG.API_URL}perfil/dashboard-preferences`);
-        const data = res?.data ?? res;
-        const prefs = data?.preferences;
-        if (prefs && typeof prefs === 'object' && Object.keys(prefs).length > 0) {
-            const merged = { ...DEFAULTS, ...prefs };
-            saveLocalCache(merged);
-            return merged;
-        }
-        // API responded but no prefs saved yet — apply defaults and clear stale cache
-        saveLocalCache(DEFAULTS);
-        return { ...DEFAULTS };
-    } catch {
-        // API unavailable — fall through to cache
-    }
-    return null;
-}
-
-async function savePrefsToApi(prefs) {
-    saveLocalCache(prefs);
-    try {
-        await apiPost(`${CONFIG.API_URL}perfil/dashboard-preferences`, prefs);
-    } catch {
-        // Saved locally, will sync on next successful load
-    }
-}
-
-function loadPrefs() {
-    return loadLocalCache() ?? { ...DEFAULTS };
-}
-
-/* ─── Apply ───────────────────────────────────────────────────────────── */
-
-function applyPrefs(prefs) {
-    Object.entries(SECTION_MAP).forEach(([checkboxId, sectionId]) => {
-        const section = document.getElementById(sectionId);
-        if (!section) return;
-        section.style.display = prefs[checkboxId] ? '' : 'none';
-    });
-
-    // Show/hide the optional grid container based on whether any grid section is visible
-    const grid = document.getElementById('optionalGrid');
-    if (grid) {
-        const GRID_TOGGLES = ['toggleMetas', 'toggleCartoes', 'toggleContas', 'toggleOrcamentos', 'toggleFaturas'];
-        const anyVisible = GRID_TOGGLES.some(k => prefs[k]);
-        grid.style.display = anyVisible ? '' : 'none';
-    }
-}
-
-function syncCheckboxes(prefs) {
-    Object.keys(SECTION_MAP).forEach((checkboxId) => {
-        const checkbox = document.getElementById(checkboxId);
-        if (checkbox) {
-            checkbox.checked = !!prefs[checkboxId];
-        }
-    });
-}
-
-/* ─── Modal ───────────────────────────────────────────────────────────── */
-
-function openModal() {
-    const overlay = document.getElementById('customizeModalOverlay');
-    if (!overlay) return;
-
-    syncCheckboxes(loadPrefs());
-    overlay.style.display = 'flex';
-
-    // Focus trap: fechar com Escape
-    const handler = (e) => {
-        if (e.key === 'Escape') {
-            closeModal();
-            document.removeEventListener('keydown', handler);
-        }
-    };
-    document.addEventListener('keydown', handler);
-}
-
-function closeModal() {
-    const overlay = document.getElementById('customizeModalOverlay');
-    if (overlay) {
-        overlay.style.display = 'none';
-    }
-}
-
-function saveAndClose() {
-    const prefs = {};
-    Object.keys(SECTION_MAP).forEach((checkboxId) => {
-        const checkbox = document.getElementById(checkboxId);
-        prefs[checkboxId] = checkbox ? checkbox.checked : DEFAULTS[checkboxId];
-    });
-
-    prefsVersion += 1;
-    saveLocalCache(prefs);
-    applyPrefs(prefs);
-    closeModal();
-    savePrefsToApi(prefs);
-
-    // Re-render ícones Lucide nas seções que podem ter sido reveladas
-    if (typeof window.lucide !== 'undefined') {
-        window.lucide.createIcons();
-    }
-}
-
-/* ─── Init ────────────────────────────────────────────────────────────── */
+const dashboardCustomizer = createPageCustomizer({
+    storageKey: 'lk_dashboard_prefs',
+    sectionMap: SECTION_MAP,
+    completeDefaults: COMPLETE_DEFAULTS,
+    essentialDefaults: ESSENTIAL_DEFAULTS,
+    gridContainerId: 'optionalGrid',
+    gridToggleKeys: ['toggleMetas', 'toggleCartoes', 'toggleContas', 'toggleOrcamentos', 'toggleFaturas'],
+    loadPreferences: loadDashboardPrefs,
+    savePreferences: saveDashboardPrefs
+});
 
 export function initCustomize() {
-    // 1) Aplicar cache local imediatamente para evitar flicker e preservar a última escolha do usuário
-    applyPrefs(loadPrefs());
-
-    // 2) Buscar do banco — se tiver preferências salvas, reaplicar
-    const initialVersion = prefsVersion;
-    loadPrefsFromApi().then((apiPrefs) => {
-        if (apiPrefs && prefsVersion === initialVersion) {
-            applyPrefs(apiPrefs);
-        }
-    });
-
-    // Botão de abrir
-    const btnOpen = document.getElementById('btnCustomizeDashboard');
-    if (btnOpen) {
-        btnOpen.addEventListener('click', openModal);
-    }
-
-    // Botão de fechar
-    const btnClose = document.getElementById('btnCloseCustomize');
-    if (btnClose) {
-        btnClose.addEventListener('click', closeModal);
-    }
-
-    // Botão salvar
-    const btnSave = document.getElementById('btnSaveCustomize');
-    if (btnSave) {
-        btnSave.addEventListener('click', saveAndClose);
-    }
-
-    // Fechar ao clicar no overlay
-    const overlay = document.getElementById('customizeModalOverlay');
-    if (overlay) {
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) {
-                closeModal();
-            }
-        });
-    }
+    dashboardCustomizer.init();
 }
 
-// ─── Register module ─────────────────────────────────────────────────────
-Modules.Customize = { init: initCustomize, open: openModal, close: closeModal };
+Modules.Customize = {
+    init: initCustomize,
+    open: dashboardCustomizer.open,
+    close: dashboardCustomizer.close
+};
+

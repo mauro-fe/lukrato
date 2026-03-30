@@ -145,6 +145,7 @@ const EventListeners = {
         // Money mask on edit modal value fields
         MoneyMask.bind(DOM.inputLancValor);
         MoneyMask.bind(DOM.inputTransValor);
+        MoneyMask.bind(DOM.inputLancMetaValor);
 
         DOM.selectLancTipo?.addEventListener('change', () => {
             OptionsManager.populateCategoriaSelect(
@@ -172,6 +173,23 @@ const EventListeners = {
             void ModalManager.renderPlanningAlerts();
         });
         DOM.selectLancMeta?.addEventListener('change', () => {
+            if (DOM.checkLancMetaRealizacao) {
+                delete DOM.checkLancMetaRealizacao.dataset.userTouched;
+                DOM.checkLancMetaRealizacao.dataset.autoDefaultPending = '1';
+            }
+            ModalManager.syncEditMetaField();
+            syncCustomSelects(DOM.modalEditLancEl);
+            ModalManager.syncEditSummary();
+            void ModalManager.renderPlanningAlerts();
+        });
+        DOM.inputLancMetaValor?.addEventListener('input', () => {
+            ModalManager.syncEditSummary();
+            void ModalManager.renderPlanningAlerts();
+        });
+        DOM.checkLancMetaRealizacao?.addEventListener('change', () => {
+            if (DOM.checkLancMetaRealizacao) {
+                DOM.checkLancMetaRealizacao.dataset.userTouched = '1';
+            }
             ModalManager.syncEditSummary();
             void ModalManager.renderPlanningAlerts();
         });
@@ -192,6 +210,10 @@ const EventListeners = {
             STATE.editingLancamentoId = null;
             STATE.editingLancamentoData = null;
             DOM.formLanc?.reset?.();
+            if (DOM.checkLancMetaRealizacao) {
+                delete DOM.checkLancMetaRealizacao.dataset.userTouched;
+                delete DOM.checkLancMetaRealizacao.dataset.autoDefaultPending;
+            }
             ModalManager.clearLancAlert();
             ModalManager.resetEditSummary();
             ModalManager.clearPlanningAlerts();

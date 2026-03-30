@@ -24,7 +24,8 @@ Router::add('GET', '/lancamentos', 'Admin\\LancamentoController@index', ['auth']
 Router::add('GET', '/relatorios', 'Admin\\RelatoriosController@view', ['auth']);
 
 // Configurações
-Router::add('GET',  '/config',     'Admin\\ConfigController@index', ['auth']);
+Router::add('GET',  '/configuracoes', 'Admin\\ConfigController@index', ['auth']);
+Router::add('GET',  '/config',        'Admin\\ConfigController@index', ['auth']);
 Router::add('POST', '/api/config', 'Api\\Admin\\ConfigController@update',  ['auth', 'csrf', 'ratelimit']);
 
 // Perfil

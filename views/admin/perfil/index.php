@@ -1,5 +1,11 @@
 <!-- CSS carregado via loadPageCss() no header -->
 
+<?php
+$perfilViewMode = $perfilViewMode ?? 'perfil';
+$isConfigView = $perfilViewMode === 'configuracoes';
+$isProfileView = !$isConfigView;
+?>
+
 <div class="profile-page">
     <div class="profile-header surface-card surface-card--interactive surface-card--clip">
         <!-- Avatar Upload -->
@@ -16,7 +22,7 @@
         </div>
 
         <div class="profile-header-top">
-            <h1 class="profile-title">Meu Perfil</h1>
+            <h1 class="profile-title"><?= $isConfigView ? 'Configurações' : 'Meu Perfil' ?></h1>
 
             <button type="button" class="lk-info" data-lk-tooltip-title="Perfil completo"
                 data-lk-tooltip="Manter seus dados sempre completos ajuda na segurança da conta, recuperação de acesso, faturamento e melhor funcionamento do Lukrato."
@@ -26,48 +32,54 @@
         </div>
 
         <p class="profile-subtitle">
-            Gerencie suas informações pessoais e configurações de conta
+            <?= $isConfigView
+                ? 'Gerencie segurança, integrações e preferências da conta'
+                : 'Gerencie suas informações pessoais' ?>
         </p>
     </div>
 
     <!-- Tab Navigation -->
     <nav class="profile-tabs surface-card surface-card--clip" role="tablist" aria-label="Seções do perfil">
-        <button type="button" class="profile-tab surface-filter surface-filter--soft active" data-tab="dados" role="tab" aria-selected="true"
-            aria-controls="panel-dados">
-            <span class="tab-icon"><i data-lucide="user" style="color:#3b82f6"></i></span>
-            <span class="tab-label">Dados Pessoais</span>
-        </button>
-        <button type="button" class="profile-tab surface-filter surface-filter--soft" data-tab="endereco" role="tab" aria-selected="false"
-            aria-controls="panel-endereco">
-            <span class="tab-icon"><i data-lucide="map-pin" style="color:#ef4444"></i></span>
-            <span class="tab-label">Endereço</span>
-        </button>
-        <button type="button" class="profile-tab surface-filter surface-filter--soft" data-tab="seguranca" role="tab" aria-selected="false"
-            aria-controls="panel-seguranca">
-            <span class="tab-icon"><i data-lucide="lock" style="color:#f59e0b"></i></span>
-            <span class="tab-label">Segurança</span>
-        </button>
-        <button type="button" class="profile-tab surface-filter surface-filter--soft" data-tab="plano" role="tab" aria-selected="false"
-            aria-controls="panel-plano">
-            <span class="tab-icon"><i data-lucide="crown" style="color:#f59e0b"></i></span>
-            <span class="tab-label">Plano & Indicação</span>
-        </button>
-        <button type="button" class="profile-tab surface-filter surface-filter--soft" data-tab="integracoes" role="tab" aria-selected="false"
-            aria-controls="panel-integracoes">
-            <span class="tab-icon"><i data-lucide="plug" style="color:#0ea5e9"></i></span>
-            <span class="tab-label">Integrações</span>
-        </button>
-        <button type="button" class="profile-tab surface-filter surface-filter--soft tab-danger" data-tab="perigo" role="tab" aria-selected="false"
-            aria-controls="panel-perigo">
-            <span class="tab-icon"><i data-lucide="triangle-alert" style="color:#ef4444"></i></span>
-            <span class="tab-label">Zona de Perigo</span>
-        </button>
+        <?php if ($isProfileView): ?>
+            <button type="button" class="profile-tab surface-filter surface-filter--soft active" data-tab="dados" role="tab" aria-selected="true"
+                aria-controls="panel-dados">
+                <span class="tab-icon"><i data-lucide="user" style="color:#3b82f6"></i></span>
+                <span class="tab-label">Dados Pessoais</span>
+            </button>
+            <button type="button" class="profile-tab surface-filter surface-filter--soft" data-tab="endereco" role="tab" aria-selected="false"
+                aria-controls="panel-endereco">
+                <span class="tab-icon"><i data-lucide="map-pin" style="color:#ef4444"></i></span>
+                <span class="tab-label">Endereço</span>
+            </button>
+        <?php else: ?>
+            <button type="button" class="profile-tab surface-filter surface-filter--soft active" data-tab="seguranca" role="tab" aria-selected="true"
+                aria-controls="panel-seguranca">
+                <span class="tab-icon"><i data-lucide="lock" style="color:#f59e0b"></i></span>
+                <span class="tab-label">Segurança</span>
+            </button>
+            <button type="button" class="profile-tab surface-filter surface-filter--soft" data-tab="plano" role="tab" aria-selected="false"
+                aria-controls="panel-plano">
+                <span class="tab-icon"><i data-lucide="crown" style="color:#f59e0b"></i></span>
+                <span class="tab-label">Plano & Indicação</span>
+            </button>
+            <button type="button" class="profile-tab surface-filter surface-filter--soft" data-tab="integracoes" role="tab" aria-selected="false"
+                aria-controls="panel-integracoes">
+                <span class="tab-icon"><i data-lucide="plug" style="color:#0ea5e9"></i></span>
+                <span class="tab-label">Integrações</span>
+            </button>
+            <button type="button" class="profile-tab surface-filter surface-filter--soft tab-danger" data-tab="perigo" role="tab" aria-selected="false"
+                aria-controls="panel-perigo">
+                <span class="tab-icon"><i data-lucide="triangle-alert" style="color:#ef4444"></i></span>
+                <span class="tab-label">Zona de Perigo</span>
+            </button>
+        <?php endif; ?>
     </nav>
 
 
     <form id="profileForm" autocomplete="off">
         <?= function_exists('csrf_input') ? csrf_input('default') : '' ?>
 
+        <?php if ($isProfileView): ?>
         <!-- Tab: Dados Pessoais -->
         <div class="profile-tab-panel active" id="panel-dados" role="tabpanel" aria-labelledby="tab-dados">
             <div class="profile-section surface-card surface-card--interactive">
@@ -237,9 +249,11 @@
                 </button>
             </div>
         </div><!-- /panel-endereco -->
+        <?php endif; ?>
 
+        <?php if ($isConfigView): ?>
         <!-- Tab: Segurança -->
-        <div class="profile-tab-panel" id="panel-seguranca" role="tabpanel" aria-labelledby="tab-seguranca">
+        <div class="profile-tab-panel active" id="panel-seguranca" role="tabpanel" aria-labelledby="tab-seguranca">
             <div class="profile-section surface-card surface-card--interactive">
                 <div class="section-header">
                     <div class="section-icon"><i data-lucide="lock" style="color:white"></i></div>
@@ -307,8 +321,27 @@
                 </button>
             </div>
         </div><!-- /panel-seguranca -->
+        <?php endif; ?>
     </form>
 
+    <?php if ($isProfileView): ?>
+        <div class="profile-section surface-card surface-card--interactive">
+            <div class="section-header">
+                <div class="section-icon"><i data-lucide="settings" style="color:white"></i></div>
+                <div class="section-header-text">
+                    <h3>Configurações da Conta</h3>
+                    <p>Acesse segurança, integrações e preferências avançadas</p>
+                </div>
+            </div>
+            <div class="form-actions" style="margin-top: 0.5rem;">
+                <a href="<?= BASE_URL ?>configuracoes" class="btn-save surface-button surface-button--primary">
+                    <span><i data-lucide="arrow-right"></i> Ir para Configurações</span>
+                </a>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($isConfigView): ?>
     <!-- Tab: Plano & Indicação -->
     <div class="profile-tab-panel" id="panel-plano" role="tabpanel" aria-labelledby="tab-plano">
         <!-- Seção de Plano -->
@@ -633,6 +666,7 @@
             </div>
         </div>
     </div><!-- /panel-perigo -->
+    <?php endif; ?>
 </div>
 
 

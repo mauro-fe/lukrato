@@ -295,6 +295,13 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
 
         <!-- Rodapé da Sidebar -->
         <div class="sidebar-footer">
+            <a href="<?= BASE_URL ?>configuracoes" class="nav-item <?= $active('configuracoes') ?>" <?= $aria('configuracoes') ?>
+                title="Configurações">
+                <i data-lucide="settings"></i>
+                <span class="nav-item-content">
+                    <span class="nav-item-title">Configurações</span>
+                </span>
+            </a>
             <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil') ?>" <?= $aria('perfil') ?>
                 title="Perfil">
                 <div class="sidebar-avatar" id="sidebarAvatar">

@@ -1,8 +1,8 @@
 /**
  * ============================================================================
- * LUKRATO — Lançamento Global (Header FAB Modal)
+ * LUKRATO â€” LanÃ§amento Global (Header FAB Modal)
  * ============================================================================
- * Entry point Vite — recursos/js/admin/lancamento-global/index.js
+ * Entry point Vite â€” recursos/js/admin/lancamento-global/index.js
  *
  * Refactored from public/assets/js/lancamento-global.js
  * Uses shared modules instead of duplicated utility functions.
@@ -28,9 +28,9 @@ function sortByLabel(items, resolver) {
     });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class LancamentoGlobalManager {
-    // ── State ────────────────────────────────────────────────────────────────
+    // â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     constructor() {
         this.contaSelecionada = null;
         this.contas = [];
@@ -57,7 +57,7 @@ class LancamentoGlobalManager {
         this.totalSteps = 5; // receita/despesa = 5, transferencia = 4
     }
 
-    // ── Init ─────────────────────────────────────────────────────────────────
+    // â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     init() {
         if (!this.eventosConfigurados) {
             this.configurarEventos();
@@ -71,7 +71,7 @@ class LancamentoGlobalManager {
         }
     }
 
-    // ── Data Loading ─────────────────────────────────────────────────────────
+    // â”€â”€ Data Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     normalizarContextoAbertura(options = {}) {
         const rawOptions = options && typeof options === 'object'
             ? options
@@ -100,8 +100,8 @@ class LancamentoGlobalManager {
         const hint = document.getElementById('globalContaContextHint');
         if (hint) {
             hint.textContent = contexto.source === 'contas'
-                ? 'Abrimos com a conta desta tela. Se precisar, você pode trocar antes de continuar.'
-                : 'Escolha a conta para ver saldo e as ultimas movimentações.';
+                ? 'Abrimos com a conta desta tela. Se precisar, vocÃª pode trocar antes de continuar.'
+                : 'Escolha a conta para ver saldo e as ultimas movimentaÃ§Ãµes.';
         }
 
         const select = document.getElementById('globalContaSelect');
@@ -167,7 +167,7 @@ class LancamentoGlobalManager {
         if (!historicoContainer) return;
 
         if (!this.contaSelecionada) {
-            renderLancamentoHistoryPlaceholder(historicoContainer, 'Selecione uma conta para ver as ultimas movimentações.');
+            renderLancamentoHistoryPlaceholder(historicoContainer, 'Selecione uma conta para ver as ultimas movimentaÃ§Ãµes.');
             return;
         }
 
@@ -230,7 +230,10 @@ class LancamentoGlobalManager {
                     : (Array.isArray(dataMetas?.data) ? dataMetas.data : []);
 
                 this.metas = sortByLabel(
-                    metasData.filter((meta) => meta?.status === 'ativa'),
+                    metasData.filter((meta) => {
+                        const status = String(meta?.status || '').toLowerCase();
+                        return status === 'ativa' || status === 'concluida';
+                    }),
                     (meta) => meta?.titulo || ''
                 );
             }
@@ -270,6 +273,39 @@ class LancamentoGlobalManager {
 
         const pagoCheck = document.getElementById('globalLancamentoPago');
         return pagoCheck ? pagoCheck.checked !== false : true;
+    }
+
+    atualizarTextosParcelamento() {
+        const textoParcelamento = document.getElementById('globalParcelamentoTexto');
+        const helperParcelamento = document.getElementById('globalParcelamentoHelperText');
+        const labelParcelas = document.getElementById('globalNumeroParcelasLabelTexto');
+        const suffixParcelas = document.getElementById('globalNumeroParcelasSuffixTexto');
+
+        const formaPagamento = document.getElementById('globalFormaPagamento')?.value || '';
+
+        let textoCheckbox = 'Parcelar lançamento';
+        let textoHelper = 'O valor total será dividido em parcelas futuras.';
+        let textoLabel = 'Número de parcelas';
+        let textoSuffix = 'parcelas';
+
+        if (this.tipoAtual === 'receita') {
+            textoCheckbox = 'Receber em parcelas';
+            textoHelper = 'O valor total será dividido em recebimentos futuros.';
+            textoLabel = 'Número de recebimentos';
+            textoSuffix = 'recebimentos';
+        } else if (this.tipoAtual === 'despesa') {
+            textoCheckbox = formaPagamento === 'cartao_credito'
+                ? 'Parcelar compra no cartão'
+                : 'Parcelar pagamento';
+            textoHelper = formaPagamento === 'cartao_credito'
+                ? 'O valor total será dividido entre as próximas faturas.'
+                : 'O valor total será dividido em pagamentos futuros.';
+        }
+
+        if (textoParcelamento) textoParcelamento.textContent = textoCheckbox;
+        if (helperParcelamento) helperParcelamento.textContent = textoHelper;
+        if (labelParcelas) labelParcelas.textContent = textoLabel;
+        if (suffixParcelas) suffixParcelas.textContent = textoSuffix;
     }
 
     resumirTitulosMetas(metas = []) {
@@ -366,8 +402,8 @@ class LancamentoGlobalManager {
                 message = `Enquanto este lancamento estiver pendente, o saldo da conta nao muda. ${metas.length === 1 ? `A meta continua em ${formatMoney(saldoAtual)}.` : `As metas ${resumoMetas} so mudam quando a movimentacao for confirmada.`}`;
             } else {
                 message = metas.length === 1
-                    ? `Essa movimentação não altera o saldo da conta agora. A meta segue acompanhando ${formatMoney(saldoAtual)}.`
-                    : `Essa movimentação não altera o saldo da conta agora. ${resumoMetas} continuam sincronizadas com o valor atual.`;
+                    ? `Essa movimentaÃ§Ã£o nÃ£o altera o saldo da conta agora. A meta segue acompanhando ${formatMoney(saldoAtual)}.`
+                    : `Essa movimentaÃ§Ã£o nÃ£o altera o saldo da conta agora. ${resumoMetas} continuam sincronizadas com o valor atual.`;
             }
         } else {
             tone = saldoProjetado < 0 ? 'danger' : (delta < 0 ? 'warning' : 'success');
@@ -481,7 +517,7 @@ class LancamentoGlobalManager {
         ]);
     }
 
-    // ── Select Population ────────────────────────────────────────────────────
+    // â”€â”€ Select Population â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     preencherSelectContas() {
         const select = document.getElementById('globalContaSelect');
         if (!select) return;
@@ -492,14 +528,14 @@ class LancamentoGlobalManager {
         if (avisoExistente) avisoExistente.remove();
 
         if (this.contas.length === 0) {
-            select.innerHTML = '<option value="">Nenhuma conta disponível</option>';
+            select.innerHTML = '<option value="">Nenhuma conta disponÃ­vel</option>';
             select.disabled = true;
             const aviso = document.createElement('div');
             aviso.className = 'no-accounts-warning';
             aviso.innerHTML = `
                 <div class="alert alert-info d-flex align-items-center gap-2 mt-2 mb-0 py-2 px-3" style="font-size: 0.85rem; border-radius: 8px;">
                     <i data-lucide="info"></i>
-                    <span>Você não possui contas cadastradas.</span>
+                    <span>VocÃª nÃ£o possui contas cadastradas.</span>
                     <a href="${getBaseUrl()}contas" class="btn btn-sm btn-primary ms-auto" style="font-size: 0.75rem;">
                         <i data-lucide="plus" style="width:14px;height:14px;"></i>Criar Conta
                     </a>
@@ -558,10 +594,78 @@ class LancamentoGlobalManager {
             const option = document.createElement('option');
             option.value = meta.id;
             option.textContent = meta.titulo;
+            option.dataset.status = String(meta?.status || '').toLowerCase();
+            option.dataset.modelo = String(meta?.modelo || '').toLowerCase();
             select.appendChild(option);
         });
 
         this.syncEnhancedSelects();
+    }
+
+    getMetaSelecionada(rawMetaId = null) {
+        const raw = rawMetaId !== null
+            ? rawMetaId
+            : (document.getElementById('globalLancamentoMeta')?.value || '');
+        const metaId = Number.parseInt(String(raw), 10);
+        if (!Number.isFinite(metaId) || metaId <= 0) {
+            return null;
+        }
+
+        return this.metas.find((meta) => Number(meta?.id ?? 0) === metaId) || null;
+    }
+
+    shouldDefaultMetaRealizacao(meta) {
+        if (!meta) return false;
+        const status = String(meta?.status || '').toLowerCase();
+        return status === 'concluida';
+    }
+
+    syncMetaLinkFields({ preserveAmount = true } = {}) {
+        const metaSelect = document.getElementById('globalLancamentoMeta');
+        const metaValorGroup = document.getElementById('globalMetaValorGroup');
+        const metaValorInput = document.getElementById('globalLancamentoMetaValor');
+        const metaRealizacaoGroup = document.getElementById('globalMetaRealizacaoGroup');
+        const metaRealizacaoCheck = document.getElementById('globalLancamentoMetaRealizacao');
+        const formaPagamento = String(document.getElementById('globalFormaPagamento')?.value || '').toLowerCase();
+
+        const metaIdRaw = metaSelect?.value || '';
+        const hasMeta = metaIdRaw !== '' && Number(metaIdRaw) > 0;
+        const showAmount = hasMeta && ['receita', 'despesa', 'transferencia'].includes(String(this.tipoAtual || '').toLowerCase());
+        const showRealizacao = hasMeta
+            && String(this.tipoAtual || '').toLowerCase() === 'despesa'
+            && formaPagamento !== 'cartao_credito';
+
+        if (metaValorGroup) metaValorGroup.style.display = showAmount ? 'block' : 'none';
+        if (metaRealizacaoGroup) metaRealizacaoGroup.style.display = showRealizacao ? 'block' : 'none';
+
+        if (!hasMeta) {
+            if (metaValorInput) metaValorInput.value = '';
+            if (metaRealizacaoCheck) metaRealizacaoCheck.checked = false;
+            return;
+        }
+
+        const valorLancamento = parseMoney(document.getElementById('globalLancamentoValor')?.value);
+        if (metaValorInput) {
+            const valorAtualMeta = parseMoney(metaValorInput.value);
+            if (!preserveAmount || !(valorAtualMeta > 0)) {
+                const valorBase = Math.max(0, valorLancamento || 0);
+                metaValorInput.value = valorBase > 0 ? formatMoneyInput(Math.round(valorBase * 100)) : '';
+            }
+        }
+
+        if (metaRealizacaoCheck) {
+            if (!showRealizacao) {
+                metaRealizacaoCheck.checked = false;
+            } else if (!preserveAmount) {
+                const meta = this.getMetaSelecionada(metaIdRaw);
+                metaRealizacaoCheck.checked = this.shouldDefaultMetaRealizacao(meta);
+            }
+        }
+    }
+
+    onMetaChange() {
+        this.syncMetaLinkFields({ preserveAmount: false });
+        this.schedulePlanningAlertsRender();
     }
 
     preencherCartoes(isEstorno = false) {
@@ -570,8 +674,8 @@ class LancamentoGlobalManager {
 
         this.isEstornoCartao = isEstorno;
         const optionVazio = isEstorno
-            ? '<option value="">Selecione o cartão</option>'
-            : '<option value="">Não usar cartão (débito na conta)</option>';
+            ? '<option value="">Selecione o cartÃ£o</option>'
+            : '<option value="">NÃ£o usar cartÃ£o (dÃ©bito na conta)</option>';
 
         if (!Array.isArray(this.cartoes)) this.cartoes = [];
         if (this.cartoes.length === 0) {
@@ -582,7 +686,7 @@ class LancamentoGlobalManager {
 
         const cartoesAtivos = this.cartoes.filter(c => c.ativo);
         const optionsCartoes = cartoesAtivos
-            .map(c => `<option value="${c.id}">${c.nome_cartao || c.bandeira} •••• ${c.ultimos_digitos}</option>`)
+            .map(c => `<option value="${c.id}">${c.nome_cartao || c.bandeira} â€¢â€¢â€¢â€¢ ${c.ultimos_digitos}</option>`)
             .join('');
         select.innerHTML = optionVazio + optionsCartoes;
 
@@ -614,7 +718,7 @@ class LancamentoGlobalManager {
         // Reset subcategoria ao trocar categorias
         this.resetSubcategoriaSelect();
 
-        // Listener cascata: ao trocar categoria → preencher subcategorias
+        // Listener cascata: ao trocar categoria â†’ preencher subcategorias
         if (!select.dataset.subcatListenerAttached) {
             select.dataset.subcatListenerAttached = '1';
             select.addEventListener('change', () => this.preencherSubcategorias(select.value));
@@ -667,7 +771,7 @@ class LancamentoGlobalManager {
         this.syncEnhancedSelects();
     }
 
-    // ── Fatura Estorno ───────────────────────────────────────────────────────
+    // â”€â”€ Fatura Estorno â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     onCartaoEstornoChange() {
         const cartaoSelect = document.getElementById('globalLancamentoCartaoCredito');
         const faturaGroup = document.getElementById('globalFaturaEstornoGroup');
@@ -689,12 +793,12 @@ class LancamentoGlobalManager {
         if (!cartao) {
             this.syncEnhancedSelects();
         }
-        if (!cartao) { faturaSelect.innerHTML = '<option value="">Erro ao carregar cartão</option>'; return; }
+        if (!cartao) { faturaSelect.innerHTML = '<option value="">Erro ao carregar cartÃ£o</option>'; return; }
 
         const hoje = new Date();
         const mesAtual = hoje.getMonth() + 1;
         const anoAtual = hoje.getFullYear();
-        const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        const meses = ['Janeiro', 'Fevereiro', 'MarÃ§o', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
         let options = '';
         for (let offset = -3; offset <= 5; offset++) {
@@ -711,17 +815,35 @@ class LancamentoGlobalManager {
         this.syncEnhancedSelects();
     }
 
-    // ── Event Setup ──────────────────────────────────────────────────────────
+    // â”€â”€ Event Setup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     configurarEventos() {
         const valorInput = document.getElementById('globalLancamentoValor');
         if (valorInput) {
             valorInput.addEventListener('input', (e) => {
                 applyMoneyMask(e.target);
+                const metaValorInput = document.getElementById('globalLancamentoMetaValor');
+                if (!metaValorInput || parseMoney(metaValorInput.value) <= 0) {
+                    this.syncMetaLinkFields({ preserveAmount: false });
+                }
+                this.atualizarPreviewParcelamento();
                 this.schedulePlanningAlertsRender();
             });
             valorInput.addEventListener('focus', (e) => {
                 if (e.target.value === '0,00') e.target.value = '';
             });
+        }
+
+        const metaValorInput = document.getElementById('globalLancamentoMetaValor');
+        if (metaValorInput) {
+            metaValorInput.addEventListener('input', (e) => {
+                applyMoneyMask(e.target);
+                this.schedulePlanningAlertsRender();
+            });
+        }
+
+        const metaRealizacaoCheck = document.getElementById('globalLancamentoMetaRealizacao');
+        if (metaRealizacaoCheck) {
+            metaRealizacaoCheck.addEventListener('change', () => this.schedulePlanningAlertsRender());
         }
 
         const categoriaSelect = document.getElementById('globalLancamentoCategoria');
@@ -766,6 +888,8 @@ class LancamentoGlobalManager {
                     }
                 }
 
+                this.atualizarTextosParcelamento();
+                this.atualizarPreviewParcelamento();
                 this.syncReminderVisibility();
                 this.schedulePlanningAlertsRender();
             });
@@ -775,6 +899,7 @@ class LancamentoGlobalManager {
         if (parceladoCheck) {
             parceladoCheck.addEventListener('change', (e) => {
                 document.getElementById('globalNumeroParcelasGroup').style.display = e.target.checked ? 'block' : 'none';
+                this.atualizarPreviewParcelamento();
             });
         }
 
@@ -790,7 +915,7 @@ class LancamentoGlobalManager {
                 this.salvarLancamento();
             });
 
-            // Interceptar Enter nos inputs para avançar etapa em vez de submeter o form
+            // Interceptar Enter nos inputs para avanÃ§ar etapa em vez de submeter o form
             form.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
                     e.preventDefault();
@@ -800,7 +925,7 @@ class LancamentoGlobalManager {
             });
         }
 
-        // Data e hora padrão
+        // Data e hora padrÃ£o
         const hoje = new Date();
         const dataInput = document.getElementById('globalLancamentoData');
         if (dataInput && !dataInput.value) {
@@ -856,7 +981,7 @@ class LancamentoGlobalManager {
         }
     }
 
-    // ── Modal Management ─────────────────────────────────────────────────────
+    // â”€â”€ Modal Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async openModal(options = {}) {
         const overlay = document.getElementById('modalLancamentoGlobalOverlay');
         if (overlay) {
@@ -900,7 +1025,7 @@ class LancamentoGlobalManager {
 
     restaurarCabecalhoPadrao() {
         const tituloEl = document.getElementById('modalLancamentoGlobalTitulo');
-        if (tituloEl) tituloEl.textContent = 'Nova Movimentação';
+        if (tituloEl) tituloEl.textContent = 'Nova MovimentaÃ§Ã£o';
 
         const headerGradient = document.querySelector('#modalLancamentoGlobalOverlay .lk-modal-header-gradient');
         if (headerGradient) {
@@ -915,7 +1040,7 @@ class LancamentoGlobalManager {
         this.resetarFormulario();
     }
 
-    // ── Wizard Step Engine ───────────────────────────────────────────────────
+    // â”€â”€ Wizard Step Engine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     initWizard() {
         this.currentStep = 1;
         this.tipoAtual = null;
@@ -944,7 +1069,7 @@ class LancamentoGlobalManager {
         if (!this.contaSelecionada) {
             const historicoContainer = document.getElementById('globalLancamentoHistorico');
             if (historicoContainer) {
-                renderLancamentoHistoryPlaceholder(historicoContainer, 'Selecione uma conta para ver as ultimas movimentações.');
+                renderLancamentoHistoryPlaceholder(historicoContainer, 'Selecione uma conta para ver as ultimas movimentaÃ§Ãµes.');
             }
         }
         // Hide progress dots on step 1
@@ -980,7 +1105,7 @@ class LancamentoGlobalManager {
         const dotCount = this.totalSteps - 1; // exclude step 1 from dots
         let html = '';
         for (let i = 0; i < dotCount; i++) {
-            const stepNum = i + 2; // dot 0 → step 2, dot 1 → step 3, etc.
+            const stepNum = i + 2; // dot 0 â†’ step 2, dot 1 â†’ step 3, etc.
             let stateClass = 'pending';
             if (stepNum < this.currentStep) stateClass = 'completed';
             else if (stepNum === this.currentStep) stateClass = 'active';
@@ -1043,7 +1168,7 @@ class LancamentoGlobalManager {
 
         let next = this.currentStep + 1;
 
-        // For transferência: skip step 3 (payment) and step 5 (category/recurrence)
+        // For transferÃªncia: skip step 3 (payment) and step 5 (category/recurrence)
         if (this.tipoAtual === 'transferencia') {
             if (next === 5) next = this.totalSteps + 1; // no step 5 for transfer
         }
@@ -1059,7 +1184,7 @@ class LancamentoGlobalManager {
     prevStep() {
         let prev = this.currentStep - 1;
 
-        // For transferência: skip step 3 back to 2
+        // For transferÃªncia: skip step 3 back to 2
         if (this.tipoAtual === 'transferencia') {
             // no special skip needed going back
         }
@@ -1105,11 +1230,11 @@ class LancamentoGlobalManager {
             const descricao = document.getElementById('globalLancamentoDescricao')?.value.trim() || '';
             const valor = parseMoney(document.getElementById('globalLancamentoValor')?.value);
             if (!descricao) {
-                Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe a descrição', customClass: { container: 'swal-above-modal' } });
+                Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Informe a descriÃ§Ã£o', customClass: { container: 'swal-above-modal' } });
                 return false;
             }
             if (!valor || valor <= 0) {
-                Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe um valor válido', customClass: { container: 'swal-above-modal' } });
+                Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Informe um valor vÃ¡lido', customClass: { container: 'swal-above-modal' } });
                 return false;
             }
         }
@@ -1118,11 +1243,11 @@ class LancamentoGlobalManager {
             if (this.tipoAtual === 'transferencia') {
                 const contaDest = document.getElementById('globalLancamentoContaDestino')?.value;
                 if (!contaDest) {
-                    Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione a conta de destino', customClass: { container: 'swal-above-modal' } });
+                    Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Selecione a conta de destino', customClass: { container: 'swal-above-modal' } });
                     return false;
                 }
             }
-            // Validate credit card limit if cartão selected
+            // Validate credit card limit if cartÃ£o selected
             if (this.tipoAtual === 'despesa') {
                 const cartaoId = document.getElementById('globalLancamentoCartaoCredito')?.value;
                 if (cartaoId) {
@@ -1133,7 +1258,7 @@ class LancamentoGlobalManager {
                         if (valor > limiteDisponivel) {
                             Swal.fire({
                                 icon: 'error', title: 'Limite Insuficiente',
-                                html: `<p>O valor (${formatMoney(valor)}) excede o limite disponível.</p><p><strong>Limite:</strong> ${formatMoney(limiteDisponivel)}</p>`,
+                                html: `<p>O valor (${formatMoney(valor)}) excede o limite disponÃ­vel.</p><p><strong>Limite:</strong> ${formatMoney(limiteDisponivel)}</p>`,
                                 confirmButtonText: 'Entendi', customClass: { container: 'swal-above-modal' }
                             });
                             return false;
@@ -1147,7 +1272,7 @@ class LancamentoGlobalManager {
                 if (formaRec === 'estorno_cartao') {
                     const cartaoId = document.getElementById('globalLancamentoCartaoCredito')?.value;
                     if (!cartaoId) {
-                        Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione o cartão para o estorno', customClass: { container: 'swal-above-modal' } });
+                        Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Selecione o cartÃ£o para o estorno', customClass: { container: 'swal-above-modal' } });
                         return false;
                     }
                 }
@@ -1157,18 +1282,18 @@ class LancamentoGlobalManager {
         if (step === 4) {
             const data = document.getElementById('globalLancamentoData')?.value || '';
             if (!data) {
-                Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe a data', customClass: { container: 'swal-above-modal' } });
+                Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Informe a data', customClass: { container: 'swal-above-modal' } });
                 return false;
             }
         }
 
-        // Step 5: validar parcelas e recorrência
+        // Step 5: validar parcelas e recorrÃªncia
         if (step === 5) {
             const parcelado = document.getElementById('globalLancamentoParcelado')?.checked;
             if (parcelado) {
                 const totalParcelas = parseInt(document.getElementById('globalLancamentoTotalParcelas')?.value) || 0;
                 if (totalParcelas < 2 || totalParcelas > 48) {
-                    Swal.fire({ icon: 'warning', title: 'Atenção', text: 'O número de parcelas deve ser entre 2 e 48', customClass: { container: 'swal-above-modal' } });
+                    Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'O nÃºmero de parcelas deve ser entre 2 e 48', customClass: { container: 'swal-above-modal' } });
                     return false;
                 }
             }
@@ -1178,7 +1303,7 @@ class LancamentoGlobalManager {
                 if (modo === 'quantidade') {
                     const total = parseInt(document.getElementById('globalLancamentoRecorrenciaTotal')?.value) || 0;
                     if (total < 2 || total > 120) {
-                        Swal.fire({ icon: 'warning', title: 'Atenção', text: 'A quantidade de repetições deve ser entre 2 e 120', customClass: { container: 'swal-above-modal' } });
+                        Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'A quantidade de repetiÃ§Ãµes deve ser entre 2 e 120', customClass: { container: 'swal-above-modal' } });
                         return false;
                     }
                 }
@@ -1214,7 +1339,7 @@ class LancamentoGlobalManager {
         const tipoAgInput = document.getElementById('globalLancamentoTipoAgendamento');
         if (tipoAgInput) tipoAgInput.value = 'despesa';
 
-        // Recorrência
+        // RecorrÃªncia
         const recorrenciaGroup = document.getElementById('globalRecorrenciaGroup');
         if (recorrenciaGroup) recorrenciaGroup.style.display = 'none';
         const recorrenciaDetalhes = document.getElementById('globalRecorrenciaDetalhes');
@@ -1238,6 +1363,14 @@ class LancamentoGlobalManager {
         if (metaGroup) metaGroup.style.display = 'none';
         const metaSelect = document.getElementById('globalLancamentoMeta');
         if (metaSelect) metaSelect.value = '';
+        const metaValorGroup = document.getElementById('globalMetaValorGroup');
+        if (metaValorGroup) metaValorGroup.style.display = 'none';
+        const metaValorInput = document.getElementById('globalLancamentoMetaValor');
+        if (metaValorInput) metaValorInput.value = '';
+        const metaRealizacaoGroup = document.getElementById('globalMetaRealizacaoGroup');
+        if (metaRealizacaoGroup) metaRealizacaoGroup.style.display = 'none';
+        const metaRealizacaoCheck = document.getElementById('globalLancamentoMetaRealizacao');
+        if (metaRealizacaoCheck) metaRealizacaoCheck.checked = false;
 
         // Lembrete
         const lembreteGroup = document.getElementById('globalLembreteGroup');
@@ -1258,6 +1391,8 @@ class LancamentoGlobalManager {
         // Forma de pagamento
         this.resetarFormaPagamento();
         this.tipoAtual = null;
+        this.atualizarTextosParcelamento();
+        this.atualizarPreviewParcelamento();
 
         // Reset wizard state
         this.currentStep = 1;
@@ -1266,17 +1401,17 @@ class LancamentoGlobalManager {
         this.syncEnhancedSelects();
     }
 
-    // ── Form Type Selection ──────────────────────────────────────────────────
+    // â”€â”€ Form Type Selection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async mostrarFormulario(tipo) {
         if (this.contas.length === 0) {
             const result = await Swal.fire({
                 icon: 'info',
                 title: 'Nenhuma conta cadastrada',
-                html: `<p>Você ainda não possui nenhuma conta bancária cadastrada.</p>
-                       <p class="text-muted mt-2">É necessário criar pelo menos uma conta para registrar lançamentos.</p>`,
+                html: `<p>VocÃª ainda nÃ£o possui nenhuma conta bancÃ¡ria cadastrada.</p>
+                       <p class="text-muted mt-2">Ã‰ necessÃ¡rio criar pelo menos uma conta para registrar lanÃ§amentos.</p>`,
                 showCancelButton: true,
                 confirmButtonText: '<i data-lucide="plus" style="width:16px;height:16px;display:inline-block;"></i> Criar Conta',
-                cancelButtonText: 'Agora não',
+                cancelButtonText: 'Agora nÃ£o',
                 confirmButtonColor: 'var(--color-primary)',
                 customClass: { container: 'swal-above-modal', confirmButton: 'btn btn-primary', cancelButton: 'btn btn-secondary' }
             });
@@ -1292,19 +1427,19 @@ class LancamentoGlobalManager {
         }
 
         if (!this.contaSelecionada) {
-            Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione uma conta primeiro!', customClass: { container: 'swal-above-modal' } });
+            Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Selecione uma conta primeiro!', customClass: { container: 'swal-above-modal' } });
             return;
         }
 
-        // Guard: transferência requer pelo menos 2 contas
+        // Guard: transferÃªncia requer pelo menos 2 contas
         if (tipo === 'transferencia' && this.contas.length < 2) {
             Swal.fire({
                 icon: 'warning',
-                title: 'Não é possível transferir',
-                text: 'Você precisa ter pelo menos duas contas cadastradas para realizar uma transferência.',
+                title: 'NÃ£o Ã© possÃ­vel transferir',
+                text: 'VocÃª precisa ter pelo menos duas contas cadastradas para realizar uma transferÃªncia.',
                 confirmButtonText: 'Criar outra conta',
                 showCancelButton: true,
-                cancelButtonText: 'Agora não',
+                cancelButtonText: 'Agora nÃ£o',
                 customClass: { container: 'swal-above-modal' }
             }).then(result => {
                 if (result.isConfirmed) {
@@ -1318,7 +1453,7 @@ class LancamentoGlobalManager {
             await this.carregarDados();
         }
 
-        // Restaurar seleção da conta no select após possível re-fetch
+        // Restaurar seleÃ§Ã£o da conta no select apÃ³s possÃ­vel re-fetch
         if (this.contaSelecionada) {
             const select = document.getElementById('globalContaSelect');
             if (select && select.value !== String(this.contaSelecionada.id)) {
@@ -1340,21 +1475,21 @@ class LancamentoGlobalManager {
 
         this.configurarCamposPorTipo(tipo);
 
-        const titulos = { receita: 'Nova Receita', despesa: 'Nova Despesa', transferencia: 'Nova Transferência' };
+        const titulos = { receita: 'Nova Receita', despesa: 'Nova Despesa', transferencia: 'Nova TransferÃªncia' };
         const tituloEl = document.getElementById('modalLancamentoGlobalTitulo');
-        if (tituloEl) tituloEl.textContent = titulos[tipo] || 'Nova Movimentação';
+        if (tituloEl) tituloEl.textContent = titulos[tipo] || 'Nova MovimentaÃ§Ã£o';
 
         // Update step 2 question text
         const step2Title = document.getElementById('globalStep2Title');
         const step2Subtitle = document.getElementById('globalStep2Subtitle');
         if (tipo === 'receita') {
-            if (step2Title) step2Title.textContent = 'O que você recebeu?';
+            if (step2Title) step2Title.textContent = 'O que vocÃª recebeu?';
             if (step2Subtitle) step2Subtitle.textContent = 'Descreva e informe o valor recebido';
         } else if (tipo === 'transferencia') {
             if (step2Title) step2Title.textContent = 'Quanto quer transferir?';
-            if (step2Subtitle) step2Subtitle.textContent = 'Descreva e informe o valor da transferência';
+            if (step2Subtitle) step2Subtitle.textContent = 'Descreva e informe o valor da transferÃªncia';
         } else {
-            if (step2Title) step2Title.textContent = 'Com o que você gastou?';
+            if (step2Title) step2Title.textContent = 'Com o que vocÃª gastou?';
             if (step2Subtitle) step2Subtitle.textContent = 'Descreva e informe o valor';
         }
 
@@ -1362,13 +1497,13 @@ class LancamentoGlobalManager {
         const step3Title = document.getElementById('globalStep3Title');
         const step3Subtitle = document.getElementById('globalStep3Subtitle');
         if (tipo === 'receita') {
-            if (step3Title) step3Title.textContent = 'Como você recebeu?';
+            if (step3Title) step3Title.textContent = 'Como vocÃª recebeu?';
             if (step3Subtitle) step3Subtitle.textContent = 'Escolha a forma de recebimento';
         } else if (tipo === 'transferencia') {
             if (step3Title) step3Title.textContent = 'Para onde vai?';
             if (step3Subtitle) step3Subtitle.textContent = 'Escolha a conta de destino';
         } else {
-            if (step3Title) step3Title.textContent = 'Como você pagou?';
+            if (step3Title) step3Title.textContent = 'Como vocÃª pagou?';
             if (step3Subtitle) step3Subtitle.textContent = 'Escolha a forma de pagamento';
         }
 
@@ -1377,24 +1512,24 @@ class LancamentoGlobalManager {
         if (tipo === 'receita') {
             if (step4Title) step4Title.textContent = 'Quando recebeu?';
         } else if (tipo === 'transferencia') {
-            if (step4Title) step4Title.textContent = 'Quando será a transferência?';
+            if (step4Title) step4Title.textContent = 'Quando serÃ¡ a transferÃªncia?';
         } else {
             if (step4Title) step4Title.textContent = 'Quando aconteceu?';
         }
 
-        // For transferência: step 4 is the last, show Salvar instead of Próximo
+        // For transferÃªncia: step 4 is the last, show Salvar instead of PrÃ³ximo
         const step4NavRight = document.getElementById('globalStep4NavRight');
         if (step4NavRight) {
             if (tipo === 'transferencia') {
                 step4NavRight.innerHTML = `
                     <button type="submit" class="lk-btn lk-btn-primary" form="globalFormLancamento">
                         <i data-lucide="check"></i>
-                        Salvar Transferência
+                        Salvar TransferÃªncia
                     </button>`;
             } else {
                 step4NavRight.innerHTML = `
                     <button type="button" class="lk-btn lk-btn-primary" onclick="lancamentoGlobalManager.nextStep()">
-                        Próximo
+                        PrÃ³ximo
                         <i data-lucide="arrow-right"></i>
                     </button>`;
             }
@@ -1406,7 +1541,7 @@ class LancamentoGlobalManager {
         this.schedulePlanningAlertsRender();
     }
 
-    // ── Field Configuration by Type ──────────────────────────────────────────
+    // â”€â”€ Field Configuration by Type â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     configurarCamposPorTipo(tipo) {
         // Header color
         const headerGradient = document.querySelector('#modalLancamentoGlobalOverlay .lk-modal-header-gradient');
@@ -1420,7 +1555,7 @@ class LancamentoGlobalManager {
             if (colors[tipo]) headerGradient.style.setProperty('background', colors[tipo], 'important');
         }
 
-        // ── Step 3 visibility per type ──
+        // â”€â”€ Step 3 visibility per type â”€â”€
         // Conta Destino (transfer only)
         const contaDestinoGroup = document.getElementById('globalContaDestinoGroup');
         if (contaDestinoGroup) contaDestinoGroup.style.display = tipo === 'transferencia' ? 'block' : 'none';
@@ -1436,7 +1571,7 @@ class LancamentoGlobalManager {
         this.resetarFormaPagamento();
         if (tipo === 'despesa') this.preencherCartoes();
 
-        // ── Step 5 visibility per type ──
+        // â”€â”€ Step 5 visibility per type â”€â”€
         // Categoria
         this.preencherCategorias(tipo === 'receita' ? 'receita' : 'despesa');
 
@@ -1446,7 +1581,7 @@ class LancamentoGlobalManager {
         if (categoriaGroup) categoriaGroup.style.display = showStep5Fields ? 'block' : 'none';
         if (subcategoriaGroup) subcategoriaGroup.style.display = 'none';
 
-        // Recorrência e Lembrete (receita/despesa only)
+        // RecorrÃªncia e Lembrete (receita/despesa only)
         const recorrenciaGroup = document.getElementById('globalRecorrenciaGroup');
         const lembreteGroup = document.getElementById('globalLembreteGroup');
         const recorrenciaDetalhes = document.getElementById('globalRecorrenciaDetalhes');
@@ -1468,8 +1603,9 @@ class LancamentoGlobalManager {
         if (parcelamentoGroup) parcelamentoGroup.style.display = 'none';
         if (numParcelasGroup) numParcelasGroup.style.display = 'none';
         if (parceladoCheck) parceladoCheck.checked = false;
+        this.atualizarTextosParcelamento();
 
-        // ── Step 4: Pago toggle ──
+        // â”€â”€ Step 4: Pago toggle â”€â”€
         const pagoGroup = document.getElementById('globalPagoGroup');
         const pagoCheck = document.getElementById('globalLancamentoPago');
         if (pagoGroup) pagoGroup.style.display = showStep5Fields ? 'block' : 'none';
@@ -1480,26 +1616,31 @@ class LancamentoGlobalManager {
         const metaGroup = document.getElementById('globalMetaGroup');
         const metaSelect = document.getElementById('globalLancamentoMeta');
         const metaHelper = document.getElementById('globalMetaHelperText');
-        const podeVincularMeta = tipo === 'receita' || tipo === 'transferencia';
+        const podeVincularMeta = tipo === 'receita' || tipo === 'despesa' || tipo === 'transferencia';
         if (metaGroup) metaGroup.style.display = podeVincularMeta ? 'block' : 'none';
         if (metaSelect) metaSelect.value = '';
         if (metaHelper) {
-            metaHelper.textContent = tipo === 'transferencia'
-                ? 'O valor desta transferencia sera somado ao valor alocado da meta.'
-                : 'O valor desta receita sera somado ao valor alocado da meta.';
+            if (tipo === 'transferencia') {
+                metaHelper.textContent = 'Deseja guardar parte deste valor em uma meta?';
+            } else if (tipo === 'despesa') {
+                metaHelper.textContent = 'Usou dinheiro guardado em meta nesta despesa?';
+            } else {
+                metaHelper.textContent = 'Deseja guardar parte desta receita em uma meta?';
+            }
         }
+        this.syncMetaLinkFields({ preserveAmount: false });
 
         const pagoLabel = document.getElementById('globalPagoLabel');
         const pagoHelper = document.getElementById('globalPagoHelperText');
         if (tipo === 'receita') {
-            if (pagoLabel) pagoLabel.textContent = 'Já foi recebido';
-            if (pagoHelper) pagoHelper.textContent = 'Desmarque se ainda não foi recebido.';
+            if (pagoLabel) pagoLabel.textContent = 'JÃ¡ foi recebido';
+            if (pagoHelper) pagoHelper.textContent = 'Desmarque se ainda nÃ£o foi recebido.';
         } else {
-            if (pagoLabel) pagoLabel.textContent = 'Já foi pago';
-            if (pagoHelper) pagoHelper.textContent = 'Desmarque se ainda não foi pago.';
+            if (pagoLabel) pagoLabel.textContent = 'JÃ¡ foi pago';
+            if (pagoHelper) pagoHelper.textContent = 'Desmarque se ainda nÃ£o foi pago.';
         }
 
-        // Recorrência sub-groups
+        // RecorrÃªncia sub-groups
         const totalGroup = document.getElementById('globalRecorrenciaTotalGroup');
         const fimGroup = document.getElementById('globalRecorrenciaFimGroup');
         if (totalGroup) totalGroup.style.display = 'none';
@@ -1517,7 +1658,7 @@ class LancamentoGlobalManager {
         this.schedulePlanningAlertsRender();
     }
 
-    // ── Recurrence Toggles ───────────────────────────────────────────────────
+    // â”€â”€ Recurrence Toggles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     toggleRecorrencia() {
         const checkbox = document.getElementById('globalLancamentoRecorrente');
         const detalhes = document.getElementById('globalRecorrenciaDetalhes');
@@ -1571,13 +1712,13 @@ class LancamentoGlobalManager {
         if (fimGroup) fimGroup.style.display = modo === 'data' ? 'block' : 'none';
     }
 
-    // ── Card Subscription Toggles ────────────────────────────────────────────
+    // â”€â”€ Card Subscription Toggles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     toggleAssinaturaCartao() {
         const checkbox = document.getElementById('globalLancamentoAssinaturaCartao');
         const detalhes = document.getElementById('globalAssinaturaCartaoDetalhes');
         if (detalhes) detalhes.style.display = checkbox?.checked ? 'block' : 'none';
 
-        // Assinatura e parcelamento são mutuamente exclusivos
+        // Assinatura e parcelamento sÃ£o mutuamente exclusivos
         if (checkbox?.checked) {
             const parceladoCheck = document.getElementById('globalLancamentoParcelado');
             if (parceladoCheck) parceladoCheck.checked = false;
@@ -1659,7 +1800,7 @@ class LancamentoGlobalManager {
     }
 
     /**
-     * Sugerir categoria usando IA com base na descrição do lançamento
+     * Sugerir categoria usando IA com base na descriÃ§Ã£o do lanÃ§amento
      */
     async sugerirCategoriaIA() {
         await _sugerirCategoriaIA({
@@ -1682,7 +1823,7 @@ class LancamentoGlobalManager {
         this.schedulePlanningAlertsRender();
     }
 
-    // ── Forma de Pagamento / Recebimento ─────────────────────────────────────
+    // â”€â”€ Forma de Pagamento / Recebimento â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     resetarFormaPagamento() {
         document.querySelectorAll('#globalFormaPagamentoGrid .lk-forma-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('#globalFormaRecebimentoGrid .lk-forma-btn').forEach(btn => btn.classList.remove('active'));
@@ -1703,6 +1844,8 @@ class LancamentoGlobalManager {
         if (assinaturaCheck) assinaturaCheck.checked = false;
         const assinaturaDetalhes = document.getElementById('globalAssinaturaCartaoDetalhes');
         if (assinaturaDetalhes) assinaturaDetalhes.style.display = 'none';
+        this.atualizarTextosParcelamento();
+        this.atualizarPreviewParcelamento();
         this.syncEnhancedSelects();
     }
 
@@ -1715,6 +1858,8 @@ class LancamentoGlobalManager {
         if (formaPagInput) formaPagInput.value = forma;
 
         const cartaoGroup = document.getElementById('globalCartaoCreditoGroup');
+        const metaGroup = document.getElementById('globalMetaGroup');
+        const metaSelect = document.getElementById('globalLancamentoMeta');
         const parcelamentoGroup = document.getElementById('globalParcelamentoGroup');
         const recorrenciaGroup = document.getElementById('globalRecorrenciaGroup');
 
@@ -1735,15 +1880,13 @@ class LancamentoGlobalManager {
             if (lembreteGroup) lembreteGroup.style.display = 'none';
             const pagoGroup = document.getElementById('globalPagoGroup');
             if (pagoGroup) pagoGroup.style.display = 'none';
+            if (metaGroup) metaGroup.style.display = 'none';
+            if (metaSelect) metaSelect.value = '';
+            this.syncMetaLinkFields({ preserveAmount: false });
         } else {
             if (cartaoGroup) { cartaoGroup.classList.remove('active'); cartaoGroup.style.display = 'none'; }
             if (parcelamentoGroup) {
                 parcelamentoGroup.style.display = 'block';
-                const parcelTexto = parcelamentoGroup.querySelector('.lk-parcel-texto');
-                if (parcelTexto) {
-                    parcelTexto.innerHTML = '<i data-lucide="split" class="icon-sm"></i> Parcelar pagamento';
-                    refreshIcons();
-                }
             }
             const numParcelasGroup = document.getElementById('globalNumeroParcelasGroup');
             if (numParcelasGroup) numParcelasGroup.style.display = 'none';
@@ -1763,8 +1906,14 @@ class LancamentoGlobalManager {
             if (assinaturaCheck) assinaturaCheck.checked = false;
             const assinaturaDetalhes = document.getElementById('globalAssinaturaCartaoDetalhes');
             if (assinaturaDetalhes) assinaturaDetalhes.style.display = 'none';
+            if (metaGroup && (this.tipoAtual === 'receita' || this.tipoAtual === 'despesa')) {
+                metaGroup.style.display = 'block';
+            }
+            this.syncMetaLinkFields({ preserveAmount: true });
         }
 
+        this.atualizarTextosParcelamento();
+        this.atualizarPreviewParcelamento();
         this.syncPagoRecorrenciaState();
         this.syncReminderVisibility();
         this.schedulePlanningAlertsRender();
@@ -1788,6 +1937,7 @@ class LancamentoGlobalManager {
             this.preencherCartoes(true);
             if (metaGroup) metaGroup.style.display = 'none';
             if (metaSelect) metaSelect.value = '';
+            this.syncMetaLinkFields({ preserveAmount: false });
             const parcelamentoGroup = document.getElementById('globalParcelamentoGroup');
             if (parcelamentoGroup) parcelamentoGroup.style.display = 'none';
             const numParcelasGroup = document.getElementById('globalNumeroParcelasGroup');
@@ -1809,7 +1959,10 @@ class LancamentoGlobalManager {
             if (cartaoGroup) { cartaoGroup.classList.remove('active'); cartaoGroup.style.display = 'none'; }
             const cartaoSelect = document.getElementById('globalLancamentoCartaoCredito');
             if (cartaoSelect) cartaoSelect.value = '';
-            if (metaGroup && this.tipoAtual === 'receita') metaGroup.style.display = 'block';
+            if (metaGroup && (this.tipoAtual === 'receita' || this.tipoAtual === 'despesa')) {
+                metaGroup.style.display = 'block';
+            }
+            this.syncMetaLinkFields({ preserveAmount: true });
             const parcelamentoGroup = document.getElementById('globalParcelamentoGroup');
             if (parcelamentoGroup) parcelamentoGroup.style.display = 'block';
             const recorrenciaGroup = document.getElementById('globalRecorrenciaGroup');
@@ -1818,22 +1971,24 @@ class LancamentoGlobalManager {
             if (pagoGroup) pagoGroup.style.display = 'block';
         }
 
+        this.atualizarTextosParcelamento();
+        this.atualizarPreviewParcelamento();
         this.syncPagoRecorrenciaState();
         this.syncReminderVisibility();
         this.schedulePlanningAlertsRender();
         this.syncEnhancedSelects();
     }
 
-    // ── Validation ───────────────────────────────────────────────────────────
+    // â”€â”€ Validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     validarFormulario() {
         if (!this.tipoAtual) {
-            Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione o tipo de lançamento', customClass: { container: 'swal-above-modal' } });
+            Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Selecione o tipo de lanÃ§amento', customClass: { container: 'swal-above-modal' } });
             return false;
         }
 
         const contaId = this.contaSelecionada?.id || document.getElementById('globalContaSelect')?.value;
         if (!contaId) {
-            Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione a conta', customClass: { container: 'swal-above-modal' } });
+            Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Selecione a conta', customClass: { container: 'swal-above-modal' } });
             return false;
         }
 
@@ -1842,19 +1997,45 @@ class LancamentoGlobalManager {
         const data = document.getElementById('globalLancamentoData')?.value || '';
 
         if (!descricao) {
-            Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe a descrição', customClass: { container: 'swal-above-modal' } });
+            Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Informe a descriÃ§Ã£o', customClass: { container: 'swal-above-modal' } });
             return false;
         }
         if (!valor || valor <= 0) {
-            Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe um valor válido', customClass: { container: 'swal-above-modal' } });
+            Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Informe um valor vÃ¡lido', customClass: { container: 'swal-above-modal' } });
             return false;
         }
         if (!data) {
-            Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe a data', customClass: { container: 'swal-above-modal' } });
+            Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Informe a data', customClass: { container: 'swal-above-modal' } });
             return false;
         }
 
-        // Validar limite do cartão
+
+        const metaIdRaw = document.getElementById('globalLancamentoMeta')?.value || '';
+        const metaSelecionada = Number(metaIdRaw) > 0;
+        if (metaSelecionada) {
+            const metaValor = parseMoney(document.getElementById('globalLancamentoMetaValor')?.value || '');
+            if (!metaValor || metaValor <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atenção',
+                    text: 'Informe quanto deste lancamento foi para a meta.',
+                    customClass: { container: 'swal-above-modal' }
+                });
+                return false;
+            }
+
+            if (metaValor > valor) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atenção',
+                    text: 'O valor da meta nao pode ser maior que o valor total do lancamento.',
+                    customClass: { container: 'swal-above-modal' }
+                });
+                return false;
+            }
+        }
+
+        // Validar limite do cartÃ£o
         if (this.tipoAtual === 'despesa') {
             const cartaoId = document.getElementById('globalLancamentoCartaoCredito')?.value;
             if (cartaoId) {
@@ -1864,8 +2045,8 @@ class LancamentoGlobalManager {
                     if (valor > limiteDisponivel) {
                         Swal.fire({
                             icon: 'error', title: 'Limite Insuficiente',
-                            html: `<p>O valor da compra (${formatMoney(valor)}) excede o limite disponível do cartão.</p>
-                                   <p><strong>Limite disponível:</strong> ${formatMoney(limiteDisponivel)}</p>`,
+                            html: `<p>O valor da compra (${formatMoney(valor)}) excede o limite disponÃ­vel do cartÃ£o.</p>
+                                   <p><strong>Limite disponÃ­vel:</strong> ${formatMoney(limiteDisponivel)}</p>`,
                             confirmButtonText: 'Entendi',
                             customClass: { container: 'swal-above-modal' }
                         });
@@ -1878,17 +2059,17 @@ class LancamentoGlobalManager {
         if (this.tipoAtual === 'transferencia') {
             const contaDestino = document.getElementById('globalLancamentoContaDestino')?.value;
             if (!contaDestino) {
-                Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione a conta de destino', customClass: { container: 'swal-above-modal' } });
+                Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Selecione a conta de destino', customClass: { container: 'swal-above-modal' } });
                 return false;
             }
         }
 
-        // Validar ranges de parcelas e recorrência
+        // Validar ranges de parcelas e recorrÃªncia
         const parcelado = document.getElementById('globalLancamentoParcelado')?.checked;
         if (parcelado) {
             const totalParcelas = parseInt(document.getElementById('globalLancamentoTotalParcelas')?.value) || 0;
             if (totalParcelas < 2 || totalParcelas > 48) {
-                Swal.fire({ icon: 'warning', title: 'Atenção', text: 'O número de parcelas deve ser entre 2 e 48', customClass: { container: 'swal-above-modal' } });
+                Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'O nÃºmero de parcelas deve ser entre 2 e 48', customClass: { container: 'swal-above-modal' } });
                 return false;
             }
         }
@@ -1898,7 +2079,7 @@ class LancamentoGlobalManager {
             if (modo === 'quantidade') {
                 const total = parseInt(document.getElementById('globalLancamentoRecorrenciaTotal')?.value) || 0;
                 if (total < 2 || total > 120) {
-                    Swal.fire({ icon: 'warning', title: 'Atenção', text: 'A quantidade de repetições deve ser entre 2 e 120', customClass: { container: 'swal-above-modal' } });
+                    Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'A quantidade de repetiÃ§Ãµes deve ser entre 2 e 120', customClass: { container: 'swal-above-modal' } });
                     return false;
                 }
             }
@@ -1907,10 +2088,10 @@ class LancamentoGlobalManager {
         return true;
     }
 
-    // ── Data Collection ──────────────────────────────────────────────────────
+    // â”€â”€ Data Collection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     coletarDadosFormulario() {
         const contaId = this.contaSelecionada?.id;
-        if (!contaId) throw new Error('Conta não selecionada');
+        if (!contaId) throw new Error('Conta nÃ£o selecionada');
 
         const dados = {
             conta_id: parseInt(contaId),
@@ -1921,9 +2102,28 @@ class LancamentoGlobalManager {
             hora_lancamento: document.getElementById('globalLancamentoHora')?.value || null,
             categoria_id: document.getElementById('globalLancamentoCategoria').value || null,
             subcategoria_id: document.getElementById('globalLancamentoSubcategoria')?.value || null,
-            meta_id: document.getElementById('globalLancamentoMeta')?.value || null,
+            meta_id: null,
+            meta_operacao: null,
+            meta_valor: null,
             pago: true
         };
+
+        const metaIdRaw = document.getElementById('globalLancamentoMeta')?.value || '';
+        const metaId = Number.parseInt(String(metaIdRaw), 10);
+        if (Number.isFinite(metaId) && metaId > 0) {
+            const metaValorInformado = parseMoney(document.getElementById('globalLancamentoMetaValor')?.value || '');
+            const metaValor = Math.max(0, Math.min(dados.valor, metaValorInformado || dados.valor));
+            dados.meta_id = metaId;
+            dados.meta_valor = Number(metaValor.toFixed(2));
+
+            if (this.tipoAtual === 'despesa') {
+                dados.meta_operacao = document.getElementById('globalLancamentoMetaRealizacao')?.checked
+                    ? 'realizacao'
+                    : 'resgate';
+            } else {
+                dados.meta_operacao = 'aporte';
+            }
+        }
 
         if (this.tipoAtual === 'transferencia') {
             dados.conta_destino_id = parseInt(document.getElementById('globalLancamentoContaDestino')?.value) || null;
@@ -1939,12 +2139,12 @@ class LancamentoGlobalManager {
                 if (cartaoId) {
                     dados.cartao_credito_id = parseInt(cartaoId);
 
-                    // Assinatura/recorrência no cartão
+                    // Assinatura/recorrÃªncia no cartÃ£o
                     const assinaturaCheck = document.getElementById('globalLancamentoAssinaturaCartao');
                     if (assinaturaCheck?.checked) {
                         dados.recorrente = '1';
                         dados.recorrencia_freq = document.getElementById('globalLancamentoAssinaturaFreq')?.value || 'mensal';
-                        dados.eh_parcelado = false; // Assinatura não é parcelamento
+                        dados.eh_parcelado = false; // Assinatura nÃ£o Ã© parcelamento
 
                         const modoAssinatura = document.querySelector('input[name="global_assinatura_modo"]:checked')?.value || 'infinito';
                         if (modoAssinatura === 'data') {
@@ -1981,7 +2181,7 @@ class LancamentoGlobalManager {
             }
         }
 
-        // Parcelamento despesa sem cartão
+        // Parcelamento despesa sem cartÃ£o
         if (this.tipoAtual === 'despesa' && !dados.cartao_credito_id) {
             if (document.getElementById('globalLancamentoParcelado')?.checked) {
                 dados.eh_parcelado = true;
@@ -1989,7 +2189,7 @@ class LancamentoGlobalManager {
             }
         }
 
-        // Recorrência + Lembrete + Pago
+        // RecorrÃªncia + Lembrete + Pago
         if (this.tipoAtual === 'receita' || this.tipoAtual === 'despesa') {
             dados.pago = document.getElementById('globalLancamentoPago')?.checked ? true : false;
 
@@ -2017,7 +2217,7 @@ class LancamentoGlobalManager {
         return dados;
     }
 
-    // ── Form Submission ──────────────────────────────────────────────────────
+    // â”€â”€ Form Submission â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async salvarLancamento() {
         if (this.salvando) return;
         if (!this.validarFormulario()) return;
@@ -2045,6 +2245,8 @@ class LancamentoGlobalManager {
                     conta_id: dados.conta_id,
                     conta_id_destino: dados.conta_destino_id,
                     meta_id: dados.meta_id,
+                    meta_operacao: dados.meta_operacao,
+                    meta_valor: dados.meta_valor,
                     valor: dados.valor,
                     data: dados.data,
                     descricao: dados.descricao
@@ -2080,7 +2282,7 @@ class LancamentoGlobalManager {
             if (isSuccess) {
                 const tipoLancamento = this.tipoAtual;
 
-                // Gamificação
+                // GamificaÃ§Ã£o
                 if (result.data?.gamification) {
                     try {
                         const gamif = result.data.gamification;
@@ -2090,11 +2292,11 @@ class LancamentoGlobalManager {
                         if (gamif.level_up && typeof window.notifyLevelUp === 'function') {
                             window.notifyLevelUp(gamif.level);
                         }
-                    } catch (e) { console.error('Erro gamificação:', e); }
+                    } catch (e) { console.error('Erro gamificaÃ§Ã£o:', e); }
                 }
 
                 this.closeModal();
-                showToast(result.message || 'Lançamento salvo com sucesso!', 'success');
+                showToast(result.message || 'LanÃ§amento salvo com sucesso!', 'success');
 
                 if (typeof window.refreshDashboard === 'function') {
                     window.refreshDashboard();
@@ -2119,7 +2321,7 @@ class LancamentoGlobalManager {
                 this.salvando = false;
                 this._resetBtnSalvar();
             } else {
-                let errorMessage = result.message || 'Erro ao salvar lançamento';
+                let errorMessage = result.message || 'Erro ao salvar lanÃ§amento';
                 if (result.errors) {
                     const errorList = Object.values(result.errors).flat().join('\n');
                     errorMessage = errorList || errorMessage;
@@ -2155,7 +2357,7 @@ class LancamentoGlobalManager {
             }
 
             this.closeModal();
-            showToast(result?.message || 'Lançamento salvo com sucesso!', 'success');
+            showToast(result?.message || 'LanÃ§amento salvo com sucesso!', 'success');
 
             if (typeof window.refreshDashboard === 'function') {
                 window.refreshDashboard();
@@ -2194,26 +2396,35 @@ class LancamentoGlobalManager {
         }
     }
 
-    // ── Parcelamento Preview ─────────────────────────────────────────────────
+    // â”€â”€ Parcelamento Preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     atualizarPreviewParcelamento() {
-        const valor = parseMoney(document.getElementById('globalLancamentoValor').value);
-        const parcelas = parseInt(document.getElementById('globalLancamentoTotalParcelas').value);
         const preview = document.getElementById('globalParcelamentoPreview');
-        if (valor > 0 && parcelas >= 2) {
+        if (!preview) return;
+
+        const valor = parseMoney(document.getElementById('globalLancamentoValor')?.value || '');
+        const parcelas = parseInt(document.getElementById('globalLancamentoTotalParcelas')?.value || '0', 10);
+        const parcelado = document.getElementById('globalLancamentoParcelado')?.checked === true;
+
+        if (parcelado && valor > 0 && parcelas >= 2) {
             const valorParcela = valor / parcelas;
+            const descricaoParcelamento = this.tipoAtual === 'receita'
+                ? `${parcelas} recebimentos de ${formatMoney(valorParcela)}`
+                : `${parcelas} parcelas de ${formatMoney(valorParcela)}`;
+
             preview.innerHTML = `
                 <div class="preview-info">
                     <i data-lucide="calculator" style="width:16px;height:16px;display:inline-block;"></i>
-                    <span>${parcelas}x de ${formatMoney(valorParcela)}</span>
+                    <span>${descricaoParcelamento}</span>
                 </div>`;
             preview.style.display = 'block';
+            refreshIcons();
         } else {
             preview.style.display = 'none';
         }
     }
 }
 
-// ── Singleton & Backward Compat ──────────────────────────────────────────────
+// â”€â”€ Singleton & Backward Compat â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const manager = new LancamentoGlobalManager();
 
 // Expose on window for inline onclick handlers in PHP views
@@ -2222,7 +2433,7 @@ window.LK = window.LK || {};
 window.LK.modals = window.LK.modals || {};
 window.LK.modals.openLancamentoModal = (options = {}) => manager.openModal(options);
 
-// ── Bootstrap ────────────────────────────────────────────────────────────────
+// â”€â”€ Bootstrap â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => manager.init());
 } else {

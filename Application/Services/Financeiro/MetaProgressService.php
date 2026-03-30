@@ -27,10 +27,15 @@ class MetaProgressService
             return null;
         }
 
-        $valorAlocado = round($this->getLinkedAllocationTotal($userId, $metaId) + (float) ($meta->valor_aporte_manual ?? 0), 2);
-        $status = $this->resolveStatus($meta, $valorAlocado);
+        $linkedTotals = $this->getLinkedTotals($userId, $metaId, (string) ($meta->modelo ?? Meta::MODELO_RESERVA));
+        $valorAporteManual = (float) ($meta->valor_aporte_manual ?? 0);
+
+        $valorAlocado = round(max(0, $linkedTotals['reservado']) + $valorAporteManual, 2);
+        $valorRealizado = round(max(0, $linkedTotals['realizado']), 2);
+        $status = $this->resolveStatus($meta, $valorAlocado, $valorRealizado);
 
         $meta->valor_alocado = $valorAlocado;
+        $meta->valor_realizado = $valorRealizado;
         $meta->status = $status;
         $meta->save();
 
@@ -78,38 +83,117 @@ class MetaProgressService
                 return null;
             }
 
-            $linkedTotal = $this->getLinkedAllocationTotal($userId, $metaId);
-            if ($desiredTotal + 0.001 < $linkedTotal) {
-                throw new \DomainException('O valor alocado nao pode ficar abaixo do total ja vinculado por lancamentos.');
+            $linkedTotals = $this->getLinkedTotals($userId, $metaId, (string) ($meta->modelo ?? Meta::MODELO_RESERVA));
+            $linkedReservado = max(0, $linkedTotals['reservado']);
+            if ($desiredTotal + 0.001 < $linkedReservado) {
+                throw new \DomainException('O valor alocado nao pode ficar abaixo do total vinculado por lancamentos pagos.');
             }
 
-            $meta->valor_aporte_manual = round($desiredTotal - $linkedTotal, 2);
+            $meta->valor_aporte_manual = round($desiredTotal - $linkedReservado, 2);
             $meta->save();
 
             return $this->recalculateMeta($userId, $metaId, true);
         });
     }
 
-    private function getLinkedAllocationTotal(int $userId, int $metaId): float
+    /**
+     * @return array{reservado: float, realizado: float}
+     */
+    private function getLinkedTotals(int $userId, int $metaId, string $metaModelo): array
     {
-        return round((float) Lancamento::where('user_id', $userId)
+        $rows = Lancamento::where('user_id', $userId)
             ->where('meta_id', $metaId)
-            ->where(function ($query) {
-                $query->where(function ($receitas) {
-                    $receitas->where('eh_transferencia', 0)
-                        ->where('tipo', Lancamento::TIPO_RECEITA);
-                })->orWhere('eh_transferencia', 1);
-            })
-            ->sum('valor'), 2);
+            ->where('pago', 1)
+            ->where('afeta_caixa', 1)
+            ->get(['tipo', 'eh_transferencia', 'valor', 'meta_operacao', 'meta_valor']);
+
+        $aporte = 0.0;
+        $resgate = 0.0;
+        $realizado = 0.0;
+
+        foreach ($rows as $row) {
+            $valor = $this->resolveLinkedValue($row);
+            if ($valor <= 0) {
+                continue;
+            }
+
+            $operacao = $this->resolveMetaOperation(
+                (string) ($row->meta_operacao ?? ''),
+                (string) ($row->tipo ?? ''),
+                (bool) ($row->eh_transferencia ?? false),
+                $metaModelo
+            );
+
+            if ($operacao === Lancamento::META_OPERACAO_APORTE) {
+                $aporte += $valor;
+                continue;
+            }
+
+            if ($operacao === Lancamento::META_OPERACAO_RESGATE) {
+                $resgate += $valor;
+                continue;
+            }
+
+            if ($operacao === Lancamento::META_OPERACAO_REALIZACAO) {
+                $realizado += $valor;
+            }
+        }
+
+        return [
+            'reservado' => round($aporte - $resgate, 2),
+            'realizado' => round($realizado, 2),
+        ];
     }
 
-    private function resolveStatus(Meta $meta, float $valorAlocado): string
+    private function resolveLinkedValue(Lancamento $lancamento): float
+    {
+        $raw = $lancamento->meta_valor;
+        if ($raw === null || (float) $raw <= 0) {
+            $raw = $lancamento->valor;
+        }
+
+        return round(max(0, (float) $raw), 2);
+    }
+
+    private function resolveMetaOperation(string $metaOperacao, string $tipo, bool $ehTransferencia, string $metaModelo): string
+    {
+        $metaOperacao = strtolower(trim($metaOperacao));
+        if (in_array($metaOperacao, [
+            Lancamento::META_OPERACAO_APORTE,
+            Lancamento::META_OPERACAO_RESGATE,
+            Lancamento::META_OPERACAO_REALIZACAO,
+        ], true)) {
+            return $metaOperacao;
+        }
+
+        if ($ehTransferencia || $tipo === Lancamento::TIPO_RECEITA) {
+            return Lancamento::META_OPERACAO_APORTE;
+        }
+
+        if ($tipo === Lancamento::TIPO_DESPESA) {
+            return $metaModelo === Meta::MODELO_REALIZACAO
+                ? Lancamento::META_OPERACAO_REALIZACAO
+                : Lancamento::META_OPERACAO_RESGATE;
+        }
+
+        return Lancamento::META_OPERACAO_APORTE;
+    }
+
+    private function resolveStatus(Meta $meta, float $valorAlocado, float $valorRealizado): string
     {
         if ($meta->status === Meta::STATUS_CANCELADA) {
             return Meta::STATUS_CANCELADA;
         }
 
-        if ($valorAlocado >= (float) $meta->valor_alvo) {
+        if ($valorRealizado > 0.0001) {
+            return Meta::STATUS_REALIZADA;
+        }
+
+        $base = ($meta->modelo ?? Meta::MODELO_RESERVA) === Meta::MODELO_REALIZACAO
+            ? $valorAlocado + $valorRealizado
+            : $valorAlocado;
+
+        if ($base >= (float) $meta->valor_alvo) {
             return Meta::STATUS_CONCLUIDA;
         }
 
@@ -119,4 +203,4 @@ class MetaProgressService
 
         return Meta::STATUS_ATIVA;
     }
-};
+}

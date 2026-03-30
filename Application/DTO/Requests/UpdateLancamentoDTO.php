@@ -16,6 +16,8 @@ readonly class UpdateLancamentoDTO
         public ?int $categoriaId = null,
         public ?int $subcategoriaId = null,
         public ?int $metaId = null,
+        public ?string $metaOperacao = null,
+        public ?float $metaValor = null,
         public ?int $contaId = null,
         public ?int $contaDestinoId = null,
         public ?string $formaPagamento = null,
@@ -33,6 +35,8 @@ readonly class UpdateLancamentoDTO
             'categoria_id' => $this->categoriaId,
             'subcategoria_id' => $this->subcategoriaId,
             'meta_id' => $this->metaId,
+            'meta_operacao' => $this->metaOperacao,
+            'meta_valor' => $this->metaValor,
             'conta_id' => $this->contaId,
             'conta_id_destino' => $this->contaDestinoId,
             'forma_pagamento' => $this->formaPagamento,
@@ -51,6 +55,10 @@ readonly class UpdateLancamentoDTO
             categoriaId: isset($data['categoria_id']) ? (int)$data['categoria_id'] : null,
             subcategoriaId: isset($data['subcategoria_id']) ? (int)$data['subcategoria_id'] : null,
             metaId: isset($data['meta_id']) ? (int)$data['meta_id'] : null,
+            metaOperacao: !empty($data['meta_operacao']) ? (string)$data['meta_operacao'] : null,
+            metaValor: isset($data['meta_valor']) && $data['meta_valor'] !== ''
+                ? (float)$data['meta_valor']
+                : null,
             contaId: isset($data['conta_id']) ? (int)$data['conta_id'] : null,
             contaDestinoId: isset($data['conta_id_destino']) ? (int)$data['conta_id_destino'] : null,
             formaPagamento: $data['forma_pagamento'] ?? null,

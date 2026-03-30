@@ -13,7 +13,12 @@ class PerfilController extends BaseController
 
         return $this->renderResponse(
             'admin/perfil/index',
-            ['pageTitle' => 'Perfil', 'subTitle' => 'Mantenha seu perfil sempre atualizado'],
+            [
+                'menu' => 'perfil',
+                'perfilViewMode' => 'perfil',
+                'pageTitle' => 'Perfil',
+                'subTitle' => 'Mantenha seus dados pessoais sempre atualizados',
+            ],
             'admin/partials/header',
             'admin/partials/footer'
         );

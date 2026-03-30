@@ -26,6 +26,8 @@ class LancamentoResponseFormatter
             'observacao' => (string)($lancamento->observacao ?? ''),
             'categoria_id' => (int)$lancamento->categoria_id ?: null,
             'meta_id' => (int)($lancamento->meta_id ?? 0) ?: null,
+            'meta_operacao' => $lancamento->meta_operacao ?: null,
+            'meta_valor' => $lancamento->meta_valor !== null ? (float) $lancamento->meta_valor : null,
             'conta_id' => (int)$lancamento->conta_id ?: null,
             'conta_id_destino' => (int)($lancamento->conta_id_destino ?? 0) ?: null,
             'eh_transferencia' => (bool)($lancamento->eh_transferencia ?? false),

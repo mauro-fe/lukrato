@@ -632,7 +632,7 @@ class LancamentoRepository extends BaseRepository
      */
     public function sumDespesasCompetencia(int $userId, string $start, string $end): float
     {
-        return (float) $this->query()
+        $total = $this->query()
             ->where('user_id', $userId)
             ->where('pago', 1)
             ->where('tipo', LancamentoTipo::DESPESA->value)
@@ -644,11 +644,14 @@ class LancamentoRepository extends BaseRepository
             ->where(function ($q) use ($start, $end) {
                 $q->whereBetween('data_competencia', [$start, $end])
                     ->orWhere(function ($q2) use ($start, $end) {
-                        $q2->whereNull('data_competencia')
+                    $q2->whereNull('data_competencia')
                             ->whereBetween('data', [$start, $end]);
                     });
             })
-            ->sum('valor');
+            ->selectRaw('SUM(' . $this->effectiveExpenseExpression('lancamentos') . ') as total')
+            ->value('total');
+
+        return (float) ($total ?? 0);
     }
 
     /**
@@ -683,6 +686,42 @@ class LancamentoRepository extends BaseRepository
      */
     public function sumDespesasCaixa(int $userId, string $start, string $end): float
     {
+        $total = $this->query()
+            ->where('user_id', $userId)
+            ->where('pago', 1)
+            ->where('tipo', LancamentoTipo::DESPESA->value)
+            ->where('eh_transferencia', 0)
+            ->where('afeta_caixa', 1)
+            ->whereBetween('data', [$start, $end])
+            ->selectRaw('SUM(' . $this->effectiveExpenseExpression('lancamentos') . ') as total')
+            ->value('total');
+
+        return (float) ($total ?? 0);
+    }
+
+    public function sumDespesasBrutasCompetencia(int $userId, string $start, string $end): float
+    {
+        return (float) $this->query()
+            ->where('user_id', $userId)
+            ->where('pago', 1)
+            ->where('tipo', LancamentoTipo::DESPESA->value)
+            ->where('eh_transferencia', 0)
+            ->where(function ($q) {
+                $q->where('afeta_competencia', true)
+                    ->orWhereNull('afeta_competencia');
+            })
+            ->where(function ($q) use ($start, $end) {
+                $q->whereBetween('data_competencia', [$start, $end])
+                    ->orWhere(function ($q2) use ($start, $end) {
+                        $q2->whereNull('data_competencia')
+                            ->whereBetween('data', [$start, $end]);
+                    });
+            })
+            ->sum('valor');
+    }
+
+    public function sumDespesasBrutasCaixa(int $userId, string $start, string $end): float
+    {
         return (float) $this->query()
             ->where('user_id', $userId)
             ->where('pago', 1)
@@ -691,6 +730,45 @@ class LancamentoRepository extends BaseRepository
             ->where('afeta_caixa', 1)
             ->whereBetween('data', [$start, $end])
             ->sum('valor');
+    }
+
+    public function sumUsoMetasDespesaCompetencia(int $userId, string $start, string $end): float
+    {
+        $total = $this->query()
+            ->where('user_id', $userId)
+            ->where('pago', 1)
+            ->where('tipo', LancamentoTipo::DESPESA->value)
+            ->where('eh_transferencia', 0)
+            ->where(function ($q) {
+                $q->where('afeta_competencia', true)
+                    ->orWhereNull('afeta_competencia');
+            })
+            ->where(function ($q) use ($start, $end) {
+                $q->whereBetween('data_competencia', [$start, $end])
+                    ->orWhere(function ($q2) use ($start, $end) {
+                        $q2->whereNull('data_competencia')
+                            ->whereBetween('data', [$start, $end]);
+                    });
+            })
+            ->selectRaw('SUM(' . $this->metaCoverageExpression('lancamentos') . ') as total')
+            ->value('total');
+
+        return (float) ($total ?? 0);
+    }
+
+    public function sumUsoMetasDespesaCaixa(int $userId, string $start, string $end): float
+    {
+        $total = $this->query()
+            ->where('user_id', $userId)
+            ->where('pago', 1)
+            ->where('tipo', LancamentoTipo::DESPESA->value)
+            ->where('eh_transferencia', 0)
+            ->where('afeta_caixa', 1)
+            ->whereBetween('data', [$start, $end])
+            ->selectRaw('SUM(' . $this->metaCoverageExpression('lancamentos') . ') as total')
+            ->value('total');
+
+        return (float) ($total ?? 0);
     }
 
     /**
@@ -739,9 +817,10 @@ class LancamentoRepository extends BaseRepository
             ->where('tipo', LancamentoTipo::RECEITA->value)
             ->sum('valor');
 
-        $despesas = (float) $this->buildResumoMesBaseQuery($userId, $period['year'], $period['monthNum'])
+        $despesas = (float) ($this->buildResumoMesBaseQuery($userId, $period['year'], $period['monthNum'])
             ->where('tipo', LancamentoTipo::DESPESA->value)
-            ->sum('valor');
+            ->selectRaw('SUM(' . $this->effectiveExpenseExpression('lancamentos') . ') as total')
+            ->value('total') ?? 0);
 
         $count = $this->buildResumoMesBaseQuery($userId, $period['year'], $period['monthNum'])->count();
 
@@ -873,7 +952,7 @@ class LancamentoRepository extends BaseRepository
     public function getSomaGastosPorCategoria(int $userId, int $month, int $year): array
     {
         return $this->query()
-            ->selectRaw('categoria_id, SUM(valor) as total')
+            ->selectRaw('categoria_id, SUM(' . $this->effectiveExpenseExpression('lancamentos') . ') as total')
             ->where('user_id', $userId)
             ->where('tipo', LancamentoTipo::DESPESA->value)
             ->where('eh_transferencia', 0)
@@ -905,28 +984,26 @@ class LancamentoRepository extends BaseRepository
         $period = $this->parseYearMonth($month);
 
         $rows = Lancamento::withoutGlobalScopes()
-            ->selectRaw('DAY(data) as dia, tipo, SUM(valor) as total')
+            ->selectRaw('DAY(data) as dia')
+            ->selectRaw("SUM(CASE WHEN tipo = 'receita' THEN valor ELSE 0 END) as receitas")
+            ->selectRaw("SUM(CASE WHEN tipo = 'despesa' THEN {$this->effectiveExpenseExpression('lancamentos')} ELSE 0 END) as despesas")
             ->where('user_id', $userId)
             ->where('pago', 1)
             ->where('eh_transferencia', 0)
             ->where('afeta_caixa', 1)
             ->whereIn('tipo', ['receita', 'despesa'])
             ->whereBetween('data', [$period['start'], $period['end']])
-            ->groupByRaw('DAY(data), tipo')
+            ->groupByRaw('DAY(data)')
             ->orderByRaw('DAY(data)')
             ->get();
 
         $byDay = [];
         foreach ($rows as $row) {
             $d = (int) $row->dia;
-            if (!isset($byDay[$d])) {
-                $byDay[$d] = ['receitas' => 0.0, 'despesas' => 0.0];
-            }
-            if ($row->tipo === 'receita') {
-                $byDay[$d]['receitas'] += (float) $row->total;
-            } else {
-                $byDay[$d]['despesas'] += (float) $row->total;
-            }
+            $byDay[$d] = [
+                'receitas' => (float) ($row->receitas ?? 0),
+                'despesas' => (float) ($row->despesas ?? 0),
+            ];
         }
 
         $daysInMonth = (int) date('t', strtotime($period['start']));
@@ -940,5 +1017,29 @@ class LancamentoRepository extends BaseRepository
         }
 
         return $result;
+    }
+
+    private function metaCoverageExpression(string $tableAlias = 'lancamentos'): string
+    {
+        $t = preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $tableAlias) ? $tableAlias : 'lancamentos';
+
+        return "CASE
+            WHEN {$t}.tipo <> 'despesa' THEN 0
+            WHEN {$t}.meta_id IS NULL THEN 0
+            WHEN (
+                {$t}.meta_operacao IN ('resgate', 'realizacao')
+                OR {$t}.meta_operacao IS NULL
+                OR {$t}.meta_operacao = ''
+            ) THEN LEAST({$t}.valor, GREATEST(COALESCE({$t}.meta_valor, {$t}.valor), 0))
+            ELSE 0
+        END";
+    }
+
+    private function effectiveExpenseExpression(string $tableAlias = 'lancamentos'): string
+    {
+        $t = preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $tableAlias) ? $tableAlias : 'lancamentos';
+        $coverage = $this->metaCoverageExpression($t);
+
+        return "GREATEST({$t}.valor - ({$coverage}), 0)";
     }
 }

@@ -38,6 +38,7 @@ class TransferenciaService
      * @param string|null $descricao Descricao da transferencia
      * @param string|null $observacao Observacoes adicionais
      * @param int|null $metaId Meta opcional para acumulo planejado
+     * @param float|null $metaValor Valor parcial opcional da transferencia para meta
      * @return Lancamento Lancamento de transferencia criado
      * @throws ValueError Se as contas forem invalidas
      * @throws Throwable Se houver erro na transacao
@@ -50,7 +51,8 @@ class TransferenciaService
         string $data,
         ?string $descricao = null,
         ?string $observacao = null,
-        ?int $metaId = null
+        ?int $metaId = null,
+        ?float $metaValor = null
     ): Lancamento {
         if ($contaOrigemId <= 0 || $contaDestinoId <= 0 || $contaOrigemId === $contaDestinoId) {
             throw new ValueError('Selecione contas de origem e destino diferentes.');
@@ -66,12 +68,23 @@ class TransferenciaService
             $origem = $this->validarConta($contaOrigemId, $userId);
             $destino = $this->validarConta($contaDestinoId, $userId);
 
+            $metaValorAplicado = null;
+            if ($metaId !== null && $metaId > 0) {
+                $metaValorAplicado = $metaValor ?? $valor;
+                $metaValorAplicado = round(max(0, min($valor, (float) $metaValorAplicado)), 2);
+                if ($metaValorAplicado <= 0) {
+                    $metaValorAplicado = round($valor, 2);
+                }
+            }
+
             $transferencia = Lancamento::create([
                 'user_id' => $userId,
                 'tipo' => Lancamento::TIPO_TRANSFERENCIA,
                 'data' => $data,
                 'categoria_id' => null,
                 'meta_id' => $metaId,
+                'meta_operacao' => $metaId ? Lancamento::META_OPERACAO_APORTE : null,
+                'meta_valor' => $metaId ? $metaValorAplicado : null,
                 'conta_id' => $contaOrigemId,
                 'conta_id_destino' => $contaDestinoId,
                 'descricao' => $descricao ? trim($descricao) : "Transferencia: {$origem->nome} -> {$destino->nome}",

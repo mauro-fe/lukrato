@@ -1227,6 +1227,7 @@ class HelpCenter {
             '/gamification': 'gamification',
             '/billing': 'billing',
             '/perfil': 'perfil',
+            '/configuracoes': 'perfil',
         };
 
         for (const [fragment, page] of Object.entries(pageMap)) {

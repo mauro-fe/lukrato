@@ -17,6 +17,8 @@ readonly class CreateLancamentoDTO
         public ?int $categoriaId = null,
         public ?int $subcategoriaId = null,
         public ?int $metaId = null,
+        public ?string $metaOperacao = null,
+        public ?float $metaValor = null,
         public ?int $contaId = null,
         public bool $ehTransferencia = false,
         public bool $ehSaldoInicial = false,
@@ -47,6 +49,8 @@ readonly class CreateLancamentoDTO
             'categoria_id' => $this->categoriaId,
             'subcategoria_id' => $this->subcategoriaId,
             'meta_id' => $this->metaId,
+            'meta_operacao' => $this->metaOperacao,
+            'meta_valor' => $this->metaValor,
             'conta_id' => $this->contaId,
             'eh_transferencia' => $this->ehTransferencia ? 1 : 0,
             'eh_saldo_inicial' => $this->ehSaldoInicial ? 1 : 0,
@@ -78,6 +82,10 @@ readonly class CreateLancamentoDTO
             categoriaId: isset($data['categoria_id']) ? (int)$data['categoria_id'] : null,
             subcategoriaId: isset($data['subcategoria_id']) ? (int)$data['subcategoria_id'] : null,
             metaId: isset($data['meta_id']) ? (int)$data['meta_id'] : null,
+            metaOperacao: !empty($data['meta_operacao']) ? (string)$data['meta_operacao'] : null,
+            metaValor: isset($data['meta_valor']) && $data['meta_valor'] !== ''
+                ? (float)$data['meta_valor']
+                : null,
             contaId: isset($data['conta_id']) ? (int)$data['conta_id'] : null,
             ehTransferencia: (bool)($data['eh_transferencia'] ?? false),
             ehSaldoInicial: (bool)($data['eh_saldo_inicial'] ?? false),

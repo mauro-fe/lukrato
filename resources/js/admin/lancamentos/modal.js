@@ -525,13 +525,40 @@ const ModalManager = {
     canLinkMetaInLancamentoEdit: (tipo, formaPagamento = '') => {
         const normalizedTipo = String(tipo || '').toLowerCase().trim();
         const normalizedPayment = String(formaPagamento || '').toLowerCase().trim();
-        return normalizedTipo === 'receita' && normalizedPayment !== 'estorno_cartao';
+        if (normalizedTipo === 'receita') {
+            return normalizedPayment !== 'estorno_cartao';
+        }
+
+        if (normalizedTipo === 'despesa') {
+            return normalizedPayment !== 'cartao_credito';
+        }
+
+        return false;
     },
 
     getSelectedMetaId: (select) => {
         const raw = String(select?.value || '').trim();
         const parsed = Number(raw);
         return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+    },
+
+    getEditMetaValue: (fallbackValue = 0) => {
+        const raw = DOM.inputLancMetaValor?.value || '';
+        const parsed = Math.abs(Number(MoneyMask.unformat(raw)));
+        if (Number.isFinite(parsed) && parsed > 0) {
+            return parsed;
+        }
+        return Math.max(0, Number(fallbackValue) || 0);
+    },
+
+    resolveMetaOperationForEdit: (tipo, hasMetaLink) => {
+        if (!hasMetaLink) return null;
+
+        const normalizedTipo = String(tipo || '').toLowerCase().trim();
+        if (normalizedTipo === 'despesa') {
+            return DOM.checkLancMetaRealizacao?.checked ? 'realizacao' : 'resgate';
+        }
+        return 'aporte';
     },
 
     resolveMetaTitle: (metaId, fallback = '') => {
@@ -544,6 +571,13 @@ const ModalManager = {
         const tipo = DOM.selectLancTipo?.value || snapshot?.tipo || '';
         const formaPagamento = DOM.selectLancFormaPagamento?.value || snapshot?.forma_pagamento || '';
         const shouldShow = ModalManager.canLinkMetaInLancamentoEdit(tipo, formaPagamento);
+        const selectedMetaId = shouldShow ? ModalManager.getSelectedMetaId(DOM.selectLancMeta) : null;
+        const hasMeta = Number(selectedMetaId) > 0;
+        const valorLancamentoAtual = DOM.inputLancValor?.value
+            ? Math.abs(Number(MoneyMask.unformat(DOM.inputLancValor.value)))
+            : Math.abs(Number(snapshot?.valor ?? 0));
+        const isDespesa = String(tipo || '').toLowerCase() === 'despesa';
+        const selectedMeta = hasMeta ? planningStore.getMetaById(selectedMetaId) : null;
 
         if (DOM.editLancMetaGroup) {
             DOM.editLancMetaGroup.hidden = !shouldShow;
@@ -551,6 +585,38 @@ const ModalManager = {
 
         if (!shouldShow && DOM.selectLancMeta) {
             DOM.selectLancMeta.value = '';
+        }
+
+        if (DOM.editLancMetaValorGroup) {
+            DOM.editLancMetaValorGroup.hidden = !shouldShow || !hasMeta;
+        }
+        if (DOM.editLancMetaRealizacaoGroup) {
+            DOM.editLancMetaRealizacaoGroup.hidden = !shouldShow || !hasMeta || !isDespesa;
+        }
+
+        if (!shouldShow || !hasMeta) {
+            if (DOM.inputLancMetaValor) DOM.inputLancMetaValor.value = '';
+            if (DOM.checkLancMetaRealizacao) {
+                DOM.checkLancMetaRealizacao.checked = false;
+                delete DOM.checkLancMetaRealizacao.dataset.autoDefaultPending;
+            }
+            return;
+        }
+
+        const currentMetaValue = ModalManager.getEditMetaValue(0);
+        if (!(currentMetaValue > 0) && DOM.inputLancMetaValor) {
+            DOM.inputLancMetaValor.value = MoneyMask.format(valorLancamentoAtual || 0);
+        }
+
+        if (isDespesa && DOM.checkLancMetaRealizacao) {
+            const status = String(selectedMeta?.status || '').toLowerCase();
+            const pendingDefault = DOM.checkLancMetaRealizacao.dataset.autoDefaultPending === '1';
+            if (status === 'concluida' && pendingDefault && !DOM.checkLancMetaRealizacao.dataset.userTouched) {
+                DOM.checkLancMetaRealizacao.checked = true;
+            }
+            delete DOM.checkLancMetaRealizacao.dataset.autoDefaultPending;
+        } else if (DOM.checkLancMetaRealizacao) {
+            delete DOM.checkLancMetaRealizacao.dataset.autoDefaultPending;
         }
     },
 
@@ -580,7 +646,8 @@ const ModalManager = {
         const categoriaLabel = ModalManager.getEditSelectLabel(DOM.selectLancCategoria, 'Sem categoria');
         const formaPagamento = DOM.selectLancFormaPagamento?.value || snapshot?.forma_pagamento || '';
         const canLinkMeta = ModalManager.canLinkMetaInLancamentoEdit(tipo, formaPagamento);
-        const metaLabel = canLinkMeta
+        const metaId = canLinkMeta ? ModalManager.getSelectedMetaId(DOM.selectLancMeta) : null;
+        const metaLabel = metaId
             ? ModalManager.getEditSelectLabel(DOM.selectLancMeta, Utils.getLancamentoMetaTitle(snapshot))
             : '';
         const dataValue = DOM.inputLancData?.value || snapshot?.data || '';
@@ -588,6 +655,8 @@ const ModalManager = {
         const valorAtual = DOM.inputLancValor?.value
             ? MoneyMask.unformat(DOM.inputLancValor.value)
             : Math.abs(Number(snapshot?.valor ?? 0));
+        const metaValue = metaId ? ModalManager.getEditMetaValue(valorAtual) : 0;
+        const metaOperation = ModalManager.resolveMetaOperationForEdit(tipo, Boolean(metaId));
         const statusMeta = ModalManager.getEditStatusMeta();
 
         if (DOM.editLancSummaryTitle) {
@@ -595,11 +664,19 @@ const ModalManager = {
         }
 
         if (DOM.editLancSummaryMeta) {
+            let metaResumo = '';
+            if (metaLabel) {
+                const opLabel = metaOperation === 'realizacao'
+                    ? 'Realizacao'
+                    : (metaOperation === 'resgate' ? 'Uso de meta' : 'Aporte');
+                metaResumo = `Meta: ${metaLabel} (${opLabel} ${Utils.fmtMoney(metaValue)})`;
+            }
+
             const meta = [
                 contaLabel,
                 categoriaLabel,
                 ModalManager.formatEditSummaryDateTime(dataValue, horaValue),
-                metaLabel ? `Meta: ${metaLabel}` : ''
+                metaResumo
             ].filter(Boolean).join(' • ');
 
             DOM.editLancSummaryMeta.textContent = meta || 'Conta, categoria e data aparecem aqui.';
@@ -686,16 +763,10 @@ const ModalManager = {
         const valorAtual = DOM.inputLancValor?.value
             ? Math.abs(Number(MoneyMask.unformat(DOM.inputLancValor.value)))
             : Math.abs(Number(snapshot?.valor ?? 0));
-        const selectedMetaId = ModalManager.canLinkMetaInLancamentoEdit(tipo, formaPagamento)
-            ? ModalManager.getSelectedMetaId(DOM.selectLancMeta)
-            : null;
+        const canLinkMeta = ModalManager.canLinkMetaInLancamentoEdit(tipo, formaPagamento);
+        const selectedMetaId = canLinkMeta ? ModalManager.getSelectedMetaId(DOM.selectLancMeta) : null;
         const originalMetaId = Number(snapshot?.meta_id ?? 0) > 0 ? Number(snapshot.meta_id) : null;
         const originalMetaTitle = Utils.getLancamentoMetaTitle(snapshot);
-        const originalTipo = String(snapshot?.tipo || '').toLowerCase();
-        const originalFormaPagamento = String(snapshot?.forma_pagamento || '').toLowerCase();
-        const originalContribution = originalMetaId && ModalManager.canLinkMetaInLancamentoEdit(originalTipo, originalFormaPagamento)
-            ? Math.abs(Number(snapshot?.valor ?? 0))
-            : 0;
 
         if (!selectedMetaId && !originalMetaId) {
             return '';
@@ -707,31 +778,22 @@ const ModalManager = {
                 selectedMetaId,
                 ModalManager.getEditSelectLabel(DOM.selectLancMeta, originalMetaTitle)
             );
-            const targetValue = Number(selectedMeta?.valor_alvo ?? 0);
-            const currentAllocated = Number(selectedMeta?.valor_alocado ?? 0);
-            const replacingOriginal = originalMetaId === selectedMetaId ? originalContribution : 0;
-            const projectedAllocation = Math.max(0, currentAllocated - replacingOriginal + valorAtual);
-            const progressPercent = targetValue > 0
-                ? Math.max(0, Math.min(100, (projectedAllocation / targetValue) * 100))
-                : null;
-            const remainingValue = targetValue > 0
-                ? Math.max(0, targetValue - projectedAllocation)
-                : 0;
-
-            let tone = projectedAllocation >= targetValue && targetValue > 0 ? 'success' : 'info';
-            if (progressPercent !== null && progressPercent >= 80 && projectedAllocation < targetValue) {
-                tone = 'warning';
+            const linkedValue = ModalManager.getEditMetaValue(valorAtual);
+            const operation = ModalManager.resolveMetaOperationForEdit(tipo, true);
+            const opLabel = operation === 'realizacao'
+                ? 'realizacao da meta'
+                : (operation === 'resgate' ? 'uso da meta' : 'aporte');
+            const status = String(selectedMeta?.status || '').toLowerCase();
+            const tone = operation === 'realizacao' ? 'success' : 'info';
+            const title = operation === 'realizacao'
+                ? `Realizacao de ${selectedTitle}`
+                : (operation === 'resgate' ? `Uso de ${selectedTitle}` : `Aporte em ${selectedTitle}`);
+            let message = `Ao salvar, este lancamento registra ${Utils.fmtMoney(linkedValue)} como ${opLabel}.`;
+            if (operation === 'resgate' || operation === 'realizacao') {
+                message += ' Somente a parte fora da meta entra como gasto do mes.';
             }
-
-            let message = `Ao salvar, este lancamento vai alocar ${Utils.fmtMoney(valorAtual)} em ${selectedTitle}.`;
-
-            if (targetValue > 0) {
-                message += ` Total projetado: ${Utils.fmtMoney(projectedAllocation)} de ${Utils.fmtMoney(targetValue)} (${Utils.formatPercent(progressPercent)}).`;
-                if (remainingValue > 0) {
-                    message += ` Faltariam ${Utils.fmtMoney(remainingValue)} para concluir.`;
-                } else {
-                    message += ' A meta fica concluida automaticamente.';
-                }
+            if (operation === 'realizacao' && status === 'concluida') {
+                message += ' A meta concluida sera marcada como realizada.';
             }
 
             if (originalMetaId && originalMetaId !== selectedMetaId) {
@@ -742,35 +804,18 @@ const ModalManager = {
                 tone,
                 icon: 'target',
                 eyebrow: 'Meta vinculada',
-                title: `Aporte em ${selectedTitle}`,
+                title,
                 message
             });
         }
 
-        if (!originalMetaId || !originalContribution) {
+        if (!originalMetaId) {
             return '';
         }
 
-        const originalMeta = planningStore.getMetaById(originalMetaId);
         const resolvedOriginalTitle = ModalManager.resolveMetaTitle(originalMetaId, originalMetaTitle);
-        const targetValue = Number(originalMeta?.valor_alvo ?? 0);
-        const currentAllocated = Number(originalMeta?.valor_alocado ?? 0);
-        const projectedAllocation = Math.max(0, currentAllocated - originalContribution);
-        const progressPercent = targetValue > 0
-            ? Math.max(0, Math.min(100, (projectedAllocation / targetValue) * 100))
-            : null;
-        const remainingValue = targetValue > 0
-            ? Math.max(0, targetValue - projectedAllocation)
-            : 0;
-
-        let message = `Ao salvar, este lancamento deixa de alocar ${Utils.fmtMoney(originalContribution)} em ${resolvedOriginalTitle}.`;
-
-        if (targetValue > 0) {
-            message += ` Total projetado da meta: ${Utils.fmtMoney(projectedAllocation)} de ${Utils.fmtMoney(targetValue)} (${Utils.formatPercent(progressPercent)}).`;
-            if (remainingValue > 0) {
-                message += ` Faltariam ${Utils.fmtMoney(remainingValue)} para concluir.`;
-            }
-        }
+        const originalLinkedValue = Math.abs(Number(snapshot?.meta_valor ?? snapshot?.valor ?? 0));
+        const message = `Ao salvar, este lancamento deixa de registrar ${Utils.fmtMoney(originalLinkedValue)} em ${resolvedOriginalTitle}.`;
 
         return ModalManager.buildPlanningAlertCard({
             tone: 'warning',
@@ -926,6 +971,17 @@ const ModalManager = {
             { fallbackLabel: Utils.getLancamentoMetaTitle(data) || 'Meta vinculada' }
         );
 
+        if (DOM.inputLancMetaValor) {
+            const hasMeta = Number(data?.meta_id ?? 0) > 0;
+            const linkedValue = hasMeta ? Math.abs(Number(data?.meta_valor ?? data?.valor ?? 0)) : 0;
+            DOM.inputLancMetaValor.value = linkedValue > 0 ? MoneyMask.format(linkedValue) : '';
+        }
+        if (DOM.checkLancMetaRealizacao) {
+            DOM.checkLancMetaRealizacao.checked = String(data?.meta_operacao || '').toLowerCase() === 'realizacao';
+            delete DOM.checkLancMetaRealizacao.dataset.userTouched;
+            delete DOM.checkLancMetaRealizacao.dataset.autoDefaultPending;
+        }
+
         ModalManager.syncEditMetaField();
         syncModalSelects(DOM.modalEditLancEl);
         ModalManager.syncEditSummary();
@@ -1019,6 +1075,9 @@ const ModalManager = {
             return;
         }
 
+        const metaOperacao = metaId ? 'aporte' : null;
+        const metaValor = metaId ? Number(valorFloat.toFixed(2)) : null;
+
         const payload = {
             data: dataValue,
             tipo: 'transferencia',
@@ -1027,7 +1086,9 @@ const ModalManager = {
             conta_id: Number(contaOrigem),
             conta_id_destino: Number(contaDestino),
             forma_pagamento: 'transferencia',
-            meta_id: metaId
+            meta_id: metaId,
+            meta_operacao: metaOperacao,
+            meta_valor: metaValor
         };
 
         const submitBtn = DOM.formTrans?.querySelector('button[type="submit"]');
@@ -1240,6 +1301,19 @@ const ModalManager = {
             return ModalManager.showLancAlert('Informe um valor vÃ¡lido maior que zero.');
         }
 
+        let metaValor = null;
+        let metaOperacao = null;
+        if (metaId) {
+            metaValor = ModalManager.getEditMetaValue(valorFloat);
+            if (!Number.isFinite(metaValor) || metaValor <= 0) {
+                return ModalManager.showLancAlert('Informe quanto deste lancamento foi para a meta.');
+            }
+            if (metaValor > valorFloat) {
+                return ModalManager.showLancAlert('O valor da meta nao pode ser maior que o valor do lancamento.');
+            }
+            metaOperacao = ModalManager.resolveMetaOperationForEdit(tipoValue, true);
+        }
+
         const payload = {
             data: dataValue,
             hora_lancamento: horaValue || null,
@@ -1250,7 +1324,9 @@ const ModalManager = {
             categoria_id: categoriaValue ? Number(categoriaValue) : null,
             subcategoria_id: DOM.selectLancSubcategoria?.value ? Number(DOM.selectLancSubcategoria.value) : null,
             forma_pagamento: formaPagamentoValue || null,
-            meta_id: metaId
+            meta_id: metaId,
+            meta_operacao: metaOperacao,
+            meta_valor: metaValor
         };
 
         // Continuar com lÃ³gica normal de atualizaÃ§Ã£o...

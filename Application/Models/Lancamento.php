@@ -43,6 +43,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $categoria_id
  * @property int|null $subcategoria_id
  * @property int|null $meta_id
+ * @property string|null $meta_operacao
+ * @property float|null $meta_valor
  * @property int|null $conta_id
  * @property int|null $conta_id_destino
  * @property string|null $descricao
@@ -91,6 +93,10 @@ class Lancamento extends Model
     public const TIPO_DESPESA        = 'despesa';
     public const TIPO_TRANSFERENCIA  = 'transferencia';
 
+    public const META_OPERACAO_APORTE = 'aporte';
+    public const META_OPERACAO_RESGATE = 'resgate';
+    public const META_OPERACAO_REALIZACAO = 'realizacao';
+
     // Constantes para origem_tipo
     public const ORIGEM_NORMAL         = 'normal';
     public const ORIGEM_CARTAO_CREDITO = 'cartao_credito';
@@ -108,6 +114,8 @@ class Lancamento extends Model
         'categoria_id',
         'subcategoria_id',
         'meta_id',
+        'meta_operacao',
+        'meta_valor',
         'conta_id',
         'conta_id_destino',
         'descricao',
@@ -150,6 +158,7 @@ class Lancamento extends Model
         'categoria_id'      => 'int',
         'subcategoria_id'   => 'int',
         'meta_id'           => 'int',
+        'meta_valor'        => 'float',
         'conta_id'          => 'int',
         'conta_id_destino'  => 'int',
         'data'              => 'date:Y-m-d',

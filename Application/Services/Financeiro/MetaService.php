@@ -59,9 +59,11 @@ class MetaService
             'titulo' => $data['titulo'] ?? '',
             'descricao' => $data['descricao'] ?? null,
             'tipo' => $data['tipo'] ?? Meta::TIPO_ECONOMIA,
+            'modelo' => $data['modelo'] ?? Meta::MODELO_RESERVA,
             'valor_alvo' => $valorAlvo,
             'valor_alocado' => $valorInicial,
             'valor_aporte_manual' => $valorInicial,
+            'valor_realizado' => 0,
             'valor_atual' => $valorInicial,
             'data_inicio' => $data['data_inicio'] ?? date('Y-m-d'),
             'data_prazo' => $data['data_prazo'] ?? null,
@@ -86,7 +88,7 @@ class MetaService
         }
 
         $updateData = [];
-        foreach (['titulo', 'descricao', 'tipo', 'valor_alvo', 'data_inicio', 'data_prazo', 'icone', 'cor', 'prioridade', 'status'] as $field) {
+        foreach (['titulo', 'descricao', 'tipo', 'modelo', 'valor_alvo', 'data_inicio', 'data_prazo', 'icone', 'cor', 'prioridade', 'status'] as $field) {
             if (array_key_exists($field, $data)) {
                 $updateData[$field] = $data[$field];
             }
@@ -96,24 +98,14 @@ class MetaService
             $meta->update($updateData);
         }
 
-        $valorAlocado = $this->extractValorAlocado($data, false);
-        if ($valorAlocado !== null) {
-            $meta = $this->progressService->syncManualAllocationToTarget($userId, $id, $valorAlocado);
-        } else {
-            $meta = $this->progressService->recalculateMeta($userId, $id) ?? $meta->fresh();
-        }
+        $meta = $this->progressService->recalculateMeta($userId, $id) ?? $meta->fresh();
 
         return $meta?->toApiArray();
     }
 
     public function adicionarAporte(int $userId, int $id, float $valor): ?array
     {
-        $meta = $this->progressService->incrementManualAllocation($userId, $id, $valor);
-        if (!$meta) {
-            return null;
-        }
-
-        return $meta->toApiArray();
+        throw new \DomainException('Aporte manual em meta foi descontinuado. Use um lancamento vinculado a meta.');
     }
 
     public function remover(int $userId, int $id): bool
@@ -131,7 +123,13 @@ class MetaService
         $ativas = $this->repo->findByUser($userId, Meta::STATUS_ATIVA);
 
         $totalAlvo = $ativas->sum('valor_alvo');
-        $totalAtual = $ativas->sum('valor_alocado');
+        $totalAtual = $ativas->sum(function (Meta $meta): float {
+            if (($meta->modelo ?? Meta::MODELO_RESERVA) === Meta::MODELO_REALIZACAO) {
+                return (float) $meta->valor_alocado + (float) ($meta->valor_realizado ?? 0);
+            }
+
+            return (float) $meta->valor_alocado;
+        });
         $atrasadas = $ativas->filter(fn(Meta $meta) => $meta->isAtrasada())->count();
         $proximaConcluir = $ativas->sortByDesc('progresso')->first();
 

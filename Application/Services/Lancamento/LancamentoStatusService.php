@@ -6,6 +6,7 @@ namespace Application\Services\Lancamento;
 
 use Application\Models\Lancamento;
 use Application\Repositories\LancamentoRepository;
+use Application\Services\Financeiro\MetaProgressService;
 use Illuminate\Database\Capsule\Manager as DB;
 
 /**
@@ -17,10 +18,15 @@ use Illuminate\Database\Capsule\Manager as DB;
 class LancamentoStatusService
 {
     private LancamentoRepository $lancamentoRepo;
+    private MetaProgressService $metaProgressService;
 
-    public function __construct(?LancamentoRepository $lancamentoRepo = null)
+    public function __construct(
+        ?LancamentoRepository $lancamentoRepo = null,
+        ?MetaProgressService $metaProgressService = null
+    )
     {
         $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
+        $this->metaProgressService = $metaProgressService ?? new MetaProgressService();
     }
 
     /**
@@ -51,7 +57,13 @@ class LancamentoStatusService
             ]);
         });
 
-        return $lancamento->fresh();
+        $updated = $lancamento->fresh();
+        $metaId = (int) ($updated->meta_id ?? 0);
+        if ($metaId > 0) {
+            $this->metaProgressService->recalculateMeta((int) $updated->user_id, $metaId);
+        }
+
+        return $updated;
     }
 
     /**
@@ -83,7 +95,13 @@ class LancamentoStatusService
             ]);
         });
 
-        return $lancamento->fresh();
+        $updated = $lancamento->fresh();
+        $metaId = (int) ($updated->meta_id ?? 0);
+        if ($metaId > 0) {
+            $this->metaProgressService->recalculateMeta((int) $updated->user_id, $metaId);
+        }
+
+        return $updated;
     }
 
     /**

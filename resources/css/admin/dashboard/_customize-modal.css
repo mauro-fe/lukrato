@@ -68,6 +68,19 @@
   color: var(--color-text-muted);
 }
 
+.dash-preset-switch {
+  display: flex;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+}
+
+.dash-preset-switch .dash-btn {
+  flex: 1;
+  justify-content: center;
+  padding: 8px 10px;
+  font-size: var(--font-size-xs);
+}
+
 /* Toggle switches */
 .dash-toggle {
   display: flex;

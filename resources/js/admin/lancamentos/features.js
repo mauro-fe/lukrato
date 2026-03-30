@@ -194,6 +194,24 @@ Modules.ListContext = ListContext;
 // ============================================================================
 
 export const SummaryCards = {
+    getMetaCoverage(item, valorBase) {
+        const tipo = String(item?.tipo || '').toLowerCase();
+        if (tipo !== 'despesa') return 0;
+
+        const metaId = Number(item?.meta_id ?? 0);
+        if (!(metaId > 0)) return 0;
+
+        const operacao = String(item?.meta_operacao || '').toLowerCase();
+        if (operacao && operacao !== 'resgate' && operacao !== 'realizacao') {
+            return 0;
+        }
+
+        const metaValorBruto = Number(item?.meta_valor ?? valorBase);
+        if (!Number.isFinite(metaValorBruto) || metaValorBruto <= 0) return 0;
+
+        return Math.max(0, Math.min(Math.abs(valorBase), Math.abs(metaValorBruto)));
+    },
+
     update() {
         const items = STATE.filteredData?.length ? STATE.filteredData : STATE.lancamentos || [];
         let totalReceitas = 0;
@@ -202,9 +220,13 @@ export const SummaryCards = {
 
         for (const item of items) {
             const tipo = String(item.tipo || '').toLowerCase();
-            const valor = parseFloat(item.valor) || 0;
+            const valor = Math.abs(parseFloat(item.valor) || 0);
             if (tipo === 'receita') totalReceitas += valor;
-            else if (tipo === 'despesa') totalDespesas += valor;
+            else if (tipo === 'despesa') {
+                const coberturaMeta = SummaryCards.getMetaCoverage(item, valor);
+                const despesaMes = Math.max(0, valor - coberturaMeta);
+                totalDespesas += despesaMes;
+            }
         }
 
         const saldo = totalReceitas - totalDespesas;

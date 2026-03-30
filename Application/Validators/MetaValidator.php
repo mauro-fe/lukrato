@@ -12,23 +12,20 @@ class MetaValidator
     {
         $errors = [];
 
-        // Título
-        $titulo = trim($data['titulo'] ?? '');
-        if (empty($titulo)) {
-            $errors['titulo'] = 'O título é obrigatório.';
+        $titulo = trim((string) ($data['titulo'] ?? ''));
+        if ($titulo === '') {
+            $errors['titulo'] = 'O titulo e obrigatorio.';
         } elseif (mb_strlen($titulo) > 150) {
-            $errors['titulo'] = 'O título não pode ter mais de 150 caracteres.';
+            $errors['titulo'] = 'O titulo nao pode ter mais de 150 caracteres.';
         }
 
-        // Valor alvo
         $valorAlvo = $data['valor_alvo'] ?? null;
         if ($valorAlvo === null || $valorAlvo === '') {
-            $errors['valor_alvo'] = 'O valor da meta é obrigatório.';
+            $errors['valor_alvo'] = 'O valor da meta e obrigatorio.';
         } elseif (!is_numeric($valorAlvo) || (float) $valorAlvo <= 0) {
             $errors['valor_alvo'] = 'O valor deve ser maior que zero.';
         }
 
-        // Tipo
         $tipo = $data['tipo'] ?? '';
         $tiposValidos = [
             Meta::TIPO_ECONOMIA,
@@ -45,29 +42,38 @@ class MetaValidator
             Meta::TIPO_APOSENTADORIA,
             Meta::TIPO_OUTRO,
         ];
-        if (!empty($tipo) && !in_array($tipo, $tiposValidos, true)) {
-            $errors['tipo'] = 'Tipo de meta inválido.';
+        if ($tipo !== '' && !in_array($tipo, $tiposValidos, true)) {
+            $errors['tipo'] = 'Tipo de meta invalido.';
         }
 
-        // Prioridade
+        $modelo = $data['modelo'] ?? null;
+        $modelosValidos = [Meta::MODELO_RESERVA, Meta::MODELO_REALIZACAO];
+        if ($modelo !== null && $modelo !== '' && !in_array((string) $modelo, $modelosValidos, true)) {
+            $errors['modelo'] = 'Modelo de meta invalido.';
+        }
+
         $prioridade = $data['prioridade'] ?? '';
         $prioridadesValidas = [Meta::PRIORIDADE_BAIXA, Meta::PRIORIDADE_MEDIA, Meta::PRIORIDADE_ALTA];
-        if (!empty($prioridade) && !in_array($prioridade, $prioridadesValidas, true)) {
-            $errors['prioridade'] = 'Prioridade inválida.';
+        if ($prioridade !== '' && !in_array($prioridade, $prioridadesValidas, true)) {
+            $errors['prioridade'] = 'Prioridade invalida.';
         }
 
-        // Data prazo (opcional)
         $dataPrazo = $data['data_prazo'] ?? null;
         if (!empty($dataPrazo)) {
-            $d = \DateTime::createFromFormat('Y-m-d', $dataPrazo);
+            $d = \DateTime::createFromFormat('Y-m-d', (string) $dataPrazo);
             if (!$d || $d->format('Y-m-d') !== $dataPrazo) {
-                $errors['data_prazo'] = 'Data inválida. Use o formato YYYY-MM-DD.';
+                $errors['data_prazo'] = 'Data invalida. Use o formato YYYY-MM-DD.';
             }
         }
 
         $valorAlocado = $data['valor_alocado'] ?? $data['valor_atual'] ?? null;
         if ($valorAlocado !== null && $valorAlocado !== '' && (!is_numeric($valorAlocado) || (float) $valorAlocado < 0)) {
             $errors['valor_alocado'] = 'O valor alocado deve ser zero ou positivo.';
+        }
+
+        $valorRealizado = $data['valor_realizado'] ?? null;
+        if ($valorRealizado !== null && $valorRealizado !== '' && (!is_numeric($valorRealizado) || (float) $valorRealizado < 0)) {
+            $errors['valor_realizado'] = 'O valor realizado deve ser zero ou positivo.';
         }
 
         return $errors;
@@ -77,21 +83,17 @@ class MetaValidator
     {
         $errors = [];
 
-        // Título (se enviado)
         if (isset($data['titulo'])) {
-            $titulo = trim($data['titulo']);
-            if (empty($titulo)) {
-                $errors['titulo'] = 'O título é obrigatório.';
+            $titulo = trim((string) $data['titulo']);
+            if ($titulo === '') {
+                $errors['titulo'] = 'O titulo e obrigatorio.';
             } elseif (mb_strlen($titulo) > 150) {
-                $errors['titulo'] = 'O título não pode ter mais de 150 caracteres.';
+                $errors['titulo'] = 'O titulo nao pode ter mais de 150 caracteres.';
             }
         }
 
-        // Valor alvo (se enviado)
-        if (isset($data['valor_alvo'])) {
-            if (!is_numeric($data['valor_alvo']) || (float) $data['valor_alvo'] <= 0) {
-                $errors['valor_alvo'] = 'O valor deve ser maior que zero.';
-            }
+        if (isset($data['valor_alvo']) && (!is_numeric($data['valor_alvo']) || (float) $data['valor_alvo'] <= 0)) {
+            $errors['valor_alvo'] = 'O valor deve ser maior que zero.';
         }
 
         if (array_key_exists('valor_alocado', $data) || array_key_exists('valor_atual', $data)) {
@@ -101,11 +103,30 @@ class MetaValidator
             }
         }
 
-        // Status
+        if (array_key_exists('valor_realizado', $data)) {
+            $valorRealizado = $data['valor_realizado'];
+            if ($valorRealizado !== null && $valorRealizado !== '' && (!is_numeric($valorRealizado) || (float) $valorRealizado < 0)) {
+                $errors['valor_realizado'] = 'O valor realizado deve ser zero ou positivo.';
+            }
+        }
+
+        if (array_key_exists('modelo', $data)) {
+            $modelosValidos = [Meta::MODELO_RESERVA, Meta::MODELO_REALIZACAO];
+            if ($data['modelo'] !== null && $data['modelo'] !== '' && !in_array((string) $data['modelo'], $modelosValidos, true)) {
+                $errors['modelo'] = 'Modelo de meta invalido.';
+            }
+        }
+
         $status = $data['status'] ?? null;
-        $statusValidos = [Meta::STATUS_ATIVA, Meta::STATUS_CONCLUIDA, Meta::STATUS_PAUSADA, Meta::STATUS_CANCELADA];
-        if ($status && !in_array($status, $statusValidos, true)) {
-            $errors['status'] = 'Status inválido.';
+        $statusValidos = [
+            Meta::STATUS_ATIVA,
+            Meta::STATUS_CONCLUIDA,
+            Meta::STATUS_REALIZADA,
+            Meta::STATUS_PAUSADA,
+            Meta::STATUS_CANCELADA,
+        ];
+        if ($status && !in_array((string) $status, $statusValidos, true)) {
+            $errors['status'] = 'Status invalido.';
         }
 
         return $errors;
@@ -117,7 +138,7 @@ class MetaValidator
 
         $valor = $data['valor'] ?? null;
         if ($valor === null || $valor === '') {
-            $errors['valor'] = 'O valor do aporte é obrigatório.';
+            $errors['valor'] = 'O valor do aporte e obrigatorio.';
         } elseif (!is_numeric($valor) || (float) $valor <= 0) {
             $errors['valor'] = 'O valor deve ser maior que zero.';
         }
@@ -125,3 +146,4 @@ class MetaValidator
         return $errors;
     }
 }
+

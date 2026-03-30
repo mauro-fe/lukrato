@@ -26,6 +26,7 @@ class SecurityHeaders
         '/super_admin',
         '/sysadmin',
         '/config',
+        '/configuracoes',
     ];
 
     private array $securityHeaders = [

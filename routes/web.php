@@ -110,6 +110,8 @@ function registerAppRoutes(): void
 
 
     Router::add('GET', '/perfil',            'Admin\\PerfilController@index',        ['auth']);
+    Router::add('GET', '/configuracoes',     'Admin\\ConfigController@index',        ['auth']);
+    Router::add('GET', '/config',            'Admin\\ConfigController@index',        ['auth']);
 
     Router::add('GET', '/contas',            'Admin\\ContasController@index',        ['auth']);
 

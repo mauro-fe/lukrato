@@ -336,6 +336,7 @@
             '/gamification': 'gamification',
             '/billing': 'billing',
             '/perfil': 'perfil',
+            '/configuracoes': 'perfil',
         };
 
         for (const [url, page] of Object.entries(pageMap)) {

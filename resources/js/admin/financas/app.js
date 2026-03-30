@@ -616,10 +616,6 @@ export const FinancasApp = {
                         ${demoTag}
                     </div>
                     <div class="meta-actions">
-                        ${!isDemo && meta.status === 'ativa' && !meta.conta_id ? `
-                        <button class="meta-action-btn" onclick="financasManager.openAporteModal(${meta.id})" title="Adicionar aporte">
-                            <i data-lucide="circle-plus"></i>
-                        </button>` : ''}
                         ${!isDemo ? `<button class="meta-action-btn" onclick="financasManager.openMetaModal(${meta.id})" title="Editar">
                             <i data-lucide="pencil"></i>
                         </button>
@@ -1050,16 +1046,17 @@ export const FinancasApp = {
 
         const metaId = document.getElementById('metaId').value;
         const contaIdRaw = document.getElementById('metaContaId')?.value;
+        const valorInicial = contaIdRaw ? 0 : Utils.parseMoney(document.getElementById('metaValorAtual').value);
         const data = {
             titulo: document.getElementById('metaTitulo').value.trim(),
             valor_alvo: Utils.parseMoney(document.getElementById('metaValorAlvo').value),
-            valor_alocado: contaIdRaw ? 0 : Utils.parseMoney(document.getElementById('metaValorAtual').value),
             tipo: document.getElementById('metaTipo').value,
             prioridade: document.getElementById('metaPrioridade').value,
             data_prazo: document.getElementById('metaPrazo').value || null,
             cor: document.getElementById('metaCor').value,
             conta_id: contaIdRaw ? parseInt(contaIdRaw) : null,
         };
+        if (!metaId) data.valor_alocado = valorInicial;
 
         if (!data.titulo) return Utils.showToast('Informe o título da meta', 'error');
         if (data.valor_alvo <= 0) return Utils.showToast('Informe o valor da meta', 'error');
@@ -1127,21 +1124,19 @@ export const FinancasApp = {
         const meta = STATE.metas.find(m => m.id === metaId);
         if (!meta) return;
         if (preventDemoAction(meta)) return;
-
-        document.getElementById('aporteMetaId').value = metaId;
-        document.getElementById('aporteValor').value = '';
-        const info = document.getElementById('aporteMetaInfo');
-        if (info) {
-            const restante = (meta.valor_alvo || 0) - (meta.valor_atual || 0);
-            info.innerHTML = `<strong>${Utils.escHtml(meta.titulo)}</strong><br>
-                Faltam ${Utils.formatCurrency(Math.max(0, restante))} para a meta de ${Utils.formatCurrency(meta.valor_alvo)}`;
-        }
-        FinancasApp.openModal('modalAporte');
-        setTimeout(() => document.getElementById('aporteValor')?.focus(), 300);
+        Swal.fire({
+            icon: 'info',
+            title: 'Use lançamentos para metas',
+            html: `Para movimentar a meta <strong>${Utils.escHtml(meta.titulo)}</strong>, crie uma receita, despesa ou transferência e vincule a meta no lançamento.`,
+            confirmButtonText: 'Entendi'
+        });
     },
 
     async handleAporteSubmit(e) {
         e.preventDefault();
+        FinancasApp.closeModal('modalAporte');
+        Utils.showToast('Para movimentar metas, use lançamentos com vínculo de meta.', 'info');
+        return;
 
         const metaId = document.getElementById('aporteMetaId').value;
         const valor = Utils.parseMoney(document.getElementById('aporteValor').value);

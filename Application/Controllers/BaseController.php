@@ -303,6 +303,7 @@ abstract class BaseController
             'relatorios'   => [['label' => 'Análises', 'icon' => 'bar-chart-3']],
             'gamification' => [['label' => 'Perfil', 'icon' => 'user']],
             'perfil'       => [],
+            'configuracoes' => [['label' => 'Perfil', 'icon' => 'user']],
             'billing'      => [['label' => 'Perfil', 'icon' => 'user']],
         ];
 

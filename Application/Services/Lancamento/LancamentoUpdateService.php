@@ -8,6 +8,7 @@ use Application\DTO\ServiceResultDTO;
 use Application\DTO\Requests\UpdateLancamentoDTO;
 use Application\Formatters\LancamentoResponseFormatter;
 use Application\Models\Lancamento;
+use Application\Models\Meta;
 use Application\Repositories\LancamentoRepository;
 use Application\Services\AI\Rules\CategoryRuleEngine;
 use Application\Services\Financeiro\MetaProgressService;
@@ -57,9 +58,30 @@ class LancamentoUpdateService
         $metaId = $mergedData['meta_id'] ?? null;
         $metaId = is_scalar($metaId) && $metaId !== '' ? (int) $metaId : null;
         $metaId = LancamentoValidator::validateMetaOwnership($metaId, $userId, $errors);
+        $meta = $metaId
+            ? Meta::where('id', $metaId)->where('user_id', $userId)->first()
+            : null;
+        $metaOperacao = $metaId
+            ? LancamentoValidator::resolveMetaOperationForContext(
+                LancamentoValidator::normalizeMetaOperation($mergedData['meta_operacao'] ?? null),
+                [
+                    'tipo' => strtolower(trim((string) ($mergedData['tipo'] ?? $lancamento->tipo))),
+                    'eh_transferencia' => (bool) ($lancamento->eh_transferencia ?? false),
+                ],
+                $meta
+            )
+            : null;
+        $metaValor = $metaId
+            ? (LancamentoValidator::sanitizeMetaValor($mergedData['meta_valor'] ?? null)
+                ?? LancamentoValidator::sanitizeValor($mergedData['valor'] ?? $lancamento->valor))
+            : null;
         LancamentoValidator::validateMetaLinkRules($metaId, [
             'tipo' => strtolower(trim((string) ($mergedData['tipo'] ?? $lancamento->tipo))),
             'eh_transferencia' => (bool) ($lancamento->eh_transferencia ?? false),
+            'forma_pagamento' => (string) ($mergedData['forma_pagamento'] ?? $lancamento->forma_pagamento ?? ''),
+            'meta_operacao' => $metaOperacao,
+            'meta_valor' => $metaValor,
+            'valor' => $mergedData['valor'] ?? $lancamento->valor,
         ], $errors);
 
         // Validar subcategoria (opcional)
@@ -91,6 +113,8 @@ class LancamentoUpdateService
             'categoria_id'    => $categoriaId,
             'subcategoria_id' => $subcategoriaId,
             'meta_id'         => $metaId,
+            'meta_operacao'   => $metaOperacao,
+            'meta_valor'      => $metaValor,
             'conta_id'        => $contaId,
             'forma_pagamento' => $mergedData['forma_pagamento'] ?? null,
         ]);
@@ -145,6 +169,12 @@ class LancamentoUpdateService
             'meta_id'         => array_key_exists('meta_id', $payload)
                 ? $payload['meta_id']
                 : ($payload['metaId'] ?? $lancamento->meta_id),
+            'meta_operacao'   => array_key_exists('meta_operacao', $payload)
+                ? $payload['meta_operacao']
+                : ($payload['metaOperacao'] ?? $lancamento->meta_operacao),
+            'meta_valor'      => array_key_exists('meta_valor', $payload)
+                ? $payload['meta_valor']
+                : ($payload['metaValor'] ?? $lancamento->meta_valor),
             'conta_id'        => $payload['conta_id'] ?? $payload['contaId'] ?? $lancamento->conta_id,
             'categoria_id'    => $payload['categoria_id'] ?? $payload['categoriaId'] ?? $lancamento->categoria_id,
             'subcategoria_id' => $payload['subcategoria_id'] ?? $payload['subcategoriaId'] ?? $lancamento->subcategoria_id,

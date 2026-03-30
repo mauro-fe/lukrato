@@ -243,6 +243,8 @@ Router::add('POST', '/api/user/theme', 'Api\\User\\PreferenciaUsuarioController@
 Router::add('POST', '/api/user/display-name', 'Api\\User\\PreferenciaUsuarioController@updateDisplayName', ['auth', 'csrf', 'ratelimit']);
 Router::add('GET',  '/api/user/help-preferences', 'Api\\User\\PreferenciaUsuarioController@showHelpPreferences', ['auth']);
 Router::add('POST', '/api/user/help-preferences', 'Api\\User\\PreferenciaUsuarioController@updateHelpPreferences', ['auth', 'csrf', 'ratelimit']);
+Router::add('GET',  '/api/user/ui-preferences/{page}', 'Api\\User\\PreferenciaUsuarioController@showUiPreferences', ['auth']);
+Router::add('POST', '/api/user/ui-preferences/{page}', 'Api\\User\\PreferenciaUsuarioController@updateUiPreferences', ['auth', 'csrf', 'ratelimit']);
 Router::add('GET',  '/api/user/birthday-check', 'Api\\User\\PreferenciaUsuarioController@birthdayCheck', ['auth']);
 
 // ============================================

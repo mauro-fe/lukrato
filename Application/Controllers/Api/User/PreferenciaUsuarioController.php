@@ -40,6 +40,10 @@ class PreferenciaUsuarioController extends BaseController
         'mobile',
     ];
 
+    private const UI_PAGE_KEY_REGEX = '/^[a-z0-9][a-z0-9_-]{1,39}$/';
+    private const UI_PREF_KEY_REGEX = '/^[a-zA-Z][a-zA-Z0-9_]{1,63}$/';
+    private const UI_PREF_MAX_ITEMS = 100;
+
     private function getPayloadValue(string $key): mixed
     {
         $value = $this->getPost($key);
@@ -134,6 +138,75 @@ class PreferenciaUsuarioController extends BaseController
         $dashboardPreferences = $this->getDashboardPreferences($user);
         $dashboardPreferences['help_center'] = $this->normalizeHelpPreferences($helpPreferences);
 
+        $user->dashboard_preferences = $dashboardPreferences;
+        $user->save();
+    }
+
+    private function normalizeUiPageKey(string $page): string
+    {
+        $pageKey = strtolower(trim($page));
+
+        if ($pageKey === '') {
+            return '';
+        }
+
+        return preg_match(self::UI_PAGE_KEY_REGEX, $pageKey) === 1 ? $pageKey : '';
+    }
+
+    private function normalizeUiPreferencesPayload(mixed $value): array
+    {
+        if (!is_array($value)) {
+            return [];
+        }
+
+        $normalized = [];
+        $count = 0;
+
+        foreach ($value as $key => $state) {
+            if ($count >= self::UI_PREF_MAX_ITEMS) {
+                break;
+            }
+
+            $prefKey = trim((string) $key);
+            if ($prefKey === '') {
+                continue;
+            }
+
+            if (preg_match(self::UI_PREF_KEY_REGEX, $prefKey) !== 1) {
+                continue;
+            }
+
+            $normalized[$prefKey] = (bool) $state;
+            $count++;
+        }
+
+        return $normalized;
+    }
+
+    private function getUiPagePreferences(Usuario $user, string $pageKey): array
+    {
+        $dashboardPreferences = $this->getDashboardPreferences($user);
+        $uiPages = is_array($dashboardPreferences['ui_pages'] ?? null)
+            ? $dashboardPreferences['ui_pages']
+            : [];
+
+        return $this->normalizeUiPreferencesPayload($uiPages[$pageKey] ?? []);
+    }
+
+    private function persistUiPagePreferences(Usuario $user, string $pageKey, array $preferences): void
+    {
+        $dashboardPreferences = $this->getDashboardPreferences($user);
+        $uiPages = is_array($dashboardPreferences['ui_pages'] ?? null)
+            ? $dashboardPreferences['ui_pages']
+            : [];
+
+        if ($preferences === []) {
+            unset($uiPages[$pageKey]);
+        } else {
+            $uiPages[$pageKey] = $this->normalizeUiPreferencesPayload($preferences);
+        }
+
+        $dashboardPreferences['ui_pages'] = $uiPages;
         $user->dashboard_preferences = $dashboardPreferences;
         $user->save();
     }
@@ -384,6 +457,81 @@ class PreferenciaUsuarioController extends BaseController
             ]);
 
             return Response::errorResponse('Falha ao salvar preferencias de ajuda.', 500);
+        }
+    }
+
+    public function showUiPreferences(string $page): Response
+    {
+        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+
+        try {
+            $pageKey = $this->normalizeUiPageKey($page);
+            if ($pageKey === '') {
+                return Response::validationErrorResponse([
+                    'page' => 'Pagina de configuracao invalida.',
+                ]);
+            }
+
+            $user = Usuario::find($userId);
+            if (!$user) {
+                return Response::errorResponse('Usuario nao encontrado.', 404);
+            }
+
+            return Response::successResponse([
+                'page' => $pageKey,
+                'preferences' => $this->getUiPagePreferences($user, $pageKey),
+            ]);
+        } catch (Throwable $e) {
+            LogService::error('Falha ao buscar preferencias de interface', [
+                'exception' => $e->getMessage(),
+                'page' => $page,
+            ]);
+
+            return Response::errorResponse('Falha ao buscar preferencias da pagina.', 500);
+        }
+    }
+
+    public function updateUiPreferences(string $page): Response
+    {
+        $userId = $this->requireApiUserIdOrFail();
+
+        try {
+            $pageKey = $this->normalizeUiPageKey($page);
+            if ($pageKey === '') {
+                return Response::validationErrorResponse([
+                    'page' => 'Pagina de configuracao invalida.',
+                ]);
+            }
+
+            $payload = $this->getRequestPayload();
+            $preferencesInput = $payload['preferences'] ?? $payload;
+
+            if (!is_array($preferencesInput)) {
+                return Response::validationErrorResponse([
+                    'preferences' => 'Formato de preferencias invalido.',
+                ]);
+            }
+
+            $normalizedPreferences = $this->normalizeUiPreferencesPayload($preferencesInput);
+
+            $user = Usuario::find($userId);
+            if (!$user) {
+                return Response::errorResponse('Usuario nao encontrado.', 404);
+            }
+
+            $this->persistUiPagePreferences($user, $pageKey, $normalizedPreferences);
+
+            return Response::successResponse([
+                'page' => $pageKey,
+                'preferences' => $this->getUiPagePreferences($user, $pageKey),
+            ], 'Preferencias de interface atualizadas');
+        } catch (Throwable $e) {
+            LogService::error('Falha ao atualizar preferencias de interface', [
+                'exception' => $e->getMessage(),
+                'page' => $page,
+            ]);
+
+            return Response::errorResponse('Falha ao salvar preferencias da pagina.', 500);
         }
     }
 

@@ -430,7 +430,16 @@
                 </button>
             </div>
             <div class="dash-modal__body">
-                <p class="dash-modal__desc">Escolha o que deseja ver no seu dashboard.</p>
+                <p class="dash-modal__desc">Comece no modo essencial e ative extras quando fizer sentido para você.</p>
+
+                <div class="dash-preset-switch" role="group" aria-label="Preset de visualização">
+                    <button class="dash-btn dash-btn--ghost" id="btnPresetEssencial" type="button">
+                        Modo essencial
+                    </button>
+                    <button class="dash-btn dash-btn--ghost" id="btnPresetCompleto" type="button">
+                        Modo completo
+                    </button>
+                </div>
 
                 <div class="dash-toggle-group">
                     <span class="dash-toggle-group__title">Principais</span>

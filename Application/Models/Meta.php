@@ -25,8 +25,12 @@ class Meta extends Model
 
     public const STATUS_ATIVA = 'ativa';
     public const STATUS_CONCLUIDA = 'concluida';
+    public const STATUS_REALIZADA = 'realizada';
     public const STATUS_PAUSADA = 'pausada';
     public const STATUS_CANCELADA = 'cancelada';
+
+    public const MODELO_RESERVA = 'reserva';
+    public const MODELO_REALIZACAO = 'realizacao';
 
     public const PRIORIDADE_BAIXA = 'baixa';
     public const PRIORIDADE_MEDIA = 'media';
@@ -37,9 +41,11 @@ class Meta extends Model
         'titulo',
         'descricao',
         'tipo',
+        'modelo',
         'valor_alvo',
         'valor_alocado',
         'valor_aporte_manual',
+        'valor_realizado',
         'valor_atual',
         'data_inicio',
         'data_prazo',
@@ -55,6 +61,7 @@ class Meta extends Model
         'valor_alvo' => 'float',
         'valor_alocado' => 'float',
         'valor_aporte_manual' => 'float',
+        'valor_realizado' => 'float',
         'valor_atual' => 'float',
         'conta_id' => 'int',
         'data_inicio' => 'date:Y-m-d',
@@ -133,12 +140,20 @@ class Meta extends Model
             return 100.0;
         }
 
-        return min(100, round(($this->valor_alocado / $this->valor_alvo) * 100, 1));
+        $base = $this->modelo === self::MODELO_REALIZACAO
+            ? (float) $this->valor_alocado + (float) ($this->valor_realizado ?? 0)
+            : (float) $this->valor_alocado;
+
+        return min(100, round(($base / $this->valor_alvo) * 100, 1));
     }
 
     public function getValorRestanteAttribute(): float
     {
-        return max(0, $this->valor_alvo - $this->valor_alocado);
+        $base = $this->modelo === self::MODELO_REALIZACAO
+            ? (float) $this->valor_alocado + (float) ($this->valor_realizado ?? 0)
+            : (float) $this->valor_alocado;
+
+        return max(0, $this->valor_alvo - $base);
     }
 
     public function getDiasRestantesAttribute(): ?int
@@ -183,20 +198,26 @@ class Meta extends Model
 
     public function isCompleta(): bool
     {
-        return $this->valor_alocado >= $this->valor_alvo;
+        return $this->progresso >= 100;
     }
 
     public function toApiArray(): array
     {
+        $valorAtualDisplay = ($this->modelo === self::MODELO_REALIZACAO)
+            ? (float) $this->valor_alocado + (float) ($this->valor_realizado ?? 0)
+            : (float) $this->valor_atual;
+
         return [
             'id' => $this->id,
             'titulo' => $this->titulo,
             'descricao' => $this->descricao,
             'tipo' => $this->tipo,
+            'modelo' => $this->modelo ?: self::MODELO_RESERVA,
             'valor_alvo' => $this->valor_alvo,
             'valor_alocado' => $this->valor_alocado,
             'valor_aporte_manual' => (float) ($this->valor_aporte_manual ?? 0),
-            'valor_atual' => $this->valor_atual,
+            'valor_realizado' => (float) ($this->valor_realizado ?? 0),
+            'valor_atual' => $valorAtualDisplay,
             'data_inicio' => $this->data_inicio?->format('Y-m-d'),
             'data_prazo' => $this->data_prazo?->format('Y-m-d'),
             'icone' => $this->icone,

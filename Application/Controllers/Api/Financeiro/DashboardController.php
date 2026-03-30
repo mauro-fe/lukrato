@@ -120,9 +120,13 @@ class DashboardController extends BaseController
         if ($viewType === 'competencia') {
             $receitas = $this->lancamentoRepo->sumReceitasCompetencia($userId, $startStr, $endStr);
             $despesas = $this->lancamentoRepo->sumDespesasCompetencia($userId, $startStr, $endStr);
+            $despesasBrutas = $this->lancamentoRepo->sumDespesasBrutasCompetencia($userId, $startStr, $endStr);
+            $usoMetas = $this->lancamentoRepo->sumUsoMetasDespesaCompetencia($userId, $startStr, $endStr);
         } else {
             $receitas = $this->lancamentoRepo->sumReceitasCaixa($userId, $startStr, $endStr);
             $despesas = $this->lancamentoRepo->sumDespesasCaixa($userId, $startStr, $endStr);
+            $despesasBrutas = $this->lancamentoRepo->sumDespesasBrutasCaixa($userId, $startStr, $endStr);
+            $usoMetas = $this->lancamentoRepo->sumUsoMetasDespesaCaixa($userId, $startStr, $endStr);
         }
 
         $resultado = $receitas - $despesas;
@@ -132,6 +136,8 @@ class DashboardController extends BaseController
             'saldo' => $saldoAcumulado,
             'receitas' => $receitas,
             'despesas' => $despesas,
+            'despesas_brutas' => $despesasBrutas,
+            'uso_metas' => $usoMetas,
             'resultado' => $resultado,
             'saldoAcumulado' => $saldoAcumulado,
             'view' => $viewType,
@@ -192,7 +198,7 @@ class DashboardController extends BaseController
         }
 
         $rows = $query
-            ->selectRaw('categoria_id, SUM(valor) as total')
+            ->selectRaw('categoria_id, SUM(' . $this->effectiveExpenseExpression('lancamentos') . ') as total')
             ->groupBy('categoria_id')
             ->get();
 
@@ -433,6 +439,30 @@ class DashboardController extends BaseController
             'file' => $e->getFile(),
             'line' => $e->getLine(),
         ]));
+    }
+
+    private function metaCoverageExpression(string $tableAlias = 'lancamentos'): string
+    {
+        $t = preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $tableAlias) ? $tableAlias : 'lancamentos';
+
+        return "CASE
+            WHEN {$t}.tipo <> 'despesa' THEN 0
+            WHEN {$t}.meta_id IS NULL THEN 0
+            WHEN (
+                {$t}.meta_operacao IN ('resgate', 'realizacao')
+                OR {$t}.meta_operacao IS NULL
+                OR {$t}.meta_operacao = ''
+            ) THEN LEAST({$t}.valor, GREATEST(COALESCE({$t}.meta_valor, {$t}.valor), 0))
+            ELSE 0
+        END";
+    }
+
+    private function effectiveExpenseExpression(string $tableAlias = 'lancamentos'): string
+    {
+        $t = preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $tableAlias) ? $tableAlias : 'lancamentos';
+        $coverage = $this->metaCoverageExpression($t);
+
+        return "GREATEST({$t}.valor - ({$coverage}), 0)";
     }
 
     public function healthSummary(): Response
