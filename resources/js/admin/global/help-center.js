@@ -972,11 +972,23 @@ function isVisibleElement(element) {
         return false;
     }
 
+    // Skip sections intentionally hidden from first-time flows.
+    if (element.hidden
+        || element.closest('[hidden]')
+        || element.closest('[aria-hidden="true"]')
+        || element.closest('[inert]')
+        || element.closest('[data-lk-tour-ignore="true"]')
+        || element.classList.contains('progressive-hidden')
+        || element.closest('.progressive-hidden')) {
+        return false;
+    }
+
     const styles = window.getComputedStyle(element);
     const rect = element.getBoundingClientRect();
 
     return styles.display !== 'none'
         && styles.visibility !== 'hidden'
+        && styles.opacity !== '0'
         && rect.width > 0
         && rect.height > 0;
 }

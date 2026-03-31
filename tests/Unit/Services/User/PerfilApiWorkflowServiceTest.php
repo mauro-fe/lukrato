@@ -27,7 +27,7 @@ class PerfilApiWorkflowServiceTest extends TestCase
             ->once()
             ->with(Mockery::type(PerfilUpdateDTO::class), 21)
             ->andReturn([
-                'nome' => 'Nome Ã© obrigatÃ³rio.',
+                'nome' => 'Nome é obrigatório.',
             ]);
 
         $perfilService->shouldNotReceive('atualizarPerfil');
@@ -41,7 +41,7 @@ class PerfilApiWorkflowServiceTest extends TestCase
 
         $this->assertFalse($result['success']);
         $this->assertSame([
-            'nome' => 'Nome Ã© obrigatÃ³rio.',
+            'nome' => 'Nome é obrigatório.',
         ], $result['errors']);
     }
 
@@ -113,7 +113,7 @@ class PerfilApiWorkflowServiceTest extends TestCase
 
         $this->assertFalse($result['success']);
         $this->assertSame([
-            'conf_senha' => 'As senhas nÃ£o coincidem.',
+            'conf_senha' => 'As senhas não coincidem.',
         ], $result['errors']);
         $this->assertFalse($user->saved);
     }
@@ -136,6 +136,6 @@ class PerfilApiWorkflowServiceTest extends TestCase
 
         $this->assertFalse($result['success']);
         $this->assertSame(400, $result['status']);
-        $this->assertSame('Tema invÃ¡lido. Use "light" ou "dark"', $result['message']);
+        $this->assertSame('Tema inválido. Use "light" ou "dark"', $result['message']);
     }
 }

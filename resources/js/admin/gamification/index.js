@@ -13,6 +13,7 @@
 import { apiGet, getBaseUrl, getErrorMessage } from '../shared/api.js';
 import { toastError } from '../shared/ui.js';
 import { escapeHtml, formatDate as sharedFormatDate } from '../shared/utils.js';
+import { initCustomize } from './customize.js';
 
 // ─── Globals ────────────────────────────────────────────────────────────────
 
@@ -826,8 +827,13 @@ document.addEventListener('lukrato:data-changed', () => {
 
 // ─── Init ───────────────────────────────────────────────────────────────────
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadAllData);
-} else {
+function initPage() {
+    initCustomize();
     loadAllData();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPage);
+} else {
+    initPage();
 }

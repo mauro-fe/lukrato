@@ -30,16 +30,16 @@ class CampaignApiWorkflowService
     {
         $title = trim((string) ($payload['title'] ?? ''));
         if ($title === '') {
-            return $this->failure('O tÃ­tulo Ã© obrigatÃ³rio');
+            return $this->failure('O título é obrigatório');
         }
 
         $message = trim((string) ($payload['message'] ?? ''));
         if ($message === '') {
-            return $this->failure('A mensagem Ã© obrigatÃ³ria');
+            return $this->failure('A mensagem é obrigatória');
         }
 
         if (strlen($title) > 255) {
-            return $this->failure('O tÃ­tulo deve ter no mÃ¡ximo 255 caracteres');
+            return $this->failure('O título deve ter no máximo 255 caracteres');
         }
 
         $type = $payload['type'] ?? MessageCampaign::TYPE_INFO;
@@ -60,12 +60,12 @@ class CampaignApiWorkflowService
         }
 
         if (!$sendNotification && !$sendEmail) {
-            return $this->failure('Selecione pelo menos um canal de envio (notificaÃ§Ã£o ou e-mail)');
+            return $this->failure('Selecione pelo menos um canal de envio (notificação ou e-mail)');
         }
 
         $validTypes = array_keys(MessageCampaign::getTypes());
         if (!in_array($type, $validTypes, true)) {
-            return $this->failure('Tipo de campanha invÃ¡lido');
+            return $this->failure('Tipo de campanha inválido');
         }
 
         $scheduleResolution = $this->resolveScheduledAt($payload['scheduled_at'] ?? null);
@@ -224,11 +224,11 @@ class CampaignApiWorkflowService
     {
         $campaign = $this->findCampaign($id);
         if (!$campaign) {
-            return $this->failure('Campanha nÃ£o encontrada', 404);
+            return $this->failure('Campanha não encontrada', 404);
         }
 
         if (!$campaign->is_scheduled) {
-            return $this->failure('Esta campanha nÃ£o estÃ¡ agendada');
+            return $this->failure('Esta campanha não está agendada');
         }
 
         $campaign->status = MessageCampaign::STATUS_CANCELLED;
@@ -271,7 +271,7 @@ class CampaignApiWorkflowService
     {
         $result = $this->notificationService->processBirthdayNotifications($sendEmail);
 
-        LogService::info('NotificaÃ§Ãµes de aniversÃ¡rio disparadas manualmente', [
+        LogService::info('Notificações de aniversário disparadas manualmente', [
             'notifications_sent' => $result['notifications_sent'] ?? 0,
             'send_email' => $sendEmail,
         ]);
@@ -286,7 +286,7 @@ class CampaignApiWorkflowService
         }
 
         if (!filter_var($link, FILTER_VALIDATE_URL)) {
-            return $this->failure('O link informado nÃ£o Ã© uma URL vÃ¡lida');
+            return $this->failure('O link informado não é uma URL válida');
         }
 
         $scheme = parse_url($link, PHP_URL_SCHEME);
@@ -318,11 +318,11 @@ class CampaignApiWorkflowService
     private function validateStoreFilters(array $filters): ?array
     {
         if (!in_array($filters['plan'], ['all', 'free', 'pro'], true)) {
-            return $this->failure('Filtro de plano invÃ¡lido');
+            return $this->failure('Filtro de plano inválido');
         }
 
         if (!in_array($filters['status'], ['all', 'active', 'inactive'], true)) {
-            return $this->failure('Filtro de status invÃ¡lido');
+            return $this->failure('Filtro de status inválido');
         }
 
         if ($filters['days_inactive'] !== null && ($filters['days_inactive'] < 1 || $filters['days_inactive'] > 365)) {
@@ -355,7 +355,7 @@ class CampaignApiWorkflowService
                 'value' => $scheduledDate->format('Y-m-d H:i:s'),
             ];
         } catch (Throwable) {
-            return $this->failure('Data de agendamento invÃ¡lida');
+            return $this->failure('Data de agendamento inválida');
         }
     }
 
@@ -373,7 +373,7 @@ class CampaignApiWorkflowService
 
         $coupon = Cupom::find((int) $rawCouponId);
         if (!$coupon || !$coupon->isValid()) {
-            return $this->failure('Cupom invÃ¡lido ou expirado');
+            return $this->failure('Cupom inválido ou expirado');
         }
 
         return [
@@ -397,7 +397,7 @@ class CampaignApiWorkflowService
     private function buildImmediateCampaignMessage(MessageCampaign $campaign): string
     {
         return match ($campaign->status) {
-            MessageCampaign::STATUS_PARTIAL => 'Campanha enviada parcialmente. Confira as falhas no histÃ³rico.',
+            MessageCampaign::STATUS_PARTIAL => 'Campanha enviada parcialmente. Confira as falhas no histórico.',
             MessageCampaign::STATUS_FAILED => 'Campanha processada, mas falhou em todos os canais selecionados.',
             default => 'Campanha enviada com sucesso',
         };

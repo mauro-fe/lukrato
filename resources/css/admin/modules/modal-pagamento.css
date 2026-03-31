@@ -349,7 +349,7 @@
   }
 }
 
-/* ForÃ§a o SweetAlert2 a ficar SEMPRE acima de qualquer modal */
+/* Força o SweetAlert2 a ficar SEMPRE acima de qualquer modal */
 .swal2-container {
   z-index: 20000 !important;
 }
@@ -457,7 +457,7 @@
 }
 
 /* ==========================================================================
-   ÃREA DE PIX/BOLETO
+   ÁREA DE PIX/BOLETO
    ========================================================================== */
 .pix-boleto-area {
   text-align: center;
@@ -658,7 +658,7 @@
   animation: modalPulse 2s infinite;
 }
 
-/* Campos obrigatÃ³rios para PIX/Boleto */
+/* Campos obrigatórios para PIX/Boleto */
 .pix-boleto-fields {
   display: grid;
   gap: var(--spacing-4);

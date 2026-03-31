@@ -3,7 +3,7 @@
     <!-- ============================================================
          HERO — Limite consolidado (estilo dashboard-hero)
          ============================================================ -->
-    <section class="cart-hero surface-card surface-card--interactive" aria-live="polite">
+    <section class="cart-hero surface-card surface-card--interactive" id="cartoesHero" aria-live="polite">
         <span class="cart-hero__eyebrow">Visão consolidada</span>
         <h1 class="cart-hero__title">Seus cartões de crédito</h1>
         <p class="cart-hero__subtitle">
@@ -14,7 +14,7 @@
     <!-- ============================================================
          KPIs — 4 indicadores (estilo dash-kpis)
          ============================================================ -->
-    <section class="cart-kpis">
+    <section class="cart-kpis" id="cartoesKpis">
         <article class="stat-card surface-card surface-card--interactive" data-stat="total">
             <div class="stat-icon">
                 <i data-lucide="credit-card"></i>
@@ -104,7 +104,7 @@
         </div>
 
         <!-- Toolbar — Busca + Filtro por bandeira -->
-        <div class="cartoes-toolbar" aria-label="Filtros e ações da página de cartões">
+        <div class="cartoes-toolbar" id="cartoesToolbar" aria-label="Filtros e ações da página de cartões">
             <div class="cart-search-wrapper">
                 <i data-lucide="search" class="cart-search-icon"></i>
                 <input type="text" id="searchCartoes" class="cart-search-input"
@@ -176,6 +176,54 @@
             </div>
         </noscript>
     </section>
+
+    <div class="cart-customize-trigger">
+        <button class="btn btn-ghost" id="btnCustomizeCartoes" type="button">
+            <i data-lucide="sliders-horizontal"></i> Personalizar tela
+        </button>
+    </div>
+
+    <div class="cart-customize-overlay" id="cartoesCustomizeModalOverlay" style="display:none;">
+        <div class="cart-customize-modal surface-card" role="dialog" aria-modal="true"
+            aria-labelledby="cartoesCustomizeModalTitle">
+            <div class="cart-customize-header">
+                <h3 class="cart-customize-title" id="cartoesCustomizeModalTitle">Personalizar cartoes</h3>
+                <button class="cart-customize-close" id="btnCloseCustomizeCartoes" type="button"
+                    aria-label="Fechar personalizacao">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="cart-customize-body">
+                <p class="cart-customize-desc">Comece no modo essencial e ative os blocos quando fizer sentido.</p>
+
+                <div class="cart-customize-presets" role="group" aria-label="Preset de visualizacao">
+                    <button class="btn btn-ghost" id="btnPresetEssencialCartoes" type="button">Modo essencial</button>
+                    <button class="btn btn-ghost" id="btnPresetCompletoCartoes" type="button">Modo completo</button>
+                </div>
+
+                <div class="cart-customize-group">
+                    <p class="cart-customize-group-title">Blocos da tela</p>
+                    <label class="cart-customize-toggle">
+                        <span>Hero de contexto</span>
+                        <input type="checkbox" id="toggleCartoesHero" checked>
+                    </label>
+                    <label class="cart-customize-toggle">
+                        <span>Cards de KPI</span>
+                        <input type="checkbox" id="toggleCartoesKpis" checked>
+                    </label>
+                    <label class="cart-customize-toggle">
+                        <span>Barra de filtros</span>
+                        <input type="checkbox" id="toggleCartoesToolbar" checked>
+                    </label>
+                </div>
+            </div>
+
+            <div class="cart-customize-footer">
+                <button class="btn btn-primary" id="btnSaveCustomizeCartoes" type="button">Salvar</button>
+            </div>
+        </div>
+    </div>
 
 </section>
 

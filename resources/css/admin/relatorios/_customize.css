@@ -1,0 +1,204 @@
+/* Relatorios customize (first-run essential / complete presets) */
+
+.rel-customize-trigger {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.rel-customize-open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  min-height: 40px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  color: var(--color-text-muted);
+  padding: 0 var(--spacing-4);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.rel-customize-open i,
+.rel-customize-open svg {
+  width: 16px;
+  height: 16px;
+}
+
+.rel-customize-open:hover {
+  color: var(--color-text);
+  border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+}
+
+.rel-customize-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal, 1300);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-4);
+}
+
+.rel-customize-modal {
+  width: min(100%, 520px);
+  max-height: min(86vh, 760px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.rel-customize-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-5) var(--spacing-5) 0;
+}
+
+.rel-customize-title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  color: var(--color-text);
+}
+
+.rel-customize-close {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  color: var(--color-text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.rel-customize-close:hover {
+  color: var(--color-text);
+  border-color: var(--color-primary);
+}
+
+.rel-customize-body {
+  padding: var(--spacing-5);
+  overflow-y: auto;
+}
+
+.rel-customize-desc {
+  margin: 0 0 var(--spacing-4);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.rel-customize-presets {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+}
+
+.rel-customize-preset {
+  min-height: 38px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.rel-customize-preset:hover {
+  color: var(--color-text);
+  border-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
+.rel-customize-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.rel-customize-group-title {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.rel-customize-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.rel-customize-toggle:last-of-type {
+  border-bottom: none;
+}
+
+.rel-customize-toggle span {
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.rel-customize-toggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.rel-customize-footer {
+  padding: 0 var(--spacing-5) var(--spacing-5);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.rel-customize-save {
+  min-width: 120px;
+  min-height: 40px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter var(--transition-fast), transform var(--transition-fast);
+}
+
+.rel-customize-save:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .rel-customize-trigger {
+    justify-content: stretch;
+  }
+
+  .rel-customize-open {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .rel-customize-presets {
+    grid-template-columns: 1fr;
+  }
+}

@@ -30,23 +30,37 @@ function handleLimitError(res) {
     const isLimitError = /limite|plano gratuito|upgrade|faça upgrade/i.test(msg);
 
     if (isLimitError) {
-        Swal.fire({
-            icon: 'warning',
-            title: '🚀 Limite Atingido',
-            html: `
-                <p>${msg}</p>
-                <p style="margin-top: 12px; color: #6c757d; font-size: 0.9em;">
-                    Desbloqueie metas ilimitadas com o plano Pro!
-                </p>
-            `,
-            showCancelButton: true,
-            confirmButtonText: '✨ Ver Plano Pro',
-            cancelButtonText: 'Depois',
-            confirmButtonColor: '#6366f1',
-            cancelButtonColor: '#6c757d'
-        }).then((result) => {
-            if (result.isConfirmed) goToBilling();
-        });
+        if (window.PlanLimits?.promptUpgrade) {
+            window.PlanLimits.promptUpgrade({
+                context: 'metas',
+                message: msg || 'Este recurso está disponível no plano Pro.',
+            }).catch(() => { /* ignore */ });
+            return true;
+        }
+
+        if (window.LKFeedback?.upgradePrompt) {
+            window.LKFeedback.upgradePrompt({
+                context: 'metas',
+                message: msg || 'Este recurso está disponível no plano Pro.',
+            }).catch(() => { /* ignore */ });
+            return true;
+        }
+
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'info',
+                title: 'Recurso Pro',
+                text: msg || 'Este recurso está disponível no plano Pro.',
+                showCancelButton: true,
+                confirmButtonText: 'Ver planos',
+                cancelButtonText: 'Agora não',
+            }).then((result) => {
+                if (result.isConfirmed) goToBilling();
+            });
+        } else {
+            goToBilling();
+        }
+
         return true;
     }
     return false;

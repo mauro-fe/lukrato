@@ -50,7 +50,7 @@
   background: color-mix(in srgb, var(--color-danger) 12%, transparent);
 }
 
-/* Sem orÃ§amento */
+/* Sem orçamento */
 .cat-card-budget.no-budget {
   flex-direction: row;
   align-items: center;

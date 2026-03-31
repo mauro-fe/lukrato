@@ -156,14 +156,14 @@
             {
                 selector: '#summaryMetas, .met-summary-grid',
                 title: 'Resumo das metas',
-                message: 'Aqui vocÃª enxerga metas ativas, total acumulado e o progresso geral do que estÃ¡ construindo.',
+                message: 'Aqui você enxerga metas ativas, total acumulado e o progresso geral do que está construindo.',
                 position: 'bottom',
                 icon: 'target'
             },
             {
                 selector: '#metasGrid, .met-grid',
                 title: 'Acompanhamento',
-                message: 'Cada card mostra quanto falta, o percentual jÃ¡ atingido e onde vale concentrar seus aportes.',
+                message: 'Cada card mostra quanto falta, o percentual já atingido e onde vale concentrar seus aportes.',
                 position: 'top',
                 icon: 'flag'
             }
@@ -452,9 +452,42 @@
         };
     }
 
+    function isTooltipTargetEligible(element) {
+        if (!(element instanceof HTMLElement)) {
+            return false;
+        }
+
+        let node = element;
+        while (node) {
+            if (node.hidden
+                || node.hasAttribute('hidden')
+                || node.getAttribute('aria-hidden') === 'true'
+                || node.hasAttribute('inert')
+                || node.getAttribute('data-lk-tour-ignore') === 'true'
+                || node.classList.contains('progressive-hidden')) {
+                return false;
+            }
+
+            const styles = window.getComputedStyle(node);
+            if (styles.display === 'none'
+                || styles.visibility === 'hidden'
+                || styles.opacity === '0') {
+                return false;
+            }
+
+            node = node.parentElement;
+        }
+
+        return true;
+    }
+
     function resolveTooltipTarget(selector) {
         const candidates = Array.from(document.querySelectorAll(selector))
             .map((element) => {
+                if (!isTooltipTargetEligible(element)) {
+                    return null;
+                }
+
                 const rect = element.getBoundingClientRect();
                 if (rect.width === 0 || rect.height === 0) {
                     return null;
@@ -624,7 +657,7 @@
     function repositionActiveTooltips() {
         activeTooltips = activeTooltips.filter((tooltip) => {
             const target = tooltip.__fvtTarget;
-            if (!tooltip.isConnected || !target || !target.isConnected) {
+            if (!tooltip.isConnected || !target || !target.isConnected || !isTooltipTargetEligible(target)) {
                 if (tooltip.__fvtAutoCloseTimer) {
                     clearTimeout(tooltip.__fvtAutoCloseTimer);
                     tooltip.__fvtAutoCloseTimer = null;
@@ -663,6 +696,8 @@
         if (!target) return null;
 
         // Verificar se elemento está visível
+        if (!isTooltipTargetEligible(target)) return null;
+
         const rect = target.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) return null;
 

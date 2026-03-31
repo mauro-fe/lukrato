@@ -41,7 +41,7 @@ $currentPlanCode = $currentPlanCode ?? ($user?->planoAtual()?->code ?? null);
      ============================================================================ -->
 <div class="billing-page">
     <!-- Cabeçalho -->
-    <header class="billing-header">
+    <header class="billing-header" id="billingHeaderSection">
         <h1 class="billing-header__title"> Escolha seu plano</h1>
         <p class="billing-header__subtitle">
             Escolha o plano ideal para suas necessidades financeiras e tenha controle total sobre seu dinheiro
@@ -49,6 +49,7 @@ $currentPlanCode = $currentPlanCode ?? ($user?->planoAtual()?->code ?? null);
     </header>
 
     <!-- Grid de Planos -->
+    <div id="billingPlansSection">
     <?php if (empty($planItems)): ?>
         <div class="plans-grid plans-grid--empty">
             <div class="empty-state">
@@ -288,6 +289,52 @@ $currentPlanCode = $currentPlanCode ?? ($user?->planoAtual()?->code ?? null);
             <?php endforeach; ?>
         </div>
     <?php endif; ?>
+    </div>
+
+    <div class="bill-customize-trigger">
+        <button class="bill-customize-open" id="btnCustomizeBilling" type="button">
+            <i data-lucide="sliders-horizontal"></i>
+            <span>Personalizar tela</span>
+        </button>
+    </div>
+
+    <div class="bill-customize-overlay" id="billingCustomizeModalOverlay" style="display:none;">
+        <div class="bill-customize-modal surface-card" role="dialog" aria-modal="true"
+            aria-labelledby="billingCustomizeModalTitle">
+            <div class="bill-customize-header">
+                <h3 class="bill-customize-title" id="billingCustomizeModalTitle">Personalizar billing</h3>
+                <button class="bill-customize-close" id="btnCloseCustomizeBilling" type="button"
+                    aria-label="Fechar personalizacao">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="bill-customize-body">
+                <p class="bill-customize-desc">Escolha os blocos que deseja manter visiveis nesta tela.</p>
+
+                <div class="bill-customize-presets" role="group" aria-label="Preset de visualizacao">
+                    <button class="bill-customize-preset" id="btnPresetEssencialBilling" type="button">Modo essencial</button>
+                    <button class="bill-customize-preset" id="btnPresetCompletoBilling" type="button">Modo completo</button>
+                </div>
+
+                <div class="bill-customize-group">
+                    <p class="bill-customize-group-title">Blocos da tela</p>
+                    <label class="bill-customize-toggle">
+                        <span>Cabecalho da pagina</span>
+                        <input type="checkbox" id="toggleBillingHeader" checked>
+                    </label>
+                    <label class="bill-customize-toggle">
+                        <span>Grid de planos</span>
+                        <input type="checkbox" id="toggleBillingPlans" checked>
+                    </label>
+                </div>
+            </div>
+
+            <div class="bill-customize-footer">
+                <button class="bill-customize-save" id="btnSaveCustomizeBilling" type="button">Salvar</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Modal de Pagamento -->

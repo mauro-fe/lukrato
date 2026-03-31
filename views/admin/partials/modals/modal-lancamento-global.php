@@ -23,9 +23,9 @@
                     <span id="globalContaSelectLabelText">Selecione a Conta</span>
                 </label>
                 <div class="lk-select-wrapper">
-                    <select id="globalContaSelect" class="lk-select surface-card" required
-                        data-lk-custom-select="modal" data-lk-select-search="true"
-                        data-lk-select-sort="alpha" data-lk-select-search-placeholder="Buscar conta..."
+                    <select id="globalContaSelect" class="lk-select surface-card" required data-lk-custom-select="modal"
+                        data-lk-select-search="true" data-lk-select-sort="alpha"
+                        data-lk-select-search-placeholder="Buscar conta..."
                         onchange="lancamentoGlobalManager.onContaChange()">
                         <option value="">Escolha uma conta...</option>
                     </select>
@@ -159,8 +159,8 @@
                         </label>
                         <div class="lk-select-wrapper">
                             <select id="globalLancamentoMeta" name="meta_id" class="lk-select"
-                                data-lk-custom-select="modal" data-lk-select-search="true"
-                                data-lk-select-sort="alpha" data-lk-select-search-placeholder="Buscar meta..."
+                                data-lk-custom-select="modal" data-lk-select-search="true" data-lk-select-sort="alpha"
+                                data-lk-select-search-placeholder="Buscar meta..."
                                 onchange="lancamentoGlobalManager.onMetaChange()">
                                 <option value="">Nenhuma meta</option>
                             </select>
@@ -170,7 +170,8 @@
                             Vincule para registrar aporte ou uso da meta com este lancamento.
                         </small>
 
-                        <div class="lk-form-group" id="globalMetaValorGroup" style="display: none; margin-top: 0.75rem;">
+                        <div class="lk-form-group" id="globalMetaValorGroup"
+                            style="display: none; margin-top: 0.75rem;">
                             <label for="globalLancamentoMetaValor" class="lk-label">
                                 <i data-lucide="coins"></i>
                                 Quanto veio da meta?
@@ -182,11 +183,12 @@
                                     inputmode="decimal">
                             </div>
                             <small class="lk-helper-text">
-                                O restante entra como gasto normal do mes.
+                                O restante entra como gasto normal do mês.
                             </small>
                         </div>
 
-                        <div class="lk-form-group" id="globalMetaRealizacaoGroup" style="display: none; margin-top: 0.5rem;">
+                        <div class="lk-form-group" id="globalMetaRealizacaoGroup"
+                            style="display: none; margin-top: 0.5rem;">
                             <div class="lk-checkbox-wrapper">
                                 <label class="lk-checkbox-label">
                                     <input type="checkbox" id="globalLancamentoMetaRealizacao" class="lk-checkbox">
@@ -244,8 +246,7 @@
                         </label>
                         <div class="lk-select-wrapper">
                             <select id="globalLancamentoContaDestino" name="conta_destino_id" class="lk-select"
-                                data-lk-custom-select="modal" data-lk-select-search="true"
-                                data-lk-select-sort="alpha"
+                                data-lk-custom-select="modal" data-lk-select-search="true" data-lk-select-sort="alpha"
                                 data-lk-select-search-placeholder="Buscar conta de destino...">
                                 <option value="">Selecione a conta de destino</option>
                             </select>
@@ -336,8 +337,8 @@
                         </label>
                         <div class="lk-select-wrapper">
                             <select id="globalLancamentoCartaoCredito" name="cartao_credito_id" class="lk-select"
-                                data-lk-custom-select="modal" data-lk-select-search="true"
-                                data-lk-select-sort="alpha" data-lk-select-search-placeholder="Buscar cartao..."
+                                data-lk-custom-select="modal" data-lk-select-search="true" data-lk-select-sort="alpha"
+                                data-lk-select-search-placeholder="Buscar cartao..."
                                 onchange="typeof lancamentoGlobalManager !== 'undefined' && lancamentoGlobalManager.onCartaoEstornoChange && lancamentoGlobalManager.onCartaoEstornoChange()">
                                 <option value="">Selecione o cartão</option>
                             </select>
@@ -372,11 +373,13 @@
                                 <span class="lk-checkbox-custom"></span>
                                 <span class="lk-checkbox-text">
                                     <i data-lucide="calendar-days"></i>
-                                    <span class="lk-parcel-texto" id="globalParcelamentoTexto">Parcelar compra no cartão</span>
+                                    <span class="lk-parcel-texto" id="globalParcelamentoTexto">Parcelar compra no
+                                        cartão</span>
                                 </span>
                             </label>
                         </div>
-                        <small class="lk-helper-text" id="globalParcelamentoHelperText">O valor total será dividido entre as próximas faturas.</small>
+                        <small class="lk-helper-text" id="globalParcelamentoHelperText">O valor total será dividido
+                            entre as próximas faturas.</small>
                     </div>
 
                     <!-- Assinatura / Recorrência no Cartão (somente se cartão selecionado) -->
@@ -588,8 +591,7 @@
                             <div class="lk-select-wrapper" style="flex:1">
                                 <select id="globalLancamentoCategoria" name="categoria_id" class="lk-select"
                                     data-lk-custom-select="modal" data-lk-select-search="true"
-                                    data-lk-select-sort="alpha"
-                                    data-lk-select-search-placeholder="Buscar categoria...">
+                                    data-lk-select-sort="alpha" data-lk-select-search-placeholder="Buscar categoria...">
                                     <option value="">Sem categoria</option>
                                 </select>
                                 <i data-lucide="chevron-down" class="lk-select-icon"></i>
@@ -611,8 +613,7 @@
                         </label>
                         <div class="lk-select-wrapper">
                             <select id="globalLancamentoSubcategoria" name="subcategoria_id" class="lk-select"
-                                data-lk-custom-select="modal" data-lk-select-search="true"
-                                data-lk-select-sort="alpha"
+                                data-lk-custom-select="modal" data-lk-select-search="true" data-lk-select-sort="alpha"
                                 data-lk-select-search-placeholder="Buscar subcategoria...">
                                 <option value="">Sem subcategoria</option>
                             </select>

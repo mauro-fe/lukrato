@@ -73,7 +73,7 @@ class CampaignControllerTest extends TestCase
         $this->seedAdminSession(902, 'Campaign Admin');
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_POST = [
-            'message' => 'Mensagem vÃ¡lida',
+            'message' => 'Mensagem válida',
         ];
 
         $controller = new CampaignController(Mockery::mock(NotificationService::class));
@@ -83,7 +83,7 @@ class CampaignControllerTest extends TestCase
         $this->assertSame(400, $response->getStatusCode());
         $this->assertSame([
             'success' => false,
-            'message' => 'O tÃ­tulo Ã© obrigatÃ³rio',
+            'message' => 'O título é obrigatório',
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
@@ -98,7 +98,7 @@ class CampaignControllerTest extends TestCase
 
         $this->assertSame(200, $response->getStatusCode());
         $this->assertTrue($payload['success']);
-        $this->assertSame('OpÃ§Ãµes obtidas com sucesso', $payload['message']);
+        $this->assertSame('Opções obtidas com sucesso', $payload['message']);
         $this->assertArrayHasKey('types', $payload['data']);
         $this->assertArrayHasKey('plans', $payload['data']);
         $this->assertArrayHasKey('statuses', $payload['data']);

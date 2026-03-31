@@ -60,7 +60,7 @@ class PerfilApiWorkflowService
         if ($currentPassword === '' || $newPassword === '' || $passwordConfirmation === '') {
             return [
                 'success' => false,
-                'errors' => ['senha' => 'Todos os campos de senha sÃ£o obrigatÃ³rios.'],
+                'errors' => ['senha' => 'Todos os campos de senha são obrigatórios.'],
             ];
         }
 
@@ -82,7 +82,7 @@ class PerfilApiWorkflowService
         if ($newPassword !== $passwordConfirmation) {
             return [
                 'success' => false,
-                'errors' => ['conf_senha' => 'As senhas nÃ£o coincidem.'],
+                'errors' => ['conf_senha' => 'As senhas não coincidem.'],
             ];
         }
 
@@ -107,7 +107,7 @@ class PerfilApiWorkflowService
             return [
                 'success' => false,
                 'status' => 400,
-                'message' => 'Tema invÃ¡lido. Use "light" ou "dark"',
+                'message' => 'Tema inválido. Use "light" ou "dark"',
             ];
         }
 

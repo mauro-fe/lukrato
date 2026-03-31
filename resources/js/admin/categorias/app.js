@@ -1028,17 +1028,39 @@ async function handleNovaCategoria(form) {
     } catch (error) {
         const limitInfo = error?.data?.errors;
 
-        if (error?.status === 403 && limitInfo?.limit_reached && typeof Swal !== 'undefined') {
-            const decision = await Swal.fire({
-                icon: 'info',
-                title: 'Limite do plano atingido',
-                text: getErrorMessage(error, 'Limite do plano atingido.'),
-                showCancelButton: true,
-                confirmButtonText: 'Ver planos',
-                cancelButtonText: 'Fechar',
-            });
+        if (error?.status === 403 && limitInfo?.limit_reached) {
+            if (window.PlanLimits?.promptUpgrade) {
+                await window.PlanLimits.promptUpgrade({
+                    context: 'categorias',
+                    message: getErrorMessage(error, 'Limite do plano atingido.'),
+                    upgradeUrl: limitInfo.upgrade_url,
+                });
+                return;
+            }
 
-            if (decision.isConfirmed && limitInfo.upgrade_url) {
+            if (window.LKFeedback?.upgradePrompt) {
+                await window.LKFeedback.upgradePrompt({
+                    context: 'categorias',
+                    message: getErrorMessage(error, 'Limite do plano atingido.'),
+                    upgradeUrl: limitInfo.upgrade_url,
+                });
+                return;
+            }
+
+            if (typeof Swal !== 'undefined') {
+                const decision = await Swal.fire({
+                    icon: 'info',
+                    title: 'Recurso Pro',
+                    text: getErrorMessage(error, 'Limite do plano atingido.'),
+                    showCancelButton: true,
+                    confirmButtonText: 'Ver planos',
+                    cancelButtonText: 'Agora não',
+                });
+
+                if (decision.isConfirmed && limitInfo.upgrade_url) {
+                    window.location.href = resolveAppUrl(limitInfo.upgrade_url);
+                }
+            } else if (limitInfo.upgrade_url) {
                 window.location.href = resolveAppUrl(limitInfo.upgrade_url);
             }
             return;

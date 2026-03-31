@@ -12,6 +12,7 @@ import '../../../css/admin/categorias/index.css';
 import { Modules } from './state.js';
 import { CategoriasManager, EventListeners } from './app.js';
 import { SubcategoriasModule } from './subcategorias.js';
+import { initCustomize } from './customize.js';
 
 // ─── Guard against double-loading ────────────────────────────────────────────
 // Bloqueia admin-categorias-index.js (loader legado) — este arquivo é o principal
@@ -24,10 +25,15 @@ if (!window.__LK_CATEGORIAS_LOADER__) {
 
     // ─── Bootstrap ───────────────────────────────────────────────────────────
     const init = () => {
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => CategoriasManager.init());
-        } else {
+        const bootstrap = () => {
+            initCustomize();
             CategoriasManager.init();
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', bootstrap);
+        } else {
+            bootstrap();
         }
     };
 

@@ -6,6 +6,7 @@
 import '../../../css/admin/metas/index.css';
 import { MetasApp } from './app.js';
 import { Utils } from './state.js';
+import { initCustomize } from './customize.js';
 
 // ── Global API ─────────────────────────────────────────────────
 
@@ -21,4 +22,7 @@ window.metasManager = {
 
 // ── Bootstrap ──────────────────────────────────────────────────
 
-document.addEventListener('DOMContentLoaded', () => MetasApp.init());
+document.addEventListener('DOMContentLoaded', () => {
+    initCustomize();
+    MetasApp.init();
+});

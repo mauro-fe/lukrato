@@ -10,12 +10,12 @@ use Application\DTO\ReportParameters;
 use Application\Enums\LancamentoTipo;
 
 /**
- * RepositÃ³rio para buscar dados brutos para os relatÃ³rios.
+ * Repositório para buscar dados brutos para os relatórios.
  * Todo o SQL complexo vive aqui.
  */
 class ReportRepository
 {
-    // --- MÃ©todos PÃºblicos de Busca ---
+    // --- Métodos Públicos de Busca ---
 
     public function getCategoryTotals(string $tipo, ReportParameters $params): Collection
     {
@@ -89,7 +89,7 @@ class ReportRepository
 
     public function saldoAte(Carbon $ate, ReportParameters $params, bool $useTransfers): float
     {
-        // 1. Calcular delta dos lanÃ§amentos (respeitando afeta_caixa)
+        // 1. Calcular delta dos lançamentos (respeitando afeta_caixa)
         $query = DB::table('lancamentos')
             ->where('lancamentos.pago', 1)
             ->where('lancamentos.data', '<=', $ate)
@@ -105,14 +105,14 @@ class ReportRepository
 
         $deltaLancamentos = (float)($query->value('saldo') ?? 0.0);
 
-        // 2. Adicionar saldo inicial das contas (apenas para visÃ£o global ou conta especÃ­fica)
+        // 2. Adicionar saldo inicial das contas (apenas para visão global ou conta específica)
         $saldoInicial = $this->getSaldoInicialContas($params);
 
         return $saldoInicial + $deltaLancamentos;
     }
 
     /**
-     * ObtÃ©m a soma dos saldos iniciais das contas do usuÃ¡rio.
+     * Obtém a soma dos saldos iniciais das contas do usuário.
      * Se accountId for especificado, retorna apenas o saldo inicial dessa conta.
      */
     private function getSaldoInicialContas(ReportParameters $params): float
@@ -133,7 +133,7 @@ class ReportRepository
 
     /**
      * Busca totais agrupados por categoria E subcategoria (double-grouping).
-     * Retorna hierarquia completa para drill-down nos relatÃ³rios PRO.
+     * Retorna hierarquia completa para drill-down nos relatórios PRO.
      */
     public function getCategoryWithSubcategoryTotals(string $tipo, ReportParameters $params): array
     {
@@ -212,7 +212,7 @@ class ReportRepository
         return $result;
     }
 
-    // --- Builders de Query EspecÃ­ficos ---
+    // --- Builders de Query Específicos ---
 
     private function buildCategoryQuery(string $tipo, ReportParameters $params): QueryBuilder
     {
@@ -328,7 +328,7 @@ class ReportRepository
             $query->where('lancamentos.eh_transferencia', 0);
         }
 
-        // Respeitar campo afeta_caixa para cÃ¡lculos de saldo
+        // Respeitar campo afeta_caixa para cálculos de saldo
         if ($respectAfetaCaixa) {
             $query->where('lancamentos.afeta_caixa', 1);
         }
@@ -369,7 +369,7 @@ class ReportRepository
         return $query->where('lancamentos.conta_id', $accountId);
     }
 
-    // --- ExpressÃµes SQL ReutilizÃ¡veis ---
+    // --- Expressões SQL Reutilizáveis ---
 
     private function deltaExpression(?int $accountId, string $alias = 'delta'): array
     {
@@ -480,7 +480,7 @@ class ReportRepository
         return "GREATEST({$t}.valor - ({$coverage}), 0)";
     }
 
-    // --- SanitizaÃ§Ã£o ---
+    // --- Sanitização ---
 
     private function sanitizeAlias(string $alias): string
     {

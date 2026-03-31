@@ -106,6 +106,7 @@
 .overview-pro-cta .btn-upgrade-cta {
   margin-left: auto;
   flex-shrink: 0;
+  color: var(--color-text) !important;
 }
 
 /* ─── Responsive ─────────────────────────────────────────────────────────── */

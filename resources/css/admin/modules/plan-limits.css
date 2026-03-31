@@ -419,7 +419,7 @@ option:disabled {
   box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
 }
 
-/* VersÃ£o pequena para elementos inline */
+/* Versão pequena para elementos inline */
 .pro-badge-inline {
   display: inline-flex;
   align-items: center;

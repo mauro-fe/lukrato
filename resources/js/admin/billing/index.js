@@ -12,8 +12,10 @@ import '../../../css/admin/billing/index.css';
 import '../../../css/admin/modules/modal-pagamento.css';
 import { apiPost, getBaseUrl, getCSRFToken, getErrorMessage } from '../shared/api.js';
 import './modal-pagamento.js';
+import { initCustomize } from './customize.js';
 
 const BASE_URL = getBaseUrl();
+initCustomize();
 
 // ============================================================================
 // FEEDBACK DE STATUS (chamado se houver ?status= na URL)

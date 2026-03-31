@@ -10,6 +10,7 @@ import { FaturasAPI } from './api.js';
 import { FaturasUI } from './ui.js';
 import { FaturasApp } from './app.js';
 import { ModalPagarFatura, reverterPagamentoFaturaGlobal, excluirFaturaGlobal, excluirItemFaturaGlobal } from './payment.js';
+import { initCustomize } from './customize.js';
 
 // ============================================================================
 // Expose global functions for PHP view onclick handlers
@@ -40,6 +41,7 @@ if (!window.__LK_PARCELAMENTOS_LOADER__) {
     window.__LK_PARCELAMENTOS_LOADER__ = true;
     document.addEventListener('DOMContentLoaded', () => {
         initDOM();
+        initCustomize();
         FaturasApp.init();
         ModalPagarFatura.init();
     });

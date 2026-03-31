@@ -317,8 +317,8 @@ export const FaturasUI = {
     createCardHTML({ parc, statusBadge, mes, ano, itensPendentes, itensPagos, totalItens, progresso, dueMeta, statusMeta }) {
         const resumoPrincipal = this.getResumoPrincipal(parc, dueMeta, statusMeta, itensPendentes, itensPagos, totalItens);
         const progressoSection = this.getProgressoSection(totalItens, itensPendentes, itensPagos, progresso, statusMeta);
-        const cartaoNome = parc.cartao ? (parc.cartao.nome || parc.cartao.bandeira || 'CartÃ£o') : 'CartÃ£o';
-        const instituicaoNome = parc.cartao?.conta?.instituicao_financeira?.nome || 'Sem instituiÃ§Ã£o';
+        const cartaoNome = parc.cartao ? (parc.cartao.nome || parc.cartao.bandeira || 'Cartão') : 'Cartão';
+        const instituicaoNome = parc.cartao?.conta?.instituicao_financeira?.nome || 'Sem instituição';
         const cartaoNumero = parc.cartao?.ultimos_digitos ? `Final ${parc.cartao.ultimos_digitos}` : '';
         const accentColor = this.getAccentColorSolid(parc.cartao);
         const bandeira = parc.cartao?.bandeira?.toLowerCase() || 'outros';

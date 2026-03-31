@@ -8,7 +8,14 @@ if (!empty($currentUser->nome)) {
 $firstName = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
 ?>
 <div class="gamification-page">
-    <div class="page-header surface-card surface-card--interactive">
+    <div class="gam-customize-trigger">
+        <button class="gam-customize-open" id="btnCustomizeGamification" type="button">
+            <i data-lucide="sliders-horizontal"></i>
+            <span>Personalizar tela</span>
+        </button>
+    </div>
+
+    <div class="page-header surface-card surface-card--interactive" id="gamHeaderSection">
         <div class="page-header-content">
             <div class="page-icon"><i data-lucide="trophy"></i></div>
             <div>
@@ -33,7 +40,7 @@ $firstName = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
     </div>
 
     <!-- Progresso Geral -->
-    <section class="progress-section">
+    <section class="progress-section" id="gamProgressSection">
         <div class="stats-grid">
             <div class="stat-card surface-card surface-card--interactive">
                 <div class="stat-icon"><i data-lucide="star"></i></div>
@@ -107,7 +114,7 @@ $firstName = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
     <div class="insight-inline" id="insightBeforeAchievements" style="display:none;"></div>
 
     <!-- Conquistas -->
-    <section class="achievements-section surface-card surface-card--interactive">
+    <section class="achievements-section surface-card surface-card--interactive" id="gamAchievementsSection">
         <h2><i data-lucide="medal"></i> Conquistas</h2>
 
         <div class="achievements-filter">
@@ -126,7 +133,7 @@ $firstName = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
     </section>
 
     <!-- Histórico de Pontos -->
-    <section class="history-section surface-card surface-card--interactive">
+    <section class="history-section surface-card surface-card--interactive" id="gamHistorySection">
         <h2><i data-lucide="history"></i> Histórico Recente</h2>
         <div class="history-list" id="pointsHistory">
             <!-- Loading state -->
@@ -141,7 +148,7 @@ $firstName = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
     <div class="insight-inline" id="insightBeforeRanking" style="display:none;"></div>
 
     <!-- Ranking -->
-    <section class="leaderboard-section surface-card surface-card--interactive">
+    <section class="leaderboard-section surface-card surface-card--interactive" id="gamLeaderboardSection">
         <h2><i data-lucide="trophy"></i> Ranking</h2>
 
         <?php if ($isPro ?? false): ?>
@@ -185,6 +192,58 @@ $firstName = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
             </div>
         <?php endif; ?>
     </section>
+
+    <div class="gam-customize-overlay" id="gamificationCustomizeModalOverlay" style="display:none;">
+        <div class="gam-customize-modal surface-card" role="dialog" aria-modal="true"
+            aria-labelledby="gamificationCustomizeModalTitle">
+            <div class="gam-customize-header">
+                <h3 class="gam-customize-title" id="gamificationCustomizeModalTitle">Personalizar gamificacao</h3>
+                <button class="gam-customize-close" id="btnCloseCustomizeGamification" type="button"
+                    aria-label="Fechar">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="gam-customize-body">
+                <p class="gam-customize-desc">Comece no modo essencial e habilite os blocos quando quiser.</p>
+
+                <div class="gam-customize-presets" role="group" aria-label="Preset de visualizacao">
+                    <button class="gam-customize-preset" id="btnPresetEssencialGamification" type="button">Modo
+                        essencial</button>
+                    <button class="gam-customize-preset" id="btnPresetCompletoGamification" type="button">Modo
+                        completo</button>
+                </div>
+
+                <div class="gam-customize-group">
+                    <p class="gam-customize-group-title">Blocos da tela</p>
+                    <label class="gam-customize-toggle">
+                        <span>Cabecalho</span>
+                        <input type="checkbox" id="toggleGamHeader" checked>
+                    </label>
+                    <label class="gam-customize-toggle">
+                        <span>Progresso geral</span>
+                        <input type="checkbox" id="toggleGamProgress" checked>
+                    </label>
+                    <label class="gam-customize-toggle">
+                        <span>Conquistas</span>
+                        <input type="checkbox" id="toggleGamAchievements" checked>
+                    </label>
+                    <label class="gam-customize-toggle">
+                        <span>Historico recente</span>
+                        <input type="checkbox" id="toggleGamHistory" checked>
+                    </label>
+                    <label class="gam-customize-toggle">
+                        <span>Ranking</span>
+                        <input type="checkbox" id="toggleGamLeaderboard" checked>
+                    </label>
+                </div>
+            </div>
+
+            <div class="gam-customize-footer">
+                <button class="gam-customize-save" id="btnSaveCustomizeGamification" type="button">Salvar</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- JS carregado via Vite (loadPageJs) -->

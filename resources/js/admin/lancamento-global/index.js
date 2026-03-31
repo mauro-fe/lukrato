@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * LUKRATO â€” LanÃ§amento Global (Header FAB Modal)
+ * LUKRATO â€” Lançamento Global (Header FAB Modal)
  * ============================================================================
  * Entry point Vite â€” recursos/js/admin/lancamento-global/index.js
  *
@@ -100,8 +100,8 @@ class LancamentoGlobalManager {
         const hint = document.getElementById('globalContaContextHint');
         if (hint) {
             hint.textContent = contexto.source === 'contas'
-                ? 'Abrimos com a conta desta tela. Se precisar, vocÃª pode trocar antes de continuar.'
-                : 'Escolha a conta para ver saldo e as ultimas movimentaÃ§Ãµes.';
+                ? 'Abrimos com a conta desta tela. Se precisar, você pode trocar antes de continuar.'
+                : 'Escolha a conta para ver saldo e as ultimas movimentações.';
         }
 
         const select = document.getElementById('globalContaSelect');
@@ -167,7 +167,7 @@ class LancamentoGlobalManager {
         if (!historicoContainer) return;
 
         if (!this.contaSelecionada) {
-            renderLancamentoHistoryPlaceholder(historicoContainer, 'Selecione uma conta para ver as ultimas movimentaÃ§Ãµes.');
+            renderLancamentoHistoryPlaceholder(historicoContainer, 'Selecione uma conta para ver as ultimas movimentações.');
             return;
         }
 
@@ -402,8 +402,8 @@ class LancamentoGlobalManager {
                 message = `Enquanto este lancamento estiver pendente, o saldo da conta nao muda. ${metas.length === 1 ? `A meta continua em ${formatMoney(saldoAtual)}.` : `As metas ${resumoMetas} so mudam quando a movimentacao for confirmada.`}`;
             } else {
                 message = metas.length === 1
-                    ? `Essa movimentaÃ§Ã£o nÃ£o altera o saldo da conta agora. A meta segue acompanhando ${formatMoney(saldoAtual)}.`
-                    : `Essa movimentaÃ§Ã£o nÃ£o altera o saldo da conta agora. ${resumoMetas} continuam sincronizadas com o valor atual.`;
+                    ? `Essa movimentação não altera o saldo da conta agora. A meta segue acompanhando ${formatMoney(saldoAtual)}.`
+                    : `Essa movimentação não altera o saldo da conta agora. ${resumoMetas} continuam sincronizadas com o valor atual.`;
             }
         } else {
             tone = saldoProjetado < 0 ? 'danger' : (delta < 0 ? 'warning' : 'success');
@@ -528,14 +528,14 @@ class LancamentoGlobalManager {
         if (avisoExistente) avisoExistente.remove();
 
         if (this.contas.length === 0) {
-            select.innerHTML = '<option value="">Nenhuma conta disponÃ­vel</option>';
+            select.innerHTML = '<option value="">Nenhuma conta disponível</option>';
             select.disabled = true;
             const aviso = document.createElement('div');
             aviso.className = 'no-accounts-warning';
             aviso.innerHTML = `
                 <div class="alert alert-info d-flex align-items-center gap-2 mt-2 mb-0 py-2 px-3" style="font-size: 0.85rem; border-radius: 8px;">
                     <i data-lucide="info"></i>
-                    <span>VocÃª nÃ£o possui contas cadastradas.</span>
+                    <span>Você não possui contas cadastradas.</span>
                     <a href="${getBaseUrl()}contas" class="btn btn-sm btn-primary ms-auto" style="font-size: 0.75rem;">
                         <i data-lucide="plus" style="width:14px;height:14px;"></i>Criar Conta
                     </a>
@@ -674,8 +674,8 @@ class LancamentoGlobalManager {
 
         this.isEstornoCartao = isEstorno;
         const optionVazio = isEstorno
-            ? '<option value="">Selecione o cartÃ£o</option>'
-            : '<option value="">NÃ£o usar cartÃ£o (dÃ©bito na conta)</option>';
+            ? '<option value="">Selecione o cartão</option>'
+            : '<option value="">Não usar cartão (débito na conta)</option>';
 
         if (!Array.isArray(this.cartoes)) this.cartoes = [];
         if (this.cartoes.length === 0) {
@@ -793,12 +793,12 @@ class LancamentoGlobalManager {
         if (!cartao) {
             this.syncEnhancedSelects();
         }
-        if (!cartao) { faturaSelect.innerHTML = '<option value="">Erro ao carregar cartÃ£o</option>'; return; }
+        if (!cartao) { faturaSelect.innerHTML = '<option value="">Erro ao carregar cartão</option>'; return; }
 
         const hoje = new Date();
         const mesAtual = hoje.getMonth() + 1;
         const anoAtual = hoje.getFullYear();
-        const meses = ['Janeiro', 'Fevereiro', 'MarÃ§o', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
         let options = '';
         for (let offset = -3; offset <= 5; offset++) {
@@ -915,7 +915,7 @@ class LancamentoGlobalManager {
                 this.salvarLancamento();
             });
 
-            // Interceptar Enter nos inputs para avanÃ§ar etapa em vez de submeter o form
+            // Interceptar Enter nos inputs para avançar etapa em vez de submeter o form
             form.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
                     e.preventDefault();
@@ -925,7 +925,7 @@ class LancamentoGlobalManager {
             });
         }
 
-        // Data e hora padrÃ£o
+        // Data e hora padrão
         const hoje = new Date();
         const dataInput = document.getElementById('globalLancamentoData');
         if (dataInput && !dataInput.value) {
@@ -1025,7 +1025,7 @@ class LancamentoGlobalManager {
 
     restaurarCabecalhoPadrao() {
         const tituloEl = document.getElementById('modalLancamentoGlobalTitulo');
-        if (tituloEl) tituloEl.textContent = 'Nova MovimentaÃ§Ã£o';
+        if (tituloEl) tituloEl.textContent = 'Nova Movimentação';
 
         const headerGradient = document.querySelector('#modalLancamentoGlobalOverlay .lk-modal-header-gradient');
         if (headerGradient) {
@@ -1069,7 +1069,7 @@ class LancamentoGlobalManager {
         if (!this.contaSelecionada) {
             const historicoContainer = document.getElementById('globalLancamentoHistorico');
             if (historicoContainer) {
-                renderLancamentoHistoryPlaceholder(historicoContainer, 'Selecione uma conta para ver as ultimas movimentaÃ§Ãµes.');
+                renderLancamentoHistoryPlaceholder(historicoContainer, 'Selecione uma conta para ver as ultimas movimentações.');
             }
         }
         // Hide progress dots on step 1
@@ -1168,7 +1168,7 @@ class LancamentoGlobalManager {
 
         let next = this.currentStep + 1;
 
-        // For transferÃªncia: skip step 3 (payment) and step 5 (category/recurrence)
+        // For transferência: skip step 3 (payment) and step 5 (category/recurrence)
         if (this.tipoAtual === 'transferencia') {
             if (next === 5) next = this.totalSteps + 1; // no step 5 for transfer
         }
@@ -1184,7 +1184,7 @@ class LancamentoGlobalManager {
     prevStep() {
         let prev = this.currentStep - 1;
 
-        // For transferÃªncia: skip step 3 back to 2
+        // For transferência: skip step 3 back to 2
         if (this.tipoAtual === 'transferencia') {
             // no special skip needed going back
         }
@@ -1230,11 +1230,11 @@ class LancamentoGlobalManager {
             const descricao = document.getElementById('globalLancamentoDescricao')?.value.trim() || '';
             const valor = parseMoney(document.getElementById('globalLancamentoValor')?.value);
             if (!descricao) {
-                Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Informe a descriÃ§Ã£o', customClass: { container: 'swal-above-modal' } });
+                Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe a descrição', customClass: { container: 'swal-above-modal' } });
                 return false;
             }
             if (!valor || valor <= 0) {
-                Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Informe um valor vÃ¡lido', customClass: { container: 'swal-above-modal' } });
+                Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe um valor válido', customClass: { container: 'swal-above-modal' } });
                 return false;
             }
         }
@@ -1243,11 +1243,11 @@ class LancamentoGlobalManager {
             if (this.tipoAtual === 'transferencia') {
                 const contaDest = document.getElementById('globalLancamentoContaDestino')?.value;
                 if (!contaDest) {
-                    Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Selecione a conta de destino', customClass: { container: 'swal-above-modal' } });
+                    Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione a conta de destino', customClass: { container: 'swal-above-modal' } });
                     return false;
                 }
             }
-            // Validate credit card limit if cartÃ£o selected
+            // Validate credit card limit if cartão selected
             if (this.tipoAtual === 'despesa') {
                 const cartaoId = document.getElementById('globalLancamentoCartaoCredito')?.value;
                 if (cartaoId) {
@@ -1258,7 +1258,7 @@ class LancamentoGlobalManager {
                         if (valor > limiteDisponivel) {
                             Swal.fire({
                                 icon: 'error', title: 'Limite Insuficiente',
-                                html: `<p>O valor (${formatMoney(valor)}) excede o limite disponÃ­vel.</p><p><strong>Limite:</strong> ${formatMoney(limiteDisponivel)}</p>`,
+                                html: `<p>O valor (${formatMoney(valor)}) excede o limite disponível.</p><p><strong>Limite:</strong> ${formatMoney(limiteDisponivel)}</p>`,
                                 confirmButtonText: 'Entendi', customClass: { container: 'swal-above-modal' }
                             });
                             return false;
@@ -1272,7 +1272,7 @@ class LancamentoGlobalManager {
                 if (formaRec === 'estorno_cartao') {
                     const cartaoId = document.getElementById('globalLancamentoCartaoCredito')?.value;
                     if (!cartaoId) {
-                        Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Selecione o cartÃ£o para o estorno', customClass: { container: 'swal-above-modal' } });
+                        Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione o cartão para o estorno', customClass: { container: 'swal-above-modal' } });
                         return false;
                     }
                 }
@@ -1282,18 +1282,18 @@ class LancamentoGlobalManager {
         if (step === 4) {
             const data = document.getElementById('globalLancamentoData')?.value || '';
             if (!data) {
-                Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Informe a data', customClass: { container: 'swal-above-modal' } });
+                Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe a data', customClass: { container: 'swal-above-modal' } });
                 return false;
             }
         }
 
-        // Step 5: validar parcelas e recorrÃªncia
+        // Step 5: validar parcelas e recorrência
         if (step === 5) {
             const parcelado = document.getElementById('globalLancamentoParcelado')?.checked;
             if (parcelado) {
                 const totalParcelas = parseInt(document.getElementById('globalLancamentoTotalParcelas')?.value) || 0;
                 if (totalParcelas < 2 || totalParcelas > 48) {
-                    Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'O nÃºmero de parcelas deve ser entre 2 e 48', customClass: { container: 'swal-above-modal' } });
+                    Swal.fire({ icon: 'warning', title: 'Atenção', text: 'O número de parcelas deve ser entre 2 e 48', customClass: { container: 'swal-above-modal' } });
                     return false;
                 }
             }
@@ -1303,7 +1303,7 @@ class LancamentoGlobalManager {
                 if (modo === 'quantidade') {
                     const total = parseInt(document.getElementById('globalLancamentoRecorrenciaTotal')?.value) || 0;
                     if (total < 2 || total > 120) {
-                        Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'A quantidade de repetiÃ§Ãµes deve ser entre 2 e 120', customClass: { container: 'swal-above-modal' } });
+                        Swal.fire({ icon: 'warning', title: 'Atenção', text: 'A quantidade de repetições deve ser entre 2 e 120', customClass: { container: 'swal-above-modal' } });
                         return false;
                     }
                 }
@@ -1339,7 +1339,7 @@ class LancamentoGlobalManager {
         const tipoAgInput = document.getElementById('globalLancamentoTipoAgendamento');
         if (tipoAgInput) tipoAgInput.value = 'despesa';
 
-        // RecorrÃªncia
+        // Recorrência
         const recorrenciaGroup = document.getElementById('globalRecorrenciaGroup');
         if (recorrenciaGroup) recorrenciaGroup.style.display = 'none';
         const recorrenciaDetalhes = document.getElementById('globalRecorrenciaDetalhes');
@@ -1407,11 +1407,11 @@ class LancamentoGlobalManager {
             const result = await Swal.fire({
                 icon: 'info',
                 title: 'Nenhuma conta cadastrada',
-                html: `<p>VocÃª ainda nÃ£o possui nenhuma conta bancÃ¡ria cadastrada.</p>
-                       <p class="text-muted mt-2">Ã‰ necessÃ¡rio criar pelo menos uma conta para registrar lanÃ§amentos.</p>`,
+                html: `<p>Você ainda não possui nenhuma conta bancária cadastrada.</p>
+                       <p class="text-muted mt-2">É necessário criar pelo menos uma conta para registrar lançamentos.</p>`,
                 showCancelButton: true,
                 confirmButtonText: '<i data-lucide="plus" style="width:16px;height:16px;display:inline-block;"></i> Criar Conta',
-                cancelButtonText: 'Agora nÃ£o',
+                cancelButtonText: 'Agora não',
                 confirmButtonColor: 'var(--color-primary)',
                 customClass: { container: 'swal-above-modal', confirmButton: 'btn btn-primary', cancelButton: 'btn btn-secondary' }
             });
@@ -1427,19 +1427,19 @@ class LancamentoGlobalManager {
         }
 
         if (!this.contaSelecionada) {
-            Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Selecione uma conta primeiro!', customClass: { container: 'swal-above-modal' } });
+            Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione uma conta primeiro!', customClass: { container: 'swal-above-modal' } });
             return;
         }
 
-        // Guard: transferÃªncia requer pelo menos 2 contas
+        // Guard: transferência requer pelo menos 2 contas
         if (tipo === 'transferencia' && this.contas.length < 2) {
             Swal.fire({
                 icon: 'warning',
-                title: 'NÃ£o Ã© possÃ­vel transferir',
-                text: 'VocÃª precisa ter pelo menos duas contas cadastradas para realizar uma transferÃªncia.',
+                title: 'Não é possível transferir',
+                text: 'Você precisa ter pelo menos duas contas cadastradas para realizar uma transferência.',
                 confirmButtonText: 'Criar outra conta',
                 showCancelButton: true,
-                cancelButtonText: 'Agora nÃ£o',
+                cancelButtonText: 'Agora não',
                 customClass: { container: 'swal-above-modal' }
             }).then(result => {
                 if (result.isConfirmed) {
@@ -1453,7 +1453,7 @@ class LancamentoGlobalManager {
             await this.carregarDados();
         }
 
-        // Restaurar seleÃ§Ã£o da conta no select apÃ³s possÃ­vel re-fetch
+        // Restaurar seleção da conta no select após possível re-fetch
         if (this.contaSelecionada) {
             const select = document.getElementById('globalContaSelect');
             if (select && select.value !== String(this.contaSelecionada.id)) {
@@ -1475,21 +1475,21 @@ class LancamentoGlobalManager {
 
         this.configurarCamposPorTipo(tipo);
 
-        const titulos = { receita: 'Nova Receita', despesa: 'Nova Despesa', transferencia: 'Nova TransferÃªncia' };
+        const titulos = { receita: 'Nova Receita', despesa: 'Nova Despesa', transferencia: 'Nova Transferência' };
         const tituloEl = document.getElementById('modalLancamentoGlobalTitulo');
-        if (tituloEl) tituloEl.textContent = titulos[tipo] || 'Nova MovimentaÃ§Ã£o';
+        if (tituloEl) tituloEl.textContent = titulos[tipo] || 'Nova Movimentação';
 
         // Update step 2 question text
         const step2Title = document.getElementById('globalStep2Title');
         const step2Subtitle = document.getElementById('globalStep2Subtitle');
         if (tipo === 'receita') {
-            if (step2Title) step2Title.textContent = 'O que vocÃª recebeu?';
+            if (step2Title) step2Title.textContent = 'O que você recebeu?';
             if (step2Subtitle) step2Subtitle.textContent = 'Descreva e informe o valor recebido';
         } else if (tipo === 'transferencia') {
             if (step2Title) step2Title.textContent = 'Quanto quer transferir?';
-            if (step2Subtitle) step2Subtitle.textContent = 'Descreva e informe o valor da transferÃªncia';
+            if (step2Subtitle) step2Subtitle.textContent = 'Descreva e informe o valor da transferência';
         } else {
-            if (step2Title) step2Title.textContent = 'Com o que vocÃª gastou?';
+            if (step2Title) step2Title.textContent = 'Com o que você gastou?';
             if (step2Subtitle) step2Subtitle.textContent = 'Descreva e informe o valor';
         }
 
@@ -1497,13 +1497,13 @@ class LancamentoGlobalManager {
         const step3Title = document.getElementById('globalStep3Title');
         const step3Subtitle = document.getElementById('globalStep3Subtitle');
         if (tipo === 'receita') {
-            if (step3Title) step3Title.textContent = 'Como vocÃª recebeu?';
+            if (step3Title) step3Title.textContent = 'Como você recebeu?';
             if (step3Subtitle) step3Subtitle.textContent = 'Escolha a forma de recebimento';
         } else if (tipo === 'transferencia') {
             if (step3Title) step3Title.textContent = 'Para onde vai?';
             if (step3Subtitle) step3Subtitle.textContent = 'Escolha a conta de destino';
         } else {
-            if (step3Title) step3Title.textContent = 'Como vocÃª pagou?';
+            if (step3Title) step3Title.textContent = 'Como você pagou?';
             if (step3Subtitle) step3Subtitle.textContent = 'Escolha a forma de pagamento';
         }
 
@@ -1512,24 +1512,24 @@ class LancamentoGlobalManager {
         if (tipo === 'receita') {
             if (step4Title) step4Title.textContent = 'Quando recebeu?';
         } else if (tipo === 'transferencia') {
-            if (step4Title) step4Title.textContent = 'Quando serÃ¡ a transferÃªncia?';
+            if (step4Title) step4Title.textContent = 'Quando será a transferência?';
         } else {
             if (step4Title) step4Title.textContent = 'Quando aconteceu?';
         }
 
-        // For transferÃªncia: step 4 is the last, show Salvar instead of PrÃ³ximo
+        // For transferência: step 4 is the last, show Salvar instead of Próximo
         const step4NavRight = document.getElementById('globalStep4NavRight');
         if (step4NavRight) {
             if (tipo === 'transferencia') {
                 step4NavRight.innerHTML = `
                     <button type="submit" class="lk-btn lk-btn-primary" form="globalFormLancamento">
                         <i data-lucide="check"></i>
-                        Salvar TransferÃªncia
+                        Salvar Transferência
                     </button>`;
             } else {
                 step4NavRight.innerHTML = `
                     <button type="button" class="lk-btn lk-btn-primary" onclick="lancamentoGlobalManager.nextStep()">
-                        PrÃ³ximo
+                        Próximo
                         <i data-lucide="arrow-right"></i>
                     </button>`;
             }
@@ -1581,7 +1581,7 @@ class LancamentoGlobalManager {
         if (categoriaGroup) categoriaGroup.style.display = showStep5Fields ? 'block' : 'none';
         if (subcategoriaGroup) subcategoriaGroup.style.display = 'none';
 
-        // RecorrÃªncia e Lembrete (receita/despesa only)
+        // Recorrência e Lembrete (receita/despesa only)
         const recorrenciaGroup = document.getElementById('globalRecorrenciaGroup');
         const lembreteGroup = document.getElementById('globalLembreteGroup');
         const recorrenciaDetalhes = document.getElementById('globalRecorrenciaDetalhes');
@@ -1633,14 +1633,14 @@ class LancamentoGlobalManager {
         const pagoLabel = document.getElementById('globalPagoLabel');
         const pagoHelper = document.getElementById('globalPagoHelperText');
         if (tipo === 'receita') {
-            if (pagoLabel) pagoLabel.textContent = 'JÃ¡ foi recebido';
-            if (pagoHelper) pagoHelper.textContent = 'Desmarque se ainda nÃ£o foi recebido.';
+            if (pagoLabel) pagoLabel.textContent = 'Já foi recebido';
+            if (pagoHelper) pagoHelper.textContent = 'Desmarque se ainda não foi recebido.';
         } else {
-            if (pagoLabel) pagoLabel.textContent = 'JÃ¡ foi pago';
-            if (pagoHelper) pagoHelper.textContent = 'Desmarque se ainda nÃ£o foi pago.';
+            if (pagoLabel) pagoLabel.textContent = 'Já foi pago';
+            if (pagoHelper) pagoHelper.textContent = 'Desmarque se ainda não foi pago.';
         }
 
-        // RecorrÃªncia sub-groups
+        // Recorrência sub-groups
         const totalGroup = document.getElementById('globalRecorrenciaTotalGroup');
         const fimGroup = document.getElementById('globalRecorrenciaFimGroup');
         if (totalGroup) totalGroup.style.display = 'none';
@@ -1699,8 +1699,8 @@ class LancamentoGlobalManager {
         pagoCheck.disabled = false;
         pagoGroup.classList.remove('lk-form-group-disabled');
         pagoHelper.textContent = this.tipoAtual === 'receita'
-            ? 'Desmarque se ainda nao foi recebido.'
-            : 'Desmarque se ainda nao foi pago.';
+            ? 'Desmarque se ainda não foi recebido.'
+            : 'Desmarque se ainda não foi pago.';
         this.schedulePlanningAlertsRender();
     }
 
@@ -1712,13 +1712,13 @@ class LancamentoGlobalManager {
         if (fimGroup) fimGroup.style.display = modo === 'data' ? 'block' : 'none';
     }
 
-    // â”€â”€ Card Subscription Toggles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
     toggleAssinaturaCartao() {
         const checkbox = document.getElementById('globalLancamentoAssinaturaCartao');
         const detalhes = document.getElementById('globalAssinaturaCartaoDetalhes');
         if (detalhes) detalhes.style.display = checkbox?.checked ? 'block' : 'none';
 
-        // Assinatura e parcelamento sÃ£o mutuamente exclusivos
+        // Assinatura e parcelamento são mutuamente exclusivos
         if (checkbox?.checked) {
             const parceladoCheck = document.getElementById('globalLancamentoParcelado');
             if (parceladoCheck) parceladoCheck.checked = false;
@@ -1800,7 +1800,7 @@ class LancamentoGlobalManager {
     }
 
     /**
-     * Sugerir categoria usando IA com base na descriÃ§Ã£o do lanÃ§amento
+     * Sugerir categoria usando IA com base na descrição do lançamento
      */
     async sugerirCategoriaIA() {
         await _sugerirCategoriaIA({
@@ -1982,13 +1982,13 @@ class LancamentoGlobalManager {
     // â”€â”€ Validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     validarFormulario() {
         if (!this.tipoAtual) {
-            Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Selecione o tipo de lanÃ§amento', customClass: { container: 'swal-above-modal' } });
+            Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione o tipo de lançamento', customClass: { container: 'swal-above-modal' } });
             return false;
         }
 
         const contaId = this.contaSelecionada?.id || document.getElementById('globalContaSelect')?.value;
         if (!contaId) {
-            Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Selecione a conta', customClass: { container: 'swal-above-modal' } });
+            Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione a conta', customClass: { container: 'swal-above-modal' } });
             return false;
         }
 
@@ -1997,15 +1997,15 @@ class LancamentoGlobalManager {
         const data = document.getElementById('globalLancamentoData')?.value || '';
 
         if (!descricao) {
-            Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Informe a descriÃ§Ã£o', customClass: { container: 'swal-above-modal' } });
+            Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe a descrição', customClass: { container: 'swal-above-modal' } });
             return false;
         }
         if (!valor || valor <= 0) {
-            Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Informe um valor vÃ¡lido', customClass: { container: 'swal-above-modal' } });
+            Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe um valor válido', customClass: { container: 'swal-above-modal' } });
             return false;
         }
         if (!data) {
-            Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Informe a data', customClass: { container: 'swal-above-modal' } });
+            Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe a data', customClass: { container: 'swal-above-modal' } });
             return false;
         }
 
@@ -2035,7 +2035,7 @@ class LancamentoGlobalManager {
             }
         }
 
-        // Validar limite do cartÃ£o
+        // Validar limite do cartão
         if (this.tipoAtual === 'despesa') {
             const cartaoId = document.getElementById('globalLancamentoCartaoCredito')?.value;
             if (cartaoId) {
@@ -2045,8 +2045,8 @@ class LancamentoGlobalManager {
                     if (valor > limiteDisponivel) {
                         Swal.fire({
                             icon: 'error', title: 'Limite Insuficiente',
-                            html: `<p>O valor da compra (${formatMoney(valor)}) excede o limite disponÃ­vel do cartÃ£o.</p>
-                                   <p><strong>Limite disponÃ­vel:</strong> ${formatMoney(limiteDisponivel)}</p>`,
+                            html: `<p>O valor da compra (${formatMoney(valor)}) excede o limite disponível do cartão.</p>
+                                   <p><strong>Limite disponível:</strong> ${formatMoney(limiteDisponivel)}</p>`,
                             confirmButtonText: 'Entendi',
                             customClass: { container: 'swal-above-modal' }
                         });
@@ -2059,17 +2059,17 @@ class LancamentoGlobalManager {
         if (this.tipoAtual === 'transferencia') {
             const contaDestino = document.getElementById('globalLancamentoContaDestino')?.value;
             if (!contaDestino) {
-                Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'Selecione a conta de destino', customClass: { container: 'swal-above-modal' } });
+                Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione a conta de destino', customClass: { container: 'swal-above-modal' } });
                 return false;
             }
         }
 
-        // Validar ranges de parcelas e recorrÃªncia
+        // Validar ranges de parcelas e recorrência
         const parcelado = document.getElementById('globalLancamentoParcelado')?.checked;
         if (parcelado) {
             const totalParcelas = parseInt(document.getElementById('globalLancamentoTotalParcelas')?.value) || 0;
             if (totalParcelas < 2 || totalParcelas > 48) {
-                Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'O nÃºmero de parcelas deve ser entre 2 e 48', customClass: { container: 'swal-above-modal' } });
+                Swal.fire({ icon: 'warning', title: 'Atenção', text: 'O número de parcelas deve ser entre 2 e 48', customClass: { container: 'swal-above-modal' } });
                 return false;
             }
         }
@@ -2079,7 +2079,7 @@ class LancamentoGlobalManager {
             if (modo === 'quantidade') {
                 const total = parseInt(document.getElementById('globalLancamentoRecorrenciaTotal')?.value) || 0;
                 if (total < 2 || total > 120) {
-                    Swal.fire({ icon: 'warning', title: 'AtenÃ§Ã£o', text: 'A quantidade de repetiÃ§Ãµes deve ser entre 2 e 120', customClass: { container: 'swal-above-modal' } });
+                    Swal.fire({ icon: 'warning', title: 'Atenção', text: 'A quantidade de repetições deve ser entre 2 e 120', customClass: { container: 'swal-above-modal' } });
                     return false;
                 }
             }
@@ -2091,7 +2091,7 @@ class LancamentoGlobalManager {
     // â”€â”€ Data Collection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     coletarDadosFormulario() {
         const contaId = this.contaSelecionada?.id;
-        if (!contaId) throw new Error('Conta nÃ£o selecionada');
+        if (!contaId) throw new Error('Conta não selecionada');
 
         const dados = {
             conta_id: parseInt(contaId),
@@ -2139,12 +2139,12 @@ class LancamentoGlobalManager {
                 if (cartaoId) {
                     dados.cartao_credito_id = parseInt(cartaoId);
 
-                    // Assinatura/recorrÃªncia no cartÃ£o
+                    // Assinatura/recorrência no cartão
                     const assinaturaCheck = document.getElementById('globalLancamentoAssinaturaCartao');
                     if (assinaturaCheck?.checked) {
                         dados.recorrente = '1';
                         dados.recorrencia_freq = document.getElementById('globalLancamentoAssinaturaFreq')?.value || 'mensal';
-                        dados.eh_parcelado = false; // Assinatura nÃ£o Ã© parcelamento
+                        dados.eh_parcelado = false; // Assinatura não é parcelamento
 
                         const modoAssinatura = document.querySelector('input[name="global_assinatura_modo"]:checked')?.value || 'infinito';
                         if (modoAssinatura === 'data') {
@@ -2181,7 +2181,7 @@ class LancamentoGlobalManager {
             }
         }
 
-        // Parcelamento despesa sem cartÃ£o
+        // Parcelamento despesa sem cartão
         if (this.tipoAtual === 'despesa' && !dados.cartao_credito_id) {
             if (document.getElementById('globalLancamentoParcelado')?.checked) {
                 dados.eh_parcelado = true;
@@ -2189,7 +2189,7 @@ class LancamentoGlobalManager {
             }
         }
 
-        // RecorrÃªncia + Lembrete + Pago
+        // Recorrência + Lembrete + Pago
         if (this.tipoAtual === 'receita' || this.tipoAtual === 'despesa') {
             dados.pago = document.getElementById('globalLancamentoPago')?.checked ? true : false;
 
@@ -2282,7 +2282,7 @@ class LancamentoGlobalManager {
             if (isSuccess) {
                 const tipoLancamento = this.tipoAtual;
 
-                // GamificaÃ§Ã£o
+                // Gamificação
                 if (result.data?.gamification) {
                     try {
                         const gamif = result.data.gamification;
@@ -2292,11 +2292,11 @@ class LancamentoGlobalManager {
                         if (gamif.level_up && typeof window.notifyLevelUp === 'function') {
                             window.notifyLevelUp(gamif.level);
                         }
-                    } catch (e) { console.error('Erro gamificaÃ§Ã£o:', e); }
+                    } catch (e) { console.error('Erro gamificação:', e); }
                 }
 
                 this.closeModal();
-                showToast(result.message || 'LanÃ§amento salvo com sucesso!', 'success');
+                showToast(result.message || 'Lançamento salvo com sucesso!', 'success');
 
                 if (typeof window.refreshDashboard === 'function') {
                     window.refreshDashboard();
@@ -2321,7 +2321,7 @@ class LancamentoGlobalManager {
                 this.salvando = false;
                 this._resetBtnSalvar();
             } else {
-                let errorMessage = result.message || 'Erro ao salvar lanÃ§amento';
+                let errorMessage = result.message || 'Erro ao salvar lançamento';
                 if (result.errors) {
                     const errorList = Object.values(result.errors).flat().join('\n');
                     errorMessage = errorList || errorMessage;
@@ -2357,7 +2357,7 @@ class LancamentoGlobalManager {
             }
 
             this.closeModal();
-            showToast(result?.message || 'LanÃ§amento salvo com sucesso!', 'success');
+            showToast(result?.message || 'Lançamento salvo com sucesso!', 'success');
 
             if (typeof window.refreshDashboard === 'function') {
                 window.refreshDashboard();

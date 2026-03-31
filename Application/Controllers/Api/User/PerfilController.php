@@ -49,7 +49,7 @@ class PerfilController extends BaseController
             $perfil = $this->workflowService->getProfile($user->id);
 
             if (!$perfil) {
-                return Response::errorResponse('UsuÃ¡rio nÃ£o encontrado', 404);
+                return Response::errorResponse('Usuário não encontrado', 404);
             }
 
             return Response::successResponse([
@@ -235,7 +235,7 @@ class PerfilController extends BaseController
             Auth::logout();
 
             return Response::successResponse([
-                'message' => 'Conta excluÃ­da com sucesso',
+                'message' => 'Conta excluída com sucesso',
             ]);
         } catch (Throwable $e) {
             $this->logPerfilException($e, 'delete_account');

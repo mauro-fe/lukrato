@@ -9,8 +9,10 @@ import { Modules, STATE, Utils } from './state.js';
 import { CartoesAPI } from './api.js';
 import { CartoesUI } from './ui.js';
 import { FaturaModal } from './fatura.js';
+import { initCustomize } from './customize.js';
 
 const init = async () => {
+    initCustomize();
     CartoesUI.setupEventListeners();
     CartoesUI.restoreViewPreference();
     await Modules.API.loadCartoes();

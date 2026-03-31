@@ -5,10 +5,12 @@
 import '../../../css/admin/orcamento/index.css';
 import { Utils } from './state.js';
 import { OrcamentoApp } from './app.js';
+import { initCustomize } from './customize.js';
 
 // ── Bootstrap ──────────────────────────────────────────────────
 
 const init = async () => {
+    initCustomize();
     await OrcamentoApp.init();
 };
 

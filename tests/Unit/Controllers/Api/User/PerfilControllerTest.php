@@ -82,7 +82,7 @@ class PerfilControllerTest extends TestCase
             ->once()
             ->with(Mockery::type(\Application\DTO\PerfilUpdateDTO::class), 102)
             ->andReturn([
-                'nome' => 'Nome Ã© obrigatÃ³rio.',
+                'nome' => 'Nome é obrigatório.',
             ]);
 
         $controller = new PerfilController($perfilService, $validator);
@@ -94,7 +94,7 @@ class PerfilControllerTest extends TestCase
             'success' => false,
             'message' => 'Validation failed',
             'errors' => [
-                'nome' => 'Nome Ã© obrigatÃ³rio.',
+                'nome' => 'Nome é obrigatório.',
             ],
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
@@ -124,7 +124,7 @@ class PerfilControllerTest extends TestCase
             ->andReturn([
                 'success' => false,
                 'errors' => [
-                    'conf_senha' => 'As senhas nÃ£o coincidem.',
+                    'conf_senha' => 'As senhas não coincidem.',
                 ],
             ]);
 
@@ -142,7 +142,7 @@ class PerfilControllerTest extends TestCase
             'success' => false,
             'message' => 'Validation failed',
             'errors' => [
-                'conf_senha' => 'As senhas nÃ£o coincidem.',
+                'conf_senha' => 'As senhas não coincidem.',
             ],
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }

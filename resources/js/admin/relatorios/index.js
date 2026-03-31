@@ -10,6 +10,7 @@
 import '../../../css/admin/relatorios/index.css';
 import { CONFIG, STATE, Utils, Modules, STORAGE_KEYS, TYPE_OPTIONS } from './state.js';
 import { ChartManager } from './charts.js';
+import { initCustomize } from './customize.js';
 import {
     API, UI,
     renderReport, handleExport,
@@ -48,6 +49,7 @@ if (window.__LK_REPORTS_LOADED__) {
     }
 
     async function initialize() {
+        initCustomize();
 
         ChartManager.setupDefaults();
 
@@ -106,20 +108,32 @@ if (window.__LK_REPORTS_LOADED__) {
             tab.addEventListener('click', () => {
                 const section = tab.dataset.section;
                 if (!window.IS_PRO && proLockedSections.includes(section)) {
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Recurso Premium',
-                        html: 'Esta funcionalidade é exclusiva do <b>plano Pro</b>.<br>Faça upgrade para desbloquear!',
-                        confirmButtonText: '<i class="lucide-crown" style="margin-right:6px"></i> Fazer Upgrade',
-                        showCancelButton: true,
-                        cancelButtonText: 'Agora não',
-                        confirmButtonColor: '#f59e0b',
-                        cancelButtonColor: '#64748b'
-                    }).then(result => {
-                        if (result.isConfirmed) {
-                            window.location.href = (window.BASE_URL || '/') + 'billing';
-                        }
-                    });
+                    if (window.PlanLimits?.promptUpgrade) {
+                        window.PlanLimits.promptUpgrade({
+                            context: 'relatorios',
+                            message: 'Esta funcionalidade é exclusiva do plano Pro.',
+                        }).catch(() => { /* ignore */ });
+                    } else if (window.LKFeedback?.upgradePrompt) {
+                        window.LKFeedback.upgradePrompt({
+                            context: 'relatorios',
+                            message: 'Esta funcionalidade é exclusiva do plano Pro.',
+                        }).catch(() => { /* ignore */ });
+                    } else {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Recurso Premium',
+                            html: 'Esta funcionalidade é exclusiva do <b>plano Pro</b>.<br>Faça upgrade para desbloquear!',
+                            confirmButtonText: '<i class="lucide-crown" style="margin-right:6px"></i> Fazer Upgrade',
+                            showCancelButton: true,
+                            cancelButtonText: 'Agora não',
+                            confirmButtonColor: '#f59e0b',
+                            cancelButtonColor: '#64748b'
+                        }).then(result => {
+                            if (result.isConfirmed) {
+                                window.location.href = (window.BASE_URL || '/') + 'billing';
+                            }
+                        });
+                    }
                     return;
                 }
                 switchSection(section);

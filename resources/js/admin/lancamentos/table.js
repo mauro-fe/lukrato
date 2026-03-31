@@ -409,7 +409,7 @@ export const TableManager = {
                 : '';
             const goalMetaHtml = metaTitulo
                 ? `
-                        <span class="lk-txn-dot">Â·</span>
+                        <span class="lk-txn-dot">·</span>
                         <span class="lk-txn-goal-badge">
                             <i data-lucide="target"></i>
                             <span>${Utils.escapeHtml(metaTitulo)}</span>

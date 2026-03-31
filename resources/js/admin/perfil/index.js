@@ -1,5 +1,6 @@
 import '../../../css/admin/perfil/index.css';
 import { apiDelete, apiFetch, apiGet, getBaseUrl, getErrorMessage } from '../shared/api.js';
+import { initCustomize } from './customize.js';
 
 /**
  * ============================================================================
@@ -13,6 +14,7 @@ import { apiDelete, apiFetch, apiGet, getBaseUrl, getErrorMessage } from '../sha
 
 (() => {
     'use strict';
+    initCustomize();
 
     const BASE = getBaseUrl();
 

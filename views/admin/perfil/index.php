@@ -7,7 +7,7 @@ $isProfileView = !$isConfigView;
 ?>
 
 <div class="profile-page">
-    <div class="profile-header surface-card surface-card--interactive surface-card--clip">
+    <div class="profile-header surface-card surface-card--interactive surface-card--clip" id="profileHeaderSection">
         <!-- Avatar Upload -->
         <?php $avatarUrl = $currentUser?->avatar ? rtrim(BASE_URL, '/') . '/' . $currentUser->avatar : ''; ?>
         <div class="profile-avatar-wrapper">
@@ -39,7 +39,7 @@ $isProfileView = !$isConfigView;
     </div>
 
     <!-- Tab Navigation -->
-    <nav class="profile-tabs surface-card surface-card--clip" role="tablist" aria-label="Seções do perfil">
+    <nav class="profile-tabs surface-card surface-card--clip" id="profileTabsSection" role="tablist" aria-label="Seções do perfil">
         <?php if ($isProfileView): ?>
             <button type="button" class="profile-tab surface-filter surface-filter--soft active" data-tab="dados" role="tab" aria-selected="true"
                 aria-controls="panel-dados">
@@ -325,7 +325,7 @@ $isProfileView = !$isConfigView;
     </form>
 
     <?php if ($isProfileView): ?>
-        <div class="profile-section surface-card surface-card--interactive">
+        <div class="profile-section surface-card surface-card--interactive" id="profileConfigShortcutSection">
             <div class="section-header">
                 <div class="section-icon"><i data-lucide="settings" style="color:white"></i></div>
                 <div class="section-header-text">
@@ -667,6 +667,55 @@ $isProfileView = !$isConfigView;
         </div>
     </div><!-- /panel-perigo -->
     <?php endif; ?>
+
+    <div class="profile-customize-trigger">
+        <button class="profile-customize-open" id="btnCustomizePerfil" type="button">
+            <i data-lucide="sliders-horizontal"></i>
+            <span>Personalizar tela</span>
+        </button>
+    </div>
+
+    <div class="profile-customize-overlay" id="perfilCustomizeModalOverlay" style="display:none;">
+        <div class="profile-customize-modal surface-card" role="dialog" aria-modal="true"
+            aria-labelledby="perfilCustomizeModalTitle">
+            <div class="profile-customize-header">
+                <h3 class="profile-customize-title" id="perfilCustomizeModalTitle">Personalizar perfil</h3>
+                <button class="profile-customize-close" id="btnCloseCustomizePerfil" type="button"
+                    aria-label="Fechar personalizacao">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="profile-customize-body">
+                <p class="profile-customize-desc">Comece no modo essencial e habilite os blocos quando quiser.</p>
+
+                <div class="profile-customize-presets" role="group" aria-label="Preset de visualizacao">
+                    <button class="profile-customize-preset" id="btnPresetEssencialPerfil" type="button">Modo essencial</button>
+                    <button class="profile-customize-preset" id="btnPresetCompletoPerfil" type="button">Modo completo</button>
+                </div>
+
+                <div class="profile-customize-group">
+                    <p class="profile-customize-group-title">Blocos da tela</p>
+                    <label class="profile-customize-toggle">
+                        <span>Cabecalho do perfil</span>
+                        <input type="checkbox" id="togglePerfilHeader" checked>
+                    </label>
+                    <label class="profile-customize-toggle">
+                        <span>Navegacao por abas</span>
+                        <input type="checkbox" id="togglePerfilTabs" checked>
+                    </label>
+                    <label class="profile-customize-toggle">
+                        <span>Atalho de configuracoes</span>
+                        <input type="checkbox" id="togglePerfilConfigShortcut" checked>
+                    </label>
+                </div>
+            </div>
+
+            <div class="profile-customize-footer">
+                <button class="profile-customize-save" id="btnSaveCustomizePerfil" type="button">Salvar</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 

@@ -39,7 +39,59 @@ import { apiGetCached } from '../shared/api-store.js';
             lancamentos: '💰 Registre sem preocupações',
             dashboard: '📈 Dashboard avançado com insights',
             faturas: '📄 Visualize todo o histórico de faturas',
+            financas: '📊 Metas e orçamento sem limites para planejar melhor',
+            orcamento: '📈 Orçamentos inteligentes e ilimitados',
+            perfil: '👤 Recursos avançados para personalizar sua conta',
+            gamification: '🏆 Acelere seu progresso e desbloqueie vantagens exclusivas',
             default: '🚀 Desbloqueie todo o potencial do Lukrato',
+        },
+        contextualFeatures: {
+            relatorios: [
+                'Relatórios avançados e comparativos',
+                'Exportação em PDF e Excel',
+                'Histórico financeiro completo',
+            ],
+            contas: [
+                'Contas bancárias ilimitadas',
+                'Gestão financeira sem bloqueios',
+                'Histórico completo de movimentações',
+            ],
+            categorias: [
+                'Categorias e subcategorias ilimitadas',
+                'Organização financeira avançada',
+                'Mais precisão nos relatórios',
+            ],
+            metas: [
+                'Criação de metas ilimitadas',
+                'Acompanhamento completo de progresso',
+                'Planejamento financeiro avançado',
+            ],
+            orcamento: [
+                'Orçamentos ilimitados',
+                'Insights inteligentes por categoria',
+                'Controle mensal sem limites',
+            ],
+            financas: [
+                'Metas e orçamentos sem limite',
+                'Visão financeira completa',
+                'Recomendações avançadas',
+            ],
+            lancamentos: [
+                'Lançamentos ilimitados',
+                'Controle total do fluxo financeiro',
+                'Mais automações para produtividade',
+            ],
+            gamification: [
+                'Conquistas e vantagens exclusivas',
+                'Progressão acelerada',
+                'Experiência completa de gamificação',
+            ],
+            default: [
+                'Lançamentos ilimitados',
+                'Relatórios avançados',
+                'Exportação PDF/Excel',
+                'Histórico completo',
+            ],
         },
     };
 
@@ -146,6 +198,24 @@ import { apiGetCached } from '../shared/api-store.js';
         return limitsData.features?.[featureName] === true;
     }
 
+    function resolveUpgradeUrl(upgradeUrl) {
+        const raw = typeof upgradeUrl === 'string' && upgradeUrl.trim()
+            ? upgradeUrl.trim()
+            : CONFIG.upgradeUrl;
+
+        if (/^https?:\/\//i.test(raw)) {
+            return raw;
+        }
+
+        const normalizedBase = CONFIG.apiBase.replace(/\/?$/, '/');
+        const normalizedPath = raw.replace(/^\/+/, '');
+        return `${normalizedBase}${normalizedPath}`;
+    }
+
+    function getUpgradeFeatures(context) {
+        return CONFIG.contextualFeatures[context] || CONFIG.contextualFeatures.default;
+    }
+
     // ============================================
     // UI - ALERTAS
     // ============================================
@@ -216,20 +286,18 @@ import { apiGetCached } from '../shared/api-store.js';
         const {
             title = '🚀 Faça Upgrade para o Lukrato Pro',
             message = 'Você atingiu o limite do plano gratuito.',
-            features = [
-                'Lançamentos ilimitados',
-                'Contas bancárias ilimitadas',
-                'Cartões de crédito ilimitados',
-                'Relatórios avançados',
-                'Exportação PDF e Excel',
-                'Histórico completo',
-            ],
+            features = null,
             context = null,
+            upgradeUrl = CONFIG.upgradeUrl,
         } = options;
 
         // Detectar contexto automaticamente se não fornecido
         const detectedContext = context || getCurrentPageContext();
         const contextMsg = CONFIG.contextualMessages[detectedContext] || CONFIG.contextualMessages.default;
+        const upgradeHref = resolveUpgradeUrl(upgradeUrl);
+        const featureList = Array.isArray(features) && features.length
+            ? features
+            : getUpgradeFeatures(detectedContext);
 
         // Verificar se já existe modal
         let modal = document.getElementById('planUpgradeModal');
@@ -254,13 +322,13 @@ import { apiGetCached } from '../shared/api-store.js';
                             <div class="text-start mb-4">
                                 <h6 class="text-muted mb-3">Com o Pro você tem:</h6>
                                 <ul class="list-unstyled upgrade-features-list">
-                                    ${features.map(f => `<li class="mb-2"><i data-lucide="check" style="width:16px;height:16px;display:inline-block;" class="text-success me-2" aria-hidden="true"></i>${f}</li>`).join('')}
+                                    ${featureList.map(f => `<li class="mb-2"><i data-lucide="check" style="width:16px;height:16px;display:inline-block;" class="text-success me-2" aria-hidden="true"></i>${f}</li>`).join('')}
                                 </ul>
                             </div>
                         </div>
                         <div class="modal-footer justify-content-center">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Agora não</button>
-                            <a href="${CONFIG.upgradeUrl}" class="btn btn-primary btn-lg">
+                            <a href="${upgradeHref}" class="btn btn-primary btn-lg">
                                 <i data-lucide="rocket" style="width:16px;height:16px;display:inline-block;" aria-hidden="true"></i> Quero ser Pro!
                             </a>
                         </div>
@@ -285,7 +353,21 @@ import { apiGetCached } from '../shared/api-store.js';
     // Helper para detectar contexto da página atual
     function getCurrentPageContext() {
         const path = window.location.pathname.toLowerCase();
-        const contexts = ['relatorios', 'cartoes', 'contas', 'agendamentos', 'metas', 'categorias', 'lancamentos', 'dashboard', 'faturas'];
+        const contexts = [
+            'relatorios',
+            'cartoes',
+            'contas',
+            'agendamentos',
+            'metas',
+            'categorias',
+            'lancamentos',
+            'dashboard',
+            'faturas',
+            'financas',
+            'orcamento',
+            'perfil',
+            'gamification',
+        ];
 
         for (const ctx of contexts) {
             if (path.includes(ctx)) {
@@ -293,6 +375,42 @@ import { apiGetCached } from '../shared/api-store.js';
             }
         }
         return 'default';
+    }
+
+    async function promptUpgrade(options = {}) {
+        const {
+            title = '🚀 Desbloqueie com o Pro',
+            message = 'Este recurso está disponível no plano Pro.',
+            context = null,
+            features = null,
+            upgradeUrl = null,
+        } = options;
+
+        const detectedContext = context || getCurrentPageContext();
+        const resolvedUpgradeUrl = resolveUpgradeUrl(upgradeUrl || CONFIG.upgradeUrl);
+        const featureList = Array.isArray(features) && features.length
+            ? features
+            : getUpgradeFeatures(detectedContext);
+
+        if (window.LKFeedback?.upgradePrompt) {
+            return window.LKFeedback.upgradePrompt({
+                title,
+                message,
+                context: detectedContext,
+                features: featureList,
+                upgradeUrl: resolvedUpgradeUrl,
+            });
+        }
+
+        showUpgradeModal({
+            title,
+            message,
+            context: detectedContext,
+            features: featureList,
+            upgradeUrl: resolvedUpgradeUrl,
+        });
+
+        return { isConfirmed: false, isDismissed: true };
     }
 
     // ============================================
@@ -378,9 +496,10 @@ import { apiGetCached } from '../shared/api-store.js';
             e.stopPropagation();
 
             const resource = e.currentTarget.dataset.resource || 'recurso';
-            showUpgradeModal({
+            promptUpgrade({
+                context: getCurrentPageContext(),
                 message: `Você atingiu o limite de ${resource} do plano gratuito.`,
-            });
+            }).catch(() => { /* ignore */ });
         }
     }
 
@@ -406,10 +525,13 @@ import { apiGetCached } from '../shared/api-store.js';
                 // Verificar se é resposta 403 com limit_reached
                 if (response.status === 403) {
                     const data = await clone.json();
-                    if (data.limit_reached) {
-                        showUpgradeModal({
+                    const limitReached = data?.limit_reached || data?.errors?.limit_reached;
+                    if (limitReached) {
+                        promptUpgrade({
+                            context: getCurrentPageContext(),
                             message: data.message || 'Você atingiu o limite do plano gratuito.',
-                        });
+                            upgradeUrl: data?.errors?.upgrade_url || data?.upgrade_url || CONFIG.upgradeUrl,
+                        }).catch(() => { /* ignore */ });
                     }
                 }
             } catch (e) { /* ignore */ }
@@ -551,6 +673,7 @@ import { apiGetCached } from '../shared/api-store.js';
         getHistoryRestriction,
         showLimitAlert,
         showUpgradeModal,
+        promptUpgrade,
         renderLimitBadge,
         updateAddButtons,
         getData: () => limitsData,

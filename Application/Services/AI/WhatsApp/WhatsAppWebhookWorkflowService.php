@@ -116,8 +116,8 @@ class WhatsAppWebhookWorkflowService
         if ($user === null) {
             $this->whatsapp()->sendText(
                 $dto->fromPhone,
-                "OlÃ¡! VocÃª ainda nÃ£o vinculou seu WhatsApp ao Lukrato.\n\n"
-                    . "Acesse seu painel em lukrato.com.br â†’ ConfiguraÃ§Ãµes â†’ WhatsApp para vincular."
+                "Olá! Você ainda não vinculou seu WhatsApp ao Lukrato.\n\n"
+                    . "Acesse seu painel em lukrato.com.br → Configurações → WhatsApp para vincular."
             );
             $msgRecord->markIgnored();
             return;
@@ -151,7 +151,7 @@ class WhatsAppWebhookWorkflowService
             if ($pending === null) {
                 $this->whatsapp()->sendText(
                     $dto->fromPhone,
-                    "NÃ£o encontrei nenhuma transaÃ§Ã£o pendente de confirmaÃ§Ã£o."
+                    "Não encontrei nenhuma transação pendente de confirmação."
                 );
                 $msgRecord->markProcessed('confirmation_no_pending');
                 return;
@@ -163,7 +163,7 @@ class WhatsAppWebhookWorkflowService
 
                 if ($action === null) {
                     $pending->reject();
-                    $this->whatsapp()->sendText($dto->fromPhone, "âš ï¸ Tipo de aÃ§Ã£o desconhecido.");
+                    $this->whatsapp()->sendText($dto->fromPhone, "âš ️ Tipo de ação desconhecido.");
                     $msgRecord->markProcessed('confirmation_unknown_action');
                     return;
                 }
@@ -178,7 +178,7 @@ class WhatsAppWebhookWorkflowService
                         $pending->reject();
                         $this->whatsapp()->sendText(
                             $dto->fromPhone,
-                            "âš ï¸ VocÃª precisa ter pelo menos uma conta cadastrada no Lukrato para registrar lanÃ§amentos."
+                            "âš ️ Você precisa ter pelo menos uma conta cadastrada no Lukrato para registrar lançamentos."
                         );
                         $msgRecord->markProcessed('confirmation_no_account');
                         return;
@@ -204,7 +204,7 @@ class WhatsAppWebhookWorkflowService
 
                     if (!$result->success) {
                         $pending->reject();
-                        $this->whatsapp()->sendText($dto->fromPhone, "âš ï¸ {$result->message}");
+                        $this->whatsapp()->sendText($dto->fromPhone, "âš ️ {$result->message}");
                         $msgRecord->markProcessed('confirmation_failed');
                         return;
                     }
@@ -225,14 +225,14 @@ class WhatsAppWebhookWorkflowService
                     $catStr = !empty($payload['categoria_nome']) ? "\nðŸ“ {$payload['categoria_nome']}" : '';
                     $this->whatsapp()->sendText(
                         $dto->fromPhone,
-                        "âœ… LanÃ§amento registrado!\n\n"
+                        "âœ… Lançamento registrado!\n\n"
                             . "ðŸ“ {$payload['descricao']}\n"
                             . "ðŸ’° {$formatted}{$catStr}"
                     );
                     $msgRecord->markProcessed('transaction_confirmed');
                 } catch (\Throwable $e) {
                     $pending->reject();
-                    $this->whatsapp()->sendText($dto->fromPhone, "âš ï¸ Erro ao registrar: " . $e->getMessage());
+                    $this->whatsapp()->sendText($dto->fromPhone, "âš ️ Erro ao registrar: " . $e->getMessage());
                     $msgRecord->markProcessed('confirmation_error');
                 }
 
@@ -240,7 +240,7 @@ class WhatsAppWebhookWorkflowService
             }
 
             $pending->reject();
-            $this->whatsapp()->sendText($dto->fromPhone, "âŒ TransaÃ§Ã£o cancelada.");
+            $this->whatsapp()->sendText($dto->fromPhone, "❌ Transação cancelada.");
             $msgRecord->markProcessed('transaction_rejected');
         });
     }
@@ -271,23 +271,23 @@ class WhatsAppWebhookWorkflowService
             $limit = $usage['chat']['limit'] ?? 5;
             $this->whatsapp()->sendText(
                 $dto->fromPhone,
-                "ðŸ¤– VocÃª usou suas {$limit} mensagens de IA gratuitas este mÃªs. "
-                    . "FaÃ§a upgrade para o Pro: https://lukrato.com.br/billing"
+                "Olá! Você usou suas {$limit} mensagens de IA gratuitas este mês. "
+                    . "Faça upgrade para o Pro: https://lukrato.com.br/billing"
             );
             $msgRecord->markProcessed('quota_exceeded');
             return;
         }
 
         $statusText = $dto->isAudio()
-            ? "ðŸŽ™ï¸ Transcrevendo Ã¡udio..."
-            : ($dto->isVideo() ? "ðŸŽ¬ Processando vÃ­deo..." : "ðŸ“Ž Analisando arquivo...");
+            ? "ðŸŽ™️ Transcrevendo áudio..."
+            : ($dto->isVideo() ? "ðŸŽ¬ Processando ví­deo..." : "ðŸ“Ž Analisando arquivo...");
         $this->whatsapp()->sendText($dto->fromPhone, $statusText);
 
         $downloader = new WhatsAppMediaDownloader();
         $fileData = $downloader->downloadByMediaId((string) $dto->mediaId, $dto->filename);
 
         if ($fileData === null) {
-            $this->whatsapp()->sendText($dto->fromPhone, "âš ï¸ NÃ£o consegui baixar o arquivo. Tente novamente.");
+            $this->whatsapp()->sendText($dto->fromPhone, "âš ️ Não consegui baixar o arquivo. Tente novamente.");
             $msgRecord->markFailed('file_download_failed');
             return;
         }
@@ -317,7 +317,7 @@ class WhatsAppWebhookWorkflowService
         if (!$result->success) {
             $this->whatsapp()->sendText(
                 $dto->fromPhone,
-                "âš ï¸ NÃ£o consegui processar o arquivo. " . ($result->error ?? 'Tente novamente ou envie em outro formato.')
+                "âš ️ Não consegui processar o arquivo. " . ($result->error ?? 'Tente novamente ou envie em outro formato.')
             );
             $msgRecord->markFailed('media_processing_failed: ' . ($result->error ?? 'unknown'));
             return;
@@ -341,7 +341,7 @@ class WhatsAppWebhookWorkflowService
                 $desc = $receipt->data['descricao'] ?? 'Nao identifiquei informacoes financeiras nesse arquivo.';
                 $this->whatsapp()->sendText(
                     $dto->fromPhone,
-                    "ðŸ“Ž {$desc}\n\nPara registrar uma transaÃ§Ã£o, envie um comprovante, nota fiscal, PDF ou descreva o lanÃ§amento por texto."
+                    "ðŸ“Ž {$desc}\n\nPara registrar uma transação, envie um comprovante, nota fiscal, PDF ou descreva o lançamento por texto."
                 );
                 $msgRecord->markProcessed('media_not_financial');
                 return;
@@ -444,8 +444,8 @@ class WhatsAppWebhookWorkflowService
             $limit = $usage['chat']['limit'] ?? 5;
             $this->whatsapp()->sendText(
                 $dto->fromPhone,
-                "ðŸ¤– VocÃª usou suas {$limit} mensagens de IA gratuitas este mÃªs. "
-                    . "FaÃ§a upgrade para o Pro e tenha IA ilimitada: https://lukrato.com.br/billing"
+                "Olá, você usou suas {$limit} mensagens de IA gratuitas este mês. "
+                    . "Faça upgrade para o Pro e tenha IA ilimitada: https://lukrato.com.br/billing"
             );
             $msgRecord->markProcessed('quota_exceeded');
             return;
@@ -544,7 +544,7 @@ class WhatsAppWebhookWorkflowService
         $text = "Entendi! Registrar?\n\n"
             . "{$tipo}: {$extracted['descricao']}\n"
             . "ðŸ’µ {$formatted}{$catStr}\n\n"
-            . "Responda Sim para confirmar ou NÃ£o para cancelar.";
+            . "Responda Sim para confirmar ou Não para cancelar.";
 
         $this->whatsapp()->sendConfirmationButtons(
             $dto->fromPhone,
@@ -958,19 +958,19 @@ class WhatsAppWebhookWorkflowService
         $this->sendTextChunks(
             $toPhone,
             "Como usar o Lukrato no WhatsApp:\n\n"
-            . "Registrar transacoes:\n"
-            . "- \"almoco 35 hoje\"\n"
-            . "- \"recebi freelance 500 ontem\"\n"
-            . "- \"netflix 55,90 cartao nubank\"\n\n"
-            . "Consultar financas:\n"
-            . "- \"quanto gastei este mes?\"\n"
-            . "- \"qual meu saldo?\"\n"
-            . "- \"maior gasto do mes?\"\n\n"
-            . "Planejamento:\n"
-            . "- \"criar meta de 5000 para viagem\"\n"
-            . "- \"orcamento de 800 para alimentacao\"\n\n"
-            . "Se faltar algum dado, eu pergunto so o que falta.\n"
-            . "Use /cancel para cancelar um fluxo em andamento."
+                . "Registrar transacoes:\n"
+                . "- \"almoco 35 hoje\"\n"
+                . "- \"recebi freelance 500 ontem\"\n"
+                . "- \"netflix 55,90 cartao nubank\"\n\n"
+                . "Consultar financas:\n"
+                . "- \"quanto gastei este mes?\"\n"
+                . "- \"qual meu saldo?\"\n"
+                . "- \"maior gasto do mes?\"\n\n"
+                . "Planejamento:\n"
+                . "- \"criar meta de 5000 para viagem\"\n"
+                . "- \"orcamento de 800 para alimentacao\"\n\n"
+                . "Se faltar algum dado, eu pergunto so o que falta.\n"
+                . "Use /cancel para cancelar um fluxo em andamento."
         );
     }
 
@@ -982,7 +982,7 @@ class WhatsAppWebhookWorkflowService
             return false;
         }
 
-        return preg_match('/\b(cancel|cancela|parar?|desist|sair|deixa\s*pra\s*l[aÃ¡]|esquece)\b/iu', $normalized) === 1;
+        return preg_match('/\b(cancel|cancela|parar?|desist|sair|deixa\s*pra\s*l[aá]|esquece)\b/iu', $normalized) === 1;
     }
 
     private function handleFlowCancellation(WhatsAppMessageDTO $dto, Usuario $user, WhatsAppMessage $msgRecord): void

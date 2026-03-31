@@ -1,3 +1,5 @@
+@import './_customize.css';
+
 /**
  * ============================================================================
  * PERFIL - MODERN DESIGN SYSTEM
@@ -594,7 +596,7 @@
   --surface-button-color: #fff;
 }
 
-/* Barra de limite de indicaÃ§Ãµes */
+/* Barra de limite de indicações */
 .referral-limit-bar {
   padding: var(--spacing-4);
   margin-bottom: var(--spacing-4);

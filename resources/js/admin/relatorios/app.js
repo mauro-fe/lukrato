@@ -76,7 +76,17 @@ function goToBilling() {
 
 async function showRestrictionAlert(message) {
     const text = message || PAYWALL_MESSAGE;
-    if (window.Swal?.fire) {
+    if (window.PlanLimits?.promptUpgrade) {
+        await window.PlanLimits.promptUpgrade({
+            context: 'relatorios',
+            message: text,
+        });
+    } else if (window.LKFeedback?.upgradePrompt) {
+        await window.LKFeedback.upgradePrompt({
+            context: 'relatorios',
+            message: text,
+        });
+    } else if (window.Swal?.fire) {
         const result = await Swal.fire({
             title: 'Recurso exclusivo',
             text: text,

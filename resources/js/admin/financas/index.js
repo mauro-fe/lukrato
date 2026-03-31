@@ -6,10 +6,12 @@
 import '../../../css/admin/financas/index.css';
 import { CONFIG, STATE, Utils, Modules } from './state.js';
 import { FinancasApp } from './app.js';
+import { initCustomize } from './customize.js';
 
 // ── Bootstrap ──────────────────────────────────────────────────
 
 const init = async () => {
+    initCustomize();
     await FinancasApp.init();
 };
 

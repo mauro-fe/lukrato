@@ -52,7 +52,7 @@ class OnboardingControllerTest extends TestCase
             ->andReturn([
                 'success' => false,
                 'status' => 404,
-                'message' => 'UsuÃ¡rio nÃ£o encontrado',
+                'message' => 'Usuário não encontrado',
             ]);
 
         $controller = new OnboardingController($workflow);
@@ -61,7 +61,7 @@ class OnboardingControllerTest extends TestCase
         $this->assertSame(404, $response->getStatusCode());
         $this->assertSame([
             'success' => false,
-            'message' => 'UsuÃ¡rio nÃ£o encontrado',
+            'message' => 'Usuário não encontrado',
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
@@ -110,7 +110,7 @@ class OnboardingControllerTest extends TestCase
             ->andReturn([
                 'success' => false,
                 'status' => 422,
-                'message' => 'VocÃª precisa criar pelo menos uma conta antes de continuar.',
+                'message' => 'Você precisa criar pelo menos uma conta antes de continuar.',
             ]);
 
         $controller = new OnboardingController($workflow);
@@ -119,7 +119,7 @@ class OnboardingControllerTest extends TestCase
         $this->assertSame(422, $response->getStatusCode());
         $this->assertSame([
             'success' => false,
-            'message' => 'VocÃª precisa criar pelo menos uma conta antes de continuar.',
+            'message' => 'Você precisa criar pelo menos uma conta antes de continuar.',
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
@@ -142,7 +142,7 @@ class OnboardingControllerTest extends TestCase
             ->andReturn([
                 'success' => false,
                 'redirect' => 'onboarding',
-                'error_message' => 'O nome da conta Ã© obrigatÃ³rio.',
+                'error_message' => 'O nome da conta é obrigatório.',
             ]);
 
         $controller = new OnboardingController($workflow);
@@ -150,7 +150,7 @@ class OnboardingControllerTest extends TestCase
 
         $this->assertSame(302, $response->getStatusCode());
         $this->assertSame(BASE_URL . 'onboarding', $response->getHeaders()['Location'] ?? null);
-        $this->assertSame('O nome da conta Ã© obrigatÃ³rio.', $_SESSION['error'] ?? null);
+        $this->assertSame('O nome da conta é obrigatório.', $_SESSION['error'] ?? null);
     }
 
     public function testStoreLancamentoReturnsRedirectAndFlashWhenFieldsAreMissing(): void
@@ -174,7 +174,7 @@ class OnboardingControllerTest extends TestCase
             ->andReturn([
                 'success' => false,
                 'redirect' => 'onboarding',
-                'error_message' => 'Todos os campos sÃ£o obrigatÃ³rios.',
+                'error_message' => 'Todos os campos são obrigatórios.',
             ]);
 
         $controller = new OnboardingController($workflow);
@@ -182,7 +182,7 @@ class OnboardingControllerTest extends TestCase
 
         $this->assertSame(302, $response->getStatusCode());
         $this->assertSame(BASE_URL . 'onboarding', $response->getHeaders()['Location'] ?? null);
-        $this->assertSame('Todos os campos sÃ£o obrigatÃ³rios.', $_SESSION['error'] ?? null);
+        $this->assertSame('Todos os campos são obrigatórios.', $_SESSION['error'] ?? null);
     }
 
     public function testStatusThrowsAuthExceptionWhenSessionIsMissing(): void

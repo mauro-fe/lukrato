@@ -1,6 +1,6 @@
 /**
- * Modal de AniversÃ¡rio - CSS
- * Exibe uma celebraÃ§Ã£o especial quando o usuÃ¡rio faz aniversÃ¡rio
+ * Modal de Aniversário - CSS
+ * Exibe uma celebração especial quando o usuário faz aniversário
  */
 
 /* Overlay do Modal */
@@ -195,7 +195,7 @@
     transform: translateY(0);
 }
 
-/* BotÃ£o fechar */
+/* Botão fechar */
 .birthday-close-btn {
     position: absolute;
     top: 0.75rem;

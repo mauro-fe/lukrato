@@ -53,20 +53,42 @@ export const ContasAPI = {
     },
 
     async handlePlanLimitError(status, result) {
-        if (status !== 403 || !result?.errors?.limit_reached || typeof Swal === 'undefined') {
+        if (status !== 403 || !result?.errors?.limit_reached) {
             return false;
         }
 
-        const decision = await Swal.fire({
-            icon: 'info',
-            title: 'Limite do plano atingido',
-            text: result.message || 'Voc\u00ea atingiu o limite de contas do seu plano.',
-            showCancelButton: true,
-            confirmButtonText: 'Ver planos',
-            cancelButtonText: 'Fechar',
-        });
+        if (window.PlanLimits?.promptUpgrade) {
+            await window.PlanLimits.promptUpgrade({
+                context: 'contas',
+                message: result.message || 'Você atingiu o limite de contas do seu plano.',
+                upgradeUrl: result.errors?.upgrade_url,
+            });
+            return true;
+        }
 
-        if (decision.isConfirmed && result.errors?.upgrade_url) {
+        if (window.LKFeedback?.upgradePrompt) {
+            await window.LKFeedback.upgradePrompt({
+                context: 'contas',
+                message: result.message || 'Você atingiu o limite de contas do seu plano.',
+                upgradeUrl: result.errors?.upgrade_url,
+            });
+            return true;
+        }
+
+        if (typeof Swal !== 'undefined') {
+            const decision = await Swal.fire({
+                icon: 'info',
+                title: 'Recurso Pro',
+                text: result.message || 'Você atingiu o limite de contas do seu plano.',
+                showCancelButton: true,
+                confirmButtonText: 'Ver planos',
+                cancelButtonText: 'Agora não',
+            });
+
+            if (decision.isConfirmed && result.errors?.upgrade_url) {
+                window.location.href = result.errors.upgrade_url;
+            }
+        } else if (result.errors?.upgrade_url) {
             window.location.href = result.errors.upgrade_url;
         }
 

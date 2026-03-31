@@ -103,7 +103,7 @@ class FaturasController extends BaseController
                 $this->getJsonPayloadOrNull()
             ));
         } catch (InvalidArgumentException $e) {
-            LogService::error('Erro de validaÃ§Ã£o ao atualizar item da fatura', [
+            LogService::error('Erro de validação ao atualizar item da fatura', [
                 'item_id' => $itemId,
                 'fatura_id' => $faturaId,
                 'error' => $e->getMessage(),
@@ -135,7 +135,7 @@ class FaturasController extends BaseController
                 $this->getJsonPayloadOrNull()
             ));
         } catch (InvalidArgumentException $e) {
-            LogService::error('Erro de validaÃ§Ã£o ao atualizar item da fatura', [
+            LogService::error('Erro de validação ao atualizar item da fatura', [
                 'item_id' => $itemId,
                 'fatura_id' => $faturaId,
                 'error' => $e->getMessage(),
@@ -162,7 +162,7 @@ class FaturasController extends BaseController
         try {
             return $this->respondWorkflowResult($this->workflowService->deleteInvoiceItem($faturaId, $itemId, $userId));
         } catch (InvalidArgumentException $e) {
-            LogService::error('Erro de validaÃ§Ã£o ao excluir item da fatura', [
+            LogService::error('Erro de validação ao excluir item da fatura', [
                 'item_id' => $itemId,
                 'fatura_id' => $faturaId,
                 'error' => $e->getMessage(),

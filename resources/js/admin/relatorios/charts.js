@@ -389,7 +389,17 @@ export const ChartManager = {
     handlePieClick(entry, globalIdx, dataPointIndex, chartIdx) {
         // PRO check
         if (!window.IS_PRO) {
-            if (window.Swal?.fire) {
+            if (window.PlanLimits?.promptUpgrade) {
+                window.PlanLimits.promptUpgrade({
+                    context: 'relatorios',
+                    message: 'O detalhamento por subcategorias é exclusivo do plano Pro.',
+                }).catch(() => { /* ignore */ });
+            } else if (window.LKFeedback?.upgradePrompt) {
+                window.LKFeedback.upgradePrompt({
+                    context: 'relatorios',
+                    message: 'O detalhamento por subcategorias é exclusivo do plano Pro.',
+                }).catch(() => { /* ignore */ });
+            } else if (window.Swal?.fire) {
                 Swal.fire({
                     icon: 'info',
                     title: 'Recurso Premium',

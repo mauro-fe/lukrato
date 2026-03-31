@@ -342,32 +342,48 @@ async function showAllAchievements() {
 // ─── Pro Upgrade ────────────────────────────────────────────────────────────
 
 function showProUpgrade() {
-    if (typeof Swal === 'undefined') {
-        window.location.href = `${BASE}premium`;
+    const upgradeFeatures = [
+        'Ganhe 1.5x mais pontos em todas as ações',
+        'Proteção de streak: 1 dia grátis por mês',
+        'Conquistas exclusivas com mais recompensas',
+        'Acesso ao nível máximo 15',
+    ];
+
+    if (window.PlanLimits?.promptUpgrade) {
+        window.PlanLimits.promptUpgrade({
+            context: 'gamification',
+            title: 'Plano Pro',
+            message: 'Acelere seu progresso e desbloqueie vantagens exclusivas.',
+            features: upgradeFeatures,
+        }).catch(() => { /* ignore */ });
         return;
     }
 
-    Swal.fire({
-        title: 'Plano Pro',
-        html: `
-            <div class="pro-upgrade-modal">
-                <h3>Acelere seu progresso!</h3>
-                <div class="pro-benefits">
-                    <div class="pro-benefit"><i data-lucide="star"></i><span>Ganhe <strong>1.5x mais pontos</strong> em todas as ações</span></div>
-                    <div class="pro-benefit"><i data-lucide="shield"></i><span><strong>Proteção de streak</strong> - 1 dia grátis por mês</span></div>
-                    <div class="pro-benefit"><i data-lucide="trophy"></i><span><strong>Conquistas exclusivas</strong> com mais recompensas</span></div>
-                    <div class="pro-benefit"><i data-lucide="crown"></i><span>Alcance o <strong>nível máximo 15</strong></span></div>
-                </div>
-            </div>
-        `,
-        icon: 'info',
-        showCancelButton: true,
-        confirmButtonText: '<i data-lucide="gem"></i> Assinar Pro',
-        cancelButtonText: 'Agora não',
-        customClass: { popup: 'pro-upgrade-modal', confirmButton: 'btn btn-primary btn-pro', cancelButton: 'btn btn-secondary' }
-    }).then((result) => {
-        if (result.isConfirmed) window.location.href = `${BASE}billing`;
-    });
+    if (window.LKFeedback?.upgradePrompt) {
+        window.LKFeedback.upgradePrompt({
+            context: 'gamification',
+            title: 'Plano Pro',
+            message: 'Acelere seu progresso e desbloqueie vantagens exclusivas.',
+            features: upgradeFeatures,
+        }).catch(() => { /* ignore */ });
+        return;
+    }
+
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            icon: 'info',
+            title: 'Plano Pro',
+            text: 'Acelere seu progresso e desbloqueie vantagens exclusivas.',
+            showCancelButton: true,
+            confirmButtonText: 'Ver planos',
+            cancelButtonText: 'Agora não',
+        }).then((result) => {
+            if (result.isConfirmed) window.location.href = `${BASE}billing`;
+        });
+        return;
+    }
+
+    window.location.href = `${BASE}billing`;
 }
 
 // ─── Points Notification (global) ───────────────────────────────────────────

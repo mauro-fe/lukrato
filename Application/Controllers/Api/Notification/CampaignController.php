@@ -109,7 +109,7 @@ class CampaignController extends BaseController
 
         return Response::successResponse(
             $this->workflowService->getOptions(),
-            'OpÃ§Ãµes obtidas com sucesso'
+            'Opções obtidas com sucesso'
         );
     }
 

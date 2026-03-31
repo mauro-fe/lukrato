@@ -71,7 +71,7 @@
   pointer-events: none;
 }
 
-/* Ãcone do Header */
+/* Ícone do Header */
 .lk-modal-icon-wrapper {
   width: 40px;
   height: 40px;
@@ -92,7 +92,7 @@
   color: #fff;
 }
 
-/* TÃ­tulo do Modal */
+/* Título do Modal */
 .lk-modal-title,
 .modal-title {
   color: #fff;
@@ -107,7 +107,7 @@
   display: block;
 }
 
-/* SubtÃ­tulo do Modal */
+/* Subtítulo do Modal */
 .lk-modal-subtitle,
 .modal-subtitle {
   color: rgba(255, 255, 255, 0.9);
@@ -134,7 +134,7 @@
   min-width: 0;
 }
 
-/* BotÃ£o Fechar */
+/* Botão Fechar */
 .lk-modal-close-btn {
   width: 32px;
   height: 32px;
@@ -192,7 +192,7 @@
   margin-bottom: 1.5rem;
 }
 
-/* Labels com Ãcones */
+/* Labels com Ícones */
 .lk-label {
   display: flex;
   align-items: center;
@@ -348,7 +348,7 @@
   border-top: 2px solid var(--color-card-border);
 }
 
-/* BotÃµes Modernos */
+/* Botões Modernos */
 .lk-btn {
   padding: 0.875rem 1.5rem;
   border-radius: 12px;
@@ -391,9 +391,9 @@
   height: 0.875rem;
 }
 
-/* BotÃ£o PrimÃ¡rio (Gradiente Lukrato) */
+/* Botão Primário (Gradiente Lukrato) */
 
-/* BotÃ£o Ghost */
+/* Botão Ghost */
 .lk-btn-ghost {
   background: transparent;
   color: var(--color-text-light);
@@ -441,7 +441,7 @@
   }
 }
 
-/* AnimaÃ§Ã£o de Loading no Submit */
+/* Animação de Loading no Submit */
 .lk-btn-primary.loading {
   pointer-events: none;
   opacity: 0.7;
@@ -451,7 +451,7 @@
   animation: spin 1s linear infinite;
 }
 
-/* Estados de ValidaÃ§Ã£o */
+/* Estados de Validação */
 .lk-input.invalid,
 .lk-select.invalid {
   border-color: #ef4444;
@@ -479,7 +479,7 @@
 }
 
 /* ================================================
-   MENU DE CONTEXTO (Mais OpÃ§Ãµes)
+   MENU DE CONTEXTO (Mais Opções)
    ================================================ */
 .context-menu {
   background: var(--color-card-bg);
@@ -594,7 +594,7 @@
   margin-left: 0.25rem;
 }
 
-/* SeÃ§Ã£o de HistÃ³rico */
+/* Seção de Histórico */
 .lk-historico-section {
   margin-bottom: 1.5rem;
 }
@@ -720,7 +720,7 @@
   color: #3498db;
 }
 
-/* SeÃ§Ã£o de Tipo de MovimentaÃ§Ã£o */
+/* Seção de Tipo de Movimentação */
 .lk-tipo-section {
   margin-bottom: 1.5rem;
 }
@@ -825,7 +825,7 @@
   color: #3498db;
 }
 
-/* BotÃ£o Voltar */
+/* Botão Voltar */
 .lk-btn-voltar {
   display: inline-flex;
   align-items: center;
@@ -875,7 +875,7 @@
 }
 
 
-/* ConteÃºdo do Header */
+/* Conteúdo do Header */
 .modal-header-content {
   display: flex;
   align-items: center;
@@ -885,7 +885,7 @@
   flex: 1;
 }
 
-/* Ãcone do Header */
+/* Ícone do Header */
 .modal-icon {
   width: 48px;
   height: 48px;
@@ -900,7 +900,7 @@
   font-size: 1.5rem;
 }
 
-/* TÃ­tulo e SubtÃ­tulo */
+/* Título e Subtítulo */
 .modal-title {
   font-size: 1.25rem;
   font-weight: 700;
@@ -913,7 +913,7 @@
   font-weight: 400;
 }
 
-/* BotÃ£o Fechar - Posicionado no lado direito */
+/* Botão Fechar - Posicionado no lado direito */
 .modal-close,
 .modal-close-btn {
   position: relative;
@@ -953,7 +953,7 @@
   overflow-y: auto;
 }
 
-/* FormulÃ¡rio */
+/* Formulário */
 .form-group {
   margin-bottom: 1.5rem;
 }

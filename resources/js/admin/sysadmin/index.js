@@ -16,6 +16,7 @@
 import '../../../css/admin/sysadmin/index.css';
 import { apiDelete, apiGet, apiPost, apiPut, getErrorMessage } from '../shared/api.js';
 import { escapeHtml } from '../shared/utils.js';
+import { initCustomize } from './customize.js';
 
 const BASE_URL = (window.LK?.getBase?.() || '/');
 const cleanupLogsModalEl = document.getElementById('cleanupLogsModal');
@@ -140,7 +141,7 @@ async function toggleMaintenance() {
             }
         } catch (e) {
             if (window.LKFeedback) {
-                LKFeedback.error(getErrorMessage(e, 'Erro ao atualizar modo de manuten��o.'));
+                LKFeedback.error(getErrorMessage(e, 'Erro ao atualizar modo de manutenção.'));
             } else {
                 alert('Erro: ' + e.message);
             }
@@ -1395,6 +1396,7 @@ if (autoRefreshToggle) {
 }
 
 // Init
+initCustomize();
 checkMaintenanceStatus();
 fetchUsers(1);
 loadErrorLogs(1);

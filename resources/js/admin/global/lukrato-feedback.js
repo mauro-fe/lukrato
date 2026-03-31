@@ -71,6 +71,21 @@
         };
     }
 
+    function resolveUpgradeUrl(upgradeUrl) {
+        const raw = typeof upgradeUrl === 'string' && upgradeUrl.trim()
+            ? upgradeUrl.trim()
+            : 'billing';
+
+        if (/^https?:\/\//i.test(raw)) {
+            return raw;
+        }
+
+        const base = (typeof window.getBaseUrl === 'function' ? window.getBaseUrl() : (window.BASE_URL || '/'))
+            .replace(/\/?$/, '/');
+        const normalizedPath = raw.replace(/^\/+/, '');
+        return `${base}${normalizedPath}`;
+    }
+
     // ============================================
     // FEEDBACK FUNCTIONS
     // ============================================
@@ -278,6 +293,7 @@
                 'Suporte prioritário',
             ],
             context = 'default',
+            upgradeUrl = null,
         } = options;
 
         // Mensagens contextuais
@@ -290,10 +306,16 @@
             categorias: '🏷️ Personalize sem limites',
             lancamentos: '💰 Registre sem preocupações',
             dashboard: '📈 Dashboard avançado com insights',
+            faturas: '📄 Visualize todo o histórico de faturas',
+            financas: '📊 Metas e orçamento sem limites para planejar melhor',
+            orcamento: '📈 Orçamentos inteligentes e ilimitados',
+            perfil: '👤 Recursos avançados para personalizar sua conta',
+            gamification: '🏆 Acelere seu progresso e desbloqueie vantagens exclusivas',
             default: '🚀 Desbloqueie todo o potencial',
         };
 
         const contextMsg = contextMessages[context] || contextMessages.default;
+        const targetUpgradeUrl = resolveUpgradeUrl(upgradeUrl);
 
         return Swal.fire({
             title: title,
@@ -318,7 +340,7 @@
             },
         }).then((result) => {
             if (result.isConfirmed) {
-                window.location.href = (window.BASE_URL || '/') + 'billing';
+                window.location.href = targetUpgradeUrl;
             }
             return result;
         });

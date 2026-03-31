@@ -225,7 +225,7 @@ class FinancasController extends BaseController
             if ($this->demoPreviewService->shouldUsePreview($userId)) {
                 return Response::successResponse(
                     $this->demoPreviewService->orcamentos($mes, $ano),
-                    'OrÃ§amentos carregados'
+                    'Orçamentos carregados'
                 );
             }
 

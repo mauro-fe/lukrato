@@ -1,6 +1,6 @@
 <section class="cat-page">
     <!-- ==================== KPI CARDS (estilo dashboard) ==================== -->
-    <div class="cat-kpis">
+    <div class="cat-kpis" id="categoriasKpis">
         <article class="cat-kpi surface-card surface-card--interactive">
             <div class="cat-kpi__icon cat-kpi__icon--total">
                 <i data-lucide="layers"></i>
@@ -40,7 +40,7 @@
     </div>
 
     <!-- ==================== CARD DE NOVA CATEGORIA ==================== -->
-    <div class="create-card-wrapper">
+    <div class="create-card-wrapper" id="categoriasCreateCard">
         <div class="modern-card create-card surface-card surface-card--interactive surface-card--clip">
             <div class="create-card-content">
                 <!-- Lado esquerdo: ícone preview -->
@@ -227,6 +227,55 @@
                     <i data-lucide="inbox"></i>
                     <p>Nenhuma categoria de despesa cadastrada</p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="cat-customize-trigger">
+        <button class="cat-customize-open" id="btnCustomizeCategorias" type="button">
+            <i data-lucide="sliders-horizontal"></i>
+            <span>Personalizar tela</span>
+        </button>
+    </div>
+
+    <div class="cat-customize-overlay" id="categoriasCustomizeModalOverlay" style="display:none;">
+        <div class="cat-customize-modal surface-card" role="dialog" aria-modal="true"
+            aria-labelledby="categoriasCustomizeModalTitle">
+            <div class="cat-customize-header">
+                <h3 class="cat-customize-title" id="categoriasCustomizeModalTitle">Personalizar categorias</h3>
+                <button class="cat-customize-close" id="btnCloseCustomizeCategorias" type="button"
+                    aria-label="Fechar personalizacao">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="cat-customize-body">
+                <p class="cat-customize-desc">Comece no modo essencial e habilite os blocos quando quiser.</p>
+
+                <div class="cat-customize-presets" role="group" aria-label="Preset de visualizacao">
+                    <button class="cat-customize-preset" id="btnPresetEssencialCategorias" type="button">Modo essencial</button>
+                    <button class="cat-customize-preset" id="btnPresetCompletoCategorias" type="button">Modo completo</button>
+                </div>
+
+                <div class="cat-customize-group">
+                    <p class="cat-customize-group-title">Blocos da tela</p>
+                    <label class="cat-customize-toggle">
+                        <span>Cards de KPI</span>
+                        <input type="checkbox" id="toggleCategoriasKpis" checked>
+                    </label>
+                    <label class="cat-customize-toggle">
+                        <span>Card de criacao</span>
+                        <input type="checkbox" id="toggleCategoriasCreateCard" checked>
+                    </label>
+                    <label class="cat-customize-toggle">
+                        <span>Contexto e busca</span>
+                        <input type="checkbox" id="toggleCategoriasContextCard" checked>
+                    </label>
+                </div>
+            </div>
+
+            <div class="cat-customize-footer">
+                <button class="cat-customize-save" id="btnSaveCustomizeCategorias" type="button">Salvar</button>
             </div>
         </div>
     </div>

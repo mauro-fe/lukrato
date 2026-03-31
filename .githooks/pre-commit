@@ -1,0 +1,12 @@
+#!/bin/sh
+
+echo "Running encoding check on staged files..."
+npm run check:encoding:staged
+status=$?
+
+if [ $status -ne 0 ]; then
+  echo ""
+  echo "Commit blocked: fix encoding issues first."
+fi
+
+exit $status

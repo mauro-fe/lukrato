@@ -35,7 +35,7 @@ class PerfilAvatarService
             return [
                 'success' => false,
                 'status' => 400,
-                'message' => 'Tipo de arquivo nÃ£o permitido. Use JPEG, PNG ou WebP.',
+                'message' => 'Tipo de arquivo não permitido. Use JPEG, PNG ou WebP.',
             ];
         }
 
@@ -44,7 +44,7 @@ class PerfilAvatarService
             return [
                 'success' => false,
                 'status' => 400,
-                'message' => 'A imagem nÃ£o pode ter mais de 2MB.',
+                'message' => 'A imagem não pode ter mais de 2MB.',
             ];
         }
 

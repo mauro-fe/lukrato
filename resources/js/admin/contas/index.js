@@ -14,6 +14,7 @@ import { ContasAPI } from './api.js';
 import { ContasRender } from './render.js';
 import { ContasModal } from './modal.js';
 import { ContasEvents, ContasMoneyMask } from './events.js';
+import { initCustomize } from './customize.js';
 
 const getLancamentoGlobalManager = () => window.lancamentoGlobalManager || null;
 const openLancamentoGlobalFromConta = (contaId, options = {}) => {
@@ -31,6 +32,7 @@ const openLancamentoGlobalFromConta = (contaId, options = {}) => {
 };
 
 const init = async () => {
+    initCustomize();
     ContasMoneyMask.setupMoneyMask();
     ContasEvents.attachEventListeners();
     ContasEvents.initKeyboardShortcuts();

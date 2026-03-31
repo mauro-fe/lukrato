@@ -1,10 +1,12 @@
+@import './_customize.css';
+
 /* ==========================================================================
    BILLING PAGE - LUKRATO PRO
-   PÃ¡gina de planos e assinaturas
+   Página de planos e assinaturas
    ========================================================================== */
 
 /* ==========================================================================
-   ROOT & VARIÃVEIS LOCAIS
+   ROOT & VARIÁVEIS LOCAIS
    ========================================================================== */
 .billing-page {
   --billing-max-width: 1200px;
@@ -12,7 +14,7 @@
   --card-padding: clamp(28px, 4vw, 40px);
   --card-gap: clamp(24px, 4vw, 32px);
 
-  /* Cores contextuais usando variÃ¡veis do sistema */
+  /* Cores contextuais usando variáveis do sistema */
   --plan-border: var(--glass-border);
   --plan-hover-border: var(--color-primary);
   --badge-bg: linear-gradient(
@@ -135,7 +137,7 @@
   z-index: 1;
 }
 
-/* AnimaÃ§Ã£o de entrada dos cards */
+/* Animação de entrada dos cards */
 .plan-card {
   animation: cardSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) backwards;
 }
@@ -479,7 +481,7 @@
   overflow: hidden;
 }
 
-/* BotÃ£o primÃ¡rio (ativo) */
+/* Botão primário (ativo) */
 .plan-card__button--primary {
   background: var(--color-primary);
   color: white;
@@ -519,7 +521,7 @@
   transform: translateY(-2px) scale(1);
 }
 
-/* BotÃ£o do plano ativo */
+/* Botão do plano ativo */
 .plan-card__button--active {
   background: var(--color-success);
   color: white;
@@ -527,7 +529,7 @@
     color-mix(in srgb, var(--color-success) 40%, transparent);
 }
 
-/* BotÃ£o do plano cancelado (warning) */
+/* Botão do plano cancelado (warning) */
 .plan-card__button--warning {
   background: linear-gradient(135deg, #ff9800, #ff6b00);
   color: white;
@@ -551,7 +553,7 @@
   transform: translateY(-2px);
 }
 
-/* BotÃ£o desabilitado */
+/* Botão desabilitado */
 .plan-card__button:disabled {
   background: var(--color-surface-muted);
   color: var(--color-text-muted);
@@ -564,7 +566,7 @@
   transform: none;
 }
 
-/* BotÃ£o de Cancelar Assinatura */
+/* Botão de Cancelar Assinatura */
 .plan-card__cancel-btn {
   display: flex;
   align-items: center;
@@ -600,7 +602,7 @@
    ALERTAS DE CARÃŠNCIA E EXPIRAÃ‡ÃƒO
    ========================================================================== */
 
-/* Alerta de perÃ­odo de carÃªncia */
+/* Alerta de período de carência */
 .plan-card__grace-alert {
   display: flex;
   align-items: flex-start;
@@ -702,7 +704,7 @@
   font-size: 1rem;
 }
 
-/* BotÃ£o de renovar com destaque */
+/* Botão de renovar com destaque */
 .plan-card__button--renew {
   background: linear-gradient(135deg, #ff9800, #ff6b00) !important;
   color: white !important;

@@ -3,7 +3,7 @@
 
 <div class="rel-page">
     <!-- ==================== CARDS DE RESUMO RÁPIDO ==================== -->
-    <div class="quick-stats-grid">
+    <div class="quick-stats-grid" id="relQuickStats">
         <div class="stat-card stat-receitas surface-card surface-card--interactive surface-card--clip"
             title="Total de entradas financeiras registradas neste mês" tabindex="0">
             <div class="stat-icon">
@@ -129,7 +129,7 @@
             </div>
 
             <!-- Mini Charts Row -->
-            <div class="overview-charts-row">
+            <div class="overview-charts-row" id="relOverviewChartsRow">
                 <div class="modern-card overview-mini-chart surface-card surface-card--interactive surface-card--clip">
                     <h4><i data-lucide="pie-chart"></i> Despesas por Categoria</h4>
                     <div id="overviewCategoryChart" class="mini-chart-container">
@@ -219,7 +219,7 @@
         </div>
 
         <!-- Controles Adicionais -->
-        <div class="controls-row">
+        <div class="controls-row" id="relControlsRow">
             <div class="control-group surface-control-box surface-control-box--interactive hidden"
                 id="typeSelectWrapper">
                 <label for="reportType">
@@ -343,6 +343,57 @@
                         </div>
                     </div>
                 <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <div class="rel-customize-trigger">
+        <button class="rel-customize-open" id="btnCustomizeRelatorios" type="button">
+            <i data-lucide="sliders-horizontal"></i>
+            <span>Personalizar tela</span>
+        </button>
+    </div>
+
+    <div class="rel-customize-overlay" id="relatoriosCustomizeModalOverlay" style="display:none;">
+        <div class="rel-customize-modal surface-card" role="dialog" aria-modal="true"
+            aria-labelledby="relatoriosCustomizeModalTitle">
+            <div class="rel-customize-header">
+                <h3 class="rel-customize-title" id="relatoriosCustomizeModalTitle">Personalizar relatorios</h3>
+                <button class="rel-customize-close" id="btnCloseCustomizeRelatorios" type="button"
+                    aria-label="Fechar personalizacao">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="rel-customize-body">
+                <p class="rel-customize-desc">Comece no modo essencial e habilite os blocos quando quiser.</p>
+
+                <div class="rel-customize-presets" role="group" aria-label="Preset de visualizacao">
+                    <button class="rel-customize-preset" id="btnPresetEssencialRelatorios" type="button">Modo
+                        essencial</button>
+                    <button class="rel-customize-preset" id="btnPresetCompletoRelatorios" type="button">Modo
+                        completo</button>
+                </div>
+
+                <div class="rel-customize-group">
+                    <p class="rel-customize-group-title">Blocos da tela</p>
+                    <label class="rel-customize-toggle">
+                        <span>Cards de resumo rápido</span>
+                        <input type="checkbox" id="toggleRelQuickStats" checked>
+                    </label>
+                    <label class="rel-customize-toggle">
+                        <span>Mini graficos da visão geral</span>
+                        <input type="checkbox" id="toggleRelOverviewCharts" checked>
+                    </label>
+                    <label class="rel-customize-toggle">
+                        <span>Barra de controles</span>
+                        <input type="checkbox" id="toggleRelControls" checked>
+                    </label>
+                </div>
+            </div>
+
+            <div class="rel-customize-footer">
+                <button class="rel-customize-save" id="btnSaveCustomizeRelatorios" type="button">Salvar</button>
             </div>
         </div>
     </div>

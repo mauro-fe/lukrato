@@ -1,5 +1,5 @@
 ﻿/**
- * LUKRATO â€” LanÃ§amentos / ModalManager + OptionsManager
+ * LUKRATO â€” Lançamentos / ModalManager + OptionsManager
  */
 
 import { CONFIG, DOM, STATE, Utils, MoneyMask, Notifications, Modules } from './state.js';
@@ -50,7 +50,7 @@ const OptionsManager = {
         if (currentValue && select.value !== currentValue) {
             const fallback = document.createElement('option');
             fallback.value = currentValue;
-            fallback.textContent = 'Categoria indisponÃ­vel';
+            fallback.textContent = 'Categoria indisponível';
             fallback.selected = true;
             select.appendChild(fallback);
         }
@@ -119,7 +119,7 @@ const OptionsManager = {
         if (currentValue && select.value !== currentValue) {
             const fallback = document.createElement('option');
             fallback.value = currentValue;
-            fallback.textContent = 'Conta indisponÃ­vel';
+            fallback.textContent = 'Conta indisponível';
             fallback.selected = true;
             select.appendChild(fallback);
         }
@@ -482,7 +482,7 @@ const ModalManager = {
     },
 
     /**
-     * Sugerir categoria usando IA no modal de ediÃ§Ã£o
+     * Sugerir categoria usando IA no modal de edição
      */
     sugerirCategoriaIA: async () => {
         await _sugerirCategoriaIA({
@@ -1071,7 +1071,7 @@ const ModalManager = {
 
         const valorFloat = Math.abs(Number(MoneyMask.unformat(valorValue)));
         if (!Number.isFinite(valorFloat) || valorFloat <= 0) {
-            if (DOM.editTransAlert) { DOM.editTransAlert.textContent = 'Informe um valor vÃ¡lido.'; DOM.editTransAlert.classList.remove('d-none'); }
+            if (DOM.editTransAlert) { DOM.editTransAlert.textContent = 'Informe um valor válido.'; DOM.editTransAlert.classList.remove('d-none'); }
             return;
         }
 
@@ -1121,7 +1121,7 @@ const ModalManager = {
         }
     },
 
-    // Inicializa modal de visualizaÃ§Ã£o
+    // Inicializa modal de visualização
     ensureViewModal: () => {
         if (!STATE.modalViewLanc && DOM.modalViewLancEl) {
             STATE.modalViewLanc = new bootstrap.Modal(DOM.modalViewLancEl);
@@ -1129,7 +1129,7 @@ const ModalManager = {
         return STATE.modalViewLanc;
     },
 
-    // Abre modal de visualizaÃ§Ã£o de lanÃ§amento
+    // Abre modal de visualização de lançamento
     openViewLancamento: (data) => {
         const modal = ModalManager.ensureViewModal();
         if (!modal || !data) return;
@@ -1191,7 +1191,7 @@ const ModalManager = {
             DOM.viewLancConta.textContent = data.conta_nome || data.conta || '-';
         }
 
-        // CartÃ£o
+        // Cartão
         if (DOM.viewLancCartaoItem && DOM.viewLancCartao) {
             if (data.cartao_credito_id && data.cartao_nome) {
                 DOM.viewLancCartaoItem.classList.remove('d-none');
@@ -1223,7 +1223,7 @@ const ModalManager = {
             }
         }
 
-        // DescriÃ§Ã£o
+        // Descrição
         if (DOM.viewLancDescricaoCard && DOM.viewLancDescricao) {
             if (data.descricao && data.descricao.trim()) {
                 DOM.viewLancDescricaoCard.classList.remove('d-none');
@@ -1292,13 +1292,13 @@ const ModalManager = {
             ? ModalManager.getSelectedMetaId(DOM.selectLancMeta)
             : null;
 
-        if (!dataValue) return ModalManager.showLancAlert('Informe a data do lanÃ§amento.');
-        if (!tipoValue) return ModalManager.showLancAlert('Selecione o tipo do lanÃ§amento.');
+        if (!dataValue) return ModalManager.showLancAlert('Informe a data do lançamento.');
+        if (!tipoValue) return ModalManager.showLancAlert('Selecione o tipo do lançamento.');
         if (!contaValue) return ModalManager.showLancAlert('Selecione a conta.');
 
         const valorFloat = Math.abs(Number(MoneyMask.unformat(valorValue)));
         if (!Number.isFinite(valorFloat) || valorFloat <= 0) {
-            return ModalManager.showLancAlert('Informe um valor vÃ¡lido maior que zero.');
+            return ModalManager.showLancAlert('Informe um valor válido maior que zero.');
         }
 
         let metaValor = null;
@@ -1329,7 +1329,7 @@ const ModalManager = {
             meta_valor: metaValor
         };
 
-        // Continuar com lÃ³gica normal de atualizaÃ§Ã£o...
+        // Continuar com lógica normal de atualização...
         const submitBtn = DOM.formLanc.querySelector('button[type="submit"]');
         submitBtn?.setAttribute('disabled', 'disabled');
 
@@ -1369,7 +1369,7 @@ const ModalManager = {
 Modules.OptionsManager = OptionsManager;
 Modules.ModalManager = ModalManager;
 
-// Expor sugerirCategoriaIA para onclick inline do modal de ediÃ§Ã£o
+// Expor sugerirCategoriaIA para onclick inline do modal de edição
 window._editLancSugerirCategoriaIA = ModalManager.sugerirCategoriaIA;
 
 export { OptionsManager, ModalManager };

@@ -11,6 +11,7 @@ import {
     ParcelamentoGrouper,
     FaturaDetalhes
 } from './features.js';
+import { initCustomize } from './customize.js';
 import { apiDelete, apiFetch, apiGet, apiPost, apiPut } from '../shared/api.js';
 
 export const API = {
@@ -413,6 +414,7 @@ const init = async () => {
     // Inicializar componentes
     ExportManager.initDefaults();
     EventListeners.init();
+    initCustomize();
     UI.syncHeroMonthLabel();
     UI.syncExportCard(false);
     UI.syncAdvancedPeriod();
