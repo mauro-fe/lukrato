@@ -9,7 +9,7 @@
         aria-label="Resumo da pagina de lancamentos">
         <div class="lan-hero-copy">
             <span class="lan-hero-eyebrow">Fluxo financeiro</span>
-            <h1 class="lan-hero-title">Lancamentos</h1>
+            <h1 class="lan-hero-title">Transações</h1>
             <p class="lan-hero-subtitle" id="lanHeroSubtitle">Veja receitas, despesas e pendências com leitura mais
                 rápida e menos ruído visual.</p>
         </div>
@@ -157,15 +157,14 @@
 
     <!-- ─── FILTERS ───────────────────────────────────────────────────── -->
     <section class="lk-filters-section collapsed surface-card" id="lanFiltersSection" data-aos="fade-up"
-        data-aos-delay="200"
-        aria-label="Filtros de lancamentos">
+        data-aos-delay="200" aria-label="Filtros de lancamentos">
         <div class="lk-filters-header">
             <div class="lk-filters-title-group">
                 <div class="lk-filters-icon">
                     <i data-lucide="sliders-horizontal"></i>
                 </div>
                 <div class="lk-filters-text">
-                    <h3 class="lk-filters-title">Filtrar lancamentos</h3>
+                    <h3 class="lk-filters-title">Filtrar transações</h3>
                     <span class="lk-filters-subtitle">Busca unificada, chips compactos e periodo rapido.</span>
                 </div>
             </div>
@@ -290,7 +289,7 @@
             <div class="table-header-info">
                 <div class="info-group">
                     <i data-lucide="list"></i>
-                    <span>Seus lancamentos</span>
+                    <span>Suas transações</span>
                 </div>
                 <div class="table-actions">
                     <button type="button" class="modern-btn btn-novo-lancamento" id="btnNovoLancamento"

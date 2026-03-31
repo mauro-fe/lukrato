@@ -1,10 +1,9 @@
 <?php
 
-// Application/Services/Auth/RegistrationValidationStrategy.php
 namespace Application\Services\Auth;
 
-use Application\DTO\Auth\RegistrationDTO;
 use Application\DTO\Auth\CredentialsDTO;
+use Application\DTO\Auth\RegistrationDTO;
 use Application\Models\Usuario;
 use Application\Validators\PasswordStrengthValidator;
 use GUMP;
@@ -25,7 +24,7 @@ class RegistrationValidationStrategy extends AbstractValidationStrategy
         if (!empty($this->errors)) {
             throw new \Application\Core\Exceptions\ValidationException(
                 $this->errors,
-                'Falha na validação de registro'
+                'Falha na validacao de registro'
             );
         }
     }
@@ -38,7 +37,7 @@ class RegistrationValidationStrategy extends AbstractValidationStrategy
             'email' => 'trim|sanitize_email',
         ]);
 
-        $filtered = $gump->run($this->registration->toArray());
+        $gump->run($this->registration->toArray());
     }
 
     private function validateFieldRules(): void
@@ -57,7 +56,6 @@ class RegistrationValidationStrategy extends AbstractValidationStrategy
             $this->errors = array_merge($this->errors, $this->mapGumpErrors($gump->get_errors_array()));
         }
 
-        // Validação de senha forte (além do min_len do GUMP)
         $this->validatePasswordStrength();
     }
 
@@ -65,8 +63,8 @@ class RegistrationValidationStrategy extends AbstractValidationStrategy
     {
         $senha = $this->registration->password;
 
-        if (empty($senha)) {
-            return; // O GUMP já trata o required
+        if ($senha === '') {
+            return;
         }
 
         $errors = PasswordStrengthValidator::validate($senha);
@@ -77,8 +75,15 @@ class RegistrationValidationStrategy extends AbstractValidationStrategy
 
     private function validateUniqueEmail(): void
     {
-        if (Usuario::where('email', $this->registration->email)->exists()) {
-            $this->addError('email', 'E-mail já cadastrado.');
+        $email = mb_strtolower(trim($this->registration->email));
+
+        $exists = Usuario::where(function ($query) use ($email) {
+            $query->whereRaw('LOWER(email) = ?', [$email])
+                ->orWhereRaw('LOWER(pending_email) = ?', [$email]);
+        })->exists();
+
+        if ($exists) {
+            $this->addError('email', 'E-mail ja cadastrado.');
         }
     }
 
@@ -92,7 +97,10 @@ class RegistrationValidationStrategy extends AbstractValidationStrategy
         ];
     }
 
-    protected function performValidation(CredentialsDTO $credentials): void {}
+    protected function performValidation(CredentialsDTO $credentials): void
+    {
+    }
+
     protected function getErrorMessage(): string
     {
         return '';

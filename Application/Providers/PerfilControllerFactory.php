@@ -14,6 +14,7 @@ use Application\Repositories\EnderecoRepository;
 use Application\Builders\PerfilPayloadBuilder;
 use Application\Formatters\DocumentFormatter;
 use Application\Formatters\TelefoneFormatter;
+use Application\Services\Auth\EmailVerificationService;
 
 // --- Dependências adicionais do PerfilValidator (3) ---
 use Application\Formatters\DateFormatter;
@@ -70,7 +71,8 @@ class PerfilControllerFactory
             $enderecoRepo,
             $payloadBuilder,
             $documentFormatter,
-            $telefoneFormatter
+            $telefoneFormatter,
+            new EmailVerificationService()
         );
 
         // --- 3. Criar o PerfilValidator ---
@@ -124,7 +126,8 @@ class PerfilControllerFactory
             $enderecoRepo,
             $payloadBuilder,
             $documentFormatter,
-            $telefoneFormatter
+            $telefoneFormatter,
+            new EmailVerificationService()
         );
     }
 }

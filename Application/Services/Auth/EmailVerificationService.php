@@ -23,7 +23,16 @@ class EmailVerificationService
 
     public function sendVerificationEmail(Usuario $user): bool
     {
-        if ($user->hasVerifiedEmail()) {
+        $targetEmail = $this->resolveVerificationTargetEmail($user);
+        if ($targetEmail === '') {
+            LogService::warning('[EmailVerification] Usuario sem email alvo para verificacao', [
+                'user_id' => $user->id,
+            ]);
+            return false;
+        }
+
+        $hasPendingChange = $this->hasPendingEmailChange($user);
+        if ($user->hasVerifiedEmail() && !$hasPendingChange) {
             LogService::info('[EmailVerification] Email ja verificado', ['user_id' => $user->id]);
             return true;
         }
@@ -33,7 +42,7 @@ class EmailVerificationService
 
         try {
             $result = $this->mailService->sendEmailVerification(
-                $user->email,
+                $targetEmail,
                 $user->nome ?? 'Usuario',
                 $verificationUrl
             );
@@ -41,7 +50,8 @@ class EmailVerificationService
             if ($result) {
                 LogService::info('[EmailVerification] Email de verificacao enviado', [
                     'user_id' => $user->id,
-                    'email' => $user->email,
+                    'email' => $targetEmail,
+                    'pending_change' => $hasPendingChange,
                 ]);
             }
 
@@ -49,7 +59,7 @@ class EmailVerificationService
         } catch (\Throwable $e) {
             LogService::error('[EmailVerification] Falha ao enviar email de verificacao', [
                 'user_id' => $user->id,
-                'email' => $user->email,
+                'email' => $targetEmail,
                 'error' => $e->getMessage(),
             ]);
 
@@ -97,7 +107,21 @@ class EmailVerificationService
             ];
         }
 
-        $user->markEmailAsVerified();
+        if ($this->hasPendingEmailChange($user)) {
+            $pendingEmail = mb_strtolower(trim((string) $user->pending_email));
+            $user->forceFill([
+                'email' => $pendingEmail,
+                'pending_email' => null,
+                'email_verified_at' => $user->email_verified_at ?? now(),
+                'email_verification_token' => null,
+                'email_verification_selector' => null,
+                'email_verification_token_hash' => null,
+                'email_verification_expires_at' => null,
+                'email_verification_reminder_sent_at' => null,
+            ])->save();
+        } else {
+            $user->markEmailAsVerified();
+        }
 
         LogService::info('[EmailVerification] Email verificado com sucesso', [
             'user_id' => $user->id,
@@ -260,7 +284,7 @@ class EmailVerificationService
 
     public function resendVerificationEmail(Usuario $user): array
     {
-        if ($user->hasVerifiedEmail()) {
+        if ($user->hasVerifiedEmail() && !$this->hasPendingEmailChange($user)) {
             return [
                 'success' => false,
                 'message' => 'Seu email ja foi verificado.',
@@ -288,6 +312,23 @@ class EmailVerificationService
             'success' => false,
             'message' => 'Nao foi possivel enviar o email. Tente novamente mais tarde.',
         ];
+    }
+
+    private function hasPendingEmailChange(Usuario $user): bool
+    {
+        $currentEmail = mb_strtolower(trim((string) ($user->email ?? '')));
+        $pendingEmail = mb_strtolower(trim((string) ($user->pending_email ?? '')));
+
+        return $pendingEmail !== '' && $pendingEmail !== $currentEmail;
+    }
+
+    private function resolveVerificationTargetEmail(Usuario $user): string
+    {
+        if ($this->hasPendingEmailChange($user)) {
+            return mb_strtolower(trim((string) $user->pending_email));
+        }
+
+        return mb_strtolower(trim((string) $user->email));
     }
 
     public function getUnverifiedForReminder(): \Illuminate\Database\Eloquent\Collection

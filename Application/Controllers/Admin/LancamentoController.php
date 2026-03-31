@@ -17,8 +17,8 @@ class LancamentoController extends BaseController
         return $this->renderResponse(
             'admin/lancamentos/index',
             [
-                'pageTitle' => 'Lançamentos',
-                'subTitle' => 'Gerencie seus lançamentos',
+                'pageTitle' => 'Transações',
+                'subTitle' => 'Gerencie suas transações financeiras',
                 'isPro' => $isPro,
                 'showMonthSelector' => true,
             ],

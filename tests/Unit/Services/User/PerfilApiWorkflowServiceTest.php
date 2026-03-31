@@ -86,6 +86,45 @@ class PerfilApiWorkflowServiceTest extends TestCase
         ], $result['new_achievements']);
     }
 
+    public function testUpdateProfileForwardsEmailChangeFlags(): void
+    {
+        $perfilService = Mockery::mock(PerfilService::class);
+        $perfilService
+            ->shouldReceive('atualizarPerfil')
+            ->once()
+            ->with(28, Mockery::type(PerfilUpdateDTO::class))
+            ->andReturn([
+                'user' => ['nome' => 'Perfil Atualizado'],
+                'email_change_pending' => true,
+                'email_verification_sent' => true,
+            ]);
+
+        $validator = Mockery::mock(PerfilValidator::class);
+        $validator
+            ->shouldReceive('validate')
+            ->once()
+            ->with(Mockery::type(PerfilUpdateDTO::class), 28)
+            ->andReturn([]);
+
+        $achievementService = Mockery::mock(AchievementService::class);
+        $achievementService
+            ->shouldReceive('checkAndUnlockAchievements')
+            ->once()
+            ->with(28, 'profile_update')
+            ->andReturn([]);
+
+        $service = new PerfilApiWorkflowService($perfilService, $validator, $achievementService);
+
+        $result = $service->updateProfile(28, [
+            'nome' => 'Perfil Atualizado',
+            'email' => 'novo@example.com',
+        ]);
+
+        $this->assertTrue($result['success']);
+        $this->assertTrue($result['email_change_pending']);
+        $this->assertTrue($result['email_verification_sent']);
+    }
+
     public function testUpdatePasswordRejectsMismatchedConfirmation(): void
     {
         $service = new PerfilApiWorkflowService(

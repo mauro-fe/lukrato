@@ -11,12 +11,13 @@ use Application\Builders\PerfilPayloadBuilder;
 use Application\Enums\LogCategory;
 use Application\Formatters\DocumentFormatter;
 use Application\Formatters\TelefoneFormatter;
+use Application\Services\Auth\EmailVerificationService;
 use Application\Services\Billing\AsaasService;
 use Illuminate\Database\Capsule\Manager as DB;
 use Application\Services\Infrastructure\LogService;
 
 /**
- * Service responsável pela lógica de negócio do perfil.
+ * Service responsÃ¡vel pela lÃ³gica de negÃ³cio do perfil.
  */
 class PerfilService
 {
@@ -27,11 +28,12 @@ class PerfilService
         private EnderecoRepository $enderecoRepo,
         private PerfilPayloadBuilder $payloadBuilder,
         private DocumentFormatter $documentFormatter,
-        private TelefoneFormatter $telefoneFormatter
+        private TelefoneFormatter $telefoneFormatter,
+        private ?EmailVerificationService $emailVerificationService = null
     ) {}
 
     /**
-     * Obtém os dados completos do perfil do usuário.
+     * ObtÃ©m os dados completos do perfil do usuÃ¡rio.
      */
     public function obterPerfil(int $userId): ?array
     {
@@ -45,29 +47,47 @@ class PerfilService
     }
 
     /**
-     * Atualiza o perfil completo do usuário.
+     * Atualiza o perfil completo do usuÃ¡rio.
      */
     public function atualizarPerfil(int $userId, PerfilUpdateDTO $dto): array
     {
-        return DB::connection()->transaction(function () use ($userId, $dto) {
-            // 1. Atualiza dados básicos do usuário
-            $user = $this->usuarioRepo->update($userId, [
+        $result = DB::connection()->transaction(function () use ($userId, $dto) {
+            $currentUser = $this->usuarioRepo->findById($userId);
+            if (!$currentUser) {
+                throw new \RuntimeException('Usuario nao encontrado');
+            }
+
+            $currentEmail = mb_strtolower(trim((string) $currentUser->email));
+            $pendingEmail = mb_strtolower(trim((string) ($currentUser->pending_email ?? '')));
+            $requestedEmail = mb_strtolower(trim($dto->email));
+            $shouldCreateNewPending = $requestedEmail !== '' && $requestedEmail !== $currentEmail && $requestedEmail !== $pendingEmail;
+
+            if ($shouldCreateNewPending) {
+                $currentUser->forceFill([
+                    'pending_email' => $requestedEmail,
+                    'email_verification_selector' => null,
+                    'email_verification_token_hash' => null,
+                    'email_verification_expires_at' => null,
+                    'email_verification_sent_at' => null,
+                    'email_verification_reminder_sent_at' => null,
+                ])->save();
+            }
+
+            // Mantem o email atual ate confirmar o novo endereco.
+            $this->usuarioRepo->update($userId, [
                 'nome' => $dto->nome,
-                'email' => $dto->email,
+                'email' => $currentEmail,
                 'data_nascimento' => $dto->dataNascimento,
                 'sexo' => $dto->sexo,
             ]);
 
-            // 2. Atualiza ou remove CPF
             $cpfLimpo = $this->documentFormatter->digits($dto->cpf);
-
             if ($cpfLimpo !== '') {
                 $this->documentoRepo->updateOrCreateCpf($userId, $cpfLimpo);
             } else {
                 $this->documentoRepo->deleteCpf($userId);
             }
 
-            // 3. Atualiza ou remove telefone
             if ($dto->telefone !== '') {
                 [$ddd, $numero] = $this->telefoneFormatter->split($dto->telefone);
                 $this->telefoneRepo->updateOrCreate($userId, $ddd, $numero);
@@ -75,31 +95,57 @@ class PerfilService
                 $this->telefoneRepo->delete($userId);
             }
 
-            // 4. Atualiza ou remove endereço
             if ($dto->endereco->isEmpty()) {
                 $this->enderecoRepo->deletePrincipal($userId);
             } else {
-                $this->enderecoRepo->updateOrCreatePrincipal(
-                    $userId,
-                    $dto->endereco->toArray()
-                );
+                $this->enderecoRepo->updateOrCreatePrincipal($userId, $dto->endereco->toArray());
             }
 
-            // Retorna o perfil atualizado
-            return $this->obterPerfil($userId);
+            $freshUser = $this->usuarioRepo->findById($userId);
+            $hasPendingEmail = $this->hasPendingEmailChange($freshUser?->email, $freshUser?->pending_email);
+
+            return [
+                'user' => $this->obterPerfil($userId),
+                'email_change_pending' => $hasPendingEmail,
+                'should_send_verification' => $shouldCreateNewPending,
+            ];
         });
+
+        $verificationSent = false;
+        if (($result['should_send_verification'] ?? false) === true) {
+            $userToVerify = $this->usuarioRepo->findById($userId);
+            if ($userToVerify) {
+                $verificationSent = $this->verificationService()->sendVerificationEmail($userToVerify);
+            }
+        }
+
+        return [
+            'user' => $result['user'] ?? $this->obterPerfil($userId),
+            'email_change_pending' => (bool) ($result['email_change_pending'] ?? false),
+            'email_verification_sent' => $verificationSent,
+        ];
     }
 
-    /**
-     * Deleta completamente a conta do usuário e todos os seus dados
-     */
+    private function hasPendingEmailChange(?string $email, ?string $pendingEmail): bool
+    {
+        $current = mb_strtolower(trim((string) $email));
+        $pending = mb_strtolower(trim((string) $pendingEmail));
+
+        return $pending !== '' && $pending !== $current;
+    }
+
+    private function verificationService(): EmailVerificationService
+    {
+        return $this->emailVerificationService ??= new EmailVerificationService();
+    }
+
     public function deletarConta(int $userId): void
     {
         DB::connection()->transaction(function () use ($userId) {
-            // Verificar se o usuário existe
+            // Verificar se o usuÃ¡rio existe
             $user = $this->usuarioRepo->findById($userId);
             if (!$user) {
-                throw new \Exception('Usuário não encontrado');
+                throw new \Exception('UsuÃ¡rio nÃ£o encontrado');
             }
 
             // Cancelar assinatura PRO se existir
@@ -114,7 +160,7 @@ class PerfilService
                             'user_id' => $userId,
                             'assinatura_id' => $user->assinatura_id,
                         ]);
-                        // Continua com a exclusão mesmo se falhar o cancelamento
+                        // Continua com a exclusÃ£o mesmo se falhar o cancelamento
                     }
                 }
             }
@@ -124,21 +170,21 @@ class PerfilService
                 try {
                     DB::table($table)->where('user_id', $userId)->delete();
                 } catch (\Exception $e) {
-                    // Tabela não existe, ignorar
-                    LogService::warning("Tabela {$table} não existe ou erro ao deletar: " . $e->getMessage());
+                    // Tabela nÃ£o existe, ignorar
+                    LogService::warning("Tabela {$table} nÃ£o existe ou erro ao deletar: " . $e->getMessage());
                 }
             };
 
-            // Deletar dados relacionados (cascade será feito pelo banco em alguns casos)
+            // Deletar dados relacionados (cascade serÃ¡ feito pelo banco em alguns casos)
             // Mas vamos deletar explicitamente para garantir
 
-            // Lançamentos
+            // LanÃ§amentos
             $deleteIfExists('lancamentos');
 
             // Agendamentos
             $deleteIfExists('agendamentos');
 
-            // Orçamentos
+            // OrÃ§amentos
             $deleteIfExists('orcamentos_categoria');
 
             // Parcelamentos
@@ -150,14 +196,14 @@ class PerfilService
             // Contas
             $deleteIfExists('contas');
 
-            // Cartões de crédito
+            // CartÃµes de crÃ©dito
             $deleteIfExists('cartoes_credito');
 
             // Faturas e itens de fatura
             $deleteIfExists('faturas_cartao_itens');
             $deleteIfExists('faturas');
 
-            // Investimentos (transações e proventos primeiro)
+            // Investimentos (transaÃ§Ãµes e proventos primeiro)
             try {
                 $investimentoIds = DB::table('investimentos')->where('user_id', $userId)->pluck('id');
                 if ($investimentoIds->isNotEmpty()) {
@@ -165,43 +211,43 @@ class PerfilService
                     DB::table('proventos')->whereIn('investimento_id', $investimentoIds)->delete();
                 }
             } catch (\Exception $e) {
-                LogService::warning("Erro ao deletar transações/proventos de investimentos: " . $e->getMessage());
+                LogService::warning("Erro ao deletar transaÃ§Ãµes/proventos de investimentos: " . $e->getMessage());
             }
             $deleteIfExists('investimentos');
 
             // Metas
             $deleteIfExists('metas');
 
-            // Gamificação
+            // GamificaÃ§Ã£o
             $deleteIfExists('user_achievements');
             $deleteIfExists('points_log');
             $deleteIfExists('user_progress');
 
-            // Notificações
+            // NotificaÃ§Ãµes
             $deleteIfExists('notificacoes');
             $deleteIfExists('notifications');
 
-            // Preferências
+            // PreferÃªncias
             $deleteIfExists('preferencias_usuario');
 
             // Assinatura
             $deleteIfExists('assinaturas_usuarios');
 
-            // Indicações (pode ser referrer ou referred)
+            // IndicaÃ§Ãµes (pode ser referrer ou referred)
             try {
                 DB::table('indicacoes')
                     ->where('referrer_id', $userId)
                     ->orWhere('referred_id', $userId)
                     ->delete();
             } catch (\Exception $e) {
-                LogService::warning("Tabela indicacoes não existe ou erro ao deletar: " . $e->getMessage());
+                LogService::warning("Tabela indicacoes nÃ£o existe ou erro ao deletar: " . $e->getMessage());
             }
 
-            // Cupons usados (usa usuario_id, não user_id)
+            // Cupons usados (usa usuario_id, nÃ£o user_id)
             try {
                 DB::table('cupons_usados')->where('usuario_id', $userId)->delete();
             } catch (\Exception $e) {
-                LogService::warning("Tabela cupons_usados não existe ou erro ao deletar: " . $e->getMessage());
+                LogService::warning("Tabela cupons_usados nÃ£o existe ou erro ao deletar: " . $e->getMessage());
             }
 
             // Documentos
@@ -210,7 +256,7 @@ class PerfilService
             // Telefones
             $this->telefoneRepo->delete($userId);
 
-            // Endereços
+            // EndereÃ§os
             $this->enderecoRepo->deletePrincipal($userId);
 
             // Deletar arquivo de avatar se existir
@@ -222,14 +268,14 @@ class PerfilService
                 }
             }
 
-            // Por fim, deletar o usuário
+            // Por fim, deletar o usuÃ¡rio
             $this->usuarioRepo->delete($userId);
         });
     }
 
     /**
      * Salva dados do checkout no perfil (CPF, telefone, CEP) se estiverem faltando
-     * Usado após pagamento bem-sucedido para completar o perfil automaticamente
+     * Usado apÃ³s pagamento bem-sucedido para completar o perfil automaticamente
      */
     public function salvarDadosCheckout(int $userId, array $dados): void
     {
@@ -239,7 +285,7 @@ class PerfilService
             $cep = $dados['cep'] ?? '';
             $endereco = $dados['endereco'] ?? '';
 
-            // CPF - só salva se não existe ainda
+            // CPF - sÃ³ salva se nÃ£o existe ainda
             if ($cpf !== '') {
                 $cpfLimpo = preg_replace('/\D/', '', $cpf);
                 if (strlen($cpfLimpo) === 11) {
@@ -251,7 +297,7 @@ class PerfilService
                 }
             }
 
-            // Telefone - só salva se não existe ainda
+            // Telefone - sÃ³ salva se nÃ£o existe ainda
             if ($phone !== '') {
                 $phoneLimpo = preg_replace('/\D/', '', $phone);
                 if (strlen($phoneLimpo) >= 10) {
@@ -266,7 +312,7 @@ class PerfilService
                 }
             }
 
-            // CEP e Endereço - só salva se não existe endereço ainda
+            // CEP e EndereÃ§o - sÃ³ salva se nÃ£o existe endereÃ§o ainda
             if ($cep !== '') {
                 $cepLimpo = preg_replace('/\D/', '', $cep);
                 if (strlen($cepLimpo) === 8) {
@@ -275,7 +321,7 @@ class PerfilService
                         ->exists();
 
                     if (!$existeEndereco) {
-                        // Tentar separar logradouro e número do endereço
+                        // Tentar separar logradouro e nÃºmero do endereÃ§o
                         $logradouro = $endereco;
                         $numero = null;
 

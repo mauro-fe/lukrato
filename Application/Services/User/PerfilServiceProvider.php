@@ -12,6 +12,7 @@ use Application\Formatters\TelefoneFormatter;
 use Application\Formatters\DateFormatter;
 use Application\Validators\EnderecoValidator;
 use Application\Validators\PerfilValidator;
+use Application\Services\Auth\EmailVerificationService;
 use Application\Services\User\PerfilService;
 
 /**
@@ -41,6 +42,7 @@ class PerfilServiceProvider
         $container->singleton(DocumentoRepository::class);
         $container->singleton(TelefoneRepository::class);
         $container->singleton(EnderecoRepository::class);
+        $container->singleton(EmailVerificationService::class);
 
         // Validators
         $container->singleton(EnderecoValidator::class, function ($c) {
@@ -81,7 +83,8 @@ class PerfilServiceProvider
                 $c->make(EnderecoRepository::class),
                 $c->make(PerfilPayloadBuilder::class),
                 $c->make(DocumentFormatter::class),
-                $c->make(TelefoneFormatter::class)
+                $c->make(TelefoneFormatter::class),
+                $c->make(EmailVerificationService::class)
             );
         });
 

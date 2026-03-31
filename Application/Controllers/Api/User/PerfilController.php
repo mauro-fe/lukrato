@@ -77,6 +77,8 @@ class PerfilController extends BaseController
                 'message' => 'Perfil atualizado com sucesso',
                 'user' => $result['user'],
                 'new_achievements' => $result['new_achievements'],
+                'email_change_pending' => (bool) ($result['email_change_pending'] ?? false),
+                'email_verification_sent' => (bool) ($result['email_verification_sent'] ?? false),
             ]);
         } catch (Throwable $e) {
             $this->logPerfilException($e, 'update_perfil');

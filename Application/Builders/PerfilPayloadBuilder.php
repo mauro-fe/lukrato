@@ -36,12 +36,17 @@ class PerfilPayloadBuilder
         $ddd = $this->telefoneRepo->getDddById($telefone?->id_ddd);
         $sexo = $user->id_sexo ? Sexo::find($user->id_sexo) : null;
         $endereco = $this->enderecoRepo->getPrincipal($user->id);
+        $currentEmail = mb_strtolower(trim((string) ($user->email ?? '')));
+        $pendingEmail = mb_strtolower(trim((string) ($user->pending_email ?? '')));
+        $hasPendingEmailChange = $pendingEmail !== '' && $pendingEmail !== $currentEmail;
 
         return [
             'id' => (int) $user->id,
             'support_code' => (string) ($user->support_code ?? ''),
             'nome' => (string) ($user->nome ?? ''),
             'email' => (string) ($user->email ?? ''),
+            'pending_email' => $hasPendingEmailChange ? (string) $user->pending_email : '',
+            'email_change_pending' => $hasPendingEmailChange,
             'avatar' => $user->avatar ? (rtrim(BASE_URL, '/') . '/' . $user->avatar) : '',
             'avatar_settings' => [
                 'position_x' => max(0, min(100, (int) ($user->avatar_focus_x ?? 50))),

@@ -9,20 +9,24 @@ use Application\Core\Exceptions\ValidationException;
 use Application\Core\Response;
 use Application\Middlewares\CsrfMiddleware;
 use Application\Models\Usuario;
+use Application\Repositories\UsuarioRepository;
 use Application\Services\Auth\EmailVerificationService;
 use Application\Services\Infrastructure\CacheService;
 
 class EmailVerificationController extends BaseController
 {
     private EmailVerificationService $verificationService;
+    private UsuarioRepository $usuarioRepo;
 
     public function __construct(
         ?EmailVerificationService $verificationService = null,
-        ?CacheService $cache = null
+        ?CacheService $cache = null,
+        ?UsuarioRepository $usuarioRepo = null
     )
     {
         parent::__construct(cache: $cache);
         $this->verificationService = $verificationService ?? new EmailVerificationService();
+        $this->usuarioRepo = $usuarioRepo ?? new UsuarioRepository();
     }
 
     public function verify(): Response
@@ -76,7 +80,7 @@ class EmailVerificationController extends BaseController
         $user = null;
 
         if ($email !== '') {
-            $user = Usuario::whereRaw('LOWER(email) = ?', [strtolower(trim($email))])->first();
+            $user = $this->usuarioRepo->findByEmailOrPending($email);
         } elseif ($userId) {
             $user = Usuario::find($userId);
         }

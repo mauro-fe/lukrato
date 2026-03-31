@@ -40,6 +40,19 @@ function getCategoryIcon(categoryName) {
     return CATEGORY_ICONS[key] || 'receipt';
 }
 
+const CARD_SELECTION_IGNORE_SELECTOR = [
+    'button',
+    'a',
+    'input',
+    'select',
+    'textarea',
+    'label',
+    '.lk-dropdown',
+    '.lk-dropdown-menu',
+    '.lk-dropdown-item',
+    '[contenteditable="true"]'
+].join(', ');
+
 export const TableManager = {
     handleActionButton(btn) {
         if (!btn) return;
@@ -86,19 +99,7 @@ export const TableManager = {
                 const checkboxes = DOM.tableBody?.querySelectorAll('.row-checkbox') || [];
                 checkboxes.forEach(cb => {
                     const card = cb.closest('.lk-txn-card');
-                    const id = card?.dataset.id;
-                    if (!id) return;
-                    const item = STATE.filteredData.find(i => String(i.id) === String(id));
-                    if (item && !Utils.isSaldoInicial(item) && !item._isParcelamentoGroup) {
-                        cb.checked = checked;
-                        if (checked) {
-                            STATE.selectedIds.add(id);
-                            card.classList.add('selected');
-                        } else {
-                            STATE.selectedIds.delete(id);
-                            card.classList.remove('selected');
-                        }
-                    }
+                    this.setCardSelection(card, checked);
                 });
                 this.updateSelectionInfo();
             });
@@ -131,6 +132,33 @@ export const TableManager = {
             DOM.tableBody.addEventListener('click', (e) => this.handleTableClick(e));
             DOM.tableBody.addEventListener('change', (e) => this.handleCheckboxChange(e));
         }
+    },
+
+    isCardSelectable(card) {
+        if (!card) return false;
+        return Boolean(card.querySelector('.row-checkbox'));
+    },
+
+    setCardSelection(card, shouldSelect) {
+        if (!this.isCardSelectable(card)) return;
+        const id = card.dataset.id;
+        if (!id) return;
+        const checked = Boolean(shouldSelect);
+        const checkbox = card.querySelector('.row-checkbox');
+        if (checkbox) checkbox.checked = checked;
+        card.classList.toggle('selected', checked);
+        if (checked) STATE.selectedIds.add(String(id));
+        else STATE.selectedIds.delete(String(id));
+    },
+
+    toggleCardSelection(card) {
+        if (!this.isCardSelectable(card)) return;
+        const checkbox = card.querySelector('.row-checkbox');
+        this.setCardSelection(card, !(checkbox?.checked));
+    },
+
+    shouldIgnoreCardSelectionClick(target) {
+        return Boolean(target?.closest?.(CARD_SELECTION_IGNORE_SELECTOR));
     },
 
     updateSortIndicators() {
@@ -372,6 +400,7 @@ export const TableManager = {
         const cardClasses = ['lk-txn-card'];
         if (isSaldoInicial) cardClasses.push('lk-txn-saldo-inicial');
         if (isGroup) cardClasses.push('lk-txn-group');
+        if (isSelectable) cardClasses.push('lk-txn-card-selectable');
         if (isSelected) cardClasses.push('selected');
 
         // ─── CHECKBOX ─────────────────────────────────────
@@ -674,8 +703,23 @@ export const TableManager = {
         }
 
         const btn = e.target.closest('button[data-action]');
-        if (!btn) return;
-        this.handleActionButton(btn);
+        if (btn) {
+            this.handleActionButton(btn);
+            return;
+        }
+
+        const body = e.target.closest('.lk-txn-body');
+        if (!body) return;
+        if (this.shouldIgnoreCardSelectionClick(e.target)) return;
+
+        const selection = window.getSelection?.();
+        if (selection && !selection.isCollapsed) return;
+
+        const card = body.closest('.lk-txn-card');
+        if (!this.isCardSelectable(card)) return;
+
+        this.toggleCardSelection(card);
+        this.updateSelectionInfo();
     },
 
     toggleDetailPanel(id, btn) {
@@ -700,10 +744,7 @@ export const TableManager = {
         const checkbox = e.target.closest('.row-checkbox');
         if (!checkbox) return;
         const card = checkbox.closest('.lk-txn-card');
-        const id = card?.dataset.id;
-        if (!id) return;
-        if (checkbox.checked) { STATE.selectedIds.add(id); card.classList.add('selected'); }
-        else { STATE.selectedIds.delete(id); card.classList.remove('selected'); }
+        this.setCardSelection(card, checkbox.checked);
         this.updateSelectionInfo();
     },
 

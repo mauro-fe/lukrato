@@ -4,19 +4,17 @@ declare(strict_types=1);
 
 namespace Application\Services\Auth;
 
-use Application\Models\Usuario;
-use Application\Lib\Auth;
-use Application\Services\Auth\SessionManager;
-use Application\Services\Infrastructure\LogService;
 use Application\Enums\LogCategory;
-use Google_Client;
-use Google\Service\Oauth2;
+use Application\Models\Usuario;
+use Application\Services\Infrastructure\LogService;
 use Application\Validators\PasswordStrengthValidator;
 use Exception;
+use Google_Client;
+use Google\Service\Oauth2;
 use RuntimeException;
 
 /**
- * Serviço para autenticação via Google OAuth2
+ * Servico para autenticacao via Google OAuth2
  */
 class GoogleAuthService
 {
@@ -29,18 +27,13 @@ class GoogleAuthService
         $this->authService = $authService ?? new AuthService();
     }
 
-    /**
-     * Gera URL de autenticação do Google
-     */
     public function getAuthUrl(): string
     {
         return $this->client->createAuthUrl();
     }
 
     /**
-     * Processa o callback do Google
-     * @return array{usuario: Usuario, is_new: bool}
-     * @throws Exception
+     * @return array{usuario: Usuario, is_new: bool}|array{needs_confirmation: bool, user_info: array<string, string>}
      */
     public function handleCallback(string $code): array
     {
@@ -56,64 +49,79 @@ class GoogleAuthService
 
         LogService::info('Login Google recebido', [
             'google_id' => $userInfo['id'],
-            'email'     => $userInfo['email'],
+            'email' => $userInfo['email'],
         ]);
 
         return $this->processUser($userInfo);
     }
 
+    /**
+     * @return array{id: string, name: string, email: string, picture: string}
+     */
     private function getUserInfo(): array
     {
         $oauth = new Oauth2($this->client);
         $info = $oauth->userinfo->get();
 
         return [
-            'id'      => $info->id,
-            'name'    => $info->name ?? '',
-            'email'   => $info->email,
-            'picture' => $info->picture ?? '',
+            'id' => (string) $info->id,
+            'name' => (string) ($info->name ?? ''),
+            'email' => (string) $info->email,
+            'picture' => (string) ($info->picture ?? ''),
         ];
     }
 
+    /**
+     * @param array{id: string, name: string, email: string, picture: string} $userInfo
+     * @return array{usuario: Usuario, is_new: bool}|array{needs_confirmation: bool, user_info: array<string, string>}
+     */
     private function processUser(array $userInfo): array
     {
         $googleId = $userInfo['id'];
-        $email    = trim(strtolower($userInfo['email']));
-        $name     = $userInfo['name'];
+        $email = mb_strtolower(trim($userInfo['email']));
+        $name = $userInfo['name'];
 
-        LogService::info('Processando usuário Google', [
+        LogService::info('Processando usuario Google', [
             'google_id' => $googleId,
             'email' => $email,
             'name' => $name,
         ]);
 
-        // Busca por google_id
+        // 1) Busca por google_id
         $usuario = Usuario::where('google_id', $googleId)->first();
         if ($usuario) {
-            LogService::info('Usuário encontrado por google_id', ['usuario_id' => $usuario->id]);
+            LogService::info('Usuario encontrado por google_id', ['usuario_id' => $usuario->id]);
+            $this->concludePendingEmailChangeIfMatchesGoogle($usuario, $email);
             $this->updateUserName($usuario, $name);
             return ['usuario' => $usuario, 'is_new' => false];
         }
 
-        // Busca por email (case-insensitive e com trim)
+        // 2) Busca por email principal
         $usuario = Usuario::whereRaw('LOWER(TRIM(email)) = ?', [$email])->first();
-
-        LogService::info('Busca por email', [
-            'email_buscado' => $email,
-            'encontrado' => $usuario ? 'SIM' : 'NÃO',
-        ]);
-
         if ($usuario) {
-            LogService::info('Usuário encontrado por email, vinculando google_id', ['usuario_id' => $usuario->id]);
+            LogService::info('Usuario encontrado por email, vinculando google_id', ['usuario_id' => $usuario->id]);
             $usuario->google_id = $googleId;
-            $usuario->nome = $usuario->nome ?: $name;
+            if ($usuario->nome === '' || $usuario->nome === null) {
+                $usuario->nome = $name;
+            }
             $usuario->save();
-
             return ['usuario' => $usuario, 'is_new' => false];
         }
 
-        // Usuário não existe - retorna para confirmação antes de criar
-        LogService::info('Usuário não encontrado, solicitando confirmação', ['email' => $email]);
+        // 3) Busca por email pendente para concluir troca automaticamente
+        $usuario = Usuario::whereRaw('LOWER(TRIM(pending_email)) = ?', [$email])->first();
+        if ($usuario) {
+            LogService::info('Usuario encontrado por pending_email', ['usuario_id' => $usuario->id]);
+            $usuario->google_id = $googleId;
+            if ($usuario->nome === '' || $usuario->nome === null) {
+                $usuario->nome = $name;
+            }
+            $this->concludePendingEmailChangeIfMatchesGoogle($usuario, $email);
+            return ['usuario' => $usuario, 'is_new' => false];
+        }
+
+        // 4) Nao existe: solicitar confirmacao para criar conta nova
+        LogService::info('Usuario nao encontrado, solicitando confirmacao', ['email' => $email]);
 
         return [
             'needs_confirmation' => true,
@@ -122,7 +130,7 @@ class GoogleAuthService
     }
 
     /**
-     * Cria usuário a partir dos dados pendentes (após confirmação)
+     * Cria usuario a partir dos dados pendentes (apos confirmacao)
      */
     public function createUserFromPending(array $userInfo, string $referralCode = ''): Usuario
     {
@@ -131,7 +139,6 @@ class GoogleAuthService
 
     private function createUserFromGoogle(array $userInfo, string $referralCode = ''): Usuario
     {
-        // Gera senha aleatória forte que passa na validação (maiúscula, minúscula, número, especial)
         $randomPassword = PasswordStrengthValidator::generateSecureRandom(32);
 
         $registerData = [
@@ -143,9 +150,9 @@ class GoogleAuthService
             'skip_email_verification' => true,
         ];
 
-        if (!empty($referralCode)) {
+        if ($referralCode !== '') {
             $registerData['referral_code'] = $referralCode;
-            LogService::info('Código de indicação aplicado no registro via Google', [
+            LogService::info('Codigo de indicacao aplicado no registro via Google', [
                 'email' => $userInfo['email'],
                 'referral_code' => $referralCode,
             ]);
@@ -154,12 +161,12 @@ class GoogleAuthService
         $result = $this->authService->register($registerData);
 
         if (empty($result['user_id'])) {
-            throw new Exception('Falha ao criar usuário via Google');
+            throw new Exception('Falha ao criar usuario via Google');
         }
 
-        $usuario = Usuario::findOrFail($result['user_id']);
+        $usuario = Usuario::findOrFail((int) $result['user_id']);
 
-        // Marca email como verificado automaticamente (Google já verifica)
+        // Registro novo via Google pode marcar verificado automaticamente.
         if (!$usuario->hasVerifiedEmail()) {
             $usuario->markEmailAsVerified();
             LogService::info('Email marcado como verificado (registro via Google)', [
@@ -167,10 +174,9 @@ class GoogleAuthService
             ]);
         }
 
-        // Envia email de boas-vindas (Google já verifica o email, então envia direto)
         try {
             $mailService = new \Application\Services\Communication\MailService();
-            $mailService->sendWelcomeEmail($usuario->email, $usuario->nome ?? 'Usuário');
+            $mailService->sendWelcomeEmail($usuario->email, $usuario->nome ?? 'Usuario');
             LogService::info('Email de boas-vindas enviado (registro via Google)', [
                 'user_id' => $usuario->id,
                 'email' => $usuario->email,
@@ -188,18 +194,45 @@ class GoogleAuthService
 
     private function updateUserName(Usuario $usuario, string $name): void
     {
-        if ($name && $usuario->nome !== $name) {
+        if ($name !== '' && $usuario->nome !== $name) {
             $usuario->nome = $name;
             $usuario->save();
         }
     }
 
+    private function concludePendingEmailChangeIfMatchesGoogle(Usuario $usuario, string $googleEmail): bool
+    {
+        $pendingEmail = mb_strtolower(trim((string) ($usuario->pending_email ?? '')));
+        $normalizedGoogleEmail = mb_strtolower(trim($googleEmail));
+
+        if ($pendingEmail === '' || $pendingEmail !== $normalizedGoogleEmail) {
+            return false;
+        }
+
+        $usuario->email = $normalizedGoogleEmail;
+        $usuario->pending_email = null;
+        $usuario->email_verified_at = $usuario->email_verified_at ?? now();
+        $usuario->email_verification_token = null;
+        $usuario->email_verification_selector = null;
+        $usuario->email_verification_token_hash = null;
+        $usuario->email_verification_expires_at = null;
+        $usuario->email_verification_sent_at = null;
+        $usuario->email_verification_reminder_sent_at = null;
+        $usuario->save();
+
+        LogService::info('Troca de email pendente concluida via Google', [
+            'user_id' => $usuario->id,
+            'new_email' => $normalizedGoogleEmail,
+        ]);
+
+        return true;
+    }
+
     /**
-     * Realiza login do usuário após autenticação Google
+     * Realiza login do usuario apos autenticacao Google
      */
     public function loginUser(Usuario $usuario, array $userInfo): void
     {
-        // Marca email como verificado se ainda não estiver (Google verifica o email)
         if (!$usuario->hasVerifiedEmail()) {
             $usuario->markEmailAsVerified();
             LogService::info('Email marcado como verificado (login via Google)', [
@@ -207,11 +240,9 @@ class GoogleAuthService
             ]);
         }
 
-        // Usa SessionManager para login seguro (regenera sessão)
         $sessionManager = new SessionManager();
         $sessionManager->createSession($usuario, false);
 
-        // Armazena foto do Google na sessão (após createSession para não ser sobrescrita)
         if (!empty($userInfo['picture'])) {
             $_SESSION['google_user_picture'] = $userInfo['picture'];
         }
@@ -222,16 +253,12 @@ class GoogleAuthService
         ]);
     }
 
-    /**
-     * Realiza login automático após registro via Google
-     */
     public function loginAfterRegistration(int $userId, string $email): bool
     {
         try {
             $usuario = Usuario::find($userId);
-
             if (!$usuario) {
-                LogService::warning('Usuário não encontrado para login após registro', [
+                LogService::warning('Usuario nao encontrado para login apos registro', [
                     'user_id' => $userId,
                 ]);
                 return false;
@@ -240,7 +267,7 @@ class GoogleAuthService
             $sessionManager = new SessionManager();
             $sessionManager->createSession($usuario, false);
 
-            LogService::info('Login automático após registro Google realizado', [
+            LogService::info('Login automatico apos registro Google realizado', [
                 'user_id' => $userId,
                 'email' => $email,
             ]);
@@ -256,17 +283,14 @@ class GoogleAuthService
         }
     }
 
-    /**
-     * Cria cliente Google via ENV (produção-ready)
-     */
     private function createGoogleClient(): Google_Client
     {
         if (
-            empty($_ENV['GOOGLE_CLIENT_ID']) ||
-            empty($_ENV['GOOGLE_CLIENT_SECRET']) ||
-            empty($_ENV['GOOGLE_REDIRECT_URI'])
+            empty($_ENV['GOOGLE_CLIENT_ID'])
+            || empty($_ENV['GOOGLE_CLIENT_SECRET'])
+            || empty($_ENV['GOOGLE_REDIRECT_URI'])
         ) {
-            throw new RuntimeException('Google OAuth não configurado no .env');
+            throw new RuntimeException('Google OAuth nao configurado no .env');
         }
 
         $client = new Google_Client();
@@ -276,7 +300,6 @@ class GoogleAuthService
 
         $client->addScope('email');
         $client->addScope('profile');
-
         $client->setPrompt('select_account');
         $client->setAccessType('offline');
 

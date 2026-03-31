@@ -40,10 +40,17 @@ class PerfilApiWorkflowService
             ];
         }
 
+        $profileUpdate = $this->perfilService->atualizarPerfil($userId, $dto);
+        $updatedUser = (is_array($profileUpdate) && array_key_exists('user', $profileUpdate))
+            ? $profileUpdate['user']
+            : $profileUpdate;
+
         return [
             'success' => true,
-            'user' => $this->perfilService->atualizarPerfil($userId, $dto),
+            'user' => $updatedUser,
             'new_achievements' => $this->achievementService()->checkAndUnlockAchievements($userId, 'profile_update'),
+            'email_change_pending' => (bool) ($profileUpdate['email_change_pending'] ?? false),
+            'email_verification_sent' => (bool) ($profileUpdate['email_verification_sent'] ?? false),
         ];
     }
 

@@ -37,6 +37,7 @@ class Usuario extends Model
     protected $fillable = [
         'nome',
         'email',
+        'pending_email',
         'avatar',
         'avatar_focus_x',
         'avatar_focus_y',
@@ -372,6 +373,10 @@ class Usuario extends Model
 
         static::saving(function (Usuario $u) {
             if (!empty($u->email)) $u->email = trim(strtolower($u->email));
+            if (isset($u->pending_email)) {
+                $pending = trim((string) $u->pending_email);
+                $u->pending_email = $pending === '' ? null : strtolower($pending);
+            }
             if (isset($u->nome))   $u->nome  = trim((string)$u->nome);
 
             if (!empty($u->data_nascimento)) {

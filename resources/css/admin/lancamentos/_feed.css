@@ -212,6 +212,10 @@
   min-height: 64px;
 }
 
+.lk-txn-card.lk-txn-card-selectable .lk-txn-body {
+  cursor: pointer;
+}
+
 /* Checkbox area */
 .lk-txn-select {
   flex-shrink: 0;

@@ -10,7 +10,7 @@
                         <i data-lucide="trash-2"></i>
                     </div>
                     <div>
-                        <h5 class="modal-title mb-1" id="modalDeleteLancamentoScopeLabel">Excluir lancamento</h5>
+                        <h5 class="modal-title mb-1" id="modalDeleteLancamentoScopeLabel">Excluir lançamento</h5>
                         <p class="modal-subtitle mb-0" id="deleteScopeModalSubtitle">
                             Revise a exclusao antes de confirmar.
                         </p>

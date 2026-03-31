@@ -147,6 +147,50 @@ class PerfilControllerTest extends TestCase
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
+    public function testUpdateReturnsSuccessIncludingEmailChangeFlags(): void
+    {
+        $this->seedAuthenticatedUserSession(104, 'Perfil Flags');
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = [
+            'nome' => 'Perfil Flags',
+            'email' => 'novo@email.com',
+        ];
+
+        $workflowService = Mockery::mock(PerfilApiWorkflowService::class);
+        $workflowService
+            ->shouldReceive('updateProfile')
+            ->once()
+            ->with(
+                104,
+                Mockery::on(static function (array $payload): bool {
+                    return ($payload['nome'] ?? null) === 'Perfil Flags'
+                        && ($payload['email'] ?? null) === 'novo@email.com';
+                })
+            )
+            ->andReturn([
+                'success' => true,
+                'user' => ['nome' => 'Perfil Flags'],
+                'new_achievements' => [],
+                'email_change_pending' => true,
+                'email_verification_sent' => true,
+            ]);
+
+        $controller = new PerfilController(
+            null,
+            null,
+            $workflowService,
+            Mockery::mock(PerfilAvatarService::class)
+        );
+
+        $response = $controller->update();
+        $payload = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertTrue($payload['success']);
+        $this->assertTrue($payload['data']['email_change_pending']);
+        $this->assertTrue($payload['data']['email_verification_sent']);
+    }
+
     public function testShowThrowsAuthExceptionWhenSessionIsMissing(): void
     {
         $controller = new PerfilController(
@@ -155,7 +199,7 @@ class PerfilControllerTest extends TestCase
         );
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessageMatches('/N[ãa]o autenticado/u');
 
         $controller->show();
     }

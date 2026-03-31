@@ -4,9 +4,9 @@ import { initCustomize } from './customize.js';
 
 /**
  * ============================================================================
- * LUKRATO — Perfil Page (Vite Module)
+ * LUKRATO â€” Perfil Page (Vite Module)
  * ============================================================================
- * Extraído de views/admin/perfil/index.php (2 inline <script> blocks)
+ * ExtraÃ­do de views/admin/perfil/index.php (2 inline <script> blocks)
  *
  * Tabs, profile CRUD, referral, password strength, account deletion.
  * ============================================================================
@@ -72,7 +72,7 @@ import { initCustomize } from './customize.js';
         switchTab(initial);
     })();
 
-    // Campos do formulário
+    // Campos do formulÃ¡rio
     const fieldNome = document.getElementById('nome');
     const fieldEmail = document.getElementById('email');
     const fieldCpf = document.getElementById('cpf');
@@ -86,6 +86,37 @@ import { initCustomize } from './customize.js';
     const fieldBairro = document.getElementById('end_bairro');
     const fieldCidade = document.getElementById('end_cidade');
     const fieldEstado = document.getElementById('end_estado');
+    const emailPendingNoticeId = 'email-pending-notice';
+
+    function updateEmailPendingNotice(user = {}) {
+        if (!fieldEmail) return;
+
+        const currentEmail = String(user.email || '').trim();
+        const pendingEmail = String(user.pending_email || '').trim();
+        const hasPending = Boolean(user.email_change_pending) && pendingEmail !== '';
+
+        fieldEmail.value = hasPending ? pendingEmail : currentEmail;
+
+        const group = fieldEmail.closest('.form-group');
+        if (!group) return;
+
+        let note = document.getElementById(emailPendingNoticeId);
+        if (!hasPending) {
+            if (note) note.remove();
+            return;
+        }
+
+        if (!note) {
+            note = document.createElement('small');
+            note.id = emailPendingNoticeId;
+            note.style.display = 'block';
+            note.style.marginTop = '6px';
+            note.style.color = '#d97706';
+            group.appendChild(note);
+        }
+
+        note.textContent = `Novo e-mail pendente de confirmacao: ${pendingEmail}. O login continua com o e-mail atual ate a confirmacao.`;
+    }
 
     function maskCEP(value) {
         const digits = value.replace(/\D/g, '');
@@ -138,7 +169,7 @@ import { initCustomize } from './customize.js';
 
     if (avatarEditBtn && avatarInput) {
         avatarEditBtn.addEventListener('click', () => {
-            // Se já tem avatar, pergunta se quer trocar ou remover
+            // Se jÃ¡ tem avatar, pergunta se quer trocar ou remover
             if (avatarImg && avatarImg.style.display !== 'none' && avatarImg.src) {
                 if (window.Swal) {
                     Swal.fire({
@@ -170,15 +201,15 @@ import { initCustomize } from './customize.js';
             const file = avatarInput.files?.[0];
             if (!file) return;
 
-            // Validação client-side
+            // ValidaÃ§Ã£o client-side
             const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
             if (!allowedTypes.includes(file.type)) {
-                if (window.Swal) Swal.fire({ icon: 'error', title: 'Tipo inválido', text: 'Use JPEG, PNG ou WebP.', confirmButtonColor: '#e74c3c' });
+                if (window.Swal) Swal.fire({ icon: 'error', title: 'Tipo invÃ¡lido', text: 'Use JPEG, PNG ou WebP.', confirmButtonColor: '#e74c3c' });
                 avatarInput.value = '';
                 return;
             }
             if (file.size > 2 * 1024 * 1024) {
-                if (window.Swal) Swal.fire({ icon: 'error', title: 'Arquivo muito grande', text: 'O tamanho máximo é 2MB.', confirmButtonColor: '#e74c3c' });
+                if (window.Swal) Swal.fire({ icon: 'error', title: 'Arquivo muito grande', text: 'O tamanho mÃ¡ximo Ã© 2MB.', confirmButtonColor: '#e74c3c' });
                 avatarInput.value = '';
                 return;
             }
@@ -249,12 +280,12 @@ import { initCustomize } from './customize.js';
             const user = j?.data?.user || {};
 
             if (fieldNome) fieldNome.value = user.nome || '';
-            if (fieldEmail) fieldEmail.value = user.email || '';
+            updateEmailPendingNotice(user);
 
             // Avatar
             updateAvatarDisplay(user.avatar, user.nome);
 
-            // Código de suporte
+            // CÃ³digo de suporte
             const supportCodeField = document.getElementById('support_code');
             if (supportCodeField) supportCodeField.value = user.support_code || '-';
 
@@ -278,7 +309,7 @@ import { initCustomize } from './customize.js';
                 Swal.fire({
                     icon: 'error',
                     title: 'Erro ao carregar',
-                    text: getErrorMessage(err, 'Não foi possível carregar o perfil.'),
+                    text: getErrorMessage(err, 'NÃ£o foi possÃ­vel carregar o perfil.'),
                     confirmButtonColor: '#e74c3c'
                 });
             }
@@ -300,24 +331,24 @@ import { initCustomize } from './customize.js';
         const panel = submitBtn?.closest('.profile-tab-panel');
         const panelId = panel?.id || '';
 
-        // If security tab → password change endpoint
+        // If security tab â†’ password change endpoint
         if (panelId === 'panel-seguranca') {
             const senhaAtual = document.getElementById('senha_atual')?.value || '';
             const novaSenha = document.getElementById('nova_senha')?.value || '';
             const confSenha = document.getElementById('conf_senha')?.value || '';
 
-            // ── Client-side validation (mirrors backend rules) ──
+            // â”€â”€ Client-side validation (mirrors backend rules) â”€â”€
             const pwdErrors = [];
             if (!senhaAtual || !novaSenha || !confSenha) {
-                pwdErrors.push('Todos os campos de senha são obrigatórios.');
+                pwdErrors.push('Todos os campos de senha sÃ£o obrigatÃ³rios.');
             }
-            if (novaSenha.length < 8) pwdErrors.push('A senha deve ter no mínimo 8 caracteres.');
-            if (!/[a-z]/.test(novaSenha)) pwdErrors.push('A senha deve conter pelo menos uma letra minúscula.');
-            if (!/[A-Z]/.test(novaSenha)) pwdErrors.push('A senha deve conter pelo menos uma letra maiúscula.');
-            if (!/[0-9]/.test(novaSenha)) pwdErrors.push('A senha deve conter pelo menos um número.');
+            if (novaSenha.length < 8) pwdErrors.push('A senha deve ter no mÃ­nimo 8 caracteres.');
+            if (!/[a-z]/.test(novaSenha)) pwdErrors.push('A senha deve conter pelo menos uma letra minÃºscula.');
+            if (!/[A-Z]/.test(novaSenha)) pwdErrors.push('A senha deve conter pelo menos uma letra maiÃºscula.');
+            if (!/[0-9]/.test(novaSenha)) pwdErrors.push('A senha deve conter pelo menos um nÃºmero.');
             if (!/[^a-zA-Z0-9]/.test(novaSenha)) pwdErrors.push('A senha deve conter pelo menos um caractere especial.');
             if (novaSenha && confSenha && novaSenha !== confSenha) {
-                pwdErrors.push('As senhas não coincidem.');
+                pwdErrors.push('As senhas nÃ£o coincidem.');
             }
 
             if (pwdErrors.length > 0) {
@@ -328,7 +359,7 @@ import { initCustomize } from './customize.js';
                 if (window.Swal) {
                     Swal.fire({
                         icon: 'warning',
-                        title: 'Senha não atende aos requisitos',
+                        title: 'Senha nÃ£o atende aos requisitos',
                         html: '<ul style="text-align:left;margin:0;padding-left:1.2em">' +
                             pwdErrors.map(e => '<li>' + e + '</li>').join('') + '</ul>',
                         confirmButtonColor: '#e67e22'
@@ -399,7 +430,7 @@ import { initCustomize } from './customize.js';
             return;
         }
 
-        // For dados/endereco tabs → send only relevant fields
+        // For dados/endereco tabs â†’ send only relevant fields
         const fd = new FormData();
 
         // Always include CSRF token
@@ -444,7 +475,7 @@ import { initCustomize } from './customize.js';
                 throw new Error(getErrorMessage({ data: j }, 'Falha ao salvar.'));
             }
 
-            // GAMIFICAÇÃO: Exibir conquistas se houver
+            // GAMIFICAÃ‡ÃƒO: Exibir conquistas se houver
             if (j?.data?.new_achievements && Array.isArray(j.data.new_achievements)) {
                 if (typeof window.notifyMultipleAchievements === 'function') {
                     window.notifyMultipleAchievements(j.data.new_achievements);
@@ -452,18 +483,32 @@ import { initCustomize } from './customize.js';
             }
 
             if (window.Swal) {
+                const emailChangePending = Boolean(j?.data?.email_change_pending);
+                const emailVerificationSent = Boolean(j?.data?.email_verification_sent);
+
+                let icon = 'success';
+                let title = 'Perfil atualizado!';
+                let text = 'Suas informacoes foram salvas com sucesso.';
+
+                if (emailChangePending && emailVerificationSent) {
+                    text = 'Novo e-mail pendente de confirmacao. Enviamos um link para validar o novo endereco.';
+                } else if (emailChangePending) {
+                    icon = 'info';
+                    text = 'Existe um novo e-mail pendente de confirmacao.';
+                }
+
                 Swal.fire({
-                    icon: 'success',
-                    title: 'Perfil atualizado!',
-                    text: 'Suas informações foram salvas com sucesso.',
+                    icon,
+                    title,
+                    text,
                     confirmButtonColor: '#e67e22',
-                    timer: 2000
+                    timer: 2200
                 });
             }
 
             const saveStatus = document.getElementById('save-status');
             if (saveStatus) {
-                saveStatus.innerHTML = '✓ Tudo salvo';
+                saveStatus.innerHTML = 'âœ“ Tudo salvo';
                 saveStatus.style.color = '#27ae60';
             }
 
@@ -488,31 +533,31 @@ import { initCustomize } from './customize.js';
         }
     });
 
-    // Botão de excluir conta
+    // BotÃ£o de excluir conta
     const btnDelete = document.getElementById('btn-delete-account');
     if (btnDelete) {
         btnDelete.addEventListener('click', async () => {
             if (!window.Swal) {
                 if (!confirm(
-                    'ATENÇÃO: Esta ação é irreversível! Deseja realmente excluir sua conta e todos os dados?'
+                    'ATENÃ‡ÃƒO: Esta aÃ§Ã£o Ã© irreversÃ­vel! Deseja realmente excluir sua conta e todos os dados?'
                 )) return;
             } else {
                 const result = await Swal.fire({
-                    title: 'Confirmar Exclusão de Conta',
+                    title: 'Confirmar ExclusÃ£o de Conta',
                     html: `
                         <div style="text-align: left; padding: 1rem;">
-                            <p style="font-size: 1.1rem; margin-bottom: 1rem;"><strong>Esta ação é permanente e irreversível!</strong></p>
-                            <p style="margin-bottom: 0.5rem;">Ao confirmar, os seguintes dados serão <strong>permanentemente deletados</strong>:</p>
+                            <p style="font-size: 1.1rem; margin-bottom: 1rem;"><strong>Esta aÃ§Ã£o Ã© permanente e irreversÃ­vel!</strong></p>
+                            <p style="margin-bottom: 0.5rem;">Ao confirmar, os seguintes dados serÃ£o <strong>permanentemente deletados</strong>:</p>
                             <ul style="margin: 1rem 0; padding-left: 1.5rem;">
-                                <li>Todos os lançamentos e histórico financeiro</li>
-                                <li>Contas e cartões cadastrados</li>
+                                <li>Todos os lanÃ§amentos e histÃ³rico financeiro</li>
+                                <li>Contas e cartÃµes cadastrados</li>
                                 <li>Categorias personalizadas</li>
                                 <li>Metas e agendamentos</li>
-                                <li>Informações pessoais</li>
-                                <li>Plano PRO (será cancelado automaticamente)</li>
+                                <li>InformaÃ§Ãµes pessoais</li>
+                                <li>Plano PRO (serÃ¡ cancelado automaticamente)</li>
                             </ul>
-                            <p style="color: #e74c3c; font-weight: bold; margin-top: 1rem;">Não será possível recuperar estes dados!</p>
-                            <p style="color: #7f8c8d; font-size: 0.9rem; margin-top: 1rem;">Após a exclusão, você precisará aguardar <strong>90 dias</strong> para criar uma nova conta com o mesmo email.</p>
+                            <p style="color: #e74c3c; font-weight: bold; margin-top: 1rem;">NÃ£o serÃ¡ possÃ­vel recuperar estes dados!</p>
+                            <p style="color: #7f8c8d; font-size: 0.9rem; margin-top: 1rem;">ApÃ³s a exclusÃ£o, vocÃª precisarÃ¡ aguardar <strong>90 dias</strong> para criar uma nova conta com o mesmo email.</p>
                         </div>
                     `,
                     icon: 'warning',
@@ -526,20 +571,20 @@ import { initCustomize } from './customize.js';
 
                 if (!result.isConfirmed) return;
 
-                // Segunda confirmação
+                // Segunda confirmaÃ§Ã£o
                 const finalConfirm = await Swal.fire({
-                    title: 'Última confirmação',
-                    text: 'Digite "EXCLUIR" para confirmar a exclusão definitiva da sua conta',
+                    title: 'Ãšltima confirmaÃ§Ã£o',
+                    text: 'Digite "EXCLUIR" para confirmar a exclusÃ£o definitiva da sua conta',
                     input: 'text',
                     inputPlaceholder: 'Digite: EXCLUIR',
                     showCancelButton: true,
                     confirmButtonColor: '#e74c3c',
                     cancelButtonColor: '#95a5a6',
-                    confirmButtonText: 'Confirmar Exclusão',
+                    confirmButtonText: 'Confirmar ExclusÃ£o',
                     cancelButtonText: 'Cancelar',
                     inputValidator: (value) => {
                         if (value !== 'EXCLUIR') {
-                            return 'Você precisa digitar "EXCLUIR" para confirmar';
+                            return 'VocÃª precisa digitar "EXCLUIR" para confirmar';
                         }
                     }
                 });
@@ -564,11 +609,11 @@ import { initCustomize } from './customize.js';
 
                 await Swal.fire({
                     icon: 'success',
-                    title: 'Conta excluída!',
+                    title: 'Conta excluÃ­da!',
                     html: `
                             <div style="text-align: center;">
-                                <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">Sua conta foi excluída com sucesso.</p>
-                                <p style="color: #666;">Você será redirecionado para a página inicial...</p>
+                                <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">Sua conta foi excluÃ­da com sucesso.</p>
+                                <p style="color: #666;">VocÃª serÃ¡ redirecionado para a pÃ¡gina inicial...</p>
                             </div>
                         `,
                     timer: 3000,
@@ -584,7 +629,7 @@ import { initCustomize } from './customize.js';
                 Swal.fire({
                     icon: 'error',
                     title: 'Erro',
-                    text: getErrorMessage(err, 'Não foi possível excluir a conta. Tente novamente.')
+                    text: getErrorMessage(err, 'NÃ£o foi possÃ­vel excluir a conta. Tente novamente.')
                 });
             } finally {
                 btnDelete.disabled = false;
@@ -593,7 +638,7 @@ import { initCustomize } from './customize.js';
     }
 
     // ============================================
-    // SISTEMA DE INDICAÇÃO
+    // SISTEMA DE INDICAÃ‡ÃƒO
     // ============================================
 
     async function loadReferralStats() {
@@ -603,14 +648,14 @@ import { initCustomize } from './customize.js';
             if (data?.data) {
                 const stats = data.data;
 
-                // Atualiza código e link
+                // Atualiza cÃ³digo e link
                 const codeInput = document.getElementById('referral-code');
                 const linkInput = document.getElementById('referral-link');
 
                 if (codeInput) codeInput.value = stats.referral_code || '';
                 if (linkInput) linkInput.value = stats.referral_link || '';
 
-                // Atualiza estatísticas
+                // Atualiza estatÃ­sticas
                 document.getElementById('stat-total').textContent = stats.total_indicacoes || 0;
                 document.getElementById('stat-completed').textContent = stats.indicacoes_completadas || 0;
                 document.getElementById('stat-days').textContent = stats.dias_ganhos || 0;
@@ -645,19 +690,19 @@ import { initCustomize } from './customize.js';
 
                 if (barHint) {
                     if (remaining === 0) {
-                        barHint.textContent = 'Limite atingido! Renova no próximo mês';
+                        barHint.textContent = 'Limite atingido! Renova no prÃ³ximo mÃªs';
                         barHint.classList.add('limit-reached');
                     } else if (remaining === 1) {
-                        barHint.textContent = 'Última indicação disponível este mês';
+                        barHint.textContent = 'Ãšltima indicaÃ§Ã£o disponÃ­vel este mÃªs';
                         barHint.classList.remove('limit-reached');
                     } else {
-                        barHint.textContent = `Você pode indicar mais ${remaining} amigos este mês`;
+                        barHint.textContent = `VocÃª pode indicar mais ${remaining} amigos este mÃªs`;
                         barHint.classList.remove('limit-reached');
                     }
                 }
             }
         } catch (err) {
-            console.error('Erro ao carregar estatísticas de indicação:', err);
+            console.error('Erro ao carregar estatÃ­sticas de indicaÃ§Ã£o:', err);
         }
     }
 
@@ -678,7 +723,7 @@ import { initCustomize } from './customize.js';
         });
     }
 
-    // Botões de copiar
+    // BotÃµes de copiar
     document.getElementById('btn-copy-code')?.addEventListener('click', () => {
         const code = document.getElementById('referral-code')?.value;
         if (code) copyToClipboard(code, document.getElementById('btn-copy-code'));
@@ -689,17 +734,17 @@ import { initCustomize } from './customize.js';
         if (link) copyToClipboard(link, document.getElementById('btn-copy-link'));
     });
 
-    // Botões de compartilhamento
+    // BotÃµes de compartilhamento
     document.getElementById('btn-share-whatsapp')?.addEventListener('click', () => {
         const link = document.getElementById('referral-link')?.value;
         const text = encodeURIComponent(
-            `🎁 Use meu código e ganhe 7 dias de PRO grátis no Lukrato!\n\n${link}`);
+            `ðŸŽ Use meu cÃ³digo e ganhe 7 dias de PRO grÃ¡tis no Lukrato!\n\n${link}`);
         window.open(`https://wa.me/?text=${text}`, '_blank');
     });
 
     document.getElementById('btn-share-telegram')?.addEventListener('click', () => {
         const link = document.getElementById('referral-link')?.value;
-        const text = encodeURIComponent(`🎁 Use meu código e ganhe 7 dias de PRO grátis no Lukrato!`);
+        const text = encodeURIComponent(`ðŸŽ Use meu cÃ³digo e ganhe 7 dias de PRO grÃ¡tis no Lukrato!`);
         window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${text}`, '_blank');
     });
 
@@ -721,13 +766,13 @@ import { initCustomize } from './customize.js';
         });
     });
 
-    // Carregar estatísticas de indicação
+    // Carregar estatÃ­sticas de indicaÃ§Ã£o
     if (document.getElementById('referral-stats')) {
         loadReferralStats();
     }
 
     // ============================================
-    // INTEGRAÇÕES — WhatsApp & Telegram
+    // INTEGRAÃ‡Ã•ES â€” WhatsApp & Telegram
     // ============================================
 
     const csrfToken = document.querySelector('input[name="csrf_token"]')?.value
@@ -757,7 +802,7 @@ import { initCustomize } from './customize.js';
                 document.getElementById('whatsapp-linked').style.display = '';
                 document.getElementById('whatsapp-masked-phone').textContent = data.phone || '';
             } else {
-                statusEl.innerHTML = '<span class="status-indicator not-linked"></span><span class="status-text">Não vinculado</span>';
+                statusEl.innerHTML = '<span class="status-indicator not-linked"></span><span class="status-text">NÃ£o vinculado</span>';
                 document.getElementById('whatsapp-not-linked').style.display = '';
                 document.getElementById('whatsapp-verify').style.display = 'none';
                 document.getElementById('whatsapp-linked').style.display = 'none';
@@ -784,7 +829,7 @@ import { initCustomize } from './customize.js';
                 Swal.fire({ icon: 'error', title: 'Erro', text: getErrorMessage({ data: json }, 'Erro desconhecido'), confirmButtonColor: '#e67e22' });
             }
         } catch (e) {
-            if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: getErrorMessage(e, 'Erro de conexão'), confirmButtonColor: '#e67e22' });
+            if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: getErrorMessage(e, 'Erro de conexÃ£o'), confirmButtonColor: '#e67e22' });
         } finally {
             btn.disabled = false;
         }
@@ -809,7 +854,7 @@ import { initCustomize } from './customize.js';
                 Swal.fire({ icon: 'error', title: 'Erro', text: getErrorMessage({ data: json }, 'Erro desconhecido'), confirmButtonColor: '#e67e22' });
             }
         } catch (e) {
-            if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: getErrorMessage(e, 'Erro de conexão'), confirmButtonColor: '#e67e22' });
+            if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: getErrorMessage(e, 'Erro de conexÃ£o'), confirmButtonColor: '#e67e22' });
         } finally {
             btn.disabled = false;
         }
@@ -818,7 +863,7 @@ import { initCustomize } from './customize.js';
     document.getElementById('btn-whatsapp-unlink')?.addEventListener('click', async () => {
         const result = window.Swal ? await Swal.fire({
             icon: 'warning', title: 'Desvincular WhatsApp?',
-            text: 'Você não poderá mais enviar lançamentos pelo WhatsApp.',
+            text: 'VocÃª nÃ£o poderÃ¡ mais enviar lanÃ§amentos pelo WhatsApp.',
             showCancelButton: true, confirmButtonText: 'Desvincular', cancelButtonText: 'Cancelar',
             confirmButtonColor: '#ef4444',
         }) : { isConfirmed: confirm('Desvincular WhatsApp?') };
@@ -940,7 +985,7 @@ import { initCustomize } from './customize.js';
                     Swal.fire({
                         icon: 'success',
                         title: 'Telegram vinculado',
-                        text: 'Agora você pode usar o bot normalmente.',
+                        text: 'Agora vocÃª pode usar o bot normalmente.',
                         confirmButtonColor: '#0ea5e9',
                         timer: 2500,
                         timerProgressBar: true,
@@ -957,7 +1002,7 @@ import { initCustomize } from './customize.js';
 
                 telegramLinkPending = false;
                 clearTelegramLinkTimers();
-                statusEl.innerHTML = '<span class="status-indicator not-linked"></span><span class="status-text">Não vinculado</span>';
+                statusEl.innerHTML = '<span class="status-indicator not-linked"></span><span class="status-text">NÃ£o vinculado</span>';
                 document.getElementById('telegram-not-linked').style.display = '';
                 document.getElementById('telegram-code-generated').style.display = 'none';
                 document.getElementById('telegram-linked').style.display = 'none';
@@ -1003,7 +1048,7 @@ import { initCustomize } from './customize.js';
                 Swal.fire({ icon: 'error', title: 'Erro', text: getErrorMessage({ data: json }, 'Erro desconhecido'), confirmButtonColor: '#e67e22' });
             }
         } catch (e) {
-            if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: getErrorMessage(e, 'Erro de conexão'), confirmButtonColor: '#e67e22' });
+            if (window.Swal) Swal.fire({ icon: 'error', title: 'Erro', text: getErrorMessage(e, 'Erro de conexÃ£o'), confirmButtonColor: '#e67e22' });
         } finally {
             btn.disabled = false;
             if (regenerateBtn) regenerateBtn.disabled = false;
@@ -1033,7 +1078,7 @@ import { initCustomize } from './customize.js';
     document.getElementById('btn-telegram-unlink')?.addEventListener('click', async () => {
         const result = window.Swal ? await Swal.fire({
             icon: 'warning', title: 'Desvincular Telegram?',
-            text: 'Você não poderá mais enviar lançamentos pelo Telegram.',
+            text: 'VocÃª nÃ£o poderÃ¡ mais enviar lanÃ§amentos pelo Telegram.',
             showCancelButton: true, confirmButtonText: 'Desvincular', cancelButtonText: 'Cancelar',
             confirmButtonColor: '#ef4444',
         }) : { isConfirmed: confirm('Desvincular Telegram?') };
@@ -1142,7 +1187,7 @@ function copySupportCode() {
     },
     {
         cls: 's3',
-        label: 'Razoável'
+        label: 'RazoÃ¡vel'
     },
     {
         cls: 's4',
@@ -1222,7 +1267,7 @@ function copySupportCode() {
         var icon = matchEl.querySelector('.match-icon');
         var text = matchEl.querySelector('.match-text');
         icon.innerHTML = ok ? '<i data-lucide="check"></i>' : '<i data-lucide="x"></i>';
-        text.textContent = ok ? 'Senhas coincidem' : 'Senhas não coincidem';
+        text.textContent = ok ? 'Senhas coincidem' : 'Senhas nÃ£o coincidem';
         updateSaveBtn();
     }
 

@@ -27,7 +27,9 @@ class UsuarioRepository
 
         // Dados básicos
         $user->nome = $data['nome'];
-        $user->email = $data['email'];
+        if (array_key_exists('email', $data)) {
+            $user->email = $data['email'];
+        }
         $user->data_nascimento = $data['data_nascimento'] ?: null;
 
         // Sexo
@@ -51,9 +53,24 @@ class UsuarioRepository
      */
     public function emailExists(string $email, int $exceptUserId): bool
     {
-        return Usuario::whereRaw('LOWER(email) = ?', [mb_strtolower($email)])
-            ->where('id', '!=', $exceptUserId)
+        $normalized = mb_strtolower(trim($email));
+
+        return Usuario::where('id', '!=', $exceptUserId)
+            ->where(function ($query) use ($normalized) {
+                $query->whereRaw('LOWER(email) = ?', [$normalized])
+                    ->orWhereRaw('LOWER(pending_email) = ?', [$normalized]);
+            })
             ->exists();
+    }
+
+    public function findByEmailOrPending(string $email): ?Usuario
+    {
+        $normalized = mb_strtolower(trim($email));
+
+        return Usuario::where(function ($query) use ($normalized) {
+            $query->whereRaw('LOWER(email) = ?', [$normalized])
+                ->orWhereRaw('LOWER(pending_email) = ?', [$normalized]);
+        })->first();
     }
 
     /**

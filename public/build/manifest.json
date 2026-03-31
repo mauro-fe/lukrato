@@ -408,7 +408,7 @@
     ]
   },
   "admin/lancamentos/index.js": {
-    "file": "assets/lancamentos-BD1Gg2tA.js",
+    "file": "assets/lancamentos-kMVEAj4g.js",
     "name": "lancamentos",
     "src": "admin/lancamentos/index.js",
     "isEntry": true,
@@ -419,7 +419,7 @@
       "_ui-preferences-COf1b1j3.js"
     ],
     "css": [
-      "assets/lancamentos-DGacFEUg.css"
+      "assets/lancamentos-DLY1mk4g.css"
     ]
   },
   "admin/metas/index.js": {
@@ -449,7 +449,7 @@
     ]
   },
   "admin/perfil/index.js": {
-    "file": "assets/perfil-C8zs1K86.js",
+    "file": "assets/perfil-BjZSVgHh.js",
     "name": "perfil",
     "src": "admin/perfil/index.js",
     "isEntry": true,

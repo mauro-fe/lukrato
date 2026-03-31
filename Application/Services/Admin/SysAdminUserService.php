@@ -286,8 +286,12 @@ class SysAdminUserService
                 throw new ClientErrorException(400, 'Email invalido');
             }
 
-            $existingUser = Usuario::where('email', $updateData['email'])
-                ->where('id', '!=', $targetUserId)
+            $normalizedEmail = mb_strtolower($updateData['email']);
+            $existingUser = Usuario::where('id', '!=', $targetUserId)
+                ->where(function ($query) use ($normalizedEmail) {
+                    $query->whereRaw('LOWER(email) = ?', [$normalizedEmail])
+                        ->orWhereRaw('LOWER(pending_email) = ?', [$normalizedEmail]);
+                })
                 ->first();
 
             if ($existingUser) {
