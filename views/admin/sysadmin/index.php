@@ -424,7 +424,7 @@
                 </select>
                 <select name="plan" class="filter-select">
                     <option value="">Todos os Planos</option>
-                    <option value="pro">⭐ Pro</option>
+                    <option value="pro">Pro</option>
                     <option value="free">Free</option>
                 </select>
                 <select name="perPage" class="filter-select">

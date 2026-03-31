@@ -138,7 +138,7 @@
                                 <p class="text-gray-400 text-sm mt-1">Grátis para sempre</p>
                             </div>
 
-                            <!-- Features com ✔/❌ padronizado -->
+                            <!-- Features com status padronizado -->
                             <ul class="space-y-3 mb-8">
                                 <?php foreach ($allFeatures as $feat): ?>
                                     <?php if ($feat['free'] === false): ?>
@@ -254,7 +254,7 @@
                                     </div>
                                 </div>
 
-                                <!-- Features com ✔/❌ padronizado -->
+                                <!-- Features com status padronizado -->
                                 <ul class="space-y-3 mb-8">
                                     <?php foreach ($allFeatures as $feat): ?>
                                         <?php if ($feat['pro'] === false): ?>
@@ -364,7 +364,7 @@
                                     </div>
                                 </div>
 
-                                <!-- Features com ✔ (Ultra tem tudo) -->
+                                <!-- Features completas (Ultra) -->
                                 <ul class="space-y-3 mb-8">
                                     <?php foreach ($allFeatures as $feat): ?>
                                         <?php if ($feat['ultra'] === false): ?>

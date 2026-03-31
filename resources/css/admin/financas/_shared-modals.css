@@ -325,7 +325,11 @@
   margin-top: 3px;
 }
 
-.sugestao-economia::before { content: "💰"; font-size: 0.7rem; }
+.sugestao-economia i,
+.sugestao-economia svg.lucide {
+  width: 0.8rem !important;
+  height: 0.8rem !important;
+}
 
 .sugestao-valor { width: 120px; flex-shrink: 0; }
 

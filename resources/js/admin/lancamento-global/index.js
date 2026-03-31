@@ -1,8 +1,8 @@
 /**
  * ============================================================================
- * LUKRATO â€” Lançamento Global (Header FAB Modal)
+ * LUKRATO - Lancamento Global (Header FAB Modal)
  * ============================================================================
- * Entry point Vite â€” recursos/js/admin/lancamento-global/index.js
+ * Entry point Vite - resources/js/admin/lancamento-global/index.js
  *
  * Refactored from public/assets/js/lancamento-global.js
  * Uses shared modules instead of duplicated utility functions.
@@ -28,9 +28,7 @@ function sortByLabel(items, resolver) {
     });
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class LancamentoGlobalManager {
-    // â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     constructor() {
         this.contaSelecionada = null;
         this.contas = [];
@@ -57,7 +55,6 @@ class LancamentoGlobalManager {
         this.totalSteps = 5; // receita/despesa = 5, transferencia = 4
     }
 
-    // â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     init() {
         if (!this.eventosConfigurados) {
             this.configurarEventos();
@@ -71,7 +68,6 @@ class LancamentoGlobalManager {
         }
     }
 
-    // â”€â”€ Data Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     normalizarContextoAbertura(options = {}) {
         const rawOptions = options && typeof options === 'object'
             ? options
@@ -517,7 +513,6 @@ class LancamentoGlobalManager {
         ]);
     }
 
-    // â”€â”€ Select Population â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     preencherSelectContas() {
         const select = document.getElementById('globalContaSelect');
         if (!select) return;
@@ -686,7 +681,11 @@ class LancamentoGlobalManager {
 
         const cartoesAtivos = this.cartoes.filter(c => c.ativo);
         const optionsCartoes = cartoesAtivos
-            .map(c => `<option value="${c.id}">${c.nome_cartao || c.bandeira} â€¢â€¢â€¢â€¢ ${c.ultimos_digitos}</option>`)
+            .map(c => {
+                const nomeCartao = escapeHtml(c.nome_cartao || c.bandeira || 'Cartao');
+                const ultimosDigitos = escapeHtml(String(c.ultimos_digitos || ''));
+                return `<option value="${c.id}">${nomeCartao} &bull;&bull;&bull;&bull; ${ultimosDigitos}</option>`;
+            })
             .join('');
         select.innerHTML = optionVazio + optionsCartoes;
 
@@ -718,7 +717,7 @@ class LancamentoGlobalManager {
         // Reset subcategoria ao trocar categorias
         this.resetSubcategoriaSelect();
 
-        // Listener cascata: ao trocar categoria â†’ preencher subcategorias
+        // Listener cascata: ao trocar categoria -> preencher subcategorias
         if (!select.dataset.subcatListenerAttached) {
             select.dataset.subcatListenerAttached = '1';
             select.addEventListener('change', () => this.preencherSubcategorias(select.value));
@@ -771,7 +770,6 @@ class LancamentoGlobalManager {
         this.syncEnhancedSelects();
     }
 
-    // â”€â”€ Fatura Estorno â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     onCartaoEstornoChange() {
         const cartaoSelect = document.getElementById('globalLancamentoCartaoCredito');
         const faturaGroup = document.getElementById('globalFaturaEstornoGroup');
@@ -815,7 +813,6 @@ class LancamentoGlobalManager {
         this.syncEnhancedSelects();
     }
 
-    // â”€â”€ Event Setup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     configurarEventos() {
         const valorInput = document.getElementById('globalLancamentoValor');
         if (valorInput) {
@@ -981,7 +978,6 @@ class LancamentoGlobalManager {
         }
     }
 
-    // â”€â”€ Modal Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async openModal(options = {}) {
         const overlay = document.getElementById('modalLancamentoGlobalOverlay');
         if (overlay) {
@@ -1040,7 +1036,6 @@ class LancamentoGlobalManager {
         this.resetarFormulario();
     }
 
-    // â”€â”€ Wizard Step Engine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     initWizard() {
         this.currentStep = 1;
         this.tipoAtual = null;
@@ -1105,7 +1100,7 @@ class LancamentoGlobalManager {
         const dotCount = this.totalSteps - 1; // exclude step 1 from dots
         let html = '';
         for (let i = 0; i < dotCount; i++) {
-            const stepNum = i + 2; // dot 0 â†’ step 2, dot 1 â†’ step 3, etc.
+            const stepNum = i + 2; // dot 0 -> step 2, dot 1 -> step 3, etc.
             let stateClass = 'pending';
             if (stepNum < this.currentStep) stateClass = 'completed';
             else if (stepNum === this.currentStep) stateClass = 'active';
@@ -1401,7 +1396,6 @@ class LancamentoGlobalManager {
         this.syncEnhancedSelects();
     }
 
-    // â”€â”€ Form Type Selection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async mostrarFormulario(tipo) {
         if (this.contas.length === 0) {
             const result = await Swal.fire({
@@ -1541,7 +1535,6 @@ class LancamentoGlobalManager {
         this.schedulePlanningAlertsRender();
     }
 
-    // â”€â”€ Field Configuration by Type â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     configurarCamposPorTipo(tipo) {
         // Header color
         const headerGradient = document.querySelector('#modalLancamentoGlobalOverlay .lk-modal-header-gradient');
@@ -1555,7 +1548,7 @@ class LancamentoGlobalManager {
             if (colors[tipo]) headerGradient.style.setProperty('background', colors[tipo], 'important');
         }
 
-        // â”€â”€ Step 3 visibility per type â”€â”€
+        // Step 3 visibility per type
         // Conta Destino (transfer only)
         const contaDestinoGroup = document.getElementById('globalContaDestinoGroup');
         if (contaDestinoGroup) contaDestinoGroup.style.display = tipo === 'transferencia' ? 'block' : 'none';
@@ -1571,7 +1564,7 @@ class LancamentoGlobalManager {
         this.resetarFormaPagamento();
         if (tipo === 'despesa') this.preencherCartoes();
 
-        // â”€â”€ Step 5 visibility per type â”€â”€
+        // Step 5 visibility per type
         // Categoria
         this.preencherCategorias(tipo === 'receita' ? 'receita' : 'despesa');
 
@@ -1605,7 +1598,6 @@ class LancamentoGlobalManager {
         if (parceladoCheck) parceladoCheck.checked = false;
         this.atualizarTextosParcelamento();
 
-        // â”€â”€ Step 4: Pago toggle â”€â”€
         const pagoGroup = document.getElementById('globalPagoGroup');
         const pagoCheck = document.getElementById('globalLancamentoPago');
         if (pagoGroup) pagoGroup.style.display = showStep5Fields ? 'block' : 'none';
@@ -1658,7 +1650,6 @@ class LancamentoGlobalManager {
         this.schedulePlanningAlertsRender();
     }
 
-    // â”€â”€ Recurrence Toggles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     toggleRecorrencia() {
         const checkbox = document.getElementById('globalLancamentoRecorrente');
         const detalhes = document.getElementById('globalRecorrenciaDetalhes');
@@ -1823,7 +1814,6 @@ class LancamentoGlobalManager {
         this.schedulePlanningAlertsRender();
     }
 
-    // â”€â”€ Forma de Pagamento / Recebimento â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     resetarFormaPagamento() {
         document.querySelectorAll('#globalFormaPagamentoGrid .lk-forma-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('#globalFormaRecebimentoGrid .lk-forma-btn').forEach(btn => btn.classList.remove('active'));
@@ -1979,7 +1969,6 @@ class LancamentoGlobalManager {
         this.syncEnhancedSelects();
     }
 
-    // â”€â”€ Validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     validarFormulario() {
         if (!this.tipoAtual) {
             Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione o tipo de lançamento', customClass: { container: 'swal-above-modal' } });
@@ -2088,7 +2077,6 @@ class LancamentoGlobalManager {
         return true;
     }
 
-    // â”€â”€ Data Collection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     coletarDadosFormulario() {
         const contaId = this.contaSelecionada?.id;
         if (!contaId) throw new Error('Conta não selecionada');
@@ -2217,7 +2205,6 @@ class LancamentoGlobalManager {
         return dados;
     }
 
-    // â”€â”€ Form Submission â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async salvarLancamento() {
         if (this.salvando) return;
         if (!this.validarFormulario()) return;
@@ -2396,7 +2383,6 @@ class LancamentoGlobalManager {
         }
     }
 
-    // â”€â”€ Parcelamento Preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     atualizarPreviewParcelamento() {
         const preview = document.getElementById('globalParcelamentoPreview');
         if (!preview) return;
@@ -2424,7 +2410,6 @@ class LancamentoGlobalManager {
     }
 }
 
-// â”€â”€ Singleton & Backward Compat â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const manager = new LancamentoGlobalManager();
 
 // Expose on window for inline onclick handlers in PHP views
@@ -2433,7 +2418,6 @@ window.LK = window.LK || {};
 window.LK.modals = window.LK.modals || {};
 window.LK.modals.openLancamentoModal = (options = {}) => manager.openModal(options);
 
-// â”€â”€ Bootstrap â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => manager.init());
 } else {

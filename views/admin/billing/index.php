@@ -169,7 +169,7 @@ $currentPlanCode = $currentPlanCode ?? ($user?->planoAtual()?->code ?? null);
                                     <i data-lucide="clock"></i>
                                 </div>
                                 <div class="plan-card__grace-alert-content">
-                                    <strong>⚠️ Plano vencido!</strong>
+                                    <strong><i data-lucide="triangle-alert" aria-hidden="true"></i> Plano vencido!</strong>
                                     <p>
                                         <?php if (($graceHoursRemaining ?? 0) <= 24): ?>
                                             Restam menos de 24 horas para renovar.

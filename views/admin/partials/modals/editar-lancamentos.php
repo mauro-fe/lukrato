@@ -175,15 +175,15 @@
                                         data-lk-select-search="true"
                                         data-lk-select-search-placeholder="Buscar forma de pagamento...">
                                         <option value="">Não informada</option>
-                                        <option value="pix">📱 PIX</option>
-                                        <option value="cartao_credito">💳 Cartão de Crédito</option>
-                                        <option value="cartao_debito">💳 Cartão de Débito</option>
-                                        <option value="dinheiro">💵 Dinheiro</option>
-                                        <option value="boleto">📄 Boleto</option>
-                                        <option value="transferencia">🏦 Transferência</option>
-                                        <option value="deposito">🏦 Depósito</option>
-                                        <option value="estorno_cartao">↩️ Estorno Cartão</option>
-                                        <option value="cheque">📝 Cheque</option>
+                                        <option value="pix">PIX</option>
+                                        <option value="cartao_credito">Cartão de Crédito</option>
+                                        <option value="cartao_debito">Cartão de Débito</option>
+                                        <option value="dinheiro">Dinheiro</option>
+                                        <option value="boleto">Boleto</option>
+                                        <option value="transferencia">Transferência</option>
+                                        <option value="deposito">Depósito</option>
+                                        <option value="estorno_cartao">Estorno Cartão</option>
+                                        <option value="cheque">Cheque</option>
                                     </select>
                                 </div>
                             </div>

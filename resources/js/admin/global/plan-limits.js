@@ -563,7 +563,7 @@ import { apiGetCached } from '../shared/api-store.js';
                     const optionDate = new Date(value + '-01');
                     if (optionDate < minDate) {
                         option.disabled = true;
-                        option.textContent += ' 🔒';
+                        option.textContent += ' (Pro)';
                         option.title = restriction.message;
                     }
                 }

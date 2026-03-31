@@ -260,7 +260,7 @@
 
             <div class="gamification-grid">
                 <div class="streak-card">
-                    <div class="streak-icon">&#128293;</div>
+                    <div class="streak-icon"><i data-lucide="flame" aria-hidden="true"></i></div>
                     <div class="streak-number" id="streakDays">0</div>
                     <div class="streak-label">Dias seguidos</div>
                     <div class="streak-protection" id="streakProtection" style="display:none;">
@@ -331,7 +331,7 @@
                 </div>
             </div>
             <div class="dash-chart-wrap">
-                <div class="chart-loading" id="chartLoading"></div>
+                <div class="chart-loading" id="chartLoading"><i data-lucide="hourglass" aria-hidden="true"></i></div>
                 <div id="categoryChart" role="img" aria-label="Gráfico de despesas por categoria"></div>
             </div>
         </section>

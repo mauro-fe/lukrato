@@ -16,12 +16,15 @@ $message = $message ?? 'Por favor, verifique seu email antes de fazer login.';
     <?= csrf_meta('verify_email_form') ?>
 
     <title>Verifique seu Email - Lukrato</title>
+    <script src="<?= rtrim(BASE_URL, '/') ?>/assets/js/lucide.min.js"></script>
     <?= function_exists('vite_css') ? vite_css('auth-verify-email-style') : '' ?>
 </head>
 
 <body>
     <div class="container">
-        <div class="icon" aria-hidden="true">✉️</div>
+        <div class="icon" aria-hidden="true">
+            <i data-lucide="mail" style="width:64px;height:64px;" aria-hidden="true"></i>
+        </div>
         
         <h1>Verifique seu e-mail</h1>
         
@@ -31,12 +34,12 @@ $message = $message ?? 'Por favor, verifique seu email antes de fazer login.';
 
         <?php if ($email): ?>
         <div class="email-highlight">
-            <span aria-hidden="true">📧</span> <?= htmlspecialchars($email) ?>
+            <i data-lucide="mail" style="width:16px;height:16px;" aria-hidden="true"></i> <?= htmlspecialchars($email) ?>
         </div>
         <?php endif; ?>
 
         <div class="tips">
-            <div class="tips-title"><span aria-hidden="true">💡</span> Não encontrou o e-mail?</div>
+            <div class="tips-title"><i data-lucide="lightbulb" style="width:16px;height:16px;" aria-hidden="true"></i> Não encontrou o e-mail?</div>
             <ul>
                 <li>Verifique sua pasta de spam ou lixo eletrônico</li>
                 <li>Aguarde alguns minutos, pode haver um pequeno atraso</li>

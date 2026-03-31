@@ -417,26 +417,26 @@
                     <div class="fin-form-group">
                         <label class="fin-label"><i data-lucide="tag"></i> Tipo</label>
                         <select id="metaTipo" class="fin-select">
-                            <option value="economia">💰 Economia</option>
-                            <option value="compra">🛒 Compra</option>
-                            <option value="quitacao">💳 Quitar Dívida</option>
-                            <option value="emergencia">🛡️ Emergência</option>
-                            <option value="viagem">✈️ Viagem</option>
-                            <option value="educacao">🎓 Educação</option>
-                            <option value="moradia">🏠 Moradia</option>
-                            <option value="veiculo">🚗 Veículo</option>
-                            <option value="saude">🏥 Saúde</option>
-                            <option value="negocio">🏪 Negócio</option>
-                            <option value="aposentadoria">🏖️ Aposentadoria</option>
-                            <option value="outro">🎯 Outro</option>
+                            <option value="economia">Economia</option>
+                            <option value="compra">Compra</option>
+                            <option value="quitacao">Quitar Dívida</option>
+                            <option value="emergencia">Emergência</option>
+                            <option value="viagem">Viagem</option>
+                            <option value="educacao">Educação</option>
+                            <option value="moradia">Moradia</option>
+                            <option value="veiculo">Veículo</option>
+                            <option value="saude">Saúde</option>
+                            <option value="negocio">Negócio</option>
+                            <option value="aposentadoria">Aposentadoria</option>
+                            <option value="outro">Outro</option>
                         </select>
                     </div>
                     <div class="fin-form-group">
                         <label class="fin-label"><i data-lucide="flag"></i> Prioridade</label>
                         <select id="metaPrioridade" class="fin-select">
-                            <option value="baixa">🟢 Baixa</option>
-                            <option value="media" selected>🟡 Média</option>
-                            <option value="alta">🔴 Alta</option>
+                            <option value="baixa">Baixa</option>
+                            <option value="media" selected>Média</option>
+                            <option value="alta">Alta</option>
                         </select>
                     </div>
                 </div>

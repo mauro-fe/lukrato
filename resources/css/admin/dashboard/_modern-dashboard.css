@@ -294,7 +294,6 @@
 .dash-tx__amount--income { color: var(--color-success); }
 .dash-tx__amount--expense { color: var(--color-danger); }
 
-/* â”€â”€â”€ EMPTY STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .dash-empty {
   text-align: center;
   padding: var(--spacing-6) var(--spacing-3);
@@ -507,13 +506,11 @@
   height: 8px;
 }
 
-/* â”€â”€â”€ CUSTOMIZE TRIGGER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .dash-customize-trigger {
   text-align: center;
   padding: var(--spacing-4) 0 var(--spacing-8);
 }
 
-/* â”€â”€â”€ BUTTONS â€” Local â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .dash-btn {
   display: inline-flex;
   align-items: center;

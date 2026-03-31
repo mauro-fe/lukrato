@@ -940,7 +940,7 @@ export const OrcamentoApp = {
             const catIcone = sug.categoria?.icone || 'tag';
             const mediaGastos = sug.media_gastos || sug.media_3_meses || 0;
             const economiaTag = sug.economia_sugerida > 0
-                ? `<span class="sugestao-economia">economia de ${Utils.formatCurrency(sug.economia_sugerida)}/mês</span>`
+                ? `<span class="sugestao-economia"><i data-lucide="banknote" aria-hidden="true"></i> economia de ${Utils.formatCurrency(sug.economia_sugerida)}/mês</span>`
                 : '';
             return `
             <div class="sugestao-item">
