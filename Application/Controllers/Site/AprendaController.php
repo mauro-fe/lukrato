@@ -2,13 +2,13 @@
 
 namespace Application\Controllers\Site;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\WebController;
 use Application\Core\Response;
 use Application\Models\BlogCategoria;
 use Application\Models\BlogPost;
 use Application\Repositories\BlogPostRepository;
 
-class AprendaController extends BaseController
+class AprendaController extends WebController
 {
     private BlogPostRepository $repo;
 

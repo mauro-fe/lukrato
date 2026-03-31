@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Referral;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Services\Referral\ReferralService;
 use Exception;
 
-class ReferralController extends BaseController
+class ReferralController extends ApiController
 {
     private ReferralService $referralService;
 
@@ -37,7 +37,7 @@ class ReferralController extends BaseController
     public function validateCode(): Response
     {
         try {
-            $code = $_GET['code'] ?? '';
+            $code = $this->getStringQuery('code', '');
 
             if (empty($code)) {
                 return Response::errorResponse('Código de indicação não informado', 400);
@@ -83,7 +83,7 @@ class ReferralController extends BaseController
         $this->requireApiUserIdAndReleaseSessionOrFail();
 
         try {
-            $limit = min((int) ($_GET['limit'] ?? 10), 50);
+            $limit = min($this->getIntQuery('limit', 10), 50);
             $ranking = $this->referralService->getReferralRanking($limit);
 
             return Response::successResponse([

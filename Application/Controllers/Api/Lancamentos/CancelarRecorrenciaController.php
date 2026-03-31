@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Lancamentos;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Services\Lancamento\LancamentoCreationService;
 
-class CancelarRecorrenciaController extends BaseController
+class CancelarRecorrenciaController extends ApiController
 {
     private LancamentoCreationService $creationService;
 
@@ -24,10 +24,6 @@ class CancelarRecorrenciaController extends BaseController
 
         $result = $this->creationService->cancelarRecorrencia($id, $userId);
 
-        if ($result->isError()) {
-            return Response::errorResponse($result->message, $result->httpCode);
-        }
-
-        return Response::successResponse($result->data, $result->message);
+        return $this->respondServiceResult($result, successMessage: $result->message);
     }
 }

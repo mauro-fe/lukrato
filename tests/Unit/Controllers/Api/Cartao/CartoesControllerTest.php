@@ -7,6 +7,7 @@ namespace Tests\Unit\Controllers\Api\Cartao;
 use Application\Controllers\Api\Cartao\CartoesController;
 use Application\Core\Exceptions\AuthException;
 use Application\Models\Usuario;
+use Application\Services\Cartao\CartaoApiWorkflowService;
 use Application\Services\Cartao\CartaoCreditoService;
 use Application\Services\Cartao\CartaoFaturaService;
 use Application\Services\Plan\PlanLimitService;
@@ -149,6 +150,133 @@ class CartoesControllerTest extends TestCase
         $this->expectExceptionMessage('Nao autenticado');
 
         $controller->index();
+    }
+
+    public function testDeleteReturnsConfirmationPayloadWhenWorkflowRequiresConfirmation(): void
+    {
+        $this->seedAuthenticatedSession(1204, 'Cartao User');
+
+        $workflow = Mockery::mock(CartaoApiWorkflowService::class);
+        $workflow
+            ->shouldReceive('deleteCard')
+            ->once()
+            ->with(77, 1204, [])
+            ->andReturn([
+                'success' => false,
+                'message' => 'Confirme a exclusao',
+                'requires_confirmation' => true,
+                'total_lancamentos' => 5,
+            ]);
+
+        $controller = new CartoesController(
+            Mockery::mock(CartaoCreditoService::class),
+            Mockery::mock(CartaoFaturaService::class),
+            Mockery::mock(PlanLimitService::class),
+            $workflow
+        );
+
+        $response = $controller->delete(77);
+
+        $this->assertSame(422, $response->getStatusCode());
+        $this->assertSame([
+            'success' => false,
+            'message' => 'Confirme a exclusao',
+            'errors' => [
+                'status' => 'confirm_delete',
+                'requires_confirmation' => true,
+                'total_lancamentos' => 5,
+            ],
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+    }
+
+    public function testUpdateLimitReturnsNotFoundWhenWorkflowFails(): void
+    {
+        $this->seedAuthenticatedSession(1205, 'Cartao User');
+
+        $workflow = Mockery::mock(CartaoApiWorkflowService::class);
+        $workflow
+            ->shouldReceive('refreshLimit')
+            ->once()
+            ->with(88, 1205)
+            ->andReturn([
+                'success' => false,
+                'message' => 'Cartao nao encontrado',
+            ]);
+
+        $controller = new CartoesController(
+            Mockery::mock(CartaoCreditoService::class),
+            Mockery::mock(CartaoFaturaService::class),
+            Mockery::mock(PlanLimitService::class),
+            $workflow
+        );
+
+        $response = $controller->updateLimit(88);
+
+        $this->assertSame(404, $response->getStatusCode());
+        $this->assertSame([
+            'success' => false,
+            'message' => 'Cartao nao encontrado',
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+    }
+
+    public function testCancelarRecorrenciaReturnsBadRequestWhenWorkflowFails(): void
+    {
+        $this->seedAuthenticatedSession(1206, 'Cartao User');
+
+        $workflow = Mockery::mock(CartaoApiWorkflowService::class);
+        $workflow
+            ->shouldReceive('cancelRecurring')
+            ->once()
+            ->with(33, 1206)
+            ->andReturn([
+                'success' => false,
+                'message' => 'Erro ao cancelar recorrencia',
+            ]);
+
+        $controller = new CartoesController(
+            Mockery::mock(CartaoCreditoService::class),
+            Mockery::mock(CartaoFaturaService::class),
+            Mockery::mock(PlanLimitService::class),
+            $workflow
+        );
+
+        $response = $controller->cancelarRecorrencia(33);
+
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertSame([
+            'success' => false,
+            'message' => 'Erro ao cancelar recorrencia',
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+    }
+
+    public function testDeactivateReturnsNotFoundWhenWorkflowFails(): void
+    {
+        $this->seedAuthenticatedSession(1207, 'Cartao User');
+
+        $workflow = Mockery::mock(CartaoApiWorkflowService::class);
+        $workflow
+            ->shouldReceive('deactivateCard')
+            ->once()
+            ->with(45, 1207)
+            ->andReturn([
+                'success' => false,
+                'message' => 'Cartao nao encontrado',
+            ]);
+
+        $controller = new CartoesController(
+            Mockery::mock(CartaoCreditoService::class),
+            Mockery::mock(CartaoFaturaService::class),
+            Mockery::mock(PlanLimitService::class),
+            $workflow
+        );
+
+        $response = $controller->deactivate(45);
+
+        $this->assertSame(404, $response->getStatusCode());
+        $this->assertSame([
+            'success' => false,
+            'message' => 'Cartao nao encontrado',
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
     private function seedAuthenticatedSession(int $userId, string $name): void

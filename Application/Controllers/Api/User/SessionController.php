@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\User;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Middlewares\CsrfMiddleware;
@@ -15,7 +15,7 @@ use Application\Middlewares\CsrfMiddleware;
  * Fornece endpoints para verificar status da sessão,
  * renovar sessão e validar autenticação.
  */
-class SessionController extends BaseController
+class SessionController extends ApiController
 {
     private const WARNING_THRESHOLD = 300;
 

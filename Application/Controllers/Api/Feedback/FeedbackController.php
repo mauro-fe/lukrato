@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Feedback;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Services\Feedback\FeedbackService;
 
-class FeedbackController extends BaseController
+class FeedbackController extends ApiController
 {
     private FeedbackService $service;
 
@@ -29,12 +29,24 @@ class FeedbackController extends BaseController
         $data['pagina'] = $_SERVER['HTTP_REFERER'] ?? null;
 
         $result = $this->service->store($userId, $data);
+        $workflowResult = (bool) ($result['success'] ?? false)
+            ? [
+                'success' => true,
+                'data' => $result['data'] ?? null,
+                'message' => 'Feedback registrado com sucesso.',
+                'status' => 200,
+            ]
+            : [
+                'success' => false,
+                'message' => (string) ($result['message'] ?? 'Erro ao registrar feedback.'),
+                'status' => 429,
+            ];
 
-        if ($result['success']) {
-            return Response::successResponse($result['data'] ?? null, 'Feedback registrado com sucesso.');
-        }
-
-        return Response::errorResponse($result['message'], 429);
+        return $this->respondApiWorkflowResult(
+            $workflowResult,
+            useWorkflowFailureOnFailure: false,
+            preserveSuccessMeta: true
+        );
     }
 
     /**

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Billing;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 
 /**
@@ -13,7 +13,7 @@ use Application\Core\Response;
  * As rotas HTTP de scheduler foram removidas por seguranca.
  * Use `php cli/run_scheduler.php` como entrada operacional.
  */
-class SchedulerController extends BaseController
+class SchedulerController extends ApiController
 {
     public function health(): Response
     {

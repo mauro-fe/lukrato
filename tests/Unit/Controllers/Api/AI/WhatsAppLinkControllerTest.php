@@ -19,11 +19,13 @@ class WhatsAppLinkControllerTest extends TestCase
         parent::setUp();
         $this->resetSessionState();
         $_POST = [];
+        $_SERVER['REQUEST_METHOD'] = 'POST';
     }
 
     protected function tearDown(): void
     {
         $_POST = [];
+        unset($_SERVER['REQUEST_METHOD']);
         $this->resetSessionState();
         parent::tearDown();
     }

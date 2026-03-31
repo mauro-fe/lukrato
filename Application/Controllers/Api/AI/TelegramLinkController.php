@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\AI;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Models\Usuario;
 use Application\Services\AI\Telegram\TelegramQrCodeService;
@@ -13,7 +13,7 @@ use Application\Services\AI\Telegram\TelegramUserResolver;
 /**
  * Controller para vincular/desvincular Telegram ao perfil do usuario.
  */
-class TelegramLinkController extends BaseController
+class TelegramLinkController extends ApiController
 {
     /**
      * Gera codigo de verificacao para vincular Telegram.

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Cartao;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Enums\LogCategory;
 use Application\Services\Cartao\CartaoApiWorkflowService;
@@ -14,7 +14,7 @@ use Application\Services\Demo\DemoPreviewService;
 use Application\Services\Infrastructure\LogService;
 use Application\Services\Plan\PlanLimitService;
 
-class CartoesController extends BaseController
+class CartoesController extends ApiController
 {
     private CartaoApiWorkflowService $workflowService;
     private DemoPreviewService $demoPreviewService;
@@ -73,11 +73,11 @@ class CartoesController extends BaseController
         $userId = $this->requireApiUserIdOrFail();
         $result = $this->workflowService->createCard($userId, $this->getRequestPayload());
 
-        if (!$result['success']) {
-            return Response::errorResponse($result['message'], $result['status'], $result['errors'] ?? null);
-        }
-
-        return Response::successResponse($result['data'], $result['message'], $result['status']);
+        return $this->respondApiWorkflowResult(
+            $result,
+            preserveSuccessMeta: true,
+            useWorkflowFailureOnFailure: false
+        );
     }
 
     public function update(int $id): Response
@@ -85,11 +85,10 @@ class CartoesController extends BaseController
         $userId = $this->requireApiUserIdOrFail();
         $result = $this->workflowService->updateCard($id, $userId, $this->getRequestPayload());
 
-        if (!$result['success']) {
-            return Response::errorResponse($result['message'], $result['status'], $result['errors'] ?? null);
-        }
-
-        return Response::successResponse($result['data']);
+        return $this->respondApiWorkflowResult(
+            $result,
+            useWorkflowFailureOnFailure: false
+        );
     }
 
     public function deactivate(int $id): Response
@@ -117,17 +116,26 @@ class CartoesController extends BaseController
         $userId = $this->requireApiUserIdOrFail();
         $result = $this->workflowService->deleteCard($id, $userId, $this->getRequestPayload());
 
-        if (!$result['success']) {
-            $statusCode = isset($result['requires_confirmation']) && $result['requires_confirmation'] ? 422 : 404;
+        $workflowResult = [
+            'success' => (bool) ($result['success'] ?? false),
+            'data' => $result,
+        ];
 
-            return Response::errorResponse($result['message'], $statusCode, [
-                'status' => ($result['requires_confirmation'] ?? false) ? 'confirm_delete' : 'error',
-                'requires_confirmation' => $result['requires_confirmation'] ?? false,
-                'total_lancamentos' => $result['total_lancamentos'] ?? 0,
-            ]);
+        if (!$workflowResult['success']) {
+            $requiresConfirmation = (bool) ($result['requires_confirmation'] ?? false);
+            $workflowResult['status'] = $requiresConfirmation ? 422 : 404;
+            $workflowResult['message'] = (string) ($result['message'] ?? 'Erro ao excluir cartao');
+            $workflowResult['errors'] = [
+                'status' => $requiresConfirmation ? 'confirm_delete' : 'error',
+                'requires_confirmation' => $requiresConfirmation,
+                'total_lancamentos' => (int) ($result['total_lancamentos'] ?? 0),
+            ];
         }
 
-        return Response::successResponse($result);
+        return $this->respondApiWorkflowResult(
+            $workflowResult,
+            useWorkflowFailureOnFailure: false
+        );
     }
 
     public function destroy(int $id): Response
@@ -139,15 +147,24 @@ class CartoesController extends BaseController
     {
         $result = $this->workflowService->refreshLimit($id, $this->requireApiUserIdOrFail());
 
-        if (!$result['success']) {
-            return Response::errorResponse($result['message'], 404);
+        $workflowResult = [
+            'success' => (bool) ($result['success'] ?? false),
+            'data' => [
+                'limite_disponivel' => $result['limite_disponivel'] ?? null,
+                'limite_utilizado' => $result['limite_utilizado'] ?? null,
+                'percentual_uso' => $result['percentual_uso'] ?? null,
+            ],
+        ];
+
+        if (!$workflowResult['success']) {
+            $workflowResult['status'] = 404;
+            $workflowResult['message'] = (string) ($result['message'] ?? 'Cartao nao encontrado');
         }
 
-        return Response::successResponse([
-            'limite_disponivel' => $result['limite_disponivel'],
-            'limite_utilizado' => $result['limite_utilizado'],
-            'percentual_uso' => $result['percentual_uso'],
-        ]);
+        return $this->respondApiWorkflowResult(
+            $workflowResult,
+            useWorkflowFailureOnFailure: false
+        );
     }
 
     public function summary(): Response
@@ -384,11 +401,20 @@ class CartoesController extends BaseController
         try {
             $resultado = $this->workflowService->cancelRecurring($id, $userId);
 
-            if ($resultado['success']) {
-                return Response::successResponse($resultado);
+            $workflowResult = [
+                'success' => (bool) ($resultado['success'] ?? false),
+                'data' => $resultado,
+            ];
+
+            if (!$workflowResult['success']) {
+                $workflowResult['status'] = 400;
+                $workflowResult['message'] = (string) ($resultado['message'] ?? 'Erro ao cancelar recorrencia');
             }
 
-            return Response::errorResponse($resultado['message'] ?? 'Erro ao cancelar recorrência', 400);
+            return $this->respondApiWorkflowResult(
+                $workflowResult,
+                useWorkflowFailureOnFailure: false
+            );
         } catch (\Exception $e) {
             LogService::captureException($e, LogCategory::CARTAO, [
                 'action' => 'cancelar_recorrencia',
@@ -404,11 +430,20 @@ class CartoesController extends BaseController
 
     private function handleCardActionResult(array $resultado): Response
     {
-        if (!$resultado['success']) {
-            return Response::errorResponse($resultado['message'], 404);
+        $workflowResult = [
+            'success' => (bool) ($resultado['success'] ?? false),
+            'data' => $resultado,
+        ];
+
+        if (!$workflowResult['success']) {
+            $workflowResult['status'] = 404;
+            $workflowResult['message'] = (string) ($resultado['message'] ?? 'Cartao nao encontrado');
         }
 
-        return Response::successResponse($resultado);
+        return $this->respondApiWorkflowResult(
+            $workflowResult,
+            useWorkflowFailureOnFailure: false
+        );
     }
 
     private function resolveBooleanQuery(string $key, bool $default): bool

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Admin;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\WebController;
 use Application\Core\Response;
 
 /**
  * Tela dedicada de configurações da conta.
  */
-class ConfigController extends BaseController
+class ConfigController extends WebController
 {
     public function index(): Response
     {

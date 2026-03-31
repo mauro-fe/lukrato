@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Application\Controllers\SysAdmin;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Enums\LogCategory;
 use Application\Repositories\BlogPostRepository;
 use Application\Services\Admin\BlogAdminWorkflowService;
 
-class BlogController extends BaseController
+class BlogController extends ApiController
 {
     private BlogAdminWorkflowService $workflowService;
 
@@ -24,28 +24,44 @@ class BlogController extends BaseController
     {
         $this->requireApiAdminUserAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult($this->workflowService->listPosts([
-            'search' => $this->getQuery('search'),
-            'status' => $this->getQuery('status'),
-            'blog_categoria_id' => $this->getQuery('blog_categoria_id'),
-            'page' => $this->getIntQuery('page', 1),
-            'per_page' => $this->getIntQuery('per_page', 15),
-        ]));
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->listPosts([
+                'search' => $this->getQuery('search'),
+                'status' => $this->getQuery('status'),
+                'blog_categoria_id' => $this->getQuery('blog_categoria_id'),
+                'page' => $this->getIntQuery('page', 1),
+                'per_page' => $this->getIntQuery('per_page', 15),
+            ]),
+            'Erro ao processar operacao do blog.',
+            LogCategory::GENERAL,
+            ['controller' => 'sysadmin_blog'],
+            true
+        );
     }
 
     public function show(mixed $id): Response
     {
         $this->requireApiAdminUserAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult($this->workflowService->showPost($id));
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->showPost($id),
+            'Erro ao processar operacao do blog.',
+            LogCategory::GENERAL,
+            ['controller' => 'sysadmin_blog'],
+            true
+        );
     }
 
     public function store(): Response
     {
         $this->requireApiAdminUserAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult(
-            $this->workflowService->createPost($this->getRequestPayload())
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->createPost($this->getRequestPayload()),
+            'Erro ao processar operacao do blog.',
+            LogCategory::GENERAL,
+            ['controller' => 'sysadmin_blog'],
+            true
         );
     }
 
@@ -53,8 +69,12 @@ class BlogController extends BaseController
     {
         $this->requireApiAdminUserAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult(
-            $this->workflowService->updatePost($id, $this->getRequestPayload())
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->updatePost($id, $this->getRequestPayload()),
+            'Erro ao processar operacao do blog.',
+            LogCategory::GENERAL,
+            ['controller' => 'sysadmin_blog'],
+            true
         );
     }
 
@@ -62,8 +82,12 @@ class BlogController extends BaseController
     {
         $this->requireApiAdminUserAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult(
-            $this->workflowService->deletePost($id, (string) ($_SERVER['DOCUMENT_ROOT'] ?? ''))
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->deletePost($id, (string) ($_SERVER['DOCUMENT_ROOT'] ?? '')),
+            'Erro ao processar operacao do blog.',
+            LogCategory::GENERAL,
+            ['controller' => 'sysadmin_blog'],
+            true
         );
     }
 
@@ -71,12 +95,16 @@ class BlogController extends BaseController
     {
         $this->requireApiAdminUserAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult(
+        return $this->respondApiWorkflowResult(
             $this->workflowService->uploadImage(
                 is_array($_FILES['imagem'] ?? null) ? $_FILES['imagem'] : [],
                 (string) ($_SERVER['DOCUMENT_ROOT'] ?? ''),
                 (string) BASE_URL
-            )
+            ),
+            'Erro ao processar operacao do blog.',
+            LogCategory::GENERAL,
+            ['controller' => 'sysadmin_blog'],
+            true
         );
     }
 
@@ -84,27 +112,12 @@ class BlogController extends BaseController
     {
         $this->requireApiAdminUserAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult($this->workflowService->listCategories());
-    }
-
-    /**
-     * @param array<string, mixed> $result
-     */
-    private function respondWorkflowResult(array $result): Response
-    {
-        if (!$result['success']) {
-            return $this->workflowFailureResponse(
-                $result,
-                'Erro ao processar operacao do blog.',
-                LogCategory::GENERAL,
-                ['controller' => 'sysadmin_blog']
-            );
-        }
-
-        return Response::successResponse(
-            $result['data'] ?? null,
-            $result['message'] ?? 'Success',
-            $result['status'] ?? 200
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->listCategories(),
+            'Erro ao processar operacao do blog.',
+            LogCategory::GENERAL,
+            ['controller' => 'sysadmin_blog'],
+            true
         );
     }
 }

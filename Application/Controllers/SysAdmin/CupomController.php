@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Application\Controllers\SysAdmin;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Enums\LogCategory;
 use Application\Services\Admin\CupomAdminWorkflowService;
 
-class CupomController extends BaseController
+class CupomController extends ApiController
 {
     public function __construct(
         private readonly CupomAdminWorkflowService $workflowService = new CupomAdminWorkflowService()
@@ -21,15 +21,23 @@ class CupomController extends BaseController
     {
         $this->requireApiAdminUserAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult($this->workflowService->listCoupons());
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->listCoupons(),
+            'Erro ao processar operacao de cupom.',
+            LogCategory::GENERAL,
+            ['controller' => 'sysadmin_cupom']
+        );
     }
 
     public function store(): Response
     {
         $this->requireApiAdminUserAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult(
-            $this->workflowService->createCoupon($this->getRequestPayload())
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->createCoupon($this->getRequestPayload()),
+            'Erro ao processar operacao de cupom.',
+            LogCategory::GENERAL,
+            ['controller' => 'sysadmin_cupom']
         );
     }
 
@@ -37,8 +45,11 @@ class CupomController extends BaseController
     {
         $this->requireApiAdminUserAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult(
-            $this->workflowService->deleteCoupon($this->getRequestPayload())
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->deleteCoupon($this->getRequestPayload()),
+            'Erro ao processar operacao de cupom.',
+            LogCategory::GENERAL,
+            ['controller' => 'sysadmin_cupom']
         );
     }
 
@@ -46,8 +57,11 @@ class CupomController extends BaseController
     {
         $user = $this->requireApiUserAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult(
-            $this->workflowService->validateCoupon($user, $this->getStringQuery('codigo'))
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->validateCoupon($user, $this->getStringQuery('codigo')),
+            'Erro ao processar operacao de cupom.',
+            LogCategory::GENERAL,
+            ['controller' => 'sysadmin_cupom']
         );
     }
 
@@ -55,8 +69,11 @@ class CupomController extends BaseController
     {
         $this->requireApiAdminUserAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult(
-            $this->workflowService->updateCoupon($this->getRequestPayload())
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->updateCoupon($this->getRequestPayload()),
+            'Erro ao processar operacao de cupom.',
+            LogCategory::GENERAL,
+            ['controller' => 'sysadmin_cupom']
         );
     }
 
@@ -64,25 +81,11 @@ class CupomController extends BaseController
     {
         $this->requireApiAdminUserAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult(
-            $this->workflowService->getStatistics($this->getQuery('id'))
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->getStatistics($this->getQuery('id')),
+            'Erro ao processar operacao de cupom.',
+            LogCategory::GENERAL,
+            ['controller' => 'sysadmin_cupom']
         );
-    }
-
-    /**
-     * @param array<string, mixed> $result
-     */
-    private function respondWorkflowResult(array $result): Response
-    {
-        if (!$result['success']) {
-            return $this->workflowFailureResponse(
-                $result,
-                'Erro ao processar operacao de cupom.',
-                LogCategory::GENERAL,
-                ['controller' => 'sysadmin_cupom']
-            );
-        }
-
-        return Response::successResponse($result['data'] ?? null);
     }
 }

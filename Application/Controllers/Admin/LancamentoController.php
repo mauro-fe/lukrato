@@ -2,11 +2,11 @@
 
 namespace Application\Controllers\Admin;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\WebController;
 use Application\Core\Response;
 use Application\Models\Usuario;
 
-class LancamentoController extends BaseController
+class LancamentoController extends WebController
 {
     public function index(): Response
     {

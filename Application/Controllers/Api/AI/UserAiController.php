@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\AI;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\DTO\AI\AIResponseDTO;
 use Application\Services\AI\AIQuotaService;
@@ -19,7 +19,7 @@ use InvalidArgumentException;
  * Controller de IA para usuarios autenticados.
  * Expoe chat, categorizacao, analise financeira e gestao de conversas.
  */
-class UserAiController extends BaseController
+class UserAiController extends ApiController
 {
     private ?AIService $aiService;
     private ?UserContextBuilder $contextBuilder;

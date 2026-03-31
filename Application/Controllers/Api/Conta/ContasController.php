@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Conta;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Services\Conta\ContaApiWorkflowService;
 use Application\Services\Conta\ContaService;
@@ -12,7 +12,7 @@ use Application\Services\Demo\DemoPreviewService;
 use Application\Services\Plan\PlanLimitService;
 use Throwable;
 
-class ContasController extends BaseController
+class ContasController extends ApiController
 {
     private ContaApiWorkflowService $workflowService;
     private DemoPreviewService $demoPreviewService;
@@ -50,12 +50,16 @@ class ContasController extends BaseController
                 );
             }
 
-            return $this->respondWorkflowResult($this->workflowService->listAccounts($userId, [
-                'archived' => $this->getIntQuery('archived', 0),
-                'only_active' => $this->getQuery('only_active'),
-                'with_balances' => $this->getIntQuery('with_balances', 0),
-                'month' => $this->getQuery('month'),
-            ]));
+            return $this->respondApiWorkflowResult(
+                $this->workflowService->listAccounts($userId, [
+                    'archived' => $this->getIntQuery('archived', 0),
+                    'only_active' => $this->getQuery('only_active'),
+                    'with_balances' => $this->getIntQuery('with_balances', 0),
+                    'month' => $this->getQuery('month'),
+                ]),
+                preserveSuccessMeta: true,
+                useWorkflowFailureOnFailure: false
+            );
         } catch (Throwable $e) {
             return $this->internalErrorResponse($e, 'Erro ao carregar contas.');
         }
@@ -69,7 +73,11 @@ class ContasController extends BaseController
     {
         $userId = $this->requireApiUserIdOrFail();
 
-        return $this->respondWorkflowResult($this->workflowService->createAccount($userId, $this->getRequestPayload()));
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->createAccount($userId, $this->getRequestPayload()),
+            preserveSuccessMeta: true,
+            useWorkflowFailureOnFailure: false
+        );
     }
 
     /**
@@ -80,7 +88,11 @@ class ContasController extends BaseController
     {
         $userId = $this->requireApiUserIdOrFail();
 
-        return $this->respondWorkflowResult($this->workflowService->updateAccount($id, $userId, $this->getRequestPayload()));
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->updateAccount($id, $userId, $this->getRequestPayload()),
+            preserveSuccessMeta: true,
+            useWorkflowFailureOnFailure: false
+        );
     }
 
     /**
@@ -91,7 +103,11 @@ class ContasController extends BaseController
     {
         $userId = $this->requireApiUserIdOrFail();
 
-        return $this->respondWorkflowResult($this->workflowService->archiveAccount($id, $userId));
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->archiveAccount($id, $userId),
+            preserveSuccessMeta: true,
+            useWorkflowFailureOnFailure: false
+        );
     }
 
     /**
@@ -102,7 +118,11 @@ class ContasController extends BaseController
     {
         $userId = $this->requireApiUserIdOrFail();
 
-        return $this->respondWorkflowResult($this->workflowService->restoreAccount($id, $userId));
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->restoreAccount($id, $userId),
+            preserveSuccessMeta: true,
+            useWorkflowFailureOnFailure: false
+        );
     }
 
     /**
@@ -113,12 +133,16 @@ class ContasController extends BaseController
     {
         $userId = $this->requireApiUserIdOrFail();
 
-        return $this->respondWorkflowResult($this->workflowService->deleteAccount(
-            $id,
-            $userId,
-            $this->getRequestPayload(),
-            ['force' => $this->getIntQuery('force', 0)]
-        ));
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->deleteAccount(
+                $id,
+                $userId,
+                $this->getRequestPayload(),
+                ['force' => $this->getIntQuery('force', 0)]
+            ),
+            preserveSuccessMeta: true,
+            useWorkflowFailureOnFailure: false
+        );
     }
 
     /**
@@ -140,7 +164,11 @@ class ContasController extends BaseController
             $tipo = $this->getQuery('tipo');
             $tipo = is_string($tipo) ? trim($tipo) : null;
 
-            return $this->respondWorkflowResult($this->workflowService->listInstituicoes($tipo));
+            return $this->respondApiWorkflowResult(
+                $this->workflowService->listInstituicoes($tipo),
+                preserveSuccessMeta: true,
+                useWorkflowFailureOnFailure: false
+            );
         } catch (Throwable $e) {
             return $this->internalErrorResponse($e, 'Erro ao carregar instituicoes.');
         }
@@ -153,34 +181,14 @@ class ContasController extends BaseController
     public function createInstituicao(): Response
     {
         try {
-            return $this->respondWorkflowResult($this->workflowService->createInstituicao($this->getJson()));
+            return $this->respondApiWorkflowResult(
+                $this->workflowService->createInstituicao($this->getJson()),
+                preserveSuccessMeta: true,
+                useWorkflowFailureOnFailure: false
+            );
         } catch (Throwable $e) {
             return $this->internalErrorResponse($e, 'Erro ao criar instituição.');
         }
     }
 
-    /**
-     * @param array<string, mixed> $result
-     */
-    private function respondWorkflowResult(array $result): Response
-    {
-        if (!$result['success']) {
-            $errors = $result['errors'] ?? null;
-            if ($errors === []) {
-                $errors = null;
-            }
-
-            return Response::errorResponse(
-                $result['message'],
-                $result['status'] ?? 400,
-                $errors
-            );
-        }
-
-        return Response::successResponse(
-            $result['data'] ?? null,
-            $result['message'] ?? 'Success',
-            $result['status'] ?? 200
-        );
-    }
 }

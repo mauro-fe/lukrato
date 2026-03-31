@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Lancamentos;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Models\Usuario;
 use Application\Services\Lancamento\LancamentoExportService;
 use InvalidArgumentException;
 
-class ExportController extends BaseController
+class ExportController extends ApiController
 {
     private LancamentoExportService $exportService;
 
@@ -30,14 +30,14 @@ class ExportController extends BaseController
         }
 
         $filters = [
-            'month' => $_GET['month'] ?? null,
-            'start_date' => $_GET['start_date'] ?? null,
-            'end_date' => $_GET['end_date'] ?? null,
-            'tipo' => $_GET['tipo'] ?? null,
-            'categoria_id' => $_GET['categoria_id'] ?? null,
-            'account_id' => $_GET['account_id'] ?? null,
-            'include_transfers' => $_GET['include_transfers'] ?? null,
-            'format' => $_GET['format'] ?? null,
+            'month' => $this->getQuery('month'),
+            'start_date' => $this->getQuery('start_date'),
+            'end_date' => $this->getQuery('end_date'),
+            'tipo' => $this->getQuery('tipo'),
+            'categoria_id' => $this->getQuery('categoria_id'),
+            'account_id' => $this->getQuery('account_id'),
+            'include_transfers' => $this->getQuery('include_transfers'),
+            'format' => $this->getQuery('format'),
         ];
 
         try {

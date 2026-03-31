@@ -2,14 +2,14 @@
 
 namespace Application\Controllers\Admin;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\WebController;
 use Application\Core\Response;
 use Application\Models\Plano;
 use Application\Repositories\DocumentoRepository;
 use Application\Services\Billing\SubscriptionExpirationService;
 use Illuminate\Database\Capsule\Manager as DB;
 
-class BillingController extends BaseController
+class BillingController extends WebController
 {
     private ?DocumentoRepository $documentoRepo = null;
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Gamification;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Models\Categoria;
 use Application\Models\Lancamento;
@@ -17,7 +17,7 @@ use Application\Services\Gamification\StreakService;
 use Carbon\Carbon;
 use Throwable;
 
-class GamificationController extends BaseController
+class GamificationController extends ApiController
 {
     private GamificationService $gamificationService;
     private AchievementService $achievementService;
@@ -99,7 +99,7 @@ class GamificationController extends BaseController
         try {
             \Application\Services\Infrastructure\LogService::safeErrorLog('[ACHIEVEMENTS API] User ID: ' . $this->userId . ', isPro: ' . ($user->isPro() ? 'true' : 'false'));
 
-            $month = $_GET['month'] ?? null;
+            $month = $this->getQuery('month');
             \Application\Services\Infrastructure\LogService::safeErrorLog('[ACHIEVEMENTS API] Month filter: ' . ($month ?? 'null'));
 
             $achievements = $this->achievementService->getUserAchievements($this->userId, $month);
@@ -299,7 +299,7 @@ class GamificationController extends BaseController
         $this->requireApiUserIdAndReleaseSessionOrFail();
 
         try {
-            $limit = (int) ($_GET['limit'] ?? 10);
+            $limit = $this->getIntQuery('limit', 10);
             $limit = min(max($limit, 1), 50);
 
             $history = \Application\Models\PointsLog::where('user_id', $this->userId)

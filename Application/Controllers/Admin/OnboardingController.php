@@ -2,9 +2,9 @@
 
 namespace Application\Controllers\Admin;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\WebController;
 use Application\Core\Response;
-class OnboardingController extends BaseController
+class OnboardingController extends WebController
 {
     public function index(): Response
     {

@@ -18,11 +18,13 @@ class ContactControllerTest extends TestCase
     {
         parent::setUp();
         $_POST = [];
+        $_SERVER['REQUEST_METHOD'] = 'POST';
     }
 
     protected function tearDown(): void
     {
         $_POST = [];
+        unset($_SERVER['REQUEST_METHOD']);
         parent::tearDown();
     }
 

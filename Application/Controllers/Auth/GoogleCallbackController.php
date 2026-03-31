@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Auth;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\WebController;
 use Application\Core\Response;
 use Application\Enums\LogCategory;
 use Application\Services\Auth\GoogleAuthService;
@@ -12,7 +12,7 @@ use Application\Services\Infrastructure\LogService;
 use Exception;
 use Throwable;
 
-class GoogleCallbackController extends BaseController
+class GoogleCallbackController extends WebController
 {
     private GoogleAuthService $googleAuthService;
 

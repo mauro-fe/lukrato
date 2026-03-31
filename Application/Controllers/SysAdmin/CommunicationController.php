@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Application\Controllers\SysAdmin;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\WebController;
 use Application\Core\Response;
 use Application\Services\Admin\CommunicationAdminViewService;
 
-class CommunicationController extends BaseController
+class CommunicationController extends WebController
 {
     public function __construct(
         private readonly CommunicationAdminViewService $viewService = new CommunicationAdminViewService()

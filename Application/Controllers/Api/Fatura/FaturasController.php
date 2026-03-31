@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Fatura;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Enums\LogCategory;
 use Application\Services\Fatura\FaturaApiWorkflowService;
@@ -13,7 +13,7 @@ use Application\Services\Infrastructure\LogService;
 use InvalidArgumentException;
 use Throwable;
 
-class FaturasController extends BaseController
+class FaturasController extends ApiController
 {
     private FaturaApiWorkflowService $workflowService;
 
@@ -32,12 +32,18 @@ class FaturasController extends BaseController
         $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
 
         try {
-            return $this->respondWorkflowResult($this->workflowService->listInvoices($userId, [
-                'cartao_id' => $this->getQuery('cartao_id'),
-                'status' => $this->getQuery('status'),
-                'mes' => $this->getQuery('mes'),
-                'ano' => $this->getQuery('ano'),
-            ]));
+            return $this->respondApiWorkflowResult(
+                $this->workflowService->listInvoices($userId, [
+                    'cartao_id' => $this->getQuery('cartao_id'),
+                    'status' => $this->getQuery('status'),
+                    'mes' => $this->getQuery('mes'),
+                    'ano' => $this->getQuery('ano'),
+                ]),
+                'Erro ao processar fatura.',
+                LogCategory::GENERAL,
+                ['controller' => 'faturas'],
+                preserveSuccessMeta: true
+            );
         } catch (InvalidArgumentException $e) {
             return $this->domainErrorResponse($e, 'Dados invalidos para listar faturas.', 400);
         } catch (Throwable $e) {
@@ -51,7 +57,13 @@ class FaturasController extends BaseController
         $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
 
         try {
-            return $this->respondWorkflowResult($this->workflowService->showInvoice($id, $userId));
+            return $this->respondApiWorkflowResult(
+                $this->workflowService->showInvoice($id, $userId),
+                'Erro ao processar fatura.',
+                LogCategory::GENERAL,
+                ['controller' => 'faturas'],
+                preserveSuccessMeta: true
+            );
         } catch (InvalidArgumentException $e) {
             return $this->domainErrorResponse($e, 'Não foi possivel buscar a fatura.', 400);
         } catch (Throwable $e) {
@@ -65,10 +77,16 @@ class FaturasController extends BaseController
         $userId = $this->requireApiUserIdOrFail();
 
         try {
-            return $this->respondWorkflowResult($this->workflowService->createInvoice(
-                $userId,
-                $this->getJsonPayloadOrNull()
-            ));
+            return $this->respondApiWorkflowResult(
+                $this->workflowService->createInvoice(
+                    $userId,
+                    $this->getJsonPayloadOrNull()
+                ),
+                'Erro ao processar fatura.',
+                LogCategory::GENERAL,
+                ['controller' => 'faturas'],
+                preserveSuccessMeta: true
+            );
         } catch (InvalidArgumentException $e) {
             return $this->domainErrorResponse($e, 'Dados invalidos para criar fatura.', 400);
         } catch (Throwable $e) {
@@ -82,7 +100,13 @@ class FaturasController extends BaseController
         $userId = $this->requireApiUserIdOrFail();
 
         try {
-            return $this->respondWorkflowResult($this->workflowService->deleteInvoice($id, $userId));
+            return $this->respondApiWorkflowResult(
+                $this->workflowService->deleteInvoice($id, $userId),
+                'Erro ao processar fatura.',
+                LogCategory::GENERAL,
+                ['controller' => 'faturas'],
+                preserveSuccessMeta: true
+            );
         } catch (InvalidArgumentException $e) {
             return $this->domainErrorResponse($e, 'Não foi possivel cancelar a fatura.', 400);
         } catch (Throwable $e) {
@@ -96,12 +120,18 @@ class FaturasController extends BaseController
         $userId = $this->requireApiUserIdOrFail();
 
         try {
-            return $this->respondWorkflowResult($this->workflowService->updateInvoiceItem(
-                $faturaId,
-                $itemId,
-                $userId,
-                $this->getJsonPayloadOrNull()
-            ));
+            return $this->respondApiWorkflowResult(
+                $this->workflowService->updateInvoiceItem(
+                    $faturaId,
+                    $itemId,
+                    $userId,
+                    $this->getJsonPayloadOrNull()
+                ),
+                'Erro ao processar fatura.',
+                LogCategory::GENERAL,
+                ['controller' => 'faturas'],
+                preserveSuccessMeta: true
+            );
         } catch (InvalidArgumentException $e) {
             LogService::error('Erro de validação ao atualizar item da fatura', [
                 'item_id' => $itemId,
@@ -128,12 +158,18 @@ class FaturasController extends BaseController
         $userId = $this->requireApiUserIdOrFail();
 
         try {
-            return $this->respondWorkflowResult($this->workflowService->toggleInvoiceItemPaid(
-                $faturaId,
-                $itemId,
-                $userId,
-                $this->getJsonPayloadOrNull()
-            ));
+            return $this->respondApiWorkflowResult(
+                $this->workflowService->toggleInvoiceItemPaid(
+                    $faturaId,
+                    $itemId,
+                    $userId,
+                    $this->getJsonPayloadOrNull()
+                ),
+                'Erro ao processar fatura.',
+                LogCategory::GENERAL,
+                ['controller' => 'faturas'],
+                preserveSuccessMeta: true
+            );
         } catch (InvalidArgumentException $e) {
             LogService::error('Erro de validação ao atualizar item da fatura', [
                 'item_id' => $itemId,
@@ -160,7 +196,13 @@ class FaturasController extends BaseController
         $userId = $this->requireApiUserIdOrFail();
 
         try {
-            return $this->respondWorkflowResult($this->workflowService->deleteInvoiceItem($faturaId, $itemId, $userId));
+            return $this->respondApiWorkflowResult(
+                $this->workflowService->deleteInvoiceItem($faturaId, $itemId, $userId),
+                'Erro ao processar fatura.',
+                LogCategory::GENERAL,
+                ['controller' => 'faturas'],
+                preserveSuccessMeta: true
+            );
         } catch (InvalidArgumentException $e) {
             LogService::error('Erro de validação ao excluir item da fatura', [
                 'item_id' => $itemId,
@@ -186,46 +228,19 @@ class FaturasController extends BaseController
                 'usuario_id' => $userId,
             ]);
 
-            return $this->respondWorkflowResult($this->workflowService->deleteInstallment($faturaId, $itemId, $userId));
+            return $this->respondApiWorkflowResult(
+                $this->workflowService->deleteInstallment($faturaId, $itemId, $userId),
+                'Erro ao processar fatura.',
+                LogCategory::GENERAL,
+                ['controller' => 'faturas'],
+                preserveSuccessMeta: true
+            );
         } catch (InvalidArgumentException $e) {
             return $this->domainErrorResponse($e, 'Não foi possivel excluir o parcelamento.', 400);
         } catch (Throwable $e) {
             $this->logError("Erro ao excluir parcelamento do item {$itemId}", $e);
             return Response::errorResponse('Erro ao excluir parcelamento', 500);
         }
-    }
-
-    /**
-     * @param array<string, mixed> $result
-     */
-    private function respondWorkflowResult(array $result): Response
-    {
-        if (!$result['success']) {
-            $errors = $result['errors'] ?? null;
-            if ($errors === []) {
-                $errors = null;
-            }
-
-            return $this->workflowFailureResponse(
-                [
-                    'success' => false,
-                    'status' => $result['status'] ?? 400,
-                    'message' => $result['message'] ?? 'Erro ao processar fatura.',
-                    'errors' => $errors,
-                    'error_id' => $result['error_id'] ?? null,
-                    'request_id' => $result['request_id'] ?? null,
-                ],
-                'Erro ao processar fatura.',
-                LogCategory::GENERAL,
-                ['controller' => 'faturas']
-            );
-        }
-
-        return Response::successResponse(
-            $result['data'] ?? null,
-            $result['message'] ?? 'Success',
-            $result['status'] ?? 200
-        );
     }
 
     /**

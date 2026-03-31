@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Lancamentos;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
-use Application\DTO\ServiceResultDTO;
 use Application\Services\Lancamento\LancamentoCreationService;
 
-class StoreController extends BaseController
+class StoreController extends ApiController
 {
     private LancamentoCreationService $creationService;
 
@@ -24,19 +23,10 @@ class StoreController extends BaseController
         $userId = $this->requireApiUserIdOrFail();
 
         $result = $this->creationService->createFromPayload($userId, $this->getRequestPayload());
-        return $this->buildResponse($result);
-    }
-
-    private function buildResponse(ServiceResultDTO $result): Response
-    {
-        if ($result->isValidationError()) {
-            return Response::validationErrorResponse($result->data['errors']);
-        }
-
-        if ($result->isError()) {
-            return Response::errorResponse($result->message, $result->httpCode);
-        }
-
-        return Response::successResponse($result->data, $result->message, 201);
+        return $this->respondServiceResult(
+            $result,
+            successMessage: $result->message,
+            successStatus: 201
+        );
     }
 }

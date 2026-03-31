@@ -2,10 +2,10 @@
 
 namespace Application\Controllers\Admin;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\WebController;
 use Application\Core\Response;
 
-class DashboardController extends BaseController
+class DashboardController extends WebController
 {
     public function dashboard(): Response
     {

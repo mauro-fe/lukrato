@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Application\Controllers\SysAdmin;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Enums\LogCategory;
 use Application\Services\Admin\AiAdminWorkflowService;
 
-class AiApiController extends BaseController
+class AiApiController extends ApiController
 {
     public function __construct(
         private readonly AiAdminWorkflowService $workflowService = new AiAdminWorkflowService()
@@ -21,22 +21,35 @@ class AiApiController extends BaseController
     {
         $this->requireApiAdminUserAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult($this->workflowService->healthProxy());
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->healthProxy(),
+            'Erro ao processar operacao de IA.',
+            LogCategory::GENERAL,
+            ['controller' => 'sysadmin_ai']
+        );
     }
 
     public function quota(): Response
     {
         $this->requireApiAdminUserAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult($this->workflowService->quota());
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->quota(),
+            'Erro ao processar operacao de IA.',
+            LogCategory::GENERAL,
+            ['controller' => 'sysadmin_ai']
+        );
     }
 
     public function chat(): Response
     {
         $this->requireApiAdminUserAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult(
-            $this->workflowService->chat($this->getRequestPayload())
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->chat($this->getRequestPayload()),
+            'Erro ao processar operacao de IA.',
+            LogCategory::GENERAL,
+            ['controller' => 'sysadmin_ai']
         );
     }
 
@@ -44,8 +57,11 @@ class AiApiController extends BaseController
     {
         $this->requireApiAdminUserAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult(
-            $this->workflowService->suggestCategory($this->userId ?? 0, $this->getRequestPayload())
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->suggestCategory($this->userId ?? 0, $this->getRequestPayload()),
+            'Erro ao processar operacao de IA.',
+            LogCategory::GENERAL,
+            ['controller' => 'sysadmin_ai']
         );
     }
 
@@ -53,25 +69,11 @@ class AiApiController extends BaseController
     {
         $this->requireApiAdminUserAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult(
-            $this->workflowService->analyzeSpending($this->userId ?? 0, $this->getRequestPayload())
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->analyzeSpending($this->userId ?? 0, $this->getRequestPayload()),
+            'Erro ao processar operacao de IA.',
+            LogCategory::GENERAL,
+            ['controller' => 'sysadmin_ai']
         );
-    }
-
-    /**
-     * @param array<string, mixed> $result
-     */
-    private function respondWorkflowResult(array $result): Response
-    {
-        if (!$result['success']) {
-            return $this->workflowFailureResponse(
-                $result,
-                'Erro ao processar operacao de IA.',
-                LogCategory::GENERAL,
-                ['controller' => 'sysadmin_ai']
-            );
-        }
-
-        return Response::successResponse($result['data'] ?? null);
     }
 }

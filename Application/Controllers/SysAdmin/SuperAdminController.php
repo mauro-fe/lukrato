@@ -2,11 +2,11 @@
 
 namespace Application\Controllers\SysAdmin;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\WebController;
 use Application\Core\Response;
 use Application\Models\Usuario;
 
-class SuperAdminController extends BaseController
+class SuperAdminController extends WebController
 {
     public function index(): Response
     {

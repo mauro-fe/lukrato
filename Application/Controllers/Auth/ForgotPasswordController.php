@@ -2,7 +2,7 @@
 
 namespace Application\Controllers\Auth;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\WebController;
 use Application\Core\Exceptions\ValidationException;
 use Application\Core\Response;
 use Application\Middlewares\CsrfMiddleware;
@@ -15,7 +15,7 @@ use Application\Services\Infrastructure\CacheService;
 use Application\Services\Infrastructure\LogService;
 use Throwable;
 
-class ForgotPasswordController extends BaseController
+class ForgotPasswordController extends WebController
 {
     private PasswordResetService $service;
 

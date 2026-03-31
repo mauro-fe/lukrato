@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Admin;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Exceptions\ClientErrorException;
 use Application\Core\Response;
 use Application\Enums\LogCategory;
@@ -14,7 +14,7 @@ use Application\Services\Admin\SysAdminUserService;
 use Application\Services\Infrastructure\LogService;
 use Throwable;
 
-class SysAdminController extends BaseController
+class SysAdminController extends ApiController
 {
     public function __construct(
         private ?SysAdminUserService $userService = null,

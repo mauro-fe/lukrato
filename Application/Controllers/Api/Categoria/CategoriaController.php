@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Categoria;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\DTO\Requests\CreateCategoriaDTO;
 use Application\DTO\Requests\UpdateCategoriaDTO;
@@ -19,7 +19,7 @@ use Application\Services\Plan\PlanLimitService;
 use Application\Validators\CategoriaValidator;
 use ValueError;
 
-class CategoriaController extends BaseController
+class CategoriaController extends ApiController
 {
     private CategoriaRepository $categoriaRepo;
     private PlanLimitService $planLimitService;
@@ -179,7 +179,7 @@ class CategoriaController extends BaseController
         $payload = $this->getRequestPayload();
 
         $id = is_numeric($routeParam) ? (int) $routeParam : (int) ($payload['id'] ?? 0);
-        $force = filter_var($payload['force'] ?? ($_GET['force'] ?? false), FILTER_VALIDATE_BOOLEAN);
+        $force = filter_var($payload['force'] ?? $this->getQuery('force', false), FILTER_VALIDATE_BOOLEAN);
 
         if ($id <= 0) {
             return Response::validationErrorResponse(['id' => 'ID inválido']);

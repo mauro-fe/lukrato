@@ -2,10 +2,10 @@
 
 namespace Application\Controllers\Site;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\WebController;
 use Application\Core\Response;
 
-class LegalController extends BaseController
+class LegalController extends WebController
 {
     public function terms(): Response
     {

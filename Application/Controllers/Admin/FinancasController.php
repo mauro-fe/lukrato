@@ -2,10 +2,10 @@
 
 namespace Application\Controllers\Admin;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\WebController;
 use Application\Core\Response;
 
-class FinancasController extends BaseController
+class FinancasController extends WebController
 {
     public function index(): Response
     {

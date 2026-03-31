@@ -5,7 +5,7 @@ namespace Application\Controllers;
 use Application\Core\Response;
 use Application\Services\Gamification\GamificationService;
 
-class GamificationController extends BaseController
+class GamificationController extends WebController
 {
     private GamificationService $gamificationService;
 

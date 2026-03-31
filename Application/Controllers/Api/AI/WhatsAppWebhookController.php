@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\AI;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Enums\LogCategory;
 use Application\Enums\LogLevel;
@@ -19,7 +19,7 @@ use Application\Services\Infrastructure\LogService;
  *  GET  /api/webhook/whatsapp  -> Verificacao do webhook (hub.challenge)
  *  POST /api/webhook/whatsapp  -> Recepcao de mensagens
  */
-class WhatsAppWebhookController extends BaseController
+class WhatsAppWebhookController extends ApiController
 {
     private ?WhatsAppWebhookWorkflowService $workflowService;
 
@@ -31,9 +31,9 @@ class WhatsAppWebhookController extends BaseController
 
     public function verify(): Response
     {
-        $mode = $_GET['hub_mode'] ?? $_GET['hub.mode'] ?? '';
-        $token = $_GET['hub_verify_token'] ?? $_GET['hub.verify_token'] ?? '';
-        $challenge = $_GET['hub_challenge'] ?? $_GET['hub.challenge'] ?? '';
+        $mode = $this->getStringQuery('hub_mode', $this->getStringQuery('hub.mode', ''));
+        $token = $this->getStringQuery('hub_verify_token', $this->getStringQuery('hub.verify_token', ''));
+        $challenge = $this->getStringQuery('hub_challenge', $this->getStringQuery('hub.challenge', ''));
 
         $expectedToken = WhatsAppService::getVerifyToken();
 

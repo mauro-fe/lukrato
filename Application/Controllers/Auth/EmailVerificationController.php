@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Auth;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\WebController;
 use Application\Core\Exceptions\ValidationException;
 use Application\Core\Response;
 use Application\Middlewares\CsrfMiddleware;
@@ -13,7 +13,7 @@ use Application\Repositories\UsuarioRepository;
 use Application\Services\Auth\EmailVerificationService;
 use Application\Services\Infrastructure\CacheService;
 
-class EmailVerificationController extends BaseController
+class EmailVerificationController extends WebController
 {
     private EmailVerificationService $verificationService;
     private UsuarioRepository $usuarioRepo;

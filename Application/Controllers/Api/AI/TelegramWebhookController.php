@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\AI;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Enums\LogCategory;
 use Application\Enums\LogLevel;
@@ -18,7 +18,7 @@ use Application\Services\Infrastructure\LogService;
  * Endpoint:
  *  POST /api/webhook/telegram  -> Recepcao de updates
  */
-class TelegramWebhookController extends BaseController
+class TelegramWebhookController extends ApiController
 {
     private ?TelegramWebhookWorkflowService $workflowService;
 

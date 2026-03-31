@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\User;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Middlewares\CsrfMiddleware;
 use Application\Services\Infrastructure\LogService;
 
-class SecurityController extends BaseController
+class SecurityController extends ApiController
 {
     public function refreshCsrf(): Response
     {

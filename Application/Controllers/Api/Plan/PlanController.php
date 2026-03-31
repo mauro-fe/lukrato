@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Plan;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Enums\LogCategory;
 use Application\Services\Infrastructure\LogService;
@@ -13,7 +13,7 @@ use Application\Services\Plan\PlanLimitService;
 /**
  * Controller para consultar limites e status do plano do usuario
  */
-class PlanController extends BaseController
+class PlanController extends ApiController
 {
     private PlanLimitService $limitService;
 

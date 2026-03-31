@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\User;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Exceptions\ValidationException;
 use Application\Core\Response;
 use Application\Models\Telefone;
@@ -12,7 +12,7 @@ use Application\Models\Usuario;
 use Application\Services\Communication\MailService;
 use Application\Services\Infrastructure\CacheService;
 
-class SupportController extends BaseController
+class SupportController extends ApiController
 {
     private MailService $mailService;
 

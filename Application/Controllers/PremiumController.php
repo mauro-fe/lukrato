@@ -8,7 +8,7 @@ use Application\Core\Response;
 use Application\Enums\LogCategory;
 use Application\Services\Billing\PremiumWorkflowService;
 
-class PremiumController extends BaseController
+class PremiumController extends ApiController
 {
     public function __construct(
         private readonly PremiumWorkflowService $workflowService = new PremiumWorkflowService()
@@ -20,8 +20,12 @@ class PremiumController extends BaseController
     {
         $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult(
-            $this->workflowService->checkout($userId, $this->getRequestPayload())
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->checkout($userId, $this->getRequestPayload()),
+            'Erro ao processar assinatura.',
+            LogCategory::PAYMENT,
+            ['controller' => 'premium'],
+            true
         );
     }
 
@@ -29,8 +33,12 @@ class PremiumController extends BaseController
     {
         $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult(
-            $this->workflowService->getPendingPayment($userId)
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->getPendingPayment($userId),
+            'Erro ao processar assinatura.',
+            LogCategory::PAYMENT,
+            ['controller' => 'premium'],
+            true
         );
     }
 
@@ -38,8 +46,12 @@ class PremiumController extends BaseController
     {
         $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult(
-            $this->workflowService->cancelPendingPayment($userId)
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->cancelPendingPayment($userId),
+            'Erro ao processar assinatura.',
+            LogCategory::PAYMENT,
+            ['controller' => 'premium'],
+            true
         );
     }
 
@@ -47,8 +59,12 @@ class PremiumController extends BaseController
     {
         $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult(
-            $this->workflowService->getPendingPix($userId)
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->getPendingPix($userId),
+            'Erro ao processar assinatura.',
+            LogCategory::PAYMENT,
+            ['controller' => 'premium'],
+            true
         );
     }
 
@@ -56,8 +72,12 @@ class PremiumController extends BaseController
     {
         $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult(
-            $this->workflowService->checkPayment($userId, $paymentId)
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->checkPayment($userId, $paymentId),
+            'Erro ao processar assinatura.',
+            LogCategory::PAYMENT,
+            ['controller' => 'premium'],
+            true
         );
     }
 
@@ -65,34 +85,12 @@ class PremiumController extends BaseController
     {
         $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
 
-        return $this->respondWorkflowResult(
-            $this->workflowService->cancelSubscription($userId)
-        );
-    }
-
-    /**
-     * @param array<string, mixed> $result
-     */
-    private function respondWorkflowResult(array $result): Response
-    {
-        if (!$result['success']) {
-            $errors = $result['errors'] ?? null;
-            if ($errors === []) {
-                $errors = null;
-            }
-
-            return $this->workflowFailureResponse(
-                array_merge($result, ['errors' => $errors]),
-                'Erro ao processar assinatura.',
-                LogCategory::PAYMENT,
-                ['controller' => 'premium']
-            );
-        }
-
-        return Response::successResponse(
-            $result['data'] ?? null,
-            $result['message'] ?? 'Success',
-            $result['status'] ?? 200
+        return $this->respondApiWorkflowResult(
+            $this->workflowService->cancelSubscription($userId),
+            'Erro ao processar assinatura.',
+            LogCategory::PAYMENT,
+            ['controller' => 'premium'],
+            true
         );
     }
 }

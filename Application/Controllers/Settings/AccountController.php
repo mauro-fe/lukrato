@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Settings;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\WebController;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Models\Usuario;
@@ -12,7 +12,7 @@ use Application\Services\Infrastructure\LogService;
 use Application\Services\Referral\ReferralAntifraudService;
 use Throwable;
 
-class AccountController extends BaseController
+class AccountController extends WebController
 {
     public function delete(): Response
     {

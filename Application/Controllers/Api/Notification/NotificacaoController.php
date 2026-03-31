@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Notification;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Services\Cartao\CartaoCreditoService;
 use Application\Services\Cartao\CartaoFaturaService;
@@ -13,7 +13,7 @@ use Application\Services\Communication\NotificationInboxService;
 use Application\Services\Infrastructure\LogService;
 use Throwable;
 
-class NotificacaoController extends BaseController
+class NotificacaoController extends ApiController
 {
     private NotificationApiWorkflowService $workflowService;
 
@@ -41,7 +41,12 @@ class NotificacaoController extends BaseController
             $result = $this->workflowService->inbox($userId, $this->getIgnoredAlerts());
             $this->persistIgnoredAlerts($result);
 
-            return $this->respondWorkflowResult($result);
+            return $this->respondApiWorkflowResult(
+                $result,
+                preserveSuccessMeta: true,
+                useWorkflowFailureOnFailure: false,
+                mapValidationFailedTo422: true
+            );
         } catch (Throwable $e) {
             $this->logNotificationError('Erro ao buscar notificacoes.', $e);
 
@@ -63,7 +68,12 @@ class NotificacaoController extends BaseController
             $result = $this->workflowService->unreadCount($userId, $this->getIgnoredAlerts());
             $this->persistIgnoredAlerts($result);
 
-            return $this->respondWorkflowResult($result);
+            return $this->respondApiWorkflowResult(
+                $result,
+                preserveSuccessMeta: true,
+                useWorkflowFailureOnFailure: false,
+                mapValidationFailedTo422: true
+            );
         } catch (Throwable $e) {
             $this->logNotificationError('Erro ao buscar contagem de notificacoes nao lidas.', $e);
 
@@ -87,7 +97,12 @@ class NotificacaoController extends BaseController
 
             $this->persistIgnoredAlerts($result);
 
-            return $this->respondWorkflowResult($result);
+            return $this->respondApiWorkflowResult(
+                $result,
+                preserveSuccessMeta: true,
+                useWorkflowFailureOnFailure: false,
+                mapValidationFailedTo422: true
+            );
         } finally {
             $this->releaseSession();
         }
@@ -102,7 +117,12 @@ class NotificacaoController extends BaseController
             $result = $this->workflowService->markAllAsRead($userId, $this->getIgnoredAlerts());
             $this->persistIgnoredAlerts($result);
 
-            return $this->respondWorkflowResult($result);
+            return $this->respondApiWorkflowResult(
+                $result,
+                preserveSuccessMeta: true,
+                useWorkflowFailureOnFailure: false,
+                mapValidationFailedTo422: true
+            );
         } finally {
             $this->releaseSession();
         }
@@ -113,8 +133,11 @@ class NotificacaoController extends BaseController
         $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
 
         try {
-            return $this->respondWorkflowResult(
-                $this->workflowService->getReferralRewards($userId)
+            return $this->respondApiWorkflowResult(
+                $this->workflowService->getReferralRewards($userId),
+                preserveSuccessMeta: true,
+                useWorkflowFailureOnFailure: false,
+                mapValidationFailedTo422: true
             );
         } catch (Throwable $e) {
             $this->logNotificationError('Erro ao buscar recompensas de referral.', $e, [
@@ -130,8 +153,11 @@ class NotificacaoController extends BaseController
         $userId = $this->requireApiUserIdOrFail();
 
         try {
-            return $this->respondWorkflowResult(
-                $this->workflowService->markReferralRewardsSeen($userId, $this->getRequestPayload())
+            return $this->respondApiWorkflowResult(
+                $this->workflowService->markReferralRewardsSeen($userId, $this->getRequestPayload()),
+                preserveSuccessMeta: true,
+                useWorkflowFailureOnFailure: false,
+                mapValidationFailedTo422: true
             );
         } catch (Throwable $e) {
             $this->logNotificationError('Erro ao marcar recompensas como vistas.', $e, [
@@ -158,31 +184,6 @@ class NotificacaoController extends BaseController
         if (isset($result['ignored_alerts']) && is_array($result['ignored_alerts'])) {
             $_SESSION['alertas_ignorados'] = $result['ignored_alerts'];
         }
-    }
-
-    /**
-     * @param array<string, mixed> $result
-     */
-    private function respondWorkflowResult(array $result): Response
-    {
-        if (!$result['success']) {
-            $errors = $result['errors'] ?? null;
-            if ($result['message'] === 'Validation failed') {
-                return Response::validationErrorResponse(is_array($errors) ? $errors : []);
-            }
-
-            return Response::errorResponse(
-                $result['message'],
-                $result['status'] ?? 400,
-                $errors
-            );
-        }
-
-        return Response::successResponse(
-            $result['data'] ?? null,
-            $result['message'] ?? 'Success',
-            $result['status'] ?? 200
-        );
     }
 
     private function ensureSessionStarted(): void

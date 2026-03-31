@@ -2,10 +2,10 @@
 
 namespace Application\Controllers\Site;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\WebController;
 use Application\Core\Response;
 
-class LandingController extends BaseController
+class LandingController extends WebController
 {
     public function index(): Response
     {

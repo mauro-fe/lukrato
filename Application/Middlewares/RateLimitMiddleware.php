@@ -136,8 +136,7 @@ class RateLimitMiddleware
     {
         return str_starts_with($path, '/api/sysadmin')
             || str_starts_with($path, '/api/cupons')
-            || str_starts_with($path, '/api/campaigns')
-            || $path === '/api/config';
+            || str_starts_with($path, '/api/campaigns');
     }
 
     private function normalizeRequestPath(): string

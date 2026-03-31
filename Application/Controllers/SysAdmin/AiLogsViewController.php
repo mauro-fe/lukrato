@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Application\Controllers\SysAdmin;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\WebController;
 use Application\Core\Response;
 
-class AiLogsViewController extends BaseController
+class AiLogsViewController extends WebController
 {
     public function index(): Response
     {

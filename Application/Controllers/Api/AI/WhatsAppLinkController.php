@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\AI;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Models\Usuario;
 use Application\Services\AI\WhatsApp\WhatsAppUserResolver;
@@ -12,7 +12,7 @@ use Application\Services\AI\WhatsApp\WhatsAppUserResolver;
 /**
  * Controller para vincular/desvincular WhatsApp ao perfil do usuario.
  */
-class WhatsAppLinkController extends BaseController
+class WhatsAppLinkController extends ApiController
 {
     /**
      * Gera codigo de verificacao para vincular WhatsApp.
@@ -21,7 +21,7 @@ class WhatsAppLinkController extends BaseController
     public function requestLink(): Response
     {
         $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
-        $phone = trim($_POST['phone'] ?? '');
+        $phone = trim((string) $this->getPost('phone', ''));
 
         if ($phone === '' || strlen((string) preg_replace('/[^\d]/', '', $phone)) < 10) {
             return Response::errorResponse('Número de telefone inválido. Use o formato: 5511999999999', 422);
@@ -54,8 +54,8 @@ class WhatsAppLinkController extends BaseController
     public function verify(): Response
     {
         $userId = $this->requireApiUserIdOrFail();
-        $phone = trim($_POST['phone'] ?? '');
-        $code = trim($_POST['code'] ?? '');
+        $phone = trim((string) $this->getPost('phone', ''));
+        $code = trim((string) $this->getPost('code', ''));
 
         if ($phone === '' || $code === '') {
             return Response::errorResponse('Phone e código são obrigatórios.', 422);

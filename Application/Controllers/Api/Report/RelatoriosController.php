@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Report;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Models\Usuario;
 use Application\Services\Infrastructure\LogService;
@@ -12,7 +12,7 @@ use Application\Services\Report\ReportApiWorkflowService;
 use InvalidArgumentException;
 use Throwable;
 
-class RelatoriosController extends BaseController
+class RelatoriosController extends ApiController
 {
     private ?Usuario $currentUser = null;
 

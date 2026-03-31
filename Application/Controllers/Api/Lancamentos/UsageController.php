@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Lancamentos;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Services\Lancamento\LancamentoLimitService;
 
-class UsageController extends BaseController
+class UsageController extends ApiController
 {
     private LancamentoLimitService $limitService;
 
@@ -22,7 +22,7 @@ class UsageController extends BaseController
     {
         $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
 
-        $month = $_GET['month'] ?? date('Y-m');
+        $month = $this->getStringQuery('month', date('Y-m'));
         if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $month)) {
             return Response::validationErrorResponse(['month' => 'Formato invalido (YYYY-MM)']);
         }

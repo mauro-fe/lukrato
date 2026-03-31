@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Auth;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\WebController;
 use Application\Core\Exceptions\ValidationException;
 use Application\Core\Response;
 use Application\Enums\LogCategory;
@@ -17,7 +17,7 @@ use Application\Services\Infrastructure\TurnstileService;
 use InvalidArgumentException;
 use Throwable;
 
-class RegistroController extends BaseController
+class RegistroController extends WebController
 {
     private AuthService $authService;
     private GoogleAuthService $googleAuthService;

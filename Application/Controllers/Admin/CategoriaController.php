@@ -2,10 +2,10 @@
 
 namespace Application\Controllers\Admin;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\WebController;
 use Application\Core\Response;
 
-class CategoriaController extends BaseController
+class CategoriaController extends WebController
 {
     public function index(?string $username = null): Response
     {

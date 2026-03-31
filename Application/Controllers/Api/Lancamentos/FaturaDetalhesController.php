@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Lancamentos;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Repositories\FaturaCartaoRepository;
 use Application\Repositories\LancamentoRepository;
 use Application\Support\FaturaHelper;
 
-class FaturaDetalhesController extends BaseController
+class FaturaDetalhesController extends ApiController
 {
     private LancamentoRepository $lancamentoRepo;
     private FaturaCartaoRepository $faturaCartaoRepo;

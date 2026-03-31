@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Categoria;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\DTO\Requests\CreateSubcategoriaDTO;
 use Application\DTO\Requests\UpdateSubcategoriaDTO;
@@ -12,7 +12,7 @@ use Application\Services\AI\Helpers\UserCategoryLoader;
 use Application\Services\Categoria\SubcategoriaService;
 use Application\Validators\SubcategoriaValidator;
 
-class SubcategoriaController extends BaseController
+class SubcategoriaController extends ApiController
 {
     private SubcategoriaService $service;
 

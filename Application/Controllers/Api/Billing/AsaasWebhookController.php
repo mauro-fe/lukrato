@@ -2,7 +2,7 @@
 
 namespace Application\Controllers\Api\Billing;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Models\AssinaturaUsuario;
 use Application\Models\LogWebhookCobranca;
@@ -14,7 +14,7 @@ use Application\Enums\LogLevel;
 use Application\Enums\LogCategory;
 use Illuminate\Database\Capsule\Manager as DB;
 
-class AsaasWebhookController extends BaseController
+class AsaasWebhookController extends ApiController
 {
     private AsaasService $asaas;
 

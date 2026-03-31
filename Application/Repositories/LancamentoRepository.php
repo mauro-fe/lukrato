@@ -772,6 +772,40 @@ class LancamentoRepository extends BaseRepository
     }
 
     /**
+     * Calcular saldo acumulado do usuario ate uma data (inclusive).
+     *
+     * @param int $userId
+     * @param string $ate Data limite (Y-m-d)
+     * @return float
+     */
+    public function sumSaldoAcumuladoAte(int $userId, string $ate): float
+    {
+        $saldosIniciais = (float) Conta::forUser($userId)
+            ->ativas()
+            ->sum('saldo_inicial');
+
+        $receitas = (float) $this->query()
+            ->where('user_id', $userId)
+            ->where('tipo', LancamentoTipo::RECEITA->value)
+            ->where('eh_transferencia', 0)
+            ->where('pago', 1)
+            ->where('afeta_caixa', 1)
+            ->where('data', '<=', $ate)
+            ->sum('valor');
+
+        $despesas = (float) $this->query()
+            ->where('user_id', $userId)
+            ->where('tipo', LancamentoTipo::DESPESA->value)
+            ->where('eh_transferencia', 0)
+            ->where('pago', 1)
+            ->where('afeta_caixa', 1)
+            ->where('data', '<=', $ate)
+            ->sum('valor');
+
+        return $saldosIniciais + $receitas - $despesas;
+    }
+
+    /**
      * Buscar lançamentos de cartão de crédito de um usuário.
      * 
      * @param int $userId
@@ -911,7 +945,34 @@ class LancamentoRepository extends BaseRepository
             COALESCE(c.nome, "") as categoria,
             COALESCE(c.icone, "") as categoria_icone,
             COALESCE(a.nome, a.instituicao, "") as conta
-        ')
+            ')
+            ->get();
+    }
+
+    /**
+     * Buscar transacoes para API financeira em um periodo.
+     *
+     * @param int $userId
+     * @param string $from Data inicial (Y-m-d)
+     * @param string $to Data final (Y-m-d)
+     * @param int $limit Limite maximo de registros
+     * @return Collection<int, Lancamento>
+     */
+    public function findTransactionsForPeriod(int $userId, string $from, string $to, int $limit): Collection
+    {
+        $limit = max(0, $limit);
+        if ($limit === 0) {
+            return new Collection();
+        }
+
+        return $this->query()
+            ->with('categoria:id,nome')
+            ->where('user_id', $userId)
+            ->whereBetween('data', [$from, $to])
+            ->where('eh_transferencia', 0)
+            ->orderBy('data', 'desc')
+            ->orderBy('id', 'desc')
+            ->limit($limit)
             ->get();
     }
 

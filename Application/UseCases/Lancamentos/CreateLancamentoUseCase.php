@@ -1,0 +1,191 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Application\UseCases\Lancamentos;
+
+use Application\DTO\Requests\CreateLancamentoDTO;
+use Application\DTO\ServiceResultDTO;
+use Application\Enums\LogCategory;
+use Application\Models\Meta;
+use Application\Repositories\CategoriaRepository;
+use Application\Repositories\ContaRepository;
+use Application\Repositories\LancamentoRepository;
+use Application\Services\Financeiro\MetaProgressService;
+use Application\Services\Infrastructure\LogService;
+use Application\Services\Lancamento\LancamentoLimitService;
+use Application\Services\User\OnboardingProgressService;
+use Application\Validators\LancamentoValidator;
+use DomainException;
+use Throwable;
+use ValueError;
+
+class CreateLancamentoUseCase
+{
+    public function __construct(
+        private readonly LancamentoLimitService $limitService = new LancamentoLimitService(),
+        private readonly LancamentoRepository $lancamentoRepo = new LancamentoRepository(),
+        private readonly CategoriaRepository $categoriaRepo = new CategoriaRepository(),
+        private readonly ContaRepository $contaRepo = new ContaRepository(),
+        private readonly MetaProgressService $metaProgressService = new MetaProgressService(),
+        private readonly OnboardingProgressService $onboardingProgressService = new OnboardingProgressService()
+    ) {
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    public function execute(int $userId, array $payload): ServiceResultDTO
+    {
+        try {
+            $errors = LancamentoValidator::validateCreate($payload);
+
+            $contaId = $this->normalizeOptionalId($payload['conta_id'] ?? null);
+            $categoriaId = $this->normalizeOptionalId($payload['categoria_id'] ?? null);
+            $metaId = $this->normalizeOptionalId($payload['meta_id'] ?? ($payload['metaId'] ?? null));
+            $metaId = LancamentoValidator::validateMetaOwnership($metaId, $userId, $errors);
+            $meta = $metaId
+                ? Meta::where('id', $metaId)->where('user_id', $userId)->first()
+                : null;
+            $metaOperacao = $metaId
+                ? LancamentoValidator::resolveMetaOperationForContext(
+                    LancamentoValidator::normalizeMetaOperation($payload['meta_operacao'] ?? ($payload['metaOperacao'] ?? null)),
+                    [
+                        'tipo' => $payload['tipo'] ?? null,
+                        'eh_transferencia' => false,
+                    ],
+                    $meta
+                )
+                : null;
+            $metaValor = $metaId
+                ? (LancamentoValidator::sanitizeMetaValor($payload['meta_valor'] ?? ($payload['metaValor'] ?? null))
+                    ?? LancamentoValidator::sanitizeValor($payload['valor'] ?? 0))
+                : null;
+            LancamentoValidator::validateMetaLinkRules($metaId, [
+                'tipo' => $payload['tipo'] ?? null,
+                'eh_transferencia' => false,
+                'forma_pagamento' => $payload['forma_pagamento'] ?? null,
+                'meta_operacao' => $metaOperacao,
+                'meta_valor' => $metaValor,
+                'valor' => $payload['valor'] ?? 0,
+            ], $errors);
+            $errors = array_merge($errors, $this->validateLancamentoRelations($userId, $contaId, $categoriaId));
+
+            if ($errors !== []) {
+                return ServiceResultDTO::validationFail($errors);
+            }
+
+            try {
+                $this->limitService->assertCanCreate($userId, (string) ($payload['data'] ?? ''));
+            } catch (DomainException $e) {
+                $message = trim($e->getMessage());
+
+                return ServiceResultDTO::fail(
+                    $message !== '' ? $message : 'Nao foi possivel criar o lancamento.',
+                    402
+                );
+            }
+
+            $dto = CreateLancamentoDTO::fromRequest(
+                $userId,
+                $this->buildLancamentoWriteData($payload, $contaId, $categoriaId, $metaId, $metaOperacao, $metaValor)
+            );
+
+            $lancamento = $this->lancamentoRepo->create($dto->toArray());
+            $this->recalculateAffectedMetas($userId, $metaId ?? 0);
+            $this->syncOnboardingLancamentoCreated($userId, $lancamento->created_at);
+            $usage = $this->limitService->usage($userId, substr((string) ($payload['data'] ?? ''), 0, 7));
+
+            return ServiceResultDTO::ok('Lancamento criado', [
+                'ok' => true,
+                'id' => (int) $lancamento->id,
+                'usage' => $usage,
+                'ui_message' => $this->limitService->getWarningMessage($usage),
+                'upgrade_cta' => ($usage['should_warn'] ?? false) ? $this->limitService->getUpgradeCta() : null,
+            ]);
+        } catch (ValueError $e) {
+            $message = trim($e->getMessage());
+
+            return ServiceResultDTO::fail(
+                $message !== '' ? $message : 'Dados invalidos para criar lancamento.',
+                422
+            );
+        }
+    }
+
+    private function normalizeOptionalId(mixed $value): ?int
+    {
+        if (!is_scalar($value)) {
+            return null;
+        }
+
+        $id = (int) $value;
+        return $id > 0 ? $id : null;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function validateLancamentoRelations(int $userId, ?int $contaId, ?int $categoriaId): array
+    {
+        $errors = [];
+
+        if ($contaId !== null && !$this->contaRepo->belongsToUser($contaId, $userId)) {
+            $errors['conta_id'] = 'Conta invalida.';
+        }
+
+        if ($categoriaId !== null && !$this->categoriaRepo->belongsToUser($categoriaId, $userId)) {
+            $errors['categoria_id'] = 'Categoria invalida.';
+        }
+
+        return $errors;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    private function buildLancamentoWriteData(
+        array $data,
+        ?int $contaId,
+        ?int $categoriaId,
+        ?int $metaId = null,
+        ?string $metaOperacao = null,
+        ?float $metaValor = null
+    ): array {
+        return [
+            'tipo' => strtolower(trim((string) ($data['tipo'] ?? ''))),
+            'data' => (string) ($data['data'] ?? ''),
+            'valor' => LancamentoValidator::sanitizeValor($data['valor'] ?? 0),
+            'descricao' => mb_substr(trim((string) ($data['descricao'] ?? '')), 0, 190),
+            'observacao' => mb_substr(trim((string) ($data['observacao'] ?? '')), 0, 500),
+            'categoria_id' => $categoriaId,
+            'meta_id' => $metaId,
+            'meta_operacao' => $metaOperacao,
+            'meta_valor' => $metaValor,
+            'conta_id' => $contaId,
+            'forma_pagamento' => $data['forma_pagamento'] ?? null,
+        ];
+    }
+
+    private function recalculateAffectedMetas(int $userId, int ...$metaIds): void
+    {
+        $metaIds = array_values(array_unique(array_filter($metaIds, static fn(int $metaId): bool => $metaId > 0)));
+
+        foreach ($metaIds as $metaId) {
+            $this->metaProgressService->recalculateMeta($userId, $metaId);
+        }
+    }
+
+    private function syncOnboardingLancamentoCreated(int $userId, \DateTimeInterface|string|null $createdAt = null): void
+    {
+        try {
+            $this->onboardingProgressService->markLancamentoCreated($userId, $createdAt);
+        } catch (Throwable $e) {
+            LogService::captureException($e, LogCategory::GENERAL, [
+                'action' => 'sync_onboarding_lancamento_created_legacy',
+                'user_id' => $userId,
+            ]);
+        }
+    }
+}

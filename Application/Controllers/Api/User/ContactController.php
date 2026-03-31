@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\User;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Services\Communication\MailService;
 
-class ContactController extends BaseController
+class ContactController extends ApiController
 {
     private MailService $mail;
 
@@ -20,11 +20,11 @@ class ContactController extends BaseController
 
     public function send(): Response
     {
-        $nome = trim($_POST['nome'] ?? '');
-        $email = trim($_POST['email'] ?? '');
-        $whatsapp = trim($_POST['whatsapp'] ?? '');
-        $assunto = trim($_POST['assunto'] ?? '');
-        $mensagem = trim($_POST['mensagem'] ?? '');
+        $nome = trim((string) $this->getPost('nome', ''));
+        $email = trim((string) $this->getPost('email', ''));
+        $whatsapp = trim((string) $this->getPost('whatsapp', ''));
+        $assunto = trim((string) $this->getPost('assunto', ''));
+        $mensagem = trim((string) $this->getPost('mensagem', ''));
 
         if (!$nome || !$email || !$assunto || !$mensagem) {
             return Response::validationErrorResponse([

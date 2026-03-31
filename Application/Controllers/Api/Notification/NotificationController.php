@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Notification;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Models\Notification;
 use Application\Services\Communication\NotificationService;
@@ -13,7 +13,7 @@ use Exception;
 /**
  * API para gerenciamento de notificacoes do usuario logado.
  */
-class NotificationController extends BaseController
+class NotificationController extends ApiController
 {
     private NotificationService $notificationService;
 
@@ -28,8 +28,8 @@ class NotificationController extends BaseController
         $userId = $this->requireApiUserIdOrFail();
 
         try {
-            $limit = (int) ($_GET['limit'] ?? 20);
-            $unreadOnly = filter_var($_GET['unread_only'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            $limit = $this->getIntQuery('limit', 20);
+            $unreadOnly = $this->getBoolQuery('unread_only', false);
 
             $notifications = $this->notificationService->getUserNotifications(
                 $userId,

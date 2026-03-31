@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\User;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Services\Infrastructure\LogService;
 use Throwable;
 
-class TourController extends BaseController
+class TourController extends ApiController
 {
     /**
      * POST /api/tour/complete

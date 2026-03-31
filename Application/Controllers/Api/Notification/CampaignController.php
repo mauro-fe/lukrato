@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Notification;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Models\Usuario;
 use Application\Services\Communication\CampaignApiWorkflowService;
@@ -15,7 +15,7 @@ use Throwable;
  * API para gerenciamento de campanhas de mensagens pelo sysadmin.
  * Endpoints protegidos apenas para administradores.
  */
-class CampaignController extends BaseController
+class CampaignController extends ApiController
 {
     private CampaignApiWorkflowService $workflowService;
 
@@ -57,12 +57,11 @@ class CampaignController extends BaseController
 
         try {
             $result = $this->workflowService->createCampaign($admin->id, $admin->nome, $this->getRequestPayload());
-
-            if (!$result['success']) {
-                return Response::errorResponse($result['message'], $result['status'], $result['errors'] ?? null);
-            }
-
-            return Response::successResponse($result['data'], $result['message']);
+            return $this->respondApiWorkflowResult(
+                $result,
+                preserveSuccessMeta: true,
+                useWorkflowFailureOnFailure: false
+            );
         } catch (Throwable $e) {
             return $this->internalErrorResponse($e, 'Erro ao enviar campanha.');
         }
@@ -136,12 +135,11 @@ class CampaignController extends BaseController
 
         try {
             $result = $this->workflowService->cancelScheduled($id);
-
-            if (!$result['success']) {
-                return Response::errorResponse($result['message'], $result['status'], $result['errors'] ?? null);
-            }
-
-            return Response::successResponse($result['data'], $result['message']);
+            return $this->respondApiWorkflowResult(
+                $result,
+                preserveSuccessMeta: true,
+                useWorkflowFailureOnFailure: false
+            );
         } catch (Throwable $e) {
             return $this->internalErrorResponse($e, 'Erro ao cancelar campanha.');
         }

@@ -2,10 +2,10 @@
 
 namespace Application\Controllers\SysAdmin;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\WebController;
 use Application\Core\Response;
 
-class CupomViewController extends BaseController
+class CupomViewController extends WebController
 {
     public function index(): Response
     {

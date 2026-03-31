@@ -4,81 +4,68 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Lancamentos;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Formatters\LancamentoResponseFormatter;
 use Application\Repositories\LancamentoRepository;
 use Application\Repositories\ParcelamentoRepository;
 use Application\Services\Lancamento\LancamentoStatusService;
+use Application\UseCases\Lancamentos\ToggleLancamentoPagoUseCase;
 
-class MarcarPagoController extends BaseController
+class MarcarPagoController extends ApiController
 {
-    private LancamentoRepository $lancamentoRepo;
-    private LancamentoStatusService $statusService;
-    private ParcelamentoRepository $parcelamentoRepo;
+    private ToggleLancamentoPagoUseCase $togglePagoUseCase;
 
     public function __construct(
         ?LancamentoRepository $lancamentoRepo = null,
         ?LancamentoStatusService $statusService = null,
-        ?ParcelamentoRepository $parcelamentoRepo = null
+        ?ParcelamentoRepository $parcelamentoRepo = null,
+        ?ToggleLancamentoPagoUseCase $togglePagoUseCase = null
     ) {
         parent::__construct();
-        $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
-        $this->statusService = $statusService ?? new LancamentoStatusService();
-        $this->parcelamentoRepo = $parcelamentoRepo ?? new ParcelamentoRepository();
+
+        $lancamentoRepo ??= new LancamentoRepository();
+        $statusService ??= new LancamentoStatusService();
+        $parcelamentoRepo ??= new ParcelamentoRepository();
+        $this->togglePagoUseCase = $togglePagoUseCase
+            ?? new ToggleLancamentoPagoUseCase($lancamentoRepo, $statusService, $parcelamentoRepo);
     }
 
     public function __invoke(int $id): Response
     {
         $userId = $this->requireApiUserIdOrFail();
+        $result = $this->togglePagoUseCase->execute($userId, $id, true);
 
-        $lancamento = $this->lancamentoRepo->findByIdAndUser($id, $userId);
-        if (!$lancamento) {
-            return Response::errorResponse('Lancamento nao encontrado', 404);
-        }
-
-        try {
-            $lancamento = $this->statusService->marcarPago($lancamento);
-        } catch (\DomainException $e) {
-            return $this->domainErrorResponse($e, 'Nao foi possivel marcar o lancamento como pago.', 422);
-        }
-
-        if ($lancamento->parcelamento_id) {
-            $this->parcelamentoRepo->atualizarParcelasPagas($lancamento->parcelamento_id);
+        $lancamento = $result->data['lancamento'] ?? null;
+        if ($lancamento === null) {
+            return $this->respondServiceResult($result);
         }
 
         $lancamento->loadMissing(['categoria', 'conta', 'parcelamento']);
 
-        return Response::successResponse(
-            LancamentoResponseFormatter::format($lancamento),
-            'Lançamento marcado como pago.'
+        return $this->respondServiceResult(
+            $result,
+            successData: LancamentoResponseFormatter::format($lancamento),
+            successMessage: $result->message
         );
     }
 
     public function desmarcar(int $id): Response
     {
         $userId = $this->requireApiUserIdOrFail();
+        $result = $this->togglePagoUseCase->execute($userId, $id, false);
 
-        $lancamento = $this->lancamentoRepo->findByIdAndUser($id, $userId);
-        if (!$lancamento) {
-            return Response::errorResponse('Lancamento nao encontrado', 404);
-        }
-
-        try {
-            $lancamento = $this->statusService->desmarcarPago($lancamento);
-        } catch (\DomainException $e) {
-            return $this->domainErrorResponse($e, 'Nao foi possivel marcar o lancamento como pendente.', 422);
-        }
-
-        if ($lancamento->parcelamento_id) {
-            $this->parcelamentoRepo->atualizarParcelasPagas($lancamento->parcelamento_id);
+        $lancamento = $result->data['lancamento'] ?? null;
+        if ($lancamento === null) {
+            return $this->respondServiceResult($result);
         }
 
         $lancamento->loadMissing(['categoria', 'conta', 'parcelamento']);
 
-        return Response::successResponse(
-            LancamentoResponseFormatter::format($lancamento),
-            'Lançamento marcado como pendente.'
+        return $this->respondServiceResult(
+            $result,
+            successData: LancamentoResponseFormatter::format($lancamento),
+            successMessage: $result->message
         );
     }
 }

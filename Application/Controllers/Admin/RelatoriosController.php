@@ -2,11 +2,11 @@
 
 namespace Application\Controllers\Admin;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\WebController;
 use Application\Core\Response;
 use Application\Models\Usuario;
 
-class RelatoriosController extends BaseController
+class RelatoriosController extends WebController
 {
     public function view(): Response
     {

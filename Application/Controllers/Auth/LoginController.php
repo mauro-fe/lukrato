@@ -2,7 +2,7 @@
 
 namespace Application\Controllers\Auth;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\WebController;
 use Application\Core\Exceptions\ValidationException;
 use Application\Core\Response;
 use Application\Enums\LogCategory;
@@ -13,7 +13,7 @@ use Application\Services\Infrastructure\LogService;
 use Application\Services\Infrastructure\TurnstileService;
 use Throwable;
 
-class LoginController extends BaseController
+class LoginController extends WebController
 {
     private AuthService $authService;
     private TurnstileService $turnstile;

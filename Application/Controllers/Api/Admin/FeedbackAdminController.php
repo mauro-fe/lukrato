@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Admin;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Services\Feedback\FeedbackService;
 
-class FeedbackAdminController extends BaseController
+class FeedbackAdminController extends ApiController
 {
     private FeedbackService $service;
 

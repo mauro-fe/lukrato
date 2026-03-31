@@ -26,6 +26,9 @@ use Application\Services\Lancamento\LancamentoExportService;
 use Application\Services\Lancamento\LancamentoLimitService;
 use Application\Services\Lancamento\LancamentoStatusService;
 use Application\Services\Lancamento\LancamentoUpdateService;
+use Application\UseCases\Lancamentos\BulkDeleteLancamentosUseCase;
+use Application\UseCases\Lancamentos\DeleteLancamentoUseCase;
+use Application\UseCases\Lancamentos\ToggleLancamentoPagoUseCase;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
@@ -90,6 +93,81 @@ class LancamentosApiControllersTest extends TestCase
         $this->assertSame(404, $response->getStatusCode());
     }
 
+    public function testDestroyControllerInvokeMapsUseCaseSuccessToApiPayload(): void
+    {
+        $this->seedAuthenticatedUserSession(100, 'Lancamentos User');
+
+        $deleteUseCase = Mockery::mock(DeleteLancamentoUseCase::class);
+        $deleteUseCase
+            ->shouldReceive('execute')
+            ->once()
+            ->with(100, 5, 'single')
+            ->andReturn(ServiceResultDTO::ok('Lancamento excluido', [
+                'ok' => true,
+                'message' => 'Lancamento excluido',
+                'excluidos' => 1,
+            ]));
+
+        $controller = new DestroyController(
+            Mockery::mock(LancamentoRepository::class),
+            Mockery::mock(LancamentoDeletionService::class),
+            Mockery::mock(BulkDeleteLancamentosUseCase::class),
+            $deleteUseCase
+        );
+
+        $response = $controller->__invoke(5);
+        $json = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame(1, $json['data']['excluidos'] ?? null);
+    }
+
+    public function testDestroyControllerBulkDeleteReturnsValidationErrorWhenIdsAreMissing(): void
+    {
+        $this->seedAuthenticatedUserSession(100, 'Lancamentos User');
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $controller = new DestroyController(
+            Mockery::mock(LancamentoRepository::class),
+            Mockery::mock(LancamentoDeletionService::class)
+        );
+
+        $response = $controller->bulkDelete();
+
+        $this->assertSame(422, $response->getStatusCode());
+    }
+
+    public function testDestroyControllerBulkDeleteMapsUseCaseSuccessToApiPayload(): void
+    {
+        $this->seedAuthenticatedUserSession(100, 'Lancamentos User');
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = ['ids' => [1, 2]];
+
+        $bulkDeleteUseCase = Mockery::mock(BulkDeleteLancamentosUseCase::class);
+        $bulkDeleteUseCase
+            ->shouldReceive('execute')
+            ->once()
+            ->with(100, [1, 2])
+            ->andReturn(ServiceResultDTO::ok('Bulk delete concluido', [
+                'deleted' => 2,
+                'errors' => [],
+                'message' => '2 lancamentos excluidos com sucesso.',
+            ]));
+
+        $controller = new DestroyController(
+            Mockery::mock(LancamentoRepository::class),
+            Mockery::mock(LancamentoDeletionService::class),
+            $bulkDeleteUseCase
+        );
+
+        $response = $controller->bulkDelete();
+        $json = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame(2, $json['data']['deleted'] ?? null);
+        $this->assertSame([], $json['data']['errors'] ?? null);
+    }
+
     public function testExportControllerThrowsAuthExceptionWhenSessionIsMissing(): void
     {
         $controller = new ExportController(Mockery::mock(LancamentoExportService::class));
@@ -139,6 +217,82 @@ class LancamentosApiControllersTest extends TestCase
         $response = $controller->__invoke(8);
 
         $this->assertSame(404, $response->getStatusCode());
+    }
+
+    public function testMarcarPagoControllerInvokeMapsUseCaseSuccessToApiPayload(): void
+    {
+        $this->seedAuthenticatedUserSession(100, 'Lancamentos User');
+
+        $lancamento = Mockery::mock(\Application\Models\Lancamento::class)->makePartial();
+        $lancamento->shouldReceive('loadMissing')->once()->with(['categoria', 'conta', 'parcelamento']);
+        $lancamento->id = 8;
+        $lancamento->data = null;
+        $lancamento->tipo = 'despesa';
+        $lancamento->valor = 10.5;
+        $lancamento->descricao = 'Conta';
+        $lancamento->conta_id = null;
+        $lancamento->categoria_id = null;
+        $lancamento->pago = true;
+
+        $useCase = Mockery::mock(ToggleLancamentoPagoUseCase::class);
+        $useCase
+            ->shouldReceive('execute')
+            ->once()
+            ->with(100, 8, true)
+            ->andReturn(ServiceResultDTO::ok('Lancamento marcado como pago.', [
+                'lancamento' => $lancamento,
+            ]));
+
+        $controller = new MarcarPagoController(
+            Mockery::mock(LancamentoRepository::class),
+            Mockery::mock(LancamentoStatusService::class),
+            Mockery::mock(ParcelamentoRepository::class),
+            $useCase
+        );
+
+        $response = $controller->__invoke(8);
+        $json = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame('Lancamento marcado como pago.', $json['message'] ?? null);
+    }
+
+    public function testMarcarPagoControllerDesmarcarMapsUseCaseSuccessToApiPayload(): void
+    {
+        $this->seedAuthenticatedUserSession(100, 'Lancamentos User');
+
+        $lancamento = Mockery::mock(\Application\Models\Lancamento::class)->makePartial();
+        $lancamento->shouldReceive('loadMissing')->once()->with(['categoria', 'conta', 'parcelamento']);
+        $lancamento->id = 9;
+        $lancamento->data = null;
+        $lancamento->tipo = 'despesa';
+        $lancamento->valor = 21.0;
+        $lancamento->descricao = 'Assinatura';
+        $lancamento->conta_id = null;
+        $lancamento->categoria_id = null;
+        $lancamento->pago = false;
+
+        $useCase = Mockery::mock(ToggleLancamentoPagoUseCase::class);
+        $useCase
+            ->shouldReceive('execute')
+            ->once()
+            ->with(100, 9, false)
+            ->andReturn(ServiceResultDTO::ok('Lancamento marcado como pendente.', [
+                'lancamento' => $lancamento,
+            ]));
+
+        $controller = new MarcarPagoController(
+            Mockery::mock(LancamentoRepository::class),
+            Mockery::mock(LancamentoStatusService::class),
+            Mockery::mock(ParcelamentoRepository::class),
+            $useCase
+        );
+
+        $response = $controller->desmarcar(9);
+        $json = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame('Lancamento marcado como pendente.', $json['message'] ?? null);
     }
 
     public function testStoreControllerMapsValidationResultToValidationResponse(): void

@@ -4,39 +4,42 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\Lancamentos;
 
-use Application\Controllers\BaseController;
+use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Repositories\LancamentoRepository;
 use Application\Services\Lancamento\LancamentoDeletionService;
-use Application\Services\Infrastructure\LogService;
+use Application\UseCases\Lancamentos\BulkDeleteLancamentosUseCase;
+use Application\UseCases\Lancamentos\DeleteLancamentoUseCase;
 
-class DestroyController extends BaseController
+class DestroyController extends ApiController
 {
     private LancamentoRepository $lancamentoRepo;
     private LancamentoDeletionService $deletionService;
+    private BulkDeleteLancamentosUseCase $bulkDeleteUseCase;
+    private DeleteLancamentoUseCase $deleteUseCase;
 
     public function __construct(
         ?LancamentoRepository $lancamentoRepo = null,
-        ?LancamentoDeletionService $deletionService = null
+        ?LancamentoDeletionService $deletionService = null,
+        ?BulkDeleteLancamentosUseCase $bulkDeleteUseCase = null,
+        ?DeleteLancamentoUseCase $deleteUseCase = null
     ) {
         parent::__construct();
         $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
         $this->deletionService = $deletionService ?? new LancamentoDeletionService();
+        $this->bulkDeleteUseCase = $bulkDeleteUseCase
+            ?? new BulkDeleteLancamentosUseCase($this->lancamentoRepo, $this->deletionService);
+        $this->deleteUseCase = $deleteUseCase
+            ?? new DeleteLancamentoUseCase($this->lancamentoRepo, $this->deletionService);
     }
 
     public function __invoke(int $id): Response
     {
         $uid = $this->requireApiUserIdOrFail();
+        $scope = $this->getStringQuery('scope', 'single');
+        $result = $this->deleteUseCase->execute($uid, $id, $scope);
 
-        $lancamento = $this->lancamentoRepo->findByIdAndUser($id, $uid);
-        if (!$lancamento) {
-            return Response::errorResponse('Lancamento nao encontrado', 404);
-        }
-
-        $scope = $_GET['scope'] ?? 'single';
-        $result = $this->deletionService->delete($lancamento, $uid, $scope);
-
-        return Response::successResponse($result);
+        return $this->respondServiceResult($result);
     }
 
     public function bulkDelete(): Response
@@ -44,48 +47,8 @@ class DestroyController extends BaseController
         $uid = $this->requireApiUserIdOrFail();
 
         $payload = $this->getRequestPayload();
-        $ids = $payload['ids'] ?? [];
+        $result = $this->bulkDeleteUseCase->execute($uid, $payload['ids'] ?? []);
 
-        if (!is_array($ids) || empty($ids)) {
-            return Response::errorResponse('Nenhum lançamento selecionado.', 422);
-        }
-
-        if (count($ids) > 100) {
-            return Response::errorResponse('Máximo de 100 lançamentos por operação.', 422);
-        }
-
-        $deleted = 0;
-        $errors = [];
-
-        foreach ($ids as $id) {
-            $id = (int) $id;
-            if ($id <= 0) {
-                continue;
-            }
-
-            $lancamento = $this->lancamentoRepo->findByIdAndUser($id, $uid);
-            if (!$lancamento) {
-                $errors[] = "Lançamento #{$id} não encontrado.";
-                continue;
-            }
-
-            try {
-                $this->deletionService->delete($lancamento, $uid, 'single');
-                $deleted++;
-            } catch (\Throwable $e) {
-                LogService::captureException($e, \Application\Enums\LogCategory::GENERAL, [
-                    'action' => 'bulk_delete_lancamentos',
-                    'lancamento_id' => $id,
-                    'user_id' => $uid,
-                ]);
-                $errors[] = "Erro ao excluir #{$id}.";
-            }
-        }
-
-        return Response::successResponse([
-            'deleted' => $deleted,
-            'errors' => $errors,
-            'message' => "{$deleted} lançamento(s) excluído(s) com sucesso.",
-        ]);
+        return $this->respondServiceResult($result);
     }
 }
