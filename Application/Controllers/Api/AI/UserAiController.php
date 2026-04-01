@@ -7,6 +7,7 @@ namespace Application\Controllers\Api\AI;
 use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\DTO\AI\AIResponseDTO;
+use Application\Models\Usuario;
 use Application\Services\AI\AIQuotaService;
 use Application\Services\AI\AIService;
 use Application\Services\AI\Context\UserContextBuilder;
@@ -42,7 +43,7 @@ class UserAiController extends ApiController
 
     public function chat(): Response
     {
-        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+        $userId = $this->authenticatedUserId();
         $payload = $this->getRequestPayload();
 
         try {
@@ -69,7 +70,7 @@ class UserAiController extends ApiController
 
     public function suggestCategory(): Response
     {
-        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+        $userId = $this->authenticatedUserId();
         $payload = $this->getRequestPayload();
 
         try {
@@ -100,7 +101,7 @@ class UserAiController extends ApiController
 
     public function analyze(): Response
     {
-        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+        $userId = $this->authenticatedUserId();
         $payload = $this->getRequestPayload();
 
         $response = $this->workflowService()->analyze(
@@ -121,7 +122,7 @@ class UserAiController extends ApiController
 
     public function extractTransaction(): Response
     {
-        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+        $userId = $this->authenticatedUserId();
         $payload = $this->getRequestPayload();
 
         try {
@@ -145,21 +146,21 @@ class UserAiController extends ApiController
 
     public function getQuota(): Response
     {
-        $user = $this->requireApiUserAndReleaseSessionOrFail();
+        $user = $this->authenticatedUser();
 
         return Response::successResponse(AIQuotaService::getUsage($user));
     }
 
     public function listConversations(): Response
     {
-        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+        $userId = $this->authenticatedUserId();
 
         return Response::successResponse($this->workflowService()->listConversations($userId));
     }
 
     public function createConversation(): Response
     {
-        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+        $userId = $this->authenticatedUserId();
         $conversation = $this->workflowService()->createConversation($userId);
 
         return Response::successResponse([
@@ -171,11 +172,11 @@ class UserAiController extends ApiController
 
     public function getMessages(int $id): Response
     {
-        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+        $userId = $this->authenticatedUserId();
         $conversation = $this->workflowService()->findConversation($userId, $id);
 
         if ($conversation === null) {
-            return Response::errorResponse('Conversa não encontrada.', 404);
+            return $this->conversationNotFoundResponse();
         }
 
         return Response::successResponse($this->workflowService()->getConversationMessages($conversation));
@@ -183,11 +184,11 @@ class UserAiController extends ApiController
 
     public function sendMessage(int $id): Response
     {
-        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+        $userId = $this->authenticatedUserId();
         $conversation = $this->workflowService()->findConversation($userId, $id);
 
         if ($conversation === null) {
-            return Response::errorResponse('Conversa não encontrada.', 404);
+            return $this->conversationNotFoundResponse();
         }
 
         $payload = $this->getRequestPayload();
@@ -218,11 +219,11 @@ class UserAiController extends ApiController
 
     public function confirmAction(int $id): Response
     {
-        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+        $userId = $this->authenticatedUserId();
         $pending = $this->workflowService()->findPendingAction($userId, $id);
 
         if ($pending === null) {
-            return Response::errorResponse('Ação não encontrada ou já processada.', 404);
+            return $this->pendingActionNotFoundResponse();
         }
 
         try {
@@ -247,11 +248,11 @@ class UserAiController extends ApiController
 
     public function rejectAction(int $id): Response
     {
-        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+        $userId = $this->authenticatedUserId();
         $pending = $this->workflowService()->findPendingAction($userId, $id);
 
         if ($pending === null) {
-            return Response::errorResponse('Ação não encontrada ou já processada.', 404);
+            return $this->pendingActionNotFoundResponse();
         }
 
         $this->workflowService()->rejectPendingAction($pending);
@@ -261,11 +262,11 @@ class UserAiController extends ApiController
 
     public function deleteConversation(int $id): Response
     {
-        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+        $userId = $this->authenticatedUserId();
         $conversation = $this->workflowService()->findConversation($userId, $id);
 
         if ($conversation === null) {
-            return Response::errorResponse('Conversa não encontrada.', 404);
+            return $this->conversationNotFoundResponse();
         }
 
         $this->workflowService()->deleteConversation($conversation);
@@ -310,6 +311,26 @@ class UserAiController extends ApiController
             [],
             $status === 404 ? 'RESOURCE_NOT_FOUND' : null
         );
+    }
+
+    private function authenticatedUserId(): int
+    {
+        return $this->requireApiUserIdAndReleaseSessionOrFail();
+    }
+
+    private function authenticatedUser(): Usuario
+    {
+        return $this->requireApiUserAndReleaseSessionOrFail();
+    }
+
+    private function conversationNotFoundResponse(): Response
+    {
+        return Response::errorResponse('Conversa não encontrada.', 404);
+    }
+
+    private function pendingActionNotFoundResponse(): Response
+    {
+        return Response::errorResponse('Ação não encontrada ou já processada.', 404);
     }
 
     private function workflowService(): UserAiWorkflowService

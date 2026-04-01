@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // Application/Services/Auth/RateLimitSecurityCheck.php
 namespace Application\Services\Auth;
 

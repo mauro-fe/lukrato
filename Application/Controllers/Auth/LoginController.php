@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Auth;
 
 use Application\Controllers\WebController;
 use Application\Core\Exceptions\ValidationException;
 use Application\Core\Response;
 use Application\Enums\LogCategory;
+use Application\Enums\LogLevel;
 use Application\Middlewares\CsrfMiddleware;
 use Application\Services\Auth\AuthService;
 use Application\Services\Infrastructure\CacheService;
@@ -18,13 +21,16 @@ class LoginController extends WebController
     private AuthService $authService;
     private TurnstileService $turnstile;
 
-    public function __construct(?CacheService $cache = null)
-    {
+    public function __construct(
+        ?CacheService $cache = null,
+        ?AuthService $authService = null,
+        ?TurnstileService $turnstile = null
+    ) {
         parent::__construct();
 
         $this->cache = $cache ?? new CacheService();
-        $this->authService = new AuthService($this->request, $this->cache);
-        $this->turnstile = new TurnstileService($this->cache);
+        $this->authService = $authService ?? new AuthService($this->request, $this->cache);
+        $this->turnstile = $turnstile ?? new TurnstileService($this->cache);
     }
 
     public function login(): Response
@@ -33,29 +39,15 @@ class LoginController extends WebController
             return $this->buildRedirectResponse('dashboard');
         }
 
-        $activeTab = $_SESSION['auth_active_tab'] ?? 'login';
-        unset($_SESSION['auth_active_tab']);
-
-        if (isset($_GET['tab']) && in_array($_GET['tab'], ['login', 'register'], true)) {
-            $activeTab = $_GET['tab'];
-        }
-
-        $registerErrors = $_SESSION['register_errors'] ?? null;
-        unset($_SESSION['register_errors']);
-
-        if (!empty($registerErrors)) {
-            $activeTab = 'register';
-        }
+        $registerErrors = $this->pullRegisterErrors();
+        $activeTab = $this->resolveActiveTab($registerErrors);
 
         $errorMessage = $this->getError();
-        $socialSuccess = isset($_GET['new_google']) && $_GET['new_google'] == 1;
-
         $ip = $this->request->ip() ?? 'unknown';
-        $requireCaptcha = $this->turnstile->shouldRequireCaptcha($ip);
-        $intended = self::sanitizeIntended($_GET['intended'] ?? '');
+        $intended = self::sanitizeIntended($this->getStringQuery('intended'));
 
         if ($intended !== '') {
-            $_SESSION['login_intended'] = $intended;
+            $this->putSessionValue('login_intended', $intended);
         }
 
         return $this->renderResponse('admin/auth/login', [
@@ -64,9 +56,9 @@ class LoginController extends WebController
             'registerErrors' => $registerErrors,
             'activeTab' => $activeTab,
             'success' => $this->getSuccess(),
-            'socialSuccess' => $socialSuccess,
+            'socialSuccess' => $this->isSocialSuccessRedirect(),
             'csrf_token' => CsrfMiddleware::generateToken('login_form'),
-            'require_captcha' => $requireCaptcha,
+            'require_captcha' => $this->turnstile->shouldRequireCaptcha($ip),
             'turnstile_site_key' => TurnstileService::isEnabled() ? TURNSTILE_SITE_KEY : '',
             'intended' => $intended,
         ]);
@@ -89,70 +81,41 @@ class LoginController extends WebController
 
     public function processLogin(): Response
     {
-        LogService::info('[LOGIN DEBUG] Início processLogin');
-
         if (!$this->request->isPost()) {
             LogService::warning('Login request rejected: not POST');
             return $this->fail('Requisição inválida. Método esperado: POST.', 405);
         }
 
         $email = '';
+        $ip = $this->request->ip() ?? 'unknown';
 
         try {
-            LogService::info('[LOGIN DEBUG] Validando CSRF');
-            $ip = $this->request->ip() ?? 'unknown';
             $this->validateCsrfToken();
-
-            LogService::info('[LOGIN DEBUG] Aplicando rate limit');
-            $this->applyRateLimit();
-
+            $this->applyRateLimit($ip);
             $this->verifyCaptchaIfRequired($ip);
 
-            $remember = $this->request->post('remember', '0') === '1';
-            $email = $this->request->post('email', '');
+            $remember = $this->request->postBool('remember', false);
+            $email = $this->request->postString('email', '');
+            $password = $this->request->postString('password', '');
 
-            LogService::info('[LOGIN DEBUG] Tentando autenticar', ['email' => $email]);
+            $result = $this->authService->login($email, $password, $remember);
 
-            $result = $this->authService->login(
-                $email,
-                $this->request->post('password', ''),
-                $remember
-            );
-
-            LogService::info('[LOGIN DEBUG] Login OK, limpando tokens');
             $this->clearOldCsrfTokens();
             $this->turnstile->resetFailedAttempts($ip);
 
-            LogService::info('[LOGIN DEBUG] Retornando sucesso');
             return $this->ok([
                 'message' => 'Login realizado com sucesso!',
                 'redirect' => $result['redirect'],
             ]);
         } catch (ValidationException $e) {
-            $captchaErrors = $e->getErrors()['captcha'] ?? null;
-            if (!$captchaErrors) {
-                $this->turnstile->recordFailedAttempt($ip);
-            }
-
-            LogService::persist(
-                \Application\Enums\LogLevel::WARNING,
-                LogCategory::AUTH,
-                'Login: falha de validação',
-                [
-                    'email' => $email,
-                    'errors' => $e->getErrors(),
-                    'captcha_required' => $this->turnstile->shouldRequireCaptcha($ip),
-                ]
-            );
-
-            return $this->handleValidationException($e);
+            return $this->handleValidationFailure($e, $ip, $email);
         } catch (Throwable $e) {
             LogService::captureException($e, LogCategory::AUTH, [
                 'action' => 'login',
                 'email' => $email,
             ]);
 
-            return $this->handleLoginError($e);
+            return $this->handleLoginError($e, $ip);
         }
     }
 
@@ -172,13 +135,9 @@ class LoginController extends WebController
         CsrfMiddleware::handle($this->request, 'login_form');
     }
 
-    private function applyRateLimit(): void
+    private function applyRateLimit(string $ip): void
     {
-        $this->cache->checkRateLimit(
-            'login:' . ($this->request->ip() ?? 'unknown'),
-            5,
-            60
-        );
+        $this->cache->checkRateLimit('login:' . $ip, 5, 60);
     }
 
     private function verifyCaptchaIfRequired(string $ip): void
@@ -196,10 +155,30 @@ class LoginController extends WebController
         unset($_SESSION['csrf_tokens']);
     }
 
-    private function handleValidationException(ValidationException $e): Response
+    private function handleValidationFailure(ValidationException $e, string $ip, string $email): Response
+    {
+        $captchaErrors = $e->getErrors()['captcha'] ?? null;
+        if (!$captchaErrors) {
+            $this->turnstile->recordFailedAttempt($ip);
+        }
+
+        LogService::persist(
+            LogLevel::WARNING,
+            LogCategory::AUTH,
+            'Login: falha de validação',
+            [
+                'email' => $email,
+                'errors' => $e->getErrors(),
+                'captcha_required' => $this->turnstile->shouldRequireCaptcha($ip),
+            ]
+        );
+
+        return $this->handleValidationException($e, $ip);
+    }
+
+    private function handleValidationException(ValidationException $e, string $ip): Response
     {
         $message = $e->getMessage();
-        $ip = $this->request->ip() ?? 'unknown';
         $captchaFlag = $this->turnstile->shouldRequireCaptcha($ip);
         $errors = $e->getErrors();
 
@@ -207,7 +186,7 @@ class LoginController extends WebController
             $errors['require_captcha'] = true;
         }
 
-        if ($e->getCode() === 429 || isset($errors['rate_limit']) || stripos($message, 'rate limit') !== false || str_contains($message, 'Muitas tentativas')) {
+        if ($this->isRateLimitValidationFailure($e, $errors, $message)) {
             return $this->fail('Muitas tentativas. Aguarde 1 minuto e tente novamente.', 429, $errors);
         }
 
@@ -216,7 +195,7 @@ class LoginController extends WebController
         }
 
         if (!empty($errors['email_not_verified'])) {
-            $_SESSION['unverified_email'] = $errors['user_email'] ?? '';
+            $this->putSessionValue('unverified_email', $errors['user_email'] ?? '');
 
             return $this->fail(
                 $errors['email'] ?? 'Você precisa verificar seu e-mail antes de fazer login.',
@@ -228,14 +207,13 @@ class LoginController extends WebController
         return $this->fail('E-mail ou senha inválidos.', 401, $errors, 'INVALID_CREDENTIALS');
     }
 
-    private function handleLoginError(Throwable $e): Response
+    private function handleLoginError(Throwable $e, string $ip): Response
     {
         $message = trim($e->getMessage());
-        $ip = $this->request->ip() ?? 'unknown';
 
         $this->turnstile->recordFailedAttempt($ip);
 
-        if (str_contains($message, 'credenciais inválidas') || str_contains($message, 'inválidos')) {
+        if ($this->isCredentialErrorMessage($message)) {
             $extra = $this->turnstile->shouldRequireCaptcha($ip)
                 ? ['require_captcha' => true]
                 : [];
@@ -244,5 +222,60 @@ class LoginController extends WebController
         }
 
         return $this->failAndLog($e, 'Erro ao processar login.');
+    }
+
+    private function pullRegisterErrors(): ?array
+    {
+        $errors = $this->pullSessionValue('register_errors');
+
+        return is_array($errors) ? $errors : null;
+    }
+
+    private function resolveActiveTab(?array $registerErrors): string
+    {
+        $activeTab = $this->pullSessionValue('auth_active_tab', 'login');
+        $activeTab = is_string($activeTab) ? $activeTab : 'login';
+
+        $queryTab = $this->getStringQuery('tab');
+        if ($this->isAllowedTab($queryTab)) {
+            $activeTab = $queryTab;
+        }
+
+        if (!empty($registerErrors)) {
+            $activeTab = 'register';
+        }
+
+        if (!$this->isAllowedTab($activeTab)) {
+            return 'login';
+        }
+
+        return $activeTab;
+    }
+
+    private function isAllowedTab(string $tab): bool
+    {
+        return in_array($tab, ['login', 'register'], true);
+    }
+
+    private function isSocialSuccessRedirect(): bool
+    {
+        return $this->getIntQuery('new_google', 0) === 1;
+    }
+
+    /**
+     * @param array<string, mixed> $errors
+     */
+    private function isRateLimitValidationFailure(ValidationException $e, array $errors, string $message): bool
+    {
+        return $e->getCode() === 429
+            || isset($errors['rate_limit'])
+            || stripos($message, 'rate limit') !== false
+            || str_contains($message, 'Muitas tentativas');
+    }
+
+    private function isCredentialErrorMessage(string $message): bool
+    {
+        return str_contains($message, 'credenciais inválidas')
+            || str_contains($message, 'inválidos');
     }
 }

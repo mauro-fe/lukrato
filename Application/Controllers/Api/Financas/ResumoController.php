@@ -8,7 +8,7 @@ use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Services\Demo\DemoPreviewService;
 use Application\Services\Financeiro\MetaService;
-use Application\Services\Financeiro\OrcamentoService;
+use Application\Services\Orcamentos\OrcamentoService;
 use Application\UseCases\Financas\GetFinancasInsightsUseCase;
 use Application\UseCases\Financas\GetFinancasResumoUseCase;
 

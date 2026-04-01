@@ -20,14 +20,12 @@ class WhatsAppLinkController extends ApiController
      */
     public function requestLink(): Response
     {
-        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
-        $phone = trim((string) $this->getPost('phone', ''));
+        $userId = $this->userId(releaseSession: true);
+        $normalized = $this->normalizePhone((string) $this->getPost('phone', ''));
 
-        if ($phone === '' || strlen((string) preg_replace('/[^\d]/', '', $phone)) < 10) {
+        if (!$this->isValidPhone($normalized)) {
             return Response::errorResponse('Número de telefone inválido. Use o formato: 5511999999999', 422);
         }
-
-        $normalized = (string) preg_replace('/[^\d]/', '', $phone);
 
         $existing = Usuario::query()
             ->where('whatsapp_phone', $normalized)
@@ -53,8 +51,8 @@ class WhatsAppLinkController extends ApiController
      */
     public function verify(): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
-        $phone = trim((string) $this->getPost('phone', ''));
+        $userId = $this->userId();
+        $phone = $this->normalizePhone((string) $this->getPost('phone', ''));
         $code = trim((string) $this->getPost('code', ''));
 
         if ($phone === '' || $code === '') {
@@ -75,8 +73,7 @@ class WhatsAppLinkController extends ApiController
      */
     public function unlink(): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
-        $user = Usuario::find($userId);
+        $user = $this->userById($this->userId());
 
         if (!$user) {
             return Response::errorResponse('Usuário não encontrado', 404);
@@ -94,10 +91,9 @@ class WhatsAppLinkController extends ApiController
      */
     public function status(): Response
     {
-        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
-        $user = Usuario::find($userId);
+        $user = $this->userById($this->userId(releaseSession: true));
 
-        $linked = $user && $user->whatsapp_verified && $user->whatsapp_phone;
+        $linked = $this->hasLinkedWhatsApp($user);
 
         return Response::successResponse([
             'linked' => $linked,
@@ -108,8 +104,10 @@ class WhatsAppLinkController extends ApiController
     /**
      * Mascara o phone para exibicao: 5511999999999 -> 55 11 ****9999
      */
-    private function maskPhone(string $phone): string
+    private function maskPhone(string|int $phone): string
     {
+        $phone = (string) $phone;
+
         if (strlen($phone) < 10) {
             return '****';
         }
@@ -119,5 +117,34 @@ class WhatsAppLinkController extends ApiController
         $last4 = substr($phone, -4);
 
         return "{$country} {$ddd} ****{$last4}";
+    }
+
+    private function userId(bool $releaseSession = false): int
+    {
+        if ($releaseSession) {
+            return $this->requireApiUserIdAndReleaseSessionOrFail();
+        }
+
+        return $this->requireApiUserIdOrFail();
+    }
+
+    private function userById(int $userId): ?Usuario
+    {
+        return Usuario::find($userId);
+    }
+
+    private function hasLinkedWhatsApp(?Usuario $user): bool
+    {
+        return $user !== null && (bool) $user->whatsapp_verified && !empty($user->whatsapp_phone);
+    }
+
+    private function normalizePhone(string $phone): string
+    {
+        return (string) preg_replace('/[^\d]/', '', trim($phone));
+    }
+
+    private function isValidPhone(string $phone): bool
+    {
+        return strlen($phone) >= 10;
     }
 }

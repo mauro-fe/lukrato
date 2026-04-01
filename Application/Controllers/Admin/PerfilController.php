@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Admin;
 
 use Application\Controllers\WebController;
@@ -11,16 +13,14 @@ class PerfilController extends WebController
     {
         $this->requireUserId();
 
-        return $this->renderResponse(
+        return $this->renderAdminResponse(
             'admin/perfil/index',
             [
                 'menu' => 'perfil',
                 'perfilViewMode' => 'perfil',
                 'pageTitle' => 'Perfil',
                 'subTitle' => 'Mantenha seus dados pessoais sempre atualizados',
-            ],
-            'admin/partials/header',
-            'admin/partials/footer'
+            ]
         );
     }
 }

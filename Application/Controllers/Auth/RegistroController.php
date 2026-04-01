@@ -8,6 +8,7 @@ use Application\Controllers\WebController;
 use Application\Core\Exceptions\ValidationException;
 use Application\Core\Response;
 use Application\Enums\LogCategory;
+use Application\Enums\LogLevel;
 use Application\Middlewares\CsrfMiddleware;
 use Application\Services\Auth\AuthService;
 use Application\Services\Auth\GoogleAuthService;
@@ -22,47 +23,44 @@ class RegistroController extends WebController
     private AuthService $authService;
     private GoogleAuthService $googleAuthService;
     private RegistrationResponseHandler $responseHandler;
+    private ?TurnstileService $turnstile;
 
     public function __construct(
         ?AuthService $authService = null,
-        ?GoogleAuthService $googleAuthService = null
+        ?GoogleAuthService $googleAuthService = null,
+        ?RegistrationResponseHandler $responseHandler = null,
+        ?TurnstileService $turnstile = null
     ) {
         parent::__construct();
         $this->authService = $authService ?? new AuthService();
         $this->googleAuthService = $googleAuthService ?? new GoogleAuthService();
-        $this->responseHandler = new RegistrationResponseHandler($this->request);
+        $this->responseHandler = $responseHandler ?? new RegistrationResponseHandler($this->request);
+        $this->turnstile = $turnstile;
     }
 
     public function showForm(): Response
     {
-        $socialData = $_SESSION['social_register'] ?? null;
-
         return $this->renderResponse('auth/register', [
             'errors' => $this->getSessionErrors(),
             'success' => $this->getSuccess(),
-            'socialData' => $socialData,
+            'socialData' => $this->getSocialRegistrationData(),
         ]);
     }
 
     public function store(): Response
     {
         CsrfMiddleware::handle($this->request, 'register_form');
+        $this->verifyTurnstileIfEnabled();
 
-        if (TurnstileService::isEnabled()) {
-            $turnstile = new TurnstileService();
-            $token = $this->request->post('cf-turnstile-response', '');
-            $turnstile->verify($token, $this->request->ip() ?? 'unknown');
-        }
-
-        $email = $this->request->post('email', 'não-informado');
-        $socialData = $_SESSION['social_register'] ?? null;
+        $email = $this->request->postString('email', 'nao-informado');
+        $socialData = $this->getSocialRegistrationData();
         $isGoogleRegistration = !empty($socialData) && ($socialData['provider'] ?? null) === 'google';
 
         try {
             $payload = $this->buildRegistrationPayload($isGoogleRegistration, $socialData);
             $result = $this->authService->register($payload);
 
-            unset($_SESSION['social_register']);
+            $this->clearSocialRegistrationData();
 
             if ($isGoogleRegistration) {
                 return $this->handleGoogleRegistrationSuccess($result, $email);
@@ -80,9 +78,9 @@ class RegistroController extends WebController
     private function buildRegistrationPayload(bool $isGoogle, ?array $socialData): array
     {
         $payload = [
-            'name' => $this->request->post('name', ''),
-            'email' => $this->request->post('email', ''),
-            'referral_code' => $this->request->post('referral_code', ''),
+            'name' => $this->request->postString('name', ''),
+            'email' => $this->request->postString('email', ''),
+            'referral_code' => $this->request->postString('referral_code', ''),
         ];
 
         if ($isGoogle) {
@@ -91,8 +89,8 @@ class RegistroController extends WebController
             $payload['password_confirmation'] = null;
             $payload['provider'] = 'google';
         } else {
-            $payload['password'] = $this->request->post('password', '');
-            $payload['password_confirmation'] = $this->request->post('password_confirmation', '');
+            $payload['password'] = $this->request->postString('password', '');
+            $payload['password_confirmation'] = $this->request->postString('password_confirmation', '');
         }
 
         return $payload;
@@ -111,13 +109,13 @@ class RegistroController extends WebController
             }
         }
 
-        LogService::warning('Login automático falhou após registro Google', ['email' => $email]);
+        LogService::warning('Login automatico falhou apos registro Google', ['email' => $email]);
         return $this->responseHandler->success($result, false);
     }
 
     private function logRegistrationSuccess(string $email, array $result, string $provider): void
     {
-        LogService::info('Novo usuário registrado com sucesso.', [
+        LogService::info('Novo usuario registrado com sucesso.', [
             'email' => $email,
             'ip' => $this->request->ip() ?? 'unknown',
             'user_id' => $result['user_id'] ?? 'unknown',
@@ -128,9 +126,9 @@ class RegistroController extends WebController
     private function handleValidationError(ValidationException $e, string $email): Response
     {
         LogService::persist(
-            \Application\Enums\LogLevel::WARNING,
+            LogLevel::WARNING,
             LogCategory::AUTH,
-            'Registro: falha de validação',
+            'Registro: falha de validacao',
             ['email' => $email, 'ip' => $this->request->ip() ?? 'unknown', 'errors' => $e->getErrors()]
         );
 
@@ -180,8 +178,35 @@ class RegistroController extends WebController
 
     private function getSessionErrors(): ?array
     {
-        $errors = $_SESSION['form_errors'] ?? null;
-        unset($_SESSION['form_errors']);
-        return $errors;
+        $errors = $this->pullSessionValue('form_errors');
+
+        return is_array($errors) ? $errors : null;
+    }
+
+    private function verifyTurnstileIfEnabled(): void
+    {
+        if (!TurnstileService::isEnabled()) {
+            return;
+        }
+
+        $token = $this->request->postString('cf-turnstile-response', '');
+        $this->turnstileService()->verify($token, $this->request->ip() ?? 'unknown');
+    }
+
+    private function turnstileService(): TurnstileService
+    {
+        return $this->turnstile ??= new TurnstileService();
+    }
+
+    private function getSocialRegistrationData(): ?array
+    {
+        $socialData = $_SESSION['social_register'] ?? null;
+
+        return is_array($socialData) ? $socialData : null;
+    }
+
+    private function clearSocialRegistrationData(): void
+    {
+        unset($_SESSION['social_register']);
     }
 }

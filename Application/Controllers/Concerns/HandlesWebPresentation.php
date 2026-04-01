@@ -56,28 +56,49 @@ trait HandlesWebPresentation
 
     protected function setError(string $message): void
     {
-        $_SESSION['error'] = $message;
+        $this->putSessionValue('error', $message);
     }
 
     protected function setSuccess(string $message): void
     {
-        $_SESSION['success'] = $message;
+        $this->putSessionValue('success', $message);
     }
 
     protected function getError(): ?string
     {
-        $message = $_SESSION['error'] ?? null;
-        unset($_SESSION['error']);
-
-        return $message;
+        $message = $this->pullSessionValue('error');
+        return is_string($message) ? $message : null;
     }
 
     protected function getSuccess(): ?string
     {
-        $message = $_SESSION['success'] ?? null;
-        unset($_SESSION['success']);
+        $message = $this->pullSessionValue('success');
+        return is_string($message) ? $message : null;
+    }
 
-        return $message;
+    protected function putSessionValue(string $key, mixed $value): void
+    {
+        if (!isset($_SESSION) || !is_array($_SESSION)) {
+            $_SESSION = [];
+        }
+
+        $_SESSION[$key] = $value;
+    }
+
+    protected function pullSessionValue(string $key, mixed $default = null): mixed
+    {
+        if (!isset($_SESSION) || !is_array($_SESSION)) {
+            return $default;
+        }
+
+        if (!array_key_exists($key, $_SESSION)) {
+            return $default;
+        }
+
+        $value = $_SESSION[$key];
+        unset($_SESSION[$key]);
+
+        return $value;
     }
 
     protected function inferMenuFromView(string $viewPath): ?string

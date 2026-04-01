@@ -20,16 +20,15 @@ class TelegramLinkController extends ApiController
      */
     public function requestLink(): Response
     {
-        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
+        $userId = $this->userId(releaseSession: true);
 
-        $user = Usuario::find($userId);
-        if ($user && $user->telegram_verified && $user->telegram_chat_id) {
+        if ($this->hasLinkedTelegram($this->userById($userId))) {
             return Response::errorResponse('Telegram já está vinculado. Desvincule primeiro para vincular novamente.', 409);
         }
 
         $code = TelegramUserResolver::generateVerificationCodeWithReverse($userId);
 
-        $botUsername = $_ENV['TELEGRAM_BOT_USERNAME'] ?? getenv('TELEGRAM_BOT_USERNAME') ?: 'LukratoBot';
+        $botUsername = $this->botUsername();
         $botUrl = "https://t.me/{$botUsername}?start={$code}";
 
         return Response::successResponse([
@@ -45,8 +44,7 @@ class TelegramLinkController extends ApiController
      */
     public function unlink(): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
-        $user = Usuario::find($userId);
+        $user = $this->userById($this->userId());
 
         if (!$user) {
             return Response::errorResponse('Usuário não encontrado', 404);
@@ -64,10 +62,9 @@ class TelegramLinkController extends ApiController
      */
     public function status(): Response
     {
-        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
-        $user = Usuario::find($userId);
+        $user = $this->userById($this->userId(releaseSession: true));
 
-        $linked = $user && $user->telegram_verified && $user->telegram_chat_id;
+        $linked = $this->hasLinkedTelegram($user);
 
         return Response::successResponse([
             'linked' => $linked,
@@ -78,12 +75,43 @@ class TelegramLinkController extends ApiController
     /**
      * Mascara o chat_id para exibicao.
      */
-    private function maskChatId(string $chatId): string
+    private function maskChatId(string|int $chatId): string
     {
+        $chatId = (string) $chatId;
+
         if (strlen($chatId) < 4) {
             return '****';
         }
 
         return str_repeat('*', strlen($chatId) - 4) . substr($chatId, -4);
+    }
+
+    private function userId(bool $releaseSession = false): int
+    {
+        if ($releaseSession) {
+            return $this->requireApiUserIdAndReleaseSessionOrFail();
+        }
+
+        return $this->requireApiUserIdOrFail();
+    }
+
+    private function userById(int $userId): ?Usuario
+    {
+        return Usuario::find($userId);
+    }
+
+    private function hasLinkedTelegram(?Usuario $user): bool
+    {
+        return $user !== null && (bool) $user->telegram_verified && !empty($user->telegram_chat_id);
+    }
+
+    private function botUsername(): string
+    {
+        $username = $_ENV['TELEGRAM_BOT_USERNAME'] ?? null;
+        if ($username === null || $username === '') {
+            $username = getenv('TELEGRAM_BOT_USERNAME');
+        }
+
+        return trim((string) $username) !== '' ? (string) $username : 'LukratoBot';
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Admin;
 
 use Application\Controllers\WebController;
@@ -11,16 +13,14 @@ class OrcamentoController extends WebController
     {
         $this->requireUserId();
 
-        return $this->renderResponse(
+        return $this->renderAdminResponse(
             'admin/orcamento/index',
             [
                 'pageTitle' => 'Orçamento',
                 'subTitle' => 'Controle seus gastos mensais',
                 'menu' => 'orcamento',
                 'showMonthSelector' => true,
-            ],
-            'admin/partials/header',
-            'admin/partials/footer'
+            ]
         );
     }
 }

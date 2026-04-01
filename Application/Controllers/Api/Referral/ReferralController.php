@@ -7,6 +7,7 @@ namespace Application\Controllers\Api\Referral;
 use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Lib\Auth;
+use Application\Models\Usuario;
 use Application\Services\Referral\ReferralService;
 use Exception;
 
@@ -22,29 +23,25 @@ class ReferralController extends ApiController
 
     public function getStats(): Response
     {
-        $user = $this->requireApiUserAndReleaseSessionOrFail();
+        $user = $this->authenticatedUser();
 
-        try {
+        return $this->executeReferralAction(function () use ($user): Response {
             $this->referralService->ensureUserHasReferralCode($user);
             $stats = $this->referralService->getUserStats($user);
 
             return Response::successResponse($stats, 'Estatísticas de indicação');
-        } catch (Exception $e) {
-            return $this->internalErrorResponse($e, 'Erro ao carregar estatisticas.');
-        }
+        }, 'Erro ao carregar estatisticas.');
     }
 
     public function validateCode(): Response
     {
-        try {
-            $code = $this->getStringQuery('code', '');
+        $code = $this->requestedCode();
+        if ($code === '') {
+            return Response::errorResponse('Código de indicação não informado', 400);
+        }
 
-            if (empty($code)) {
-                return Response::errorResponse('Código de indicação não informado', 400);
-            }
-
-            $excludeUserId = Auth::isLoggedIn() ? Auth::id() : null;
-            $result = $this->referralService->validateCode($code, $excludeUserId);
+        return $this->executeReferralAction(function () use ($code): Response {
+            $result = $this->referralService->validateCode($code, $this->excludeUserId());
 
             if ($result['valid']) {
                 return Response::successResponse([
@@ -55,16 +52,14 @@ class ReferralController extends ApiController
             }
 
             return Response::errorResponse($result['message'], 400);
-        } catch (Exception $e) {
-            return $this->internalErrorResponse($e, 'Erro ao validar codigo.');
-        }
+        }, 'Erro ao validar codigo.');
     }
 
     public function getCode(): Response
     {
-        $user = $this->requireApiUserAndReleaseSessionOrFail();
+        $user = $this->authenticatedUser();
 
-        try {
+        return $this->executeReferralAction(function () use ($user): Response {
             $code = $this->referralService->ensureUserHasReferralCode($user);
             $link = $this->referralService->getReferralLink($user);
 
@@ -73,30 +68,26 @@ class ReferralController extends ApiController
                 'link' => $link,
                 'reward_days' => ReferralService::REFERRER_REWARD_DAYS,
             ], 'Codigo de indicacao');
-        } catch (Exception $e) {
-            return $this->internalErrorResponse($e, 'Erro ao obter codigo.');
-        }
+        }, 'Erro ao obter codigo.');
     }
 
     public function getRanking(): Response
     {
         $this->requireApiUserIdAndReleaseSessionOrFail();
 
-        try {
+        return $this->executeReferralAction(function (): Response {
             $limit = min($this->getIntQuery('limit', 10), 50);
             $ranking = $this->referralService->getReferralRanking($limit);
 
             return Response::successResponse([
                 'ranking' => $ranking,
             ], 'Ranking de indicacoes');
-        } catch (Exception $e) {
-            return $this->internalErrorResponse($e, 'Erro ao carregar ranking.');
-        }
+        }, 'Erro ao carregar ranking.');
     }
 
     public function getInfo(): Response
     {
-        try {
+        return $this->executeReferralAction(function (): Response {
             return Response::successResponse([
                 'referrer_reward_days' => ReferralService::REFERRER_REWARD_DAYS,
                 'referred_reward_days' => ReferralService::REFERRED_REWARD_DAYS,
@@ -106,8 +97,33 @@ class ReferralController extends ApiController
                     . ReferralService::REFERRED_REWARD_DAYS
                     . ' dias gratis.',
             ], 'Informacoes do programa de indicacao');
+        }, 'Erro ao carregar informacoes.');
+    }
+
+    private function authenticatedUser(): Usuario
+    {
+        return $this->requireApiUserAndReleaseSessionOrFail();
+    }
+
+    private function requestedCode(): string
+    {
+        return $this->getStringQuery('code', '');
+    }
+
+    private function excludeUserId(): ?int
+    {
+        return Auth::isLoggedIn() ? Auth::id() : null;
+    }
+
+    /**
+     * @param callable():Response $action
+     */
+    private function executeReferralAction(callable $action, string $fallbackMessage): Response
+    {
+        try {
+            return $action();
         } catch (Exception $e) {
-            return $this->internalErrorResponse($e, 'Erro ao carregar informacoes.');
+            return $this->internalErrorResponse($e, $fallbackMessage);
         }
     }
 }

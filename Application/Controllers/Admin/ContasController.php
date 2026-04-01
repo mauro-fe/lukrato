@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Admin;
 
 use Application\Controllers\WebController;
@@ -11,27 +13,25 @@ class ContasController extends WebController
     {
         $this->requireUserId();
 
-        return $this->renderResponse(
+        return $this->renderAdminResponse(
             'admin/contas/index',
             [
                 'pageTitle' => 'Contas',
                 'subTitle' => 'Crie e gerencie suas contas',
-            ],
-            'admin/partials/header',
-            'admin/partials/footer'
+            ]
         );
     }
 
     public function archived(): Response
     {
-        return $this->renderResponse(
+        $this->requireUserId();
+
+        return $this->renderAdminResponse(
             'admin/contas/arquivadas',
             [
                 'pageTitle' => 'Contas Arquivadas',
                 'subTitle' => 'Contas que foram arquivadas',
-            ],
-            'admin/partials/header',
-            'admin/partials/footer'
+            ]
         );
     }
 }

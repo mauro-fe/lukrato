@@ -141,7 +141,7 @@ class CreateLancamentoUseCaseTest extends TestCase
 
         $this->assertFalse($result->isError());
         $this->assertSame(201, $result->httpCode);
-        $this->assertSame('Lancamento criado', $result->message);
+        $this->assertSame('Lançamento criado', $result->message);
         $this->assertSame(55, $result->data['id'] ?? null);
         $this->assertSame('Perto do limite', $result->data['ui_message'] ?? null);
         $this->assertSame('/premium', $result->data['upgrade_cta'] ?? null);

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Admin;
 
 use Application\Controllers\WebController;
@@ -26,7 +28,7 @@ class BillingController extends WebController
         $subscriptionStatus = SubscriptionExpirationService::getSubscriptionStatus($assinatura);
         $billingData = $this->resolveBillingData($user);
 
-        return $this->renderResponse(
+        return $this->renderAdminResponse(
             'admin/billing/index',
             [
                 'user' => $user,
@@ -48,9 +50,7 @@ class BillingController extends WebController
                 'pageTitle' => 'Assinar Pro',
                 'subTitle' => 'Assine o pro e tenha acesso a todas as funcionalidades',
                 ...$billingData,
-            ],
-            'admin/partials/header',
-            'admin/partials/footer'
+            ]
         );
     }
 

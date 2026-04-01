@@ -23,7 +23,7 @@ class FeedbackAdminController extends ApiController
      */
     public function stats(): Response
     {
-        $this->requireApiUserIdOrFail();
+        $this->requireAuthenticatedUserId();
 
         $statsByTipo = $this->service->getStatsByTipo();
         $npsScore = $this->service->getNpsScore(
@@ -42,33 +42,15 @@ class FeedbackAdminController extends ApiController
      */
     public function index(): Response
     {
-        $this->requireApiUserIdOrFail();
+        $this->requireAuthenticatedUserId();
 
-        $filters = [
-            'tipo_feedback' => $this->getQuery('tipo_feedback'),
-            'rating_min' => $this->getQuery('rating_min'),
-            'rating_max' => $this->getQuery('rating_max'),
-            'start_date' => $this->getQuery('start_date'),
-            'end_date' => $this->getQuery('end_date'),
-        ];
+        $filters = $this->feedbackFilters(includeRatingRange: true);
         $perPage = $this->getIntQuery('per_page', 15);
         $page = $this->getIntQuery('page', 1);
 
         $result = $this->service->getPaginated($filters, $perPage, $page);
 
-        $result['items'] = $result['items']->map(function ($f) {
-            return [
-                'id' => $f->id,
-                'user_id' => $f->user_id,
-                'user_nome' => $f->user->nome ?? 'Removido',
-                'tipo_feedback' => $f->tipo_feedback,
-                'contexto' => $f->contexto,
-                'rating' => $f->rating,
-                'comentario' => $f->comentario,
-                'pagina' => $f->pagina,
-                'created_at' => $f->created_at?->format('Y-m-d H:i:s'),
-            ];
-        });
+        $result['items'] = $result['items']->map(fn ($f): array => $this->serializeFeedback($f));
 
         return Response::successResponse($result);
     }
@@ -78,30 +60,16 @@ class FeedbackAdminController extends ApiController
      */
     public function export(): Response
     {
-        $this->requireApiUserIdOrFail();
+        $this->requireAuthenticatedUserId();
 
-        $filters = [
-            'tipo_feedback' => $this->getQuery('tipo_feedback'),
-            'start_date' => $this->getQuery('start_date'),
-            'end_date' => $this->getQuery('end_date'),
-        ];
+        $filters = $this->feedbackFilters();
 
         $items = $this->service->getExportData($filters);
 
-        $csv = "ID,Usuario,Tipo,Contexto,Rating,Comentario,Pagina,Data\n";
+        $csv = $this->csvHeader();
 
         foreach ($items as $f) {
-            $csv .= sprintf(
-                "%d,\"%s\",\"%s\",\"%s\",%s,\"%s\",\"%s\",\"%s\"\n",
-                $f->id,
-                str_replace('"', '""', $f->user->nome ?? ''),
-                $f->tipo_feedback,
-                $f->contexto ?? '',
-                $f->rating ?? '',
-                str_replace('"', '""', $f->comentario ?? ''),
-                $f->pagina ?? '',
-                $f->created_at?->format('Y-m-d H:i:s') ?? ''
-            );
+            $csv .= $this->feedbackCsvRow($f);
         }
 
         return (new Response())
@@ -111,5 +79,72 @@ class FeedbackAdminController extends ApiController
                 'Content-Disposition' => 'attachment; filename="feedbacks_export.csv"',
             ])
             ->setContent("\xEF\xBB\xBF" . $csv);
+    }
+
+    private function requireAuthenticatedUserId(): int
+    {
+        return $this->requireApiUserIdOrFail();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function feedbackFilters(bool $includeRatingRange = false): array
+    {
+        $filters = [
+            'tipo_feedback' => $this->getQuery('tipo_feedback'),
+            'start_date' => $this->getQuery('start_date'),
+            'end_date' => $this->getQuery('end_date'),
+        ];
+
+        if ($includeRatingRange) {
+            $filters['rating_min'] = $this->getQuery('rating_min');
+            $filters['rating_max'] = $this->getQuery('rating_max');
+        }
+
+        return $filters;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeFeedback(object $feedback): array
+    {
+        return [
+            'id' => $feedback->id,
+            'user_id' => $feedback->user_id,
+            'user_nome' => $feedback->user->nome ?? 'Removido',
+            'tipo_feedback' => $feedback->tipo_feedback,
+            'contexto' => $feedback->contexto,
+            'rating' => $feedback->rating,
+            'comentario' => $feedback->comentario,
+            'pagina' => $feedback->pagina,
+            'created_at' => $feedback->created_at?->format('Y-m-d H:i:s'),
+        ];
+    }
+
+    private function csvHeader(): string
+    {
+        return "ID,Usuario,Tipo,Contexto,Rating,Comentario,Pagina,Data\n";
+    }
+
+    private function feedbackCsvRow(object $feedback): string
+    {
+        return sprintf(
+            "%d,\"%s\",\"%s\",\"%s\",%s,\"%s\",\"%s\",\"%s\"\n",
+            $feedback->id,
+            $this->escapeCsv((string) ($feedback->user->nome ?? '')),
+            (string) $feedback->tipo_feedback,
+            (string) ($feedback->contexto ?? ''),
+            (string) ($feedback->rating ?? ''),
+            $this->escapeCsv((string) ($feedback->comentario ?? '')),
+            (string) ($feedback->pagina ?? ''),
+            (string) ($feedback->created_at?->format('Y-m-d H:i:s') ?? '')
+        );
+    }
+
+    private function escapeCsv(string $value): string
+    {
+        return str_replace('"', '""', $value);
     }
 }

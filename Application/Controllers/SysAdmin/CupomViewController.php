@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\SysAdmin;
 
 use Application\Controllers\WebController;
@@ -11,15 +13,13 @@ class CupomViewController extends WebController
     {
         $this->requireAdminUser();
 
-        return $this->renderResponse(
+        return $this->renderAdminResponse(
             'admin/sysadmin/cupons',
             [
                 'pageTitle' => 'Gerenciar Cupons de Desconto',
                 'menu' => 'cupons',
                 'skipPlanLimits' => true,
-            ],
-            'admin/partials/header',
-            'admin/partials/footer'
+            ]
         );
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Site;
 
 use Application\Controllers\WebController;
@@ -12,10 +14,10 @@ class AprendaController extends WebController
 {
     private BlogPostRepository $repo;
 
-    public function __construct()
+    public function __construct(?BlogPostRepository $repo = null)
     {
         parent::__construct();
-        $this->repo = new BlogPostRepository();
+        $this->repo = $repo ?? new BlogPostRepository();
     }
 
     /**
@@ -55,16 +57,15 @@ class AprendaController extends WebController
     /**
      * Lista artigos de uma categoria - /blog/categoria/{slug}
      */
-    public function categoria($slug): Response
+    public function categoria(string $slug): Response
     {
         $categoria = BlogCategoria::where('slug', $slug)->first();
 
         if (!$categoria) {
-            return $this->renderResponse('errors/404', [], 'site/partials/header', 'site/partials/footer')
-                ->setStatusCode(404);
+            return $this->renderSiteNotFound();
         }
 
-        $page = max(1, (int) ($_GET['page'] ?? 1));
+        $page = max(1, $this->getIntQuery('page', 1));
         $perPage = 12;
 
         $result = $this->repo->listByCategoria($categoria->id, $perPage, $page);
@@ -99,13 +100,12 @@ class AprendaController extends WebController
     /**
      * Exibe artigo individual - /blog/{slug}
      */
-    public function show($slug): Response
+    public function show(string $slug): Response
     {
         $post = $this->repo->findPublishedBySlug($slug);
 
         if (!$post) {
-            return $this->renderResponse('errors/404', [], 'site/partials/header', 'site/partials/footer')
-                ->setStatusCode(404);
+            return $this->renderSiteNotFound();
         }
 
         $relacionados = $this->repo->findRelated(
@@ -115,8 +115,9 @@ class AprendaController extends WebController
         );
 
         $allowedLayouts = ['sidebar', 'bottom'];
-        $layout = in_array($_GET['layout'] ?? '', $allowedLayouts, true)
-            ? $_GET['layout']
+        $layoutQuery = $this->getStringQuery('layout', '');
+        $layout = in_array($layoutQuery, $allowedLayouts, true)
+            ? $layoutQuery
             : 'bottom';
 
         return $this->renderResponse(
@@ -182,5 +183,11 @@ class AprendaController extends WebController
         $keywords[] = 'lukrato';
 
         return implode(', ', array_unique($keywords));
+    }
+
+    private function renderSiteNotFound(): Response
+    {
+        return $this->renderResponse('errors/404', [], 'site/partials/header', 'site/partials/footer')
+            ->setStatusCode(404);
     }
 }

@@ -10,14 +10,43 @@ use Application\Lib\Auth;
 use Application\Models\Usuario;
 use Application\Services\Infrastructure\LogService;
 use Application\Services\Referral\ReferralAntifraudService;
+use Closure;
 use Throwable;
 
 class AccountController extends WebController
 {
+    private ReferralAntifraudService $antifraudService;
+    /** @var Closure(int): ?Usuario */
+    private Closure $userLoader;
+    /** @var Closure(): void */
+    private Closure $logoutHandler;
+
+    /**
+     * @param callable(int): ?Usuario|null $userLoader
+     * @param callable(): void|null $logoutHandler
+     */
+    public function __construct(
+        ?ReferralAntifraudService $antifraudService = null,
+        ?callable $userLoader = null,
+        ?callable $logoutHandler = null
+    ) {
+        parent::__construct();
+
+        $this->antifraudService = $antifraudService ?? new ReferralAntifraudService();
+        $this->userLoader = $userLoader !== null
+            ? Closure::fromCallable($userLoader)
+            : static fn(int $userId): ?Usuario => Usuario::find($userId);
+        $this->logoutHandler = $logoutHandler !== null
+            ? Closure::fromCallable($logoutHandler)
+            : static function (): void {
+                Auth::logout();
+            };
+    }
+
     public function delete(): Response
     {
         $requestId = uniqid('acc_del_', true);
-        $ip = $_SERVER['REMOTE_ADDR'] ?? null;
+        $ip = $this->request->ip() ?? null;
 
         LogService::info('Iniciando processo de exclusao de conta', [
             'request_id' => $requestId,
@@ -27,7 +56,7 @@ class AccountController extends WebController
         $userId = $this->requireApiUserIdOrFail();
 
         try {
-            $user = Usuario::find($userId);
+            $user = ($this->userLoader)($userId);
 
             if (!$user) {
                 LogService::warning('Usuario nao encontrado ao tentar excluir conta', [
@@ -41,7 +70,7 @@ class AccountController extends WebController
 
             $originalEmail = $user->email;
 
-            $anonymizedEmail = 'deleted_' . time() . '_' . substr(md5((string) $user->id), 0, 8) . '@anonimizado.local';
+            $anonymizedEmail = $this->buildAnonymizedEmail((int) $user->id);
             $user->email = $anonymizedEmail;
             $user->nome = 'Usuario Removido';
             $user->google_id = null;
@@ -57,15 +86,14 @@ class AccountController extends WebController
                     'ip' => $ip,
                 ]);
 
-                return Response::errorResponse('Nao foi possivel excluir sua conta. Tente novamente.', 500);
+                return Response::errorResponse('Não foi possivel excluir sua conta. Tente novamente.', 500);
             }
 
-            $antifraudService = new ReferralAntifraudService();
-            $antifraudService->onAccountDeleted($originalEmail, $userId, $ip);
+            $this->antifraudService->onAccountDeleted($originalEmail, $userId, $ip);
 
-            Auth::logout();
+            ($this->logoutHandler)();
 
-            LogService::info('Conta excluida com sucesso', [
+            LogService::info('Conta excluída com sucesso', [
                 'request_id' => $requestId,
                 'user_id' => $userId,
                 'email_original' => $originalEmail,
@@ -86,5 +114,10 @@ class AccountController extends WebController
 
             return Response::errorResponse('Erro ao excluir conta. Tente novamente mais tarde.', 500);
         }
+    }
+
+    private function buildAnonymizedEmail(int $userId): string
+    {
+        return 'deleted_' . time() . '_' . substr(md5((string) $userId), 0, 8) . '@anonimizado.local';
     }
 }

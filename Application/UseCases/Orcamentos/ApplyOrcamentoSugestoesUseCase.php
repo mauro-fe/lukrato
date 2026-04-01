@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Application\UseCases\Orcamentos;
 
 use Application\DTO\ServiceResultDTO;
-use Application\Services\Financeiro\OrcamentoService;
+use Application\Services\Orcamentos\OrcamentoService;
 
 class ApplyOrcamentoSugestoesUseCase
 {

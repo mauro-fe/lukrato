@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Services\Gamification;
 
 use Application\Models\Achievement;

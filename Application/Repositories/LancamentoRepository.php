@@ -1080,6 +1080,45 @@ class LancamentoRepository extends BaseRepository
         return $result;
     }
 
+    /**
+     * Busca totais de despesas por categoria em um período.
+     * Aceita visualização por caixa ou competencia.
+     *
+     * @param int $userId
+     * @param string $start Data inicial (Y-m-d)
+     * @param string $end Data final (Y-m-d)
+     * @param string $viewType caixa|competencia
+     * @return Collection<int, Lancamento>
+     */
+    public function getDespesaTotalsByCategoria(int $userId, string $start, string $end, string $viewType = 'caixa'): Collection
+    {
+        $query = $this->query()
+            ->where('user_id', $userId)
+            ->where('tipo', LancamentoTipo::DESPESA->value)
+            ->where('eh_transferencia', 0);
+
+        if ($viewType === 'competencia') {
+            $query->where(function ($q) use ($start, $end) {
+                $q->where(function ($sub) use ($start, $end) {
+                    $sub->whereNotNull('data_competencia')
+                        ->whereBetween('data_competencia', [$start, $end]);
+                })->orWhere(function ($sub) use ($start, $end) {
+                    $sub->whereNull('data_competencia')
+                        ->whereBetween('data', [$start, $end]);
+                });
+            });
+        } else {
+            $query->where('pago', 1)
+                ->where('afeta_caixa', 1)
+                ->whereBetween('data', [$start, $end]);
+        }
+
+        return $query
+            ->selectRaw('categoria_id, SUM(' . $this->effectiveExpenseExpression('lancamentos') . ') as total')
+            ->groupBy('categoria_id')
+            ->get();
+    }
+
     private function metaCoverageExpression(string $tableAlias = 'lancamentos'): string
     {
         $t = preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $tableAlias) ? $tableAlias : 'lancamentos';

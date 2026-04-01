@@ -41,26 +41,19 @@ class CategoriaController extends ApiController
 
     public function index(): Response
     {
-        $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
-        $tipo = $this->request?->get('tipo');
+        $userId = $this->userId(releaseSession: true);
+        $tipoEnum = $this->resolveCategoriaTipoFilter();
 
-        if ($tipo) {
-            try {
-                $tipoEnum = CategoriaTipo::from(strtolower((string) $tipo));
-                $categorias = $this->categoriaRepo->findRootsByType($userId, $tipoEnum);
-            } catch (ValueError) {
-                $categorias = $this->categoriaRepo->findRootsByUser($userId);
-            }
-        } else {
-            $categorias = $this->categoriaRepo->findRootsByUser($userId);
-        }
+        $categorias = $tipoEnum === null
+            ? $this->categoriaRepo->findRootsByUser($userId)
+            : $this->categoriaRepo->findRootsByType($userId, $tipoEnum);
 
         return Response::successResponse($categorias);
     }
 
     public function store(): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
         $payload = $this->getRequestPayload();
 
         $limitCheck = $this->planLimitService->canCreateCategoria($userId);
@@ -81,10 +74,7 @@ class CategoriaController extends ApiController
             return Response::validationErrorResponse($errors);
         }
 
-        $nome = trim((string) ($payload['nome'] ?? ''));
-        $tipo = strtolower(trim((string) ($payload['tipo'] ?? '')));
-        $icone = trim((string) ($payload['icone'] ?? ''));
-        $icone = $icone !== '' ? $icone : null;
+        ['nome' => $nome, 'tipo' => $tipo, 'icone' => $icone] = $this->normalizedCategoriaFields($payload);
 
         if ($this->categoriaRepo->hasDuplicate($userId, $nome, $tipo)) {
             return Response::errorResponse('Categoria já existe com este nome e tipo.', 409);
@@ -126,12 +116,11 @@ class CategoriaController extends ApiController
 
     public function update(mixed $routeParam = null): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
         $payload = $this->getRequestPayload();
 
-        $id = is_numeric($routeParam) ? (int) $routeParam : (int) ($payload['id'] ?? 0);
-
-        if ($id <= 0) {
+        $id = $this->resolveId($routeParam, $payload);
+        if ($id === null) {
             return Response::validationErrorResponse(['id' => 'ID inválido.']);
         }
 
@@ -145,10 +134,7 @@ class CategoriaController extends ApiController
             return Response::validationErrorResponse($errors);
         }
 
-        $nome = trim((string) ($payload['nome'] ?? ''));
-        $tipo = strtolower(trim((string) ($payload['tipo'] ?? '')));
-        $icone = trim((string) ($payload['icone'] ?? ''));
-        $icone = $icone !== '' ? $icone : null;
+        ['nome' => $nome, 'tipo' => $tipo, 'icone' => $icone] = $this->normalizedCategoriaFields($payload);
 
         if ($this->categoriaRepo->hasDuplicate($userId, $nome, $tipo, $categoria->id)) {
             return Response::errorResponse('Categoria já existe.', 409);
@@ -175,13 +161,13 @@ class CategoriaController extends ApiController
 
     public function delete(mixed $routeParam = null): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
         $payload = $this->getRequestPayload();
 
-        $id = is_numeric($routeParam) ? (int) $routeParam : (int) ($payload['id'] ?? 0);
+        $id = $this->resolveId($routeParam, $payload);
         $force = filter_var($payload['force'] ?? $this->getQuery('force', false), FILTER_VALIDATE_BOOLEAN);
 
-        if ($id <= 0) {
+        if ($id === null) {
             return Response::validationErrorResponse(['id' => 'ID inválido']);
         }
 
@@ -234,7 +220,7 @@ class CategoriaController extends ApiController
      */
     public function reorder(): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
         $payload = $this->getRequestPayload();
 
         $ids = $payload['ids'] ?? null;
@@ -246,5 +232,58 @@ class CategoriaController extends ApiController
         $this->categoriaRepo->reorderForUser($userId, $ids);
 
         return Response::successResponse(['reordered' => true]);
+    }
+
+    private function userId(bool $releaseSession = false): int
+    {
+        if ($releaseSession) {
+            return $this->requireApiUserIdAndReleaseSessionOrFail();
+        }
+
+        return $this->requireApiUserIdOrFail();
+    }
+
+    private function resolveCategoriaTipoFilter(): ?CategoriaTipo
+    {
+        $tipo = trim($this->getStringQuery('tipo', ''));
+        if ($tipo === '') {
+            return null;
+        }
+
+        try {
+            return CategoriaTipo::from(strtolower($tipo));
+        } catch (ValueError) {
+            return null;
+        }
+    }
+
+    private function resolveId(mixed $routeParam, array $payload): ?int
+    {
+        $id = is_numeric($routeParam) ? (int) $routeParam : (int) ($payload['id'] ?? 0);
+
+        return $id > 0 ? $id : null;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function optionalTrimmed(array $payload, string $key): ?string
+    {
+        $value = trim((string) ($payload[$key] ?? ''));
+
+        return $value !== '' ? $value : null;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{nome:string,tipo:string,icone:?string}
+     */
+    private function normalizedCategoriaFields(array $payload): array
+    {
+        return [
+            'nome' => trim((string) ($payload['nome'] ?? '')),
+            'tipo' => strtolower(trim((string) ($payload['tipo'] ?? ''))),
+            'icone' => $this->optionalTrimmed($payload, 'icone'),
+        ];
     }
 }

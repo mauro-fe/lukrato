@@ -6,7 +6,9 @@ namespace Tests\Unit\Services\Financeiro;
 
 use Application\Repositories\LancamentoRepository;
 use Application\Repositories\MetaRepository;
+use Application\Repositories\OrcamentoRepository;
 use Application\Services\Financeiro\HealthScoreInsightService;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
@@ -17,6 +19,7 @@ class HealthScoreInsightServiceTest extends TestCase
 
     private LancamentoRepository $lancamentoRepo;
     private MetaRepository $metaRepo;
+    private OrcamentoRepository $orcamentoRepo;
     private HealthScoreInsightService $service;
 
     protected function setUp(): void
@@ -25,8 +28,13 @@ class HealthScoreInsightServiceTest extends TestCase
 
         $this->lancamentoRepo = Mockery::mock(LancamentoRepository::class);
         $this->metaRepo = Mockery::mock(MetaRepository::class);
+        $this->orcamentoRepo = Mockery::mock(OrcamentoRepository::class);
 
-        $this->service = new HealthScoreInsightService($this->lancamentoRepo, $this->metaRepo);
+        $this->service = new HealthScoreInsightService(
+            $this->lancamentoRepo,
+            $this->metaRepo,
+            $this->orcamentoRepo
+        );
     }
 
     public function testGenerateBuildsAllExpectedInsightsForLowFinancialHealth(): void
@@ -46,6 +54,12 @@ class HealthScoreInsightServiceTest extends TestCase
             ->once()
             ->with(12)
             ->andReturn(0);
+
+        $this->orcamentoRepo
+            ->shouldReceive('findByUserAndMonth')
+            ->once()
+            ->with(12, 3, 2026)
+            ->andReturn(new EloquentCollection());
 
         $result = $this->service->generate(12, '2026-03');
 
@@ -77,6 +91,15 @@ class HealthScoreInsightServiceTest extends TestCase
             ->with(13)
             ->andReturn(2);
 
-        $this->assertSame([], $this->service->generate(13, '2026-03'));
+        $this->orcamentoRepo
+            ->shouldReceive('findByUserAndMonth')
+            ->once()
+            ->with(13, 3, 2026)
+            ->andReturn(new EloquentCollection());
+
+        $this->assertSame(
+            ['no_budgets'],
+            array_column($this->service->generate(13, '2026-03'), 'type')
+        );
     }
 }

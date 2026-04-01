@@ -1,17 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Repositories;
 
-use Application\Models\Usuario;
 use Application\Models\Sexo;
+use Application\Models\Usuario;
+use Illuminate\Database\Capsule\Manager as Capsule;
 
 /**
- * Repository para operações com usuários.
+ * Repository for user persistence operations.
  */
 class UsuarioRepository
 {
+    private ?bool $pendingEmailColumnExists = null;
+
     /**
-     * Busca usuário por ID.
+     * Find user by id.
      */
     public function findById(int $id): ?Usuario
     {
@@ -19,23 +24,23 @@ class UsuarioRepository
     }
 
     /**
-     * Atualiza dados do usuário.
+     * Update user profile fields.
+     *
+     * @param array<string, mixed> $data
      */
     public function update(int $id, array $data): Usuario
     {
         $user = Usuario::findOrFail($id);
 
-        // Dados básicos
         $user->nome = $data['nome'];
         if (array_key_exists('email', $data)) {
             $user->email = $data['email'];
         }
         $user->data_nascimento = $data['data_nascimento'] ?: null;
 
-        // Sexo
         if (!empty($data['sexo'])) {
-            $sexoLabel = $this->mapSexoLabel($data['sexo']);
-            if ($sexoLabel) {
+            $sexoLabel = $this->mapSexoLabel((string) $data['sexo']);
+            if ($sexoLabel !== null) {
                 $sexo = Sexo::firstOrCreate(['nm_sexo' => $sexoLabel]);
                 $user->id_sexo = $sexo->id_sexo;
             }
@@ -49,91 +54,141 @@ class UsuarioRepository
     }
 
     /**
-     * Verifica se email já existe (exceto para o usuário atual).
+     * Check whether email already exists for another user.
      */
     public function emailExists(string $email, int $exceptUserId): bool
     {
         $normalized = mb_strtolower(trim($email));
 
-        return Usuario::where('id', '!=', $exceptUserId)
-            ->where(function ($query) use ($normalized) {
-                $query->whereRaw('LOWER(email) = ?', [$normalized])
+        $query = Usuario::where('id', '!=', $exceptUserId);
+
+        if ($this->hasPendingEmailColumn()) {
+            $query->where(function ($nested) use ($normalized) {
+                $nested->whereRaw('LOWER(email) = ?', [$normalized])
                     ->orWhereRaw('LOWER(pending_email) = ?', [$normalized]);
-            })
-            ->exists();
+            });
+
+            return $query->exists();
+        }
+
+        return $query->whereRaw('LOWER(email) = ?', [$normalized])->exists();
     }
 
     public function findByEmailOrPending(string $email): ?Usuario
     {
         $normalized = mb_strtolower(trim($email));
 
-        return Usuario::where(function ($query) use ($normalized) {
-            $query->whereRaw('LOWER(email) = ?', [$normalized])
-                ->orWhereRaw('LOWER(pending_email) = ?', [$normalized]);
-        })->first();
+        if ($this->hasPendingEmailColumn()) {
+            return Usuario::where(function ($query) use ($normalized) {
+                $query->whereRaw('LOWER(email) = ?', [$normalized])
+                    ->orWhereRaw('LOWER(pending_email) = ?', [$normalized]);
+            })->first();
+        }
+
+        return Usuario::whereRaw('LOWER(email) = ?', [$normalized])->first();
     }
 
-    /**
-     * Mapeia valor de sexo para o label do banco de dados.
-     */
     private function mapSexoLabel(string $value): ?string
     {
         $normalized = $this->normalizeSexoValue($value);
 
         return match ($normalized) {
             'M', 'MASCULINO' => 'Masculino',
-            'F', 'FEMININO'  => 'Feminino',
-            'O', 'OUTRO'     => 'Outro',
+            'F', 'FEMININO' => 'Feminino',
+            'O', 'OUTRO' => 'Outro',
             'NB', 'NAO BINARIO' => 'Nao-binario',
             'N', 'NAO INFORMADO', 'NAO-INFORMADO', 'PREFIRO NAO INFORMAR' => 'Nao informado',
             default => null,
         };
     }
 
-    /**
-     * Normaliza string de sexo.
-     */
     private function normalizeSexoValue(string $value): string
     {
         $base = strtr($value, [
             'Á' => 'A',
-            'É' => 'E',
-            'Í' => 'I',
-            'Ó' => 'O',
-            'Ú' => 'U',
+            'À' => 'A',
+            'Â' => 'A',
             'Ã' => 'A',
+            'Ä' => 'A',
+            'É' => 'E',
+            'È' => 'E',
+            'Ê' => 'E',
+            'Ë' => 'E',
+            'Í' => 'I',
+            'Ì' => 'I',
+            'Î' => 'I',
+            'Ï' => 'I',
+            'Ó' => 'O',
+            'Ò' => 'O',
+            'Ô' => 'O',
             'Õ' => 'O',
+            'Ö' => 'O',
+            'Ú' => 'U',
+            'Ù' => 'U',
+            'Û' => 'U',
+            'Ü' => 'U',
             'Ç' => 'C',
-            'á' => 'A',
-            'é' => 'E',
-            'í' => 'I',
-            'ó' => 'O',
-            'ú' => 'U',
-            'ã' => 'A',
-            'õ' => 'O',
-            'ç' => 'C',
+            'á' => 'a',
+            'à' => 'a',
+            'â' => 'a',
+            'ã' => 'a',
+            'ä' => 'a',
+            'é' => 'e',
+            'è' => 'e',
+            'ê' => 'e',
+            'ë' => 'e',
+            'í' => 'i',
+            'ì' => 'i',
+            'î' => 'i',
+            'ï' => 'i',
+            'ó' => 'o',
+            'ò' => 'o',
+            'ô' => 'o',
+            'õ' => 'o',
+            'ö' => 'o',
+            'ú' => 'u',
+            'ù' => 'u',
+            'û' => 'u',
+            'ü' => 'u',
+            'ç' => 'c',
         ]);
 
         $base = str_replace(['-', '_', ' '], ' ', $base);
+
         return strtoupper(trim($base));
     }
 
     /**
-     * Deleta o usuário (soft delete) e anonimiza email para liberar para novo cadastro.
+     * Soft-delete user and anonymize email.
      */
     public function delete(int $id): void
     {
         $user = Usuario::find($id);
-        if ($user) {
-            // Anonimiza email para liberar para novo cadastro (mantém histórico)
-            $anonymizedEmail = 'deleted_' . time() . '_' . substr(md5((string) $id), 0, 8) . '@excluido.local';
-            $user->email = $anonymizedEmail;
-            $user->nome = 'Usuário Removido';
-            $user->google_id = null; // Remove vinculação com Google
-            $user->save();
-
-            // Soft delete
-            $user->delete();
+        if ($user === null) {
+            return;
         }
+
+        $anonymizedEmail = 'deleted_' . time() . '_' . substr(md5((string) $id), 0, 8) . '@excluido.local';
+        $user->email = $anonymizedEmail;
+        $user->nome = 'Usuario Removido';
+        $user->google_id = null;
+        $user->save();
+
+        $user->delete();
+    }
+
+    private function hasPendingEmailColumn(): bool
+    {
+        if ($this->pendingEmailColumnExists !== null) {
+            return $this->pendingEmailColumnExists;
+        }
+
+        try {
+            $this->pendingEmailColumnExists = Capsule::schema()->hasColumn('usuarios', 'pending_email');
+        } catch (\Throwable) {
+            $this->pendingEmailColumnExists = false;
+        }
+
+        return $this->pendingEmailColumnExists;
     }
 }

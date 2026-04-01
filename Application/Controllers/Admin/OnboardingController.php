@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Admin;
 
 use Application\Controllers\WebController;
 use Application\Core\Response;
+
 class OnboardingController extends WebController
 {
     public function index(): Response

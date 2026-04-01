@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\SysAdmin;
 
 use Application\Controllers\WebController;
@@ -19,7 +21,7 @@ class SuperAdminController extends WebController
             ->limit(8)
             ->get(['id', 'nome', 'email', 'is_admin', 'created_at']);
 
-        return $this->renderResponse(
+        return $this->renderAdminResponse(
             'admin/sysadmin/index',
             [
                 'pageTitle' => 'Área Restrita do Dono',
@@ -31,9 +33,7 @@ class SuperAdminController extends WebController
                     'newToday' => $newToday,
                 ],
                 'recentUsers' => $recentUsers,
-            ],
-            'admin/partials/header',
-            'admin/partials/footer'
+            ]
         );
     }
 }

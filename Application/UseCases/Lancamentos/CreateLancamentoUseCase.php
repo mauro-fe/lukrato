@@ -29,8 +29,7 @@ class CreateLancamentoUseCase
         private readonly ContaRepository $contaRepo = new ContaRepository(),
         private readonly MetaProgressService $metaProgressService = new MetaProgressService(),
         private readonly OnboardingProgressService $onboardingProgressService = new OnboardingProgressService()
-    ) {
-    }
+    ) {}
 
     /**
      * @param array<string, mixed> $payload
@@ -96,7 +95,7 @@ class CreateLancamentoUseCase
             $this->syncOnboardingLancamentoCreated($userId, $lancamento->created_at);
             $usage = $this->limitService->usage($userId, substr((string) ($payload['data'] ?? ''), 0, 7));
 
-            return ServiceResultDTO::ok('Lancamento criado', [
+            return ServiceResultDTO::ok('Lançamento criado', [
                 'ok' => true,
                 'id' => (int) $lancamento->id,
                 'usage' => $usage,

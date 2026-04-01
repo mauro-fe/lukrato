@@ -28,20 +28,17 @@ class SubcategoriaController extends ApiController
      */
     public function index(mixed $categoriaId = null): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
 
         $categoriaId = $this->resolveId($categoriaId);
         if ($categoriaId === null) {
-            return Response::validationErrorResponse(['categoria_id' => 'ID da categoria inválido.']);
+            return $this->invalidIdResponse('categoria_id', 'ID da categoria inválido.');
         }
 
-        try {
-            $result = $this->service->listByCategoria($categoriaId, $userId);
-
-            return Response::successResponse($result);
-        } catch (\DomainException $e) {
-            return $this->notFoundFromThrowable($e, 'Categoria não encontrada.');
-        }
+        return $this->successOrNotFound(
+            fn (): mixed => $this->service->listByCategoria($categoriaId, $userId),
+            'Categoria não encontrada.'
+        );
     }
 
     /**
@@ -50,7 +47,7 @@ class SubcategoriaController extends ApiController
      */
     public function grouped(): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
         $result = $this->service->listAllGrouped($userId);
 
         return Response::successResponse($result);
@@ -62,12 +59,12 @@ class SubcategoriaController extends ApiController
      */
     public function store(mixed $categoriaId = null): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
         $payload = $this->getRequestPayload();
 
         $categoriaId = $this->resolveId($categoriaId);
         if ($categoriaId === null) {
-            return Response::validationErrorResponse(['categoria_id' => 'ID da categoria inválido.']);
+            return $this->invalidIdResponse('categoria_id', 'ID da categoria inválido.');
         }
 
         $errors = SubcategoriaValidator::validateCreate($payload);
@@ -79,13 +76,13 @@ class SubcategoriaController extends ApiController
             $dto = CreateSubcategoriaDTO::fromRequest($userId, $categoriaId, $payload);
             $subcategoria = $this->service->create($dto);
 
-            UserCategoryLoader::invalidate($userId);
+            $this->invalidateUserCategories($userId);
 
             return Response::successResponse([
                 'subcategoria' => $subcategoria->fresh(),
             ], 'Subcategoria criada com sucesso', 201);
         } catch (\DomainException $e) {
-            $code = str_contains($e->getMessage(), 'Limite') ? 403 : 409;
+            $code = $this->domainStatusFromMessage($e, 409, ['limite' => 403]);
 
             return $this->domainErrorResponse($e, 'Não foi possivel criar a subcategoria.', $code);
         }
@@ -97,12 +94,12 @@ class SubcategoriaController extends ApiController
      */
     public function update(mixed $id = null): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
         $payload = $this->getRequestPayload();
 
         $id = $this->resolveId($id, $payload);
         if ($id === null) {
-            return Response::validationErrorResponse(['id' => 'ID inválido.']);
+            return $this->invalidIdResponse('id', 'ID inválido.');
         }
 
         $errors = SubcategoriaValidator::validateUpdate($payload);
@@ -114,15 +111,18 @@ class SubcategoriaController extends ApiController
             $dto = UpdateSubcategoriaDTO::fromRequest($payload);
             $subcategoria = $this->service->update($id, $dto, $userId);
 
-            UserCategoryLoader::invalidate($userId);
+            $this->invalidateUserCategories($userId);
 
             return Response::successResponse($subcategoria);
         } catch (\DomainException $e) {
-            $code = str_contains($e->getMessage(), 'não encontrada') ? 404 : 409;
+            $code = $this->domainStatusFromMessage($e, 409, [
+                'não encontrada' => 404,
+                'nao encontrada' => 404,
+            ]);
 
             return $this->domainErrorResponse(
                 $e,
-                $code === 404 ? 'Subcategoria não encontrada.' : 'ão foi possível atualizar a subcategoria.',
+                $code === 404 ? 'Subcategoria não encontrada.' : 'Não foi possível atualizar a subcategoria.',
                 $code,
                 [],
                 $code === 404 ? 'RESOURCE_NOT_FOUND' : null
@@ -136,23 +136,20 @@ class SubcategoriaController extends ApiController
      */
     public function delete(mixed $id = null): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
         $payload = $this->getRequestPayload();
 
         $id = $this->resolveId($id, $payload);
         if ($id === null) {
-            return Response::validationErrorResponse(['id' => 'ID inválido.']);
+            return $this->invalidIdResponse('id', 'ID inválido.');
         }
 
-        try {
+        return $this->successOrNotFound(function () use ($id, $userId): mixed {
             $this->service->delete($id, $userId);
+            $this->invalidateUserCategories($userId);
 
-            UserCategoryLoader::invalidate($userId);
-
-            return Response::successResponse(['deleted' => true], 'Subcategoria excluída com sucesso');
-        } catch (\DomainException $e) {
-            return $this->notFoundFromThrowable($e, 'Subcategoria não encontrada.');
-        }
+            return ['deleted' => true];
+        }, 'Subcategoria não encontrada.', 'Subcategoria excluída com sucesso');
     }
 
     /**
@@ -163,5 +160,51 @@ class SubcategoriaController extends ApiController
         $id = is_numeric($routeParam) ? (int) $routeParam : (int) ($payload['id'] ?? 0);
 
         return $id > 0 ? $id : null;
+    }
+
+    private function userId(): int
+    {
+        return $this->requireApiUserIdOrFail();
+    }
+
+    private function invalidIdResponse(string $field, string $message): Response
+    {
+        return Response::validationErrorResponse([$field => $message]);
+    }
+
+    private function invalidateUserCategories(int $userId): void
+    {
+        UserCategoryLoader::invalidate($userId);
+    }
+
+    /**
+     * @param callable():mixed $resolver
+     */
+    private function successOrNotFound(
+        callable $resolver,
+        string $fallbackMessage,
+        string $successMessage = 'Success'
+    ): Response {
+        try {
+            return Response::successResponse($resolver(), $successMessage);
+        } catch (\DomainException $e) {
+            return $this->notFoundFromThrowable($e, $fallbackMessage);
+        }
+    }
+
+    /**
+     * @param array<string, int> $needleToStatus
+     */
+    private function domainStatusFromMessage(\DomainException $e, int $defaultStatus, array $needleToStatus): int
+    {
+        $message = strtolower($e->getMessage());
+
+        foreach ($needleToStatus as $needle => $status) {
+            if (str_contains($message, strtolower($needle))) {
+                return $status;
+            }
+        }
+
+        return $defaultStatus;
     }
 }

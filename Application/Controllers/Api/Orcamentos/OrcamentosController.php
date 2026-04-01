@@ -6,8 +6,9 @@ namespace Application\Controllers\Api\Orcamentos;
 
 use Application\Controllers\ApiController;
 use Application\Core\Response;
+use Application\DTO\ServiceResultDTO;
 use Application\Services\Demo\DemoPreviewService;
-use Application\Services\Financeiro\OrcamentoService;
+use Application\Services\Orcamentos\OrcamentoService;
 use Application\UseCases\Orcamentos\ApplyOrcamentoSugestoesUseCase;
 use Application\UseCases\Orcamentos\BulkSaveOrcamentosUseCase;
 use Application\UseCases\Orcamentos\CopyOrcamentosMesUseCase;
@@ -56,129 +57,84 @@ class OrcamentosController extends ApiController
 
     public function index(): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        return $this->respondUseCase(
+            function (int $userId): ServiceResultDTO {
+                $mes = $this->getIntQuery('mes', (int) date('m'));
+                $ano = $this->getIntQuery('ano', (int) date('Y'));
 
-        try {
-            $mes = $this->getIntQuery('mes', (int) date('m'));
-            $ano = $this->getIntQuery('ano', (int) date('Y'));
-            $result = $this->getOrcamentosListUseCase->execute($userId, $mes, $ano);
-
-            return $this->respondServiceResult(
-                $result,
-                successData: $result->data,
-                successMessage: $result->message,
-                successStatus: $result->httpCode
-            );
-        } catch (\Throwable $e) {
-            return $this->failAndLogResponse($e, 'Erro ao carregar orçamentos.');
-        }
+                return $this->getOrcamentosListUseCase->execute($userId, $mes, $ano);
+            },
+            'Erro ao carregar orçamentos.'
+        );
     }
 
     public function store(): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
-
-        try {
-            $result = $this->saveOrcamentoUseCase->execute($userId, $this->getRequestPayload());
-
-            return $this->respondServiceResult(
-                $result,
-                successData: $result->data,
-                successMessage: $result->message,
-                successStatus: $result->httpCode
-            );
-        } catch (\Throwable $e) {
-            return $this->failAndLogResponse($e, 'Erro ao salvar orçamento.');
-        }
+        return $this->respondUseCase(
+            fn(int $userId): ServiceResultDTO => $this->saveOrcamentoUseCase->execute($userId, $this->getRequestPayload()),
+            'Erro ao salvar orçamento.'
+        );
     }
 
     public function bulk(): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
-
-        try {
-            $result = $this->bulkSaveOrcamentosUseCase->execute($userId, $this->getRequestPayload());
-
-            return $this->respondServiceResult(
-                $result,
-                successData: $result->data,
-                successMessage: $result->message,
-                successStatus: $result->httpCode
-            );
-        } catch (\Throwable $e) {
-            return $this->failAndLogResponse($e, 'Erro ao salvar orçamentos.');
-        }
+        return $this->respondUseCase(
+            fn(int $userId): ServiceResultDTO => $this->bulkSaveOrcamentosUseCase->execute($userId, $this->getRequestPayload()),
+            'Erro ao salvar orçamentos.'
+        );
     }
 
     public function destroy(mixed $id = null): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
-
-        try {
-            $result = $this->deleteOrcamentoUseCase->execute($userId, (int) $id);
-
-            return $this->respondServiceResult(
-                $result,
-                successData: null,
-                successMessage: $result->message,
-                successStatus: $result->httpCode
-            );
-        } catch (\Throwable $e) {
-            return $this->failAndLogResponse($e, 'Erro ao remover orçamento.');
-        }
+        return $this->respondUseCase(
+            fn(int $userId): ServiceResultDTO => $this->deleteOrcamentoUseCase->execute($userId, (int) $id),
+            'Erro ao remover orçamento.',
+            useResultData: false
+        );
     }
 
     public function sugestoes(): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
-
-        try {
-            $result = $this->getOrcamentoSugestoesUseCase->execute($userId);
-
-            return $this->respondServiceResult(
-                $result,
-                successData: $result->data,
-                successMessage: $result->message,
-                successStatus: $result->httpCode
-            );
-        } catch (\Throwable $e) {
-            return $this->failAndLogResponse($e, 'Erro ao gerar sugestões.');
-        }
+        return $this->respondUseCase(
+            fn(int $userId): ServiceResultDTO => $this->getOrcamentoSugestoesUseCase->execute($userId),
+            'Erro ao gerar sugestões.'
+        );
     }
 
     public function aplicarSugestoes(): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
-
-        try {
-            $result = $this->applyOrcamentoSugestoesUseCase->execute($userId, $this->getRequestPayload());
-
-            return $this->respondServiceResult(
-                $result,
-                successData: $result->data,
-                successMessage: $result->message,
-                successStatus: $result->httpCode
-            );
-        } catch (\Throwable $e) {
-            return $this->failAndLogResponse($e, 'Erro ao aplicar sugestões.');
-        }
+        return $this->respondUseCase(
+            fn(int $userId): ServiceResultDTO => $this->applyOrcamentoSugestoesUseCase->execute($userId, $this->getRequestPayload()),
+            'Erro ao aplicar sugestões.'
+        );
     }
 
     public function copiarMes(): Response
     {
+        return $this->respondUseCase(
+            fn(int $userId): ServiceResultDTO => $this->copyOrcamentosMesUseCase->execute($userId, $this->getRequestPayload()),
+            'Erro ao copiar orçamentos.'
+        );
+    }
+
+    /**
+     * @param callable(int): ServiceResultDTO $callback
+     */
+    private function respondUseCase(callable $callback, string $errorMessage, bool $useResultData = true): Response
+    {
         $userId = $this->requireApiUserIdOrFail();
 
         try {
-            $result = $this->copyOrcamentosMesUseCase->execute($userId, $this->getRequestPayload());
+            $result = $callback($userId);
 
             return $this->respondServiceResult(
                 $result,
-                successData: $result->data,
+                successData: $useResultData ? $result->data : null,
                 successMessage: $result->message,
                 successStatus: $result->httpCode
             );
         } catch (\Throwable $e) {
-            return $this->failAndLogResponse($e, 'Erro ao copiar orçamentos.');
+            return $this->failAndLogResponse($e, $errorMessage);
         }
     }
 }

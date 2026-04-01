@@ -41,14 +41,7 @@ class WhatsAppWebhookController extends ApiController
             return $this->plainTextResponse($challenge);
         }
 
-        LogService::persist(
-            LogLevel::WARNING,
-            LogCategory::WEBHOOK,
-            'WhatsApp webhook verify falhou',
-            ['mode' => $mode, 'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'],
-        );
-
-        return $this->plainTextResponse('Forbidden', 403);
+        return $this->forbiddenWebhook('WhatsApp webhook verify falhou', ['mode' => $mode]);
     }
 
     public function receive(): Response
@@ -56,14 +49,7 @@ class WhatsAppWebhookController extends ApiController
         $rawBody = $this->readRawBody();
 
         if (!$this->isValidWebhookSignature($rawBody)) {
-            LogService::persist(
-                LogLevel::WARNING,
-                LogCategory::WEBHOOK,
-                'WhatsApp webhook signature invalida',
-                ['ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'],
-            );
-
-            return $this->plainTextResponse('Forbidden', 403);
+            return $this->forbiddenWebhook('WhatsApp webhook signature invalida');
         }
 
         $this->workflowService()->handleWebhookBody($rawBody);
@@ -102,5 +88,27 @@ class WhatsAppWebhookController extends ApiController
     {
         return Response::htmlResponse($content, $statusCode)
             ->header('Content-Type', 'text/plain; charset=UTF-8');
+    }
+
+    /**
+     * @param array<string, mixed> $context
+     */
+    private function forbiddenWebhook(string $message, array $context = []): Response
+    {
+        $context['ip'] = $context['ip'] ?? $this->requestIp();
+
+        LogService::persist(
+            LogLevel::WARNING,
+            LogCategory::WEBHOOK,
+            $message,
+            $context,
+        );
+
+        return $this->plainTextResponse('Forbidden', 403);
+    }
+
+    private function requestIp(): string
+    {
+        return (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
     }
 }

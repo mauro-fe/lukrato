@@ -30,18 +30,11 @@ class TelegramWebhookController extends ApiController
 
     public function receive(): Response
     {
-        $secretHeader = $_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] ?? '';
         $expectedSecret = TelegramService::getWebhookSecret();
+        $secretHeader = $this->requestSecretHeader();
 
         if ($expectedSecret !== '' && $secretHeader !== $expectedSecret) {
-            LogService::persist(
-                LogLevel::WARNING,
-                LogCategory::WEBHOOK,
-                'Telegram webhook secret invalido',
-                ['ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'],
-            );
-
-            return $this->plainTextResponse('Forbidden', 403);
+            return $this->forbiddenWebhook('Telegram webhook secret invalido');
         }
 
         $this->workflowService()->handleWebhookBody($this->readRawBody());
@@ -64,5 +57,27 @@ class TelegramWebhookController extends ApiController
     {
         return Response::htmlResponse($content, $statusCode)
             ->header('Content-Type', 'text/plain; charset=UTF-8');
+    }
+
+    private function requestSecretHeader(): string
+    {
+        return (string) ($_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] ?? '');
+    }
+
+    private function requestIp(): string
+    {
+        return (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+    }
+
+    private function forbiddenWebhook(string $message): Response
+    {
+        LogService::persist(
+            LogLevel::WARNING,
+            LogCategory::WEBHOOK,
+            $message,
+            ['ip' => $this->requestIp()],
+        );
+
+        return $this->plainTextResponse('Forbidden', 403);
     }
 }

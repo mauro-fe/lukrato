@@ -16,16 +16,14 @@ class ConfigController extends WebController
     {
         $this->requireUserId();
 
-        return $this->renderResponse(
+        return $this->renderAdminResponse(
             'admin/perfil/index',
             [
                 'menu' => 'configuracoes',
                 'perfilViewMode' => 'configuracoes',
                 'pageTitle' => 'Configurações',
                 'subTitle' => 'Ajuste segurança, integrações e preferências da conta',
-            ],
-            'admin/partials/header',
-            'admin/partials/footer'
+            ]
         );
     }
 }

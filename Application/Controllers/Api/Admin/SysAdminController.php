@@ -28,86 +28,69 @@ class SysAdminController extends ApiController
 
     public function toggleMaintenance(): Response
     {
-        $this->requireApiAdminUserOrFail();
+        $this->adminUser();
 
-        try {
-            $result = $this->opsService->toggleMaintenance($this->getRequestPayload());
-
-            return Response::successResponse($result['data'], $result['message']);
-        } catch (Throwable $e) {
-            return $this->internalErrorResponse($e, 'Erro ao processar modo de manutenção.');
-        }
+        return $this->resultActionOrInternal(
+            fn (): array => $this->opsService->toggleMaintenance($this->getRequestPayload()),
+            'Erro ao processar modo de manutenção.'
+        );
     }
 
     public function maintenanceStatus(): Response
     {
-        $this->requireApiAdminUserAndReleaseSessionOrFail();
+        $this->adminUser(releaseSession: true);
 
         return Response::successResponse($this->opsService->getMaintenanceStatus());
     }
 
     public function grantAccess(): Response
     {
-        $admin = $this->requireApiAdminUserOrFail('Acesso negado. Apenas administradores podem executar esta acão.');
+        $admin = $this->adminUser(message: 'Acesso negado. Apenas administradores podem executar esta acão.');
 
-        try {
-            $result = $this->userService->grantAccess(
-                (int) $admin->id,
-                (string) $admin->nome,
+        return $this->runAdminUserAction(
+            $admin,
+            fn (): array => $this->userService->grantAccess(
+                $this->adminId($admin),
+                $this->adminName($admin),
                 $this->getRequestPayload()
-            );
-
-            return Response::successResponse($result['data'], $result['message']);
-        } catch (ClientErrorException $e) {
-            return $this->domainErrorResponse($e, 'Não foi possivel liberar o acesso.', $e->statusCode);
-        } catch (Throwable $e) {
-            $this->logSysAdminError('Erro ao liberar acesso.', $e, ['admin_user_id' => $admin->id]);
-
-            return $this->internalErrorResponse($e, 'Erro ao processar solicitação.', 500, [
-                'admin_user_id' => $admin->id,
-            ]);
-        }
+            ),
+            'Não foi possivel liberar o acesso.',
+            'Erro ao processar solicitação.',
+            'Erro ao liberar acesso.'
+        );
     }
 
     public function revokeAccess(): Response
     {
-        $admin = $this->requireApiAdminUserOrFail('Acesso negado. Apenas administradores podem executar esta ação.');
+        $admin = $this->adminUser(message: 'Acesso negado. Apenas administradores podem executar esta ação.');
 
-        try {
-            $result = $this->userService->revokeAccess(
-                (int) $admin->id,
-                (string) $admin->nome,
+        return $this->runAdminUserAction(
+            $admin,
+            fn (): array => $this->userService->revokeAccess(
+                $this->adminId($admin),
+                $this->adminName($admin),
                 $this->getRequestPayload()
-            );
-
-            return Response::successResponse($result['data'], $result['message']);
-        } catch (ClientErrorException $e) {
-            return $this->domainErrorResponse($e, 'Não foi possivel remover o acesso.', $e->statusCode);
-        } catch (Throwable $e) {
-            $this->logSysAdminError('Erro ao remover acesso.', $e, ['admin_user_id' => $admin->id]);
-
-            return $this->internalErrorResponse($e, 'Erro ao processar solicitação.', 500, [
-                'admin_user_id' => $admin->id,
-            ]);
-        }
+            ),
+            'Não foi possivel remover o acesso.',
+            'Erro ao processar solicitação.',
+            'Erro ao remover acesso.'
+        );
     }
 
     public function listUsers(): Response
     {
-        $this->requireApiAdminUserAndReleaseSessionOrFail();
+        $this->adminUser(releaseSession: true);
 
-        try {
-            return Response::successResponse($this->userService->listUsers($this->collectQueryParams()));
-        } catch (Throwable $e) {
-            $this->logSysAdminError('Erro ao listar usuarios.', $e);
-
-            return $this->internalErrorResponse($e, 'Erro ao buscar usuarios.');
-        }
+        return $this->dataActionOrInternal(
+            fn (): mixed => $this->userService->listUsers($this->collectQueryParams()),
+            'Erro ao buscar usuarios.',
+            'Erro ao listar usuarios.'
+        );
     }
 
     public function getUser(int $id): Response
     {
-        $this->requireApiAdminUserAndReleaseSessionOrFail();
+        $this->adminUser(releaseSession: true);
 
         try {
             return Response::successResponse($this->userService->getUser($id));
@@ -120,80 +103,51 @@ class SysAdminController extends ApiController
                 $e->statusCode === 404 ? 'RESOURCE_NOT_FOUND' : null
             );
         } catch (Throwable $e) {
-            $this->logSysAdminError('Erro ao buscar usuario.', $e, ['target_user_id' => $id]);
+            $context = ['target_user_id' => $id];
+            $this->logSysAdminError('Erro ao buscar usuario.', $e, $context);
 
-            return $this->internalErrorResponse($e, 'Erro ao buscar usuario.', 500, [
-                'target_user_id' => $id,
-            ]);
+            return $this->internalErrorResponse($e, 'Erro ao buscar usuario.', 500, $context);
         }
     }
 
     public function updateUser(int $id): Response
     {
-        $admin = $this->requireApiAdminUserOrFail();
+        $admin = $this->adminUser();
 
-        try {
-            $result = $this->userService->updateUser(
-                (int) $admin->id,
-                (string) $admin->nome,
+        return $this->runAdminUserAction(
+            $admin,
+            fn (): array => $this->userService->updateUser(
+                $this->adminId($admin),
+                $this->adminName($admin),
                 $id,
                 $this->getRequestPayload()
-            );
-
-            return Response::successResponse($result['data'], $result['message']);
-        } catch (ClientErrorException $e) {
-            return $this->domainErrorResponse(
-                $e,
-                'Não foi possivel atualizar o usuario.',
-                $e->statusCode,
-                [],
-                $e->statusCode === 404 ? 'RESOURCE_NOT_FOUND' : null
-            );
-        } catch (Throwable $e) {
-            $this->logSysAdminError('Erro ao atualizar usuario.', $e, [
-                'admin_user_id' => $admin->id,
-                'target_user_id' => $id,
-            ]);
-
-            return $this->internalErrorResponse($e, 'Erro ao atualizar usuario.', 500, [
-                'admin_user_id' => $admin->id,
-                'target_user_id' => $id,
-            ]);
-        }
+            ),
+            'Não foi possivel atualizar o usuario.',
+            'Erro ao atualizar usuario.',
+            'Erro ao atualizar usuario.',
+            ['target_user_id' => $id],
+            true
+        );
     }
 
     public function deleteUser(int $id): Response
     {
-        $admin = $this->requireApiAdminUserOrFail();
+        $admin = $this->adminUser();
 
-        try {
-            $result = $this->userService->deleteUser((int) $admin->id, (string) $admin->nome, $id);
-
-            return Response::successResponse($result['data'], $result['message']);
-        } catch (ClientErrorException $e) {
-            return $this->domainErrorResponse(
-                $e,
-                'Não foi possivel excluir o usuario.',
-                $e->statusCode,
-                [],
-                $e->statusCode === 404 ? 'RESOURCE_NOT_FOUND' : null
-            );
-        } catch (Throwable $e) {
-            $this->logSysAdminError('Erro ao excluir usuario.', $e, [
-                'admin_user_id' => $admin->id,
-                'target_user_id' => $id,
-            ]);
-
-            return $this->internalErrorResponse($e, 'Erro ao excluir usuario.', 500, [
-                'admin_user_id' => $admin->id,
-                'target_user_id' => $id,
-            ]);
-        }
+        return $this->runAdminUserAction(
+            $admin,
+            fn (): array => $this->userService->deleteUser($this->adminId($admin), $this->adminName($admin), $id),
+            'Não foi possivel excluir o usuario.',
+            'Erro ao excluir usuario.',
+            'Erro ao excluir usuario.',
+            ['target_user_id' => $id],
+            true
+        );
     }
 
     public function getStats(): Response
     {
-        $this->requireApiAdminUserAndReleaseSessionOrFail();
+        $this->adminUser(releaseSession: true);
 
         try {
             return Response::successResponse($this->userService->getStats());
@@ -208,31 +162,30 @@ class SysAdminController extends ApiController
 
     public function errorLogs(): Response
     {
-        $this->requireApiAdminUserAndReleaseSessionOrFail();
+        $this->adminUser(releaseSession: true);
 
-        try {
-            return Response::successResponse($this->opsService->getErrorLogs($this->collectQueryParams()));
-        } catch (Throwable $e) {
-            return $this->internalErrorResponse($e, 'Erro ao buscar logs.');
-        }
+        return $this->dataActionOrInternal(
+            fn (): mixed => $this->opsService->getErrorLogs($this->collectQueryParams()),
+            'Erro ao buscar logs.'
+        );
     }
 
     public function errorLogsSummary(): Response
     {
-        $this->requireApiAdminUserAndReleaseSessionOrFail();
+        $this->adminUser(releaseSession: true);
 
-        try {
-            return Response::successResponse($this->opsService->getErrorLogsSummary($this->collectQueryParams()));
-        } catch (Throwable $e) {
-            return $this->internalErrorResponse($e, 'Erro ao buscar resumo.');
-        }
+        return $this->dataActionOrInternal(
+            fn (): mixed => $this->opsService->getErrorLogsSummary($this->collectQueryParams()),
+            'Erro ao buscar resumo.'
+        );
     }
 
     public function resolveErrorLog(int $id): Response
     {
+        $admin = $this->adminUser();
+
         try {
-            $userId = $this->requireApiAdminUserOrFail()->id;
-            $resolved = $this->opsService->resolveErrorLog($id, (int) $userId);
+            $resolved = $this->opsService->resolveErrorLog($id, $this->adminId($admin));
 
             if ($resolved) {
                 return Response::successResponse(null, 'Log marcado como resolvido');
@@ -246,7 +199,7 @@ class SysAdminController extends ApiController
 
     public function cleanupErrorLogs(): Response
     {
-        $this->requireApiAdminUserOrFail();
+        $this->adminUser();
 
         $payload = $this->getRequestPayload();
         $days = isset($payload['days']) ? (int) $payload['days'] : $this->getIntQuery('days', 30);
@@ -271,6 +224,116 @@ class SysAdminController extends ApiController
         }
     }
 
+    public function clearCache(): Response
+    {
+        $this->adminUser();
+
+        return $this->resultActionOrInternal(
+            fn (): array => $this->opsService->clearCache(),
+            'Erro ao limpar cache.',
+            fn (array $result): mixed => ['details' => $result['details'] ?? []]
+        );
+    }
+
+    private function adminUser(bool $releaseSession = false, string $message = 'Acesso negado'): Usuario
+    {
+        if ($releaseSession) {
+            return $this->requireApiAdminUserAndReleaseSessionOrFail($message);
+        }
+
+        return $this->requireApiAdminUserOrFail($message);
+    }
+
+    private function adminId(Usuario $admin): int
+    {
+        return (int) $admin->id;
+    }
+
+    private function adminName(Usuario $admin): string
+    {
+        return (string) $admin->nome;
+    }
+
+    /**
+     * @param callable():array<string, mixed> $resolver
+     * @param callable(array<string, mixed>):mixed|null $dataResolver
+     */
+    private function resultActionOrInternal(
+        callable $resolver,
+        string $internalFallback,
+        ?callable $dataResolver = null
+    ): Response {
+        try {
+            $result = $resolver();
+            $data = $dataResolver !== null ? $dataResolver($result) : ($result['data'] ?? null);
+            $message = (string) ($result['message'] ?? 'Success');
+
+            return Response::successResponse($data, $message);
+        } catch (Throwable $e) {
+            return $this->internalErrorResponse($e, $internalFallback);
+        }
+    }
+
+    /**
+     * @param callable():mixed $resolver
+     * @param array<string, mixed> $context
+     */
+    private function dataActionOrInternal(
+        callable $resolver,
+        string $internalFallback,
+        ?string $logMessage = null,
+        array $context = []
+    ): Response {
+        try {
+            return Response::successResponse($resolver());
+        } catch (Throwable $e) {
+            if ($logMessage !== null) {
+                $this->logSysAdminError($logMessage, $e, $context);
+            }
+
+            return $this->internalErrorResponse($e, $internalFallback);
+        }
+    }
+
+    /**
+     * @param callable():array<string, mixed> $resolver
+     * @param array<string, mixed> $context
+     */
+    private function runAdminUserAction(
+        Usuario $admin,
+        callable $resolver,
+        string $domainFallback,
+        string $internalFallback,
+        ?string $logMessage = null,
+        array $context = [],
+        bool $markNotFoundAsResourceNotFound = false
+    ): Response {
+        try {
+            $result = $resolver();
+
+            return Response::successResponse(
+                $result['data'] ?? null,
+                (string) ($result['message'] ?? 'Success')
+            );
+        } catch (ClientErrorException $e) {
+            return $this->domainErrorResponse(
+                $e,
+                $domainFallback,
+                $e->statusCode,
+                [],
+                $markNotFoundAsResourceNotFound && $e->statusCode === 404 ? 'RESOURCE_NOT_FOUND' : null
+            );
+        } catch (Throwable $e) {
+            $internalContext = array_merge(['admin_user_id' => $this->adminId($admin)], $context);
+
+            if ($logMessage !== null) {
+                $this->logSysAdminError($logMessage, $e, $internalContext);
+            }
+
+            return $this->internalErrorResponse($e, $internalFallback, 500, $internalContext);
+        }
+    }
+
     private function toBool(mixed $value, bool $default = false): bool
     {
         if ($value === null || $value === '') {
@@ -278,21 +341,6 @@ class SysAdminController extends ApiController
         }
 
         return in_array($value, [true, 1, '1', 'true', 'yes', 'on'], true);
-    }
-
-    public function clearCache(): Response
-    {
-        $this->requireApiAdminUserOrFail();
-
-        try {
-            $result = $this->opsService->clearCache();
-
-            return Response::successResponse([
-                'details' => $result['details'],
-            ], $result['message']);
-        } catch (Throwable $e) {
-            return $this->internalErrorResponse($e, 'Erro ao limpar cache.');
-        }
     }
 
     /**

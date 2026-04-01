@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Admin;
 
 use Application\Controllers\WebController;
@@ -11,14 +13,12 @@ class CartoesController extends WebController
     {
         $this->requireUserId();
 
-        return $this->renderResponse(
+        return $this->renderAdminResponse(
             'admin/cartoes/index',
             [
                 'pageTitle' => 'Cartões de Crédito',
                 'subTitle' => 'Gerencie seus cartões e controle seus gastos',
-            ],
-            'admin/partials/header',
-            'admin/partials/footer'
+            ]
         );
     }
 
@@ -26,14 +26,12 @@ class CartoesController extends WebController
     {
         $this->requireUserId();
 
-        return $this->renderResponse(
+        return $this->renderAdminResponse(
             'admin/cartoes/arquivadas',
             [
                 'pageTitle' => 'Cartões Arquivados',
                 'subTitle' => 'Gerencie seus cartões arquivados',
-            ],
-            'admin/partials/header',
-            'admin/partials/footer'
+            ]
         );
     }
 }

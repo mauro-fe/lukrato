@@ -36,7 +36,7 @@ trait HandlesApiResponses
 
     protected function failResponse(string $message, int $status = 400, mixed $extra = null, ?string $code = null): Response
     {
-        return Response::errorResponse($message, $status, $extra, $code);
+        return $this->fail($message, $status, $extra, $code);
     }
 
     protected function getJson(?string $key = null, mixed $default = null): mixed
@@ -100,12 +100,7 @@ trait HandlesApiResponses
         array $extra = [],
         ?string $code = null
     ): Response {
-        $meta = $this->reportExceptionWithReferenceForApiConcern($e, $userMessage, $extra);
-
-        return Response::errorResponse($userMessage, $status, [
-            'error_id' => $meta['error_id'],
-            'request_id' => $meta['request_id'],
-        ], $code);
+        return $this->failAndLog($e, $userMessage, $status, $extra, $code);
     }
 
     protected function internalErrorResponse(

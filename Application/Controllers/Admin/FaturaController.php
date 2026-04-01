@@ -13,11 +13,12 @@ class FaturaController extends WebController
     {
         $this->requireUserId();
 
-        return $this->renderResponse(
+        return $this->renderAdminResponse(
             'admin/faturas/index',
-            ['pageTitle' => 'Faturas de Cartão', 'subTitle' => 'Gerencie suas Faturas'],
-            'admin/partials/header',
-            'admin/partials/footer'
+            [
+                'pageTitle' => 'Faturas de Cartão',
+                'subTitle' => 'Gerencie suas Faturas',
+            ]
         );
     }
 }

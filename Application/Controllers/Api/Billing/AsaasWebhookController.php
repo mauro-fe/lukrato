@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Api\Billing;
 
 use Application\Controllers\ApiController;
@@ -18,10 +20,10 @@ class AsaasWebhookController extends ApiController
 {
     private AsaasService $asaas;
 
-    public function __construct()
+    public function __construct(?AsaasService $asaas = null)
     {
         parent::__construct();
-        $this->asaas = new AsaasService();
+        $this->asaas = $asaas ?? new AsaasService();
     }
 
     /**
@@ -41,8 +43,8 @@ class AsaasWebhookController extends ApiController
 
     public function receive(): Response
     {
-        $headers = function_exists('getallheaders') ? getallheaders() : [];
-        $rawBody = file_get_contents('php://input');
+        $headers = $this->readRequestHeaders();
+        $rawBody = $this->readRawBody();
 
         // 🔐 Validação de segurança (NUNCA retornar erro externo)
         if (!$this->asaas->validateWebhookRequest($headers, $rawBody)) {
@@ -52,7 +54,7 @@ class AsaasWebhookController extends ApiController
                 'Webhook Asaas rejeitado por validação',
                 [
                     'headers' => array_keys($headers),
-                    'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                    'ip' => $this->requestIp(),
                 ],
             );
 
@@ -354,6 +356,32 @@ class AsaasWebhookController extends ApiController
             'CANCELED' => AssinaturaUsuario::ST_CANCELED,
             default => null,
         };
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function readRequestHeaders(): array
+    {
+        if (!function_exists('getallheaders')) {
+            return [];
+        }
+
+        $headers = getallheaders();
+
+        return is_array($headers) ? $headers : [];
+    }
+
+    protected function readRawBody(): string
+    {
+        $rawBody = file_get_contents('php://input');
+
+        return is_string($rawBody) ? $rawBody : '';
+    }
+
+    private function requestIp(): string
+    {
+        return (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
     }
 
     private function plainTextResponse(string $content, int $statusCode = 200): Response

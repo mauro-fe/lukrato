@@ -58,7 +58,7 @@ class CartoesController extends ApiController
 
     public function show(int $id): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
         $cartao = $this->workflowService->showCard($id, $userId);
 
         if (!$cartao) {
@@ -70,7 +70,7 @@ class CartoesController extends ApiController
 
     public function store(): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
         $result = $this->workflowService->createCard($userId, $this->getRequestPayload());
 
         return $this->respondApiWorkflowResult(
@@ -82,7 +82,7 @@ class CartoesController extends ApiController
 
     public function update(int $id): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
         $result = $this->workflowService->updateCard($id, $userId, $this->getRequestPayload());
 
         return $this->respondApiWorkflowResult(
@@ -93,47 +93,40 @@ class CartoesController extends ApiController
 
     public function deactivate(int $id): Response
     {
-        return $this->handleCardActionResult($this->workflowService->deactivateCard($id, $this->requireApiUserIdOrFail()));
+        return $this->handleCardActionResult($this->workflowService->deactivateCard($id, $this->userId()));
     }
 
     public function reactivate(int $id): Response
     {
-        return $this->handleCardActionResult($this->workflowService->reactivateCard($id, $this->requireApiUserIdOrFail()));
+        return $this->handleCardActionResult($this->workflowService->reactivateCard($id, $this->userId()));
     }
 
     public function archive(int $id): Response
     {
-        return $this->handleCardActionResult($this->workflowService->archiveCard($id, $this->requireApiUserIdOrFail()));
+        return $this->handleCardActionResult($this->workflowService->archiveCard($id, $this->userId()));
     }
 
     public function restore(int $id): Response
     {
-        return $this->handleCardActionResult($this->workflowService->restoreCard($id, $this->requireApiUserIdOrFail()));
+        return $this->handleCardActionResult($this->workflowService->restoreCard($id, $this->userId()));
     }
 
     public function delete(int $id): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
         $result = $this->workflowService->deleteCard($id, $userId, $this->getRequestPayload());
 
-        $workflowResult = [
-            'success' => (bool) ($result['success'] ?? false),
-            'data' => $result,
-        ];
+        $requiresConfirmation = (bool) ($result['requires_confirmation'] ?? false);
 
-        if (!$workflowResult['success']) {
-            $requiresConfirmation = (bool) ($result['requires_confirmation'] ?? false);
-            $workflowResult['status'] = $requiresConfirmation ? 422 : 404;
-            $workflowResult['message'] = (string) ($result['message'] ?? 'Erro ao excluir cartao');
-            $workflowResult['errors'] = [
+        return $this->respondWorkflowResult(
+            $result,
+            $requiresConfirmation ? 422 : 404,
+            'Erro ao excluir cartao',
+            [
                 'status' => $requiresConfirmation ? 'confirm_delete' : 'error',
                 'requires_confirmation' => $requiresConfirmation,
                 'total_lancamentos' => (int) ($result['total_lancamentos'] ?? 0),
-            ];
-        }
-
-        return $this->respondApiWorkflowResult(
-            $workflowResult,
+            ],
             useWorkflowFailureOnFailure: false
         );
     }
@@ -145,31 +138,25 @@ class CartoesController extends ApiController
 
     public function updateLimit(int $id): Response
     {
-        $result = $this->workflowService->refreshLimit($id, $this->requireApiUserIdOrFail());
+        $result = $this->workflowService->refreshLimit($id, $this->userId());
 
-        $workflowResult = [
-            'success' => (bool) ($result['success'] ?? false),
-            'data' => [
+        return $this->respondWorkflowResult(
+            $result,
+            404,
+            'Cartao nao encontrado',
+            null,
+            [
                 'limite_disponivel' => $result['limite_disponivel'] ?? null,
                 'limite_utilizado' => $result['limite_utilizado'] ?? null,
                 'percentual_uso' => $result['percentual_uso'] ?? null,
             ],
-        ];
-
-        if (!$workflowResult['success']) {
-            $workflowResult['status'] = 404;
-            $workflowResult['message'] = (string) ($result['message'] ?? 'Cartao nao encontrado');
-        }
-
-        return $this->respondApiWorkflowResult(
-            $workflowResult,
             useWorkflowFailureOnFailure: false
         );
     }
 
     public function summary(): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
 
         if ($this->demoPreviewService->shouldUsePreview($userId)) {
             return Response::successResponse($this->demoPreviewService->cartoesResumo());
@@ -180,7 +167,7 @@ class CartoesController extends ApiController
 
     public function fatura(int $id): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
         $mes = $this->resolveQueryMonth();
         $ano = $this->resolveQueryYear();
 
@@ -188,66 +175,63 @@ class CartoesController extends ApiController
             return Response::errorResponse('Mês inválido', 400);
         }
 
-        try {
-            return Response::successResponse($this->workflowService->getInvoice($id, $mes, $ano, $userId));
-        } catch (\Exception $e) {
-            return $this->notFoundFromThrowable($e, 'Fatura não encontrada.');
-        }
+        return $this->successOrNotFound(
+            fn (): mixed => $this->workflowService->getInvoice($id, $mes, $ano, $userId),
+            'Fatura não encontrada.'
+        );
     }
 
     public function pagarFatura(int $id): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
 
-        try {
-            return Response::successResponse($this->workflowService->payInvoice($id, $userId, $this->getRequestPayload()));
-        } catch (\Exception $e) {
-            return $this->domainErrorResponse($e, 'Não foi possivel pagar a fatura.', 400);
-        }
+        return $this->successOrDomainError(
+            fn (): mixed => $this->workflowService->payInvoice($id, $userId, $this->getRequestPayload()),
+            'Não foi possivel pagar a fatura.',
+            400
+        );
     }
 
     public function pagarParcelas(int $id): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
         $payload = $this->getRequestPayload();
 
         if (empty($payload['parcela_ids'] ?? [])) {
             return Response::errorResponse('Nenhuma parcela selecionada', 400);
         }
 
-        try {
-            return Response::successResponse($this->workflowService->payInstallments($id, $userId, $payload));
-        } catch (\Exception $e) {
-            return $this->domainErrorResponse($e, 'Não foi possivel pagar as parcelas.', 400);
-        }
+        return $this->successOrDomainError(
+            fn (): mixed => $this->workflowService->payInstallments($id, $userId, $payload),
+            'Não foi possivel pagar as parcelas.',
+            400
+        );
     }
 
     public function faturasPendentes(int $id): Response
     {
-        try {
-            $meses = $this->workflowService->getPendingInvoices($id, $this->requireApiUserIdOrFail());
+        $userId = $this->userId();
 
-            return Response::successResponse(['meses' => $meses]);
-        } catch (\Exception $e) {
-            return $this->notFoundFromThrowable($e, 'Cartao não encontrado.');
-        }
+        return $this->successOrNotFound(
+            fn (): mixed => ['meses' => $this->workflowService->getPendingInvoices($id, $userId)],
+            'Cartao não encontrado.'
+        );
     }
 
     public function faturasHistorico(int $id): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
         $limite = $this->getIntQuery('limite', 12);
 
-        try {
-            return Response::successResponse($this->workflowService->getInvoiceHistory($id, $userId, $limite));
-        } catch (\Exception $e) {
-            return $this->notFoundFromThrowable($e, 'Cartao não encontrado.');
-        }
+        return $this->successOrNotFound(
+            fn (): mixed => $this->workflowService->getInvoiceHistory($id, $userId, $limite),
+            'Cartao não encontrado.'
+        );
     }
 
     public function parcelamentosResumo(int $id): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
 
         if (!$this->workflowService->showCard($id, $userId)) {
             return Response::errorResponse('Cartão não encontrado', 404);
@@ -261,7 +245,7 @@ class CartoesController extends ApiController
 
     public function alertas(): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
 
         try {
             return Response::successResponse($this->workflowService->getAlerts($userId));
@@ -287,19 +271,18 @@ class CartoesController extends ApiController
 
     public function validarIntegridade(): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
         $corrigir = $this->getQuery('corrigir') === 'true';
 
-        try {
-            return Response::successResponse($this->workflowService->validateIntegrity($userId, $corrigir));
-        } catch (\Exception $e) {
-            return $this->internalErrorResponse($e, 'Erro ao validar integridade do cartao.');
-        }
+        return $this->successOrInternalError(
+            fn (): mixed => $this->workflowService->validateIntegrity($userId, $corrigir),
+            'Erro ao validar integridade do cartao.'
+        );
     }
 
     public function statusFatura(int $id): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
         $mes = $this->resolveRequiredIntQuery('mes');
         $ano = $this->resolveRequiredIntQuery('ano');
 
@@ -307,18 +290,15 @@ class CartoesController extends ApiController
             return Response::errorResponse('Mês e ano são obrigatórios', 400);
         }
 
-        try {
-            $status = $this->workflowService->getInvoiceStatus($id, $mes, $ano, $userId);
-
-            return Response::successResponse($status ?? ['pago' => false]);
-        } catch (\Exception $e) {
-            return $this->internalErrorResponse($e, 'Erro ao carregar status da fatura.');
-        }
+        return $this->successOrInternalError(
+            fn (): mixed => $this->workflowService->getInvoiceStatus($id, $mes, $ano, $userId) ?? ['pago' => false],
+            'Erro ao carregar status da fatura.'
+        );
     }
 
     public function desfazerPagamentoFatura(int $id): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
         $payload = $this->getRequestPayload();
         $mes = isset($payload['mes']) ? (int) $payload['mes'] : null;
         $ano = isset($payload['ano']) ? (int) $payload['ano'] : null;
@@ -327,123 +307,215 @@ class CartoesController extends ApiController
             return Response::errorResponse('Mês e ano são obrigatórios', 400);
         }
 
-        try {
-            return Response::successResponse($this->workflowService->undoInvoicePayment($id, $mes, $ano, $userId));
-        } catch (\Exception $e) {
-            LogService::captureException($e, LogCategory::FATURA, [
-                'action' => 'desfazer_pagamento_fatura',
-                'cartao_id' => $id,
-                'mes' => $mes,
-                'ano' => $ano,
-                'user_id' => $userId,
-            ]);
-
-            return $this->domainErrorResponse($e, 'Não foi possivel desfazer o pagamento da fatura.', 400);
-        }
+        return $this->successOrDomainError(
+            fn (): mixed => $this->workflowService->undoInvoicePayment($id, $mes, $ano, $userId),
+            'Não foi possivel desfazer o pagamento da fatura.',
+            400,
+            function (\Exception $e) use ($id, $mes, $ano, $userId): void {
+                LogService::captureException($e, LogCategory::FATURA, [
+                    'action' => 'desfazer_pagamento_fatura',
+                    'cartao_id' => $id,
+                    'mes' => $mes,
+                    'ano' => $ano,
+                    'user_id' => $userId,
+                ]);
+            }
+        );
     }
 
     public function desfazerPagamentoParcela(int $id): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
 
-        try {
-            return Response::successResponse($this->workflowService->undoInstallmentPayment($id, $userId));
-        } catch (\Exception $e) {
-            LogService::captureException($e, LogCategory::FATURA, [
-                'action' => 'desfazer_pagamento_parcela',
-                'parcela_id' => $id,
-                'user_id' => $userId,
-            ]);
-
-            return $this->domainErrorResponse($e, 'Não foi possivel desfazer o pagamento da parcela.', 400);
-        }
+        return $this->successOrDomainError(
+            fn (): mixed => $this->workflowService->undoInstallmentPayment($id, $userId),
+            'Não foi possivel desfazer o pagamento da parcela.',
+            400,
+            function (\Exception $e) use ($id, $userId): void {
+                LogService::captureException($e, LogCategory::FATURA, [
+                    'action' => 'desfazer_pagamento_parcela',
+                    'parcela_id' => $id,
+                    'user_id' => $userId,
+                ]);
+            }
+        );
     }
 
     public function recorrencias(): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
 
-        try {
-            return Response::successResponse($this->workflowService->listRecurring($userId));
-        } catch (\Exception $e) {
-            LogService::captureException($e, LogCategory::CARTAO, [
-                'action' => 'listar_recorrencias',
-                'user_id' => $userId,
-            ]);
-
-            return $this->internalErrorResponse($e, 'Erro ao listar recorrencias do cartao.');
-        }
+        return $this->successOrInternalError(
+            fn (): mixed => $this->workflowService->listRecurring($userId),
+            'Erro ao listar recorrencias do cartao.',
+            500,
+            [],
+            function (\Exception $e) use ($userId): void {
+                LogService::captureException($e, LogCategory::CARTAO, [
+                    'action' => 'listar_recorrencias',
+                    'user_id' => $userId,
+                ]);
+            }
+        );
     }
 
     public function recorrenciasCartao(int $id): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
 
-        try {
-            return Response::successResponse($this->workflowService->listRecurring($userId, $id));
-        } catch (\Exception $e) {
-            LogService::captureException($e, LogCategory::CARTAO, [
-                'action' => 'listar_recorrencias_cartao',
-                'cartao_id' => $id,
-                'user_id' => $userId,
-            ]);
-
-            return $this->internalErrorResponse($e, 'Erro ao listar recorrencias do cartao.', 500, [
-                'cartao_id' => $id,
-            ]);
-        }
+        return $this->successOrInternalError(
+            fn (): mixed => $this->workflowService->listRecurring($userId, $id),
+            'Erro ao listar recorrencias do cartao.',
+            500,
+            ['cartao_id' => $id],
+            function (\Exception $e) use ($id, $userId): void {
+                LogService::captureException($e, LogCategory::CARTAO, [
+                    'action' => 'listar_recorrencias_cartao',
+                    'cartao_id' => $id,
+                    'user_id' => $userId,
+                ]);
+            }
+        );
     }
 
     public function cancelarRecorrencia(int $id): Response
     {
-        $userId = $this->requireApiUserIdOrFail();
+        $userId = $this->userId();
 
+        return $this->executeOrInternalError(
+            function () use ($id, $userId): Response {
+                $resultado = $this->workflowService->cancelRecurring($id, $userId);
+                return $this->respondWorkflowResult(
+                    $resultado,
+                    400,
+                    'Erro ao cancelar recorrencia',
+                    null,
+                    null,
+                    false
+                );
+            },
+            'Erro ao cancelar recorrencia do cartao.',
+            500,
+            ['item_pai_id' => $id],
+            function (\Exception $e) use ($id, $userId): void {
+                LogService::captureException($e, LogCategory::CARTAO, [
+                    'action' => 'cancelar_recorrencia',
+                    'item_pai_id' => $id,
+                    'user_id' => $userId,
+                ]);
+            }
+        );
+    }
+
+    /**
+     * @param callable():mixed $resolver
+     * @param callable(\Exception):Response $onExceptionResponse
+     * @param callable(\Exception):void|null $onException
+     */
+    private function resolveOrCatch(
+        callable $resolver,
+        callable $onExceptionResponse,
+        ?callable $onException = null
+    ): Response {
         try {
-            $resultado = $this->workflowService->cancelRecurring($id, $userId);
-
-            $workflowResult = [
-                'success' => (bool) ($resultado['success'] ?? false),
-                'data' => $resultado,
-            ];
-
-            if (!$workflowResult['success']) {
-                $workflowResult['status'] = 400;
-                $workflowResult['message'] = (string) ($resultado['message'] ?? 'Erro ao cancelar recorrencia');
+            return Response::successResponse($resolver());
+        } catch (\Exception $e) {
+            if ($onException !== null) {
+                $onException($e);
             }
 
-            return $this->respondApiWorkflowResult(
-                $workflowResult,
-                useWorkflowFailureOnFailure: false
-            );
-        } catch (\Exception $e) {
-            LogService::captureException($e, LogCategory::CARTAO, [
-                'action' => 'cancelar_recorrencia',
-                'item_pai_id' => $id,
-                'user_id' => $userId,
-            ]);
-
-            return $this->internalErrorResponse($e, 'Erro ao cancelar recorrencia do cartao.', 500, [
-                'item_pai_id' => $id,
-            ]);
+            return $onExceptionResponse($e);
         }
+    }
+
+    /**
+     * @param callable():Response $operation
+     * @param callable(\Exception):Response $onExceptionResponse
+     * @param callable(\Exception):void|null $onException
+     */
+    private function executeOrCatch(
+        callable $operation,
+        callable $onExceptionResponse,
+        ?callable $onException = null
+    ): Response {
+        try {
+            return $operation();
+        } catch (\Exception $e) {
+            if ($onException !== null) {
+                $onException($e);
+            }
+
+            return $onExceptionResponse($e);
+        }
+    }
+
+    /**
+     * @param callable():mixed $resolver
+     */
+    private function successOrNotFound(callable $resolver, string $fallbackMessage): Response
+    {
+        return $this->resolveOrCatch(
+            $resolver,
+            fn (\Exception $e): Response => $this->notFoundFromThrowable($e, $fallbackMessage)
+        );
+    }
+
+    /**
+     * @param callable():mixed $resolver
+     * @param callable(\Exception):void|null $onException
+     */
+    private function successOrDomainError(
+        callable $resolver,
+        string $fallbackMessage,
+        int $status = 400,
+        ?callable $onException = null
+    ): Response {
+        return $this->resolveOrCatch(
+            $resolver,
+            fn (\Exception $e): Response => $this->domainErrorResponse($e, $fallbackMessage, $status),
+            $onException
+        );
+    }
+
+    /**
+     * @param callable():mixed $resolver
+     * @param callable(\Exception):void|null $onException
+     */
+    private function successOrInternalError(
+        callable $resolver,
+        string $fallbackMessage,
+        int $status = 500,
+        array $context = [],
+        ?callable $onException = null
+    ): Response {
+        return $this->resolveOrCatch(
+            $resolver,
+            fn (\Exception $e): Response => $this->internalErrorResponse($e, $fallbackMessage, $status, $context),
+            $onException
+        );
+    }
+
+    /**
+     * @param callable():Response $operation
+     * @param callable(\Exception):void|null $onException
+     */
+    private function executeOrInternalError(
+        callable $operation,
+        string $fallbackMessage,
+        int $status = 500,
+        array $context = [],
+        ?callable $onException = null
+    ): Response {
+        return $this->executeOrCatch(
+            $operation,
+            fn (\Exception $e): Response => $this->internalErrorResponse($e, $fallbackMessage, $status, $context),
+            $onException
+        );
     }
 
     private function handleCardActionResult(array $resultado): Response
     {
-        $workflowResult = [
-            'success' => (bool) ($resultado['success'] ?? false),
-            'data' => $resultado,
-        ];
-
-        if (!$workflowResult['success']) {
-            $workflowResult['status'] = 404;
-            $workflowResult['message'] = (string) ($resultado['message'] ?? 'Cartao nao encontrado');
-        }
-
-        return $this->respondApiWorkflowResult(
-            $workflowResult,
-            useWorkflowFailureOnFailure: false
-        );
+        return $this->respondWorkflowResult($resultado, 404, 'Cartao nao encontrado', null, null, false);
     }
 
     private function resolveBooleanQuery(string $key, bool $default): bool
@@ -473,5 +545,69 @@ class CartoesController extends ApiController
     private function resolveQueryYear(): int
     {
         return $this->getIntQuery('ano', (int) date('Y'));
+    }
+
+    private function userId(): int
+    {
+        return $this->requireApiUserIdOrFail();
+    }
+
+    /**
+     * @param array<string, mixed> $result
+     * @param mixed $data
+     * @return array<string, mixed>
+     */
+    private function toWorkflowResult(array $result, mixed $data = null): array
+    {
+        return [
+            'success' => (bool) ($result['success'] ?? false),
+            'data' => $data ?? $result,
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $result
+     * @param array<string, mixed>|null $errors
+     * @param mixed $data
+     */
+    private function respondWorkflowResult(
+        array $result,
+        int $failureStatus,
+        string $fallbackFailureMessage,
+        ?array $errors = null,
+        mixed $data = null,
+        bool $useWorkflowFailureOnFailure = false
+    ): Response {
+        $workflowResult = $this->toWorkflowResult($result, $data);
+        $this->applyWorkflowFailure($workflowResult, $result, $failureStatus, $fallbackFailureMessage, $errors);
+
+        return $this->respondApiWorkflowResult(
+            $workflowResult,
+            useWorkflowFailureOnFailure: $useWorkflowFailureOnFailure
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $workflowResult
+     * @param array<string, mixed> $sourceResult
+     * @param array<string, mixed>|null $errors
+     */
+    private function applyWorkflowFailure(
+        array &$workflowResult,
+        array $sourceResult,
+        int $status,
+        string $fallbackMessage,
+        ?array $errors = null
+    ): void {
+        if ($workflowResult['success'] ?? false) {
+            return;
+        }
+
+        $workflowResult['status'] = $status;
+        $workflowResult['message'] = (string) ($sourceResult['message'] ?? $fallbackMessage);
+
+        if ($errors !== null) {
+            $workflowResult['errors'] = $errors;
+        }
     }
 }

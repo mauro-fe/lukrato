@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Application\Controllers\Api\Dashboard\Concerns;
 
 use Application\Models\Categoria;
-use Application\Models\Conta;
-use Application\Models\Lancamento;
 use Application\Repositories\LancamentoRepository;
 use Application\Repositories\MetaRepository;
 use Application\Repositories\OrcamentoRepository;
@@ -148,27 +146,7 @@ trait HandlesDashboardRead
 
     protected function calculateSaldoAcumulado(int $userId, string $untilDate): float
     {
-        $saldosIniciais = (float) Conta::forUser($userId)
-            ->ativas()
-            ->sum('saldo_inicial');
-
-        $receitas = (float) Lancamento::where('user_id', $userId)
-            ->where('tipo', 'receita')
-            ->where('eh_transferencia', 0)
-            ->where('pago', 1)
-            ->where('afeta_caixa', 1)
-            ->where('data', '<=', $untilDate)
-            ->sum('valor');
-
-        $despesas = (float) Lancamento::where('user_id', $userId)
-            ->where('tipo', 'despesa')
-            ->where('eh_transferencia', 0)
-            ->where('pago', 1)
-            ->where('afeta_caixa', 1)
-            ->where('data', '<=', $untilDate)
-            ->sum('valor');
-
-        return $saldosIniciais + $receitas - $despesas;
+        return $this->lancamentoRepo->sumSaldoAcumuladoAte($userId, $untilDate);
     }
 
     protected function getDespesasPorCategoria(int $userId, string $month, string $viewType): array
@@ -177,30 +155,7 @@ trait HandlesDashboardRead
         $start = $normalized['start'];
         $end = $normalized['end'];
 
-        $query = Lancamento::where('user_id', $userId)
-            ->where('tipo', 'despesa')
-            ->where('eh_transferencia', 0);
-
-        if ($viewType === 'competencia') {
-            $query->where(function ($q) use ($start, $end) {
-                $q->where(function ($sub) use ($start, $end) {
-                    $sub->whereNotNull('data_competencia')
-                        ->whereBetween('data_competencia', [$start, $end]);
-                })->orWhere(function ($sub) use ($start, $end) {
-                    $sub->whereNull('data_competencia')
-                        ->whereBetween('data', [$start, $end]);
-                });
-            });
-        } else {
-            $query->where('pago', 1)
-                ->where('afeta_caixa', 1)
-                ->whereBetween('data', [$start, $end]);
-        }
-
-        $rows = $query
-            ->selectRaw('categoria_id, SUM(' . $this->effectiveExpenseExpression('lancamentos') . ') as total')
-            ->groupBy('categoria_id')
-            ->get();
+        $rows = $this->lancamentoRepo->getDespesaTotalsByCategoria($userId, $start, $end, $viewType);
 
         $categoriaIds = $rows->pluck('categoria_id')->filter()->all();
         $categorias = Categoria::whereIn('id', $categoriaIds)
@@ -230,27 +185,4 @@ trait HandlesDashboardRead
         ]));
     }
 
-    protected function metaCoverageExpression(string $tableAlias = 'lancamentos'): string
-    {
-        $t = preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $tableAlias) ? $tableAlias : 'lancamentos';
-
-        return "CASE
-            WHEN {$t}.tipo <> 'despesa' THEN 0
-            WHEN {$t}.meta_id IS NULL THEN 0
-            WHEN (
-                {$t}.meta_operacao IN ('resgate', 'realizacao')
-                OR {$t}.meta_operacao IS NULL
-                OR {$t}.meta_operacao = ''
-            ) THEN LEAST({$t}.valor, GREATEST(COALESCE({$t}.meta_valor, {$t}.valor), 0))
-            ELSE 0
-        END";
-    }
-
-    protected function effectiveExpenseExpression(string $tableAlias = 'lancamentos'): string
-    {
-        $t = preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $tableAlias) ? $tableAlias : 'lancamentos';
-        $coverage = $this->metaCoverageExpression($t);
-
-        return "GREATEST({$t}.valor - ({$coverage}), 0)";
-    }
 }

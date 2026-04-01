@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Admin;
 
 use Application\Controllers\WebController;
@@ -11,15 +13,13 @@ class CategoriaController extends WebController
     {
         $this->requireUserId();
 
-        return $this->renderResponse(
+        return $this->renderAdminResponse(
             'admin/categorias/index',
             [
                 'pageTitle' => 'Categorias',
                 'subTitle' => 'Crie e gerencie suas categorias de Receitas e Despesas',
                 'showMonthSelector' => true,
-            ],
-            'admin/partials/header',
-            'admin/partials/footer'
+            ]
         );
     }
 }

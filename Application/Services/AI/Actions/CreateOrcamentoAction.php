@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Actions;
 
-use Application\Services\Financeiro\OrcamentoService;
+use Application\Services\Orcamentos\OrcamentoService;
 
 class CreateOrcamentoAction implements ActionInterface
 {

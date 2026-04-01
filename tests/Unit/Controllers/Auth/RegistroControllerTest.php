@@ -104,4 +104,52 @@ class RegistroControllerTest extends TestCase
         $this->assertFalse($payload['success']);
         $this->assertSame('Falha ao cadastrar. Tente novamente mais tarde.', $payload['message']);
     }
+
+    public function testStoreLogsInAndReturnsDashboardRedirectForGoogleRegistration(): void
+    {
+        $_POST['csrf_token'] = CsrfMiddleware::generateToken('register_form');
+        $_POST['name'] = 'Teste Google';
+        $_POST['email'] = 'google@lukrato.com';
+        $_SESSION['social_register'] = [
+            'provider' => 'google',
+            'google_id' => 'gid-123',
+        ];
+
+        $authService = Mockery::mock(AuthService::class);
+        $authService
+            ->shouldReceive('register')
+            ->once()
+            ->with(Mockery::on(static function (array $payload): bool {
+                return ($payload['provider'] ?? null) === 'google'
+                    && ($payload['google_id'] ?? null) === 'gid-123'
+                    && ($payload['password'] ?? null) === null
+                    && ($payload['password_confirmation'] ?? null) === null
+                    && ($payload['email'] ?? null) === 'google@lukrato.com';
+            }))
+            ->andReturn([
+                'user_id' => 55,
+                'redirect' => 'dashboard',
+            ]);
+
+        $googleAuthService = Mockery::mock(GoogleAuthService::class);
+        $googleAuthService
+            ->shouldReceive('loginAfterRegistration')
+            ->once()
+            ->with(55, 'google@lukrato.com')
+            ->andReturnTrue();
+
+        $controller = new RegistroController($authService, $googleAuthService);
+
+        $response = $controller->store();
+        $payload = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame(201, $response->getStatusCode());
+        $this->assertTrue($payload['success']);
+        $this->assertSame('Conta criada com Google e login realizado com sucesso!', $payload['message']);
+        $this->assertSame([
+            'redirect' => 'dashboard',
+            'requires_verification' => false,
+        ], $payload['data']);
+        $this->assertArrayNotHasKey('social_register', $_SESSION);
+    }
 }

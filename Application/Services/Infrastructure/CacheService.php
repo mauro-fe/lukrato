@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Services\Infrastructure;
 
 use Application\Core\Exceptions\ValidationException;

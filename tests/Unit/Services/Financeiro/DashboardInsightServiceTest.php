@@ -89,7 +89,9 @@ class DashboardInsightServiceTest extends TestCase
                 'categoria_id' => null,
                 'conta_id' => 8,
                 'categoria' => 'Mercado',
+                'categoria_icone' => '',
                 'conta' => 'Conta principal',
+                'pago' => false,
             ],
         ], $result);
     }

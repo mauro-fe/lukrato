@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Services\Cartao;
 
 use Application\Models\CartaoCredito;
@@ -17,13 +19,19 @@ class CartaoCreditoService
 {
     private CartaoCreditoValidator $validator;
     private OnboardingProgressService $onboardingProgressService;
+    private CartaoLifecycleService $lifecycleService;
+    private CartaoMonitoringService $monitoringService;
 
     public function __construct(
         ?CartaoCreditoValidator $validator = null,
-        ?OnboardingProgressService $onboardingProgressService = null
+        ?OnboardingProgressService $onboardingProgressService = null,
+        ?CartaoLifecycleService $lifecycleService = null,
+        ?CartaoMonitoringService $monitoringService = null
     ) {
         $this->validator = $validator ?? new CartaoCreditoValidator();
         $this->onboardingProgressService = $onboardingProgressService ?? new OnboardingProgressService();
+        $this->lifecycleService = $lifecycleService ?? new CartaoLifecycleService($this->onboardingProgressService);
+        $this->monitoringService = $monitoringService ?? new CartaoMonitoringService();
     }
 
     /**
@@ -197,16 +205,7 @@ class CartaoCreditoService
      */
     public function desativarCartao(int $cartaoId, int $userId): array
     {
-        $cartao = CartaoCredito::forUser($userId)->find($cartaoId);
-
-        if (!$cartao) {
-            return ['success' => false, 'message' => 'Cartão não encontrado.'];
-        }
-
-        $cartao->ativo = false;
-        $cartao->save();
-
-        return ['success' => true, 'message' => 'Cartão desativado com sucesso.'];
+        return $this->lifecycleService->desativarCartao($cartaoId, $userId);
     }
 
     /**
@@ -214,16 +213,7 @@ class CartaoCreditoService
      */
     public function reativarCartao(int $cartaoId, int $userId): array
     {
-        $cartao = CartaoCredito::forUser($userId)->find($cartaoId);
-
-        if (!$cartao) {
-            return ['success' => false, 'message' => 'Cartão não encontrado.'];
-        }
-
-        $cartao->ativo = true;
-        $cartao->save();
-
-        return ['success' => true, 'message' => 'Cartão reativado com sucesso.'];
+        return $this->lifecycleService->reativarCartao($cartaoId, $userId);
     }
 
     /**
@@ -231,17 +221,7 @@ class CartaoCreditoService
      */
     public function arquivarCartao(int $cartaoId, int $userId): array
     {
-        $cartao = CartaoCredito::forUser($userId)->find($cartaoId);
-
-        if (!$cartao) {
-            return ['success' => false, 'message' => 'Cartão não encontrado.'];
-        }
-
-        $cartao->arquivado = true;
-        $cartao->ativo = false;
-        $cartao->save();
-
-        return ['success' => true, 'message' => 'Cartão arquivado com sucesso.'];
+        return $this->lifecycleService->arquivarCartao($cartaoId, $userId);
     }
 
     /**
@@ -249,19 +229,7 @@ class CartaoCreditoService
      */
     public function restaurarCartao(int $cartaoId, int $userId): array
     {
-        $cartao = CartaoCredito::where('user_id', $userId)
-            ->where('id', $cartaoId)
-            ->first();
-
-        if (!$cartao) {
-            return ['success' => false, 'message' => 'Cartão não encontrado.'];
-        }
-
-        $cartao->arquivado = false;
-        $cartao->ativo = true;
-        $cartao->save();
-
-        return ['success' => true, 'message' => 'Cartão restaurado com sucesso.'];
+        return $this->lifecycleService->restaurarCartao($cartaoId, $userId);
     }
 
     /**
@@ -269,12 +237,7 @@ class CartaoCreditoService
      */
     public function listarCartoesArquivados(int $userId): array
     {
-        return CartaoCredito::where('user_id', $userId)
-            ->where('arquivado', true)
-            ->with('conta.instituicaoFinanceira')
-            ->orderBy('nome_cartao')
-            ->get()
-            ->toArray();
+        return $this->lifecycleService->listarCartoesArquivados($userId);
     }
 
     /**
@@ -282,60 +245,7 @@ class CartaoCreditoService
      */
     public function excluirCartaoPermanente(int $cartaoId, int $userId, bool $force = false): array
     {
-        $cartao = CartaoCredito::where('user_id', $userId)
-            ->where('id', $cartaoId)
-            ->first();
-
-        if (!$cartao) {
-            return ['success' => false, 'message' => 'Cartão não encontrado.'];
-        }
-
-        // Verificar se há dados vinculados
-        $totalLancamentos = $cartao->lancamentos()->count();
-        $totalFaturas = DB::table('faturas')->where('cartao_credito_id', $cartaoId)->count();
-        $totalItens = DB::table('faturas_cartao_itens')->where('cartao_credito_id', $cartaoId)->count();
-        $totalVinculados = $totalLancamentos + $totalFaturas + $totalItens;
-
-        if ($totalVinculados > 0 && !$force) {
-            $mensagem = "Este cartão possui dados vinculados:\n";
-            if ($totalLancamentos > 0) $mensagem .= "- {$totalLancamentos} lançamento(s)\n";
-            if ($totalFaturas > 0) $mensagem .= "- {$totalFaturas} fatura(s)\n";
-            if ($totalItens > 0) $mensagem .= "- {$totalItens} item(ns) de fatura\n";
-            $mensagem .= "Confirme para excluir tudo.";
-
-            return [
-                'success' => false,
-                'requires_confirmation' => true,
-                'message' => $mensagem,
-                'total_lancamentos' => $totalLancamentos,
-                'total_faturas' => $totalFaturas,
-                'total_itens' => $totalItens,
-            ];
-        }
-
-        DB::transaction(function () use ($cartao, $cartaoId) {
-            // Excluir itens de fatura vinculados
-            DB::table('faturas_cartao_itens')->where('cartao_credito_id', $cartaoId)->delete();
-
-            // Excluir faturas vinculadas
-            DB::table('faturas')->where('cartao_credito_id', $cartaoId)->delete();
-
-            // Excluir lançamentos vinculados
-            $cartao->lancamentos()->delete();
-
-            // Excluir cartão
-            $cartao->delete();
-        });
-
-        $this->syncOnboardingStateAfterDeletion($userId);
-
-        return [
-            'success' => true,
-            'message' => 'Cartão e todos os dados vinculados foram excluídos permanentemente.',
-            'deleted_lancamentos' => $totalLancamentos,
-            'deleted_faturas' => $totalFaturas,
-            'deleted_itens' => $totalItens,
-        ];
+        return $this->lifecycleService->excluirCartaoPermanente($cartaoId, $userId, $force);
     }
 
     /**
@@ -348,49 +258,12 @@ class CartaoCreditoService
         return $this->arquivarCartao($cartaoId, $userId);
     }
 
-    private function syncOnboardingStateAfterDeletion(int $userId): void
-    {
-        try {
-            $this->onboardingProgressService->resyncState($userId);
-        } catch (Throwable $e) {
-            LogService::captureException($e, LogCategory::GENERAL, [
-                'action' => 'sync_onboarding_after_cartao_delete',
-                'user_id' => $userId,
-            ]);
-        }
-    }
-
     /**
      * Atualizar limite disponível de um cartão
      */
     public function atualizarLimiteDisponivel(int $cartaoId, int $userId): array
     {
-        $cartao = CartaoCredito::forUser($userId)->find($cartaoId);
-
-        if (!$cartao) {
-            return ['success' => false, 'message' => 'Cartão não encontrado.'];
-        }
-
-        try {
-            $cartao->atualizarLimiteDisponivel();
-
-            return [
-                'success' => true,
-                'limite_disponivel' => $cartao->limite_disponivel,
-                'limite_utilizado' => $cartao->limite_utilizado,
-                'percentual_uso' => $cartao->percentual_uso,
-            ];
-        } catch (Throwable $e) {
-            LogService::captureException($e, LogCategory::CARTAO, [
-                'action' => 'atualizar_limite_disponivel',
-                'cartao_id' => $cartaoId,
-                'user_id' => $userId,
-            ]);
-            return [
-                'success' => false,
-                'message' => 'Erro ao atualizar limite.',
-            ];
-        }
+        return $this->monitoringService->atualizarLimiteDisponivel($cartaoId, $userId);
     }
 
     /**
@@ -398,34 +271,7 @@ class CartaoCreditoService
      */
     public function obterResumo(int $userId): array
     {
-        $cartoes = CartaoCredito::forUser($userId)->ativos()->get();
-
-        $totalLimite = $cartoes->sum('limite_total');
-        $totalDisponivel = $cartoes->sum('limite_disponivel');
-        $totalUtilizado = $totalLimite - $totalDisponivel;
-        $percentualUsoGeral = $totalLimite > 0
-            ? round(($totalUtilizado / $totalLimite) * 100, 2)
-            : 0;
-
-        // Soma o valor dos itens de fatura não pagos do mês vigente
-        $mes = (int) date('n');
-        $ano = (int) date('Y');
-        $faturaAberta = (float) \Application\Models\FaturaCartaoItem::where('user_id', $userId)
-            ->where('pago', false)
-            ->whereNull('cancelado_em')
-            ->whereMonth('data_vencimento', $mes)
-            ->whereYear('data_vencimento', $ano)
-            ->sum('valor');
-
-        return [
-            'total_cartoes' => $cartoes->count(),
-            'limite_total' => $totalLimite,
-            'limite_disponivel' => $totalDisponivel,
-            'limite_utilizado' => $totalUtilizado,
-            'percentual_uso' => $percentualUsoGeral,
-            'fatura_aberta' => $faturaAberta,
-            'cartoes' => $cartoes->toArray(),
-        ];
+        return $this->monitoringService->obterResumo($userId);
     }
 
     /**
@@ -433,43 +279,7 @@ class CartaoCreditoService
      */
     public function verificarLimitesBaixos(int $userId): array
     {
-        try {
-            $cartoes = CartaoCredito::forUser($userId)->ativos()->get();
-            $alertas = [];
-
-            foreach ($cartoes as $cartao) {
-                try {
-                    $percentualDisponivel = $cartao->limite_total > 0
-                        ? ($cartao->limite_disponivel / $cartao->limite_total) * 100
-                        : 0;
-
-                    if ($percentualDisponivel < 20) {
-                        $alertas[] = [
-                            'cartao_id' => $cartao->id,
-                            'nome_cartao' => $cartao->nome_cartao,
-                            'limite_total' => (float) $cartao->limite_total,
-                            'limite_disponivel' => (float) $cartao->limite_disponivel,
-                            'percentual_disponivel' => round($percentualDisponivel, 2),
-                            'tipo' => 'limite_baixo',
-                            'gravidade' => $percentualDisponivel < 10 ? 'critico' : 'atencao',
-                        ];
-                    }
-                } catch (\Exception $e) {
-                    LogService::captureException($e, LogCategory::CARTAO, [
-                        'action' => 'verificar_limite_cartao',
-                        'cartao_id' => $cartao->id,
-                    ]);
-                    continue;
-                }
-            }
-
-            return $alertas;
-        } catch (\Exception $e) {
-            LogService::captureException($e, LogCategory::CARTAO, [
-                'action' => 'verificar_limites_baixos',
-            ]);
-            return [];
-        }
+        return $this->monitoringService->verificarLimitesBaixos($userId);
     }
 
     /**
@@ -478,66 +288,6 @@ class CartaoCreditoService
      */
     public function validarIntegridadeLimites(int $userId, bool $corrigirAutomaticamente = false): array
     {
-        $cartoes = CartaoCredito::forUser($userId)->get();
-        $relatorio = [
-            'total_cartoes' => $cartoes->count(),
-            'cartoes_ok' => 0,
-            'cartoes_com_divergencia' => 0,
-            'divergencias' => [],
-            'corrigidos' => 0,
-        ];
-
-        foreach ($cartoes as $cartao) {
-            // Calcula o limite utilizado real (soma de lançamentos não pagos)
-            $limiteUtilizadoReal = \Application\Models\Lancamento::where('cartao_credito_id', $cartao->id)
-                ->where('pago', false)
-                ->where(function ($query) {
-                    $query->where('eh_parcelado', false)
-                        ->orWhere(function ($subQuery) {
-                            $subQuery->where('eh_parcelado', true)
-                                ->whereNotNull('parcela_atual');
-                        });
-                })
-                ->sum('valor');
-
-            $limiteUtilizadoAtual = $cartao->limite_total - $cartao->limite_disponivel;
-            $diferenca = abs($limiteUtilizadoReal - $limiteUtilizadoAtual);
-
-            // Considera divergente se a diferença for maior que 0.01 (1 centavo)
-            if ($diferenca > 0.01) {
-                $divergencia = [
-                    'cartao_id' => $cartao->id,
-                    'nome_cartao' => $cartao->nome_cartao,
-                    'limite_total' => $cartao->limite_total,
-                    'limite_disponivel_atual' => $cartao->limite_disponivel,
-                    'limite_utilizado_registrado' => $limiteUtilizadoAtual,
-                    'limite_utilizado_real' => $limiteUtilizadoReal,
-                    'diferenca' => $diferenca,
-                    'limite_disponivel_correto' => $cartao->limite_total - $limiteUtilizadoReal,
-                ];
-
-                $relatorio['divergencias'][] = $divergencia;
-                $relatorio['cartoes_com_divergencia']++;
-
-                // Corrigir automaticamente se solicitado
-                if ($corrigirAutomaticamente) {
-                    try {
-                        $novoLimiteDisponivel = max(0, min($cartao->limite_total, $cartao->limite_total - $limiteUtilizadoReal));
-
-                        $cartao->limite_disponivel = $novoLimiteDisponivel;
-                        $cartao->save();
-
-                        $relatorio['corrigidos']++;
-                        $divergencia['corrigido'] = true;
-                    } catch (\Exception $e) {
-                        $divergencia['erro_correcao'] = $e->getMessage();
-                    }
-                }
-            } else {
-                $relatorio['cartoes_ok']++;
-            }
-        }
-
-        return $relatorio;
+        return $this->monitoringService->validarIntegridadeLimites($userId, $corrigirAutomaticamente);
     }
 }

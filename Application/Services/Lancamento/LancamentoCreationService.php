@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Services\Lancamento;
 
 use Application\DTO\ServiceResultDTO;
@@ -24,6 +26,7 @@ class LancamentoCreationService
 {
     private CartaoCreditoLancamentoService $cartaoService;
     private LancamentoRepository $lancamentoRepo;
+    private LancamentoRecurrenceService $recurrenceService;
     private GamificationService $gamificationService;
     private LancamentoLimitService $limitService;
     private UserPlanService $planService;
@@ -37,7 +40,8 @@ class LancamentoCreationService
         ?LancamentoLimitService $limitService = null,
         ?UserPlanService $planService = null,
         ?OnboardingProgressService $onboardingProgressService = null,
-        ?MetaProgressService $metaProgressService = null
+        ?MetaProgressService $metaProgressService = null,
+        ?LancamentoRecurrenceService $recurrenceService = null
     ) {
         $this->cartaoService = $cartaoService ?? new CartaoCreditoLancamentoService();
         $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
@@ -46,6 +50,8 @@ class LancamentoCreationService
         $this->planService = $planService ?? new UserPlanService();
         $this->onboardingProgressService = $onboardingProgressService ?? new OnboardingProgressService();
         $this->metaProgressService = $metaProgressService ?? new MetaProgressService();
+        $this->recurrenceService = $recurrenceService
+            ?? new LancamentoRecurrenceService($this->lancamentoRepo, $this->metaProgressService);
     }
 
     /**
@@ -427,7 +433,7 @@ class LancamentoCreationService
             ]);
         }
 
-        return ServiceResultDTO::ok('Lancamento criado', [
+        return ServiceResultDTO::ok('Lançamento criado', [
             'lancamento'   => LancamentoResponseFormatter::format($lancamento),
             'usage'        => $usage,
             'ui_message'   => $this->planService->getUsageMessage($usage),
@@ -470,48 +476,7 @@ class LancamentoCreationService
      */
     public function cancelarRecorrencia(int $lancamentoId, int $userId): ServiceResultDTO
     {
-        $lancamento = \Application\Models\Lancamento::where('id', $lancamentoId)
-            ->where('user_id', $userId)
-            ->first();
-
-        if (!$lancamento) {
-            return ServiceResultDTO::fail('Lançamento não encontrado.');
-        }
-
-        if (!$lancamento->recorrente) {
-            return ServiceResultDTO::fail('Este lançamento não faz parte de uma recorrência.');
-        }
-
-        $paiId = $lancamento->recorrencia_pai_id ?? $lancamento->id;
-        $agora = date('Y-m-d H:i:s');
-
-        // 1) Sempre marcar o pai como cancelado (mesmo se já pago)
-        //    para impedir que o cron regenere filhos futuros
-        \Application\Models\Lancamento::where('id', $paiId)
-            ->where('user_id', $userId)
-            ->whereNull('cancelado_em')
-            ->update(['cancelado_em' => $agora]);
-
-        // 2) Cancelar todos os filhos não pagos da série
-        $afetados = \Application\Models\Lancamento::where('recorrencia_pai_id', $paiId)
-            ->where('id', '!=', $paiId)
-            ->where('user_id', $userId)
-            ->where('pago', 0)
-            ->whereNull('cancelado_em')
-            ->update(['cancelado_em' => $agora]);
-
-        // Contar o pai se ele foi cancelado agora (era não-pago)
-        $paiCancelado = \Application\Models\Lancamento::where('id', $paiId)
-            ->where('cancelado_em', $agora)
-            ->where('pago', 0)
-            ->exists();
-
-        $totalAfetados = $afetados + ($paiCancelado ? 1 : 0);
-
-        return ServiceResultDTO::ok("{$totalAfetados} lançamentos futuros cancelados.", [
-            'cancelados' => $totalAfetados,
-            'recorrencia_pai_id' => $paiId,
-        ]);
+        return $this->recurrenceService->cancelarRecorrencia($lancamentoId, $userId);
     }
 
     /**
@@ -523,154 +488,7 @@ class LancamentoCreationService
      */
     public function estenderRecorrenciasInfinitas(int $horizonMonths = 3): int
     {
-        $hoje = new \DateTimeImmutable('today');
-        $totalCriados = 0;
-        $metaRefsAfetados = [];
-
-        // Buscar todos os pais de recorrências ativas
-        $pais = \Application\Models\Lancamento::where('recorrente', 1)
-            ->whereNull('cancelado_em')
-            ->whereColumn('recorrencia_pai_id', 'id') // é o pai (aponta para si)
-            ->get();
-
-        foreach ($pais as $pai) {
-            $freq = Recorrencia::tryFromString($pai->recorrencia_freq);
-            if (!$freq) continue;
-
-            try {
-                DB::beginTransaction();
-
-                // Lock no pai para prevenir race condition entre execuções concorrentes
-                $paiLocked = \Application\Models\Lancamento::where('id', $pai->id)
-                    ->whereNull('cancelado_em')
-                    ->lockForUpdate()
-                    ->first();
-
-                if (!$paiLocked) {
-                    DB::rollBack();
-                    continue;
-                }
-
-                // Usa toda a série, inclusive ocorrências apagadas, para não travar
-                // o cursor em uma data já consumida e para não "compensar" meses extras.
-                $ultimoGerado = \Application\Models\Lancamento::withTrashed()
-                    ->where('recorrencia_pai_id', $paiLocked->id)
-                    ->orderBy('data', 'desc')
-                    ->orderBy('id', 'desc')
-                    ->first();
-
-                $ultimaData = $ultimoGerado
-                    ? new \DateTime($ultimoGerado->data)
-                    : new \DateTime($paiLocked->data);
-
-                while (true) {
-                    $dataProx = clone $ultimaData;
-                    $freq->advance($dataProx);
-
-                    // Ainda não chegou o próximo ciclo.
-                    if ($dataProx > $hoje) {
-                        break;
-                    }
-
-                    // Respeita recorrência com data fim.
-                    if ($paiLocked->recorrencia_fim !== null) {
-                        $fim = new \DateTimeImmutable($paiLocked->recorrencia_fim);
-                        if ($dataProx > $fim) {
-                            break;
-                        }
-                    }
-
-                    // Em séries por quantidade, cada slot consumido conta, mesmo se foi apagado.
-                    if ($paiLocked->recorrencia_total !== null && $paiLocked->recorrencia_total > 0) {
-                        $totalSerie = \Application\Models\Lancamento::withTrashed()
-                            ->where('recorrencia_pai_id', $paiLocked->id)
-                            ->count();
-
-                        if ($totalSerie >= (int) $paiLocked->recorrencia_total) {
-                            break;
-                        }
-                    }
-
-                    $dataProxFormatada = $dataProx->format('Y-m-d');
-
-                    // Se já houve ocorrência para esta data, apenas avança o cursor.
-                    $jaExiste = \Application\Models\Lancamento::withTrashed()
-                        ->where('recorrencia_pai_id', $paiLocked->id)
-                        ->where('data', $dataProxFormatada)
-                        ->exists();
-
-                    if ($jaExiste) {
-                        $ultimaData = $dataProx;
-                        continue;
-                    }
-
-                    $dados = [
-                        'user_id'            => $paiLocked->user_id,
-                        'tipo'               => $paiLocked->tipo,
-                        'data'               => $dataProxFormatada,
-                        'hora_lancamento'    => $paiLocked->hora_lancamento,
-                        'valor'              => $paiLocked->valor,
-                        'descricao'          => $paiLocked->descricao,
-                        'observacao'         => $paiLocked->observacao,
-                        'categoria_id'       => $paiLocked->categoria_id,
-                        'subcategoria_id'    => $paiLocked->subcategoria_id,
-                        'meta_id'            => $paiLocked->meta_id,
-                        'meta_operacao'      => $paiLocked->meta_operacao,
-                        'meta_valor'         => $paiLocked->meta_valor,
-                        'conta_id'           => $paiLocked->conta_id,
-                        'pago'               => 0,
-                        'afeta_caixa'        => 0,
-                        'data_pagamento'     => null,
-                        'forma_pagamento'    => $paiLocked->forma_pagamento,
-                        'recorrente'         => 1,
-                        'recorrencia_freq'   => $paiLocked->recorrencia_freq,
-                        'recorrencia_fim'    => $paiLocked->recorrencia_fim,
-                        'recorrencia_total'  => $paiLocked->recorrencia_total,
-                        'recorrencia_pai_id' => $paiLocked->id,
-                        'origem_tipo'        => \Application\Models\Lancamento::ORIGEM_RECORRENCIA,
-                        'lembrar_antes_segundos' => $paiLocked->lembrar_antes_segundos,
-                        'canal_email'        => $paiLocked->canal_email,
-                        'canal_inapp'        => $paiLocked->canal_inapp,
-                    ];
-
-                    try {
-                        $this->lancamentoRepo->create($dados);
-                        $totalCriados++;
-                        if (!empty($paiLocked->meta_id)) {
-                            $metaRefsAfetados[$paiLocked->user_id . ':' . $paiLocked->meta_id] = [
-                                'user_id' => (int) $paiLocked->user_id,
-                                'meta_id' => (int) $paiLocked->meta_id,
-                            ];
-                        }
-                    } catch (\Throwable $e) {
-                        if (str_contains(strtolower($e->getMessage()), 'duplicate')) {
-                            LogService::info('[RECORRENCIA] Duplicata evitada por unique key', [
-                                'pai_id' => $paiLocked->id,
-                                'data' => $dataProxFormatada,
-                            ]);
-                        } else {
-                            throw $e;
-                        }
-                    }
-
-                    $ultimaData = $dataProx;
-                }
-
-                DB::commit();
-            } catch (\Throwable $e) {
-                DB::rollBack();
-                LogService::captureException($e, LogCategory::LANCAMENTO, [
-                    'action' => 'estender_recorrencia',
-                    'pai_id' => $pai->id,
-                ]);
-            }
-        }
-
-        foreach ($metaRefsAfetados as $metaRef) {
-            $this->metaProgressService->recalculateMeta($metaRef['user_id'], $metaRef['meta_id']);
-        }
-
-        return $totalCriados;
+        return $this->recurrenceService->estenderRecorrenciasInfinitas($horizonMonths);
     }
 
     private function syncOnboardingLancamentoCreated(int $userId, \DateTimeInterface|string|null $createdAt = null): void

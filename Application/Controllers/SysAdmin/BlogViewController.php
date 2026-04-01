@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\SysAdmin;
 
 use Application\Controllers\WebController;
@@ -11,15 +13,13 @@ class BlogViewController extends WebController
     {
         $this->requireAdminUser();
 
-        return $this->renderResponse(
+        return $this->renderAdminResponse(
             'admin/sysadmin/blog',
             [
                 'pageTitle' => 'Blog - Gerenciar Artigos',
                 'menu' => 'super_admin',
                 'skipPlanLimits' => true,
-            ],
-            'admin/partials/header',
-            'admin/partials/footer'
+            ]
         );
     }
 }

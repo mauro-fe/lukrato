@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Application\Controllers\Admin;
 
 use Application\Controllers\WebController;
@@ -11,15 +13,13 @@ class MetasController extends WebController
     {
         $this->requireUserId();
 
-        return $this->renderResponse(
+        return $this->renderAdminResponse(
             'admin/metas/index',
             [
                 'pageTitle' => 'Metas',
                 'subTitle' => 'Planeje seus objetivos financeiros',
                 'menu' => 'metas',
-            ],
-            'admin/partials/header',
-            'admin/partials/footer'
+            ]
         );
     }
 }
