@@ -6,18 +6,14 @@ namespace Application\UseCases\Lancamentos;
 
 use Application\DTO\Requests\CreateLancamentoDTO;
 use Application\DTO\ServiceResultDTO;
-use Application\Enums\LogCategory;
 use Application\Models\Meta;
 use Application\Repositories\CategoriaRepository;
 use Application\Repositories\ContaRepository;
 use Application\Repositories\LancamentoRepository;
-use Application\Services\Financeiro\MetaProgressService;
-use Application\Services\Infrastructure\LogService;
+use Application\Services\Metas\MetaProgressService;
 use Application\Services\Lancamento\LancamentoLimitService;
-use Application\Services\User\OnboardingProgressService;
 use Application\Validators\LancamentoValidator;
 use DomainException;
-use Throwable;
 use ValueError;
 
 class CreateLancamentoUseCase
@@ -27,8 +23,7 @@ class CreateLancamentoUseCase
         private readonly LancamentoRepository $lancamentoRepo = new LancamentoRepository(),
         private readonly CategoriaRepository $categoriaRepo = new CategoriaRepository(),
         private readonly ContaRepository $contaRepo = new ContaRepository(),
-        private readonly MetaProgressService $metaProgressService = new MetaProgressService(),
-        private readonly OnboardingProgressService $onboardingProgressService = new OnboardingProgressService()
+        private readonly MetaProgressService $metaProgressService = new MetaProgressService()
     ) {}
 
     /**
@@ -92,7 +87,6 @@ class CreateLancamentoUseCase
 
             $lancamento = $this->lancamentoRepo->create($dto->toArray());
             $this->recalculateAffectedMetas($userId, $metaId ?? 0);
-            $this->syncOnboardingLancamentoCreated($userId, $lancamento->created_at);
             $usage = $this->limitService->usage($userId, substr((string) ($payload['data'] ?? ''), 0, 7));
 
             return ServiceResultDTO::ok('Lançamento criado', [
@@ -173,18 +167,6 @@ class CreateLancamentoUseCase
 
         foreach ($metaIds as $metaId) {
             $this->metaProgressService->recalculateMeta($userId, $metaId);
-        }
-    }
-
-    private function syncOnboardingLancamentoCreated(int $userId, \DateTimeInterface|string|null $createdAt = null): void
-    {
-        try {
-            $this->onboardingProgressService->markLancamentoCreated($userId, $createdAt);
-        } catch (Throwable $e) {
-            LogService::captureException($e, LogCategory::GENERAL, [
-                'action' => 'sync_onboarding_lancamento_created_legacy',
-                'user_id' => $userId,
-            ]);
         }
     }
 }

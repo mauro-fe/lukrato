@@ -9,7 +9,7 @@ use Application\Core\Exceptions\AuthException;
 use Application\DTO\ServiceResultDTO;
 use Application\Models\Usuario;
 use Application\Services\Demo\DemoPreviewService;
-use Application\Services\Financeiro\OrcamentoService;
+use Application\Services\Orcamentos\OrcamentoService;
 use Application\UseCases\Orcamentos\ApplyOrcamentoSugestoesUseCase;
 use Application\UseCases\Orcamentos\BulkSaveOrcamentosUseCase;
 use Application\UseCases\Orcamentos\CopyOrcamentosMesUseCase;

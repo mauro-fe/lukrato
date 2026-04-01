@@ -7,7 +7,7 @@ declare(strict_types=1);
  * Keep load order stable to preserve route matching behavior.
  */
 $adminRouteFiles = [
-    __DIR__ . '/admin/01_onboarding_main.php',
+    __DIR__ . '/admin/01_main_pages.php',
     __DIR__ . '/admin/02_profile_config.php',
     __DIR__ . '/admin/03_finance_billing.php',
     __DIR__ . '/admin/04_sysadmin_views.php',

@@ -8,9 +8,8 @@ use Application\Models\Lancamento;
 use Application\Repositories\CategoriaRepository;
 use Application\Repositories\ContaRepository;
 use Application\Repositories\LancamentoRepository;
-use Application\Services\Financeiro\MetaProgressService;
+use Application\Services\Metas\MetaProgressService;
 use Application\Services\Lancamento\LancamentoLimitService;
-use Application\Services\User\OnboardingProgressService;
 use Application\UseCases\Lancamentos\CreateLancamentoUseCase;
 use DomainException;
 use Mockery;
@@ -28,20 +27,17 @@ class CreateLancamentoUseCaseTest extends TestCase
         $categoriaRepo = Mockery::mock(CategoriaRepository::class);
         $contaRepo = Mockery::mock(ContaRepository::class);
         $metaProgressService = Mockery::mock(MetaProgressService::class);
-        $onboardingProgressService = Mockery::mock(OnboardingProgressService::class);
 
         $limitService->shouldNotReceive('assertCanCreate');
         $lancamentoRepo->shouldNotReceive('create');
         $metaProgressService->shouldNotReceive('recalculateMeta');
-        $onboardingProgressService->shouldNotReceive('markLancamentoCreated');
 
         $useCase = new CreateLancamentoUseCase(
             $limitService,
             $lancamentoRepo,
             $categoriaRepo,
             $contaRepo,
-            $metaProgressService,
-            $onboardingProgressService
+            $metaProgressService
         );
 
         $result = $useCase->execute(10, []);
@@ -61,7 +57,6 @@ class CreateLancamentoUseCaseTest extends TestCase
         $categoriaRepo = Mockery::mock(CategoriaRepository::class);
         $contaRepo = Mockery::mock(ContaRepository::class);
         $metaProgressService = Mockery::mock(MetaProgressService::class);
-        $onboardingProgressService = Mockery::mock(OnboardingProgressService::class);
 
         $contaRepo->shouldReceive('belongsToUser')->once()->with(22, 10)->andReturnTrue();
         $limitService->shouldReceive('assertCanCreate')
@@ -70,15 +65,13 @@ class CreateLancamentoUseCaseTest extends TestCase
             ->andThrow(new DomainException('Limite mensal atingido.'));
         $lancamentoRepo->shouldNotReceive('create');
         $metaProgressService->shouldNotReceive('recalculateMeta');
-        $onboardingProgressService->shouldNotReceive('markLancamentoCreated');
 
         $useCase = new CreateLancamentoUseCase(
             $limitService,
             $lancamentoRepo,
             $categoriaRepo,
             $contaRepo,
-            $metaProgressService,
-            $onboardingProgressService
+            $metaProgressService
         );
 
         $result = $useCase->execute(10, [
@@ -101,7 +94,6 @@ class CreateLancamentoUseCaseTest extends TestCase
         $categoriaRepo = Mockery::mock(CategoriaRepository::class);
         $contaRepo = Mockery::mock(ContaRepository::class);
         $metaProgressService = Mockery::mock(MetaProgressService::class);
-        $onboardingProgressService = Mockery::mock(OnboardingProgressService::class);
 
         $contaRepo->shouldReceive('belongsToUser')->once()->with(22, 10)->andReturnTrue();
         $categoriaRepo->shouldReceive('belongsToUser')->once()->with(33, 10)->andReturnTrue();
@@ -114,7 +106,6 @@ class CreateLancamentoUseCaseTest extends TestCase
             return $lancamento;
         });
         $metaProgressService->shouldNotReceive('recalculateMeta');
-        $onboardingProgressService->shouldReceive('markLancamentoCreated')->once()->with(10, '2026-03-31 12:00:00');
         $limitService->shouldReceive('usage')->once()->with(10, '2026-03')->andReturn(['should_warn' => true]);
         $limitService->shouldReceive('getWarningMessage')->once()->with(['should_warn' => true])->andReturn('Perto do limite');
         $limitService->shouldReceive('getUpgradeCta')->once()->andReturn('/premium');
@@ -124,8 +115,7 @@ class CreateLancamentoUseCaseTest extends TestCase
             $lancamentoRepo,
             $categoriaRepo,
             $contaRepo,
-            $metaProgressService,
-            $onboardingProgressService
+            $metaProgressService
         );
 
         $result = $useCase->execute(10, [

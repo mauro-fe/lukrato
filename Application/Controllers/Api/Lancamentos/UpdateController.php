@@ -8,7 +8,7 @@ use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Repositories\ContaRepository;
 use Application\Repositories\LancamentoRepository;
-use Application\Services\Financeiro\MetaProgressService;
+use Application\Services\Metas\MetaProgressService;
 use Application\Services\Lancamento\LancamentoUpdateService;
 use Application\UseCases\Lancamentos\UpdateTransferenciaUseCase;
 

@@ -7,8 +7,7 @@ namespace Application\Services\Conta;
 use Application\Models\Conta;
 use Application\Models\Lancamento;
 use Application\Repositories\ContaRepository;
-use Application\Services\Financeiro\MetaProgressService;
-use Application\Services\User\OnboardingProgressService;
+use Application\Services\Metas\MetaProgressService;
 use Illuminate\Database\Capsule\Manager as DB;
 use Throwable;
 use ValueError;
@@ -16,16 +15,13 @@ use ValueError;
 class TransferenciaService
 {
     private ContaRepository $contaRepo;
-    private OnboardingProgressService $onboardingProgressService;
     private MetaProgressService $metaProgressService;
 
     public function __construct(
         ?ContaRepository $contaRepo = null,
-        ?OnboardingProgressService $onboardingProgressService = null,
         ?MetaProgressService $metaProgressService = null
     ) {
         $this->contaRepo = $contaRepo ?? new ContaRepository();
-        $this->onboardingProgressService = $onboardingProgressService ?? new OnboardingProgressService();
         $this->metaProgressService = $metaProgressService ?? new MetaProgressService();
     }
 
@@ -104,7 +100,6 @@ class TransferenciaService
             }
 
             DB::commit();
-            $this->syncOnboardingLancamentoCreated($userId, $transferencia->created_at);
 
             return $transferencia;
         } catch (Throwable $e) {
@@ -178,17 +173,5 @@ class TransferenciaService
             ->orderBy('data', 'desc')
             ->orderBy('id', 'desc')
             ->get();
-    }
-
-    private function syncOnboardingLancamentoCreated(int $userId, \DateTimeInterface|string|null $createdAt = null): void
-    {
-        try {
-            $this->onboardingProgressService->markLancamentoCreated($userId, $createdAt);
-        } catch (Throwable $e) {
-            \Application\Services\Infrastructure\LogService::captureException($e, \Application\Enums\LogCategory::GENERAL, [
-                'action' => 'sync_onboarding_transferencia_created',
-                'user_id' => $userId,
-            ]);
-        }
     }
 }

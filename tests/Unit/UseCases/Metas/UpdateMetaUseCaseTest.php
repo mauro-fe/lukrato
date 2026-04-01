@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\UseCases\Metas;
 
-use Application\Services\Financeiro\MetaService;
+use Application\Services\Metas\MetaService;
 use Application\UseCases\Metas\UpdateMetaUseCase;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;

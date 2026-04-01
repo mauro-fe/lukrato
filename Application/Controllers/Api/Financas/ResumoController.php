@@ -7,7 +7,7 @@ namespace Application\Controllers\Api\Financas;
 use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Services\Demo\DemoPreviewService;
-use Application\Services\Financeiro\MetaService;
+use Application\Services\Metas\MetaService;
 use Application\Services\Orcamentos\OrcamentoService;
 use Application\UseCases\Financas\GetFinancasInsightsUseCase;
 use Application\UseCases\Financas\GetFinancasResumoUseCase;

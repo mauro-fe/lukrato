@@ -6,7 +6,7 @@ namespace Application\Services\Lancamento;
 
 use Application\Models\Lancamento;
 use Application\Repositories\LancamentoRepository;
-use Application\Services\Financeiro\MetaProgressService;
+use Application\Services\Metas\MetaProgressService;
 use Illuminate\Database\Capsule\Manager as DB;
 
 /**

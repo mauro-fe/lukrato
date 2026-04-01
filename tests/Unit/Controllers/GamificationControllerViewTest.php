@@ -42,7 +42,7 @@ class GamificationControllerViewTest extends TestCase
         $this->assertSame('text/html; charset=utf-8', $response->getHeaders()['Content-Type'] ?? null);
         $this->assertSame('gamification-view', $response->getContent());
         $this->assertSame('admin/gamification/index', $controller->viewPath);
-        $this->assertSame('Gamificacao - Lukrato', $controller->viewData['pageTitle'] ?? null);
+        $this->assertSame('Gamificação - Lukrato', $controller->viewData['pageTitle'] ?? null);
     }
 
     public function testIndexThrowsRedirectResponseWhenSessionIsMissing(): void

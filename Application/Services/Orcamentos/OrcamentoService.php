@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Application\Services\Orcamentos;
 
 use Application\Models\Categoria;
-use Application\Models\Lancamento;
 use Application\Models\OrcamentoCategoria;
 use Application\Repositories\OrcamentoRepository;
 use Application\Services\Plan\PlanLimitService;
@@ -20,11 +19,20 @@ class OrcamentoService
 {
     protected OrcamentoRepository $repo;
     protected PlanLimitService $planLimit;
+    protected OrcamentoMetricsService $metricsService;
+    private ?OrcamentoInsightService $insightService = null;
 
-    public function __construct()
+    public function __construct(
+        ?OrcamentoRepository $repo = null,
+        ?PlanLimitService $planLimit = null,
+        ?OrcamentoMetricsService $metricsService = null,
+        ?OrcamentoInsightService $insightService = null
+    )
     {
-        $this->repo = new OrcamentoRepository();
-        $this->planLimit = new PlanLimitService();
+        $this->repo = $repo ?? new OrcamentoRepository();
+        $this->planLimit = $planLimit ?? new PlanLimitService();
+        $this->metricsService = $metricsService ?? new OrcamentoMetricsService();
+        $this->insightService = $insightService;
     }
 
     /**
@@ -81,23 +89,14 @@ class OrcamentoService
     public function salvar(int $userId, int $categoriaId, int $mes, int $ano, array $data): array
     {
         // Verificar se já existe orçamento para esta categoria/mês/ano
-        $existente = OrcamentoCategoria::where('user_id', $userId)
-            ->where('categoria_id', $categoriaId)
-            ->where('mes', $mes)
-            ->where('ano', $ano)
-            ->exists();
+        $existente = $this->repo->existsByCategoriaAndMonth($userId, $categoriaId, $mes, $ano);
 
         // Se não existe, validar limite do plano antes de criar
         if (!$existente) {
             $this->planLimit->assertCanCreateOrcamento($userId);
         }
 
-        $orc = $this->repo->upsert($userId, $categoriaId, $mes, $ano, [
-            'valor_limite' => (float) ($data['valor_limite'] ?? 0),
-            'rollover'     => (bool) ($data['rollover'] ?? false),
-            'alerta_80'    => (bool) ($data['alerta_80'] ?? true),
-            'alerta_100'   => (bool) ($data['alerta_100'] ?? true),
-        ]);
+        $this->repo->upsert($userId, $categoriaId, $mes, $ano, $this->buildUpsertPayload($data));
 
         return $this->listarComProgresso($userId, $mes, $ano);
     }
@@ -110,23 +109,10 @@ class OrcamentoService
     public function salvarMultiplos(int $userId, int $mes, int $ano, array $orcamentos): array
     {
         // Contar quantos novos orçamentos serão criados (que não existem ainda)
-        $novosCount = 0;
-        foreach ($orcamentos as $item) {
-            $catId = (int) ($item['categoria_id'] ?? 0);
-            $valor = (float) ($item['valor_limite'] ?? 0);
-
-            if ($catId <= 0 || $valor <= 0) continue;
-
-            $existente = OrcamentoCategoria::where('user_id', $userId)
-                ->where('categoria_id', $catId)
-                ->where('mes', $mes)
-                ->where('ano', $ano)
-                ->exists();
-
-            if (!$existente) {
-                $novosCount++;
-            }
-        }
+        $orcamentosNormalizados = $this->normalizeBulkOrcamentos($orcamentos);
+        $categoriaIds = array_keys($orcamentosNormalizados);
+        $existingIds = $this->repo->getExistingCategoriaIdsForMonth($userId, $mes, $ano, $categoriaIds);
+        $novosCount = count(array_diff($categoriaIds, $existingIds));
 
         // Verificar se o limite será excedido
         if ($novosCount > 0) {
@@ -145,18 +131,14 @@ class OrcamentoService
             }
         }
 
-        foreach ($orcamentos as $item) {
-            $catId = (int) ($item['categoria_id'] ?? 0);
-            $valor = (float) ($item['valor_limite'] ?? 0);
-
-            if ($catId <= 0 || $valor <= 0) continue;
-
-            $this->repo->upsert($userId, $catId, $mes, $ano, [
-                'valor_limite' => $valor,
-                'rollover'     => (bool) ($item['rollover'] ?? false),
-                'alerta_80'    => (bool) ($item['alerta_80'] ?? true),
-                'alerta_100'   => (bool) ($item['alerta_100'] ?? true),
-            ]);
+        foreach ($orcamentosNormalizados as $item) {
+            $this->repo->upsert(
+                $userId,
+                $item['categoria_id'],
+                $mes,
+                $ano,
+                $this->buildUpsertPayload($item)
+            );
         }
 
         return $this->listarComProgresso($userId, $mes, $ano);
@@ -235,12 +217,12 @@ class OrcamentoService
 
             if ($catId <= 0 || $valor <= 0) continue;
 
-            $this->repo->upsert($userId, $catId, $mes, $ano, [
+            $this->repo->upsert($userId, $catId, $mes, $ano, $this->buildUpsertPayload([
                 'valor_limite' => $valor,
                 'rollover'     => false,
                 'alerta_80'    => true,
                 'alerta_100'   => true,
-            ]);
+            ]));
         }
 
         return $this->listarComProgresso($userId, $mes, $ano);
@@ -296,80 +278,12 @@ class OrcamentoService
      */
     public function getInsights(int $userId, int $mes, int $ano): array
     {
-        $insights = [];
-        $orcamentos = $this->listarComProgresso($userId, $mes, $ano);
-
-        // Dados do mês anterior
-        $mesAnterior = $mes === 1 ? 12 : $mes - 1;
-        $anoAnterior = $mes === 1 ? $ano - 1 : $ano;
-
-        foreach ($orcamentos as $orc) {
-            $gastoAnterior = $this->repo->getGastoRealComFallback(
-                $userId,
-                $orc['categoria_id'],
-                $mesAnterior,
-                $anoAnterior
-            );
-
-            // Insight: categoria perto de estourar
-            if ($orc['percentual'] >= 80 && $orc['percentual'] < 100) {
-                $disponivel = $orc['disponivel'];
-                $insights[] = [
-                    'tipo'      => 'alerta',
-                    'categoria_id' => $orc['categoria_id'],
-                    'icone'     => 'triangle-alert',
-                    'cor'       => '#f59e0b',
-                    'titulo'    => "{$orc['categoria_nome']} está em {$orc['percentual']}%",
-                    'mensagem'  => "Restam R$ " . number_format($disponivel, 2, ',', '.') . " nesta categoria",
-                ];
-            }
-
-            // Insight: categoria estourada
-            if ($orc['percentual'] > 100) {
-                $insights[] = [
-                    'tipo'      => 'perigo',
-                    'categoria_id' => $orc['categoria_id'],
-                    'icone'     => 'circle-alert',
-                    'cor'       => '#ef4444',
-                    'titulo'    => "{$orc['categoria_nome']} estourou o orçamento!",
-                    'mensagem'  => "Excedido em R$ " . number_format($orc['excedido'], 2, ',', '.'),
-                ];
-            }
-
-            // Insight: comparativo com mês anterior
-            if ($gastoAnterior > 0 && $orc['gasto_real'] > 0) {
-                $variacao = (($orc['gasto_real'] - $gastoAnterior) / $gastoAnterior) * 100;
-                if (abs($variacao) >= 20) {
-                    $direcao = $variacao > 0 ? 'mais' : 'menos';
-                    $insights[] = [
-                        'tipo'      => $variacao > 0 ? 'info' : 'positivo',
-                        'categoria_id' => $orc['categoria_id'],
-                        'icone'     => $variacao > 0 ? 'trending-up' : 'trending-down',
-                        'cor'       => $variacao > 0 ? '#f97316' : '#10b981',
-                        'titulo'    => "{$orc['categoria_nome']}: " . abs(round($variacao)) . "% {$direcao}",
-                        'mensagem'  => "Comparado ao mês anterior",
-                    ];
-                }
-            }
-
-            // Insight: categoria com bastante folga
-            if ($orc['percentual'] <= 30 && $orc['gasto_real'] > 0) {
-                $insights[] = [
-                    'tipo'      => 'positivo',
-                    'categoria_id' => $orc['categoria_id'],
-                    'icone'     => 'circle-check',
-                    'cor'       => '#10b981',
-                    'titulo'    => "{$orc['categoria_nome']} está sob controle",
-                    'mensagem'  => "Apenas {$orc['percentual']}% utilizado",
-                ];
-            }
-        }
-
-        // Ordenar: perigos primeiro, alertas depois, positivos por último
-        $prioridade = ['perigo' => 0, 'alerta' => 1, 'info' => 2, 'positivo' => 3];
-        usort($insights, fn($a, $b) => ($prioridade[$a['tipo']] ?? 9) <=> ($prioridade[$b['tipo']] ?? 9));
-
-        return array_slice($insights, 0, 8); // Máximo 8 insights
+        return $this->insightService()->generate(
+            $userId,
+            $mes,
+            $ano,
+            $this->listarComProgresso($userId, $mes, $ano)
+        );
     }
 
     // ============================================================
@@ -381,16 +295,7 @@ class OrcamentoService
      */
     protected function calcularRollover(int $userId, int $categoriaId, int $mes, int $ano): float
     {
-        $mesAnterior = $mes === 1 ? 12 : $mes - 1;
-        $anoAnterior = $mes === 1 ? $ano - 1 : $ano;
-
-        $orcAnterior = $this->repo->findByCategoriaAndMonth($userId, $categoriaId, $mesAnterior, $anoAnterior);
-        if (!$orcAnterior) return 0;
-
-        $gastoAnterior = $this->repo->getGastoRealComFallback($userId, $categoriaId, $mesAnterior, $anoAnterior);
-        $sobra = $orcAnterior->valor_limite - $gastoAnterior;
-
-        return max(0, round($sobra, 2));
+        return $this->metricsService->calcularRollover($this->repo, $userId, $categoriaId, $mes, $ano);
     }
 
     /**
@@ -398,33 +303,7 @@ class OrcamentoService
      */
     protected function calcularTendencia(int $userId, int $categoriaId): string
     {
-        $gastos = [];
-        for ($i = 3; $i >= 1; $i--) {
-            $date = new \DateTime();
-            $date->modify("-{$i} months");
-            $gastos[] = $this->repo->getGastoRealComFallback(
-                $userId,
-                $categoriaId,
-                (int)$date->format('m'),
-                (int)$date->format('Y')
-            );
-        }
-
-        if (count(array_filter($gastos)) < 2) return 'insuficiente';
-
-        // Usar todos os meses (incluindo zeros) para cálculo correto de tendência
-        if (count($gastos) < 2) return 'estavel';
-
-        $ultimo = $gastos[count($gastos) - 1];
-        $penultimo = $gastos[count($gastos) - 2];
-
-        if ($penultimo == 0) return 'estavel';
-
-        $variacao = (($ultimo - $penultimo) / $penultimo) * 100;
-
-        if ($variacao > 15) return 'subindo';
-        if ($variacao < -15) return 'descendo';
-        return 'estavel';
+        return $this->metricsService->calcularTendencia($this->repo, $userId, $categoriaId);
     }
 
     /**
@@ -432,10 +311,7 @@ class OrcamentoService
      */
     protected function getStatusOrcamento(float $percentual): string
     {
-        if ($percentual >= 100) return 'estourado';
-        if ($percentual >= 80) return 'alerta';
-        if ($percentual >= 50) return 'atencao';
-        return 'ok';
+        return $this->metricsService->getStatusOrcamento($percentual);
     }
 
     /**
@@ -443,23 +319,58 @@ class OrcamentoService
      */
     protected function calcularSaudeFinanceira(array $orcamentos): array
     {
-        if (empty($orcamentos)) {
-            return ['score' => 100, 'label' => 'Excelente', 'cor' => '#10b981'];
+        return $this->metricsService->calcularSaudeFinanceira($orcamentos);
+    }
+
+    private function insightService(): OrcamentoInsightService
+    {
+        if ($this->insightService === null) {
+            $this->insightService = new OrcamentoInsightService($this->repo);
         }
 
-        $scores = [];
-        foreach ($orcamentos as $orc) {
-            if ($orc['percentual'] <= 50) $scores[] = 100;
-            elseif ($orc['percentual'] <= 80) $scores[] = 70;
-            elseif ($orc['percentual'] <= 100) $scores[] = 40;
-            else $scores[] = max(0, 20 - ($orc['percentual'] - 100));
+        return $this->insightService;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return array{valor_limite: float, rollover: bool, alerta_80: bool, alerta_100: bool}
+     */
+    private function buildUpsertPayload(array $data): array
+    {
+        return [
+            'valor_limite' => round((float) ($data['valor_limite'] ?? 0), 2),
+            'rollover'     => (bool) ($data['rollover'] ?? false),
+            'alerta_80'    => (bool) ($data['alerta_80'] ?? true),
+            'alerta_100'   => (bool) ($data['alerta_100'] ?? true),
+        ];
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $orcamentos
+     * @return array<int, array{categoria_id:int, valor_limite:float, rollover:bool, alerta_80:bool, alerta_100:bool}>
+     */
+    private function normalizeBulkOrcamentos(array $orcamentos): array
+    {
+        $normalized = [];
+
+        foreach ($orcamentos as $item) {
+            $catId = (int) ($item['categoria_id'] ?? 0);
+            $valor = round((float) ($item['valor_limite'] ?? 0), 2);
+
+            if ($catId <= 0 || $valor <= 0) {
+                continue;
+            }
+
+            // Mantem o ultimo payload para a categoria sem contar duplicados no limite.
+            $normalized[$catId] = [
+                'categoria_id' => $catId,
+                'valor_limite' => $valor,
+                'rollover'     => (bool) ($item['rollover'] ?? false),
+                'alerta_80'    => (bool) ($item['alerta_80'] ?? true),
+                'alerta_100'   => (bool) ($item['alerta_100'] ?? true),
+            ];
         }
 
-        $score = round(array_sum($scores) / count($scores));
-
-        if ($score >= 80) return ['score' => $score, 'label' => 'Excelente', 'cor' => '#10b981'];
-        if ($score >= 60) return ['score' => $score, 'label' => 'Bom', 'cor' => '#3b82f6'];
-        if ($score >= 40) return ['score' => $score, 'label' => 'Atenção', 'cor' => '#f59e0b'];
-        return ['score' => $score, 'label' => 'Crítico', 'cor' => '#ef4444'];
+        return $normalized;
     }
 }

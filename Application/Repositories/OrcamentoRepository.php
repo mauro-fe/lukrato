@@ -50,6 +50,34 @@ class OrcamentoRepository extends BaseRepository
             ->first();
     }
 
+    public function existsByCategoriaAndMonth(int $userId, int $categoriaId, int $mes, int $ano): bool
+    {
+        return $this->query()
+            ->forUser($userId)
+            ->where('categoria_id', $categoriaId)
+            ->doMes($mes, $ano)
+            ->exists();
+    }
+
+    /**
+     * @param int[] $categoriaIds
+     * @return int[]
+     */
+    public function getExistingCategoriaIdsForMonth(int $userId, int $mes, int $ano, array $categoriaIds): array
+    {
+        if ($categoriaIds === []) {
+            return [];
+        }
+
+        return $this->query()
+            ->forUser($userId)
+            ->doMes($mes, $ano)
+            ->whereIn('categoria_id', $categoriaIds)
+            ->pluck('categoria_id')
+            ->map(static fn(mixed $id): int => (int) $id)
+            ->all();
+    }
+
     /**
      * Cria ou atualiza orçamento (upsert)
      */

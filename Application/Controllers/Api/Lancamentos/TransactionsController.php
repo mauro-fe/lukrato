@@ -10,9 +10,8 @@ use Application\Repositories\CategoriaRepository;
 use Application\Repositories\ContaRepository;
 use Application\Repositories\LancamentoRepository;
 use Application\Services\Conta\TransferenciaService;
-use Application\Services\Financeiro\MetaProgressService;
+use Application\Services\Metas\MetaProgressService;
 use Application\Services\Lancamento\LancamentoLimitService;
-use Application\Services\User\OnboardingProgressService;
 use Application\UseCases\Lancamentos\CreateLancamentoUseCase;
 use Application\UseCases\Lancamentos\CreateTransferenciaUseCase;
 use Application\UseCases\Lancamentos\UpdateLancamentoUseCase;
@@ -25,7 +24,6 @@ class TransactionsController extends ApiController
     private LancamentoRepository $lancamentoRepo;
     private CategoriaRepository $categoriaRepo;
     private ContaRepository $contaRepo;
-    private OnboardingProgressService $onboardingProgressService;
     private MetaProgressService $metaProgressService;
     private CreateLancamentoUseCase $createLancamentoUseCase;
     private UpdateLancamentoUseCase $updateLancamentoUseCase;
@@ -37,7 +35,6 @@ class TransactionsController extends ApiController
         ?LancamentoRepository $lancamentoRepo = null,
         ?CategoriaRepository $categoriaRepo = null,
         ?ContaRepository $contaRepo = null,
-        ?OnboardingProgressService $onboardingProgressService = null,
         ?MetaProgressService $metaProgressService = null,
         ?CreateLancamentoUseCase $createLancamentoUseCase = null,
         ?UpdateLancamentoUseCase $updateLancamentoUseCase = null,
@@ -49,7 +46,6 @@ class TransactionsController extends ApiController
         $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
         $this->categoriaRepo = $categoriaRepo ?? new CategoriaRepository();
         $this->contaRepo = $contaRepo ?? new ContaRepository();
-        $this->onboardingProgressService = $onboardingProgressService ?? new OnboardingProgressService();
         $this->metaProgressService = $metaProgressService ?? new MetaProgressService();
         $this->createLancamentoUseCase = $createLancamentoUseCase
             ?? new CreateLancamentoUseCase(
@@ -57,8 +53,7 @@ class TransactionsController extends ApiController
                 $this->lancamentoRepo,
                 $this->categoriaRepo,
                 $this->contaRepo,
-                $this->metaProgressService,
-                $this->onboardingProgressService
+                $this->metaProgressService
             );
         $this->updateLancamentoUseCase = $updateLancamentoUseCase
             ?? new UpdateLancamentoUseCase(

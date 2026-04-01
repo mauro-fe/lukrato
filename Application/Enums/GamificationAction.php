@@ -21,7 +21,6 @@ enum GamificationAction: string
     case STREAK_30_DAYS = 'streak_30_days';
     case POSITIVE_MONTH = 'positive_month';
     case LEVEL_UP = 'level_up';
-    case COMPLETE_ONBOARDING = 'complete_onboarding';
 
     /**
      * Pontos ganhos por cada ação (Plano Free)
@@ -40,7 +39,6 @@ enum GamificationAction: string
             self::STREAK_30_DAYS => 150,
             self::POSITIVE_MONTH => 75,
             self::LEVEL_UP => 0,
-            self::COMPLETE_ONBOARDING => 50,
         };
     }
 
@@ -61,7 +59,6 @@ enum GamificationAction: string
             self::STREAK_30_DAYS => 250,
             self::POSITIVE_MONTH => 100,
             self::LEVEL_UP => 0,
-            self::COMPLETE_ONBOARDING => 75,
         };
     }
 
@@ -93,7 +90,6 @@ enum GamificationAction: string
             self::STREAK_30_DAYS => '30 dias ativos',
             self::POSITIVE_MONTH => 'Mês com saldo positivo',
             self::LEVEL_UP => 'Subiu de nível',
-            self::COMPLETE_ONBOARDING => 'Completou o onboarding',
         };
     }
 

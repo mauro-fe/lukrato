@@ -11,9 +11,8 @@ use Application\Models\Lancamento;
 use Application\Models\Parcelamento;
 use Application\Repositories\LancamentoRepository;
 use Application\Repositories\ParcelamentoRepository;
-use Application\Services\Financeiro\MetaProgressService;
+use Application\Services\Metas\MetaProgressService;
 use Application\Services\Infrastructure\LogService;
-use Application\Services\User\OnboardingProgressService;
 use Application\Support\FaturaHelper;
 use Illuminate\Database\Capsule\Manager as DB;
 
@@ -31,18 +30,15 @@ class LancamentoDeletionService
 {
     private LancamentoRepository $lancamentoRepo;
     private ParcelamentoRepository $parcelamentoRepo;
-    private OnboardingProgressService $onboardingProgressService;
     private MetaProgressService $metaProgressService;
 
     public function __construct(
         ?LancamentoRepository $lancamentoRepo = null,
         ?ParcelamentoRepository $parcelamentoRepo = null,
-        ?OnboardingProgressService $onboardingProgressService = null,
         ?MetaProgressService $metaProgressService = null
     ) {
         $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
         $this->parcelamentoRepo = $parcelamentoRepo ?? new ParcelamentoRepository();
-        $this->onboardingProgressService = $onboardingProgressService ?? new OnboardingProgressService();
         $this->metaProgressService = $metaProgressService ?? new MetaProgressService();
     }
 
@@ -90,7 +86,6 @@ class LancamentoDeletionService
         });
 
         $this->recalculateAffectedMetas($transactionResult['affected_meta_refs'] ?? []);
-        $this->syncOnboardingStateAfterDeletion($userId);
 
         return $transactionResult['result'] ?? [
             'ok' => false,
@@ -273,18 +268,6 @@ class LancamentoDeletionService
                 'lancamento_id' => $lancamento->id,
                 'cartao_id' => $lancamento->cartao_credito_id ?? null,
                 'user_id' => $lancamento->user_id,
-            ]);
-        }
-    }
-
-    private function syncOnboardingStateAfterDeletion(int $userId): void
-    {
-        try {
-            $this->onboardingProgressService->resyncState($userId);
-        } catch (\Throwable $e) {
-            LogService::captureException($e, LogCategory::GENERAL, [
-                'action' => 'resync_onboarding_after_lancamento_delete',
-                'user_id' => $userId,
             ]);
         }
     }

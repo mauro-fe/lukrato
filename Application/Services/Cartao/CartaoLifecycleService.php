@@ -4,18 +4,14 @@ declare(strict_types=1);
 
 namespace Application\Services\Cartao;
 
-use Application\Enums\LogCategory;
 use Application\Models\CartaoCredito;
-use Application\Services\Infrastructure\LogService;
-use Application\Services\User\OnboardingProgressService;
 use Illuminate\Database\Capsule\Manager as DB;
-use Throwable;
 
 class CartaoLifecycleService
 {
-    public function __construct(
-        private OnboardingProgressService $onboardingProgressService
-    ) {}
+    public function __construct()
+    {
+    }
 
     public function desativarCartao(int $cartaoId, int $userId): array
     {
@@ -129,7 +125,6 @@ class CartaoLifecycleService
             $cartao->delete();
         });
 
-        $this->syncOnboardingStateAfterDeletion($userId);
 
         return [
             'success' => true,
@@ -140,15 +135,4 @@ class CartaoLifecycleService
         ];
     }
 
-    private function syncOnboardingStateAfterDeletion(int $userId): void
-    {
-        try {
-            $this->onboardingProgressService->resyncState($userId);
-        } catch (Throwable $e) {
-            LogService::captureException($e, LogCategory::GENERAL, [
-                'action' => 'sync_onboarding_after_cartao_delete',
-                'user_id' => $userId,
-            ]);
-        }
-    }
 }

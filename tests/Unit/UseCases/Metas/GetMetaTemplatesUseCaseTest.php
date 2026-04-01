@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\UseCases\Metas;
 
 use Application\Models\Meta;
-use Application\Services\Financeiro\MetaService;
+use Application\Services\Metas\MetaService;
 use Application\UseCases\Metas\GetMetaTemplatesUseCase;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;

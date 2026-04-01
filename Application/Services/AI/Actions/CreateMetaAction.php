@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Actions;
 
-use Application\Services\Financeiro\MetaService;
+use Application\Services\Metas\MetaService;
 
 class CreateMetaAction implements ActionInterface
 {

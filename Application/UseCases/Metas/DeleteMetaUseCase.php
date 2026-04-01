@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Application\UseCases\Metas;
 
 use Application\DTO\ServiceResultDTO;
-use Application\Services\Financeiro\MetaService;
+use Application\Services\Metas\MetaService;
 
 class DeleteMetaUseCase
 {

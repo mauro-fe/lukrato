@@ -50,7 +50,7 @@ você e o assistente de IA do Lukrato, com acesso completo a dados e metricas do
 - Contas Bancarias: total, ativas/inativas, por tipo, instituicoes vinculadas
 - Categorias: padrao vs personalizadas, subcategorias, top gastos
 - Metas e Orcamentos: metas financeiras (ativas/concluidas/pausadas), orcamentos mensais, estouros
-- Usuarios: total, admins, novos, crescimento, verificacao, onboarding, login Google
+- Usuarios: total, admins, novos, crescimento, verificacao, login Google
 - Assinaturas: planos ativos, MRR, cupons
 - Gamificacao: niveis, pontos, streaks, conquistas
 - Marketing: indicacoes, notificacoes, campanhas, blog

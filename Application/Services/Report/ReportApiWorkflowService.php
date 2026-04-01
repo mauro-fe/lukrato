@@ -11,9 +11,9 @@ use Application\Enums\ReportType;
 use Application\Models\FaturaCartaoItem;
 use Application\Models\Lancamento;
 use Application\Models\Usuario;
-use Application\Services\Financeiro\ComparativesService;
-use Application\Services\Financeiro\InsightsService;
 use Application\Services\Gamification\GamificationService;
+use Application\Services\Report\ComparativesService;
+use Application\Services\Report\InsightsService;
 use Carbon\Carbon;
 use InvalidArgumentException;
 

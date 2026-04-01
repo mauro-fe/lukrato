@@ -42,7 +42,7 @@ class ErrorHandlerTest extends TestCase
         $this->assertInstanceOf(Response::class, $response);
         $this->assertSame(500, $response->getStatusCode());
         $this->assertSame('text/html; charset=utf-8', $response->getHeaders()['Content-Type']);
-        $this->assertStringContainsString('Erro na requisição', $response->getContent());
+        $this->assertStringContainsString('Erro na requisicao', $response->getContent());
         $this->assertStringContainsString('Falha no parser', $response->getContent());
     }
 
@@ -79,3 +79,4 @@ class ErrorHandlerTest extends TestCase
         $this->assertStringContainsString('validator=%5BREDACTED%5D', $contents);
     }
 }
+

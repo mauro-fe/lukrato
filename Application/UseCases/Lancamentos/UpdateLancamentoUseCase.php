@@ -11,7 +11,7 @@ use Application\Models\Meta;
 use Application\Repositories\CategoriaRepository;
 use Application\Repositories\ContaRepository;
 use Application\Repositories\LancamentoRepository;
-use Application\Services\Financeiro\MetaProgressService;
+use Application\Services\Metas\MetaProgressService;
 use Application\Validators\LancamentoValidator;
 use ValueError;
 

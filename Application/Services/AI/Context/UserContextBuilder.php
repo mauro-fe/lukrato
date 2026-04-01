@@ -69,7 +69,6 @@ class UserContextBuilder
                 'usuario_nome'   => $user->nome ?? 'Usuário',
                 'usuario_plano'  => $this->getUserPlan($userId),
                 'usuario_desde'  => $user->created_at?->format('d/m/Y') ?? 'N/A',
-                'onboarding'     => $user->onboarding_completed_at ? 'completo' : 'pendente',
             ];
         } catch (\Throwable) {
             return [];

@@ -13,6 +13,8 @@ use Application\Models\Categoria;
 use Application\Models\CartaoCredito;
 use Application\Models\Fatura;
 use Application\Models\PointsLog;
+use Application\Models\Meta;
+use Illuminate\Database\Eloquent\Builder;
 
 use Application\Enums\AchievementType;
 use Carbon\Carbon;
@@ -498,9 +500,7 @@ class AchievementService
 
     private function checkFirstMeta(int $userId): bool
     {
-        // TODO: Implementar quando houver tabela de metas
-        // return Meta::where('user_id', $userId)->count() >= 1;
-        return false;
+        return Meta::where('user_id', $userId)->exists();
     }
 
     private function checkTotalLaunches(int $userId, int $total): bool
@@ -579,9 +579,7 @@ class AchievementService
             $endOfMonth = $month->copy()->endOfMonth()->format('Y-m-d');
 
             // Precisa ter pelo menos 3 lançamentos no mês para validar
-            $totalLancamentos = Lancamento::where('user_id', $userId)
-                ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$monthStr])
-                ->count();
+            $totalLancamentos = $this->lancamentosByMonthQuery($userId, $monthStr)->count();
 
             if ($totalLancamentos < 3) {
                 continue;
@@ -638,22 +636,18 @@ class AchievementService
             $month = Carbon::now()->subMonths($i)->format('Y-m');
 
             // Precisa ter pelo menos 5 lançamentos no mês para validar economia
-            $totalLancamentos = Lancamento::where('user_id', $userId)
-                ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$month])
-                ->count();
+            $totalLancamentos = $this->lancamentosByMonthQuery($userId, $month)->count();
 
             if ($totalLancamentos < 5) continue;
 
-            $receitas = Lancamento::where('user_id', $userId)
+            $receitas = $this->lancamentosByMonthQuery($userId, $month)
                 ->where('tipo', 'receita')
-                ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$month])
                 ->sum('valor');
 
             if ($receitas <= 0) continue;
 
-            $despesas = Lancamento::where('user_id', $userId)
+            $despesas = $this->lancamentosByMonthQuery($userId, $month)
                 ->where('tipo', 'despesa')
-                ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$month])
                 ->sum('valor');
 
             // Precisa ter despesas registradas para validar economia
@@ -682,14 +676,12 @@ class AchievementService
         for ($i = 1; $i <= 24; $i++) {
             $month = Carbon::now()->subMonths($i)->format('Y-m');
 
-            $receitas = Lancamento::where('user_id', $userId)
+            $receitas = $this->lancamentosByMonthQuery($userId, $month)
                 ->where('tipo', 'receita')
-                ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$month])
                 ->sum('valor');
 
-            $despesas = Lancamento::where('user_id', $userId)
+            $despesas = $this->lancamentosByMonthQuery($userId, $month)
                 ->where('tipo', 'despesa')
-                ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$month])
                 ->sum('valor');
 
             if ($receitas > $despesas) {
@@ -716,9 +708,8 @@ class AchievementService
         for ($i = 1; $i <= 12; $i++) {
             $month = Carbon::now()->subMonths($i)->format('Y-m');
 
-            $totalDespesas = Lancamento::where('user_id', $userId)
+            $totalDespesas = $this->lancamentosByMonthQuery($userId, $month)
                 ->where('tipo', 'despesa')
-                ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$month])
                 ->count();
 
             // Precisa ter pelo menos 5 despesas no mês para validar
@@ -726,9 +717,8 @@ class AchievementService
                 continue;
             }
 
-            $despesasSemCategoria = Lancamento::where('user_id', $userId)
+            $despesasSemCategoria = $this->lancamentosByMonthQuery($userId, $month)
                 ->where('tipo', 'despesa')
-                ->whereRaw("DATE_FORMAT(data, '%Y-%m') = ?", [$month])
                 ->where(function ($q) {
                     $q->whereNull('categoria_id')
                         ->orWhere('categoria_id', 0);
@@ -806,8 +796,8 @@ class AchievementService
     private function checkEarlyBird(int $userId): bool
     {
         return Lancamento::where('user_id', $userId)
-            ->whereRaw("HOUR(created_at) < 6")
-            ->count() >= 1;
+            ->whereTime('created_at', '<', '06:00:00')
+            ->exists();
     }
 
     /**
@@ -816,8 +806,8 @@ class AchievementService
     private function checkNightOwl(int $userId): bool
     {
         return Lancamento::where('user_id', $userId)
-            ->whereRaw("HOUR(created_at) >= 23")
-            ->count() >= 1;
+            ->whereTime('created_at', '>=', '23:00:00')
+            ->exists();
     }
 
     /**
@@ -826,8 +816,9 @@ class AchievementService
     private function checkHoliday(int $userId, int $month, int $day): bool
     {
         return Lancamento::where('user_id', $userId)
-            ->whereRaw("MONTH(created_at) = ? AND DAY(created_at) = ?", [$month, $day])
-            ->count() >= 1;
+            ->whereMonth('created_at', $month)
+            ->whereDay('created_at', $day)
+            ->exists();
     }
 
     /**
@@ -835,10 +826,10 @@ class AchievementService
      */
     private function checkWeekendWarrior(int $userId): bool
     {
-        // DAYOFWEEK: 1 = Sunday, 7 = Saturday
-        return Lancamento::where('user_id', $userId)
-            ->whereRaw("DAYOFWEEK(created_at) IN (1, 7)")
-            ->count() >= 10;
+        return $this->applyWeekendFilter(
+            Lancamento::where('user_id', $userId),
+            'created_at'
+        )->count() >= 10;
     }
 
     /**
@@ -853,6 +844,32 @@ class AchievementService
             ->first();
 
         return $result !== null;
+    }
+
+    private function lancamentosByMonthQuery(int $userId, string $yearMonth): Builder
+    {
+        $month = Carbon::createFromFormat('Y-m', $yearMonth);
+
+        return Lancamento::where('user_id', $userId)
+            ->whereBetween('data', [
+                $month->copy()->startOfMonth()->toDateString(),
+                $month->copy()->endOfMonth()->toDateString(),
+            ]);
+    }
+
+    private function applyWeekendFilter(Builder $query, string $column): Builder
+    {
+        $driver = $query->getModel()->getConnection()->getDriverName();
+
+        if ($driver === 'sqlite') {
+            return $query->whereRaw("CAST(strftime('%w', {$column}) AS INTEGER) IN (0, 6)");
+        }
+
+        if ($driver === 'pgsql') {
+            return $query->whereRaw("EXTRACT(DOW FROM {$column}) IN (0, 6)");
+        }
+
+        return $query->whereRaw("DAYOFWEEK({$column}) IN (1, 7)");
     }
 
     /**

@@ -26,7 +26,7 @@ class ContextCompressor
         'meta|objetivo|orçamento|orcamento|budget|estourado' => ['metas', 'orcamentos'],
         'recorrência|recorrencia|fixa|fixo|mensal|semanal' => ['recorrencias', 'recorrencias_ativas'],
         // Usuários
-        'usuário|usuario|user|crescimento|cadastro|onboarding|verificação' => ['usuarios'],
+        'usuário|usuario|user|crescimento|cadastro|verificação' => ['usuarios'],
         // Assinaturas
         'assinatura|plano|premium|pro|mrr|receita recorrente' => ['assinaturas'],
         // Cupons

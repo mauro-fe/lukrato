@@ -14,12 +14,11 @@ use Application\Repositories\LancamentoRepository;
 use Application\DTO\Requests\CreateLancamentoDTO;
 use Application\Validators\LancamentoValidator;
 use Application\Services\Cartao\CartaoCreditoLancamentoService;
-use Application\Services\Financeiro\MetaProgressService;
+use Application\Services\Metas\MetaProgressService;
 use Application\Services\Gamification\GamificationService;
 use Application\Services\Gamification\AchievementService;
 use Application\Services\Plan\UserPlanService;
 use Application\Services\Infrastructure\LogService;
-use Application\Services\User\OnboardingProgressService;
 use Illuminate\Database\Capsule\Manager as DB;
 
 class LancamentoCreationService
@@ -30,7 +29,6 @@ class LancamentoCreationService
     private GamificationService $gamificationService;
     private LancamentoLimitService $limitService;
     private UserPlanService $planService;
-    private OnboardingProgressService $onboardingProgressService;
     private MetaProgressService $metaProgressService;
 
     public function __construct(
@@ -39,7 +37,6 @@ class LancamentoCreationService
         ?GamificationService $gamificationService = null,
         ?LancamentoLimitService $limitService = null,
         ?UserPlanService $planService = null,
-        ?OnboardingProgressService $onboardingProgressService = null,
         ?MetaProgressService $metaProgressService = null,
         ?LancamentoRecurrenceService $recurrenceService = null
     ) {
@@ -48,7 +45,6 @@ class LancamentoCreationService
         $this->gamificationService = $gamificationService ?? new GamificationService();
         $this->limitService = $limitService ?? new LancamentoLimitService();
         $this->planService = $planService ?? new UserPlanService();
-        $this->onboardingProgressService = $onboardingProgressService ?? new OnboardingProgressService();
         $this->metaProgressService = $metaProgressService ?? new MetaProgressService();
         $this->recurrenceService = $recurrenceService
             ?? new LancamentoRecurrenceService($this->lancamentoRepo, $this->metaProgressService);
@@ -347,7 +343,6 @@ class LancamentoCreationService
             $this->metaProgressService->recalculateMeta($userId, (int) $pai->meta_id, true);
         }
 
-        $this->syncOnboardingLancamentoCreated($userId, $pai->created_at);
 
         $gamification = $this->triggerGamification($userId, $pai->id);
 
@@ -392,7 +387,6 @@ class LancamentoCreationService
         }
 
         $lancamentos[0]->loadMissing(['categoria', 'conta']);
-        $this->syncOnboardingLancamentoCreated($userId, $lancamentos[0]->created_at ?? null);
 
         return ServiceResultDTO::ok(
             count($lancamentos) . ' lançamentos agendados com sucesso',
@@ -415,7 +409,6 @@ class LancamentoCreationService
             $this->metaProgressService->recalculateMeta($userId, (int) $lancamento->meta_id, true);
         }
 
-        $this->syncOnboardingLancamentoCreated($userId, $lancamento->created_at);
 
         $gamification = $this->triggerGamification($userId, $lancamento->id);
 
@@ -491,15 +484,4 @@ class LancamentoCreationService
         return $this->recurrenceService->estenderRecorrenciasInfinitas($horizonMonths);
     }
 
-    private function syncOnboardingLancamentoCreated(int $userId, \DateTimeInterface|string|null $createdAt = null): void
-    {
-        try {
-            $this->onboardingProgressService->markLancamentoCreated($userId, $createdAt);
-        } catch (\Throwable $e) {
-            LogService::captureException($e, LogCategory::GENERAL, [
-                'action' => 'sync_onboarding_lancamento_created',
-                'user_id' => $userId,
-            ]);
-        }
-    }
 }

@@ -6,7 +6,7 @@ namespace Tests\Unit\Controllers\Api\Metas;
 
 use Application\Controllers\Api\Metas\MetasController;
 use Application\Models\Usuario;
-use Application\Services\Financeiro\MetaService;
+use Application\Services\Metas\MetaService;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;

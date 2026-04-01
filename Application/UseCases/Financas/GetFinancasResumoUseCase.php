@@ -6,7 +6,7 @@ namespace Application\UseCases\Financas;
 
 use Application\DTO\ServiceResultDTO;
 use Application\Services\Demo\DemoPreviewService;
-use Application\Services\Financeiro\MetaService;
+use Application\Services\Metas\MetaService;
 use Application\Services\Orcamentos\OrcamentoService;
 
 class GetFinancasResumoUseCase

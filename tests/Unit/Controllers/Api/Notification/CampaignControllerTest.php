@@ -144,7 +144,7 @@ class CampaignControllerTest extends TestCase
         $controller = new CampaignController(Mockery::mock(NotificationService::class));
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Não autenticado');
+        $this->expectExceptionMessage('Nao autenticado');
 
         $controller->index();
     }

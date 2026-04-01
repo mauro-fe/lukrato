@@ -21,8 +21,8 @@ class RelatoriosController extends ApiController
         ?\Application\Builders\ReportExportBuilder $exportBuilder = null,
         ?\Application\Services\Report\PdfExportService $pdfExport = null,
         ?\Application\Services\Report\ExcelExportService $excelExport = null,
-        ?\Application\Services\Financeiro\InsightsService $insightsService = null,
-        ?\Application\Services\Financeiro\ComparativesService $comparativesService = null,
+        ?\Application\Services\Report\InsightsService $insightsService = null,
+        ?\Application\Services\Report\ComparativesService $comparativesService = null,
         private ?ReportApiWorkflowService $workflowService = null
     ) {
         parent::__construct();
@@ -31,8 +31,8 @@ class RelatoriosController extends ApiController
         $exportBuilder ??= new \Application\Builders\ReportExportBuilder();
         $pdfExport ??= new \Application\Services\Report\PdfExportService();
         $excelExport ??= new \Application\Services\Report\ExcelExportService();
-        $insightsService ??= new \Application\Services\Financeiro\InsightsService();
-        $comparativesService ??= new \Application\Services\Financeiro\ComparativesService();
+        $insightsService ??= new \Application\Services\Report\InsightsService();
+        $comparativesService ??= new \Application\Services\Report\ComparativesService();
 
         $this->workflowService ??= new ReportApiWorkflowService(
             $reportService,

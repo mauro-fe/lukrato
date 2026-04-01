@@ -8,7 +8,7 @@ use Application\DTO\ServiceResultDTO;
 use Application\Enums\LogCategory;
 use Application\Enums\Recorrencia;
 use Application\Repositories\LancamentoRepository;
-use Application\Services\Financeiro\MetaProgressService;
+use Application\Services\Metas\MetaProgressService;
 use Application\Services\Infrastructure\LogService;
 use Illuminate\Database\Capsule\Manager as DB;
 

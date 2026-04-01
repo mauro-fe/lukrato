@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\UseCases\Orcamentos;
 
-use Application\Services\Financeiro\OrcamentoService;
+use Application\Services\Orcamentos\OrcamentoService;
 use Application\UseCases\Orcamentos\BulkSaveOrcamentosUseCase;
 use DomainException;
 use Mockery;

@@ -10,7 +10,7 @@ use Application\Models\Lancamento;
 use Application\Models\Meta;
 use Application\Repositories\ContaRepository;
 use Application\Repositories\LancamentoRepository;
-use Application\Services\Financeiro\MetaProgressService;
+use Application\Services\Metas\MetaProgressService;
 use Application\Validators\LancamentoValidator;
 
 class UpdateTransferenciaUseCase

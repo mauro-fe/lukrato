@@ -28,7 +28,7 @@ Definida em `Application/Bootstrap/Application.php`:
 | Auth: recuperação de senha | `routes/auth/03_password_reset.php` |
 | Auth: exclusão de conta | `routes/auth/04_account_delete.php` |
 | Admin web (loader) | `routes/admin.php` |
-| Admin: onboarding + páginas principais | `routes/admin/01_onboarding_main.php` |
+| Admin: páginas principais | `routes/admin/01_main_pages.php` |
 | Admin: perfil + configurações | `routes/admin/02_profile_config.php` |
 | Admin: finanças + billing | `routes/admin/03_finance_billing.php` |
 | Admin: páginas sysadmin | `routes/admin/04_sysadmin_views.php` |

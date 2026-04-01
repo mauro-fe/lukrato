@@ -26,7 +26,6 @@ class UsuariosCollector implements ContextCollectorInterface
             : ($novosMes > 0 ? 100 : 0);
 
         $verificados  = Usuario::whereNotNull('email_verified_at')->count();
-        $onboardingOk = Usuario::whereNotNull('onboarding_completed_at')->count();
 
         return [
             'usuarios' => [
@@ -36,9 +35,7 @@ class UsuariosCollector implements ContextCollectorInterface
                 'novos_mes_anterior'       => $novosMesAnt,
                 'crescimento_percentual'   => $crescimento,
                 'emails_verificados'       => $verificados,
-                'onboarding_completo'      => $onboardingOk,
                 'taxa_verificacao'         => $total > 0 ? round(($verificados / $total) * 100, 1) : 0,
-                'taxa_onboarding'          => $total > 0 ? round(($onboardingOk / $total) * 100, 1) : 0,
             ],
         ];
     }

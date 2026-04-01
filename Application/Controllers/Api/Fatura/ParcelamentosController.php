@@ -13,26 +13,22 @@ use Application\Repositories\CategoriaRepository;
 use Application\Repositories\ContaRepository;
 use Application\Repositories\ParcelamentoRepository;
 use Application\Services\Infrastructure\LogService;
-use Application\Services\User\OnboardingProgressService;
 
 class ParcelamentosController extends ApiController
 {
     private ParcelamentoRepository $parcelamentoRepo;
     private CategoriaRepository $categoriaRepo;
     private ContaRepository $contaRepo;
-    private OnboardingProgressService $progressService;
 
     public function __construct(
         ?ParcelamentoRepository $parcelamentoRepo = null,
         ?CategoriaRepository $categoriaRepo = null,
-        ?ContaRepository $contaRepo = null,
-        ?OnboardingProgressService $progressService = null
+        ?ContaRepository $contaRepo = null
     ) {
         parent::__construct();
         $this->parcelamentoRepo = $parcelamentoRepo ?? new ParcelamentoRepository();
         $this->categoriaRepo = $categoriaRepo ?? new CategoriaRepository();
         $this->contaRepo = $contaRepo ?? new ContaRepository();
-        $this->progressService = $progressService ?? new OnboardingProgressService();
     }
 
     public function index(): Response
@@ -293,7 +289,6 @@ class ParcelamentosController extends ApiController
                     ->delete();
 
                 $parcelamento->delete();
-                $this->syncOnboardingStateAfterDeletion($userId);
 
                 return Response::successResponse([
                     'message' => "Parcelamento excluído completamente ({$excluidos} parcelas removidas)",
@@ -317,7 +312,6 @@ class ParcelamentosController extends ApiController
                     $this->parcelamentoRepo->atualizarParcelasPagas($id);
                 }
 
-                $this->syncOnboardingStateAfterDeletion($userId);
 
                 return Response::successResponse([
                     'message' => "{$excluidos} parcelas futuras removidas",
@@ -332,7 +326,6 @@ class ParcelamentosController extends ApiController
 
             $parcelamento->status = Parcelamento::STATUS_CANCELADO;
             $parcelamento->save();
-            $this->syncOnboardingStateAfterDeletion($userId);
 
             return Response::successResponse([
                 'message' => "Parcelamento cancelado ({$excluidos} parcelas pendentes removidas)",
@@ -348,15 +341,4 @@ class ParcelamentosController extends ApiController
         }
     }
 
-    private function syncOnboardingStateAfterDeletion(int $userId): void
-    {
-        try {
-            $this->progressService->resyncState($userId);
-        } catch (\Throwable $e) {
-            LogService::captureException($e, LogCategory::GENERAL, [
-                'action' => 'sync_onboarding_after_parcelamento_delete',
-                'user_id' => $userId,
-            ]);
-        }
-    }
 }

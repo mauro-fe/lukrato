@@ -10,7 +10,6 @@ use Application\DTO\CreateCartaoCreditoDTO;
 use Application\DTO\UpdateCartaoCreditoDTO;
 use Application\Validators\CartaoCreditoValidator;
 use Application\Services\Infrastructure\LogService;
-use Application\Services\User\OnboardingProgressService;
 use Application\Enums\LogCategory;
 use Illuminate\Database\Capsule\Manager as DB;
 use Throwable;
@@ -18,19 +17,16 @@ use Throwable;
 class CartaoCreditoService
 {
     private CartaoCreditoValidator $validator;
-    private OnboardingProgressService $onboardingProgressService;
     private CartaoLifecycleService $lifecycleService;
     private CartaoMonitoringService $monitoringService;
 
     public function __construct(
         ?CartaoCreditoValidator $validator = null,
-        ?OnboardingProgressService $onboardingProgressService = null,
         ?CartaoLifecycleService $lifecycleService = null,
         ?CartaoMonitoringService $monitoringService = null
     ) {
         $this->validator = $validator ?? new CartaoCreditoValidator();
-        $this->onboardingProgressService = $onboardingProgressService ?? new OnboardingProgressService();
-        $this->lifecycleService = $lifecycleService ?? new CartaoLifecycleService($this->onboardingProgressService);
+        $this->lifecycleService = $lifecycleService ?? new CartaoLifecycleService();
         $this->monitoringService = $monitoringService ?? new CartaoMonitoringService();
     }
 

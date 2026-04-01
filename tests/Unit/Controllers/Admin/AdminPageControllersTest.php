@@ -22,7 +22,6 @@ namespace Tests\Unit\Controllers\Admin {
     use Application\Controllers\Admin\FinancasController;
     use Application\Controllers\Admin\LancamentoController;
     use Application\Controllers\Admin\MetasController;
-    use Application\Controllers\Admin\OnboardingController;
     use Application\Controllers\Admin\OrcamentoController;
     use Application\Controllers\Admin\PerfilController;
     use Application\Controllers\Admin\RelatoriosController;
@@ -56,32 +55,6 @@ namespace Tests\Unit\Controllers\Admin {
             Auth::resolveUserUsing(null);
             $this->resetSessionState();
             parent::tearDown();
-        }
-
-        public function testOnboardingRedirectsToDashboardWhenAuthenticated(): void
-        {
-            $this->seedAuthenticatedSession(3101, 'Admin User');
-
-            $controller = new OnboardingController();
-            $response = $controller->index();
-
-            $this->assertSame(302, $response->getStatusCode());
-            $this->assertSame(BASE_URL . 'dashboard', $response->getHeaders()['Location'] ?? null);
-        }
-
-        public function testOnboardingRedirectsToLoginWhenSessionIsMissing(): void
-        {
-            $controller = new OnboardingController();
-
-            try {
-                $controller->index();
-                $this->fail('Expected HttpResponseException');
-            } catch (HttpResponseException $e) {
-                $response = $e->getResponse();
-
-                $this->assertSame(302, $response->getStatusCode());
-                $this->assertSame(BASE_URL . 'login', $response->getHeaders()['Location'] ?? null);
-            }
         }
 
         public function testBillingRedirectsToLoginWhenSessionIsMissing(): void

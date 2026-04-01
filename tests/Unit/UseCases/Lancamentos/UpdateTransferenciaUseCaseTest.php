@@ -6,7 +6,7 @@ namespace Tests\Unit\UseCases\Lancamentos;
 
 use Application\Repositories\ContaRepository;
 use Application\Repositories\LancamentoRepository;
-use Application\Services\Financeiro\MetaProgressService;
+use Application\Services\Metas\MetaProgressService;
 use Application\UseCases\Lancamentos\UpdateTransferenciaUseCase;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;

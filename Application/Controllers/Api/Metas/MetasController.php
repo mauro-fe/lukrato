@@ -7,7 +7,7 @@ namespace Application\Controllers\Api\Metas;
 use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Services\Demo\DemoPreviewService;
-use Application\Services\Financeiro\MetaService;
+use Application\Services\Metas\MetaService;
 use Application\UseCases\Metas\AddMetaAporteUseCase;
 use Application\UseCases\Metas\CreateMetaUseCase;
 use Application\UseCases\Metas\DeleteMetaUseCase;
