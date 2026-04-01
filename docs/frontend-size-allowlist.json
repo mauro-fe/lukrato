@@ -1,0 +1,30 @@
+{
+  "indexMaxLines": 150,
+  "fileMaxLines": 800,
+  "allowOverLimit": [
+    "resources/js/admin/auth/login/index.js",
+    "resources/js/admin/billing/index.js",
+    "resources/js/admin/card-modals/index.js",
+    "resources/js/admin/cartoes/ui.js",
+    "resources/js/admin/cartoes-arquivadas/index.js",
+    "resources/js/admin/contas-arquivadas/index.js",
+    "resources/js/admin/gamification/index.js",
+    "resources/js/admin/gamification-dashboard/index.js",
+    "resources/js/admin/global/first-visit-tooltips.js",
+    "resources/js/admin/global/gamification-global.js",
+    "resources/js/admin/global/help-center.js",
+    "resources/js/admin/global/session-manager.js",
+    "resources/js/admin/global/soft-ui-dashboard.js",
+    "resources/js/admin/global/support-button-v2.js",
+    "resources/js/admin/lancamento-global/index.js",
+    "resources/js/admin/lancamentos/features.js",
+    "resources/js/admin/lancamentos/index.js",
+    "resources/js/admin/lancamentos/mobile.js",
+    "resources/js/admin/lancamentos/modal.js",
+    "resources/js/admin/perfil/index.js",
+    "resources/js/admin/relatorios/index.js",
+    "resources/js/admin/sysadmin/communications.js",
+    "resources/js/admin/sysadmin/index.js",
+    "resources/js/site/card/index.js"
+  ]
+}

@@ -1,0 +1,73 @@
+const browserGlobals = {
+    window: 'readonly',
+    document: 'readonly',
+    navigator: 'readonly',
+    location: 'readonly',
+    history: 'readonly',
+    localStorage: 'readonly',
+    sessionStorage: 'readonly',
+    console: 'readonly',
+    fetch: 'readonly',
+    Headers: 'readonly',
+    Request: 'readonly',
+    Response: 'readonly',
+    URL: 'readonly',
+    URLSearchParams: 'readonly',
+    FormData: 'readonly',
+    Blob: 'readonly',
+    AbortController: 'readonly',
+    setTimeout: 'readonly',
+    clearTimeout: 'readonly',
+    setInterval: 'readonly',
+    clearInterval: 'readonly',
+    requestAnimationFrame: 'readonly',
+    cancelAnimationFrame: 'readonly',
+    CustomEvent: 'readonly',
+    Event: 'readonly',
+    KeyboardEvent: 'readonly',
+    MutationObserver: 'readonly',
+    IntersectionObserver: 'readonly',
+    ResizeObserver: 'readonly',
+    confirm: 'readonly',
+    alert: 'readonly',
+    prompt: 'readonly',
+};
+
+const legacyGlobals = {
+    Swal: 'readonly',
+    ApexCharts: 'readonly',
+    Chart: 'readonly',
+    bootstrap: 'readonly',
+    lucide: 'readonly',
+    L: 'readonly',
+    $: 'readonly',
+    jQuery: 'readonly',
+};
+
+export default [
+    {
+        files: ['resources/js/**/*.js'],
+        linterOptions: {
+            reportUnusedDisableDirectives: 'warn',
+        },
+        languageOptions: {
+            ecmaVersion: 'latest',
+            sourceType: 'module',
+            globals: {
+                ...browserGlobals,
+                ...legacyGlobals,
+            },
+        },
+        rules: {
+            'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+            'no-redeclare': 'warn',
+            'no-dupe-keys': 'warn',
+            'no-unreachable': 'warn',
+            'no-constant-condition': ['warn', { checkLoops: false }],
+            'no-empty': ['warn', { allowEmptyCatch: true }],
+            'no-var': 'warn',
+            'prefer-const': 'warn',
+            'no-irregular-whitespace': 'warn',
+        },
+    },
+];
