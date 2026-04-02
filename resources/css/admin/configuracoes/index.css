@@ -1,0 +1,15 @@
+/* ============================================================================
+   LUKRATO - Configuracoes Page CSS (Barrel)
+   ============================================================================
+   Stable entrypoint imported by resources/js/admin/configuracoes/index.js.
+   Uses shared profile foundation + configuracoes-specific modules.
+   ============================================================================ */
+
+@import '../perfil/_page-shell.css';
+@import '../perfil/_sections.css';
+@import '../perfil/_tabs.css';
+@import '../perfil/_customize.css';
+@import './_security.css';
+@import './_plan-referral.css';
+@import './_integrations.css';
+@import './_danger-zone.css';

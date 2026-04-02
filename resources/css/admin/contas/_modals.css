@@ -1,0 +1,100 @@
+/* ─── MODALS ──────────────────────────────────────────────────────────────── */
+
+.lk-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.5);
+  z-index: var(--z-modal, 400);
+  animation: fadeIn 0.2s ease-out;
+  padding: var(--spacing-4);
+}
+
+.lk-modal.open {
+  display: flex;
+}
+
+.lk-modal-card {
+  width: 100%;
+  max-width: 600px;
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-8);
+  box-shadow: var(--shadow-2xl);
+  animation: slideUp 0.3s ease-out;
+  color: var(--color-text);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.lk-modal-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-6);
+}
+
+.lk-modal-t {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.lk-modal-f {
+  display: flex;
+  gap: var(--spacing-3);
+  justify-content: flex-end;
+  margin-top: var(--spacing-6);
+  padding-top: var(--spacing-6);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lk-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-5);
+}
+
+.lk-form-grid .full {
+  grid-column: 1 / -1;
+}
+
+.lk-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.lk-field label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.lk-field input,
+.lk-field select {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-4);
+  font-size: var(--font-size-base);
+  transition: all var(--transition-fast);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.lk-field input:focus,
+.lk-field select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+.lk-field select option {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+

@@ -1,0 +1,23 @@
+/* ─── LIST HEADER (visible in list-view) ──────────────────────────────────── */
+
+.faturas-list-header {
+  display: none;
+}
+
+.faturas-list-header.visible {
+  display: grid !important;
+  grid-template-columns: 72px minmax(220px, 1.1fr) minmax(180px, 0.8fr) minmax(220px, 1fr) 150px 140px !important;
+  align-items: center !important;
+  gap: 1rem !important;
+  padding: 0.9rem 1.25rem !important;
+  margin-bottom: var(--spacing-2) !important;
+  border-radius: var(--radius-lg) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  color: var(--color-text-muted) !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+

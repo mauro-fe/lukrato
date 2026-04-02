@@ -1,0 +1,136 @@
+/* ─── LIST VIEW (toggle) ──────────────────────────────────────────────────── */
+
+.parcelamentos-grid.list-view {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.75rem !important;
+  grid-template-columns: none !important;
+}
+
+.parcelamentos-grid.list-view .parcelamento-card::before {
+  height: 100%;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--fatura-accent) 8%, transparent),
+    transparent 38%);
+}
+
+.parcelamentos-grid.list-view .parcelamento-card:hover {
+  transform: translateY(-1px);
+}
+
+.parcelamentos-grid.list-view .fatura-card-shell {
+  display: grid;
+  grid-template-columns: 72px minmax(220px, 1.1fr) minmax(180px, 0.8fr) minmax(220px, 1fr) 150px 140px;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.05rem 1.25rem;
+}
+
+.parcelamentos-grid.list-view .fatura-card-top {
+  display: contents;
+}
+
+.parcelamentos-grid.list-view .fatura-card-media {
+  grid-column: 1;
+}
+
+.parcelamentos-grid.list-view .fatura-card-brand {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+}
+
+.parcelamentos-grid.list-view .fatura-card-head {
+  display: none;
+}
+
+.parcelamentos-grid.list-view .fatura-list-info {
+  display: grid !important;
+  grid-column: 2;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.parcelamentos-grid.list-view .list-cartao-nome {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.parcelamentos-grid.list-view .list-periodo,
+.parcelamentos-grid.list-view .list-cartao-numero {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.parcelamentos-grid.list-view .fatura-resumo-principal {
+  grid-column: 3;
+  gap: 0;
+}
+
+.parcelamentos-grid.list-view .fatura-card-main {
+  gap: 0.35rem;
+}
+
+.parcelamentos-grid.list-view .resumo-label {
+  font-size: 0.68rem;
+}
+
+.parcelamentos-grid.list-view .resumo-valor {
+  font-size: 1.4rem;
+}
+
+.parcelamentos-grid.list-view .fatura-card-due-line {
+  gap: 0.45rem;
+  font-size: 0.8rem;
+}
+
+.parcelamentos-grid.list-view .fatura-card-note,
+.parcelamentos-grid.list-view .fatura-card-details {
+  display: none;
+}
+
+.parcelamentos-grid.list-view .parc-progress-section {
+  grid-column: 4;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+
+.parcelamentos-grid.list-view .parc-progress-header {
+  margin-bottom: 0.45rem;
+}
+
+.parcelamentos-grid.list-view .parc-progress-text,
+.parcelamentos-grid.list-view .parc-progress-percent {
+  font-size: 0.78rem;
+}
+
+.parcelamentos-grid.list-view .parc-progress-foot {
+  margin-top: 0.45rem;
+}
+
+.parcelamentos-grid.list-view .fatura-status-col {
+  display: flex !important;
+  grid-column: 5;
+  justify-content: center;
+}
+
+.parcelamentos-grid.list-view .parc-card-actions {
+  grid-column: 6;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.parcelamentos-grid.list-view .parc-btn {
+  width: auto;
+  min-width: 132px;
+}
+

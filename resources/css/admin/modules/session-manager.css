@@ -10,7 +10,7 @@
 /* ============================================================================
    CSS VARIABLES
    ============================================================================ */
-:root {
+#lk-session-container {
   --lk-session-backdrop: rgba(0, 0, 0, 0.6);
   --lk-session-dialog-bg: #ffffff;
   --lk-session-dialog-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
@@ -27,7 +27,7 @@
   --lk-session-btn-secondary-text: #374151;
 }
 
-[data-theme="dark"] {
+[data-theme="dark"] #lk-session-container {
   --lk-session-backdrop: rgba(0, 0, 0, 0.75);
   --lk-session-dialog-bg: #1f2937;
   --lk-session-dialog-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);

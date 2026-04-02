@@ -1,0 +1,100 @@
+/* ─── EMPTY & ERROR STATES ────────────────────────────────────────────────── */
+
+.empty-state {
+  grid-column: 1 / -1;
+  padding: var(--spacing-12) var(--spacing-6);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.empty-state .empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  margin-bottom: var(--spacing-2);
+}
+
+.empty-state .empty-icon i,
+.empty-state .empty-icon svg {
+  width: 32px;
+  height: 32px;
+  color: var(--color-primary);
+}
+
+.empty-state h3 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  max-width: 40ch;
+  line-height: 1.5;
+}
+
+.error-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-12) var(--spacing-6);
+  gap: var(--spacing-4);
+  text-align: center;
+  border-radius: var(--radius-lg);
+  border: 1px dashed color-mix(in srgb, var(--color-warning) 40%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 4%, transparent);
+}
+
+.error-state i,
+.error-state svg {
+  width: 40px;
+  height: 40px;
+  color: var(--color-warning);
+  opacity: 0.8;
+}
+
+.error-state .error-message {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-base);
+  margin: 0;
+}
+
+.error-state .btn-retry {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-6);
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.error-state .btn-retry:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+}
+
+.error-state .btn-retry i,
+.error-state .btn-retry svg {
+  width: 16px;
+  height: 16px;
+  color: white;
+  opacity: 1;
+}
+

@@ -1,0 +1,119 @@
+/* ─── RESPONSIVE ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 1024px) {
+  .cart-kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .cartoes-page {
+    padding: var(--spacing-4) var(--spacing-3);
+    gap: var(--spacing-4);
+  }
+
+  .cart-hero {
+    padding: var(--spacing-6) var(--spacing-4);
+  }
+
+  .cart-kpis {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-3);
+  }
+
+  .stat-card {
+    padding: var(--spacing-4);
+  }
+
+  .cart-list-section {
+    padding: var(--spacing-4);
+  }
+
+  .cart-list-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cart-list-actions {
+    justify-content: center;
+  }
+
+  .cart-list-right {
+    justify-content: center;
+  }
+
+  .cartoes-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cart-search-wrapper {
+    max-width: none;
+  }
+
+  .filter-group {
+    justify-content: center;
+  }
+
+  .cartoes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cartoes-summary-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-2);
+  }
+
+  .cartoes-summary-pills {
+    justify-content: flex-start;
+  }
+
+  .cart-customize-trigger {
+    justify-content: stretch;
+  }
+
+  .cart-customize-trigger .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .cart-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-value {
+    font-size: var(--font-size-base);
+  }
+
+  .cart-hero__title {
+    font-size: 1.4rem;
+  }
+
+  .cart-list-actions {
+    flex-wrap: wrap;
+    gap: var(--spacing-2);
+  }
+
+  .credit-card {
+    padding: 1.1rem;
+    gap: 14px;
+  }
+
+  .card-brand-mark {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+  }
+
+  .card-details {
+    gap: var(--spacing-2);
+  }
+
+  .cart-customize-presets {
+    grid-template-columns: 1fr;
+  }
+}
+

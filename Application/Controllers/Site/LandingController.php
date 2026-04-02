@@ -19,7 +19,7 @@ class LandingController extends WebController
                 'pageKeywords' => 'controle financeiro pessoal, app de controle financeiro gratuito brasileiro, como organizar finanças pessoais 2026, planilha de gastos mensais gratuita, controle de gastos, orçamento pessoal, finanças pessoais, como economizar dinheiro, app financeiro gratuito, gerenciador financeiro, como controlar gastos do cartão de crédito, sistema financeiro pessoal, controle de despesas, planejamento financeiro pessoal',
                 'canonicalUrl' => rtrim(BASE_URL, '/') . '/',
                 'isLandingPage' => true,
-                'extraCss' => [],
+                'extraCss' => ['landing'],
                 'extraJs' => [],
             ],
             'site/partials/header',

@@ -1,0 +1,45 @@
+/* ─── LIGHT THEME OVERRIDES ───────────────────────────────────────────────── */
+
+[data-theme="light"] .cont-hero,
+[data-theme="light"] .cont-kpi,
+[data-theme="light"] .cont-distribution,
+[data-theme="light"] .cont-list-section {
+  border-color: var(--glass-border);
+  box-shadow: var(--shadow-lg);
+}
+
+[data-theme="light"] .cont-hero:hover,
+[data-theme="light"] .cont-kpi:hover,
+[data-theme="light"] .cont-distribution:hover {
+  box-shadow: var(--shadow-xl);
+}
+
+[data-theme="light"] .account-card {
+  border-color: var(--glass-border);
+  box-shadow: var(--shadow-md);
+}
+
+[data-theme="light"] .account-card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+[data-theme="light"] .contas-search-input,
+[data-theme="light"] .contas-type-filter {
+  border-color: var(--glass-border);
+}
+
+[data-theme="light"] .contas-list-header.visible {
+  border-color: var(--glass-border);
+}
+
+[data-theme="light"] .account-progress {
+  border-color: var(--glass-border);
+}
+
+[data-theme="light"] .contas-distribution-item {
+  border-color: var(--glass-border);
+}
+
+[data-theme="light"] .view-toggle {
+  border-color: var(--glass-border);
+}

@@ -27,6 +27,7 @@ function vite_css_entry_paths(): array
         'auth-verify-email-style' => 'resources/css/admin/auth/auth-verify-email.css',
         'site-app' => 'resources/css/site/app.css',
         'site-base' => 'resources/css/site/base.css',
+        'site-landing' => 'resources/css/site/landing-base.css',
         'site-legal' => 'resources/css/site/legal.css',
         'site-aprenda' => 'resources/css/site/aprenda.css',
         'site-card-style' => 'resources/css/site/card.css',

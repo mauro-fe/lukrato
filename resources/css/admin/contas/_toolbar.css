@@ -1,0 +1,119 @@
+/* ─── TOOLBAR — Search + Filter ───────────────────────────────────────────── */
+
+.contas-toolbar {
+  display: flex;
+  gap: var(--spacing-3);
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-4);
+}
+
+.contas-search-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+}
+
+.contas-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.contas-search-input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 42px 0 38px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--color-bg) !important;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.contas-search-input:focus,
+.contas-type-filter:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
+}
+
+.contas-search-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-text-muted);
+  color: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.contas-search-clear:hover {
+  opacity: 0.8;
+}
+
+.contas-filter-wrapper {
+  min-width: 200px;
+}
+
+.contas-type-filter {
+  min-height: 42px;
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--color-bg);
+  color: var(--color-text);
+  padding: 0 12px;
+  font-size: var(--font-size-sm);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.contas-filter-summary {
+  min-height: 24px;
+  margin-bottom: var(--spacing-3);
+}
+
+.contas-filter-summary-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.contas-filter-summary-text svg {
+  width: 15px;
+  height: 15px;
+  color: var(--color-primary);
+}
+
+.contas-filter-summary-text.error,
+.contas-filter-summary-text.error svg {
+  color: var(--color-danger);
+}
+
+.contas-inline-action {
+  border: none;
+  background: transparent;
+  color: var(--color-primary);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+}
+

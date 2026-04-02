@@ -1,0 +1,12 @@
+/* ─── GRID DE CARTÕES ─────────────────────────────────────────────────────── */
+
+.cartoes-container {
+  position: relative;
+}
+
+.cartoes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--spacing-5);
+}
+

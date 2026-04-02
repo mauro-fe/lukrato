@@ -1,0 +1,550 @@
+/* ─── MODAL — Detalhes/Pagar/Editar ───────────────────────────────────────── */
+
+.modern-modal .modal-content {
+  color: var(--color-text);
+  background: var(--color-bg) !important;  
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.35),
+    0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.modern-modal .modal-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: var(--spacing-4) var(--spacing-5);
+}
+
+.modern-modal .modal-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.modern-modal .modal-title i,
+.modern-modal .modal-title svg {
+  width: 20px;
+  height: 20px;
+  color: var(--color-primary);
+}
+
+.modern-modal .modal-body {
+  padding: var(--spacing-5);
+}
+
+.modern-modal .modal-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: var(--spacing-4) var(--spacing-5);
+}
+
+.modern-modal .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.modern-modal .btn-close:hover {
+  opacity: 1;
+}
+
+/* Modal — Detalhes header */
+
+.detalhes-header {
+  margin-bottom: var(--spacing-5);
+}
+
+.detalhes-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.detalhes-title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* Modal — Detalhes grid */
+
+.detalhes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-5);
+}
+
+.detalhes-item {
+  padding: var(--spacing-4);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.detalhes-label {
+  display: block;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-1);
+}
+
+.detalhes-value {
+  display: block;
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.detalhes-value-highlight {
+  color: var(--color-primary);
+  font-size: var(--font-size-lg);
+}
+
+/* Modal — Progress */
+
+.detalhes-progresso {
+  padding: var(--spacing-4);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  margin-bottom: var(--spacing-5);
+}
+
+.progresso-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-2);
+}
+
+.progresso-percent {
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.progresso-barra {
+  width: 100%;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  margin-bottom: var(--spacing-2);
+}
+
+.progresso-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--color-success);
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.progresso-valores {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.valor-pago {
+  color: var(--color-success);
+}
+
+.valor-restante {
+  color: var(--color-warning);
+}
+
+/* Modal — Parcelas table */
+
+.parcelas-titulo {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: var(--spacing-5) 0 var(--spacing-3);
+}
+
+.parcelas-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.parcelas-desktop {
+  display: block;
+}
+
+.parcelas-mobile {
+  display: none;
+}
+
+.parcelas-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 500px;
+}
+
+.parcelas-table thead {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.parcelas-table th {
+  padding: var(--spacing-3);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.parcelas-table td {
+  padding: var(--spacing-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.parcelas-table .tr-paga {
+  opacity: 0.65;
+}
+
+.parcelas-table .tr-estorno {
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.th-sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s ease;
+}
+
+.th-sortable:hover {
+  color: var(--color-text);
+}
+
+.sort-icon {
+  width: 12px;
+  height: 12px;
+  vertical-align: middle;
+  margin-left: 2px;
+  opacity: 0.4;
+}
+
+.sort-icon.active {
+  opacity: 1;
+  color: var(--color-primary);
+}
+
+.parcela-numero {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.parcela-paga {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-success);
+  background: rgba(16, 185, 129, 0.12);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.parcela-pendente {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-warning);
+  background: rgba(245, 158, 11, 0.12);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.parcela-desc {
+  font-weight: 600;
+}
+
+.parcela-valor {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.td-descricao {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.td-acoes {
+  text-align: center;
+}
+
+.badge-recorrente {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(230, 126, 34, 0.15);
+  border-radius: 6px;
+  padding: 1px 6px;
+  margin-left: 6px;
+}
+
+.badge-pago {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-pago i,
+.badge-pago svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Modal — Button groups */
+
+.btn-group-parcela {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+
+.btn-toggle-parcela {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-toggle-parcela i,
+.btn-toggle-parcela svg {
+  width: 14px;
+  height: 14px;
+}
+
+.btn-toggle-parcela.btn-pagar {
+  background: #10b981;
+  color: #fff;
+}
+
+.btn-toggle-parcela.btn-pagar:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.btn-toggle-parcela.btn-desfazer {
+  background: #6366f1;
+  color: #fff;
+}
+
+.btn-toggle-parcela.btn-desfazer:hover {
+  background: #4f46e5;
+  transform: translateY(-1px);
+}
+
+.btn-toggle-parcela.btn-editar {
+  background: #f59e0b;
+  color: #fff;
+}
+
+.btn-toggle-parcela.btn-editar:hover {
+  background: #d97706;
+  transform: translateY(-1px);
+}
+
+.btn-toggle-parcela.btn-excluir {
+  background: #ef4444;
+  color: #fff;
+}
+
+.btn-toggle-parcela.btn-excluir:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+/* Modal — Detalhes header action buttons */
+
+.btn-pagar-fatura,
+.btn-pagar-fatura-completa {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  white-space: nowrap;
+}
+
+.btn-pagar-fatura:hover,
+.btn-pagar-fatura-completa:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.btn-reverter-fatura {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+  white-space: nowrap;
+}
+
+.btn-reverter-fatura:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+.btn-excluir-fatura {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  white-space: nowrap;
+}
+
+.btn-excluir-fatura:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+/* Mobile parcela cards */
+
+.parcela-card {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: var(--spacing-3);
+  overflow: hidden;
+}
+
+.parcela-card-paga {
+  border-left: 4px solid var(--color-success);
+}
+
+.parcela-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-3);
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.parcela-card-body {
+  padding: var(--spacing-3);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-3);
+}
+
+.parcela-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.parcela-card-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.parcela-card-value {
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.parcela-card-detalhes {
+  padding: var(--spacing-3);
+  background: rgba(255, 255, 255, 0.01);
+  border-top: 1px dashed rgba(255, 255, 255, 0.06);
+}
+
+.parcela-card-footer {
+  padding: var(--spacing-3);
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.parcela-card-footer .btn-toggle-parcela {
+  flex: 1;
+  max-width: none;
+}
+
+.parcela-card-empty {
+  padding: var(--spacing-6);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.parcela-card-pago-info {
+  padding: var(--spacing-2) var(--spacing-3);
+  background: rgba(16, 185, 129, 0.08);
+  color: var(--color-success);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  text-align: center;
+}
+
+/* SweetAlert above-modal fix */
+
+.swal-above-modal {
+  z-index: 99999 !important;
+}
+

@@ -1,0 +1,73 @@
+/* ─── LIST VIEW ───────────────────────────────────────────────────────────── */
+
+.cartoes-grid.list-view {
+  grid-template-columns: 1fr;
+  gap: var(--spacing-3);
+}
+
+.cartoes-grid.list-view .credit-card {
+  --card-header-height: 0px;
+  grid-template-columns: 48px minmax(0, 1fr) auto auto;
+  grid-template-rows: auto;
+  grid-template-areas: "media content limit actions";
+  padding: var(--spacing-3) var(--spacing-4);
+  gap: var(--spacing-3);
+  min-width: 0;
+}
+
+.cartoes-grid.list-view .credit-card::before,
+.cartoes-grid.list-view .credit-card::after {
+  display: none;
+}
+
+.cartoes-grid.list-view .card-brand-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+}
+
+.cartoes-grid.list-view .card-brand-mark .brand-logo {
+  width: 24px;
+  height: 24px;
+}
+
+.cartoes-grid.list-view .card-header,
+.cartoes-grid.list-view .card-details,
+.cartoes-grid.list-view .card-progress {
+  display: none;
+}
+
+.cartoes-grid.list-view .card-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.cartoes-grid.list-view .card-name {
+  font-size: var(--font-size-sm);
+}
+
+.cartoes-grid.list-view .card-subline {
+  margin-top: 2px;
+}
+
+.cartoes-grid.list-view .card-limit-panel {
+  text-align: right;
+  padding: 0;
+  background: none;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.cartoes-grid.list-view .card-limit-available {
+  font-size: var(--font-size-base);
+}
+
+.cartoes-grid.list-view .card-actions {
+  align-items: center;
+}
+

@@ -1,0 +1,19 @@
+/* ─── SKELETON LOADING ────────────────────────────────────────────────────── */
+
+.lk-skeleton {
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+.lk-skeleton--card {
+  min-height: 360px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+

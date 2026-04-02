@@ -1,0 +1,124 @@
+/* ─── CUSTOMIZE (first-run essential / complete) ───────────────────────── */
+
+.cont-customize-trigger {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cont-customize-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal, 1300);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-4);
+}
+
+.cont-customize-modal {
+  width: min(100%, 520px);
+  max-height: min(86vh, 760px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cont-customize-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-5) var(--spacing-5) 0;
+}
+
+.cont-customize-title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  color: var(--color-text);
+}
+
+.cont-customize-close {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  color: var(--color-text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.cont-customize-close:hover {
+  color: var(--color-text);
+  border-color: var(--color-primary);
+}
+
+.cont-customize-body {
+  padding: var(--spacing-5);
+  overflow-y: auto;
+}
+
+.cont-customize-desc {
+  margin: 0 0 var(--spacing-4);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.cont-customize-presets {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+}
+
+.cont-customize-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.cont-customize-group-title {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.cont-customize-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cont-customize-toggle:last-of-type {
+  border-bottom: none;
+}
+
+.cont-customize-toggle span {
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.cont-customize-toggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.cont-customize-footer {
+  padding: 0 var(--spacing-5) var(--spacing-5);
+  display: flex;
+  justify-content: flex-end;
+}
+

@@ -10,6 +10,7 @@
  * ============================================================================
  */
 
+import '../../../css/admin/modules/gamification-page.css';
 import { apiGet, getBaseUrl, getErrorMessage } from '../shared/api.js';
 import { toastError } from '../shared/ui.js';
 import { escapeHtml, formatDate as sharedFormatDate } from '../shared/utils.js';

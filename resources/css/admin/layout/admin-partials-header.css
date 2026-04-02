@@ -19,13 +19,13 @@ body {
 }
 
 /* Focus States */
-*:focus {
+.lk-main *:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
 /* Typography */
-h3 {
+.lk-main h3 {
   color: var(--color-primary);
   font-weight: 700;
   margin: auto;

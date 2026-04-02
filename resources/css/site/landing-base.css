@@ -2,6 +2,8 @@
    Layout base da landing
    ======================= */
 
+@import "./modal-override.css";
+
 * {
   box-sizing: border-box;
 }
@@ -2618,115 +2620,115 @@ svg {
    ======================= */
 
 /* ── Bridge de tokens (light + dark) para utilitários usados na landing ── */
-main .text-gray-900 { color: var(--lk-text-strong); }
-main .text-gray-800,
-main .text-gray-700,
-main .text-gray-600,
-main .text-gray-500 { color: var(--lk-text-soft); }
+main:has(#como-funciona) .text-gray-900 { color: var(--lk-text-strong); }
+main:has(#como-funciona) .text-gray-800,
+main:has(#como-funciona) .text-gray-700,
+main:has(#como-funciona) .text-gray-600,
+main:has(#como-funciona) .text-gray-500 { color: var(--lk-text-soft); }
 
-main .bg-white { background-color: var(--lk-surface); }
-main .bg-gray-50,
-main .bg-gray-100 { background-color: var(--lk-surface-alt); }
-main .bg-orange-50 { background-color: var(--lk-accent-soft); }
-main .bg-orange-100 { background-color: var(--lk-accent-soft-strong); }
+main:has(#como-funciona) .bg-white { background-color: var(--lk-surface); }
+main:has(#como-funciona) .bg-gray-50,
+main:has(#como-funciona) .bg-gray-100 { background-color: var(--lk-surface-alt); }
+main:has(#como-funciona) .bg-orange-50 { background-color: var(--lk-accent-soft); }
+main:has(#como-funciona) .bg-orange-100 { background-color: var(--lk-accent-soft-strong); }
 
-main .border-gray-200,
-main .border-gray-100 { border-color: var(--color-card-border); }
-main .border-orange-100 { border-color: var(--lk-accent-border); }
+main:has(#como-funciona) .border-gray-200,
+main:has(#como-funciona) .border-gray-100 { border-color: var(--color-card-border); }
+main:has(#como-funciona) .border-orange-100 { border-color: var(--lk-accent-border); }
 
-main .hover\:bg-gray-50:hover,
-main .hover\:bg-gray-100:hover { background-color: color-mix(in srgb, var(--lk-surface) 92%, black 8%); }
-main .hover\:bg-orange-50:hover { background-color: color-mix(in srgb, var(--lk-accent-soft) 85%, var(--color-primary) 15%); }
-main .hover\:text-gray-900:hover,
-main .hover\:text-gray-600:hover { color: var(--lk-text-strong); }
-main .hover\:border-orange-200:hover { border-color: var(--lk-accent-border-hover); }
+main:has(#como-funciona) .hover\:bg-gray-50:hover,
+main:has(#como-funciona) .hover\:bg-gray-100:hover { background-color: color-mix(in srgb, var(--lk-surface) 92%, black 8%); }
+main:has(#como-funciona) .hover\:bg-orange-50:hover { background-color: color-mix(in srgb, var(--lk-accent-soft) 85%, var(--color-primary) 15%); }
+main:has(#como-funciona) .hover\:text-gray-900:hover,
+main:has(#como-funciona) .hover\:text-gray-600:hover { color: var(--lk-text-strong); }
+main:has(#como-funciona) .hover\:border-orange-200:hover { border-color: var(--lk-accent-border-hover); }
 
-main .from-primary,
-main .from-orange-500 { --tw-gradient-from: var(--lk-gradient-start) var(--tw-gradient-from-position); }
-main .to-orange-600,
-main .to-orange-700 { --tw-gradient-to: var(--lk-gradient-end) var(--tw-gradient-to-position); }
+main:has(#como-funciona) .from-primary,
+main:has(#como-funciona) .from-orange-500 { --tw-gradient-from: var(--lk-gradient-start) var(--tw-gradient-from-position); }
+main:has(#como-funciona) .to-orange-600,
+main:has(#como-funciona) .to-orange-700 { --tw-gradient-to: var(--lk-gradient-end) var(--tw-gradient-to-position); }
 
 /* ── Text Colors ── */
-[data-theme="dark"] main .text-gray-900 { color: var(--lk-text-strong); }
-[data-theme="dark"] main .text-gray-800 { color: var(--lk-text-soft); }
-[data-theme="dark"] main .text-gray-700 { color: var(--lk-text-soft); }
-[data-theme="dark"] main .text-gray-600 { color: var(--lk-text-soft); }
-[data-theme="dark"] main .text-gray-500 { color: var(--lk-text-soft); }
+[data-theme="dark"] main:has(#como-funciona) .text-gray-900 { color: var(--lk-text-strong); }
+[data-theme="dark"] main:has(#como-funciona) .text-gray-800 { color: var(--lk-text-soft); }
+[data-theme="dark"] main:has(#como-funciona) .text-gray-700 { color: var(--lk-text-soft); }
+[data-theme="dark"] main:has(#como-funciona) .text-gray-600 { color: var(--lk-text-soft); }
+[data-theme="dark"] main:has(#como-funciona) .text-gray-500 { color: var(--lk-text-soft); }
 
 /* ── Background Colors ── */
-[data-theme="dark"] main .bg-white { background-color: var(--lk-surface); }
-[data-theme="dark"] main .bg-white\/80 { background-color: rgba(28, 44, 60, 0.8); }
-[data-theme="dark"] main .bg-gray-50 { background-color: var(--lk-surface-alt); }
-[data-theme="dark"] main .bg-gray-100 { background-color: var(--lk-surface-alt); }
-[data-theme="dark"] main .bg-orange-50 { background-color: var(--lk-accent-soft); }
-[data-theme="dark"] main .bg-orange-100 { background-color: var(--lk-accent-soft-strong); }
-[data-theme="dark"] main .bg-green-100 { background-color: rgba(46, 204, 113, 0.15); }
+[data-theme="dark"] main:has(#como-funciona) .bg-white { background-color: var(--lk-surface); }
+[data-theme="dark"] main:has(#como-funciona) .bg-white\/80 { background-color: rgba(28, 44, 60, 0.8); }
+[data-theme="dark"] main:has(#como-funciona) .bg-gray-50 { background-color: var(--lk-surface-alt); }
+[data-theme="dark"] main:has(#como-funciona) .bg-gray-100 { background-color: var(--lk-surface-alt); }
+[data-theme="dark"] main:has(#como-funciona) .bg-orange-50 { background-color: var(--lk-accent-soft); }
+[data-theme="dark"] main:has(#como-funciona) .bg-orange-100 { background-color: var(--lk-accent-soft-strong); }
+[data-theme="dark"] main:has(#como-funciona) .bg-green-100 { background-color: rgba(46, 204, 113, 0.15); }
 
 /* ── Border Colors ── */
-[data-theme="dark"] main .border-gray-200 { border-color: var(--color-card-border); }
-[data-theme="dark"] main .border-gray-100 { border-color: var(--color-card-border); }
-[data-theme="dark"] main .border-white { border-color: var(--color-surface); }
-[data-theme="dark"] main .border-orange-100 { border-color: var(--lk-accent-border); }
+[data-theme="dark"] main:has(#como-funciona) .border-gray-200 { border-color: var(--color-card-border); }
+[data-theme="dark"] main:has(#como-funciona) .border-gray-100 { border-color: var(--color-card-border); }
+[data-theme="dark"] main:has(#como-funciona) .border-white { border-color: var(--color-surface); }
+[data-theme="dark"] main:has(#como-funciona) .border-orange-100 { border-color: var(--lk-accent-border); }
 
 /* ── Hover States ── */
-[data-theme="dark"] main .hover\:bg-gray-50:hover,
-[data-theme="dark"] main .hover\:bg-gray-100:hover { background-color: rgba(255, 255, 255, 0.05); }
-[data-theme="dark"] main .hover\:bg-orange-50:hover { background-color: color-mix(in srgb, var(--lk-accent-soft) 75%, var(--color-primary) 25%); }
-[data-theme="dark"] main .hover\:text-gray-900:hover { color: var(--lk-text-strong); }
-[data-theme="dark"] main .hover\:text-gray-600:hover { color: var(--lk-text-strong); }
-[data-theme="dark"] main .hover\:border-orange-200:hover { border-color: var(--lk-accent-border-hover); }
+[data-theme="dark"] main:has(#como-funciona) .hover\:bg-gray-50:hover,
+[data-theme="dark"] main:has(#como-funciona) .hover\:bg-gray-100:hover { background-color: rgba(255, 255, 255, 0.05); }
+[data-theme="dark"] main:has(#como-funciona) .hover\:bg-orange-50:hover { background-color: color-mix(in srgb, var(--lk-accent-soft) 75%, var(--color-primary) 25%); }
+[data-theme="dark"] main:has(#como-funciona) .hover\:text-gray-900:hover { color: var(--lk-text-strong); }
+[data-theme="dark"] main:has(#como-funciona) .hover\:text-gray-600:hover { color: var(--lk-text-strong); }
+[data-theme="dark"] main:has(#como-funciona) .hover\:border-orange-200:hover { border-color: var(--lk-accent-border-hover); }
 
 /* ── Gradient Stops (section backgrounds) ── */
-[data-theme="dark"] main .from-orange-50 { --tw-gradient-from: var(--color-bg) var(--tw-gradient-from-position); }
-[data-theme="dark"] main .from-white { --tw-gradient-from: var(--color-bg) var(--tw-gradient-from-position); }
-[data-theme="dark"] main .from-gray-50 { --tw-gradient-from: var(--color-bg) var(--tw-gradient-from-position); }
-[data-theme="dark"] main .from-green-50 { --tw-gradient-from: var(--color-bg) var(--tw-gradient-from-position); }
-[data-theme="dark"] main .from-orange-500,
-[data-theme="dark"] main .from-primary { --tw-gradient-from: var(--lk-gradient-start) var(--tw-gradient-from-position); }
-[data-theme="dark"] main .to-orange-600,
-[data-theme="dark"] main .to-orange-700 { --tw-gradient-to: var(--lk-gradient-end) var(--tw-gradient-to-position); }
-[data-theme="dark"] main .to-gray-50 { --tw-gradient-to: var(--color-surface) var(--tw-gradient-to-position); }
-[data-theme="dark"] main .to-white { --tw-gradient-to: var(--color-surface) var(--tw-gradient-to-position); }
-[data-theme="dark"] main .to-orange-50\/20 { --tw-gradient-to: var(--color-surface) var(--tw-gradient-to-position); }
-[data-theme="dark"] main .to-orange-100\/50 { --tw-gradient-to: var(--color-surface) var(--tw-gradient-to-position); }
-[data-theme="dark"] main .to-gray-100\/50 { --tw-gradient-to: var(--color-surface) var(--tw-gradient-to-position); }
-[data-theme="dark"] main .to-emerald-50 { --tw-gradient-to: var(--color-surface-muted) var(--tw-gradient-to-position); }
+[data-theme="dark"] main:has(#como-funciona) .from-orange-50 { --tw-gradient-from: var(--color-bg) var(--tw-gradient-from-position); }
+[data-theme="dark"] main:has(#como-funciona) .from-white { --tw-gradient-from: var(--color-bg) var(--tw-gradient-from-position); }
+[data-theme="dark"] main:has(#como-funciona) .from-gray-50 { --tw-gradient-from: var(--color-bg) var(--tw-gradient-from-position); }
+[data-theme="dark"] main:has(#como-funciona) .from-green-50 { --tw-gradient-from: var(--color-bg) var(--tw-gradient-from-position); }
+[data-theme="dark"] main:has(#como-funciona) .from-orange-500,
+[data-theme="dark"] main:has(#como-funciona) .from-primary { --tw-gradient-from: var(--lk-gradient-start) var(--tw-gradient-from-position); }
+[data-theme="dark"] main:has(#como-funciona) .to-orange-600,
+[data-theme="dark"] main:has(#como-funciona) .to-orange-700 { --tw-gradient-to: var(--lk-gradient-end) var(--tw-gradient-to-position); }
+[data-theme="dark"] main:has(#como-funciona) .to-gray-50 { --tw-gradient-to: var(--color-surface) var(--tw-gradient-to-position); }
+[data-theme="dark"] main:has(#como-funciona) .to-white { --tw-gradient-to: var(--color-surface) var(--tw-gradient-to-position); }
+[data-theme="dark"] main:has(#como-funciona) .to-orange-50\/20 { --tw-gradient-to: var(--color-surface) var(--tw-gradient-to-position); }
+[data-theme="dark"] main:has(#como-funciona) .to-orange-100\/50 { --tw-gradient-to: var(--color-surface) var(--tw-gradient-to-position); }
+[data-theme="dark"] main:has(#como-funciona) .to-gray-100\/50 { --tw-gradient-to: var(--color-surface) var(--tw-gradient-to-position); }
+[data-theme="dark"] main:has(#como-funciona) .to-emerald-50 { --tw-gradient-to: var(--color-surface-muted) var(--tw-gradient-to-position); }
 
 /* ── Decorative Blobs ── */
-[data-theme="dark"] main .mix-blend-multiply { mix-blend-mode: screen; }
+[data-theme="dark"] main:has(#como-funciona) .mix-blend-multiply { mix-blend-mode: screen; }
 
 /* ── Shadows (deeper on dark backgrounds) ── */
-[data-theme="dark"] main .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-[data-theme="dark"] main .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3); }
-[data-theme="dark"] main .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3); }
-[data-theme="dark"] main .shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3); }
-[data-theme="dark"] main .shadow-inner { box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.3); }
+[data-theme="dark"] main:has(#como-funciona) .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+[data-theme="dark"] main:has(#como-funciona) .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3); }
+[data-theme="dark"] main:has(#como-funciona) .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3); }
+[data-theme="dark"] main:has(#como-funciona) .shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3); }
+[data-theme="dark"] main:has(#como-funciona) .shadow-inner { box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.3); }
 
 /* ── Form Inputs ── */
-[data-theme="dark"] main input,
-[data-theme="dark"] main textarea,
-[data-theme="dark"] main select {
+[data-theme="dark"] main:has(#como-funciona) input,
+[data-theme="dark"] main:has(#como-funciona) textarea,
+[data-theme="dark"] main:has(#como-funciona) select {
   background-color: var(--color-surface-muted) !important;
   border-color: var(--color-card-border) !important;
   color: var(--color-text) !important;
 }
 
-[data-theme="dark"] main input::placeholder,
-[data-theme="dark"] main textarea::placeholder {
+[data-theme="dark"] main:has(#como-funciona) input::placeholder,
+[data-theme="dark"] main:has(#como-funciona) textarea::placeholder {
   color: var(--color-text-muted);
 }
 
 /* ── Alpine Dynamic States (gallery dots, toggles) ── */
-[data-theme="dark"] main .bg-gray-300 { background-color: #475569; }
-[data-theme="dark"] main .hover\:bg-gray-400:hover { background-color: #64748b; }
+[data-theme="dark"] main:has(#como-funciona) .bg-gray-300 { background-color: #475569; }
+[data-theme="dark"] main:has(#como-funciona) .hover\:bg-gray-400:hover { background-color: #64748b; }
 
 /* ── Extra pastel backgrounds (funcionalidades/benefícios cards) ── */
-[data-theme="dark"] main .bg-blue-50  { background-color: rgba(59, 130, 246, 0.1); }
-[data-theme="dark"] main .bg-purple-50 { background-color: rgba(168, 85, 247, 0.1); }
-[data-theme="dark"] main .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.1); }
-[data-theme="dark"] main .bg-red-50 { background-color: rgba(239, 68, 68, 0.1); }
-[data-theme="dark"] main .bg-indigo-50 { background-color: rgba(99, 102, 241, 0.1); }
-[data-theme="dark"] main .bg-violet-50 { background-color: rgba(139, 92, 246, 0.1); }
+[data-theme="dark"] main:has(#como-funciona) .bg-blue-50  { background-color: rgba(59, 130, 246, 0.1); }
+[data-theme="dark"] main:has(#como-funciona) .bg-purple-50 { background-color: rgba(168, 85, 247, 0.1); }
+[data-theme="dark"] main:has(#como-funciona) .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.1); }
+[data-theme="dark"] main:has(#como-funciona) .bg-red-50 { background-color: rgba(239, 68, 68, 0.1); }
+[data-theme="dark"] main:has(#como-funciona) .bg-indigo-50 { background-color: rgba(99, 102, 241, 0.1); }
+[data-theme="dark"] main:has(#como-funciona) .bg-violet-50 { background-color: rgba(139, 92, 246, 0.1); }
 
 
 /* ============================================================================
@@ -2806,3 +2808,4 @@ body {
     transform: translateY(0);
   }
 }
+

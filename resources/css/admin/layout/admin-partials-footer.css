@@ -1,11 +1,8 @@
-:root {
-  --footer-height: clamp(64px, 10vw, 110px);
-}
-
 /* ===============================
    Footer Lukrato (glass + gradient)
    =============================== */
 .footer {
+  --footer-height: clamp(64px, 10vw, 110px);
   position: relative;
   overflow: hidden;
   font-family: var(--font-primary);

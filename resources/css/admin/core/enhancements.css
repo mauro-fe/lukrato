@@ -13,7 +13,7 @@
    2. CARDS COM MELHORIAS
    ============================================================================ */
 
-.card {
+.lk-main .card {
   /* Removida animação automática para não conflitar com AOS */
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
@@ -21,18 +21,18 @@
 }
 
 /* Excluir ag-card do overflow:hidden para permitir expansão dos detalhes */
-.ag-card,
-.card-item {
+.lk-main .ag-card,
+.lk-main .card-item {
   overflow: visible !important;
 }
 
-.card:hover {
+.lk-main .card:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
 }
 
 /* Efeito de reflexo ao passar o mouse */
-.card::before {
+.lk-main .card::before {
   content: "";
   position: absolute;
   top: 0;
@@ -49,7 +49,7 @@
   pointer-events: none;
 }
 
-.card:hover::before {
+.lk-main .card:hover::before {
   left: 100%;
 }
 
@@ -93,8 +93,8 @@
    3. BOTÕES COM MICRO-INTERAÇÕES
    ============================================================================ */
 
-.btn:not(.modern-btn),
-button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button):not(
+.lk-main .btn:not(.modern-btn),
+.lk-main button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button):not(
     .modern-btn
   ) {
   position: relative;
@@ -103,8 +103,8 @@ button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button):not(
 }
 
 /* Ripple effect - excluindo botão de suporte para não conflitar com tooltip */
-.btn:not(.lk-support-button):not(.modern-btn)::after,
-button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button):not(
+.lk-main .btn:not(.lk-support-button):not(.modern-btn)::after,
+.lk-main button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button):not(
     .modern-btn
   )::after {
   content: "";
@@ -122,8 +122,8 @@ button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button):not(
   pointer-events: none;
 }
 
-.btn:not(.lk-support-button):not(.modern-btn):active::after,
-button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button):not(
+.lk-main .btn:not(.lk-support-button):not(.modern-btn):active::after,
+.lk-main button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button):not(
     .modern-btn
   ):active::after {
   width: 300px;
@@ -134,8 +134,8 @@ button:not(.theme-toggle):not(.lkh-modal-close):not(.lk-support-button):not(
 }
 
 /* Hover elevado */
-.btn:not(:disabled):not(.lk-support-button):not(.modern-btn):hover,
-button:not(:disabled):not(.theme-toggle):not(.lkh-modal-close):not(
+.lk-main .btn:not(:disabled):not(.lk-support-button):not(.modern-btn):hover,
+.lk-main button:not(:disabled):not(.theme-toggle):not(.lkh-modal-close):not(
     .lk-support-button
   ):not(.modern-btn):hover {
   transform: translateY(-2px);
@@ -175,15 +175,15 @@ button:not(:disabled):not(.theme-toggle):not(.lkh-modal-close):not(
 }
 
 /* Loading state */
-.btn.loading,
-button.loading {
+.lk-main .btn.loading,
+.lk-main button.loading {
   pointer-events: none;
   position: relative;
   color: transparent !important;
 }
 
-.btn.loading::before,
-button.loading::before {
+.lk-main .btn.loading::before,
+.lk-main button.loading::before {
   content: "";
   position: absolute;
   top: 50%;
@@ -201,26 +201,26 @@ button.loading::before {
    4. INPUTS E FORMS
    ============================================================================ */
 
-.form-control,
-.form-select,
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="number"],
-input[type="date"],
-select,
-textarea {
+.lk-main .form-control,
+.lk-main .form-select,
+.lk-main input[type="text"],
+.lk-main input[type="email"],
+.lk-main input[type="password"],
+.lk-main input[type="number"],
+.lk-main input[type="date"],
+.lk-main select,
+.lk-main textarea {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid var(--glass-border);
   background: var(--color-bg) !important;
   color: var(--color-text) !important;
 }
 
-.form-control:focus,
-.form-select:focus,
-input:focus,
-select:focus,
-textarea:focus {
+.lk-main .form-control:focus,
+.lk-main .form-select:focus,
+.lk-main input:focus,
+.lk-main select:focus,
+.lk-main textarea:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 4px
     color-mix(in srgb, var(--color-primary) 15%, transparent);
@@ -229,13 +229,13 @@ textarea:focus {
 }
 
 /* Label animado */
-.form-label {
+.lk-main .form-label {
   transition: all 0.3s ease;
   transform-origin: left center;
 }
 
-.form-control:focus + .form-label,
-.form-control:not(:placeholder-shown) + .form-label {
+.lk-main .form-control:focus + .form-label,
+.lk-main .form-control:not(:placeholder-shown) + .form-label {
   transform: translateY(-1.5rem) scale(0.85);
   color: var(--color-primary);
 }
@@ -244,19 +244,19 @@ textarea:focus {
    5. TABELAS INTERATIVAS
    ============================================================================ */
 
-.table tbody tr {
+.lk-main .table tbody tr {
   transition: all 0.2s ease;
   cursor: pointer;
 }
 
-.table tbody tr:hover {
+.lk-main .table tbody tr:hover {
   background: var(--glass-bg);
   transform: scale(1.01);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 /* Animação de entrada das linhas */
-.table tbody tr {
+.lk-main .table tbody tr {
   animation: fadeInLeft 0.4s ease both;
   animation-delay: calc(var(--row-index, 0) * 0.05s);
 }
@@ -323,11 +323,11 @@ textarea:focus {
    9. TOOLTIPS MELHORADOS
    ============================================================================ */
 
-[data-tooltip] {
+.lk-main [data-tooltip] {
   position: relative;
 }
 
-[data-tooltip]::after {
+.lk-main [data-tooltip]::after {
   content: attr(data-tooltip);
   position: absolute;
   bottom: 100%;
@@ -347,7 +347,7 @@ textarea:focus {
   z-index: 1000;
 }
 
-[data-tooltip]:hover::after {
+.lk-main [data-tooltip]:hover::after {
   opacity: 1;
   transform: translateX(-50%) translateY(-4px);
 }
@@ -356,28 +356,33 @@ textarea:focus {
    10. SCROLLBAR PERSONALIZADO
    ============================================================================ */
 
-* {
+.lk-main,
+.lk-main * {
   scrollbar-width: thin;
   scrollbar-color: var(--color-primary) var(--color-surface-muted);
 }
 
-*::-webkit-scrollbar {
+.lk-main::-webkit-scrollbar,
+.lk-main *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
-*::-webkit-scrollbar-track {
+.lk-main::-webkit-scrollbar-track,
+.lk-main *::-webkit-scrollbar-track {
   background: var(--color-surface-muted);
   border-radius: var(--radius-sm);
 }
 
-*::-webkit-scrollbar-thumb {
+.lk-main::-webkit-scrollbar-thumb,
+.lk-main *::-webkit-scrollbar-thumb {
   background: var(--color-primary);
   border-radius: var(--radius-sm);
   transition: background 0.3s ease;
 }
 
-*::-webkit-scrollbar-thumb:hover {
+.lk-main::-webkit-scrollbar-thumb:hover,
+.lk-main *::-webkit-scrollbar-thumb:hover {
   background: color-mix(in srgb, var(--color-primary) 85%, #000);
 }
 
@@ -439,7 +444,7 @@ textarea:focus {
    15. LINKS MELHORADOS
    ============================================================================ */
 
-a:not(.btn):not(.lk-upgrade-btn):not(.top-nav-btn):not(.logout-btn):not(
+.lk-main a:not(.btn):not(.lk-upgrade-btn):not(.top-nav-btn):not(.logout-btn):not(
     .nav-item
   ):not(.logo):not(.lk-fab-item):not(.lk-support-button) {
   position: relative;
@@ -448,7 +453,7 @@ a:not(.btn):not(.lk-upgrade-btn):not(.top-nav-btn):not(.logout-btn):not(
   transition: all 0.3s ease;
 }
 
-a:not(.btn):not(.lk-upgrade-btn):not(.lk-support-button):not(.lk-fab-item):not(.top-nav-btn):not(
+.lk-main a:not(.btn):not(.lk-upgrade-btn):not(.lk-support-button):not(.lk-fab-item):not(.top-nav-btn):not(
     .logout-btn
   ):not(.nav-item):not(.logo)::after {
   content: "";
@@ -460,7 +465,7 @@ a:not(.btn):not(.lk-upgrade-btn):not(.lk-support-button):not(.lk-fab-item):not(.
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-a:not(.btn):not(.lk-upgrade-btn):not(.lk-support-button):not(.lk-fab-item):not(.top-nav-btn):not(
+.lk-main a:not(.btn):not(.lk-upgrade-btn):not(.lk-support-button):not(.lk-fab-item):not(.top-nav-btn):not(
     .logout-btn
   ):not(.nav-item):not(.logo):hover::after {
   width: 100%;
@@ -620,9 +625,9 @@ a:not(.btn):not(.lk-upgrade-btn):not(.lk-support-button):not(.lk-fab-item):not(.
    ============================================================================ */
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  .lk-main *,
+  .lk-main *::before,
+  .lk-main *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -633,14 +638,14 @@ a:not(.btn):not(.lk-upgrade-btn):not(.lk-support-button):not(.lk-fab-item):not(.
    21. FOCUS VISIBLE
    ============================================================================ */
 
-*:focus-visible {
+.lk-main *:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
 
-button:focus-visible,
-.btn:focus-visible {
+.lk-main button:focus-visible,
+.lk-main .btn:focus-visible {
   outline-offset: 4px;
 }
 
@@ -785,13 +790,13 @@ button:focus-visible,
    28. CARD HOVER EFFECTS ESPECIAIS
    ============================================================================ */
 
-.card-glow:hover {
+.lk-main .card-glow:hover {
   box-shadow:
     0 0 20px color-mix(in srgb, var(--color-primary) 40%, transparent),
     0 8px 30px rgba(0, 0, 0, 0.2);
 }
 
-.card-lift:hover {
+.lk-main .card-lift:hover {
   transform: translateY(-8px) scale(1.02);
 }
 
@@ -927,14 +932,14 @@ img.zoom-hover:hover {
 
 
 /* --- Reset: ícones dentro de botões herdam a cor do pai --- */
-.btn svg.lucide,
-.modern-btn svg.lucide,
-.lk-btn svg.lucide,
-.btn-modern svg.lucide,
-.ag-card-btn svg.lucide,
-button:not(.theme-toggle) svg.lucide,
-[class*="btn-"] svg.lucide,
-[class*="-btn"] svg.lucide {
+.lk-main .btn svg.lucide,
+.lk-main .modern-btn svg.lucide,
+.lk-main .lk-btn svg.lucide,
+.lk-main .btn-modern svg.lucide,
+.lk-main .ag-card-btn svg.lucide,
+.lk-main button:not(.theme-toggle) svg.lucide,
+.lk-main [class*="btn-"] svg.lucide,
+.lk-main [class*="-btn"] svg.lucide {
   color: inherit;
 }
 

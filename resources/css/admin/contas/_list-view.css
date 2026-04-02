@@ -1,0 +1,80 @@
+/* ─── LIST VIEW ───────────────────────────────────────────────────────────── */
+
+.contas-list-header {
+  display: none;
+}
+
+.contas-list-header.visible {
+  display: grid;
+  grid-template-columns: 60px 1fr 120px 120px auto;
+  align-items: center;
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-2);
+}
+
+.acc-grid.list-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.acc-grid.list-view .account-card {
+  display: grid;
+  grid-template-columns: 60px 1fr 120px 120px auto;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius-md);
+}
+
+.acc-grid.list-view .account-card::before {
+  display: none;
+}
+
+.acc-grid.list-view .account-card .account-media {
+  justify-content: center;
+}
+
+.acc-grid.list-view .account-card .account-logo {
+  width: 40px;
+  height: 40px;
+}
+
+.acc-grid.list-view .account-card .account-header,
+.acc-grid.list-view .account-card .account-balance-panel .account-balance-caption,
+.acc-grid.list-view .account-card .account-progress,
+.acc-grid.list-view .account-card .account-menu {
+  display: none;
+}
+
+.acc-grid.list-view .account-card .account-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.acc-grid.list-view .account-card .account-name {
+  font-size: var(--font-size-sm);
+}
+
+.acc-grid.list-view .account-card .account-balance {
+  font-size: var(--font-size-base);
+  text-align: right;
+}
+
+.account-list-actions {
+  display: none;
+}
+
+.acc-grid.list-view .account-card .account-list-actions {
+  display: flex;
+  gap: var(--spacing-2);
+  justify-content: flex-end;
+}
+

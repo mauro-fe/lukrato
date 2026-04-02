@@ -1,0 +1,23 @@
+/* ─── SKELETON LOADERS ────────────────────────────────────────────────────── */
+
+.lk-skeleton {
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-text-muted) 8%, transparent) 25%,
+    color-mix(in srgb, var(--color-text-muted) 14%, transparent) 50%,
+    color-mix(in srgb, var(--color-text-muted) 8%, transparent) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+.lk-skeleton--card {
+  min-height: 200px;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+

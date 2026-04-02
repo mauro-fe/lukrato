@@ -1,0 +1,368 @@
+/* ============================================================================
+   LUKRATO - COMPONENTES
+   ============================================================================
+   Arquivo: components.css
+   Descrição: Estilos de componentes (Modais, Forms, Buttons, Tables, FAB)
+   ============================================================================ */
+
+/* ============================================================================
+   0. SURFACE CARDS
+   ============================================================================ */
+
+.surface-card {
+  --surface-card-bg: var(--color-bg);
+  --surface-card-border: rgba(255, 255, 255, 0.06);
+  --surface-card-radius: var(--radius-lg);
+  --surface-card-shadow: var(--shadow-lifted);
+  --surface-card-shadow-hover: var(--shadow-lifted-hover);
+  --surface-card-transform: var(--transform-lifted);
+  --surface-card-transform-hover: var(--transform-lifted-hover);
+
+  background: var(--surface-card-bg);
+  border: 1px solid var(--surface-card-border);
+  border-radius: var(--surface-card-radius);
+  box-shadow: var(--surface-card-shadow);
+  transform: var(--surface-card-transform);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  min-width: 0;
+}
+
+.surface-card--interactive:hover {
+  transform: var(--surface-card-transform-hover);
+  box-shadow: var(--surface-card-shadow-hover);
+}
+
+.surface-card--glass {
+  --surface-card-border: var(--glass-border);
+  --surface-card-radius: var(--radius-xl);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+}
+
+.surface-card--soft-hover {
+  --surface-card-shadow: none;
+  --surface-card-shadow-hover: var(--shadow-xl);
+  --surface-card-transform: translateY(0);
+  --surface-card-transform-hover: translateY(-2px);
+}
+
+.surface-card--accent-hover.surface-card--interactive:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+.surface-card--clip {
+  overflow: hidden;
+}
+
+.surface-chip {
+  --surface-chip-bg: rgba(255, 255, 255, 0.04);
+  --surface-chip-border: var(--glass-border);
+  --surface-chip-color: var(--color-text);
+  --surface-chip-icon: var(--color-primary);
+  --surface-chip-radius: 999px;
+  --surface-chip-pad-y: 8px;
+  --surface-chip-pad-x: 12px;
+  --surface-chip-font-size: 0.82rem;
+  --surface-chip-font-weight: 700;
+  --surface-chip-gap: 8px;
+  --surface-chip-icon-size: 14px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--surface-chip-gap);
+  padding: var(--surface-chip-pad-y) var(--surface-chip-pad-x);
+  border: 1px solid var(--surface-chip-border);
+  border-radius: var(--surface-chip-radius);
+  background: var(--surface-chip-bg);
+  color: var(--surface-chip-color);
+  font-size: var(--surface-chip-font-size);
+  font-weight: var(--surface-chip-font-weight);
+  line-height: 1;
+}
+
+.surface-chip svg,
+.surface-chip i {
+  width: var(--surface-chip-icon-size);
+  height: var(--surface-chip-icon-size);
+  color: var(--surface-chip-icon);
+  flex-shrink: 0;
+}
+
+.surface-chip--highlight {
+  --surface-chip-bg: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  --surface-chip-border: color-mix(in srgb, var(--color-primary) 28%, transparent);
+  --surface-chip-color: var(--color-primary);
+  --surface-chip-icon: var(--color-primary);
+}
+
+.surface-chip--success {
+  --surface-chip-bg: color-mix(in srgb, var(--color-success) 12%, transparent);
+  --surface-chip-border: color-mix(in srgb, var(--color-success) 25%, transparent);
+  --surface-chip-color: var(--color-success);
+  --surface-chip-icon: var(--color-success);
+}
+
+.surface-chip--pro {
+  --surface-chip-bg: linear-gradient(135deg, rgba(245, 158, 11, 0.14), rgba(217, 119, 6, 0.08));
+  --surface-chip-border: rgba(245, 158, 11, 0.24);
+  --surface-chip-color: #fff;
+  --surface-chip-icon: currentColor;
+  box-shadow: 0 1px 4px rgba(245, 158, 11, 0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.surface-chip--soft {
+  --surface-chip-bg: rgba(255, 255, 255, 0.2);
+  --surface-chip-border: rgba(255, 255, 255, 0.12);
+  --surface-chip-color: var(--color-text);
+  --surface-chip-icon: currentColor;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.surface-chip--compact {
+  --surface-chip-pad-y: 4px;
+  --surface-chip-pad-x: 12px;
+  --surface-chip-font-size: 13px;
+  --surface-chip-font-weight: 600;
+}
+
+.surface-chip--xs {
+  --surface-chip-pad-y: 2px;
+  --surface-chip-pad-x: 8px;
+  --surface-chip-font-size: 0.65rem;
+  --surface-chip-gap: 3px;
+  --surface-chip-icon-size: 10px;
+}
+
+.surface-chip--lg {
+  --surface-chip-pad-y: 12px;
+  --surface-chip-pad-x: 24px;
+  --surface-chip-font-size: 18px;
+  --surface-chip-font-weight: 600;
+}
+
+.surface-button {
+  --surface-button-bg: transparent;
+  --surface-button-bg-hover: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  --surface-button-border: color-mix(in srgb, var(--color-primary) 32%, transparent);
+  --surface-button-border-hover: color-mix(in srgb, var(--color-primary) 42%, transparent);
+  --surface-button-color: var(--color-text);
+  --surface-button-radius: var(--radius-lg);
+  --surface-button-pad-y: 10px;
+  --surface-button-pad-x: 14px;
+  --surface-button-gap: 8px;
+  --surface-button-font-size: 0.88rem;
+  --surface-button-font-weight: 700;
+  --surface-button-icon-size: 16px;
+  --surface-button-shadow-hover: var(--shadow-md);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--surface-button-gap);
+  padding: var(--surface-button-pad-y) var(--surface-button-pad-x);
+  border: 1px solid var(--surface-button-border);
+  border-radius: var(--surface-button-radius);
+  background: var(--surface-button-bg);
+  color: var(--surface-button-color);
+  font-size: var(--surface-button-font-size);
+  font-weight: var(--surface-button-font-weight);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.surface-button svg,
+.surface-button i {
+  width: var(--surface-button-icon-size);
+  height: var(--surface-button-icon-size);
+  flex-shrink: 0;
+}
+
+.surface-button:hover {
+  transform: translateY(-1px);
+  background: var(--surface-button-bg-hover);
+  border-color: var(--surface-button-border-hover);
+  box-shadow: var(--surface-button-shadow-hover);
+  color: var(--surface-button-color);
+  text-decoration: none;
+}
+
+.surface-button--subtle {
+  --surface-button-bg: rgba(255, 255, 255, 0.03);
+  --surface-button-border: var(--glass-border);
+  --surface-button-border-hover: color-mix(in srgb, var(--color-primary) 32%, transparent);
+}
+
+.surface-button--upgrade {
+  --surface-button-bg: linear-gradient(135deg, #f59e0b, #d97706);
+  --surface-button-bg-hover: linear-gradient(135deg, #d97706, #b45309);
+  --surface-button-border: transparent;
+  --surface-button-border-hover: transparent;
+  --surface-button-color: #fff;
+  --surface-button-shadow-hover: 0 4px 12px rgba(245, 158, 11, 0.5);
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35);
+}
+
+.surface-button--primary {
+  --surface-button-bg: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, #000));
+  --surface-button-bg-hover: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 92%, #000), color-mix(in srgb, var(--color-primary) 72%, #000));
+  --surface-button-border: transparent;
+  --surface-button-border-hover: transparent;
+  --surface-button-color: #fff;
+  --surface-button-shadow-hover: 0 10px 24px color-mix(in srgb, var(--color-primary) 35%, transparent);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--color-primary) 22%, transparent);
+}
+
+.surface-button--danger {
+  --surface-button-bg: linear-gradient(135deg, var(--color-danger), color-mix(in srgb, var(--color-danger) 75%, #000));
+  --surface-button-bg-hover: linear-gradient(135deg, color-mix(in srgb, var(--color-danger) 92%, #000), color-mix(in srgb, var(--color-danger) 72%, #000));
+  --surface-button-border: transparent;
+  --surface-button-border-hover: transparent;
+  --surface-button-color: #fff;
+  --surface-button-shadow-hover: 0 10px 24px color-mix(in srgb, var(--color-danger) 30%, transparent);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--color-danger) 18%, transparent);
+}
+
+.surface-button--compact {
+  --surface-button-pad-y: var(--spacing-2);
+  --surface-button-pad-x: var(--spacing-4);
+  --surface-button-font-size: var(--font-size-sm);
+}
+
+.surface-button--lg {
+  --surface-button-pad-y: 16px;
+  --surface-button-pad-x: 32px;
+  --surface-button-gap: 12px;
+  --surface-button-font-size: 16px;
+  --surface-button-icon-size: 20px;
+}
+
+.surface-filter {
+  --surface-filter-bg: rgba(255, 255, 255, 0.04);
+  --surface-filter-bg-hover: rgba(255, 255, 255, 0.08);
+  --surface-filter-border: var(--glass-border);
+  --surface-filter-border-hover: color-mix(in srgb, var(--color-primary) 30%, transparent);
+  --surface-filter-color: var(--color-text);
+  --surface-filter-color-hover: var(--color-text);
+  --surface-filter-active-bg: var(--color-primary);
+  --surface-filter-active-border: var(--color-primary);
+  --surface-filter-active-color: #fff;
+  --surface-filter-radius: var(--radius-md);
+  --surface-filter-pad-y: 0.5rem;
+  --surface-filter-pad-x: 0.875rem;
+  --surface-filter-font-size: 0.8rem;
+  --surface-filter-font-weight: 600;
+  --surface-filter-gap: 0.5rem;
+  --surface-filter-icon-size: 14px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--surface-filter-gap);
+  padding: var(--surface-filter-pad-y) var(--surface-filter-pad-x);
+  border: 1px solid var(--surface-filter-border);
+  border-radius: var(--surface-filter-radius);
+  background: var(--surface-filter-bg);
+  color: var(--surface-filter-color);
+  font-size: var(--surface-filter-font-size);
+  font-weight: var(--surface-filter-font-weight);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.surface-filter svg,
+.surface-filter i {
+  width: var(--surface-filter-icon-size);
+  height: var(--surface-filter-icon-size);
+  flex-shrink: 0;
+}
+
+.surface-filter:hover {
+  background: var(--surface-filter-bg-hover);
+  border-color: var(--surface-filter-border-hover);
+  color: var(--surface-filter-color-hover);
+}
+
+.surface-filter.active {
+  background: var(--surface-filter-active-bg);
+  border-color: var(--surface-filter-active-border);
+  color: var(--surface-filter-active-color);
+  box-shadow: 0 2px 8px rgba(230, 126, 34, 0.25);
+  transform: translateY(-1px);
+}
+
+.surface-filter--pill {
+  --surface-filter-radius: var(--radius-full);
+  --surface-filter-pad-y: 6px;
+  --surface-filter-pad-x: 12px;
+  --surface-filter-font-size: var(--font-size-xs);
+  --surface-filter-color: var(--color-text-muted);
+  --surface-filter-gap: var(--spacing-1);
+}
+
+.surface-filter--soft {
+  --surface-filter-bg: var(--color-bg);
+  --surface-filter-bg-hover: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  --surface-filter-border: var(--glass-border);
+  --surface-filter-border-hover: color-mix(in srgb, var(--color-primary) 40%, transparent);
+  --surface-filter-color: var(--color-text);
+  --surface-filter-radius: var(--radius-md);
+  --surface-filter-pad-y: 10px;
+  --surface-filter-pad-x: 20px;
+  --surface-filter-font-size: 14px;
+  --surface-filter-font-weight: 500;
+}
+
+.surface-filter--soft.active {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+  color: var(--color-primary);
+  box-shadow: none;
+}
+
+.surface-filter--warning {
+  --surface-filter-color: var(--color-warning);
+  --surface-filter-border: color-mix(in srgb, var(--color-warning) 30%, transparent);
+  --surface-filter-bg-hover: color-mix(in srgb, var(--color-warning) 10%, transparent);
+  --surface-filter-border-hover: var(--color-warning);
+  --surface-filter-color-hover: var(--color-warning);
+}
+
+.surface-control-box {
+  --surface-control-bg: var(--color-bg);
+  --surface-control-border: var(--glass-border);
+  --surface-control-radius: var(--radius-lg);
+  --surface-control-padding: var(--spacing-4);
+
+  background: var(--surface-control-bg);
+  border: 1px solid var(--surface-control-border);
+  border-radius: var(--surface-control-radius);
+  padding: var(--surface-control-padding);
+}
+
+.surface-control-box--interactive {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.surface-control-box--interactive:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+:where(.modal, .lk-modal-overlay, .payment-modal, .fin-modal-overlay, .lkh-modal) {
+  --surface-modal-accent: var(--color-primary);
+  --surface-modal-border: rgba(255, 255, 255, 0.06);
+  --surface-modal-bg: var(--color-bg);
+  --surface-modal-radius: var(--radius-xl);
+  --surface-modal-shadow:
+    var(--shadow-xl),
+    0 0 0 1px color-mix(in srgb, var(--surface-modal-accent) 8%, transparent);
+}
+

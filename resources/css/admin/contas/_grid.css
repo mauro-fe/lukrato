@@ -1,0 +1,9 @@
+/* ─── ACCOUNT GRID ────────────────────────────────────────────────────────── */
+
+.acc-grid {
+  display: grid;
+  gap: var(--spacing-6);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  transition: all 0.3s ease;
+}
+

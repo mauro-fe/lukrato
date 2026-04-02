@@ -1,0 +1,97 @@
+/* ─── FILTER SUMMARY ──────────────────────────────────────────────────────── */
+
+.cartoes-filter-summary {
+  /* Rendered by JS */
+}
+
+.cartoes-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.cartoes-summary-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.cartoes-summary-copy i,
+.cartoes-summary-copy svg {
+  color: var(--color-primary);
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.cartoes-summary-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--spacing-2);
+}
+
+.cartoes-summary-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cartoes-summary-pill.neutral {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text-muted);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.cartoes-summary-pill.accent {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: var(--color-primary);
+  border-color: color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+.cartoes-summary-pill.info {
+  background: color-mix(in srgb, var(--color-info, #3b82f6) 10%, transparent);
+  color: var(--color-info, #3b82f6);
+  border-color: color-mix(in srgb, var(--color-info, #3b82f6) 20%, transparent);
+}
+
+.cartoes-summary-pill.success {
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
+  color: var(--color-success);
+  border-color: color-mix(in srgb, var(--color-success) 20%, transparent);
+}
+
+.cartoes-summary-pill.warning {
+  background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+  color: var(--color-warning);
+  border-color: color-mix(in srgb, var(--color-warning) 20%, transparent);
+}
+
+.cartoes-summary-pill.danger {
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  color: var(--color-danger);
+  border-color: color-mix(in srgb, var(--color-danger) 20%, transparent);
+}
+
+.cartoes-summary-pill.subtle {
+  background: transparent;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  border-color: transparent;
+  opacity: 0.7;
+}
+

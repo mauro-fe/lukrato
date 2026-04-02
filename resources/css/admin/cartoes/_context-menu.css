@@ -1,0 +1,57 @@
+/* ─── CONTEXT MENU (JS-injected into body) ────────────────────────────────── */
+
+.card-context-menu {
+  position: fixed;
+  z-index: 9999;
+  min-width: 180px;
+  padding: var(--spacing-2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  background: var(--color-surface, var(--color-bg));
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.04);
+  animation: fadeIn 0.15s ease;
+}
+
+.card-context-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  width: 100%;
+  padding: var(--spacing-2) var(--spacing-3);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  text-align: left;
+}
+
+.card-context-item i,
+.card-context-item svg {
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-muted);
+}
+
+.card-context-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.card-context-item.danger {
+  color: var(--color-danger);
+}
+
+.card-context-item.danger i,
+.card-context-item.danger svg {
+  color: var(--color-danger);
+}
+
+.card-context-item.danger:hover {
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+}
+

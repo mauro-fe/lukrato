@@ -51,6 +51,7 @@ export default defineConfig({
                 // CSS compilado do Tailwind (site público)
                 'site-app': resolve(__dirname, 'resources/css/site/app.css'),
                 'site-base': resolve(__dirname, 'resources/css/site/base.css'),
+                'site-landing': resolve(__dirname, 'resources/css/site/landing-base.css'),
                 'site-legal': resolve(__dirname, 'resources/css/site/legal.css'),
                 'site-aprenda': resolve(__dirname, 'resources/css/site/aprenda.css'),
                 'site-card-style': resolve(__dirname, 'resources/css/site/card.css'),

@@ -1,0 +1,88 @@
+/* ─── HERO — Saldo Consolidado ────────────────────────────────────────────── */
+
+.cont-hero {
+  text-align: center;
+  padding: var(--spacing-8) var(--spacing-5);
+}
+
+.cont-hero__eyebrow {
+  display: block;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-2);
+}
+
+.cont-hero__title {
+  margin: 0 0 var(--spacing-2);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.cont-hero__balance {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: var(--spacing-4);
+}
+
+.cont-hero__meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.cont-hero__meta strong {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.cont-hero__meta-divider {
+  opacity: 0.4;
+}
+
+.cont-hero__insight {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  text-align: left;
+  margin: var(--spacing-5) auto 0;
+  max-width: 520px;
+  padding: var(--spacing-4);
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+.cont-hero__insight > i,
+.cont-hero__insight > svg {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: var(--color-primary);
+  margin-top: 2px;
+}
+
+.cont-hero__insight-title {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+.cont-hero__insight-desc {
+  margin: var(--spacing-1) 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+

@@ -1,0 +1,23 @@
+/* ─── GRID DE FATURAS ─────────────────────────────────────────────────────── */
+
+.parcelamentos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: var(--spacing-5);
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+/* Card entrance animation */
+.parcelamentos-grid .parcelamento-card {
+  animation: fadeSlideUp 0.45s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+.parcelamentos-grid .parcelamento-card:nth-child(1) { animation-delay: 0.04s; }
+.parcelamentos-grid .parcelamento-card:nth-child(2) { animation-delay: 0.08s; }
+.parcelamentos-grid .parcelamento-card:nth-child(3) { animation-delay: 0.12s; }
+.parcelamentos-grid .parcelamento-card:nth-child(4) { animation-delay: 0.16s; }
+.parcelamentos-grid .parcelamento-card:nth-child(5) { animation-delay: 0.20s; }
+.parcelamentos-grid .parcelamento-card:nth-child(6) { animation-delay: 0.24s; }
+.parcelamentos-grid .parcelamento-card:nth-child(n + 7) { animation-delay: 0.28s; }
+

@@ -1,0 +1,108 @@
+/* ============================================================================
+   LK SELECT (Custom Dropdown)
+   ============================================================================ */
+.lk-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  backdrop-filter: var(--glass-backdrop);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-family: var(--font-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  padding: var(--spacing-3) var(--spacing-5) var(--spacing-3) var(--spacing-4);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  position: relative;
+  min-width: 180px;
+  box-shadow: var(--shadow-sm);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23e67e22' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--spacing-3) center;
+  background-size: 14px;
+}
+
+.lk-select:hover,
+.lk-select:hover ~ .btn-primary,
+.lk-input:hover {
+  border-color: var(--color-primary);
+  background-color: color-mix(in srgb, var(--glass-bg) 5%, var(--color-primary) 70%);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.lk-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px var(--ring), var(--shadow-md);
+  background-color: var(--color-surface);
+}
+
+.lk-select:active {
+  transform: translateY(0);
+}
+
+.lk-select.btn-primary {
+  background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, var(--color-secondary) 20%));
+  border-color: var(--color-primary);
+  color: var(--color-text);
+  font-weight: 600;
+  box-shadow: var(--shadow-md);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--spacing-3) center;
+  background-size: 14px;
+}
+
+.lk-select option {
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: var(--spacing-3);
+  font-weight: 500;
+}
+
+.lk-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.lk-select.lk-select-sm {
+  padding: var(--spacing-2) var(--spacing-4) var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-xs);
+  min-width: 140px;
+  background-size: 12px;
+  background-position: right var(--spacing-2) center;
+}
+
+.lk-select.lk-select-lg {
+  padding: var(--spacing-4) var(--spacing-6) var(--spacing-4) var(--spacing-5);
+  font-size: var(--font-size-base);
+  min-width: 220px;
+  background-size: 16px;
+  background-position: right var(--spacing-4) center;
+}
+
+.lk-select.loading {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ============================================================================
+   EFFECTS
+   ============================================================================ */
+.effect {
+  transition: 0.2s;
+}
+
+.effect:hover {
+  transform: translateY(-2px);
+}
+
+.btn .ripple {
+  display: none !important;
+}
+
+/* ============================================================================
+   FIM DO ARQUIVO
+   ============================================================================ */

@@ -1,0 +1,390 @@
+/* ─── RESPONSIVE — Desktop-first breakpoints ──────────────────────────────── */
+
+@media (max-width: 1200px) {
+  .filters-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .parcelamentos-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+
+  .fatura-card-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .fatura-card-meta {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .parc-page {
+    padding: var(--spacing-4) var(--spacing-3);
+    gap: var(--spacing-4);
+  }
+
+  .fat-hero {
+    padding: var(--spacing-6) var(--spacing-4);
+  }
+
+  .fat-list-section {
+    padding: var(--spacing-4);
+  }
+
+  .fat-list-header {
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+
+  .faturas-list-header.visible {
+    display: none !important;
+  }
+
+  .filters-header {
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+
+  .filters-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .filters-text h3 {
+    font-size: var(--font-size-base);
+  }
+
+  .filters-body {
+    padding: var(--spacing-4);
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-3);
+  }
+
+  .filters-actions {
+    flex-direction: row;
+  }
+
+  .btn-filter-clear,
+  .btn-filter-apply {
+    flex: 1;
+    justify-content: center;
+    padding: var(--spacing-3);
+  }
+
+  .active-filters {
+    padding: var(--spacing-2) var(--spacing-4);
+  }
+
+  .view-toggle {
+    padding: 0.2rem;
+  }
+
+  .view-btn {
+    padding: 0.4rem 0.7rem;
+  }
+
+  .parcelamentos-grid,
+  .parcelamentos-grid.list-view {
+    grid-template-columns: 1fr !important;
+    gap: var(--spacing-4) !important;
+  }
+
+  .parcelamentos-grid.list-view .parcelamento-card::before {
+    height: var(--fatura-header-height);
+    background:
+      linear-gradient(180deg, rgba(4, 11, 20, 0.42) 0%, rgba(4, 11, 20, 0.18) 58%, transparent 100%),
+      radial-gradient(circle at top right, color-mix(in srgb, var(--fatura-accent) 10%, transparent), transparent 56%),
+      linear-gradient(180deg,
+        color-mix(in srgb, var(--fatura-accent) 7%, transparent) 0%,
+        color-mix(in srgb, var(--fatura-accent) 3%, transparent) 62%,
+        transparent 100%);
+  }
+
+  .parcelamentos-grid.list-view .fatura-card-shell,
+  .fatura-card-shell {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+    padding: 1.1rem !important;
+  }
+
+  .parcelamentos-grid.list-view .fatura-card-top,
+  .fatura-card-top {
+    display: grid !important;
+    grid-template-columns: 56px minmax(0, 1fr) !important;
+    gap: 14px !important;
+    min-height: auto !important;
+    padding-bottom: 0.95rem !important;
+  }
+
+  .parcelamentos-grid.list-view .fatura-card-media,
+  .fatura-card-media {
+    grid-column: auto !important;
+  }
+
+  .parcelamentos-grid.list-view .fatura-card-brand,
+  .fatura-card-brand {
+    width: 56px !important;
+    height: 56px !important;
+  }
+
+  .parcelamentos-grid.list-view .fatura-card-head,
+  .fatura-card-head {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  .parcelamentos-grid.list-view .fatura-card-meta,
+  .fatura-card-meta {
+    width: 100%;
+    align-items: flex-start !important;
+  }
+
+  .parcelamentos-grid.list-view .fatura-list-info,
+  .fatura-list-info,
+  .parcelamentos-grid.list-view .fatura-status-col {
+    display: none !important;
+  }
+
+  .fatura-card-title {
+    font-size: 1.05rem;
+  }
+
+  .fatura-card-subtitle,
+  .fatura-card-due-line {
+    font-size: 0.86rem;
+  }
+
+  .resumo-valor {
+    font-size: clamp(1.75rem, 1.1rem + 2vw, 2.1rem);
+  }
+
+  .fatura-card-details {
+    grid-template-columns: 1fr;
+  }
+
+  .parc-progress-header,
+  .parc-progress-foot {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .parc-card-actions {
+    padding: 0;
+  }
+
+  .parc-btn {
+    width: 100%;
+  }
+
+  /* Modal fullscreen on mobile */
+  .modern-modal .modal-dialog {
+    margin: 0;
+    max-width: 100%;
+    min-height: 100vh;
+  }
+
+  .modern-modal .modal-content {
+    border-radius: 0;
+    min-height: 100vh;
+  }
+
+  .modern-modal .modal-header {
+    border-radius: 0;
+    padding: var(--spacing-3);
+  }
+
+  .modern-modal .modal-body {
+    padding: var(--spacing-3);
+  }
+
+  .modern-modal .modal-footer {
+    padding: var(--spacing-3);
+  }
+
+  .detalhes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detalhes-item {
+    padding: 0.65rem;
+  }
+
+  .parcelas-desktop {
+    display: none;
+  }
+
+  .parcelas-mobile {
+    display: block;
+  }
+
+  .btn-pagar-fatura .btn-text-desktop,
+  .btn-pagar-fatura-completa .btn-text-desktop,
+  .btn-reverter-fatura .btn-text-desktop,
+  .btn-excluir-fatura .btn-text-desktop {
+    display: none;
+  }
+
+  .btn-pagar-fatura .btn-text-mobile,
+  .btn-pagar-fatura-completa .btn-text-mobile,
+  .btn-reverter-fatura .btn-text-mobile,
+  .btn-excluir-fatura .btn-text-mobile {
+    display: inline;
+  }
+
+  .fat-customize-trigger {
+    justify-content: stretch;
+  }
+
+  .fat-customize-open {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (min-width: 769px) {
+  .btn-pagar-fatura .btn-text-mobile,
+  .btn-pagar-fatura-completa .btn-text-mobile,
+  .btn-reverter-fatura .btn-text-mobile,
+  .btn-excluir-fatura .btn-text-mobile {
+    display: none;
+  }
+
+  .btn-pagar-fatura .btn-text-desktop,
+  .btn-pagar-fatura-completa .btn-text-desktop,
+  .btn-reverter-fatura .btn-text-desktop,
+  .btn-excluir-fatura .btn-text-desktop {
+    display: inline;
+  }
+}
+
+@media (max-width: 480px) {
+  .parc-page {
+    padding: var(--spacing-3) var(--spacing-2);
+  }
+
+  .fat-hero {
+    padding: var(--spacing-5) var(--spacing-3);
+    border-radius: var(--radius-md);
+  }
+
+  .fat-hero__title {
+    font-size: 1.35rem;
+  }
+
+  .filters-modern {
+    border-radius: var(--radius-md);
+  }
+
+  .filters-subtitle {
+    display: none;
+  }
+
+  .fat-list-section {
+    padding: var(--spacing-3);
+    border-radius: var(--radius-md);
+  }
+
+  .parcelamento-card {
+    border-radius: var(--radius-md);
+  }
+
+  .fatura-card-shell {
+    padding: 1rem !important;
+  }
+
+  .fatura-card-top {
+    gap: 12px !important;
+  }
+
+  .fatura-card-period,
+  .parc-card-badge {
+    min-height: 28px;
+    padding: 0 10px;
+    font-size: 0.7rem;
+  }
+
+  .resumo-label,
+  .fatura-card-detail-label {
+    font-size: 0.68rem;
+  }
+
+  .fatura-card-detail {
+    padding: 0.9rem;
+  }
+
+  .parc-progress-section {
+    padding: 14px 15px;
+  }
+
+  .detalhes-progresso {
+    padding: var(--spacing-3);
+  }
+
+  .progresso-valores {
+    flex-direction: column;
+    gap: var(--spacing-1);
+    align-items: flex-start;
+  }
+
+  .parcelas-titulo {
+    font-size: var(--font-size-sm);
+  }
+
+  .parcela-card-body {
+    grid-template-columns: 1fr;
+  }
+
+  .fat-customize-presets {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Touch targets */
+@media (hover: none) and (pointer: coarse) {
+  .btn-filter-clear,
+  .btn-filter-apply,
+  .filters-toggle,
+  .btn-close,
+  .parc-btn,
+  .view-btn,
+  .btn-toggle-parcela {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .parcelamento-card {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .parcelas-container,
+  .filters-body,
+  .modal-body {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+}
+
+/* Landscape fix */
+@media (max-width: 768px) and (orientation: landscape) {
+  .modern-modal .modal-dialog {
+    margin: var(--spacing-2);
+    max-width: 90%;
+    min-height: auto;
+    height: auto;
+  }
+
+  .modern-modal .modal-content {
+    max-height: calc(100vh - var(--spacing-4));
+    overflow-y: auto;
+    min-height: auto;
+  }
+}

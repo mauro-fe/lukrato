@@ -3,14 +3,14 @@
  * Este arquivo é carregado DEPOIS do landing-base.css
  */
 
-#func-gallery {
+main:has(#como-funciona) #func-gallery {
   display: none !important;
   opacity: 0 !important;
   visibility: hidden !important;
   pointer-events: none !important;
 }
 
-#func-gallery.is-open {
+main:has(#como-funciona) #func-gallery.is-open {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;

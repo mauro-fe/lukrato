@@ -1,0 +1,115 @@
+/* ─── LIGHT THEME OVERRIDES ───────────────────────────────────────────────── */
+
+[data-theme="light"] .cartoes-page {
+  /* All glass borders become subtle grays */
+}
+
+[data-theme="light"] .cart-hero,
+[data-theme="light"] .stat-card,
+[data-theme="light"] .cart-list-section {
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .cart-hero:hover,
+[data-theme="light"] .stat-card:hover,
+[data-theme="light"] .credit-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 16px 40px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .credit-card {
+  border-color: rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .credit-card::before {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.2) 58%, transparent 100%),
+    radial-gradient(circle at top right, color-mix(in srgb, var(--card-accent) 8%, transparent), transparent 58%);
+}
+
+[data-theme="light"] .cart-search-input,
+[data-theme="light"] .filter-btn,
+[data-theme="light"] .btn-ghost,
+[data-theme="light"] .view-toggle,
+[data-theme="light"] .card-overflow-btn {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .cart-search-input:focus {
+  border-color: var(--color-primary);
+}
+
+[data-theme="light"] .cartoes-summary-row {
+  border-color: rgba(0, 0, 0, 0.06);
+  background: rgba(0, 0, 0, 0.015);
+}
+
+[data-theme="light"] .cartoes-summary-pill.neutral {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .card-limit-panel {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .card-detail-item {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+[data-theme="light"] .limit-bar {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .card-context-menu {
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="light"] .card-context-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .lk-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.04) 25%,
+    rgba(0, 0, 0, 0.06) 50%,
+    rgba(0, 0, 0, 0.04) 75%
+  );
+  background-size: 200% 100%;
+}
+
+[data-theme="light"] .lk-skeleton--card {
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .empty-icon {
+  background: rgba(230, 126, 34, 0.08);
+}
+
+[data-theme="light"] .lk-modal-overlay {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="light"] .modal-container {
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .modal-header,
+[data-theme="light"] .modal-footer {
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .modal-close,
+[data-theme="light"] .modal-close-btn {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .alerta-item {
+  border-color: rgba(0, 0, 0, 0.06);
+}

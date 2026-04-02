@@ -1,0 +1,153 @@
+.profile-page {
+  margin: 0 auto;
+  padding: var(--spacing-3);
+}
+
+.profile-header {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-8) var(--spacing-6);
+  text-align: center;
+  margin-bottom: var(--spacing-8);
+  animation: fadeInDown 0.5s ease;
+}
+
+.profile-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top, color-mix(in srgb, var(--color-primary) 12%, transparent), transparent 55%);
+  pointer-events: none;
+}
+
+/* ─── Profile Avatar ─────────────────────────────── */
+
+.profile-avatar-wrapper {
+  position: relative;
+  display: inline-block;
+  margin-bottom: var(--spacing-4);
+}
+
+.profile-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 60%, #c0392b));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 3px solid color-mix(in srgb, var(--color-primary) 18%, var(--glass-border));
+  box-shadow: var(--shadow-lifted),
+              0 0 0 3px transparent;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.profile-avatar:hover {
+  box-shadow: var(--shadow-lifted-hover),
+              0 0 0 3px color-mix(in srgb, var(--color-primary) 40%, transparent);
+  transform: scale(1.03);
+}
+
+.avatar-initials {
+  font-size: 42px;
+  font-weight: 700;
+  color: #fff;
+  text-transform: uppercase;
+  line-height: 1;
+  user-select: none;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  border-radius: 50%;
+}
+
+.avatar-edit-btn {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  border: 2px solid var(--color-surface);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.avatar-edit-btn:hover {
+  background: color-mix(in srgb, var(--color-primary) 85%, black);
+  transform: scale(1.1);
+}
+
+.avatar-edit-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 768px) {
+  .profile-avatar {
+    width: 100px;
+    height: 100px;
+  }
+  .avatar-initials {
+    font-size: 36px;
+  }
+  .avatar-edit-btn {
+    width: 32px;
+    height: 32px;
+    bottom: 2px;
+    right: 2px;
+  }
+  .avatar-edit-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+@media (max-width: 640px) {
+  .profile-avatar {
+    width: 90px;
+    height: 90px;
+  }
+  .avatar-initials {
+    font-size: 32px;
+  }
+}
+
+.profile-title {
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+.profile-subtitle {
+  font-size: var(--font-size-base);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.profile-header-top {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+}
