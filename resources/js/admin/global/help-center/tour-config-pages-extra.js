@@ -1,0 +1,171 @@
+import { DEFAULT_VERSION } from './tour-shared.js';
+
+export const TOUR_CONFIGS_EXTRA = {
+    gamification: {
+        label: 'Conquistas',
+        version: DEFAULT_VERSION,
+        primarySelector: ['#missionsSection'],
+        steps: [
+            {
+                selector: ['.stats-grid', '.gamification-stats'],
+                title: 'Resumo de progresso',
+                description: 'Veja nivel, pontos e sequencia ativa.',
+                side: 'bottom',
+                align: 'start',
+            },
+            {
+                selector: '#missionsSection',
+                title: 'Missoes do dia',
+                description: 'Acoes curtas para manter consistencia.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: ['.achievements-section', '.achievement-card'],
+                title: 'Conquistas',
+                description: 'Historico de marcos importantes da sua jornada.',
+                side: 'top',
+                align: 'center',
+            },
+        ],
+        mobileSteps: [
+            {
+                selector: ['.stats-grid', '.gamification-stats'],
+                title: 'Seu nivel atual',
+                description: 'Resumo de pontuação e sequência.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '#missionsSection',
+                title: 'Missoes',
+                description: 'Complete tarefas para subir de nivel.',
+                side: 'top',
+                align: 'center',
+            },
+            {
+                selector: ['.achievements-section', '.achievement-card'],
+                title: 'Conquistas',
+                description: 'Consulte badges e progresso acumulado.',
+                side: 'top',
+                align: 'center',
+            },
+        ],
+    },
+    billing: {
+        label: 'Planos',
+        version: DEFAULT_VERSION,
+        primarySelector: ['.plans-grid .plan-card--recommended .surface-button', '.plans-grid .plan-card .surface-button', '.plans-grid'],
+        steps: [
+            {
+                selector: '.billing-header',
+                title: 'Comparação de planos',
+                description: 'Contexto inicial do que muda entre Free e Pro.',
+                side: 'bottom',
+                align: 'start',
+            },
+            {
+                selector: ['.plan-billing-toggle', '.billing-cycle-toggle', '.cycle-toggle'],
+                title: 'Ciclo de cobrança',
+                description: 'Troque periodicidade para comparar custo total.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '.plans-grid',
+                title: 'Cards dos planos',
+                description: 'Compare recursos, limites e ação principal.',
+                side: 'top',
+                align: 'center',
+            },
+        ],
+        mobileSteps: [
+            {
+                selector: '.billing-header',
+                title: 'Escolha seu plano',
+                description: 'Visão geral da comparação de planos.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: ['.plan-billing-toggle', '.billing-cycle-toggle', '.cycle-toggle'],
+                title: 'Trocar ciclo',
+                description: 'Alterne mensal, semestral e anual.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '.plans-grid',
+                title: 'Comparar planos',
+                description: 'Role os cards e escolha a melhor opção.',
+                side: 'top',
+                align: 'center',
+            },
+        ],
+    },
+    perfil: {
+        label: 'Perfil',
+        version: DEFAULT_VERSION,
+        primarySelector: ['#btn-save-dados', '#avatarEditBtn'],
+        steps: [
+            {
+                selector: '.profile-header',
+                title: 'Seu perfil',
+                description: 'Visão geral da sua conta e dados principais.',
+                side: 'bottom',
+                align: 'start',
+            },
+            {
+                selector: '#avatarEditBtn',
+                title: 'Foto e identidade',
+                description: 'Atualize foto para deixar o painel mais pessoal.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '.profile-tabs',
+                title: 'Seções do perfil',
+                description: 'Troque entre dados, segurança e preferências.',
+                side: 'bottom',
+                align: 'start',
+            },
+            {
+                selector: '#btn-save-dados',
+                title: 'Salvar ajustes',
+                description: 'Depois de editar, salve para aplicar as mudanças.',
+                side: 'top',
+                align: 'center',
+            },
+        ],
+        mobileSteps: [
+            {
+                selector: '.profile-header',
+                title: 'Identidade da conta',
+                description: 'Resumo da sua conta no topo da pagina.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '#avatarEditBtn',
+                title: 'Editar foto',
+                description: 'Atualize avatar com um toque.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '.profile-tabs',
+                title: 'Navegar no perfil',
+                description: 'Use abas para trocar de seção.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '#btn-save-dados',
+                title: 'Salvar',
+                description: 'Confirme mudanças no botão de salvar.',
+                side: 'top',
+                align: 'center',
+            },
+        ],
+    },
+};

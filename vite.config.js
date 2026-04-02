@@ -27,6 +27,7 @@ export default defineConfig({
                 'gamification-dashboard': resolve(__dirname, 'resources/js/admin/gamification-dashboard/index.js'),
                 'billing': resolve(__dirname, 'resources/js/admin/billing/index.js'),
                 'perfil': resolve(__dirname, 'resources/js/admin/perfil/index.js'),
+                'configuracoes': resolve(__dirname, 'resources/js/admin/configuracoes/index.js'),
                 'card-modals': resolve(__dirname, 'resources/js/admin/card-modals/index.js'),
                 'sysadmin': resolve(__dirname, 'resources/js/admin/sysadmin/index.js'),
                 'contas-arquivadas': resolve(__dirname, 'resources/js/admin/contas-arquivadas/index.js'),

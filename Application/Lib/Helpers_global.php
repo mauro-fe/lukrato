@@ -167,6 +167,7 @@ if (!function_exists('loadPageJs')) {
             'admin-gamification-index'  => 'admin/gamification/index.js',
             'admin-billing-index'       => 'admin/billing/index.js',
             'admin-perfil-index'        => 'admin/perfil/index.js',
+            'admin-configuracoes-index' => 'admin/configuracoes/index.js',
             'admin-sysadmin-index'      => 'admin/sysadmin/index.js',
             'admin-auth-login'          => 'admin/auth/login/index.js',
             'admin-auth-forgot-password' => 'admin/auth/forgot-password/index.js',

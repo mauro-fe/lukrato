@@ -2,7 +2,7 @@
  * ============================================================================
  * LUKRATO — Shared UI Utilities
  * ============================================================================
- * Toast, confirm dialogs, loading overlays.
+ * Toast, confirm dialogs, loading states (action/page/section).
  * Delegates to LKFeedback / SweetAlert2 when available.
  *
  * import { showToast, showConfirm, showLoading, hideLoading } from '../shared/ui';
@@ -142,10 +142,14 @@ export function confirmDelete(itemName = 'este item') {
 // ─── Loading ────────────────────────────────────────────────────────────────
 
 /**
- * Exibir overlay de carregamento
+ * Exibir action loading (overlay/modal)
  * @param {string} [message='Carregando...']
  */
 export function showLoading(message = 'Carregando...') {
+    if (window.LK?.loading) {
+        return window.LK.loading(message);
+    }
+
     if (window.LKFeedback?.loading) return window.LKFeedback.loading(message);
     if (window.Swal) {
         return Swal.fire({
@@ -159,11 +163,91 @@ export function showLoading(message = 'Carregando...') {
 }
 
 /**
- * Esconder overlay de carregamento
+ * Esconder action loading
  */
 export function hideLoading() {
+    if (window.LK?.hideLoading) {
+        return window.LK.hideLoading();
+    }
+
     if (window.LKFeedback?.hideLoading) return window.LKFeedback.hideLoading();
     if (window.Swal) Swal.close();
+}
+
+/**
+ * Exibir page loading (area principal da .lk-main)
+ * @param {string} [message='Carregando...']
+ * @param {Object} [options]
+ * @returns {Function} release handler
+ */
+export function showPageLoading(message = 'Carregando...', options = {}) {
+    if (window.LK?.pageLoading) {
+        return window.LK.pageLoading(message, options);
+    }
+
+    if (window.LKPageLoading?.show) {
+        return window.LKPageLoading.show(message, options);
+    }
+
+    return () => {};
+}
+
+/**
+ * Esconder page loading
+ */
+export function hidePageLoading() {
+    if (window.LK?.hidePageLoading) {
+        window.LK.hidePageLoading();
+        return;
+    }
+
+    window.LKPageLoading?.hide?.();
+}
+
+/**
+ * Executar tarefa dentro do page loading
+ * @param {Promise|Function} task
+ * @param {Object} [options]
+ * @returns {Promise<any>}
+ */
+export async function withPageLoading(task, options = {}) {
+    if (window.LK?.withPageLoading) {
+        return window.LK.withPageLoading(task, options);
+    }
+
+    if (window.LKPageLoading?.withLoading) {
+        return window.LKPageLoading.withLoading(task, options);
+    }
+
+    if (typeof task === 'function') {
+        return task();
+    }
+
+    return task;
+}
+
+/**
+ * Ativa/desativa section loading em um elemento
+ * @param {Element|string} target
+ * @param {boolean} [isLoading=true]
+ */
+export function setSectionLoading(target, isLoading = true) {
+    if (window.LK?.sectionLoading) {
+        window.LK.sectionLoading(target, isLoading);
+        return;
+    }
+
+    if (window.LKPageLoading?.setSectionLoading) {
+        window.LKPageLoading.setSectionLoading(target, isLoading);
+        return;
+    }
+
+    const element = typeof target === 'string' ? document.querySelector(target) : target;
+    if (!element) {
+        return;
+    }
+    element.classList.toggle('lk-section-loading', !!isLoading);
+    element.setAttribute('aria-busy', isLoading ? 'true' : 'false');
 }
 
 // ─── DOM Helpers ────────────────────────────────────────────────────────────

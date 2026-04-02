@@ -197,6 +197,7 @@ export async function apiFetch(url, options = {}, extra = {}) {
     const base = getBaseUrl();
     const fullUrl = url.startsWith('http') ? url : base + url.replace(/^\//, '');
     const method = (options.method || 'GET').toUpperCase();
+    const releaseBootRequest = window.LKPageLoading?.bootRequestStart?.() || null;
     const requestHeaders = normalizeRequestHeaders({
         'Accept': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
@@ -271,6 +272,9 @@ export async function apiFetch(url, options = {}, extra = {}) {
         throw error;
     } finally {
         if (timeoutId) clearTimeout(timeoutId);
+        if (typeof releaseBootRequest === 'function') {
+            releaseBootRequest();
+        }
     }
 }
 

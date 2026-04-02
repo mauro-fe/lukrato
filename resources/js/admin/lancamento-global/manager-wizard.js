@@ -1,0 +1,206 @@
+export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) {
+    const {
+        refreshIcons,
+        renderLancamentoHistoryPlaceholder,
+    } = dependencies;
+
+    Object.assign(ManagerClass.prototype, {
+        closeModal() {
+            const overlay = document.getElementById('modalLancamentoGlobalOverlay');
+            if (overlay) {
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+                this.pendingTipo = null;
+                this.restaurarCabecalhoPadrao();
+                this.initWizard();
+                this.clearPlanningAlerts();
+            }
+        },
+
+        restaurarCabecalhoPadrao() {
+            const tituloEl = document.getElementById('modalLancamentoGlobalTitulo');
+            if (tituloEl) tituloEl.textContent = 'Nova Movimentacao';
+
+            const headerGradient = document.querySelector('#modalLancamentoGlobalOverlay .lk-modal-header-gradient');
+            if (headerGradient) {
+                headerGradient.classList.remove('receita', 'despesa', 'transferencia', 'agendamento');
+                headerGradient.style.removeProperty('background');
+            }
+        },
+
+        voltarEscolhaTipo() {
+            this.goToStep(1);
+            this.restaurarCabecalhoPadrao();
+            this.resetarFormulario();
+        },
+
+        initWizard() {
+            this.currentStep = 1;
+            this.tipoAtual = null;
+            this.totalSteps = 5;
+            this.resetarFormulario();
+            this.restaurarCabecalhoPadrao();
+
+            const contaInfo = document.getElementById('globalContaInfo');
+            if (contaInfo) {
+                contaInfo.classList.remove('lk-conta-info--compact');
+            }
+
+            const contaSelect = document.getElementById('globalContaSelect');
+            if (contaSelect) {
+                contaSelect.value = this.contaSelecionada?.id ? String(this.contaSelecionada.id) : '';
+                const contaSelectGroup = contaSelect.closest('.lk-form-group');
+                if (contaSelectGroup) {
+                    contaSelectGroup.classList.remove('lk-conta-select--hidden');
+                }
+            }
+
+            this.syncEnhancedSelects();
+
+            this.aplicarContextoAbertura(this.contextoAbertura);
+            this.atualizarContaSelecionadaUI();
+            if (!this.contaSelecionada) {
+                const historicoContainer = document.getElementById('globalLancamentoHistorico');
+                if (historicoContainer) {
+                    renderLancamentoHistoryPlaceholder(historicoContainer, 'Selecione uma conta para ver as ultimas movimentacoes.');
+                }
+            }
+            const progress = document.getElementById('globalWizardProgress');
+            if (progress) progress.style.display = 'none';
+            for (let i = 1; i <= 5; i++) {
+                const step = document.getElementById(`globalStep${i}`);
+                if (step) {
+                    step.classList.remove('active');
+                    step.style.display = 'none';
+                }
+            }
+            const step1 = document.getElementById('globalStep1');
+            if (step1) {
+                step1.classList.add('active');
+                step1.style.display = '';
+            }
+        },
+
+        renderProgress() {
+            const container = document.getElementById('globalWizardProgress');
+            if (!container) return;
+
+            if (this.currentStep <= 1) {
+                container.style.display = 'none';
+                return;
+            }
+            container.style.display = 'flex';
+
+            const dotCount = this.totalSteps - 1;
+            let html = '';
+            for (let i = 0; i < dotCount; i++) {
+                const stepNum = i + 2;
+                let stateClass = 'pending';
+                if (stepNum < this.currentStep) stateClass = 'completed';
+                else if (stepNum === this.currentStep) stateClass = 'active';
+
+                if (i > 0) {
+                    const lineClass = stepNum <= this.currentStep ? 'completed' : '';
+                    html += `<div class="lk-wizard-line ${lineClass}"></div>`;
+                }
+                html += `<div class="lk-wizard-dot ${stateClass}"></div>`;
+            }
+            container.innerHTML = html;
+        },
+
+        goToStep(n) {
+            if (n < 1 || n > this.totalSteps) return;
+
+            const prev = this.currentStep;
+            this.currentStep = n;
+
+            for (let i = 1; i <= 5; i++) {
+                const step = document.getElementById(`globalStep${i}`);
+                if (!step) continue;
+                if (i === prev && i !== n) {
+                    step.classList.remove('active');
+                    step.style.display = 'none';
+                }
+            }
+
+            const newStep = document.getElementById(`globalStep${n}`);
+            if (newStep) {
+                newStep.style.display = '';
+                newStep.classList.add('active');
+            }
+
+            this.renderProgress();
+
+            const contaInfo = document.getElementById('globalContaInfo');
+            if (contaInfo) {
+                contaInfo.classList.toggle('lk-conta-info--compact', n > 1);
+            }
+            const contaSelectGroup = document.getElementById('globalContaSelect')?.closest('.lk-form-group');
+            if (contaSelectGroup) {
+                contaSelectGroup.classList.toggle('lk-conta-select--hidden', n > 1);
+            }
+
+            const body = document.querySelector('#modalLancamentoGlobalOverlay .lk-modal-body-modern');
+            if (body) body.scrollTop = 0;
+
+            refreshIcons();
+        },
+
+        nextStep() {
+            if (!this.validateCurrentStep()) return;
+
+            let next = this.currentStep + 1;
+
+            if (this.tipoAtual === 'transferencia') {
+                if (next === 5) next = this.totalSteps + 1;
+            }
+
+            if (next > this.totalSteps) {
+                this.salvarLancamento();
+                return;
+            }
+            this.goToStep(next);
+        },
+
+        prevStep() {
+            let prev = this.currentStep - 1;
+
+            if (this.tipoAtual === 'transferencia') {
+                // no-op
+            }
+
+            if (prev < 1) prev = 1;
+            if (prev === 1) {
+                this.voltarEscolhaTipo();
+                return;
+            }
+            this.goToStep(prev);
+        },
+
+        skipAndSave() {
+            if (!this.validarFormulario()) return;
+            this.salvarLancamento();
+        },
+
+        saveQuick() {
+            if (this.tipoAtual === 'transferencia') {
+                this.nextStep();
+                return;
+            }
+
+            if (this.currentStep !== 2) {
+                this.goToStep(2);
+            }
+
+            if (!this.validateCurrentStep()) return;
+
+            const dataInput = document.getElementById('globalLancamentoData');
+            if (dataInput && !dataInput.value) {
+                const hoje = new Date();
+                dataInput.value = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+            }
+
+            this.salvarLancamento();
+        },
+    });
+}

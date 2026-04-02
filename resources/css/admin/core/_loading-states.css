@@ -1,9 +1,174 @@
 /* ================================================
-   LOADING STATES — Componente unificado
-   Padrão visual para todos os loading de página/seção
+   LOADING STATES - Base global de loading
+   Padrao unificado para page / section / action.
    ================================================ */
 
-/* ── Skeleton shimmer base ── */
+/* ------------------------------------------------
+   1) PAGE LOADING (shell dentro de .lk-main)
+   ------------------------------------------------ */
+.lk-page-shell {
+  position: relative;
+  min-height: clamp(320px, 56vh, 680px);
+  isolation: isolate;
+}
+
+.lk-page-content {
+  position: relative;
+  z-index: 1;
+  min-height: inherit;
+  transition: opacity 0.24s ease, filter 0.24s ease;
+}
+
+.lk-page-shell[data-page-loading-state="active"] .lk-page-content {
+  opacity: 0.45;
+  filter: saturate(0.85);
+  pointer-events: none;
+  user-select: none;
+}
+
+.lk-page-loader {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  padding: clamp(1rem, 2.6vw, 2rem);
+  pointer-events: none;
+}
+
+.lk-page-loader[hidden] {
+  display: none !important;
+}
+
+.lk-page-loader::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-lg, 16px);
+  background:
+    radial-gradient(1200px 340px at 50% 0%, color-mix(in srgb, var(--laranja) 14%, transparent), transparent 64%),
+    color-mix(in srgb, var(--color-bg) 84%, transparent);
+  backdrop-filter: blur(1.5px);
+  -webkit-backdrop-filter: blur(1.5px);
+}
+
+.lk-page-loader__card {
+  position: fixed;
+  left: var(--lk-page-loader-x, 50vw);
+  top: var(--lk-page-loader-y, 50vh);
+  transform: translate(-50%, -50%);
+  z-index: 4;
+  width: min(360px, calc(100vw - 2rem));
+  max-width: calc(100vw - 2rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--spacing-3, 0.75rem);
+  padding: clamp(1rem, 2.8vw, 1.4rem);
+  border-radius: var(--radius-lg, 16px);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  background: color-mix(in srgb, var(--glass-bg) 90%, transparent);
+  box-shadow: var(--shadow-md, 0 10px 30px rgba(0, 0, 0, 0.2));
+  will-change: left, top, transform;
+}
+
+.lk-page-loader__logo-wrap {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.lk-page-loader__logo {
+  position: relative;
+  z-index: 2;
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 16px rgba(230, 126, 34, 0.25));
+  animation: lk-logo-pulse 2.8s ease-in-out infinite;
+}
+
+.lk-page-loader__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--laranja) 22%, transparent);
+  border-top-color: color-mix(in srgb, var(--laranja) 72%, transparent);
+  animation: lk-loader-ring 1.5s linear infinite;
+}
+
+.lk-page-loader__title {
+  margin: 0;
+  color: var(--color-text, #f2f2f2);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.lk-page-loader__subtitle {
+  margin: 0;
+  color: var(--color-text-muted, #9ca3af);
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+@keyframes lk-loader-ring {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes lk-logo-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+/* ------------------------------------------------
+   2) SECTION LOADING
+   ------------------------------------------------ */
+.lk-section-loading {
+  position: relative !important;
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+.lk-section-loading::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--color-bg) 78%, transparent);
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(1px);
+  z-index: 2;
+}
+
+.lk-section-loading::after {
+  content: "";
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  left: calc(50% - 17px);
+  top: calc(50% - 17px);
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--laranja) 24%, transparent);
+  border-top-color: var(--color-primary, #e67e22);
+  animation: lk-loader-ring 0.95s linear infinite;
+  z-index: 3;
+}
+
+/* ------------------------------------------------
+   3) SKELETON BASE
+   ------------------------------------------------ */
 .lk-skeleton {
   border-radius: 12px;
   background: linear-gradient(
@@ -16,17 +181,14 @@
   animation: lk-shimmer 1.5s infinite;
 }
 
-/* Variante: card (contas, cartões) */
 .lk-skeleton--card {
   height: 180px;
 }
 
-/* Variante: chart */
 .lk-skeleton--chart {
   height: 250px;
 }
 
-/* Variante: badge pequeno */
 .lk-skeleton--badge {
   width: 80px;
   height: 80px;
@@ -34,11 +196,17 @@
 }
 
 @keyframes lk-shimmer {
-  0%   { background-position: -1000px 0; }
-  100% { background-position:  1000px 0; }
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
 }
 
-/* ── Loading state com spinner ── */
+/* ------------------------------------------------
+   4) GENERIC INLINE LOADING STATE
+   ------------------------------------------------ */
 .lk-loading-state {
   display: flex;
   flex-direction: column;
@@ -54,7 +222,7 @@
   width: 2rem;
   height: 2rem;
   color: var(--color-primary, #e67e22);
-  animation: lk-spin 0.8s linear infinite;
+  animation: lk-inline-spin 0.8s linear infinite;
 }
 
 .lk-loading-state p {
@@ -63,6 +231,34 @@
   color: var(--color-text-muted, #888);
 }
 
-@keyframes lk-spin {
-  to { transform: rotate(360deg); }
+@keyframes lk-inline-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ------------------------------------------------
+   5) Theme + Motion
+   ------------------------------------------------ */
+:root[data-theme="light"] .lk-page-loader::before {
+  background:
+    radial-gradient(1200px 340px at 50% 0%, color-mix(in srgb, var(--laranja) 11%, transparent), transparent 64%),
+    color-mix(in srgb, #ffffff 92%, transparent);
+}
+
+:root[data-theme="light"] .lk-page-loader__card {
+  background: color-mix(in srgb, #ffffff 93%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lk-page-content,
+  .lk-page-loader__logo,
+  .lk-page-loader__ring,
+  .lk-loading-state i,
+  .lk-loading-state svg,
+  .lk-section-loading::after,
+  .lk-skeleton {
+    animation: none !important;
+    transition: none !important;
+  }
 }

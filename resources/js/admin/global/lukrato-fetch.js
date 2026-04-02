@@ -105,11 +105,29 @@ class LukratoFetch {
         const showLoading = config.showLoading ?? true;
         const loadingTarget = config.loadingTarget || null;
         const cacheKey = config.cacheKey || null;
+        const releaseBootRequest = window.LKPageLoading?.bootRequestStart?.() || null;
+        const pageLoadingConfig = config.pageLoading;
+        const usePageLoading = pageLoadingConfig === true || (typeof pageLoadingConfig === 'object' && pageLoadingConfig !== null);
+        const pageLoadingOptions = (typeof pageLoadingConfig === 'object' && pageLoadingConfig !== null) ? pageLoadingConfig : {};
+        const releasePageLoading = this.startPageLoading(usePageLoading, {
+            message: config.pageLoadingMessage || pageLoadingOptions.message || 'Carregando...',
+            subtitle: config.pageLoadingSubtitle || pageLoadingOptions.subtitle || 'Preparando seus dados',
+            delay: Number.isFinite(config.pageLoadingDelay) ? config.pageLoadingDelay : pageLoadingOptions.delay,
+        });
+        const finishPageLoading = () => {
+            if (typeof releasePageLoading === 'function') {
+                releasePageLoading();
+            }
+            if (typeof releaseBootRequest === 'function') {
+                releaseBootRequest();
+            }
+        };
 
         // Verificar cache primeiro
         if (this.enableCache && cacheKey && options.method === 'GET') {
             const cached = this.getFromCache(cacheKey);
             if (cached) {
+                finishPageLoading();
                 return { ok: true, data: cached, fromCache: true };
             }
         }
@@ -117,6 +135,7 @@ class LukratoFetch {
         // Verificar se está offline
         if (!navigator.onLine) {
             this.showOfflineNotification();
+            finishPageLoading();
             throw new Error('Você está offline. Verifique sua conexão.');
         }
 
@@ -182,6 +201,7 @@ class LukratoFetch {
                     this.saveToCache(cacheKey, data);
                 }
 
+                finishPageLoading();
                 return { ok: true, data, fromCache: false, elapsed };
 
             } catch (error) {
@@ -217,6 +237,7 @@ class LukratoFetch {
             this.hideSlowConnectionWarning();
         }
 
+        finishPageLoading();
         throw lastError;
     }
 
@@ -273,7 +294,7 @@ class LukratoFetch {
         if (target) {
             const element = typeof target === 'string' ? document.querySelector(target) : target;
             if (element) {
-                element.classList.add('lk-loading');
+                this.setScopedLoading(element, true);
             }
         }
     }
@@ -290,13 +311,62 @@ class LukratoFetch {
         if (target) {
             const element = typeof target === 'string' ? document.querySelector(target) : target;
             if (element) {
-                element.classList.remove('lk-loading');
+                this.setScopedLoading(element, false);
             }
         }
     }
 
     /**
      * Mostra aviso de conexão lenta
+     */
+    /**
+     * Inicia page loading da área principal (opcional por request)
+     */
+    startPageLoading(enabled, options = {}) {
+        if (!enabled || typeof window === 'undefined') {
+            return null;
+        }
+
+        if (window.LKPageLoading?.start) {
+            return window.LKPageLoading.start(options);
+        }
+
+        if (window.LK?.pageLoading) {
+            return window.LK.pageLoading(options.message || 'Carregando...', options);
+        }
+
+        return null;
+    }
+
+    /**
+     * Aplica loading de seção no alvo da requisição
+     */
+    setScopedLoading(target, isLoading) {
+        if (!target || typeof window === 'undefined') {
+            return;
+        }
+
+        const element = typeof target === 'string' ? document.querySelector(target) : target;
+        if (!element) {
+            return;
+        }
+
+        if (window.LK?.sectionLoading) {
+            window.LK.sectionLoading(element, isLoading);
+            return;
+        }
+
+        if (window.LKPageLoading?.setSectionLoading) {
+            window.LKPageLoading.setSectionLoading(element, isLoading);
+            return;
+        }
+
+        element.classList.toggle('lk-loading', !!isLoading);
+        element.setAttribute('aria-busy', isLoading ? 'true' : 'false');
+    }
+
+    /**
+     * Compatibilidade de loading por requisiÃ§Ã£o
      */
     showSlowConnectionWarning(target) {
         let warning = document.getElementById('lk-slow-connection');

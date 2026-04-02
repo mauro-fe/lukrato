@@ -5,8 +5,10 @@
  *   LK.toast.success(msg)  / .error(msg) / .warning(msg) / .info(msg)
  *   LK.api.get(url)        / .post(url, data) / .put(url, data) / .delete(url)
  *   LK.confirm(opts)       — prompt de confirmação padronizado
- *   LK.loading(msg)        — loading overlay
+ *   LK.loading(msg)        — action loading (overlay/modal)
  *   LK.hideLoading()
+ *   LK.pageLoading(msg)    — page loading (area de conteudo)
+ *   LK.sectionLoading(el)  — section loading (bloco/cartao)
  *
  * Delega para LKFeedback (toasts), lkFetch (HTTP) e CsrfManager (CSRF)
  * quando disponíveis, com fallback direto para SweetAlert2 / fetch nativo.
@@ -126,6 +128,50 @@
         Swal.close();
     }
 
+    function getPageLoadingApi() {
+        return window.LKPageLoading || null;
+    }
+
+    function pageLoading(message, options = {}) {
+        const api = getPageLoadingApi();
+        if (!api?.show) {
+            return () => {};
+        }
+
+        return api.show(message || 'Carregando...', options);
+    }
+
+    function hidePageLoading() {
+        const api = getPageLoadingApi();
+        api?.hide?.();
+    }
+
+    async function withPageLoading(task, options = {}) {
+        const api = getPageLoadingApi();
+        if (!api?.withLoading) {
+            if (typeof task === 'function') {
+                return task();
+            }
+            return task;
+        }
+        return api.withLoading(task, options);
+    }
+
+    function sectionLoading(target, isLoading = true) {
+        const api = getPageLoadingApi();
+        if (api?.setSectionLoading) {
+            api.setSectionLoading(target, isLoading);
+            return;
+        }
+
+        const element = typeof target === 'string' ? document.querySelector(target) : target;
+        if (!element) {
+            return;
+        }
+        element.classList.toggle('lk-section-loading', !!isLoading);
+        element.setAttribute('aria-busy', isLoading ? 'true' : 'false');
+    }
+
     // ── API (HTTP) ───────────────────────────────────────────────
     // Usa lkFetch quando disponível. Senão, fetch nativo com CSRF.
     // Todas retornam Promise<{ok, data, message?, errors?}>
@@ -214,6 +260,10 @@
     LK.confirm = confirm;
     LK.loading = loading;
     LK.hideLoading = hideLoading;
+    LK.pageLoading = pageLoading;
+    LK.hidePageLoading = hidePageLoading;
+    LK.withPageLoading = withPageLoading;
+    LK.sectionLoading = sectionLoading;
     LK.getBase = LK.getBase || getBase;
     LK.getCSRF = LK.getCSRF || getCsrf;
     window.LK = LK;

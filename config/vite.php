@@ -270,27 +270,66 @@ function vite_scripts(string $entry): string
     $manifestEntry = vite_find_manifest_entry($entry, $manifest);
 
     if ($manifestEntry) {
-        // CSS imports do chunk
-        if (!empty($manifestEntry['css'])) {
-            foreach ($manifestEntry['css'] as $cssFile) {
-                $html .= sprintf(
-                    '<link rel="stylesheet" href="%sbuild/%s">' . "\n",
-                    BASE_URL,
-                    $cssFile
-                );
+        // Coletar imports recursivos para incluir CSS compartilhado entre entries.
+        $importKeys = [];
+        $visitedImports = [];
+        $queue = $manifestEntry['imports'] ?? [];
+
+        while (!empty($queue)) {
+            $importKey = array_shift($queue);
+            if (!is_string($importKey) || isset($visitedImports[$importKey])) {
+                continue;
+            }
+            $visitedImports[$importKey] = true;
+            $importKeys[] = $importKey;
+
+            if (!empty($manifest[$importKey]['imports']) && is_array($manifest[$importKey]['imports'])) {
+                foreach ($manifest[$importKey]['imports'] as $nestedImport) {
+                    if (is_string($nestedImport) && !isset($visitedImports[$nestedImport])) {
+                        $queue[] = $nestedImport;
+                    }
+                }
             }
         }
 
-        // Preload dos chunks importados (performance)
-        if (!empty($manifestEntry['imports'])) {
-            foreach ($manifestEntry['imports'] as $importKey) {
-                if (isset($manifest[$importKey])) {
-                    $html .= sprintf(
-                        '<link rel="modulepreload" href="%sbuild/%s">' . "\n",
-                        BASE_URL,
-                        $manifest[$importKey]['file']
-                    );
+        // CSS do entry + CSS de todos os imports (dedupe preservando ordem).
+        $cssFiles = [];
+        $seenCss = [];
+        $cssSources = [$manifestEntry];
+        foreach ($importKeys as $importKey) {
+            if (isset($manifest[$importKey]) && is_array($manifest[$importKey])) {
+                $cssSources[] = $manifest[$importKey];
+            }
+        }
+
+        foreach ($cssSources as $source) {
+            if (empty($source['css']) || !is_array($source['css'])) {
+                continue;
+            }
+            foreach ($source['css'] as $cssFile) {
+                if (is_string($cssFile) && !isset($seenCss[$cssFile])) {
+                    $seenCss[$cssFile] = true;
+                    $cssFiles[] = $cssFile;
                 }
+            }
+        }
+
+        foreach ($cssFiles as $cssFile) {
+            $html .= sprintf(
+                '<link rel="stylesheet" href="%sbuild/%s">' . "\n",
+                BASE_URL,
+                $cssFile
+            );
+        }
+
+        // Preload dos chunks importados (performance)
+        foreach ($importKeys as $importKey) {
+            if (isset($manifest[$importKey]['file'])) {
+                $html .= sprintf(
+                    '<link rel="modulepreload" href="%sbuild/%s">' . "\n",
+                    BASE_URL,
+                    $manifest[$importKey]['file']
+                );
             }
         }
 

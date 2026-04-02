@@ -1,3 +1,5 @@
+                </div>
+            </div>
 </main>
 <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 
@@ -19,7 +21,7 @@
 <script src="<?= BASE_URL ?>assets/js/plugins/perfect-scrollbar.min.js"></script>
 <script src="<?= BASE_URL ?>assets/js/plugins/smooth-scrollbar.min.js"></script>
 
-<?php loadPageJs(); ?>
+<?php loadPageJs($GLOBALS['current_page_js_view'] ?? null); ?>
 
 </body>
 

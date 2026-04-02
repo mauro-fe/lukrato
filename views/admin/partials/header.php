@@ -160,7 +160,14 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
     <!-- ============================================================================
          SCRIPTS DE PÁGINA
          ============================================================================ -->
-    <?php loadPageJs(); ?>
+    <?php
+    $pageJsView = null;
+    if (($GLOBALS['current_view'] ?? '') === 'admin-perfil-index' && ($menu ?? '') === 'configuracoes') {
+        $pageJsView = 'admin-configuracoes-index';
+    }
+    $GLOBALS['current_page_js_view'] = $pageJsView;
+    loadPageJs($pageJsView);
+    ?>
 </head>
 
 <body<?php if (!empty($showMonthSelector)) echo ' class="has-month-bar"'; ?>>
@@ -367,3 +374,15 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
         <div id="lk-demo-banner-root" hidden></div>
         <div id="lk-usage-banner-root"></div>
         <main class="lk-main">
+            <div id="lk-page-shell" class="lk-page-shell" data-page-loading-state="idle" aria-busy="false">
+                <div id="lk-page-loader" class="lk-page-loader" hidden aria-hidden="true" aria-live="polite">
+                    <div class="lk-page-loader__card">
+                        <div class="lk-page-loader__logo-wrap" aria-hidden="true">
+                            <span class="lk-page-loader__ring"></span>
+                            <img src="<?= BASE_URL ?>assets/img/icone.png" alt="" class="lk-page-loader__logo">
+                        </div>
+                        <p id="lk-page-loader-title" class="lk-page-loader__title">Carregando...</p>
+                        <p id="lk-page-loader-subtitle" class="lk-page-loader__subtitle">Preparando seus dados</p>
+                    </div>
+                </div>
+                <div id="lk-page-content" class="lk-page-content">
