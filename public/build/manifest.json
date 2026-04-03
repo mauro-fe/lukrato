@@ -27,7 +27,7 @@
     ]
   },
   "../css/admin/base.css": {
-    "file": "assets/admin-base-CvL2hTt-.css",
+    "file": "assets/admin-base-Ci1Cakx_.css",
     "src": "../css/admin/base.css",
     "isEntry": true,
     "name": "admin-base",
@@ -72,7 +72,7 @@
     ]
   },
   "../css/site/base.css": {
-    "file": "assets/site-base-CSKa8t20.css",
+    "file": "assets/site-base-BFz7Gxsc.css",
     "src": "../css/site/base.css",
     "isEntry": true,
     "name": "site-base",
@@ -87,6 +87,15 @@
     "name": "site-card-style",
     "names": [
       "site-card-style.css"
+    ]
+  },
+  "../css/site/landing-base.css": {
+    "file": "assets/site-landing-CRhMCQjb.css",
+    "src": "../css/site/landing-base.css",
+    "isEntry": true,
+    "name": "site-landing",
+    "names": [
+      "site-landing.css"
     ]
   },
   "../css/site/legal.css": {
@@ -156,19 +165,12 @@
       "_lucide-init-9__wtyXY.js"
     ]
   },
-  "_tabs-Ca-mJc_p.css": {
-    "file": "assets/tabs-Ca-mJc_p.css",
-    "src": "_tabs-Ca-mJc_p.css"
-  },
-  "_tabs-DgW-sWGJ.js": {
-    "file": "assets/tabs-DgW-sWGJ.js",
+  "_tabs-BaATpWcF.js": {
+    "file": "assets/tabs-BaATpWcF.js",
     "name": "tabs",
     "imports": [
       "_api-CiEmwEpk.js",
       "_ui-preferences-BzA64XRO.js"
-    ],
-    "css": [
-      "assets/tabs-Ca-mJc_p.css"
     ]
   },
   "_ui-H2yoVZe7.js": {
@@ -301,14 +303,17 @@
     ]
   },
   "admin/configuracoes/index.js": {
-    "file": "assets/configuracoes-CK2exokk.js",
+    "file": "assets/configuracoes-Bq1rD5g1.js",
     "name": "configuracoes",
     "src": "admin/configuracoes/index.js",
     "isEntry": true,
     "imports": [
-      "_tabs-DgW-sWGJ.js",
+      "_tabs-BaATpWcF.js",
       "_api-CiEmwEpk.js",
       "_ui-preferences-BzA64XRO.js"
+    ],
+    "css": [
+      "assets/configuracoes-BOfIeQwf.css"
     ]
   },
   "admin/contas-arquivadas/index.js": {
@@ -324,7 +329,7 @@
     ]
   },
   "admin/contas/index.js": {
-    "file": "assets/contas-DsgMl3iF.js",
+    "file": "assets/contas-D55vN6Y_.js",
     "name": "contas",
     "src": "admin/contas/index.js",
     "isEntry": true,
@@ -335,7 +340,7 @@
       "_ui-preferences-BzA64XRO.js"
     ],
     "css": [
-      "assets/contas-CGGLizTk.css"
+      "assets/contas-Dtqi-D_R.css"
     ]
   },
   "admin/dashboard/index.js": {
@@ -391,7 +396,7 @@
     ]
   },
   "admin/gamification/index.js": {
-    "file": "assets/gamification-DrmaA0TA.js",
+    "file": "assets/gamification-eXaJIyNZ.js",
     "name": "gamification",
     "src": "admin/gamification/index.js",
     "isEntry": true,
@@ -400,6 +405,9 @@
       "_ui-H2yoVZe7.js",
       "_utils-Bj4jxwhy.js",
       "_ui-preferences-BzA64XRO.js"
+    ],
+    "css": [
+      "assets/gamification-C_wwYhHP.css"
     ]
   },
   "admin/global/index.js": {
@@ -475,14 +483,17 @@
     ]
   },
   "admin/perfil/index.js": {
-    "file": "assets/perfil-DGqwSA3S.js",
+    "file": "assets/perfil-DrbRJ1zm.js",
     "name": "perfil",
     "src": "admin/perfil/index.js",
     "isEntry": true,
     "imports": [
-      "_tabs-DgW-sWGJ.js",
+      "_tabs-BaATpWcF.js",
       "_api-CiEmwEpk.js",
       "_ui-preferences-BzA64XRO.js"
+    ],
+    "css": [
+      "assets/perfil-CV3yhM-T.css"
     ]
   },
   "admin/relatorios/index.js": {
