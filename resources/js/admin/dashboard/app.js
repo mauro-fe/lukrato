@@ -1,6 +1,6 @@
 ﻿/**
  * ============================================================================
- * LUKRATO â€” Dashboard / App (Main Application Logic)
+ * LUKRATO — Dashboard / App (Main Application Logic)
  * ============================================================================
  * API layer, Notifications, Gamification, Renderers, TransactionManager,
  * Provisao (financial forecasting), DashboardManager, and EventListeners.
@@ -703,7 +703,7 @@ export const OptionalWidgets = createOptionalWidgets({
     logClientError,
 });
 
-// ==================== PREVISÃƒO FINANCEIRA ====================
+// ==================== PREVISÃO FINANCEIRA ====================
 
 export const Provisao = createProvisao({
     API,

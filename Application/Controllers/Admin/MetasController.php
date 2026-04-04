@@ -18,7 +18,6 @@ class MetasController extends WebController
             [
                 'pageTitle' => 'Metas',
                 'subTitle' => 'Planeje seus objetivos financeiros',
-                'menu' => 'metas',
             ]
         );
     }

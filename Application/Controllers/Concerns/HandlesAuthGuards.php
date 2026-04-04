@@ -29,7 +29,7 @@ trait HandlesAuthGuards
     protected function requireAuthApiOrFail(): void
     {
         if (!Auth::isLoggedIn()) {
-            throw new AuthException('Nao autenticado', 401);
+            throw new AuthException('Não autenticado', 401);
         }
 
         $this->userId = Auth::id();
@@ -38,7 +38,7 @@ trait HandlesAuthGuards
 
         if (empty($this->userId)) {
             $this->auth->logout();
-            throw new AuthException('Sessao invalida', 401);
+            throw new AuthException('Sessão inválida', 401);
         }
     }
 
@@ -87,7 +87,7 @@ trait HandlesAuthGuards
 
         if (!$user) {
             $this->auth->logout();
-            throw new AuthException('Sessao invalida', 401);
+            throw new AuthException('Sessão inválida', 401);
         }
 
         return $user;

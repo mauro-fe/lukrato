@@ -8,6 +8,7 @@ use Application\Lib\Auth;
 use Application\Models\BlogCategoria;
 use Application\Models\Telefone;
 use Application\Models\Usuario;
+use Application\Support\Admin\AdminModuleRegistry;
 
 trait HandlesAdminLayoutData
 {
@@ -19,6 +20,7 @@ trait HandlesAdminLayoutData
     {
         $currentUser = $data['currentUser'] ?? Auth::user();
         $displayName = $this->resolveAdminDisplayName($currentUser);
+        $currentViewPath = trim((string) ($data['currentViewPath'] ?? ''), '/');
 
         $isPro = $data['isPro'] ?? (
             $currentUser && method_exists($currentUser, 'isPro') && $currentUser->isPro()
@@ -39,7 +41,7 @@ trait HandlesAdminLayoutData
         if (!isset($data['userTheme'])) {
             $data['userTheme'] = 'dark';
             if ($currentUser && isset($currentUser->theme_preference)) {
-                $data['userTheme'] = in_array($currentUser->theme_preference, ['light', 'dark'])
+                $data['userTheme'] = in_array($currentUser->theme_preference, ['light', 'dark'], true)
                     ? $currentUser->theme_preference
                     : 'dark';
             }
@@ -49,7 +51,11 @@ trait HandlesAdminLayoutData
             $data['topNavFirstName'] = $this->resolveAdminFirstName($currentUser);
         }
 
-        $data['currentBreadcrumbs'] = $data['currentBreadcrumbs'] ?? $this->resolveBreadcrumbs($data['menu'] ?? '');
+        $data['currentBreadcrumbs'] = $data['currentBreadcrumbs'] ?? (
+            $currentViewPath !== ''
+                ? AdminModuleRegistry::resolveBreadcrumbsByViewContext($currentViewPath, $data)
+                : []
+        );
 
         if (!isset($data['supportName'])) {
             $data['supportName'] = $displayName;
@@ -59,6 +65,62 @@ trait HandlesAdminLayoutData
             $data['supportTel'] = $telefoneModel?->numero ?? '';
             $data['supportDdd'] = $telefoneModel?->ddd?->codigo ?? '';
         }
+
+        $currentViewId = trim((string) ($data['currentViewId'] ?? ''), '-');
+        if ($currentViewId === '' && $currentViewPath !== '') {
+            $currentViewId = trim(str_replace('/', '-', $currentViewPath), '-');
+        }
+
+        $contextData = [
+            'menu' => is_string($data['menu'] ?? null) ? $data['menu'] : null,
+        ];
+
+        $currentPageJsViewId = trim((string) (
+            $data['currentPageJsViewId']
+                ?? (
+                    $currentViewId !== ''
+                        ? AdminModuleRegistry::resolvePageJsViewId($currentViewId, $contextData)
+                        : ''
+                )
+        ));
+        if ($currentPageJsViewId === '') {
+            $currentPageJsViewId = $currentViewId;
+        }
+
+        $bundle = [
+            'pageJsViewId' => $currentPageJsViewId,
+            'viteEntry' => $currentPageJsViewId !== ''
+                ? AdminModuleRegistry::resolveViteEntryByViewId($currentPageJsViewId)
+                : null,
+            'cssEntry' => $currentViewId !== ''
+                ? AdminModuleRegistry::resolveCssEntryByViewId($currentViewId)
+                : null,
+        ];
+
+        $sidebarModules = AdminModuleRegistry::groupedSidebarModules(
+            (bool) $data['isSysAdmin'],
+            (bool) $data['isPro']
+        );
+        $footerModules = AdminModuleRegistry::footerModules(
+            (bool) $data['isSysAdmin'],
+            (bool) $data['isPro']
+        );
+
+        $data['currentViewPath'] = $currentViewPath;
+        $data['currentViewId'] = $currentViewId;
+        $data['currentPageJsViewId'] = $currentPageJsViewId;
+        $data['bundle'] = $data['bundle'] ?? $bundle;
+        $data['sidebarModules'] = $data['sidebarModules'] ?? $sidebarModules;
+        $data['footerModules'] = $data['footerModules'] ?? $footerModules;
+        $data['adminPageContext'] = $data['adminPageContext'] ?? [
+            'currentMenu' => $data['menu'] ?? null,
+            'currentViewId' => $currentViewId,
+            'currentViewPath' => $currentViewPath,
+            'breadcrumbs' => $data['currentBreadcrumbs'],
+            'sidebar' => $data['sidebarModules'],
+            'footerModules' => $data['footerModules'],
+            'bundle' => $data['bundle'],
+        ];
 
         return $data;
     }
@@ -107,24 +169,5 @@ trait HandlesAdminLayoutData
         }
 
         return ucfirst($candidate);
-    }
-
-    private function resolveBreadcrumbs(string $menu): array
-    {
-        $map = [
-            'dashboard' => [],
-            'contas' => [['label' => 'Finanças', 'icon' => 'wallet']],
-            'cartoes' => [['label' => 'Finanças', 'icon' => 'wallet']],
-            'faturas' => [['label' => 'Finanças', 'icon' => 'wallet'], ['label' => 'Cartões', 'url' => 'cartoes', 'icon' => 'credit-card']],
-            'categorias' => [['label' => 'Organização', 'icon' => 'folder']],
-            'lancamentos' => [['label' => 'Finanças', 'icon' => 'wallet']],
-            'relatorios' => [['label' => 'Análises', 'icon' => 'bar-chart-3']],
-            'gamification' => [['label' => 'Perfil', 'icon' => 'user']],
-            'perfil' => [],
-            'configuracoes' => [['label' => 'Perfil', 'icon' => 'user']],
-            'billing' => [['label' => 'Perfil', 'icon' => 'user']],
-        ];
-
-        return $map[$menu] ?? [];
     }
 }

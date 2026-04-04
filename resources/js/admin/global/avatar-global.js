@@ -2,7 +2,7 @@
  * ============================================================================
  * LUKRATO - Avatar Global (Navbar + Sidebar)
  * ============================================================================
- * Aplica o avatar do usuario nos elementos globais e expoe
+ * Aplica o avatar do usuário nos elementos globais e expõe
  * window.__LK_updateGlobalAvatars() para atualizacao em tempo real.
  * ============================================================================
  */

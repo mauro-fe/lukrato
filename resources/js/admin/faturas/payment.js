@@ -20,10 +20,14 @@ export const ModalPagarFatura = {
     contaPadraoId: null,
 
     init() {
-        const modalEl = document.getElementById('modalPagarFatura');
+        const modalEl = DOM.modalPagarFatura || document.getElementById('modalPagarFatura');
         if (!modalEl) return;
 
-        this.instance = new bootstrap.Modal(modalEl);
+        this.instance = bootstrap.Modal.getOrCreateInstance(modalEl, {
+            backdrop: true,
+            keyboard: true,
+            focus: true
+        });
         this.attachEvents();
     },
 

@@ -7,13 +7,28 @@ namespace Application\Controllers\Concerns;
 use Application\Core\Exceptions\HttpResponseException;
 use Application\Core\Response;
 use Application\Core\View;
+use Application\Support\Admin\AdminModuleRegistry;
 
 trait HandlesWebPresentation
 {
     protected function renderResponse(string $viewPath, array $data = [], ?string $header = null, ?string $footer = null): Response
     {
+        $normalizedViewPath = trim(str_replace('\\', '/', $viewPath), '/');
+        $defaultViewId = trim(str_replace('/', '-', $normalizedViewPath), '-');
+
+        if (!isset($data['currentViewPath']) || !is_string($data['currentViewPath']) || trim($data['currentViewPath']) === '') {
+            $data['currentViewPath'] = $normalizedViewPath;
+        }
+
+        if (!isset($data['currentViewId']) || !is_string($data['currentViewId']) || trim($data['currentViewId']) === '') {
+            $data['currentViewId'] = $defaultViewId;
+        }
+
         if (empty($data['menu'])) {
-            $data['menu'] = $this->inferMenuFromView($viewPath) ?? $data['menu'] ?? null;
+            $data['menu'] = AdminModuleRegistry::resolveMenuByViewContext($viewPath, $data)
+                ?? $this->inferMenuFromView($viewPath)
+                ?? $data['menu']
+                ?? null;
         }
 
         if ($header === 'admin/partials/header') {
@@ -103,25 +118,21 @@ trait HandlesWebPresentation
 
     protected function inferMenuFromView(string $viewPath): ?string
     {
+        $menu = AdminModuleRegistry::inferMenuFromViewPath($viewPath);
+        if ($menu !== null) {
+            return $menu;
+        }
+
         $trimmed = trim($viewPath, '/');
         $segments = preg_split('#[\\/]+#', $trimmed);
-
         if (($segments[0] ?? null) !== 'admin') {
             return null;
         }
 
         return match ($segments[1] ?? null) {
-            'dashboard'     => 'dashboard',
-            'contas'        => 'contas',
-            'lancamentos'   => 'lancamentos',
-            'faturas'       => 'faturas',
-            'parcelamentos' => 'faturas',
-            'relatorios'    => 'relatorios',
-            'categorias'    => 'categorias',
-            'financas'      => 'financas',
-            'perfil'        => 'perfil',
-            'sysadmin'      => 'super_admin',
-            default         => null,
+            // Backward-compatible fallback for any non-registered legacy path.
+            'sysadmin' => 'super_admin',
+            default    => null,
         };
     }
 }

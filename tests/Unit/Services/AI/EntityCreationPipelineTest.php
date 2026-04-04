@@ -104,7 +104,7 @@ class EntityCreationPipelineTest extends TestCase
         $this->assertFalse(ConfirmationIntentRule::isAffirmative('não quero'));
     }
 
-    // ─── Regex extraction: lancamento ──────────────────────
+    // ─── Regex extraction: lançamento ──────────────────────
 
     public function testCriarDespesaExtractsFields(): void
     {

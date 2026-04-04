@@ -18,7 +18,6 @@ class OrcamentoController extends WebController
             [
                 'pageTitle' => 'Orçamento',
                 'subTitle' => 'Controle seus gastos mensais',
-                'menu' => 'orcamento',
                 'showMonthSelector' => true,
             ]
         );

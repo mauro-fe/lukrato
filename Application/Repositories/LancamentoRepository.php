@@ -772,7 +772,7 @@ class LancamentoRepository extends BaseRepository
     }
 
     /**
-     * Calcular saldo acumulado do usuario ate uma data (inclusive).
+     * Calcular saldo acumulado do usuário até uma data (inclusive).
      *
      * @param int $userId
      * @param string $ate Data limite (Y-m-d)
@@ -950,7 +950,7 @@ class LancamentoRepository extends BaseRepository
     }
 
     /**
-     * Buscar transacoes para API financeira em um periodo.
+     * Buscar transações para API financeira em um período.
      *
      * @param int $userId
      * @param string $from Data inicial (Y-m-d)

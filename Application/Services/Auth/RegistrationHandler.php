@@ -79,8 +79,8 @@ class RegistrationHandler
         $displayName = trim($registration->name);
 
         $user = new Usuario();
-        // Mantemos string vazia quando o cadastro nao pede nome.
-        // Isso evita quebrar em bancos onde `usuarios.nome` ainda esta NOT NULL
+        // Mantemos string vazia quando o cadastro não pede nome.
+        // Isso evita quebrar em bancos onde `usuarios.nome` ainda está NOT NULL
         // e preserva o prompt posterior de "como prefere ser chamado?" no dashboard.
         $user->nome = $displayName;
         $user->email = $registration->email;

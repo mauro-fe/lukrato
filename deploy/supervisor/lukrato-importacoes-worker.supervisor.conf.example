@@ -1,0 +1,24 @@
+; Lukrato importacoes queue worker
+;
+; Antes de usar:
+; 1. ajuste directory para o path real da aplicacao
+; 2. ajuste command para o binario php local
+; 3. ajuste user conforme ambiente
+; 4. salve em /etc/supervisor/conf.d/lukrato-importacoes-worker.conf
+
+[program:lukrato-importacoes-worker]
+directory=/var/www/lukrato
+command=/usr/bin/php cli/process_importacoes_queue.php
+user=www-data
+autostart=true
+autorestart=true
+startretries=10
+stopsignal=TERM
+stopwaitsecs=30
+stdout_logfile=/var/www/lukrato/storage/logs/importacoes-worker.log
+stdout_logfile_maxbytes=20MB
+stdout_logfile_backups=5
+stderr_logfile=/var/www/lukrato/storage/logs/importacoes-worker-error.log
+stderr_logfile_maxbytes=20MB
+stderr_logfile_backups=5
+environment=IMPORTACOES_QUEUE_SLEEP="2",IMPORTACOES_QUEUE_MAX_ATTEMPTS="3",IMPORTACOES_QUEUE_STALE_TTL="900"

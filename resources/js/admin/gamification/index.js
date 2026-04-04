@@ -821,7 +821,7 @@ if (elements.insightDismiss) {
     });
 }
 
-// Listen for data changes (new lancamento, etc.)
+// Listen for data changes (new lançamento, etc.)
 document.addEventListener('lukrato:data-changed', () => {
     loadAllData();
 });

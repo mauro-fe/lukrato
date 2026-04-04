@@ -4,6 +4,7 @@ namespace Application\Middlewares;
 
 use Application\Core\Request;
 use Application\Core\Exceptions\ValidationException;
+use Application\Services\Importacao\ImportSecurityPolicy;
 use Application\Services\Infrastructure\CacheService;
 use Application\Services\Infrastructure\LogService;
 use Application\Enums\LogLevel;
@@ -17,8 +18,8 @@ use Application\Enums\LogCategory;
  */
 class RateLimitStrictMiddleware
 {
-    private const MAX_ATTEMPTS = 10;
-    private const TIME_WINDOW = 60;
+    private const DEFAULT_MAX_ATTEMPTS = 10;
+    private const DEFAULT_TIME_WINDOW = 60;
 
     private CacheService $cacheService;
 
@@ -27,15 +28,16 @@ class RateLimitStrictMiddleware
         $this->cacheService = $cacheService;
     }
 
-    public function handle(Request $request, string $identifier): void
+    public function handle(Request $request, string $identifier, string $endpoint = 'strict'): void
     {
         $now = time();
-        $cacheKey = "ratelimit_strict:{$identifier}";
+        [$resolvedEndpoint, $maxAttempts, $timeWindow, $tier] = $this->resolvePolicy($endpoint);
+        $cacheKey = "ratelimit_strict:{$resolvedEndpoint}:{$identifier}";
 
         $attempts = $this->cacheService->get($cacheKey, []);
-        $attempts = array_filter($attempts, fn($time) => ($now - $time) < self::TIME_WINDOW);
+        $attempts = array_filter($attempts, fn($time) => ($now - $time) < $timeWindow);
 
-        if (count($attempts) >= self::MAX_ATTEMPTS) {
+        if (count($attempts) >= $maxAttempts) {
             LogService::persist(
                 level: LogLevel::WARNING,
                 category: LogCategory::SECURITY,
@@ -43,23 +45,25 @@ class RateLimitStrictMiddleware
                 context: [
                     'ip'         => $request->ip(),
                     'identifier' => $identifier,
+                    'endpoint'   => $resolvedEndpoint,
                     'uri'        => $_SERVER['REQUEST_URI'] ?? '',
                     'method'     => $_SERVER['REQUEST_METHOD'] ?? '',
                     'attempts'   => count($attempts),
-                    'limit'      => self::MAX_ATTEMPTS,
-                    'window'     => self::TIME_WINDOW . 's',
-                    'tier'       => 'strict',
+                    'limit'      => $maxAttempts,
+                    'window'     => $timeWindow . 's',
+                    'tier'       => $tier,
                 ],
             );
 
             throw new ValidationException(
                 ['rate_limit' => 'Limite de requisições excedido para esta operação. Aguarde um momento.'],
+                'Validation failed',
                 429
             );
         }
 
         $attempts[] = $now;
-        $stored = $this->cacheService->set($cacheKey, $attempts, self::TIME_WINDOW);
+        $stored = $this->cacheService->set($cacheKey, $attempts, $timeWindow);
 
         if ($stored) {
             return;
@@ -72,9 +76,10 @@ class RateLimitStrictMiddleware
             context: [
                 'ip' => $request->ip(),
                 'identifier' => $identifier,
+                'endpoint' => $resolvedEndpoint,
                 'uri' => $_SERVER['REQUEST_URI'] ?? '',
                 'method' => $_SERVER['REQUEST_METHOD'] ?? '',
-                'tier' => 'strict',
+                'tier' => $tier,
             ],
         );
 
@@ -88,5 +93,39 @@ class RateLimitStrictMiddleware
     public static function getIdentifier(Request $request): string
     {
         return $request->ip();
+    }
+
+    /**
+     * @return array{0:string,1:int,2:int,3:string}
+     */
+    private function resolvePolicy(string $endpoint): array
+    {
+        $path = $this->normalizeRequestPath();
+
+        if (in_array($path, ['/api/importacoes/preview', '/api/importacoes/confirm'], true)) {
+            return [
+                'import-upload',
+                ImportSecurityPolicy::importRateLimitAttempts(),
+                ImportSecurityPolicy::importRateLimitWindow(),
+                'import-upload',
+            ];
+        }
+
+        return [$endpoint, self::DEFAULT_MAX_ATTEMPTS, self::DEFAULT_TIME_WINDOW, 'strict'];
+    }
+
+    private function normalizeRequestPath(): string
+    {
+        $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: '/';
+
+        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+        $basePath = str_replace('/index.php', '', dirname($scriptName));
+        $basePath = rtrim($basePath, '/');
+
+        if ($basePath !== '' && strpos($path, $basePath) === 0) {
+            $path = substr($path, strlen($basePath));
+        }
+
+        return rtrim($path, '/') ?: '/';
     }
 }

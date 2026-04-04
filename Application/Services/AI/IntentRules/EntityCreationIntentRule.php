@@ -251,8 +251,8 @@ class EntityCreationIntentRule implements IntentRuleInterface
     }
 
     /**
-     * Frases como "registre 30 com comida" nao nomeiam a entidade,
-     * mas continuam sendo um pedido explicito para criar um lancamento.
+     * Frases como "registre 30 com comida" não nomeiam a entidade,
+     * mas continuam sendo um pedido explícito para criar um lançamento.
      */
     private static function detectEntityFromExplicitShortcut(string $normalized): ?string
     {

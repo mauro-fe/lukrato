@@ -1,0 +1,735 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit\Services\Importacao;
+
+use Application\DTO\Importacao\ImportProfileConfigDTO;
+use Application\DTO\Importacao\NormalizedImportRowDTO;
+use Application\Services\Importacao\Contracts\ImportParserInterface;
+use Application\Services\Importacao\ImportExecutionService;
+use Application\Services\Importacao\ImportHistoryService;
+use Application\Services\Importacao\ImportPreviewService;
+use Application\Services\Importacao\ImportProfileConfigService;
+use Application\Services\Importacao\Parsers\CsvImportParser;
+use Application\Services\Importacao\Parsers\OfxImportParser;
+use Illuminate\Database\Capsule\Manager as DB;
+use PHPUnit\Framework\TestCase;
+
+class ImportPreviewServiceTest extends TestCase
+{
+    /**
+     * @var array<int, int>
+     */
+    private array $cleanupUserIds = [];
+
+    protected function tearDown(): void
+    {
+        if ($this->cleanupUserIds !== []) {
+            $schema = DB::schema();
+
+            if ($schema->hasTable('faturas_cartao_itens')) {
+                DB::table('faturas_cartao_itens')->whereIn('user_id', $this->cleanupUserIds)->delete();
+            }
+            if ($schema->hasTable('faturas')) {
+                DB::table('faturas')->whereIn('user_id', $this->cleanupUserIds)->delete();
+            }
+            if ($schema->hasTable('cartoes_credito')) {
+                DB::table('cartoes_credito')->whereIn('user_id', $this->cleanupUserIds)->delete();
+            }
+            if ($schema->hasTable('importacao_itens')) {
+                DB::table('importacao_itens')->whereIn('user_id', $this->cleanupUserIds)->delete();
+            }
+            if ($schema->hasTable('importacao_lotes')) {
+                DB::table('importacao_lotes')->whereIn('user_id', $this->cleanupUserIds)->delete();
+            }
+            if ($schema->hasTable('importacao_perfis')) {
+                DB::table('importacao_perfis')->whereIn('user_id', $this->cleanupUserIds)->delete();
+            }
+            if ($schema->hasTable('lancamentos')) {
+                DB::table('lancamentos')->whereIn('user_id', $this->cleanupUserIds)->delete();
+            }
+            if ($schema->hasTable('contas')) {
+                DB::table('contas')->whereIn('user_id', $this->cleanupUserIds)->delete();
+            }
+            if ($schema->hasTable('usuarios')) {
+                DB::table('usuarios')->whereIn('id', $this->cleanupUserIds)->delete();
+            }
+        }
+
+        $this->cleanupUserIds = [];
+        parent::tearDown();
+    }
+
+    public function testPreviewUsesMatchingParserAndReturnsNormalizedPayload(): void
+    {
+        $parser = new class implements ImportParserInterface {
+            public function supports(string $sourceType): bool
+            {
+                return $sourceType === 'ofx';
+            }
+
+            public function parse(string $contents, ImportProfileConfigDTO $profile): array
+            {
+                return [
+                    NormalizedImportRowDTO::fromArray([
+                        'date' => '2026-04-01',
+                        'amount' => 120.5,
+                        'type' => 'despesa',
+                        'description' => 'Mercado',
+                        'raw' => ['line' => 1],
+                    ]),
+                ];
+            }
+        };
+
+        $service = new ImportPreviewService([$parser]);
+        $profile = ImportProfileConfigDTO::fromArray(['conta_id' => 9, 'source_type' => 'ofx']);
+
+        $preview = $service->preview('ofx', '<OFX>', $profile, 'extrato.ofx');
+
+        $this->assertSame('ofx', $preview['source_type']);
+        $this->assertSame(9, $preview['conta_id']);
+        $this->assertSame('extrato.ofx', $preview['filename']);
+        $this->assertSame(1, $preview['total_rows']);
+        $this->assertSame('Mercado', $preview['rows'][0]['description'] ?? null);
+        $this->assertTrue($preview['can_confirm']);
+        $this->assertSame([], $preview['errors']);
+    }
+
+    public function testPreviewIncludesImportTargetAndCardIdForCardFlow(): void
+    {
+        $parser = new class implements ImportParserInterface {
+            public function supports(string $sourceType): bool
+            {
+                return $sourceType === 'ofx';
+            }
+
+            public function parse(string $contents, ImportProfileConfigDTO $profile): array
+            {
+                return [
+                    NormalizedImportRowDTO::fromArray([
+                        'date' => '2026-04-01',
+                        'amount' => 89.9,
+                        'type' => 'despesa',
+                        'description' => 'Compra cartao',
+                    ]),
+                ];
+            }
+        };
+
+        $service = new ImportPreviewService([$parser]);
+        $profile = ImportProfileConfigDTO::fromArray(['conta_id' => 11, 'source_type' => 'ofx']);
+
+        $preview = $service->preview('ofx', '<OFX>', $profile, 'cartao.ofx', 'cartao', 77);
+
+        $this->assertSame('cartao', $preview['import_target']);
+        $this->assertSame(77, $preview['cartao_id']);
+        $this->assertTrue($preview['can_confirm']);
+    }
+
+    public function testPreviewThrowsWhenParserIsNotRegistered(): void
+    {
+        $service = new ImportPreviewService([]);
+        $profile = ImportProfileConfigDTO::fromArray(['conta_id' => 7, 'source_type' => 'ofx']);
+
+        $this->expectException(\DomainException::class);
+        $this->expectExceptionMessage('Nenhum parser de importação registrado');
+
+        $service->preview('xml', '<xml/>', $profile);
+    }
+
+    public function testExecutionServiceReturnsPreparationPayloadWithoutPersistence(): void
+    {
+        $previewService = new ImportPreviewService([new OfxImportParser()]);
+        $executionService = new ImportExecutionService($previewService);
+        $profile = ImportProfileConfigDTO::fromArray(['conta_id' => 3, 'source_type' => 'ofx']);
+
+        $result = $executionService->prepareExecution('ofx', '<OFX></OFX>', $profile, 'arquivo.ofx');
+
+        $this->assertTrue($result->success);
+        $this->assertSame(201, $result->httpCode);
+        $this->assertSame('preview_ready', $result->data['status'] ?? null);
+        $this->assertFalse($result->data['can_persist'] ?? true);
+        $this->assertSame(0, $result->data['preview']['total_rows'] ?? null);
+        $this->assertSame('arquivo.ofx', $result->data['preview']['filename'] ?? null);
+    }
+
+    public function testCsvParserAutomaticModeUsesHeaderAndConfiguredDelimiter(): void
+    {
+        $parser = new CsvImportParser();
+        $profile = ImportProfileConfigDTO::fromArray([
+            'conta_id' => 41,
+            'source_type' => 'csv',
+            'options' => [
+                'csv_mapping_mode' => 'auto',
+                'csv_delimiter' => ';',
+                'csv_has_header' => true,
+                'csv_start_row' => 2,
+                'csv_date_format' => 'd/m/Y',
+                'csv_decimal_separator' => ',',
+            ],
+        ]);
+
+        $csv = implode("\n", [
+            'tipo;data;descricao;valor',
+            'despesa;01/03/2026;Mercado;150,25',
+            'receita;05/03/2026;Salario;3200,00',
+        ]);
+
+        $rows = $parser->parse($csv, $profile);
+
+        $this->assertCount(2, $rows);
+        $this->assertSame('despesa', $rows[0]->type);
+        $this->assertSame('2026-03-01', $rows[0]->date);
+        $this->assertSame(150.25, $rows[0]->amount);
+        $this->assertSame('receita', $rows[1]->type);
+    }
+
+    public function testCsvParserManualModeUsesColumnMapAndStartRow(): void
+    {
+        $parser = new CsvImportParser();
+        $profile = ImportProfileConfigDTO::fromArray([
+            'conta_id' => 42,
+            'source_type' => 'csv',
+            'options' => [
+                'csv_mapping_mode' => 'manual',
+                'csv_delimiter' => ';',
+                'csv_has_header' => true,
+                'csv_start_row' => 3,
+                'csv_date_format' => 'd/m/Y',
+                'csv_decimal_separator' => ',',
+                'csv_column_map' => [
+                    'tipo' => 'A',
+                    'data' => 'B',
+                    'descricao' => 'C',
+                    'valor' => 'D',
+                    'categoria' => 'E',
+                    'subcategoria' => 'F',
+                    'observacao' => 'G',
+                    'id_externo' => 'H',
+                ],
+            ],
+        ]);
+
+        $csv = implode("\n", [
+            'c1;c2;c3;c4;c5;c6;c7;c8',
+            'ignore;ignore;ignore;ignore;ignore;ignore;ignore;ignore',
+            'despesa;01/03/2026;Padaria;12,30;Alimentacao;Lanche;Cafe da manha;CSV-1',
+            'receita;02/03/2026;Reembolso;22,00;Renda;Extras;Retorno de compra;CSV-2',
+        ]);
+
+        $rows = $parser->parse($csv, $profile);
+
+        $this->assertCount(2, $rows);
+        $this->assertSame('Padaria', $rows[0]->description);
+        $this->assertSame('CSV-1', $rows[0]->externalId);
+        $this->assertSame('receita', $rows[1]->type);
+    }
+
+    public function testPreviewBlocksCsvManualModeWhenRequiredMappingIsMissing(): void
+    {
+        $service = new ImportPreviewService([new CsvImportParser()]);
+        $profile = ImportProfileConfigDTO::fromArray([
+            'conta_id' => 43,
+            'source_type' => 'csv',
+            'options' => [
+                'csv_mapping_mode' => 'manual',
+                'csv_start_row' => 2,
+                'csv_delimiter' => ';',
+                'csv_has_header' => true,
+                'csv_column_map' => [
+                    'data' => 'B',
+                    'descricao' => 'C',
+                    'valor' => '',
+                    'tipo' => '',
+                ],
+            ],
+        ]);
+
+        $csv = implode("\n", [
+            'A;B;C;D',
+            'despesa;01/03/2026;Mercado;150,00',
+        ]);
+
+        $preview = $service->preview('csv', $csv, $profile, 'manual.csv');
+
+        $this->assertFalse((bool) ($preview['can_confirm'] ?? true));
+        $this->assertSame(0, $preview['total_rows']);
+        $this->assertNotEmpty($preview['errors']);
+        $this->assertStringContainsString('Mapeamento CSV manual incompleto', (string) $preview['errors'][0]);
+    }
+
+    public function testPreviewBlocksWhenRowsExceedConfiguredLimit(): void
+    {
+        $previousLimit = $_ENV['IMPORTACOES_MAX_ROWS'] ?? null;
+        $_ENV['IMPORTACOES_MAX_ROWS'] = '1';
+
+        $parser = new class implements ImportParserInterface {
+            public function supports(string $sourceType): bool
+            {
+                return $sourceType === 'ofx';
+            }
+
+            public function parse(string $contents, ImportProfileConfigDTO $profile): array
+            {
+                return [
+                    NormalizedImportRowDTO::fromArray([
+                        'date' => '2026-04-01',
+                        'amount' => 10,
+                        'type' => 'despesa',
+                        'description' => 'Linha 1',
+                    ]),
+                    NormalizedImportRowDTO::fromArray([
+                        'date' => '2026-04-02',
+                        'amount' => 20,
+                        'type' => 'despesa',
+                        'description' => 'Linha 2',
+                    ]),
+                ];
+            }
+        };
+
+        try {
+            $service = new ImportPreviewService([$parser]);
+            $profile = ImportProfileConfigDTO::fromArray(['conta_id' => 99, 'source_type' => 'ofx']);
+
+            $preview = $service->preview('ofx', '<OFX>', $profile, 'lote.ofx');
+        } finally {
+            if ($previousLimit === null) {
+                unset($_ENV['IMPORTACOES_MAX_ROWS']);
+            } else {
+                $_ENV['IMPORTACOES_MAX_ROWS'] = (string) $previousLimit;
+            }
+        }
+
+        $this->assertFalse((bool) ($preview['can_confirm'] ?? true));
+        $this->assertSame(0, $preview['total_rows']);
+        $this->assertStringContainsString('limite de 1 linhas/transações', (string) ($preview['errors'][0] ?? ''));
+    }
+
+    public function testOfxParserRejectsWhenTransactionsExceedConfiguredLimit(): void
+    {
+        $previousLimit = $_ENV['IMPORTACOES_MAX_ROWS'] ?? null;
+        $_ENV['IMPORTACOES_MAX_ROWS'] = '1';
+
+        try {
+            $parser = new OfxImportParser();
+            $profile = ImportProfileConfigDTO::fromArray(['conta_id' => 50, 'source_type' => 'ofx']);
+
+            $this->expectException(\InvalidArgumentException::class);
+            $this->expectExceptionMessage('Arquivo excede o limite de 1 linhas/transações por importação.');
+
+            $parser->parse(
+                '<OFX><STMTTRN><TRNAMT>-10</TRNAMT><DTPOSTED>20260401</DTPOSTED><NAME>A</NAME></STMTTRN><STMTTRN><TRNAMT>-20</TRNAMT><DTPOSTED>20260402</DTPOSTED><NAME>B</NAME></STMTTRN></OFX>',
+                $profile
+            );
+        } finally {
+            if ($previousLimit === null) {
+                unset($_ENV['IMPORTACOES_MAX_ROWS']);
+            } else {
+                $_ENV['IMPORTACOES_MAX_ROWS'] = (string) $previousLimit;
+            }
+        }
+    }
+
+    public function testCsvParserRejectsWhenRowsExceedConfiguredLimit(): void
+    {
+        $previousLimit = $_ENV['IMPORTACOES_MAX_ROWS'] ?? null;
+        $_ENV['IMPORTACOES_MAX_ROWS'] = '2';
+
+        try {
+            $parser = new CsvImportParser();
+            $profile = ImportProfileConfigDTO::fromArray([
+                'conta_id' => 51,
+                'source_type' => 'csv',
+                'options' => [
+                    'csv_mapping_mode' => 'auto',
+                    'csv_delimiter' => ';',
+                    'csv_has_header' => true,
+                    'csv_start_row' => 2,
+                    'csv_date_format' => 'd/m/Y',
+                    'csv_decimal_separator' => ',',
+                ],
+            ]);
+
+            $this->expectException(\InvalidArgumentException::class);
+            $this->expectExceptionMessage('Arquivo excede o limite de 2 linhas/transações por importação.');
+
+            $parser->parse(implode("\n", [
+                'tipo;data;descricao;valor',
+                'despesa;01/03/2026;Mercado;150,25',
+                'receita;05/03/2026;Salario;3200,00',
+                'despesa;08/03/2026;Padaria;18,90',
+            ]), $profile);
+        } finally {
+            if ($previousLimit === null) {
+                unset($_ENV['IMPORTACOES_MAX_ROWS']);
+            } else {
+                $_ENV['IMPORTACOES_MAX_ROWS'] = (string) $previousLimit;
+            }
+        }
+    }
+
+    public function testExecutionServiceConfirmPersistsLancamentosAndPreventsDuplicates(): void
+    {
+        $this->ensureDatabaseAvailable();
+
+        $userId = $this->createUser();
+        $contaId = $this->createConta($userId);
+        $profile = ImportProfileConfigDTO::fromArray([
+            'conta_id' => $contaId,
+            'source_type' => 'ofx',
+        ]);
+
+        $contents = $this->sampleOfx();
+        $service = new ImportExecutionService(new ImportPreviewService([new OfxImportParser()]));
+
+        $first = $service->confirmExecution($userId, 'ofx', $contents, $profile, 'primeiro.ofx');
+
+        $this->assertTrue($first->success);
+        $this->assertSame(2, $first->data['summary']['total_rows'] ?? null);
+        $this->assertSame(2, $first->data['summary']['imported_rows'] ?? null);
+        $this->assertSame(0, $first->data['summary']['duplicate_rows'] ?? null);
+        $this->assertSame(0, $first->data['summary']['error_rows'] ?? null);
+        $this->assertSame(2, DB::table('lancamentos')->where('user_id', $userId)->count());
+
+        $second = $service->confirmExecution($userId, 'ofx', $contents, $profile, 'segundo.ofx');
+
+        $this->assertTrue($second->success);
+        $this->assertSame('processed_duplicates_only', $second->data['status'] ?? null);
+        $this->assertSame(0, $second->data['summary']['imported_rows'] ?? null);
+        $this->assertSame(2, $second->data['summary']['duplicate_rows'] ?? null);
+        $this->assertSame(2, DB::table('lancamentos')->where('user_id', $userId)->count());
+    }
+
+    public function testExecutionServiceConfirmPersistsCardInvoiceItemsForCardTarget(): void
+    {
+        $this->ensureDatabaseAvailable();
+
+        $userId = $this->createUser();
+        $contaId = $this->createConta($userId);
+        $cartaoId = $this->createCartao($userId, $contaId);
+        $profile = ImportProfileConfigDTO::fromArray([
+            'conta_id' => $contaId,
+            'source_type' => 'ofx',
+        ]);
+
+        $service = new ImportExecutionService(new ImportPreviewService([new OfxImportParser()]));
+        $result = $service->confirmExecution(
+            $userId,
+            'ofx',
+            $this->sampleOfxCard(),
+            $profile,
+            'fatura-cartao.ofx',
+            'cartao',
+            $cartaoId
+        );
+
+        $this->assertTrue($result->success);
+        $this->assertSame('cartao', $result->data['batch']['import_target'] ?? null);
+        $this->assertSame($cartaoId, $result->data['batch']['cartao_id'] ?? null);
+        $this->assertSame(2, $result->data['summary']['imported_rows'] ?? null);
+        $this->assertSame(2, DB::table('faturas_cartao_itens')->where('user_id', $userId)->count());
+        $this->assertSame(0, DB::table('lancamentos')->where('user_id', $userId)->count());
+        $this->assertSame(1, DB::table('faturas_cartao_itens')->where('user_id', $userId)->where('tipo', 'despesa')->count());
+        $this->assertSame(1, DB::table('faturas_cartao_itens')->where('user_id', $userId)->where('tipo', 'estorno')->count());
+    }
+
+    public function testExecutionServiceAvoidsDuplicateCardRowsUsingExternalId(): void
+    {
+        $this->ensureDatabaseAvailable();
+
+        $userId = $this->createUser();
+        $contaId = $this->createConta($userId);
+        $cartaoId = $this->createCartao($userId, $contaId);
+        $profile = ImportProfileConfigDTO::fromArray([
+            'conta_id' => $contaId,
+            'source_type' => 'ofx',
+        ]);
+
+        $service = new ImportExecutionService(new ImportPreviewService([new OfxImportParser()]));
+        $contents = $this->sampleOfxCard();
+
+        $first = $service->confirmExecution($userId, 'ofx', $contents, $profile, 'fatura-1.ofx', 'cartao', $cartaoId);
+        $second = $service->confirmExecution($userId, 'ofx', $contents, $profile, 'fatura-2.ofx', 'cartao', $cartaoId);
+
+        $this->assertTrue($first->success);
+        $this->assertTrue($second->success);
+        $this->assertSame('processed_duplicates_only', $second->data['status'] ?? null);
+        $this->assertSame(0, $second->data['summary']['imported_rows'] ?? null);
+        $this->assertSame(2, $second->data['summary']['duplicate_rows'] ?? null);
+        $this->assertSame(2, DB::table('faturas_cartao_itens')->where('user_id', $userId)->count());
+    }
+
+    public function testProfileConfigServicePersistsAndLoadsByConta(): void
+    {
+        $this->ensureDatabaseAvailable();
+
+        $userId = $this->createUser();
+        $contaId = $this->createConta($userId);
+        $service = new ImportProfileConfigService();
+
+        $saved = $service->saveForUserAndConta($userId, $contaId, [
+            'source_type' => 'csv',
+            'label' => 'Perfil Teste',
+            'agencia' => '1234',
+            'numero_conta' => '98765-0',
+            'options' => [
+                'csv_mapping_mode' => 'manual',
+                'csv_start_row' => 3,
+                'csv_delimiter' => ';',
+                'csv_has_header' => true,
+                'csv_date_format' => 'd/m/Y',
+                'csv_decimal_separator' => ',',
+                'csv_column_map' => [
+                    'tipo' => 'A',
+                    'data' => 'B',
+                    'descricao' => 'C',
+                    'valor' => 'D',
+                    'categoria' => 'E',
+                    'subcategoria' => 'F',
+                    'observacao' => 'G',
+                    'id_externo' => 'H',
+                ],
+            ],
+        ]);
+
+        $loaded = $service->getForUserAndConta($userId, $contaId);
+
+        $this->assertSame('csv', $saved->sourceType);
+        $this->assertSame('Perfil Teste', $saved->label);
+        $this->assertSame('1234', $saved->agencia);
+        $this->assertSame('98765-0', $saved->numeroConta);
+        $this->assertSame('manual', $loaded->options['csv_mapping_mode'] ?? null);
+        $this->assertSame(3, $loaded->options['csv_start_row'] ?? null);
+        $this->assertSame(';', $loaded->options['csv_delimiter'] ?? null);
+        $this->assertTrue((bool) ($loaded->options['csv_has_header'] ?? false));
+        $columnMap = is_array($loaded->options['csv_column_map'] ?? null) ? $loaded->options['csv_column_map'] : [];
+        $this->assertSame('A', $columnMap['tipo'] ?? null);
+        $this->assertSame('D', $columnMap['valor'] ?? null);
+    }
+
+    public function testHistoryServiceListsRealBatchesWithFilters(): void
+    {
+        $this->ensureDatabaseAvailable();
+
+        $userId = $this->createUser();
+        $contaId = $this->createConta($userId);
+
+        DB::table('importacao_lotes')->insert([
+            [
+                'user_id' => $userId,
+                'conta_id' => $contaId,
+                'source_type' => 'ofx',
+                'filename' => 'a.ofx',
+                'status' => 'processed',
+                'total_rows' => 5,
+                'imported_rows' => 5,
+                'duplicate_rows' => 0,
+                'error_rows' => 0,
+                'meta_json' => null,
+                'created_at' => date('Y-m-d H:i:s', strtotime('-2 minutes')),
+                'updated_at' => date('Y-m-d H:i:s', strtotime('-2 minutes')),
+            ],
+            [
+                'user_id' => $userId,
+                'conta_id' => $contaId,
+                'source_type' => 'ofx',
+                'filename' => 'b.ofx',
+                'status' => 'processed_with_duplicates',
+                'total_rows' => 5,
+                'imported_rows' => 3,
+                'duplicate_rows' => 2,
+                'error_rows' => 0,
+                'meta_json' => null,
+                'created_at' => date('Y-m-d H:i:s', strtotime('-1 minutes')),
+                'updated_at' => date('Y-m-d H:i:s', strtotime('-1 minutes')),
+            ],
+            [
+                'user_id' => $userId,
+                'conta_id' => $contaId,
+                'source_type' => 'ofx',
+                'filename' => 'card.ofx',
+                'status' => 'processed',
+                'total_rows' => 2,
+                'imported_rows' => 2,
+                'duplicate_rows' => 0,
+                'error_rows' => 0,
+                'meta_json' => json_encode([
+                    'import_target' => 'cartao',
+                    'cartao_id' => 99,
+                    'cartao_nome' => 'Nubank',
+                ], JSON_UNESCAPED_UNICODE),
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
+            ],
+        ]);
+
+        $service = new ImportHistoryService();
+        $all = $service->listForUser($userId, [], 20);
+        $filtered = $service->listForUser($userId, ['status' => 'processed_with_duplicates'], 20);
+        $cardOnly = $service->listForUser($userId, ['import_target' => 'cartao'], 20);
+
+        $this->assertCount(3, $all);
+        $this->assertCount(1, $filtered);
+        $this->assertSame('processed_with_duplicates', $filtered[0]['status'] ?? null);
+        $this->assertSame('b.ofx', $filtered[0]['filename'] ?? null);
+        $this->assertCount(1, $cardOnly);
+        $this->assertSame('cartao', $cardOnly[0]['import_target'] ?? null);
+        $this->assertSame('Nubank', $cardOnly[0]['cartao_nome'] ?? null);
+    }
+
+    public function testStubParsersSupportExpectedSourceTypes(): void
+    {
+        $this->assertTrue((new OfxImportParser())->supports('ofx'));
+        $this->assertFalse((new OfxImportParser())->supports('csv'));
+
+        $this->assertTrue((new CsvImportParser())->supports('csv'));
+        $this->assertFalse((new CsvImportParser())->supports('ofx'));
+    }
+
+    private function ensureDatabaseAvailable(): void
+    {
+        try {
+            DB::connection()->getPdo();
+        } catch (\Throwable) {
+            $this->markTestSkipped('Database connection required for importacão tests');
+        }
+    }
+
+    private function createUser(): int
+    {
+        $email = 'importacao-test-' . bin2hex(random_bytes(5)) . '@example.com';
+        $userId = (int) DB::table('usuarios')->insertGetId([
+            'nome' => 'Usuário Importação',
+            'email' => $email,
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        $this->cleanupUserIds[] = $userId;
+
+        return $userId;
+    }
+
+    private function createConta(int $userId): int
+    {
+        return (int) DB::table('contas')->insertGetId([
+            'user_id' => $userId,
+            'nome' => 'Conta Importacao',
+            'instituicao' => 'Banco Teste',
+            'tipo_conta' => 'corrente',
+            'saldo_inicial' => 0,
+            'ativo' => 1,
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+    }
+
+    private function createCartao(int $userId, int $contaId): int
+    {
+        return (int) DB::table('cartoes_credito')->insertGetId([
+            'user_id' => $userId,
+            'conta_id' => $contaId,
+            'nome_cartao' => 'Cartão Teste',
+            'bandeira' => 'visa',
+            'ultimos_digitos' => '1234',
+            'limite_total' => 5000,
+            'limite_disponivel' => 5000,
+            'dia_vencimento' => 10,
+            'dia_fechamento' => 1,
+            'cor_cartao' => '#1d4ed8',
+            'ativo' => 1,
+            'arquivado' => 0,
+            'lembrar_fatura_antes_segundos' => null,
+            'fatura_canal_email' => 0,
+            'fatura_canal_inapp' => 1,
+            'fatura_notificado_mes' => null,
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+    }
+
+    private function sampleOfx(): string
+    {
+        return <<<OFX
+OFXHEADER:100
+DATA:OFXSGML
+VERSION:102
+SECURITY:NONE
+ENCODING:USASCII
+CHARSET:1252
+COMPRESSION:NONE
+OLDFILEUID:NONE
+NEWFILEUID:NONE
+
+<OFX>
+  <BANKMSGSRSV1>
+    <STMTTRNRS>
+      <STMTRS>
+        <BANKTRANLIST>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260301000000[-3:BRT]
+            <TRNAMT>-120.50
+            <FITID>OFX-1
+            <NAME>Mercado
+            <MEMO>Compra do mes
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20260302000000[-3:BRT]
+            <TRNAMT>300.00
+            <FITID>OFX-2
+            <NAME>Salario
+            <MEMO>Pagamento
+          </STMTTRN>
+        </BANKTRANLIST>
+      </STMTRS>
+    </STMTTRNRS>
+  </BANKMSGSRSV1>
+</OFX>
+OFX;
+    }
+
+    private function sampleOfxCard(): string
+    {
+        return <<<OFX
+OFXHEADER:100
+DATA:OFXSGML
+VERSION:102
+SECURITY:NONE
+ENCODING:USASCII
+CHARSET:1252
+COMPRESSION:NONE
+OLDFILEUID:NONE
+NEWFILEUID:NONE
+
+<OFX>
+  <BANKMSGSRSV1>
+    <STMTTRNRS>
+      <STMTRS>
+        <BANKTRANLIST>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260305000000[-3:BRT]
+            <TRNAMT>-220.90
+            <FITID>CARD-OFX-1
+            <NAME>Restaurante
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20260306000000[-3:BRT]
+            <TRNAMT>40.00
+            <FITID>CARD-OFX-2
+            <NAME>Estorno parcial
+          </STMTTRN>
+        </BANKTRANLIST>
+      </STMTRS>
+    </STMTTRNRS>
+  </BANKMSGSRSV1>
+</OFX>
+OFX;
+    }
+}

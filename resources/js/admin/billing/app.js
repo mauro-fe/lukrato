@@ -17,12 +17,12 @@ function showStatusFeedback() {
         },
         pending: {
             title: 'Pagamento pendente',
-            text: 'Aguardando confirmacao do pagamento...',
+            text: 'Aguardando confirmação do pagamento...',
             icon: 'info',
         },
         error: {
             title: 'Ops! Algo deu errado',
-            text: 'Pagamento nao aprovado. Tente novamente.',
+            text: 'Pagamento não aprovado. Tente novamente.',
             icon: 'error',
         },
         cancelled: {
@@ -64,10 +64,10 @@ function setupCancelSubscription() {
                 <div style="text-align: left; padding: 1rem 0;">
                     <p style="margin-bottom: 1rem;">Ao cancelar sua assinatura:</p>
                     <ul style="margin: 0; padding-left: 1.5rem; color: var(--color-text-muted);">
-                        <li style="margin-bottom: 0.5rem;">Voce perdera acesso aos recursos Pro</li>
-                        <li style="margin-bottom: 0.5rem;">Agendamentos serao desativados</li>
-                        <li style="margin-bottom: 0.5rem;">Relatorios avancados serao bloqueados</li>
-                        <li>Seus dados serao mantidos</li>
+                        <li style="margin-bottom: 0.5rem;">Você perderá acesso aos recursos Pro</li>
+                        <li style="margin-bottom: 0.5rem;">Agendamentos serão desativados</li>
+                        <li style="margin-bottom: 0.5rem;">Relatórios avançados serão bloqueados</li>
+                        <li>Seus dados serão mantidos</li>
                     </ul>
                 </div>`,
             icon: 'warning',
@@ -95,7 +95,7 @@ function setupCancelSubscription() {
             cancelButtonText: 'Voltar',
             inputValidator: (value) => {
                 if (value !== 'CANCELAR') {
-                    return 'Voce precisa digitar "CANCELAR" para confirmar';
+                    return 'Você precisa digitar "CANCELAR" para confirmar';
                 }
                 return null;
             },
@@ -123,7 +123,7 @@ function setupCancelSubscription() {
             await Swal.fire({
                 icon: 'success',
                 title: 'Assinatura cancelada!',
-                html: '<p>Sua assinatura Pro foi cancelada com sucesso.</p><p style="color: var(--color-text-muted); font-size: 0.9rem; margin-top: 0.5rem;">Voce ainda tera acesso aos recursos Pro ate o fim do periodo pago.</p>',
+                html: '<p>Sua assinatura Pro foi cancelada com sucesso.</p><p style="color: var(--color-text-muted); font-size: 0.9rem; margin-top: 0.5rem;">Você ainda terá acesso aos recursos Pro até o fim do período pago.</p>',
                 confirmButtonText: 'Entendi',
                 confirmButtonColor: '#e67e22',
             });
@@ -134,7 +134,7 @@ function setupCancelSubscription() {
             Swal.fire({
                 icon: 'error',
                 title: 'Erro',
-                text: getErrorMessage(error, 'Nao foi possivel cancelar a assinatura. Tente novamente.'),
+                text: getErrorMessage(error, 'Não foi possível cancelar a assinatura. Tente novamente.'),
             });
         }
     });
@@ -159,12 +159,12 @@ function setupRenewButton(button, action) {
             title: `${titleText} assinatura Pro?`,
             html: `
                 <div style="text-align: left; padding: 1rem 0;">
-                    <p style="margin-bottom: 1rem;">Ao ${actionText} sua assinatura voce tera acesso imediato a:</p>
+                    <p style="margin-bottom: 1rem;">Ao ${actionText} sua assinatura você terá acesso imediato a:</p>
                     <ul style="margin: 0; padding-left: 1.5rem; color: var(--color-text-muted);">
-                        <li style="margin-bottom: 0.5rem;">Lancamentos ilimitados</li>
-                        <li style="margin-bottom: 0.5rem;">Importacao automatica de extratos</li>
-                        <li style="margin-bottom: 0.5rem;">Relatorios avancados</li>
-                        <li>Categorizacao inteligente com IA</li>
+                        <li style="margin-bottom: 0.5rem;">Lançamentos ilimitados</li>
+                        <li style="margin-bottom: 0.5rem;">Importação automática de extratos</li>
+                        <li style="margin-bottom: 0.5rem;">Relatórios avançados</li>
+                        <li>Categorização inteligente com IA</li>
                     </ul>
                 </div>`,
             icon: 'question',

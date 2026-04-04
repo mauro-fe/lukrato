@@ -385,7 +385,7 @@ body.sidebar-collapsed .sidebar .nav-item svg.lucide {
   opacity: 0.95;
 }
 
-/* Previne CLS (Cumulative Layout Shift) durante a inicializaÃ§Ã£o */
+/* Previne CLS (Cumulative Layout Shift) durante a inicialização */
 [data-lucide]:not(svg) {
   display: inline-block;
   width: 1.15em;

@@ -2,7 +2,7 @@
  * ============================================================================
  * LUKRATO - SysAdmin Blog Page (Vite Module)
  * ============================================================================
- * CRUD de artigos do blog, upload de imagem, TinyMCE, filtros e paginacao.
+ * CRUD de artigos do blog, upload de imagem, TinyMCE, filtros e paginação.
  * ============================================================================
  */
 

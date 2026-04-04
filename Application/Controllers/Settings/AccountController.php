@@ -48,7 +48,7 @@ class AccountController extends WebController
         $requestId = uniqid('acc_del_', true);
         $ip = $this->request->ip() ?? null;
 
-        LogService::info('Iniciando processo de exclusao de conta', [
+        LogService::info('Iniciando processo de exclusão de conta', [
             'request_id' => $requestId,
             'ip' => $ip,
         ]);
@@ -59,20 +59,20 @@ class AccountController extends WebController
             $user = ($this->userLoader)($userId);
 
             if (!$user) {
-                LogService::warning('Usuario nao encontrado ao tentar excluir conta', [
+                LogService::warning('Usuário não encontrado ao tentar excluir conta', [
                     'request_id' => $requestId,
                     'user_id' => $userId,
                     'ip' => $ip,
                 ]);
 
-                return Response::notFoundResponse('Usuario nao encontrado.');
+                return Response::notFoundResponse('Usuário não encontrado.');
             }
 
             $originalEmail = $user->email;
 
             $anonymizedEmail = $this->buildAnonymizedEmail((int) $user->id);
             $user->email = $anonymizedEmail;
-            $user->nome = 'Usuario Removido';
+            $user->nome = 'Usuário Removido';
             $user->google_id = null;
             $user->save();
 
@@ -86,7 +86,7 @@ class AccountController extends WebController
                     'ip' => $ip,
                 ]);
 
-                return Response::errorResponse('Não foi possivel excluir sua conta. Tente novamente.', 500);
+                return Response::errorResponse('Não foi possível excluir sua conta. Tente novamente.', 500);
             }
 
             $this->antifraudService->onAccountDeleted($originalEmail, $userId, $ip);
@@ -102,7 +102,7 @@ class AccountController extends WebController
                 'ip' => $ip,
             ]);
 
-            return Response::successResponse(null, 'Conta excluida com sucesso.');
+            return Response::successResponse(null, 'Conta excluída com sucesso.');
         } catch (Throwable $e) {
             LogService::error('Erro inesperado ao excluir conta', [
                 'request_id' => $requestId,

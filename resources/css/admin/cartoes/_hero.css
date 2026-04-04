@@ -1,8 +1,17 @@
-/* ─── HERO — Título + Subtítulo ───────────────────────────────────────────── */
+/* Hero - título, contexto e atalhos de importação */
 
 .cart-hero {
-  text-align: center;
+  text-align: left;
   padding: var(--spacing-8) var(--spacing-5);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--spacing-4);
+  align-items: start;
+}
+
+.cart-hero__content {
+  display: grid;
+  gap: var(--spacing-2);
 }
 
 .cart-hero__eyebrow {
@@ -12,7 +21,7 @@
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--color-primary);
-  margin-bottom: var(--spacing-2);
+  margin-bottom: var(--spacing-1);
 }
 
 .cart-hero__title {
@@ -27,8 +36,13 @@
   margin: 0;
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
-  max-width: 480px;
-  margin-inline: auto;
+  max-width: 62ch;
   line-height: 1.5;
 }
 
+.cart-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  justify-content: flex-end;
+}

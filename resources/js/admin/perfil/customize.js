@@ -9,20 +9,15 @@ import { fetchUiPagePreferences, persistUiPagePreferences } from '../shared/ui-p
 /** Map: checkbox ID -> section ID */
 const SECTION_MAP = {
     togglePerfilHeader: 'profileHeaderSection',
-    togglePerfilTabs: 'profileTabsSection',
-    togglePerfilConfigShortcut: 'profileConfigShortcutSection'
+    togglePerfilTabs: 'profileTabsSection'
 };
 
 const COMPLETE_DEFAULTS = {
     togglePerfilHeader: true,
-    togglePerfilTabs: true,
-    togglePerfilConfigShortcut: true
+    togglePerfilTabs: true
 };
 
-const ESSENTIAL_DEFAULTS = {
-    ...COMPLETE_DEFAULTS,
-    togglePerfilConfigShortcut: false
-};
+const ESSENTIAL_DEFAULTS = { ...COMPLETE_DEFAULTS };
 
 async function loadPerfilPrefs() {
     return fetchUiPagePreferences('perfil');
@@ -52,4 +47,3 @@ const perfilCustomizer = createPageCustomizer({
 export function initCustomize() {
     perfilCustomizer.init();
 }
-

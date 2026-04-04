@@ -16,8 +16,6 @@ class PerfilController extends WebController
         return $this->renderAdminResponse(
             'admin/perfil/index',
             [
-                'menu' => 'perfil',
-                'perfilViewMode' => 'perfil',
                 'pageTitle' => 'Perfil',
                 'subTitle' => 'Mantenha seus dados pessoais sempre atualizados',
             ]

@@ -34,10 +34,6 @@
                         <span>Navegacao por abas</span>
                         <input type="checkbox" id="togglePerfilTabs" checked>
                     </label>
-                    <label class="profile-customize-toggle">
-                        <span>Atalho de configuracoes</span>
-                        <input type="checkbox" id="togglePerfilConfigShortcut" checked>
-                    </label>
                 </div>
             </div>
 

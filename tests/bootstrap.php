@@ -311,6 +311,172 @@ function ensureSqliteTestSchema(Capsule $capsule): void
         });
     }
 
+    if (!$schema->hasTable('cartoes_credito')) {
+        $schema->create('cartoes_credito', static function (Blueprint $table): void {
+            $table->increments('id');
+            $table->unsignedInteger('user_id');
+            $table->unsignedInteger('conta_id')->nullable();
+            $table->string('nome_cartao');
+            $table->string('bandeira')->nullable();
+            $table->string('ultimos_digitos', 8)->nullable();
+            $table->decimal('limite_total', 14, 2)->default(0);
+            $table->decimal('limite_disponivel', 14, 2)->default(0);
+            $table->unsignedTinyInteger('dia_vencimento')->nullable();
+            $table->unsignedTinyInteger('dia_fechamento')->nullable();
+            $table->string('cor_cartao', 20)->nullable();
+            $table->boolean('ativo')->default(true);
+            $table->boolean('arquivado')->default(false);
+            $table->unsignedInteger('lembrar_fatura_antes_segundos')->nullable();
+            $table->boolean('fatura_canal_email')->default(false);
+            $table->boolean('fatura_canal_inapp')->default(true);
+            $table->string('fatura_notificado_mes', 20)->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+        });
+    }
+
+    if (!$schema->hasTable('faturas')) {
+        $schema->create('faturas', static function (Blueprint $table): void {
+            $table->increments('id');
+            $table->unsignedInteger('user_id');
+            $table->unsignedInteger('cartao_credito_id');
+            $table->string('descricao', 120)->nullable();
+            $table->decimal('valor_total', 14, 2)->default(0);
+            $table->unsignedInteger('numero_parcelas')->default(0);
+            $table->date('data_compra')->nullable();
+            $table->string('status', 30)->default('pendente');
+            $table->timestamps();
+            $table->softDeletes();
+        });
+    }
+
+    if (!$schema->hasTable('faturas_cartao_itens')) {
+        $schema->create('faturas_cartao_itens', static function (Blueprint $table): void {
+            $table->increments('id');
+            $table->unsignedInteger('user_id');
+            $table->unsignedInteger('cartao_credito_id');
+            $table->unsignedInteger('fatura_id')->nullable();
+            $table->unsignedInteger('lancamento_id')->nullable();
+            $table->string('descricao', 190);
+            $table->decimal('valor', 14, 2)->default(0);
+            $table->string('tipo', 20)->default('despesa');
+            $table->date('data_compra')->nullable();
+            $table->date('data_vencimento')->nullable();
+            $table->unsignedTinyInteger('mes_referencia')->nullable();
+            $table->unsignedSmallInteger('ano_referencia')->nullable();
+            $table->unsignedInteger('categoria_id')->nullable();
+            $table->boolean('eh_parcelado')->default(false);
+            $table->unsignedInteger('parcela_atual')->default(1);
+            $table->unsignedInteger('total_parcelas')->default(1);
+            $table->unsignedInteger('item_pai_id')->nullable();
+            $table->boolean('pago')->default(false);
+            $table->date('data_pagamento')->nullable();
+            $table->boolean('recorrente')->default(false);
+            $table->string('recorrencia_freq', 20)->nullable();
+            $table->date('recorrencia_fim')->nullable();
+            $table->unsignedInteger('recorrencia_pai_id')->nullable();
+            $table->timestamp('cancelado_em')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+        });
+    }
+
+    if (!$schema->hasTable('importacao_perfis')) {
+        $schema->create('importacao_perfis', static function (Blueprint $table): void {
+            $table->increments('id');
+            $table->unsignedInteger('user_id');
+            $table->unsignedInteger('conta_id');
+            $table->string('source_type', 20)->default('ofx');
+            $table->string('label', 100)->nullable();
+            $table->string('agencia', 40)->nullable();
+            $table->string('numero_conta', 60)->nullable();
+            $table->text('options_json')->nullable();
+            $table->timestamps();
+
+            $table->unique(['user_id', 'conta_id'], 'uq_importacao_perfil_user_conta');
+            $table->index(['user_id', 'source_type'], 'idx_importacao_perfil_user_source');
+        });
+    }
+
+    if (!$schema->hasTable('importacao_lotes')) {
+        $schema->create('importacao_lotes', static function (Blueprint $table): void {
+            $table->increments('id');
+            $table->unsignedInteger('user_id');
+            $table->unsignedInteger('conta_id');
+            $table->string('source_type', 20);
+            $table->string('filename', 255)->nullable();
+            $table->string('file_hash', 64)->nullable();
+            $table->string('status', 40)->default('processing');
+            $table->unsignedInteger('total_rows')->default(0);
+            $table->unsignedInteger('imported_rows')->default(0);
+            $table->unsignedInteger('duplicate_rows')->default(0);
+            $table->unsignedInteger('error_rows')->default(0);
+            $table->text('error_summary')->nullable();
+            $table->text('meta_json')->nullable();
+            $table->timestamps();
+
+            $table->index(['user_id', 'created_at'], 'idx_importacao_lote_user_created');
+            $table->index(['user_id', 'status'], 'idx_importacao_lote_user_status');
+            $table->index(['conta_id'], 'idx_importacao_lote_conta');
+        });
+    }
+
+    if (!$schema->hasTable('importacao_itens')) {
+        $schema->create('importacao_itens', static function (Blueprint $table): void {
+            $table->increments('id');
+            $table->unsignedInteger('lote_id');
+            $table->unsignedInteger('user_id');
+            $table->unsignedInteger('conta_id');
+            $table->unsignedInteger('lancamento_id')->nullable();
+            $table->string('row_hash', 64);
+            $table->string('status', 30)->default('imported');
+            $table->string('external_id', 120)->nullable();
+            $table->date('data');
+            $table->decimal('amount', 14, 2);
+            $table->string('tipo', 20);
+            $table->string('description', 190);
+            $table->text('memo')->nullable();
+            $table->text('raw_json')->nullable();
+            $table->text('message')->nullable();
+            $table->timestamps();
+
+            $table->index(['lote_id'], 'idx_importacao_item_lote');
+            $table->index(['user_id', 'conta_id'], 'idx_importacao_item_user_conta');
+            $table->index(['lancamento_id'], 'idx_importacao_item_lancamento');
+            $table->unique(['user_id', 'conta_id', 'row_hash'], 'uq_importacao_item_user_conta_hash');
+        });
+    }
+
+    if (!$schema->hasTable('importacao_jobs')) {
+        $schema->create('importacao_jobs', static function (Blueprint $table): void {
+            $table->increments('id');
+            $table->unsignedInteger('user_id');
+            $table->unsignedInteger('conta_id');
+            $table->unsignedInteger('cartao_id')->nullable();
+            $table->string('source_type', 20)->default('ofx');
+            $table->string('import_target', 20)->default('conta');
+            $table->string('filename', 255)->nullable();
+            $table->string('temp_file_path', 500);
+            $table->string('status', 30)->default('queued');
+            $table->unsignedInteger('attempts')->default(0);
+            $table->unsignedInteger('total_rows')->default(0);
+            $table->unsignedInteger('processed_rows')->default(0);
+            $table->unsignedInteger('imported_rows')->default(0);
+            $table->unsignedInteger('duplicate_rows')->default(0);
+            $table->unsignedInteger('error_rows')->default(0);
+            $table->unsignedInteger('result_batch_id')->nullable();
+            $table->timestamp('started_at')->nullable();
+            $table->timestamp('finished_at')->nullable();
+            $table->text('error_summary')->nullable();
+            $table->text('meta_json')->nullable();
+            $table->timestamps();
+
+            $table->index(['user_id', 'status'], 'idx_importacao_job_user_status');
+            $table->index(['status', 'id'], 'idx_importacao_job_status_id');
+            $table->index(['result_batch_id'], 'idx_importacao_job_result_batch');
+        });
+    }
+
     if (!$schema->hasTable('pending_ai_actions')) {
         $schema->create('pending_ai_actions', static function (Blueprint $table): void {
             $table->increments('id');

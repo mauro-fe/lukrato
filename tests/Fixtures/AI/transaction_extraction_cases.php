@@ -11,7 +11,7 @@
  * ]
  *
  * Campos possíveis em expected:
- *   descricao, valor, tipo (despesa/receita), forma_pagamento,
+ *   descrição, valor, tipo (despesa/receita), forma_pagamento,
  *   eh_parcelado, total_parcelas, nome_cartao
  *
  * Valor null em expected significa "campo não deve existir ou é irrelevante"

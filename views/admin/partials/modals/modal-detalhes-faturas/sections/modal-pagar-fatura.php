@@ -21,13 +21,13 @@
 
                     <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                         <button type="button" id="btnPagarTotal" class="btn-opcao-pagamento" style="
-                            display: flex; align-items: center; gap: 1rem; 
-                            padding: 1rem 1.25rem; 
-                            background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
-                            color: white; 
-                            border: none; 
-                            border-radius: 12px; 
-                            cursor: pointer; 
+                            display: flex; align-items: center; gap: 1rem;
+                            padding: 1rem 1.25rem;
+                            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                            color: white;
+                            border: none;
+                            border-radius: 12px;
+                            cursor: pointer;
                             transition: all 0.2s;
                             text-align: left;
                             width: 100%;
@@ -42,13 +42,13 @@
                         </button>
 
                         <button type="button" id="btnPagarParcial" class="btn-opcao-pagamento" style="
-                            display: flex; align-items: center; gap: 1rem; 
-                            padding: 1rem 1.25rem; 
-                            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); 
-                            color: white; 
-                            border: none; 
-                            border-radius: 12px; 
-                            cursor: pointer; 
+                            display: flex; align-items: center; gap: 1rem;
+                            padding: 1rem 1.25rem;
+                            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                            color: white;
+                            border: none;
+                            border-radius: 12px;
+                            cursor: pointer;
                             transition: all 0.2s;
                             text-align: left;
                             width: 100%;
@@ -68,9 +68,9 @@
                 <div id="pagarFaturaFormParcial" style="display: none;">
                     <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem;">
                         <button type="button" id="btnVoltarEscolha" style="
-                            background: transparent; 
-                            border: none; 
-                            color: var(--color-text-muted); 
+                            background: transparent;
+                            border: none;
+                            color: var(--color-text-muted);
                             cursor: pointer;
                             padding: 0.5rem;
                             border-radius: 8px;

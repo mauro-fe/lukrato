@@ -14,7 +14,7 @@ use Application\Models\AiConversation;
  *
  * Estados:
  *   - idle:                Conversa normal, sem fluxo ativo
- *   - collecting_entity:   Coletando campos para criar uma entidade (lancamento, meta, etc.)
+ *   - collecting_entity:   Coletando campos para criar uma entidade (lançamento, meta, etc.)
  *   - awaiting_selection:  Aguardando seleção de opção (ex: qual cartão, qual conta)
  *
  * O state_data (JSON) armazena dados parciais do fluxo ativo.
@@ -53,7 +53,7 @@ class ConversationStateService
      * Inicia um fluxo de coleta de entidade.
      *
      * @param int    $conversationId
-     * @param string $entityType      lancamento|meta|orcamento|categoria|subcategoria
+     * @param string $entityType      lançamento|meta|orcamento|categoria|subcategoria
      * @param array  $partialData     Dados já extraídos da primeira mensagem
      * @param array  $missingFields   Campos que faltam
      */

@@ -13,7 +13,7 @@ readonly class ServiceResultDTO
     /**
      * @param bool        $success   Se a operação foi bem-sucedida
      * @param string      $message   Mensagem descritiva para o frontend
-     * @param array       $data      Payload de dados (lancamento, usage, gamification, etc.)
+     * @param array       $data      Payload de dados (lançamento, usage, gamification, etc.)
      * @param int         $httpCode  Código HTTP sugerido para a resposta
      */
     public function __construct(

@@ -86,26 +86,7 @@
         </div>
 
         <!-- Calculadora de Vazamento -->
-        <div class="max-w-xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 p-6 lg:p-8 mb-10" x-data="{
-                renda: '',
-                resultado: 0,
-                calculado: false,
-                calcular() {
-                    const valor = parseFloat(this.renda.replace(/[^\d]/g, ''));
-                    if (valor > 0) {
-                        this.resultado = Math.round(valor * 0.15);
-                        this.calculado = true;
-                    }
-                },
-                formatarInput() {
-                    let v = this.renda.replace(/\D/g, '');
-                    if (v.length > 0) {
-                        v = (parseInt(v) / 100).toFixed(2);
-                        v = v.replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-                        this.renda = 'R$ ' + v;
-                    }
-                }
-            }" data-aos="fade-up" data-aos-delay="300">
+        <div class="max-w-xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 p-6 lg:p-8 mb-10" data-leak-calculator data-aos="fade-up" data-aos-delay="300">
             <div class="text-center mb-6">
                 <div class="inline-flex items-center justify-center w-12 h-12 bg-orange-50 rounded-xl mb-3">
                     <i data-lucide="calculator" class="w-6 h-6 text-primary" aria-hidden="true"></i>
@@ -118,23 +99,22 @@
                 <div>
                     <label for="renda-mensal" class="block text-sm font-medium text-gray-700 mb-2">Quanto você ganha por
                         mês?</label>
-                    <input type="text" id="renda-mensal" x-model="renda" @input="formatarInput()"
-                        @keydown.enter="calcular()" placeholder="R$ 3.000,00"
+                    <input type="text" id="renda-mensal" data-lk-vazamento-input placeholder="R$ 3.000,00"
                         class="w-full px-4 py-3 text-lg border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                         inputmode="numeric" autocomplete="off" />
                 </div>
 
-                <button @click="calcular()"
+                <button type="button" data-lk-vazamento-submit
                     class="w-full px-6 py-3 text-base font-bold text-white bg-gradient-to-r from-primary to-orange-600 rounded-xl shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300">
                     Calcular meu vazamento
                 </button>
 
                 <!-- Resultado -->
-                <div x-show="calculado" x-transition.opacity.duration.400ms class="text-center pt-4">
+                <div hidden data-lk-vazamento-result class="lk-vazamento-resultado text-center pt-4" aria-live="polite">
                     <p class="text-sm text-gray-500">Brasileiros perdem em média <strong>15% da renda</strong> com
                         gastos desnecessários.</p>
                     <p class="text-2xl font-bold text-red-500 mt-2">
-                        Você pode estar perdendo até R$ <span x-text="resultado.toLocaleString('pt-BR')"></span>/mês
+                        Você pode estar perdendo até R$ <span data-lk-vazamento-amount></span>/mês
                     </p>
                     <p class="text-sm text-gray-400 mt-1">sem perceber para onde o dinheiro vai.</p>
                 </div>

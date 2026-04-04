@@ -18,6 +18,7 @@ const formatPercent = (value, digits = 0) => `${(Number(value) || 0).toLocaleStr
 })}%`;
 const buildTooltipAttrs = (title, text) => `data-lk-tooltip-title="${safeText(title)}" data-lk-tooltip="${safeText(text)}"`;
 const COLOR_TOKEN_REGEX = /(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\))/;
+const getBaseUrl = () => (window.LK?.getBase?.() || '/');
 
 export const CardListMethods = {
     renderParcelamentos(parcelamentos) {
@@ -338,6 +339,10 @@ export const CardListMethods = {
     createCardHTML({ parc, statusBadge, mes, ano, itensPendentes, itensPagos, totalItens, progresso, dueMeta, statusMeta }) {
         const resumoPrincipal = this.getResumoPrincipal(parc, dueMeta, statusMeta, itensPendentes, itensPagos, totalItens);
         const progressoSection = this.getProgressoSection(totalItens, itensPendentes, itensPagos, progresso, statusMeta);
+        const cartaoId = Number.parseInt(String(parc.cartao?.id ?? parc.cartao_id ?? 0), 10) || 0;
+        const cardImportUrl = cartaoId > 0
+            ? `${getBaseUrl()}importacoes?import_target=cartao&source_type=ofx&cartao_id=${cartaoId}`
+            : `${getBaseUrl()}importacoes?import_target=cartao&source_type=ofx`;
         const cartaoNome = parc.cartao ? (parc.cartao.nome || parc.cartao.bandeira || 'Cartao') : 'Cartao';
         const instituicaoNome = parc.cartao?.conta?.instituicao_financeira?.nome || 'Sem instituicao';
         const cartaoNumero = parc.cartao?.ultimos_digitos ? `Final ${parc.cartao.ultimos_digitos}` : '';
@@ -383,6 +388,15 @@ export const CardListMethods = {
                 ${progressoSection}
                 <div class="fatura-status-col">${statusBadge}</div>
                 <div class="parc-card-actions">
+                    <a
+                        class="parc-btn parc-btn-import"
+                        href="${safeText(cardImportUrl)}"
+                        data-no-transition="true"
+                        title="Importar OFX desta fatura/cartão"
+                    >
+                        <i data-lucide="upload"></i>
+                        <span>Importar OFX</span>
+                    </a>
                     <button class="parc-btn parc-btn-view" data-action="view" data-id="${parc.id}">
                         <i data-lucide="eye"></i>
                         <span>Ver detalhes</span>

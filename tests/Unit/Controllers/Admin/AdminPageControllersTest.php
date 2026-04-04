@@ -20,11 +20,15 @@ namespace Tests\Unit\Controllers\Admin {
     use Application\Controllers\Admin\DashboardController;
     use Application\Controllers\Admin\FaturaController;
     use Application\Controllers\Admin\FinancasController;
+    use Application\Controllers\Admin\ImportacoesConfiguracoesController;
+    use Application\Controllers\Admin\ImportacoesController;
+    use Application\Controllers\Admin\ImportacoesHistoricoController;
     use Application\Controllers\Admin\LancamentoController;
     use Application\Controllers\Admin\MetasController;
     use Application\Controllers\Admin\OrcamentoController;
     use Application\Controllers\Admin\PerfilController;
     use Application\Controllers\Admin\RelatoriosController;
+    use Application\Controllers\SysAdmin\BlogViewController;
     use Application\Core\Exceptions\HttpResponseException;
     use Application\Lib\Auth;
     use Application\Models\Usuario;
@@ -83,6 +87,8 @@ namespace Tests\Unit\Controllers\Admin {
 
             $this->assertSame(200, $index->getStatusCode());
             $this->assertStringContainsString('cartoes-page', $index->getContent());
+            $this->assertStringContainsString('data-cartoes-import-ofx-link', $index->getContent());
+            $this->assertStringContainsString('import_target=cartao&source_type=ofx', $index->getContent());
             $this->assertSame(200, $archived->getStatusCode());
             $this->assertStringContainsString('Cartões Arquivados', $archived->getContent());
         }
@@ -107,6 +113,7 @@ namespace Tests\Unit\Controllers\Admin {
 
             $this->assertSame(200, $response->getStatusCode());
             $this->assertStringContainsString('Configurações', $response->getContent());
+            $this->assertMatchesRegularExpression('/currentMenu\s*:\s*"configuracoes"/', $response->getContent());
         }
 
         public function testContasPagesRender(): void
@@ -144,6 +151,8 @@ namespace Tests\Unit\Controllers\Admin {
 
             $this->assertSame(200, $response->getStatusCode());
             $this->assertStringContainsString('parc-page', $response->getContent());
+            $this->assertStringContainsString('data-faturas-import-ofx-link', $response->getContent());
+            $this->assertStringContainsString('import_target=cartao&source_type=ofx', $response->getContent());
         }
 
         public function testFinancasIndexRendersPage(): void
@@ -155,6 +164,108 @@ namespace Tests\Unit\Controllers\Admin {
 
             $this->assertSame(200, $response->getStatusCode());
             $this->assertStringContainsString('fin-page', $response->getContent());
+        }
+
+        public function testFinancasLayoutSmokeRendersSidebarCurrentMenuAndBundleMarkers(): void
+        {
+            $this->seedAuthenticatedSession(3114, 'Financas Smoke User');
+
+            $controller = new FinancasController();
+            $response = $controller->index();
+            $content = $response->getContent();
+
+            $this->assertSame(200, $response->getStatusCode());
+            $this->assertStringContainsString('id="sidebar-main"', $content);
+            $this->assertMatchesRegularExpression('/currentMenu\s*:\s*"financas"/', $content);
+            $this->assertMatchesRegularExpression('/currentViewId\s*:\s*"admin-financas-index"/', $content);
+            $this->assertMatchesRegularExpression('/currentViewPath\s*:\s*"admin\/financas\/index"/', $content);
+            $this->assertStringContainsString('bundle', $content);
+            $this->assertStringContainsString('GLOBAL INFRASTRUCTURE BUNDLE (Vite)', $content);
+            $this->assertStringContainsString('window.__LK_CONFIG', $content);
+        }
+
+        public function testImportacoesPagesRender(): void
+        {
+            $this->seedAuthenticatedSession(3116, 'Importacoes User');
+
+            $indexController = new ImportacoesController();
+            $configController = new ImportacoesConfiguracoesController();
+            $historyController = new ImportacoesHistoricoController();
+
+            $index = $indexController->index();
+            $config = $configController->index();
+            $history = $historyController->index();
+
+            $this->assertSame(200, $index->getStatusCode());
+            $this->assertStringContainsString('imp-page', $index->getContent());
+            $this->assertStringContainsString('data-imp-preview-region', $index->getContent());
+            $this->assertStringContainsString('data-imp-preview-badge', $index->getContent());
+            $this->assertStringContainsString('data-imp-preview-table-wrap', $index->getContent());
+            $this->assertStringContainsString('data-imp-active-account-id', $index->getContent());
+            $this->assertStringContainsString('data-imp-preview-endpoint', $index->getContent());
+            $this->assertStringContainsString('data-imp-confirm-endpoint', $index->getContent());
+            $this->assertStringContainsString('data-imp-plan', $index->getContent());
+            $this->assertStringContainsString('data-imp-import-limits', $index->getContent());
+            $this->assertStringContainsString('data-imp-quota-warning', $index->getContent());
+            $this->assertTrue(
+                str_contains($index->getContent(), 'data-imp-account-select-main')
+                || str_contains($index->getContent(), 'data-imp-account-warning')
+            );
+
+            $this->assertSame(200, $config->getStatusCode());
+            $this->assertStringContainsString('imp-config-page', $config->getContent());
+            $this->assertStringContainsString('data-imp-active-account-id', $config->getContent());
+            $this->assertTrue(
+                str_contains($config->getContent(), 'data-imp-account-select')
+                || str_contains($config->getContent(), 'Nenhuma conta ativa encontrada')
+            );
+            $this->assertTrue(
+                str_contains($config->getContent(), 'data-imp-config-save-form')
+                || str_contains($config->getContent(), 'Usar este perfil na importacao')
+                || str_contains($config->getContent(), 'liberar a configuracao de importacoes')
+                || str_contains($config->getContent(), 'liberar a configuração de importações')
+            );
+            $this->assertTrue(
+                str_contains($config->getContent(), 'data-imp-csv-mapping-mode')
+                || str_contains($config->getContent(), 'Nenhuma conta ativa encontrada')
+            );
+            $this->assertStringContainsString('data-imp-csv-template-auto-endpoint', $config->getContent());
+            $this->assertStringContainsString('data-imp-csv-template-manual-endpoint', $config->getContent());
+            $this->assertTrue(
+                preg_match('/data-imp-csv-template-auto[^>]*data-no-transition="true"[^>]*download/', $config->getContent()) === 1
+                || str_contains($config->getContent(), 'Nenhuma conta ativa encontrada')
+            );
+            $this->assertTrue(
+                preg_match('/data-imp-csv-template-manual[^>]*data-no-transition="true"[^>]*download/', $config->getContent()) === 1
+                || str_contains($config->getContent(), 'Nenhuma conta ativa encontrada')
+            );
+
+            $this->assertSame(200, $history->getStatusCode());
+            $this->assertStringContainsString('imp-history-page', $history->getContent());
+            $this->assertStringContainsString('data-imp-history-filters', $history->getContent());
+            $this->assertStringContainsString('data-imp-history-filter-account', $history->getContent());
+            $this->assertTrue(
+                str_contains($history->getContent(), 'data-imp-history-table')
+                || str_contains($history->getContent(), 'Nenhum lote registrado')
+            );
+        }
+
+        public function testImportacoesLayoutSmokeRendersSidebarCurrentMenuAndBundleMarkers(): void
+        {
+            $this->seedAuthenticatedSession(3117, 'Importacoes Smoke User');
+
+            $controller = new ImportacoesController();
+            $response = $controller->index();
+            $content = $response->getContent();
+
+            $this->assertSame(200, $response->getStatusCode());
+            $this->assertStringContainsString('id="sidebar-main"', $content);
+            $this->assertMatchesRegularExpression('/currentMenu\s*:\s*"importacoes"/', $content);
+            $this->assertMatchesRegularExpression('/currentViewId\s*:\s*"admin-importacoes-index"/', $content);
+            $this->assertMatchesRegularExpression('/currentViewPath\s*:\s*"admin\/importacoes\/index"/', $content);
+            $this->assertStringContainsString('bundle', $content);
+            $this->assertStringContainsString('GLOBAL INFRASTRUCTURE BUNDLE (Vite)', $content);
+            $this->assertStringContainsString('window.__LK_CONFIG', $content);
         }
 
         public function testLancamentoIndexRendersPage(): void
@@ -195,6 +306,7 @@ namespace Tests\Unit\Controllers\Admin {
 
             $this->assertSame(200, $response->getStatusCode());
             $this->assertStringContainsString('profile-page', $response->getContent());
+            $this->assertMatchesRegularExpression('/currentMenu\s*:\s*"perfil"/', $response->getContent());
         }
 
         public function testOrcamentoIndexRendersPage(): void
@@ -219,14 +331,32 @@ namespace Tests\Unit\Controllers\Admin {
             $this->assertStringContainsString('met-page', $response->getContent());
         }
 
-        private function seedAuthenticatedSession(int $userId, string $name, ?Usuario $user = null): void
+        public function testSysadminBlogLayoutSmokeRendersSidebarCurrentMenuAndBundleMarkers(): void
+        {
+            $this->seedAuthenticatedSession(3115, 'Sysadmin Smoke User', null, true);
+
+            $controller = new BlogViewController();
+            $response = $controller->index();
+            $content = $response->getContent();
+
+            $this->assertSame(200, $response->getStatusCode());
+            $this->assertStringContainsString('id="sidebar-main"', $content);
+            $this->assertMatchesRegularExpression('/currentMenu\s*:\s*"super_admin"/', $content);
+            $this->assertMatchesRegularExpression('/currentViewId\s*:\s*"admin-sysadmin-blog"/', $content);
+            $this->assertMatchesRegularExpression('/currentViewPath\s*:\s*"admin\/sysadmin\/blog"/', $content);
+            $this->assertStringContainsString('bundle', $content);
+            $this->assertStringContainsString('GLOBAL INFRASTRUCTURE BUNDLE (Vite)', $content);
+            $this->assertStringContainsString('window.__LK_CONFIG', $content);
+        }
+
+        private function seedAuthenticatedSession(int $userId, string $name, ?Usuario $user = null, bool $isAdmin = false): void
         {
             $this->startIsolatedSession('admin-page-controllers-test');
 
             $user ??= new Usuario();
             $user->id = $userId;
             $user->nome = $name;
-            $user->is_admin = 0;
+            $user->is_admin = $isAdmin ? 1 : 0;
 
             $_SESSION['usuario_logged_in'] = true;
             $_SESSION['user_id'] = $userId;

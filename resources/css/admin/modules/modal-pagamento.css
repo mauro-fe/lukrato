@@ -359,7 +359,7 @@
 }
 
 /* ==========================================================================
-   SELETOR DE MÃ‰TODO DE PAGAMENTO
+   SELETOR DE MÉTODO DE PAGAMENTO
    ========================================================================== */
 .payment-method-selector {
   display: flex;
@@ -445,7 +445,7 @@
 }
 
 /* ==========================================================================
-   SEÃ‡Ã•ES DE PAGAMENTO (CARTÃƒO vs PIX/BOLETO)
+   SEÇÕES DE PAGAMENTO (CARTÃO vs PIX/BOLETO)
    ========================================================================== */
 .payment-section {
   display: none;
@@ -696,7 +696,7 @@
 }
 
 /* ==========================================================================
-   SEÃ‡ÃƒO DE PAGAMENTO PENDENTE (BLOQUEIO)
+   SEÇÃO DE PAGAMENTO PENDENTE (BLOQUEIO)
    ========================================================================== */
 .pending-payment-section {
   display: none;

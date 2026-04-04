@@ -73,7 +73,7 @@ class PerfilAvatarService
             return [
                 'success' => false,
                 'status' => 500,
-                'message' => 'Nao foi possivel salvar a foto de perfil.',
+                'message' => 'Não foi possível salvar a foto de perfil.',
             ];
         }
         imagedestroy($preparedImage);

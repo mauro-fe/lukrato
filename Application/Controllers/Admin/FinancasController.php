@@ -18,7 +18,6 @@ class FinancasController extends WebController
             [
                 'pageTitle' => 'Finanças',
                 'subTitle' => 'Gerencie seus orçamentos e metas financeiras',
-                'menu' => 'financas',
                 'showMonthSelector' => true,
             ]
         );

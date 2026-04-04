@@ -1,5 +1,4 @@
     <div class="profile-header surface-card surface-card--interactive surface-card--clip" id="profileHeaderSection">
-        <!-- Avatar Upload -->
         <?php $avatarUrl = $currentUser?->avatar ? rtrim(BASE_URL, '/') . '/' . $currentUser->avatar : ''; ?>
         <div class="profile-avatar-wrapper">
             <div class="profile-avatar" id="profileAvatar">
@@ -13,18 +12,14 @@
         </div>
 
         <div class="profile-header-top">
-            <h1 class="profile-title"><?= $isConfigView ? 'Configurações' : 'Meu Perfil' ?></h1>
+            <h1 class="profile-title">Meu Perfil</h1>
 
             <button type="button" class="lk-info" data-lk-tooltip-title="Perfil completo"
-                data-lk-tooltip="Manter seus dados sempre completos ajuda na segurança da conta, recuperação de acesso, faturamento e melhor funcionamento do Lukrato."
+                data-lk-tooltip="Manter seus dados sempre completos ajuda na seguranca da conta, recuperacao de acesso, faturamento e melhor funcionamento do Lukrato."
                 aria-label="Ajuda: Perfil completo">
                 <i data-lucide="info" aria-hidden="true"></i>
             </button>
         </div>
 
-        <p class="profile-subtitle">
-            <?= $isConfigView
-                ? 'Gerencie segurança, integrações e preferências da conta'
-                : 'Gerencie suas informações pessoais' ?>
-        </p>
+        <p class="profile-subtitle">Gerencie suas informacoes pessoais</p>
     </div>

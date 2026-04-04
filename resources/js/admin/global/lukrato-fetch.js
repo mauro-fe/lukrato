@@ -366,7 +366,7 @@ class LukratoFetch {
     }
 
     /**
-     * Compatibilidade de loading por requisiÃ§Ã£o
+     * Compatibilidade de loading por requisi??o
      */
     showSlowConnectionWarning(target) {
         let warning = document.getElementById('lk-slow-connection');
@@ -465,7 +465,7 @@ window.lkFetch = new LukratoFetch({
 /**
  * Interceptor Global de Fetch
  * Mostra aviso de conexão lenta quando requisições demoram
- * NÃO mostra barra de loading (cada página tem seu próprio loader)
+ * N?O mostra barra de loading (cada p?gina tem seu pr?prio loader)
  */
 (function () {
     const originalFetch = window.fetch;

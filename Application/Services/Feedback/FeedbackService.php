@@ -19,7 +19,7 @@ class FeedbackService
     }
 
     /**
-     * Salva feedback com validacao e anti-spam.
+     * Salva feedback com validação e anti-spam.
      */
     public function store(int $userId, array $data): array
     {
@@ -124,7 +124,7 @@ class FeedbackService
         return $query->get();
     }
 
-    // --- Validacao Privada ---
+    // --- Validação Privada ---
 
     private function validateRating(string $tipo, ?int $rating): bool
     {

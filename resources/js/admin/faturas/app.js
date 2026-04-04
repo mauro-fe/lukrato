@@ -6,6 +6,22 @@ import { refreshIcons } from '../shared/ui.js';
 import { getApiPayload, getErrorMessage } from '../shared/api.js';
 
 export const FaturasApp = {
+    cleanupModalArtifacts() {
+        const openModals = document.querySelectorAll('.modal.show');
+
+        if (openModals.length > 0) {
+            return;
+        }
+
+        document.querySelectorAll('.modal-backdrop').forEach((backdrop) => {
+            backdrop.remove();
+        });
+
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('overflow');
+        document.body.style.removeProperty('padding-right');
+    },
+
     async init() {
         try {
             this.initModal();
@@ -89,7 +105,9 @@ export const FaturasApp = {
     },
 
     initModal() {
-        STATE.modalDetalhesInstance = new bootstrap.Modal(DOM.modalDetalhes, {
+        if (!DOM.modalDetalhes) return;
+
+        STATE.modalDetalhesInstance = bootstrap.Modal.getOrCreateInstance(DOM.modalDetalhes, {
             backdrop: true,
             keyboard: true,
             focus: true
@@ -101,6 +119,8 @@ export const FaturasApp = {
 
         DOM.modalDetalhes.addEventListener('hidden.bs.modal', () => {
             document.activeElement?.blur();
+            STATE.faturaAtual = null;
+            this.cleanupModalArtifacts();
         });
 
         // Listener delegado para botões de ver detalhes de parcela

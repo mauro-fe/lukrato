@@ -12,7 +12,32 @@ $pageTitle      = $pageTitle      ?? 'Lukrato';
 $currentUser    = $currentUser    ?? null;
 $isSysAdmin     = $isSysAdmin     ?? false;
 $showUpgradeCTA = $showUpgradeCTA ?? true;
+$isPro          = $isPro          ?? (!$showUpgradeCTA);
 $userTheme      = $userTheme      ?? 'dark';
+$currentViewPath = trim((string) ($currentViewPath ?? ''), '/');
+$currentViewId = trim((string) ($currentViewId ?? ''), '-');
+if ($currentViewId === '' && $currentViewPath !== '') {
+    $currentViewId = trim(str_replace('/', '-', $currentViewPath), '-');
+}
+$currentPageJsViewId = trim((string) ($currentPageJsViewId ?? ''));
+if ($currentPageJsViewId === '' && $currentViewId !== '') {
+    $currentPageJsViewId = \Application\Support\Admin\AdminModuleRegistry::resolvePageJsViewId(
+        $currentViewId,
+        [
+            'menu' => is_string($menu ?? null) ? $menu : null,
+        ]
+    ) ?? $currentViewId;
+}
+$resolvedBundle = [
+    'pageJsViewId' => $currentPageJsViewId,
+    'viteEntry' => $currentPageJsViewId !== ''
+        ? \Application\Support\Admin\AdminModuleRegistry::resolveViteEntryByViewId($currentPageJsViewId)
+        : null,
+    'cssEntry' => $currentViewId !== ''
+        ? \Application\Support\Admin\AdminModuleRegistry::resolveCssEntryByViewId($currentViewId)
+        : null,
+];
+$bundle = is_array($bundle ?? null) ? array_replace($resolvedBundle, $bundle) : $resolvedBundle;
 $dashboardPreferences = is_array($currentUser?->dashboard_preferences ?? null)
     ? $currentUser->dashboard_preferences
     : [];
@@ -42,6 +67,13 @@ $helpCenterPreferences = [
 // Helpers para menu ativo
 $active = fn(string $key): string => (!empty($menu) && $menu === $key) ? 'active' : '';
 $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-current="page"' : '';
+$routeUrl = static fn(string $route): string => rtrim(BASE_URL, '/') . '/' . ltrim($route, '/');
+$sidebarGroups = is_array($sidebarModules ?? null)
+    ? $sidebarModules
+    : \Application\Support\Admin\AdminModuleRegistry::groupedSidebarModules($isSysAdmin, $isPro);
+$footerModules = is_array($footerModules ?? null)
+    ? $footerModules
+    : \Application\Support\Admin\AdminModuleRegistry::footerModules($isSysAdmin, $isPro);
 
 ?>
 
@@ -81,6 +113,7 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
 
 
     <!-- Page-specific CSS (auto-detected) -->
+    <?php loadPageCss($currentViewId); ?>
 
     <!-- Proteção contra internet lenta (timeout, retry, indicadores) -->
 
@@ -135,12 +168,15 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
         window.__LK_CONFIG = {
             baseUrl: <?= json_encode(rtrim(BASE_URL, '/') . '/', JSON_UNESCAPED_SLASHES) ?>,
             csrfTtl: <?= (int) \Application\Middlewares\CsrfMiddleware::TOKEN_TTL ?>,
-            isPro: <?= json_encode(!$showUpgradeCTA) ?>,
+            isPro: <?= json_encode($isPro) ?>,
             isSysAdmin: <?= json_encode($isSysAdmin) ?>,
             userId: <?= json_encode($currentUser?->id ?? null) ?>,
             username: <?= json_encode($username) ?>,
             userEmail: <?= json_encode($currentUser?->email ?? '') ?>,
             currentMenu: <?= json_encode($menu ?: 'dashboard') ?>,
+            currentViewId: <?= json_encode($currentViewId) ?>,
+            currentViewPath: <?= json_encode($currentViewPath, JSON_UNESCAPED_SLASHES) ?>,
+            bundle: <?= json_encode($bundle, JSON_UNESCAPED_SLASHES) ?>,
             needsDisplayNamePrompt: <?= json_encode(trim((string) ($currentUser?->nome ?? '')) === '') ?>,
             tourCompleted: <?= json_encode(!empty($currentUser?->tour_completed_at)) ?>,
             helpCenter: <?= json_encode($helpCenterPreferences, JSON_UNESCAPED_SLASHES) ?>,
@@ -158,16 +194,8 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
          ============================================================================ -->
 
     <!-- ============================================================================
-         SCRIPTS DE PÁGINA
+         CONTEXTO DE PAGINA
          ============================================================================ -->
-    <?php
-    $pageJsView = null;
-    if (($GLOBALS['current_view'] ?? '') === 'admin-perfil-index' && ($menu ?? '') === 'configuracoes') {
-        $pageJsView = 'admin-configuracoes-index';
-    }
-    $GLOBALS['current_page_js_view'] = $pageJsView;
-    loadPageJs($pageJsView);
-    ?>
 </head>
 
 <body<?php if (!empty($showMonthSelector)) echo ' class="has-month-bar"'; ?>>
@@ -198,135 +226,59 @@ $aria   = fn(string $key): string => (!empty($menu) && $menu === $key) ? ' aria-
 
         <!-- Menu de Navegação -->
         <nav class="sidebar-nav">
-
-            <!-- Grupo: Principal -->
-            <div class="sidebar-nav-group">
-                <span class="sidebar-nav-label">Principal</span>
-                <a href="<?= BASE_URL ?>dashboard" class="nav-item <?= $active('dashboard') ?>"
-                    <?= $aria('dashboard') ?> title="Dashboard">
-                    <i data-lucide="home"></i>
-                    <span class="nav-item-content">
-                        <span class="nav-item-title">Dashboard</span>
-                    </span>
-                </a>
-            </div>
-
-            <!-- Grupo: Finanças -->
-            <div class="sidebar-nav-group">
-                <span class="sidebar-nav-label">Finanças</span>
-                <a href="<?= BASE_URL ?>lancamentos" class="nav-item <?= $active('lancamentos') ?>"
-                    <?= $aria('lancamentos') ?> title="Lançamentos">
-                    <i data-lucide="arrow-left-right"></i>
-                    <span class="nav-item-content">
-                        <span class="nav-item-title">Transações</span>
-                    </span>
-                </a>
-                <a href="<?= BASE_URL ?>contas" class="nav-item <?= $active('contas') ?>" <?= $aria('contas') ?>
-                    title="Contas">
-                    <i data-lucide="landmark"></i>
-                    <span class="nav-item-content">
-                        <span class="nav-item-title">Contas</span>
-                    </span>
-                </a>
-                <a href="<?= BASE_URL ?>cartoes" class="nav-item <?= $active('cartoes') ?>" <?= $aria('cartoes') ?>
-                    title="Cartões de Crédito">
-                    <i data-lucide="credit-card"></i>
-                    <span class="nav-item-content">
-                        <span class="nav-item-title">Cartões</span>
-                    </span>
-                </a>
-                <a href="<?= BASE_URL ?>faturas" class="nav-item <?= $active('faturas') ?>" <?= $aria('faturas') ?>
-                    title="Faturas de Cartão">
-                    <i data-lucide="receipt"></i>
-                    <span class="nav-item-content">
-                        <span class="nav-item-title">Faturas</span>
-                    </span>
-                </a>
-            </div>
-
-            <!-- Grupo: Planejamento -->
-            <div class="sidebar-nav-group">
-                <span class="sidebar-nav-label">Planejamento</span>
-                <a href="<?= BASE_URL ?>orcamento" class="nav-item <?= $active('orcamento') ?>"
-                    <?= $aria('orcamento') ?> title="Orçamentos">
-                    <i data-lucide="piggy-bank"></i>
-                    <span class="nav-item-content">
-                        <span class="nav-item-title">Orçamentos</span>
-                    </span>
-                </a>
-                <a href="<?= BASE_URL ?>metas" class="nav-item <?= $active('metas') ?>" <?= $aria('metas') ?>
-                    title="Metas">
-                    <i data-lucide="target"></i>
-                    <span class="nav-item-content">
-                        <span class="nav-item-title">Metas</span>
-                    </span>
-                </a>
-            </div>
-
-            <!-- Grupo: Análise -->
-            <div class="sidebar-nav-group">
-                <span class="sidebar-nav-label">Análise</span>
-                <a href="<?= BASE_URL ?>relatorios" class="nav-item <?= $active('relatorios') ?>"
-                    <?= $aria('relatorios') ?> title="Relatórios">
-                    <i data-lucide="bar-chart"></i>
-                    <span class="nav-item-content">
-                        <span class="nav-item-title">Relatórios</span>
-                    </span>
-                </a>
-            </div>
-
-            <!-- Grupo: Organização -->
-            <div class="sidebar-nav-group">
-                <span class="sidebar-nav-label">Organização</span>
-                <a href="<?= BASE_URL ?>categorias" class="nav-item <?= $active('categorias') ?>"
-                    <?= $aria('categorias') ?> title="Categorias">
-                    <i data-lucide="tags"></i>
-                    <span class="nav-item-content">
-                        <span class="nav-item-title">Categorias</span>
-                    </span>
-                </a>
-            </div>
-
-            <!-- Grupo: Extras -->
-            <div class="sidebar-nav-group">
-                <span class="sidebar-nav-label">Extras</span>
-                <a href="<?= BASE_URL ?>gamification" class="nav-item <?= $active('gamification') ?>"
-                    <?= $aria('gamification') ?> title="Gamificação">
-                    <i data-lucide="trophy"></i>
-                    <span class="nav-item-content">
-                        <span class="nav-item-title">Conquistas</span>
-                </a>
-            </div>
-
+            <?php foreach ($sidebarGroups as $groupLabel => $modules): ?>
+                <div class="sidebar-nav-group">
+                    <span
+                        class="sidebar-nav-label"><?= htmlspecialchars((string) $groupLabel, ENT_QUOTES, 'UTF-8') ?></span>
+                    <?php foreach ($modules as $module): ?>
+                        <?php
+                        $moduleMenu = (string) ($module['menu'] ?? '');
+                        $moduleLabel = (string) ($module['label'] ?? '');
+                        $moduleTitle = (string) ($module['title'] ?? $moduleLabel);
+                        $moduleRoute = (string) ($module['route'] ?? '');
+                        $moduleIcon = (string) ($module['icon'] ?? 'circle');
+                        ?>
+                        <a href="<?= htmlspecialchars($routeUrl($moduleRoute), ENT_QUOTES, 'UTF-8') ?>"
+                            class="nav-item <?= $moduleMenu !== '' ? $active($moduleMenu) : '' ?>"
+                            <?= $moduleMenu !== '' ? $aria($moduleMenu) : '' ?>
+                            title="<?= htmlspecialchars($moduleTitle, ENT_QUOTES, 'UTF-8') ?>">
+                            <i data-lucide="<?= htmlspecialchars($moduleIcon, ENT_QUOTES, 'UTF-8') ?>"></i>
+                            <span class="nav-item-content">
+                                <span class="nav-item-title"><?= htmlspecialchars($moduleLabel, ENT_QUOTES, 'UTF-8') ?></span>
+                            </span>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+            <?php endforeach; ?>
         </nav>
 
         <!-- Rodapé da Sidebar -->
         <div class="sidebar-footer">
-            <a href="<?= BASE_URL ?>configuracoes" class="nav-item <?= $active('configuracoes') ?>" <?= $aria('configuracoes') ?>
-                title="Configurações">
-                <i data-lucide="settings"></i>
-                <span class="nav-item-content">
-                    <span class="nav-item-title">Configurações</span>
-                </span>
-            </a>
-            <a href="<?= BASE_URL ?>perfil" class="nav-item <?= $active('perfil') ?>" <?= $aria('perfil') ?>
-                title="Perfil">
-                <div class="sidebar-avatar" id="sidebarAvatar">
-                    <span class="avatar-initials-xs"><?= mb_substr($topNavFirstName ?? $username ?? 'U', 0, 1) ?></span>
-                </div>
-                <span class="nav-item-content">
-                    <span class="nav-item-title">Perfil</span>
-                </span>
-            </a>
-            <?php if ($isSysAdmin): ?>
-                <a href="<?= BASE_URL ?>super_admin" class="nav-item <?= $active('super_admin') ?>"
-                    <?= $aria('super_admin') ?> title="SysAdmin">
-                    <i data-lucide="shield"></i>
+            <?php foreach ($footerModules as $module): ?>
+                <?php
+                $moduleKey = (string) ($module['key'] ?? '');
+                $moduleMenu = (string) ($module['menu'] ?? '');
+                $moduleLabel = (string) ($module['label'] ?? '');
+                $moduleTitle = (string) ($module['title'] ?? $moduleLabel);
+                $moduleRoute = (string) ($module['route'] ?? '');
+                $moduleIcon = (string) ($module['icon'] ?? 'circle');
+                ?>
+                <a href="<?= htmlspecialchars($routeUrl($moduleRoute), ENT_QUOTES, 'UTF-8') ?>"
+                    class="nav-item <?= $moduleMenu !== '' ? $active($moduleMenu) : '' ?>"
+                    <?= $moduleMenu !== '' ? $aria($moduleMenu) : '' ?>
+                    title="<?= htmlspecialchars($moduleTitle, ENT_QUOTES, 'UTF-8') ?>">
+                    <?php if ($moduleKey === 'perfil'): ?>
+                        <div class="sidebar-avatar" id="sidebarAvatar">
+                            <span class="avatar-initials-xs"><?= mb_substr($topNavFirstName ?? $username ?? 'U', 0, 1) ?></span>
+                        </div>
+                    <?php else: ?>
+                        <i data-lucide="<?= htmlspecialchars($moduleIcon, ENT_QUOTES, 'UTF-8') ?>"></i>
+                    <?php endif; ?>
                     <span class="nav-item-content">
-                        <span class="nav-item-title">SysAdmin</span>
+                        <span class="nav-item-title"><?= htmlspecialchars($moduleLabel, ENT_QUOTES, 'UTF-8') ?></span>
                     </span>
                 </a>
-            <?php endif; ?>
+            <?php endforeach; ?>
             <a href="#" class="nav-item" id="sidebarSuggestionBtn" title="Enviar sugestão">
                 <i data-lucide="message-circle"></i>
                 <span class="nav-item-content">

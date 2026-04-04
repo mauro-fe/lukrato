@@ -11,7 +11,7 @@ use Application\Models\PendingAiAction;
 /**
  * Detecta respostas de confirmacao/rejeicao quando ha acao pendente.
  *
- * So ativa se o usuario tem um PendingAiAction com status awaiting_confirm.
+ * Só ativa se o usuário tem um PendingAiAction com status awaiting_confirm.
  * Suporta linguagem informal brasileira, abreviacoes WhatsApp e girias.
  */
 class ConfirmationIntentRule implements IntentRuleInterface

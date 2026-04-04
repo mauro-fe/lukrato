@@ -11,7 +11,6 @@ class View
     private ?string $header = null;
     private ?string $footer = null;
 
-
     public function __construct(string $viewPath, array $data = [])
     {
         $this->viewPath = BASE_PATH . '/views/' . trim($viewPath, '/') . '.php';
@@ -39,50 +38,60 @@ class View
         ob_start();
 
         try {
-            // Define o identificador da view atual (para CSS/JS)
             $relativeViewPath = str_replace([BASE_PATH . '/views/', '.php'], '', $this->viewPath);
-            $viewName = str_replace(['/', '\\'], '-', $relativeViewPath);
-            $GLOBALS['current_view'] = trim($viewName, '-');
+            $fallbackViewPath = trim(str_replace('\\', '/', $relativeViewPath), '/');
+            $fallbackViewId = trim(str_replace(['/', '\\'], '-', $relativeViewPath), '-');
 
-            // Disponibiliza as variáveis (ex: $pageTitle) para todos os includes
+            if (!isset($this->data['currentViewPath']) || !is_string($this->data['currentViewPath']) || trim($this->data['currentViewPath']) === '') {
+                $this->data['currentViewPath'] = $fallbackViewPath;
+            }
+
+            if (!isset($this->data['currentViewId']) || !is_string($this->data['currentViewId']) || trim($this->data['currentViewId']) === '') {
+                $this->data['currentViewId'] = $fallbackViewId;
+            }
+
+            // Temporary compatibility fallback for legacy helpers.
+            $GLOBALS['current_view'] = trim((string) $this->data['currentViewId'], '-');
+            $GLOBALS['current_view_path'] = trim((string) $this->data['currentViewPath'], '/');
+
+            // Disponibiliza as variaveis (ex: $pageTitle) para todos os includes.
             extract($this->data, EXTR_SKIP);
 
-            // Disponibiliza $view (esta instância) para os partials
             $view = $this;
 
-            // Header
             if ($this->header && file_exists($this->header)) {
                 include $this->header;
             }
 
-            // View principal
             if (!file_exists($this->viewPath)) {
-                throw new \Exception("View file not found: " . $this->viewPath);
+                throw new \Exception('View file not found: ' . $this->viewPath);
             }
+
             include $this->viewPath;
 
-            // Footer
             if ($this->footer && file_exists($this->footer)) {
                 include $this->footer;
             }
 
-            return (string)ob_get_clean();
+            return (string) ob_get_clean();
         } catch (\Throwable $e) {
-            // Garante que o buffer seja limpo em caso de erro no include
             ob_end_clean();
-            // Re-lança a exceção para o Router tratar
             throw $e;
         }
     }
 
     /**
-     * Helper estático para renderização rápida.
+     * Helper estatico para renderizacao rapida.
      */
     public static function renderPage(string $viewPath, array $data = [], ?string $header = null, ?string $footer = null): string
     {
         $v = new self($viewPath, $data);
-        if ($header) $v->setHeader($header);
-        if ($footer) $v->setFooter($footer);
+        if ($header) {
+            $v->setHeader($header);
+        }
+        if ($footer) {
+            $v->setFooter($footer);
+        }
         return $v->render();
     }
 }

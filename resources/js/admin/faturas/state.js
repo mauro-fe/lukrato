@@ -46,6 +46,20 @@ export const CONFIG = {
 
 export const DOM = {};
 
+function mountModalToBody(id) {
+    const modalEl = document.getElementById(id);
+
+    if (!modalEl) {
+        return null;
+    }
+
+    if (modalEl.parentElement !== document.body) {
+        document.body.appendChild(modalEl);
+    }
+
+    return modalEl;
+}
+
 export function initDOM() {
     // Containers
     DOM.loadingEl = document.getElementById('loadingParcelamentos');
@@ -65,7 +79,9 @@ export function initDOM() {
     DOM.activeFilters = document.getElementById('activeFilters');
 
     // Modal Detalhes
-    DOM.modalDetalhes = document.getElementById('modalDetalhesParcelamento');
+    DOM.modalDetalhes = mountModalToBody('modalDetalhesParcelamento');
+    DOM.modalPagarFatura = mountModalToBody('modalPagarFatura');
+    DOM.modalEditarItemFatura = mountModalToBody('modalEditarItemFatura');
     DOM.detalhesContent = document.getElementById('detalhesParcelamentoContent');
 }
 

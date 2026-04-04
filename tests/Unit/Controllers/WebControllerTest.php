@@ -84,6 +84,7 @@ class WebControllerTest extends TestCase
     public function testInferMenuFromViewResolvesExpectedAdminMenu(): void
     {
         $this->assertSame('faturas', $this->controller->callInferMenuFromView('admin/parcelamentos/index'));
+        $this->assertSame('super_admin', $this->controller->callInferMenuFromView('admin/sysadmin/ai'));
         $this->assertNull($this->controller->callInferMenuFromView('site/home'));
     }
 }

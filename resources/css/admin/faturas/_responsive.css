@@ -28,7 +28,12 @@
   }
 
   .fat-hero {
+    grid-template-columns: 1fr;
     padding: var(--spacing-6) var(--spacing-4);
+  }
+
+  .fat-hero__actions {
+    justify-content: flex-start;
   }
 
   .fat-list-section {
@@ -179,6 +184,7 @@
 
   .parc-card-actions {
     padding: 0;
+    grid-template-columns: 1fr;
   }
 
   .parc-btn {
@@ -186,15 +192,16 @@
   }
 
   /* Modal fullscreen on mobile */
-  .modern-modal .modal-dialog {
+  #modalDetalhesParcelamento .modal-dialog.modal-fatura-detalhes-dialog {
     margin: 0;
     max-width: 100%;
     min-height: 100vh;
   }
 
-  .modern-modal .modal-content {
+  #modalDetalhesParcelamento .modal-dialog.modal-fatura-detalhes-dialog .modern-modal {
     border-radius: 0;
     min-height: 100vh;
+    max-height: 100vh;
   }
 
   .modern-modal .modal-header {
@@ -278,6 +285,11 @@
 
   .fat-hero__title {
     font-size: 1.35rem;
+  }
+
+  .fat-hero__actions .btn {
+    width: 100%;
+    justify-content: center;
   }
 
   .filters-modern {
@@ -375,14 +387,14 @@
 
 /* Landscape fix */
 @media (max-width: 768px) and (orientation: landscape) {
-  .modern-modal .modal-dialog {
+  #modalDetalhesParcelamento .modal-dialog.modal-fatura-detalhes-dialog {
     margin: var(--spacing-2);
     max-width: 90%;
     min-height: auto;
     height: auto;
   }
 
-  .modern-modal .modal-content {
+  #modalDetalhesParcelamento .modal-dialog.modal-fatura-detalhes-dialog .modern-modal {
     max-height: calc(100vh - var(--spacing-4));
     overflow-y: auto;
     min-height: auto;

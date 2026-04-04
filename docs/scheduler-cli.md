@@ -80,6 +80,18 @@ Iniciar em:
 C:\xampp\htdocs\lukrato
 ```
 
+## Worker continuo de importacoes
+
+Para o processamento assincrono de importacoes, use o guia dedicado:
+
+- [docs/importacoes-worker.md](importacoes-worker.md)
+
+Resumo rapido:
+
+- Windows: scripts em `deploy/windows/` para registrar/remover task.
+- Windows sem admin: fallback em `deploy/windows/install-importacoes-worker-startup.ps1` e `deploy/windows/uninstall-importacoes-worker-startup.ps1`.
+- Linux: exemplo de Supervisor em `deploy/supervisor/lukrato-importacoes-worker.supervisor.conf.example`.
+
 ## Observacoes de deploy
 
 - atualize qualquer cron antigo que chamava `/api/scheduler/*` ou `/api/rota-do-cron`

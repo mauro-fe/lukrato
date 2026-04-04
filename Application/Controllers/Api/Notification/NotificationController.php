@@ -11,7 +11,7 @@ use Application\Services\Communication\NotificationService;
 use Exception;
 
 /**
- * API para gerenciamento de notificacoes do usuario logado.
+ * API para gerenciamento de notificações do usuário logado.
  */
 class NotificationController extends ApiController
 {

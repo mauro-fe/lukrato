@@ -76,7 +76,7 @@ export async function persistHelpPreference(action, extra = {}, options = {}) {
 
     if (!response?.ok) {
         if (!silent) {
-            window.LK?.toast?.error(response?.message || 'NÃ£o foi possivel salvar sua preferencia de ajuda.');
+            window.LK?.toast?.error(response?.message || 'Não foi possível salvar sua preferência de ajuda.');
         }
 
         return { ok: false, preferences: null };

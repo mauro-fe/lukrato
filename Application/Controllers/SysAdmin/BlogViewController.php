@@ -17,7 +17,6 @@ class BlogViewController extends WebController
             'admin/sysadmin/blog',
             [
                 'pageTitle' => 'Blog - Gerenciar Artigos',
-                'menu' => 'super_admin',
                 'skipPlanLimits' => true,
             ]
         );

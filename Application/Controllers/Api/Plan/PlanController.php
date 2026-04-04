@@ -11,7 +11,7 @@ use Application\Services\Infrastructure\LogService;
 use Application\Services\Plan\PlanLimitService;
 
 /**
- * Controller para consultar limites e status do plano do usuario
+ * Controller para consultar limites e status do plano do usuário
  */
 class PlanController extends ApiController
 {
@@ -25,7 +25,7 @@ class PlanController extends ApiController
 
     /**
      * GET /api/plan/limits
-     * Retorna todos os limites e uso atual do usuario
+     * Retorna todos os limites e uso atual do usuário
      */
     public function limits(): Response
     {
@@ -51,6 +51,11 @@ class PlanController extends ApiController
                 'categorias' => ['allowed' => true, 'limit' => $freeConfig['max_categorias_custom'] ?? 10, 'used' => 0],
                 'metas' => ['allowed' => true, 'limit' => $freeConfig['max_metas'] ?? 2, 'used' => 0],
                 'historico' => ['restricted' => true, 'months_limit' => $freeConfig['historico_meses'] ?? 3],
+                'importacoes' => [
+                    'import_conta_ofx' => ['allowed' => true, 'limit' => $freeConfig['import_conta_ofx'] ?? 1, 'used' => 0, 'remaining' => $freeConfig['import_conta_ofx'] ?? 1],
+                    'import_conta_csv' => ['allowed' => true, 'limit' => $freeConfig['import_conta_csv'] ?? 1, 'used' => 0, 'remaining' => $freeConfig['import_conta_csv'] ?? 1],
+                    'import_cartao_ofx' => ['allowed' => true, 'limit' => $freeConfig['import_cartao_ofx'] ?? 1, 'used' => 0, 'remaining' => $freeConfig['import_cartao_ofx'] ?? 1],
+                ],
                 'features' => [],
                 'upgrade_url' => '/assinatura',
             ]);
@@ -59,7 +64,7 @@ class PlanController extends ApiController
 
     /**
      * GET /api/plan/features
-     * Retorna as features disponiveis para o usuario
+     * Retorna as features disponíveis para o usuário
      */
     public function features(): Response
     {
@@ -76,7 +81,7 @@ class PlanController extends ApiController
 
     /**
      * GET /api/plan/can-create/{resource}
-     * Verifica se o usuario pode criar um recurso especifico
+     * Verifica se o usuário pode criar um recurso específico
      */
     public function canCreate(string $resource): Response
     {
@@ -98,7 +103,7 @@ class PlanController extends ApiController
 
     /**
      * GET /api/plan/history-restriction
-     * Retorna informacoes sobre restricao de historico
+     * Retorna informações sobre restrição de histórico
      */
     public function historyRestriction(): Response
     {

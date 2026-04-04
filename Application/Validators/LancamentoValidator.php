@@ -40,29 +40,29 @@ class LancamentoValidator
 
         $tipo = strtolower(trim((string) ($data['tipo'] ?? '')));
         if ($tipo === '') {
-            $errors['tipo'] = 'O tipo e obrigatorio.';
+            $errors['tipo'] = 'O tipo é obrigatório.';
         } else {
             try {
                 LancamentoTipo::from($tipo);
             } catch (\ValueError) {
-                $errors['tipo'] = 'Tipo invalido. Use "receita" ou "despesa".';
+                $errors['tipo'] = 'Tipo inválido. Use "receita" ou "despesa".';
             }
         }
 
         $dataValue = (string) ($data['data'] ?? '');
         if ($dataValue === '') {
-            $errors['data'] = 'A data e obrigatoria.';
+            $errors['data'] = 'A data é obrigatória.';
         } elseif (!preg_match('/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/', $dataValue)) {
-            $errors['data'] = 'Data invalida. Use o formato YYYY-MM-DD.';
+            $errors['data'] = 'Data inválida. Use o formato YYYY-MM-DD.';
         }
 
         $valorRaw = $data['valor'] ?? null;
         if ($valorRaw === null || $valorRaw === '') {
-            $errors['valor'] = 'O valor e obrigatorio.';
+            $errors['valor'] = 'O valor é obrigatório.';
         } else {
             $valor = self::parseMoney($valorRaw);
             if ($valor === null || !is_finite($valor)) {
-                $errors['valor'] = 'Valor invalido.';
+                $errors['valor'] = 'Valor inválido.';
             } elseif ($valor <= 0) {
                 $errors['valor'] = 'O valor deve ser maior que zero.';
             }
@@ -70,42 +70,42 @@ class LancamentoValidator
 
         $descricao = trim((string) ($data['descricao'] ?? ''));
         if ($descricao === '') {
-            $errors['descricao'] = 'A descricao e obrigatoria.';
+            $errors['descricao'] = 'A descrição é obrigatória.';
         } elseif (mb_strlen($descricao) > 190) {
-            $errors['descricao'] = 'A descricao nao pode ter mais de 190 caracteres.';
+            $errors['descricao'] = 'A descrição não pode ter mais de 190 caracteres.';
         }
 
         $observacao = trim((string) ($data['observacao'] ?? ''));
         if ($observacao !== '' && mb_strlen($observacao) > 500) {
-            $errors['observacao'] = 'A observacao nao pode ter mais de 500 caracteres.';
+            $errors['observacao'] = 'A observação não pode ter mais de 500 caracteres.';
         }
 
         $contaId = $data['conta_id'] ?? null;
         $cartaoCreditoId = $data['cartao_credito_id'] ?? null;
         if (empty($contaId) && empty($cartaoCreditoId)) {
-            $errors['conta_id'] = 'A conta e obrigatoria.';
+            $errors['conta_id'] = 'A conta é obrigatória.';
         }
 
         $formaPagamento = $data['forma_pagamento'] ?? null;
         if (!empty($formaPagamento) && !in_array($formaPagamento, self::FORMAS_PAGAMENTO_VALIDAS, true)) {
-            $errors['forma_pagamento'] = 'Forma de pagamento invalida.';
+            $errors['forma_pagamento'] = 'Forma de pagamento inválida.';
         }
 
         $recorrente = (bool) ($data['recorrente'] ?? false);
         if ($recorrente) {
             $freq = $data['recorrencia_freq'] ?? null;
             if (empty($freq)) {
-                $errors['recorrencia_freq'] = 'A frequencia da recorrencia e obrigatoria.';
+                $errors['recorrencia_freq'] = 'A frequência da recorrência é obrigatória.';
             } elseif (!in_array($freq, self::FREQ_VALIDAS, true)) {
-                $errors['recorrencia_freq'] = 'Frequencia invalida. Use: ' . implode(', ', self::FREQ_VALIDAS) . '.';
+                $errors['recorrencia_freq'] = 'Frequência inválida. Use: ' . implode(', ', self::FREQ_VALIDAS) . '.';
             }
 
             $fim = $data['recorrencia_fim'] ?? null;
             if ($fim !== null && $fim !== '') {
                 if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/', (string) $fim)) {
-                    $errors['recorrencia_fim'] = 'Data de fim da recorrencia invalida. Use YYYY-MM-DD.';
+                    $errors['recorrencia_fim'] = 'Data de fim da recorrência inválida. Use YYYY-MM-DD.';
                 } elseif ($dataValue !== '' && $fim <= $dataValue) {
-                    $errors['recorrencia_fim'] = 'A data de fim deve ser posterior a data do lancamento.';
+                    $errors['recorrencia_fim'] = 'A data de fim deve ser posterior à data do lançamento.';
                 }
             }
 
@@ -113,9 +113,9 @@ class LancamentoValidator
             if ($total !== null && $total !== '') {
                 $total = (int) $total;
                 if ($total < 2) {
-                    $errors['recorrencia_total'] = 'O numero de repeticoes deve ser pelo menos 2.';
+                    $errors['recorrencia_total'] = 'O número de repetições deve ser pelo menos 2.';
                 } elseif ($total > 120) {
-                    $errors['recorrencia_total'] = 'O numero maximo de repeticoes e 120.';
+                    $errors['recorrencia_total'] = 'O número máximo de repetições é 120.';
                 }
             }
         }
@@ -124,7 +124,7 @@ class LancamentoValidator
         if ($metaId !== null && $metaId !== '') {
             $metaId = (int) $metaId;
             if ($metaId <= 0) {
-                $errors['meta_id'] = 'Meta invalida.';
+                $errors['meta_id'] = 'Meta inválida.';
             } else {
                 self::validateMetaLinkRules($metaId, $data, $errors);
             }
@@ -133,24 +133,24 @@ class LancamentoValidator
         $metaOperacao = strtolower(trim((string) ($data['meta_operacao'] ?? $data['metaOperacao'] ?? '')));
         $metaValor = $data['meta_valor'] ?? $data['metaValor'] ?? null;
         if (($metaOperacao !== '' || $metaValor !== null) && ($metaId === null || $metaId <= 0)) {
-            $errors['meta_id'] = 'Informe uma meta para usar operacao de meta.';
+            $errors['meta_id'] = 'Informe uma meta para usar operação de meta.';
         }
 
         if ($metaValor !== null && $metaValor !== '') {
             $valorMeta = self::parseMoney($metaValor);
             if ($valorMeta === null || $valorMeta <= 0) {
-                $errors['meta_valor'] = 'O valor vinculado a meta deve ser maior que zero.';
+                $errors['meta_valor'] = 'O valor vinculado à meta deve ser maior que zero.';
             } else {
                 $valorLanc = self::parseMoney($data['valor'] ?? null) ?? 0.0;
                 if ($valorLanc > 0 && $valorMeta > $valorLanc + 0.001) {
-                    $errors['meta_valor'] = 'O valor vinculado a meta nao pode ser maior que o valor do lancamento.';
+                    $errors['meta_valor'] = 'O valor vinculado à meta não pode ser maior que o valor do lançamento.';
                 }
             }
         }
 
         $lembrar = $data['lembrar_antes_segundos'] ?? null;
         if ($lembrar !== null && $lembrar !== '' && (int) $lembrar < 0) {
-            $errors['lembrar_antes_segundos'] = 'Antecedencia do lembrete invalida.';
+            $errors['lembrar_antes_segundos'] = 'Antecedência do lembrete inválida.';
         }
 
         return $errors;
@@ -248,7 +248,7 @@ class LancamentoValidator
             return $id;
         }
 
-        $errors['categoria_id'] = 'Categoria invalida.';
+        $errors['categoria_id'] = 'Categoria inválida.';
         return null;
     }
 
@@ -260,18 +260,18 @@ class LancamentoValidator
 
         $repo = new CategoriaRepository();
         if (!$repo->belongsToUser($subcategoriaId, $userId)) {
-            $errors['subcategoria_id'] = 'Subcategoria invalida.';
+            $errors['subcategoria_id'] = 'Subcategoria inválida.';
             return null;
         }
 
         $subcategoria = $repo->find($subcategoriaId);
         if (!$subcategoria || !$subcategoria->isSubcategoria()) {
-            $errors['subcategoria_id'] = 'A categoria selecionada nao e uma subcategoria.';
+            $errors['subcategoria_id'] = 'A categoria selecionada não é uma subcategoria.';
             return null;
         }
 
         if ($categoriaId !== null && (int) $subcategoria->parent_id !== $categoriaId) {
-            $errors['subcategoria_id'] = 'Subcategoria nao pertence a categoria selecionada.';
+            $errors['subcategoria_id'] = 'Subcategoria não pertence à categoria selecionada.';
             return null;
         }
 
@@ -288,7 +288,7 @@ class LancamentoValidator
             return $id;
         }
 
-        $errors['conta_id'] = 'Conta invalida.';
+        $errors['conta_id'] = 'Conta inválida.';
         return null;
     }
 
@@ -303,13 +303,13 @@ class LancamentoValidator
             ->first();
 
         if (!$meta) {
-            $errors['meta_id'] = 'Meta invalida.';
+            $errors['meta_id'] = 'Meta inválida.';
             return null;
         }
 
         $status = strtolower(trim((string) ($meta->status ?? '')));
         if (in_array($status, [Meta::STATUS_CANCELADA, Meta::STATUS_REALIZADA], true)) {
-            $errors['meta_id'] = 'Esta meta nao aceita novos vinculos.';
+            $errors['meta_id'] = 'Esta meta não aceita novos vínculos.';
             return null;
         }
 
@@ -334,18 +334,18 @@ class LancamentoValidator
         if ($metaValorRaw !== null && $metaValorRaw !== '') {
             $metaValor = self::parseMoney($metaValorRaw);
             if ($metaValor === null || $metaValor <= 0) {
-                $errors['meta_valor'] = 'O valor vinculado a meta deve ser maior que zero.';
+                $errors['meta_valor'] = 'O valor vinculado à meta deve ser maior que zero.';
             } else {
                 $valorLancamento = self::parseMoney($data['valor'] ?? null);
                 if ($valorLancamento !== null && $valorLancamento > 0 && $metaValor > $valorLancamento + 0.001) {
-                    $errors['meta_valor'] = 'O valor vinculado a meta nao pode ser maior que o valor do lancamento.';
+                    $errors['meta_valor'] = 'O valor vinculado à meta não pode ser maior que o valor do lançamento.';
                 }
             }
         }
 
         if ($ehTransferencia || $tipo === 'receita') {
             if ($metaOperacao !== null && $metaOperacao !== Lancamento::META_OPERACAO_APORTE) {
-                $errors['meta_operacao'] = 'Receitas e transferencias aceitam apenas operacao de aporte.';
+                $errors['meta_operacao'] = 'Receitas e transferências aceitam apenas operação de aporte.';
             }
             return;
         }
@@ -353,7 +353,7 @@ class LancamentoValidator
         if ($tipo === 'despesa') {
             $formaPagamento = strtolower(trim((string) ($data['forma_pagamento'] ?? '')));
             if ($formaPagamento === 'cartao_credito') {
-                $errors['meta_id'] = 'Despesas no cartao de credito devem ser vinculadas na etapa de pagamento da fatura.';
+                $errors['meta_id'] = 'Despesas no cartão de crédito devem ser vinculadas na etapa de pagamento da fatura.';
                 return;
             }
 
@@ -361,12 +361,12 @@ class LancamentoValidator
                 Lancamento::META_OPERACAO_RESGATE,
                 Lancamento::META_OPERACAO_REALIZACAO,
             ], true)) {
-                $errors['meta_operacao'] = 'Despesas aceitam apenas operacoes de resgate ou realizacao.';
+                $errors['meta_operacao'] = 'Despesas aceitam apenas operações de resgate ou realização.';
             }
             return;
         }
 
-        $errors['meta_id'] = 'Somente receitas, despesas e transferencias podem ser vinculadas a uma meta.';
+        $errors['meta_id'] = 'Somente receitas, despesas e transferências podem ser vinculadas a uma meta.';
     }
 
     private static function parseMoney(mixed $value): ?float

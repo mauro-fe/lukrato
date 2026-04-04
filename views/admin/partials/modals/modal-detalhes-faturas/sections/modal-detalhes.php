@@ -1,9 +1,9 @@
 <!-- ==================== MODAL: DETALHES DA FATURA ==================== -->
-<div class="modal fade" id="modalDetalhesParcelamento" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+<div class="modal fade" id="modalDetalhesParcelamento" tabindex="-1" aria-labelledby="modalDetalhesParcelamentoTitle">
+    <div class="modal-dialog modal-dialog-scrollable modal-xl modal-fatura-detalhes-dialog">
         <div class="modal-content modern-modal">
             <div class="modal-header">
-                <h5 class="modal-title">
+                <h5 class="modal-title" id="modalDetalhesParcelamentoTitle">
                     <i data-lucide="list"></i>
                     <span>Detalhes da Fatura</span>
                 </h5>

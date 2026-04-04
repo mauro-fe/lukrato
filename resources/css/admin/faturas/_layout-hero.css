@@ -12,8 +12,17 @@
 /* ─── HERO ────────────────────────────────────────────────────────────────── */
 
 .fat-hero {
-  text-align: center;
+  text-align: left;
   padding: var(--spacing-8) var(--spacing-5);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--spacing-4);
+  align-items: start;
+}
+
+.fat-hero__content {
+  display: grid;
+  gap: var(--spacing-2);
 }
 
 .fat-hero__eyebrow {
@@ -38,8 +47,14 @@
   margin: 0;
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
-  max-width: 520px;
-  margin-inline: auto;
+  max-width: 62ch;
   line-height: 1.5;
+}
+
+.fat-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--spacing-2);
 }
 

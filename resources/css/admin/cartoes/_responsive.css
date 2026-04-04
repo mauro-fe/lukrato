@@ -13,7 +13,12 @@
   }
 
   .cart-hero {
+    grid-template-columns: 1fr;
     padding: var(--spacing-6) var(--spacing-4);
+  }
+
+  .cart-hero__actions {
+    justify-content: flex-start;
   }
 
   .cart-kpis {
@@ -90,6 +95,11 @@
 
   .cart-hero__title {
     font-size: 1.4rem;
+  }
+
+  .cart-hero__actions .btn {
+    width: 100%;
+    justify-content: center;
   }
 
   .cart-list-actions {

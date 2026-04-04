@@ -46,7 +46,7 @@ class UserAiControllerTest extends TestCase
         $controller = new UserAiController();
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->chat();
     }
@@ -62,7 +62,7 @@ class UserAiControllerTest extends TestCase
         $this->assertSame(422, $response->getStatusCode());
         $this->assertSame([
             'success' => false,
-            'message' => 'Mensagem nao pode ser vazia.',
+            'message' => 'Mensagem não pode ser vazia.',
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
@@ -78,14 +78,14 @@ class UserAiControllerTest extends TestCase
         $this->assertSame(422, $response->getStatusCode());
         $this->assertSame([
             'success' => false,
-            'message' => 'Descricao muito curta para sugerir categoria.',
+            'message' => 'Descrição muito curta para sugerir categoria.',
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
     public function testChatReturnsSuccessResponseWithInjectedAiService(): void
     {
         $this->seedAuthenticatedSession(1903, 'AI User');
-        $_POST['message'] = 'Me ajuda com minhas financas?';
+        $_POST['message'] = 'Me ajuda com minhas finanças?';
 
         $aiService = Mockery::mock(AIService::class);
         $aiService

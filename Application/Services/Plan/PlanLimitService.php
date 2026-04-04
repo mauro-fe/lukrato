@@ -8,6 +8,7 @@ use Application\Models\Usuario;
 use Application\Models\Conta;
 use Application\Models\CartaoCredito;
 use Application\Models\Categoria;
+use Application\Models\ImportacaoLote;
 use Application\Models\Meta;
 
 /**
@@ -16,6 +17,17 @@ use Application\Models\Meta;
  */
 class PlanLimitService
 {
+    private const UPGRADE_URL = '/assinatura';
+
+    /**
+     * @var array<int, string>
+     */
+    private const IMPORT_CONFIRMED_STATUSES = [
+        'processed',
+        'processed_with_duplicates',
+        'processed_with_errors',
+    ];
+
     private array $config;
     private ?bool $isPro = null;
     private ?int $userId = null;
@@ -501,6 +513,144 @@ class PlanLimitService
         }
     }
 
+    public function resolveImportLimitBucket(string $sourceType, string $importTarget = 'conta'): ?string
+    {
+        $sourceType = strtolower(trim($sourceType));
+        $importTarget = strtolower(trim($importTarget));
+        $importTarget = in_array($importTarget, ['conta', 'cartao'], true) ? $importTarget : 'conta';
+
+        if ($importTarget === 'cartao') {
+            return $sourceType === 'ofx' ? 'import_cartao_ofx' : null;
+        }
+
+        if ($sourceType === 'ofx') {
+            return 'import_conta_ofx';
+        }
+
+        if ($sourceType === 'csv') {
+            return 'import_conta_csv';
+        }
+
+        return null;
+    }
+
+    public function canUseImportacao(int $userId, string $sourceType, string $importTarget = 'conta'): array
+    {
+        $bucket = $this->resolveImportLimitBucket($sourceType, $importTarget);
+        $normalizedTarget = in_array(strtolower(trim($importTarget)), ['conta', 'cartao'], true)
+            ? strtolower(trim($importTarget))
+            : 'conta';
+        $normalizedSourceType = strtolower(trim($sourceType));
+
+        if ($bucket === null) {
+            return [
+                'allowed' => false,
+                'limit' => 0,
+                'used' => 0,
+                'remaining' => 0,
+                'bucket' => null,
+                'source_type' => $normalizedSourceType,
+                'import_target' => $normalizedTarget,
+                'message' => 'Fluxo de importação inválido para o plano atual.',
+                'upgrade_url' => self::UPGRADE_URL,
+            ];
+        }
+
+        $used = $this->countConfirmedImportacoesByBucket($userId, $bucket);
+        $limit = $this->getLimit($userId, $bucket);
+
+        if ($limit === null) {
+            return [
+                'allowed' => true,
+                'limit' => null,
+                'used' => $used,
+                'remaining' => null,
+                'bucket' => $bucket,
+                'source_type' => $normalizedSourceType,
+                'import_target' => $normalizedTarget,
+            ];
+        }
+
+        if ($used >= $limit) {
+            return [
+                'allowed' => false,
+                'limit' => $limit,
+                'used' => $used,
+                'remaining' => 0,
+                'bucket' => $bucket,
+                'source_type' => $normalizedSourceType,
+                'import_target' => $normalizedTarget,
+                'message' => $this->getLimitMessage($this->resolveImportLimitMessageKey($bucket), [
+                    'limit' => $limit,
+                    'used' => $used,
+                    'remaining' => 0,
+                ]),
+                'upgrade_url' => self::UPGRADE_URL,
+            ];
+        }
+
+        return [
+            'allowed' => true,
+            'limit' => $limit,
+            'used' => $used,
+            'remaining' => max(0, $limit - $used),
+            'bucket' => $bucket,
+            'source_type' => $normalizedSourceType,
+            'import_target' => $normalizedTarget,
+        ];
+    }
+
+    public function getImportacoesLimitsSummary(int $userId): array
+    {
+        return [
+            'import_conta_ofx' => $this->canUseImportacao($userId, 'ofx', 'conta'),
+            'import_conta_csv' => $this->canUseImportacao($userId, 'csv', 'conta'),
+            'import_cartao_ofx' => $this->canUseImportacao($userId, 'ofx', 'cartao'),
+        ];
+    }
+
+    private function countConfirmedImportacoesByBucket(int $userId, string $bucket): int
+    {
+        $rows = ImportacaoLote::query()
+            ->where('user_id', $userId)
+            ->whereIn('status', self::IMPORT_CONFIRMED_STATUSES)
+            ->where('imported_rows', '>', 0)
+            ->get(['source_type', 'meta_json']);
+
+        $count = 0;
+        foreach ($rows as $row) {
+            $rowTarget = $this->extractImportTargetFromMeta((string) ($row->meta_json ?? ''));
+            $rowBucket = $this->resolveImportLimitBucket((string) ($row->source_type ?? ''), $rowTarget);
+            if ($rowBucket === $bucket) {
+                $count++;
+            }
+        }
+
+        return $count;
+    }
+
+    private function extractImportTargetFromMeta(string $metaJson): string
+    {
+        if (trim($metaJson) === '') {
+            return 'conta';
+        }
+
+        $decoded = json_decode($metaJson, true);
+        $target = is_array($decoded) ? strtolower(trim((string) ($decoded['import_target'] ?? 'conta'))) : 'conta';
+
+        return in_array($target, ['conta', 'cartao'], true) ? $target : 'conta';
+    }
+
+    private function resolveImportLimitMessageKey(string $bucket): string
+    {
+        return match ($bucket) {
+            'import_conta_ofx' => 'import_conta_ofx_limit',
+            'import_conta_csv' => 'import_conta_csv_limit',
+            'import_cartao_ofx' => 'import_cartao_ofx_limit',
+            default => 'limit_reached',
+        };
+    }
+
     // ============================================================
     // VERIFICAÇÃO DE FEATURES
     // ============================================================
@@ -543,8 +693,9 @@ class PlanLimitService
             'metas' => $this->canCreateMeta($userId),
             'orcamentos' => $this->canCreateOrcamento($userId),
             'historico' => $this->getHistoryRestriction($userId),
+            'importacoes' => $this->getImportacoesLimitsSummary($userId),
             'features' => $this->getFeatures($userId),
-            'upgrade_url' => '/assinatura',
+            'upgrade_url' => self::UPGRADE_URL,
             'upgrade_cta' => $this->config['messages']['upgrade_cta'] ?? 'Faça upgrade!',
         ];
     }

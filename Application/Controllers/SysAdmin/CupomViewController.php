@@ -17,7 +17,6 @@ class CupomViewController extends WebController
             'admin/sysadmin/cupons',
             [
                 'pageTitle' => 'Gerenciar Cupons de Desconto',
-                'menu' => 'cupons',
                 'skipPlanLimits' => true,
             ]
         );

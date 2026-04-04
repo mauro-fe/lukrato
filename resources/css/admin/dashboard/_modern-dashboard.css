@@ -1,4 +1,4 @@
-﻿/* ==================== MODERN DASHBOARD â€” Refactored (Fintech Clean) ==================== */
+﻿/* ==================== MODERN DASHBOARD — Refactored (Fintech Clean) ==================== */
 
 .modern-dashboard {
   width: 100%;
@@ -298,6 +298,8 @@
   text-align: center;
   padding: var(--spacing-6) var(--spacing-3);
   color: var(--color-text-muted);
+  display: flex;
+  flex-direction: column;
 }
 
 .dash-empty i {

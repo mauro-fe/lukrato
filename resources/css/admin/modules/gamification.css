@@ -3,7 +3,7 @@
  * Estilos para sistema de gamificação completo
  */
 
-/* ===== SECTION: GAMIFICAÃ‡ÃƒO ===== */
+/* ===== SECTION: GAMIFICAÇÃO ===== */
 .gamification-section {
   padding: 2rem;
   margin-bottom: 2rem;
@@ -171,7 +171,7 @@
   font-weight: 500;
 }
 
-/* ===== GRID DE GAMIFICAÃ‡ÃƒO ===== */
+/* ===== GRID DE GAMIFICAÇÃO ===== */
 .gamification-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -1188,7 +1188,7 @@
     font-size: 1.5rem !important;
   }
 }
-/* ===== ANIMAÃ‡ÃƒO DE CONFETES ===== */
+/* ===== ANIMAÇÃO DE CONFETES ===== */
 @keyframes confettiFall {
   0% {
     transform: translateY(-20px) translateX(0) rotate(0deg);
@@ -1200,7 +1200,7 @@
   }
 }
 
-/* ===== MODAL DE RECOMPENSA DE INDICAÃ‡ÃƒO ===== */
+/* ===== MODAL DE RECOMPENSA DE INDICAÇÃO ===== */
 .referral-reward-modal.swal2-popup {
   background: var(--color-bg) !important;
   border: 2px solid #10b981 !important;

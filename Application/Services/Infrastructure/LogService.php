@@ -23,7 +23,7 @@ class LogService
 
     /**
      * Se a persistencia no DB esta habilitada.
-     * Desativado automaticamente se a tabela nao existe ou o DB falha.
+     * Desativado automaticamente se a tabela não existe ou o DB falha.
      */
     private static bool $dbEnabled = true;
     private static bool $dbChecked = false;
@@ -182,7 +182,7 @@ class LogService
     }
 
     /**
-     * Buscar logs com filtros e paginacao
+     * Buscar logs com filtros e paginação
      */
     public static function query(array $filters = [], int $page = 1, int $perPage = 50): array
     {

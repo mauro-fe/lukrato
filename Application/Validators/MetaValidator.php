@@ -14,14 +14,14 @@ class MetaValidator
 
         $titulo = trim((string) ($data['titulo'] ?? ''));
         if ($titulo === '') {
-            $errors['titulo'] = 'O titulo e obrigatorio.';
+            $errors['titulo'] = 'O título é obrigatório.';
         } elseif (mb_strlen($titulo) > 150) {
-            $errors['titulo'] = 'O titulo nao pode ter mais de 150 caracteres.';
+            $errors['titulo'] = 'O título não pode ter mais de 150 caracteres.';
         }
 
         $valorAlvo = $data['valor_alvo'] ?? null;
         if ($valorAlvo === null || $valorAlvo === '') {
-            $errors['valor_alvo'] = 'O valor da meta e obrigatorio.';
+            $errors['valor_alvo'] = 'O valor da meta é obrigatório.';
         } elseif (!is_numeric($valorAlvo) || (float) $valorAlvo <= 0) {
             $errors['valor_alvo'] = 'O valor deve ser maior que zero.';
         }
@@ -43,26 +43,26 @@ class MetaValidator
             Meta::TIPO_OUTRO,
         ];
         if ($tipo !== '' && !in_array($tipo, $tiposValidos, true)) {
-            $errors['tipo'] = 'Tipo de meta invalido.';
+            $errors['tipo'] = 'Tipo de meta inválido.';
         }
 
         $modelo = $data['modelo'] ?? null;
         $modelosValidos = [Meta::MODELO_RESERVA, Meta::MODELO_REALIZACAO];
         if ($modelo !== null && $modelo !== '' && !in_array((string) $modelo, $modelosValidos, true)) {
-            $errors['modelo'] = 'Modelo de meta invalido.';
+            $errors['modelo'] = 'Modelo de meta inválido.';
         }
 
         $prioridade = $data['prioridade'] ?? '';
         $prioridadesValidas = [Meta::PRIORIDADE_BAIXA, Meta::PRIORIDADE_MEDIA, Meta::PRIORIDADE_ALTA];
         if ($prioridade !== '' && !in_array($prioridade, $prioridadesValidas, true)) {
-            $errors['prioridade'] = 'Prioridade invalida.';
+            $errors['prioridade'] = 'Prioridade inválida.';
         }
 
         $dataPrazo = $data['data_prazo'] ?? null;
         if (!empty($dataPrazo)) {
             $d = \DateTime::createFromFormat('Y-m-d', (string) $dataPrazo);
             if (!$d || $d->format('Y-m-d') !== $dataPrazo) {
-                $errors['data_prazo'] = 'Data invalida. Use o formato YYYY-MM-DD.';
+                $errors['data_prazo'] = 'Data inválida. Use o formato YYYY-MM-DD.';
             }
         }
 
@@ -86,9 +86,9 @@ class MetaValidator
         if (isset($data['titulo'])) {
             $titulo = trim((string) $data['titulo']);
             if ($titulo === '') {
-                $errors['titulo'] = 'O titulo e obrigatorio.';
+                $errors['titulo'] = 'O título é obrigatório.';
             } elseif (mb_strlen($titulo) > 150) {
-                $errors['titulo'] = 'O titulo nao pode ter mais de 150 caracteres.';
+                $errors['titulo'] = 'O título não pode ter mais de 150 caracteres.';
             }
         }
 
@@ -113,7 +113,7 @@ class MetaValidator
         if (array_key_exists('modelo', $data)) {
             $modelosValidos = [Meta::MODELO_RESERVA, Meta::MODELO_REALIZACAO];
             if ($data['modelo'] !== null && $data['modelo'] !== '' && !in_array((string) $data['modelo'], $modelosValidos, true)) {
-                $errors['modelo'] = 'Modelo de meta invalido.';
+                $errors['modelo'] = 'Modelo de meta inválido.';
             }
         }
 
@@ -126,7 +126,7 @@ class MetaValidator
             Meta::STATUS_CANCELADA,
         ];
         if ($status && !in_array((string) $status, $statusValidos, true)) {
-            $errors['status'] = 'Status invalido.';
+            $errors['status'] = 'Status inválido.';
         }
 
         return $errors;
@@ -138,7 +138,7 @@ class MetaValidator
 
         $valor = $data['valor'] ?? null;
         if ($valor === null || $valor === '') {
-            $errors['valor'] = 'O valor do aporte e obrigatorio.';
+            $errors['valor'] = 'O valor do aporte é obrigatório.';
         } elseif (!is_numeric($valor) || (float) $valor <= 0) {
             $errors['valor'] = 'O valor deve ser maior que zero.';
         }

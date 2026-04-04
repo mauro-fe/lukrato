@@ -15,7 +15,7 @@ class FeedbackRepository extends BaseRepository
     }
 
     /**
-     * Conta feedbacks do usuario por tipo (e contexto) no dia.
+     * Conta feedbacks do usuário por tipo (e contexto) no dia.
      */
     public function countTodayByUserAndContext(int $userId, string $tipo, ?string $contexto = null): int
     {
@@ -32,7 +32,7 @@ class FeedbackRepository extends BaseRepository
     }
 
     /**
-     * Data do ultimo NPS do usuario.
+     * Data do último NPS do usuário.
      */
     public function lastNpsFeedbackDate(int $userId): ?Carbon
     {

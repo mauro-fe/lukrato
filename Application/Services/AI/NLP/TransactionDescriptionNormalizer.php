@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Application\Services\AI\NLP;
 
 /**
- * Normaliza descricoes de transacoes separando item principal e contexto.
+ * Normaliza descrições de transações separando item principal e contexto.
  *
  * Exemplo:
  * - "produto de limpeza no mercado" => descricao="Produto De Limpeza", contexto="Mercado"
- * - "almoco no restaurante" => descricao="Almoco", contexto="Restaurante"
+ * - "almoço no restaurante" => descricao="Almoço", contexto="Restaurante"
  */
 class TransactionDescriptionNormalizer
 {

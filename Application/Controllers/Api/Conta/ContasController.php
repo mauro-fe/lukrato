@@ -33,7 +33,7 @@ class ContasController extends ApiController
 
     /**
      * GET /api/contas
-     * Listar contas do usuario.
+     * Listar contas do usuário.
      */
     public function index(): Response
     {

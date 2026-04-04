@@ -28,6 +28,9 @@ return [
             'max_orcamentos'        => 3,    // Até 3 orçamentos por categoria
             'ai_messages_per_month' => 5,    // 5 mensagens chat IA/mês (degustação)
             'ai_categorization_per_month' => 5, // 5 sugestões de categoria IA/mês (degustação)
+            'import_conta_ofx'      => 1,    // 1 importação OFX de conta
+            'import_conta_csv'      => 1,    // 1 importação CSV de lançamentos
+            'import_cartao_ofx'     => 1,    // 1 importação OFX de cartão/fatura
         ],
 
         'pro' => [
@@ -41,6 +44,9 @@ return [
             'max_orcamentos'        => null, // ilimitado
             'ai_messages_per_month' => null, // ilimitado
             'ai_categorization_per_month' => null, // ilimitado
+            'import_conta_ofx'      => null, // ilimitado
+            'import_conta_csv'      => null, // ilimitado
+            'import_cartao_ofx'     => null, // ilimitado
         ],
 
         'ultra' => [
@@ -54,6 +60,9 @@ return [
             'max_orcamentos'        => null, // ilimitado
             'ai_messages_per_month' => null, // ilimitado
             'ai_categorization_per_month' => null, // ilimitado
+            'import_conta_ofx'      => null, // ilimitado
+            'import_conta_csv'      => null, // ilimitado
+            'import_cartao_ofx'     => null, // ilimitado
         ],
 
     ],
@@ -125,6 +134,15 @@ return [
         'orcamentos_limit' => 'Limite de {limit} orçamentos por categoria atingido. ' .
             'Faça upgrade para definir orçamentos ilimitados.',
 
+        'import_conta_ofx_limit' => 'Você já usou sua importação OFX de conta no plano gratuito. ' .
+            'Faça upgrade para o Pro e importe sem limite.',
+
+        'import_conta_csv_limit' => 'Você já usou sua importação CSV de lançamentos no plano gratuito. ' .
+            'Faça upgrade para o Pro e importe sem limite.',
+
+        'import_cartao_ofx_limit' => 'Importação de fatura/cartão via OFX requer Pro após o uso gratuito. ' .
+            'Faça upgrade para continuar importando faturas.',
+
     ],
 
     /*
@@ -137,19 +155,19 @@ return [
     */
 
     'contextual_messages' => [
-        'relatorios'          => '📊 Análises completas e exportação com o Pro',
-        'cartoes'             => '💳 Gerencie todos os seus cartões de crédito',
-        'contas'              => '🏦 Organize todas as suas contas bancárias',
-        'agendamentos'        => '⏰ Lembretes automáticos por email e notificações',
-        'metas'               => '🎯 Crie metas ilimitadas e acompanhe seu progresso',
-        'categorias'          => '🏷️ Personalize suas categorias sem limites',
-        'lancamentos'         => '💰 Registre suas transações sem preocupações',
-        'dashboard'           => '📈 Dashboard avançado com insights personalizados',
-        'default'             => '🚀 Desbloqueie todo o potencial do Lukrato',
-        'ai_chat'             => '🤖 Assistente IA: tire dúvidas sobre suas finanças',
-        'analise_ia'          => '🧠 Análise financeira com IA exclusiva do Ultra',
-        'insights_automáticos' => '💡 Insights automáticos sobre seus gastos com o Ultra',
-        'previsao_saldo'      => '📈 Previsão de saldo inteligente exclusiva do Ultra',
+        'relatorios'            => '📊 Análises completas e exportação com o Pro',
+        'cartoes'               => '💳 Gerencie todos os seus cartões de crédito',
+        'contas'                => '🏦 Organize todas as suas contas bancárias',
+        'agendamentos'          => '⏳ Lembretes automáticos por email e notificações',
+        'metas'                 => '🎯 Crie metas ilimitadas e acompanhe seu progresso',
+        'categorias'            => '🏷️ Personalize suas categorias sem limites',
+        'lancamentos'           => '💰 Registre suas transações sem preocupações',
+        'dashboard'             => '📈 Dashboard avançado com insights personalizados',
+        'default'               => '🚀 Desbloqueie todo o potencial do Lukrato',
+        'ai_chat'               => '🤖 Assistente IA: tire dúvidas sobre suas finanças',
+        'analise_ia'            => '🧠 Análise financeira com IA exclusiva do Ultra',
+        'insights_automaticos'  => '💡 Insights automáticos sobre seus gastos com o Ultra',
+        'previsao_saldo'        => '📈 Previsão de saldo inteligente exclusiva do Ultra',
     ],
 
     /*
@@ -164,72 +182,72 @@ return [
     'features' => [
 
         'free' => [
-            'reports'                 => false,
-            'relatorios_basicos'      => true,
-            'relatorios_avancados'    => false,
-            'exportacao_pdf'          => false,
-            'exportacao_excel'        => false,
+            'reports'                   => false,
+            'relatorios_basicos'        => true,
+            'relatorios_avancados'      => false,
+            'exportacao_pdf'            => false,
+            'exportacao_excel'          => false,
             'categorias_personalizadas' => true,  // Limitado a 15
-            'multiplas_contas'        => true,    // Limitado a 2
-            'notificacoes'            => true,
-            'recorrencias'            => true,    // Básico
-            'anexos_comprovantes'     => false,   // Bloqueado
-            'dashboard_avancado'      => false,   // Só widgets básicos
-            'backup_dados'            => false,   // Sem backup
-            'suporte_prioritario'     => false,
-            'reminders_email'         => false,   // Sem lembretes por email
-            'metas_financeiras'       => true,    // Limitado a 3
-            'ai_chat'                 => true,    // Degustação: 5 sugestões/mês
-            'analise_financeira_ia'   => false,   // Exclusivo Ultra
-            'insights_automáticos'    => false,   // Exclusivo Ultra
-            'previsao_saldo'          => false,   // Exclusivo Ultra
-            'chat_financeiro_ia'      => false,   // Exclusivo Ultra
+            'multiplas_contas'          => true,    // Limitado a 2
+            'notificacoes'              => true,
+            'recorrencias'              => true,    // Básico
+            'anexos_comprovantes'       => false,   // Bloqueado
+            'dashboard_avancado'        => false,   // Só widgets básicos
+            'backup_dados'              => false,   // Sem backup
+            'suporte_prioritario'       => false,
+            'reminders_email'           => false,   // Sem lembretes por email
+            'metas_financeiras'         => true,    // Limitado a 3
+            'ai_chat'                   => true,    // Degustação: 5 sugestões/mês
+            'analise_financeira_ia'     => false,   // Exclusivo Ultra
+            'insights_automaticos'      => false,   // Exclusivo Ultra
+            'previsao_saldo'            => false,   // Exclusivo Ultra
+            'chat_financeiro_ia'        => false,   // Exclusivo Ultra
         ],
 
         'pro' => [
-            'reports'                 => true,
-            'relatorios_basicos'      => true,
-            'relatorios_avancados'    => true,
-            'exportacao_pdf'          => true,
-            'exportacao_excel'        => true,
+            'reports'                   => true,
+            'relatorios_basicos'        => true,
+            'relatorios_avancados'      => true,
+            'exportacao_pdf'            => true,
+            'exportacao_excel'          => true,
             'categorias_personalizadas' => true,
-            'multiplas_contas'        => true,
-            'notificacoes'            => true,
-            'recorrencias'            => true,
-            'anexos_comprovantes'     => true,
-            'dashboard_avancado'      => true,
-            'backup_dados'            => true,
-            'suporte_prioritario'     => true,
-            'reminders_email'         => true,
-            'metas_financeiras'       => true,
-            'ai_chat'                 => true,
-            'analise_financeira_ia'   => false,   // Exclusivo Ultra
-            'insights_automáticos'    => false,   // Exclusivo Ultra
-            'previsao_saldo'          => false,   // Exclusivo Ultra
-            'chat_financeiro_ia'      => false,   // Exclusivo Ultra
+            'multiplas_contas'          => true,
+            'notificacoes'              => true,
+            'recorrencias'              => true,
+            'anexos_comprovantes'       => true,
+            'dashboard_avancado'        => true,
+            'backup_dados'              => true,
+            'suporte_prioritario'       => true,
+            'reminders_email'           => true,
+            'metas_financeiras'         => true,
+            'ai_chat'                   => true,
+            'analise_financeira_ia'     => false,   // Exclusivo Ultra
+            'insights_automaticos'      => false,   // Exclusivo Ultra
+            'previsao_saldo'            => false,   // Exclusivo Ultra
+            'chat_financeiro_ia'        => false,   // Exclusivo Ultra
         ],
 
         'ultra' => [
-            'reports'                 => true,
-            'relatorios_basicos'      => true,
-            'relatorios_avancados'    => true,
-            'exportacao_pdf'          => true,
-            'exportacao_excel'        => true,
+            'reports'                   => true,
+            'relatorios_basicos'        => true,
+            'relatorios_avancados'      => true,
+            'exportacao_pdf'            => true,
+            'exportacao_excel'          => true,
             'categorias_personalizadas' => true,
-            'multiplas_contas'        => true,
-            'notificacoes'            => true,
-            'recorrencias'            => true,
-            'anexos_comprovantes'     => true,
-            'dashboard_avancado'      => true,
-            'backup_dados'            => true,
-            'suporte_prioritario'     => true,
-            'reminders_email'         => true,
-            'metas_financeiras'       => true,
-            'ai_chat'                 => true,
-            'analise_financeira_ia'   => true,    // Exclusivo Ultra
-            'insights_automáticos'    => true,    // Exclusivo Ultra
-            'previsao_saldo'          => true,    // Exclusivo Ultra
-            'chat_financeiro_ia'      => true,    // Exclusivo Ultra
+            'multiplas_contas'          => true,
+            'notificacoes'              => true,
+            'recorrencias'              => true,
+            'anexos_comprovantes'       => true,
+            'dashboard_avancado'        => true,
+            'backup_dados'              => true,
+            'suporte_prioritario'       => true,
+            'reminders_email'           => true,
+            'metas_financeiras'         => true,
+            'ai_chat'                   => true,
+            'analise_financeira_ia'     => true,    // Exclusivo Ultra
+            'insights_automaticos'      => true,    // Exclusivo Ultra
+            'previsao_saldo'            => true,    // Exclusivo Ultra
+            'chat_financeiro_ia'        => true,    // Exclusivo Ultra
         ],
 
     ],

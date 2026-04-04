@@ -7,7 +7,7 @@ declare(strict_types=1);
  *
  * Formato: [message, expected_entity_type, confidence_min, tags[], notes]
  *
- * expected_entity_type: 'meta'|'lancamento'|'orcamento'|'categoria'|'subcategoria'|'conta'|null
+ * expected_entity_type: 'meta'|'lançamento'|'orcamento'|'categoria'|'subcategoria'|'conta'|null
  */
 return [
 

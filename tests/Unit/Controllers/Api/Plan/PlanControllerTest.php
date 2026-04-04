@@ -79,6 +79,9 @@ class PlanControllerTest extends TestCase
                         'max_categorias_custom' => 9,
                         'max_metas' => 4,
                         'historico_meses' => 6,
+                        'import_conta_ofx' => 1,
+                        'import_conta_csv' => 1,
+                        'import_cartao_ofx' => 1,
                     ],
                 ],
             ]);
@@ -93,6 +96,7 @@ class PlanControllerTest extends TestCase
         $this->assertSame('free', $payload['data']['plan']);
         $this->assertSame(3, $payload['data']['contas']['limit']);
         $this->assertSame(6, $payload['data']['historico']['months_limit']);
+        $this->assertSame(1, $payload['data']['importacoes']['import_conta_ofx']['remaining']);
     }
 
     public function testFeaturesThrowsAuthExceptionWhenSessionIsMissing(): void
@@ -100,7 +104,7 @@ class PlanControllerTest extends TestCase
         $controller = new PlanController(Mockery::mock(PlanLimitService::class));
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->features();
     }

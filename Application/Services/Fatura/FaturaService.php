@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Application\Services\Fatura;
 
 /**
- * Facade para gerenciamento de faturas de cartao de credito.
+ * Facade para gerenciamento de faturas de cartão de crédito.
  */
 class FaturaService
 {

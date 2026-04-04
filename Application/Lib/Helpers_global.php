@@ -3,6 +3,7 @@
 use Carbon\Carbon;
 use Application\Lib\Helpers;
 use Application\Middlewares\CsrfMiddleware;
+use Application\Support\Admin\AdminModuleRegistry;
 
 if (!function_exists('now')) {
     function now(): Carbon
@@ -116,28 +117,15 @@ if (!function_exists('asset_url')) {
 if (!function_exists('loadPageCss')) {
     function loadPageCss(?string $name = null): void
     {
-        $view = $name ?: ($GLOBALS['current_view'] ?? '');
-        if ($view === '' || !function_exists('vite_css')) return;
-
-        static $viteEntries = [
-            'admin-auth-login' => 'auth-login-style',
-            'auth-shared' => 'auth-shared-style',
-            'auth-verify-email' => 'auth-verify-email-style',
-            'site-legal-privacy' => 'site-legal',
-            'site-legal-terms' => 'site-legal',
-            'site-legal-lgpd' => 'site-legal',
-            'site-aprenda-index' => 'site-aprenda',
-            'site-aprenda-show' => 'site-aprenda',
-            'site-aprenda-categoria' => 'site-aprenda',
-            'errors-partials-error-layout' => 'error-page',
-        ];
-
-        if (isset($viteEntries[$view])) {
-            echo vite_css($viteEntries[$view]);
+        $view = trim((string) ($name ?? ($GLOBALS['current_view'] ?? '')));
+        if ($view === '' || !function_exists('vite_css')) {
+            return;
         }
 
-
-        // 2. Fallback: CSS estático nas subpastas organizadas
+        $entry = resolvePageCssViteEntry($view);
+        if ($entry !== null) {
+            echo vite_css($entry);
+        }
     }
 }
 
@@ -149,41 +137,10 @@ if (!function_exists('loadPageJs')) {
         $view = $view ?? ($GLOBALS['current_view'] ?? '');
         if ($view === '') return;
 
-        // ── Vite entry points ──────────────────────────────────
-        // Mapeamento: identificador da view → entry relativo a resources/js/
-        static $viteEntries = [
-            'admin-lancamentos-index'   => 'admin/lancamentos/index.js',
-            'admin-cartoes-index'       => 'admin/cartoes/index.js',
-            'admin-contas-index'        => 'admin/contas/index.js',
-            'admin-faturas-index'       => 'admin/faturas/index.js',
-            'admin-financas-index'      => 'admin/financas/index.js',
-            'admin-orcamento-index'     => 'admin/orcamento/index.js',
-            'admin-metas-index'         => 'admin/metas/index.js',
-            'admin-relatorios-index'    => 'admin/relatorios/index.js',
-            'admin-categorias-index'    => 'admin/categorias/index.js',
-            'admin-dashboard-index'     => 'admin/dashboard/index.js',
-            'admin-parcelamentos-index' => 'admin/faturas/index.js',
-            'admin-cartoes-arquivadas'  => 'admin/cartoes-arquivadas/index.js',
-            'admin-gamification-index'  => 'admin/gamification/index.js',
-            'admin-billing-index'       => 'admin/billing/index.js',
-            'admin-perfil-index'        => 'admin/perfil/index.js',
-            'admin-configuracoes-index' => 'admin/configuracoes/index.js',
-            'admin-sysadmin-index'      => 'admin/sysadmin/index.js',
-            'admin-auth-login'          => 'admin/auth/login/index.js',
-            'admin-auth-forgot-password' => 'admin/auth/forgot-password/index.js',
-            'admin-auth-reset-password' => 'admin/auth/reset-password/index.js',
-            'admin-auth-verify-email'   => 'admin/auth/verify-email/index.js',
-            'admin-contas-arquivadas'   => 'admin/contas-arquivadas/index.js',
-            'admin-sysadmin-communications' => 'admin/sysadmin/communications.js',
-            'admin-sysadmin-cupons'     => 'admin/sysadmin/cupons.js',
-            'admin-sysadmin-blog'       => 'admin/sysadmin/blog.js',
-            'admin-sysadmin-ai'         => 'admin/sysadmin/ai-chat.js',
-            'admin-sysadmin-ai-logs'    => 'admin/sysadmin/ai-logs.js',
-        ];
-
-        if (isset($viteEntries[$view]) && function_exists('vite_scripts')) {
-            $entry = $viteEntries[$view];
-            $key   = 'vite:' . $entry;
+        // Vite entry points (view id -> resources/js entry).
+        $entry = resolvePageJsViteEntry($view);
+        if ($entry !== null && function_exists('vite_scripts')) {
+            $key = 'vite:' . $entry;
             if (!in_array($key, $loadedScripts, true)) {
                 echo vite_scripts($entry);
                 $loadedScripts[] = $key;
@@ -191,7 +148,7 @@ if (!function_exists('loadPageJs')) {
             return;
         }
 
-        // ── Legacy fallback (arquivos em assets/js/) ───────────
+        // Legacy fallback for assets/js files not managed by Vite yet.
         $candidates = [];
         $candidates[] = 'assets/js/' . $view . '.js';
         $candidates[] = 'assets/js/' . str_replace(['\\', '/'], '-', $view) . '.js';
@@ -216,6 +173,47 @@ if (!function_exists('loadPageJs')) {
         }
     }
 }
+
+if (!function_exists('resolvePageJsViteEntry')) {
+    function resolvePageJsViteEntry(string $view): ?string
+    {
+        $entry = AdminModuleRegistry::resolveViteEntryByViewId($view);
+        if (is_string($entry) && $entry !== '') {
+            return $entry;
+        }
+
+        // Reserved for legacy view mappings that are intentionally outside
+        // the admin module registry.
+        static $legacyViteEntries = [];
+
+        return $legacyViteEntries[$view] ?? null;
+    }
+}
+
+if (!function_exists('resolvePageCssViteEntry')) {
+    function resolvePageCssViteEntry(string $view): ?string
+    {
+        $entry = AdminModuleRegistry::resolveCssEntryByViewId($view);
+        if (is_string($entry) && $entry !== '') {
+            return $entry;
+        }
+
+        // Reserved for view mappings that are intentionally outside
+        // the admin module registry.
+        static $legacyViteEntries = [
+            'site-legal-privacy' => 'site-legal',
+            'site-legal-terms' => 'site-legal',
+            'site-legal-lgpd' => 'site-legal',
+            'site-aprenda-index' => 'site-aprenda',
+            'site-aprenda-show' => 'site-aprenda',
+            'site-aprenda-categoria' => 'site-aprenda',
+            'errors-partials-error-layout' => 'error-page',
+        ];
+
+        return $legacyViteEntries[$view] ?? null;
+    }
+}
+
 
 
 

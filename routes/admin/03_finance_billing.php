@@ -14,6 +14,9 @@ Router::add('GET', '/orcamento', 'Admin\\OrcamentoController@index', ['auth']);
 Router::add('GET', '/metas', 'Admin\\MetasController@index', ['auth']);
 Router::add('GET', '/categorias', 'Admin\\CategoriaController@index', ['auth']);
 Router::add('GET', '/gamification', 'GamificationController@index', ['auth']);
+Router::add('GET', '/importacoes', 'Admin\\ImportacoesController@index', ['auth']);
+Router::add('GET', '/importacoes/configuracoes', 'Admin\\ImportacoesConfiguracoesController@index', ['auth']);
+Router::add('GET', '/importacoes/historico', 'Admin\\ImportacoesHistoricoController@index', ['auth']);
 
 // Billing/plans
 Router::add('GET', '/billing', 'Admin\\BillingController@index', ['auth']);

@@ -163,7 +163,7 @@ class WhatsAppWebhookWorkflowService
 
                 if ($action === null) {
                     $pending->reject();
-                    $this->whatsapp()->sendText($dto->fromPhone, "âš ️ Tipo de ação desconhecido.");
+                    $this->whatsapp()->sendText($dto->fromPhone, "⚠️ Tipo de ação desconhecida.");
                     $msgRecord->markProcessed('confirmation_unknown_action');
                     return;
                 }
@@ -178,7 +178,7 @@ class WhatsAppWebhookWorkflowService
                         $pending->reject();
                         $this->whatsapp()->sendText(
                             $dto->fromPhone,
-                            "âš ️ Você precisa ter pelo menos uma conta cadastrada no Lukrato para registrar lançamentos."
+                            "⚠️ Você precisa ter pelo menos uma conta cadastrada no Lukrato para registrar lançamentos."
                         );
                         $msgRecord->markProcessed('confirmation_no_account');
                         return;
@@ -204,7 +204,7 @@ class WhatsAppWebhookWorkflowService
 
                     if (!$result->success) {
                         $pending->reject();
-                        $this->whatsapp()->sendText($dto->fromPhone, "âš ️ {$result->message}");
+                        $this->whatsapp()->sendText($dto->fromPhone, "⚠️ {$result->message}");
                         $msgRecord->markProcessed('confirmation_failed');
                         return;
                     }
@@ -222,17 +222,17 @@ class WhatsAppWebhookWorkflowService
                     }
 
                     $formatted = 'R$ ' . number_format((float) ($payload['valor'] ?? 0), 2, ',', '.');
-                    $catStr = !empty($payload['categoria_nome']) ? "\nðŸ“ {$payload['categoria_nome']}" : '';
+                    $catStr = !empty($payload['categoria_nome']) ? "\n📁 {$payload['categoria_nome']}" : '';
                     $this->whatsapp()->sendText(
                         $dto->fromPhone,
-                        "âœ… Lançamento registrado!\n\n"
-                            . "ðŸ“ {$payload['descricao']}\n"
-                            . "ðŸ’° {$formatted}{$catStr}"
+                        "✅ Lançamento registrado!\n\n"
+                            . "📝 {$payload['descricao']}\n"
+                            . "💰 {$formatted}{$catStr}"
                     );
                     $msgRecord->markProcessed('transaction_confirmed');
                 } catch (\Throwable $e) {
                     $pending->reject();
-                    $this->whatsapp()->sendText($dto->fromPhone, "âš ️ Erro ao registrar: " . $e->getMessage());
+                    $this->whatsapp()->sendText($dto->fromPhone, "⚠️ Erro ao registrar: " . $e->getMessage());
                     $msgRecord->markProcessed('confirmation_error');
                 }
 
@@ -279,15 +279,15 @@ class WhatsAppWebhookWorkflowService
         }
 
         $statusText = $dto->isAudio()
-            ? "ðŸŽ™️ Transcrevendo áudio..."
-            : ($dto->isVideo() ? "ðŸŽ¬ Processando ví­deo..." : "ðŸ“Ž Analisando arquivo...");
+            ? "🎙️ Transcrevendo áudio..."
+            : ($dto->isVideo() ? "🎬 Processando vídeo..." : "📎 Analisando arquivo...");
         $this->whatsapp()->sendText($dto->fromPhone, $statusText);
 
         $downloader = new WhatsAppMediaDownloader();
         $fileData = $downloader->downloadByMediaId((string) $dto->mediaId, $dto->filename);
 
         if ($fileData === null) {
-            $this->whatsapp()->sendText($dto->fromPhone, "âš ️ Não consegui baixar o arquivo. Tente novamente.");
+            $this->whatsapp()->sendText($dto->fromPhone, "⚠️ Não consegui baixar o arquivo. Tente novamente.");
             $msgRecord->markFailed('file_download_failed');
             return;
         }
@@ -317,7 +317,7 @@ class WhatsAppWebhookWorkflowService
         if (!$result->success) {
             $this->whatsapp()->sendText(
                 $dto->fromPhone,
-                "âš ️ Não consegui processar o arquivo. " . ($result->error ?? 'Tente novamente ou envie em outro formato.')
+                "⚠️ Não consegui processar o arquivo. " . ($result->error ?? 'Tente novamente ou envie em outro formato.')
             );
             $msgRecord->markFailed('media_processing_failed: ' . ($result->error ?? 'unknown'));
             return;
@@ -341,7 +341,7 @@ class WhatsAppWebhookWorkflowService
                 $desc = $receipt->data['descricao'] ?? 'Nao identifiquei informacoes financeiras nesse arquivo.';
                 $this->whatsapp()->sendText(
                     $dto->fromPhone,
-                    "ðŸ“Ž {$desc}\n\nPara registrar uma transação, envie um comprovante, nota fiscal, PDF ou descreva o lançamento por texto."
+                    "📎 {$desc}\n\nPara registrar uma transação, envie um comprovante, nota fiscal, PDF ou descreva o lançamento por texto."
                 );
                 $msgRecord->markProcessed('media_not_financial');
                 return;
@@ -352,7 +352,7 @@ class WhatsAppWebhookWorkflowService
                 $desc = $transactionData['descricao'];
                 $this->whatsapp()->sendText(
                     $dto->fromPhone,
-                    "ðŸ“Ž Vi um comprovante de {$desc}, mas nao consegui identificar o valor. "
+                    "📎 Vi um comprovante de {$desc}, mas não consegui identificar o valor. "
                         . "Pode digitar? Ex: \"{$desc} 35.50\""
                 );
                 $msgRecord->markProcessed('media_no_amount');
@@ -531,11 +531,11 @@ class WhatsAppWebhookWorkflowService
             'expires_at' => now()->addHours(24),
         ]);
 
-        $tipo = $extracted['tipo'] === 'receita' ? 'ðŸ’° Receita' : 'ðŸ’¸ Despesa';
+        $tipo = $extracted['tipo'] === 'receita' ? '💰 Receita' : '💸 Despesa';
         $formatted = 'R$ ' . number_format($extracted['valor'], 2, ',', '.');
         $catStr = '';
         if ($category !== null) {
-            $catStr = "\nðŸ“ " . $category['categoria'];
+            $catStr = "\n📁 " . $category['categoria'];
             if (!empty($category['subcategoria'])) {
                 $catStr .= ' > ' . $category['subcategoria'];
             }
@@ -543,7 +543,7 @@ class WhatsAppWebhookWorkflowService
 
         $text = "Entendi! Registrar?\n\n"
             . "{$tipo}: {$extracted['descricao']}\n"
-            . "ðŸ’µ {$formatted}{$catStr}\n\n"
+            . "💵 {$formatted}{$catStr}\n\n"
             . "Responda Sim para confirmar ou Não para cancelar.";
 
         $this->whatsapp()->sendConfirmationButtons(

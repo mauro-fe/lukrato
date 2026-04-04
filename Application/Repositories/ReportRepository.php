@@ -181,7 +181,7 @@ class ReportRepository
             ->orderByDesc(DB::raw("SUM({$sumExpression})"))
             ->get();
 
-        // Agrupar em hierarquia: categoria â†’ subcategorias
+        // Agrupar em hierarquia: categoria → subcategorias
         // For account-filtered views with transfers, combine entries with same cat_id
         $categories = [];
         foreach ($rows as $row) {

@@ -6,7 +6,7 @@
  * ============================================================================
  */
 
-import { CONFIG, STATE, Utils, Modules } from './state.js';
+import { CONFIG, DOM, STATE, Utils, Modules } from './state.js';
 import { refreshIcons } from '../shared/ui.js';
 import { getApiPayload, getErrorMessage } from '../shared/api.js';
 
@@ -96,7 +96,7 @@ export const ActionMethods = {
 
     async editarItemFatura(faturaId, itemId, descricaoAtual, valorAtual) {
         // Usar modal Bootstrap ao invés de SweetAlert2
-        const modalEl = document.getElementById('modalEditarItemFatura');
+        const modalEl = DOM.modalEditarItemFatura || document.getElementById('modalEditarItemFatura');
         if (!modalEl) {
             console.error('Modal de edição não encontrado');
             return;
@@ -109,7 +109,11 @@ export const ActionMethods = {
         document.getElementById('editItemValor').value = valorAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
         // Abrir o modal
-        const modal = new bootstrap.Modal(modalEl);
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl, {
+            backdrop: true,
+            keyboard: true,
+            focus: true
+        });
         modal.show();
     },
 
@@ -145,7 +149,7 @@ export const ActionMethods = {
 
         try {
             // Fechar o modal de edição
-            const modalEl = document.getElementById('modalEditarItemFatura');
+            const modalEl = DOM.modalEditarItemFatura || document.getElementById('modalEditarItemFatura');
             const modal = bootstrap.Modal.getInstance(modalEl);
             if (modal) modal.hide();
 

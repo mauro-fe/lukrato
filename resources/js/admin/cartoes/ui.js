@@ -883,11 +883,16 @@ export const CartoesUI = {
         }
         const invoiceLabel = cartao?.temFaturaPendente ? 'Pagar fatura' : 'Ver fatura';
         const invoiceIcon = cartao?.temFaturaPendente ? 'wallet' : 'file-text';
+        const importOfxUrl = `${Utils.getBaseUrl()}importacoes?import_target=cartao&source_type=ofx&cartao_id=${id}`;
         menuEl.style.setProperty('--card-accent', getCardAccent(cartao));
         menuEl.innerHTML = `
             <button type="button" class="card-context-item" data-card-menu-action="invoice">
                 <i data-lucide="${invoiceIcon}"></i>
                 <span>${invoiceLabel}</span>
+            </button>
+            <button type="button" class="card-context-item" data-card-menu-action="import-ofx">
+                <i data-lucide="upload"></i>
+                <span>Importar OFX</span>
             </button>
             <button type="button" class="card-context-item" data-card-menu-action="edit">
                 <i data-lucide="pencil"></i>
@@ -933,6 +938,9 @@ export const CartoesUI = {
                 switch (button.dataset.cardMenuAction) {
                     case 'invoice':
                         window.cartoesManager?.verFatura?.(id);
+                        break;
+                    case 'import-ofx':
+                        window.location.href = importOfxUrl;
                         break;
                     case 'edit':
                         window.cartoesManager?.editCartao?.(id);
