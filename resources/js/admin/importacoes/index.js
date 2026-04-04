@@ -41,6 +41,9 @@ if (context) {
     const quotaWarning = context.root.querySelector('[data-imp-quota-warning]');
     const planTier = String(context.root.dataset.impPlan || 'free').trim().toLowerCase();
     const upgradeUrl = String(context.root.dataset.impUpgradeUrl || '/assinatura').trim() || '/assinatura';
+    const confirmAsyncDefault = ['1', 'true', 'yes', 'on'].includes(
+        String(context.root.dataset.impConfirmAsyncDefault || '0').trim().toLowerCase()
+    );
     let activeJobId = null;
     let pollingTimer = null;
 
@@ -894,7 +897,7 @@ if (context) {
 
             const payload = {
                 ...preparePreviewPayload(),
-                async: '1',
+                async: confirmAsyncDefault ? '1' : '0',
             };
             const quota = currentQuota();
 

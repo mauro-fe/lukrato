@@ -211,6 +211,10 @@ class ConfirmController extends ApiController
      */
     private function shouldQueueImport(array $payload): bool
     {
+        if (!array_key_exists('async', $payload)) {
+            return ImportSecurityPolicy::shouldQueueConfirmByDefault();
+        }
+
         $raw = strtolower(trim((string) ($payload['async'] ?? '0')));
 
         return in_array($raw, ['1', 'true', 'yes', 'on'], true);

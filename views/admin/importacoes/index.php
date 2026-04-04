@@ -23,6 +23,7 @@ $upgradeUrl = trim((string) ($planLimits['upgrade_url'] ?? '/assinatura'));
 $previewEndpoint = trim((string) ($previewEndpoint ?? ''));
 $confirmEndpoint = trim((string) ($confirmEndpoint ?? ''));
 $jobStatusEndpointBase = trim((string) ($jobStatusEndpointBase ?? ''));
+$confirmAsyncDefault = (bool) ($confirmAsyncDefault ?? false);
 $latestHistoryItems = is_array($latestHistoryItems ?? null) ? $latestHistoryItems : [];
 $initialSourceType = strtolower(trim((string) ($profileConfig['source_type'] ?? 'ofx')));
 if (!in_array($initialSourceType, ['ofx', 'csv'], true)) {
@@ -94,7 +95,8 @@ $activeContextLabel = $importTarget === 'cartao'
     data-imp-active-card-id="<?= $selectedCardId ?>" data-imp-import-target="<?= escape($importTarget) ?>"
     data-imp-plan="<?= escape($currentPlan) ?>" data-imp-upgrade-url="<?= escape($upgradeUrl) ?>"
     data-imp-import-limits="<?= escape($importLimitsEncoded) ?>"
-    data-imp-job-status-endpoint-base="<?= escape($jobStatusEndpointBase) ?>">
+    data-imp-job-status-endpoint-base="<?= escape($jobStatusEndpointBase) ?>"
+    data-imp-confirm-async-default="<?= $confirmAsyncDefault ? '1' : '0' ?>">
     <header
         class="imp-page-hero imp-page-hero--compact imp-surface surface-card surface-card--interactive surface-card--clip">
         <div class="imp-page-hero__content">
@@ -176,65 +178,65 @@ $activeContextLabel = $importTarget === 'cartao'
                         <div class="imp-field" data-imp-account-field <?= $importTarget === 'cartao' ? 'hidden' : '' ?>>
                             <label class="imp-field__label" for="imp-account-select">Conta vinculada</label>
                             <?php if ($accounts === []) : ?>
-                            <p class="imp-inline-warning" data-imp-account-warning>
-                                Nenhuma conta ativa encontrada. Configure uma conta para liberar o preview.
-                            </p>
-                            <a class="imp-link" href="<?= BASE_URL ?>contas">Abrir contas</a>
+                                <p class="imp-inline-warning" data-imp-account-warning>
+                                    Nenhuma conta ativa encontrada. Configure uma conta para liberar o preview.
+                                </p>
+                                <a class="imp-link" href="<?= BASE_URL ?>contas">Abrir contas</a>
                             <?php else : ?>
-                            <select id="imp-account-select" class="imp-field__control" name="conta_id"
-                                data-imp-account-select-main>
-                                <?php foreach ($accounts as $account) : ?>
-                                <?php $accountId = (int) ($account['id'] ?? 0); ?>
-                                <option value="<?= $accountId ?>"
-                                    <?= $accountId === $selectedAccountId ? 'selected' : '' ?>>
-                                    <?= escape((string) ($account['nome'] ?? 'Conta sem nome')) ?>
-                                </option>
-                                <?php endforeach; ?>
-                            </select>
+                                <select id="imp-account-select" class="imp-field__control" name="conta_id"
+                                    data-imp-account-select-main>
+                                    <?php foreach ($accounts as $account) : ?>
+                                        <?php $accountId = (int) ($account['id'] ?? 0); ?>
+                                        <option value="<?= $accountId ?>"
+                                            <?= $accountId === $selectedAccountId ? 'selected' : '' ?>>
+                                            <?= escape((string) ($account['nome'] ?? 'Conta sem nome')) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             <?php endif; ?>
                         </div>
 
                         <div class="imp-field" data-imp-card-field <?= $importTarget === 'conta' ? 'hidden' : '' ?>>
                             <label class="imp-field__label" for="imp-card-select">Cartão vinculado</label>
                             <?php if ($cards === []) : ?>
-                            <p class="imp-inline-warning" data-imp-card-warning>
-                                Nenhum cartão ativo encontrado. Cadastre ou restaure um cartão para importar fatura OFX.
-                            </p>
-                            <a class="imp-link" href="<?= BASE_URL ?>cartoes">Abrir cartões</a>
+                                <p class="imp-inline-warning" data-imp-card-warning>
+                                    Nenhum cartão ativo encontrado. Cadastre ou restaure um cartão para importar fatura OFX.
+                                </p>
+                                <a class="imp-link" href="<?= BASE_URL ?>cartoes">Abrir cartões</a>
                             <?php else : ?>
-                            <select id="imp-card-select" class="imp-field__control" name="cartao_id"
-                                data-imp-card-select-main>
-                                <?php foreach ($cards as $card) : ?>
-                                <?php $cardId = (int) ($card['id'] ?? 0); ?>
-                                <option value="<?= $cardId ?>" <?= $cardId === $selectedCardId ? 'selected' : '' ?>>
-                                    <?= escape((string) ($card['nome'] ?? 'Cartão sem nome')) ?>
-                                </option>
-                                <?php endforeach; ?>
-                            </select>
+                                <select id="imp-card-select" class="imp-field__control" name="cartao_id"
+                                    data-imp-card-select-main>
+                                    <?php foreach ($cards as $card) : ?>
+                                        <?php $cardId = (int) ($card['id'] ?? 0); ?>
+                                        <option value="<?= $cardId ?>" <?= $cardId === $selectedCardId ? 'selected' : '' ?>>
+                                            <?= escape((string) ($card['nome'] ?? 'Cartão sem nome')) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             <?php endif; ?>
                         </div>
 
                         <fieldset class="imp-format-switch" aria-label="Formato da importação">
                             <legend class="imp-field__label">Formato</legend>
                             <?php foreach ($supportedFormats as $format) : ?>
-                            <?php
+                                <?php
                                 $formatValue = strtolower((string) $format);
                                 $radioId = 'imp-format-' . $formatValue;
                                 $isDisabledForCard = $importTarget === 'cartao' && $formatValue !== 'ofx';
                                 ?>
-                            <label
-                                class="imp-format-switch__item<?= $isDisabledForCard ? ' imp-format-switch__item--disabled' : '' ?>"
-                                for="<?= escape($radioId) ?>">
-                                <input id="<?= escape($radioId) ?>" type="radio" name="source_type"
-                                    value="<?= escape($formatValue) ?>" data-imp-source-type
-                                    <?= $isDisabledForCard ? 'disabled' : '' ?>
-                                    <?= $initialSourceType === $formatValue ? 'checked' : '' ?>>
-                                <span>
-                                    <i data-lucide="<?= $formatValue === 'csv' ? 'sheet' : 'file-code-2' ?>"
-                                        aria-hidden="true"></i>
-                                    <?= escape((string) $format) ?>
-                                </span>
-                            </label>
+                                <label
+                                    class="imp-format-switch__item<?= $isDisabledForCard ? ' imp-format-switch__item--disabled' : '' ?>"
+                                    for="<?= escape($radioId) ?>">
+                                    <input id="<?= escape($radioId) ?>" type="radio" name="source_type"
+                                        value="<?= escape($formatValue) ?>" data-imp-source-type
+                                        <?= $isDisabledForCard ? 'disabled' : '' ?>
+                                        <?= $initialSourceType === $formatValue ? 'checked' : '' ?>>
+                                    <span>
+                                        <i data-lucide="<?= $formatValue === 'csv' ? 'sheet' : 'file-code-2' ?>"
+                                            aria-hidden="true"></i>
+                                        <?= escape((string) $format) ?>
+                                    </span>
+                                </label>
                             <?php endforeach; ?>
                         </fieldset>
                         <p class="imp-inline-warning imp-inline-warning--quota" data-imp-quota-warning
@@ -354,17 +356,17 @@ $activeContextLabel = $importTarget === 'cartao'
                     </span>
                 </header>
                 <?php if ($currentPlan !== 'free') : ?>
-                <p class="imp-card-text">Plano pago ativo: importações OFX/CSV liberadas sem limite prático.</p>
+                    <p class="imp-card-text">Plano pago ativo: importações OFX/CSV liberadas sem limite prático.</p>
                 <?php else : ?>
-                <dl class="imp-definition-list">
-                    <?php foreach ($importLimitLabelMap as $bucketKey => $bucketLabel) : ?>
-                    <?php $bucket = is_array($importLimitBuckets[$bucketKey] ?? null) ? $importLimitBuckets[$bucketKey] : []; ?>
-                    <?php $bucketRemaining = $bucket['remaining'] ?? null; ?>
-                    <dt><?= escape($bucketLabel) ?></dt>
-                    <dd><?= is_numeric($bucketRemaining) ? (int) $bucketRemaining . ' restante(s)' : 'Ilimitado' ?></dd>
-                    <?php endforeach; ?>
-                </dl>
-                <a class="imp-link" href="<?= escape($upgradeUrl) ?>">Fazer upgrade</a>
+                    <dl class="imp-definition-list">
+                        <?php foreach ($importLimitLabelMap as $bucketKey => $bucketLabel) : ?>
+                            <?php $bucket = is_array($importLimitBuckets[$bucketKey] ?? null) ? $importLimitBuckets[$bucketKey] : []; ?>
+                            <?php $bucketRemaining = $bucket['remaining'] ?? null; ?>
+                            <dt><?= escape($bucketLabel) ?></dt>
+                            <dd><?= is_numeric($bucketRemaining) ? (int) $bucketRemaining . ' restante(s)' : 'Ilimitado' ?></dd>
+                        <?php endforeach; ?>
+                    </dl>
+                    <a class="imp-link" href="<?= escape($upgradeUrl) ?>">Fazer upgrade</a>
                 <?php endif; ?>
             </article>
             <article class="imp-side-card imp-surface surface-card surface-card--interactive">
@@ -373,18 +375,18 @@ $activeContextLabel = $importTarget === 'cartao'
                     <span class="imp-status-badge" data-status="preview_ready">Conta</span>
                 </header>
                 <?php if ($profileConfig !== null) : ?>
-                <dl class="imp-definition-list">
-                    <dt>Conta</dt>
-                    <dd><?= (int) ($profileConfig['conta_id'] ?? 0) ?></dd>
-                    <dt>Origem padrão</dt>
-                    <dd><?= strtoupper(escape((string) ($profileConfig['source_type'] ?? 'ofx'))) ?></dd>
-                    <dt>Agência</dt>
-                    <dd><?= escape((string) ($profileConfig['agencia'] ?? '')) ?: 'Opcional' ?></dd>
-                    <dt>Número</dt>
-                    <dd><?= escape((string) ($profileConfig['numero_conta'] ?? '')) ?: 'Opcional' ?></dd>
-                </dl>
+                    <dl class="imp-definition-list">
+                        <dt>Conta</dt>
+                        <dd><?= (int) ($profileConfig['conta_id'] ?? 0) ?></dd>
+                        <dt>Origem padrão</dt>
+                        <dd><?= strtoupper(escape((string) ($profileConfig['source_type'] ?? 'ofx'))) ?></dd>
+                        <dt>Agência</dt>
+                        <dd><?= escape((string) ($profileConfig['agencia'] ?? '')) ?: 'Opcional' ?></dd>
+                        <dt>Número</dt>
+                        <dd><?= escape((string) ($profileConfig['numero_conta'] ?? '')) ?: 'Opcional' ?></dd>
+                    </dl>
                 <?php else : ?>
-                <p class="imp-card-text">Sem perfil base. Configure uma conta para liberar o fluxo completo.</p>
+                    <p class="imp-card-text">Sem perfil base. Configure uma conta para liberar o fluxo completo.</p>
                 <?php endif; ?>
                 <a class="imp-link" href="<?= escape($configUrl) ?>">Gerenciar perfil e configuração</a>
             </article>
@@ -395,27 +397,27 @@ $activeContextLabel = $importTarget === 'cartao'
                     <span class="imp-status-badge" data-status="processed"><?= $heroProcessedCount ?> processados</span>
                 </header>
                 <?php if ($latestHistoryItems !== []) : ?>
-                <ul class="imp-history-mini-list">
-                    <?php foreach ($latestHistoryItems as $historyItem) : ?>
-                    <?php $status = strtolower((string) ($historyItem['status'] ?? 'processed')); ?>
-                    <?php $target = strtolower((string) ($historyItem['import_target'] ?? 'conta')); ?>
-                    <li>
-                        <span class="imp-history-mini-list__id">#<?= (int) ($historyItem['batch_id'] ?? 0) ?></span>
-                        <span
-                            class="imp-history-mini-list__file"><?= escape((string) ($historyItem['filename'] ?? 'arquivo')) ?></span>
-                        <span class="imp-status-badge" data-status="<?= escape($status) ?>">
-                            <?= escape($historyStatusLabelMap[$status] ?? strtoupper($status)) ?>
-                        </span>
-                        <span class="imp-status-badge" data-status="idle">
-                            <?= escape($historyTargetLabelMap[$target] ?? 'Conta') ?>
-                        </span>
-                    </li>
-                    <?php endforeach; ?>
-                </ul>
+                    <ul class="imp-history-mini-list">
+                        <?php foreach ($latestHistoryItems as $historyItem) : ?>
+                            <?php $status = strtolower((string) ($historyItem['status'] ?? 'processed')); ?>
+                            <?php $target = strtolower((string) ($historyItem['import_target'] ?? 'conta')); ?>
+                            <li>
+                                <span class="imp-history-mini-list__id">#<?= (int) ($historyItem['batch_id'] ?? 0) ?></span>
+                                <span
+                                    class="imp-history-mini-list__file"><?= escape((string) ($historyItem['filename'] ?? 'arquivo')) ?></span>
+                                <span class="imp-status-badge" data-status="<?= escape($status) ?>">
+                                    <?= escape($historyStatusLabelMap[$status] ?? strtoupper($status)) ?>
+                                </span>
+                                <span class="imp-status-badge" data-status="idle">
+                                    <?= escape($historyTargetLabelMap[$target] ?? 'Conta') ?>
+                                </span>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
                 <?php else : ?>
-                <p class="imp-card-text">
-                    Nenhum lote confirmado ainda. O histórico é atualizado assim que uma importação é confirmada.
-                </p>
+                    <p class="imp-card-text">
+                        Nenhum lote confirmado ainda. O histórico é atualizado assim que uma importação é confirmada.
+                    </p>
                 <?php endif; ?>
                 <a class="imp-link" href="<?= BASE_URL ?>importacoes/historico">Ver histórico</a>
             </article>

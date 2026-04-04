@@ -2,6 +2,8 @@
 
 Este guia configura execucao continua do worker da fila de importacoes.
 
+Por padrao, a confirmacao de importacoes roda em modo sincrono. O worker abaixo so e necessario quando `IMPORTACOES_CONFIRM_ASYNC_DEFAULT=true` estiver habilitado no ambiente.
+
 - Script do worker: [cli/process_importacoes_queue.php](../cli/process_importacoes_queue.php)
 - Setup Windows: [deploy/windows](../deploy/windows)
 - Setup Linux (Supervisor): [deploy/supervisor/lukrato-importacoes-worker.supervisor.conf.example](../deploy/supervisor/lukrato-importacoes-worker.supervisor.conf.example)
@@ -22,6 +24,7 @@ Sem essa tabela, o worker entra em loop de erro com `Table 'importacao_jobs' doe
 
 As variaveis abaixo podem ser ajustadas no processo do worker:
 
+- `IMPORTACOES_CONFIRM_ASYNC_DEFAULT` (default `false`): quando `true`, a confirmacao enfileira jobs por padrao e depende deste worker para concluir.
 - `IMPORTACOES_QUEUE_SLEEP` (default `2`): pausa entre ciclos ociosos.
 - `IMPORTACOES_QUEUE_MAX_ATTEMPTS` (default `3`): tentativas maximas por job.
 - `IMPORTACOES_QUEUE_STALE_TTL` (default `900`): segundos para considerar job `processing` como travado.

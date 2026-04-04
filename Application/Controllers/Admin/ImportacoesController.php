@@ -10,6 +10,7 @@ use Application\Models\CartaoCredito;
 use Application\Repositories\ContaRepository;
 use Application\Services\Importacao\ImportHistoryService;
 use Application\Services\Importacao\ImportProfileConfigService;
+use Application\Services\Importacao\ImportSecurityPolicy;
 use Application\Services\Plan\PlanLimitService;
 
 class ImportacoesController extends WebController
@@ -117,6 +118,7 @@ class ImportacoesController extends WebController
                 'configEndpoint' => BASE_URL . 'api/importacoes/configuracoes',
                 'historyEndpoint' => BASE_URL . 'api/importacoes/historico',
                 'jobStatusEndpointBase' => BASE_URL . 'api/importacoes/jobs',
+                'confirmAsyncDefault' => ImportSecurityPolicy::shouldQueueConfirmByDefault(),
             ]
         );
     }

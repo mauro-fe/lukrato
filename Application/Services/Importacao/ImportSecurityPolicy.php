@@ -33,6 +33,14 @@ final class ImportSecurityPolicy
         return 'Não foi possível processar a importação agora. Tente novamente em instantes.';
     }
 
+    public static function shouldQueueConfirmByDefault(): bool
+    {
+        $configured = $_ENV['IMPORTACOES_CONFIRM_ASYNC_DEFAULT']
+            ?? getenv('IMPORTACOES_CONFIRM_ASYNC_DEFAULT');
+
+        return filter_var($configured, FILTER_VALIDATE_BOOLEAN);
+    }
+
     public static function importRateLimitAttempts(): int
     {
         return max(1, (int) ($_ENV['IMPORTACOES_RATE_LIMIT_MAX_ATTEMPTS'] ?? self::DEFAULT_IMPORT_RATE_LIMIT_ATTEMPTS));
