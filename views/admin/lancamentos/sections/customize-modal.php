@@ -1,5 +1,5 @@
 <div class="lan-customize-trigger">
-    <button class="modern-btn" id="btnCustomizeLancamentos" type="button">
+    <button class="modern-btn surface-card" id="btnCustomizeLancamentos" type="button">
         <i data-lucide="sliders-horizontal"></i><span>Personalizar tela</span>
     </button>
 </div>

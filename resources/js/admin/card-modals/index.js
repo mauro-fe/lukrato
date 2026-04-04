@@ -45,7 +45,7 @@ function renderLancamentos(lancamentos) {
         return '<div class="empty-message"><i data-lucide="inbox"></i><p>Nenhum lançamento neste mês</p></div>';
     }
     return lancamentos.map(lanc => `
-        <div class="lancamento-row">
+        <div class="lancamento-row surface-card">
             <div class="lancamento-left">
                 <div class="lancamento-category" style="background: ${lanc.categoria_cor}20; color: ${lanc.categoria_cor};">
                     ${escapeHtml(lanc.categoria)}
@@ -75,7 +75,7 @@ function renderComparison(diferenca) {
 
 function renderParcelamentosTable(parcelamentos) {
     return `
-        <table class="parcelamentos-table">
+        <table class="parcelamentos-table surface-card">
             <thead><tr><th>Compra</th><th>Categoria</th><th>Progresso</th><th>Valor/Mês</th><th>Restante</th><th>Término</th></tr></thead>
             <tbody>
                 ${parcelamentos.map(parc => {
@@ -131,7 +131,7 @@ function renderParcelamentos(data) {
         return '<div class="empty-message"><i data-lucide="circle-check"></i><p>Nenhum parcelamento ativo</p></div>';
     }
     return `
-        <div class="parcelamentos-table-wrapper">${renderParcelamentosTable(data.ativos)}</div>
+        <div class="parcelamentos-table-wrapper surface-card">${renderParcelamentosTable(data.ativos)}</div>
         <div class="parcelamentos-mobile-list">${renderParcelamentosMobile(data.ativos)}</div>
     `;
 }
@@ -141,13 +141,13 @@ function renderInsights(insights) {
     const cards = [];
 
     if (insights.tendencia) {
-        cards.push(`<div class="insight-card insight-${insights.tendencia.type}"><div class="insight-icon"><i data-lucide="${lucideIcon(insights.tendencia.icon)}"></i></div><div class="insight-content"><div class="insight-header-row"><span class="insight-label">Tendência</span><span class="insight-badge">${insights.tendencia.variacao}</span></div><h4 class="insight-status">${insights.tendencia.status}</h4><p class="insight-desc">${insights.tendencia.descricao}</p><p class="insight-recommendation"><i data-lucide="star"></i> ${insights.tendencia.recomendacao}</p></div></div>`);
+        cards.push(`<div class="insight-card surface-card insight-${insights.tendencia.type}"><div class="insight-icon"><i data-lucide="${lucideIcon(insights.tendencia.icon)}"></i></div><div class="insight-content"><div class="insight-header-row"><span class="insight-label">Tendência</span><span class="insight-badge">${insights.tendencia.variacao}</span></div><h4 class="insight-status">${insights.tendencia.status}</h4><p class="insight-desc">${insights.tendencia.descricao}</p><p class="insight-recommendation"><i data-lucide="star"></i> ${insights.tendencia.recomendacao}</p></div></div>`);
     }
     if (insights.parcelamentos) {
-        cards.push(`<div class="insight-card insight-${insights.parcelamentos.type}"><div class="insight-icon"><i data-lucide="${lucideIcon(insights.parcelamentos.icon)}"></i></div><div class="insight-content"><div class="insight-header-row"><span class="insight-label">Parcelamentos</span><span class="insight-badge">${insights.parcelamentos.valor}</span></div><h4 class="insight-status">${insights.parcelamentos.status}</h4><p class="insight-desc">${insights.parcelamentos.descricao}</p><p class="insight-recommendation"><i data-lucide="star"></i> ${insights.parcelamentos.recomendacao}</p></div></div>`);
+        cards.push(`<div class="insight-card surface-card insight-${insights.parcelamentos.type}"><div class="insight-icon"><i data-lucide="${lucideIcon(insights.parcelamentos.icon)}"></i></div><div class="insight-content"><div class="insight-header-row"><span class="insight-label">Parcelamentos</span><span class="insight-badge">${insights.parcelamentos.valor}</span></div><h4 class="insight-status">${insights.parcelamentos.status}</h4><p class="insight-desc">${insights.parcelamentos.descricao}</p><p class="insight-recommendation"><i data-lucide="star"></i> ${insights.parcelamentos.recomendacao}</p></div></div>`);
     }
     if (insights.limite) {
-        cards.push(`<div class="insight-card insight-${insights.limite.type}"><div class="insight-icon"><i data-lucide="${lucideIcon(insights.limite.icon)}"></i></div><div class="insight-content"><div class="insight-header-row"><span class="insight-label">Uso do Limite</span><span class="insight-badge">${insights.limite.percentual}</span></div><h4 class="insight-status">${insights.limite.status}</h4><p class="insight-desc">${insights.limite.descricao}</p><p class="insight-recommendation"><i data-lucide="star"></i> ${insights.limite.recomendacao}</p></div></div>`);
+        cards.push(`<div class="insight-card surface-card insight-${insights.limite.type}"><div class="insight-icon"><i data-lucide="${lucideIcon(insights.limite.icon)}"></i></div><div class="insight-content"><div class="insight-header-row"><span class="insight-label">Uso do Limite</span><span class="insight-badge">${insights.limite.percentual}</span></div><h4 class="insight-status">${insights.limite.status}</h4><p class="insight-desc">${insights.limite.descricao}</p><p class="insight-recommendation"><i data-lucide="star"></i> ${insights.limite.recomendacao}</p></div></div>`);
     }
 
     if (cards.length === 0) return '';
@@ -230,30 +230,16 @@ function renderCardDetailModal(data, cardColor) {
         return;
     }
 
-    // ── Critical: set positioning as INLINE STYLES to prevent CSS conflicts ──
-    Object.assign(overlay.style, {
-        position: 'fixed',
-        top: '0',
-        left: '0',
-        width: '100vw',
-        height: '100vh',
-        zIndex: '9999999',
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-        overflowY: 'auto',
-        background: 'rgba(0, 0, 0, 0.7)',
-        backdropFilter: 'blur(4px)',
-        WebkitBackdropFilter: 'blur(4px)',
-    });
-
     // Prevent background scroll while modal is open
     if (!modalSystem) {
         document.body.style.overflow = 'hidden';
     }
 
-    document.body.appendChild(overlay);
-    modalSystem?.prepareOverlay(overlay, { scope: 'page' });
+    if (modalSystem) {
+        modalSystem.prepareOverlay(overlay, { scope: 'page' });
+    } else {
+        document.body.appendChild(overlay);
+    }
     overlay.classList.add('active');
 
     // Scroll overlay to top

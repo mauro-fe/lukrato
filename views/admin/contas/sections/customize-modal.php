@@ -1,4 +1,4 @@
-<div class="cont-customize-trigger">
+<div class="cont-customize-trigger surface-card">
     <button class="btn btn-ghost" id="btnCustomizeContas" type="button">
         <i data-lucide="sliders-horizontal"></i> Personalizar tela
     </button>

@@ -87,6 +87,13 @@ class HelpCenter {
     }
 
     getCurrentPage() {
+        const pageOverride = String(document.querySelector('[data-lk-help-page]')?.getAttribute('data-lk-help-page') || '')
+            .trim()
+            .toLowerCase();
+        if (pageOverride) {
+            return pageOverride;
+        }
+
         const configPage = String(window.__LK_CONFIG?.currentMenu || '').trim().toLowerCase();
         if (configPage) {
             return configPage;

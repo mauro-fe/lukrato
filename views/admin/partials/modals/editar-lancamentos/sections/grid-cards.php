@@ -1,5 +1,5 @@
 <div class="lk-edit-lanc-grid">
-    <section class="lk-edit-lanc-card">
+    <section class="lk-edit-lanc-card surface-card">
         <div class="lk-edit-lanc-card__header">
             <div>
                 <h6>Quando e quanto</h6>
@@ -7,7 +7,7 @@
             </div>
         </div>
 
-        <div class="row g-3">
+        <div class="row g-4 lk-edit-lanc-card__grid">
             <div class="col-12">
                 <label class="form-label" for="editLancData">Data e horário</label>
                 <div class="lk-datetime-inline">
@@ -38,7 +38,7 @@
         </div>
     </section>
 
-    <section class="lk-edit-lanc-card">
+    <section class="lk-edit-lanc-card surface-card">
         <div class="lk-edit-lanc-card__header">
             <div>
                 <h6>Classificação</h6>
@@ -46,7 +46,7 @@
             </div>
         </div>
 
-        <div class="row g-3">
+        <div class="row g-4 lk-edit-lanc-card__grid">
             <div class="col-md-6">
                 <label for="editLancConta" class="form-label">Conta</label>
                 <select class="form-select" id="editLancConta" required data-lk-custom-select="form"
@@ -110,7 +110,7 @@
         <div id="editLancPlanningAlerts" class="lk-planning-alerts" hidden></div>
     </section>
 
-    <section class="lk-edit-lanc-card lk-edit-lanc-card--wide">
+    <section class="lk-edit-lanc-card lk-edit-lanc-card--wide surface-card">
         <div class="lk-edit-lanc-card__header">
             <div>
                 <h6>Detalhes finais</h6>
@@ -118,7 +118,7 @@
             </div>
         </div>
 
-        <div class="row g-3">
+        <div class="row g-4 lk-edit-lanc-card__grid">
             <div class="col-md-7">
                 <label for="editLancDescricao" class="form-label">Descrição</label>
                 <input type="text" class="form-control" id="editLancDescricao" placeholder="Ex.: Mercado, Uber, salário"

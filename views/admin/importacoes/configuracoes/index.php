@@ -57,6 +57,7 @@ $summaryCsvDelimiter = $csvDelimiter !== '' ? $csvDelimiter : ';';
 ?>
 
 <section class="imp-config-page" data-importacoes-page="configuracoes"
+    data-lk-help-page="importacoes_configuracoes"
     data-imp-active-account-id="<?= $selectedAccountId ?>"
     data-imp-config-load-endpoint="<?= escape($configLoadEndpoint) ?>"
     data-imp-config-save-endpoint="<?= escape($configSaveEndpoint) ?>"

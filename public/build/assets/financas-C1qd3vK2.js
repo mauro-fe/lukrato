@@ -67,7 +67,7 @@ import{d as te,i as ae,e as oe,h as ne,c as re}from"./api-CiEmwEpk.js";import{c 
                     ${B}
                 </div>
             </div>`}).join(""),window.lucide&&lucide.createIcons()}}function A(i){const d=document.getElementById("insightsSection"),o=document.getElementById("insightsGrid");if(o){if(!i.length){d&&(d.style.display="none");return}d&&(d.style.display=""),o.innerHTML=i.map(f=>{const r=t.getInsightIcon(f.tipo),a=f.nivel||"info";return`
-            <div class="insight-card ${a}" data-aos="fade-up">
+            <div class="insight-card surface-card ${a}" data-aos="fade-up">
                 <div class="insight-icon ${a}">
                     <i data-lucide="${r}"></i>
                 </div>

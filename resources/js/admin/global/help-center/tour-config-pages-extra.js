@@ -1,6 +1,57 @@
 import { DEFAULT_VERSION } from './tour-shared.js';
 
 export const TOUR_CONFIGS_EXTRA = {
+    importacoes: {
+        label: 'Importacoes',
+        version: DEFAULT_VERSION,
+        primarySelector: ['#impFlowSection', '[data-imp-submit]', '#impPreviewSection'],
+        steps: [
+            {
+                selector: '#impFlowSection',
+                title: 'Escolha o arquivo e o alvo',
+                description: 'Defina conta ou cartao, escolha o formato e envie o arquivo para montar o preview.',
+                side: 'bottom',
+                align: 'start',
+            },
+            {
+                selector: '#impPreviewSection',
+                title: 'Revise antes de confirmar',
+                description: 'Confira warnings, categorias e linhas normalizadas antes de persistir a importacao.',
+                side: 'top',
+                align: 'center',
+            },
+            {
+                selector: '#btnCustomizeImportacoes',
+                title: 'Modo essencial da tela',
+                description: 'Use a personalizacao para deixar so o fluxo principal visivel quando quiser.',
+                side: 'bottom',
+                align: 'center',
+            },
+        ],
+        mobileSteps: [
+            {
+                selector: '#impFlowSection',
+                title: 'Preparar importacao',
+                description: 'Escolha alvo, formato e arquivo antes de seguir para o preview.',
+                side: 'bottom',
+                align: 'center',
+            },
+            {
+                selector: '#impPreviewSection',
+                title: 'Preview e confirmacao',
+                description: 'Revise linhas e confirme somente quando estiver tudo certo.',
+                side: 'top',
+                align: 'center',
+            },
+            {
+                selector: '#btnCustomizeImportacoes',
+                title: 'Personalizar tela',
+                description: 'No modo essencial voce pode esconder os blocos de apoio e focar no principal.',
+                side: 'bottom',
+                align: 'center',
+            },
+        ],
+    },
     gamification: {
         label: 'Conquistas',
         version: DEFAULT_VERSION,

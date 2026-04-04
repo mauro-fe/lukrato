@@ -3,17 +3,24 @@
 }
 
 .lk-edit-lanc-modal__dialog {
-  max-width: min(780px, calc(100vw - 1.5rem));
+  max-width: min(1040px, calc(100vw - 2.5rem));
 }
 
 .lk-edit-lanc-modal__content {
-background: var(--color-bg);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 98%, transparent), color-mix(in srgb, var(--color-bg) 96%, transparent)),
+    var(--color-bg);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 94%, transparent);
+  border-radius: calc(var(--radius-xl) + 4px);
+  overflow: hidden;
+  box-shadow: 0 28px 64px rgba(15, 23, 42, 0.28);
 }
 
 .lk-edit-lanc-modal__header {
   align-items: flex-start;
-  gap: var(--spacing-4);
-  padding: var(--spacing-6);
+  gap: var(--spacing-5);
+  padding: clamp(1.25rem, 1rem + 0.7vw, 1.85rem);
+  border-bottom: 1px solid color-mix(in srgb, var(--glass-border) 86%, transparent);
 }
 
 .lk-edit-lanc-modal__header-main {
@@ -61,13 +68,13 @@ background: var(--color-bg);
 }
 
 .lk-edit-lanc-modal__body {
-  padding: 0 var(--spacing-6) var(--spacing-6);
+  padding: 0 clamp(1.25rem, 1rem + 0.7vw, 1.85rem) clamp(1.25rem, 1rem + 0.7vw, 1.85rem);
 }
 
 .lk-edit-lanc-form {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4);
+  gap: clamp(1rem, 0.8rem + 0.55vw, 1.4rem);
 }
 
 .lk-edit-lanc-form #editLancAlert {
@@ -81,13 +88,11 @@ background: var(--color-bg);
 .lk-edit-lanc-summary {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  gap: var(--spacing-4);
-  padding: 1.15rem 1.25rem;
-  --surface-card-bg:  var(--color-bg) ;
-  --surface-card-border: color-mix(in srgb, var(--color-primary) 16%, var(--glass-border));
-  --surface-card-shadow: none;
-  --surface-card-transform: translateY(0);
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  margin-top: var(--spacing-3);
+
 }
 
 .lk-edit-lanc-summary__copy,
@@ -98,7 +103,7 @@ background: var(--color-bg);
 }
 
 .lk-edit-lanc-summary__copy {
-  gap: 0.28rem;
+  gap: 0.4rem;
 }
 
 .lk-edit-lanc-summary__title {
@@ -113,11 +118,13 @@ background: var(--color-bg);
   color: var(--color-text-muted);
   font-size: 0.92rem;
   line-height: 1.5;
+  max-width: 42rem;
 }
 
 .lk-edit-lanc-summary__aside {
   align-items: flex-end;
-  gap: 0.65rem;
+  gap: 0.8rem;
+  min-width: clamp(12rem, 20vw, 15rem);
 }
 
 .lk-edit-lanc-summary__chips {
@@ -181,15 +188,23 @@ background: var(--color-bg);
 .lk-edit-lanc-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--spacing-4);
+  gap: clamp(1rem, 0.8rem + 0.65vw, 1.35rem);
+  isolation: isolate;
 }
 
 .lk-edit-lanc-card {
-  padding: 1.15rem;
-  border: 1px solid color-mix(in srgb, var(--glass-border) 90%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
   border-radius: var(--radius-xl);
-  background: var(--color-bg);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  position: relative;
+  z-index: 0;
+  transform: none;
+}
+
+.lk-edit-lanc-card:has(.lk-custom-select.is-open) {
+  z-index: 12;
 }
 
 .lk-edit-lanc-card--wide {
@@ -197,13 +212,13 @@ background: var(--color-bg);
 }
 
 .lk-edit-lanc-card__header {
-  margin-bottom: 1rem;
+  margin-bottom: 0;
 }
 
 .lk-edit-lanc-card__header h6 {
   margin: 0;
   color: var(--color-text);
-  font-size: 1rem;
+  font-size: 1.02rem;
   font-weight: 700;
 }
 
@@ -212,6 +227,12 @@ background: var(--color-bg);
   color: var(--color-text-muted);
   font-size: 0.9rem;
   line-height: 1.45;
+  max-width: 30rem;
+}
+
+.lk-edit-lanc-card__grid {
+  --bs-gutter-x: 1.1rem;
+  --bs-gutter-y: 1.1rem;
 }
 
 .lk-edit-lanc-form .form-label {
@@ -225,7 +246,8 @@ background: var(--color-bg);
 
 .lk-edit-lanc-form .form-control,
 .lk-edit-lanc-form .form-select {
-  min-height: 52px;
+  min-height: 54px;
+  padding-inline: 0.95rem;
   border: 1px solid color-mix(in srgb, var(--glass-border) 92%, transparent);
   border-radius: var(--radius-lg);
   background: color-mix(in srgb, var(--color-surface) 86%, transparent);
@@ -253,10 +275,9 @@ background: var(--color-bg);
 }
 
 .lk-edit-lanc-form .lk-datetime-inline {
-  min-height: 52px;
-  padding: 0 0.9rem;
-  background: color-mix(in srgb, var(--color-surface) 86%, transparent);
-  border-color: color-mix(in srgb, var(--glass-border) 92%, transparent);
+  min-height: 54px;
+  padding: 0 1rem;
+  background: var(--color-bg);
 }
 
 .lk-edit-lanc-form .lk-datetime-inline .form-control,
@@ -272,10 +293,14 @@ background: var(--color-bg);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 16%, transparent);
 }
 
+.lk-custom-select-trigger{
+  background:var(--color-bg) ;
+}
+
 .lk-edit-lanc-category-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.75rem;
+  gap: 0.9rem;
   align-items: stretch;
 }
 
@@ -302,7 +327,9 @@ background: var(--color-bg);
   justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--spacing-4);
-  padding-top: 0.25rem;
+  margin-top: 0.15rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid color-mix(in srgb, var(--glass-border) 82%, transparent);
 }
 
 .lk-edit-lanc-modal__hint {
@@ -332,7 +359,11 @@ background: var(--color-bg);
   font-weight: 700;
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 991.98px) {
+  .lk-edit-lanc-modal__dialog {
+    max-width: min(860px, calc(100vw - 1.5rem));
+  }
+
   .lk-edit-lanc-grid {
     grid-template-columns: 1fr;
   }
@@ -340,7 +371,9 @@ background: var(--color-bg);
   .lk-edit-lanc-card--wide {
     grid-column: auto;
   }
+}
 
+@media (max-width: 767.98px) {
   .lk-edit-lanc-summary {
     flex-direction: column;
     align-items: stretch;
@@ -378,6 +411,10 @@ background: var(--color-bg);
   .lk-edit-lanc-modal__header {
     padding-top: var(--spacing-5);
     padding-bottom: var(--spacing-5);
+  }
+
+  .lk-edit-lanc-modal__header-main {
+    gap: var(--spacing-3);
   }
 
   .lk-edit-lanc-card {

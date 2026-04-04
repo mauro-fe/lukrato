@@ -37,7 +37,7 @@ foreach ($historyItems as $item) {
 }
 ?>
 
-<section class="imp-history-page" data-importacoes-page="historico">
+<section class="imp-history-page" data-importacoes-page="historico" data-lk-help-page="importacoes_historico">
     <header
         class="imp-page-hero imp-page-hero--compact imp-surface surface-card surface-card--interactive surface-card--clip">
         <div class="imp-page-hero__content">

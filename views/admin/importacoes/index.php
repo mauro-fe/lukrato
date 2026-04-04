@@ -90,7 +90,8 @@ $activeContextLabel = $importTarget === 'cartao'
     : (string) ($activeAccount['nome'] ?? 'Conta não selecionada');
 ?>
 
-<section class="imp-page" data-importacoes-page="index" data-imp-preview-endpoint="<?= escape($previewEndpoint) ?>"
+<section class="imp-page" data-importacoes-page="index" data-lk-help-page="importacoes"
+    data-imp-preview-endpoint="<?= escape($previewEndpoint) ?>"
     data-imp-confirm-endpoint="<?= escape($confirmEndpoint) ?>" data-imp-active-account-id="<?= $selectedAccountId ?>"
     data-imp-active-card-id="<?= $selectedCardId ?>" data-imp-import-target="<?= escape($importTarget) ?>"
     data-imp-plan="<?= escape($currentPlan) ?>" data-imp-upgrade-url="<?= escape($upgradeUrl) ?>"
@@ -99,7 +100,9 @@ $activeContextLabel = $importTarget === 'cartao'
     data-imp-categories-endpoint="<?= escape(BASE_URL . 'api/categorias') ?>"
     data-imp-subcategories-endpoint-base="<?= escape(BASE_URL . 'api/categorias') ?>"
     data-imp-confirm-async-default="<?= $confirmAsyncDefault ? '1' : '0' ?>">
-    <header
+    <?php include __DIR__ . '/sections/customize-modal.php'; ?>
+
+    <header id="impHeroSection"
         class="imp-page-hero imp-page-hero--compact imp-surface surface-card surface-card--interactive surface-card--clip">
         <div class="imp-page-hero__content">
             <p class="imp-page-hero__eyebrow">Importações</p>
@@ -141,7 +144,7 @@ $activeContextLabel = $importTarget === 'cartao'
 
     <div class="imp-index-layout">
         <div class="imp-index-main">
-            <article class="imp-flow-card imp-surface surface-card surface-card--interactive">
+            <article class="imp-flow-card imp-surface surface-card surface-card--interactive" id="impFlowSection">
                 <header class="imp-card-head imp-card-head--split">
                     <div>
                         <p class="imp-card-eyebrow">Preparar preview</p>
@@ -280,7 +283,7 @@ $activeContextLabel = $importTarget === 'cartao'
                 </form>
             </article>
 
-            <article class="imp-preview-card imp-surface surface-card surface-card--interactive"
+            <article class="imp-preview-card imp-surface surface-card surface-card--interactive" id="impPreviewSection"
                 data-imp-preview-region>
                 <header class="imp-card-head imp-card-head--split">
                     <div>
@@ -387,7 +390,7 @@ $activeContextLabel = $importTarget === 'cartao'
             </article>
         </div>
 
-        <aside class="imp-index-side">
+        <aside class="imp-index-side" id="impIndexSideSection">
             <article class="imp-side-card imp-surface surface-card surface-card--interactive" data-imp-plan-card>
                 <header class="imp-card-head imp-card-head--split">
                     <h3 class="imp-card-title">Plano e quota</h3>

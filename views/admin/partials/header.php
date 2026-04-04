@@ -116,6 +116,137 @@ $footerModules = is_array($footerModules ?? null)
     <!-- Page-specific CSS (auto-detected) -->
     <?php loadPageCss($currentViewId); ?>
 
+    <style>
+        html.lk-preboot,
+        html.lk-preboot body {
+            overflow: hidden;
+            background: #0b1220;
+        }
+
+        .lk-preboot-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2147483000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background:
+                radial-gradient(1200px 420px at 50% 0%, rgba(249, 115, 22, 0.16), transparent 60%),
+                linear-gradient(180deg, rgba(11, 18, 32, 0.98), rgba(15, 23, 42, 0.98));
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.22s ease, visibility 0.22s ease;
+        }
+
+        html:not(.lk-preboot) .lk-preboot-overlay,
+        .lk-preboot-overlay.is-hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .lk-preboot-card {
+            width: min(360px, calc(100vw - 2rem));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 1.35rem 1.5rem;
+            border-radius: 20px;
+            background: rgba(15, 23, 42, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.34);
+            text-align: center;
+        }
+
+        .lk-preboot-spinner {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.12);
+            border-top-color: #f97316;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: lk-preboot-spin 0.9s linear infinite;
+        }
+
+        .lk-preboot-logo {
+            width: 34px;
+            height: 34px;
+            object-fit: contain;
+            filter: drop-shadow(0 6px 14px rgba(249, 115, 22, 0.24));
+        }
+
+        .lk-preboot-title {
+            margin: 0;
+            color: #f8fafc;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+        }
+
+        .lk-preboot-subtitle {
+            margin: 0;
+            color: rgba(226, 232, 240, 0.78);
+            font-size: 0.86rem;
+            line-height: 1.45;
+        }
+
+        @keyframes lk-preboot-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .lk-preboot-overlay,
+            .lk-preboot-spinner {
+                transition: none;
+                animation: none;
+            }
+        }
+    </style>
+
+    <script>
+        (function() {
+            const root = document.documentElement;
+            root.classList.add('lk-preboot');
+
+            let released = false;
+
+            window.__LK_RELEASE_PREBOOT__ = function() {
+                if (released) {
+                    return;
+                }
+
+                released = true;
+                root.classList.remove('lk-preboot');
+
+                const overlay = document.getElementById('lkPrebootOverlay');
+                if (!overlay) {
+                    return;
+                }
+
+                overlay.classList.add('is-hidden');
+                window.setTimeout(function() {
+                    overlay.remove();
+                }, 260);
+            };
+
+            window.addEventListener('load', function() {
+                window.setTimeout(function() {
+                    if (typeof window.__LK_RELEASE_PREBOOT__ === 'function') {
+                        window.__LK_RELEASE_PREBOOT__();
+                    }
+                }, 180);
+            }, {
+                once: true
+            });
+        })();
+    </script>
+
     <!-- Proteção contra internet lenta (timeout, retry, indicadores) -->
 
     <!-- Enhancements por último para sobrescrever tudo -->
@@ -200,6 +331,15 @@ $footerModules = is_array($footerModules ?? null)
 </head>
 
 <body<?php if (!empty($showMonthSelector)) echo ' class="has-month-bar"'; ?>>
+    <div class="lk-preboot-overlay" id="lkPrebootOverlay" aria-hidden="true">
+        <div class="lk-preboot-card" role="status" aria-live="polite">
+            <div class="lk-preboot-spinner" aria-hidden="true">
+                <img src="<?= BASE_URL ?>assets/img/icone.png" alt="" class="lk-preboot-logo">
+            </div>
+            <p class="lk-preboot-title">Carregando...</p>
+            <p class="lk-preboot-subtitle">Preparando conteudo</p>
+        </div>
+    </div>
     <script>
         if (window.__lkSidebarCollapsed) document.body.classList.add('sidebar-collapsed');
     </script>

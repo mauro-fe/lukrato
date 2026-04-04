@@ -1,5 +1,5 @@
 <div class="cat-customize-trigger">
-    <button class="cat-customize-open" id="btnCustomizeCategorias" type="button">
+    <button class="cat-customize-open surface-card" id="btnCustomizeCategorias" type="button">
         <i data-lucide="sliders-horizontal"></i>
         <span>Personalizar tela</span>
     </button>

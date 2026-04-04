@@ -321,7 +321,7 @@ export function createFinancasUi({
             const icon = Utils.getInsightIcon(insight.tipo);
             const level = insight.nivel || 'info';
             return `
-            <div class="insight-card ${level}" data-aos="fade-up">
+            <div class="insight-card surface-card ${level}" data-aos="fade-up">
                 <div class="insight-icon ${level}">
                     <i data-lucide="${icon}"></i>
                 </div>

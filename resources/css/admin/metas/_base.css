@@ -615,7 +615,6 @@
 }
 
 .met-insight-card {
-  backdrop-filter: var(--glass-backdrop);
   padding: var(--spacing-4);
   display: flex;
   align-items: flex-start;

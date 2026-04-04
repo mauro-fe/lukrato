@@ -19,7 +19,7 @@ export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) 
 
         restaurarCabecalhoPadrao() {
             const tituloEl = document.getElementById('modalLancamentoGlobalTitulo');
-            if (tituloEl) tituloEl.textContent = 'Nova Movimentacao';
+            if (tituloEl) tituloEl.textContent = 'Nova Transação';
 
             const headerGradient = document.querySelector('#modalLancamentoGlobalOverlay .lk-modal-header-gradient');
             if (headerGradient) {

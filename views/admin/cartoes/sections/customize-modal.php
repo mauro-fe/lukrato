@@ -1,5 +1,5 @@
 <div class="cart-customize-trigger">
-    <button class="btn btn-ghost" id="btnCustomizeCartoes" type="button">
+    <button class="btn btn-ghost surface-card" id="btnCustomizeCartoes" type="button">
         <i data-lucide="sliders-horizontal"></i> Personalizar tela
     </button>
 </div>

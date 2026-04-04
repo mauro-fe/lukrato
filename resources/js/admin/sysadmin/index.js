@@ -292,7 +292,7 @@ function viewUser(userId) {
             if (user.endereco) {
                 const end = user.endereco;
                 enderecoHtml = `
-                    <div class="detail-section">
+                    <div class="detail-section surface-card">
                         <h4><i data-lucide="map-pin" class="icon-info"></i> Endereço</h4>
                         ${end.rua ? `<div class="detail-row"><span class="detail-label">Logradouro</span><span class="detail-value">${end.rua}${end.numero ? ', ' + end.numero : ''}</span></div>` : ''}
                         ${end.complemento ? `<div class="detail-row"><span class="detail-label">Complemento</span><span class="detail-value">${end.complemento}</span></div>` : ''}

@@ -759,10 +759,10 @@ class ReportService
             ->orderBy('data_compra', 'desc')
             ->get();
 
-        $aVista = $itensFatura->whereNull('total_parcelas')->sum('valor') +
-            $itensFatura->where('total_parcelas', 1)->sum('valor');
-        $parcelado = $itensFatura->where('total_parcelas', '>', 1)->sum('valor');
-        $totalFatura = $itensFatura->sum('valor');
+        $aVista = (float) $itensFatura->whereNull('total_parcelas')->sum('valor') +
+            (float) $itensFatura->where('total_parcelas', 1)->sum('valor');
+        $parcelado = (float) $itensFatura->where('total_parcelas', '>', 1)->sum('valor');
+        $totalFatura = (float) $itensFatura->sum('valor');
 
         // Calcular limite e percentual de utilização GERAL (todos os itens não pagos)
         $limite = (float) ($cartao->limite_total ?? 0);
@@ -804,7 +804,7 @@ class ReportService
             $mesAnalise = (int) $dataAnalise->format('m');
             $anoAnalise = (int) $dataAnalise->format('Y');
 
-            $valorMes = \Application\Models\FaturaCartaoItem::where('user_id', $userId)
+            $valorMes = (float) \Application\Models\FaturaCartaoItem::where('user_id', $userId)
                 ->where('cartao_credito_id', $cardId)
                 ->where('mes_referencia', $mesAnalise)
                 ->where('ano_referencia', $anoAnalise)
@@ -824,7 +824,7 @@ class ReportService
         // Calcular tendência
         $valores = array_column($evolucao, 'valor');
         $media = count($valores) > 0 ? array_sum($valores) / count($valores) : 0;
-        $ultimoValor = end($valores);
+        $ultimoValor = (float) (end($valores) ?: 0);
         $tendencia = $ultimoValor > $media * 1.1 ? 'subindo' : ($ultimoValor < $media * 0.9 ? 'caindo' : 'estável');
 
         // COMPARATIVO COM MÊS ANTERIOR - usando FaturaCartaoItem
@@ -833,7 +833,7 @@ class ReportService
         $mesAnteriorInt = (int) $mesAnterior->format('m');
         $anoAnteriorInt = (int) $mesAnterior->format('Y');
 
-        $faturaAnterior = \Application\Models\FaturaCartaoItem::where('user_id', $userId)
+        $faturaAnterior = (float) \Application\Models\FaturaCartaoItem::where('user_id', $userId)
             ->where('cartao_credito_id', $cardId)
             ->where('mes_referencia', $mesAnteriorInt)
             ->where('ano_referencia', $anoAnteriorInt)
@@ -908,7 +908,7 @@ class ReportService
             $mesProjecao = (int) $dataProjecao->format('m');
             $anoProjecao = (int) $dataProjecao->format('Y');
 
-            $valorMes = \Application\Models\FaturaCartaoItem::where('user_id', $userId)
+            $valorMes = (float) \Application\Models\FaturaCartaoItem::where('user_id', $userId)
                 ->where('cartao_credito_id', $cardId)
                 ->where('mes_referencia', $mesProjecao)
                 ->where('ano_referencia', $anoProjecao)

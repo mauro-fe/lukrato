@@ -2,7 +2,7 @@
          PERSONALIZAR DASHBOARD — Botão + Modal
          ============================================================ -->
 <div class="dash-customize-trigger">
-    <button class="dash-btn dash-btn--ghost" id="btnCustomizeDashboard" type="button">
+    <button class="dash-btn dash-btn--ghost surface-card" id="btnCustomizeDashboard" type="button">
         <i data-lucide="sliders-horizontal"></i> Personalizar dashboard
     </button>
 </div>

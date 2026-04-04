@@ -61,7 +61,7 @@
 }
 
 .alerta-dismiss {
-  background: none;
+  background: var(--color-bg);
   border: none;
   width: 32px;
   height: 32px;

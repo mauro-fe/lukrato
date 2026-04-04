@@ -18,19 +18,19 @@
             </div>
 
             <div class="card-detail-stats-grid">
-                <div class="stat-box">
+                <div class="stat-box surface-card">
                     <span class="stat-box-label">FATURA</span>
                     <span class="stat-box-value" data-fatura-total></span>
                 </div>
-                <div class="stat-box">
+                <div class="stat-box surface-card">
                     <span class="stat-box-label">LIMITE</span>
                     <span class="stat-box-value" data-limite></span>
                 </div>
-                <div class="stat-box">
+                <div class="stat-box surface-card">
                     <span class="stat-box-label">DISPONÍVEL</span>
                     <span class="stat-box-value" data-disponivel></span>
                 </div>
-                <div class="stat-box">
+                <div class="stat-box surface-card">
                     <span class="stat-box-label">UTILIZAÇÃO</span>
                     <span class="stat-box-value" data-utilizacao></span>
                 </div>
@@ -45,18 +45,18 @@
                     <span class="section-badge" data-lancamentos-count></span>
                 </div>
 
-                <div class="lancamentos-list-clean" data-lancamentos-list></div>
+                <div class="lancamentos-list-clean surface-card" data-lancamentos-list></div>
 
                 <div class="summary-boxes">
-                    <div class="summary-box">
+                    <div class="summary-box surface-card">
                         <span class="summary-label">À Vista</span>
                         <span class="summary-value" data-a-vista></span>
                     </div>
-                    <div class="summary-box">
+                    <div class="summary-box surface-card">
                         <span class="summary-label">Parcelado</span>
                         <span class="summary-value" data-parcelado></span>
                     </div>
-                    <div class="summary-box highlight">
+                    <div class="summary-box surface-card highlight">
                         <span class="summary-label">TOTAL</span>
                         <span class="summary-value" data-total></span>
                     </div>
@@ -67,14 +67,14 @@
 
             <!-- Evolução Mensal e Impacto Futuro lado a lado -->
             <div class="detail-section-grid">
-                <div class="detail-section detail-section-grid-item">
+                <div class="detail-section detail-section-grid-item surface-card">
                     <div class="detail-section-header">
                         <i data-lucide="line-chart"></i>
                         <h3>Evolução Mensal</h3>
                         <span class="tendencia-indicator" data-tendencia></span>
                     </div>
 
-                    <div class="detail-chart-container">
+                    <div class="detail-chart-container surface-card">
                         <div id="evolutionChart"></div>
                     </div>
 
@@ -84,13 +84,13 @@
 
                 </div>
                 <!-- Impacto Futuro -->
-                <div class="detail-section detail-section-grid-item">
+                <div class="detail-section detail-section-grid-item surface-card">
                     <div class="detail-section-header">
                         <i data-lucide="sparkles"></i>
                         <h3>Impacto Futuro</h3>
                     </div>
 
-                    <div class="detail-chart-container">
+                    <div class="detail-chart-container surface-card">
                         <div id="impactChart"></div>
                     </div>
 

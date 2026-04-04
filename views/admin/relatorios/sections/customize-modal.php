@@ -1,5 +1,5 @@
     <div class="rel-customize-trigger">
-        <button class="rel-customize-open" id="btnCustomizeRelatorios" type="button">
+        <button class="rel-customize-open surface-card" id="btnCustomizeRelatorios" type="button">
             <i data-lucide="sliders-horizontal"></i>
             <span>Personalizar tela</span>
         </button>

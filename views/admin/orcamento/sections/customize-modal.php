@@ -1,5 +1,5 @@
 <div class="orc-customize-trigger">
-    <button class="orc-customize-open" id="btnCustomizeOrcamento" type="button">
+    <button class="orc-customize-open surface-card" id="btnCustomizeOrcamento" type="button">
         <i data-lucide="sliders-horizontal"></i>
         <span>Personalizar tela</span>
     </button>

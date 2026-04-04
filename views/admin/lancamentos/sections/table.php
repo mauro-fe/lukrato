@@ -9,7 +9,7 @@
             <div class="table-actions">
                 <button type="button" class="modern-btn btn-novo-lancamento" id="btnNovoLancamento"
                     aria-label="Novo lancamento">
-                    <i data-lucide="plus"></i><span>Novo lancamento</span>
+                    <i data-lucide="plus"></i><span>Nova transação</span>
                 </button>
                 <button type="button" class="icon-btn" title="Atualizar" id="btnRefreshPage">
                     <i data-lucide="refresh-cw"></i>

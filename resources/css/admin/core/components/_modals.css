@@ -10,6 +10,19 @@
   pointer-events: auto;
 }
 
+.lk-modal-root > [data-lk-modal-scope]:not(.modal):not(.modal-backdrop) {
+  min-width: 0;
+  min-height: 0;
+}
+
+.lk-modal-root > [data-lk-modal-scope]:not(.modal):not(.modal-backdrop) > * {
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+  max-height: 100%;
+  box-sizing: border-box;
+}
+
 #lk-app-modal-root {
   position: fixed;
   inset: 0;
@@ -18,7 +31,7 @@
 
 #lk-page-modal-root {
   position: fixed;
-  top: 80px;
+  top: 70px;
   right: 0;
   bottom: 0;
   left: var(--sidebar-width);
@@ -27,10 +40,6 @@
 
 body.sidebar-collapsed #lk-page-modal-root {
   left: var(--sidebar-collapsed-width);
-}
-
-body.has-month-bar #lk-page-modal-root {
-  top: 124px;
 }
 
 #lk-page-shell.lk-page-shell--modal-open {
@@ -74,29 +83,17 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
     top: 60px;
     left: 0;
   }
-
-  body.has-month-bar #lk-page-modal-root {
-    top: 104px;
-  }
 }
 
 @media (max-width: 768px) {
   #lk-page-modal-root {
     top: 56px;
   }
-
-  body.has-month-bar #lk-page-modal-root {
-    top: 98px;
-  }
 }
 
 @media (max-width: 640px) {
   #lk-page-modal-root {
     top: 50px;
-  }
-
-  body.has-month-bar #lk-page-modal-root {
-    top: 90px;
   }
 }
 

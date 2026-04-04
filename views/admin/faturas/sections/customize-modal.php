@@ -1,5 +1,5 @@
 <div class="fat-customize-trigger">
-    <button class="fat-customize-open" id="btnCustomizeFaturas" type="button">
+    <button class="fat-customize-open surface-card" id="btnCustomizeFaturas" type="button">
         <i data-lucide="sliders-horizontal"></i>
         <span>Personalizar tela</span>
     </button>

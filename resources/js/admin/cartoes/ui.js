@@ -921,14 +921,16 @@ export const CartoesUI = {
             const rect = trigger.getBoundingClientRect();
             const menuWidth = menuEl.offsetWidth || 188;
             const menuHeight = menuEl.offsetHeight || 156;
+            const viewportPadding = 12;
             const left = Math.min(
-                window.scrollX + window.innerWidth - menuWidth - 12,
-                Math.max(window.scrollX + 12, rect.right + window.scrollX - menuWidth)
+                window.innerWidth - menuWidth - viewportPadding,
+                Math.max(viewportPadding, rect.right - menuWidth)
             );
-            const top = Math.min(
-                window.scrollY + window.innerHeight - menuHeight - 12,
-                rect.bottom + window.scrollY + 8
-            );
+            const preferredTop = rect.bottom + 8;
+            const preferredBottom = rect.top - menuHeight - 8;
+            const top = preferredTop + menuHeight <= window.innerHeight - viewportPadding
+                ? preferredTop
+                : Math.max(viewportPadding, preferredBottom);
 
             menuEl.style.left = `${left}px`;
             menuEl.style.top = `${top}px`;

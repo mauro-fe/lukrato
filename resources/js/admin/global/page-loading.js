@@ -150,6 +150,11 @@
             bindViewportTracking();
             applyLoaderAnchor(elements);
             state.shownAt = Date.now();
+
+            if (typeof window.__LK_RELEASE_PREBOOT__ === 'function') {
+                window.__LK_RELEASE_PREBOOT__();
+            }
+
             return;
         }
 
@@ -210,12 +215,16 @@
             if (state.showTimer) {
                 clearTimeout(state.showTimer);
             }
-            state.showTimer = setTimeout(() => {
-                state.showTimer = null;
-                if (state.activeCount > 0) {
-                    setVisible(true, message, subtitle);
-                }
-            }, delay);
+            if (delay === 0) {
+                setVisible(true, message, subtitle);
+            } else {
+                state.showTimer = setTimeout(() => {
+                    state.showTimer = null;
+                    if (state.activeCount > 0) {
+                        setVisible(true, message, subtitle);
+                    }
+                }, delay);
+            }
         } else {
             const elements = getElements();
             if (elements.shell?.dataset.pageLoadingState === 'active') {
@@ -320,6 +329,11 @@
         boot.release = null;
 
         window.__LK_INITIAL_PAGE_READY__ = true;
+
+        if (typeof window.__LK_RELEASE_PREBOOT__ === 'function') {
+            window.__LK_RELEASE_PREBOOT__();
+        }
+
         dispatchReadyEvent();
     }
 
@@ -363,6 +377,11 @@
         if (boot.loadDone) {
             boot.finished = true;
             window.__LK_INITIAL_PAGE_READY__ = true;
+
+            if (typeof window.__LK_RELEASE_PREBOOT__ === 'function') {
+                window.__LK_RELEASE_PREBOOT__();
+            }
+
             return;
         }
 

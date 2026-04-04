@@ -5,10 +5,13 @@ import {
     fetchApiJson,
     normalizeSourceType,
 } from './app.js';
+import { initCustomize } from './customize.js';
 
 const context = bootImportacoesPage('index');
 
 if (context) {
+    initCustomize();
+
     const sourceInputs = Array.from(context.root.querySelectorAll('[data-imp-source-type]'));
     const targetInputs = Array.from(context.root.querySelectorAll('[data-imp-target-type]'));
     const accountField = context.root.querySelector('[data-imp-account-field]');

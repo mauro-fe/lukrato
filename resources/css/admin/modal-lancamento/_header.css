@@ -48,6 +48,13 @@
   font-size: 1.25rem;
 }
 
+.modal-icon{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
 /* Título do Modal */
 .lk-modal-title {
   font-size: var(--font-size-lg);
@@ -76,6 +83,7 @@
 /* Botão Fechar */
 .lk-modal-close-btn {
   position: absolute;
+  right: var(--spacing-3);
   width: 36px;
   height: 36px;
   border-radius: 50%;

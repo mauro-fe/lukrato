@@ -8,4 +8,8 @@
         <i data-lucide="plus"></i>
         <span>Criar Nova Meta</span>
     </button>
+    <button class="met-action-btn" id="btnTemplates">
+        <i data-lucide="wand-sparkles"></i>
+        <span>Usar Template</span>
+    </button>
 </header>

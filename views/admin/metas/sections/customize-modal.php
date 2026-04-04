@@ -1,5 +1,5 @@
 <div class="met-customize-trigger">
-    <button class="met-customize-open" id="btnCustomizeMetas" type="button">
+    <button class="met-customize-open surface-card" id="btnCustomizeMetas" type="button">
         <i data-lucide="sliders-horizontal"></i>
         <span>Personalizar tela</span>
     </button>
