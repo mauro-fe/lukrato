@@ -41,14 +41,21 @@ class FaturaCartaoItem extends Model
     ];
 
     protected $casts = [
+        'user_id' => 'integer',
+        'cartao_credito_id' => 'integer',
+        'fatura_id' => 'integer',
+        'lancamento_id' => 'integer',
+        'categoria_id' => 'integer',
         'valor' => 'decimal:2',
         'data_compra' => 'date',
         'data_vencimento' => 'date',
         'data_pagamento' => 'date',
         'pago' => 'boolean',
         'eh_parcelado' => 'boolean',
+        'item_pai_id' => 'integer',
         'recorrente' => 'boolean',
         'recorrencia_fim' => 'date',
+        'recorrencia_pai_id' => 'integer',
         'cancelado_em' => 'datetime',
         'parcela_atual' => 'integer',
         'total_parcelas' => 'integer',

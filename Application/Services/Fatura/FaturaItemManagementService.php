@@ -131,7 +131,7 @@ class FaturaItemManagementService
             }
 
             $cartao = $item->cartaoCredito;
-            $faturaRelacionadaId = $item->fatura_id;
+            $faturaRelacionadaId = (int) ($item->fatura_id ?? 0);
 
             $item->delete();
 
@@ -139,7 +139,7 @@ class FaturaItemManagementService
                 $cartao->atualizarLimiteDisponivel();
             }
 
-            if ($faturaRelacionadaId) {
+            if ($faturaRelacionadaId > 0) {
                 $this->atualizarFaturaAposExclusao($faturaRelacionadaId, $usuarioId);
             }
 
