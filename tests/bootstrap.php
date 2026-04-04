@@ -263,6 +263,22 @@ function ensureSqliteTestSchema(Capsule $capsule): void
         });
     }
 
+    if (!$schema->hasTable('categorias')) {
+        $schema->create('categorias', static function (Blueprint $table): void {
+            $table->increments('id');
+            $table->unsignedInteger('user_id')->nullable();
+            $table->unsignedInteger('parent_id')->nullable();
+            $table->string('nome', 100);
+            $table->string('icone', 100)->nullable();
+            $table->string('tipo', 20)->default('despesa');
+            $table->boolean('is_seeded')->default(false);
+            $table->integer('ordem')->default(0);
+
+            $table->index(['user_id'], 'idx_categorias_user');
+            $table->index(['parent_id'], 'idx_categorias_parent');
+        });
+    }
+
     if (!$schema->hasTable('lancamentos')) {
         $schema->create('lancamentos', static function (Blueprint $table): void {
             $table->increments('id');
@@ -474,6 +490,23 @@ function ensureSqliteTestSchema(Capsule $capsule): void
             $table->index(['user_id', 'status'], 'idx_importacao_job_user_status');
             $table->index(['status', 'id'], 'idx_importacao_job_status_id');
             $table->index(['result_batch_id'], 'idx_importacao_job_result_batch');
+        });
+    }
+
+    if (!$schema->hasTable('user_category_rules')) {
+        $schema->create('user_category_rules', static function (Blueprint $table): void {
+            $table->increments('id');
+            $table->unsignedInteger('user_id');
+            $table->string('pattern', 200);
+            $table->string('normalized_pattern', 200);
+            $table->unsignedInteger('categoria_id');
+            $table->unsignedInteger('subcategoria_id')->nullable();
+            $table->unsignedInteger('usage_count')->default(1);
+            $table->string('source', 20)->default('correction');
+            $table->timestamps();
+
+            $table->unique(['user_id', 'normalized_pattern'], 'uq_user_category_rules_user_pattern');
+            $table->index(['user_id', 'categoria_id'], 'idx_user_category_rules_user_categoria');
         });
     }
 

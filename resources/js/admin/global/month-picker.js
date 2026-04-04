@@ -71,13 +71,12 @@
     let state = sessionStorage.getItem(STORAGE_KEY) || toYM(new Date());
     let modalYear = Number(state.split('-')[0]) || (new Date()).getFullYear();
     let yearState = clampYear(Number(sessionStorage.getItem(YEAR_STORAGE_KEY) ?? modalYear)) ?? modalYear;
+    const modalSystem = window.LK?.modalSystem;
 
     // ---- bootstrap modal
     const ensureMonthModal = () => {
         if (!modalEl || !window.bootstrap?.Modal) return null;
-        if (modalEl.parentElement && modalEl.parentElement !== document.body) {
-            document.body.appendChild(modalEl);
-        }
+        modalSystem?.prepareBootstrapModal(modalEl, { scope: 'page' });
         return window.bootstrap.Modal.getOrCreateInstance(modalEl);
     };
 
@@ -101,9 +100,7 @@
 
     const ensureYearModal = () => {
         if (!yearModalEl || !window.bootstrap?.Modal) return null;
-        if (yearModalEl.parentElement && yearModalEl.parentElement !== document.body) {
-            document.body.appendChild(yearModalEl);
-        }
+        modalSystem?.prepareBootstrapModal(yearModalEl, { scope: 'page' });
         yearModalInstance = window.bootstrap.Modal.getOrCreateInstance(yearModalEl);
         return yearModalInstance;
     };
@@ -319,7 +316,8 @@
     // ---- Atalhos de teclado para navegação de mês
     document.addEventListener('keydown', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
-        if (e.target.closest('.modal.show') || e.target.closest('.swal2-container')) return;
+        if (window.LK?.modalSystem?.hasBlockingDialog?.()) return;
+        if (e.target.closest('.swal2-container')) return;
 
         if (e.key === 'ArrowLeft') {
             e.preventDefault();

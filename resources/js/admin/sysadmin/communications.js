@@ -437,7 +437,13 @@ async function showCampaignDetail(id) {
     const body = document.getElementById('campaignDetailBody');
     if (!modalElement || !body) return;
 
-    const modal = new bootstrap.Modal(modalElement);
+    window.LK?.modalSystem?.prepareBootstrapModal(modalElement, { scope: 'page' });
+
+    const modal = bootstrap.Modal.getOrCreateInstance(modalElement, {
+        backdrop: true,
+        keyboard: true,
+        focus: true,
+    });
     body.innerHTML = `
         <div class="text-center py-4">
             <i data-lucide="loader-2" class="icon-spin"></i>

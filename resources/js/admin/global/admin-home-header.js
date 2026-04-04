@@ -576,9 +576,18 @@ import { apiGet } from '../shared/api.js';
                 if (tipoSelect) tipoSelect.value = kind;
                 if (title) title.textContent = `Novo ${kind.charAt(0).toUpperCase() + kind.slice(1)}`;
 
+                if (modalEl) {
+                    window.LK?.modalSystem?.prepareBootstrapModal(modalEl, { scope: 'app' });
+                }
+
                 bs?.Modal?.getOrCreateInstance(modalEl)?.show();
             } else if (kind === 'agendamento') {
                 const modalEl = document.querySelector('#modalAgendamento');
+
+                if (modalEl) {
+                    window.LK?.modalSystem?.prepareBootstrapModal(modalEl, { scope: 'app' });
+                }
+
                 bs?.Modal?.getOrCreateInstance(modalEl)?.show();
             }
 

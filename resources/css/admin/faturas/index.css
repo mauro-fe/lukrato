@@ -17,5 +17,6 @@
 @import './_list-view.css';
 @import './_empty-state.css';
 @import './_modal.css';
+@import '../lancamentos/_delete-modal.css';
 @import './_animations.css';
 @import './_responsive.css';

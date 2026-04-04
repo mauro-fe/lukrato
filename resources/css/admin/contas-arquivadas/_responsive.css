@@ -34,8 +34,12 @@
    ================================================================ */
 
    .swal2-popup{
-      color: var(--text-color);
+      color: var(--text-color) !important;
     background: var(--color-bg);
+   }
+
+   .swal2-radio{
+    background: var(--color-bg) !important ;
    }
 
 /* Estilos customizados para SweetAlert2 */

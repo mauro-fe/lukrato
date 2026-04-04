@@ -675,9 +675,16 @@ export const ParcelamentoGrouper = {
                 itemsHtml
             });
 
-            document.body.appendChild(overlay);
+            if (window.LK?.modalSystem) {
+                window.LK.modalSystem.prepareOverlay(overlay, { scope: 'page' });
+            } else {
+                document.body.appendChild(overlay);
+            }
+
             const previousOverflow = document.body.style.overflow;
-            document.body.style.overflow = 'hidden';
+            if (!window.LK?.modalSystem) {
+                document.body.style.overflow = 'hidden';
+            }
 
             const escHandler = (e) => {
                 if (e.key === 'Escape') {
@@ -687,7 +694,9 @@ export const ParcelamentoGrouper = {
 
             overlay._parcelasCleanup = () => {
                 document.removeEventListener('keydown', escHandler);
-                document.body.style.overflow = previousOverflow;
+                if (!window.LK?.modalSystem) {
+                    document.body.style.overflow = previousOverflow;
+                }
                 overlay._parcelasCleanup = null;
             };
 

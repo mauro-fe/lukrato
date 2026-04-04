@@ -32,7 +32,12 @@ export const FaturaModal = {
         }
 
         const modal = FaturaModal.criarModalFatura(fatura, parcelamentos, statusPagamento, cartaoId);
-        document.body.appendChild(modal);
+        if (window.LK?.modalSystem) {
+            window.LK.modalSystem.prepareOverlay(modal, { scope: 'page' });
+        } else {
+            document.body.appendChild(modal);
+        }
+
         refreshIcons();
 
         // Animar entrada

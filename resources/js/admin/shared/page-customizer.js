@@ -65,8 +65,85 @@ export function createPageCustomizer(config) {
         : [];
 
     const state = {
-        prefsVersion: 0
+        prefsVersion: 0,
+        keydownHandler: null,
+        lastFocusedElement: null
     };
+
+    function getOverlayElement() {
+        const overlay = document.getElementById(modal.overlayId);
+        if (!overlay) return null;
+
+        window.LK?.modalSystem?.prepareOverlay(overlay, { scope: 'page' });
+        overlay.setAttribute('aria-hidden', overlay.classList.contains('active') ? 'false' : 'true');
+        return overlay;
+    }
+
+    function getFocusableElements(overlay) {
+        if (!overlay) return [];
+
+        return Array.from(overlay.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'))
+            .filter((element) => {
+                if (!(element instanceof HTMLElement)) return false;
+                if (element.hasAttribute('disabled')) return false;
+                if (element.getAttribute('aria-hidden') === 'true') return false;
+                return element.offsetParent !== null || document.activeElement === element;
+            });
+    }
+
+    function focusInitialElement(overlay) {
+        const explicitTarget = document.getElementById(modal.closeButtonId)
+            || document.getElementById(modal.saveButtonId);
+
+        const target = explicitTarget instanceof HTMLElement
+            ? explicitTarget
+            : getFocusableElements(overlay)[0];
+
+        target?.focus();
+    }
+
+    function bindKeydownHandler() {
+        if (state.keydownHandler) return;
+
+        state.keydownHandler = (event) => {
+            const overlay = document.getElementById(modal.overlayId);
+            if (!overlay || overlay.style.display === 'none') {
+                return;
+            }
+
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                closeModal();
+                return;
+            }
+
+            if (event.key !== 'Tab') {
+                return;
+            }
+
+            const focusable = getFocusableElements(overlay);
+            if (focusable.length === 0) {
+                event.preventDefault();
+                return;
+            }
+
+            const currentIndex = focusable.indexOf(document.activeElement);
+            const nextIndex = event.shiftKey
+                ? (currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1)
+                : (currentIndex === -1 || currentIndex >= focusable.length - 1 ? 0 : currentIndex + 1);
+
+            event.preventDefault();
+            focusable[nextIndex]?.focus();
+        };
+
+        document.addEventListener('keydown', state.keydownHandler);
+    }
+
+    function unbindKeydownHandler() {
+        if (!state.keydownHandler) return;
+        document.removeEventListener('keydown', state.keydownHandler);
+        state.keydownHandler = null;
+    }
 
     function getPreset(name) {
         return name === 'completo'
@@ -175,26 +252,40 @@ export function createPageCustomizer(config) {
     }
 
     function openModal() {
-        const overlay = document.getElementById(modal.overlayId);
+        const overlay = getOverlayElement();
         if (!overlay) return;
+
+        state.lastFocusedElement = document.activeElement instanceof HTMLElement
+            ? document.activeElement
+            : null;
 
         syncCheckboxes(loadPrefs());
         overlay.style.display = 'flex';
+        overlay.classList.add('active');
+        overlay.setAttribute('aria-hidden', 'false');
 
-        const handler = (e) => {
-            if (e.key === 'Escape') {
-                closeModal();
-                document.removeEventListener('keydown', handler);
-            }
-        };
-        document.addEventListener('keydown', handler);
+        bindKeydownHandler();
+
+        requestAnimationFrame(() => {
+            focusInitialElement(overlay);
+        });
     }
 
     function closeModal() {
-        const overlay = document.getElementById(modal.overlayId);
+        const overlay = getOverlayElement();
         if (overlay) {
+            overlay.classList.remove('active');
             overlay.style.display = 'none';
+            overlay.setAttribute('aria-hidden', 'true');
         }
+
+        unbindKeydownHandler();
+
+        if (state.lastFocusedElement && document.contains(state.lastFocusedElement)) {
+            state.lastFocusedElement.focus();
+        }
+
+        state.lastFocusedElement = null;
     }
 
     function applyPresetToModal(presetName) {
@@ -236,7 +327,7 @@ export function createPageCustomizer(config) {
         const btnOpen = document.getElementById(modal.openButtonId);
         const btnClose = document.getElementById(modal.closeButtonId);
         const btnSave = document.getElementById(modal.saveButtonId);
-        const overlay = document.getElementById(modal.overlayId);
+        const overlay = getOverlayElement();
 
         if (btnOpen) {
             btnOpen.addEventListener('click', openModal);
@@ -260,6 +351,13 @@ export function createPageCustomizer(config) {
     }
 
     function init() {
+        const overlay = getOverlayElement();
+        if (overlay) {
+            overlay.style.display = 'none';
+            overlay.classList.remove('active');
+            overlay.setAttribute('aria-hidden', 'true');
+        }
+
         const localPrefs = loadLocalCache();
         const hasLocalPrefs = hasSavedLocalPrefs();
 

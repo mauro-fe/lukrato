@@ -15,16 +15,23 @@ class ImportPreviewService
      * @var array<int, ImportParserInterface>
      */
     private array $parsers;
+    private OfxImportTargetDetector $ofxImportTargetDetector;
+    private ImportRowCategorizationService $rowCategorizationService;
 
     /**
      * @param array<int, ImportParserInterface> $parsers
      */
-    public function __construct(array $parsers = [])
-    {
+    public function __construct(
+        array $parsers = [],
+        ?OfxImportTargetDetector $ofxImportTargetDetector = null,
+        ?ImportRowCategorizationService $rowCategorizationService = null
+    ) {
         $this->parsers = $parsers !== [] ? $parsers : [
             new OfxImportParser(),
             new CsvImportParser(),
         ];
+        $this->ofxImportTargetDetector = $ofxImportTargetDetector ?? new OfxImportTargetDetector();
+        $this->rowCategorizationService = $rowCategorizationService ?? new ImportRowCategorizationService();
     }
 
     /**
@@ -36,7 +43,9 @@ class ImportPreviewService
         ImportProfileConfigDTO $profile,
         string $filename = '',
         string $importTarget = 'conta',
-        ?int $cartaoId = null
+        ?int $cartaoId = null,
+        ?int $userId = null,
+        bool $categorizeRows = false
     ): array {
         $sourceType = strtolower(trim($sourceType));
         $importTarget = $this->normalizeImportTarget($importTarget);
@@ -44,11 +53,26 @@ class ImportPreviewService
         $rows = [];
         $warnings = [];
         $errors = [];
+        $detectedImportTarget = null;
+        $targetMismatch = false;
 
         try {
             $rows = $parser->parse($contents, $profile);
         } catch (\InvalidArgumentException $e) {
             $errors[] = $e->getMessage();
+        }
+
+        if ($sourceType === 'ofx') {
+            $inspection = $this->ofxImportTargetDetector->inspect($contents);
+            $detectedImportTarget = is_string($inspection['detected_import_target'] ?? null)
+                ? (string) $inspection['detected_import_target']
+                : null;
+
+            $mismatchMessage = $this->ofxImportTargetDetector->buildMismatchMessage($detectedImportTarget, $importTarget);
+            if ($mismatchMessage !== null) {
+                $errors[] = $mismatchMessage;
+                $targetMismatch = true;
+            }
         }
 
         if ($rows !== [] && count($rows) > ImportSecurityPolicy::maxRowsPerFile()) {
@@ -60,12 +84,27 @@ class ImportPreviewService
             $warnings[] = 'Nenhuma transação válida encontrada no arquivo informado.';
         }
 
+        if ($rows !== []) {
+            $rows = $this->rowCategorizationService->assignRowKeys($rows);
+        }
+
+        if (
+            $rows !== []
+            && !$targetMismatch
+            && $categorizeRows
+            && $this->shouldCategorizeRows($sourceType, $importTarget, $userId)
+        ) {
+            $rows = $this->rowCategorizationService->enrichRows($rows, $userId);
+        }
+
         return [
             'source_type' => $sourceType,
             'import_target' => $importTarget,
             'conta_id' => $profile->contaId,
             'cartao_id' => $importTarget === 'cartao' ? $cartaoId : null,
             'filename' => $this->normalizeFilename($filename),
+            'detected_import_target' => $detectedImportTarget,
+            'target_mismatch' => $targetMismatch,
             'total_rows' => count($rows),
             'rows' => array_map(
                 static fn($row): array => $row->toArray(),
@@ -98,5 +137,13 @@ class ImportPreviewService
         $normalized = strtolower(trim($importTarget));
 
         return in_array($normalized, ['conta', 'cartao'], true) ? $normalized : 'conta';
+    }
+
+    private function shouldCategorizeRows(string $sourceType, string $importTarget, ?int $userId): bool
+    {
+        return $userId !== null
+            && $userId > 0
+            && strtolower(trim($sourceType)) === 'ofx'
+            && $this->normalizeImportTarget($importTarget) === 'conta';
     }
 }

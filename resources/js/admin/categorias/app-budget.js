@@ -19,6 +19,19 @@ export function createCategoriasBudget({
     loadOrcamentos,
     renderCategorias,
 }) {
+    function getBudgetModalInstance() {
+        const modalElement = document.getElementById('modalOrcamento');
+        if (!modalElement) return null;
+
+        window.LK?.modalSystem?.prepareBootstrapModal(modalElement, { scope: 'page' });
+
+        return bootstrap.Modal.getOrCreateInstance(modalElement, {
+            backdrop: true,
+            keyboard: true,
+            focus: true,
+        });
+    }
+
     async function salvarOrcamento(categoriaId, valorLimite) {
         try {
             const mes = STATE.mesSelecionado;
@@ -122,8 +135,8 @@ export function createCategoriasBudget({
 
         document.getElementById('btnSalvarOrcamento').setAttribute('form', 'formOrcamento');
 
-        const modal = new bootstrap.Modal(document.getElementById('modalOrcamento'));
-        modal.show();
+        const modal = getBudgetModalInstance();
+        modal?.show();
 
         document.getElementById('modalOrcamento').addEventListener('shown.bs.modal', () => {
             document.getElementById('orcValorLimite').focus();

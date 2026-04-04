@@ -11,6 +11,7 @@ use Application\Services\Importacao\ImportExecutionService;
 use Application\Services\Importacao\ImportHistoryService;
 use Application\Services\Importacao\ImportPreviewService;
 use Application\Services\Importacao\ImportProfileConfigService;
+use Application\Services\Importacao\ImportRowCategorizationService;
 use Application\Services\Importacao\Parsers\CsvImportParser;
 use Application\Services\Importacao\Parsers\OfxImportParser;
 use Illuminate\Database\Capsule\Manager as DB;
@@ -28,6 +29,9 @@ class ImportPreviewServiceTest extends TestCase
         if ($this->cleanupUserIds !== []) {
             $schema = DB::schema();
 
+            if ($schema->hasTable('user_category_rules')) {
+                DB::table('user_category_rules')->whereIn('user_id', $this->cleanupUserIds)->delete();
+            }
             if ($schema->hasTable('faturas_cartao_itens')) {
                 DB::table('faturas_cartao_itens')->whereIn('user_id', $this->cleanupUserIds)->delete();
             }
@@ -48,6 +52,9 @@ class ImportPreviewServiceTest extends TestCase
             }
             if ($schema->hasTable('lancamentos')) {
                 DB::table('lancamentos')->whereIn('user_id', $this->cleanupUserIds)->delete();
+            }
+            if ($schema->hasTable('categorias')) {
+                DB::table('categorias')->whereIn('user_id', $this->cleanupUserIds)->delete();
             }
             if ($schema->hasTable('contas')) {
                 DB::table('contas')->whereIn('user_id', $this->cleanupUserIds)->delete();
@@ -126,6 +133,141 @@ class ImportPreviewServiceTest extends TestCase
         $this->assertSame('cartao', $preview['import_target']);
         $this->assertSame(77, $preview['cartao_id']);
         $this->assertTrue($preview['can_confirm']);
+    }
+
+    public function testPreviewAssignsStableRowKeyWithoutApplyingCategoriesByDefault(): void
+    {
+        $parser = new class implements ImportParserInterface {
+            public function supports(string $sourceType): bool
+            {
+                return $sourceType === 'ofx';
+            }
+
+            public function parse(string $contents, ImportProfileConfigDTO $profile): array
+            {
+                return [
+                    NormalizedImportRowDTO::fromArray([
+                        'date' => '2026-04-01',
+                        'amount' => 32.9,
+                        'type' => 'despesa',
+                        'description' => 'Padaria Central',
+                        'memo' => 'Cafe da manha',
+                    ]),
+                ];
+            }
+        };
+
+        $categorizationService = new class extends ImportRowCategorizationService {
+            public int $calls = 0;
+
+            public function enrichRows(array $rows, ?int $userId = null): array
+            {
+                $this->calls++;
+
+                return parent::enrichRows($rows, $userId);
+            }
+        };
+
+        $service = new ImportPreviewService([$parser], null, $categorizationService);
+        $profile = ImportProfileConfigDTO::fromArray(['conta_id' => 9, 'source_type' => 'ofx']);
+
+        $preview = $service->preview('ofx', '<OFX>', $profile, 'extrato.ofx', 'conta', null, 55);
+
+        $this->assertNotEmpty($preview['rows'][0]['row_key'] ?? null);
+        $this->assertSame(64, strlen((string) ($preview['rows'][0]['row_key'] ?? '')));
+        $this->assertNull($preview['rows'][0]['categoria_id'] ?? null);
+        $this->assertNull($preview['rows'][0]['categoria_sugerida_id'] ?? null);
+        $this->assertSame(0, $categorizationService->calls);
+    }
+
+    public function testPreviewEnrichesContaOfxRowsWithSuggestedCategoriesWhenRequested(): void
+    {
+        $parser = new class implements ImportParserInterface {
+            public function supports(string $sourceType): bool
+            {
+                return $sourceType === 'ofx';
+            }
+
+            public function parse(string $contents, ImportProfileConfigDTO $profile): array
+            {
+                return [
+                    NormalizedImportRowDTO::fromArray([
+                        'date' => '2026-04-01',
+                        'amount' => 32.9,
+                        'type' => 'despesa',
+                        'description' => 'Padaria Central',
+                        'memo' => 'Cafe da manha',
+                    ]),
+                ];
+            }
+        };
+
+        $categorizationService = new class extends ImportRowCategorizationService {
+            public function enrichRows(array $rows, ?int $userId = null): array
+            {
+                return [
+                    NormalizedImportRowDTO::fromArray([
+                        'date' => '2026-04-01',
+                        'amount' => 32.9,
+                        'type' => 'despesa',
+                        'description' => 'Padaria Central',
+                        'memo' => 'Cafe da manha',
+                        'row_key' => 'preview-row-1',
+                        'categoria_id' => 12,
+                        'subcategoria_id' => 13,
+                        'categoria_nome' => 'Alimentacao',
+                        'subcategoria_nome' => 'Padaria',
+                        'categoria_sugerida_id' => 12,
+                        'subcategoria_sugerida_id' => 13,
+                        'categoria_sugerida_nome' => 'Alimentacao',
+                        'subcategoria_sugerida_nome' => 'Padaria',
+                        'categoria_source' => 'user_rule',
+                        'categoria_confidence' => 'user_rule',
+                    ]),
+                ];
+            }
+        };
+
+        $service = new ImportPreviewService([$parser], null, $categorizationService);
+        $profile = ImportProfileConfigDTO::fromArray(['conta_id' => 9, 'source_type' => 'ofx']);
+
+        $preview = $service->preview('ofx', '<OFX>', $profile, 'extrato.ofx', 'conta', null, 55, true);
+
+        $this->assertSame('preview-row-1', $preview['rows'][0]['row_key'] ?? null);
+        $this->assertSame(12, $preview['rows'][0]['categoria_id'] ?? null);
+        $this->assertSame(13, $preview['rows'][0]['subcategoria_id'] ?? null);
+        $this->assertSame('Alimentacao', $preview['rows'][0]['categoria_nome'] ?? null);
+        $this->assertSame('Padaria', $preview['rows'][0]['subcategoria_nome'] ?? null);
+        $this->assertSame('user_rule', $preview['rows'][0]['categoria_source'] ?? null);
+        $this->assertTrue($preview['can_confirm']);
+    }
+
+    public function testPreviewBlocksCardOfxWhenAccountTargetIsSelected(): void
+    {
+        $service = new ImportPreviewService([new OfxImportParser()]);
+        $profile = ImportProfileConfigDTO::fromArray(['conta_id' => 12, 'source_type' => 'ofx']);
+
+        $preview = $service->preview('ofx', $this->sampleOfxCard(), $profile, 'fatura.ofx', 'conta');
+
+        $this->assertSame('cartao', $preview['detected_import_target'] ?? null);
+        $this->assertTrue((bool) ($preview['target_mismatch'] ?? false));
+        $this->assertFalse((bool) ($preview['can_confirm'] ?? true));
+        $this->assertSame(2, $preview['total_rows'] ?? null);
+        $this->assertStringContainsString('cartão/fatura', (string) ($preview['errors'][0] ?? ''));
+    }
+
+    public function testPreviewBlocksBankOfxWhenCardTargetIsSelected(): void
+    {
+        $service = new ImportPreviewService([new OfxImportParser()]);
+        $profile = ImportProfileConfigDTO::fromArray(['conta_id' => 13, 'source_type' => 'ofx']);
+
+        $preview = $service->preview('ofx', $this->sampleOfx(), $profile, 'extrato.ofx', 'cartao', 77);
+
+        $this->assertSame('conta', $preview['detected_import_target'] ?? null);
+        $this->assertTrue((bool) ($preview['target_mismatch'] ?? false));
+        $this->assertFalse((bool) ($preview['can_confirm'] ?? true));
+        $this->assertSame(2, $preview['total_rows'] ?? null);
+        $this->assertStringContainsString('conta bancária', (string) ($preview['errors'][0] ?? ''));
     }
 
     public function testPreviewThrowsWhenParserIsNotRegistered(): void
@@ -403,6 +545,178 @@ class ImportPreviewServiceTest extends TestCase
         $this->assertSame(2, DB::table('lancamentos')->where('user_id', $userId)->count());
     }
 
+    public function testExecutionServiceConfirmAppliesOverridesPersistsCategoryMetadataAndLearns(): void
+    {
+        $this->ensureDatabaseAvailable();
+
+        $userId = $this->createUser();
+        $contaId = $this->createConta($userId);
+        $categoriaSugeridaId = $this->createCategoria($userId, 'Alimentacao');
+        $subcategoriaSugeridaId = $this->createSubcategoria($userId, $categoriaSugeridaId, 'Padaria');
+        $categoriaManualId = $this->createCategoria($userId, 'Moradia');
+        $subcategoriaManualId = $this->createSubcategoria($userId, $categoriaManualId, 'Energia');
+
+        $parser = new class implements ImportParserInterface {
+            public function supports(string $sourceType): bool
+            {
+                return $sourceType === 'ofx';
+            }
+
+            public function parse(string $contents, ImportProfileConfigDTO $profile): array
+            {
+                return [
+                    NormalizedImportRowDTO::fromArray([
+                        'date' => '2026-04-03',
+                        'amount' => 89.5,
+                        'type' => 'despesa',
+                        'description' => 'Padaria do Bairro',
+                        'memo' => 'Compra teste',
+                        'external_id' => 'OFX-CAT-1',
+                        'raw' => ['fitid' => 'OFX-CAT-1'],
+                    ]),
+                ];
+            }
+        };
+
+        $previewService = new ImportPreviewService([$parser]);
+        $service = new ImportExecutionService($previewService);
+        $profile = ImportProfileConfigDTO::fromArray([
+            'conta_id' => $contaId,
+            'source_type' => 'ofx',
+        ]);
+
+        $preview = $previewService->preview('ofx', '<OFX></OFX>', $profile, 'categorizado.ofx', 'conta', null, $userId);
+        $rowKey = (string) ($preview['rows'][0]['row_key'] ?? '');
+
+        $result = $service->confirmExecution(
+            $userId,
+            'ofx',
+            '<OFX></OFX>',
+            $profile,
+            'categorizado.ofx',
+            'conta',
+            null,
+            [
+                $rowKey => [
+                    'categoria_id' => $categoriaManualId,
+                    'subcategoria_id' => $subcategoriaManualId,
+                    'categoria_sugerida_id' => $categoriaSugeridaId,
+                    'subcategoria_sugerida_id' => $subcategoriaSugeridaId,
+                    'categoria_source' => 'rule',
+                    'categoria_confidence' => 'rule',
+                    'user_edited' => true,
+                ],
+            ]
+        );
+
+        $this->assertTrue($result->success);
+
+        $lancamento = DB::table('lancamentos')->where('user_id', $userId)->first();
+        $this->assertNotNull($lancamento);
+        $this->assertSame($categoriaManualId, (int) ($lancamento->categoria_id ?? 0));
+        $this->assertSame($subcategoriaManualId, (int) ($lancamento->subcategoria_id ?? 0));
+
+        $item = DB::table('importacao_itens')->where('user_id', $userId)->first();
+        $this->assertNotNull($item);
+
+        $raw = json_decode((string) ($item->raw_json ?? ''), true);
+        $this->assertIsArray($raw);
+        $this->assertSame('conta', $raw['import_target'] ?? null);
+        $this->assertSame($rowKey, $raw['row_key'] ?? null);
+        $this->assertSame($categoriaManualId, (int) ($raw['categoria_id'] ?? 0));
+        $this->assertSame($subcategoriaManualId, (int) ($raw['subcategoria_id'] ?? 0));
+        $this->assertTrue((bool) ($raw['categoria_editada'] ?? false));
+        $this->assertSame('correction', $raw['categoria_learning_source'] ?? null);
+
+        $rule = DB::table('user_category_rules')->where('user_id', $userId)->first();
+        $this->assertNotNull($rule);
+        $this->assertStringContainsString('padaria', (string) ($rule->pattern ?? ''));
+        $this->assertStringContainsString('padaria', (string) ($rule->normalized_pattern ?? ''));
+        $this->assertSame($categoriaManualId, (int) ($rule->categoria_id ?? 0));
+        $this->assertSame($subcategoriaManualId, (int) ($rule->subcategoria_id ?? 0));
+        $this->assertSame('correction', $rule->source ?? null);
+        $this->assertSame(1, (int) ($rule->usage_count ?? 0));
+    }
+
+    public function testExecutionServiceConfirmPreservesSuggestedMetadataFromOverridesWithoutLearning(): void
+    {
+        $this->ensureDatabaseAvailable();
+
+        $userId = $this->createUser();
+        $contaId = $this->createConta($userId);
+        $categoriaId = $this->createCategoria($userId, 'Alimentacao');
+        $subcategoriaId = $this->createSubcategoria($userId, $categoriaId, 'Padaria');
+
+        $parser = new class implements ImportParserInterface {
+            public function supports(string $sourceType): bool
+            {
+                return $sourceType === 'ofx';
+            }
+
+            public function parse(string $contents, ImportProfileConfigDTO $profile): array
+            {
+                return [
+                    NormalizedImportRowDTO::fromArray([
+                        'date' => '2026-04-03',
+                        'amount' => 89.5,
+                        'type' => 'despesa',
+                        'description' => 'Padaria do Bairro',
+                        'memo' => 'Compra teste',
+                        'external_id' => 'OFX-CAT-2',
+                        'raw' => ['fitid' => 'OFX-CAT-2'],
+                    ]),
+                ];
+            }
+        };
+
+        $previewService = new ImportPreviewService([$parser]);
+        $profile = ImportProfileConfigDTO::fromArray([
+            'conta_id' => $contaId,
+            'source_type' => 'ofx',
+        ]);
+
+        $preview = $previewService->preview('ofx', '<OFX></OFX>', $profile, 'sem-auto.ofx', 'conta', null, $userId);
+        $rowKey = (string) ($preview['rows'][0]['row_key'] ?? '');
+
+        $service = new ImportExecutionService($previewService);
+        $result = $service->confirmExecution(
+            $userId,
+            'ofx',
+            '<OFX></OFX>',
+            $profile,
+            'sem-auto.ofx',
+            'conta',
+            null,
+            [
+                $rowKey => [
+                    'categoria_id' => $categoriaId,
+                    'subcategoria_id' => $subcategoriaId,
+                    'categoria_sugerida_id' => $categoriaId,
+                    'subcategoria_sugerida_id' => $subcategoriaId,
+                    'categoria_source' => 'rule',
+                    'categoria_confidence' => 'rule',
+                    'user_edited' => false,
+                ],
+            ]
+        );
+
+        $this->assertTrue($result->success);
+
+        $item = DB::table('importacao_itens')->where('user_id', $userId)->first();
+        $this->assertNotNull($item);
+
+        $raw = json_decode((string) ($item->raw_json ?? ''), true);
+        $this->assertIsArray($raw);
+        $this->assertSame($categoriaId, (int) ($raw['categoria_id'] ?? 0));
+        $this->assertSame($subcategoriaId, (int) ($raw['subcategoria_id'] ?? 0));
+        $this->assertSame($categoriaId, (int) ($raw['categoria_sugerida_id'] ?? 0));
+        $this->assertSame($subcategoriaId, (int) ($raw['subcategoria_sugerida_id'] ?? 0));
+        $this->assertSame('rule', $raw['categoria_source'] ?? null);
+        $this->assertFalse((bool) ($raw['categoria_editada'] ?? true));
+        $this->assertNull($raw['categoria_learning_source'] ?? null);
+        $this->assertSame(0, DB::table('user_category_rules')->where('user_id', $userId)->count());
+    }
+
     public function testExecutionServiceConfirmPersistsCardInvoiceItemsForCardTarget(): void
     {
         $this->ensureDatabaseAvailable();
@@ -434,6 +748,34 @@ class ImportPreviewServiceTest extends TestCase
         $this->assertSame(0, DB::table('lancamentos')->where('user_id', $userId)->count());
         $this->assertSame(1, DB::table('faturas_cartao_itens')->where('user_id', $userId)->where('tipo', 'despesa')->count());
         $this->assertSame(1, DB::table('faturas_cartao_itens')->where('user_id', $userId)->where('tipo', 'estorno')->count());
+    }
+
+    public function testExecutionServiceBlocksCardOfxWhenTargetIsConta(): void
+    {
+        $this->ensureDatabaseAvailable();
+
+        $userId = $this->createUser();
+        $contaId = $this->createConta($userId);
+        $profile = ImportProfileConfigDTO::fromArray([
+            'conta_id' => $contaId,
+            'source_type' => 'ofx',
+        ]);
+
+        $service = new ImportExecutionService(new ImportPreviewService([new OfxImportParser()]));
+        $result = $service->confirmExecution(
+            $userId,
+            'ofx',
+            $this->sampleOfxCard(),
+            $profile,
+            'fatura-enviada-como-conta.ofx',
+            'conta'
+        );
+
+        $this->assertFalse($result->success);
+        $this->assertSame(422, $result->httpCode);
+        $this->assertStringContainsString('cartão/fatura', $result->message);
+        $this->assertSame(0, DB::table('lancamentos')->where('user_id', $userId)->count());
+        $this->assertSame(0, DB::table('faturas_cartao_itens')->where('user_id', $userId)->count());
     }
 
     public function testExecutionServiceAvoidsDuplicateCardRowsUsingExternalId(): void
@@ -651,6 +993,32 @@ class ImportPreviewServiceTest extends TestCase
         ]);
     }
 
+    private function createCategoria(int $userId, string $nome, string $tipo = 'despesa'): int
+    {
+        return (int) DB::table('categorias')->insertGetId([
+            'user_id' => $userId,
+            'parent_id' => null,
+            'nome' => $nome,
+            'icone' => null,
+            'tipo' => $tipo,
+            'is_seeded' => 0,
+            'ordem' => 0,
+        ]);
+    }
+
+    private function createSubcategoria(int $userId, int $categoriaId, string $nome): int
+    {
+        return (int) DB::table('categorias')->insertGetId([
+            'user_id' => $userId,
+            'parent_id' => $categoriaId,
+            'nome' => $nome,
+            'icone' => null,
+            'tipo' => 'despesa',
+            'is_seeded' => 0,
+            'ordem' => 0,
+        ]);
+    }
+
     private function sampleOfx(): string
     {
         return <<<OFX
@@ -707,9 +1075,12 @@ OLDFILEUID:NONE
 NEWFILEUID:NONE
 
 <OFX>
-  <BANKMSGSRSV1>
-    <STMTTRNRS>
-      <STMTRS>
+    <CREDITCARDMSGSRSV1>
+        <CCSTMTTRNRS>
+            <CCSTMTRS>
+                <CCACCTFROM>
+                    <ACCTID>999900001234
+                </CCACCTFROM>
         <BANKTRANLIST>
           <STMTTRN>
             <TRNTYPE>DEBIT
@@ -726,9 +1097,9 @@ NEWFILEUID:NONE
             <NAME>Estorno parcial
           </STMTTRN>
         </BANKTRANLIST>
-      </STMTRS>
-    </STMTTRNRS>
-  </BANKMSGSRSV1>
+            </CCSTMTRS>
+        </CCSTMTTRNRS>
+    </CREDITCARDMSGSRSV1>
 </OFX>
 OFX;
     }

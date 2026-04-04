@@ -353,7 +353,7 @@
 /* ========================================================================== 
    MODAL DE CRIAR CUPOM
    ========================================================================== */
-.modal {
+#modalCupom {
   display: none;
   position: fixed;
   top: 0;
@@ -369,11 +369,11 @@
   overflow-y: auto;
 }
 
-.modal.show {
+#modalCupom.show {
   display: flex;
 }
 
-.modal-content {
+#modalCupom .modal-content {
   background: var(--color-bg);
   border-radius: var(--radius-xl);
   border: 2px solid var(--color-card-border);
@@ -389,7 +389,7 @@
   max-height: calc(100vh - 2rem);
 }
 
-.modal-header {
+#modalCupom .modal-header {
   padding: var(--spacing-6) var(--spacing-8);
   border-bottom: 2px solid var(--color-card-border);
   display: flex;
@@ -403,7 +403,7 @@
   flex-shrink: 0;
 }
 
-.modal-header h2 {
+#modalCupom .modal-header h2 {
   margin: 0;
   background: var(--color-primary);
   -webkit-background-clip: text;
@@ -416,12 +416,12 @@
   gap: var(--spacing-3);
 }
 
-.modal-header h2 i {
+#modalCupom .modal-header h2 i {
   -webkit-text-fill-color: var(--color-primary);
   font-size: 1.5rem;
 }
 
-.btn-close {
+#modalCupom .btn-close {
   width: 44px;
   height: 44px;
   border: none;
@@ -437,35 +437,35 @@
   flex-shrink: 0;
 }
 
-.btn-close:hover {
+#modalCupom .btn-close:hover {
   background: var(--color-danger);
   color: white;
   transform: rotate(90deg) scale(1.1);
   box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
 }
 
-.modal-body {
+#modalCupom .modal-body {
   padding: var(--spacing-8);
   overflow-y: auto;
   flex: 1;
 }
 
 /* Scrollbar customizada para o modal-body */
-.modal-body::-webkit-scrollbar {
+#modalCupom .modal-body::-webkit-scrollbar {
   width: 8px;
 }
 
-.modal-body::-webkit-scrollbar-track {
+#modalCupom .modal-body::-webkit-scrollbar-track {
   background: var(--color-surface-muted);
   border-radius: var(--radius-sm);
 }
 
-.modal-body::-webkit-scrollbar-thumb {
+#modalCupom .modal-body::-webkit-scrollbar-thumb {
   background: var(--color-primary);
   border-radius: var(--radius-sm);
 }
 
-.modal-body::-webkit-scrollbar-thumb:hover {
+#modalCupom .modal-body::-webkit-scrollbar-thumb:hover {
   background: var(--color-secondary);
 }
 
@@ -561,7 +561,7 @@
   font-size: 0.875rem;
 }
 
-.modal-footer {
+#modalCupom .modal-footer {
   padding: var(--spacing-6) var(--spacing-8);
   border-top: 2px solid var(--color-card-border);
   display: flex;
@@ -639,35 +639,35 @@
 
 /* Responsivo Mobile */
 @media (max-width: 768px) {
-  .modal {
+  #modalCupom {
     padding: var(--spacing-2);
   }
 
-  .modal-content {
+  #modalCupom .modal-content {
     max-height: calc(100vh - 1rem);
     border-radius: var(--radius-lg);
   }
 
-  .modal-header {
+  #modalCupom .modal-header {
     padding: var(--spacing-4) var(--spacing-5);
   }
 
-  .modal-header h2 {
+  #modalCupom .modal-header h2 {
     font-size: var(--font-size-xl);
     gap: var(--spacing-2);
   }
 
-  .modal-header h2 i {
+  #modalCupom .modal-header h2 i {
     font-size: 1.25rem;
   }
 
-  .btn-close {
+  #modalCupom .btn-close {
     width: 36px;
     height: 36px;
     font-size: 1.25rem;
   }
 
-  .modal-body {
+  #modalCupom .modal-body {
     padding: var(--spacing-5);
   }
 
@@ -691,7 +691,7 @@
     padding-right: 2rem;
   }
 
-  .modal-footer {
+  #modalCupom .modal-footer {
     padding: var(--spacing-4) var(--spacing-5);
     flex-direction: column-reverse;
     gap: var(--spacing-3);
@@ -705,17 +705,17 @@
 }
 
 @media (max-width: 480px) {
-  .modal {
+  #modalCupom {
     padding: 0;
   }
 
-  .modal-content {
+  #modalCupom .modal-content {
     max-height: 100vh;
     border-radius: 0;
     margin: 0;
   }
 
-  .modal-header h2 {
+  #modalCupom .modal-header h2 {
     font-size: var(--font-size-lg);
   }
 

@@ -94,9 +94,7 @@ export function attachLancamentosModalDeleteScope(ModalManager, dependencies) {
             if (STATE.modalDeleteScope) return STATE.modalDeleteScope;
             if (!DOM.modalDeleteScopeEl || !window.bootstrap?.Modal) return null;
 
-            if (DOM.modalDeleteScopeEl.parentElement && DOM.modalDeleteScopeEl.parentElement !== document.body) {
-                document.body.appendChild(DOM.modalDeleteScopeEl);
-            }
+            window.LK?.modalSystem?.prepareBootstrapModal(DOM.modalDeleteScopeEl, { scope: 'page' });
 
             if (!DOM.modalDeleteScopeEl.dataset.bound) {
                 DOM.modalDeleteScopeEl.dataset.bound = '1';

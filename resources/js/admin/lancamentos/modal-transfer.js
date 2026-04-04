@@ -16,9 +16,7 @@ export function attachLancamentosModalTransfer(ModalManager, dependencies) {
             if (STATE.modalEditTrans) return STATE.modalEditTrans;
             if (!DOM.modalEditTransEl) return null;
             if (window.bootstrap?.Modal) {
-                if (DOM.modalEditTransEl.parentElement && DOM.modalEditTransEl.parentElement !== document.body) {
-                    document.body.appendChild(DOM.modalEditTransEl);
-                }
+                window.LK?.modalSystem?.prepareBootstrapModal(DOM.modalEditTransEl, { scope: 'page' });
                 STATE.modalEditTrans = window.bootstrap.Modal.getOrCreateInstance(DOM.modalEditTransEl);
                 return STATE.modalEditTrans;
             }

@@ -96,6 +96,8 @@ $activeContextLabel = $importTarget === 'cartao'
     data-imp-plan="<?= escape($currentPlan) ?>" data-imp-upgrade-url="<?= escape($upgradeUrl) ?>"
     data-imp-import-limits="<?= escape($importLimitsEncoded) ?>"
     data-imp-job-status-endpoint-base="<?= escape($jobStatusEndpointBase) ?>"
+    data-imp-categories-endpoint="<?= escape(BASE_URL . 'api/categorias') ?>"
+    data-imp-subcategories-endpoint-base="<?= escape(BASE_URL . 'api/categorias') ?>"
     data-imp-confirm-async-default="<?= $confirmAsyncDefault ? '1' : '0' ?>">
     <header
         class="imp-page-hero imp-page-hero--compact imp-surface surface-card surface-card--interactive surface-card--clip">
@@ -146,6 +148,7 @@ $activeContextLabel = $importTarget === 'cartao'
                         <h2 class="imp-card-title">Alvo, formato e arquivo</h2>
                         <p class="imp-card-text">
                             Selecione o alvo da importação, revise o arquivo e monte o preview antes da confirmação.
+                            OFX bancário entra em Conta; OFX de fatura entra em Cartão/fatura.
                         </p>
                     </div>
                     <span class="imp-status-badge" data-status="file_selected">Etapa 1</span>
@@ -311,13 +314,48 @@ $activeContextLabel = $importTarget === 'cartao'
                         <dt>Total de linhas</dt>
                         <dd data-imp-preview-total-rows>0</dd>
                     </div>
+                    <div class="surface-card">
+                        <dt>Categorizadas</dt>
+                        <dd data-imp-preview-categorized>0</dd>
+                    </div>
+                    <div class="surface-card">
+                        <dt>Sem categoria</dt>
+                        <dd data-imp-preview-uncategorized>0</dd>
+                    </div>
                 </dl>
 
                 <ul class="imp-message-list imp-message-list--warning" data-imp-preview-warnings hidden></ul>
                 <ul class="imp-message-list imp-message-list--error" data-imp-preview-errors hidden></ul>
 
                 <div class="imp-preview-empty surface-card" data-imp-preview-empty>
-                    O preview será exibido aqui com resumo do arquivo, validações e linhas normalizadas.
+                    O preview será exibido aqui com resumo do arquivo, validações, linhas normalizadas e categorização opcional.
+                </div>
+
+                <div class="imp-preview-tools" data-imp-preview-tools hidden>
+                    <div class="imp-preview-tools__primary">
+                        <button class="btn btn-secondary" type="button" data-imp-categorize-preview>
+                            Categorizar linhas
+                        </button>
+                        <p class="imp-muted" data-imp-categorize-helper>
+                            Opcional: aplica sugestões automáticas por regra do usuário e regra global sem bloquear a confirmação.
+                        </p>
+                    </div>
+                    <div class="imp-preview-tools__secondary">
+                        <div class="imp-preview-metrics" aria-label="Resumo das sugestões automáticas">
+                            <span class="imp-preview-metric" data-source="user_rule">
+                                Regra do usuário
+                                <strong data-imp-preview-user-rule-suggested>0</strong>
+                            </span>
+                            <span class="imp-preview-metric" data-source="rule">
+                                Regra global
+                                <strong data-imp-preview-global-rule-suggested>0</strong>
+                            </span>
+                        </div>
+                    </div>
+                    <label class="imp-preview-filter" for="imp-filter-pending-only">
+                        <input id="imp-filter-pending-only" type="checkbox" data-imp-filter-pending-only>
+                        <span>Mostrar apenas linhas sem categoria</span>
+                    </label>
                 </div>
 
                 <div class="imp-preview-table-wrap" data-imp-preview-table-wrap hidden>
@@ -328,6 +366,9 @@ $activeContextLabel = $importTarget === 'cartao'
                                 <th>Descrição</th>
                                 <th>Valor</th>
                                 <th>Tipo</th>
+                                <th>Categoria</th>
+                                <th>Subcategoria</th>
+                                <th>Origem</th>
                                 <th>Status</th>
                             </tr>
                         </thead>

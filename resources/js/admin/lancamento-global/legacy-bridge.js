@@ -6,10 +6,15 @@ export function registerLancamentoGlobalBridge(manager) {
 }
 
 export function bootLancamentoGlobalManager(manager) {
+    const init = () => {
+        window.LK?.modalSystem?.prepareOverlay('#modalLancamentoGlobalOverlay', { scope: 'app' });
+        manager.init();
+    };
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => manager.init());
+        document.addEventListener('DOMContentLoaded', init);
         return;
     }
 
-    manager.init();
+    init();
 }

@@ -170,6 +170,7 @@ export const OrcamentoApp = {
 
         // Modal overlays
         document.querySelectorAll('.fin-modal-overlay').forEach(overlay => {
+            window.LK?.modalSystem?.prepareOverlay(overlay, { scope: 'page' });
             overlay.addEventListener('click', (e) => {
                 if (e.target === overlay) OrcamentoApp.closeModal(overlay.id);
             });

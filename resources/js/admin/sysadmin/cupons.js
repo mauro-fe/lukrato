@@ -15,6 +15,7 @@ const BASE_URL = getBaseUrl();
 let cupons = [];
 
 document.addEventListener('DOMContentLoaded', () => {
+    window.LK?.modalSystem?.prepareOverlay('#modalCupom', { scope: 'page' });
     carregarCupons();
 });
 

@@ -29,6 +29,7 @@ const userDataComplete = {
 // ─── DOM Elements ───────────────────────────────────────────────────────────
 
 const modal = modalEl;
+const modalSystem = window.LK?.modalSystem;
 const modalTitle = document.getElementById('billing-modal-title');
 const modalText = document.getElementById('billing-modal-text');
 const modalPrice = document.getElementById('billing-modal-price');
@@ -111,6 +112,11 @@ const couponInput = document.getElementById('couponCodeInput');
 const couponApplyBtn = document.getElementById('couponApplyBtn');
 const couponFeedback = document.getElementById('couponFeedback');
 const couponSection = document.querySelector('.coupon-section');
+
+if (modal) {
+    modalSystem?.prepareOverlay(modal, { scope: 'page' });
+    modal.setAttribute('aria-hidden', modal.classList.contains('payment-modal--open') ? 'false' : 'true');
+}
 
 couponToggle?.addEventListener('click', () => {
     const isOpen = couponBody.style.display !== 'none';
@@ -516,7 +522,12 @@ async function openBillingModal(planConfig) {
     if (modalTitle) modalTitle.textContent = 'Pagamento Seguro';
 
     modal.classList.add('payment-modal--open');
-    document.body.style.overflow = 'hidden';
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+
+    if (!modalSystem) {
+        document.body.style.overflow = 'hidden';
+    }
 
     const hasPending = await checkPendingPayment();
     if (!hasPending) {
@@ -528,7 +539,13 @@ async function openBillingModal(planConfig) {
 
 function closeBillingModal() {
     modal.classList.remove('payment-modal--open');
-    document.body.style.overflow = '';
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+
+    if (!modalSystem) {
+        document.body.style.overflow = '';
+    }
+
     currentPlanConfig = null;
     stopPaymentPolling();
     hasPendingPayment = false; pendingPaymentData = null;

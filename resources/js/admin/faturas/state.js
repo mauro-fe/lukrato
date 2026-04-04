@@ -46,16 +46,14 @@ export const CONFIG = {
 
 export const DOM = {};
 
-function mountModalToBody(id) {
+function preparePageModal(id) {
     const modalEl = document.getElementById(id);
 
     if (!modalEl) {
         return null;
     }
 
-    if (modalEl.parentElement !== document.body) {
-        document.body.appendChild(modalEl);
-    }
+    window.LK?.modalSystem?.prepareBootstrapModal(modalEl, { scope: 'page' });
 
     return modalEl;
 }
@@ -79,9 +77,9 @@ export function initDOM() {
     DOM.activeFilters = document.getElementById('activeFilters');
 
     // Modal Detalhes
-    DOM.modalDetalhes = mountModalToBody('modalDetalhesParcelamento');
-    DOM.modalPagarFatura = mountModalToBody('modalPagarFatura');
-    DOM.modalEditarItemFatura = mountModalToBody('modalEditarItemFatura');
+    DOM.modalDetalhes = preparePageModal('modalDetalhesParcelamento');
+    DOM.modalPagarFatura = preparePageModal('modalPagarFatura');
+    DOM.modalEditarItemFatura = preparePageModal('modalEditarItemFatura');
     DOM.detalhesContent = document.getElementById('detalhesParcelamentoContent');
 }
 

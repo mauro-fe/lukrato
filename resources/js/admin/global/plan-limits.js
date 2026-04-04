@@ -340,7 +340,13 @@ import { apiGetCached } from '../shared/api-store.js';
         document.body.insertAdjacentHTML('beforeend', modalHtml);
         modal = document.getElementById('planUpgradeModal');
 
-        const bsModal = new bootstrap.Modal(modal);
+        window.LK?.modalSystem?.prepareBootstrapModal(modal, { scope: 'app' });
+
+        const bsModal = bootstrap.Modal.getOrCreateInstance(modal, {
+            backdrop: true,
+            keyboard: true,
+            focus: true,
+        });
         bsModal.show();
 
         modal.addEventListener('hidden.bs.modal', () => {

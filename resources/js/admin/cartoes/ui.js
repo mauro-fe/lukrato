@@ -104,6 +104,7 @@ export const CartoesUI = {
 
         const modalOverlay = document.getElementById('modalCartaoOverlay');
         if (modalOverlay) {
+            window.LK?.modalSystem?.prepareOverlay(modalOverlay, { scope: 'page' });
             modalOverlay.addEventListener('click', (event) => {
                 if (event.target === modalOverlay) {
                     CartoesUI.closeModal();
@@ -220,6 +221,10 @@ export const CartoesUI = {
     },
 
     setScrollLock(locked) {
+        if (window.LK?.modalSystem) {
+            return;
+        }
+
         const overflow = locked ? 'hidden' : '';
         document.body.style.overflow = overflow;
         document.documentElement.style.overflow = overflow;

@@ -275,6 +275,14 @@ export const Utils = {
         return Number.isFinite(num) ? num : null;
     },
 
+    parsePositiveId: (input) => {
+        if (input === undefined || input === null) return null;
+        const raw = String(input).trim();
+        if (!/^\d+$/.test(raw)) return null;
+        const parsed = Number.parseInt(raw, 10);
+        return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+    },
+
     parseFilterDate: (input) => {
         if (!input) return null;
         const raw = String(input).trim();

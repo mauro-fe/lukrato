@@ -139,6 +139,7 @@ function createInitialState(root) {
         selectedAccountId: parseInteger(root?.dataset.impActiveAccountId || null),
         selectedCardId: parseInteger(root?.dataset.impActiveCardId || null),
         selectedFile: null,
+        showOnlyPendingCategories: false,
         previewStatus: 'idle',
         previewRows: [],
         previewWarnings: [],
@@ -151,6 +152,11 @@ function createInitialState(root) {
             importedRows: 0,
             duplicateRows: 0,
             errorRows: 0,
+            categorizedRows: 0,
+            uncategorizedRows: 0,
+            userRuleSuggestedRows: 0,
+            globalRuleSuggestedRows: 0,
+            categorizationApplied: false,
         },
     };
 }
@@ -221,6 +227,8 @@ export function bootImportacoesPage(pageId) {
                     importedRows: 0,
                     duplicateRows: 0,
                     errorRows: 0,
+                    categorizedRows: 0,
+                    uncategorizedRows: 0,
                 },
             });
         },

@@ -123,6 +123,7 @@ import { apiGet } from '../shared/api.js';
 
             // Inserir no DOM
             document.body.insertAdjacentHTML('beforeend', modalHtml);
+            window.LK?.modalSystem?.prepareOverlay('#birthdayModalOverlay', { scope: 'app' });
 
             // Ativar com pequeno delay para animação
             requestAnimationFrame(() => {

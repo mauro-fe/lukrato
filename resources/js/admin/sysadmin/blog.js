@@ -57,6 +57,7 @@ function slugify(text) {
 
 // ─── Init ───────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+    window.LK?.modalSystem?.prepareOverlay('#modalPost', { scope: 'page' });
     loadCategorias();
     loadPosts();
     setupEventListeners();

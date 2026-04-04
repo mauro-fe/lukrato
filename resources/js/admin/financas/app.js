@@ -252,6 +252,7 @@ export const FinancasApp = {
 
         // Modal overlays (close on backdrop click)
         document.querySelectorAll('.fin-modal-overlay').forEach(overlay => {
+            window.LK?.modalSystem?.prepareOverlay(overlay, { scope: 'page' });
             overlay.addEventListener('click', (e) => {
                 if (e.target === overlay) FinancasApp.closeModal(overlay.id);
             });

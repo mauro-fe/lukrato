@@ -168,6 +168,10 @@ class ConfirmControllerTest extends TestCase
             ]);
 
         $executionService = Mockery::mock(ImportExecutionService::class);
+        $executionService
+            ->shouldReceive('prepareExecution')
+            ->once()
+            ->andReturn($this->previewReadyResult());
         $executionService->shouldNotReceive('confirmExecution');
 
         $controller = new ConfirmController(
@@ -254,6 +258,10 @@ class ConfirmControllerTest extends TestCase
         $queueService->shouldNotReceive('enqueueFromUpload');
 
         $executionService = Mockery::mock(ImportExecutionService::class);
+        $executionService
+            ->shouldReceive('prepareExecution')
+            ->once()
+            ->andReturn($this->previewReadyResult());
         $executionService
             ->shouldReceive('confirmExecution')
             ->once()
@@ -352,6 +360,10 @@ class ConfirmControllerTest extends TestCase
             ]);
 
         $executionService = Mockery::mock(ImportExecutionService::class);
+        $executionService
+            ->shouldReceive('prepareExecution')
+            ->once()
+            ->andReturn($this->previewReadyResult());
         $executionService->shouldNotReceive('confirmExecution');
 
         $controller = new ConfirmController(
@@ -432,6 +444,10 @@ class ConfirmControllerTest extends TestCase
 
         $executionService = Mockery::mock(ImportExecutionService::class);
         $executionService
+            ->shouldReceive('prepareExecution')
+            ->once()
+            ->andReturn($this->previewReadyResult());
+        $executionService
             ->shouldReceive('confirmExecution')
             ->once()
             ->andThrow(new \RuntimeException('SQLSTATE[HY000]: detalhe interno'));
@@ -455,6 +471,91 @@ class ConfirmControllerTest extends TestCase
         $this->assertSame('Não foi possível processar a importação agora. Tente novamente em instantes.', $payload['message'] ?? null);
         $this->assertStringNotContainsString('SQLSTATE', (string) ($payload['message'] ?? ''));
         $this->assertNotEmpty($payload['request_id'] ?? null);
+    }
+
+    public function testDoesNotEnqueueImportWhenPreviewDetectsTargetMismatch(): void
+    {
+        $this->seedAuthenticatedUserSession(906, 'Mismatch User');
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'ofx');
+        $this->assertNotFalse($tmpFile);
+        file_put_contents($tmpFile, $this->sampleCardOfx());
+
+        $_POST = [
+            'source_type' => 'ofx',
+            'import_target' => 'conta',
+            'conta_id' => 81,
+            'async' => '1',
+        ];
+
+        $_FILES = [
+            'file' => [
+                'name' => 'fatura.ofx',
+                'type' => 'application/octet-stream',
+                'tmp_name' => $tmpFile,
+                'error' => UPLOAD_ERR_OK,
+                'size' => (int) filesize($tmpFile),
+            ],
+        ];
+
+        $planLimitService = Mockery::mock(PlanLimitService::class);
+        $planLimitService
+            ->shouldReceive('canUseImportacao')
+            ->once()
+            ->with(906, 'ofx', 'conta')
+            ->andReturn(['allowed' => true]);
+
+        $contaRepository = Mockery::mock(ContaRepository::class);
+        $contaRepository
+            ->shouldReceive('belongsToUser')
+            ->once()
+            ->with(81, 906)
+            ->andReturn(true);
+
+        $profileService = Mockery::mock(ImportProfileConfigService::class);
+        $profileService
+            ->shouldReceive('getForUserAndConta')
+            ->once()
+            ->with(906, 81, 'ofx')
+            ->andReturn(ImportProfileConfigDTO::fromArray([
+                'conta_id' => 81,
+                'source_type' => 'ofx',
+            ]));
+
+        $queueService = Mockery::mock(ImportQueueService::class);
+        $queueService->shouldNotReceive('enqueueFromUpload');
+
+        $executionService = Mockery::mock(ImportExecutionService::class);
+        $executionService
+            ->shouldReceive('prepareExecution')
+            ->once()
+            ->andReturn($this->previewBlockedResult(
+                'Este OFX parece ser de cartão/fatura. Troque o alvo para Cartão/fatura e selecione o cartão correto antes de confirmar a importação.'
+            ));
+        $executionService->shouldNotReceive('confirmExecution');
+
+        $controller = new ConfirmController(
+            $executionService,
+            $queueService,
+            $profileService,
+            $contaRepository,
+            $planLimitService
+        );
+
+        try {
+            $response = $controller->__invoke();
+        } finally {
+            @unlink((string) $tmpFile);
+        }
+
+        $payload = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame(422, $response->getStatusCode());
+        $this->assertFalse((bool) ($payload['success'] ?? true));
+        $this->assertSame(
+            'Este OFX parece ser de cartão/fatura. Troque o alvo para Cartão/fatura e selecione o cartão correto antes de confirmar a importação.',
+            $payload['errors']['file'] ?? null
+        );
     }
 
     private function seedAuthenticatedUserSession(int $userId, string $name): void
@@ -486,5 +587,87 @@ class ConfirmControllerTest extends TestCase
 
         $_ENV['IMPORTACOES_CONFIRM_ASYNC_DEFAULT'] = $value;
         putenv('IMPORTACOES_CONFIRM_ASYNC_DEFAULT=' . $value);
+    }
+
+    private function previewReadyResult(): ServiceResultDTO
+    {
+        return ServiceResultDTO::ok('Preview de importação preparado.', [
+            'status' => 'preview_ready',
+            'can_persist' => false,
+            'next_step' => 'Confirme a importação para persistir os dados.',
+            'preview' => [
+                'source_type' => 'ofx',
+                'import_target' => 'conta',
+                'filename' => 'extrato.ofx',
+                'total_rows' => 1,
+                'rows' => [
+                    [
+                        'date' => '2026-04-03',
+                        'amount' => 10.0,
+                        'type' => 'despesa',
+                        'description' => 'Teste',
+                    ],
+                ],
+                'warnings' => [],
+                'errors' => [],
+                'can_confirm' => true,
+            ],
+        ]);
+    }
+
+    private function previewBlockedResult(string $message): ServiceResultDTO
+    {
+        return ServiceResultDTO::ok('Preview de importação preparado.', [
+            'status' => 'preview_ready',
+            'can_persist' => false,
+            'next_step' => 'Confirme a importação para persistir os dados.',
+            'preview' => [
+                'source_type' => 'ofx',
+                'import_target' => 'conta',
+                'filename' => 'fatura.ofx',
+                'total_rows' => 1,
+                'rows' => [
+                    [
+                        'date' => '2026-04-03',
+                        'amount' => 10.0,
+                        'type' => 'despesa',
+                        'description' => 'Teste',
+                    ],
+                ],
+                'warnings' => [],
+                'errors' => [$message],
+                'can_confirm' => false,
+            ],
+        ]);
+    }
+
+    private function sampleCardOfx(): string
+    {
+        return <<<OFX
+OFXHEADER:100
+DATA:OFXSGML
+VERSION:102
+
+<OFX>
+    <CREDITCARDMSGSRSV1>
+        <CCSTMTTRNRS>
+            <CCSTMTRS>
+                <CCACCTFROM>
+                    <ACCTID>999900001234
+                </CCACCTFROM>
+                <BANKTRANLIST>
+                    <STMTTRN>
+                        <TRNTYPE>DEBIT
+                        <DTPOSTED>20260403000000[-3:BRT]
+                        <TRNAMT>-10.00
+                        <FITID>CARD-TEST-1
+                        <NAME>Teste
+                    </STMTTRN>
+                </BANKTRANLIST>
+            </CCSTMTRS>
+        </CCSTMTTRNRS>
+    </CREDITCARDMSGSRSV1>
+</OFX>
+OFX;
     }
 }

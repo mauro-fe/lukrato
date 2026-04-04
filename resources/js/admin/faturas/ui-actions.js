@@ -10,6 +10,190 @@ import { CONFIG, DOM, STATE, Utils, Modules } from './state.js';
 import { refreshIcons } from '../shared/ui.js';
 import { getApiPayload, getErrorMessage } from '../shared/api.js';
 
+let deleteItemScopeModal = null;
+let deleteItemScopeResolver = null;
+let deleteItemScopeResult = null;
+
+function getDeleteItemScopeElements() {
+    return {
+        modalEl: document.getElementById('modalDeleteFaturaItemScope'),
+        formEl: document.getElementById('deleteFaturaItemScopeForm'),
+        titleEl: document.getElementById('modalDeleteFaturaItemScopeLabel'),
+        subtitleEl: document.getElementById('deleteFaturaItemScopeModalSubtitle'),
+        leadEl: document.getElementById('deleteFaturaItemScopeModalLead'),
+        hintEl: document.getElementById('deleteFaturaItemScopeModalHint'),
+        optionsEl: document.getElementById('deleteFaturaItemScopeOptions'),
+        confirmButtonEl: document.getElementById('btnConfirmDeleteFaturaItemScope'),
+    };
+}
+
+function resetDeleteItemScopeModal() {
+    const { formEl, optionsEl } = getDeleteItemScopeElements();
+
+    formEl?.reset();
+
+    const defaultInput = optionsEl?.querySelector('input[value="item"]');
+    if (defaultInput) {
+        defaultInput.checked = true;
+    }
+
+    if (optionsEl) {
+        optionsEl.hidden = false;
+    }
+}
+
+function populateDeleteItemScopeModal(totalParcelas = 1) {
+    const {
+        titleEl,
+        subtitleEl,
+        leadEl,
+        hintEl,
+        optionsEl,
+        confirmButtonEl,
+    } = getDeleteItemScopeElements();
+    const isParcelado = Number(totalParcelas) > 1;
+
+    if (titleEl) {
+        titleEl.textContent = 'Excluir item da fatura';
+    }
+
+    if (subtitleEl) {
+        subtitleEl.textContent = isParcelado
+            ? `Este item faz parte de um parcelamento de ${totalParcelas}x.`
+            : 'Revise a exclusão antes de confirmar.';
+    }
+
+    if (leadEl) {
+        leadEl.textContent = isParcelado
+            ? 'Escolha se deseja remover apenas esta parcela ou o parcelamento completo.'
+            : 'Esta ação não pode ser desfeita.';
+    }
+
+    if (hintEl) {
+        hintEl.textContent = isParcelado
+            ? 'Excluir todo o parcelamento remove todas as parcelas vinculadas a esta compra.'
+            : 'O item será removido permanentemente da fatura.';
+    }
+
+    if (confirmButtonEl) {
+        confirmButtonEl.textContent = isParcelado ? 'Continuar' : 'Excluir item';
+    }
+
+    if (optionsEl) {
+        optionsEl.hidden = !isParcelado;
+
+        const itemTitleEl = optionsEl.querySelector('[data-delete-fatura-scope-title="item"]');
+        const itemTextEl = optionsEl.querySelector('[data-delete-fatura-scope-text="item"]');
+        const parcelamentoTitleEl = optionsEl.querySelector('[data-delete-fatura-scope-title="parcelamento"]');
+        const parcelamentoTextEl = optionsEl.querySelector('[data-delete-fatura-scope-text="parcelamento"]');
+
+        if (itemTitleEl) {
+            itemTitleEl.textContent = 'Apenas esta parcela';
+        }
+
+        if (itemTextEl) {
+            itemTextEl.textContent = 'Remove somente o item atual da fatura.';
+        }
+
+        if (parcelamentoTitleEl) {
+            parcelamentoTitleEl.textContent = `Todo o parcelamento (${totalParcelas} parcelas)`;
+        }
+
+        if (parcelamentoTextEl) {
+            parcelamentoTextEl.textContent = 'Remove todas as parcelas vinculadas a esta compra parcelada.';
+        }
+    }
+
+    const defaultInput = optionsEl?.querySelector('input[value="item"]');
+    if (defaultInput) {
+        defaultInput.checked = true;
+    }
+}
+
+function ensureDeleteItemScopeModal() {
+    const elements = getDeleteItemScopeElements();
+
+    if (deleteItemScopeModal) {
+        return {
+            modal: deleteItemScopeModal,
+            ...elements,
+        };
+    }
+
+    if (!elements.modalEl || !window.bootstrap?.Modal) {
+        return null;
+    }
+
+    window.LK?.modalSystem?.prepareBootstrapModal(elements.modalEl, { scope: 'page' });
+
+    if (!elements.modalEl.dataset.bound) {
+        elements.modalEl.dataset.bound = '1';
+
+        elements.formEl?.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const selectedScope = elements.optionsEl?.querySelector('input[name="deleteFaturaItemScopeOption"]:checked');
+            deleteItemScopeResult = {
+                scope: selectedScope?.value || 'item',
+            };
+
+            deleteItemScopeModal?.hide();
+        });
+
+        elements.modalEl.addEventListener('hidden.bs.modal', () => {
+            const resolve = deleteItemScopeResolver;
+            const result = deleteItemScopeResult;
+
+            deleteItemScopeResolver = null;
+            deleteItemScopeResult = null;
+            resetDeleteItemScopeModal();
+
+            if (typeof resolve === 'function') {
+                resolve(result || null);
+            }
+        });
+    }
+
+    deleteItemScopeModal = window.bootstrap.Modal.getOrCreateInstance(elements.modalEl, {
+        backdrop: true,
+        keyboard: true,
+        focus: true,
+    });
+
+    return {
+        modal: deleteItemScopeModal,
+        ...elements,
+    };
+}
+
+function openDeleteItemScopeModal(totalParcelas = 1) {
+    const references = ensureDeleteItemScopeModal();
+
+    if (!references) {
+        return Promise.resolve(null);
+    }
+
+    if (typeof deleteItemScopeResolver === 'function') {
+        deleteItemScopeResolver(null);
+    }
+
+    deleteItemScopeResolver = null;
+    deleteItemScopeResult = null;
+    populateDeleteItemScopeModal(totalParcelas);
+
+    return new Promise((resolve) => {
+        deleteItemScopeResolver = resolve;
+        references.modal.show();
+
+        requestAnimationFrame(() => {
+            const focusTarget = Number(totalParcelas) > 1
+                ? references.optionsEl?.querySelector('input[name="deleteFaturaItemScopeOption"]:checked')
+                : references.confirmButtonEl;
+            focusTarget?.focus?.();
+        });
+    });
+}
+
 export const ActionMethods = {
     async toggleParcelaPaga(faturaId, itemId, marcarComoPago) {
         try {
@@ -101,6 +285,8 @@ export const ActionMethods = {
             console.error('Modal de edição não encontrado');
             return;
         }
+
+        window.LK?.modalSystem?.prepareBootstrapModal(modalEl, { scope: 'page' });
 
         // Preencher os campos do formulário
         document.getElementById('editItemFaturaId').value = faturaId;
@@ -209,37 +395,11 @@ export const ActionMethods = {
 
             // Se for parcelado, oferecer opções
             if (ehParcelado && totalParcelas > 1) {
-                const { value: opcao } = await Swal.fire({
-                    title: 'O que deseja excluir?',
-                    html: `
-                        <p>Este item faz parte de um parcelamento de <strong>${totalParcelas}x</strong>.</p>
-                        <p style="margin-top: 1rem;">Escolha uma opção:</p>
-                    `,
-                    icon: 'question',
-                    input: 'radio',
-                    inputOptions: {
-                        'item': 'Apenas esta parcela',
-                        'parcelamento': `Todo o parcelamento (${totalParcelas} parcelas)`
-                    },
-                    inputValue: 'item',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#6b7280',
-                    confirmButtonText: 'Continuar',
-                    cancelButtonText: 'Cancelar',
-                    heightAuto: false,
-                    customClass: {
-                        container: 'swal-above-modal'
-                    },
-                    didOpen: () => {
-                        const container = document.querySelector('.swal2-container');
-                        if (container) container.style.zIndex = '99999';
-                    }
-                });
+                const selection = await openDeleteItemScopeModal(totalParcelas);
 
-                if (!opcao) return;
+                if (!selection?.scope) return;
 
-                if (opcao === 'parcelamento') {
+                if (selection.scope === 'parcelamento') {
                     return await this.excluirParcelamentoCompleto(faturaId, itemId, totalParcelas);
                 }
             }

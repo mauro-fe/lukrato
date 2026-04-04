@@ -23,6 +23,19 @@ export function createCategoriasCrud({
     loadAll,
     highlightSelectedIcon,
 }) {
+    function getPageModalInstance(modalId) {
+        const modalElement = document.getElementById(modalId);
+        if (!modalElement) return null;
+
+        window.LK?.modalSystem?.prepareBootstrapModal(modalElement, { scope: 'page' });
+
+        return bootstrap.Modal.getOrCreateInstance(modalElement, {
+            backdrop: true,
+            keyboard: true,
+            focus: true,
+        });
+    }
+
     function resetCreateForm() {
         STATE.selectedIcon = '';
         const catIcone = document.getElementById('catIcone');
@@ -135,8 +148,8 @@ export function createCategoriasCrud({
         if (editIconPanel) editIconPanel.classList.add('d-none');
         highlightSelectedIcon('editIconPickerGrid', currentIcon);
 
-        const modal = new bootstrap.Modal(document.getElementById('modalEditCategoria'));
-        modal.show();
+        const modal = getPageModalInstance('modalEditCategoria');
+        modal?.show();
     }
 
     async function handleEditarCategoria(form) {

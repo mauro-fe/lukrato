@@ -16,6 +16,7 @@ import './lk-namespace.js';        // window.LK namespace, error suppression, pa
 import './sidebar-state.js';       // Sidebar collapsed pre-render (localStorage)
 import './scroll-to-top.js';       // AOS init + scroll-to-top button logic
 import './page-loading.js';        // LKPageLoading (loading da area de conteudo)
+import './modal-scopes.js';        // LK.modalSystem (roots + page/app modal scopes)
 
 // ─── 1. Core: CSRF + Fetch + Feedback + UI Facade ──────────────────────────
 import './csrf-manager.js';        // window.CsrfManager, LK.getCSRF, LK.refreshCSRF

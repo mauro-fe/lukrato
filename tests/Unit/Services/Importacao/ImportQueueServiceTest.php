@@ -49,7 +49,8 @@ class ImportQueueServiceTest extends TestCase
                 ImportProfileConfigDTO $profile,
                 string $filename = '',
                 string $importTarget = 'conta',
-                ?int $cartaoId = null
+                ?int $cartaoId = null,
+                array $rowOverrides = []
             ): ServiceResultDTO {
                 return ServiceResultDTO::fail('Falha simulada no worker.', 422);
             }
@@ -107,7 +108,8 @@ class ImportQueueServiceTest extends TestCase
                 ImportProfileConfigDTO $profile,
                 string $filename = '',
                 string $importTarget = 'conta',
-                ?int $cartaoId = null
+                ?int $cartaoId = null,
+                array $rowOverrides = []
             ): ServiceResultDTO {
                 return ServiceResultDTO::ok('Processado', [
                     'batch' => ['id' => null],
@@ -156,6 +158,78 @@ class ImportQueueServiceTest extends TestCase
         } else {
             $_ENV['IMPORTACOES_QUEUE_STALE_TTL'] = (string) $previousStaleTtl;
         }
+    }
+
+    public function testQueuePersistsAndForwardsRowOverrides(): void
+    {
+        $this->ensureDatabaseAvailable();
+
+        $userId = 92004;
+        $this->cleanupUserIds[] = $userId;
+
+        $executionService = new class extends ImportExecutionService {
+            public array $receivedOverrides = [];
+
+            public function __construct() {}
+
+            public function confirmExecution(
+                int $userId,
+                string $sourceType,
+                string $contents,
+                ImportProfileConfigDTO $profile,
+                string $filename = '',
+                string $importTarget = 'conta',
+                ?int $cartaoId = null,
+                array $rowOverrides = []
+            ): ServiceResultDTO {
+                $this->receivedOverrides = $rowOverrides;
+
+                return ServiceResultDTO::ok('Processado', [
+                    'batch' => ['id' => null],
+                    'summary' => [
+                        'total_rows' => 1,
+                        'imported_rows' => 1,
+                        'duplicate_rows' => 0,
+                        'error_rows' => 0,
+                    ],
+                ]);
+            }
+        };
+
+        $queue = new ImportQueueService($executionService);
+        $tmpFile = $this->createTempFile('queue-overrides.ofx', '<OFX><STMTTRN></STMTTRN></OFX>');
+        $profile = ImportProfileConfigDTO::fromArray([
+            'conta_id' => 801,
+            'source_type' => 'ofx',
+        ]);
+        $rowOverrides = [
+            'preview-row-1' => [
+                'categoria_id' => 101,
+                'subcategoria_id' => 202,
+                'user_edited' => true,
+            ],
+        ];
+
+        $queuedJob = $queue->enqueueFromUpload(
+            $userId,
+            'ofx',
+            $profile,
+            $tmpFile,
+            'queue-overrides.ofx',
+            'conta',
+            null,
+            $rowOverrides
+        );
+
+        $meta = json_decode((string) ImportacaoJob::query()->where('id', (int) $queuedJob['id'])->value('meta_json'), true);
+        $this->assertIsArray($meta);
+        $this->assertSame($rowOverrides, $meta['row_overrides'] ?? null);
+
+        $result = $queue->processNext();
+
+        $this->assertIsArray($result);
+        $this->assertSame('completed', $result['status'] ?? null);
+        $this->assertSame($rowOverrides, $executionService->receivedOverrides);
     }
 
     public function testQueueUsesPrivateStorageDirectoryByDefault(): void

@@ -34,7 +34,8 @@ class ImportQueueService
         string $tmpName,
         string $filename,
         string $importTarget = 'conta',
-        ?int $cartaoId = null
+        ?int $cartaoId = null,
+        array $rowOverrides = []
     ): array {
         $sourceType = strtolower(trim($sourceType));
         $importTarget = $this->normalizeImportTarget($importTarget);
@@ -69,6 +70,7 @@ class ImportQueueService
                 'profile' => $profile->toArray(),
                 'import_target' => $importTarget,
                 'cartao_id' => $cartaoId,
+                'row_overrides' => $rowOverrides,
                 'queued_at' => date('c'),
             ], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE),
         ]);
@@ -102,6 +104,7 @@ class ImportQueueService
             $importTarget = $this->normalizeImportTarget((string) ($job->import_target ?? 'conta'));
             $cartaoId = is_numeric($job->cartao_id ?? null) ? (int) $job->cartao_id : null;
             $sourceType = strtolower(trim((string) ($job->source_type ?? 'ofx')));
+            $rowOverrides = is_array($meta['row_overrides'] ?? null) ? $meta['row_overrides'] : [];
 
             $result = $this->executionService->confirmExecution(
                 (int) $job->user_id,
@@ -110,7 +113,8 @@ class ImportQueueService
                 $profile,
                 (string) ($job->filename ?? ''),
                 $importTarget,
-                $cartaoId
+                $cartaoId,
+                $rowOverrides
             );
 
             if (!$result->success) {

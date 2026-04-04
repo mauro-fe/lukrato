@@ -1,4 +1,106 @@
 /* ============================================================================
+   0. MODAL ROOTS
+   ============================================================================ */
+
+.lk-modal-root {
+  pointer-events: none;
+}
+
+.lk-modal-root > * {
+  pointer-events: auto;
+}
+
+#lk-app-modal-root {
+  position: fixed;
+  inset: 0;
+  z-index: 13000;
+}
+
+#lk-page-modal-root {
+  position: fixed;
+  top: 80px;
+  right: 0;
+  bottom: 0;
+  left: var(--sidebar-width);
+  z-index: 1100;
+}
+
+body.sidebar-collapsed #lk-page-modal-root {
+  left: var(--sidebar-collapsed-width);
+}
+
+body.has-month-bar #lk-page-modal-root {
+  top: 124px;
+}
+
+#lk-page-shell.lk-page-shell--modal-open {
+  overflow: clip;
+}
+
+#lk-page-modal-root > .modal[data-lk-modal-scope="page"] {
+  position: absolute;
+  inset: 0;
+  --bs-modal-zindex: 1;
+  z-index: var(--bs-modal-zindex);
+}
+
+#lk-page-modal-root > .modal[data-lk-modal-scope="page"] .modal-dialog {
+  margin: clamp(1rem, 2.4vw, 2rem) auto;
+}
+
+#lk-page-modal-root > .modal-backdrop[data-lk-modal-scope="page"] {
+  position: absolute;
+  inset: 0;
+  --bs-backdrop-zindex: 0;
+  z-index: var(--bs-backdrop-zindex);
+}
+
+#lk-page-modal-root > [data-lk-modal-scope="page"]:not(.modal):not(.modal-backdrop) {
+  position: absolute;
+  inset: 0;
+}
+
+#lk-app-modal-root > [data-lk-modal-scope="app"]:not(.modal):not(.modal-backdrop) {
+  position: absolute;
+  inset: 0;
+}
+
+body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container, .lk-support-button) {
+  pointer-events: none;
+}
+
+@media (max-width: 992px) {
+  #lk-page-modal-root {
+    top: 60px;
+    left: 0;
+  }
+
+  body.has-month-bar #lk-page-modal-root {
+    top: 104px;
+  }
+}
+
+@media (max-width: 768px) {
+  #lk-page-modal-root {
+    top: 56px;
+  }
+
+  body.has-month-bar #lk-page-modal-root {
+    top: 98px;
+  }
+}
+
+@media (max-width: 640px) {
+  #lk-page-modal-root {
+    top: 50px;
+  }
+
+  body.has-month-bar #lk-page-modal-root {
+    top: 90px;
+  }
+}
+
+/* ============================================================================
    1. MODAIS
    ============================================================================ */
 

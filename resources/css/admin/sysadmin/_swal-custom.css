@@ -8,6 +8,10 @@
   border: 1px solid var(--glass-border);
 }
 
+.swal2-radio{
+  background:var(--color-bg) !important ;
+}
+
 .sysadmin-swal .swal2-title {
   color: var(--color-text) !important;
 }

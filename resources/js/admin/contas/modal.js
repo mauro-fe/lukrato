@@ -13,6 +13,10 @@ import { getApiPayload, getErrorMessage } from '../shared/api.js';
 
 export const ContasModal = {
     syncScrollLock() {
+        if (window.LK?.modalSystem) {
+            return;
+        }
+
         const hasActiveOverlay = document.querySelector(
             '#modalContaOverlay.active, #modalNovaInstituicaoOverlay.active'
         );
@@ -48,6 +52,8 @@ export const ContasModal = {
     },
 
     attachCloseModalListeners() {
+        window.LK?.modalSystem?.prepareOverlay('#modalContaOverlay', { scope: 'page' });
+        window.LK?.modalSystem?.prepareOverlay('#modalNovaInstituicaoOverlay', { scope: 'page' });
         ContasModal.bindOverlayClose('modalContaOverlay', () => ContasModal.closeModal());
         ContasModal.bindOverlayClose('modalNovaInstituicaoOverlay', () => ContasModal.closeNovaInstituicaoModal());
     },

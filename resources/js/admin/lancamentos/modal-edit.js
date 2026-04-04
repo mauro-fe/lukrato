@@ -28,9 +28,7 @@ export function attachLancamentosModalEdit(ModalManager, dependencies) {
             if (!DOM.modalEditLancEl) return null;
 
             if (window.bootstrap?.Modal) {
-                if (DOM.modalEditLancEl.parentElement && DOM.modalEditLancEl.parentElement !== document.body) {
-                    document.body.appendChild(DOM.modalEditLancEl);
-                }
+                window.LK?.modalSystem?.prepareBootstrapModal(DOM.modalEditLancEl, { scope: 'page' });
                 STATE.modalEditLanc = window.bootstrap.Modal.getOrCreateInstance(DOM.modalEditLancEl);
                 return STATE.modalEditLanc;
             }
@@ -354,8 +352,8 @@ export function attachLancamentosModalEdit(ModalManager, dependencies) {
             const tipo = String(DOM.selectLancTipo?.value || snapshot?.tipo || '').toLowerCase();
             if (tipo !== 'despesa') return '';
 
-            const categoriaId = DOM.selectLancCategoria?.value || snapshot?.categoria_id || '';
-            if (!categoriaId) return '';
+            const categoriaId = Utils.parsePositiveId(DOM.selectLancCategoria?.value || snapshot?.categoria_id || '');
+            if (categoriaId === null) return '';
 
             const dataValue = DOM.inputLancData?.value || snapshot?.data || '';
             const period = resolvePlanningPeriod(dataValue);
@@ -367,7 +365,7 @@ export function attachLancamentosModalEdit(ModalManager, dependencies) {
                 : Math.abs(Number(snapshot?.valor ?? 0));
             const gastoAtual = Number(orcamento.gasto_real ?? 0);
             const limiteEfetivo = Number(orcamento.limite_efetivo ?? orcamento.valor_limite ?? 0);
-            const mesmaCategoriaOriginal = String(snapshot?.categoria_id ?? '') === String(categoriaId);
+            const mesmaCategoriaOriginal = Utils.parsePositiveId(snapshot?.categoria_id) === categoriaId;
             const mesmaCompetenciaOriginal = isSamePlanningPeriod(snapshot?.data, period);
             const originalContribution = mesmaCategoriaOriginal
                 && mesmaCompetenciaOriginal
@@ -459,14 +457,16 @@ export function attachLancamentosModalEdit(ModalManager, dependencies) {
             }
 
             OptionsManager.populateContaSelect(DOM.selectLancConta, data?.conta_id ?? null);
+            const categoriaId = Utils.parsePositiveId(data?.categoria_id ?? null);
+            const subcategoriaId = Utils.parsePositiveId(data?.subcategoria_id ?? null);
             OptionsManager.populateCategoriaSelect(
                 DOM.selectLancCategoria,
                 DOM.selectLancTipo?.value || '',
-                data?.categoria_id ?? null
+                categoriaId
             );
 
-            if (data?.categoria_id) {
-                OptionsManager.populateSubcategoriaSelect(data.categoria_id, data?.subcategoria_id ?? null);
+            if (categoriaId !== null) {
+                OptionsManager.populateSubcategoriaSelect(categoriaId, subcategoriaId);
             } else {
                 if (DOM.selectLancSubcategoria) DOM.selectLancSubcategoria.innerHTML = '<option value="">Sem subcategoria</option>';
                 if (DOM.subcategoriaGroup) DOM.subcategoriaGroup.classList.add('hidden');
@@ -512,7 +512,8 @@ export function attachLancamentosModalEdit(ModalManager, dependencies) {
 
         ensureViewModal: () => {
             if (!STATE.modalViewLanc && DOM.modalViewLancEl) {
-                STATE.modalViewLanc = new bootstrap.Modal(DOM.modalViewLancEl);
+                window.LK?.modalSystem?.prepareBootstrapModal(DOM.modalViewLancEl, { scope: 'page' });
+                STATE.modalViewLanc = bootstrap.Modal.getOrCreateInstance(DOM.modalViewLancEl);
             }
             return STATE.modalViewLanc;
         },
@@ -657,6 +658,9 @@ export function attachLancamentosModalEdit(ModalManager, dependencies) {
             const tipoValue = DOM.selectLancTipo?.value || '';
             const contaValue = DOM.selectLancConta?.value || '';
             const categoriaValue = DOM.selectLancCategoria?.value || '';
+            const contaId = Utils.parsePositiveId(contaValue);
+            const categoriaId = Utils.parsePositiveId(categoriaValue);
+            const subcategoriaId = Utils.parsePositiveId(DOM.selectLancSubcategoria?.value || '');
             const valorValue = DOM.inputLancValor?.value || '';
             const descricaoValue = (DOM.inputLancDescricao?.value || '').trim();
             const formaPagamentoValue = DOM.selectLancFormaPagamento?.value || '';
@@ -666,7 +670,7 @@ export function attachLancamentosModalEdit(ModalManager, dependencies) {
 
             if (!dataValue) return ModalManager.showLancAlert('Informe a data do lançamento.');
             if (!tipoValue) return ModalManager.showLancAlert('Selecione o tipo do lançamento.');
-            if (!contaValue) return ModalManager.showLancAlert('Selecione a conta.');
+            if (contaId === null) return ModalManager.showLancAlert('Selecione a conta.');
 
             const valorFloat = Math.abs(Number(MoneyMask.unformat(valorValue)));
             if (!Number.isFinite(valorFloat) || valorFloat <= 0) {
@@ -692,9 +696,9 @@ export function attachLancamentosModalEdit(ModalManager, dependencies) {
                 tipo: tipoValue,
                 valor: Number(valorFloat.toFixed(2)),
                 descricao: descricaoValue,
-                conta_id: Number(contaValue),
-                categoria_id: categoriaValue ? Number(categoriaValue) : null,
-                subcategoria_id: DOM.selectLancSubcategoria?.value ? Number(DOM.selectLancSubcategoria.value) : null,
+                conta_id: contaId,
+                categoria_id: categoriaId,
+                subcategoria_id: subcategoriaId,
                 forma_pagamento: formaPagamentoValue || null,
                 meta_id: metaId,
                 meta_operacao: metaOperacao,

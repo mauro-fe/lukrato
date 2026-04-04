@@ -537,7 +537,9 @@ export function createOrcamentoUi({
         const overlay = document.getElementById(id);
         if (overlay) {
             overlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
+            if (!window.LK?.modalSystem) {
+                document.body.style.overflow = 'hidden';
+            }
         }
     }
 
@@ -545,7 +547,9 @@ export function createOrcamentoUi({
         const overlay = document.getElementById(id);
         if (overlay) {
             overlay.classList.remove('active');
-            document.body.style.overflow = '';
+            if (!window.LK?.modalSystem) {
+                document.body.style.overflow = '';
+            }
         }
     }
 

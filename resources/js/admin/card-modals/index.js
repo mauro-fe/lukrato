@@ -204,11 +204,15 @@ async function openCardDetailModal(cardId, cardName, cardColor, currentMonth) {
 }
 
 function renderCardDetailModal(data, cardColor) {
+    const modalSystem = window.LK?.modalSystem;
+
     // Clean up any existing modal first
     const existingModal = document.getElementById('cardDetailModalOverlay');
     if (existingModal) {
         existingModal.remove();
-        document.body.style.overflow = '';
+        if (!modalSystem) {
+            document.body.style.overflow = '';
+        }
     }
 
     const template = document.getElementById('cardDetailModalTemplate');
@@ -244,9 +248,13 @@ function renderCardDetailModal(data, cardColor) {
     });
 
     // Prevent background scroll while modal is open
-    document.body.style.overflow = 'hidden';
+    if (!modalSystem) {
+        document.body.style.overflow = 'hidden';
+    }
 
     document.body.appendChild(overlay);
+    modalSystem?.prepareOverlay(overlay, { scope: 'page' });
+    overlay.classList.add('active');
 
     // Scroll overlay to top
     overlay.scrollTop = 0;
@@ -336,12 +344,17 @@ function closeCardDetailModal() {
     const modal = document.getElementById('cardDetailModalOverlay');
     if (!modal) return;
 
+    const modalSystem = window.LK?.modalSystem;
+
     // Fade out animation
+    modal.classList.remove('active');
     modal.style.opacity = '0';
     modal.style.transition = 'opacity 0.25s ease';
 
     // Restore background scroll
-    document.body.style.overflow = '';
+    if (!modalSystem) {
+        document.body.style.overflow = '';
+    }
 
     if (evolutionChart) { evolutionChart.destroy(); evolutionChart = null; }
     if (impactChart) { impactChart.destroy(); impactChart = null; }

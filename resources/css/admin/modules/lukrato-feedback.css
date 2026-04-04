@@ -83,7 +83,7 @@
 
 .swal2-popup{
     background: var(--color-bg) !important;
-  color: var(--text-color);
+  color: var(--text-color) !important;
 }
 
 /* Toast customization */

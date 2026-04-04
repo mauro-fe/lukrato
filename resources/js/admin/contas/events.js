@@ -183,7 +183,8 @@ export const ContasEvents = {
                 activeEl.tagName === 'SELECT' ||
                 activeEl.isContentEditable
             );
-            const isModalOpen = document.querySelector('.modal.show, .lk-modal-overlay.active');
+            const isModalOpen = window.LK?.modalSystem?.hasBlockingDialog?.()
+                || document.body.classList.contains('lk-any-modal-open');
 
             if (isInputFocused || isModalOpen) return;
 

@@ -23,6 +23,8 @@ export const ModalPagarFatura = {
         const modalEl = DOM.modalPagarFatura || document.getElementById('modalPagarFatura');
         if (!modalEl) return;
 
+        window.LK?.modalSystem?.prepareBootstrapModal(modalEl, { scope: 'page' });
+
         this.instance = bootstrap.Modal.getOrCreateInstance(modalEl, {
             backdrop: true,
             keyboard: true,

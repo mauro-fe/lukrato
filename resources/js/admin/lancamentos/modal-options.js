@@ -10,12 +10,15 @@ export function attachLancamentosModalOptions(OptionsManager, dependencies) {
         formatMetaOptionLabel,
     } = dependencies;
 
+    const normalizePositiveId = (value) => Utils.parsePositiveId(value);
+
     Object.assign(OptionsManager, {
         populateCategoriaSelect: (select, tipo, selectedId) => {
             if (!select) return;
 
             const normalized = (tipo || '').toLowerCase();
-            const currentValue = selectedId !== undefined && selectedId !== null ? String(selectedId) : '';
+            const currentId = normalizePositiveId(selectedId);
+            const currentValue = currentId !== null ? String(currentId) : '';
 
             select.innerHTML = '<option value="">Sem categoria</option>';
 
@@ -54,17 +57,20 @@ export function attachLancamentosModalOptions(OptionsManager, dependencies) {
             const group = DOM.subcategoriaGroup;
             if (!select) return;
 
-            if (!categoriaId) {
+            const normalizedCategoriaId = normalizePositiveId(categoriaId);
+            const normalizedSelectedSubcatId = normalizePositiveId(selectedSubcatId);
+
+            if (normalizedCategoriaId === null) {
                 select.innerHTML = '<option value="">Sem subcategoria</option>';
                 if (group) group.classList.add('hidden');
                 return;
             }
             try {
-                const json = await apiGet(`${CONFIG.BASE_URL}api/categorias/${categoriaId}/subcategorias`);
+                const json = await apiGet(`${CONFIG.BASE_URL}api/categorias/${normalizedCategoriaId}/subcategorias`);
                 const subs = [...(json?.data?.subcategorias ?? (Array.isArray(json?.data) ? json.data : []))]
                     .sort((a, b) => String(a?.nome || '').localeCompare(String(b?.nome || ''), 'pt-BR', { sensitivity: 'base' }));
 
-                const selectedVal = selectedSubcatId ? String(selectedSubcatId) : '';
+                const selectedVal = normalizedSelectedSubcatId !== null ? String(normalizedSelectedSubcatId) : '';
                 select.innerHTML = '<option value="">Sem subcategoria</option>';
                 subs.forEach((sub) => {
                     const opt = document.createElement('option');

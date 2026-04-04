@@ -9,6 +9,64 @@
 (function () {
     'use strict';
 
+    const MODAL_SELECTOR = [
+        '.modal',
+        '.lk-modal-overlay',
+        '.fin-modal-overlay',
+        '.payment-modal',
+        '.modal-fatura-overlay',
+        '.parcelas-modal-overlay',
+        '[id$="CustomizeModalOverlay"]',
+        '.swal2-popup',
+        '[data-lk-modal-scope]'
+    ].join(', ');
+
+    const MODAL_TITLE_SELECTOR = [
+        '.modal-title',
+        '.lk-modal-title',
+        '.swal2-title',
+        '.payment-modal__title',
+        '.fin-modal-header h3',
+        '.sys-customize-title',
+        '.rel-customize-title',
+        '.dash-modal__title',
+        '[id$="CustomizeModalTitle"]',
+        '.card-detail-info h2',
+        '.parcelas-modal-title',
+        'h2',
+        'h3'
+    ].join(', ');
+
+    const MODAL_DESCRIPTION_SELECTOR = [
+        '.modal-body p',
+        '.lk-modal-description',
+        '.swal2-html-container',
+        '.payment-modal__subtitle',
+        '.sys-customize-desc',
+        '.rel-customize-desc',
+        '.dash-modal__desc',
+        '[class*="customize-desc"]'
+    ].join(', ');
+
+    const MODAL_CLOSE_SELECTOR = [
+        '.btn-close',
+        '.close',
+        '.lk-modal-close-btn',
+        '.swal2-close',
+        '.payment-modal__close',
+        '.btn-fechar-fatura',
+        '.parcelas-modal-close',
+        '.sys-customize-close',
+        '.rel-customize-close',
+        '.dash-modal__close',
+        '[data-action="fecharModalPost"]',
+        '[data-action="fecharModalCupom"]',
+        '[data-action="close-parcelas"]',
+        '[data-close-modal]',
+        '[aria-label="Fechar"]',
+        '[aria-label="Fechar modal"]'
+    ].join(', ');
+
     // ============================================
     // ARIA LIVE REGION PARA NOTIFICAÇÕES
     // ============================================
@@ -68,22 +126,18 @@
     // ============================================
 
     function enhanceModals() {
+        document.querySelectorAll(MODAL_SELECTOR).forEach(enhanceModal);
+
         // Observar novos modais
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 mutation.addedNodes.forEach((node) => {
                     if (node.nodeType === 1) { // Element node
-                        // Modais Bootstrap
-                        if (node.classList?.contains('modal')) {
-                            enhanceModal(node);
-                        }
-                        // Modais customizados
-                        if (node.classList?.contains('lk-modal-overlay') ||
-                            node.classList?.contains('swal2-popup')) {
+                        if (node.matches?.(MODAL_SELECTOR)) {
                             enhanceModal(node);
                         }
                         // Buscar modais dentro do nó
-                        const innerModals = node.querySelectorAll?.('.modal, .lk-modal-overlay, .swal2-popup');
+                        const innerModals = node.querySelectorAll?.(MODAL_SELECTOR);
                         innerModals?.forEach(enhanceModal);
                     }
                 });
@@ -94,6 +148,16 @@
     }
 
     function enhanceModal(modal) {
+        if (!(modal instanceof HTMLElement) || modal.classList.contains('modal-backdrop')) {
+            return;
+        }
+
+        if (modal.dataset.lkAccessibilityEnhanced === '1') {
+            return;
+        }
+
+        modal.dataset.lkAccessibilityEnhanced = '1';
+
         // Garantir role="dialog"
         if (!modal.getAttribute('role')) {
             modal.setAttribute('role', 'dialog');
@@ -101,9 +165,15 @@
 
         // Garantir aria-modal
         modal.setAttribute('aria-modal', 'true');
+        if (!modal.hasAttribute('aria-hidden')) {
+            const isVisible = modal.classList.contains('active')
+                || modal.classList.contains('show')
+                || modal.classList.contains('payment-modal--open');
+            modal.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+        }
 
         // Buscar título e associar
-        const title = modal.querySelector('.modal-title, .lk-modal-title, .swal2-title, h2, h3');
+        const title = modal.querySelector(MODAL_TITLE_SELECTOR);
         if (title && !modal.getAttribute('aria-labelledby')) {
             const titleId = title.id || `modal-title-${Date.now()}`;
             title.id = titleId;
@@ -111,7 +181,7 @@
         }
 
         // Buscar descrição
-        const description = modal.querySelector('.modal-body p, .lk-modal-description, .swal2-html-container');
+        const description = modal.querySelector(MODAL_DESCRIPTION_SELECTOR);
         if (description && !modal.getAttribute('aria-describedby')) {
             const descId = description.id || `modal-desc-${Date.now()}`;
             description.id = descId;
@@ -127,6 +197,12 @@
     // ============================================
 
     function setupFocusTrap(modal) {
+        if (!(modal instanceof HTMLElement) || modal.dataset.lkFocusTrapBound === '1') {
+            return;
+        }
+
+        modal.dataset.lkFocusTrapBound = '1';
+
         const focusableSelectors = [
             'button:not([disabled])',
             'input:not([disabled])',
@@ -140,6 +216,10 @@
             if (e.key !== 'Tab') return;
 
             const focusables = modal.querySelectorAll(focusableSelectors);
+            if (focusables.length === 0) {
+                return;
+            }
+
             const first = focusables[0];
             const last = focusables[focusables.length - 1];
 
@@ -335,13 +415,39 @@
     // ============================================
 
     function enhanceKeyboardNavigation() {
+        const isVisible = (element) => {
+            if (!(element instanceof HTMLElement)) return false;
+            if (element.getAttribute('aria-hidden') === 'true') return false;
+            if (element.classList.contains('modal') && !element.classList.contains('show')) return false;
+            if (element.classList.contains('payment-modal') && !element.classList.contains('payment-modal--open')) return false;
+            return element.getClientRects().length > 0;
+        };
+
+        const getOpenModal = () => {
+            const candidates = Array.from(document.querySelectorAll(MODAL_SELECTOR))
+                .filter((element) => {
+                    if (!(element instanceof HTMLElement) || element.classList.contains('modal-backdrop')) {
+                        return false;
+                    }
+
+                    const isOpen = element.classList.contains('active')
+                        || element.classList.contains('show')
+                        || element.classList.contains('payment-modal--open')
+                        || element.getAttribute('aria-hidden') === 'false';
+
+                    return isOpen && isVisible(element);
+                });
+
+            return candidates.length > 0 ? candidates[candidates.length - 1] : null;
+        };
+
         // Escape fecha modais
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 // Tentar fechar modal aberto
-                const openModal = document.querySelector('.modal.show, .lk-modal-overlay, .swal2-popup');
+                const openModal = getOpenModal();
                 if (openModal) {
-                    const closeBtn = openModal.querySelector('.btn-close, .close, .lk-modal-close-btn, .swal2-close');
+                    const closeBtn = openModal.querySelector(MODAL_CLOSE_SELECTOR);
                     closeBtn?.click();
                 }
             }

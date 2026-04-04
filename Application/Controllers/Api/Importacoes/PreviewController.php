@@ -108,13 +108,16 @@ class PreviewController extends ApiController
         try {
             [$contents, $filename] = $this->extractUploadedContents($sourceType);
             $profile = $this->resolveProfile($userId, $contaId, $sourceType);
+            $categorizePreview = $this->shouldCategorizePreview($payload);
             $preview = $this->previewService->preview(
                 $sourceType,
                 $contents,
                 $profile,
                 $filename,
                 $importTarget,
-                $cartaoId
+                $cartaoId,
+                $userId,
+                $categorizePreview
             );
         } catch (\InvalidArgumentException $e) {
             return Response::validationErrorResponse(['file' => $e->getMessage()]);
@@ -173,5 +176,15 @@ class PreviewController extends ApiController
         $normalized = strtolower(trim($importTarget));
 
         return in_array($normalized, ['conta', 'cartao'], true) ? $normalized : 'conta';
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function shouldCategorizePreview(array $payload): bool
+    {
+        $raw = strtolower(trim((string) ($payload['categorize_preview'] ?? '0')));
+
+        return in_array($raw, ['1', 'true', 'yes', 'on'], true);
     }
 }

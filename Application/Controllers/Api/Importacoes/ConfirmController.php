@@ -110,6 +110,32 @@ class ConfirmController extends ApiController
         try {
             [$tmpName, $filename] = $this->extractUploadedFile($sourceType);
             $profile = $this->resolveProfile($userId, $contaId, $sourceType);
+            $contents = file_get_contents($tmpName);
+            if ($contents === false) {
+                throw new \InvalidArgumentException('Não foi possível ler o arquivo enviado.');
+            }
+
+            $rowOverrides = $this->parseRowOverrides($payload);
+
+            $preparation = $this->executionService->prepareExecution(
+                $sourceType,
+                $contents,
+                $profile,
+                $filename,
+                $importTarget,
+                $cartaoId,
+                $userId,
+                $rowOverrides
+            );
+            $preview = is_array($preparation->data['preview'] ?? null)
+                ? $preparation->data['preview']
+                : [];
+
+            if (!$this->previewAllowsConfirmation($preview)) {
+                return Response::validationErrorResponse([
+                    'file' => $this->resolvePreviewBlockingMessage($preview),
+                ]);
+            }
 
             if ($this->shouldQueueImport($payload)) {
                 $job = $this->queueService->enqueueFromUpload(
@@ -119,7 +145,8 @@ class ConfirmController extends ApiController
                     $tmpName,
                     $filename,
                     $importTarget,
-                    $cartaoId
+                    $cartaoId,
+                    $rowOverrides
                 );
 
                 return Response::successResponse([
@@ -129,11 +156,6 @@ class ConfirmController extends ApiController
                 ], 'Importação enfileirada com sucesso.', 202);
             }
 
-            $contents = file_get_contents($tmpName);
-            if ($contents === false) {
-                throw new \InvalidArgumentException('Não foi possível ler o arquivo enviado.');
-            }
-
             $result = $this->executionService->confirmExecution(
                 $userId,
                 $sourceType,
@@ -141,7 +163,8 @@ class ConfirmController extends ApiController
                 $profile,
                 $filename,
                 $importTarget,
-                $cartaoId
+                $cartaoId,
+                $rowOverrides
             );
         } catch (\InvalidArgumentException $e) {
             return Response::validationErrorResponse(['file' => $e->getMessage()]);
@@ -207,6 +230,31 @@ class ConfirmController extends ApiController
     }
 
     /**
+     * @param array<string, mixed> $preview
+     */
+    private function previewAllowsConfirmation(array $preview): bool
+    {
+        return (bool) ($preview['can_confirm'] ?? false);
+    }
+
+    /**
+     * @param array<string, mixed> $preview
+     */
+    private function resolvePreviewBlockingMessage(array $preview): string
+    {
+        $errors = is_array($preview['errors'] ?? null) ? $preview['errors'] : [];
+
+        foreach ($errors as $error) {
+            $message = trim((string) $error);
+            if ($message !== '') {
+                return $message;
+            }
+        }
+
+        return 'Preview bloqueado. Ajuste o arquivo ou a configuração antes de confirmar.';
+    }
+
+    /**
      * @param array<string, mixed> $payload
      */
     private function shouldQueueImport(array $payload): bool
@@ -218,5 +266,25 @@ class ConfirmController extends ApiController
         $raw = strtolower(trim((string) ($payload['async'] ?? '0')));
 
         return in_array($raw, ['1', 'true', 'yes', 'on'], true);
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array<string, mixed>
+     */
+    private function parseRowOverrides(array $payload): array
+    {
+        $raw = $payload['row_overrides'] ?? null;
+        if (is_array($raw)) {
+            return $raw;
+        }
+
+        if (!is_string($raw) || trim($raw) === '') {
+            return [];
+        }
+
+        $decoded = json_decode($raw, true);
+
+        return is_array($decoded) ? $decoded : [];
     }
 }

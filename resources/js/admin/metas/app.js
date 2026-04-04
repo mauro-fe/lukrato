@@ -169,6 +169,7 @@ export const MetasApp = {
 
         // Modal overlays
         document.querySelectorAll('.fin-modal-overlay').forEach(overlay => {
+            window.LK?.modalSystem?.prepareOverlay(overlay, { scope: 'page' });
             overlay.addEventListener('click', (e) => {
                 if (e.target === overlay) MetasApp.closeModal(overlay.id);
             });

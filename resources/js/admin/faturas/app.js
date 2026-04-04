@@ -7,6 +7,10 @@ import { getApiPayload, getErrorMessage } from '../shared/api.js';
 
 export const FaturasApp = {
     cleanupModalArtifacts() {
+        if (window.LK?.modalSystem) {
+            return;
+        }
+
         const openModals = document.querySelectorAll('.modal.show');
 
         if (openModals.length > 0) {
@@ -106,6 +110,8 @@ export const FaturasApp = {
 
     initModal() {
         if (!DOM.modalDetalhes) return;
+
+        window.LK?.modalSystem?.prepareBootstrapModal(DOM.modalDetalhes, { scope: 'page' });
 
         STATE.modalDetalhesInstance = bootstrap.Modal.getOrCreateInstance(DOM.modalDetalhes, {
             backdrop: true,

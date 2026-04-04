@@ -12,10 +12,12 @@ use Application\Models\Fatura;
 use Application\Models\FaturaCartaoItem;
 use Application\Models\ImportacaoItem;
 use Application\Models\ImportacaoLote;
+use Application\Services\AI\Rules\CategoryRuleEngine;
 use Application\Services\Cartao\CartaoBillingDateService;
 use Application\Services\Cartao\CartaoFaturaSupportService;
 use Application\Services\Infrastructure\LogService;
 use Application\Services\Lancamento\LancamentoCreationService;
+use Application\Validators\LancamentoValidator;
 use Illuminate\Database\Capsule\Manager as DB;
 
 class ImportExecutionService
@@ -33,10 +35,24 @@ class ImportExecutionService
         ImportProfileConfigDTO $profile,
         string $filename = '',
         string $importTarget = 'conta',
-        ?int $cartaoId = null
+        ?int $cartaoId = null,
+        ?int $userId = null,
+        array $rowOverrides = []
     ): ServiceResultDTO {
         $importTarget = $this->normalizeImportTarget($importTarget);
-        $preview = $this->previewService->preview($sourceType, $contents, $profile, $filename, $importTarget, $cartaoId);
+        $preview = $this->previewService->preview(
+            $sourceType,
+            $contents,
+            $profile,
+            $filename,
+            $importTarget,
+            $cartaoId,
+            $userId
+        );
+
+        if ($importTarget === 'conta' && $userId !== null && $userId > 0 && $rowOverrides !== []) {
+            $preview = $this->applyRowOverridesToPreview($preview, $rowOverrides, $userId);
+        }
 
         return ServiceResultDTO::ok('Preview de importação preparado.', [
             'status' => 'preview_ready',
@@ -53,10 +69,28 @@ class ImportExecutionService
         ImportProfileConfigDTO $profile,
         string $filename = '',
         string $importTarget = 'conta',
-        ?int $cartaoId = null
+        ?int $cartaoId = null,
+        array $rowOverrides = []
     ): ServiceResultDTO {
         $importTarget = $this->normalizeImportTarget($importTarget);
-        $preview = $this->previewService->preview($sourceType, $contents, $profile, $filename, $importTarget, $cartaoId);
+        $preparation = $this->prepareExecution(
+            $sourceType,
+            $contents,
+            $profile,
+            $filename,
+            $importTarget,
+            $cartaoId,
+            $userId,
+            $rowOverrides
+        );
+
+        if (!$preparation->success) {
+            return $preparation;
+        }
+
+        $preview = is_array($preparation->data['preview'] ?? null)
+            ? $preparation->data['preview']
+            : [];
         $canConfirm = (bool) ($preview['can_confirm'] ?? false);
         $rows = is_array($preview['rows'] ?? null) ? $preview['rows'] : [];
         $previewErrors = is_array($preview['errors'] ?? null) ? $preview['errors'] : [];
@@ -134,7 +168,7 @@ class ImportExecutionService
 
         foreach ($rows as $index => $row) {
             try {
-                $normalized = $this->normalizeRow($row);
+                $normalized = $this->normalizeRow($row, (int) $index);
             } catch (\InvalidArgumentException $e) {
                 $errors++;
                 $errorMessages[] = $e->getMessage();
@@ -154,7 +188,7 @@ class ImportExecutionService
                     'duplicate',
                     null,
                     'Linha ignorada por duplicidade.',
-                    ['import_target' => 'conta']
+                    $this->buildContaImportMeta($normalized)
                 );
                 continue;
             }
@@ -166,12 +200,15 @@ class ImportExecutionService
                 'descricao' => $normalized['description'],
                 'observacao' => $this->buildObservacao($normalized['memo'] ?? null, $preview['source_type'] ?? $sourceType),
                 'conta_id' => $contaId,
+                'categoria_id' => $normalized['categoria_id'] ?? null,
+                'subcategoria_id' => $normalized['subcategoria_id'] ?? null,
                 'pago' => true,
             ]);
 
             if ($result->success) {
                 $imported++;
                 $lancamentoId = $this->extractLancamentoId($result->data);
+                $this->learnFromImportedRow($userId, $normalized);
                 $this->persistItem(
                     (int) $lote->id,
                     $userId,
@@ -181,7 +218,7 @@ class ImportExecutionService
                     'imported',
                     $lancamentoId,
                     null,
-                    ['import_target' => 'conta']
+                    $this->buildContaImportMeta($normalized)
                 );
                 continue;
             }
@@ -199,7 +236,7 @@ class ImportExecutionService
                 'error',
                 null,
                 $errorMessage,
-                ['import_target' => 'conta']
+                $this->buildContaImportMeta($normalized)
             );
         }
 
@@ -272,7 +309,7 @@ class ImportExecutionService
 
         foreach ($rows as $index => $row) {
             try {
-                $normalized = $this->normalizeRow($row);
+                $normalized = $this->normalizeRow($row, (int) $index);
             } catch (\InvalidArgumentException $e) {
                 $errors++;
                 $errorMessages[] = $e->getMessage();
@@ -525,7 +562,7 @@ class ImportExecutionService
      * @param array<string, mixed> $row
      * @return array<string, mixed>
      */
-    private function normalizeRow(array $row): array
+    private function normalizeRow(array $row, int $rowIndex = 0): array
     {
         $date = trim((string) ($row['date'] ?? ''));
         $description = ImportSanitizer::sanitizeText((string) ($row['description'] ?? ''), 190);
@@ -548,6 +585,19 @@ class ImportExecutionService
             $type = 'despesa';
         }
 
+        $rowKey = ImportSanitizer::sanitizeText((string) ($row['row_key'] ?? ''), 80);
+        if ($rowKey === '') {
+            $rowKey = ImportRowCategorizationService::buildRowKeyFromPayload($row, $rowIndex);
+        }
+
+        $categoriaId = $this->parsePositiveId($row['categoria_id'] ?? $row['categoriaId'] ?? null);
+        $subcategoriaId = $this->parsePositiveId($row['subcategoria_id'] ?? $row['subcategoriaId'] ?? null);
+        $categoriaSugeridaId = $this->parsePositiveId($row['categoria_sugerida_id'] ?? null);
+        $subcategoriaSugeridaId = $this->parsePositiveId($row['subcategoria_sugerida_id'] ?? null);
+
+        $resolvedNames = ImportRowCategorizationService::resolveCategoryNames($categoriaId, $subcategoriaId);
+        $resolvedSuggestedNames = ImportRowCategorizationService::resolveCategoryNames($categoriaSugeridaId, $subcategoriaSugeridaId);
+
         return [
             'date' => $date,
             'description' => $description,
@@ -556,7 +606,283 @@ class ImportExecutionService
             'memo' => ($memo = ImportSanitizer::sanitizeText((string) ($row['memo'] ?? ''), 500, true)) !== '' ? $memo : null,
             'external_id' => ($externalId = ImportSanitizer::sanitizeText((string) ($row['external_id'] ?? ''), 120)) !== '' ? $externalId : null,
             'raw' => is_array($row['raw'] ?? null) ? ImportSanitizer::sanitizeMixed($row['raw']) : [],
+            'row_key' => $rowKey,
+            'categoria_id' => $categoriaId,
+            'subcategoria_id' => $subcategoriaId,
+            'categoria_nome' => ($categoriaNome = ImportSanitizer::sanitizeText((string) ($row['categoria_nome'] ?? ''), 100)) !== ''
+                ? $categoriaNome
+                : ($resolvedNames['categoria_nome'] ?? null),
+            'subcategoria_nome' => ($subcategoriaNome = ImportSanitizer::sanitizeText((string) ($row['subcategoria_nome'] ?? ''), 100)) !== ''
+                ? $subcategoriaNome
+                : ($resolvedNames['subcategoria_nome'] ?? null),
+            'categoria_sugerida_id' => $categoriaSugeridaId,
+            'subcategoria_sugerida_id' => $subcategoriaSugeridaId,
+            'categoria_sugerida_nome' => ($categoriaSugeridaNome = ImportSanitizer::sanitizeText((string) ($row['categoria_sugerida_nome'] ?? ''), 100)) !== ''
+                ? $categoriaSugeridaNome
+                : ($resolvedSuggestedNames['categoria_nome'] ?? null),
+            'subcategoria_sugerida_nome' => ($subcategoriaSugeridaNome = ImportSanitizer::sanitizeText((string) ($row['subcategoria_sugerida_nome'] ?? ''), 100)) !== ''
+                ? $subcategoriaSugeridaNome
+                : ($resolvedSuggestedNames['subcategoria_nome'] ?? null),
+            'categoria_source' => ($categoriaSource = ImportSanitizer::sanitizeText((string) ($row['categoria_source'] ?? ''), 40)) !== '' ? $categoriaSource : null,
+            'categoria_confidence' => ($categoriaConfidence = ImportSanitizer::sanitizeText((string) ($row['categoria_confidence'] ?? ''), 40)) !== '' ? $categoriaConfidence : null,
+            'categoria_editada' => $this->toBoolean($row['categoria_editada'] ?? false),
+            'categoria_learning_source' => ($categoriaLearningSource = ImportSanitizer::sanitizeText((string) ($row['categoria_learning_source'] ?? ''), 20)) !== ''
+                ? $categoriaLearningSource
+                : null,
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $preview
+     * @param array<string, mixed> $rowOverrides
+     * @return array<string, mixed>
+     */
+    private function applyRowOverridesToPreview(array $preview, array $rowOverrides, int $userId): array
+    {
+        $rows = is_array($preview['rows'] ?? null) ? $preview['rows'] : [];
+        if ($rows === []) {
+            return $preview;
+        }
+
+        $normalizedOverrides = $this->normalizeRowOverrides($rowOverrides);
+        if ($normalizedOverrides === []) {
+            return $preview;
+        }
+
+        $matchedOverrideKeys = [];
+        $overrideErrors = [];
+
+        foreach ($rows as $index => $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $rowKey = trim((string) ($row['row_key'] ?? ''));
+            if ($rowKey === '') {
+                $rowKey = ImportRowCategorizationService::buildRowKeyFromPayload($row, (int) $index);
+                $row['row_key'] = $rowKey;
+            }
+
+            if (!isset($normalizedOverrides[$rowKey])) {
+                $rows[$index] = $row;
+                continue;
+            }
+
+            [$rows[$index], $rowErrors] = $this->applySingleRowOverride(
+                $row,
+                $normalizedOverrides[$rowKey],
+                $userId,
+                (int) $index
+            );
+
+            $matchedOverrideKeys[$rowKey] = true;
+            if ($rowErrors !== []) {
+                $overrideErrors = array_merge($overrideErrors, $rowErrors);
+            }
+        }
+
+        $unknownOverrideKeys = array_values(array_diff(array_keys($normalizedOverrides), array_keys($matchedOverrideKeys)));
+        if ($unknownOverrideKeys !== []) {
+            $overrideErrors[] = 'O preview mudou desde a revisão das categorias. Gere o preview novamente antes de confirmar.';
+        }
+
+        $preview['rows'] = $rows;
+        if ($overrideErrors !== []) {
+            $preview['errors'] = array_values(array_unique(array_merge(
+                is_array($preview['errors'] ?? null) ? $preview['errors'] : [],
+                $overrideErrors
+            )));
+            $preview['can_confirm'] = false;
+        }
+
+        return $preview;
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     * @param array<string, mixed> $override
+     * @return array{0:array<string, mixed>,1:array<int, string>}
+     */
+    private function applySingleRowOverride(array $row, array $override, int $userId, int $rowIndex): array
+    {
+        $categoriaId = $this->parsePositiveId($override['categoria_id'] ?? null);
+        $subcategoriaId = $this->parsePositiveId($override['subcategoria_id'] ?? null);
+
+        $overrideSuggestedCategoriaId = $this->parsePositiveId($override['categoria_sugerida_id'] ?? null);
+        $overrideSuggestedSubcategoriaId = $this->parsePositiveId($override['subcategoria_sugerida_id'] ?? null);
+        $overrideSuggestedNames = ImportRowCategorizationService::resolveCategoryNames(
+            $overrideSuggestedCategoriaId,
+            $overrideSuggestedSubcategoriaId
+        );
+
+        $rowErrors = [];
+        if ($subcategoriaId !== null && $categoriaId === null) {
+            $rowErrors[] = sprintf('Linha %d: selecione uma categoria antes da subcategoria.', $rowIndex + 1);
+            return [$row, $rowErrors];
+        }
+
+        $validationErrors = [];
+        $categoriaId = LancamentoValidator::validateCategoriaOwnership($categoriaId, $userId, $validationErrors);
+        if ($subcategoriaId !== null && $categoriaId !== null) {
+            $subcategoriaId = LancamentoValidator::validateSubcategoriaOwnership($subcategoriaId, $categoriaId, $userId, $validationErrors);
+        }
+
+        if ($validationErrors !== []) {
+            foreach ($validationErrors as $message) {
+                $rowErrors[] = sprintf('Linha %d: %s', $rowIndex + 1, $message);
+            }
+
+            return [$row, $rowErrors];
+        }
+
+        $suggestedCategoriaId = $this->parsePositiveId(
+            $row['categoria_sugerida_id']
+                ?? $overrideSuggestedCategoriaId
+                ?? $row['categoria_id']
+                ?? null
+        );
+        $suggestedSubcategoriaId = $this->parsePositiveId(
+            $row['subcategoria_sugerida_id']
+                ?? $overrideSuggestedSubcategoriaId
+                ?? $row['subcategoria_id']
+                ?? null
+        );
+
+        $wasEdited = $this->toBoolean($override['user_edited'] ?? false)
+            || $categoriaId !== $suggestedCategoriaId
+            || $subcategoriaId !== $suggestedSubcategoriaId;
+
+        $learningSource = null;
+        if ($wasEdited && $categoriaId !== null) {
+            if ($suggestedCategoriaId !== null || $suggestedSubcategoriaId !== null) {
+                if ($categoriaId !== $suggestedCategoriaId || $subcategoriaId !== $suggestedSubcategoriaId) {
+                    $learningSource = 'correction';
+                }
+            } else {
+                $learningSource = 'confirmed';
+            }
+        }
+
+        $resolvedNames = ImportRowCategorizationService::resolveCategoryNames($categoriaId, $subcategoriaId);
+        $row['categoria_sugerida_id'] = $suggestedCategoriaId;
+        $row['subcategoria_sugerida_id'] = $suggestedSubcategoriaId;
+        $row['categoria_sugerida_nome'] = ($row['categoria_sugerida_nome'] ?? null)
+            ?: ($override['categoria_sugerida_nome'] ?? null)
+            ?: ($overrideSuggestedNames['categoria_nome'] ?? null);
+        $row['subcategoria_sugerida_nome'] = ($row['subcategoria_sugerida_nome'] ?? null)
+            ?: ($override['subcategoria_sugerida_nome'] ?? null)
+            ?: ($overrideSuggestedNames['subcategoria_nome'] ?? null);
+        $row['categoria_id'] = $categoriaId;
+        $row['subcategoria_id'] = $subcategoriaId;
+        $row['categoria_nome'] = $resolvedNames['categoria_nome'];
+        $row['subcategoria_nome'] = $resolvedNames['subcategoria_nome'];
+        $row['categoria_editada'] = $wasEdited;
+        $row['categoria_learning_source'] = $learningSource;
+        if (!isset($row['categoria_source']) || $row['categoria_source'] === null || $row['categoria_source'] === '') {
+            $row['categoria_source'] = ($categoriaSource = ImportSanitizer::sanitizeText((string) ($override['categoria_source'] ?? ''), 40)) !== ''
+                ? $categoriaSource
+                : null;
+        }
+        if (!isset($row['categoria_confidence']) || $row['categoria_confidence'] === null || $row['categoria_confidence'] === '') {
+            $row['categoria_confidence'] = ($categoriaConfidence = ImportSanitizer::sanitizeText((string) ($override['categoria_confidence'] ?? ''), 40)) !== ''
+                ? $categoriaConfidence
+                : null;
+        }
+        $row['categoria_source'] = $wasEdited
+            ? ($categoriaId !== null ? 'manual' : null)
+            : ($row['categoria_source'] ?? null);
+        $row['categoria_confidence'] = $wasEdited
+            ? ($categoriaId !== null ? 'manual' : null)
+            : ($row['categoria_confidence'] ?? null);
+
+        return [$row, []];
+    }
+
+    /**
+     * @param array<string, mixed> $rowOverrides
+     * @return array<string, array<string, mixed>>
+     */
+    private function normalizeRowOverrides(array $rowOverrides): array
+    {
+        $normalized = [];
+
+        foreach ($rowOverrides as $key => $value) {
+            if (!is_array($value)) {
+                continue;
+            }
+
+            $rowKey = is_string($key) && trim($key) !== ''
+                ? trim($key)
+                : trim((string) ($value['row_key'] ?? ''));
+
+            if ($rowKey === '') {
+                continue;
+            }
+
+            $normalized[$rowKey] = $value;
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @param array<string, mixed> $normalizedRow
+     * @return array<string, mixed>
+     */
+    private function buildContaImportMeta(array $normalizedRow): array
+    {
+        return [
+            'import_target' => 'conta',
+            'row_key' => $normalizedRow['row_key'] ?? null,
+            'categoria_id' => $normalizedRow['categoria_id'] ?? null,
+            'subcategoria_id' => $normalizedRow['subcategoria_id'] ?? null,
+            'categoria_nome' => $normalizedRow['categoria_nome'] ?? null,
+            'subcategoria_nome' => $normalizedRow['subcategoria_nome'] ?? null,
+            'categoria_sugerida_id' => $normalizedRow['categoria_sugerida_id'] ?? null,
+            'subcategoria_sugerida_id' => $normalizedRow['subcategoria_sugerida_id'] ?? null,
+            'categoria_sugerida_nome' => $normalizedRow['categoria_sugerida_nome'] ?? null,
+            'subcategoria_sugerida_nome' => $normalizedRow['subcategoria_sugerida_nome'] ?? null,
+            'categoria_source' => $normalizedRow['categoria_source'] ?? null,
+            'categoria_confidence' => $normalizedRow['categoria_confidence'] ?? null,
+            'categoria_editada' => $normalizedRow['categoria_editada'] ?? false,
+            'categoria_learning_source' => $normalizedRow['categoria_learning_source'] ?? null,
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $normalizedRow
+     */
+    private function learnFromImportedRow(int $userId, array $normalizedRow): void
+    {
+        $categoriaId = $this->parsePositiveId($normalizedRow['categoria_id'] ?? null);
+        $learningSource = trim((string) ($normalizedRow['categoria_learning_source'] ?? ''));
+        if ($categoriaId === null || $learningSource === '') {
+            return;
+        }
+
+        CategoryRuleEngine::learn(
+            $userId,
+            (string) ($normalizedRow['description'] ?? ''),
+            $categoriaId,
+            $this->parsePositiveId($normalizedRow['subcategoria_id'] ?? null),
+            $learningSource
+        );
+    }
+
+    private function parsePositiveId(mixed $value): ?int
+    {
+        if (!is_scalar($value) || $value === '') {
+            return null;
+        }
+
+        $normalized = (int) $value;
+
+        return $normalized > 0 ? $normalized : null;
+    }
+
+    private function toBoolean(mixed $value): bool
+    {
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN);
     }
 
     /**

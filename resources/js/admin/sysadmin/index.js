@@ -843,6 +843,8 @@ function confirmCleanupLogs() {
         return;
     }
 
+    window.LK?.modalSystem?.prepareBootstrapModal(cleanupLogsModalEl, { scope: 'page' });
+
     cleanupLogsDaysEl.value = '30';
     cleanupLogsIncludeUnresolvedEl.checked = false;
     updateCleanupLogsModalState();

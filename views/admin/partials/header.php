@@ -38,8 +38,9 @@ $resolvedBundle = [
         : null,
 ];
 $bundle = is_array($bundle ?? null) ? array_replace($resolvedBundle, $bundle) : $resolvedBundle;
-$dashboardPreferences = is_array($currentUser?->dashboard_preferences ?? null)
-    ? $currentUser->dashboard_preferences
+$dashboardPreferencesRaw = $currentUser?->dashboard_preferences ?? null;
+$dashboardPreferences = is_array($dashboardPreferencesRaw)
+    ? $dashboardPreferencesRaw
     : [];
 $rawHelpCenterPreferences = is_array($dashboardPreferences['help_center'] ?? null)
     ? $dashboardPreferences['help_center']
@@ -314,6 +315,8 @@ $footerModules = is_array($footerModules ?? null)
     <?php include __DIR__ . '/botao-lancamento.php'; ?>
     <?php include __DIR__ . '/botao-suporte.php'; ?>
 
+    <div id="lk-app-modal-root" class="lk-modal-root lk-modal-root--app" aria-hidden="true"></div>
+
     <!-- ==================== MODAIS ==================== -->
     <?php include __DIR__ . '/modals/modal-lancamento-global.php'; ?>
     <?php include __DIR__ . '/modals/modal-meses.php'; ?>
@@ -327,6 +330,7 @@ $footerModules = is_array($footerModules ?? null)
         <div id="lk-usage-banner-root"></div>
         <main class="lk-main">
             <div id="lk-page-shell" class="lk-page-shell" data-page-loading-state="idle" aria-busy="false">
+                <div id="lk-page-modal-root" class="lk-modal-root lk-modal-root--page" aria-hidden="true"></div>
                 <div id="lk-page-loader" class="lk-page-loader" hidden aria-hidden="true" aria-live="polite">
                     <div class="lk-page-loader__card">
                         <div class="lk-page-loader__logo-wrap" aria-hidden="true">
