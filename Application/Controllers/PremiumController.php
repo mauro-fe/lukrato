@@ -10,10 +10,13 @@ use Application\Services\Billing\PremiumWorkflowService;
 
 class PremiumController extends ApiController
 {
+    private readonly PremiumWorkflowService $workflowService;
+
     public function __construct(
-        private readonly PremiumWorkflowService $workflowService = new PremiumWorkflowService()
+        ?PremiumWorkflowService $workflowService = null
     ) {
         parent::__construct();
+        $this->workflowService = $this->resolveOrCreate($workflowService, PremiumWorkflowService::class);
     }
 
     public function checkout(): Response

@@ -9,9 +9,12 @@ use Application\Services\Orcamentos\OrcamentoService;
 
 class CopyOrcamentosMesUseCase
 {
+    private readonly OrcamentoService $orcamentoService;
+
     public function __construct(
-        private readonly OrcamentoService $orcamentoService = new OrcamentoService()
+        ?OrcamentoService $orcamentoService = null
     ) {
+        $this->orcamentoService = $orcamentoService ?? new OrcamentoService();
     }
 
     /**

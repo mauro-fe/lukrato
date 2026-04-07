@@ -55,6 +55,37 @@ class CsvTemplateControllerTest extends TestCase
         $this->assertStringContainsString('categoria;subcategoria;observacao;id_externo', $response->getContent());
     }
 
+    public function testReturnsCardAutomaticCsvTemplateAsAttachment(): void
+    {
+        $this->seedAuthenticatedUserSession(7021, 'Importacoes User');
+        $_GET['mode'] = 'auto';
+        $_GET['target'] = 'cartao';
+
+        $controller = new CsvTemplateController();
+        $response = $controller->__invoke();
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertStringContainsString('modelo_importacao_cartao_automatico.csv', $response->getHeaders()['Content-Disposition'] ?? '');
+        $this->assertStringContainsString('data;descricao;valor', $response->getContent());
+        $this->assertStringNotContainsString('tipo;data;descricao;valor', $response->getContent());
+        $this->assertStringContainsString('Estorno parcial;-40,00', $response->getContent());
+    }
+
+    public function testReturnsCardManualCsvTemplateAsAttachment(): void
+    {
+        $this->seedAuthenticatedUserSession(7022, 'Importacoes User');
+        $_GET['mode'] = 'manual';
+        $_GET['target'] = 'cartao';
+
+        $controller = new CsvTemplateController();
+        $response = $controller->__invoke();
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertStringContainsString('modelo_importacao_cartao_manual.csv', $response->getHeaders()['Content-Disposition'] ?? '');
+        $this->assertStringContainsString('data;descricao;valor;observacao;id_externo', $response->getContent());
+        $this->assertStringContainsString('Compra presencial;FAT-0001', $response->getContent());
+    }
+
     public function testInvalidModeReturnsValidationResponse(): void
     {
         $this->seedAuthenticatedUserSession(703, 'Importacoes User');
@@ -68,6 +99,22 @@ class CsvTemplateControllerTest extends TestCase
         $this->assertFalse((bool) ($payload['success'] ?? true));
         $this->assertSame('Validation failed', $payload['message'] ?? null);
         $this->assertArrayHasKey('mode', $payload['errors'] ?? []);
+    }
+
+    public function testInvalidTargetReturnsValidationResponse(): void
+    {
+        $this->seedAuthenticatedUserSession(704, 'Importacoes User');
+        $_GET['mode'] = 'auto';
+        $_GET['target'] = 'investimento';
+
+        $controller = new CsvTemplateController();
+        $response = $controller->__invoke();
+        $payload = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame(422, $response->getStatusCode());
+        $this->assertFalse((bool) ($payload['success'] ?? true));
+        $this->assertSame('Validation failed', $payload['message'] ?? null);
+        $this->assertArrayHasKey('target', $payload['errors'] ?? []);
     }
 
     private function seedAuthenticatedUserSession(int $userId, string $name): void

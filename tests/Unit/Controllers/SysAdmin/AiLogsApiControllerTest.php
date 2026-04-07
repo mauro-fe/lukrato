@@ -46,7 +46,7 @@ class AiLogsApiControllerTest extends TestCase
         $controller = new AiLogsApiController();
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->index();
     }

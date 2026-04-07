@@ -10,10 +10,15 @@ use Application\Services\Metas\MetaService;
 
 class GetMetasListUseCase
 {
+    private readonly MetaService $metaService;
+    private readonly DemoPreviewService $demoPreviewService;
+
     public function __construct(
-        private readonly MetaService $metaService = new MetaService(),
-        private readonly DemoPreviewService $demoPreviewService = new DemoPreviewService()
+        ?MetaService $metaService = null,
+        ?DemoPreviewService $demoPreviewService = null
     ) {
+        $this->metaService = $metaService ?? new MetaService();
+        $this->demoPreviewService = $demoPreviewService ?? new DemoPreviewService();
     }
 
     public function execute(int $userId, ?string $status): ServiceResultDTO

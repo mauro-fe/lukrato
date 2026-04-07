@@ -16,9 +16,6 @@ use Throwable;
 
 class MetricsController extends ApiController
 {
-    private LancamentoRepository $lancamentoRepo;
-    private CategoriaRepository $categoriaRepo;
-    private ContaRepository $contaRepo;
     private GetFinanceiroMetricsUseCase $getMetricsUseCase;
     private GetFinanceiroTransactionsUseCase $getTransactionsUseCase;
     private GetFinanceiroOptionsUseCase $getOptionsUseCase;
@@ -33,15 +30,51 @@ class MetricsController extends ApiController
     ) {
         parent::__construct();
 
-        $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
-        $this->categoriaRepo = $categoriaRepo ?? new CategoriaRepository();
-        $this->contaRepo = $contaRepo ?? new ContaRepository();
-        $this->getMetricsUseCase = $getMetricsUseCase
-            ?? new GetFinanceiroMetricsUseCase($this->lancamentoRepo);
-        $this->getTransactionsUseCase = $getTransactionsUseCase
-            ?? new GetFinanceiroTransactionsUseCase($this->lancamentoRepo);
-        $this->getOptionsUseCase = $getOptionsUseCase
-            ?? new GetFinanceiroOptionsUseCase($this->categoriaRepo, $this->contaRepo);
+        $resolveLancamentoRepo = function () use (&$lancamentoRepo): LancamentoRepository {
+            $lancamentoRepo = $this->resolveOrCreate(
+                $lancamentoRepo,
+                LancamentoRepository::class,
+                static fn(): LancamentoRepository => new LancamentoRepository()
+            );
+
+            return $lancamentoRepo;
+        };
+
+        $resolveCategoriaRepo = function () use (&$categoriaRepo): CategoriaRepository {
+            $categoriaRepo = $this->resolveOrCreate(
+                $categoriaRepo,
+                CategoriaRepository::class,
+                static fn(): CategoriaRepository => new CategoriaRepository()
+            );
+
+            return $categoriaRepo;
+        };
+
+        $resolveContaRepo = function () use (&$contaRepo): ContaRepository {
+            $contaRepo = $this->resolveOrCreate(
+                $contaRepo,
+                ContaRepository::class,
+                static fn(): ContaRepository => new ContaRepository()
+            );
+
+            return $contaRepo;
+        };
+
+        $this->getMetricsUseCase = $this->resolveOrCreate(
+            $getMetricsUseCase,
+            GetFinanceiroMetricsUseCase::class,
+            fn(): GetFinanceiroMetricsUseCase => new GetFinanceiroMetricsUseCase($resolveLancamentoRepo())
+        );
+        $this->getTransactionsUseCase = $this->resolveOrCreate(
+            $getTransactionsUseCase,
+            GetFinanceiroTransactionsUseCase::class,
+            fn(): GetFinanceiroTransactionsUseCase => new GetFinanceiroTransactionsUseCase($resolveLancamentoRepo())
+        );
+        $this->getOptionsUseCase = $this->resolveOrCreate(
+            $getOptionsUseCase,
+            GetFinanceiroOptionsUseCase::class,
+            fn(): GetFinanceiroOptionsUseCase => new GetFinanceiroOptionsUseCase($resolveCategoriaRepo(), $resolveContaRepo())
+        );
     }
 
     public function metrics(): Response

@@ -36,15 +36,56 @@ class MetasController extends ApiController
     ) {
         parent::__construct();
 
-        $metaService ??= new MetaService();
-        $demoPreviewService ??= new DemoPreviewService();
+        $resolveMetaService = function () use (&$metaService): MetaService {
+            $metaService = $this->resolveOrCreate(
+                $metaService,
+                MetaService::class,
+                static fn(): MetaService => new MetaService()
+            );
 
-        $this->createMetaUseCase = $createMetaUseCase ?? new CreateMetaUseCase($metaService);
-        $this->updateMetaUseCase = $updateMetaUseCase ?? new UpdateMetaUseCase($metaService);
-        $this->addMetaAporteUseCase = $addMetaAporteUseCase ?? new AddMetaAporteUseCase($metaService);
-        $this->deleteMetaUseCase = $deleteMetaUseCase ?? new DeleteMetaUseCase($metaService);
-        $this->getMetaTemplatesUseCase = $getMetaTemplatesUseCase ?? new GetMetaTemplatesUseCase($metaService);
-        $this->getMetasListUseCase = $getMetasListUseCase ?? new GetMetasListUseCase($metaService, $demoPreviewService);
+            return $metaService;
+        };
+
+        $resolveDemoPreviewService = function () use (&$demoPreviewService): DemoPreviewService {
+            $demoPreviewService = $this->resolveOrCreate(
+                $demoPreviewService,
+                DemoPreviewService::class,
+                static fn(): DemoPreviewService => new DemoPreviewService()
+            );
+
+            return $demoPreviewService;
+        };
+
+        $this->createMetaUseCase = $this->resolveOrCreate(
+            $createMetaUseCase,
+            CreateMetaUseCase::class,
+            fn(): CreateMetaUseCase => new CreateMetaUseCase($resolveMetaService())
+        );
+        $this->updateMetaUseCase = $this->resolveOrCreate(
+            $updateMetaUseCase,
+            UpdateMetaUseCase::class,
+            fn(): UpdateMetaUseCase => new UpdateMetaUseCase($resolveMetaService())
+        );
+        $this->addMetaAporteUseCase = $this->resolveOrCreate(
+            $addMetaAporteUseCase,
+            AddMetaAporteUseCase::class,
+            fn(): AddMetaAporteUseCase => new AddMetaAporteUseCase($resolveMetaService())
+        );
+        $this->deleteMetaUseCase = $this->resolveOrCreate(
+            $deleteMetaUseCase,
+            DeleteMetaUseCase::class,
+            fn(): DeleteMetaUseCase => new DeleteMetaUseCase($resolveMetaService())
+        );
+        $this->getMetaTemplatesUseCase = $this->resolveOrCreate(
+            $getMetaTemplatesUseCase,
+            GetMetaTemplatesUseCase::class,
+            fn(): GetMetaTemplatesUseCase => new GetMetaTemplatesUseCase($resolveMetaService())
+        );
+        $this->getMetasListUseCase = $this->resolveOrCreate(
+            $getMetasListUseCase,
+            GetMetasListUseCase::class,
+            fn(): GetMetasListUseCase => new GetMetasListUseCase($resolveMetaService(), $resolveDemoPreviewService())
+        );
     }
 
     public function index(): Response

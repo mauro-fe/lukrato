@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Controllers;
 
+use Application\Container\ApplicationContainer;
 use Application\Controllers\ApiController;
 use Application\Core\Exceptions\AuthException;
 use Application\Core\Exceptions\ValidationException;
@@ -13,6 +14,7 @@ use Application\DTO\ServiceResultDTO;
 use Application\Lib\Auth;
 use Application\Models\Usuario;
 use Application\Services\Infrastructure\CacheService;
+use Illuminate\Container\Container as IlluminateContainer;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
@@ -28,6 +30,7 @@ class ApiControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        ApplicationContainer::flush();
         $this->resetSessionState();
         Auth::resolveUserUsing(null);
 
@@ -41,6 +44,7 @@ class ApiControllerTest extends TestCase
 
     protected function tearDown(): void
     {
+        ApplicationContainer::flush();
         Auth::resolveUserUsing(null);
         $this->resetSessionState();
         parent::tearDown();
@@ -330,6 +334,28 @@ class ApiControllerTest extends TestCase
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
+    public function testBaseControllerResolvesCoreDependenciesFromContainerWhenAvailable(): void
+    {
+        $auth = Mockery::mock(Auth::class);
+        $request = Mockery::mock(Request::class);
+        $response = Mockery::mock(Response::class);
+        $cache = Mockery::mock(CacheService::class);
+
+        $container = new IlluminateContainer();
+        $container->instance(Auth::class, $auth);
+        $container->instance(Request::class, $request);
+        $container->instance(Response::class, $response);
+        $container->instance(CacheService::class, $cache);
+        ApplicationContainer::setInstance($container);
+
+        $controller = new TestableApiController();
+
+        $this->assertSame($auth, $controller->exposeAuth());
+        $this->assertSame($request, $controller->exposeRequest());
+        $this->assertSame($response, $controller->exposeResponse());
+        $this->assertSame($cache, $controller->exposeCache());
+    }
+
     private function buildControllerWithRequest(Request $request): TestableApiController
     {
         return new TestableApiController(
@@ -352,7 +378,7 @@ class ApiControllerTest extends TestCase
         $_SESSION['user_id'] = $userId;
         $_SESSION['last_activity'] = time();
 
-        Auth::resolveUserUsing(static fn (int $id): ?Usuario => $id === $userId ? $user : null);
+        Auth::resolveUserUsing(static fn(int $id): ?Usuario => $id === $userId ? $user : null);
 
         return $user;
     }
@@ -360,6 +386,26 @@ class ApiControllerTest extends TestCase
 
 final class TestableApiController extends ApiController
 {
+    public function exposeAuth(): Auth
+    {
+        return $this->auth;
+    }
+
+    public function exposeRequest(): Request
+    {
+        return $this->request;
+    }
+
+    public function exposeResponse(): Response
+    {
+        return $this->response;
+    }
+
+    public function exposeCache(): ?CacheService
+    {
+        return $this->cache;
+    }
+
     public function callRequireUserId(): int
     {
         return $this->requireUserId();

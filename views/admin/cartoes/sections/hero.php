@@ -12,11 +12,10 @@
     <div class="cart-hero__actions">
         <a
             class="btn btn-secondary"
-            href="<?= BASE_URL ?>importacoes?import_target=cartao&source_type=ofx"
-            data-cartoes-import-ofx-link
-        >
+            href="<?= BASE_URL ?>importacoes?import_target=cartao"
+            data-cartoes-import-ofx-link>
             <i data-lucide="upload"></i>
-            Importar OFX de fatura
+            Importar fatura
         </a>
         <a class="btn btn-ghost" href="<?= BASE_URL ?>importacoes/historico?import_target=cartao">
             <i data-lucide="history"></i>

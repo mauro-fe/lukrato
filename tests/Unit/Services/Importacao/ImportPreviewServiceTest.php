@@ -328,6 +328,38 @@ class ImportPreviewServiceTest extends TestCase
         $this->assertSame('receita', $rows[1]->type);
     }
 
+    public function testCsvParserAutomaticModeInfersCardTransactionsWithoutTipoColumn(): void
+    {
+        $parser = new CsvImportParser();
+        $profile = ImportProfileConfigDTO::fromArray([
+            'conta_id' => 411,
+            'source_type' => 'csv',
+            'options' => [
+                'import_target' => 'cartao',
+                'csv_mapping_mode' => 'auto',
+                'csv_delimiter' => ';',
+                'csv_has_header' => true,
+                'csv_start_row' => 2,
+                'csv_date_format' => 'd/m/Y',
+                'csv_decimal_separator' => ',',
+            ],
+        ]);
+
+        $csv = implode("\n", [
+            'data;descricao;valor',
+            '05/03/2026;Restaurante;220,90',
+            '06/03/2026;Estorno parcial;-40,00',
+        ]);
+
+        $rows = $parser->parse($csv, $profile);
+
+        $this->assertCount(2, $rows);
+        $this->assertSame('despesa', $rows[0]->type);
+        $this->assertSame(220.9, $rows[0]->amount);
+        $this->assertSame('receita', $rows[1]->type);
+        $this->assertSame(40.0, $rows[1]->amount);
+    }
+
     public function testCsvParserManualModeUsesColumnMapAndStartRow(): void
     {
         $parser = new CsvImportParser();
@@ -400,6 +432,66 @@ class ImportPreviewServiceTest extends TestCase
         $this->assertSame(0, $preview['total_rows']);
         $this->assertNotEmpty($preview['errors']);
         $this->assertStringContainsString('Mapeamento CSV manual incompleto', (string) $preview['errors'][0]);
+    }
+
+    public function testPreviewBlocksCsvWhenLastLineIsIncomplete(): void
+    {
+        $service = new ImportPreviewService([new CsvImportParser()]);
+        $profile = ImportProfileConfigDTO::fromArray([
+            'conta_id' => 431,
+            'source_type' => 'csv',
+            'options' => [
+                'csv_mapping_mode' => 'auto',
+                'csv_delimiter' => ';',
+                'csv_has_header' => true,
+                'csv_start_row' => 2,
+                'csv_date_format' => 'd/m/Y',
+                'csv_decimal_separator' => ',',
+            ],
+        ]);
+
+        $csv = implode("\n", [
+            'tipo;data;descricao;valor',
+            'despesa;01/03/2026;Mercado;150,00',
+            'despesa;;;',
+        ]);
+
+        $preview = $service->preview('csv', $csv, $profile, 'quebrado.csv');
+
+        $this->assertFalse((bool) ($preview['can_confirm'] ?? true));
+        $this->assertSame(0, $preview['total_rows']);
+        $this->assertNotEmpty($preview['errors']);
+        $this->assertStringContainsString('última linha do csv parece incompleta', mb_strtolower((string) $preview['errors'][0]));
+    }
+
+    public function testPreviewBlocksCsvWhenDateDoesNotMatchConfiguredFormat(): void
+    {
+        $service = new ImportPreviewService([new CsvImportParser()]);
+        $profile = ImportProfileConfigDTO::fromArray([
+            'conta_id' => 432,
+            'source_type' => 'csv',
+            'options' => [
+                'csv_mapping_mode' => 'auto',
+                'csv_delimiter' => ';',
+                'csv_has_header' => true,
+                'csv_start_row' => 2,
+                'csv_date_format' => 'd/m/Y',
+                'csv_decimal_separator' => ',',
+            ],
+        ]);
+
+        $csv = implode("\n", [
+            'tipo;data;descricao;valor',
+            'despesa;2026/03/01;Mercado;150,00',
+        ]);
+
+        $preview = $service->preview('csv', $csv, $profile, 'data-invalida.csv');
+
+        $this->assertFalse((bool) ($preview['can_confirm'] ?? true));
+        $this->assertSame(0, $preview['total_rows']);
+        $this->assertNotEmpty($preview['errors']);
+        $this->assertStringContainsString('data inválida', mb_strtolower((string) $preview['errors'][0]));
+        $this->assertStringContainsString('d/m/Y', (string) $preview['errors'][0]);
     }
 
     public function testPreviewBlocksWhenRowsExceedConfiguredLimit(): void
@@ -736,6 +828,53 @@ class ImportPreviewServiceTest extends TestCase
             $this->sampleOfxCard(),
             $profile,
             'fatura-cartao.ofx',
+            'cartao',
+            $cartaoId
+        );
+
+        $this->assertTrue($result->success);
+        $this->assertSame('cartao', $result->data['batch']['import_target'] ?? null);
+        $this->assertSame($cartaoId, $result->data['batch']['cartao_id'] ?? null);
+        $this->assertSame(2, $result->data['summary']['imported_rows'] ?? null);
+        $this->assertSame(2, DB::table('faturas_cartao_itens')->where('user_id', $userId)->count());
+        $this->assertSame(0, DB::table('lancamentos')->where('user_id', $userId)->count());
+        $this->assertSame(1, DB::table('faturas_cartao_itens')->where('user_id', $userId)->where('tipo', 'despesa')->count());
+        $this->assertSame(1, DB::table('faturas_cartao_itens')->where('user_id', $userId)->where('tipo', 'estorno')->count());
+    }
+
+    public function testExecutionServiceConfirmPersistsCardInvoiceItemsForCardCsvWithoutTipo(): void
+    {
+        $this->ensureDatabaseAvailable();
+
+        $userId = $this->createUser();
+        $contaId = $this->createConta($userId);
+        $cartaoId = $this->createCartao($userId, $contaId);
+        $profile = ImportProfileConfigDTO::fromArray([
+            'conta_id' => $contaId,
+            'source_type' => 'csv',
+            'options' => [
+                'csv_mapping_mode' => 'auto',
+                'csv_delimiter' => ';',
+                'csv_has_header' => true,
+                'csv_start_row' => 2,
+                'csv_date_format' => 'd/m/Y',
+                'csv_decimal_separator' => ',',
+            ],
+        ]);
+
+        $csv = implode("\n", [
+            'data;descricao;valor',
+            '05/03/2026;Restaurante;220,90',
+            '06/03/2026;Estorno parcial;-40,00',
+        ]);
+
+        $service = new ImportExecutionService(new ImportPreviewService([new CsvImportParser()]));
+        $result = $service->confirmExecution(
+            $userId,
+            'csv',
+            $csv,
+            $profile,
+            'fatura-cartao.csv',
             'cartao',
             $cartaoId
         );

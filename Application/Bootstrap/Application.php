@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Bootstrap;
 
+use Application\Container\ApplicationContainer;
 use Application\Core\Response;
 use Application\Core\ResponseEmitter;
 use Application\Core\Router;
@@ -18,6 +19,7 @@ class Application
 
     public function __construct()
     {
+        ApplicationContainer::bootstrap();
         $this->environment = $_ENV['APP_ENV'] ?? 'production';
         $this->errorHandler = new ErrorHandler($this->environment);
         $this->sessionManager = new SessionManager();

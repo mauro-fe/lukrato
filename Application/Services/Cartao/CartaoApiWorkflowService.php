@@ -13,13 +13,24 @@ use Application\Services\Plan\PlanLimitService;
 
 class CartaoApiWorkflowService
 {
+    private readonly CartaoCreditoService $cartaoService;
+    private readonly CartaoFaturaService $faturaService;
+    private readonly PlanLimitService $planLimitService;
+    private readonly ?AchievementService $achievementService;
+    private readonly ?RecorrenciaCartaoService $recorrenciaService;
+
     public function __construct(
-        private readonly CartaoCreditoService $cartaoService = new CartaoCreditoService(),
-        private readonly CartaoFaturaService $faturaService = new CartaoFaturaService(),
-        private readonly PlanLimitService $planLimitService = new PlanLimitService(),
-        private readonly ?AchievementService $achievementService = null,
-        private readonly ?RecorrenciaCartaoService $recorrenciaService = null
+        ?CartaoCreditoService $cartaoService = null,
+        ?CartaoFaturaService $faturaService = null,
+        ?PlanLimitService $planLimitService = null,
+        ?AchievementService $achievementService = null,
+        ?RecorrenciaCartaoService $recorrenciaService = null
     ) {
+        $this->cartaoService = $cartaoService ?? new CartaoCreditoService();
+        $this->faturaService = $faturaService ?? new CartaoFaturaService();
+        $this->planLimitService = $planLimitService ?? new PlanLimitService();
+        $this->achievementService = $achievementService;
+        $this->recorrenciaService = $recorrenciaService;
     }
 
     public function listCards(int $userId, ?int $contaId, bool $onlyActive, bool $archived): array

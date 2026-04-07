@@ -12,6 +12,7 @@ namespace {
 }
 
 namespace Tests\Unit\Controllers\Admin {
+
     use Application\Controllers\Admin\BillingController;
     use Application\Controllers\Admin\CartoesController;
     use Application\Controllers\Admin\CategoriaController;
@@ -88,7 +89,8 @@ namespace Tests\Unit\Controllers\Admin {
             $this->assertSame(200, $index->getStatusCode());
             $this->assertStringContainsString('cartoes-page', $index->getContent());
             $this->assertStringContainsString('data-cartoes-import-ofx-link', $index->getContent());
-            $this->assertStringContainsString('import_target=cartao&source_type=ofx', $index->getContent());
+            $this->assertStringContainsString('import_target=cartao', $index->getContent());
+            $this->assertStringNotContainsString('import_target=cartao&source_type=ofx', $index->getContent());
             $this->assertSame(200, $archived->getStatusCode());
             $this->assertStringContainsString('Cartões Arquivados', $archived->getContent());
         }
@@ -152,7 +154,8 @@ namespace Tests\Unit\Controllers\Admin {
             $this->assertSame(200, $response->getStatusCode());
             $this->assertStringContainsString('parc-page', $response->getContent());
             $this->assertStringContainsString('data-faturas-import-ofx-link', $response->getContent());
-            $this->assertStringContainsString('import_target=cartao&source_type=ofx', $response->getContent());
+            $this->assertStringContainsString('import_target=cartao', $response->getContent());
+            $this->assertStringNotContainsString('import_target=cartao&source_type=ofx', $response->getContent());
         }
 
         public function testFinancasIndexRendersPage(): void
@@ -204,12 +207,25 @@ namespace Tests\Unit\Controllers\Admin {
             $this->assertStringContainsString('data-imp-active-account-id', $index->getContent());
             $this->assertStringContainsString('data-imp-preview-endpoint', $index->getContent());
             $this->assertStringContainsString('data-imp-confirm-endpoint', $index->getContent());
+            $this->assertStringContainsString('data-imp-config-endpoint', $index->getContent());
+            $this->assertStringContainsString('data-imp-config-page-base-url', $index->getContent());
             $this->assertStringContainsString('data-imp-plan', $index->getContent());
             $this->assertStringContainsString('data-imp-import-limits', $index->getContent());
+            $this->assertStringContainsString('data-imp-profile-config', $index->getContent());
             $this->assertStringContainsString('data-imp-quota-warning', $index->getContent());
+            $this->assertStringContainsString('data-imp-advanced-panel', $index->getContent());
+            $this->assertStringContainsString('data-imp-advanced-template-auto', $index->getContent());
+            $this->assertStringContainsString('data-imp-advanced-template-manual', $index->getContent());
+            $this->assertStringContainsString('data-imp-advanced-account-name', $index->getContent());
+            $this->assertStringContainsString('data-imp-profile-account-name', $index->getContent());
+            $this->assertStringContainsString('data-imp-config-link', $index->getContent());
+            $this->assertStringContainsString('data-imp-guide-path-card', $index->getContent());
+            $this->assertStringContainsString('data-imp-guide-context-card', $index->getContent());
+            $this->assertStringContainsString('data-imp-guide-readiness-card', $index->getContent());
+            $this->assertStringContainsString('data-imp-file-note', $index->getContent());
             $this->assertTrue(
                 str_contains($index->getContent(), 'data-imp-account-select-main')
-                || str_contains($index->getContent(), 'data-imp-account-warning')
+                    || str_contains($index->getContent(), 'data-imp-account-warning')
             );
 
             $this->assertSame(200, $config->getStatusCode());
@@ -217,27 +233,27 @@ namespace Tests\Unit\Controllers\Admin {
             $this->assertStringContainsString('data-imp-active-account-id', $config->getContent());
             $this->assertTrue(
                 str_contains($config->getContent(), 'data-imp-account-select')
-                || str_contains($config->getContent(), 'Nenhuma conta ativa encontrada')
+                    || str_contains($config->getContent(), 'Nenhuma conta ativa encontrada')
             );
             $this->assertTrue(
                 str_contains($config->getContent(), 'data-imp-config-save-form')
-                || str_contains($config->getContent(), 'Usar este perfil na importacao')
-                || str_contains($config->getContent(), 'liberar a configuracao de importacoes')
-                || str_contains($config->getContent(), 'liberar a configuração de importações')
+                    || str_contains($config->getContent(), 'Usar este perfil na importacao')
+                    || str_contains($config->getContent(), 'liberar a configuracao de importacoes')
+                    || str_contains($config->getContent(), 'liberar a configuração de importações')
             );
             $this->assertTrue(
                 str_contains($config->getContent(), 'data-imp-csv-mapping-mode')
-                || str_contains($config->getContent(), 'Nenhuma conta ativa encontrada')
+                    || str_contains($config->getContent(), 'Nenhuma conta ativa encontrada')
             );
             $this->assertStringContainsString('data-imp-csv-template-auto-endpoint', $config->getContent());
             $this->assertStringContainsString('data-imp-csv-template-manual-endpoint', $config->getContent());
             $this->assertTrue(
                 preg_match('/data-imp-csv-template-auto[^>]*data-no-transition="true"[^>]*download/', $config->getContent()) === 1
-                || str_contains($config->getContent(), 'Nenhuma conta ativa encontrada')
+                    || str_contains($config->getContent(), 'Nenhuma conta ativa encontrada')
             );
             $this->assertTrue(
                 preg_match('/data-imp-csv-template-manual[^>]*data-no-transition="true"[^>]*download/', $config->getContent()) === 1
-                || str_contains($config->getContent(), 'Nenhuma conta ativa encontrada')
+                    || str_contains($config->getContent(), 'Nenhuma conta ativa encontrada')
             );
 
             $this->assertSame(200, $history->getStatusCode());
@@ -246,7 +262,7 @@ namespace Tests\Unit\Controllers\Admin {
             $this->assertStringContainsString('data-imp-history-filter-account', $history->getContent());
             $this->assertTrue(
                 str_contains($history->getContent(), 'data-imp-history-table')
-                || str_contains($history->getContent(), 'Nenhum lote registrado')
+                    || str_contains($history->getContent(), 'Nenhum lote registrado')
             );
         }
 

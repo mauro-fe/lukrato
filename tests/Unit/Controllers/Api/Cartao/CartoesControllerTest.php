@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Controllers\Api\Cartao;
 
+use Application\Container\ApplicationContainer;
 use Application\Controllers\Api\Cartao\CartoesController;
 use Application\Core\Exceptions\AuthException;
 use Application\Models\Usuario;
 use Application\Services\Cartao\CartaoApiWorkflowService;
 use Application\Services\Cartao\CartaoCreditoService;
 use Application\Services\Cartao\CartaoFaturaService;
+use Application\Services\Demo\DemoPreviewService;
 use Application\Services\Plan\PlanLimitService;
+use Illuminate\Container\Container as IlluminateContainer;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
@@ -24,6 +27,7 @@ class CartoesControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        ApplicationContainer::flush();
         $this->resetSessionState();
         $_GET = [];
         $_POST = [];
@@ -32,6 +36,7 @@ class CartoesControllerTest extends TestCase
 
     protected function tearDown(): void
     {
+        ApplicationContainer::flush();
         $_GET = [];
         $_POST = [];
         $_REQUEST = [];
@@ -147,7 +152,7 @@ class CartoesControllerTest extends TestCase
         );
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->index();
     }
@@ -279,6 +284,22 @@ class CartoesControllerTest extends TestCase
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
+    public function testConstructorResolvesContainerManagedDependenciesWhenAvailable(): void
+    {
+        $workflow = Mockery::mock(CartaoApiWorkflowService::class);
+        $demoPreviewService = Mockery::mock(DemoPreviewService::class);
+
+        $container = new IlluminateContainer();
+        $container->instance(CartaoApiWorkflowService::class, $workflow);
+        $container->instance(DemoPreviewService::class, $demoPreviewService);
+        ApplicationContainer::setInstance($container);
+
+        $controller = new CartoesController();
+
+        $this->assertSame($workflow, $this->readProperty($controller, 'workflowService'));
+        $this->assertSame($demoPreviewService, $this->readProperty($controller, 'demoPreviewService'));
+    }
+
     private function seedAuthenticatedSession(int $userId, string $name): void
     {
         $this->startIsolatedSession('cartoes-controller-test');
@@ -296,5 +317,13 @@ class CartoesControllerTest extends TestCase
             'id' => $userId,
             'data' => $user,
         ];
+    }
+
+    private function readProperty(object $object, string $property): mixed
+    {
+        $reflection = new \ReflectionProperty($object, $property);
+        $reflection->setAccessible(true);
+
+        return $reflection->getValue($object);
     }
 }

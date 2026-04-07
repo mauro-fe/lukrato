@@ -10,9 +10,12 @@ use Application\Validators\MetaValidator;
 
 class UpdateMetaUseCase
 {
+    private readonly MetaService $metaService;
+
     public function __construct(
-        private readonly MetaService $metaService = new MetaService()
+        ?MetaService $metaService = null
     ) {
+        $this->metaService = $metaService ?? new MetaService();
     }
 
     /**

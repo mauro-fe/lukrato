@@ -42,3 +42,5 @@ $capsule->addConnection([
 ]);
 $capsule->setAsGlobal();
 $capsule->bootEloquent();
+
+\Application\Container\ApplicationContainer::bootstrap();

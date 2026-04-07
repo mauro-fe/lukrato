@@ -9,9 +9,12 @@ use Application\Repositories\LancamentoRepository;
 
 class GetFinanceiroMetricsUseCase
 {
+    private readonly LancamentoRepository $lancamentoRepo;
+
     public function __construct(
-        private readonly LancamentoRepository $lancamentoRepo = new LancamentoRepository()
+        ?LancamentoRepository $lancamentoRepo = null
     ) {
+        $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
     }
 
     public function execute(int $userId, string $start, string $end, string $viewType): ServiceResultDTO

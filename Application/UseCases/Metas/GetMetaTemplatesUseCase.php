@@ -9,9 +9,12 @@ use Application\Services\Metas\MetaService;
 
 class GetMetaTemplatesUseCase
 {
+    private readonly MetaService $metaService;
+
     public function __construct(
-        private readonly MetaService $metaService = new MetaService()
+        ?MetaService $metaService = null
     ) {
+        $this->metaService = $metaService ?? new MetaService();
     }
 
     public function execute(int $userId): ServiceResultDTO

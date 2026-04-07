@@ -33,7 +33,7 @@ class PlanLimitServiceTest extends TestCase
         $this->assertSame('import_conta_ofx', $service->resolveImportLimitBucket('ofx', 'conta'));
         $this->assertSame('import_conta_csv', $service->resolveImportLimitBucket('csv', 'conta'));
         $this->assertSame('import_cartao_ofx', $service->resolveImportLimitBucket('ofx', 'cartao'));
-        $this->assertNull($service->resolveImportLimitBucket('csv', 'cartao'));
+        $this->assertSame('import_cartao_ofx', $service->resolveImportLimitBucket('csv', 'cartao'));
     }
 
     public function testCanUseImportacaoBlocksFreeAfterOneConfirmedCardImport(): void

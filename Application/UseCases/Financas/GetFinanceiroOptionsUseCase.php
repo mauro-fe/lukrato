@@ -12,10 +12,15 @@ use Application\Repositories\ContaRepository;
 
 class GetFinanceiroOptionsUseCase
 {
+    private readonly CategoriaRepository $categoriaRepo;
+    private readonly ContaRepository $contaRepo;
+
     public function __construct(
-        private readonly CategoriaRepository $categoriaRepo = new CategoriaRepository(),
-        private readonly ContaRepository $contaRepo = new ContaRepository()
+        ?CategoriaRepository $categoriaRepo = null,
+        ?ContaRepository $contaRepo = null
     ) {
+        $this->categoriaRepo = $categoriaRepo ?? new CategoriaRepository();
+        $this->contaRepo = $contaRepo ?? new ContaRepository();
     }
 
     public function execute(int $userId): ServiceResultDTO

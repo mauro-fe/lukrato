@@ -328,6 +328,36 @@ class PreviewControllerTest extends TestCase
         $this->assertTrue((bool) ($payload['success'] ?? false));
     }
 
+    public function testAllowsCsvCardPreviewToReachCardValidation(): void
+    {
+        $this->seedAuthenticatedUserSession(8032, 'Preview Card Csv User');
+
+        $_POST = [
+            'source_type' => 'csv',
+            'import_target' => 'cartao',
+        ];
+
+        $planLimitService = Mockery::mock(PlanLimitService::class);
+        $planLimitService
+            ->shouldReceive('canUseImportacao')
+            ->once()
+            ->with(8032, 'csv', 'cartao')
+            ->andReturn(['allowed' => true]);
+
+        $controller = new PreviewController(
+            Mockery::mock(ImportPreviewService::class),
+            Mockery::mock(ImportProfileConfigService::class),
+            Mockery::mock(ContaRepository::class),
+            $planLimitService
+        );
+
+        $response = $controller->__invoke();
+        $payload = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame(422, $response->getStatusCode());
+        $this->assertSame('Cartão obrigatório para preview de fatura.', $payload['errors']['cartao_id'] ?? null);
+    }
+
     public function testReturnsMismatchMetadataWhenCardOfxIsSentToAccountPreview(): void
     {
         $this->seedAuthenticatedUserSession(804, 'Preview Mismatch User');

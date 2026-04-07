@@ -140,7 +140,7 @@ return [
         'import_conta_csv_limit' => 'Você já usou sua importação CSV de lançamentos no plano gratuito. ' .
             'Faça upgrade para o Pro e importe sem limite.',
 
-        'import_cartao_ofx_limit' => 'Importação de fatura/cartão via OFX requer Pro após o uso gratuito. ' .
+        'import_cartao_ofx_limit' => 'Importação de fatura/cartão via OFX ou CSV requer Pro após o uso gratuito. ' .
             'Faça upgrade para continuar importando faturas.',
 
     ],

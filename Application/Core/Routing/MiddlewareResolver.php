@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Application\Core\Routing;
 
+use Application\Container\ApplicationContainer;
 use Application\Core\Request;
 use Application\Services\Infrastructure\CacheService;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
@@ -28,6 +30,8 @@ class MiddlewareResolver
         if ($middlewareNames === []) {
             return;
         }
+
+        ApplicationContainer::bindRequest($request);
 
         $registry = $this->middlewareRegistry();
 
@@ -111,6 +115,16 @@ class MiddlewareResolver
 
     private function instantiateMiddleware(ReflectionClass $reflectionClass): object
     {
+        $container = ApplicationContainer::getInstance();
+
+        if ($container !== null) {
+            try {
+                return $container->make($reflectionClass->getName());
+            } catch (BindingResolutionException) {
+                // Mantem o resolvedor legado enquanto a cobertura de bindings ainda e parcial.
+            }
+        }
+
         $constructor = $reflectionClass->getConstructor();
 
         if ($constructor === null) {

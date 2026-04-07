@@ -10,9 +10,12 @@ use Application\Repositories\LancamentoRepository;
 
 class GetFinanceiroTransactionsUseCase
 {
+    private readonly LancamentoRepository $lancamentoRepo;
+
     public function __construct(
-        private readonly LancamentoRepository $lancamentoRepo = new LancamentoRepository()
+        ?LancamentoRepository $lancamentoRepo = null
     ) {
+        $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
     }
 
     public function execute(int $userId, string $from, string $to, int $limit): ServiceResultDTO

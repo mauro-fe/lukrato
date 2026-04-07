@@ -50,9 +50,6 @@ class ImportacoesController extends WebController
         if (!in_array($requestedSourceType, ['ofx', 'csv'], true)) {
             $requestedSourceType = 'ofx';
         }
-        if ($importTarget === 'cartao') {
-            $requestedSourceType = 'ofx';
-        }
 
         try {
             $planLimits = $this->planLimitService->getLimitsSummary($userId);
@@ -116,9 +113,14 @@ class ImportacoesController extends WebController
                 'previewEndpoint' => BASE_URL . 'api/importacoes/preview',
                 'confirmEndpoint' => BASE_URL . 'api/importacoes/confirm',
                 'configEndpoint' => BASE_URL . 'api/importacoes/configuracoes',
+                'configPageBaseUrl' => BASE_URL . 'importacoes/configuracoes',
                 'historyEndpoint' => BASE_URL . 'api/importacoes/historico',
                 'jobStatusEndpointBase' => BASE_URL . 'api/importacoes/jobs',
                 'confirmAsyncDefault' => ImportSecurityPolicy::shouldQueueConfirmByDefault(),
+                'csvTemplateAutoEndpoint' => BASE_URL . 'api/importacoes/modelos/csv?mode=auto&target=conta',
+                'csvTemplateManualEndpoint' => BASE_URL . 'api/importacoes/modelos/csv?mode=manual&target=conta',
+                'csvTemplateCardAutoEndpoint' => BASE_URL . 'api/importacoes/modelos/csv?mode=auto&target=cartao',
+                'csvTemplateCardManualEndpoint' => BASE_URL . 'api/importacoes/modelos/csv?mode=manual&target=cartao',
             ]
         );
     }

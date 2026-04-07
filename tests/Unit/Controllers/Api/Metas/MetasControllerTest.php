@@ -4,9 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Controllers\Api\Metas;
 
+use Application\Container\ApplicationContainer;
 use Application\Controllers\Api\Metas\MetasController;
 use Application\Models\Usuario;
 use Application\Services\Metas\MetaService;
+use Application\UseCases\Metas\AddMetaAporteUseCase;
+use Application\UseCases\Metas\CreateMetaUseCase;
+use Application\UseCases\Metas\DeleteMetaUseCase;
+use Application\UseCases\Metas\GetMetaTemplatesUseCase;
+use Application\UseCases\Metas\GetMetasListUseCase;
+use Application\UseCases\Metas\UpdateMetaUseCase;
+use Illuminate\Container\Container as IlluminateContainer;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
@@ -20,6 +28,7 @@ class MetasControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        ApplicationContainer::flush();
         $this->resetSessionState();
         $_GET = [];
         $_POST = [];
@@ -28,6 +37,7 @@ class MetasControllerTest extends TestCase
 
     protected function tearDown(): void
     {
+        ApplicationContainer::flush();
         unset($_SERVER['REQUEST_METHOD']);
         $_GET = [];
         $_POST = [];
@@ -76,6 +86,34 @@ class MetasControllerTest extends TestCase
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
+    public function testConstructorResolvesUseCasesFromContainerWhenAvailable(): void
+    {
+        $createMetaUseCase = Mockery::mock(CreateMetaUseCase::class);
+        $updateMetaUseCase = Mockery::mock(UpdateMetaUseCase::class);
+        $addMetaAporteUseCase = Mockery::mock(AddMetaAporteUseCase::class);
+        $deleteMetaUseCase = Mockery::mock(DeleteMetaUseCase::class);
+        $getMetaTemplatesUseCase = Mockery::mock(GetMetaTemplatesUseCase::class);
+        $getMetasListUseCase = Mockery::mock(GetMetasListUseCase::class);
+
+        $container = new IlluminateContainer();
+        $container->instance(CreateMetaUseCase::class, $createMetaUseCase);
+        $container->instance(UpdateMetaUseCase::class, $updateMetaUseCase);
+        $container->instance(AddMetaAporteUseCase::class, $addMetaAporteUseCase);
+        $container->instance(DeleteMetaUseCase::class, $deleteMetaUseCase);
+        $container->instance(GetMetaTemplatesUseCase::class, $getMetaTemplatesUseCase);
+        $container->instance(GetMetasListUseCase::class, $getMetasListUseCase);
+        ApplicationContainer::setInstance($container);
+
+        $controller = new MetasController();
+
+        $this->assertSame($createMetaUseCase, $this->readProperty($controller, 'createMetaUseCase'));
+        $this->assertSame($updateMetaUseCase, $this->readProperty($controller, 'updateMetaUseCase'));
+        $this->assertSame($addMetaAporteUseCase, $this->readProperty($controller, 'addMetaAporteUseCase'));
+        $this->assertSame($deleteMetaUseCase, $this->readProperty($controller, 'deleteMetaUseCase'));
+        $this->assertSame($getMetaTemplatesUseCase, $this->readProperty($controller, 'getMetaTemplatesUseCase'));
+        $this->assertSame($getMetasListUseCase, $this->readProperty($controller, 'getMetasListUseCase'));
+    }
+
     private function buildController(?MetaService $metaService = null): MetasController
     {
         return new MetasController(
@@ -99,5 +137,13 @@ class MetasControllerTest extends TestCase
             'id' => $userId,
             'data' => $user,
         ];
+    }
+
+    private function readProperty(object $object, string $property): mixed
+    {
+        $reflection = new \ReflectionProperty($object, $property);
+        $reflection->setAccessible(true);
+
+        return $reflection->getValue($object);
     }
 }

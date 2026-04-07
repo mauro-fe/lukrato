@@ -26,14 +26,53 @@ class ResumoController extends ApiController
     ) {
         parent::__construct();
 
-        $metaService ??= new MetaService();
-        $orcamentoService ??= new OrcamentoService();
-        $demoPreviewService ??= new DemoPreviewService();
+        $resolveMetaService = function () use (&$metaService): MetaService {
+            $metaService = $this->resolveOrCreate(
+                $metaService,
+                MetaService::class,
+                static fn(): MetaService => new MetaService()
+            );
 
-        $this->getFinancasResumoUseCase = $getFinancasResumoUseCase
-            ?? new GetFinancasResumoUseCase($metaService, $orcamentoService, $demoPreviewService);
-        $this->getFinancasInsightsUseCase = $getFinancasInsightsUseCase
-            ?? new GetFinancasInsightsUseCase($orcamentoService, $demoPreviewService);
+            return $metaService;
+        };
+
+        $resolveOrcamentoService = function () use (&$orcamentoService): OrcamentoService {
+            $orcamentoService = $this->resolveOrCreate(
+                $orcamentoService,
+                OrcamentoService::class,
+                static fn(): OrcamentoService => new OrcamentoService()
+            );
+
+            return $orcamentoService;
+        };
+
+        $resolveDemoPreviewService = function () use (&$demoPreviewService): DemoPreviewService {
+            $demoPreviewService = $this->resolveOrCreate(
+                $demoPreviewService,
+                DemoPreviewService::class,
+                static fn(): DemoPreviewService => new DemoPreviewService()
+            );
+
+            return $demoPreviewService;
+        };
+
+        $this->getFinancasResumoUseCase = $this->resolveOrCreate(
+            $getFinancasResumoUseCase,
+            GetFinancasResumoUseCase::class,
+            fn(): GetFinancasResumoUseCase => new GetFinancasResumoUseCase(
+                $resolveMetaService(),
+                $resolveOrcamentoService(),
+                $resolveDemoPreviewService()
+            )
+        );
+        $this->getFinancasInsightsUseCase = $this->resolveOrCreate(
+            $getFinancasInsightsUseCase,
+            GetFinancasInsightsUseCase::class,
+            fn(): GetFinancasInsightsUseCase => new GetFinancasInsightsUseCase(
+                $resolveOrcamentoService(),
+                $resolveDemoPreviewService()
+            )
+        );
     }
 
     public function resumo(): Response

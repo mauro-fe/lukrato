@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers;
 
+use Application\Container\ApplicationContainer;
 use Application\Controllers\Concerns\HandlesAdminLayoutData;
 use Application\Controllers\Concerns\HandlesApiResponses;
 use Application\Controllers\Concerns\HandlesAuthGuards;
@@ -24,15 +25,34 @@ abstract class BaseController
 
     protected ?int $userId = null;
     protected ?string $adminUsername = null;
+    protected readonly Auth $auth;
+    protected readonly Request $request;
+    protected readonly Response $response;
+    protected ?CacheService $cache;
 
     public function __construct(
-        protected readonly Auth $auth = new Auth(),
-        protected readonly Request $request = new Request(),
-        protected readonly Response $response = new Response(),
-        protected ?CacheService $cache = null
+        ?Auth $auth = null,
+        ?Request $request = null,
+        ?Response $response = null,
+        ?CacheService $cache = null
     ) {
-        if ($this->cache === null && class_exists(CacheService::class)) {
-            $this->cache = new CacheService();
+        $this->auth = $auth ?? $this->resolveDependency(Auth::class) ?? new Auth();
+        $this->request = $request ?? $this->resolveDependency(Request::class) ?? new Request();
+        $this->response = $response ?? $this->resolveDependency(Response::class) ?? new Response();
+        $this->cache = $cache ?? $this->resolveDependency(CacheService::class) ?? new CacheService();
+    }
+
+    protected function resolveDependency(string $abstract): mixed
+    {
+        return ApplicationContainer::tryMake($abstract);
+    }
+
+    protected function resolveOrCreate(mixed $dependency, string $abstract, ?callable $factory = null): mixed
+    {
+        if ($dependency !== null) {
+            return $dependency;
         }
+
+        return $this->resolveDependency($abstract) ?? ($factory ? $factory() : new $abstract());
     }
 }

@@ -28,13 +28,52 @@ class CartoesController extends ApiController
     ) {
         parent::__construct();
 
-        $service ??= new CartaoCreditoService();
-        $faturaService ??= new CartaoFaturaService();
-        $planLimitService ??= new PlanLimitService();
+        $resolveCartaoService = function () use (&$service): CartaoCreditoService {
+            $service = $this->resolveOrCreate(
+                $service,
+                CartaoCreditoService::class,
+                static fn(): CartaoCreditoService => new CartaoCreditoService()
+            );
 
-        $this->workflowService = $workflowService
-            ?? new CartaoApiWorkflowService($service, $faturaService, $planLimitService);
-        $this->demoPreviewService = $demoPreviewService ?? new DemoPreviewService();
+            return $service;
+        };
+
+        $resolveFaturaService = function () use (&$faturaService): CartaoFaturaService {
+            $faturaService = $this->resolveOrCreate(
+                $faturaService,
+                CartaoFaturaService::class,
+                static fn(): CartaoFaturaService => new CartaoFaturaService()
+            );
+
+            return $faturaService;
+        };
+
+        $resolvePlanLimitService = function () use (&$planLimitService): PlanLimitService {
+            $planLimitService = $this->resolveOrCreate(
+                $planLimitService,
+                PlanLimitService::class,
+                static fn(): PlanLimitService => new PlanLimitService()
+            );
+
+            return $planLimitService;
+        };
+
+        $this->workflowService = $this->resolveOrCreate(
+            $workflowService,
+            CartaoApiWorkflowService::class,
+            function () use ($resolveCartaoService, $resolveFaturaService, $resolvePlanLimitService): CartaoApiWorkflowService {
+                return new CartaoApiWorkflowService(
+                    $resolveCartaoService(),
+                    $resolveFaturaService(),
+                    $resolvePlanLimitService()
+                );
+            }
+        );
+        $this->demoPreviewService = $this->resolveOrCreate(
+            $demoPreviewService,
+            DemoPreviewService::class,
+            static fn(): DemoPreviewService => new DemoPreviewService()
+        );
     }
 
     public function index(): Response
@@ -176,7 +215,7 @@ class CartoesController extends ApiController
         }
 
         return $this->successOrNotFound(
-            fn (): mixed => $this->workflowService->getInvoice($id, $mes, $ano, $userId),
+            fn(): mixed => $this->workflowService->getInvoice($id, $mes, $ano, $userId),
             'Fatura não encontrada.'
         );
     }
@@ -186,7 +225,7 @@ class CartoesController extends ApiController
         $userId = $this->userId();
 
         return $this->successOrDomainError(
-            fn (): mixed => $this->workflowService->payInvoice($id, $userId, $this->getRequestPayload()),
+            fn(): mixed => $this->workflowService->payInvoice($id, $userId, $this->getRequestPayload()),
             'Não foi possivel pagar a fatura.',
             400
         );
@@ -202,7 +241,7 @@ class CartoesController extends ApiController
         }
 
         return $this->successOrDomainError(
-            fn (): mixed => $this->workflowService->payInstallments($id, $userId, $payload),
+            fn(): mixed => $this->workflowService->payInstallments($id, $userId, $payload),
             'Não foi possivel pagar as parcelas.',
             400
         );
@@ -213,7 +252,7 @@ class CartoesController extends ApiController
         $userId = $this->userId();
 
         return $this->successOrNotFound(
-            fn (): mixed => ['meses' => $this->workflowService->getPendingInvoices($id, $userId)],
+            fn(): mixed => ['meses' => $this->workflowService->getPendingInvoices($id, $userId)],
             'Cartao não encontrado.'
         );
     }
@@ -224,7 +263,7 @@ class CartoesController extends ApiController
         $limite = $this->getIntQuery('limite', 12);
 
         return $this->successOrNotFound(
-            fn (): mixed => $this->workflowService->getInvoiceHistory($id, $userId, $limite),
+            fn(): mixed => $this->workflowService->getInvoiceHistory($id, $userId, $limite),
             'Cartao não encontrado.'
         );
     }
@@ -275,7 +314,7 @@ class CartoesController extends ApiController
         $corrigir = $this->getQuery('corrigir') === 'true';
 
         return $this->successOrInternalError(
-            fn (): mixed => $this->workflowService->validateIntegrity($userId, $corrigir),
+            fn(): mixed => $this->workflowService->validateIntegrity($userId, $corrigir),
             'Erro ao validar integridade do cartao.'
         );
     }
@@ -291,7 +330,7 @@ class CartoesController extends ApiController
         }
 
         return $this->successOrInternalError(
-            fn (): mixed => $this->workflowService->getInvoiceStatus($id, $mes, $ano, $userId) ?? ['pago' => false],
+            fn(): mixed => $this->workflowService->getInvoiceStatus($id, $mes, $ano, $userId) ?? ['pago' => false],
             'Erro ao carregar status da fatura.'
         );
     }
@@ -308,7 +347,7 @@ class CartoesController extends ApiController
         }
 
         return $this->successOrDomainError(
-            fn (): mixed => $this->workflowService->undoInvoicePayment($id, $mes, $ano, $userId),
+            fn(): mixed => $this->workflowService->undoInvoicePayment($id, $mes, $ano, $userId),
             'Não foi possivel desfazer o pagamento da fatura.',
             400,
             function (\Exception $e) use ($id, $mes, $ano, $userId): void {
@@ -328,7 +367,7 @@ class CartoesController extends ApiController
         $userId = $this->userId();
 
         return $this->successOrDomainError(
-            fn (): mixed => $this->workflowService->undoInstallmentPayment($id, $userId),
+            fn(): mixed => $this->workflowService->undoInstallmentPayment($id, $userId),
             'Não foi possivel desfazer o pagamento da parcela.',
             400,
             function (\Exception $e) use ($id, $userId): void {
@@ -346,7 +385,7 @@ class CartoesController extends ApiController
         $userId = $this->userId();
 
         return $this->successOrInternalError(
-            fn (): mixed => $this->workflowService->listRecurring($userId),
+            fn(): mixed => $this->workflowService->listRecurring($userId),
             'Erro ao listar recorrencias do cartao.',
             500,
             [],
@@ -364,7 +403,7 @@ class CartoesController extends ApiController
         $userId = $this->userId();
 
         return $this->successOrInternalError(
-            fn (): mixed => $this->workflowService->listRecurring($userId, $id),
+            fn(): mixed => $this->workflowService->listRecurring($userId, $id),
             'Erro ao listar recorrencias do cartao.',
             500,
             ['cartao_id' => $id],
@@ -456,7 +495,7 @@ class CartoesController extends ApiController
     {
         return $this->resolveOrCatch(
             $resolver,
-            fn (\Exception $e): Response => $this->notFoundFromThrowable($e, $fallbackMessage)
+            fn(\Exception $e): Response => $this->notFoundFromThrowable($e, $fallbackMessage)
         );
     }
 
@@ -472,7 +511,7 @@ class CartoesController extends ApiController
     ): Response {
         return $this->resolveOrCatch(
             $resolver,
-            fn (\Exception $e): Response => $this->domainErrorResponse($e, $fallbackMessage, $status),
+            fn(\Exception $e): Response => $this->domainErrorResponse($e, $fallbackMessage, $status),
             $onException
         );
     }
@@ -490,7 +529,7 @@ class CartoesController extends ApiController
     ): Response {
         return $this->resolveOrCatch(
             $resolver,
-            fn (\Exception $e): Response => $this->internalErrorResponse($e, $fallbackMessage, $status, $context),
+            fn(\Exception $e): Response => $this->internalErrorResponse($e, $fallbackMessage, $status, $context),
             $onException
         );
     }
@@ -508,7 +547,7 @@ class CartoesController extends ApiController
     ): Response {
         return $this->executeOrCatch(
             $operation,
-            fn (\Exception $e): Response => $this->internalErrorResponse($e, $fallbackMessage, $status, $context),
+            fn(\Exception $e): Response => $this->internalErrorResponse($e, $fallbackMessage, $status, $context),
             $onException
         );
     }

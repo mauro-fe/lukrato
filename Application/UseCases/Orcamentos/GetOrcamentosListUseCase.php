@@ -10,10 +10,15 @@ use Application\Services\Orcamentos\OrcamentoService;
 
 class GetOrcamentosListUseCase
 {
+    private readonly OrcamentoService $orcamentoService;
+    private readonly DemoPreviewService $demoPreviewService;
+
     public function __construct(
-        private readonly OrcamentoService $orcamentoService = new OrcamentoService(),
-        private readonly DemoPreviewService $demoPreviewService = new DemoPreviewService()
+        ?OrcamentoService $orcamentoService = null,
+        ?DemoPreviewService $demoPreviewService = null
     ) {
+        $this->orcamentoService = $orcamentoService ?? new OrcamentoService();
+        $this->demoPreviewService = $demoPreviewService ?? new DemoPreviewService();
     }
 
     public function execute(int $userId, int $mes, int $ano): ServiceResultDTO

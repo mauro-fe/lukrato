@@ -40,11 +40,6 @@ class PreviewController extends ApiController
         }
 
         $importTarget = $this->normalizeImportTarget((string) ($payload['import_target'] ?? 'conta'));
-        if ($importTarget === 'cartao' && $sourceType !== 'ofx') {
-            return Response::validationErrorResponse([
-                'source_type' => 'Para importação de cartão/fatura, nesta etapa é suportado apenas OFX.',
-            ]);
-        }
 
         $importQuota = $this->planLimitService->canUseImportacao($userId, $sourceType, $importTarget);
         if (!(bool) ($importQuota['allowed'] ?? true)) {
@@ -91,7 +86,7 @@ class PreviewController extends ApiController
             $contaId = (int) ($cartao->conta_id ?? 0);
             if ($contaId <= 0) {
                 return Response::validationErrorResponse([
-                    'cartao_id' => 'Vincule uma conta ao cartão antes de importar OFX de fatura.',
+                    'cartao_id' => 'Vincule uma conta ao cartão antes de importar a fatura.',
                 ]);
             }
         } else {

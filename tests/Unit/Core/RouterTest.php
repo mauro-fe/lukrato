@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Core;
 
+use Application\Container\ApplicationContainer;
 use Application\Core\Exceptions\AuthException;
 use Application\Core\Exceptions\HttpResponseException;
 use Application\Core\Request;
@@ -11,6 +12,7 @@ use Application\Core\Response;
 use Application\Core\Router;
 use Application\Core\Routing\MiddlewareResolver;
 use Application\Services\Infrastructure\CacheService;
+use Illuminate\Container\Container as IlluminateContainer;
 use PHPUnit\Framework\TestCase;
 
 class RouterTest extends TestCase
@@ -19,6 +21,7 @@ class RouterTest extends TestCase
     {
         parent::setUp();
 
+        ApplicationContainer::flush();
         Router::reset();
 
         $_GET = [];
@@ -30,6 +33,7 @@ class RouterTest extends TestCase
 
     protected function tearDown(): void
     {
+        ApplicationContainer::flush();
         unset($_SERVER['REQUEST_METHOD'], $_SERVER['HTTP_ACCEPT'], $_SERVER['REMOTE_ADDR']);
         $_GET = [];
         $_POST = [];
@@ -182,6 +186,61 @@ class RouterTest extends TestCase
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
+    public function testRunResolvesControllerThroughContainerWhenAvailable(): void
+    {
+        $this->registerControllerAlias(
+            RouterContainerAwareController::class,
+            'Application\\Controllers\\Test\\RouterContainerAwareController'
+        );
+
+        $container = new IlluminateContainer();
+        $container->instance(
+            RouterContainerDependency::class,
+            new RouterContainerDependency('container-bound')
+        );
+        ApplicationContainer::setInstance($container);
+
+        $_GET['token'] = 'bound-token';
+        $path = 'tests/router-controller-container/' . bin2hex(random_bytes(6));
+
+        Router::add('GET', $path, 'Test/RouterContainerAwareController@show');
+
+        $response = Router::run($path, 'GET');
+
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertSame([
+            'success' => true,
+            'message' => 'Success',
+            'data' => [
+                'token' => 'bound-token',
+                'source' => 'container-bound',
+            ],
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+    }
+
+    public function testRunFallsBackToLegacyControllerInstantiationWithoutContainer(): void
+    {
+        $this->registerControllerAlias(
+            RouterLegacyController::class,
+            'Application\\Controllers\\Test\\RouterLegacyController'
+        );
+
+        $path = 'tests/router-controller-legacy/' . bin2hex(random_bytes(6));
+
+        Router::add('GET', $path, 'Test/RouterLegacyController@show');
+
+        $response = Router::run($path, 'GET');
+
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertSame([
+            'success' => true,
+            'message' => 'Success',
+            'data' => [
+                'legacy' => true,
+            ],
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+    }
+
     public function testRunReturnsMethodNotAllowedWithAllowHeader(): void
     {
         $path = 'tests/router-method/' . bin2hex(random_bytes(6));
@@ -250,6 +309,13 @@ class RouterTest extends TestCase
         $property->setAccessible(true);
         $property->setValue(null, $registry);
     }
+
+    private function registerControllerAlias(string $sourceClass, string $alias): void
+    {
+        if (!class_exists($alias, false)) {
+            class_alias($sourceClass, $alias);
+        }
+    }
 }
 
 final class RouterInstanceMiddlewareStub
@@ -300,5 +366,38 @@ final class RouterStaticMiddlewareStub
     public static function reset(): void
     {
         self::$calls = [];
+    }
+}
+
+final class RouterContainerDependency
+{
+    public function __construct(
+        public readonly string $source
+    ) {}
+}
+
+final class RouterContainerAwareController
+{
+    public function __construct(
+        private readonly Request $request,
+        private readonly RouterContainerDependency $dependency
+    ) {}
+
+    public function show(): Response
+    {
+        return Response::successResponse([
+            'token' => $this->request->query('token'),
+            'source' => $this->dependency->source,
+        ]);
+    }
+}
+
+final class RouterLegacyController
+{
+    public function show(): Response
+    {
+        return Response::successResponse([
+            'legacy' => true,
+        ]);
     }
 }

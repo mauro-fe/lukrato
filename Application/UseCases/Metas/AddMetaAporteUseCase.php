@@ -12,10 +12,15 @@ use DomainException;
 
 class AddMetaAporteUseCase
 {
+    private readonly MetaService $metaService;
+    private readonly AchievementService $achievementService;
+
     public function __construct(
-        private readonly MetaService $metaService = new MetaService(),
-        private readonly AchievementService $achievementService = new AchievementService()
+        ?MetaService $metaService = null,
+        ?AchievementService $achievementService = null
     ) {
+        $this->metaService = $metaService ?? new MetaService();
+        $this->achievementService = $achievementService ?? new AchievementService();
     }
 
     /**

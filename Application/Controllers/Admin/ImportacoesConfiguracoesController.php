@@ -42,8 +42,10 @@ class ImportacoesConfiguracoesController extends WebController
                 'profileConfig' => $profileConfig,
                 'configLoadEndpoint' => BASE_URL . 'api/importacoes/configuracoes',
                 'configSaveEndpoint' => BASE_URL . 'api/importacoes/configuracoes',
-                'csvTemplateAutoEndpoint' => BASE_URL . 'api/importacoes/modelos/csv?mode=auto',
-                'csvTemplateManualEndpoint' => BASE_URL . 'api/importacoes/modelos/csv?mode=manual',
+                'csvTemplateAutoEndpoint' => BASE_URL . 'api/importacoes/modelos/csv?mode=auto&target=conta',
+                'csvTemplateManualEndpoint' => BASE_URL . 'api/importacoes/modelos/csv?mode=manual&target=conta',
+                'csvTemplateCardAutoEndpoint' => BASE_URL . 'api/importacoes/modelos/csv?mode=auto&target=cartao',
+                'csvTemplateCardManualEndpoint' => BASE_URL . 'api/importacoes/modelos/csv?mode=manual&target=cartao',
             ]
         );
     }

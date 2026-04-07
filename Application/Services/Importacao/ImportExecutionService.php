@@ -283,7 +283,7 @@ class ImportExecutionService
         $contaId = (int) ($cartao->conta_id ?? 0);
         if ($contaId <= 0) {
             return ServiceResultDTO::fail(
-                'Vincule uma conta ao cartão antes de importar OFX de fatura.',
+                'Vincule uma conta ao cartão antes de importar a fatura.',
                 422
             );
         }

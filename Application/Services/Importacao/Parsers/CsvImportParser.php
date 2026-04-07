@@ -44,6 +44,7 @@ class CsvImportParser implements ImportParserInterface
         $hasHeader = $this->normalizeBoolean($options['csv_has_header'] ?? true);
 
         return [
+            'import_target' => $this->normalizeImportTarget($options['import_target'] ?? 'conta'),
             'mapping_mode' => $this->normalizeMappingMode($options['csv_mapping_mode'] ?? 'auto'),
             'start_row' => $this->normalizeStartRow($options['csv_start_row'] ?? ($hasHeader ? 2 : 1), $hasHeader),
             'has_header' => $hasHeader,
@@ -102,24 +103,29 @@ class CsvImportParser implements ImportParserInterface
     private function parseAuto(array $rows, array $options): array
     {
         $maxRowsPerFile = ImportSecurityPolicy::maxRowsPerFile();
+        $importTarget = (string) ($options['import_target'] ?? 'conta');
 
         if (!$options['has_header']) {
-            throw new \InvalidArgumentException('CSV automático exige cabeçalho. Ative cabeçalho ou use mapeamento manual.');
+            throw new \InvalidArgumentException(
+                'CSV automático exige cabeçalho. Ative cabeçalho ou use mapeamento manual para mapear as colunas do arquivo.'
+            );
         }
 
         $headerRowNumber = max(1, ((int) $options['start_row']) - 1);
         $headerValues = $this->findRowValues($rows, $headerRowNumber);
         if ($headerValues === null || $this->isLineEmpty($headerValues)) {
-            throw new \InvalidArgumentException('Cabeçalho CSV não encontrado para o modo automático.');
+            throw new \InvalidArgumentException(
+                'Cabeçalho CSV não encontrado para o modo automático. Confira se a primeira linha do arquivo é o cabeçalho e se o delimitador está correto.'
+            );
         }
 
         $map = $this->buildHeaderColumnMap($headerValues);
-        $missingRequired = $this->missingRequiredMappings($map);
+        $missingRequired = $this->missingRequiredMappings($map, $importTarget);
         if ($missingRequired !== []) {
-            throw new \InvalidArgumentException(
-                'Cabeçalho CSV sem campos obrigatórios: ' . implode(', ', $missingRequired)
-            );
+            throw new \InvalidArgumentException($this->buildMissingHeaderMessage($missingRequired, $importTarget, (string) $options['delimiter']));
         }
+
+        $this->validateMappedRows($rows, $map, $options);
 
         $rowsDto = [];
         foreach ($rows as $item) {
@@ -149,13 +155,14 @@ class CsvImportParser implements ImportParserInterface
     private function parseManual(array $rows, array $options): array
     {
         $maxRowsPerFile = ImportSecurityPolicy::maxRowsPerFile();
+        $importTarget = (string) ($options['import_target'] ?? 'conta');
         $map = $this->buildManualColumnMap(is_array($options['column_map'] ?? null) ? $options['column_map'] : []);
-        $missingRequired = $this->missingRequiredMappings($map);
+        $missingRequired = $this->missingRequiredMappings($map, $importTarget);
         if ($missingRequired !== []) {
-            throw new \InvalidArgumentException(
-                'Mapeamento CSV manual incompleto. Campos obrigatórios: ' . implode(', ', $missingRequired)
-            );
+            throw new \InvalidArgumentException($this->buildManualMappingMessage($missingRequired, $importTarget));
         }
+
+        $this->validateMappedRows($rows, $map, $options);
 
         $rowsDto = [];
         foreach ($rows as $item) {
@@ -192,7 +199,7 @@ class CsvImportParser implements ImportParserInterface
         $date = $this->normalizeDate($rawDate, (string) $options['date_format']);
         $amount = $this->normalizeAmount($rawAmount, (string) $options['decimal_separator']);
         $description = ImportSanitizer::sanitizeText($rawDescription, 190);
-        $type = $this->normalizeType($rawType, $amount);
+        $type = $this->normalizeType($rawType, $amount, (string) ($options['import_target'] ?? 'conta'));
 
         if ($date === null || $amount === null || $description === '' || $type === null || abs($amount) <= 0.0) {
             return null;
@@ -279,9 +286,12 @@ class CsvImportParser implements ImportParserInterface
      * @param array<string, int|null> $map
      * @return array<int, string>
      */
-    private function missingRequiredMappings(array $map): array
+    private function missingRequiredMappings(array $map, string $importTarget = 'conta'): array
     {
-        $required = ['tipo', 'data', 'descricao', 'valor'];
+        $required = ['data', 'descricao', 'valor'];
+        if ($this->normalizeImportTarget($importTarget) !== 'cartao') {
+            array_unshift($required, 'tipo');
+        }
         $missing = [];
 
         foreach ($required as $field) {
@@ -320,11 +330,19 @@ class CsvImportParser implements ImportParserInterface
         return trim((string) ($line[$position] ?? ''));
     }
 
-    private function normalizeType(string $rawType, ?float $amount): ?string
+    private function normalizeType(string $rawType, ?float $amount, string $importTarget = 'conta'): ?string
     {
         $normalized = strtolower(trim($rawType));
         if ($normalized === '') {
-            return $amount !== null && $amount >= 0 ? 'receita' : 'despesa';
+            if ($amount === null) {
+                return null;
+            }
+
+            if ($this->normalizeImportTarget($importTarget) === 'cartao') {
+                return $amount >= 0 ? 'despesa' : 'receita';
+            }
+
+            return $amount >= 0 ? 'receita' : 'despesa';
         }
 
         if (in_array($normalized, ['despesa', 'debit', 'debito', 'out', 'saida'], true)) {
@@ -444,6 +462,154 @@ class CsvImportParser implements ImportParserInterface
         return ImportSecurityPolicy::maxRowsPerFile() + max(2, $startRow);
     }
 
+    /**
+     * @param array<int, array{row:int, values:array<int, string>}> $rows
+     * @param array<string, int|null> $map
+     * @param array<string, mixed> $options
+     */
+    private function validateMappedRows(array $rows, array $map, array $options): void
+    {
+        $dataRows = array_values(array_filter(
+            $rows,
+            fn(array $item): bool => (int) ($item['row'] ?? 0) >= (int) $options['start_row']
+                && !$this->isLineEmpty(is_array($item['values'] ?? null) ? $item['values'] : [])
+        ));
+
+        if ($dataRows === []) {
+            return;
+        }
+
+        $lastDataRowNumber = (int) ($dataRows[array_key_last($dataRows)]['row'] ?? 0);
+
+        foreach ($dataRows as $item) {
+            $lineNumber = (int) ($item['row'] ?? 0);
+            $line = is_array($item['values'] ?? null) ? $item['values'] : [];
+            $issue = $this->detectRowIssue($line, $map, $lineNumber, $lastDataRowNumber, $options);
+
+            if ($issue !== null) {
+                throw new \InvalidArgumentException($issue);
+            }
+        }
+    }
+
+    /**
+     * @param array<int, string> $line
+     * @param array<string, int|null> $map
+     * @param array<string, mixed> $options
+     */
+    private function detectRowIssue(array $line, array $map, int $lineNumber, int $lastDataRowNumber, array $options): ?string
+    {
+        $importTarget = $this->normalizeImportTarget($options['import_target'] ?? 'conta');
+        $requiredFields = ['data', 'descricao', 'valor'];
+        $missingFields = [];
+
+        foreach ($requiredFields as $field) {
+            if ($this->pickValue($line, $map[$field] ?? null) === '') {
+                $missingFields[] = $field;
+            }
+        }
+
+        if ($missingFields !== []) {
+            $labels = implode(', ', $this->fieldLabels($missingFields));
+
+            if ($lineNumber === $lastDataRowNumber) {
+                return sprintf(
+                    'A última linha do CSV parece incompleta (linha %d). Preencha %s ou remova a linha final quebrada antes do preview.',
+                    $lineNumber,
+                    $labels
+                );
+            }
+
+            return sprintf('Linha %d do CSV está incompleta. Preencha %s antes do preview.', $lineNumber, $labels);
+        }
+
+        $rawDate = $this->pickValue($line, $map['data'] ?? null);
+        if ($this->normalizeDate($rawDate, (string) $options['date_format']) === null) {
+            return sprintf(
+                'Linha %d com data inválida em "%s". Use %s ou ajuste o formato de data no avançado.',
+                $lineNumber,
+                $rawDate,
+                (string) $options['date_format']
+            );
+        }
+
+        $rawAmount = $this->pickValue($line, $map['valor'] ?? null);
+        if ($this->normalizeAmount($rawAmount, (string) $options['decimal_separator']) === null) {
+            return sprintf(
+                'Linha %d com valor inválido em "%s". Revise o separador decimal e o delimitador do CSV.',
+                $lineNumber,
+                $rawAmount
+            );
+        }
+
+        $rawType = $this->pickValue($line, $map['tipo'] ?? null);
+        if ($rawType !== '' && $this->normalizeType($rawType, 1.0, $importTarget) === null) {
+            return $importTarget === 'cartao'
+                ? sprintf('Linha %d com tipo inválido em "%s". Use receita/despesa ou deixe o tipo em branco para inferir pelo valor.', $lineNumber, $rawType)
+                : sprintf('Linha %d com tipo inválido em "%s". Use receita ou despesa no CSV de conta.', $lineNumber, $rawType);
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<int, string> $missingRequired
+     */
+    private function buildMissingHeaderMessage(array $missingRequired, string $importTarget, string $delimiter): string
+    {
+        $expectedColumns = $this->normalizeImportTarget($importTarget) === 'cartao'
+            ? ['data', 'descricao', 'valor']
+            : ['tipo', 'data', 'descricao', 'valor'];
+
+        return sprintf(
+            'Cabeçalho CSV sem campos obrigatórios: %s. %s',
+            implode(', ', $missingRequired),
+            $this->normalizeImportTarget($importTarget) === 'cartao'
+                ? 'Para cartão/fatura, o modelo automático espera ao menos ' . implode($this->displayDelimiter($delimiter), $expectedColumns) . '.'
+                : 'Para conta no padrão Lukrato, o modelo automático espera ' . implode($this->displayDelimiter($delimiter), $expectedColumns) . '.'
+        );
+    }
+
+    /**
+     * @param array<int, string> $missingRequired
+     */
+    private function buildManualMappingMessage(array $missingRequired, string $importTarget): string
+    {
+        $requiredLabels = implode(', ', $this->fieldLabels($missingRequired));
+
+        return $this->normalizeImportTarget($importTarget) === 'cartao'
+            ? 'Mapeamento CSV manual incompleto. Campos obrigatórios: ' . implode(', ', $missingRequired) . '. Configure ao menos ' . $requiredLabels . ' para o arquivo de cartão/fatura.'
+            : 'Mapeamento CSV manual incompleto. Campos obrigatórios: ' . implode(', ', $missingRequired) . '. Configure ao menos ' . $requiredLabels . ' para o CSV de conta.';
+    }
+
+    /**
+     * @param array<int, string> $fields
+     * @return array<int, string>
+     */
+    private function fieldLabels(array $fields): array
+    {
+        $labels = [
+            'tipo' => 'tipo',
+            'data' => 'data',
+            'descricao' => 'descrição',
+            'valor' => 'valor',
+            'categoria' => 'categoria',
+            'subcategoria' => 'subcategoria',
+            'observacao' => 'observação',
+            'id_externo' => 'ID externo',
+        ];
+
+        return array_map(
+            static fn(string $field): string => $labels[$field] ?? $field,
+            $fields
+        );
+    }
+
+    private function displayDelimiter(string $delimiter): string
+    {
+        return $delimiter === "\t" ? ' TAB ' : $delimiter;
+    }
+
     private function normalizeMappingMode(mixed $value): string
     {
         $mode = strtolower(trim((string) $value));
@@ -503,5 +669,12 @@ class CsvImportParser implements ImportParserInterface
         $normalized = strtolower(trim((string) $value));
 
         return in_array($normalized, ['1', 'true', 'sim', 'yes', 'on'], true);
+    }
+
+    private function normalizeImportTarget(mixed $value): string
+    {
+        $normalized = strtolower(trim((string) $value));
+
+        return $normalized === 'cartao' ? 'cartao' : 'conta';
     }
 }

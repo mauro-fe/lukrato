@@ -230,7 +230,7 @@ class PlanLimitService
             ->whereNull('parent_id')
             ->where(function ($q) {
                 $q->where('is_seeded', false)
-                  ->orWhereNull('is_seeded');
+                    ->orWhereNull('is_seeded');
             })
             ->count();
     }
@@ -292,7 +292,7 @@ class PlanLimitService
             ->whereNotNull('parent_id')
             ->where(function ($q) {
                 $q->where('is_seeded', false)
-                  ->orWhereNull('is_seeded');
+                    ->orWhereNull('is_seeded');
             })
             ->count();
     }
@@ -520,7 +520,7 @@ class PlanLimitService
         $importTarget = in_array($importTarget, ['conta', 'cartao'], true) ? $importTarget : 'conta';
 
         if ($importTarget === 'cartao') {
-            return $sourceType === 'ofx' ? 'import_cartao_ofx' : null;
+            return in_array($sourceType, ['ofx', 'csv'], true) ? 'import_cartao_ofx' : null;
         }
 
         if ($sourceType === 'ofx') {

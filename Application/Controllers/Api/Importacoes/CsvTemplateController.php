@@ -20,7 +20,14 @@ class CsvTemplateController extends ApiController
             ]);
         }
 
-        [$filename, $content] = $this->buildTemplate($mode);
+        $target = strtolower(trim($this->request->queryString('target', 'conta')));
+        if (!in_array($target, ['conta', 'cartao'], true)) {
+            return Response::validationErrorResponse([
+                'target' => 'Alvo inválido para modelo CSV. Use conta ou cartao.',
+            ]);
+        }
+
+        [$filename, $content] = $this->buildTemplate($mode, $target);
 
         return (new Response())
             ->setStatusCode(200)
@@ -34,8 +41,12 @@ class CsvTemplateController extends ApiController
     /**
      * @return array{0:string,1:string}
      */
-    private function buildTemplate(string $mode): array
+    private function buildTemplate(string $mode, string $target): array
     {
+        if ($target === 'cartao') {
+            return $this->buildCardTemplate($mode);
+        }
+
         if ($mode === 'manual') {
             return [
                 'modelo_importacao_manual.csv',
@@ -53,6 +64,32 @@ class CsvTemplateController extends ApiController
                 'tipo;data;descricao;valor',
                 'despesa;01/03/2026;Supermercado;149,90',
                 'receita;05/03/2026;Salario;3200,00',
+            ]),
+        ];
+    }
+
+    /**
+     * @return array{0:string,1:string}
+     */
+    private function buildCardTemplate(string $mode): array
+    {
+        if ($mode === 'manual') {
+            return [
+                'modelo_importacao_cartao_manual.csv',
+                implode("\n", [
+                    'data;descricao;valor;observacao;id_externo',
+                    '05/03/2026;Restaurante;220,90;Compra presencial;FAT-0001',
+                    '06/03/2026;Estorno parcial;-40,00;Ajuste da operadora;FAT-0002',
+                ]),
+            ];
+        }
+
+        return [
+            'modelo_importacao_cartao_automatico.csv',
+            implode("\n", [
+                'data;descricao;valor',
+                '05/03/2026;Restaurante;220,90',
+                '06/03/2026;Estorno parcial;-40,00',
             ]),
         ];
     }

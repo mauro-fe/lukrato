@@ -10,10 +10,13 @@ use Application\Services\Admin\AiLogsAdminWorkflowService;
 
 class AiLogsApiController extends ApiController
 {
+    private readonly AiLogsAdminWorkflowService $workflowService;
+
     public function __construct(
-        private readonly AiLogsAdminWorkflowService $workflowService = new AiLogsAdminWorkflowService()
+        ?AiLogsAdminWorkflowService $workflowService = null
     ) {
         parent::__construct();
+        $this->workflowService = $this->resolveOrCreate($workflowService, AiLogsAdminWorkflowService::class);
     }
 
     public function index(): Response

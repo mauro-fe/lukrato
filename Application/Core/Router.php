@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Application\Core;
 
+use Application\Container\ApplicationContainer;
 use Application\Core\Exceptions\HttpResponseException;
 use Application\Core\Routing\ErrorResponseFactory as RoutingErrorResponseFactory;
 use Application\Core\Routing\HttpExceptionHandler;
 use Application\Core\Routing\MiddlewareResolver as RoutingMiddlewareResolver;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Throwable;
 
 class Router
@@ -35,6 +37,7 @@ class Router
     public static function run(string $requestedPath, string $requestMethod): ?Response
     {
         $request = new Request();
+        ApplicationContainer::bindRequest($request);
         $routeContext = null;
 
         try {
@@ -112,7 +115,7 @@ class Router
                 throw new \Exception("Controlador '{$controllerNs}' não encontrado.");
             }
 
-            $instance = new $controllerNs();
+            $instance = self::resolveControllerInstance($controllerNs);
 
             if (!method_exists($instance, $method)) {
                 throw new \Exception("Método '{$method}' não encontrado no controlador '{$controllerNs}'.");
@@ -124,6 +127,21 @@ class Router
         }
 
         throw new \Exception('Callback da rota inválida.');
+    }
+
+    private static function resolveControllerInstance(string $controllerNs): object
+    {
+        $container = ApplicationContainer::getInstance();
+
+        if ($container !== null) {
+            try {
+                return $container->make($controllerNs);
+            } catch (BindingResolutionException) {
+                // Mantem compatibilidade enquanto a migracao para DI nao cobre todos os controllers.
+            }
+        }
+
+        return new $controllerNs();
     }
 
     public static function exceptionResponse(Throwable $e, ?array $routeContext, ?Request $request): Response

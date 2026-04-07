@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Core;
 
+use Application\Container\ApplicationContainer;
 use Application\Core\Request;
 use Application\Core\Routing\MiddlewareResolver;
 use Application\Services\Infrastructure\CacheService;
+use Illuminate\Container\Container as IlluminateContainer;
 use PHPUnit\Framework\TestCase;
 
 class MiddlewareResolverTest extends TestCase
@@ -15,11 +17,13 @@ class MiddlewareResolverTest extends TestCase
     {
         parent::setUp();
 
+        ApplicationContainer::flush();
         MiddlewareResolver::reset();
     }
 
     protected function tearDown(): void
     {
+        ApplicationContainer::flush();
         MiddlewareResolver::reset();
 
         parent::tearDown();
@@ -64,6 +68,32 @@ class MiddlewareResolverTest extends TestCase
         $this->assertInstanceOf(MiddlewareResolver::class, $legacyResolver);
     }
 
+    public function testExecuteResolvesMiddlewareThroughContainerWhenAvailable(): void
+    {
+        MiddlewareResolverContainerAwareStub::reset();
+        $this->setMiddlewareRegistry(['test.container' => MiddlewareResolverContainerAwareStub::class]);
+
+        $container = new IlluminateContainer();
+        $container->instance(
+            MiddlewareResolverContainerDependency::class,
+            new MiddlewareResolverContainerDependency('from-container')
+        );
+        ApplicationContainer::setInstance($container);
+
+        $resolver = new MiddlewareResolver();
+        $request = new Request([
+            'REQUEST_METHOD' => 'PATCH',
+        ]);
+
+        $resolver->execute(['test.container'], $request);
+
+        $this->assertSame([
+            'constructor_method' => 'PATCH',
+            'handle_method' => 'PATCH',
+            'source' => 'from-container',
+        ], MiddlewareResolverContainerAwareStub::$calls[0] ?? null);
+    }
+
     private function setMiddlewareRegistry(array $registry): void
     {
         $property = new \ReflectionProperty(MiddlewareResolver::class, 'registry');
@@ -101,6 +131,38 @@ final class MiddlewareResolverInstanceStub
     public static function reset(): void
     {
         self::$constructedWithCacheService = false;
+        self::$calls = [];
+    }
+}
+
+final class MiddlewareResolverContainerDependency
+{
+    public function __construct(
+        public readonly string $source
+    ) {}
+}
+
+final class MiddlewareResolverContainerAwareStub
+{
+    /** @var array<int, array<string, string>> */
+    public static array $calls = [];
+
+    public function __construct(
+        private readonly Request $request,
+        private readonly MiddlewareResolverContainerDependency $dependency
+    ) {}
+
+    public function handle(Request $request): void
+    {
+        self::$calls[] = [
+            'constructor_method' => $this->request->method(),
+            'handle_method' => $request->method(),
+            'source' => $this->dependency->source,
+        ];
+    }
+
+    public static function reset(): void
+    {
         self::$calls = [];
     }
 }

@@ -270,17 +270,23 @@ export const CardListMethods = {
             </div>
 
             <div class="fatura-card-details">
-                <div class="fatura-card-detail ${dueMeta.detailClass}" ${buildTooltipAttrs('Vencimento', dueMeta.hasDate
-                    ? `Data prevista para pagamento desta fatura: ${dueMeta.label}.`
-                    : 'A fatura ainda nao possui data de vencimento consolidada.')}>
+                <div class="fatura-card-detail ${dueMeta.detailClass}" ${buildTooltipAttrs(
+            'Vencimento',
+            dueMeta.hasDate
+                ? `Data prevista para pagamento desta fatura: ${dueMeta.label}.`
+                : 'A fatura ainda nao possui data de vencimento consolidada.'
+        )}>
                     <span class="fatura-card-detail-label">Vencimento</span>
                     <strong class="fatura-card-detail-value">${safeText(dueMeta.label)}</strong>
                     <span class="fatura-card-detail-meta">${safeText(dueMeta.helper)}</span>
                 </div>
 
-                <div class="fatura-card-detail ${statusMeta.progressClass}" ${buildTooltipAttrs('Progresso de pagamento', totalItens > 0
-                    ? `${itensPagos} de ${totalItens} itens ja foram pagos nesta fatura.`
-                    : 'Ainda nao existem itens suficientes para calcular o progresso de pagamento.')}>
+                <div class="fatura-card-detail ${statusMeta.progressClass}" ${buildTooltipAttrs(
+            'Progresso de pagamento',
+            totalItens > 0
+                ? `${itensPagos} de ${totalItens} itens ja foram pagos nesta fatura.`
+                : 'Ainda nao existem itens suficientes para calcular o progresso de pagamento.'
+        )}>
                     <span class="fatura-card-detail-label">Pagamento</span>
                     <strong class="fatura-card-detail-value">${totalItens > 0 ? `${itensPagos}/${totalItens}` : '--'}</strong>
                     <span class="fatura-card-detail-meta">${safeText(pagamentoLabel)}</span>
@@ -341,8 +347,8 @@ export const CardListMethods = {
         const progressoSection = this.getProgressoSection(totalItens, itensPendentes, itensPagos, progresso, statusMeta);
         const cartaoId = Number.parseInt(String(parc.cartao?.id ?? parc.cartao_id ?? 0), 10) || 0;
         const cardImportUrl = cartaoId > 0
-            ? `${getBaseUrl()}importacoes?import_target=cartao&source_type=ofx&cartao_id=${cartaoId}`
-            : `${getBaseUrl()}importacoes?import_target=cartao&source_type=ofx`;
+            ? `${getBaseUrl()}importacoes?import_target=cartao&cartao_id=${cartaoId}`
+            : `${getBaseUrl()}importacoes?import_target=cartao`;
         const cartaoNome = parc.cartao ? (parc.cartao.nome || parc.cartao.bandeira || 'Cartao') : 'Cartao';
         const instituicaoNome = parc.cartao?.conta?.instituicao_financeira?.nome || 'Sem instituicao';
         const cartaoNumero = parc.cartao?.ultimos_digitos ? `Final ${parc.cartao.ultimos_digitos}` : '';
@@ -392,10 +398,10 @@ export const CardListMethods = {
                         class="parc-btn parc-btn-import"
                         href="${safeText(cardImportUrl)}"
                         data-no-transition="true"
-                        title="Importar OFX desta fatura/cartão"
+                        title="Importar esta fatura/cartão"
                     >
                         <i data-lucide="upload"></i>
-                        <span>Importar OFX</span>
+                        <span>Importar fatura</span>
                     </a>
                     <button class="parc-btn parc-btn-view" data-action="view" data-id="${parc.id}">
                         <i data-lucide="eye"></i>

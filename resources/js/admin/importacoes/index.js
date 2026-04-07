@@ -22,6 +22,7 @@ if (context) {
     const fileDrop = context.root.querySelector('[data-imp-file-drop]');
     const fileInput = context.root.querySelector('[data-imp-file-input]');
     const selectedFileLabel = context.root.querySelector('[data-imp-selected-file]');
+    const fileNote = context.root.querySelector('[data-imp-file-note]');
     const submitButton = context.root.querySelector('[data-imp-submit]');
     const previewState = context.root.querySelector('[data-imp-preview-state]');
     const previewBadge = context.root.querySelector('[data-imp-preview-badge]');
@@ -45,10 +46,52 @@ if (context) {
     const categorizePreviewHelper = context.root.querySelector('[data-imp-categorize-helper]');
     const confirmButton = context.root.querySelector('[data-imp-confirm]');
     const pendingOnlyToggle = context.root.querySelector('[data-imp-filter-pending-only]');
+    const advancedDescription = context.root.querySelector('[data-imp-advanced-description]');
+    const advancedModeBadge = context.root.querySelector('[data-imp-advanced-mode-badge]');
+    const advancedTemplateChip = context.root.querySelector('[data-imp-advanced-template-chip]');
+    const advancedTemplateTitle = context.root.querySelector('[data-imp-advanced-template-title]');
+    const advancedTemplateCopy = context.root.querySelector('[data-imp-advanced-template-copy]');
+    const advancedLinkedAccountNote = context.root.querySelector('[data-imp-advanced-linked-account-note]');
+    const advancedTemplateAutoLink = context.root.querySelector('[data-imp-advanced-template-auto]');
+    const advancedTemplateManualLink = context.root.querySelector('[data-imp-advanced-template-manual]');
+    const advancedSummaryContext = context.root.querySelector('[data-imp-advanced-summary-context]');
+    const advancedAccountName = context.root.querySelector('[data-imp-advanced-account-name]');
+    const advancedSourceType = context.root.querySelector('[data-imp-advanced-source-type]');
+    const advancedMappingMode = context.root.querySelector('[data-imp-advanced-mapping-mode]');
+    const advancedHasHeader = context.root.querySelector('[data-imp-advanced-has-header]');
+    const advancedStartRow = context.root.querySelector('[data-imp-advanced-start-row]');
+    const advancedDelimiter = context.root.querySelector('[data-imp-advanced-delimiter]');
+    const advancedDateFormat = context.root.querySelector('[data-imp-advanced-date-format]');
+    const advancedDecimal = context.root.querySelector('[data-imp-advanced-decimal]');
+    const advancedColumnMap = context.root.querySelector('[data-imp-advanced-column-map]');
+    const profileBadge = context.root.querySelector('[data-imp-profile-badge]');
+    const profileAccountName = context.root.querySelector('[data-imp-profile-account-name]');
+    const profileSourceType = context.root.querySelector('[data-imp-profile-source-type]');
+    const profileCsvMode = context.root.querySelector('[data-imp-profile-csv-mode]');
+    const profileCsvDelimiter = context.root.querySelector('[data-imp-profile-csv-delimiter]');
+    const profileCsvDateFormat = context.root.querySelector('[data-imp-profile-csv-date-format]');
+    const profileCsvDecimal = context.root.querySelector('[data-imp-profile-csv-decimal]');
+    const profileContextNote = context.root.querySelector('[data-imp-profile-context-note]');
+    const configLinks = Array.from(context.root.querySelectorAll('[data-imp-config-link]'));
+    const guidePathCard = context.root.querySelector('[data-imp-guide-path-card]');
+    const guidePathTitle = context.root.querySelector('[data-imp-guide-path-title]');
+    const guidePathCopy = context.root.querySelector('[data-imp-guide-path-copy]');
+    const guideContextCard = context.root.querySelector('[data-imp-guide-context-card]');
+    const guideContextTitle = context.root.querySelector('[data-imp-guide-context-title]');
+    const guideContextCopy = context.root.querySelector('[data-imp-guide-context-copy]');
+    const guideReadinessCard = context.root.querySelector('[data-imp-guide-readiness-card]');
+    const guideReadinessTitle = context.root.querySelector('[data-imp-guide-readiness-title]');
+    const guideReadinessCopy = context.root.querySelector('[data-imp-guide-readiness-copy]');
     const form = context.root.querySelector('#imp-upload-form');
     const previewEndpoint = String(context.root.dataset.impPreviewEndpoint || '').trim();
     const confirmEndpoint = String(context.root.dataset.impConfirmEndpoint || '').trim();
+    const configApiEndpoint = String(context.root.dataset.impConfigEndpoint || '').trim();
+    const configPageBaseUrl = String(context.root.dataset.impConfigPageBaseUrl || '').trim();
     const jobStatusEndpointBase = String(context.root.dataset.impJobStatusEndpointBase || '').trim();
+    const csvTemplateAutoEndpoint = String(context.root.dataset.impCsvTemplateAutoEndpoint || '').trim();
+    const csvTemplateManualEndpoint = String(context.root.dataset.impCsvTemplateManualEndpoint || '').trim();
+    const csvTemplateCardAutoEndpoint = String(context.root.dataset.impCsvTemplateCardAutoEndpoint || '').trim();
+    const csvTemplateCardManualEndpoint = String(context.root.dataset.impCsvTemplateCardManualEndpoint || '').trim();
     const categoriesEndpoint = String(context.root.dataset.impCategoriesEndpoint || '').trim();
     const subcategoriesEndpointBase = String(context.root.dataset.impSubcategoriesEndpointBase || '').trim();
     const quotaWarning = context.root.querySelector('[data-imp-quota-warning]');
@@ -59,6 +102,8 @@ if (context) {
     );
     let activeJobId = null;
     let pollingTimer = null;
+    let fileDropDragDepth = 0;
+    let fileInspectionToken = 0;
 
     const decodeImportLimits = () => {
         const encoded = String(context.root.dataset.impImportLimits || '').trim();
@@ -76,9 +121,29 @@ if (context) {
     };
 
     const importLimitsByBucket = decodeImportLimits();
+    const decodeProfileConfig = () => {
+        const encoded = String(context.root.dataset.impProfileConfig || '').trim();
+        if (!encoded) {
+            return null;
+        }
+
+        try {
+            const raw = atob(encoded);
+            const parsed = JSON.parse(raw);
+            return parsed && typeof parsed === 'object' ? parsed : null;
+        } catch {
+            return null;
+        }
+    };
+
+    const initialProfileConfig = decodeProfileConfig();
     let categoryOptions = [];
     let categoryCatalogError = '';
     const subcategoryCache = new Map();
+    let activeProfileConfig = null;
+    let profileLoadState = 'idle';
+    let profileLoadError = '';
+    let profileRequestToken = 0;
 
     const STATUS_MESSAGES = {
         idle: 'Selecione alvo, formato e arquivo para montar o preview.',
@@ -86,7 +151,7 @@ if (context) {
         loading_preview: 'Preparando preview e validando conteúdo do arquivo.',
         preview_ready: 'Preview pronto. Revise as linhas, categorize se quiser e confirme.',
         preview_error: 'Não foi possível preparar o preview. Revise os dados e tente novamente.',
-        confirming: 'Seu OFX está sendo importado...',
+        confirming: 'Seu arquivo está sendo importado...',
         confirmed: 'Concluído.',
     };
 
@@ -105,6 +170,61 @@ if (context) {
         return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
     };
 
+    const normalizeBooleanSetting = (value, fallback = true) => {
+        if (typeof value === 'boolean') {
+            return value;
+        }
+
+        const normalized = String(value ?? '').trim().toLowerCase();
+        if (!normalized) {
+            return fallback;
+        }
+
+        return !['0', 'false', 'no', 'nao', 'não', 'off'].includes(normalized);
+    };
+
+    const normalizeProfileConfig = (profile) => {
+        if (!profile || typeof profile !== 'object') {
+            return null;
+        }
+
+        const options = profile.options && typeof profile.options === 'object' ? profile.options : {};
+        const csvHasHeader = normalizeBooleanSetting(options.csv_has_header, true);
+        const csvColumnMap = options.csv_column_map && typeof options.csv_column_map === 'object'
+            ? options.csv_column_map
+            : {};
+        const csvStartRow = Number.parseInt(
+            String(options.csv_start_row ?? (csvHasHeader ? 2 : 1)),
+            10,
+        );
+
+        return {
+            contaId: parsePositiveInt(profile.conta_id ?? null),
+            sourceType: normalizeSourceType(profile.source_type || 'ofx'),
+            csvMappingMode: String(options.csv_mapping_mode || 'auto').trim().toLowerCase() === 'manual'
+                ? 'manual'
+                : 'auto',
+            csvHasHeader,
+            csvStartRow: Number.isFinite(csvStartRow) && csvStartRow > 0 ? csvStartRow : (csvHasHeader ? 2 : 1),
+            csvDelimiter: String(options.csv_delimiter || ';') || ';',
+            csvDateFormat: String(options.csv_date_format || 'd/m/Y').trim() || 'd/m/Y',
+            csvDecimalSeparator: String(options.csv_decimal_separator || ',').trim() === '.' ? '.' : ',',
+            csvColumnMap: {
+                tipo: String(csvColumnMap.tipo || '').trim().toUpperCase(),
+                data: String(csvColumnMap.data || '').trim().toUpperCase(),
+                descricao: String(csvColumnMap.descricao || '').trim().toUpperCase(),
+                valor: String(csvColumnMap.valor || '').trim().toUpperCase(),
+                categoria: String(csvColumnMap.categoria || '').trim().toUpperCase(),
+                subcategoria: String(csvColumnMap.subcategoria || '').trim().toUpperCase(),
+                observacao: String(csvColumnMap.observacao || '').trim().toUpperCase(),
+                id_externo: String(csvColumnMap.id_externo || '').trim().toUpperCase(),
+            },
+        };
+    };
+
+    activeProfileConfig = normalizeProfileConfig(initialProfileConfig);
+    profileLoadState = activeProfileConfig ? 'ready' : 'idle';
+
     const isTruthyFlag = (value) => ['1', 'true', 'yes', 'on'].includes(String(value || '0').trim().toLowerCase());
 
     const currentSourceType = () => {
@@ -112,9 +232,14 @@ if (context) {
         return normalizeSourceType(checked?.value || 'ofx');
     };
 
+    const normalizeImportTarget = (value, fallback = 'conta') => {
+        const normalized = String(value || '').trim().toLowerCase();
+        return normalized === 'cartao' || normalized === 'conta' ? normalized : fallback;
+    };
+
     const currentImportTarget = () => {
         const checked = targetInputs.find((input) => input.checked);
-        return String(checked?.value || 'conta').trim().toLowerCase() === 'cartao' ? 'cartao' : 'conta';
+        return normalizeImportTarget(checked?.value || 'conta');
     };
 
     const isCardTarget = () => context.state.selectedImportTarget === 'cartao';
@@ -131,6 +256,44 @@ if (context) {
             return 'Cartão não selecionado';
         }
         return String(cardSelect.options[cardSelect.selectedIndex]?.text || 'Cartão não selecionado');
+    };
+
+    const findAccountOptionById = (accountId) => {
+        const normalizedAccountId = parsePositiveInt(accountId);
+        if (!accountSelect || !normalizedAccountId) {
+            return null;
+        }
+
+        return Array.from(accountSelect.options).find(
+            (option) => parsePositiveInt(option.value) === normalizedAccountId,
+        ) || null;
+    };
+
+    const resolveCardLinkedAccountId = () => {
+        if (!cardSelect || cardSelect.selectedIndex < 0) {
+            return null;
+        }
+
+        const option = cardSelect.options[cardSelect.selectedIndex];
+        return parsePositiveInt(option?.dataset?.linkedAccountId ?? null);
+    };
+
+    const resolveActiveConfigAccountId = (importTarget = context.state.selectedImportTarget) => {
+        if (String(importTarget || '').trim().toLowerCase() === 'cartao') {
+            return resolveCardLinkedAccountId();
+        }
+
+        return accountSelect ? parsePositiveInt(accountSelect.value) : context.state.selectedAccountId;
+    };
+
+    const resolveActiveConfigAccountLabel = () => {
+        const accountId = resolveActiveConfigAccountId();
+        const option = findAccountOptionById(accountId);
+        if (option) {
+            return String(option.text || `Conta #${accountId}`);
+        }
+
+        return accountId ? `Conta #${accountId}` : 'Conta não selecionada';
     };
 
     const currentContextLabel = () => (isCardTarget() ? currentCardLabel() : currentAccountLabel());
@@ -167,6 +330,801 @@ if (context) {
         };
     };
 
+    const formatMappingModeLabel = (mode) => (mode === 'manual' ? 'Manual' : 'Automático');
+
+    const formatDelimiterLabel = (delimiter) => {
+        const normalized = String(delimiter || '').trim();
+        if (normalized === '\t') {
+            return 'TAB';
+        }
+
+        return normalized || ';';
+    };
+
+    const formatSourceTypeLabel = (sourceType) => {
+        const normalized = normalizeSourceType(sourceType, '');
+        return normalized ? normalized.toUpperCase() : 'Arquivo';
+    };
+
+    const formatImportTargetLabel = (importTarget) => (
+        normalizeImportTarget(importTarget, '') === 'cartao' ? 'Cartão/fatura' : 'Conta'
+    );
+
+    const detectSourceTypeFromFile = (file) => {
+        if (!file) {
+            return '';
+        }
+
+        const fileName = String(file.name || '').trim().toLowerCase();
+        const mimeType = String(file.type || '').trim().toLowerCase();
+
+        if (fileName.endsWith('.csv') || mimeType.includes('csv') || mimeType.includes('excel')) {
+            return 'csv';
+        }
+
+        if (fileName.endsWith('.ofx') || fileName.endsWith('.qfx') || mimeType.includes('ofx') || mimeType.includes('qfx')) {
+            return 'ofx';
+        }
+
+        return '';
+    };
+
+    const readTextFromFile = async (file) => {
+        if (!file) {
+            return '';
+        }
+
+        if (typeof file.text === 'function') {
+            return file.text();
+        }
+
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result || ''));
+            reader.onerror = () => reject(reader.error || new Error('Não foi possível ler o arquivo selecionado.'));
+            reader.readAsText(file);
+        });
+    };
+
+    const detectImportTargetFromOfxContents = (contents) => {
+        const normalizedContents = String(contents || '').trim();
+        if (!normalizedContents) {
+            return '';
+        }
+
+        const cardTags = ['CREDITCARDMSGSRSV1', 'CCSTMTTRNRS', 'CCSTMTRS', 'CCACCTFROM'];
+        const accountTags = ['BANKMSGSRSV1', 'STMTTRNRS', 'STMTRS', 'BANKACCTFROM'];
+        const hasTag = (tag) => new RegExp(`<\\s*${tag}\\b`, 'i').test(normalizedContents);
+
+        const cardMatches = cardTags.filter(hasTag);
+        const accountMatches = accountTags.filter(hasTag);
+
+        if (cardMatches.length > 0 && accountMatches.length === 0) {
+            return 'cartao';
+        }
+
+        if (accountMatches.length > 0 && cardMatches.length === 0) {
+            return 'conta';
+        }
+
+        return '';
+    };
+
+    const applyGuideCard = (cardElement, titleElement, copyElement, guide) => {
+        if (!guide) {
+            return;
+        }
+
+        if (cardElement) {
+            cardElement.dataset.state = String(guide.state || 'info');
+        }
+
+        if (titleElement) {
+            titleElement.textContent = String(guide.title || '');
+        }
+
+        if (copyElement) {
+            copyElement.textContent = String(guide.copy || '');
+        }
+    };
+
+    const isContextSelected = (importTarget = context.state.selectedImportTarget) => {
+        const normalizedTarget = String(importTarget || '').trim().toLowerCase() === 'cartao' ? 'cartao' : 'conta';
+
+        if (normalizedTarget === 'cartao') {
+            return Boolean(context.state.selectedCardId);
+        }
+
+        return Boolean(context.state.selectedAccountId);
+    };
+
+    const buildColumnMapSummary = (profile, importTarget) => {
+        const csvColumnMap = profile?.csvColumnMap && typeof profile.csvColumnMap === 'object'
+            ? profile.csvColumnMap
+            : {};
+        const columnLabels = importTarget === 'cartao'
+            ? {
+                data: 'Data',
+                descricao: 'Descrição',
+                valor: 'Valor',
+                observacao: 'Observação',
+                id_externo: 'ID externo',
+            }
+            : {
+                tipo: 'Tipo',
+                data: 'Data',
+                descricao: 'Descrição',
+                valor: 'Valor',
+                categoria: 'Categoria',
+                subcategoria: 'Subcategoria',
+            };
+
+        const parts = Object.entries(columnLabels)
+            .map(([key, label]) => {
+                const columnReference = String(csvColumnMap[key] || '').trim().toUpperCase();
+                return columnReference ? `${label}: ${columnReference}` : '';
+            })
+            .filter(Boolean);
+
+        return parts.length > 0 ? parts.join(' | ') : 'Padrão Lukrato';
+    };
+
+    const buildPathTitle = (importTarget, sourceType) => {
+        if (sourceType === 'csv') {
+            return importTarget === 'cartao' ? 'CSV de fatura guiado' : 'CSV de conta no padrão Lukrato';
+        }
+
+        return importTarget === 'cartao' ? 'OFX de fatura do cartão' : 'OFX de extrato bancário';
+    };
+
+    const buildUploadPrompt = (importTarget, sourceType) => {
+        if (sourceType === 'csv') {
+            return importTarget === 'cartao'
+                ? {
+                    title: 'Envie o CSV da fatura',
+                    copy: 'O melhor cenário aqui é data, descrição e valor legíveis; sem coluna de tipo, valor positivo vira despesa e negativo vira estorno.',
+                }
+                : {
+                    title: 'Envie o CSV no padrão de conta',
+                    copy: 'Esperamos tipo;data;descricao;valor com ;, datas dd/mm/yyyy, vírgula decimal e sem linhas incompletas no final.',
+                };
+        }
+
+        return importTarget === 'cartao'
+            ? {
+                title: 'Envie o OFX da fatura',
+                copy: 'Compras e parcelas do MEMO entram automáticas, inclusive quando vier algo como "Parcela 3/6".',
+            }
+            : {
+                title: 'Envie o OFX do extrato',
+                copy: 'Pix, depósito e histórico entram automáticos, mesmo se o banco usar TRNTYPE genérico.',
+            };
+    };
+
+    const buildPreviewReadyCopy = (importTarget, sourceType, autoAdjusted = false) => {
+        if (sourceType === 'csv') {
+            if (importTarget === 'cartao') {
+                return autoAdjusted
+                    ? 'Formato sincronizado para CSV. Agora valide data, descrição e valor da fatura no preview.'
+                    : 'CSV pronto. Clique em "Preparar preview" para validar a fatura antes da confirmação.';
+            }
+
+            return autoAdjusted
+                ? 'Formato sincronizado para CSV. Agora valide cabeçalho, datas e valores no padrão tipo;data;descricao;valor.'
+                : 'CSV pronto. Clique em "Preparar preview" para validar cabeçalho, datas e valores.';
+        }
+
+        if (importTarget === 'cartao') {
+            return autoAdjusted
+                ? 'Formato sincronizado para OFX. Agora clique em "Preparar preview" para ler compras e parcelas da fatura.'
+                : 'OFX pronto. Clique em "Preparar preview" para ler compras e parcelas da fatura automaticamente.';
+        }
+
+        return autoAdjusted
+            ? 'Formato sincronizado para OFX. Agora clique em "Preparar preview" para ler o extrato automaticamente.'
+            : 'OFX pronto. Clique em "Preparar preview" para ler data, valor e histórico do extrato.';
+    };
+
+    const buildDetectedFileNoteText = (importTarget, sourceType, autoAdjusted = false) => {
+        if (sourceType === 'csv') {
+            if (importTarget === 'cartao') {
+                return autoAdjusted
+                    ? 'Detectamos um CSV e alinhamos o formato. Se vier sem coluna de tipo, valor positivo entra como despesa e negativo como estorno.'
+                    : 'CSV detectado. Se vier sem coluna de tipo, valor positivo entra como despesa e negativo como estorno.';
+            }
+
+            return autoAdjusted
+                ? 'Detectamos um CSV e alinhamos o formato. O melhor encaixe aqui é tipo;data;descricao;valor com ;, dd/mm/yyyy, vírgula decimal e sem linhas incompletas no final.'
+                : 'CSV detectado. O melhor encaixe aqui é tipo;data;descricao;valor com ;, dd/mm/yyyy, vírgula decimal e sem linhas incompletas no final.';
+        }
+
+        if (importTarget === 'cartao') {
+            return autoAdjusted
+                ? 'Detectamos um OFX e alinhamos o formato. Compras e parcelas da fatura podem vir no MEMO sem exigir mapeamento manual.'
+                : 'OFX detectado. Compras e parcelas da fatura podem vir no MEMO sem exigir mapeamento manual.';
+        }
+
+        return autoAdjusted
+            ? 'Detectamos um OFX e alinhamos o formato. O Lukrato usa data, valor e histórico mesmo quando o banco usa TRNTYPE genérico.'
+            : 'OFX detectado. O Lukrato usa data, valor e histórico mesmo quando o banco usa TRNTYPE genérico.';
+    };
+
+    const buildDetectedImportTargetNoteText = (detectedImportTarget, autoAdjusted = false) => {
+        const normalizedTarget = normalizeImportTarget(detectedImportTarget, '');
+        if (!normalizedTarget) {
+            return '';
+        }
+
+        if (normalizedTarget === 'cartao') {
+            return autoAdjusted
+                ? 'O conteúdo do OFX foi reconhecido como cartão/fatura e o alvo foi ajustado automaticamente. Revise apenas o cartão antes do preview.'
+                : 'O conteúdo do OFX foi reconhecido como cartão/fatura. Revise apenas o cartão antes do preview.';
+        }
+
+        return autoAdjusted
+            ? 'O conteúdo do OFX foi reconhecido como conta bancária e o alvo foi ajustado automaticamente para Conta.'
+            : 'O conteúdo do OFX foi reconhecido como conta bancária.';
+    };
+
+    const buildAdvancedDescription = (importTarget, sourceType) => {
+        if (sourceType === 'csv') {
+            return importTarget === 'cartao'
+                ? 'Se a fatura vier em CSV, basta manter data, descrição e valor legíveis. Sem coluna de tipo, valor positivo vira despesa e negativo vira estorno; abra o avançado só se cabeçalho, delimitador ou data fugirem do padrão.'
+                : 'Para CSV de conta no padrão Lukrato, use tipo;data;descricao;valor com ;, datas em dd/mm/yyyy, valores com vírgula e remova linhas vazias ou incompletas no fim. Abra o avançado só se o arquivo fugir disso.';
+        }
+
+        return importTarget === 'cartao'
+            ? 'OFX de fatura entra automático. Compras parceladas podem vir no MEMO, como "Parcela 3/6", sem exigir mapeamento manual.'
+            : 'OFX bancário entra automático, mesmo quando o banco marca tudo como TRNTYPE genérico. O Lukrato usa data, valor e histórico do extrato.';
+    };
+
+    const buildTemplateMeta = (importTarget) => {
+        if (importTarget === 'cartao') {
+            return {
+                chip: 'Modelo de fatura',
+                title: 'Modelo recomendado para CSV de cartão/fatura',
+                copy: 'O modelo automático cobre data, descrição e valor. Use o manual se a operadora exportar observação, ID externo ou colunas extras fora do padrão esperado.',
+                autoLabel: 'Baixar modelo rápido de fatura',
+                manualLabel: 'Baixar modelo completo de fatura',
+                autoHref: csvTemplateCardAutoEndpoint,
+                manualHref: csvTemplateCardManualEndpoint,
+                contextNote: 'A configuração CSV usa a conta vinculada ao cartão selecionado.',
+                summaryContext: 'Conta vinculada ao cartão selecionado',
+                badge: 'Conta vinculada',
+            };
+        }
+
+        return {
+            chip: 'Modelo de conta',
+            title: 'Modelo recomendado para CSV de conta',
+            copy: 'O modelo rápido segue o padrão tipo;data;descricao;valor com ;, dd/mm/yyyy e valores como 149,90. O manual adiciona categoria, subcategoria, observação e ID externo.',
+            autoLabel: 'Baixar modelo rápido de conta',
+            manualLabel: 'Baixar modelo completo de conta',
+            autoHref: csvTemplateAutoEndpoint,
+            manualHref: csvTemplateManualEndpoint,
+            contextNote: 'A configuração CSV usa a conta selecionada neste fluxo.',
+            summaryContext: 'Conta selecionada',
+            badge: 'Conta ativa',
+        };
+    };
+
+    const buildPathGuide = (state) => {
+        const importTarget = state.selectedImportTarget;
+        const sourceType = normalizeSourceType(state.selectedSourceType, 'ofx');
+        const detectedSourceType = normalizeSourceType(state.selectedFileDetectedSourceType, '');
+        const detectedImportTarget = normalizeImportTarget(state.selectedFileDetectedImportTarget, '');
+        const title = buildPathTitle(importTarget, sourceType);
+
+        if (state.selectedFile && detectedSourceType && detectedSourceType !== sourceType) {
+            return {
+                state: 'warning',
+                title,
+                copy: `Arquivo ${formatSourceTypeLabel(detectedSourceType)} detectado, mas o formato ativo está em ${formatSourceTypeLabel(sourceType)}. Alinhe antes do preview para evitar erro de leitura.`,
+            };
+        }
+
+        if (
+            state.selectedFile
+            && detectedSourceType === 'ofx'
+            && detectedImportTarget
+            && detectedImportTarget !== importTarget
+        ) {
+            return {
+                state: 'warning',
+                title,
+                copy: `O conteúdo do OFX parece ser de ${formatImportTargetLabel(detectedImportTarget)}, mas o alvo ativo está em ${formatImportTargetLabel(importTarget)}.`,
+            };
+        }
+
+        if (
+            state.selectedFile
+            && detectedSourceType === 'ofx'
+            && detectedImportTarget
+            && state.targetAutoAdjustedToDetectedFile
+        ) {
+            return {
+                state: 'ready',
+                title,
+                copy: `${buildDetectedImportTargetNoteText(detectedImportTarget, true)} ${buildAdvancedDescription(importTarget, sourceType)}`,
+            };
+        }
+
+        if (state.selectedFile && detectedSourceType && state.sourceAutoAdjustedToDetectedFile) {
+            return {
+                state: 'ready',
+                title,
+                copy: `Arquivo ${formatSourceTypeLabel(detectedSourceType)} detectado e o formato foi sincronizado automaticamente. ${buildAdvancedDescription(importTarget, sourceType)}`,
+            };
+        }
+
+        return {
+            state: state.selectedFile && detectedSourceType ? 'ready' : 'info',
+            title,
+            copy: buildAdvancedDescription(importTarget, sourceType),
+        };
+    };
+
+    const buildContextGuide = (state, activeConfigAccountId, profileDisplay) => {
+        if (state.selectedImportTarget === 'cartao') {
+            if (!state.selectedCardId) {
+                return {
+                    state: 'warning',
+                    title: 'Selecione um cartão',
+                    copy: 'Escolha o cartão/fatura que vai receber o arquivo antes de preparar o preview.',
+                };
+            }
+
+            if (!activeConfigAccountId) {
+                return {
+                    state: 'warning',
+                    title: currentCardLabel(),
+                    copy: 'Este cartão não tem conta vinculada para herdar o perfil CSV. OFX pode seguir, mas CSV pode exigir ajuste manual.',
+                };
+            }
+
+            return {
+                state: 'ready',
+                title: currentCardLabel(),
+                copy: state.targetAutoAdjustedToDetectedFile
+                    ? `${buildDetectedImportTargetNoteText('cartao', true)} Perfil CSV herdado de ${profileDisplay.accountLabel}.`
+                    : `Perfil CSV herdado de ${profileDisplay.accountLabel}.`,
+            };
+        }
+
+        if (!state.selectedAccountId) {
+            return {
+                state: 'warning',
+                title: 'Selecione uma conta',
+                copy: 'Escolha a conta que vai receber o arquivo para liberar o preview.',
+            };
+        }
+
+        return {
+            state: 'ready',
+            title: currentAccountLabel(),
+            copy: state.targetAutoAdjustedToDetectedFile
+                ? `${buildDetectedImportTargetNoteText('conta', true)} A conta selecionada define o contexto do preview e do perfil CSV aplicado.`
+                : 'A conta selecionada define o contexto do preview e do perfil CSV aplicado.',
+        };
+    };
+
+    const buildReadinessGuide = (state, quota) => {
+        const detectedSourceType = normalizeSourceType(state.selectedFileDetectedSourceType, '');
+        const detectedImportTarget = normalizeImportTarget(state.selectedFileDetectedImportTarget, '');
+        const hasContext = isContextSelected(state.selectedImportTarget);
+
+        if (!quota.allowed) {
+            return {
+                state: 'warning',
+                title: 'Limite do plano atingido',
+                copy: quota.message || 'Faça upgrade para continuar usando este fluxo de importação.',
+            };
+        }
+
+        if (state.previewStatus === 'loading_preview') {
+            return {
+                state: 'info',
+                title: 'Montando preview',
+                copy: 'Validando o arquivo, normalizando linhas e preparando a revisão final.',
+            };
+        }
+
+        if (state.previewStatus === 'confirming') {
+            return {
+                state: 'info',
+                title: 'Importação em andamento',
+                copy: String(state.jobProgressMessage || getProcessingMessage()),
+            };
+        }
+
+        if (state.previewStatus === 'confirmed') {
+            return {
+                state: 'ready',
+                title: 'Importação concluída',
+                copy: getCompletedMessage(),
+            };
+        }
+
+        if (state.previewStatus === 'preview_error') {
+            return {
+                state: 'warning',
+                title: 'Ajuste antes de reenviar',
+                copy: state.previewErrors[0] || 'Revise o contexto, o formato e o arquivo antes de tentar novamente.',
+            };
+        }
+
+        if (state.previewStatus === 'preview_ready') {
+            if (!state.previewCanConfirm) {
+                return {
+                    state: 'warning',
+                    title: 'Preview com bloqueios',
+                    copy: state.previewErrors[0] || 'O preview retornou bloqueios que precisam ser corrigidos antes da confirmação.',
+                };
+            }
+
+            if (isContaOfxPreviewActive(state.selectedImportTarget, state.selectedSourceType)
+                && (state.previewSummary.uncategorizedRows || 0) > 0) {
+                return {
+                    state: 'ready',
+                    title: 'Preview pronto para revisar',
+                    copy: `${state.previewSummary.uncategorizedRows} linha(s) ainda sem categoria. Você pode confirmar agora ou revisar antes da importação.`,
+                };
+            }
+
+            return {
+                state: 'ready',
+                title: 'Preview pronto para confirmar',
+                copy: 'Revise as linhas e confirme a importação quando estiver tudo certo.',
+            };
+        }
+
+        if (!hasContext) {
+            return {
+                state: 'warning',
+                title: state.selectedImportTarget === 'cartao' ? 'Falta escolher o cartão' : 'Falta escolher a conta',
+                copy: 'Defina o contexto da importação antes de enviar o arquivo.',
+            };
+        }
+
+        if (!state.selectedFile) {
+            const uploadPrompt = buildUploadPrompt(state.selectedImportTarget, state.selectedSourceType);
+            return {
+                state: 'info',
+                title: uploadPrompt.title,
+                copy: uploadPrompt.copy,
+            };
+        }
+
+        if (!detectedSourceType) {
+            return {
+                state: 'warning',
+                title: 'Revise o tipo do arquivo',
+                copy: 'Não foi possível identificar automaticamente se o arquivo é OFX ou CSV. Confira a extensão antes do preview.',
+            };
+        }
+
+        if (
+            detectedSourceType === 'ofx'
+            && detectedImportTarget
+            && detectedImportTarget !== state.selectedImportTarget
+        ) {
+            return {
+                state: 'warning',
+                title: 'OFX e alvo divergem',
+                copy: `O conteúdo do OFX parece ser de ${formatImportTargetLabel(detectedImportTarget)}, mas o alvo ativo está em ${formatImportTargetLabel(state.selectedImportTarget)}.`,
+            };
+        }
+
+        if (detectedSourceType !== state.selectedSourceType) {
+            return {
+                state: 'warning',
+                title: 'Formato e arquivo divergem',
+                copy: `O arquivo parece ser ${formatSourceTypeLabel(detectedSourceType)}, mas o formato ativo está em ${formatSourceTypeLabel(state.selectedSourceType)}.`,
+            };
+        }
+
+        return {
+            state: 'ready',
+            title: 'Pronto para gerar preview',
+            copy: buildPreviewReadyCopy(
+                state.selectedImportTarget,
+                detectedSourceType,
+                state.sourceAutoAdjustedToDetectedFile,
+            ),
+        };
+    };
+
+    const buildFileNote = (state) => {
+        if (!state.selectedFile) {
+            return null;
+        }
+
+        const detectedSourceType = normalizeSourceType(state.selectedFileDetectedSourceType, '');
+        const detectedImportTarget = normalizeImportTarget(state.selectedFileDetectedImportTarget, '');
+        if (!detectedSourceType) {
+            return {
+                state: 'warning',
+                text: 'Não foi possível detectar automaticamente se o arquivo é OFX ou CSV. Revise a extensão antes do preview.',
+            };
+        }
+
+        if (
+            detectedSourceType === 'ofx'
+            && detectedImportTarget
+            && detectedImportTarget !== state.selectedImportTarget
+        ) {
+            return {
+                state: 'warning',
+                text: `O conteúdo do OFX parece ser de ${formatImportTargetLabel(detectedImportTarget)}, mas o alvo selecionado está em ${formatImportTargetLabel(state.selectedImportTarget)}.`,
+            };
+        }
+
+        if (detectedSourceType === 'ofx' && detectedImportTarget && state.targetAutoAdjustedToDetectedFile) {
+            return {
+                state: 'ready',
+                text: buildDetectedImportTargetNoteText(detectedImportTarget, true),
+            };
+        }
+
+        if (detectedSourceType === 'ofx' && detectedImportTarget) {
+            return {
+                state: 'info',
+                text: buildDetectedImportTargetNoteText(detectedImportTarget, false),
+            };
+        }
+
+        if (detectedSourceType !== state.selectedSourceType) {
+            return {
+                state: 'warning',
+                text: `Arquivo ${formatSourceTypeLabel(detectedSourceType)} detectado, mas o formato selecionado está em ${formatSourceTypeLabel(state.selectedSourceType)}.`,
+            };
+        }
+
+        if (state.sourceAutoAdjustedToDetectedFile) {
+            return {
+                state: 'ready',
+                text: buildDetectedFileNoteText(
+                    state.selectedImportTarget,
+                    detectedSourceType,
+                    true,
+                ),
+            };
+        }
+
+        return {
+            state: 'info',
+            text: buildDetectedFileNoteText(
+                state.selectedImportTarget,
+                detectedSourceType,
+                false,
+            ),
+        };
+    };
+
+    const buildConfigUrl = (accountId) => {
+        if (!configPageBaseUrl) {
+            return '';
+        }
+
+        return accountId ? `${configPageBaseUrl}?conta_id=${accountId}` : configPageBaseUrl;
+    };
+
+    const syncFileInputFiles = (files) => {
+        if (!fileInput || !files || typeof DataTransfer !== 'function') {
+            return;
+        }
+
+        try {
+            const transfer = new DataTransfer();
+            Array.from(files).forEach((file) => {
+                if (file) {
+                    transfer.items.add(file);
+                }
+            });
+            fileInput.files = transfer.files;
+        } catch {
+            // Ignore browsers that do not allow setting FileList programmatically.
+        }
+    };
+
+    const applySelectedFile = async (file) => {
+        stopJobPolling();
+        activeJobId = null;
+
+        const inspectionToken = ++fileInspectionToken;
+
+        const detectedSourceType = detectSourceTypeFromFile(file);
+        const previousImportTarget = normalizeImportTarget(context.state.selectedImportTarget);
+        const previousSourceType = normalizeSourceType(context.state.selectedSourceType, currentSourceType());
+        const shouldAutoAdjustSource = Boolean(file && detectedSourceType && detectedSourceType !== previousSourceType);
+        const nextSourceType = shouldAutoAdjustSource ? detectedSourceType : previousSourceType;
+        let detectedImportTarget = '';
+        let shouldAutoAdjustTarget = false;
+        let nextImportTarget = previousImportTarget;
+
+        if (file && detectedSourceType === 'ofx') {
+            try {
+                const fileContents = await readTextFromFile(file);
+                if (inspectionToken !== fileInspectionToken) {
+                    return;
+                }
+
+                detectedImportTarget = detectImportTargetFromOfxContents(fileContents);
+                shouldAutoAdjustTarget = Boolean(detectedImportTarget && detectedImportTarget !== previousImportTarget);
+                nextImportTarget = shouldAutoAdjustTarget ? detectedImportTarget : previousImportTarget;
+            } catch {
+                detectedImportTarget = '';
+                shouldAutoAdjustTarget = false;
+                nextImportTarget = previousImportTarget;
+            }
+        }
+
+        if (inspectionToken !== fileInspectionToken) {
+            return;
+        }
+
+        if (shouldAutoAdjustSource) {
+            syncSourceInputSelection(nextSourceType);
+        }
+
+        if (shouldAutoAdjustTarget) {
+            syncTargetInputSelection(nextImportTarget);
+        }
+
+        syncSourceTypeAvailability();
+
+        context.setState({
+            selectedImportTarget: nextImportTarget,
+            selectedAccountId: resolveActiveConfigAccountId(nextImportTarget),
+            selectedCardId: cardSelect ? parsePositiveInt(cardSelect.value) : context.state.selectedCardId,
+            selectedFile: file,
+            selectedFileDetectedSourceType: detectedSourceType,
+            selectedFileDetectedImportTarget: detectedImportTarget,
+            sourceAutoAdjustedToDetectedFile: shouldAutoAdjustSource,
+            targetAutoAdjustedToDetectedFile: shouldAutoAdjustTarget,
+            selectedSourceType: nextSourceType,
+            fileDropActive: false,
+            showOnlyPendingCategories: false,
+            previewStatus: file ? 'file_selected' : 'idle',
+            previewRows: [],
+            previewWarnings: [],
+            previewErrors: [],
+            previewCanConfirm: false,
+            jobProgressMessage: '',
+            previewSummary: {
+                fileName: file?.name || '',
+                totalRows: 0,
+                importedRows: 0,
+                duplicateRows: 0,
+                errorRows: 0,
+                categorizedRows: 0,
+                uncategorizedRows: 0,
+                userRuleSuggestedRows: 0,
+                globalRuleSuggestedRows: 0,
+                categorizationApplied: false,
+            },
+        });
+
+        if (file && shouldAutoAdjustTarget) {
+            ensureProfileConfigLoaded(resolveActiveConfigAccountId(nextImportTarget));
+        }
+    };
+
+    const renderProfileDisplay = (importTarget) => {
+        const accountId = resolveActiveConfigAccountId(importTarget);
+        const accountLabel = resolveActiveConfigAccountLabel();
+        const matchingProfile = activeProfileConfig && activeProfileConfig.contaId === accountId
+            ? activeProfileConfig
+            : null;
+
+        if (!accountId) {
+            return {
+                accountLabel,
+                sourceTypeLabel: '-',
+                mappingModeLabel: '-',
+                hasHeaderLabel: '-',
+                startRowLabel: '-',
+                delimiterLabel: '-',
+                dateFormatLabel: '-',
+                decimalLabel: '-',
+                columnMapSummary: 'Selecione uma conta para ver a configuração CSV aplicada.',
+            };
+        }
+
+        if (!matchingProfile) {
+            const loadingLabel = profileLoadState === 'loading' ? 'Carregando...' : 'Indisponível';
+
+            return {
+                accountLabel,
+                sourceTypeLabel: loadingLabel,
+                mappingModeLabel: loadingLabel,
+                hasHeaderLabel: loadingLabel,
+                startRowLabel: loadingLabel,
+                delimiterLabel: loadingLabel,
+                dateFormatLabel: loadingLabel,
+                decimalLabel: loadingLabel,
+                columnMapSummary: profileLoadError || 'Não foi possível carregar a configuração CSV desta conta.',
+            };
+        }
+
+        return {
+            accountLabel,
+            sourceTypeLabel: String(matchingProfile.sourceType || 'ofx').toUpperCase(),
+            mappingModeLabel: formatMappingModeLabel(matchingProfile.csvMappingMode),
+            hasHeaderLabel: matchingProfile.csvHasHeader ? 'Sim' : 'Não',
+            startRowLabel: String(matchingProfile.csvStartRow || (matchingProfile.csvHasHeader ? 2 : 1)),
+            delimiterLabel: formatDelimiterLabel(matchingProfile.csvDelimiter),
+            dateFormatLabel: matchingProfile.csvDateFormat || 'd/m/Y',
+            decimalLabel: matchingProfile.csvDecimalSeparator || ',',
+            columnMapSummary: buildColumnMapSummary(matchingProfile, importTarget),
+        };
+    };
+
+    const updateConfigLinks = (accountId) => {
+        const href = buildConfigUrl(accountId);
+        configLinks.forEach((link) => {
+            if (href) {
+                link.setAttribute('href', href);
+            }
+        });
+    };
+
+    const ensureProfileConfigLoaded = async (accountId = resolveActiveConfigAccountId()) => {
+        const normalizedAccountId = parsePositiveInt(accountId);
+
+        if (!normalizedAccountId) {
+            activeProfileConfig = null;
+            profileLoadState = 'idle';
+            profileLoadError = '';
+            renderState();
+            return;
+        }
+
+        if (activeProfileConfig?.contaId === normalizedAccountId && profileLoadState === 'ready') {
+            renderState();
+            return;
+        }
+
+        if (!configApiEndpoint) {
+            profileLoadState = 'error';
+            profileLoadError = 'Endpoint de configuração não disponível para carregar o perfil CSV.';
+            renderState();
+            return;
+        }
+
+        const requestToken = ++profileRequestToken;
+        profileLoadState = 'loading';
+        profileLoadError = '';
+        renderState();
+
+        try {
+            const response = await fetchApiJson(`${configApiEndpoint}?conta_id=${normalizedAccountId}`, {
+                method: 'GET',
+            });
+
+            if (requestToken !== profileRequestToken) {
+                return;
+            }
+
+            activeProfileConfig = normalizeProfileConfig(response?.data || response);
+            profileLoadState = 'ready';
+            profileLoadError = '';
+            renderState();
+        } catch (error) {
+            if (requestToken !== profileRequestToken) {
+                return;
+            }
+
+            if (activeProfileConfig?.contaId !== normalizedAccountId) {
+                activeProfileConfig = null;
+            }
+
+            profileLoadState = 'error';
+            profileLoadError = String(error?.message || 'Não foi possível carregar a configuração CSV.').trim();
+            renderState();
+        }
+    };
+
     const stopJobPolling = () => {
         if (pollingTimer) {
             clearTimeout(pollingTimer);
@@ -180,29 +1138,26 @@ if (context) {
         });
     };
 
-    const getProcessingMessage = () => 'Seu OFX está sendo importado...';
+    const getProcessingMessage = () => 'Seu arquivo está sendo importado...';
     const getCompletedMessage = () => 'Concluído.';
 
     const syncSourceTypeAvailability = () => {
-        const lockToOfx = isCardTarget();
         let hasSelectedEnabledSource = false;
         let ofxInput = null;
 
         sourceInputs.forEach((input) => {
             const sourceType = normalizeSourceType(input.value, 'ofx');
-            const shouldDisable = lockToOfx && sourceType !== 'ofx';
             const wrapper = input.closest('.imp-format-switch__item');
 
-            input.disabled = shouldDisable;
             if (wrapper) {
-                wrapper.classList.toggle('imp-format-switch__item--disabled', shouldDisable);
+                wrapper.classList.remove('imp-format-switch__item--disabled');
             }
 
             if (sourceType === 'ofx') {
                 ofxInput = input;
             }
 
-            if (!shouldDisable && input.checked) {
+            if (input.checked) {
                 hasSelectedEnabledSource = true;
             }
         });
@@ -212,7 +1167,7 @@ if (context) {
         }
 
         if (targetSourceHint) {
-            targetSourceHint.hidden = !lockToOfx;
+            targetSourceHint.hidden = !isCardTarget();
         }
     };
 
@@ -244,19 +1199,20 @@ if (context) {
         const nextTarget = normalized.detectedImportTarget === 'cartao' ? 'cartao' : 'conta';
         const nextErrors = [...normalized.errors];
         const recoveryMessage = buildMismatchRecoveryMessage(nextTarget);
+        const preservedSourceType = currentSourceType();
 
         if (!nextErrors.includes(recoveryMessage)) {
             nextErrors.push(recoveryMessage);
         }
 
         syncTargetInputSelection(nextTarget);
-        syncSourceInputSelection('ofx');
+        syncSourceInputSelection(preservedSourceType);
         syncSourceTypeAvailability();
 
         context.setState({
             selectedImportTarget: nextTarget,
-            selectedSourceType: 'ofx',
-            selectedAccountId: accountSelect ? parsePositiveInt(accountSelect.value) : context.state.selectedAccountId,
+            selectedSourceType: preservedSourceType,
+            selectedAccountId: resolveActiveConfigAccountId(nextTarget),
             selectedCardId: cardSelect ? parsePositiveInt(cardSelect.value) : context.state.selectedCardId,
             showOnlyPendingCategories: false,
             previewStatus: 'preview_error',
@@ -829,6 +1785,13 @@ if (context) {
             : allRows;
         const hasRenderableRows = filteredRows.length > 0;
         const quota = currentQuota();
+        const templateMeta = buildTemplateMeta(state.selectedImportTarget);
+        const profileDisplay = renderProfileDisplay(state.selectedImportTarget);
+        const activeConfigAccountId = resolveActiveConfigAccountId(state.selectedImportTarget);
+        const pathGuide = buildPathGuide(state);
+        const contextGuide = buildContextGuide(state, activeConfigAccountId, profileDisplay);
+        const readinessGuide = buildReadinessGuide(state, quota);
+        const fileSelectionNote = buildFileNote(state);
 
         if (accountField) {
             accountField.hidden = isCardTarget();
@@ -837,6 +1800,121 @@ if (context) {
             cardField.hidden = !isCardTarget();
         }
         syncSourceTypeAvailability();
+        updateConfigLinks(activeConfigAccountId);
+
+        if (advancedDescription) {
+            advancedDescription.textContent = buildAdvancedDescription(state.selectedImportTarget, state.selectedSourceType);
+        }
+
+        if (advancedModeBadge) {
+            advancedModeBadge.dataset.status = state.selectedSourceType === 'csv' ? 'preview_ready' : 'idle';
+            advancedModeBadge.textContent = state.selectedSourceType === 'csv' ? 'CSV ativo' : 'OFX automático';
+        }
+
+        if (advancedTemplateChip) {
+            advancedTemplateChip.textContent = templateMeta.chip;
+        }
+
+        if (advancedTemplateTitle) {
+            advancedTemplateTitle.textContent = templateMeta.title;
+        }
+
+        if (advancedTemplateCopy) {
+            advancedTemplateCopy.textContent = templateMeta.copy;
+        }
+
+        if (advancedLinkedAccountNote) {
+            advancedLinkedAccountNote.textContent = activeConfigAccountId
+                ? templateMeta.contextNote
+                : 'Selecione uma conta para carregar o perfil CSV e abrir os ajustes avançados no contexto correto.';
+        }
+
+        if (advancedTemplateAutoLink) {
+            advancedTemplateAutoLink.href = templateMeta.autoHref;
+            advancedTemplateAutoLink.textContent = templateMeta.autoLabel;
+        }
+
+        if (advancedTemplateManualLink) {
+            advancedTemplateManualLink.href = templateMeta.manualHref;
+            advancedTemplateManualLink.textContent = templateMeta.manualLabel;
+        }
+
+        if (advancedSummaryContext) {
+            advancedSummaryContext.textContent = templateMeta.summaryContext;
+        }
+
+        if (advancedAccountName) {
+            advancedAccountName.textContent = profileDisplay.accountLabel;
+        }
+
+        if (advancedSourceType) {
+            advancedSourceType.textContent = profileDisplay.sourceTypeLabel;
+        }
+
+        if (advancedMappingMode) {
+            advancedMappingMode.textContent = profileDisplay.mappingModeLabel;
+        }
+
+        if (advancedHasHeader) {
+            advancedHasHeader.textContent = profileDisplay.hasHeaderLabel;
+        }
+
+        if (advancedStartRow) {
+            advancedStartRow.textContent = profileDisplay.startRowLabel;
+        }
+
+        if (advancedDelimiter) {
+            advancedDelimiter.textContent = profileDisplay.delimiterLabel;
+        }
+
+        if (advancedDateFormat) {
+            advancedDateFormat.textContent = profileDisplay.dateFormatLabel;
+        }
+
+        if (advancedDecimal) {
+            advancedDecimal.textContent = profileDisplay.decimalLabel;
+        }
+
+        if (advancedColumnMap) {
+            advancedColumnMap.textContent = profileDisplay.columnMapSummary;
+        }
+
+        if (profileBadge) {
+            profileBadge.textContent = templateMeta.badge;
+            profileBadge.dataset.status = !activeConfigAccountId
+                ? 'idle'
+                : (profileDisplay.sourceTypeLabel === 'Carregando...' ? 'file_selected' : 'preview_ready');
+        }
+
+        if (profileAccountName) {
+            profileAccountName.textContent = profileDisplay.accountLabel;
+        }
+
+        if (profileSourceType) {
+            profileSourceType.textContent = profileDisplay.sourceTypeLabel;
+        }
+
+        if (profileCsvMode) {
+            profileCsvMode.textContent = profileDisplay.mappingModeLabel;
+        }
+
+        if (profileCsvDelimiter) {
+            profileCsvDelimiter.textContent = profileDisplay.delimiterLabel;
+        }
+
+        if (profileCsvDateFormat) {
+            profileCsvDateFormat.textContent = profileDisplay.dateFormatLabel;
+        }
+
+        if (profileCsvDecimal) {
+            profileCsvDecimal.textContent = profileDisplay.decimalLabel;
+        }
+
+        if (profileContextNote) {
+            profileContextNote.textContent = !activeConfigAccountId
+                ? 'Selecione uma conta para revisar o perfil CSV usado neste fluxo.'
+                : (profileLoadError || templateMeta.contextNote);
+        }
 
         if (previewBadge) {
             previewBadge.dataset.status = state.previewStatus;
@@ -846,6 +1924,7 @@ if (context) {
         if (fileDrop) {
             fileDrop.dataset.hasFile = state.selectedFile ? 'true' : 'false';
             fileDrop.dataset.previewStatus = state.previewStatus;
+            fileDrop.dataset.dragActive = state.fileDropActive ? 'true' : 'false';
         }
 
         if (selectedFileLabel) {
@@ -853,6 +1932,22 @@ if (context) {
                 ? `Arquivo selecionado: ${state.selectedFile.name}`
                 : 'Nenhum arquivo selecionado.';
         }
+
+        if (fileNote) {
+            if (fileSelectionNote) {
+                fileNote.hidden = false;
+                fileNote.dataset.state = fileSelectionNote.state;
+                fileNote.textContent = fileSelectionNote.text;
+            } else {
+                fileNote.hidden = true;
+                fileNote.textContent = '';
+                fileNote.dataset.state = 'info';
+            }
+        }
+
+        applyGuideCard(guidePathCard, guidePathTitle, guidePathCopy, pathGuide);
+        applyGuideCard(guideContextCard, guideContextTitle, guideContextCopy, contextGuide);
+        applyGuideCard(guideReadinessCard, guideReadinessTitle, guideReadinessCopy, readinessGuide);
 
         if (previewTarget) {
             previewTarget.textContent = currentTargetLabel();
@@ -997,7 +2092,7 @@ if (context) {
 
     const preparePreviewPayload = ({ categorizePreview = false } = {}) => {
         const payload = {
-            source_type: isCardTarget() ? 'ofx' : context.state.selectedSourceType,
+            source_type: context.state.selectedSourceType,
             import_target: context.state.selectedImportTarget,
             filename: context.state.selectedFile?.name || '',
             categorize_preview: categorizePreview ? '1' : '0',
@@ -1440,14 +2535,17 @@ if (context) {
 
     targetInputs.forEach((input) => {
         input.addEventListener('change', () => {
+            const nextTarget = currentImportTarget();
             syncSourceTypeAvailability();
             context.setState({
-                selectedImportTarget: currentImportTarget(),
+                selectedImportTarget: nextTarget,
                 selectedSourceType: currentSourceType(),
-                selectedAccountId: accountSelect ? parsePositiveInt(accountSelect.value) : null,
+                selectedAccountId: resolveActiveConfigAccountId(nextTarget),
                 selectedCardId: cardSelect ? parsePositiveInt(cardSelect.value) : null,
+                targetAutoAdjustedToDetectedFile: false,
             });
             resetPreviewForSelectionChange();
+            ensureProfileConfigLoaded(resolveActiveConfigAccountId(nextTarget));
         });
     });
 
@@ -1455,6 +2553,7 @@ if (context) {
         input.addEventListener('change', () => {
             context.setState({
                 selectedSourceType: currentSourceType(),
+                sourceAutoAdjustedToDetectedFile: false,
             });
             resetPreviewForSelectionChange();
         });
@@ -1462,55 +2561,79 @@ if (context) {
 
     if (accountSelect) {
         context.setState({
-            selectedAccountId: parsePositiveInt(accountSelect.value),
+            selectedAccountId: resolveActiveConfigAccountId('conta'),
         });
 
         accountSelect.addEventListener('change', () => {
             context.setState({
-                selectedAccountId: parsePositiveInt(accountSelect.value),
+                selectedAccountId: resolveActiveConfigAccountId('conta'),
             });
             resetPreviewForSelectionChange();
+            ensureProfileConfigLoaded(resolveActiveConfigAccountId('conta'));
         });
     }
 
     if (cardSelect) {
         context.setState({
             selectedCardId: parsePositiveInt(cardSelect.value),
+            selectedAccountId: resolveActiveConfigAccountId('cartao'),
         });
 
         cardSelect.addEventListener('change', () => {
             context.setState({
                 selectedCardId: parsePositiveInt(cardSelect.value),
+                selectedAccountId: resolveActiveConfigAccountId('cartao'),
             });
             resetPreviewForSelectionChange();
+            ensureProfileConfigLoaded(resolveActiveConfigAccountId('cartao'));
         });
     }
 
     if (fileInput) {
-        fileInput.addEventListener('change', () => {
+        fileInput.addEventListener('change', async () => {
             const file = fileInput.files && fileInput.files.length > 0 ? fileInput.files[0] : null;
-            context.setState({
-                selectedFile: file,
-                showOnlyPendingCategories: false,
-                previewStatus: file ? 'file_selected' : 'idle',
-                previewRows: [],
-                previewWarnings: [],
-                previewErrors: [],
-                previewCanConfirm: false,
-                jobProgressMessage: '',
-                previewSummary: {
-                    fileName: file?.name || '',
-                    totalRows: 0,
-                    importedRows: 0,
-                    duplicateRows: 0,
-                    errorRows: 0,
-                    categorizedRows: 0,
-                    uncategorizedRows: 0,
-                    userRuleSuggestedRows: 0,
-                    globalRuleSuggestedRows: 0,
-                    categorizationApplied: false,
-                },
-            });
+            await applySelectedFile(file);
+        });
+    }
+
+    if (fileDrop) {
+        const preventFileDropDefault = (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+        };
+
+        fileDrop.addEventListener('dragenter', (event) => {
+            preventFileDropDefault(event);
+            fileDropDragDepth += 1;
+            if (!context.state.fileDropActive) {
+                context.setState({ fileDropActive: true });
+            }
+        });
+
+        fileDrop.addEventListener('dragover', (event) => {
+            preventFileDropDefault(event);
+            if (!context.state.fileDropActive) {
+                context.setState({ fileDropActive: true });
+            }
+        });
+
+        fileDrop.addEventListener('dragleave', (event) => {
+            preventFileDropDefault(event);
+            fileDropDragDepth = Math.max(0, fileDropDragDepth - 1);
+            if (fileDropDragDepth === 0 && context.state.fileDropActive) {
+                context.setState({ fileDropActive: false });
+            }
+        });
+
+        fileDrop.addEventListener('drop', async (event) => {
+            preventFileDropDefault(event);
+            fileDropDragDepth = 0;
+
+            const files = event.dataTransfer?.files;
+            const file = files && files.length > 0 ? files[0] : null;
+
+            syncFileInputFiles(files);
+            await applySelectedFile(file);
         });
     }
 
@@ -1663,8 +2786,9 @@ if (context) {
     context.setState({
         selectedImportTarget: currentImportTarget(),
         selectedSourceType: currentSourceType(),
-        selectedAccountId: accountSelect ? parsePositiveInt(accountSelect.value) : context.state.selectedAccountId,
+        selectedAccountId: resolveActiveConfigAccountId(currentImportTarget()),
         selectedCardId: cardSelect ? parsePositiveInt(cardSelect.value) : context.state.selectedCardId,
         previewStatus: context.state.selectedFile ? 'file_selected' : 'idle',
     });
+    ensureProfileConfigLoaded(resolveActiveConfigAccountId(currentImportTarget()));
 }

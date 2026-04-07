@@ -30,7 +30,7 @@ class PremiumControllerTest extends TestCase
         $controller = new PremiumController();
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->checkout();
     }
@@ -40,7 +40,7 @@ class PremiumControllerTest extends TestCase
         $controller = new PremiumController();
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->getPendingPayment();
     }

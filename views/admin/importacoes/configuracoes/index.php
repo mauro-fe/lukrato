@@ -35,6 +35,8 @@ $csvColumnObservacao = strtoupper(trim((string) ($csvColumnMap['observacao'] ?? 
 $csvColumnIdExterno = strtoupper(trim((string) ($csvColumnMap['id_externo'] ?? 'H')));
 $csvTemplateAutoEndpoint = trim((string) ($csvTemplateAutoEndpoint ?? ''));
 $csvTemplateManualEndpoint = trim((string) ($csvTemplateManualEndpoint ?? ''));
+$csvTemplateCardAutoEndpoint = trim((string) ($csvTemplateCardAutoEndpoint ?? ''));
+$csvTemplateCardManualEndpoint = trim((string) ($csvTemplateCardManualEndpoint ?? ''));
 $importacoesUrl = BASE_URL . 'importacoes';
 if ($selectedAccountId > 0) {
     $importacoesUrl .= '?conta_id=' . $selectedAccountId;
@@ -62,7 +64,9 @@ $summaryCsvDelimiter = $csvDelimiter !== '' ? $csvDelimiter : ';';
     data-imp-config-load-endpoint="<?= escape($configLoadEndpoint) ?>"
     data-imp-config-save-endpoint="<?= escape($configSaveEndpoint) ?>"
     data-imp-csv-template-auto-endpoint="<?= escape($csvTemplateAutoEndpoint) ?>"
-    data-imp-csv-template-manual-endpoint="<?= escape($csvTemplateManualEndpoint) ?>">
+    data-imp-csv-template-manual-endpoint="<?= escape($csvTemplateManualEndpoint) ?>"
+    data-imp-csv-template-card-auto-endpoint="<?= escape($csvTemplateCardAutoEndpoint) ?>"
+    data-imp-csv-template-card-manual-endpoint="<?= escape($csvTemplateCardManualEndpoint) ?>">
     <header
         class="imp-page-hero imp-page-hero--compact imp-surface surface-card surface-card--interactive surface-card--clip">
         <div class="imp-page-hero__content">
@@ -256,7 +260,8 @@ $summaryCsvDelimiter = $csvDelimiter !== '' ? $csvDelimiter : ';';
 
                             <p class="imp-muted imp-config-csv-help">
                                 CSV usa apenas coluna/letra, linha inicial, delimitador e cabeçalho. CSV não tem
-                                aba/planilha.
+                                aba/planilha. Em cartão/fatura, a coluna tipo pode ficar vazia quando o sinal do valor
+                                já diferenciar compra e estorno.
                             </p>
 
                             <div class="imp-manual-map" data-imp-csv-manual-fields
@@ -264,13 +269,14 @@ $summaryCsvDelimiter = $csvDelimiter !== '' ? $csvDelimiter : ';';
                                 <header class="imp-card-head">
                                     <h4 class="imp-card-title">Mapeamento manual por coluna</h4>
                                     <p class="imp-card-text">
-                                        Obrigatórios: tipo, data, descrição e valor. Demais campos são opcionais.
+                                        Obrigatórios: data, descrição e valor. Tipo continua obrigatório para conta e
+                                        opcional em cartão/fatura quando a direção vier pelo valor.
                                     </p>
                                 </header>
 
                                 <div class="imp-field-grid imp-field-grid--mapping">
                                     <div class="imp-field">
-                                        <label class="imp-field__label" for="imp-csv-column-tipo">Tipo (obrigatório)</label>
+                                        <label class="imp-field__label" for="imp-csv-column-tipo">Tipo (opcional para cartão/fatura)</label>
                                         <input id="imp-csv-column-tipo" class="imp-field__control" type="text"
                                             name="csv_column_tipo" maxlength="8" value="<?= escape($csvColumnTipo) ?>"
                                             data-imp-csv-column-tipo>
@@ -327,6 +333,9 @@ $summaryCsvDelimiter = $csvDelimiter !== '' ? $csvDelimiter : ';';
                             </div>
 
                             <div class="imp-template-actions">
+                                <p class="imp-card-text">
+                                    Modelos de conta:
+                                </p>
                                 <a class="btn btn-ghost" href="<?= escape($csvTemplateAutoEndpoint) ?>"
                                     data-imp-csv-template-auto data-no-transition="true" download>
                                     Baixar modelo CSV automático
@@ -334,6 +343,17 @@ $summaryCsvDelimiter = $csvDelimiter !== '' ? $csvDelimiter : ';';
                                 <a class="btn btn-ghost" href="<?= escape($csvTemplateManualEndpoint) ?>"
                                     data-imp-csv-template-manual data-no-transition="true" download>
                                     Baixar modelo CSV manual
+                                </a>
+                                <p class="imp-card-text">
+                                    Modelos de cartão/fatura:
+                                </p>
+                                <a class="btn btn-ghost" href="<?= escape($csvTemplateCardAutoEndpoint) ?>"
+                                    data-imp-csv-template-card-auto data-no-transition="true" download>
+                                    Baixar modelo fatura automático
+                                </a>
+                                <a class="btn btn-ghost" href="<?= escape($csvTemplateCardManualEndpoint) ?>"
+                                    data-imp-csv-template-card-manual data-no-transition="true" download>
+                                    Baixar modelo fatura manual
                                 </a>
                             </div>
                         </section>

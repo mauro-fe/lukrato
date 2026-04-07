@@ -40,19 +40,61 @@ class OrcamentosController extends ApiController
     ) {
         parent::__construct();
 
-        $orcamentoService ??= new OrcamentoService();
-        $demoPreviewService ??= new DemoPreviewService();
+        $resolveOrcamentoService = function () use (&$orcamentoService): OrcamentoService {
+            $orcamentoService = $this->resolveOrCreate(
+                $orcamentoService,
+                OrcamentoService::class,
+                static fn(): OrcamentoService => new OrcamentoService()
+            );
 
-        $this->saveOrcamentoUseCase = $saveOrcamentoUseCase ?? new SaveOrcamentoUseCase($orcamentoService);
-        $this->bulkSaveOrcamentosUseCase = $bulkSaveOrcamentosUseCase ?? new BulkSaveOrcamentosUseCase($orcamentoService);
-        $this->deleteOrcamentoUseCase = $deleteOrcamentoUseCase ?? new DeleteOrcamentoUseCase($orcamentoService);
-        $this->getOrcamentoSugestoesUseCase = $getOrcamentoSugestoesUseCase
-            ?? new GetOrcamentoSugestoesUseCase($orcamentoService);
-        $this->applyOrcamentoSugestoesUseCase = $applyOrcamentoSugestoesUseCase
-            ?? new ApplyOrcamentoSugestoesUseCase($orcamentoService);
-        $this->copyOrcamentosMesUseCase = $copyOrcamentosMesUseCase ?? new CopyOrcamentosMesUseCase($orcamentoService);
-        $this->getOrcamentosListUseCase = $getOrcamentosListUseCase
-            ?? new GetOrcamentosListUseCase($orcamentoService, $demoPreviewService);
+            return $orcamentoService;
+        };
+
+        $resolveDemoPreviewService = function () use (&$demoPreviewService): DemoPreviewService {
+            $demoPreviewService = $this->resolveOrCreate(
+                $demoPreviewService,
+                DemoPreviewService::class,
+                static fn(): DemoPreviewService => new DemoPreviewService()
+            );
+
+            return $demoPreviewService;
+        };
+
+        $this->saveOrcamentoUseCase = $this->resolveOrCreate(
+            $saveOrcamentoUseCase,
+            SaveOrcamentoUseCase::class,
+            fn(): SaveOrcamentoUseCase => new SaveOrcamentoUseCase($resolveOrcamentoService())
+        );
+        $this->bulkSaveOrcamentosUseCase = $this->resolveOrCreate(
+            $bulkSaveOrcamentosUseCase,
+            BulkSaveOrcamentosUseCase::class,
+            fn(): BulkSaveOrcamentosUseCase => new BulkSaveOrcamentosUseCase($resolveOrcamentoService())
+        );
+        $this->deleteOrcamentoUseCase = $this->resolveOrCreate(
+            $deleteOrcamentoUseCase,
+            DeleteOrcamentoUseCase::class,
+            fn(): DeleteOrcamentoUseCase => new DeleteOrcamentoUseCase($resolveOrcamentoService())
+        );
+        $this->getOrcamentoSugestoesUseCase = $this->resolveOrCreate(
+            $getOrcamentoSugestoesUseCase,
+            GetOrcamentoSugestoesUseCase::class,
+            fn(): GetOrcamentoSugestoesUseCase => new GetOrcamentoSugestoesUseCase($resolveOrcamentoService())
+        );
+        $this->applyOrcamentoSugestoesUseCase = $this->resolveOrCreate(
+            $applyOrcamentoSugestoesUseCase,
+            ApplyOrcamentoSugestoesUseCase::class,
+            fn(): ApplyOrcamentoSugestoesUseCase => new ApplyOrcamentoSugestoesUseCase($resolveOrcamentoService())
+        );
+        $this->copyOrcamentosMesUseCase = $this->resolveOrCreate(
+            $copyOrcamentosMesUseCase,
+            CopyOrcamentosMesUseCase::class,
+            fn(): CopyOrcamentosMesUseCase => new CopyOrcamentosMesUseCase($resolveOrcamentoService())
+        );
+        $this->getOrcamentosListUseCase = $this->resolveOrCreate(
+            $getOrcamentosListUseCase,
+            GetOrcamentosListUseCase::class,
+            fn(): GetOrcamentosListUseCase => new GetOrcamentosListUseCase($resolveOrcamentoService(), $resolveDemoPreviewService())
+        );
     }
 
     public function index(): Response

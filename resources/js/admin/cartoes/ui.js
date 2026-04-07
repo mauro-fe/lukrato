@@ -888,7 +888,7 @@ export const CartoesUI = {
         }
         const invoiceLabel = cartao?.temFaturaPendente ? 'Pagar fatura' : 'Ver fatura';
         const invoiceIcon = cartao?.temFaturaPendente ? 'wallet' : 'file-text';
-        const importOfxUrl = `${Utils.getBaseUrl()}importacoes?import_target=cartao&source_type=ofx&cartao_id=${id}`;
+        const importOfxUrl = `${Utils.getBaseUrl()}importacoes?import_target=cartao&cartao_id=${id}`;
         menuEl.style.setProperty('--card-accent', getCardAccent(cartao));
         menuEl.innerHTML = `
             <button type="button" class="card-context-item" data-card-menu-action="invoice">
@@ -897,7 +897,7 @@ export const CartoesUI = {
             </button>
             <button type="button" class="card-context-item" data-card-menu-action="import-ofx">
                 <i data-lucide="upload"></i>
-                <span>Importar OFX</span>
+                <span>Importar fatura</span>
             </button>
             <button type="button" class="card-context-item" data-card-menu-action="edit">
                 <i data-lucide="pencil"></i>

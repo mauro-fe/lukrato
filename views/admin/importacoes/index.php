@@ -22,16 +22,57 @@ $currentPlan = strtolower(trim((string) ($planLimits['plan'] ?? 'free')));
 $upgradeUrl = trim((string) ($planLimits['upgrade_url'] ?? '/assinatura'));
 $previewEndpoint = trim((string) ($previewEndpoint ?? ''));
 $confirmEndpoint = trim((string) ($confirmEndpoint ?? ''));
+$configEndpoint = trim((string) ($configEndpoint ?? ''));
+$configPageBaseUrl = trim((string) ($configPageBaseUrl ?? (BASE_URL . 'importacoes/configuracoes')));
 $jobStatusEndpointBase = trim((string) ($jobStatusEndpointBase ?? ''));
 $confirmAsyncDefault = (bool) ($confirmAsyncDefault ?? false);
+$csvTemplateAutoEndpoint = trim((string) ($csvTemplateAutoEndpoint ?? (BASE_URL . 'api/importacoes/modelos/csv?mode=auto&target=conta')));
+$csvTemplateManualEndpoint = trim((string) ($csvTemplateManualEndpoint ?? (BASE_URL . 'api/importacoes/modelos/csv?mode=manual&target=conta')));
+$csvTemplateCardAutoEndpoint = trim((string) ($csvTemplateCardAutoEndpoint ?? (BASE_URL . 'api/importacoes/modelos/csv?mode=auto&target=cartao')));
+$csvTemplateCardManualEndpoint = trim((string) ($csvTemplateCardManualEndpoint ?? (BASE_URL . 'api/importacoes/modelos/csv?mode=manual&target=cartao')));
 $latestHistoryItems = is_array($latestHistoryItems ?? null) ? $latestHistoryItems : [];
 $initialSourceType = strtolower(trim((string) ($profileConfig['source_type'] ?? 'ofx')));
 if (!in_array($initialSourceType, ['ofx', 'csv'], true)) {
     $initialSourceType = 'ofx';
 }
-if ($importTarget === 'cartao') {
-    $initialSourceType = 'ofx';
+
+$profileOptions = is_array($profileConfig['options'] ?? null) ? $profileConfig['options'] : [];
+$csvMappingMode = strtolower(trim((string) ($profileOptions['csv_mapping_mode'] ?? 'auto')));
+$csvMappingModeLabel = $csvMappingMode === 'manual' ? 'Manual' : 'Automático';
+$csvHasHeaderValue = $profileOptions['csv_has_header'] ?? true;
+if (is_bool($csvHasHeaderValue)) {
+    $csvHasHeader = $csvHasHeaderValue;
+} else {
+    $csvHasHeaderRaw = strtolower(trim((string) $csvHasHeaderValue));
+    $csvHasHeader = !in_array($csvHasHeaderRaw, ['0', 'false', 'nao', 'não', 'off'], true);
 }
+$csvHasHeaderLabel = $csvHasHeader ? 'Sim' : 'Não';
+$csvStartRow = (int) ($profileOptions['csv_start_row'] ?? ($csvHasHeader ? 2 : 1));
+if ($csvStartRow <= 0) {
+    $csvStartRow = $csvHasHeader ? 2 : 1;
+}
+$csvDelimiterValue = (string) ($profileOptions['csv_delimiter'] ?? ';');
+$csvDelimiterLabel = $csvDelimiterValue === "\t" ? 'TAB' : ($csvDelimiterValue !== '' ? $csvDelimiterValue : ';');
+$csvDateFormatLabel = trim((string) ($profileOptions['csv_date_format'] ?? 'd/m/Y')) ?: 'd/m/Y';
+$csvDecimalLabel = trim((string) ($profileOptions['csv_decimal_separator'] ?? ',')) === '.' ? '.' : ',';
+$csvColumnMap = is_array($profileOptions['csv_column_map'] ?? null) ? $profileOptions['csv_column_map'] : [];
+$csvColumnSummaryLabels = $importTarget === 'cartao'
+    ? ['data' => 'Data', 'descricao' => 'Descrição', 'valor' => 'Valor', 'observacao' => 'Observação', 'id_externo' => 'ID externo']
+    : ['tipo' => 'Tipo', 'data' => 'Data', 'descricao' => 'Descrição', 'valor' => 'Valor', 'categoria' => 'Categoria', 'subcategoria' => 'Subcategoria'];
+$csvColumnSummaryParts = [];
+foreach ($csvColumnSummaryLabels as $field => $label) {
+    $columnReference = strtoupper(trim((string) ($csvColumnMap[$field] ?? '')));
+    if ($columnReference === '') {
+        continue;
+    }
+
+    $csvColumnSummaryParts[] = $label . ': ' . $columnReference;
+}
+$csvColumnMapSummary = $csvColumnSummaryParts !== [] ? implode(' | ', $csvColumnSummaryParts) : 'Padrão Lukrato';
+
+$profileConfigJson = json_encode($profileConfig, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+$profileConfigJson = is_string($profileConfigJson) ? $profileConfigJson : 'null';
+$profileConfigEncoded = base64_encode($profileConfigJson);
 
 $activeAccount = null;
 foreach ($accounts as $account) {
@@ -49,7 +90,7 @@ foreach ($cards as $card) {
     }
 }
 
-$configUrl = BASE_URL . 'importacoes/configuracoes';
+$configUrl = $configPageBaseUrl !== '' ? $configPageBaseUrl : (BASE_URL . 'importacoes/configuracoes');
 if ($selectedAccountId > 0) {
     $configUrl .= '?conta_id=' . $selectedAccountId;
 }
@@ -72,7 +113,7 @@ $historyTargetLabelMap = [
 $importLimitLabelMap = [
     'import_conta_ofx' => 'OFX de conta',
     'import_conta_csv' => 'CSV de lançamentos',
-    'import_cartao_ofx' => 'OFX de fatura/cartão',
+    'import_cartao_ofx' => 'Fatura/cartão (OFX ou CSV)',
 ];
 
 
@@ -88,15 +129,46 @@ foreach ($latestHistoryItems as $historyItem) {
 $activeContextLabel = $importTarget === 'cartao'
     ? (string) ($activeCard['nome'] ?? 'Cartão não selecionado')
     : (string) ($activeAccount['nome'] ?? 'Conta não selecionada');
+$activeAccountLabel = (string) ($activeAccount['nome'] ?? ($selectedAccountId > 0 ? 'Conta #' . $selectedAccountId : 'Conta não selecionada'));
+$advancedAutoTemplateEndpoint = $importTarget === 'cartao' ? $csvTemplateCardAutoEndpoint : $csvTemplateAutoEndpoint;
+$advancedManualTemplateEndpoint = $importTarget === 'cartao' ? $csvTemplateCardManualEndpoint : $csvTemplateManualEndpoint;
+$advancedBadgeLabel = $initialSourceType === 'csv' ? 'CSV ativo' : 'OFX automático';
+$advancedDescription = $initialSourceType === 'csv'
+    ? ($importTarget === 'cartao'
+        ? 'Se a fatura vier em CSV, basta manter data, descrição e valor legíveis. Sem coluna de tipo, valor positivo vira despesa e negativo vira estorno; abra o avançado só se cabeçalho, delimitador ou data fugirem do padrão.'
+        : 'Para CSV de conta no padrão Lukrato, use tipo;data;descricao;valor com ;, datas em dd/mm/yyyy, valores com vírgula e remova linhas vazias ou incompletas no fim. Abra o avançado só se o arquivo fugir disso.')
+    : ($importTarget === 'cartao'
+        ? 'OFX de fatura entra automático. Compras parceladas podem vir no MEMO, como "Parcela 3/6", sem exigir mapeamento manual.'
+        : 'OFX bancário entra automático, mesmo quando o banco marca tudo como TRNTYPE genérico. O Lukrato usa data, valor e histórico do extrato.');
+$advancedTemplateTitle = $importTarget === 'cartao'
+    ? 'Modelo recomendado para CSV de cartão/fatura'
+    : 'Modelo recomendado para CSV de conta';
+$advancedTemplateCopy = $importTarget === 'cartao'
+    ? 'O modelo automático cobre data, descrição e valor. Use o manual se a operadora exportar observação, ID externo ou colunas extras fora do padrão esperado.'
+    : 'O modelo rápido segue o padrão tipo;data;descricao;valor com ;, dd/mm/yyyy e valores como 149,90. O manual adiciona categoria, subcategoria, observação e ID externo.';
+$advancedContextNote = $importTarget === 'cartao'
+    ? 'A configuração CSV usa a conta vinculada ao cartão selecionado.'
+    : 'A configuração CSV usa a conta selecionada neste fluxo.';
+$profileCardBadgeLabel = $importTarget === 'cartao' ? 'Conta vinculada' : 'Conta ativa';
+$guidePathTitle = $initialSourceType === 'csv'
+    ? ($importTarget === 'cartao' ? 'CSV de fatura guiado' : 'CSV de conta no padrão Lukrato')
+    : ($importTarget === 'cartao' ? 'OFX de fatura do cartão' : 'OFX de extrato bancário');
 ?>
 
 <section class="imp-page" data-importacoes-page="index" data-lk-help-page="importacoes"
     data-imp-preview-endpoint="<?= escape($previewEndpoint) ?>"
+    data-imp-config-endpoint="<?= escape($configEndpoint) ?>"
+    data-imp-config-page-base-url="<?= escape($configPageBaseUrl) ?>"
     data-imp-confirm-endpoint="<?= escape($confirmEndpoint) ?>" data-imp-active-account-id="<?= $selectedAccountId ?>"
     data-imp-active-card-id="<?= $selectedCardId ?>" data-imp-import-target="<?= escape($importTarget) ?>"
     data-imp-plan="<?= escape($currentPlan) ?>" data-imp-upgrade-url="<?= escape($upgradeUrl) ?>"
     data-imp-import-limits="<?= escape($importLimitsEncoded) ?>"
     data-imp-job-status-endpoint-base="<?= escape($jobStatusEndpointBase) ?>"
+    data-imp-profile-config="<?= escape($profileConfigEncoded) ?>"
+    data-imp-csv-template-auto-endpoint="<?= escape($csvTemplateAutoEndpoint) ?>"
+    data-imp-csv-template-manual-endpoint="<?= escape($csvTemplateManualEndpoint) ?>"
+    data-imp-csv-template-card-auto-endpoint="<?= escape($csvTemplateCardAutoEndpoint) ?>"
+    data-imp-csv-template-card-manual-endpoint="<?= escape($csvTemplateCardManualEndpoint) ?>"
     data-imp-categories-endpoint="<?= escape(BASE_URL . 'api/categorias') ?>"
     data-imp-subcategories-endpoint-base="<?= escape(BASE_URL . 'api/categorias') ?>"
     data-imp-confirm-async-default="<?= $confirmAsyncDefault ? '1' : '0' ?>">
@@ -107,7 +179,7 @@ $activeContextLabel = $importTarget === 'cartao'
         <div class="imp-page-hero__content">
             <p class="imp-page-hero__eyebrow">Importações</p>
             <h1 class="imp-page-hero__title">
-                <?= $importTarget === 'cartao' ? 'Importar OFX de cartão/fatura' : 'Importar OFX e CSV de conta' ?>
+                <?= $importTarget === 'cartao' ? 'Importar OFX e CSV de cartão/fatura' : 'Importar OFX e CSV de conta' ?>
             </h1>
             <p class="imp-page-hero__lead">
                 Fluxo único de upload, preview e confirmação real no módulo de Importações.
@@ -136,7 +208,7 @@ $activeContextLabel = $importTarget === 'cartao'
                 </div>
             </dl>
             <div class="imp-page-hero__actions">
-                <a class="btn btn-secondary" href="<?= escape($configUrl) ?>">Configurar conta</a>
+                <a class="btn btn-secondary" href="<?= escape($configUrl) ?>" data-imp-config-link>Ajustes avançados CSV</a>
                 <a class="btn btn-ghost" href="<?= BASE_URL ?>importacoes/historico">Histórico</a>
             </div>
         </aside>
@@ -151,7 +223,7 @@ $activeContextLabel = $importTarget === 'cartao'
                         <h2 class="imp-card-title">Alvo, formato e arquivo</h2>
                         <p class="imp-card-text">
                             Selecione o alvo da importação, revise o arquivo e monte o preview antes da confirmação.
-                            OFX bancário entra em Conta; OFX de fatura entra em Cartão/fatura.
+                            OFX e CSV bancários entram em Conta; OFX e CSV de fatura entram em Cartão/fatura.
                         </p>
                     </div>
                     <span class="imp-status-badge" data-status="file_selected">Etapa 1</span>
@@ -206,7 +278,7 @@ $activeContextLabel = $importTarget === 'cartao'
                             <label class="imp-field__label" for="imp-card-select">Cartão vinculado</label>
                             <?php if ($cards === []) : ?>
                                 <p class="imp-inline-warning" data-imp-card-warning>
-                                    Nenhum cartão ativo encontrado. Cadastre ou restaure um cartão para importar fatura OFX.
+                                    Nenhum cartão ativo encontrado. Cadastre ou restaure um cartão para importar a fatura.
                                 </p>
                                 <a class="imp-link" href="<?= BASE_URL ?>cartoes">Abrir cartões</a>
                             <?php else : ?>
@@ -214,7 +286,8 @@ $activeContextLabel = $importTarget === 'cartao'
                                     data-imp-card-select-main>
                                     <?php foreach ($cards as $card) : ?>
                                         <?php $cardId = (int) ($card['id'] ?? 0); ?>
-                                        <option value="<?= $cardId ?>" <?= $cardId === $selectedCardId ? 'selected' : '' ?>>
+                                        <option value="<?= $cardId ?>" data-linked-account-id="<?= (int) ($card['conta_id'] ?? 0) ?>"
+                                            <?= $cardId === $selectedCardId ? 'selected' : '' ?>>
                                             <?= escape((string) ($card['nome'] ?? 'Cartão sem nome')) ?>
                                         </option>
                                     <?php endforeach; ?>
@@ -228,14 +301,10 @@ $activeContextLabel = $importTarget === 'cartao'
                                 <?php
                                 $formatValue = strtolower((string) $format);
                                 $radioId = 'imp-format-' . $formatValue;
-                                $isDisabledForCard = $importTarget === 'cartao' && $formatValue !== 'ofx';
                                 ?>
-                                <label
-                                    class="imp-format-switch__item<?= $isDisabledForCard ? ' imp-format-switch__item--disabled' : '' ?>"
-                                    for="<?= escape($radioId) ?>">
+                                <label class="imp-format-switch__item" for="<?= escape($radioId) ?>">
                                     <input id="<?= escape($radioId) ?>" type="radio" name="source_type"
                                         value="<?= escape($formatValue) ?>" data-imp-source-type
-                                        <?= $isDisabledForCard ? 'disabled' : '' ?>
                                         <?= $initialSourceType === $formatValue ? 'checked' : '' ?>>
                                     <span>
                                         <i data-lucide="<?= $formatValue === 'csv' ? 'sheet' : 'file-code-2' ?>"
@@ -252,9 +321,137 @@ $activeContextLabel = $importTarget === 'cartao'
                         </p>
                         <p class="imp-muted imp-target-source-hint" data-imp-target-source-hint
                             <?= $importTarget === 'cartao' ? '' : 'hidden' ?>>
-                            No fluxo de cartão/fatura, apenas OFX está disponível nesta etapa.
+                            No fluxo de cartão/fatura, OFX e CSV são aceitos. No OFX, compras parceladas podem vir
+                            na descrição; no CSV sem coluna de tipo, valores positivos entram como despesa e
+                            negativos como estorno.
                         </p>
                     </div>
+
+                    <section class="imp-guide-strip" aria-label="Guia rápido do fluxo">
+                        <article class="imp-guide-card" data-state="info" data-imp-guide-path-card>
+                            <span class="imp-guide-card__eyebrow">Caminho recomendado</span>
+                            <strong class="imp-guide-card__title" data-imp-guide-path-title>
+                                <?= escape($guidePathTitle) ?>
+                            </strong>
+                            <p class="imp-guide-card__copy" data-imp-guide-path-copy>
+                                <?= $advancedDescription ?>
+                            </p>
+                        </article>
+
+                        <article class="imp-guide-card" data-state="ready" data-imp-guide-context-card>
+                            <span class="imp-guide-card__eyebrow">Contexto ativo</span>
+                            <strong class="imp-guide-card__title" data-imp-guide-context-title>
+                                <?= escape($activeContextLabel) ?>
+                            </strong>
+                            <p class="imp-guide-card__copy" data-imp-guide-context-copy>
+                                <?= escape($advancedContextNote) ?>
+                            </p>
+                        </article>
+
+                        <article class="imp-guide-card" data-state="info" data-imp-guide-readiness-card>
+                            <span class="imp-guide-card__eyebrow">Antes do upload</span>
+                            <strong class="imp-guide-card__title" data-imp-guide-readiness-title>
+                                Falta só o arquivo
+                            </strong>
+                            <p class="imp-guide-card__copy" data-imp-guide-readiness-copy>
+                                Selecione o arquivo certo para liberar o preview sem retrabalho.
+                            </p>
+                        </article>
+                    </section>
+
+                    <section class="imp-advanced-panel surface-card" data-imp-advanced-panel>
+                        <header class="imp-advanced-panel__head">
+                            <div>
+                                <p class="imp-card-eyebrow">Modo guiado</p>
+                                <h3 class="imp-card-title">Ajuste fino só quando precisar</h3>
+                                <p class="imp-card-text" data-imp-advanced-description>
+                                    <?= escape($advancedDescription) ?>
+                                </p>
+                            </div>
+                            <span class="imp-status-badge"
+                                data-status="<?= $initialSourceType === 'csv' ? 'preview_ready' : 'idle' ?>"
+                                data-imp-advanced-mode-badge><?= escape($advancedBadgeLabel) ?></span>
+                        </header>
+
+                        <div class="imp-advanced-panel__grid">
+                            <div class="imp-advanced-callout">
+                                <span class="imp-chip" data-imp-advanced-template-chip>
+                                    <?= $importTarget === 'cartao' ? 'Modelo de fatura' : 'Modelo de conta' ?>
+                                </span>
+                                <strong class="imp-advanced-callout__title" data-imp-advanced-template-title>
+                                    <?= escape($advancedTemplateTitle) ?>
+                                </strong>
+                                <p class="imp-card-text" data-imp-advanced-template-copy>
+                                    <?= escape($advancedTemplateCopy) ?>
+                                </p>
+                                <p class="imp-muted" data-imp-advanced-linked-account-note>
+                                    <?= escape($advancedContextNote) ?>
+                                </p>
+                            </div>
+
+                            <div class="imp-advanced-actions">
+                                <a class="btn btn-ghost" href="<?= escape($advancedAutoTemplateEndpoint) ?>"
+                                    data-imp-advanced-template-auto data-no-transition="true" download>
+                                    <?= $importTarget === 'cartao' ? 'Baixar modelo rápido de fatura' : 'Baixar modelo rápido de conta' ?>
+                                </a>
+                                <a class="btn btn-ghost" href="<?= escape($advancedManualTemplateEndpoint) ?>"
+                                    data-imp-advanced-template-manual data-no-transition="true" download>
+                                    <?= $importTarget === 'cartao' ? 'Baixar modelo completo de fatura' : 'Baixar modelo completo de conta' ?>
+                                </a>
+                                <a class="btn btn-secondary" href="<?= escape($configUrl) ?>" data-imp-config-link>
+                                    Editar configuração avançada
+                                </a>
+                            </div>
+                        </div>
+
+                        <details class="imp-advanced-details" data-imp-advanced-details <?= $initialSourceType === 'csv' ? 'open' : '' ?>>
+                            <summary>
+                                <span>Ver configuração CSV aplicada</span>
+                                <small data-imp-advanced-summary-context>
+                                    <?= escape($importTarget === 'cartao' ? 'Conta vinculada ao cartão selecionado' : 'Conta selecionada') ?>
+                                </small>
+                            </summary>
+
+                            <dl class="imp-definition-list imp-definition-list--stack imp-advanced-profile">
+                                <div>
+                                    <dt>Conta base</dt>
+                                    <dd data-imp-advanced-account-name><?= escape($activeAccountLabel) ?></dd>
+                                </div>
+                                <div>
+                                    <dt>Origem padrão</dt>
+                                    <dd data-imp-advanced-source-type><?= strtoupper(escape((string) ($profileConfig['source_type'] ?? 'ofx'))) ?></dd>
+                                </div>
+                                <div>
+                                    <dt>Modo CSV</dt>
+                                    <dd data-imp-advanced-mapping-mode><?= escape($csvMappingModeLabel) ?></dd>
+                                </div>
+                                <div>
+                                    <dt>Com cabeçalho</dt>
+                                    <dd data-imp-advanced-has-header><?= escape($csvHasHeaderLabel) ?></dd>
+                                </div>
+                                <div>
+                                    <dt>Linha inicial</dt>
+                                    <dd data-imp-advanced-start-row><?= $csvStartRow ?></dd>
+                                </div>
+                                <div>
+                                    <dt>Delimitador</dt>
+                                    <dd data-imp-advanced-delimiter><?= escape($csvDelimiterLabel) ?></dd>
+                                </div>
+                                <div>
+                                    <dt>Formato de data</dt>
+                                    <dd data-imp-advanced-date-format><?= escape($csvDateFormatLabel) ?></dd>
+                                </div>
+                                <div>
+                                    <dt>Separador decimal</dt>
+                                    <dd data-imp-advanced-decimal><?= escape($csvDecimalLabel) ?></dd>
+                                </div>
+                                <div>
+                                    <dt>Mapeamento principal</dt>
+                                    <dd data-imp-advanced-column-map><?= escape($csvColumnMapSummary) ?></dd>
+                                </div>
+                            </dl>
+                        </details>
+                    </section>
 
                     <div class="imp-field">
                         <label class="imp-field__label" for="imp-file-input">Arquivo</label>
@@ -269,6 +466,7 @@ $activeContextLabel = $importTarget === 'cartao'
                                 final.</span>
                         </label>
                         <p class="imp-file-selected" data-imp-selected-file>Nenhum arquivo selecionado.</p>
+                        <p class="imp-file-note" data-imp-file-note hidden></p>
                     </div>
 
                     <div class="imp-flow-form__footer">
@@ -416,23 +614,25 @@ $activeContextLabel = $importTarget === 'cartao'
             <article class="imp-side-card imp-surface surface-card surface-card--interactive">
                 <header class="imp-card-head imp-card-head--split">
                     <h3 class="imp-card-title">Perfil ativo</h3>
-                    <span class="imp-status-badge" data-status="preview_ready">Conta</span>
+                    <span class="imp-status-badge" data-status="preview_ready"
+                        data-imp-profile-badge><?= escape($profileCardBadgeLabel) ?></span>
                 </header>
-                <?php if ($profileConfig !== null) : ?>
-                    <dl class="imp-definition-list">
-                        <dt>Conta</dt>
-                        <dd><?= (int) ($profileConfig['conta_id'] ?? 0) ?></dd>
-                        <dt>Origem padrão</dt>
-                        <dd><?= strtoupper(escape((string) ($profileConfig['source_type'] ?? 'ofx'))) ?></dd>
-                        <dt>Agência</dt>
-                        <dd><?= escape((string) ($profileConfig['agencia'] ?? '')) ?: 'Opcional' ?></dd>
-                        <dt>Número</dt>
-                        <dd><?= escape((string) ($profileConfig['numero_conta'] ?? '')) ?: 'Opcional' ?></dd>
-                    </dl>
-                <?php else : ?>
-                    <p class="imp-card-text">Sem perfil base. Configure uma conta para liberar o fluxo completo.</p>
-                <?php endif; ?>
-                <a class="imp-link" href="<?= escape($configUrl) ?>">Gerenciar perfil e configuração</a>
+                <dl class="imp-definition-list">
+                    <dt>Conta base</dt>
+                    <dd data-imp-profile-account-name><?= escape($activeAccountLabel) ?></dd>
+                    <dt>Origem padrão</dt>
+                    <dd data-imp-profile-source-type><?= strtoupper(escape((string) ($profileConfig['source_type'] ?? 'ofx'))) ?></dd>
+                    <dt>Modo CSV</dt>
+                    <dd data-imp-profile-csv-mode><?= escape($csvMappingModeLabel) ?></dd>
+                    <dt>Delimitador</dt>
+                    <dd data-imp-profile-csv-delimiter><?= escape($csvDelimiterLabel) ?></dd>
+                    <dt>Data</dt>
+                    <dd data-imp-profile-csv-date-format><?= escape($csvDateFormatLabel) ?></dd>
+                    <dt>Decimal</dt>
+                    <dd data-imp-profile-csv-decimal><?= escape($csvDecimalLabel) ?></dd>
+                </dl>
+                <p class="imp-muted" data-imp-profile-context-note><?= escape($advancedContextNote) ?></p>
+                <a class="imp-link" href="<?= escape($configUrl) ?>" data-imp-config-link>Gerenciar perfil e configuração</a>
             </article>
 
             <article class="imp-side-card imp-surface surface-card surface-card--interactive">

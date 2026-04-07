@@ -119,6 +119,42 @@ class ControllerLayeringTest extends TestCase
         }
     }
 
+    public function testModernizedConstructorsDoNotUseInlineInstantiationDefaults(): void
+    {
+        $files = [
+            'Application/Controllers/PremiumController.php',
+            'Application/Controllers/SysAdmin/AiLogsApiController.php',
+            'Application/Controllers/Api/Cartao/CartoesController.php',
+            'Application/Controllers/Api/Metas/MetasController.php',
+            'Application/Controllers/Api/Orcamentos/OrcamentosController.php',
+            'Application/Controllers/Api/Financas/ResumoController.php',
+            'Application/Controllers/Api/Financas/MetricsController.php',
+            'Application/Services/Cartao/CartaoApiWorkflowService.php',
+            'Application/UseCases/Financas/GetFinancasResumoUseCase.php',
+            'Application/UseCases/Financas/GetFinancasInsightsUseCase.php',
+            'Application/UseCases/Financas/GetFinanceiroMetricsUseCase.php',
+            'Application/UseCases/Financas/GetFinanceiroTransactionsUseCase.php',
+            'Application/UseCases/Financas/GetFinanceiroOptionsUseCase.php',
+            'Application/UseCases/Metas/CreateMetaUseCase.php',
+            'Application/UseCases/Metas/UpdateMetaUseCase.php',
+            'Application/UseCases/Metas/AddMetaAporteUseCase.php',
+            'Application/UseCases/Metas/DeleteMetaUseCase.php',
+            'Application/UseCases/Metas/GetMetaTemplatesUseCase.php',
+            'Application/UseCases/Metas/GetMetasListUseCase.php',
+            'Application/UseCases/Orcamentos/SaveOrcamentoUseCase.php',
+            'Application/UseCases/Orcamentos/BulkSaveOrcamentosUseCase.php',
+            'Application/UseCases/Orcamentos/DeleteOrcamentoUseCase.php',
+            'Application/UseCases/Orcamentos/GetOrcamentoSugestoesUseCase.php',
+            'Application/UseCases/Orcamentos/ApplyOrcamentoSugestoesUseCase.php',
+            'Application/UseCases/Orcamentos/CopyOrcamentosMesUseCase.php',
+            'Application/UseCases/Orcamentos/GetOrcamentosListUseCase.php',
+        ];
+
+        foreach ($files as $filePath) {
+            $this->assertConstructorDoesNotUseInlineInstantiationDefault($filePath);
+        }
+    }
+
     /**
      * @return list<string>
      */
@@ -174,5 +210,16 @@ class ControllerLayeringTest extends TestCase
         $parts = explode('\\', $extendedClass);
 
         return end($parts) ?: null;
+    }
+
+    private function assertConstructorDoesNotUseInlineInstantiationDefault(string $filePath): void
+    {
+        $content = (string) file_get_contents($filePath);
+
+        $this->assertDoesNotMatchRegularExpression(
+            '/function\s+__construct\s*\((?:(?!\)\s*\{).)*=\s*new\s+[\\\w]+/s',
+            $content,
+            "Construtor não deve instanciar dependência por default: {$filePath}"
+        );
     }
 }

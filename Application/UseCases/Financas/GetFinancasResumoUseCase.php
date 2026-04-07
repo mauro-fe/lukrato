@@ -11,11 +11,18 @@ use Application\Services\Orcamentos\OrcamentoService;
 
 class GetFinancasResumoUseCase
 {
+    private readonly MetaService $metaService;
+    private readonly OrcamentoService $orcamentoService;
+    private readonly DemoPreviewService $demoPreviewService;
+
     public function __construct(
-        private readonly MetaService $metaService = new MetaService(),
-        private readonly OrcamentoService $orcamentoService = new OrcamentoService(),
-        private readonly DemoPreviewService $demoPreviewService = new DemoPreviewService()
+        ?MetaService $metaService = null,
+        ?OrcamentoService $orcamentoService = null,
+        ?DemoPreviewService $demoPreviewService = null
     ) {
+        $this->metaService = $metaService ?? new MetaService();
+        $this->orcamentoService = $orcamentoService ?? new OrcamentoService();
+        $this->demoPreviewService = $demoPreviewService ?? new DemoPreviewService();
     }
 
     public function execute(int $userId, int $mes, int $ano): ServiceResultDTO

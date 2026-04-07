@@ -50,6 +50,7 @@ class ImportPreviewService
         $sourceType = strtolower(trim($sourceType));
         $importTarget = $this->normalizeImportTarget($importTarget);
         $parser = $this->resolveParser($sourceType);
+        $parserProfile = $this->buildParserProfile($profile, $sourceType, $importTarget);
         $rows = [];
         $warnings = [];
         $errors = [];
@@ -57,7 +58,7 @@ class ImportPreviewService
         $targetMismatch = false;
 
         try {
-            $rows = $parser->parse($contents, $profile);
+            $rows = $parser->parse($contents, $parserProfile);
         } catch (\InvalidArgumentException $e) {
             $errors[] = $e->getMessage();
         }
@@ -125,6 +126,20 @@ class ImportPreviewService
         }
 
         throw new \DomainException("Nenhum parser de importação registrado para o tipo: {$sourceType}");
+    }
+
+    private function buildParserProfile(
+        ImportProfileConfigDTO $profile,
+        string $sourceType,
+        string $importTarget
+    ): ImportProfileConfigDTO {
+        $payload = $profile->toArray();
+        $options = is_array($payload['options'] ?? null) ? $payload['options'] : [];
+        $options['import_target'] = $importTarget;
+        $payload['options'] = $options;
+        $payload['source_type'] = $sourceType;
+
+        return ImportProfileConfigDTO::fromArray($payload);
     }
 
     private function normalizeFilename(string $filename): string
