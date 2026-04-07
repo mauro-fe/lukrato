@@ -11,11 +11,16 @@ use Application\Services\Importacao\ImportProfileConfigService;
 
 class ConfiguracoesController extends ApiController
 {
+    private readonly ImportProfileConfigService $profileService;
+    private readonly ContaRepository $contaRepository;
+
     public function __construct(
-        private readonly ImportProfileConfigService $profileService = new ImportProfileConfigService(),
-        private readonly ContaRepository $contaRepository = new ContaRepository(),
+        ?ImportProfileConfigService $profileService = null,
+        ?ContaRepository $contaRepository = null,
     ) {
         parent::__construct();
+        $this->profileService = $this->resolveOrCreate($profileService, ImportProfileConfigService::class);
+        $this->contaRepository = $this->resolveOrCreate($contaRepository, ContaRepository::class);
     }
 
     public function __invoke(): Response

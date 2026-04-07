@@ -25,8 +25,12 @@ class CampaignController extends ApiController
     ) {
         parent::__construct();
 
-        $notificationService ??= new NotificationService();
-        $this->workflowService = $workflowService ?? new CampaignApiWorkflowService($notificationService);
+        $resolvedNotificationService = $this->resolveOrCreate($notificationService, NotificationService::class);
+        $this->workflowService = $this->resolveOrCreate(
+            $workflowService,
+            CampaignApiWorkflowService::class,
+            fn(): CampaignApiWorkflowService => new CampaignApiWorkflowService($resolvedNotificationService)
+        );
     }
 
     private function requireAdminOrFail(): Usuario

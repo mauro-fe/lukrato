@@ -10,10 +10,13 @@ use Application\Services\Admin\CommunicationAdminViewService;
 
 class CommunicationController extends WebController
 {
+    private readonly CommunicationAdminViewService $viewService;
+
     public function __construct(
-        private readonly CommunicationAdminViewService $viewService = new CommunicationAdminViewService()
+        ?CommunicationAdminViewService $viewService = null
     ) {
         parent::__construct();
+        $this->viewService = $this->resolveOrCreate($viewService, CommunicationAdminViewService::class);
     }
 
     public function index(): Response

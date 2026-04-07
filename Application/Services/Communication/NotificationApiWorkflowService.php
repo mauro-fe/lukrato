@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace Application\Services\Communication;
 
+use Application\Container\ApplicationContainer;
 use InvalidArgumentException;
 
 class NotificationApiWorkflowService
 {
+    private readonly NotificationInboxService $inboxService;
+
     public function __construct(
-        private readonly NotificationInboxService $inboxService = new NotificationInboxService()
+        ?NotificationInboxService $inboxService = null
     ) {
+        $this->inboxService = ApplicationContainer::resolveOrNew($inboxService, NotificationInboxService::class);
     }
 
     /**

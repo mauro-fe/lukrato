@@ -22,11 +22,10 @@ class EmailVerificationController extends WebController
         ?EmailVerificationService $verificationService = null,
         ?CacheService $cache = null,
         ?UsuarioRepository $usuarioRepo = null
-    )
-    {
+    ) {
         parent::__construct(cache: $cache);
-        $this->verificationService = $verificationService ?? new EmailVerificationService();
-        $this->usuarioRepo = $usuarioRepo ?? new UsuarioRepository();
+        $this->verificationService = $this->resolveOrCreate($verificationService, EmailVerificationService::class);
+        $this->usuarioRepo = $this->resolveOrCreate($usuarioRepo, UsuarioRepository::class);
     }
 
     public function verify(): Response

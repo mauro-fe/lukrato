@@ -11,11 +11,16 @@ use Application\Services\Importacao\ImportProfileConfigService;
 
 class ImportacoesConfiguracoesController extends WebController
 {
+    private readonly ContaRepository $contaRepository;
+    private readonly ImportProfileConfigService $profileConfigService;
+
     public function __construct(
-        private readonly ContaRepository $contaRepository = new ContaRepository(),
-        private readonly ImportProfileConfigService $profileConfigService = new ImportProfileConfigService(),
+        ?ContaRepository $contaRepository = null,
+        ?ImportProfileConfigService $profileConfigService = null,
     ) {
         parent::__construct();
+        $this->contaRepository = $this->resolveOrCreate($contaRepository, ContaRepository::class);
+        $this->profileConfigService = $this->resolveOrCreate($profileConfigService, ImportProfileConfigService::class);
     }
 
     public function index(): Response

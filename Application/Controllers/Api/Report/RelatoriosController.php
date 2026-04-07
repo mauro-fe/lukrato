@@ -15,6 +15,7 @@ use Throwable;
 class RelatoriosController extends ApiController
 {
     private ?Usuario $currentUser = null;
+    private ReportApiWorkflowService $workflowService;
 
     public function __construct(
         ?\Application\Services\Report\ReportService $reportService = null,
@@ -23,25 +24,29 @@ class RelatoriosController extends ApiController
         ?\Application\Services\Report\ExcelExportService $excelExport = null,
         ?\Application\Services\Report\InsightsService $insightsService = null,
         ?\Application\Services\Report\ComparativesService $comparativesService = null,
-        private ?ReportApiWorkflowService $workflowService = null
+        ?ReportApiWorkflowService $workflowService = null
     ) {
         parent::__construct();
 
-        $reportService ??= new \Application\Services\Report\ReportService();
-        $exportBuilder ??= new \Application\Builders\ReportExportBuilder();
-        $pdfExport ??= new \Application\Services\Report\PdfExportService();
-        $excelExport ??= new \Application\Services\Report\ExcelExportService();
-        $insightsService ??= new \Application\Services\Report\InsightsService();
-        $comparativesService ??= new \Application\Services\Report\ComparativesService();
+        $resolvedReportService = $this->resolveOrCreate($reportService, \Application\Services\Report\ReportService::class);
+        $resolvedExportBuilder = $this->resolveOrCreate($exportBuilder, \Application\Builders\ReportExportBuilder::class);
+        $resolvedPdfExport = $this->resolveOrCreate($pdfExport, \Application\Services\Report\PdfExportService::class);
+        $resolvedExcelExport = $this->resolveOrCreate($excelExport, \Application\Services\Report\ExcelExportService::class);
+        $resolvedInsightsService = $this->resolveOrCreate($insightsService, \Application\Services\Report\InsightsService::class);
+        $resolvedComparativesService = $this->resolveOrCreate($comparativesService, \Application\Services\Report\ComparativesService::class);
 
-        $this->workflowService ??= new ReportApiWorkflowService(
-            $reportService,
-            $exportBuilder,
-            $pdfExport,
-            $excelExport,
-            $insightsService,
-            $comparativesService,
-            new \Application\Services\Gamification\GamificationService()
+        $this->workflowService = $this->resolveOrCreate(
+            $workflowService,
+            ReportApiWorkflowService::class,
+            fn(): ReportApiWorkflowService => new ReportApiWorkflowService(
+                $resolvedReportService,
+                $resolvedExportBuilder,
+                $resolvedPdfExport,
+                $resolvedExcelExport,
+                $resolvedInsightsService,
+                $resolvedComparativesService,
+                $this->resolveDependency(\Application\Services\Gamification\GamificationService::class)
+            )
         );
     }
 

@@ -22,8 +22,8 @@ class SysAdminController extends ApiController
     ) {
         parent::__construct();
 
-        $this->userService ??= new SysAdminUserService();
-        $this->opsService ??= new SysAdminOpsService();
+        $this->userService = $this->resolveOrCreate($this->userService, SysAdminUserService::class);
+        $this->opsService = $this->resolveOrCreate($this->opsService, SysAdminOpsService::class);
     }
 
     public function toggleMaintenance(): Response
@@ -31,7 +31,7 @@ class SysAdminController extends ApiController
         $this->adminUser();
 
         return $this->resultActionOrInternal(
-            fn (): array => $this->opsService->toggleMaintenance($this->getRequestPayload()),
+            fn(): array => $this->opsService->toggleMaintenance($this->getRequestPayload()),
             'Erro ao processar modo de manutenção.'
         );
     }
@@ -49,7 +49,7 @@ class SysAdminController extends ApiController
 
         return $this->runAdminUserAction(
             $admin,
-            fn (): array => $this->userService->grantAccess(
+            fn(): array => $this->userService->grantAccess(
                 $this->adminId($admin),
                 $this->adminName($admin),
                 $this->getRequestPayload()
@@ -66,7 +66,7 @@ class SysAdminController extends ApiController
 
         return $this->runAdminUserAction(
             $admin,
-            fn (): array => $this->userService->revokeAccess(
+            fn(): array => $this->userService->revokeAccess(
                 $this->adminId($admin),
                 $this->adminName($admin),
                 $this->getRequestPayload()
@@ -82,7 +82,7 @@ class SysAdminController extends ApiController
         $this->adminUser(releaseSession: true);
 
         return $this->dataActionOrInternal(
-            fn (): mixed => $this->userService->listUsers($this->collectQueryParams()),
+            fn(): mixed => $this->userService->listUsers($this->collectQueryParams()),
             'Erro ao buscar usuarios.',
             'Erro ao listar usuarios.'
         );
@@ -116,7 +116,7 @@ class SysAdminController extends ApiController
 
         return $this->runAdminUserAction(
             $admin,
-            fn (): array => $this->userService->updateUser(
+            fn(): array => $this->userService->updateUser(
                 $this->adminId($admin),
                 $this->adminName($admin),
                 $id,
@@ -136,7 +136,7 @@ class SysAdminController extends ApiController
 
         return $this->runAdminUserAction(
             $admin,
-            fn (): array => $this->userService->deleteUser($this->adminId($admin), $this->adminName($admin), $id),
+            fn(): array => $this->userService->deleteUser($this->adminId($admin), $this->adminName($admin), $id),
             'Não foi possivel excluir o usuario.',
             'Erro ao excluir usuario.',
             'Erro ao excluir usuario.',
@@ -165,7 +165,7 @@ class SysAdminController extends ApiController
         $this->adminUser(releaseSession: true);
 
         return $this->dataActionOrInternal(
-            fn (): mixed => $this->opsService->getErrorLogs($this->collectQueryParams()),
+            fn(): mixed => $this->opsService->getErrorLogs($this->collectQueryParams()),
             'Erro ao buscar logs.'
         );
     }
@@ -175,7 +175,7 @@ class SysAdminController extends ApiController
         $this->adminUser(releaseSession: true);
 
         return $this->dataActionOrInternal(
-            fn (): mixed => $this->opsService->getErrorLogsSummary($this->collectQueryParams()),
+            fn(): mixed => $this->opsService->getErrorLogsSummary($this->collectQueryParams()),
             'Erro ao buscar resumo.'
         );
     }
@@ -229,9 +229,9 @@ class SysAdminController extends ApiController
         $this->adminUser();
 
         return $this->resultActionOrInternal(
-            fn (): array => $this->opsService->clearCache(),
+            fn(): array => $this->opsService->clearCache(),
             'Erro ao limpar cache.',
-            fn (array $result): mixed => ['details' => $result['details'] ?? []]
+            fn(array $result): mixed => ['details' => $result['details'] ?? []]
         );
     }
 

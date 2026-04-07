@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Conta;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\CreateContaDTO;
 use Application\DTO\UpdateContaDTO;
 use Application\Middlewares\CsrfMiddleware;
@@ -13,10 +14,15 @@ use Application\Services\Plan\PlanLimitService;
 
 class ContaApiWorkflowService
 {
+    private readonly ContaService $contaService;
+    private readonly PlanLimitService $planLimitService;
+
     public function __construct(
-        private readonly ContaService $contaService = new ContaService(),
-        private readonly PlanLimitService $planLimitService = new PlanLimitService()
+        ?ContaService $contaService = null,
+        ?PlanLimitService $planLimitService = null
     ) {
+        $this->contaService = ApplicationContainer::resolveOrNew($contaService, ContaService::class);
+        $this->planLimitService = ApplicationContainer::resolveOrNew($planLimitService, PlanLimitService::class);
     }
 
     /**

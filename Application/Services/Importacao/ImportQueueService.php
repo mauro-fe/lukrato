@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Importacao;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\Importacao\ImportProfileConfigDTO;
 use Application\Enums\LogCategory;
 use Application\Models\ImportacaoJob;
@@ -20,9 +21,13 @@ class ImportQueueService
     private const DEFAULT_MAX_ATTEMPTS = 3;
     private const DEFAULT_STALE_TTL_SECONDS = 900;
 
+    private readonly ImportExecutionService $executionService;
+
     public function __construct(
-        private readonly ImportExecutionService $executionService = new ImportExecutionService(),
-    ) {}
+        ?ImportExecutionService $executionService = null,
+    ) {
+        $this->executionService = ApplicationContainer::resolveOrNew($executionService, ImportExecutionService::class);
+    }
 
     /**
      * @return array<string, mixed>

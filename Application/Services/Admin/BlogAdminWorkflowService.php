@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Admin;
 
+use Application\Container\ApplicationContainer;
 use Application\Enums\LogCategory;
 use Application\DTO\Requests\Blog\CreatePostDTO;
 use Application\DTO\Requests\Blog\UpdatePostDTO;
@@ -16,9 +17,12 @@ use Throwable;
 
 class BlogAdminWorkflowService
 {
+    private readonly BlogPostRepository $repo;
+
     public function __construct(
-        private readonly BlogPostRepository $repo = new BlogPostRepository()
+        ?BlogPostRepository $repo = null
     ) {
+        $this->repo = ApplicationContainer::resolveOrNew($repo, BlogPostRepository::class);
     }
 
     /**
@@ -41,7 +45,7 @@ class BlogAdminWorkflowService
             $stats = $this->repo->countByStatus();
 
             return $this->success([
-                'items' => $result['items']->map(fn (BlogPost $post): array => $this->formatListPost($post)),
+                'items' => $result['items']->map(fn(BlogPost $post): array => $this->formatListPost($post)),
                 'total' => $result['total'],
                 'page' => $result['page'],
                 'perPage' => $result['perPage'],

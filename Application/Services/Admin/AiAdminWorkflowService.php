@@ -169,11 +169,11 @@ class AiAdminWorkflowService
         $context = is_array($payload['context'] ?? null) ? $payload['context'] : [];
 
         if ($message === '') {
-            return $this->failure('Mensagem nao pode ser vazia', 422);
+            return $this->failure('Mensagem não pode ser vazia', 422);
         }
 
         if (mb_strlen($message) > 2000) {
-            return $this->failure('Mensagem muito longa (maximo 2000 caracteres)', 422);
+            return $this->failure('Mensagem muito longa (máximo 2000 caracteres)', 422);
         }
 
         try {

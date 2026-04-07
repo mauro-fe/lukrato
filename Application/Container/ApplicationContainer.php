@@ -77,6 +77,15 @@ final class ApplicationContainer
         }
     }
 
+    public static function resolveOrNew(mixed $dependency, string $abstract, ?callable $factory = null): mixed
+    {
+        if ($dependency !== null) {
+            return $dependency;
+        }
+
+        return self::tryMake($abstract) ?? ($factory ? $factory() : new $abstract());
+    }
+
     private static function registerCoreBindings(IlluminateContainer $container): void
     {
         $container->bind(Auth::class, static fn(): Auth => new Auth());

@@ -10,10 +10,13 @@ use Application\Services\Importacao\ImportDeletionService;
 
 class DeleteController extends ApiController
 {
+    private readonly ImportDeletionService $deletionService;
+
     public function __construct(
-        private readonly ImportDeletionService $deletionService = new ImportDeletionService(),
+        ?ImportDeletionService $deletionService = null,
     ) {
         parent::__construct();
+        $this->deletionService = $this->resolveOrCreate($deletionService, ImportDeletionService::class);
     }
 
     public function __invoke(int $id): Response

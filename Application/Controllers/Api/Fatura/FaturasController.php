@@ -23,8 +23,12 @@ class FaturasController extends ApiController
     ) {
         parent::__construct();
 
-        $faturaService ??= new FaturaService();
-        $this->workflowService = $workflowService ?? new FaturaApiWorkflowService($faturaService);
+        $resolvedFaturaService = $this->resolveOrCreate($faturaService, FaturaService::class);
+        $this->workflowService = $this->resolveOrCreate(
+            $workflowService,
+            FaturaApiWorkflowService::class,
+            fn(): FaturaApiWorkflowService => new FaturaApiWorkflowService($resolvedFaturaService)
+        );
     }
 
     public function index(): Response

@@ -25,19 +25,22 @@ class ForgotPasswordController extends WebController
     {
         parent::__construct(cache: $cache);
 
-        if ($service !== null) {
-            $this->service = $service;
-            return;
-        }
+        $this->service = $this->resolveOrCreate(
+            $service,
+            PasswordResetService::class,
+            function (): PasswordResetService {
+                $repository = $this->resolveDependency(PasswordResetRepositoryEloquent::class) ?? new PasswordResetRepositoryEloquent();
+                $tokenGenerator = $this->resolveDependency(SecureTokenGenerator::class) ?? new SecureTokenGenerator();
+                $mailService = $this->resolveDependency(MailService::class) ?? new MailService();
+                $notifier = $this->resolveDependency(MailPasswordResetNotification::class)
+                    ?? new MailPasswordResetNotification($mailService);
 
-        $repository = new PasswordResetRepositoryEloquent();
-        $tokenGen = new SecureTokenGenerator(64);
-        $notifier = new MailPasswordResetNotification(new MailService());
-
-        $this->service = new PasswordResetService(
-            repository: $repository,
-            tokenGenerator: $tokenGen,
-            notifier: $notifier
+                return new PasswordResetService(
+                    repository: $repository,
+                    tokenGenerator: $tokenGenerator,
+                    notifier: $notifier
+                );
+            }
         );
     }
 

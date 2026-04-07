@@ -10,10 +10,13 @@ use Application\Services\Importacao\ImportHistoryService;
 
 class HistoricoController extends ApiController
 {
+    private readonly ImportHistoryService $historyService;
+
     public function __construct(
-        private readonly ImportHistoryService $historyService = new ImportHistoryService(),
+        ?ImportHistoryService $historyService = null,
     ) {
         parent::__construct();
+        $this->historyService = $this->resolveOrCreate($historyService, ImportHistoryService::class);
     }
 
     public function __invoke(): Response

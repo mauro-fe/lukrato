@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Importacao;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\CartaoCredito;
 use Application\Models\Fatura;
 use Application\Models\FaturaCartaoItem;
@@ -16,10 +17,16 @@ use Illuminate\Database\Capsule\Manager as DB;
 
 class ImportDeletionService
 {
+    private readonly ImportHistoryService $historyService;
+    private readonly CartaoBillingDateService $billingDateService;
+
     public function __construct(
-        private readonly ImportHistoryService $historyService = new ImportHistoryService(),
-        private readonly CartaoBillingDateService $billingDateService = new CartaoBillingDateService(),
-    ) {}
+        ?ImportHistoryService $historyService = null,
+        ?CartaoBillingDateService $billingDateService = null,
+    ) {
+        $this->historyService = ApplicationContainer::resolveOrNew($historyService, ImportHistoryService::class);
+        $this->billingDateService = ApplicationContainer::resolveOrNew($billingDateService, CartaoBillingDateService::class);
+    }
 
     /**
      * @return array<string, mixed>

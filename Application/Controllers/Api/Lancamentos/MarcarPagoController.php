@@ -24,11 +24,27 @@ class MarcarPagoController extends ApiController
     ) {
         parent::__construct();
 
-        $lancamentoRepo ??= new LancamentoRepository();
-        $statusService ??= new LancamentoStatusService();
-        $parcelamentoRepo ??= new ParcelamentoRepository();
-        $this->togglePagoUseCase = $togglePagoUseCase
-            ?? new ToggleLancamentoPagoUseCase($lancamentoRepo, $statusService, $parcelamentoRepo);
+        if ($togglePagoUseCase !== null) {
+            $this->togglePagoUseCase = $togglePagoUseCase;
+
+            return;
+        }
+
+        if ($lancamentoRepo !== null || $statusService !== null || $parcelamentoRepo !== null) {
+            $this->togglePagoUseCase = new ToggleLancamentoPagoUseCase(
+                $this->resolveOrCreate($lancamentoRepo, LancamentoRepository::class),
+                $this->resolveOrCreate($statusService, LancamentoStatusService::class),
+                $this->resolveOrCreate($parcelamentoRepo, ParcelamentoRepository::class)
+            );
+
+            return;
+        }
+
+        $this->togglePagoUseCase = $this->resolveOrCreate(
+            null,
+            ToggleLancamentoPagoUseCase::class,
+            fn(): ToggleLancamentoPagoUseCase => new ToggleLancamentoPagoUseCase()
+        );
     }
 
     public function __invoke(int $id): Response

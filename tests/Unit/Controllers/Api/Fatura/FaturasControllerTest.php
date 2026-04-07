@@ -80,7 +80,7 @@ class FaturasControllerTest extends TestCase
         $controller = new FaturasController(Mockery::mock(FaturaService::class));
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->store();
     }

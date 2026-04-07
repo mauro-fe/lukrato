@@ -261,11 +261,11 @@ class UserAiWorkflowService
 
         $finalMessage = trim((string) $resolved['message']);
         if ($finalMessage === '') {
-            throw new InvalidArgumentException('Mensagem nao pode ser vazia.');
+            throw new InvalidArgumentException('Mensagem não pode ser vazia.');
         }
 
         if (mb_strlen($finalMessage) > 2000) {
-            throw new InvalidArgumentException('Mensagem muito longa (maximo 2000 caracteres).');
+            throw new InvalidArgumentException('Mensagem muito longa (máximo 2000 caracteres).');
         }
 
         return [

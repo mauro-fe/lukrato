@@ -54,7 +54,7 @@ class AiAdminWorkflowServiceTest extends TestCase
 
         $this->assertFalse($result['success']);
         $this->assertSame(422, $result['status']);
-        $this->assertSame('Mensagem nao pode ser vazia', $result['message']);
+        $this->assertSame('Mensagem não pode ser vazia', $result['message']);
     }
 
     public function testAnalyzeSpendingReturnsValidationErrorWhenNoEntriesAreProvided(): void

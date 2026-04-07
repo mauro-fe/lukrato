@@ -19,14 +19,25 @@ use Application\Services\Plan\PlanLimitService;
 
 class PreviewController extends ApiController
 {
+    private readonly ImportPreviewService $previewService;
+    private readonly ImportProfileConfigService $profileService;
+    private readonly ContaRepository $contaRepository;
+    private readonly PlanLimitService $planLimitService;
+    private readonly ImportUploadSecurityService $uploadSecurityService;
+
     public function __construct(
-        private readonly ImportPreviewService $previewService = new ImportPreviewService(),
-        private readonly ImportProfileConfigService $profileService = new ImportProfileConfigService(),
-        private readonly ContaRepository $contaRepository = new ContaRepository(),
-        private readonly PlanLimitService $planLimitService = new PlanLimitService(),
-        private readonly ImportUploadSecurityService $uploadSecurityService = new ImportUploadSecurityService(),
+        ?ImportPreviewService $previewService = null,
+        ?ImportProfileConfigService $profileService = null,
+        ?ContaRepository $contaRepository = null,
+        ?PlanLimitService $planLimitService = null,
+        ?ImportUploadSecurityService $uploadSecurityService = null,
     ) {
         parent::__construct();
+        $this->previewService = $this->resolveOrCreate($previewService, ImportPreviewService::class);
+        $this->profileService = $this->resolveOrCreate($profileService, ImportProfileConfigService::class);
+        $this->contaRepository = $this->resolveOrCreate($contaRepository, ContaRepository::class);
+        $this->planLimitService = $this->resolveOrCreate($planLimitService, PlanLimitService::class);
+        $this->uploadSecurityService = $this->resolveOrCreate($uploadSecurityService, ImportUploadSecurityService::class);
     }
 
     public function __invoke(): Response

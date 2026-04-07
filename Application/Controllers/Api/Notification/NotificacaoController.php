@@ -25,11 +25,19 @@ class NotificacaoController extends ApiController
     ) {
         parent::__construct();
 
-        $cartaoService ??= new CartaoCreditoService();
-        $faturaService ??= new CartaoFaturaService();
-        $notificationInboxService ??= new NotificationInboxService($cartaoService, $faturaService);
+        $resolvedCartaoService = $this->resolveOrCreate($cartaoService, CartaoCreditoService::class);
+        $resolvedFaturaService = $this->resolveOrCreate($faturaService, CartaoFaturaService::class);
+        $resolvedInboxService = $this->resolveOrCreate(
+            $notificationInboxService,
+            NotificationInboxService::class,
+            fn(): NotificationInboxService => new NotificationInboxService($resolvedCartaoService, $resolvedFaturaService)
+        );
 
-        $this->workflowService = $workflowService ?? new NotificationApiWorkflowService($notificationInboxService);
+        $this->workflowService = $this->resolveOrCreate(
+            $workflowService,
+            NotificationApiWorkflowService::class,
+            fn(): NotificationApiWorkflowService => new NotificationApiWorkflowService($resolvedInboxService)
+        );
     }
 
     public function index(): Response

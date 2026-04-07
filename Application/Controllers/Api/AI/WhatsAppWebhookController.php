@@ -65,7 +65,10 @@ class WhatsAppWebhookController extends ApiController
 
     private function workflowService(): WhatsAppWebhookWorkflowService
     {
-        return $this->workflowService ??= new WhatsAppWebhookWorkflowService();
+        return $this->workflowService ??= $this->resolveOrCreate(
+            null,
+            WhatsAppWebhookWorkflowService::class
+        );
     }
 
     private function isValidWebhookSignature(string $rawBody): bool

@@ -18,7 +18,7 @@ class GoogleLoginController extends WebController
     public function __construct(?GoogleAuthService $googleAuthService = null)
     {
         parent::__construct();
-        $this->googleAuthService = $googleAuthService ?? new GoogleAuthService();
+        $this->googleAuthService = $this->resolveOrCreate($googleAuthService, GoogleAuthService::class);
     }
 
     public function login(): Response

@@ -15,13 +15,22 @@ use Application\Services\Plan\PlanLimitService;
 
 class ImportacoesController extends WebController
 {
+    private readonly ContaRepository $contaRepository;
+    private readonly ImportProfileConfigService $profileConfigService;
+    private readonly ImportHistoryService $historyService;
+    private readonly PlanLimitService $planLimitService;
+
     public function __construct(
-        private readonly ContaRepository $contaRepository = new ContaRepository(),
-        private readonly ImportProfileConfigService $profileConfigService = new ImportProfileConfigService(),
-        private readonly ImportHistoryService $historyService = new ImportHistoryService(),
-        private readonly PlanLimitService $planLimitService = new PlanLimitService(),
+        ?ContaRepository $contaRepository = null,
+        ?ImportProfileConfigService $profileConfigService = null,
+        ?ImportHistoryService $historyService = null,
+        ?PlanLimitService $planLimitService = null,
     ) {
         parent::__construct();
+        $this->contaRepository = $this->resolveOrCreate($contaRepository, ContaRepository::class);
+        $this->profileConfigService = $this->resolveOrCreate($profileConfigService, ImportProfileConfigService::class);
+        $this->historyService = $this->resolveOrCreate($historyService, ImportHistoryService::class);
+        $this->planLimitService = $this->resolveOrCreate($planLimitService, PlanLimitService::class);
     }
 
     public function index(): Response

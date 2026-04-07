@@ -49,10 +49,6 @@ abstract class BaseController
 
     protected function resolveOrCreate(mixed $dependency, string $abstract, ?callable $factory = null): mixed
     {
-        if ($dependency !== null) {
-            return $dependency;
-        }
-
-        return $this->resolveDependency($abstract) ?? ($factory ? $factory() : new $abstract());
+        return ApplicationContainer::resolveOrNew($dependency, $abstract, $factory);
     }
 }

@@ -14,10 +14,19 @@ class BlogController extends ApiController
 {
     private BlogAdminWorkflowService $workflowService;
 
-    public function __construct(?BlogPostRepository $repo = null)
-    {
+    public function __construct(
+        ?BlogAdminWorkflowService $workflowService = null,
+        ?BlogPostRepository $repo = null
+    ) {
         parent::__construct();
-        $this->workflowService = new BlogAdminWorkflowService($repo ?? new BlogPostRepository());
+
+        $resolvedRepo = $this->resolveOrCreate($repo, BlogPostRepository::class);
+
+        $this->workflowService = $this->resolveOrCreate(
+            $workflowService,
+            BlogAdminWorkflowService::class,
+            fn(): BlogAdminWorkflowService => new BlogAdminWorkflowService($resolvedRepo)
+        );
     }
 
     public function index(): Response

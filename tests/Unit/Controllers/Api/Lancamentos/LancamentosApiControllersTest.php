@@ -173,7 +173,7 @@ class LancamentosApiControllersTest extends TestCase
         $controller = new ExportController(Mockery::mock(LancamentoExportService::class));
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessageMatches('/N[ãa]o autenticado/u');
 
         $controller->__invoke();
     }
@@ -196,7 +196,7 @@ class LancamentosApiControllersTest extends TestCase
         $controller = new IndexController(Mockery::mock(LancamentoRepository::class));
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessageMatches('/N[ãa]o autenticado/u');
 
         $controller->__invoke();
     }

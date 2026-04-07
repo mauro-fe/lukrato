@@ -25,10 +25,15 @@ class ContasController extends ApiController
     ) {
         parent::__construct();
 
-        $service ??= new ContaService();
-        $planLimitService ??= new PlanLimitService();
-        $this->workflowService = $workflowService ?? new ContaApiWorkflowService($service, $planLimitService);
-        $this->demoPreviewService = $demoPreviewService ?? new DemoPreviewService();
+        $resolvedService = $this->resolveOrCreate($service, ContaService::class);
+        $resolvedPlanLimitService = $this->resolveOrCreate($planLimitService, PlanLimitService::class);
+
+        $this->workflowService = $this->resolveOrCreate(
+            $workflowService,
+            ContaApiWorkflowService::class,
+            fn(): ContaApiWorkflowService => new ContaApiWorkflowService($resolvedService, $resolvedPlanLimitService)
+        );
+        $this->demoPreviewService = $this->resolveOrCreate($demoPreviewService, DemoPreviewService::class);
     }
 
     /**
@@ -190,5 +195,4 @@ class ContasController extends ApiController
             return $this->internalErrorResponse($e, 'Erro ao criar instituição.');
         }
     }
-
 }

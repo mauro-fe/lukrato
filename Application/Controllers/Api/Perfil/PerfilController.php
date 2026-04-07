@@ -36,19 +36,46 @@ class PerfilController extends ApiController
     ) {
         parent::__construct();
 
-        if ($workflowService === null) {
-            if ($perfilService === null || $validator === null) {
-                [$perfilService, $validator] = PerfilControllerFactory::buildDependencies();
-            }
+        $hasExplicitWorkflowDependencies = $perfilService !== null || $validator !== null;
+        $hasExplicitAvatarDependencies = $avatarService !== null || $avatarUseCase !== null;
+        $hasExplicitDeleteAccountDependencies = $deleteAccountUseCase !== null || $hasExplicitWorkflowDependencies;
 
-            $workflowService = new PerfilApiWorkflowService($perfilService, $validator);
+        if ($workflowService !== null) {
+            $this->workflowService = $workflowService;
+        } elseif ($hasExplicitWorkflowDependencies) {
+            [$resolvedPerfilService, $resolvedValidator] = $this->resolvePerfilDependencies($perfilService, $validator);
+            $this->workflowService = new PerfilApiWorkflowService($resolvedPerfilService, $resolvedValidator);
+        } else {
+            $this->workflowService = $this->resolveOrCreate(
+                null,
+                PerfilApiWorkflowService::class,
+                function (): PerfilApiWorkflowService {
+                    [$resolvedPerfilService, $resolvedValidator] = $this->resolvePerfilDependencies();
+
+                    return new PerfilApiWorkflowService($resolvedPerfilService, $resolvedValidator);
+                }
+            );
         }
 
-        $resolvedAvatarService = $avatarService ?? new PerfilAvatarService();
-        $this->workflowService = $workflowService;
-        $this->avatarUseCase = $avatarUseCase ?? new AvatarUseCase($resolvedAvatarService);
-        $this->dashboardPreferencesUseCase = $dashboardPreferencesUseCase ?? new DashboardPreferencesUseCase();
-        $this->deleteAccountUseCase = $deleteAccountUseCase ?? new DeleteAccountUseCase($this->workflowService);
+        $resolvedAvatarService = $this->resolveOrCreate($avatarService, PerfilAvatarService::class);
+        $this->avatarUseCase = $hasExplicitAvatarDependencies
+            ? ($avatarUseCase ?? new AvatarUseCase($resolvedAvatarService))
+            : $this->resolveOrCreate(
+                null,
+                AvatarUseCase::class,
+                fn(): AvatarUseCase => new AvatarUseCase($resolvedAvatarService)
+            );
+        $this->dashboardPreferencesUseCase = $this->resolveOrCreate(
+            $dashboardPreferencesUseCase,
+            DashboardPreferencesUseCase::class
+        );
+        $this->deleteAccountUseCase = $hasExplicitDeleteAccountDependencies
+            ? ($deleteAccountUseCase ?? new DeleteAccountUseCase($this->workflowService))
+            : $this->resolveOrCreate(
+                null,
+                DeleteAccountUseCase::class,
+                fn(): DeleteAccountUseCase => new DeleteAccountUseCase($this->workflowService)
+            );
     }
 
     public function show(): Response
@@ -218,6 +245,28 @@ class PerfilController extends ApiController
             'action' => $action,
             'user_id' => $this->userId,
         ]);
+    }
+
+    /**
+     * @return array{0:PerfilService,1:PerfilValidator}
+     */
+    private function resolvePerfilDependencies(
+        ?PerfilService $perfilService = null,
+        ?PerfilValidator $validator = null
+    ): array {
+        $resolvedPerfilService = $perfilService ?? $this->resolveDependency(PerfilService::class);
+        $resolvedValidator = $validator ?? $this->resolveDependency(PerfilValidator::class);
+
+        if ($resolvedPerfilService !== null && $resolvedValidator !== null) {
+            return [$resolvedPerfilService, $resolvedValidator];
+        }
+
+        [$factoryPerfilService, $factoryValidator] = PerfilControllerFactory::buildDependencies();
+
+        return [
+            $resolvedPerfilService ?? $factoryPerfilService,
+            $resolvedValidator ?? $factoryValidator,
+        ];
     }
 
     /**

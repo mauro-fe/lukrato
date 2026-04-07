@@ -25,6 +25,12 @@ use Application\Services\Infrastructure\LogService;
  */
 class RecorrenciaCartaoService
 {
+    public function __construct(
+        private ?CartaoBillingDateService $billingDateService = null
+    ) {
+        $this->billingDateService ??= new CartaoBillingDateService();
+    }
+
     /**
      * Processar todas as recorrências ativas e gerar itens para o mês vigente/próximo
      * 
@@ -135,18 +141,26 @@ class RecorrenciaCartaoService
             return 'expirado';
         }
 
-        $mes = (int)$proximaDataCompra->format('n');
-        $ano = (int)$proximaDataCompra->format('Y');
+        $dataCompraFormatada = $proximaDataCompra->format('Y-m-d');
+        $diaFechamento = $cartao->dia_fechamento ? (int) $cartao->dia_fechamento : null;
+        $vencimento = $this->billingDateService->calcularDataVencimento(
+            $dataCompraFormatada,
+            (int) $cartao->dia_vencimento,
+            $diaFechamento
+        );
+        $competencia = $this->billingDateService->calcularCompetencia(
+            $dataCompraFormatada,
+            $diaFechamento
+        );
 
-        // Verificar se já existe item filho (ou o próprio pai) para este mês/ano
+        // Verificar se já existe item filho (ou o próprio pai) para esta data de compra.
         $jaExiste = FaturaCartaoItem::where('cartao_credito_id', $itemPai->cartao_credito_id)
             ->where('user_id', $itemPai->user_id)
             ->where(function ($q) use ($itemPai) {
                 $q->where('recorrencia_pai_id', $itemPai->id)
                     ->orWhere('id', $itemPai->id);
             })
-            ->where('mes_referencia', $mes)
-            ->where('ano_referencia', $ano)
+            ->whereDate('data_compra', $dataCompraFormatada)
             ->whereNull('cancelado_em')
             ->exists();
 
@@ -156,14 +170,13 @@ class RecorrenciaCartaoService
 
         // Criar apenas o próximo item devido.
         try {
-            $this->criarItemRecorrente($itemPai, $cartao, $mes, $ano, $proximaDataCompra);
+            $this->criarItemRecorrente($itemPai, $cartao, $competencia, $vencimento, $proximaDataCompra);
             return 'criado';
         } catch (\Throwable $e) {
             if (str_contains(strtolower($e->getMessage()), 'duplicate')) {
                 LogService::info('[RECORRENCIA_CARTAO] Duplicata evitada por unique key', [
                     'item_pai_id' => $itemPai->id,
-                    'mes' => $mes,
-                    'ano' => $ano,
+                    'data_compra' => $dataCompraFormatada,
                 ]);
                 return 'ignorado';
             }
@@ -239,17 +252,17 @@ class RecorrenciaCartaoService
     private function criarItemRecorrente(
         FaturaCartaoItem $itemPai,
         CartaoCredito $cartao,
-        int $mes,
-        int $ano,
+        array $competencia,
+        array $vencimento,
         ?\Carbon\Carbon $dataCompra = null
     ): FaturaCartaoItem {
-        // Calcular data de vencimento para este mês
-        $ultimoDiaMes = (int)date('t', mktime(0, 0, 0, $mes, 1, $ano));
-        $diaVencimento = min($cartao->dia_vencimento, $ultimoDiaMes);
-        $dataVencimento = sprintf('%04d-%02d-%02d', $ano, $mes, $diaVencimento);
-
         // Buscar ou criar fatura do mês
-        $fatura = $this->buscarOuCriarFatura($itemPai->user_id, $cartao->id, $mes, $ano);
+        $fatura = $this->buscarOuCriarFatura(
+            $itemPai->user_id,
+            $cartao->id,
+            (int) $vencimento['mes'],
+            (int) $vencimento['ano']
+        );
 
         $item = FaturaCartaoItem::create([
             'user_id' => $itemPai->user_id,
@@ -259,12 +272,12 @@ class RecorrenciaCartaoService
             'descricao' => $itemPai->descricao,
             'valor' => $itemPai->valor,
             'data_compra' => ($dataCompra ?? now())->format('Y-m-d'),
-            'data_vencimento' => $dataVencimento,
+            'data_vencimento' => (string) $vencimento['data'],
             'categoria_id' => $itemPai->categoria_id,
             'parcela_atual' => 1,
             'total_parcelas' => 1,
-            'mes_referencia' => $mes,
-            'ano_referencia' => $ano,
+            'mes_referencia' => (int) $competencia['mes'],
+            'ano_referencia' => (int) $competencia['ano'],
             'pago' => false,
             // Campos de recorrência
             'recorrente' => true,
@@ -286,7 +299,8 @@ class RecorrenciaCartaoService
             'fatura_id' => $fatura->id,
             'descricao' => $itemPai->descricao,
             'valor' => $itemPai->valor,
-            'mes_ano' => "{$mes}/{$ano}",
+            'mes_ano_fatura' => $vencimento['mes'] . '/' . $vencimento['ano'],
+            'mes_ano_competencia' => $competencia['mes'] . '/' . $competencia['ano'],
             'data_compra' => ($dataCompra ?? now())->format('Y-m-d'),
         ]);
 

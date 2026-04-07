@@ -50,7 +50,10 @@ class TelegramWebhookController extends ApiController
 
     private function workflowService(): TelegramWebhookWorkflowService
     {
-        return $this->workflowService ??= new TelegramWebhookWorkflowService();
+        return $this->workflowService ??= $this->resolveOrCreate(
+            null,
+            TelegramWebhookWorkflowService::class
+        );
     }
 
     private function plainTextResponse(string $content, int $statusCode = 200): Response

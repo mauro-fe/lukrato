@@ -11,11 +11,16 @@ use Application\Services\Importacao\ImportHistoryService;
 
 class ImportacoesHistoricoController extends WebController
 {
+    private readonly ContaRepository $contaRepository;
+    private readonly ImportHistoryService $historyService;
+
     public function __construct(
-        private readonly ContaRepository $contaRepository = new ContaRepository(),
-        private readonly ImportHistoryService $historyService = new ImportHistoryService(),
+        ?ContaRepository $contaRepository = null,
+        ?ImportHistoryService $historyService = null,
     ) {
         parent::__construct();
+        $this->contaRepository = $this->resolveOrCreate($contaRepository, ContaRepository::class);
+        $this->historyService = $this->resolveOrCreate($historyService, ImportHistoryService::class);
     }
 
     public function index(): Response

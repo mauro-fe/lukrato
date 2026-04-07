@@ -20,15 +20,28 @@ use Application\Services\Plan\PlanLimitService;
 
 class ConfirmController extends ApiController
 {
+    private readonly ImportExecutionService $executionService;
+    private readonly ImportQueueService $queueService;
+    private readonly ImportProfileConfigService $profileService;
+    private readonly ContaRepository $contaRepository;
+    private readonly PlanLimitService $planLimitService;
+    private readonly ImportUploadSecurityService $uploadSecurityService;
+
     public function __construct(
-        private readonly ImportExecutionService $executionService = new ImportExecutionService(),
-        private readonly ImportQueueService $queueService = new ImportQueueService(),
-        private readonly ImportProfileConfigService $profileService = new ImportProfileConfigService(),
-        private readonly ContaRepository $contaRepository = new ContaRepository(),
-        private readonly PlanLimitService $planLimitService = new PlanLimitService(),
-        private readonly ImportUploadSecurityService $uploadSecurityService = new ImportUploadSecurityService(),
+        ?ImportExecutionService $executionService = null,
+        ?ImportQueueService $queueService = null,
+        ?ImportProfileConfigService $profileService = null,
+        ?ContaRepository $contaRepository = null,
+        ?PlanLimitService $planLimitService = null,
+        ?ImportUploadSecurityService $uploadSecurityService = null,
     ) {
         parent::__construct();
+        $this->executionService = $this->resolveOrCreate($executionService, ImportExecutionService::class);
+        $this->queueService = $this->resolveOrCreate($queueService, ImportQueueService::class);
+        $this->profileService = $this->resolveOrCreate($profileService, ImportProfileConfigService::class);
+        $this->contaRepository = $this->resolveOrCreate($contaRepository, ContaRepository::class);
+        $this->planLimitService = $this->resolveOrCreate($planLimitService, PlanLimitService::class);
+        $this->uploadSecurityService = $this->resolveOrCreate($uploadSecurityService, ImportUploadSecurityService::class);
     }
 
     public function __invoke(): Response

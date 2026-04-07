@@ -107,7 +107,7 @@ class NotificacaoControllerTest extends TestCase
         );
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->marcarLida();
     }

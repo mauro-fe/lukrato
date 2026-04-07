@@ -335,10 +335,26 @@ class UserAiController extends ApiController
 
     private function workflowService(): UserAiWorkflowService
     {
-        return $this->workflowService ??= new UserAiWorkflowService(
-            $this->aiService,
-            $this->contextBuilder,
-            $this->mediaRouterService
+        if ($this->workflowService !== null) {
+            return $this->workflowService;
+        }
+
+        if ($this->aiService !== null || $this->contextBuilder !== null || $this->mediaRouterService !== null) {
+            return $this->workflowService = new UserAiWorkflowService(
+                $this->resolveOrCreate($this->aiService, AIService::class),
+                $this->resolveOrCreate($this->contextBuilder, UserContextBuilder::class),
+                $this->resolveOrCreate($this->mediaRouterService, MediaRouterService::class)
+            );
+        }
+
+        return $this->workflowService = $this->resolveOrCreate(
+            null,
+            UserAiWorkflowService::class,
+            fn(): UserAiWorkflowService => new UserAiWorkflowService(
+                $this->resolveOrCreate($this->aiService, AIService::class),
+                $this->resolveOrCreate($this->contextBuilder, UserContextBuilder::class),
+                $this->resolveOrCreate($this->mediaRouterService, MediaRouterService::class)
+            )
         );
     }
 }

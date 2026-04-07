@@ -13,8 +13,8 @@ class FaturaInstallmentCalculatorService
     private const STATUS_PAGA = 'paga';
 
     /**
-     * Calcular mês/ano de competência (mês da compra).
-     * A competência é sempre o mês da compra.
+     * Calcular mês/ano de competência considerando o fechamento do cartão.
+     * Compras realizadas no dia do fechamento ou após ele entram no próximo ciclo.
      */
     public function calcularCompetenciaFatura(
         int $diaCompra,
@@ -22,9 +22,21 @@ class FaturaInstallmentCalculatorService
         int $anoCompra,
         int $diaFechamento
     ): array {
+        $mesCompetencia = $mesCompra;
+        $anoCompetencia = $anoCompra;
+
+        if ($diaFechamento > 0 && $diaCompra >= $diaFechamento) {
+            $mesCompetencia++;
+
+            if ($mesCompetencia > 12) {
+                $mesCompetencia = 1;
+                $anoCompetencia++;
+            }
+        }
+
         return [
-            'mes' => $mesCompra,
-            'ano' => $anoCompra,
+            'mes' => $mesCompetencia,
+            'ano' => $anoCompetencia,
         ];
     }
 

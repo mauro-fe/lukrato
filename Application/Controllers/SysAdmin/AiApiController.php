@@ -11,10 +11,13 @@ use Application\Services\Admin\AiAdminWorkflowService;
 
 class AiApiController extends ApiController
 {
+    private readonly AiAdminWorkflowService $workflowService;
+
     public function __construct(
-        private readonly AiAdminWorkflowService $workflowService = new AiAdminWorkflowService()
+        ?AiAdminWorkflowService $workflowService = null
     ) {
         parent::__construct();
+        $this->workflowService = $this->resolveOrCreate($workflowService, AiAdminWorkflowService::class);
     }
 
     public function healthProxy(): Response

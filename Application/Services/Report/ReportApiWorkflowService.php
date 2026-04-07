@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Report;
 
+use Application\Container\ApplicationContainer;
 use Application\Builders\ReportExportBuilder;
 use Application\DTO\ReportParameters;
 use Application\Enums\GamificationAction;
@@ -19,15 +20,30 @@ use InvalidArgumentException;
 
 class ReportApiWorkflowService
 {
+    private readonly ReportService $reportService;
+    private readonly ReportExportBuilder $exportBuilder;
+    private readonly PdfExportService $pdfExport;
+    private readonly ExcelExportService $excelExport;
+    private readonly InsightsService $insightsService;
+    private readonly ComparativesService $comparativesService;
+    private readonly ?GamificationService $gamificationService;
+
     public function __construct(
-        private readonly ReportService $reportService = new ReportService(),
-        private readonly ReportExportBuilder $exportBuilder = new ReportExportBuilder(),
-        private readonly PdfExportService $pdfExport = new PdfExportService(),
-        private readonly ExcelExportService $excelExport = new ExcelExportService(),
-        private readonly InsightsService $insightsService = new InsightsService(),
-        private readonly ComparativesService $comparativesService = new ComparativesService(),
-        private readonly ?GamificationService $gamificationService = null
+        ?ReportService $reportService = null,
+        ?ReportExportBuilder $exportBuilder = null,
+        ?PdfExportService $pdfExport = null,
+        ?ExcelExportService $excelExport = null,
+        ?InsightsService $insightsService = null,
+        ?ComparativesService $comparativesService = null,
+        ?GamificationService $gamificationService = null
     ) {
+        $this->reportService = ApplicationContainer::resolveOrNew($reportService, ReportService::class);
+        $this->exportBuilder = ApplicationContainer::resolveOrNew($exportBuilder, ReportExportBuilder::class);
+        $this->pdfExport = ApplicationContainer::resolveOrNew($pdfExport, PdfExportService::class);
+        $this->excelExport = ApplicationContainer::resolveOrNew($excelExport, ExcelExportService::class);
+        $this->insightsService = ApplicationContainer::resolveOrNew($insightsService, InsightsService::class);
+        $this->comparativesService = ApplicationContainer::resolveOrNew($comparativesService, ComparativesService::class);
+        $this->gamificationService = $gamificationService ?? ApplicationContainer::tryMake(GamificationService::class);
     }
 
     /**

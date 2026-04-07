@@ -11,10 +11,13 @@ use Application\Services\Admin\CupomAdminWorkflowService;
 
 class CupomController extends ApiController
 {
+    private readonly CupomAdminWorkflowService $workflowService;
+
     public function __construct(
-        private readonly CupomAdminWorkflowService $workflowService = new CupomAdminWorkflowService()
+        ?CupomAdminWorkflowService $workflowService = null
     ) {
         parent::__construct();
+        $this->workflowService = $this->resolveOrCreate($workflowService, CupomAdminWorkflowService::class);
     }
 
     public function index(): Response

@@ -60,9 +60,6 @@ class FaturaFormatterService
             return $item->ano_referencia * 100 + $item->mes_referencia;
         })->first();
 
-        $mesRetorno = $mesRef !== null ? $mesRef : ($primeiroMesRef ? $primeiroMesRef->mes_referencia : null);
-        $anoRetorno = $anoRef !== null ? $anoRef : ($primeiroMesRef ? $primeiroMesRef->ano_referencia : null);
-
         $dataVencimento = null;
         $mesFatura = null;
         $anoFatura = null;
@@ -79,6 +76,9 @@ class FaturaFormatterService
                 $dataVencimento = sprintf('%04d-%02d-%02d', $anoFatura, $mesFatura, $dia);
             }
         }
+
+        $mesRetorno = $mesFatura ?? ($mesRef !== null ? $mesRef : ($primeiroMesRef ? $primeiroMesRef->mes_referencia : null));
+        $anoRetorno = $anoFatura ?? ($anoRef !== null ? $anoRef : ($primeiroMesRef ? $primeiroMesRef->ano_referencia : null));
 
         return [
             'id' => $fatura->id,

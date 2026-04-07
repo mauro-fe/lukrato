@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace Application\Services\Fatura;
 
+use Application\Container\ApplicationContainer;
+
 class FaturaApiWorkflowService
 {
+    private readonly FaturaService $faturaService;
+
     public function __construct(
-        private readonly FaturaService $faturaService = new FaturaService()
+        ?FaturaService $faturaService = null
     ) {
+        $this->faturaService = ApplicationContainer::resolveOrNew($faturaService, FaturaService::class);
     }
 
     /**

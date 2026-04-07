@@ -10,10 +10,13 @@ use Application\Services\Importacao\ImportQueueService;
 
 class JobStatusController extends ApiController
 {
+    private readonly ImportQueueService $queueService;
+
     public function __construct(
-        private readonly ImportQueueService $queueService = new ImportQueueService(),
+        ?ImportQueueService $queueService = null,
     ) {
         parent::__construct();
+        $this->queueService = $this->resolveOrCreate($queueService, ImportQueueService::class);
     }
 
     public function __invoke(int $id): Response

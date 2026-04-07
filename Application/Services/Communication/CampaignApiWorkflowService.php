@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Communication;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\Cupom;
 use Application\Models\MessageCampaign;
 use Application\Services\Infrastructure\LogService;
@@ -12,9 +13,12 @@ use Throwable;
 
 class CampaignApiWorkflowService
 {
+    private readonly NotificationService $notificationService;
+
     public function __construct(
-        private readonly NotificationService $notificationService = new NotificationService()
+        ?NotificationService $notificationService = null
     ) {
+        $this->notificationService = ApplicationContainer::resolveOrNew($notificationService, NotificationService::class);
     }
 
     public function listCampaigns(int $page, int $perPage): array

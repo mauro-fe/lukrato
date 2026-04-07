@@ -26,11 +26,18 @@ class LoginController extends WebController
         ?AuthService $authService = null,
         ?TurnstileService $turnstile = null
     ) {
-        parent::__construct();
+        parent::__construct(cache: $cache);
 
-        $this->cache = $cache ?? new CacheService();
-        $this->authService = $authService ?? new AuthService($this->request, $this->cache);
-        $this->turnstile = $turnstile ?? new TurnstileService($this->cache);
+        $this->authService = $this->resolveOrCreate(
+            $authService,
+            AuthService::class,
+            fn(): AuthService => new AuthService($this->request, $this->cache)
+        );
+        $this->turnstile = $this->resolveOrCreate(
+            $turnstile,
+            TurnstileService::class,
+            fn(): TurnstileService => new TurnstileService($this->cache)
+        );
     }
 
     public function login(): Response

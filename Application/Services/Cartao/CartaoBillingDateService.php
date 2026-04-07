@@ -13,9 +13,25 @@ class CartaoBillingDateService
     {
         $dataObj = new \DateTimeImmutable($dataCompra);
 
+        $mesCompetencia = (int) $dataObj->format('n');
+        $anoCompetencia = (int) $dataObj->format('Y');
+
+        if ($diaFechamento !== null && $diaFechamento > 0) {
+            $diaCompra = (int) $dataObj->format('j');
+
+            if ($diaCompra >= $diaFechamento) {
+                $mesCompetencia++;
+
+                if ($mesCompetencia > 12) {
+                    $mesCompetencia = 1;
+                    $anoCompetencia++;
+                }
+            }
+        }
+
         return [
-            'mes' => (int) $dataObj->format('n'),
-            'ano' => (int) $dataObj->format('Y'),
+            'mes' => $mesCompetencia,
+            'ano' => $anoCompetencia,
         ];
     }
 

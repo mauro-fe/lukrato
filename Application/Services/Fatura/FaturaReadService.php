@@ -34,12 +34,12 @@ class FaturaReadService
 
             if ($mes && $ano) {
                 $query->with(['itens' => function ($query) use ($mes, $ano) {
-                    $query->where('mes_referencia', $mes)
-                        ->where('ano_referencia', $ano);
+                    $query->whereYear('data_vencimento', $ano)
+                        ->whereMonth('data_vencimento', $mes);
                 }]);
             } elseif ($ano) {
                 $query->with(['itens' => function ($query) use ($ano) {
-                    $query->where('ano_referencia', $ano);
+                    $query->whereYear('data_vencimento', $ano);
                 }]);
             } else {
                 $query->with(['itens']);
@@ -55,12 +55,12 @@ class FaturaReadService
 
             if ($mes && $ano) {
                 $query->whereHas('itens', function ($query) use ($mes, $ano) {
-                    $query->where('mes_referencia', $mes)
-                        ->where('ano_referencia', $ano);
+                    $query->whereYear('data_vencimento', $ano)
+                        ->whereMonth('data_vencimento', $mes);
                 });
             } elseif ($ano) {
                 $query->whereHas('itens', function ($query) use ($ano) {
-                    $query->where('ano_referencia', $ano);
+                    $query->whereYear('data_vencimento', $ano);
                 });
             }
 
@@ -85,9 +85,9 @@ class FaturaReadService
             $anos = FaturaCartaoItem::whereHas('fatura', function ($query) use ($usuarioId) {
                 $query->where('user_id', $usuarioId);
             })
-                ->select('ano_referencia')
+                ->selectRaw('YEAR(data_vencimento) as ano_vencimento')
                 ->distinct()
-                ->pluck('ano_referencia')
+                ->pluck('ano_vencimento')
                 ->filter()
                 ->sort()
                 ->values()

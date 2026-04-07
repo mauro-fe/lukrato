@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Importacao;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\Importacao\ImportProfileConfigDTO;
 use Application\DTO\ServiceResultDTO;
 use Application\Enums\LogCategory;
@@ -22,12 +23,22 @@ use Illuminate\Database\Capsule\Manager as DB;
 
 class ImportExecutionService
 {
+    private readonly ImportPreviewService $previewService;
+    private readonly LancamentoCreationService $lancamentoCreationService;
+    private readonly CartaoBillingDateService $billingDateService;
+    private readonly CartaoFaturaSupportService $faturaSupportService;
+
     public function __construct(
-        private readonly ImportPreviewService $previewService = new ImportPreviewService(),
-        private readonly LancamentoCreationService $lancamentoCreationService = new LancamentoCreationService(),
-        private readonly CartaoBillingDateService $billingDateService = new CartaoBillingDateService(),
-        private readonly CartaoFaturaSupportService $faturaSupportService = new CartaoFaturaSupportService(),
-    ) {}
+        ?ImportPreviewService $previewService = null,
+        ?LancamentoCreationService $lancamentoCreationService = null,
+        ?CartaoBillingDateService $billingDateService = null,
+        ?CartaoFaturaSupportService $faturaSupportService = null,
+    ) {
+        $this->previewService = ApplicationContainer::resolveOrNew($previewService, ImportPreviewService::class);
+        $this->lancamentoCreationService = ApplicationContainer::resolveOrNew($lancamentoCreationService, LancamentoCreationService::class);
+        $this->billingDateService = ApplicationContainer::resolveOrNew($billingDateService, CartaoBillingDateService::class);
+        $this->faturaSupportService = ApplicationContainer::resolveOrNew($faturaSupportService, CartaoFaturaSupportService::class);
+    }
 
     public function prepareExecution(
         string $sourceType,

@@ -4,19 +4,26 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Controllers\SysAdmin;
 
+use Application\Container\ApplicationContainer;
 use Application\Controllers\SysAdmin\BlogController;
 use Application\Core\Exceptions\AuthException;
 use Application\Models\Usuario;
+use Application\Services\Admin\BlogAdminWorkflowService;
+use Illuminate\Container\Container as IlluminateContainer;
+use Mockery;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Tests\Support\SessionIsolation;
 
 class BlogControllerTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
     use SessionIsolation;
 
     protected function setUp(): void
     {
         parent::setUp();
+        ApplicationContainer::flush();
         $this->resetSessionState();
         $_GET = [];
         $_POST = [];
@@ -26,6 +33,7 @@ class BlogControllerTest extends TestCase
 
     protected function tearDown(): void
     {
+        ApplicationContainer::flush();
         $_GET = [];
         $_POST = [];
         $_REQUEST = [];
@@ -39,9 +47,22 @@ class BlogControllerTest extends TestCase
         $controller = new BlogController();
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->index();
+    }
+
+    public function testConstructorResolvesWorkflowFromContainerWhenAvailable(): void
+    {
+        $workflowService = Mockery::mock(BlogAdminWorkflowService::class);
+
+        $container = new IlluminateContainer();
+        $container->instance(BlogAdminWorkflowService::class, $workflowService);
+        ApplicationContainer::setInstance($container);
+
+        $controller = new BlogController();
+
+        $this->assertSame($workflowService, $this->readProperty($controller, 'workflowService'));
     }
 
     public function testStoreReturnsValidationErrorsWhenPayloadIsEmpty(): void
@@ -79,5 +100,13 @@ class BlogControllerTest extends TestCase
             'id' => $userId,
             'data' => $user,
         ];
+    }
+
+    private function readProperty(object $object, string $property): mixed
+    {
+        $reflection = new \ReflectionProperty($object, $property);
+        $reflection->setAccessible(true);
+
+        return $reflection->getValue($object);
     }
 }

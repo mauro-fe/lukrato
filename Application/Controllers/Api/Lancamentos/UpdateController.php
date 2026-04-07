@@ -26,13 +26,45 @@ class UpdateController extends ApiController
         ?UpdateTransferenciaUseCase $updateTransferenciaUseCase = null
     ) {
         parent::__construct();
-        $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
-        $this->updateService = $updateService ?? new LancamentoUpdateService();
 
-        $contaRepo ??= new ContaRepository();
-        $metaProgressService ??= new MetaProgressService();
-        $this->updateTransferenciaUseCase = $updateTransferenciaUseCase
-            ?? new UpdateTransferenciaUseCase($this->lancamentoRepo, $contaRepo, $metaProgressService);
+        $hasExplicitUpdateServiceDependencies = $lancamentoRepo !== null || $metaProgressService !== null;
+        $hasExplicitTransferDependencies = $lancamentoRepo !== null || $contaRepo !== null || $metaProgressService !== null;
+        $resolvedMetaProgressService = $metaProgressService !== null
+            ? $this->resolveOrCreate($metaProgressService, MetaProgressService::class)
+            : null;
+
+        $this->lancamentoRepo = $this->resolveOrCreate($lancamentoRepo, LancamentoRepository::class);
+        $this->updateService = $updateService !== null
+            ? $updateService
+            : ($hasExplicitUpdateServiceDependencies
+                ? new LancamentoUpdateService($this->lancamentoRepo, null, $resolvedMetaProgressService)
+                : $this->resolveOrCreate(
+                    null,
+                    LancamentoUpdateService::class,
+                    fn(): LancamentoUpdateService => new LancamentoUpdateService($this->lancamentoRepo)
+                ));
+
+        if ($updateTransferenciaUseCase !== null) {
+            $this->updateTransferenciaUseCase = $updateTransferenciaUseCase;
+
+            return;
+        }
+
+        if ($hasExplicitTransferDependencies) {
+            $this->updateTransferenciaUseCase = new UpdateTransferenciaUseCase(
+                $this->lancamentoRepo,
+                $this->resolveOrCreate($contaRepo, ContaRepository::class),
+                $resolvedMetaProgressService ?? $this->resolveOrCreate(null, MetaProgressService::class)
+            );
+
+            return;
+        }
+
+        $this->updateTransferenciaUseCase = $this->resolveOrCreate(
+            null,
+            UpdateTransferenciaUseCase::class,
+            fn(): UpdateTransferenciaUseCase => new UpdateTransferenciaUseCase($this->lancamentoRepo)
+        );
     }
 
     public function __invoke(int $id): Response

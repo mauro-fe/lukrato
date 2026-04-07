@@ -117,6 +117,9 @@ class BillingController extends WebController
 
     private function getDocumentoRepo(): DocumentoRepository
     {
-        return $this->documentoRepo ??= new DocumentoRepository();
+        return $this->documentoRepo ??= $this->resolveOrCreate(
+            null,
+            DocumentoRepository::class
+        );
     }
 }

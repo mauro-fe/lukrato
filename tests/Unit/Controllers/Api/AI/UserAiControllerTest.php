@@ -78,7 +78,7 @@ class UserAiControllerTest extends TestCase
         $this->assertSame(422, $response->getStatusCode());
         $this->assertSame([
             'success' => false,
-            'message' => 'Descrição muito curta para sugerir categoria.',
+            'message' => 'Descricao muito curta para sugerir categoria.',
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 

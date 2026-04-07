@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Communication;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\Notificacao;
 use Application\Models\Notification;
 use Application\Models\Usuario;
@@ -30,10 +31,15 @@ class NotificationInboxService
         'reminder' => ['🔔', '#3b82f6'],
     ];
 
+    private readonly CartaoCreditoService $cartaoService;
+    private readonly CartaoFaturaService $faturaService;
+
     public function __construct(
-        private readonly CartaoCreditoService $cartaoService = new CartaoCreditoService(),
-        private readonly CartaoFaturaService $faturaService = new CartaoFaturaService()
+        ?CartaoCreditoService $cartaoService = null,
+        ?CartaoFaturaService $faturaService = null
     ) {
+        $this->cartaoService = ApplicationContainer::resolveOrNew($cartaoService, CartaoCreditoService::class);
+        $this->faturaService = ApplicationContainer::resolveOrNew($faturaService, CartaoFaturaService::class);
     }
 
     /**

@@ -4,15 +4,19 @@ declare(strict_types=1);
 
 namespace Application\Services\Admin;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\Cupom;
 use Application\Models\MessageCampaign;
 use Application\Services\Communication\NotificationService;
 
 class CommunicationAdminViewService
 {
+    private readonly NotificationService $notificationService;
+
     public function __construct(
-        private readonly NotificationService $notificationService = new NotificationService()
+        ?NotificationService $notificationService = null
     ) {
+        $this->notificationService = ApplicationContainer::resolveOrNew($notificationService, NotificationService::class);
     }
 
     /**

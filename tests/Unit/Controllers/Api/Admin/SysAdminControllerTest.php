@@ -39,7 +39,7 @@ class SysAdminControllerTest extends TestCase
         $controller = new SysAdminController();
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->maintenanceStatus();
     }
