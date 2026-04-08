@@ -22,6 +22,24 @@ class UserImportAuthMediaCompositionGuardTest extends TestCase
             'PerfilApiWorkflowService não deve instanciar AchievementService diretamente.'
         );
 
+        $this->assertStringNotContainsString(
+            'PerfilControllerFactory::buildDependencies()',
+            $perfilApiWorkflowService,
+            'PerfilApiWorkflowService não deve recorrer à PerfilControllerFactory.'
+        );
+
+        $this->assertDoesNotMatchRegularExpression(
+            '/new\s+PerfilService\s*\(/',
+            $perfilApiWorkflowService,
+            'PerfilApiWorkflowService não deve instanciar PerfilService diretamente.'
+        );
+
+        $this->assertDoesNotMatchRegularExpression(
+            '/new\s+PerfilValidator\s*\(/',
+            $perfilApiWorkflowService,
+            'PerfilApiWorkflowService não deve instanciar PerfilValidator diretamente.'
+        );
+
         $this->assertDoesNotMatchRegularExpression(
             '/\$this->ofxImportTargetDetector\s*=\s*\$ofxImportTargetDetector\s*\?\?\s*new\s+OfxImportTargetDetector\s*\(/',
             $importPreviewService,

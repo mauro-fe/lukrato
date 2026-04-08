@@ -32,22 +32,10 @@ class RegistroController extends WebController
         ?TurnstileService $turnstile = null
     ) {
         parent::__construct();
-        $this->authService = $this->resolveOrCreate(
-            $authService,
-            AuthService::class,
-            fn(): AuthService => new AuthService($this->request, $this->cache)
-        );
+        $this->authService = $this->resolveOrCreate($authService, AuthService::class);
         $this->googleAuthService = $this->resolveOrCreate($googleAuthService, GoogleAuthService::class);
-        $this->responseHandler = $this->resolveOrCreate(
-            $responseHandler,
-            RegistrationResponseHandler::class,
-            fn(): RegistrationResponseHandler => new RegistrationResponseHandler($this->request)
-        );
-        $this->turnstile = $this->resolveOrCreate(
-            $turnstile,
-            TurnstileService::class,
-            fn(): TurnstileService => new TurnstileService($this->cache)
-        );
+        $this->responseHandler = $this->resolveOrCreate($responseHandler, RegistrationResponseHandler::class);
+        $this->turnstile = $this->resolveOrCreate($turnstile, TurnstileService::class);
     }
 
     public function showForm(): Response
@@ -207,11 +195,7 @@ class RegistroController extends WebController
 
     private function turnstileService(): TurnstileService
     {
-        return $this->turnstile = $this->resolveOrCreate(
-            $this->turnstile,
-            TurnstileService::class,
-            fn(): TurnstileService => new TurnstileService($this->cache)
-        );
+        return $this->turnstile = $this->resolveOrCreate($this->turnstile, TurnstileService::class);
     }
 
     private function getSocialRegistrationData(): ?array

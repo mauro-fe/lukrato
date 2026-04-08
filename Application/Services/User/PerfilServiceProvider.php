@@ -90,7 +90,6 @@ class PerfilServiceProvider
             );
         });
 
-        // Controller
-        // Registrado via Application\Providers\PerfilControllerFactory
+        // Workflow and controller-facing perfil dependencies are resolved from these bindings.
     }
 }

@@ -16,37 +16,37 @@ class EngagementServicesCompositionGuardTest extends TestCase
         $referralService = (string) file_get_contents('Application/Services/Referral/ReferralService.php');
 
         $this->assertDoesNotMatchRegularExpression(
-            '/new\s+AchievementService\s*\(\s*\);/',
+            '/new\s+AchievementService\s*\(/',
             $gamificationService,
             'GamificationService não deve instanciar AchievementService diretamente nos fluxos de negócio.'
         );
 
         $this->assertDoesNotMatchRegularExpression(
-            '/new\s+StreakService\s*\(\s*\);/',
+            '/new\s+StreakService\s*\(/',
             $gamificationService,
             'GamificationService não deve instanciar StreakService diretamente nos fluxos de negócio.'
         );
 
         $this->assertDoesNotMatchRegularExpression(
-            '/new\s+GamificationService\s*\(\s*\);/',
+            '/new\s+GamificationService\s*\(/',
             $achievementService,
             'AchievementService não deve instanciar GamificationService diretamente nos fluxos de negócio.'
         );
 
         $this->assertDoesNotMatchRegularExpression(
-            '/new\s+FeedbackRepository\s*\(\s*\);/',
+            '/new\s+FeedbackRepository\s*\(/',
             $feedbackService,
             'FeedbackService não deve instanciar FeedbackRepository diretamente.'
         );
 
         $this->assertDoesNotMatchRegularExpression(
-            '/new\s+ReferralAntifraudService\s*\(\s*\);/',
+            '/new\s+ReferralAntifraudService\s*\(/',
             $referralService,
             'ReferralService não deve instanciar ReferralAntifraudService diretamente nos fluxos de negócio.'
         );
 
         $this->assertDoesNotMatchRegularExpression(
-            '/new\s+AchievementService\s*\(\s*\);/',
+            '/new\s+AchievementService\s*\(/',
             $referralService,
             'ReferralService não deve instanciar AchievementService diretamente nos fluxos de negócio.'
         );

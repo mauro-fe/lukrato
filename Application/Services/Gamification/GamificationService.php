@@ -29,15 +29,18 @@ use Application\Services\Infrastructure\LogService;
  */
 class GamificationService
 {
-    private ?AchievementService $achievementService;
-    private ?StreakService $streakService;
+    private AchievementService $achievementService;
+    private StreakService $streakService;
+    private LevelService $levelService;
 
     public function __construct(
         ?AchievementService $achievementService = null,
-        ?StreakService $streakService = null
+        ?StreakService $streakService = null,
+        ?LevelService $levelService = null
     ) {
-        $this->achievementService = $achievementService;
-        $this->streakService = $streakService;
+        $this->achievementService = ApplicationContainer::resolveOrNew($achievementService, AchievementService::class);
+        $this->streakService = ApplicationContainer::resolveOrNew($streakService, StreakService::class);
+        $this->levelService = ApplicationContainer::resolveOrNew($levelService, LevelService::class);
     }
 
     /**
@@ -45,23 +48,7 @@ class GamificationService
      * Níveis expandidos de 1 a 15
      * FONTE DE VERDADE: Todas as outras classes devem referenciar esta constante
      */
-    public const LEVEL_THRESHOLDS = [
-        1 => 0,
-        2 => 300,
-        3 => 500,
-        4 => 700,
-        5 => 1000,
-        6 => 1500,
-        7 => 2200,
-        8 => 3000,
-        9 => 4000,
-        10 => 5500,
-        11 => 7500,
-        12 => 10000,
-        13 => 15000,
-        14 => 25000,
-        15 => 50000,
-    ];
+    public const LEVEL_THRESHOLDS = LevelService::LEVEL_THRESHOLDS;
 
     /**
      * Adicionar pontos ao usuário por uma ação
@@ -138,7 +125,7 @@ class GamificationService
             $levelData = $this->recalculateLevel($userId);
 
             // Verificar conquistas
-            $newAchievements = $this->achievementService()->checkAndUnlockAchievements($userId, $action->value);
+            $newAchievements = $this->achievementService->checkAndUnlockAchievements($userId, $action->value);
 
             LogService::info("+{$points} pontos para user {$userId} - Ação: {$action->value}" . ($isPro ? ' [PRO]' : ''));
 
@@ -177,7 +164,7 @@ class GamificationService
      */
     public function updateStreak(int $userId): array
     {
-        return $this->streakService()->updateStreak($userId);
+        return $this->streakService->updateStreak($userId);
     }
 
     /**
@@ -188,57 +175,15 @@ class GamificationService
      */
     public function recalculateLevel(int $userId): array
     {
-        $progress = $this->getOrCreateProgress($userId);
-        $points = $progress->total_points;
+        $levelData = $this->levelService->recalculateLevel($userId);
 
-        $previousLevel = $progress->current_level;
-        $newLevel = $this->calculateLevelFromPoints($points);
-
-        $levelUp = $newLevel > $previousLevel;
-
-        // Atualizar nível e calcular pontos para próximo nível
-        $progress->current_level = $newLevel;
-        $nextLevelThreshold = self::LEVEL_THRESHOLDS[$newLevel + 1] ?? null;
-        $progress->points_to_next_level = $nextLevelThreshold
-            ? $nextLevelThreshold - $points
-            : 0;
-
-        $progress->save();
-
-        if ($levelUp) {
-            // Registrar level up
-            PointsLog::create([
-                'user_id' => $userId,
-                'action' => GamificationAction::LEVEL_UP->value,
-                'points' => 0,
-                'description' => "Subiu para o nível {$newLevel}",
-                'metadata' => ['new_level' => $newLevel, 'previous_level' => $previousLevel],
-            ]);
-
-            LogService::info("User {$userId} subiu para nível {$newLevel}!");
-
-            // Verificar conquistas de nível (3, 5, 8, 10, 12, 15)
-            if (in_array($newLevel, [3, 5, 8, 10, 12, 15])) {
-                $this->checkAchievements($userId);
-            }
+        if (($levelData['level_up'] ?? false)
+            && LevelService::isAchievementLevel((int) ($levelData['current_level'] ?? 0))
+        ) {
+            $this->checkAchievements($userId);
         }
 
-        // Calcular progresso percentual
-        $currentThreshold = self::LEVEL_THRESHOLDS[$newLevel];
-        $nextThreshold = self::LEVEL_THRESHOLDS[$newLevel + 1] ?? $currentThreshold;
-        $pointsInLevel = $points - $currentThreshold;
-        $pointsForLevel = $nextThreshold - $currentThreshold;
-
-        $progressPercentage = $pointsForLevel > 0
-            ? min(100, ($pointsInLevel / $pointsForLevel) * 100)
-            : 100;
-
-        return [
-            'current_level' => $newLevel,
-            'level_up' => $levelUp,
-            'points_to_next_level' => $progress->points_to_next_level,
-            'progress_percentage' => round($progressPercentage, 1),
-        ];
+        return $levelData;
     }
 
     /**
@@ -250,7 +195,7 @@ class GamificationService
      */
     public function checkAchievements(int $userId): array
     {
-        $achievements = $this->achievementService()->checkAndUnlockAchievements($userId);
+        $achievements = $this->achievementService->checkAndUnlockAchievements($userId);
 
         // Formatar para compatibilidade
         return array_map(function ($ach) {
@@ -310,32 +255,5 @@ class GamificationService
             ->where('related_id', $relatedId)
             ->where('related_type', $relatedType)
             ->exists();
-    }
-
-    /**
-     * Calcular nível baseado em pontos
-     */
-    private function calculateLevelFromPoints(int $points): int
-    {
-        foreach (array_reverse(self::LEVEL_THRESHOLDS, true) as $level => $threshold) {
-            if ($points >= $threshold) {
-                return $level;
-            }
-        }
-        return 1;
-    }
-
-    private function achievementService(): AchievementService
-    {
-        return $this->achievementService ??= ApplicationContainer::resolveOrNew(
-            null,
-            AchievementService::class,
-            fn(): AchievementService => new AchievementService($this)
-        );
-    }
-
-    private function streakService(): StreakService
-    {
-        return $this->streakService ??= ApplicationContainer::resolveOrNew(null, StreakService::class);
     }
 }

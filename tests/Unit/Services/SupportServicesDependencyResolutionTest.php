@@ -13,6 +13,7 @@ use Application\Services\Auth\EmailVerificationService;
 use Application\Services\Auth\MailPasswordResetNotification;
 use Application\Services\Auth\PasswordResetService;
 use Application\Services\Auth\RateLimitSecurityCheck;
+use Application\Services\Auth\RegistrationResponseHandler;
 use Application\Services\Auth\TokenPairService;
 use Application\Services\Communication\MailService;
 use Application\Services\Infrastructure\CacheService;
@@ -52,18 +53,27 @@ class SupportServicesDependencyResolutionTest extends TestCase
         $container->instance(MailService::class, $mailService);
         $container->instance(TokenPairService::class, $tokenPairService);
         $container->instance(CacheService::class, $cacheService);
+        $container->instance(Request::class, $request);
+        $container->instance(PasswordResetRepositoryInterface::class, $repository);
+        $container->instance(TokenGeneratorInterface::class, $tokenGenerator);
+        $container->instance(PasswordResetNotificationInterface::class, $notifier);
         ApplicationContainer::setInstance($container);
 
         $emailVerificationService = new EmailVerificationService();
         $rateLimitSecurityCheck = new RateLimitSecurityCheck($request);
-        $passwordResetService = new PasswordResetService($repository, $tokenGenerator, $notifier);
+        $passwordResetService = new PasswordResetService();
+        $registrationResponseHandler = new RegistrationResponseHandler();
         $mailPasswordResetNotification = new MailPasswordResetNotification();
         $turnstileService = new TurnstileService();
 
         $this->assertSame($mailService, $this->readProperty($emailVerificationService, 'mailService'));
         $this->assertSame($tokenPairService, $this->readProperty($emailVerificationService, 'tokenPairService'));
         $this->assertSame($cacheService, $this->readProperty($rateLimitSecurityCheck, 'cache'));
+        $this->assertSame($repository, $this->readProperty($passwordResetService, 'repository'));
+        $this->assertSame($tokenGenerator, $this->readProperty($passwordResetService, 'tokenGenerator'));
+        $this->assertSame($notifier, $this->readProperty($passwordResetService, 'notifier'));
         $this->assertSame($tokenPairService, $this->readProperty($passwordResetService, 'tokenPairService'));
+        $this->assertSame($request, $this->readProperty($registrationResponseHandler, 'request'));
         $this->assertSame($mailService, $this->readProperty($mailPasswordResetNotification, 'mail'));
         $this->assertSame($cacheService, $this->readProperty($turnstileService, 'cache'));
     }

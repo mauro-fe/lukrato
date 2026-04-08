@@ -11,6 +11,7 @@ class UserProfileSupportCompositionGuardTest extends TestCase
     public function testUserProfileSupportDoesNotInstantiateDependenciesInline(): void
     {
         $avatarUseCase = (string) file_get_contents('Application/UseCases/Perfil/AvatarUseCase.php');
+        $deleteAccountUseCase = (string) file_get_contents('Application/UseCases/Perfil/DeleteAccountUseCase.php');
         $perfilService = (string) file_get_contents('Application/Services/User/PerfilService.php');
         $documentoRepository = (string) file_get_contents('Application/Repositories/DocumentoRepository.php');
         $usuarioModel = (string) file_get_contents('Application/Models/Usuario.php');
@@ -19,6 +20,12 @@ class UserProfileSupportCompositionGuardTest extends TestCase
             '/function\s+__construct\s*\((?:(?!\)\s*\{).)*=\s*new\s+[\\\w]+/s',
             $avatarUseCase,
             'AvatarUseCase não deve usar default inline com new no construtor.'
+        );
+
+        $this->assertDoesNotMatchRegularExpression(
+            '/new\s+PerfilApiWorkflowService\s*\(/',
+            $deleteAccountUseCase,
+            'DeleteAccountUseCase não deve instanciar PerfilApiWorkflowService diretamente.'
         );
 
         $this->assertDoesNotMatchRegularExpression(

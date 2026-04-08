@@ -7,8 +7,8 @@ namespace Tests\Unit\Controllers\Api\Conta;
 use Application\Controllers\Api\Conta\ContasController;
 use Application\Core\Exceptions\AuthException;
 use Application\Models\Usuario;
-use Application\Services\Conta\ContaService;
-use Application\Services\Plan\PlanLimitService;
+use Application\Services\Conta\ContaApiWorkflowService;
+use Application\Services\Demo\DemoPreviewService;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
@@ -41,16 +41,24 @@ class ContasControllerTest extends TestCase
     {
         $this->seedAuthenticatedSession(1101, 'Conta User');
 
-        $service = Mockery::mock(ContaService::class);
-        $service
-            ->shouldReceive('listarContas')
+        $workflowService = Mockery::mock(ContaApiWorkflowService::class);
+        $workflowService
+            ->shouldReceive('listAccounts')
             ->once()
-            ->with(1101, false, true, false, null)
+            ->with(1101, [
+                'archived' => 0,
+                'only_active' => null,
+                'with_balances' => 0,
+                'month' => null,
+            ])
             ->andReturn([
-                ['id' => 1, 'nome' => 'Conta Principal'],
+                'success' => true,
+                'data' => [
+                    ['id' => 1, 'nome' => 'Conta Principal'],
+                ],
             ]);
 
-        $controller = new ContasController($service, Mockery::mock(PlanLimitService::class));
+        $controller = new ContasController($workflowService, Mockery::mock(DemoPreviewService::class));
 
         $response = $controller->index();
 
@@ -68,23 +76,27 @@ class ContasControllerTest extends TestCase
     {
         $this->seedAuthenticatedSession(1102, 'Conta User');
 
-        $planLimitService = Mockery::mock(PlanLimitService::class);
-        $planLimitService
-            ->shouldReceive('canCreateConta')
+        $workflowService = Mockery::mock(ContaApiWorkflowService::class);
+        $workflowService
+            ->shouldReceive('createAccount')
             ->once()
-            ->with(1102)
+            ->with(1102, [])
             ->andReturn([
-                'allowed' => false,
+                'success' => false,
+                'status' => 403,
                 'message' => 'Limite atingido',
-                'upgrade_url' => '/upgrade',
-                'limit' => 2,
-                'used' => 2,
-                'remaining' => 0,
+                'errors' => [
+                    'limit_reached' => true,
+                    'upgrade_url' => '/upgrade',
+                    'limit_info' => [
+                        'limit' => 2,
+                        'used' => 2,
+                        'remaining' => 0,
+                    ],
+                ],
             ]);
 
-        $service = Mockery::mock(ContaService::class);
-
-        $controller = new ContasController($service, $planLimitService);
+        $controller = new ContasController($workflowService, Mockery::mock(DemoPreviewService::class));
 
         $response = $controller->store();
 
@@ -106,10 +118,18 @@ class ContasControllerTest extends TestCase
 
     public function testCreateInstituicaoReturnsBadRequestWhenNameIsMissing(): void
     {
-        $controller = new ContasController(
-            Mockery::mock(ContaService::class),
-            Mockery::mock(PlanLimitService::class),
-        );
+        $workflowService = Mockery::mock(ContaApiWorkflowService::class);
+        $workflowService
+            ->shouldReceive('createInstituicao')
+            ->once()
+            ->with([])
+            ->andReturn([
+                'success' => false,
+                'status' => 400,
+                'message' => 'Nome da instituição é obrigatório',
+            ]);
+
+        $controller = new ContasController($workflowService, Mockery::mock(DemoPreviewService::class));
 
         $response = $controller->createInstituicao();
 
@@ -123,8 +143,8 @@ class ContasControllerTest extends TestCase
     public function testIndexThrowsAuthExceptionWhenSessionIsMissing(): void
     {
         $controller = new ContasController(
-            Mockery::mock(ContaService::class),
-            Mockery::mock(PlanLimitService::class),
+            Mockery::mock(ContaApiWorkflowService::class),
+            Mockery::mock(DemoPreviewService::class),
         );
 
         $this->expectException(AuthException::class);

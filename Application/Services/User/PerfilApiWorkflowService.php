@@ -13,13 +13,19 @@ use Application\Validators\PerfilValidator;
 
 class PerfilApiWorkflowService
 {
+    private PerfilService $perfilService;
+    private PerfilValidator $validator;
     private AchievementService $achievementService;
 
     public function __construct(
-        private readonly PerfilService $perfilService,
-        private readonly PerfilValidator $validator,
+        ?PerfilService $perfilService = null,
+        ?PerfilValidator $validator = null,
         ?AchievementService $achievementService = null
     ) {
+        $container = ApplicationContainer::getInstance() ?? ApplicationContainer::bootstrap();
+
+        $this->perfilService = $perfilService ?? $container->make(PerfilService::class);
+        $this->validator = $validator ?? $container->make(PerfilValidator::class);
         $this->achievementService = ApplicationContainer::resolveOrNew($achievementService, AchievementService::class);
     }
 

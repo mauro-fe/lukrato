@@ -8,11 +8,7 @@ use Application\Controllers\WebController;
 use Application\Core\Exceptions\ValidationException;
 use Application\Core\Response;
 use Application\Middlewares\CsrfMiddleware;
-use Application\Repositories\PasswordResetRepositoryEloquent;
-use Application\Services\Auth\MailPasswordResetNotification;
 use Application\Services\Auth\PasswordResetService;
-use Application\Services\Auth\SecureTokenGenerator;
-use Application\Services\Communication\MailService;
 use Application\Services\Infrastructure\CacheService;
 use Application\Services\Infrastructure\LogService;
 use Throwable;
@@ -25,35 +21,7 @@ class ForgotPasswordController extends WebController
     {
         parent::__construct(cache: $cache);
 
-        $this->service = $this->resolveOrCreate(
-            $service,
-            PasswordResetService::class,
-            function (): PasswordResetService {
-                $repository = $this->resolveOrCreate(
-                    null,
-                    PasswordResetRepositoryEloquent::class
-                );
-                $tokenGenerator = $this->resolveOrCreate(
-                    null,
-                    SecureTokenGenerator::class
-                );
-                $mailService = $this->resolveOrCreate(
-                    null,
-                    MailService::class
-                );
-                $notifier = $this->resolveOrCreate(
-                    null,
-                    MailPasswordResetNotification::class,
-                    fn(): MailPasswordResetNotification => new MailPasswordResetNotification($mailService)
-                );
-
-                return new PasswordResetService(
-                    repository: $repository,
-                    tokenGenerator: $tokenGenerator,
-                    notifier: $notifier
-                );
-            }
-        );
+        $this->service = $this->resolveOrCreate($service, PasswordResetService::class);
     }
 
     public function showRequestForm(): Response

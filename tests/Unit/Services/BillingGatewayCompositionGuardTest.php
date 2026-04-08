@@ -26,6 +26,18 @@ class BillingGatewayCompositionGuardTest extends TestCase
             'PremiumWorkflowService não deve instanciar AchievementService diretamente.'
         );
 
+        $this->assertStringNotContainsString(
+            'PerfilControllerFactory::createService()',
+            $premiumWorkflowService,
+            'PremiumWorkflowService não deve recorrer à PerfilControllerFactory.'
+        );
+
+        $this->assertDoesNotMatchRegularExpression(
+            '/new\s+PerfilService\s*\(/',
+            $premiumWorkflowService,
+            'PremiumWorkflowService não deve instanciar PerfilService diretamente.'
+        );
+
         $this->assertDoesNotMatchRegularExpression(
             '/\$this->client\s*=\s*new\s+Client\s*\(/',
             $asaasService,

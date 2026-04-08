@@ -4,18 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Controllers\Api\Report;
 
-use Application\Builders\ReportExportBuilder;
 use Application\Controllers\Api\Report\RelatoriosController;
 use Application\Core\Exceptions\AuthException;
 use Application\DTO\ReportParameters;
 use Application\Enums\ReportType;
 use Application\Models\Usuario;
-use Application\Services\Report\ComparativesService;
-use Application\Services\Report\ExcelExportService;
-use Application\Services\Report\InsightsService;
-use Application\Services\Report\PdfExportService;
 use Application\Services\Report\ReportApiWorkflowService;
-use Application\Services\Report\ReportService;
 use Carbon\Carbon;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
@@ -74,15 +68,7 @@ class RelatoriosControllerTest extends TestCase
                 ),
             ]);
 
-        $controller = new RelatoriosController(
-            Mockery::mock(ReportService::class),
-            Mockery::mock(ReportExportBuilder::class),
-            Mockery::mock(PdfExportService::class),
-            Mockery::mock(ExcelExportService::class),
-            Mockery::mock(InsightsService::class),
-            Mockery::mock(ComparativesService::class),
-            $workflowService,
-        );
+        $controller = new RelatoriosController($workflowService);
 
         $response = $controller->index();
         $payload = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
@@ -101,14 +87,7 @@ class RelatoriosControllerTest extends TestCase
     {
         $this->seedAuthenticatedSession(1402, 'Report Free User', false, true);
 
-        $controller = new RelatoriosController(
-            Mockery::mock(ReportService::class),
-            Mockery::mock(ReportExportBuilder::class),
-            Mockery::mock(PdfExportService::class),
-            Mockery::mock(ExcelExportService::class),
-            Mockery::mock(InsightsService::class),
-            Mockery::mock(ComparativesService::class),
-        );
+        $controller = new RelatoriosController();
 
         $response = $controller->export();
 
@@ -139,15 +118,7 @@ class RelatoriosControllerTest extends TestCase
                 'mime' => 'application/pdf',
             ]);
 
-        $controller = new RelatoriosController(
-            Mockery::mock(ReportService::class),
-            Mockery::mock(ReportExportBuilder::class),
-            Mockery::mock(PdfExportService::class),
-            Mockery::mock(ExcelExportService::class),
-            Mockery::mock(InsightsService::class),
-            Mockery::mock(ComparativesService::class),
-            $workflowService,
-        );
+        $controller = new RelatoriosController($workflowService);
 
         $response = $controller->export();
 
@@ -159,14 +130,7 @@ class RelatoriosControllerTest extends TestCase
 
     public function testIndexThrowsAuthExceptionWhenSessionIsMissing(): void
     {
-        $controller = new RelatoriosController(
-            Mockery::mock(ReportService::class),
-            Mockery::mock(ReportExportBuilder::class),
-            Mockery::mock(PdfExportService::class),
-            Mockery::mock(ExcelExportService::class),
-            Mockery::mock(InsightsService::class),
-            Mockery::mock(ComparativesService::class),
-        );
+        $controller = new RelatoriosController();
 
         $this->expectException(AuthException::class);
         $this->expectExceptionMessage('Não autenticado');

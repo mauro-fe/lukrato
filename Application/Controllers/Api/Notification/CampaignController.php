@@ -8,7 +8,6 @@ use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Models\Usuario;
 use Application\Services\Communication\CampaignApiWorkflowService;
-use Application\Services\Communication\NotificationService;
 use Throwable;
 
 /**
@@ -19,18 +18,11 @@ class CampaignController extends ApiController
 {
     private CampaignApiWorkflowService $workflowService;
 
-    public function __construct(
-        ?NotificationService $notificationService = null,
-        ?CampaignApiWorkflowService $workflowService = null
-    ) {
+    public function __construct(?CampaignApiWorkflowService $workflowService = null)
+    {
         parent::__construct();
 
-        $resolvedNotificationService = $this->resolveOrCreate($notificationService, NotificationService::class);
-        $this->workflowService = $this->resolveOrCreate(
-            $workflowService,
-            CampaignApiWorkflowService::class,
-            fn(): CampaignApiWorkflowService => new CampaignApiWorkflowService($resolvedNotificationService)
-        );
+        $this->workflowService = $this->resolveOrCreate($workflowService, CampaignApiWorkflowService::class);
     }
 
     private function requireAdminOrFail(): Usuario

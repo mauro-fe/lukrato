@@ -12,6 +12,7 @@ class FaturaServicesCompositionGuardTest extends TestCase
     {
         $files = [
             'Application/Services/Fatura/FaturaService.php',
+            'Application/Services/Fatura/FaturaFormatterService.php',
             'Application/Services/Fatura/FaturaReadService.php',
             'Application/Services/Fatura/FaturaItemPaymentService.php',
             'Application/Services/Fatura/FaturaCreationService.php',

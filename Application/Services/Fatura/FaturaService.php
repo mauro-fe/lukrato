@@ -18,38 +18,15 @@ class FaturaService
     private FaturaCancellationService $cancellationService;
 
     public function __construct(
-        ?FaturaInstallmentCalculatorService $calculatorService = null,
-        ?FaturaFormatterService $formatterService = null,
-        ?FaturaItemPaymentStateService $itemPaymentStateService = null,
-        ?FaturaCreationService $creationService = null,
-        ?FaturaItemManagementService $itemManagementService = null,
         ?FaturaReadService $readService = null,
         ?FaturaCancellationService $cancellationService = null,
-        ?FaturaItemPaymentService $itemPaymentService = null
+        ?FaturaItemPaymentService $itemPaymentService = null,
+        ?FaturaCreationService $creationService = null,
+        ?FaturaItemManagementService $itemManagementService = null
     ) {
-        $calculatorService = ApplicationContainer::resolveOrNew($calculatorService, FaturaInstallmentCalculatorService::class);
-        $formatterService = ApplicationContainer::resolveOrNew(
-            $formatterService,
-            FaturaFormatterService::class,
-            fn(): FaturaFormatterService => new FaturaFormatterService($calculatorService)
-        );
-        $itemPaymentStateService = ApplicationContainer::resolveOrNew($itemPaymentStateService, FaturaItemPaymentStateService::class);
-
-        $this->readService = ApplicationContainer::resolveOrNew(
-            $readService,
-            FaturaReadService::class,
-            fn(): FaturaReadService => new FaturaReadService($formatterService, $calculatorService)
-        );
-        $this->itemPaymentService = ApplicationContainer::resolveOrNew(
-            $itemPaymentService,
-            FaturaItemPaymentService::class,
-            fn(): FaturaItemPaymentService => new FaturaItemPaymentService($itemPaymentStateService)
-        );
-        $this->creationService = ApplicationContainer::resolveOrNew(
-            $creationService,
-            FaturaCreationService::class,
-            fn(): FaturaCreationService => new FaturaCreationService($calculatorService)
-        );
+        $this->readService = ApplicationContainer::resolveOrNew($readService, FaturaReadService::class);
+        $this->itemPaymentService = ApplicationContainer::resolveOrNew($itemPaymentService, FaturaItemPaymentService::class);
+        $this->creationService = ApplicationContainer::resolveOrNew($creationService, FaturaCreationService::class);
         $this->itemManagementService = ApplicationContainer::resolveOrNew($itemManagementService, FaturaItemManagementService::class);
         $this->cancellationService = ApplicationContainer::resolveOrNew($cancellationService, FaturaCancellationService::class);
     }

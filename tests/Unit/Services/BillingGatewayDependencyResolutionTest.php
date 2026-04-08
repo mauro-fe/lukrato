@@ -11,6 +11,7 @@ use Application\Services\Billing\PremiumWorkflowService;
 use Application\Services\Billing\WebhookQueueService;
 use Application\Services\Gamification\AchievementService;
 use Application\Services\Infrastructure\CircuitBreakerService;
+use Application\Services\User\PerfilService;
 use Application\Validators\CheckoutValidator;
 use GuzzleHttp\Client;
 use Illuminate\Container\Container as IlluminateContainer;
@@ -41,6 +42,7 @@ class BillingGatewayDependencyResolutionTest extends TestCase
         $customerService = Mockery::mock(CustomerService::class);
         $validator = Mockery::mock(CheckoutValidator::class);
         $achievementService = Mockery::mock(AchievementService::class);
+        $perfilService = Mockery::mock(PerfilService::class);
         $httpClient = Mockery::mock(Client::class);
         $circuitBreaker = Mockery::mock(CircuitBreakerService::class);
         $redis = Mockery::mock(RedisClient::class);
@@ -51,6 +53,7 @@ class BillingGatewayDependencyResolutionTest extends TestCase
         $container->instance(CustomerService::class, $customerService);
         $container->instance(CheckoutValidator::class, $validator);
         $container->instance(AchievementService::class, $achievementService);
+        $container->instance(PerfilService::class, $perfilService);
         $container->instance(Client::class, $httpClient);
         $container->instance(CircuitBreakerService::class, $circuitBreaker);
         $container->instance(RedisClient::class, $redis);
@@ -59,11 +62,17 @@ class BillingGatewayDependencyResolutionTest extends TestCase
         $premiumWorkflowService = new PremiumWorkflowService();
         $resolvedAsaasService = new AsaasService();
         $webhookQueueService = new WebhookQueueService();
+        $resolvedPerfilService = \Closure::bind(function () {
+            $method = 'perfilService';
+
+            return $this->{$method}();
+        }, $premiumWorkflowService, PremiumWorkflowService::class)();
 
         $this->assertSame($asaasService, $this->readProperty($premiumWorkflowService, 'asaas'));
         $this->assertSame($customerService, $this->readProperty($premiumWorkflowService, 'customerService'));
         $this->assertSame($validator, $this->readProperty($premiumWorkflowService, 'validator'));
         $this->assertSame($achievementService, $this->readProperty($premiumWorkflowService, 'achievementService'));
+        $this->assertSame($perfilService, $resolvedPerfilService);
 
         $this->assertSame($httpClient, $this->readProperty($resolvedAsaasService, 'client'));
         $this->assertSame($circuitBreaker, $this->readProperty($resolvedAsaasService, 'circuitBreaker'));

@@ -28,16 +28,8 @@ class LoginController extends WebController
     ) {
         parent::__construct(cache: $cache);
 
-        $this->authService = $this->resolveOrCreate(
-            $authService,
-            AuthService::class,
-            fn(): AuthService => new AuthService($this->request, $this->cache)
-        );
-        $this->turnstile = $this->resolveOrCreate(
-            $turnstile,
-            TurnstileService::class,
-            fn(): TurnstileService => new TurnstileService($this->cache)
-        );
+        $this->authService = $this->resolveOrCreate($authService, AuthService::class);
+        $this->turnstile = $this->resolveOrCreate($turnstile, TurnstileService::class);
     }
 
     public function login(): Response

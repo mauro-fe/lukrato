@@ -6,10 +6,7 @@ namespace Application\Controllers\Api\Notification;
 
 use Application\Controllers\ApiController;
 use Application\Core\Response;
-use Application\Services\Cartao\CartaoCreditoService;
-use Application\Services\Cartao\CartaoFaturaService;
 use Application\Services\Communication\NotificationApiWorkflowService;
-use Application\Services\Communication\NotificationInboxService;
 use Application\Services\Infrastructure\LogService;
 use Throwable;
 
@@ -17,27 +14,11 @@ class NotificacaoController extends ApiController
 {
     private NotificationApiWorkflowService $workflowService;
 
-    public function __construct(
-        ?CartaoCreditoService $cartaoService = null,
-        ?CartaoFaturaService $faturaService = null,
-        ?NotificationInboxService $notificationInboxService = null,
-        ?NotificationApiWorkflowService $workflowService = null
-    ) {
+    public function __construct(?NotificationApiWorkflowService $workflowService = null)
+    {
         parent::__construct();
 
-        $resolvedCartaoService = $this->resolveOrCreate($cartaoService, CartaoCreditoService::class);
-        $resolvedFaturaService = $this->resolveOrCreate($faturaService, CartaoFaturaService::class);
-        $resolvedInboxService = $this->resolveOrCreate(
-            $notificationInboxService,
-            NotificationInboxService::class,
-            fn(): NotificationInboxService => new NotificationInboxService($resolvedCartaoService, $resolvedFaturaService)
-        );
-
-        $this->workflowService = $this->resolveOrCreate(
-            $workflowService,
-            NotificationApiWorkflowService::class,
-            fn(): NotificationApiWorkflowService => new NotificationApiWorkflowService($resolvedInboxService)
-        );
+        $this->workflowService = $this->resolveOrCreate($workflowService, NotificationApiWorkflowService::class);
     }
 
     public function index(): Response

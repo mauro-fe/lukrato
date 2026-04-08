@@ -9,6 +9,7 @@ use Application\Repositories\FeedbackRepository;
 use Application\Services\Feedback\FeedbackService;
 use Application\Services\Gamification\AchievementService;
 use Application\Services\Gamification\GamificationService;
+use Application\Services\Gamification\LevelService;
 use Application\Services\Gamification\StreakService;
 use Application\Services\Referral\ReferralAntifraudService;
 use Application\Services\Referral\ReferralService;
@@ -37,14 +38,14 @@ class EngagementServicesDependencyResolutionTest extends TestCase
     {
         $achievementService = Mockery::mock(AchievementService::class);
         $streakService = Mockery::mock(StreakService::class);
-        $gamificationService = Mockery::mock(GamificationService::class);
+        $levelService = Mockery::mock(LevelService::class);
         $feedbackRepository = Mockery::mock(FeedbackRepository::class);
         $antifraudService = Mockery::mock(ReferralAntifraudService::class);
 
         $container = new IlluminateContainer();
         $container->instance(AchievementService::class, $achievementService);
         $container->instance(StreakService::class, $streakService);
-        $container->instance(GamificationService::class, $gamificationService);
+        $container->instance(LevelService::class, $levelService);
         $container->instance(FeedbackRepository::class, $feedbackRepository);
         $container->instance(ReferralAntifraudService::class, $antifraudService);
         ApplicationContainer::setInstance($container);
@@ -54,9 +55,10 @@ class EngagementServicesDependencyResolutionTest extends TestCase
         $feedbackService = new FeedbackService();
         $referralService = new ReferralService();
 
-        $this->assertSame($achievementService, $this->invokePrivateMethod($resolvedGamificationService, 'achievementService'));
-        $this->assertSame($streakService, $this->invokePrivateMethod($resolvedGamificationService, 'streakService'));
-        $this->assertSame($gamificationService, $this->invokePrivateMethod($resolvedAchievementService, 'gamificationService'));
+        $this->assertSame($achievementService, $this->readProperty($resolvedGamificationService, 'achievementService'));
+        $this->assertSame($streakService, $this->readProperty($resolvedGamificationService, 'streakService'));
+        $this->assertSame($levelService, $this->readProperty($resolvedGamificationService, 'levelService'));
+        $this->assertSame($levelService, $this->readProperty($resolvedAchievementService, 'levelService'));
         $this->assertSame($feedbackRepository, $this->readProperty($feedbackService, 'repo'));
         $this->assertSame($antifraudService, $this->invokePrivateMethod($referralService, 'antifraudService'));
         $this->assertSame($achievementService, $this->invokePrivateMethod($referralService, 'achievementService'));

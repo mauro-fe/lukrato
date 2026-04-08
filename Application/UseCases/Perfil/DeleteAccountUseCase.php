@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace Application\UseCases\Perfil;
 
+use Application\Container\ApplicationContainer;
 use Application\Lib\Auth;
 use Application\Services\User\PerfilApiWorkflowService;
 
 class DeleteAccountUseCase
 {
+    private readonly PerfilApiWorkflowService $workflowService;
+
     public function __construct(
-        private readonly PerfilApiWorkflowService $workflowService
+        ?PerfilApiWorkflowService $workflowService = null
     ) {
+        $this->workflowService = ApplicationContainer::resolveOrNew($workflowService, PerfilApiWorkflowService::class);
     }
 
     /**
@@ -27,4 +31,3 @@ class DeleteAccountUseCase
         ];
     }
 }
-

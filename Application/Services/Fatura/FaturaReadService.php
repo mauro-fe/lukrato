@@ -15,15 +15,9 @@ class FaturaReadService
     private FaturaFormatterService $formatterService;
 
     public function __construct(
-        ?FaturaFormatterService $formatterService = null,
-        ?FaturaInstallmentCalculatorService $calculatorService = null
+        ?FaturaFormatterService $formatterService = null
     ) {
-        $calculatorService = ApplicationContainer::resolveOrNew($calculatorService, FaturaInstallmentCalculatorService::class);
-        $this->formatterService = ApplicationContainer::resolveOrNew(
-            $formatterService,
-            FaturaFormatterService::class,
-            fn(): FaturaFormatterService => new FaturaFormatterService($calculatorService)
-        );
+        $this->formatterService = ApplicationContainer::resolveOrNew($formatterService, FaturaFormatterService::class);
     }
 
     public function listar(

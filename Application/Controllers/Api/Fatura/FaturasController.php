@@ -8,7 +8,6 @@ use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Enums\LogCategory;
 use Application\Services\Fatura\FaturaApiWorkflowService;
-use Application\Services\Fatura\FaturaService;
 use Application\Services\Infrastructure\LogService;
 use InvalidArgumentException;
 use Throwable;
@@ -17,18 +16,11 @@ class FaturasController extends ApiController
 {
     private FaturaApiWorkflowService $workflowService;
 
-    public function __construct(
-        ?FaturaService $faturaService = null,
-        ?FaturaApiWorkflowService $workflowService = null
-    ) {
+    public function __construct(?FaturaApiWorkflowService $workflowService = null)
+    {
         parent::__construct();
 
-        $resolvedFaturaService = $this->resolveOrCreate($faturaService, FaturaService::class);
-        $this->workflowService = $this->resolveOrCreate(
-            $workflowService,
-            FaturaApiWorkflowService::class,
-            fn(): FaturaApiWorkflowService => new FaturaApiWorkflowService($resolvedFaturaService)
-        );
+        $this->workflowService = $this->resolveOrCreate($workflowService, FaturaApiWorkflowService::class);
     }
 
     public function index(): Response

@@ -7,26 +7,17 @@ namespace Application\Controllers\SysAdmin;
 use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Enums\LogCategory;
-use Application\Repositories\BlogPostRepository;
 use Application\Services\Admin\BlogAdminWorkflowService;
 
 class BlogController extends ApiController
 {
     private BlogAdminWorkflowService $workflowService;
 
-    public function __construct(
-        ?BlogAdminWorkflowService $workflowService = null,
-        ?BlogPostRepository $repo = null
-    ) {
+    public function __construct(?BlogAdminWorkflowService $workflowService = null)
+    {
         parent::__construct();
 
-        $resolvedRepo = $this->resolveOrCreate($repo, BlogPostRepository::class);
-
-        $this->workflowService = $this->resolveOrCreate(
-            $workflowService,
-            BlogAdminWorkflowService::class,
-            fn(): BlogAdminWorkflowService => new BlogAdminWorkflowService($resolvedRepo)
-        );
+        $this->workflowService = $this->resolveOrCreate($workflowService, BlogAdminWorkflowService::class);
     }
 
     public function index(): Response

@@ -11,6 +11,7 @@ use Application\Contracts\Auth\TokenGeneratorInterface;
 use Application\Core\Exceptions\ValidationException;
 use Application\Models\PasswordReset;
 use Application\Models\Usuario;
+use Application\Repositories\PasswordResetRepositoryEloquent;
 use Application\Validators\PasswordStrengthValidator;
 use DateTimeImmutable;
 
@@ -22,14 +23,26 @@ class PasswordResetService
     private TokenPairService $tokenPairService;
 
     public function __construct(
-        PasswordResetRepositoryInterface $repository,
-        TokenGeneratorInterface $tokenGenerator,
-        PasswordResetNotificationInterface $notifier,
+        ?PasswordResetRepositoryInterface $repository = null,
+        ?TokenGeneratorInterface $tokenGenerator = null,
+        ?PasswordResetNotificationInterface $notifier = null,
         ?TokenPairService $tokenPairService = null
     ) {
-        $this->repository = $repository;
-        $this->tokenGenerator = $tokenGenerator;
-        $this->notifier = $notifier;
+        $this->repository = ApplicationContainer::resolveOrNew(
+            $repository,
+            PasswordResetRepositoryInterface::class,
+            fn(): PasswordResetRepositoryInterface => new PasswordResetRepositoryEloquent()
+        );
+        $this->tokenGenerator = ApplicationContainer::resolveOrNew(
+            $tokenGenerator,
+            TokenGeneratorInterface::class,
+            fn(): TokenGeneratorInterface => new SecureTokenGenerator()
+        );
+        $this->notifier = ApplicationContainer::resolveOrNew(
+            $notifier,
+            PasswordResetNotificationInterface::class,
+            fn(): PasswordResetNotificationInterface => new MailPasswordResetNotification()
+        );
         $this->tokenPairService = ApplicationContainer::resolveOrNew($tokenPairService, TokenPairService::class);
     }
 

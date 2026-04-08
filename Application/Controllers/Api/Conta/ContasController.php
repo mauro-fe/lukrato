@@ -7,9 +7,7 @@ namespace Application\Controllers\Api\Conta;
 use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Services\Conta\ContaApiWorkflowService;
-use Application\Services\Conta\ContaService;
 use Application\Services\Demo\DemoPreviewService;
-use Application\Services\Plan\PlanLimitService;
 use Throwable;
 
 class ContasController extends ApiController
@@ -18,21 +16,12 @@ class ContasController extends ApiController
     private DemoPreviewService $demoPreviewService;
 
     public function __construct(
-        ?ContaService $service = null,
-        ?PlanLimitService $planLimitService = null,
         ?ContaApiWorkflowService $workflowService = null,
         ?DemoPreviewService $demoPreviewService = null
     ) {
         parent::__construct();
 
-        $resolvedService = $this->resolveOrCreate($service, ContaService::class);
-        $resolvedPlanLimitService = $this->resolveOrCreate($planLimitService, PlanLimitService::class);
-
-        $this->workflowService = $this->resolveOrCreate(
-            $workflowService,
-            ContaApiWorkflowService::class,
-            fn(): ContaApiWorkflowService => new ContaApiWorkflowService($resolvedService, $resolvedPlanLimitService)
-        );
+        $this->workflowService = $this->resolveOrCreate($workflowService, ContaApiWorkflowService::class);
         $this->demoPreviewService = $this->resolveOrCreate($demoPreviewService, DemoPreviewService::class);
     }
 

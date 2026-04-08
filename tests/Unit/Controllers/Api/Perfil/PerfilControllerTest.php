@@ -8,12 +8,9 @@ use Application\Controllers\Api\Perfil\PerfilController;
 use Application\Core\Exceptions\AuthException;
 use Application\Models\Usuario;
 use Application\Services\User\PerfilApiWorkflowService;
-use Application\Services\User\PerfilAvatarService;
-use Application\Services\User\PerfilService;
 use Application\UseCases\Perfil\AvatarUseCase;
 use Application\UseCases\Perfil\DashboardPreferencesUseCase;
 use Application\UseCases\Perfil\DeleteAccountUseCase;
-use Application\Validators\PerfilValidator;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
@@ -46,16 +43,14 @@ class PerfilControllerTest extends TestCase
     {
         $this->seedAuthenticatedUserSession(101, 'Perfil User');
 
-        $perfilService = Mockery::mock(PerfilService::class);
-        $validator = Mockery::mock(PerfilValidator::class);
-
-        $perfilService
-            ->shouldReceive('obterPerfil')
+        $workflowService = Mockery::mock(PerfilApiWorkflowService::class);
+        $workflowService
+            ->shouldReceive('getProfile')
             ->once()
             ->with(101)
             ->andReturn(['nome' => 'Perfil User']);
 
-        $controller = new PerfilController($perfilService, $validator);
+        $controller = new PerfilController($workflowService);
 
         $response = $controller->show();
 
@@ -78,17 +73,25 @@ class PerfilControllerTest extends TestCase
             'email' => 'invalido@example.com',
         ];
 
-        $perfilService = Mockery::mock(PerfilService::class);
-        $validator = Mockery::mock(PerfilValidator::class);
-        $validator
-            ->shouldReceive('validate')
+        $workflowService = Mockery::mock(PerfilApiWorkflowService::class);
+        $workflowService
+            ->shouldReceive('updateProfile')
             ->once()
-            ->with(Mockery::type(\Application\DTO\PerfilUpdateDTO::class), 102)
+            ->with(
+                102,
+                Mockery::on(static function (array $payload): bool {
+                    return ($payload['nome'] ?? null) === ''
+                        && ($payload['email'] ?? null) === 'invalido@example.com';
+                })
+            )
             ->andReturn([
-                'nome' => 'Nome é obrigatório.',
+                'success' => false,
+                'errors' => [
+                    'nome' => 'Nome é obrigatório.',
+                ],
             ]);
 
-        $controller = new PerfilController($perfilService, $validator);
+        $controller = new PerfilController($workflowService);
 
         $response = $controller->update();
 
@@ -131,12 +134,7 @@ class PerfilControllerTest extends TestCase
                 ],
             ]);
 
-        $controller = new PerfilController(
-            null,
-            null,
-            $workflowService,
-            Mockery::mock(PerfilAvatarService::class)
-        );
+        $controller = new PerfilController($workflowService);
 
         $response = $controller->updatePassword();
 
@@ -178,12 +176,7 @@ class PerfilControllerTest extends TestCase
                 'email_verification_sent' => true,
             ]);
 
-        $controller = new PerfilController(
-            null,
-            null,
-            $workflowService,
-            Mockery::mock(PerfilAvatarService::class)
-        );
+        $controller = new PerfilController($workflowService);
 
         $response = $controller->update();
         $payload = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
@@ -196,10 +189,7 @@ class PerfilControllerTest extends TestCase
 
     public function testShowThrowsAuthExceptionWhenSessionIsMissing(): void
     {
-        $controller = new PerfilController(
-            Mockery::mock(PerfilService::class),
-            Mockery::mock(PerfilValidator::class),
-        );
+        $controller = new PerfilController(Mockery::mock(PerfilApiWorkflowService::class));
 
         $this->expectException(AuthException::class);
         $this->expectExceptionMessageMatches('/N[ãa]o autenticado/u');
@@ -221,10 +211,7 @@ class PerfilControllerTest extends TestCase
             ]);
 
         $controller = new PerfilController(
-            null,
-            null,
             Mockery::mock(PerfilApiWorkflowService::class),
-            Mockery::mock(PerfilAvatarService::class),
             $dashboardUseCase
         );
 
@@ -255,10 +242,7 @@ class PerfilControllerTest extends TestCase
             ]);
 
         $controller = new PerfilController(
-            null,
-            null,
             Mockery::mock(PerfilApiWorkflowService::class),
-            Mockery::mock(PerfilAvatarService::class),
             $dashboardUseCase
         );
 
@@ -285,10 +269,7 @@ class PerfilControllerTest extends TestCase
             ]);
 
         $controller = new PerfilController(
-            null,
-            null,
             Mockery::mock(PerfilApiWorkflowService::class),
-            Mockery::mock(PerfilAvatarService::class),
             Mockery::mock(DashboardPreferencesUseCase::class),
             Mockery::mock(AvatarUseCase::class),
             $deleteUseCase

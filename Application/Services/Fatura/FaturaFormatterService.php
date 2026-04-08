@@ -4,14 +4,19 @@ declare(strict_types=1);
 
 namespace Application\Services\Fatura;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\CartaoCredito;
 use Application\Models\Fatura;
 
 class FaturaFormatterService
 {
+    private FaturaInstallmentCalculatorService $calculator;
+
     public function __construct(
-        private FaturaInstallmentCalculatorService $calculator
-    ) {}
+        ?FaturaInstallmentCalculatorService $calculator = null
+    ) {
+        $this->calculator = ApplicationContainer::resolveOrNew($calculator, FaturaInstallmentCalculatorService::class);
+    }
 
     /**
      * Formatar fatura para listagem.

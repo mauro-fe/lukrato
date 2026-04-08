@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Auth;
 
+use Application\Container\ApplicationContainer;
 use Application\Core\Request;
 use Application\Core\Response;
 
@@ -14,9 +15,9 @@ class RegistrationResponseHandler
 {
     private Request $request;
 
-    public function __construct(Request $request)
+    public function __construct(?Request $request = null)
     {
-        $this->request = $request;
+        $this->request = ApplicationContainer::resolveOrNew($request, Request::class);
     }
 
     /**
@@ -26,9 +27,9 @@ class RegistrationResponseHandler
     {
         $isAjax = $this->request->isAjax();
         $redirect = $isGoogleRegistration ? 'dashboard' : 'login';
-        
+
         // Para registro normal, menciona a verificação de email
-        $message = $isGoogleRegistration 
+        $message = $isGoogleRegistration
             ? 'Conta criada com Google e login realizado com sucesso!'
             : ($result['message'] ?? 'Conta criada com sucesso! Verifique seu e-mail para ativar sua conta.');
 
@@ -74,8 +75,7 @@ class RegistrationResponseHandler
     public function generalError(
         string $message = 'Falha ao cadastrar. Tente novamente mais tarde.',
         int $statusCode = 500
-    ): Response
-    {
+    ): Response {
         $isAjax = $this->request->isAjax();
 
         if ($isAjax) {

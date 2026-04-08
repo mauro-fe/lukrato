@@ -7,7 +7,6 @@ namespace Application\Controllers\Api\Report;
 use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Models\Usuario;
-use Application\Services\Gamification\GamificationService;
 use Application\Services\Infrastructure\LogService;
 use Application\Services\Report\ReportApiWorkflowService;
 use InvalidArgumentException;
@@ -18,37 +17,11 @@ class RelatoriosController extends ApiController
     private ?Usuario $currentUser = null;
     private ReportApiWorkflowService $workflowService;
 
-    public function __construct(
-        ?\Application\Services\Report\ReportService $reportService = null,
-        ?\Application\Builders\ReportExportBuilder $exportBuilder = null,
-        ?\Application\Services\Report\PdfExportService $pdfExport = null,
-        ?\Application\Services\Report\ExcelExportService $excelExport = null,
-        ?\Application\Services\Report\InsightsService $insightsService = null,
-        ?\Application\Services\Report\ComparativesService $comparativesService = null,
-        ?ReportApiWorkflowService $workflowService = null
-    ) {
+    public function __construct(?ReportApiWorkflowService $workflowService = null)
+    {
         parent::__construct();
 
-        $resolvedReportService = $this->resolveOrCreate($reportService, \Application\Services\Report\ReportService::class);
-        $resolvedExportBuilder = $this->resolveOrCreate($exportBuilder, \Application\Builders\ReportExportBuilder::class);
-        $resolvedPdfExport = $this->resolveOrCreate($pdfExport, \Application\Services\Report\PdfExportService::class);
-        $resolvedExcelExport = $this->resolveOrCreate($excelExport, \Application\Services\Report\ExcelExportService::class);
-        $resolvedInsightsService = $this->resolveOrCreate($insightsService, \Application\Services\Report\InsightsService::class);
-        $resolvedComparativesService = $this->resolveOrCreate($comparativesService, \Application\Services\Report\ComparativesService::class);
-
-        $this->workflowService = $this->resolveOrCreate(
-            $workflowService,
-            ReportApiWorkflowService::class,
-            fn(): ReportApiWorkflowService => new ReportApiWorkflowService(
-                $resolvedReportService,
-                $resolvedExportBuilder,
-                $resolvedPdfExport,
-                $resolvedExcelExport,
-                $resolvedInsightsService,
-                $resolvedComparativesService,
-                $this->resolveOrCreate(null, GamificationService::class)
-            )
-        );
+        $this->workflowService = $this->resolveOrCreate($workflowService, ReportApiWorkflowService::class);
     }
 
     public function index(): Response

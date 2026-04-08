@@ -15,9 +15,10 @@ use Application\Enums\SubscriptionCycle;
 use Application\Models\AssinaturaUsuario;
 use Application\Models\Plano;
 use Application\Models\Usuario;
-use Application\Providers\PerfilControllerFactory;
 use Application\Services\Gamification\AchievementService;
 use Application\Services\Infrastructure\LogService;
+use Application\Services\User\PerfilService;
+use Application\Services\User\PerfilServiceProvider;
 use Application\Validators\CheckoutValidator;
 use Carbon\Carbon;
 use Illuminate\Database\Capsule\Manager as DB;
@@ -29,17 +30,20 @@ class PremiumWorkflowService
     private CustomerService $customerService;
     private CheckoutValidator $validator;
     private AchievementService $achievementService;
+    private ?PerfilService $perfilService;
 
     public function __construct(
         ?AsaasService $asaas = null,
         ?CustomerService $customerService = null,
         ?CheckoutValidator $validator = null,
-        ?AchievementService $achievementService = null
+        ?AchievementService $achievementService = null,
+        ?PerfilService $perfilService = null
     ) {
         $this->asaas = ApplicationContainer::resolveOrNew($asaas, AsaasService::class);
         $this->customerService = ApplicationContainer::resolveOrNew($customerService, CustomerService::class);
         $this->validator = ApplicationContainer::resolveOrNew($validator, CheckoutValidator::class);
         $this->achievementService = ApplicationContainer::resolveOrNew($achievementService, AchievementService::class);
+        $this->perfilService = $perfilService;
     }
 
     /**
@@ -877,8 +881,6 @@ class PremiumWorkflowService
     protected function saveCheckoutDataToProfile(Usuario $usuario, CheckoutRequestDTO $dto): void
     {
         try {
-            $perfilService = PerfilControllerFactory::createService();
-
             $dados = [
                 'cpf' => $dto->holderInfo['cpfCnpj'] ?? '',
                 'phone' => $dto->holderInfo['mobilePhone'] ?? '',
@@ -886,7 +888,7 @@ class PremiumWorkflowService
                 'endereco' => $dto->holderInfo['address'] ?? '',
             ];
 
-            $perfilService->salvarDadosCheckout($usuario->id, $dados);
+            $this->perfilService()->salvarDadosCheckout($usuario->id, $dados);
 
             $this->achievementService->checkAndUnlockAchievements($usuario->id, 'checkout_profile_save');
 
@@ -897,6 +899,26 @@ class PremiumWorkflowService
                 'user_id' => $usuario->id,
             ], $usuario->id, LogLevel::WARNING);
         }
+    }
+
+    protected function perfilService(): PerfilService
+    {
+        if ($this->perfilService instanceof PerfilService) {
+            return $this->perfilService;
+        }
+
+        $resolvedPerfilService = ApplicationContainer::tryMake(PerfilService::class);
+        if ($resolvedPerfilService instanceof PerfilService) {
+            return $this->perfilService = $resolvedPerfilService;
+        }
+
+        $container = ApplicationContainer::getInstance() ?? ApplicationContainer::bootstrap();
+
+        if (!$container->bound(PerfilService::class)) {
+            (new PerfilServiceProvider())->register($container);
+        }
+
+        return $this->perfilService = $container->make(PerfilService::class);
     }
 
     protected function validarElegibilidadeCupom(Usuario $usuario, \Application\Models\Cupom $cupom): void

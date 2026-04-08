@@ -7,7 +7,7 @@ namespace Tests\Unit\Controllers\Api\Fatura;
 use Application\Controllers\Api\Fatura\FaturasController;
 use Application\Core\Exceptions\AuthException;
 use Application\Models\Usuario;
-use Application\Services\Fatura\FaturaService;
+use Application\Services\Fatura\FaturaApiWorkflowService;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
@@ -42,8 +42,23 @@ class FaturasControllerTest extends TestCase
         $this->seedAuthenticatedUserSession(200, 'Fatura User');
         $_GET['mes'] = '13';
 
-        $service = Mockery::mock(FaturaService::class);
-        $controller = new FaturasController($service);
+        $workflowService = Mockery::mock(FaturaApiWorkflowService::class);
+        $workflowService
+            ->shouldReceive('listInvoices')
+            ->once()
+            ->with(200, [
+                'cartao_id' => null,
+                'status' => null,
+                'mes' => '13',
+                'ano' => null,
+            ])
+            ->andReturn([
+                'success' => false,
+                'status' => 400,
+                'message' => 'Mês inválido. Deve estar entre 1 e 12',
+            ]);
+
+        $controller = new FaturasController($workflowService);
 
         $response = $controller->index();
 
@@ -58,14 +73,18 @@ class FaturasControllerTest extends TestCase
     {
         $this->seedAuthenticatedUserSession(200, 'Fatura User');
 
-        $service = Mockery::mock(FaturaService::class);
-        $service
-            ->shouldReceive('buscar')
+        $workflowService = Mockery::mock(FaturaApiWorkflowService::class);
+        $workflowService
+            ->shouldReceive('showInvoice')
             ->once()
             ->with(10, 200)
-            ->andReturnNull();
+            ->andReturn([
+                'success' => false,
+                'status' => 404,
+                'message' => 'Fatura não encontrada',
+            ]);
 
-        $controller = new FaturasController($service);
+        $controller = new FaturasController($workflowService);
         $response = $controller->show(10);
 
         $this->assertSame(404, $response->getStatusCode());
@@ -77,7 +96,7 @@ class FaturasControllerTest extends TestCase
 
     public function testStoreThrowsAuthExceptionWhenSessionIsMissing(): void
     {
-        $controller = new FaturasController(Mockery::mock(FaturaService::class));
+        $controller = new FaturasController(Mockery::mock(FaturaApiWorkflowService::class));
 
         $this->expectException(AuthException::class);
         $this->expectExceptionMessage('Não autenticado');

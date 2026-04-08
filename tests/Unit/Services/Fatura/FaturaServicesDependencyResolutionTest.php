@@ -58,6 +58,7 @@ class FaturaServicesDependencyResolutionTest extends TestCase
         ApplicationContainer::setInstance($container);
 
         $faturaService = new FaturaService();
+        $faturaFormatterService = new FaturaFormatterService();
         $faturaReadService = new FaturaReadService();
         $faturaItemPaymentService = new FaturaItemPaymentService();
         $faturaCreationService = new FaturaCreationService();
@@ -68,6 +69,7 @@ class FaturaServicesDependencyResolutionTest extends TestCase
         $this->assertSame($itemManagementService, $this->readProperty($faturaService, 'itemManagementService'));
         $this->assertSame($cancellationService, $this->readProperty($faturaService, 'cancellationService'));
 
+        $this->assertSame($calculatorService, $this->readProperty($faturaFormatterService, 'calculator'));
         $this->assertSame($formatterService, $this->readProperty($faturaReadService, 'formatterService'));
         $this->assertSame($itemPaymentStateService, $this->readProperty($faturaItemPaymentService, 'itemPaymentStateService'));
         $this->assertSame($calculatorService, $this->readProperty($faturaCreationService, 'calculatorService'));

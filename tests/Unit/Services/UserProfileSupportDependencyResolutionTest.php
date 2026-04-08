@@ -17,9 +17,12 @@ use Application\Services\Auth\EmailVerificationService;
 use Application\Services\Auth\TokenPairService;
 use Application\Services\Billing\AsaasService;
 use Application\Services\Infrastructure\CpfProtectionService;
+use Application\Services\User\PerfilApiWorkflowService;
 use Application\Services\User\PerfilAvatarService;
 use Application\Services\User\PerfilService;
 use Application\UseCases\Perfil\AvatarUseCase;
+use Application\UseCases\Perfil\DeleteAccountUseCase;
+use Application\Validators\PerfilValidator;
 use Illuminate\Container\Container as IlluminateContainer;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
@@ -92,6 +95,26 @@ class UserProfileSupportDependencyResolutionTest extends TestCase
         $this->assertSame($asaasService, $this->invokePrivateMethod($perfilService, 'asaasService'));
         $this->assertSame('selector-12345678', $credentials['selector']);
         $this->assertSame('validator-1234567890', $credentials['validator']);
+    }
+
+    public function testProfileWorkflowAndDeleteUseCaseResolveDependenciesFromContainerWhenAvailable(): void
+    {
+        $perfilService = Mockery::mock(PerfilService::class);
+        $validator = Mockery::mock(PerfilValidator::class);
+
+        $container = new IlluminateContainer();
+        $container->instance(PerfilService::class, $perfilService);
+        $container->instance(PerfilValidator::class, $validator);
+        ApplicationContainer::setInstance($container);
+
+        $workflowService = new PerfilApiWorkflowService();
+        $container->instance(PerfilApiWorkflowService::class, $workflowService);
+
+        $deleteAccountUseCase = new DeleteAccountUseCase();
+
+        $this->assertSame($perfilService, $this->readProperty($workflowService, 'perfilService'));
+        $this->assertSame($validator, $this->readProperty($workflowService, 'validator'));
+        $this->assertSame($workflowService, $this->readProperty($deleteAccountUseCase, 'workflowService'));
     }
 
     private function readProperty(object $object, string $property): mixed

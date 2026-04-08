@@ -8,7 +8,6 @@ use Application\Controllers\Api\Notification\CampaignController;
 use Application\Core\Exceptions\AuthException;
 use Application\Models\Usuario;
 use Application\Services\Communication\CampaignApiWorkflowService;
-use Application\Services\Communication\NotificationService;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
@@ -43,8 +42,8 @@ class CampaignControllerTest extends TestCase
         $_GET['page'] = '3';
         $_GET['per_page'] = '25';
 
-        $notificationService = Mockery::mock(NotificationService::class);
-        $notificationService
+        $workflowService = Mockery::mock(CampaignApiWorkflowService::class);
+        $workflowService
             ->shouldReceive('listCampaigns')
             ->once()
             ->with(3, 25)
@@ -53,7 +52,7 @@ class CampaignControllerTest extends TestCase
                 'pagination' => ['page' => 3],
             ]);
 
-        $controller = new CampaignController($notificationService);
+        $controller = new CampaignController($workflowService);
 
         $response = $controller->index();
 
@@ -76,7 +75,18 @@ class CampaignControllerTest extends TestCase
             'message' => 'Mensagem válida',
         ];
 
-        $controller = new CampaignController(Mockery::mock(NotificationService::class));
+        $workflowService = Mockery::mock(CampaignApiWorkflowService::class);
+        $workflowService
+            ->shouldReceive('createCampaign')
+            ->once()
+            ->with(902, 'Campaign Admin', ['message' => 'Mensagem válida'])
+            ->andReturn([
+                'success' => false,
+                'status' => 400,
+                'message' => 'O título é obrigatório',
+            ]);
+
+        $controller = new CampaignController($workflowService);
 
         $response = $controller->store();
 
@@ -91,7 +101,18 @@ class CampaignControllerTest extends TestCase
     {
         $this->seedAdminSession(903, 'Campaign Admin');
 
-        $controller = new CampaignController(Mockery::mock(NotificationService::class));
+        $workflowService = Mockery::mock(CampaignApiWorkflowService::class);
+        $workflowService
+            ->shouldReceive('getOptions')
+            ->once()
+            ->andReturn([
+                'types' => ['info' => 'Info'],
+                'plans' => ['all'],
+                'statuses' => ['all'],
+                'inactive_days' => [7, 30],
+            ]);
+
+        $controller = new CampaignController($workflowService);
 
         $response = $controller->options();
         $payload = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
@@ -122,7 +143,7 @@ class CampaignControllerTest extends TestCase
                 'stuck_recovered' => 0,
             ]);
 
-        $controller = new CampaignController(Mockery::mock(NotificationService::class), $workflow);
+        $controller = new CampaignController($workflow);
         $response = $controller->processDue();
 
         $this->assertSame(200, $response->getStatusCode());
@@ -141,7 +162,7 @@ class CampaignControllerTest extends TestCase
 
     public function testIndexThrowsAuthExceptionWhenSessionIsMissing(): void
     {
-        $controller = new CampaignController(Mockery::mock(NotificationService::class));
+        $controller = new CampaignController(Mockery::mock(CampaignApiWorkflowService::class));
 
         $this->expectException(AuthException::class);
         $this->expectExceptionMessage('Não autenticado');
