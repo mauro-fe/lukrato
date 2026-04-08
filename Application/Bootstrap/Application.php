@@ -16,20 +16,32 @@ class Application
     private ErrorHandler $errorHandler;
     private SessionManager $sessionManager;
     private SecurityHeaders $securityHeaders;
+    private RequestHandler $requestHandler;
+    private ResponseEmitter $responseEmitter;
 
-    public function __construct()
-    {
+    public function __construct(
+        ?ErrorHandler $errorHandler = null,
+        ?SessionManager $sessionManager = null,
+        ?SecurityHeaders $securityHeaders = null,
+        ?RequestHandler $requestHandler = null,
+        ?ResponseEmitter $responseEmitter = null,
+        ?string $environment = null
+    ) {
         ApplicationContainer::bootstrap();
-        $this->environment = $_ENV['APP_ENV'] ?? 'production';
-        $this->errorHandler = new ErrorHandler($this->environment);
-        $this->sessionManager = new SessionManager();
-        $this->securityHeaders = new SecurityHeaders();
+        $this->environment = $environment ?? ($_ENV['APP_ENV'] ?? 'production');
+        $this->errorHandler = ApplicationContainer::resolveOrNew(
+            $errorHandler,
+            ErrorHandler::class,
+            fn(): ErrorHandler => new ErrorHandler($this->environment)
+        );
+        $this->sessionManager = ApplicationContainer::resolveOrNew($sessionManager, SessionManager::class);
+        $this->securityHeaders = ApplicationContainer::resolveOrNew($securityHeaders, SecurityHeaders::class);
+        $this->requestHandler = ApplicationContainer::resolveOrNew($requestHandler, RequestHandler::class);
+        $this->responseEmitter = ApplicationContainer::resolveOrNew($responseEmitter, ResponseEmitter::class);
     }
 
     public function run(): void
     {
-        $emitter = new ResponseEmitter();
-
         $this->errorHandler->register();
         $this->sessionManager->start();
         $this->securityHeaders->apply();
@@ -37,12 +49,12 @@ class Application
 
         $maintenanceResponse = $this->getMaintenanceResponse();
         if ($maintenanceResponse instanceof Response) {
-            $emitter->emit($maintenanceResponse);
+            $this->responseEmitter->emit($maintenanceResponse);
         }
 
         $response = $this->handleRequest();
         if ($response instanceof Response) {
-            $emitter->emit($response);
+            $this->responseEmitter->emit($response);
         }
     }
 
@@ -75,9 +87,8 @@ class Application
     private function handleRequest(): ?Response
     {
         try {
-            $requestHandler = new RequestHandler();
-            $route = $requestHandler->parseRoute();
-            $method = $requestHandler->getMethod();
+            $route = $this->requestHandler->parseRoute();
+            $method = $this->requestHandler->getMethod();
 
             return Router::run($route, $method);
         } catch (\Throwable $e) {

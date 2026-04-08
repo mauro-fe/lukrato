@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Fatura;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\Fatura;
 use Application\Models\FaturaCartaoItem;
 use Application\Services\Infrastructure\LogService;
@@ -17,8 +18,12 @@ class FaturaReadService
         ?FaturaFormatterService $formatterService = null,
         ?FaturaInstallmentCalculatorService $calculatorService = null
     ) {
-        $calculatorService ??= new FaturaInstallmentCalculatorService();
-        $this->formatterService = $formatterService ?? new FaturaFormatterService($calculatorService);
+        $calculatorService = ApplicationContainer::resolveOrNew($calculatorService, FaturaInstallmentCalculatorService::class);
+        $this->formatterService = ApplicationContainer::resolveOrNew(
+            $formatterService,
+            FaturaFormatterService::class,
+            fn(): FaturaFormatterService => new FaturaFormatterService($calculatorService)
+        );
     }
 
     public function listar(

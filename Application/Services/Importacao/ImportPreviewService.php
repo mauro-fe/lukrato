@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Importacao;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\Importacao\ImportProfileConfigDTO;
 use Application\Services\Importacao\Contracts\ImportParserInterface;
 use Application\Services\Importacao\Parsers\CsvImportParser;
@@ -30,8 +31,8 @@ class ImportPreviewService
             new OfxImportParser(),
             new CsvImportParser(),
         ];
-        $this->ofxImportTargetDetector = $ofxImportTargetDetector ?? new OfxImportTargetDetector();
-        $this->rowCategorizationService = $rowCategorizationService ?? new ImportRowCategorizationService();
+        $this->ofxImportTargetDetector = ApplicationContainer::resolveOrNew($ofxImportTargetDetector, OfxImportTargetDetector::class);
+        $this->rowCategorizationService = ApplicationContainer::resolveOrNew($rowCategorizationService, ImportRowCategorizationService::class);
     }
 
     /**

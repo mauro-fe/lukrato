@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Infrastructure;
 
+use Application\Container\ApplicationContainer;
 use Application\Enums\LogCategory;
 use Application\Services\Billing\SubscriptionExpirationService;
 use Application\Services\Cartao\RecorrenciaCartaoService;
@@ -24,14 +25,30 @@ class SchedulerTaskRunner
     public const TASK_PROCESS_RECURRING_CARD_ITEMS = 'process-recurring-card-items';
     public const TASK_DISPATCH_SCHEDULED_CAMPAIGNS = 'dispatch-scheduled-campaigns';
 
+    private LancamentoReminderDispatchService $lancamentoReminderService;
+    private NotificationService $notificationService;
+    private FaturaReminderDispatchService $faturaReminderService;
+    private SubscriptionExpirationService $subscriptionExpirationService;
+    private LancamentoCreationService $lancamentoCreationService;
+    private RecorrenciaCartaoService $recorrenciaCartaoService;
+    private MailService $mailService;
+
     public function __construct(
-        private readonly ?LancamentoReminderDispatchService $lancamentoReminderService = null,
-        private readonly ?NotificationService $notificationService = null,
-        private readonly ?FaturaReminderDispatchService $faturaReminderService = null,
-        private readonly ?SubscriptionExpirationService $subscriptionExpirationService = null,
-        private readonly ?LancamentoCreationService $lancamentoCreationService = null,
-        private readonly ?RecorrenciaCartaoService $recorrenciaCartaoService = null
+        ?LancamentoReminderDispatchService $lancamentoReminderService = null,
+        ?NotificationService $notificationService = null,
+        ?FaturaReminderDispatchService $faturaReminderService = null,
+        ?SubscriptionExpirationService $subscriptionExpirationService = null,
+        ?LancamentoCreationService $lancamentoCreationService = null,
+        ?RecorrenciaCartaoService $recorrenciaCartaoService = null,
+        ?MailService $mailService = null
     ) {
+        $this->lancamentoReminderService = ApplicationContainer::resolveOrNew($lancamentoReminderService, LancamentoReminderDispatchService::class);
+        $this->notificationService = ApplicationContainer::resolveOrNew($notificationService, NotificationService::class);
+        $this->faturaReminderService = ApplicationContainer::resolveOrNew($faturaReminderService, FaturaReminderDispatchService::class);
+        $this->subscriptionExpirationService = ApplicationContainer::resolveOrNew($subscriptionExpirationService, SubscriptionExpirationService::class);
+        $this->lancamentoCreationService = ApplicationContainer::resolveOrNew($lancamentoCreationService, LancamentoCreationService::class);
+        $this->recorrenciaCartaoService = ApplicationContainer::resolveOrNew($recorrenciaCartaoService, RecorrenciaCartaoService::class);
+        $this->mailService = ApplicationContainer::resolveOrNew($mailService, MailService::class);
     }
 
     /**
@@ -95,7 +112,7 @@ class SchedulerTaskRunner
             'health' => $this->health(),
             'base_url' => defined('BASE_URL') ? BASE_URL : null,
             'storage_path' => $_ENV['STORAGE_PATH'] ?? null,
-            'mail_configured' => (new MailService())->isConfigured(),
+            'mail_configured' => $this->mailService->isConfigured(),
             'tasks' => $this->listTasks(),
         ];
     }
@@ -110,15 +127,15 @@ class SchedulerTaskRunner
 
         try {
             $result = match ($task) {
-                self::TASK_DISPATCH_REMINDERS => $this->getLancamentoReminderService()->dispatch(),
+                self::TASK_DISPATCH_REMINDERS => $this->lancamentoReminderService->dispatch(),
                 self::TASK_DISPATCH_BIRTHDAYS => $this->runBirthdayDispatch($options),
-                self::TASK_DISPATCH_FATURA_REMINDERS => $this->getFaturaReminderService()->dispatch(),
-                self::TASK_PROCESS_EXPIRED_SUBSCRIPTIONS => $this->getSubscriptionExpirationService()->processExpiredSubscriptions(),
+                self::TASK_DISPATCH_FATURA_REMINDERS => $this->faturaReminderService->dispatch(),
+                self::TASK_PROCESS_EXPIRED_SUBSCRIPTIONS => $this->subscriptionExpirationService->processExpiredSubscriptions(),
                 self::TASK_GENERATE_RECURRING_LANCAMENTOS => [
-                    'created' => $this->getLancamentoCreationService()->estenderRecorrenciasInfinitas(),
+                    'created' => $this->lancamentoCreationService->estenderRecorrenciasInfinitas(),
                 ],
-                self::TASK_PROCESS_RECURRING_CARD_ITEMS => $this->getRecorrenciaCartaoService()->processRecurringCardItems(),
-                self::TASK_DISPATCH_SCHEDULED_CAMPAIGNS => $this->getNotificationService()->processScheduledCampaigns(),
+                self::TASK_PROCESS_RECURRING_CARD_ITEMS => $this->recorrenciaCartaoService->processRecurringCardItems(),
+                self::TASK_DISPATCH_SCHEDULED_CAMPAIGNS => $this->notificationService->processScheduledCampaigns(),
                 default => throw new \InvalidArgumentException("Tarefa de scheduler invalida: {$task}"),
             };
 
@@ -179,7 +196,7 @@ class SchedulerTaskRunner
      */
     private function runBirthdayDispatch(array $options): array
     {
-        $service = $this->getNotificationService();
+        $service = $this->notificationService;
 
         if (($options['preview'] ?? false) === true) {
             return [
@@ -208,35 +225,5 @@ class SchedulerTaskRunner
             self::TASK_PROCESS_RECURRING_CARD_ITEMS,
             self::TASK_DISPATCH_SCHEDULED_CAMPAIGNS,
         ];
-    }
-
-    private function getLancamentoReminderService(): LancamentoReminderDispatchService
-    {
-        return $this->lancamentoReminderService ?? new LancamentoReminderDispatchService();
-    }
-
-    private function getNotificationService(): NotificationService
-    {
-        return $this->notificationService ?? new NotificationService();
-    }
-
-    private function getFaturaReminderService(): FaturaReminderDispatchService
-    {
-        return $this->faturaReminderService ?? new FaturaReminderDispatchService();
-    }
-
-    private function getSubscriptionExpirationService(): SubscriptionExpirationService
-    {
-        return $this->subscriptionExpirationService ?? new SubscriptionExpirationService();
-    }
-
-    private function getLancamentoCreationService(): LancamentoCreationService
-    {
-        return $this->lancamentoCreationService ?? new LancamentoCreationService();
-    }
-
-    private function getRecorrenciaCartaoService(): RecorrenciaCartaoService
-    {
-        return $this->recorrenciaCartaoService ?? new RecorrenciaCartaoService();
     }
 }

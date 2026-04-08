@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Billing;
 
+use Application\Container\ApplicationContainer;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Application\Services\Infrastructure\CircuitBreakerService;
@@ -21,19 +22,37 @@ class AsaasService
     private string $userAgent;
     private CircuitBreakerService $circuitBreaker;
 
-    public function __construct()
-    {
+    public function __construct(
+        ?Client $client = null,
+        ?CircuitBreakerService $circuitBreaker = null,
+        ?string $apiKey = null,
+        ?string $baseUrl = null,
+        ?string $userAgent = null,
+        ?string $webhookToken = null
+    ) {
         // Pega primeiro de $_ENV (phpdotenv), se não tiver cai pro getenv()
-        $this->apiKey       = $_ENV['ASAAS_API_KEY']       ?? getenv('ASAAS_API_KEY')       ?: '';
-        $this->baseUrl      = $_ENV['ASAAS_BASE_URL']      ?? getenv('ASAAS_BASE_URL')      ?: 'https://sandbox.asaas.com/api/v3';
-        $this->userAgent    = $_ENV['ASAAS_USER_AGENT']    ?? getenv('ASAAS_USER_AGENT')    ?: 'Lukrato/1.0 (PHP)';
-        $this->webhookToken = $_ENV['ASAAS_WEBHOOK_TOKEN'] ?? getenv('ASAAS_WEBHOOK_TOKEN') ?: null;
+        $this->apiKey = $apiKey ?? ($_ENV['ASAAS_API_KEY'] ?? getenv('ASAAS_API_KEY') ?: '');
+        $this->baseUrl = $baseUrl ?? ($_ENV['ASAAS_BASE_URL'] ?? getenv('ASAAS_BASE_URL') ?: 'https://sandbox.asaas.com/api/v3');
+        $this->userAgent = $userAgent ?? ($_ENV['ASAAS_USER_AGENT'] ?? getenv('ASAAS_USER_AGENT') ?: 'Lukrato/1.0 (PHP)');
+        $this->webhookToken = $webhookToken ?? ($_ENV['ASAAS_WEBHOOK_TOKEN'] ?? getenv('ASAAS_WEBHOOK_TOKEN') ?: null);
 
-        if (empty($this->apiKey)) {
+        $resolvedClient = $client ?? ApplicationContainer::tryMake(Client::class);
+
+        if (!$resolvedClient instanceof Client && empty($this->apiKey)) {
             throw new \RuntimeException('ASAAS_API_KEY não configurada no .env');
         }
 
-        $this->client = new Client([
+        $this->client = $resolvedClient ?? $this->createHttpClient();
+        $this->circuitBreaker = ApplicationContainer::resolveOrNew(
+            $circuitBreaker,
+            CircuitBreakerService::class,
+            static fn(): CircuitBreakerService => new CircuitBreakerService('asaas')
+        );
+    }
+
+    private function createHttpClient(): Client
+    {
+        return new Client([
             'base_uri'    => rtrim($this->baseUrl, '/') . '/',
             'timeout'     => 10,
             'http_errors' => false,
@@ -43,9 +62,6 @@ class AsaasService
                 'access_token' => $this->apiKey,
             ],
         ]);
-
-        // ✅ Inicializar Circuit Breaker
-        $this->circuitBreaker = new CircuitBreakerService('asaas');
     }
 
 

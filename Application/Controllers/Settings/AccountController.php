@@ -32,7 +32,7 @@ class AccountController extends WebController
     ) {
         parent::__construct();
 
-        $this->antifraudService = $antifraudService ?? new ReferralAntifraudService();
+        $this->antifraudService = $this->resolveOrCreate($antifraudService, ReferralAntifraudService::class);
         $this->userLoader = $userLoader !== null
             ? Closure::fromCallable($userLoader)
             : static fn(int $userId): ?Usuario => Usuario::find($userId);

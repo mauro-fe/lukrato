@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Metas;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\Lancamento;
 use Application\Models\Meta;
 use Application\Repositories\MetaRepository;
@@ -20,9 +21,9 @@ class MetaService
         ?PlanLimitService $planLimit = null,
         ?MetaProgressService $progressService = null
     ) {
-        $this->repo = $repo ?? new MetaRepository();
-        $this->planLimit = $planLimit ?? new PlanLimitService();
-        $this->progressService = $progressService ?? new MetaProgressService();
+        $this->repo = ApplicationContainer::resolveOrNew($repo, MetaRepository::class);
+        $this->planLimit = ApplicationContainer::resolveOrNew($planLimit, PlanLimitService::class);
+        $this->progressService = ApplicationContainer::resolveOrNew($progressService, MetaProgressService::class);
     }
 
     public function listar(int $userId, ?string $status = null): array

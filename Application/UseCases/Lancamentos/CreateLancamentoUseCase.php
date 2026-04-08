@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\UseCases\Lancamentos;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\Requests\CreateLancamentoDTO;
 use Application\DTO\ServiceResultDTO;
 use Application\Models\Meta;
@@ -18,13 +19,25 @@ use ValueError;
 
 class CreateLancamentoUseCase
 {
+    private readonly LancamentoLimitService $limitService;
+    private readonly LancamentoRepository $lancamentoRepo;
+    private readonly CategoriaRepository $categoriaRepo;
+    private readonly ContaRepository $contaRepo;
+    private readonly MetaProgressService $metaProgressService;
+
     public function __construct(
-        private readonly LancamentoLimitService $limitService = new LancamentoLimitService(),
-        private readonly LancamentoRepository $lancamentoRepo = new LancamentoRepository(),
-        private readonly CategoriaRepository $categoriaRepo = new CategoriaRepository(),
-        private readonly ContaRepository $contaRepo = new ContaRepository(),
-        private readonly MetaProgressService $metaProgressService = new MetaProgressService()
-    ) {}
+        ?LancamentoLimitService $limitService = null,
+        ?LancamentoRepository $lancamentoRepo = null,
+        ?CategoriaRepository $categoriaRepo = null,
+        ?ContaRepository $contaRepo = null,
+        ?MetaProgressService $metaProgressService = null
+    ) {
+        $this->limitService = ApplicationContainer::resolveOrNew($limitService, LancamentoLimitService::class);
+        $this->lancamentoRepo = ApplicationContainer::resolveOrNew($lancamentoRepo, LancamentoRepository::class);
+        $this->categoriaRepo = ApplicationContainer::resolveOrNew($categoriaRepo, CategoriaRepository::class);
+        $this->contaRepo = ApplicationContainer::resolveOrNew($contaRepo, ContaRepository::class);
+        $this->metaProgressService = ApplicationContainer::resolveOrNew($metaProgressService, MetaProgressService::class);
+    }
 
     /**
      * @param array<string, mixed> $payload

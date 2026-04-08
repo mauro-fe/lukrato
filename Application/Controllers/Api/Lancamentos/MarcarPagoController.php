@@ -7,9 +7,6 @@ namespace Application\Controllers\Api\Lancamentos;
 use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Formatters\LancamentoResponseFormatter;
-use Application\Repositories\LancamentoRepository;
-use Application\Repositories\ParcelamentoRepository;
-use Application\Services\Lancamento\LancamentoStatusService;
 use Application\UseCases\Lancamentos\ToggleLancamentoPagoUseCase;
 
 class MarcarPagoController extends ApiController
@@ -17,34 +14,11 @@ class MarcarPagoController extends ApiController
     private ToggleLancamentoPagoUseCase $togglePagoUseCase;
 
     public function __construct(
-        ?LancamentoRepository $lancamentoRepo = null,
-        ?LancamentoStatusService $statusService = null,
-        ?ParcelamentoRepository $parcelamentoRepo = null,
         ?ToggleLancamentoPagoUseCase $togglePagoUseCase = null
     ) {
         parent::__construct();
 
-        if ($togglePagoUseCase !== null) {
-            $this->togglePagoUseCase = $togglePagoUseCase;
-
-            return;
-        }
-
-        if ($lancamentoRepo !== null || $statusService !== null || $parcelamentoRepo !== null) {
-            $this->togglePagoUseCase = new ToggleLancamentoPagoUseCase(
-                $this->resolveOrCreate($lancamentoRepo, LancamentoRepository::class),
-                $this->resolveOrCreate($statusService, LancamentoStatusService::class),
-                $this->resolveOrCreate($parcelamentoRepo, ParcelamentoRepository::class)
-            );
-
-            return;
-        }
-
-        $this->togglePagoUseCase = $this->resolveOrCreate(
-            null,
-            ToggleLancamentoPagoUseCase::class,
-            fn(): ToggleLancamentoPagoUseCase => new ToggleLancamentoPagoUseCase()
-        );
+        $this->togglePagoUseCase = $this->resolveOrCreate($togglePagoUseCase, ToggleLancamentoPagoUseCase::class);
     }
 
     public function __invoke(int $id): Response

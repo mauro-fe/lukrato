@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Application\Services\Auth;
 
+use Application\Container\ApplicationContainer;
 use Application\Enums\LogCategory;
 use Application\Models\Usuario;
+use Application\Services\Communication\MailService;
 use Application\Services\Infrastructure\LogService;
 use Application\Validators\PasswordStrengthValidator;
 use Exception;
@@ -20,11 +22,23 @@ class GoogleAuthService
 {
     private Google_Client $client;
     private AuthService $authService;
+    private MailService $mailService;
+    private SessionManager $sessionManager;
 
-    public function __construct(?Google_Client $client = null, ?AuthService $authService = null)
-    {
-        $this->client = $client ?? $this->createGoogleClient();
-        $this->authService = $authService ?? new AuthService();
+    public function __construct(
+        ?Google_Client $client = null,
+        ?AuthService $authService = null,
+        ?MailService $mailService = null,
+        ?SessionManager $sessionManager = null
+    ) {
+        $this->client = ApplicationContainer::resolveOrNew(
+            $client,
+            Google_Client::class,
+            fn(): Google_Client => $this->createGoogleClient()
+        );
+        $this->authService = ApplicationContainer::resolveOrNew($authService, AuthService::class);
+        $this->mailService = ApplicationContainer::resolveOrNew($mailService, MailService::class);
+        $this->sessionManager = ApplicationContainer::resolveOrNew($sessionManager, SessionManager::class);
     }
 
     public function getAuthUrl(): string
@@ -175,8 +189,7 @@ class GoogleAuthService
         }
 
         try {
-            $mailService = new \Application\Services\Communication\MailService();
-            $mailService->sendWelcomeEmail($usuario->email, $usuario->nome ?? 'Usuario');
+            $this->mailService->sendWelcomeEmail($usuario->email, $usuario->nome ?? 'Usuario');
             LogService::info('Email de boas-vindas enviado (registro via Google)', [
                 'user_id' => $usuario->id,
                 'email' => $usuario->email,
@@ -240,8 +253,7 @@ class GoogleAuthService
             ]);
         }
 
-        $sessionManager = new SessionManager();
-        $sessionManager->createSession($usuario, false);
+        $this->sessionManager->createSession($usuario, false);
 
         if (!empty($userInfo['picture'])) {
             $_SESSION['google_user_picture'] = $userInfo['picture'];
@@ -264,8 +276,7 @@ class GoogleAuthService
                 return false;
             }
 
-            $sessionManager = new SessionManager();
-            $sessionManager->createSession($usuario, false);
+            $this->sessionManager->createSession($usuario, false);
 
             LogService::info('Login automatico apos registro Google realizado', [
                 'user_id' => $userId,

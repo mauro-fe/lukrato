@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Lancamento;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\ServiceResultDTO;
 use Application\Enums\LogCategory;
 use Application\Enums\Recorrencia;
@@ -14,10 +15,16 @@ use Illuminate\Database\Capsule\Manager as DB;
 
 class LancamentoRecurrenceService
 {
+    private LancamentoRepository $lancamentoRepo;
+    private MetaProgressService $metaProgressService;
+
     public function __construct(
-        private LancamentoRepository $lancamentoRepo,
-        private MetaProgressService $metaProgressService
-    ) {}
+        ?LancamentoRepository $lancamentoRepo = null,
+        ?MetaProgressService $metaProgressService = null
+    ) {
+        $this->lancamentoRepo = ApplicationContainer::resolveOrNew($lancamentoRepo, LancamentoRepository::class);
+        $this->metaProgressService = ApplicationContainer::resolveOrNew($metaProgressService, MetaProgressService::class);
+    }
 
     public function cancelarRecorrencia(int $lancamentoId, int $userId): ServiceResultDTO
     {

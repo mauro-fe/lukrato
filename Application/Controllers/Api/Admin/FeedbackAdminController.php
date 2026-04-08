@@ -15,7 +15,7 @@ class FeedbackAdminController extends ApiController
     public function __construct(?FeedbackService $service = null)
     {
         parent::__construct();
-        $this->service = $service ?? new FeedbackService();
+        $this->service = $this->resolveOrCreate($service, FeedbackService::class);
     }
 
     /**
@@ -50,7 +50,7 @@ class FeedbackAdminController extends ApiController
 
         $result = $this->service->getPaginated($filters, $perPage, $page);
 
-        $result['items'] = $result['items']->map(fn ($f): array => $this->serializeFeedback($f));
+        $result['items'] = $result['items']->map(fn($f): array => $this->serializeFeedback($f));
 
         return Response::successResponse($result);
     }

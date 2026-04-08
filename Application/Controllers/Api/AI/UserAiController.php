@@ -340,7 +340,7 @@ class UserAiController extends ApiController
         }
 
         if ($this->aiService !== null || $this->contextBuilder !== null || $this->mediaRouterService !== null) {
-            return $this->workflowService = new UserAiWorkflowService(
+            return $this->workflowService = $this->buildWorkflowService(
                 $this->resolveOrCreate($this->aiService, AIService::class),
                 $this->resolveOrCreate($this->contextBuilder, UserContextBuilder::class),
                 $this->resolveOrCreate($this->mediaRouterService, MediaRouterService::class)
@@ -350,11 +350,19 @@ class UserAiController extends ApiController
         return $this->workflowService = $this->resolveOrCreate(
             null,
             UserAiWorkflowService::class,
-            fn(): UserAiWorkflowService => new UserAiWorkflowService(
+            fn(): UserAiWorkflowService => $this->buildWorkflowService(
                 $this->resolveOrCreate($this->aiService, AIService::class),
                 $this->resolveOrCreate($this->contextBuilder, UserContextBuilder::class),
                 $this->resolveOrCreate($this->mediaRouterService, MediaRouterService::class)
             )
         );
+    }
+
+    private function buildWorkflowService(
+        AIService $aiService,
+        UserContextBuilder $contextBuilder,
+        MediaRouterService $mediaRouterService
+    ): UserAiWorkflowService {
+        return new UserAiWorkflowService($aiService, $contextBuilder, $mediaRouterService);
     }
 }

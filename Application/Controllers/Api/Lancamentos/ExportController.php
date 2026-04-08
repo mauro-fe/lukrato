@@ -17,7 +17,7 @@ class ExportController extends ApiController
     public function __construct(?LancamentoExportService $exportService = null)
     {
         parent::__construct();
-        $this->exportService = $exportService ?? new LancamentoExportService();
+        $this->exportService = $this->resolveOrCreate($exportService, LancamentoExportService::class);
     }
 
     public function __invoke(): Response

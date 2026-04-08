@@ -9,10 +9,7 @@ use Application\Controllers\Api\Cartao\CartoesController;
 use Application\Core\Exceptions\AuthException;
 use Application\Models\Usuario;
 use Application\Services\Cartao\CartaoApiWorkflowService;
-use Application\Services\Cartao\CartaoCreditoService;
-use Application\Services\Cartao\CartaoFaturaService;
 use Application\Services\Demo\DemoPreviewService;
-use Application\Services\Plan\PlanLimitService;
 use Illuminate\Container\Container as IlluminateContainer;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
@@ -48,20 +45,16 @@ class CartoesControllerTest extends TestCase
     {
         $this->seedAuthenticatedSession(1201, 'Cartao User');
 
-        $service = Mockery::mock(CartaoCreditoService::class);
-        $service
-            ->shouldReceive('listarCartoes')
+        $workflow = Mockery::mock(CartaoApiWorkflowService::class);
+        $workflow
+            ->shouldReceive('listCards')
             ->once()
-            ->with(1201, null, true)
+            ->with(1201, null, true, false)
             ->andReturn([
                 ['id' => 1, 'nome' => 'Cartão Principal'],
             ]);
 
-        $controller = new CartoesController(
-            $service,
-            Mockery::mock(CartaoFaturaService::class),
-            Mockery::mock(PlanLimitService::class),
-        );
+        $controller = new CartoesController($workflow);
 
         $response = $controller->index();
 
@@ -79,18 +72,14 @@ class CartoesControllerTest extends TestCase
     {
         $this->seedAuthenticatedSession(1202, 'Cartao User');
 
-        $service = Mockery::mock(CartaoCreditoService::class);
-        $service
-            ->shouldReceive('buscarCartao')
+        $workflow = Mockery::mock(CartaoApiWorkflowService::class);
+        $workflow
+            ->shouldReceive('showCard')
             ->once()
             ->with(99, 1202)
             ->andReturn(null);
 
-        $controller = new CartoesController(
-            $service,
-            Mockery::mock(CartaoFaturaService::class),
-            Mockery::mock(PlanLimitService::class),
-        );
+        $controller = new CartoesController($workflow);
 
         $response = $controller->show(99);
 
@@ -105,25 +94,27 @@ class CartoesControllerTest extends TestCase
     {
         $this->seedAuthenticatedSession(1203, 'Cartao User');
 
-        $planLimitService = Mockery::mock(PlanLimitService::class);
-        $planLimitService
-            ->shouldReceive('canCreateCartao')
+        $workflow = Mockery::mock(CartaoApiWorkflowService::class);
+        $workflow
+            ->shouldReceive('createCard')
             ->once()
-            ->with(1203)
+            ->with(1203, [])
             ->andReturn([
-                'allowed' => false,
+                'success' => false,
+                'status' => 403,
                 'message' => 'Limite de cartões atingido',
-                'upgrade_url' => '/upgrade',
-                'limit' => 3,
-                'used' => 3,
-                'remaining' => 0,
+                'errors' => [
+                    'limit_reached' => true,
+                    'upgrade_url' => '/upgrade',
+                    'limit_info' => [
+                        'limit' => 3,
+                        'used' => 3,
+                        'remaining' => 0,
+                    ],
+                ],
             ]);
 
-        $controller = new CartoesController(
-            Mockery::mock(CartaoCreditoService::class),
-            Mockery::mock(CartaoFaturaService::class),
-            $planLimitService,
-        );
+        $controller = new CartoesController($workflow);
 
         $response = $controller->store();
 
@@ -145,11 +136,7 @@ class CartoesControllerTest extends TestCase
 
     public function testIndexThrowsAuthExceptionWhenSessionIsMissing(): void
     {
-        $controller = new CartoesController(
-            Mockery::mock(CartaoCreditoService::class),
-            Mockery::mock(CartaoFaturaService::class),
-            Mockery::mock(PlanLimitService::class),
-        );
+        $controller = new CartoesController(Mockery::mock(CartaoApiWorkflowService::class));
 
         $this->expectException(AuthException::class);
         $this->expectExceptionMessage('Não autenticado');
@@ -173,12 +160,7 @@ class CartoesControllerTest extends TestCase
                 'total_lancamentos' => 5,
             ]);
 
-        $controller = new CartoesController(
-            Mockery::mock(CartaoCreditoService::class),
-            Mockery::mock(CartaoFaturaService::class),
-            Mockery::mock(PlanLimitService::class),
-            $workflow
-        );
+        $controller = new CartoesController($workflow);
 
         $response = $controller->delete(77);
 
@@ -208,12 +190,7 @@ class CartoesControllerTest extends TestCase
                 'message' => 'Cartao nao encontrado',
             ]);
 
-        $controller = new CartoesController(
-            Mockery::mock(CartaoCreditoService::class),
-            Mockery::mock(CartaoFaturaService::class),
-            Mockery::mock(PlanLimitService::class),
-            $workflow
-        );
+        $controller = new CartoesController($workflow);
 
         $response = $controller->updateLimit(88);
 
@@ -238,12 +215,7 @@ class CartoesControllerTest extends TestCase
                 'message' => 'Erro ao cancelar recorrencia',
             ]);
 
-        $controller = new CartoesController(
-            Mockery::mock(CartaoCreditoService::class),
-            Mockery::mock(CartaoFaturaService::class),
-            Mockery::mock(PlanLimitService::class),
-            $workflow
-        );
+        $controller = new CartoesController($workflow);
 
         $response = $controller->cancelarRecorrencia(33);
 
@@ -268,12 +240,7 @@ class CartoesControllerTest extends TestCase
                 'message' => 'Cartao nao encontrado',
             ]);
 
-        $controller = new CartoesController(
-            Mockery::mock(CartaoCreditoService::class),
-            Mockery::mock(CartaoFaturaService::class),
-            Mockery::mock(PlanLimitService::class),
-            $workflow
-        );
+        $controller = new CartoesController($workflow);
 
         $response = $controller->deactivate(45);
 

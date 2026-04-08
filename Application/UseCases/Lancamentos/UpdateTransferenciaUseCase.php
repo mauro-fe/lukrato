@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\UseCases\Lancamentos;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\ServiceResultDTO;
 use Application\Formatters\LancamentoResponseFormatter;
 use Application\Models\Lancamento;
@@ -15,11 +16,18 @@ use Application\Validators\LancamentoValidator;
 
 class UpdateTransferenciaUseCase
 {
+    private readonly LancamentoRepository $lancamentoRepo;
+    private readonly ContaRepository $contaRepo;
+    private readonly MetaProgressService $metaProgressService;
+
     public function __construct(
-        private readonly LancamentoRepository $lancamentoRepo = new LancamentoRepository(),
-        private readonly ContaRepository $contaRepo = new ContaRepository(),
-        private readonly MetaProgressService $metaProgressService = new MetaProgressService()
+        ?LancamentoRepository $lancamentoRepo = null,
+        ?ContaRepository $contaRepo = null,
+        ?MetaProgressService $metaProgressService = null
     ) {
+        $this->lancamentoRepo = ApplicationContainer::resolveOrNew($lancamentoRepo, LancamentoRepository::class);
+        $this->contaRepo = ApplicationContainer::resolveOrNew($contaRepo, ContaRepository::class);
+        $this->metaProgressService = ApplicationContainer::resolveOrNew($metaProgressService, MetaProgressService::class);
     }
 
     /**
@@ -126,7 +134,7 @@ class UpdateTransferenciaUseCase
 
         $updated = $this->lancamentoRepo->findByIdAndUser((int) $lancamento->id, $userId);
         if (!$updated instanceof Lancamento) {
-            return ServiceResultDTO::error('Erro ao atualizar transferencia.', 500);
+            return ServiceResultDTO::fail('Erro ao atualizar transferencia.', 500);
         }
 
         $updated->loadMissing(['categoria', 'conta', 'subcategoria', 'meta']);

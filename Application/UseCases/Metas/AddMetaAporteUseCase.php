@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\UseCases\Metas;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\ServiceResultDTO;
 use Application\Services\Metas\MetaService;
 use Application\Services\Gamification\AchievementService;
@@ -19,8 +20,8 @@ class AddMetaAporteUseCase
         ?MetaService $metaService = null,
         ?AchievementService $achievementService = null
     ) {
-        $this->metaService = $metaService ?? new MetaService();
-        $this->achievementService = $achievementService ?? new AchievementService();
+        $this->metaService = ApplicationContainer::resolveOrNew($metaService, MetaService::class);
+        $this->achievementService = ApplicationContainer::resolveOrNew($achievementService, AchievementService::class);
     }
 
     /**

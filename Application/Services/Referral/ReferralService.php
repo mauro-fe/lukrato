@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Referral;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\Usuario;
 use Application\Models\Indicacao;
 use Application\Models\AssinaturaUsuario;
@@ -24,6 +25,17 @@ class ReferralService
      * Dias de PRO que o indicado ganha
      */
     const REFERRED_REWARD_DAYS = 7;
+
+    private ?ReferralAntifraudService $antifraudService;
+    private ?AchievementService $achievementService;
+
+    public function __construct(
+        ?ReferralAntifraudService $antifraudService = null,
+        ?AchievementService $achievementService = null
+    ) {
+        $this->antifraudService = $antifraudService;
+        $this->achievementService = $achievementService;
+    }
 
     /**
      * Gera um código de indicação único
@@ -131,9 +143,8 @@ class ReferralService
         $ip = $_SERVER['REMOTE_ADDR'] ?? null;
 
         // Validação anti-fraude
-        $antifraudService = new ReferralAntifraudService();
-        $canProcess = $antifraudService->canProcessReferral($referredUser->email, $referrer->id, $ip);
-        
+        $canProcess = $this->antifraudService()->canProcessReferral($referredUser->email, $referrer->id, $ip);
+
         if (!$canProcess['allowed']) {
             LogService::warning('[ReferralService] Indicação bloqueada por anti-fraude', [
                 'referred_email' => $referredUser->email,
@@ -167,7 +178,7 @@ class ReferralService
         $referredUser->save();
 
         // Registra uso de indicação no anti-fraude
-        $antifraudService->onReferralUsed($referredUser, $referrer->id, $ip);
+        $this->antifraudService()->onReferralUsed($referredUser, $referrer->id, $ip);
 
         LogService::info('[ReferralService] Indicação registrada - aguardando verificação de email', [
             'referrer_id' => $referrer->id,
@@ -190,8 +201,7 @@ class ReferralService
     private function checkReferralAchievements(int $userId): void
     {
         try {
-            $achievementService = new AchievementService();
-            $achievementService->checkAndUnlockAchievements($userId, 'referral');
+            $this->achievementService()->checkAndUnlockAchievements($userId, 'referral');
         } catch (\Throwable $e) {
             // Não deixa erro de conquistas impedir o fluxo principal
             LogService::warning('[ReferralService] Erro ao verificar conquistas de indicação', [
@@ -296,8 +306,7 @@ class ReferralService
             });
 
         // Informações de limite mensal (anti-fraude)
-        $antifraudService = new ReferralAntifraudService();
-        $indicacoesMes = $antifraudService->countMonthlyReferrals($user->id);
+        $indicacoesMes = $this->antifraudService()->countMonthlyReferrals($user->id);
         $limiteMenusal = ReferralAntifraudService::MAX_REFERRALS_PER_MONTH;
         $indicacoesRestantes = max(0, $limiteMenusal - $indicacoesMes);
 
@@ -326,6 +335,16 @@ class ReferralService
     {
         $baseUrl = defined('BASE_URL') ? rtrim(BASE_URL, '/') : 'https://lukrato.com.br';
         return $baseUrl . '/login?ref=' . $user->referral_code;
+    }
+
+    private function antifraudService(): ReferralAntifraudService
+    {
+        return $this->antifraudService ??= ApplicationContainer::resolveOrNew(null, ReferralAntifraudService::class);
+    }
+
+    private function achievementService(): AchievementService
+    {
+        return $this->achievementService ??= ApplicationContainer::resolveOrNew(null, AchievementService::class);
     }
 
     /**

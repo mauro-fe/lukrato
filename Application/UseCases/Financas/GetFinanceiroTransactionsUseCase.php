@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\UseCases\Financas;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\ServiceResultDTO;
 use Application\Models\Lancamento;
 use Application\Repositories\LancamentoRepository;
@@ -15,7 +16,7 @@ class GetFinanceiroTransactionsUseCase
     public function __construct(
         ?LancamentoRepository $lancamentoRepo = null
     ) {
-        $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
+        $this->lancamentoRepo = ApplicationContainer::resolveOrNew($lancamentoRepo, LancamentoRepository::class);
     }
 
     public function execute(int $userId, string $from, string $to, int $limit): ServiceResultDTO

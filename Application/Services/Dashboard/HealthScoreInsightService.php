@@ -4,18 +4,25 @@ declare(strict_types=1);
 
 namespace Application\Services\Dashboard;
 
+use Application\Container\ApplicationContainer;
 use Application\Repositories\LancamentoRepository;
 use Application\Repositories\MetaRepository;
 use Application\Repositories\OrcamentoRepository;
 
 class HealthScoreInsightService
 {
+    private LancamentoRepository $lancamentoRepo;
+    private MetaRepository $metaRepo;
+    private OrcamentoRepository $orcamentoRepo;
+
     public function __construct(
-        private LancamentoRepository $lancamentoRepo,
-        private MetaRepository $metaRepo,
-        private ?OrcamentoRepository $orcamentoRepo = null
+        ?LancamentoRepository $lancamentoRepo = null,
+        ?MetaRepository $metaRepo = null,
+        ?OrcamentoRepository $orcamentoRepo = null
     ) {
-        $this->orcamentoRepo = $orcamentoRepo ?? new OrcamentoRepository();
+        $this->lancamentoRepo = ApplicationContainer::resolveOrNew($lancamentoRepo, LancamentoRepository::class);
+        $this->metaRepo = ApplicationContainer::resolveOrNew($metaRepo, MetaRepository::class);
+        $this->orcamentoRepo = ApplicationContainer::resolveOrNew($orcamentoRepo, OrcamentoRepository::class);
     }
 
     public function generate(int $userId, string $month): array

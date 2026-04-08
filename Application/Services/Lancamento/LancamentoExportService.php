@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Lancamento;
 
+use Application\Container\ApplicationContainer;
 use Application\Enums\LancamentoTipo;
 use Application\DTO\ReportData;
 use Carbon\Carbon;
@@ -22,8 +23,8 @@ class LancamentoExportService
         ?ExcelExportService $excelExporter = null,
         ?PdfExportService $pdfExporter = null
     ) {
-        $this->excelExporter = $excelExporter ?? new ExcelExportService();
-        $this->pdfExporter = $pdfExporter ?? new PdfExportService();
+        $this->excelExporter = ApplicationContainer::resolveOrNew($excelExporter, ExcelExportService::class);
+        $this->pdfExporter = ApplicationContainer::resolveOrNew($pdfExporter, PdfExportService::class);
     }
 
     public function export(int $userId, array $filters): array

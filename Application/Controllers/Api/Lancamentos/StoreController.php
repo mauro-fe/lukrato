@@ -15,7 +15,7 @@ class StoreController extends ApiController
     public function __construct(?LancamentoCreationService $creationService = null)
     {
         parent::__construct();
-        $this->creationService = $creationService ?? new LancamentoCreationService();
+        $this->creationService = $this->resolveOrCreate($creationService, LancamentoCreationService::class);
     }
 
     public function __invoke(): Response

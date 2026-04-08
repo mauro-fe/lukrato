@@ -20,7 +20,7 @@ class NotificationController extends ApiController
     public function __construct(?NotificationService $notificationService = null)
     {
         parent::__construct();
-        $this->notificationService = $notificationService ?? new NotificationService();
+        $this->notificationService = $this->resolveOrCreate($notificationService, NotificationService::class);
     }
 
     public function index(): Response

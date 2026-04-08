@@ -41,7 +41,7 @@ class AccountControllerTest extends TestCase
         $controller = new AccountController();
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->delete();
     }
@@ -55,9 +55,8 @@ class AccountControllerTest extends TestCase
 
         $controller = new AccountController(
             $antifraud,
-            static fn (int $userId): ?Usuario => null,
-            static function (): void {
-            }
+            static fn(int $userId): ?Usuario => null,
+            static function (): void {}
         );
 
         $response = $controller->delete();
@@ -65,7 +64,7 @@ class AccountControllerTest extends TestCase
 
         $this->assertSame(404, $response->getStatusCode());
         $this->assertFalse($payload['success']);
-        $this->assertSame('Usuario nao encontrado.', $payload['message']);
+        $this->assertSame('Usuário não encontrado.', $payload['message']);
     }
 
     public function testDeleteAnonymizesAndDeletesUserThenLogsOut(): void
@@ -88,7 +87,7 @@ class AccountControllerTest extends TestCase
 
         $controller = new AccountController(
             $antifraud,
-            static fn (int $userId): ?Usuario => $userId === 78 ? $user : null,
+            static fn(int $userId): ?Usuario => $userId === 78 ? $user : null,
             static function () use (&$logoutCalled): void {
                 $logoutCalled = true;
             }
@@ -99,12 +98,12 @@ class AccountControllerTest extends TestCase
 
         $this->assertSame(200, $response->getStatusCode());
         $this->assertTrue($payload['success']);
-        $this->assertSame('Conta excluida com sucesso.', $payload['message']);
+        $this->assertSame('Conta excluída com sucesso.', $payload['message']);
         $this->assertTrue($logoutCalled);
         $this->assertTrue($user->saveCalled);
         $this->assertTrue($user->deleteCalled);
         $this->assertNull($user->google_id);
-        $this->assertSame('Usuario Removido', $user->nome);
+        $this->assertSame('Usuário Removido', $user->nome);
         $this->assertStringStartsWith('deleted_', (string) $user->email);
         $this->assertStringEndsWith('@anonimizado.local', (string) $user->email);
     }
@@ -121,7 +120,7 @@ class AccountControllerTest extends TestCase
         $_SESSION['user_id'] = $userId;
         $_SESSION['last_activity'] = time();
 
-        Auth::resolveUserUsing(static fn (int $id): ?Usuario => $id === $userId ? $authUser : null);
+        Auth::resolveUserUsing(static fn(int $id): ?Usuario => $id === $userId ? $authUser : null);
     }
 }
 

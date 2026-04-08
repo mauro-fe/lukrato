@@ -36,15 +36,10 @@ abstract class BaseController
         ?Response $response = null,
         ?CacheService $cache = null
     ) {
-        $this->auth = $auth ?? $this->resolveDependency(Auth::class) ?? new Auth();
-        $this->request = $request ?? $this->resolveDependency(Request::class) ?? new Request();
-        $this->response = $response ?? $this->resolveDependency(Response::class) ?? new Response();
-        $this->cache = $cache ?? $this->resolveDependency(CacheService::class) ?? new CacheService();
-    }
-
-    protected function resolveDependency(string $abstract): mixed
-    {
-        return ApplicationContainer::tryMake($abstract);
+        $this->auth = $this->resolveOrCreate($auth, Auth::class);
+        $this->request = $this->resolveOrCreate($request, Request::class);
+        $this->response = $this->resolveOrCreate($response, Response::class);
+        $this->cache = $this->resolveOrCreate($cache, CacheService::class);
     }
 
     protected function resolveOrCreate(mixed $dependency, string $abstract, ?callable $factory = null): mixed

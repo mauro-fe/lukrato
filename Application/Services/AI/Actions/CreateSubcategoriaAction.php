@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Actions;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\Requests\CreateSubcategoriaDTO;
 use Application\Models\Categoria;
 use Application\Services\Categoria\SubcategoriaService;
@@ -11,6 +12,13 @@ use Application\Services\AI\Helpers\UserCategoryLoader;
 
 class CreateSubcategoriaAction implements ActionInterface
 {
+    private SubcategoriaService $service;
+
+    public function __construct(?SubcategoriaService $service = null)
+    {
+        $this->service = ApplicationContainer::resolveOrNew($service, SubcategoriaService::class);
+    }
+
     public function execute(int $userId, array $payload): ActionResult
     {
         $parentId = (int) ($payload['parent_id'] ?? 0);
@@ -30,13 +38,12 @@ class CreateSubcategoriaAction implements ActionInterface
             return ActionResult::fail('Categoria pai não encontrada ou inválida.');
         }
 
-        $service = new SubcategoriaService();
         $dto = CreateSubcategoriaDTO::fromRequest($userId, $parentId, [
             'nome'  => trim($payload['nome'] ?? ''),
             'icone' => $payload['icone'] ?? null,
         ]);
 
-        $sub = $service->create($dto);
+        $sub = $this->service->create($dto);
 
         UserCategoryLoader::invalidate($userId);
 

@@ -18,7 +18,7 @@ class ReferralController extends ApiController
     public function __construct(?ReferralService $referralService = null)
     {
         parent::__construct();
-        $this->referralService = $referralService ?? new ReferralService();
+        $this->referralService = $this->resolveOrCreate($referralService, ReferralService::class);
     }
 
     public function getStats(): Response

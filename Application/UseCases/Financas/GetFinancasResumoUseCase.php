@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\UseCases\Financas;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\ServiceResultDTO;
 use Application\Services\Demo\DemoPreviewService;
 use Application\Services\Metas\MetaService;
@@ -20,9 +21,9 @@ class GetFinancasResumoUseCase
         ?OrcamentoService $orcamentoService = null,
         ?DemoPreviewService $demoPreviewService = null
     ) {
-        $this->metaService = $metaService ?? new MetaService();
-        $this->orcamentoService = $orcamentoService ?? new OrcamentoService();
-        $this->demoPreviewService = $demoPreviewService ?? new DemoPreviewService();
+        $this->metaService = ApplicationContainer::resolveOrNew($metaService, MetaService::class);
+        $this->orcamentoService = ApplicationContainer::resolveOrNew($orcamentoService, OrcamentoService::class);
+        $this->demoPreviewService = ApplicationContainer::resolveOrNew($demoPreviewService, DemoPreviewService::class);
     }
 
     public function execute(int $userId, int $mes, int $ano): ServiceResultDTO

@@ -43,7 +43,11 @@ class RegistroController extends WebController
             RegistrationResponseHandler::class,
             fn(): RegistrationResponseHandler => new RegistrationResponseHandler($this->request)
         );
-        $this->turnstile = $turnstile ?? $this->resolveDependency(TurnstileService::class);
+        $this->turnstile = $this->resolveOrCreate(
+            $turnstile,
+            TurnstileService::class,
+            fn(): TurnstileService => new TurnstileService($this->cache)
+        );
     }
 
     public function showForm(): Response

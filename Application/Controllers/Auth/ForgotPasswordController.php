@@ -29,11 +29,23 @@ class ForgotPasswordController extends WebController
             $service,
             PasswordResetService::class,
             function (): PasswordResetService {
-                $repository = $this->resolveDependency(PasswordResetRepositoryEloquent::class) ?? new PasswordResetRepositoryEloquent();
-                $tokenGenerator = $this->resolveDependency(SecureTokenGenerator::class) ?? new SecureTokenGenerator();
-                $mailService = $this->resolveDependency(MailService::class) ?? new MailService();
-                $notifier = $this->resolveDependency(MailPasswordResetNotification::class)
-                    ?? new MailPasswordResetNotification($mailService);
+                $repository = $this->resolveOrCreate(
+                    null,
+                    PasswordResetRepositoryEloquent::class
+                );
+                $tokenGenerator = $this->resolveOrCreate(
+                    null,
+                    SecureTokenGenerator::class
+                );
+                $mailService = $this->resolveOrCreate(
+                    null,
+                    MailService::class
+                );
+                $notifier = $this->resolveOrCreate(
+                    null,
+                    MailPasswordResetNotification::class,
+                    fn(): MailPasswordResetNotification => new MailPasswordResetNotification($mailService)
+                );
 
                 return new PasswordResetService(
                     repository: $repository,

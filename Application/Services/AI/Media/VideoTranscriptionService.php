@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Media;
 
+use Application\Container\ApplicationContainer;
+
 /**
  * Extrai o áudio de vídeos com ffmpeg e reaproveita o pipeline de transcrição.
  */
@@ -11,9 +13,13 @@ class VideoTranscriptionService
 {
     private const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
 
+    private AudioTranscriptionService $transcriber;
+
     public function __construct(
-        private readonly ?AudioTranscriptionService $transcriber = null,
-    ) {}
+        ?AudioTranscriptionService $transcriber = null,
+    ) {
+        $this->transcriber = ApplicationContainer::resolveOrNew($transcriber, AudioTranscriptionService::class);
+    }
 
     public function transcribe(string $videoContent, string $filename = 'video.mp4', ?string $prompt = null): TranscriptionResult
     {
@@ -74,8 +80,7 @@ class VideoTranscriptionService
                 );
             }
 
-            $transcriber = $this->transcriber ?? new AudioTranscriptionService();
-            $result = $transcriber->transcribe($audioContent, 'video-audio.mp3', $prompt);
+            $result = $this->transcriber->transcribe($audioContent, 'video-audio.mp3', $prompt);
 
             return new TranscriptionResult(
                 success: $result->success,

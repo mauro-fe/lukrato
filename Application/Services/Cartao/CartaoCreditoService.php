@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Cartao;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\CartaoCredito;
 use Application\Models\Conta;
 use Application\DTO\CreateCartaoCreditoDTO;
@@ -25,9 +26,9 @@ class CartaoCreditoService
         ?CartaoLifecycleService $lifecycleService = null,
         ?CartaoMonitoringService $monitoringService = null
     ) {
-        $this->validator = $validator ?? new CartaoCreditoValidator();
-        $this->lifecycleService = $lifecycleService ?? new CartaoLifecycleService();
-        $this->monitoringService = $monitoringService ?? new CartaoMonitoringService();
+        $this->validator = ApplicationContainer::resolveOrNew($validator, CartaoCreditoValidator::class);
+        $this->lifecycleService = ApplicationContainer::resolveOrNew($lifecycleService, CartaoLifecycleService::class);
+        $this->monitoringService = ApplicationContainer::resolveOrNew($monitoringService, CartaoMonitoringService::class);
     }
 
     /**

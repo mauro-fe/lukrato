@@ -67,7 +67,7 @@ class FeedbackAdminControllerTest extends TestCase
         $controller = new FeedbackAdminController(Mockery::mock(FeedbackService::class));
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->export();
     }

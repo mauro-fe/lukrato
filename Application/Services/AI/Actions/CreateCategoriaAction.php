@@ -4,20 +4,26 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Actions;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\Requests\CreateCategoriaDTO;
 use Application\Repositories\CategoriaRepository;
 use Application\Services\AI\Helpers\UserCategoryLoader;
 
 class CreateCategoriaAction implements ActionInterface
 {
+    private CategoriaRepository $repo;
+
+    public function __construct(?CategoriaRepository $repo = null)
+    {
+        $this->repo = ApplicationContainer::resolveOrNew($repo, CategoriaRepository::class);
+    }
+
     public function execute(int $userId, array $payload): ActionResult
     {
-        $repo = new CategoriaRepository();
-
         $nome = trim($payload['nome'] ?? '');
         $tipo = mb_strtolower(trim($payload['tipo'] ?? ''));
 
-        if ($repo->hasDuplicate($userId, $nome, $tipo)) {
+        if ($this->repo->hasDuplicate($userId, $nome, $tipo)) {
             return ActionResult::fail("Já existe uma categoria \"{$nome}\" do tipo \"{$tipo}\".");
         }
 
@@ -27,7 +33,7 @@ class CreateCategoriaAction implements ActionInterface
             'icone' => $payload['icone'] ?? null,
         ]);
 
-        $categoria = $repo->create($dto->toArray());
+        $categoria = $this->repo->create($dto->toArray());
 
         UserCategoryLoader::invalidate($userId);
 

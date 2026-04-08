@@ -6,6 +6,7 @@ namespace Application\Services\Report;
 
 use Application\Enums\ReportType;
 use Application\Enums\LancamentoTipo;
+use Application\Container\ApplicationContainer;
 use Application\DTO\ReportParameters;
 use Application\Repositories\ReportRepository;
 use Carbon\Carbon;
@@ -18,7 +19,7 @@ class ReportService
 
     public function __construct(?ReportRepository $repository = null)
     {
-        $this->repository = $repository ?? new ReportRepository();
+        $this->repository = ApplicationContainer::resolveOrNew($repository, ReportRepository::class);
     }
 
     /**

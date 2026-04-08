@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\UseCases\Metas;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\ServiceResultDTO;
 use Application\Services\Metas\MetaService;
 
@@ -14,7 +15,7 @@ class GetMetaTemplatesUseCase
     public function __construct(
         ?MetaService $metaService = null
     ) {
-        $this->metaService = $metaService ?? new MetaService();
+        $this->metaService = ApplicationContainer::resolveOrNew($metaService, MetaService::class);
     }
 
     public function execute(int $userId): ServiceResultDTO

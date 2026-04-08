@@ -15,7 +15,7 @@ class TransactionsControllerTest extends TestCase
         $controller = new TransactionsController();
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->transactions();
     }

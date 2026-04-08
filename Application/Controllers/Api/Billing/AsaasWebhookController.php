@@ -19,11 +19,13 @@ use Illuminate\Database\Capsule\Manager as DB;
 class AsaasWebhookController extends ApiController
 {
     private AsaasService $asaas;
+    private MailService $mailService;
 
-    public function __construct(?AsaasService $asaas = null)
+    public function __construct(?AsaasService $asaas = null, ?MailService $mailService = null)
     {
         parent::__construct();
-        $this->asaas = $asaas ?? new AsaasService();
+        $this->asaas = $this->resolveOrCreate($asaas, AsaasService::class);
+        $this->mailService = $this->resolveOrCreate($mailService, MailService::class);
     }
 
     /**
@@ -325,8 +327,7 @@ class AsaasWebhookController extends ApiController
             // Obter valor do pagamento
             $valor = isset($payment['value']) ? (float) $payment['value'] : null;
 
-            $mailService = new MailService();
-            $mailService->sendSubscriptionConfirmation(
+            $this->mailService->sendSubscriptionConfirmation(
                 $usuario->email,
                 $usuario->nome ?? 'Usuário',
                 $planoNome,

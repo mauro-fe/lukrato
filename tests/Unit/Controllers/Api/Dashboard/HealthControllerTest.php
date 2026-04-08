@@ -42,7 +42,7 @@ class HealthControllerTest extends TestCase
         $controller = new HealthController();
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->healthScore();
     }

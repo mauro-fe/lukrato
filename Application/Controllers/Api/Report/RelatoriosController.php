@@ -7,6 +7,7 @@ namespace Application\Controllers\Api\Report;
 use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Models\Usuario;
+use Application\Services\Gamification\GamificationService;
 use Application\Services\Infrastructure\LogService;
 use Application\Services\Report\ReportApiWorkflowService;
 use InvalidArgumentException;
@@ -45,7 +46,7 @@ class RelatoriosController extends ApiController
                 $resolvedExcelExport,
                 $resolvedInsightsService,
                 $resolvedComparativesService,
-                $this->resolveDependency(\Application\Services\Gamification\GamificationService::class)
+                $this->resolveOrCreate(null, GamificationService::class)
             )
         );
     }

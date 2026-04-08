@@ -141,7 +141,7 @@ class MiddlewareResolver
                 && !$type->isBuiltin()
                 && is_a($type->getName(), CacheService::class, true)
             ) {
-                $arguments[] = new CacheService();
+                $arguments[] = ApplicationContainer::resolveOrNew(null, CacheService::class);
                 continue;
             }
 

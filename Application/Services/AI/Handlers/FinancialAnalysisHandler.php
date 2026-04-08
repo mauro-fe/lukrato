@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Handlers;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\AI\AIRequestDTO;
 use Application\DTO\AI\AIResponseDTO;
 use Application\Enums\AI\IntentType;
@@ -20,11 +21,18 @@ use Application\Services\Infrastructure\LogService;
 class FinancialAnalysisHandler implements AIHandlerInterface
 {
     private CacheService $cache;
+    private FinancialAnalysisPreprocessor $preprocessor;
     private ?AIProvider $provider = null;
 
-    public function __construct()
-    {
-        $this->cache = new CacheService();
+    public function __construct(
+        ?CacheService $cache = null,
+        ?FinancialAnalysisPreprocessor $preprocessor = null
+    ) {
+        $this->cache = ApplicationContainer::resolveOrNew($cache, CacheService::class);
+        $this->preprocessor = ApplicationContainer::resolveOrNew(
+            $preprocessor,
+            FinancialAnalysisPreprocessor::class
+        );
     }
 
     public function setProvider(AIProvider $provider): void
@@ -55,8 +63,7 @@ class FinancialAnalysisHandler implements AIHandlerInterface
 
         try {
             // Pré-processar dados financeiros (só agregados, nunca registros individuais)
-            $preprocessor = new FinancialAnalysisPreprocessor();
-            $aggregatedData = $preprocessor->prepare($userId, $period);
+            $aggregatedData = $this->preprocessor->prepare($userId, $period);
 
             if (empty($aggregatedData)) {
                 return AIResponseDTO::fail(

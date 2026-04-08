@@ -15,7 +15,7 @@ class FeedbackController extends ApiController
     public function __construct(?FeedbackService $service = null)
     {
         parent::__construct();
-        $this->service = $service ?? new FeedbackService();
+        $this->service = $this->resolveOrCreate($service, FeedbackService::class);
     }
 
     /**

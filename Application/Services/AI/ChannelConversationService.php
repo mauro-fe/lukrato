@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\AI\AIRequestDTO;
 use Application\DTO\AI\AIResponseDTO;
 use Application\Enums\AI\AIChannel;
@@ -22,6 +23,17 @@ use Application\Services\AI\Context\UserContextBuilder;
  */
 class ChannelConversationService
 {
+    private AIService $aiService;
+    private UserContextBuilder $contextBuilder;
+
+    public function __construct(
+        ?AIService $aiService = null,
+        ?UserContextBuilder $contextBuilder = null
+    ) {
+        $this->aiService = ApplicationContainer::resolveOrNew($aiService, AIService::class);
+        $this->contextBuilder = ApplicationContainer::resolveOrNew($contextBuilder, UserContextBuilder::class);
+    }
+
     /**
      * @param array<string, mixed> $baseContext
      * @return array{conversation: AiConversation, response: AIResponseDTO}
@@ -43,7 +55,7 @@ class ChannelConversationService
 
         $context = $this->buildContext($userId, $message, $conversation, $baseContext);
 
-        $response = (new AIService())->dispatch(new AIRequestDTO(
+        $response = $this->aiService->dispatch(new AIRequestDTO(
             userId: $userId,
             message: $message,
             context: $context,
@@ -91,7 +103,7 @@ class ChannelConversationService
     private function buildContext(int $userId, string $message, AiConversation $conversation, array $baseContext): array
     {
         try {
-            $context = (new UserContextBuilder())->build($userId);
+            $context = $this->contextBuilder->build($userId);
         } catch (\Throwable) {
             $context = [];
         }

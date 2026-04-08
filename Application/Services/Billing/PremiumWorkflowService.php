@@ -6,6 +6,7 @@ namespace Application\Services\Billing;
 
 use Application\Builders\AsaasPaymentBuilder;
 use Application\Builders\AsaasSubscriptionBuilder;
+use Application\Container\ApplicationContainer;
 use Application\DTO\CheckoutRequestDTO;
 use Application\DTO\CustomerDataDTO;
 use Application\Enums\LogCategory;
@@ -24,11 +25,22 @@ use Throwable;
 
 class PremiumWorkflowService
 {
+    private AsaasService $asaas;
+    private CustomerService $customerService;
+    private CheckoutValidator $validator;
+    private AchievementService $achievementService;
+
     public function __construct(
-        private readonly AsaasService $asaas = new AsaasService(),
-        private readonly CustomerService $customerService = new CustomerService(),
-        private readonly CheckoutValidator $validator = new CheckoutValidator()
-    ) {}
+        ?AsaasService $asaas = null,
+        ?CustomerService $customerService = null,
+        ?CheckoutValidator $validator = null,
+        ?AchievementService $achievementService = null
+    ) {
+        $this->asaas = ApplicationContainer::resolveOrNew($asaas, AsaasService::class);
+        $this->customerService = ApplicationContainer::resolveOrNew($customerService, CustomerService::class);
+        $this->validator = ApplicationContainer::resolveOrNew($validator, CheckoutValidator::class);
+        $this->achievementService = ApplicationContainer::resolveOrNew($achievementService, AchievementService::class);
+    }
 
     /**
      * @param array<string, mixed> $payload
@@ -876,8 +888,7 @@ class PremiumWorkflowService
 
             $perfilService->salvarDadosCheckout($usuario->id, $dados);
 
-            $achievementService = new AchievementService();
-            $achievementService->checkAndUnlockAchievements($usuario->id, 'checkout_profile_save');
+            $this->achievementService->checkAndUnlockAchievements($usuario->id, 'checkout_profile_save');
 
             LogService::info('Dados do checkout salvos no perfil', ['user_id' => $usuario->id]);
         } catch (Throwable $e) {

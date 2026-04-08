@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Handlers;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\AI\AIRequestDTO;
 use Application\DTO\AI\AIResponseDTO;
 use Application\Enums\AI\IntentType;
@@ -42,6 +43,13 @@ use Application\Services\AI\NLP\NumberNormalizer;
 class EntityCreationHandler implements AIHandlerInterface
 {
     private ?AIProvider $provider = null;
+
+    private ContaRepository $contaRepository;
+
+    public function __construct(?ContaRepository $contaRepository = null)
+    {
+        $this->contaRepository = ApplicationContainer::resolveOrNew($contaRepository, ContaRepository::class);
+    }
 
     public function setProvider(AIProvider $provider): void
     {
@@ -238,8 +246,7 @@ class EntityCreationHandler implements AIHandlerInterface
         $cardsList = [];
         $categoriesList = [];
         if ($entityType === 'lancamento') {
-            $contaRepo = new ContaRepository();
-            $contas = $contaRepo->findActive($userId);
+            $contas = $this->contaRepository->findActive($userId);
 
             // Cartão de crédito não precisa de conta (vai direto pra fatura)
             $isCartao = ($extracted['forma_pagamento'] ?? null) === 'cartao_credito';
@@ -639,12 +646,12 @@ class EntityCreationHandler implements AIHandlerInterface
             preg_match('/^anteontem$/iu', $normalized) === 1 => date('Y-m-d', strtotime('-2 days')),
             preg_match('/^ontem$/iu', $normalized) === 1 => date('Y-m-d', strtotime('-1 day')),
             preg_match('/^(\d{1,2})\s*[\/\-]\s*(\d{1,2})(?:\s*[\/\-]\s*(\d{2,4}))?$/u', $normalized, $m) === 1
-                => sprintf(
-                    '%s-%s-%s',
-                    isset($m[3]) ? (strlen($m[3]) === 2 ? '20' . $m[3] : $m[3]) : date('Y'),
-                    str_pad($m[2], 2, '0', STR_PAD_LEFT),
-                    str_pad($m[1], 2, '0', STR_PAD_LEFT),
-                ),
+            => sprintf(
+                '%s-%s-%s',
+                isset($m[3]) ? (strlen($m[3]) === 2 ? '20' . $m[3] : $m[3]) : date('Y'),
+                str_pad($m[2], 2, '0', STR_PAD_LEFT),
+                str_pad($m[1], 2, '0', STR_PAD_LEFT),
+            ),
             default => null,
         };
     }

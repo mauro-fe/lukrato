@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Lancamento;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\Lancamento;
 use Application\Repositories\LancamentoRepository;
 use Application\Services\Metas\MetaProgressService;
@@ -23,10 +24,9 @@ class LancamentoStatusService
     public function __construct(
         ?LancamentoRepository $lancamentoRepo = null,
         ?MetaProgressService $metaProgressService = null
-    )
-    {
-        $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
-        $this->metaProgressService = $metaProgressService ?? new MetaProgressService();
+    ) {
+        $this->lancamentoRepo = ApplicationContainer::resolveOrNew($lancamentoRepo, LancamentoRepository::class);
+        $this->metaProgressService = ApplicationContainer::resolveOrNew($metaProgressService, MetaProgressService::class);
     }
 
     /**

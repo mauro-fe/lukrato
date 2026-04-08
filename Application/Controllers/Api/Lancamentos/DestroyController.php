@@ -6,31 +6,21 @@ namespace Application\Controllers\Api\Lancamentos;
 
 use Application\Controllers\ApiController;
 use Application\Core\Response;
-use Application\Repositories\LancamentoRepository;
-use Application\Services\Lancamento\LancamentoDeletionService;
 use Application\UseCases\Lancamentos\BulkDeleteLancamentosUseCase;
 use Application\UseCases\Lancamentos\DeleteLancamentoUseCase;
 
 class DestroyController extends ApiController
 {
-    private LancamentoRepository $lancamentoRepo;
-    private LancamentoDeletionService $deletionService;
     private BulkDeleteLancamentosUseCase $bulkDeleteUseCase;
     private DeleteLancamentoUseCase $deleteUseCase;
 
     public function __construct(
-        ?LancamentoRepository $lancamentoRepo = null,
-        ?LancamentoDeletionService $deletionService = null,
         ?BulkDeleteLancamentosUseCase $bulkDeleteUseCase = null,
         ?DeleteLancamentoUseCase $deleteUseCase = null
     ) {
         parent::__construct();
-        $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
-        $this->deletionService = $deletionService ?? new LancamentoDeletionService();
-        $this->bulkDeleteUseCase = $bulkDeleteUseCase
-            ?? new BulkDeleteLancamentosUseCase($this->lancamentoRepo, $this->deletionService);
-        $this->deleteUseCase = $deleteUseCase
-            ?? new DeleteLancamentoUseCase($this->lancamentoRepo, $this->deletionService);
+        $this->bulkDeleteUseCase = $this->resolveOrCreate($bulkDeleteUseCase, BulkDeleteLancamentosUseCase::class);
+        $this->deleteUseCase = $this->resolveOrCreate($deleteUseCase, DeleteLancamentoUseCase::class);
     }
 
     public function __invoke(int $id): Response

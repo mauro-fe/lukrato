@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Core\Routing;
 
+use Application\Container\ApplicationContainer;
 use Application\Core\Exceptions\ClientErrorException;
 use Application\Core\Exceptions\AuthException;
 use Application\Core\Exceptions\ValidationException;
@@ -17,9 +18,15 @@ use ValueError;
 
 class HttpExceptionHandler
 {
+    private ErrorResponseFactory $errorResponseFactory;
+
     public function __construct(
-        private ?ErrorResponseFactory $errorResponseFactory = null
+        ?ErrorResponseFactory $errorResponseFactory = null
     ) {
+        $this->errorResponseFactory = ApplicationContainer::resolveOrNew(
+            $errorResponseFactory,
+            ErrorResponseFactory::class
+        );
     }
 
     public function handle(Throwable $e, ?array $routeContext = null, ?Request $request = null): Response
@@ -165,6 +172,6 @@ class HttpExceptionHandler
 
     private function errorResponses(): ErrorResponseFactory
     {
-        return $this->errorResponseFactory ??= new ErrorResponseFactory();
+        return $this->errorResponseFactory;
     }
 }

@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace Application\UseCases\Perfil;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\Usuario;
 use Application\Services\User\PerfilAvatarService;
 
 class AvatarUseCase
 {
+    private PerfilAvatarService $avatarService;
+
     public function __construct(
-        private readonly PerfilAvatarService $avatarService = new PerfilAvatarService()
+        ?PerfilAvatarService $avatarService = null
     ) {
+        $this->avatarService = ApplicationContainer::resolveOrNew($avatarService, PerfilAvatarService::class);
     }
 
     /**
@@ -40,4 +44,3 @@ class AvatarUseCase
         return $this->avatarService->updateAvatarPreferences($user, $payload);
     }
 }
-

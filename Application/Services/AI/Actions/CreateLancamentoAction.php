@@ -4,14 +4,21 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Actions;
 
+use Application\Container\ApplicationContainer;
 use Application\Services\Lancamento\LancamentoCreationService;
 
 class CreateLancamentoAction implements ActionInterface
 {
+    private LancamentoCreationService $service;
+
+    public function __construct(?LancamentoCreationService $service = null)
+    {
+        $this->service = ApplicationContainer::resolveOrNew($service, LancamentoCreationService::class);
+    }
+
     public function execute(int $userId, array $payload): ActionResult
     {
-        $service = new LancamentoCreationService();
-        $result = $service->createFromPayload($userId, $payload);
+        $result = $this->service->createFromPayload($userId, $payload);
 
         if (!$result->success) {
             $errors = $result->data['errors'] ?? [];

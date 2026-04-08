@@ -82,7 +82,7 @@ class FeedbackControllerTest extends TestCase
         $controller = new FeedbackController(Mockery::mock(FeedbackService::class));
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->checkNps();
     }

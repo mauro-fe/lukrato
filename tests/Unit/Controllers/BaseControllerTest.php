@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Controllers;
 
+use Application\Container\ApplicationContainer;
 use Application\Controllers\BaseController;
 use Application\Core\Exceptions\AuthException;
 use Application\Core\Exceptions\HttpResponseException;
@@ -13,6 +14,7 @@ use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Models\Usuario;
 use Application\Services\Infrastructure\CacheService;
+use Illuminate\Container\Container as IlluminateContainer;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
@@ -30,6 +32,7 @@ class BaseControllerTest extends TestCase
     {
         parent::setUp();
         $this->resetSessionState();
+        ApplicationContainer::flush();
         Auth::resolveUserUsing(null);
 
         $this->controller = new TestableBaseController(
@@ -42,9 +45,32 @@ class BaseControllerTest extends TestCase
 
     protected function tearDown(): void
     {
+        ApplicationContainer::flush();
         Auth::resolveUserUsing(null);
         $this->resetSessionState();
         parent::tearDown();
+    }
+
+    public function testConstructorResolvesCoreDependenciesFromContainerWhenAvailable(): void
+    {
+        $auth = Mockery::mock(Auth::class);
+        $request = Mockery::mock(Request::class);
+        $response = Mockery::mock(Response::class);
+        $cache = Mockery::mock(CacheService::class);
+
+        $container = new IlluminateContainer();
+        $container->instance(Auth::class, $auth);
+        $container->instance(Request::class, $request);
+        $container->instance(Response::class, $response);
+        $container->instance(CacheService::class, $cache);
+        ApplicationContainer::setInstance($container);
+
+        $controller = new TestableBaseController();
+
+        $this->assertSame($auth, $this->readProperty($controller, 'auth'));
+        $this->assertSame($request, $this->readProperty($controller, 'request'));
+        $this->assertSame($response, $this->readProperty($controller, 'response'));
+        $this->assertSame($cache, $this->readProperty($controller, 'cache'));
     }
 
     public function testParseYearMonthReturnsExpectedPeriod(): void
@@ -173,7 +199,7 @@ class BaseControllerTest extends TestCase
     public function testRequireApiUserIdOrFailThrowsWhenSessionIsMissing(): void
     {
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessageMatches('/N[ãa]o autenticado/u');
 
         $this->controller->callRequireApiUserIdOrFail();
     }
@@ -332,7 +358,7 @@ class BaseControllerTest extends TestCase
         $_SESSION['user_id'] = $userId;
         $_SESSION['last_activity'] = time();
 
-        Auth::resolveUserUsing(static fn (int $id): ?Usuario => $id === $userId ? $user : null);
+        Auth::resolveUserUsing(static fn(int $id): ?Usuario => $id === $userId ? $user : null);
 
         return $user;
     }
@@ -340,6 +366,14 @@ class BaseControllerTest extends TestCase
     private function startSession(): void
     {
         $this->startIsolatedSession('base-controller-test');
+    }
+
+    private function readProperty(object $object, string $property): mixed
+    {
+        $reflection = new \ReflectionProperty($object, $property);
+        $reflection->setAccessible(true);
+
+        return $reflection->getValue($object);
     }
 }
 

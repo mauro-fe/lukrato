@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Cartao;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\CreateCartaoCreditoDTO;
 use Application\DTO\UpdateCartaoCreditoDTO;
 use Application\Enums\LogCategory;
@@ -16,8 +17,8 @@ class CartaoApiWorkflowService
     private readonly CartaoCreditoService $cartaoService;
     private readonly CartaoFaturaService $faturaService;
     private readonly PlanLimitService $planLimitService;
-    private readonly ?AchievementService $achievementService;
-    private readonly ?RecorrenciaCartaoService $recorrenciaService;
+    private readonly AchievementService $achievementService;
+    private readonly RecorrenciaCartaoService $recorrenciaService;
 
     public function __construct(
         ?CartaoCreditoService $cartaoService = null,
@@ -26,11 +27,11 @@ class CartaoApiWorkflowService
         ?AchievementService $achievementService = null,
         ?RecorrenciaCartaoService $recorrenciaService = null
     ) {
-        $this->cartaoService = $cartaoService ?? new CartaoCreditoService();
-        $this->faturaService = $faturaService ?? new CartaoFaturaService();
-        $this->planLimitService = $planLimitService ?? new PlanLimitService();
-        $this->achievementService = $achievementService;
-        $this->recorrenciaService = $recorrenciaService;
+        $this->cartaoService = ApplicationContainer::resolveOrNew($cartaoService, CartaoCreditoService::class);
+        $this->faturaService = ApplicationContainer::resolveOrNew($faturaService, CartaoFaturaService::class);
+        $this->planLimitService = ApplicationContainer::resolveOrNew($planLimitService, PlanLimitService::class);
+        $this->achievementService = ApplicationContainer::resolveOrNew($achievementService, AchievementService::class);
+        $this->recorrenciaService = ApplicationContainer::resolveOrNew($recorrenciaService, RecorrenciaCartaoService::class);
     }
 
     public function listCards(int $userId, ?int $contaId, bool $onlyActive, bool $archived): array
@@ -332,12 +333,12 @@ class CartaoApiWorkflowService
 
     private function getAchievementService(): AchievementService
     {
-        return $this->achievementService ?? new AchievementService();
+        return $this->achievementService;
     }
 
     private function getRecorrenciaService(): RecorrenciaCartaoService
     {
-        return $this->recorrenciaService ?? new RecorrenciaCartaoService();
+        return $this->recorrenciaService;
     }
 
     private function resolveUpdateFailureStatus(mixed $message): int

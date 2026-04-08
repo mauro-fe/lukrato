@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\UseCases\Orcamentos;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\ServiceResultDTO;
 use Application\Services\Orcamentos\OrcamentoService;
 use Application\Validators\OrcamentoValidator;
@@ -16,7 +17,7 @@ class SaveOrcamentoUseCase
     public function __construct(
         ?OrcamentoService $orcamentoService = null
     ) {
-        $this->orcamentoService = $orcamentoService ?? new OrcamentoService();
+        $this->orcamentoService = ApplicationContainer::resolveOrNew($orcamentoService, OrcamentoService::class);
     }
 
     /**

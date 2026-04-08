@@ -8,9 +8,9 @@ declare(strict_types=1);
 // Application/Services/Auth/LoginHandler.php
 namespace Application\Services\Auth;
 
+use Application\Container\ApplicationContainer;
 use Application\Contracts\Auth\AuthHandlerInterface;
 use Application\DTO\Auth\CredentialsDTO;
-use Application\DTO\Auth\LoginResultDTO;
 use Application\Core\Request;
 use Application\Core\Exceptions\ValidationException;
 use Application\Services\Infrastructure\CacheService;
@@ -22,20 +22,38 @@ use Throwable;
 
 class LoginHandler implements AuthHandlerInterface
 {
+    private Request $request;
     private CredentialsValidationStrategy $validationStrategy;
     private SessionManager $sessionManager;
     private AbstractSecurityCheck $csrfCheck;
     private AbstractSecurityCheck $rateLimitCheck;
 
     public function __construct(
-        Request $request,
-        ?CacheService $cache = null
+        ?Request $request = null,
+        ?CacheService $cache = null,
+        ?CredentialsValidationStrategy $validationStrategy = null,
+        ?SessionManager $sessionManager = null,
+        ?AbstractSecurityCheck $csrfCheck = null,
+        ?AbstractSecurityCheck $rateLimitCheck = null
     ) {
-        $this->validationStrategy = new CredentialsValidationStrategy();
-        $this->sessionManager = new SessionManager();
-        $this->csrfCheck = new CsrfSecurityCheck($request, 'login_form');
-        $this->rateLimitCheck = new RateLimitSecurityCheck($request, $cache, 'login');
+        $this->request = ApplicationContainer::resolveOrNew($request, Request::class);
+        $this->validationStrategy = ApplicationContainer::resolveOrNew(
+            $validationStrategy,
+            CredentialsValidationStrategy::class
+        );
+        $this->sessionManager = ApplicationContainer::resolveOrNew($sessionManager, SessionManager::class);
+        $this->csrfCheck = ApplicationContainer::resolveOrNew(
+            $csrfCheck,
+            CsrfSecurityCheck::class,
+            fn(): CsrfSecurityCheck => new CsrfSecurityCheck($this->request, 'login_form')
+        );
+        $this->rateLimitCheck = ApplicationContainer::resolveOrNew(
+            $rateLimitCheck,
+            RateLimitSecurityCheck::class,
+            fn(): RateLimitSecurityCheck => new RateLimitSecurityCheck($this->request, $cache, 'login')
+        );
     }
+
     public function handle(CredentialsDTO $credentials, bool $remember = false): array
     {
         try {
@@ -66,7 +84,7 @@ class LoginHandler implements AuthHandlerInterface
 
             LogService::info('Login success', [
                 'user_id' => $user->id,
-                'ip' => (new Request())->ip(),
+                'ip' => $this->request->ip(),
                 'remember' => $remember
             ]);
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Feedback;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\Feedback;
 use Application\Repositories\FeedbackRepository;
 use Application\Services\Infrastructure\LogService;
@@ -13,9 +14,9 @@ class FeedbackService
 {
     private FeedbackRepository $repo;
 
-    public function __construct()
+    public function __construct(?FeedbackRepository $repo = null)
     {
-        $this->repo = new FeedbackRepository();
+        $this->repo = ApplicationContainer::resolveOrNew($repo, FeedbackRepository::class);
     }
 
     /**

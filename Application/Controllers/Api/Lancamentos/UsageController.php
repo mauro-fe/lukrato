@@ -15,7 +15,7 @@ class UsageController extends ApiController
     public function __construct(?LancamentoLimitService $limitService = null)
     {
         parent::__construct();
-        $this->limitService = $limitService ?? new LancamentoLimitService();
+        $this->limitService = $this->resolveOrCreate($limitService, LancamentoLimitService::class);
     }
 
     public function __invoke(): Response

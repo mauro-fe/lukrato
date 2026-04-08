@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace Tests\Unit\Controllers\Api\Lancamentos;
 
 use Application\Controllers\Api\Lancamentos\TransactionsController;
-use Application\Repositories\CategoriaRepository;
-use Application\Repositories\ContaRepository;
-use Application\Repositories\LancamentoRepository;
-use Application\Services\Conta\TransferenciaService;
-use Application\Services\Lancamento\LancamentoLimitService;
+use Application\DTO\ServiceResultDTO;
 use Application\Models\Usuario;
+use Application\UseCases\Lancamentos\CreateLancamentoUseCase;
+use Application\UseCases\Lancamentos\CreateTransferenciaUseCase;
+use Application\UseCases\Lancamentos\UpdateLancamentoUseCase;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
@@ -45,7 +44,20 @@ class TransactionsControllerTest extends TestCase
         $this->seedAuthenticatedUserSession(77, 'Financeiro User');
         $_SERVER['REQUEST_METHOD'] = 'POST';
 
-        $controller = $this->buildController();
+        $createLancamentoUseCase = Mockery::mock(CreateLancamentoUseCase::class);
+        $createLancamentoUseCase
+            ->shouldReceive('execute')
+            ->once()
+            ->with(77, [])
+            ->andReturn(ServiceResultDTO::validationFail([
+                'tipo' => 'Obrigatorio',
+                'data' => 'Obrigatoria',
+                'valor' => 'Obrigatorio',
+                'descricao' => 'Obrigatoria',
+                'conta_id' => 'Obrigatoria',
+            ]));
+
+        $controller = $this->buildController(createLancamentoUseCase: $createLancamentoUseCase);
 
         $response = $controller->store();
         $payload = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
@@ -64,15 +76,15 @@ class TransactionsControllerTest extends TestCase
     {
         $this->seedAuthenticatedUserSession(88, 'Financeiro Update');
 
-        $lancamentoRepo = Mockery::mock(LancamentoRepository::class);
-        $lancamentoRepo
-            ->shouldReceive('findByIdAndUser')
+        $updateLancamentoUseCase = Mockery::mock(UpdateLancamentoUseCase::class);
+        $updateLancamentoUseCase
+            ->shouldReceive('execute')
             ->once()
-            ->with(999, 88)
-            ->andReturnNull();
+            ->with(88, 999, [])
+            ->andReturn(ServiceResultDTO::fail('Lancamento nao encontrado.', 404));
 
         $controller = $this->buildController(
-            lancamentoRepo: $lancamentoRepo,
+            updateLancamentoUseCase: $updateLancamentoUseCase,
         );
 
         $response = $controller->update(999);
@@ -85,18 +97,14 @@ class TransactionsControllerTest extends TestCase
     }
 
     private function buildController(
-        ?LancamentoLimitService $limitService = null,
-        ?TransferenciaService $transferenciaService = null,
-        ?LancamentoRepository $lancamentoRepo = null,
-        ?CategoriaRepository $categoriaRepo = null,
-        ?ContaRepository $contaRepo = null,
+        ?CreateLancamentoUseCase $createLancamentoUseCase = null,
+        ?UpdateLancamentoUseCase $updateLancamentoUseCase = null,
+        ?CreateTransferenciaUseCase $createTransferenciaUseCase = null,
     ): TransactionsController {
         return new TransactionsController(
-            $limitService ?? Mockery::mock(LancamentoLimitService::class),
-            $transferenciaService ?? Mockery::mock(TransferenciaService::class),
-            $lancamentoRepo ?? Mockery::mock(LancamentoRepository::class),
-            $categoriaRepo ?? Mockery::mock(CategoriaRepository::class),
-            $contaRepo ?? Mockery::mock(ContaRepository::class),
+            $createLancamentoUseCase ?? Mockery::mock(CreateLancamentoUseCase::class),
+            $updateLancamentoUseCase ?? Mockery::mock(UpdateLancamentoUseCase::class),
+            $createTransferenciaUseCase ?? Mockery::mock(CreateTransferenciaUseCase::class),
         );
     }
 

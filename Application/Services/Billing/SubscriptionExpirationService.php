@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Billing;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\AssinaturaUsuario;
 use Application\Models\Notificacao;
 use Application\Models\Usuario;
@@ -33,7 +34,7 @@ class SubscriptionExpirationService
 
     public function __construct(?MailService $mail = null)
     {
-        $this->mail = $mail ?? new MailService();
+        $this->mail = ApplicationContainer::resolveOrNew($mail, MailService::class);
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Conta;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\Conta;
 use Application\Models\Lancamento;
 use Application\Repositories\ContaRepository;
@@ -21,8 +22,8 @@ class TransferenciaService
         ?ContaRepository $contaRepo = null,
         ?MetaProgressService $metaProgressService = null
     ) {
-        $this->contaRepo = $contaRepo ?? new ContaRepository();
-        $this->metaProgressService = $metaProgressService ?? new MetaProgressService();
+        $this->contaRepo = ApplicationContainer::resolveOrNew($contaRepo, ContaRepository::class);
+        $this->metaProgressService = ApplicationContainer::resolveOrNew($metaProgressService, MetaProgressService::class);
     }
 
     /**

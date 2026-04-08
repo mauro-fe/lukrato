@@ -51,8 +51,6 @@
   display: inline-flex;
   min-height: 40px;
   border-radius: var(--radius-full);
-  border: 1px solid color-mix(in srgb, var(--glass-border) 92%, transparent);
-  background: color-mix(in srgb, var(--color-bg) 91%, transparent);
   cursor: pointer;
   transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
 }
@@ -121,11 +119,9 @@
   gap: 8px;
   padding: 14px 15px;
   border-radius: var(--radius-lg);
-  border: 1px solid color-mix(in srgb, var(--glass-border) 90%, transparent);
-  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
 }
 
-.imp-guide-card__eyebrow {
+.__eyebrow {
   color: var(--color-text-muted);
   font-size: 0.68rem;
   font-weight: 760;
@@ -165,10 +161,6 @@
   display: grid;
   gap: var(--spacing-3);
   padding: clamp(1rem, 1vw + 0.8rem, 1.3rem);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 18%, var(--glass-border));
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 8%, transparent), transparent 58%),
-    color-mix(in srgb, var(--color-bg) 94%, transparent);
 }
 
 .imp-advanced-panel__head {

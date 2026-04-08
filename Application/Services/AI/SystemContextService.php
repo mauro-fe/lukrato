@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI;
 
+use Application\Container\ApplicationContainer;
 use Application\Services\AI\Collectors\AssinaturasCollector;
 use Application\Services\AI\Collectors\CategoriasCollector;
 use Application\Services\AI\Collectors\ContasCollector;
@@ -35,10 +36,13 @@ class SystemContextService
     private array $collectors;
     private CacheService $cache;
 
-    public function __construct()
+    /**
+     * @param array<int, ContextCollectorInterface>|null $collectors
+     */
+    public function __construct(?CacheService $cache = null, ?array $collectors = null)
     {
-        $this->cache = new CacheService();
-        $this->collectors = [
+        $this->cache = ApplicationContainer::resolveOrNew($cache, CacheService::class);
+        $this->collectors = $collectors ?? [
             // Dados core
             new UsuariosCollector(),
             new FinanceiroCollector(),

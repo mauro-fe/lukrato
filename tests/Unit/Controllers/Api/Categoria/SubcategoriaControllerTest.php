@@ -103,7 +103,7 @@ class SubcategoriaControllerTest extends TestCase
         $controller = new SubcategoriaController(Mockery::mock(SubcategoriaService::class));
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->update(1);
     }

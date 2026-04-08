@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Cartao;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\CartaoCredito;
 use Application\Models\FaturaCartaoItem;
 use Illuminate\Database\Capsule\Manager as DB;
@@ -23,11 +24,17 @@ class CartaoCreditoLancamentoService
         ?CartaoLimitUpdaterService $limitUpdaterService = null,
         ?CartaoPostSaleService $postSaleService = null
     ) {
-        $this->billingDateService = $billingDateService ?? new CartaoBillingDateService();
-        $this->faturaSupportService = $faturaSupportService ?? new CartaoFaturaSupportService();
-        $this->limitUpdaterService = $limitUpdaterService ?? new CartaoLimitUpdaterService();
-        $this->postSaleService = $postSaleService
-            ?? new CartaoPostSaleService($this->faturaSupportService, $this->limitUpdaterService);
+        $this->billingDateService = ApplicationContainer::resolveOrNew($billingDateService, CartaoBillingDateService::class);
+        $this->faturaSupportService = ApplicationContainer::resolveOrNew($faturaSupportService, CartaoFaturaSupportService::class);
+        $this->limitUpdaterService = ApplicationContainer::resolveOrNew($limitUpdaterService, CartaoLimitUpdaterService::class);
+        $this->postSaleService = ApplicationContainer::resolveOrNew(
+            $postSaleService,
+            CartaoPostSaleService::class,
+            fn(): CartaoPostSaleService => new CartaoPostSaleService(
+                $this->faturaSupportService,
+                $this->limitUpdaterService
+            )
+        );
     }
 
     /**

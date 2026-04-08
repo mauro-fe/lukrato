@@ -124,7 +124,7 @@ class FaturaItemManagementService
                 throw new Exception("Item não encontrado");
             }
 
-            if ($item->pago) {
+            if ($item->pago && $item->tipo !== 'estorno') {
                 throw new InvalidArgumentException(
                     "Não é possível excluir um item já pago. Desfaça o pagamento primeiro."
                 );

@@ -20,7 +20,7 @@ class PlanController extends ApiController
     public function __construct(?PlanLimitService $limitService = null)
     {
         parent::__construct();
-        $this->limitService = $limitService ?? new PlanLimitService();
+        $this->limitService = $this->resolveOrCreate($limitService, PlanLimitService::class);
     }
 
     /**

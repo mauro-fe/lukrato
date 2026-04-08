@@ -19,7 +19,7 @@ class SubcategoriaController extends ApiController
     public function __construct(?SubcategoriaService $service = null)
     {
         parent::__construct();
-        $this->service = $service ?? new SubcategoriaService();
+        $this->service = $this->resolveOrCreate($service, SubcategoriaService::class);
     }
 
     /**
@@ -36,7 +36,7 @@ class SubcategoriaController extends ApiController
         }
 
         return $this->successOrNotFound(
-            fn (): mixed => $this->service->listByCategoria($categoriaId, $userId),
+            fn(): mixed => $this->service->listByCategoria($categoriaId, $userId),
             'Categoria não encontrada.'
         );
     }

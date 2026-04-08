@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Lancamento;
 
+use Application\Container\ApplicationContainer;
 use Application\Enums\LogCategory;
 use Application\Models\Fatura;
 use Application\Models\FaturaCartaoItem;
@@ -37,9 +38,9 @@ class LancamentoDeletionService
         ?ParcelamentoRepository $parcelamentoRepo = null,
         ?MetaProgressService $metaProgressService = null
     ) {
-        $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
-        $this->parcelamentoRepo = $parcelamentoRepo ?? new ParcelamentoRepository();
-        $this->metaProgressService = $metaProgressService ?? new MetaProgressService();
+        $this->lancamentoRepo = ApplicationContainer::resolveOrNew($lancamentoRepo, LancamentoRepository::class);
+        $this->parcelamentoRepo = ApplicationContainer::resolveOrNew($parcelamentoRepo, ParcelamentoRepository::class);
+        $this->metaProgressService = ApplicationContainer::resolveOrNew($metaProgressService, MetaProgressService::class);
     }
 
     /**

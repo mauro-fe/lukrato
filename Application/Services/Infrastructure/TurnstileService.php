@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Infrastructure;
 
+use Application\Container\ApplicationContainer;
 use Application\Core\Exceptions\ValidationException;
 use Application\Enums\LogCategory;
 use Application\Enums\LogLevel;
@@ -28,7 +29,7 @@ class TurnstileService
 
     public function __construct(?CacheService $cache = null)
     {
-        $this->cache = $cache ?? new CacheService();
+        $this->cache = ApplicationContainer::resolveOrNew($cache, CacheService::class);
     }
 
     /**

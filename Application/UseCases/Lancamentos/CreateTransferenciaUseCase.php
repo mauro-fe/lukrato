@@ -4,17 +4,23 @@ declare(strict_types=1);
 
 namespace Application\UseCases\Lancamentos;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\ServiceResultDTO;
 use Application\Models\Meta;
+use Application\Repositories\ContaRepository;
 use Application\Services\Conta\TransferenciaService;
+use Application\Services\Metas\MetaProgressService;
 use Application\Validators\LancamentoValidator;
 use ValueError;
 
 class CreateTransferenciaUseCase
 {
+    private readonly TransferenciaService $transferenciaService;
+
     public function __construct(
-        private readonly TransferenciaService $transferenciaService = new TransferenciaService()
+        ?TransferenciaService $transferenciaService = null
     ) {
+        $this->transferenciaService = ApplicationContainer::resolveOrNew($transferenciaService, TransferenciaService::class);
     }
 
     /**

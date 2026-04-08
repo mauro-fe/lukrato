@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\AI\AIRequestDTO;
 use Application\DTO\AI\AIResponseDTO;
 use Application\DTO\AI\IntentResult;
@@ -45,17 +46,14 @@ class AIService
     /** @var array<string, AIHandlerInterface> */
     private array $handlers = [];
 
-    public function __construct()
-    {
-        $providerName = $_ENV['AI_PROVIDER'] ?? 'openai';
-
-        $this->provider = match ($providerName) {
-            'ollama' => new OllamaProvider(),
-            default  => new OpenAIProvider(),
-        };
-
-        $this->cache        = new CacheService();
-        $this->intentRouter = new IntentRouter();
+    public function __construct(
+        ?AIProvider $provider = null,
+        ?CacheService $cache = null,
+        ?IntentRouter $intentRouter = null
+    ) {
+        $this->provider = $this->resolveProvider($provider);
+        $this->cache = ApplicationContainer::resolveOrNew($cache, CacheService::class);
+        $this->intentRouter = ApplicationContainer::resolveOrNew($intentRouter, IntentRouter::class);
 
         $this->registerHandlers();
     }
@@ -65,14 +63,14 @@ class AIService
     private function registerHandlers(): void
     {
         $handlers = [
-            IntentType::CHAT->value                => new ChatHandlerV2(),
-            IntentType::QUICK_QUERY->value         => new QuickQueryHandler(),
-            IntentType::CATEGORIZE->value          => new CategorizationHandler(),
-            IntentType::EXTRACT_TRANSACTION->value => new TransactionExtractorHandler(),
-            IntentType::ANALYZE->value             => new FinancialAnalysisHandler(),
-            IntentType::CREATE_ENTITY->value       => new EntityCreationHandler(),
-            IntentType::CONFIRM_ACTION->value      => new ConfirmationHandler(),
-            IntentType::PAY_FATURA->value          => new PayFaturaHandler(),
+            IntentType::CHAT->value                => $this->resolveHandlerInstance(ChatHandlerV2::class),
+            IntentType::QUICK_QUERY->value         => $this->resolveHandlerInstance(QuickQueryHandler::class),
+            IntentType::CATEGORIZE->value          => $this->resolveHandlerInstance(CategorizationHandler::class),
+            IntentType::EXTRACT_TRANSACTION->value => $this->resolveHandlerInstance(TransactionExtractorHandler::class),
+            IntentType::ANALYZE->value             => $this->resolveHandlerInstance(FinancialAnalysisHandler::class),
+            IntentType::CREATE_ENTITY->value       => $this->resolveHandlerInstance(EntityCreationHandler::class),
+            IntentType::CONFIRM_ACTION->value      => $this->resolveHandlerInstance(ConfirmationHandler::class),
+            IntentType::PAY_FATURA->value          => $this->resolveHandlerInstance(PayFaturaHandler::class),
         ];
 
         // Injetar provider em cada handler (evita instanciação circular)
@@ -81,6 +79,42 @@ class AIService
         }
 
         $this->handlers = $handlers;
+    }
+
+    private function resolveProvider(?AIProvider $provider): AIProvider
+    {
+        if ($provider !== null) {
+            return $provider;
+        }
+
+        $resolvedProvider = ApplicationContainer::tryMake(AIProvider::class);
+        if ($resolvedProvider instanceof AIProvider) {
+            return $resolvedProvider;
+        }
+
+        /** @var class-string<AIProvider> $providerClass */
+        $providerClass = match ($_ENV['AI_PROVIDER'] ?? 'openai') {
+            'ollama' => OllamaProvider::class,
+            default  => OpenAIProvider::class,
+        };
+
+        $resolvedProvider = ApplicationContainer::tryMake($providerClass);
+        if ($resolvedProvider instanceof AIProvider) {
+            return $resolvedProvider;
+        }
+
+        return new $providerClass();
+    }
+
+    private function resolveHandlerInstance(string $handlerClass): AIHandlerInterface
+    {
+        $handler = ApplicationContainer::resolveOrNew(null, $handlerClass);
+
+        if (!$handler instanceof AIHandlerInterface) {
+            throw new \RuntimeException('Handler de IA inválido: ' . $handlerClass);
+        }
+
+        return $handler;
     }
 
     // ─── Pipeline Principal ─────────────────────────────────

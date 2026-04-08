@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Application\Services\Auth;
 
+use Application\Container\ApplicationContainer;
 use Application\Services\Auth\LoginHandler;
 use Application\Services\Auth\RegistrationHandler;
 use Application\Services\Auth\LogoutHandler;
 use Application\Services\Auth\EmailVerificationService;
 use Application\Services\Infrastructure\CacheService;
-use Application\Services\Communication\MailService;
 use Application\Services\Referral\ReferralService;
 use Application\DTO\Auth\CredentialsDTO;
 use Application\DTO\Auth\RegistrationDTO;
@@ -30,15 +30,32 @@ class AuthService
     private LoginHandler $loginHandler;
     private RegistrationHandler $registrationHandler;
     private LogoutHandler $logoutHandler;
+    private ?EmailVerificationService $emailVerificationService = null;
+    private ?ReferralService $referralService = null;
 
     public function __construct(
         ?Request $request = null,
-        ?CacheService $cache = null
+        ?CacheService $cache = null,
+        ?LoginHandler $loginHandler = null,
+        ?RegistrationHandler $registrationHandler = null,
+        ?LogoutHandler $logoutHandler = null
     ) {
-        $request ??= new Request();
-        $this->loginHandler       = new LoginHandler($request, $cache);
-        $this->registrationHandler = new RegistrationHandler();
-        $this->logoutHandler      = new LogoutHandler();
+        $resolvedRequest = ApplicationContainer::resolveOrNew($request, Request::class);
+
+        $this->loginHandler = ApplicationContainer::resolveOrNew(
+            $loginHandler,
+            LoginHandler::class,
+            fn(): LoginHandler => new LoginHandler($resolvedRequest, $cache)
+        );
+        $this->registrationHandler = ApplicationContainer::resolveOrNew(
+            $registrationHandler,
+            RegistrationHandler::class
+        );
+        $this->logoutHandler = ApplicationContainer::resolveOrNew(
+            $logoutHandler,
+            LogoutHandler::class,
+            fn(): LogoutHandler => new LogoutHandler($resolvedRequest)
+        );
     }
 
     public function login(string $email, string $password, bool $remember = false): array
@@ -368,8 +385,7 @@ class AuthService
             }
 
             // Envia email de verificação
-            $verificationService = new EmailVerificationService();
-            $sent = $verificationService->sendVerificationEmail($user);
+            $sent = $this->emailVerificationService()->sendVerificationEmail($user);
 
             if ($sent) {
                 LogService::info('[AuthService] Email de verificação enviado com sucesso.', [
@@ -410,7 +426,7 @@ class AuthService
                 return;
             }
 
-            $referralService = new ReferralService();
+            $referralService = $this->referralService();
 
             // Garante que o novo usuário tenha seu próprio código de indicação
             $referralService->ensureUserHasReferralCode($user);
@@ -440,5 +456,18 @@ class AuthService
                 'referral_code' => $referralCode,
             ]);
         }
+    }
+
+    private function emailVerificationService(): EmailVerificationService
+    {
+        return $this->emailVerificationService ??= ApplicationContainer::resolveOrNew(
+            null,
+            EmailVerificationService::class
+        );
+    }
+
+    private function referralService(): ReferralService
+    {
+        return $this->referralService ??= ApplicationContainer::resolveOrNew(null, ReferralService::class);
     }
 }

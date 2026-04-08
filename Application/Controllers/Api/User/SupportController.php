@@ -19,7 +19,7 @@ class SupportController extends ApiController
     public function __construct(?MailService $mailService = null, ?CacheService $cache = null)
     {
         parent::__construct(cache: $cache);
-        $this->mailService = $mailService ?? new MailService();
+        $this->mailService = $this->resolveOrCreate($mailService, MailService::class);
     }
 
     public function send(): Response

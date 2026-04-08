@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Admin;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\AI\AIRequestDTO;
 use Application\Enums\LogCategory;
 use Application\Services\AI\AIService;
@@ -17,6 +18,20 @@ use Throwable;
 
 class AiAdminWorkflowService
 {
+    private ?AIService $aiService;
+    private ?SystemContextService $systemContextService;
+    private ?CacheService $cacheService;
+
+    public function __construct(
+        ?AIService $aiService = null,
+        ?SystemContextService $systemContextService = null,
+        ?CacheService $cacheService = null
+    ) {
+        $this->aiService = $aiService;
+        $this->systemContextService = $systemContextService;
+        $this->cacheService = $cacheService;
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -283,12 +298,15 @@ class AiAdminWorkflowService
 
     protected function createAiService(): AIService
     {
-        return new AIService();
+        return $this->aiService ??= ApplicationContainer::resolveOrNew(null, AIService::class);
     }
 
     protected function gatherSystemContext(): array
     {
-        return (new SystemContextService())->gather();
+        return ($this->systemContextService ??= ApplicationContainer::resolveOrNew(
+            null,
+            SystemContextService::class
+        ))->gather();
     }
 
     protected function createHttpClient(array $config): Client
@@ -298,7 +316,7 @@ class AiAdminWorkflowService
 
     protected function cache(): CacheService
     {
-        return new CacheService();
+        return $this->cacheService ??= ApplicationContainer::resolveOrNew(null, CacheService::class);
     }
 
     private function logLegacyAiCall(

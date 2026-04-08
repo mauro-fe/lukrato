@@ -44,7 +44,7 @@ class PerfilController extends ApiController
             $this->workflowService = $workflowService;
         } elseif ($hasExplicitWorkflowDependencies) {
             [$resolvedPerfilService, $resolvedValidator] = $this->resolvePerfilDependencies($perfilService, $validator);
-            $this->workflowService = new PerfilApiWorkflowService($resolvedPerfilService, $resolvedValidator);
+            $this->workflowService = $this->buildWorkflowService($resolvedPerfilService, $resolvedValidator);
         } else {
             $this->workflowService = $this->resolveOrCreate(
                 null,
@@ -52,29 +52,29 @@ class PerfilController extends ApiController
                 function (): PerfilApiWorkflowService {
                     [$resolvedPerfilService, $resolvedValidator] = $this->resolvePerfilDependencies();
 
-                    return new PerfilApiWorkflowService($resolvedPerfilService, $resolvedValidator);
+                    return $this->buildWorkflowService($resolvedPerfilService, $resolvedValidator);
                 }
             );
         }
 
         $resolvedAvatarService = $this->resolveOrCreate($avatarService, PerfilAvatarService::class);
         $this->avatarUseCase = $hasExplicitAvatarDependencies
-            ? ($avatarUseCase ?? new AvatarUseCase($resolvedAvatarService))
+            ? ($avatarUseCase ?? $this->buildAvatarUseCase($resolvedAvatarService))
             : $this->resolveOrCreate(
                 null,
                 AvatarUseCase::class,
-                fn(): AvatarUseCase => new AvatarUseCase($resolvedAvatarService)
+                fn(): AvatarUseCase => $this->buildAvatarUseCase($resolvedAvatarService)
             );
         $this->dashboardPreferencesUseCase = $this->resolveOrCreate(
             $dashboardPreferencesUseCase,
             DashboardPreferencesUseCase::class
         );
         $this->deleteAccountUseCase = $hasExplicitDeleteAccountDependencies
-            ? ($deleteAccountUseCase ?? new DeleteAccountUseCase($this->workflowService))
+            ? ($deleteAccountUseCase ?? $this->buildDeleteAccountUseCase($this->workflowService))
             : $this->resolveOrCreate(
                 null,
                 DeleteAccountUseCase::class,
-                fn(): DeleteAccountUseCase => new DeleteAccountUseCase($this->workflowService)
+                fn(): DeleteAccountUseCase => $this->buildDeleteAccountUseCase($this->workflowService)
             );
     }
 
@@ -247,6 +247,21 @@ class PerfilController extends ApiController
         ]);
     }
 
+    private function buildWorkflowService(PerfilService $perfilService, PerfilValidator $validator): PerfilApiWorkflowService
+    {
+        return new PerfilApiWorkflowService($perfilService, $validator);
+    }
+
+    private function buildAvatarUseCase(PerfilAvatarService $avatarService): AvatarUseCase
+    {
+        return new AvatarUseCase($avatarService);
+    }
+
+    private function buildDeleteAccountUseCase(PerfilApiWorkflowService $workflowService): DeleteAccountUseCase
+    {
+        return new DeleteAccountUseCase($workflowService);
+    }
+
     /**
      * @return array{0:PerfilService,1:PerfilValidator}
      */
@@ -254,8 +269,8 @@ class PerfilController extends ApiController
         ?PerfilService $perfilService = null,
         ?PerfilValidator $validator = null
     ): array {
-        $resolvedPerfilService = $perfilService ?? $this->resolveDependency(PerfilService::class);
-        $resolvedValidator = $validator ?? $this->resolveDependency(PerfilValidator::class);
+        $resolvedPerfilService = $perfilService ?? $this->resolveOrCreate(null, PerfilService::class, static fn(): null => null);
+        $resolvedValidator = $validator ?? $this->resolveOrCreate(null, PerfilValidator::class, static fn(): null => null);
 
         if ($resolvedPerfilService !== null && $resolvedValidator !== null) {
             return [$resolvedPerfilService, $resolvedValidator];

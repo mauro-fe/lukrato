@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Repositories;
 
+use Application\Container\ApplicationContainer;
 use Application\Formatters\DocumentFormatter;
 use Application\Models\Documento;
 use Application\Models\TipoDocumento;
@@ -18,8 +19,8 @@ class DocumentoRepository
         private ?CpfProtectionService $cpfProtectionService = null,
         private ?DocumentFormatter $documentFormatter = null
     ) {
-        $this->cpfProtectionService ??= new CpfProtectionService();
-        $this->documentFormatter ??= new DocumentFormatter();
+        $this->cpfProtectionService = ApplicationContainer::resolveOrNew($this->cpfProtectionService, CpfProtectionService::class);
+        $this->documentFormatter = ApplicationContainer::resolveOrNew($this->documentFormatter, DocumentFormatter::class);
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Cartao;
 
+use Application\Container\ApplicationContainer;
 use Application\Enums\LogCategory;
 use Application\Models\CartaoCredito;
 use Application\Models\Categoria;
@@ -20,7 +21,7 @@ class CartaoFaturaPaymentService
 
     public function __construct(?CartaoFaturaReadService $readService = null)
     {
-        $this->readService = $readService ?? new CartaoFaturaReadService();
+        $this->readService = ApplicationContainer::resolveOrNew($readService, CartaoFaturaReadService::class);
     }
 
     /**

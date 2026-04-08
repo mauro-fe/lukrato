@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\WhatsApp;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\Usuario;
 use Application\Services\Infrastructure\CacheService;
 
@@ -64,7 +65,7 @@ class WhatsAppUserResolver
     {
         $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-        $cache = new CacheService();
+        $cache = self::cache();
         $cache->set("whatsapp_verify:{$userId}", $code, 600); // 10 min
 
         return $code;
@@ -77,7 +78,7 @@ class WhatsAppUserResolver
      */
     public static function verifyAndLink(int $userId, string $phone, string $code): bool
     {
-        $cache      = new CacheService();
+        $cache      = self::cache();
         $storedCode = $cache->get("whatsapp_verify:{$userId}");
 
         if ($storedCode === null || $storedCode !== $code) {
@@ -99,5 +100,13 @@ class WhatsAppUserResolver
         $cache->forget("whatsapp_verify:{$userId}");
 
         return true;
+    }
+
+    private static function cache(): CacheService
+    {
+        /** @var CacheService $cache */
+        $cache = ApplicationContainer::resolveOrNew(null, CacheService::class);
+
+        return $cache;
     }
 }

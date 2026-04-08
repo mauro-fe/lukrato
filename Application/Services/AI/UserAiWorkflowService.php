@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\AI\AIRequestDTO;
 use Application\DTO\AI\AIResponseDTO;
 use Application\Enums\AI\AIChannel;
@@ -21,18 +22,18 @@ use InvalidArgumentException;
 
 class UserAiWorkflowService
 {
-    private ?AIService $aiService;
-    private ?UserContextBuilder $contextBuilder;
-    private ?MediaRouterService $mediaRouterService;
+    private AIService $aiService;
+    private UserContextBuilder $contextBuilder;
+    private MediaRouterService $mediaRouterService;
 
     public function __construct(
         ?AIService $aiService = null,
         ?UserContextBuilder $contextBuilder = null,
         ?MediaRouterService $mediaRouterService = null
     ) {
-        $this->aiService = $aiService;
-        $this->contextBuilder = $contextBuilder;
-        $this->mediaRouterService = $mediaRouterService;
+        $this->aiService = ApplicationContainer::resolveOrNew($aiService, AIService::class);
+        $this->contextBuilder = ApplicationContainer::resolveOrNew($contextBuilder, UserContextBuilder::class);
+        $this->mediaRouterService = ApplicationContainer::resolveOrNew($mediaRouterService, MediaRouterService::class);
     }
 
     /**
@@ -441,16 +442,16 @@ class UserAiWorkflowService
 
     private function aiService(): AIService
     {
-        return $this->aiService ??= new AIService();
+        return $this->aiService;
     }
 
     private function contextBuilder(): UserContextBuilder
     {
-        return $this->contextBuilder ??= new UserContextBuilder();
+        return $this->contextBuilder;
     }
 
     private function mediaRouterService(): MediaRouterService
     {
-        return $this->mediaRouterService ??= new MediaRouterService();
+        return $this->mediaRouterService;
     }
 }

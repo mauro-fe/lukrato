@@ -15,7 +15,7 @@ class ContactController extends ApiController
     public function __construct(?MailService $mail = null)
     {
         parent::__construct();
-        $this->mail = $mail ?? new MailService();
+        $this->mail = $this->resolveOrCreate($mail, MailService::class);
     }
 
     public function send(): Response

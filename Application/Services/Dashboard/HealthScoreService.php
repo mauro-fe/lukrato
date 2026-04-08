@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Dashboard;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\Meta;
 use Application\Repositories\LancamentoRepository;
 use Application\Repositories\OrcamentoRepository;
@@ -13,6 +14,10 @@ use InvalidArgumentException;
 
 class HealthScoreService
 {
+    private LancamentoRepository $lancamentoRepo;
+    private OrcamentoRepository $orcamentoRepo;
+    private MetaRepository $metaRepo;
+
     private const SCORE_RULES = [
         'savings' => [
             ['min' => 20, 'points' => 35],
@@ -34,10 +39,14 @@ class HealthScoreService
     ];
 
     public function __construct(
-        private LancamentoRepository $lancamentoRepo,
-        private OrcamentoRepository $orcamentoRepo,
-        private MetaRepository $metaRepo
-    ) {}
+        ?LancamentoRepository $lancamentoRepo = null,
+        ?OrcamentoRepository $orcamentoRepo = null,
+        ?MetaRepository $metaRepo = null
+    ) {
+        $this->lancamentoRepo = ApplicationContainer::resolveOrNew($lancamentoRepo, LancamentoRepository::class);
+        $this->orcamentoRepo = ApplicationContainer::resolveOrNew($orcamentoRepo, OrcamentoRepository::class);
+        $this->metaRepo = ApplicationContainer::resolveOrNew($metaRepo, MetaRepository::class);
+    }
 
     public function calculateUserHealthScore(int $userId, string $month): array
     {

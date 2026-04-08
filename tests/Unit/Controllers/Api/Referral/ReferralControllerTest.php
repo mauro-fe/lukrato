@@ -77,7 +77,7 @@ class ReferralControllerTest extends TestCase
         $controller = new ReferralController(Mockery::mock(ReferralService::class));
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->getCode();
     }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Services\Fatura;
 
+use Application\Container\ApplicationContainer;
+
 /**
  * Facade para gerenciamento de faturas de cartão de crédito.
  */
@@ -25,15 +27,31 @@ class FaturaService
         ?FaturaCancellationService $cancellationService = null,
         ?FaturaItemPaymentService $itemPaymentService = null
     ) {
-        $calculatorService ??= new FaturaInstallmentCalculatorService();
-        $formatterService ??= new FaturaFormatterService($calculatorService);
-        $itemPaymentStateService ??= new FaturaItemPaymentStateService();
+        $calculatorService = ApplicationContainer::resolveOrNew($calculatorService, FaturaInstallmentCalculatorService::class);
+        $formatterService = ApplicationContainer::resolveOrNew(
+            $formatterService,
+            FaturaFormatterService::class,
+            fn(): FaturaFormatterService => new FaturaFormatterService($calculatorService)
+        );
+        $itemPaymentStateService = ApplicationContainer::resolveOrNew($itemPaymentStateService, FaturaItemPaymentStateService::class);
 
-        $this->readService = $readService ?? new FaturaReadService($formatterService, $calculatorService);
-        $this->itemPaymentService = $itemPaymentService ?? new FaturaItemPaymentService($itemPaymentStateService);
-        $this->creationService = $creationService ?? new FaturaCreationService($calculatorService);
-        $this->itemManagementService = $itemManagementService ?? new FaturaItemManagementService();
-        $this->cancellationService = $cancellationService ?? new FaturaCancellationService();
+        $this->readService = ApplicationContainer::resolveOrNew(
+            $readService,
+            FaturaReadService::class,
+            fn(): FaturaReadService => new FaturaReadService($formatterService, $calculatorService)
+        );
+        $this->itemPaymentService = ApplicationContainer::resolveOrNew(
+            $itemPaymentService,
+            FaturaItemPaymentService::class,
+            fn(): FaturaItemPaymentService => new FaturaItemPaymentService($itemPaymentStateService)
+        );
+        $this->creationService = ApplicationContainer::resolveOrNew(
+            $creationService,
+            FaturaCreationService::class,
+            fn(): FaturaCreationService => new FaturaCreationService($calculatorService)
+        );
+        $this->itemManagementService = ApplicationContainer::resolveOrNew($itemManagementService, FaturaItemManagementService::class);
+        $this->cancellationService = ApplicationContainer::resolveOrNew($cancellationService, FaturaCancellationService::class);
     }
 
     public function listar(

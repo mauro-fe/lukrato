@@ -15,7 +15,7 @@ class PreferenciaUsuarioController extends ApiController
     public function __construct(?PreferenciasUsuarioUseCase $useCase = null)
     {
         parent::__construct();
-        $this->useCase = $useCase ?? new PreferenciasUsuarioUseCase();
+        $this->useCase = $this->resolveOrCreate($useCase, PreferenciasUsuarioUseCase::class);
     }
 
     public function show(): Response
@@ -86,4 +86,3 @@ class PreferenciaUsuarioController extends ApiController
         );
     }
 }
-

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Orcamentos;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\Categoria;
 use Application\Models\OrcamentoCategoria;
 use Application\Repositories\OrcamentoRepository;
@@ -27,12 +28,13 @@ class OrcamentoService
         ?PlanLimitService $planLimit = null,
         ?OrcamentoMetricsService $metricsService = null,
         ?OrcamentoInsightService $insightService = null
-    )
-    {
-        $this->repo = $repo ?? new OrcamentoRepository();
-        $this->planLimit = $planLimit ?? new PlanLimitService();
-        $this->metricsService = $metricsService ?? new OrcamentoMetricsService();
-        $this->insightService = $insightService;
+    ) {
+        $this->repo = ApplicationContainer::resolveOrNew($repo, OrcamentoRepository::class);
+        $this->planLimit = ApplicationContainer::resolveOrNew($planLimit, PlanLimitService::class);
+        $this->metricsService = ApplicationContainer::resolveOrNew($metricsService, OrcamentoMetricsService::class);
+        $this->insightService = $insightService !== null
+            ? $insightService
+            : ApplicationContainer::tryMake(OrcamentoInsightService::class);
     }
 
     /**

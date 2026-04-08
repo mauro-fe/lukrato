@@ -6,8 +6,13 @@ namespace Tests\Unit\Services\Admin;
 
 use Application\Container\ApplicationContainer;
 use Application\Repositories\BlogPostRepository;
+use Application\Services\Admin\AiAdminWorkflowService;
 use Application\Services\Admin\BlogAdminWorkflowService;
 use Application\Services\Admin\CommunicationAdminViewService;
+use Application\Services\Admin\SysAdminOpsService;
+use Application\Services\AI\AIService;
+use Application\Services\AI\SystemContextService;
+use Application\Services\Infrastructure\CacheService;
 use Application\Services\Communication\NotificationService;
 use Illuminate\Container\Container as IlluminateContainer;
 use Mockery;
@@ -56,11 +61,41 @@ class AdminDependencyResolutionTest extends TestCase
         $this->assertSame($repository, $this->readProperty($service, 'repo'));
     }
 
+    public function testAiAdminAndSysAdminServicesResolveDependenciesFromContainerWhenAvailable(): void
+    {
+        $aiService = Mockery::mock(AIService::class);
+        $systemContextService = Mockery::mock(SystemContextService::class);
+        $systemContextService->shouldReceive('gather')->once()->andReturn([]);
+        $cacheService = Mockery::mock(CacheService::class);
+
+        $container = new IlluminateContainer();
+        $container->instance(AIService::class, $aiService);
+        $container->instance(SystemContextService::class, $systemContextService);
+        $container->instance(CacheService::class, $cacheService);
+        ApplicationContainer::setInstance($container);
+
+        $aiAdminWorkflowService = new AiAdminWorkflowService();
+        $sysAdminOpsService = new SysAdminOpsService();
+
+        $this->assertSame($aiService, $this->invokeMethod($aiAdminWorkflowService, 'createAiService'));
+        $this->assertSame([], $this->invokeMethod($aiAdminWorkflowService, 'gatherSystemContext'));
+        $this->assertSame($systemContextService, $this->readProperty($aiAdminWorkflowService, 'systemContextService'));
+        $this->assertSame($cacheService, $this->invokeMethod($aiAdminWorkflowService, 'cache'));
+        $this->assertSame($cacheService, $this->readProperty($sysAdminOpsService, 'cacheService'));
+    }
+
     private function readProperty(object $object, string $property): mixed
     {
         $reflection = new \ReflectionProperty($object, $property);
         $reflection->setAccessible(true);
 
         return $reflection->getValue($object);
+    }
+
+    private function invokeMethod(object $object, string $method): mixed
+    {
+        return \Closure::bind(function () use ($method) {
+            return $this->{$method}();
+        }, $object, $object::class)();
     }
 }

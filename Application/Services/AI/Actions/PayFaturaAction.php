@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Actions;
 
+use Application\Container\ApplicationContainer;
 use Application\Services\Cartao\CartaoFaturaService;
 use Application\Services\Gamification\AchievementService;
 use Application\Services\Infrastructure\LogService;
@@ -14,11 +15,23 @@ use Application\Services\Infrastructure\LogService;
  */
 class PayFaturaAction implements ActionInterface
 {
+    private CartaoFaturaService $service;
+    private AchievementService $achievementService;
+
+    public function __construct(
+        ?CartaoFaturaService $service = null,
+        ?AchievementService $achievementService = null
+    ) {
+        $this->service = ApplicationContainer::resolveOrNew($service, CartaoFaturaService::class);
+        $this->achievementService = ApplicationContainer::resolveOrNew(
+            $achievementService,
+            AchievementService::class
+        );
+    }
+
     public function execute(int $userId, array $payload): ActionResult
     {
-        $service = new CartaoFaturaService();
-
-        $result = $service->pagarFatura(
+        $result = $this->service->pagarFatura(
             cartaoId: (int) $payload['cartao_id'],
             mes: (int) $payload['mes'],
             ano: (int) $payload['ano'],
@@ -31,8 +44,7 @@ class PayFaturaAction implements ActionInterface
 
         // Gamification — mesma chamada que o controller faz
         try {
-            $achievement = new AchievementService();
-            $achievement->checkAndUnlockAchievements($userId, 'invoice_paid');
+            $this->achievementService->checkAndUnlockAchievements($userId, 'invoice_paid');
         } catch (\Throwable $e) {
             LogService::warning('PayFaturaAction.gamification', ['error' => $e->getMessage()]);
         }

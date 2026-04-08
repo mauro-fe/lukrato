@@ -21,14 +21,13 @@ use Application\Repositories\FaturaCartaoRepository;
 use Application\Repositories\LancamentoRepository;
 use Application\Repositories\ParcelamentoRepository;
 use Application\Services\Lancamento\LancamentoCreationService;
-use Application\Services\Lancamento\LancamentoDeletionService;
 use Application\Services\Lancamento\LancamentoExportService;
 use Application\Services\Lancamento\LancamentoLimitService;
-use Application\Services\Lancamento\LancamentoStatusService;
 use Application\Services\Lancamento\LancamentoUpdateService;
 use Application\UseCases\Lancamentos\BulkDeleteLancamentosUseCase;
 use Application\UseCases\Lancamentos\DeleteLancamentoUseCase;
 use Application\UseCases\Lancamentos\ToggleLancamentoPagoUseCase;
+use Application\UseCases\Lancamentos\UpdateTransferenciaUseCase;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
@@ -84,10 +83,14 @@ class LancamentosApiControllersTest extends TestCase
     {
         $this->seedAuthenticatedUserSession(100, 'Lancamentos User');
 
-        $repo = Mockery::mock(LancamentoRepository::class);
-        $repo->shouldReceive('findByIdAndUser')->once()->with(5, 100)->andReturnNull();
+        $deleteUseCase = Mockery::mock(DeleteLancamentoUseCase::class);
+        $deleteUseCase
+            ->shouldReceive('execute')
+            ->once()
+            ->with(100, 5, 'single')
+            ->andReturn(ServiceResultDTO::fail('Lancamento nao encontrado', 404));
 
-        $controller = new DestroyController($repo, Mockery::mock(LancamentoDeletionService::class));
+        $controller = new DestroyController(deleteUseCase: $deleteUseCase);
         $response = $controller->__invoke(5);
 
         $this->assertSame(404, $response->getStatusCode());
@@ -108,12 +111,7 @@ class LancamentosApiControllersTest extends TestCase
                 'excluidos' => 1,
             ]));
 
-        $controller = new DestroyController(
-            Mockery::mock(LancamentoRepository::class),
-            Mockery::mock(LancamentoDeletionService::class),
-            Mockery::mock(BulkDeleteLancamentosUseCase::class),
-            $deleteUseCase
-        );
+        $controller = new DestroyController(deleteUseCase: $deleteUseCase);
 
         $response = $controller->__invoke(5);
         $json = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
@@ -127,10 +125,14 @@ class LancamentosApiControllersTest extends TestCase
         $this->seedAuthenticatedUserSession(100, 'Lancamentos User');
         $_SERVER['REQUEST_METHOD'] = 'POST';
 
-        $controller = new DestroyController(
-            Mockery::mock(LancamentoRepository::class),
-            Mockery::mock(LancamentoDeletionService::class)
-        );
+        $bulkDeleteUseCase = Mockery::mock(BulkDeleteLancamentosUseCase::class);
+        $bulkDeleteUseCase
+            ->shouldReceive('execute')
+            ->once()
+            ->with(100, [])
+            ->andReturn(ServiceResultDTO::fail('Nenhum lancamento selecionado.', 422));
+
+        $controller = new DestroyController(bulkDeleteUseCase: $bulkDeleteUseCase);
 
         $response = $controller->bulkDelete();
 
@@ -154,11 +156,7 @@ class LancamentosApiControllersTest extends TestCase
                 'message' => '2 lancamentos excluidos com sucesso.',
             ]));
 
-        $controller = new DestroyController(
-            Mockery::mock(LancamentoRepository::class),
-            Mockery::mock(LancamentoDeletionService::class),
-            $bulkDeleteUseCase
-        );
+        $controller = new DestroyController(bulkDeleteUseCase: $bulkDeleteUseCase);
 
         $response = $controller->bulkDelete();
         $json = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
@@ -205,14 +203,14 @@ class LancamentosApiControllersTest extends TestCase
     {
         $this->seedAuthenticatedUserSession(100, 'Lancamentos User');
 
-        $repo = Mockery::mock(LancamentoRepository::class);
-        $repo->shouldReceive('findByIdAndUser')->once()->with(8, 100)->andReturnNull();
+        $useCase = Mockery::mock(ToggleLancamentoPagoUseCase::class);
+        $useCase
+            ->shouldReceive('execute')
+            ->once()
+            ->with(100, 8, true)
+            ->andReturn(ServiceResultDTO::fail('Lancamento nao encontrado', 404));
 
-        $controller = new MarcarPagoController(
-            $repo,
-            Mockery::mock(LancamentoStatusService::class),
-            Mockery::mock(ParcelamentoRepository::class),
-        );
+        $controller = new MarcarPagoController($useCase);
 
         $response = $controller->__invoke(8);
 
@@ -243,12 +241,7 @@ class LancamentosApiControllersTest extends TestCase
                 'lancamento' => $lancamento,
             ]));
 
-        $controller = new MarcarPagoController(
-            Mockery::mock(LancamentoRepository::class),
-            Mockery::mock(LancamentoStatusService::class),
-            Mockery::mock(ParcelamentoRepository::class),
-            $useCase
-        );
+        $controller = new MarcarPagoController($useCase);
 
         $response = $controller->__invoke(8);
         $json = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
@@ -281,12 +274,7 @@ class LancamentosApiControllersTest extends TestCase
                 'lancamento' => $lancamento,
             ]));
 
-        $controller = new MarcarPagoController(
-            Mockery::mock(LancamentoRepository::class),
-            Mockery::mock(LancamentoStatusService::class),
-            Mockery::mock(ParcelamentoRepository::class),
-            $useCase
-        );
+        $controller = new MarcarPagoController($useCase);
 
         $response = $controller->desmarcar(9);
         $json = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
@@ -323,7 +311,7 @@ class LancamentosApiControllersTest extends TestCase
         $controller = new UpdateController(
             $repo,
             Mockery::mock(LancamentoUpdateService::class),
-            Mockery::mock(ContaRepository::class),
+            Mockery::mock(UpdateTransferenciaUseCase::class),
         );
 
         $response = $controller->__invoke(12);

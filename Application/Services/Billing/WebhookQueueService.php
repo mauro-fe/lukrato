@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Billing;
 
+use Application\Container\ApplicationContainer;
 use Application\Services\Infrastructure\LogService;
 use Application\Enums\LogLevel;
 use Application\Enums\LogCategory;
@@ -20,15 +21,26 @@ class WebhookQueueService
     private const PROCESSING_KEY = 'webhooks:processing';
     private const FAILED_KEY = 'webhooks:failed';
 
-    public function __construct()
+    public function __construct(?RedisClient $redis = null)
     {
         try {
+            if ($redis instanceof RedisClient) {
+                $this->redis = $redis;
+                return;
+            }
+
             if (class_exists(RedisClient::class)) {
-                $this->redis = new RedisClient([
-                    'scheme' => 'tcp',
-                    'host'   => $_ENV['REDIS_HOST'] ?? '127.0.0.1',
-                    'port'   => $_ENV['REDIS_PORT'] ?? 6379,
-                ]);
+                $resolvedRedis = ApplicationContainer::tryMake(RedisClient::class);
+
+                if (!$resolvedRedis instanceof RedisClient) {
+                    $resolvedRedis = new RedisClient([
+                        'scheme' => 'tcp',
+                        'host'   => $_ENV['REDIS_HOST'] ?? '127.0.0.1',
+                        'port'   => $_ENV['REDIS_PORT'] ?? 6379,
+                    ]);
+                }
+
+                $this->redis = $resolvedRedis;
                 $this->redis->ping();
             }
         } catch (\Throwable $e) {

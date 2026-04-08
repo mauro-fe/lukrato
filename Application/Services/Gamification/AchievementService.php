@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Gamification;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\Achievement;
 use Application\Models\UserAchievement;
 use Application\Models\UserProgress;
@@ -27,11 +28,11 @@ use Carbon\Carbon;
  */
 class AchievementService
 {
-    private GamificationService $gamificationService;
+    private ?GamificationService $gamificationService;
 
-    public function __construct()
+    public function __construct(?GamificationService $gamificationService = null)
     {
-        $this->gamificationService = new GamificationService();
+        $this->gamificationService = $gamificationService;
     }
 
     /**
@@ -270,8 +271,7 @@ class AchievementService
                 ]);
 
                 // 🔄 RECALCULAR NÍVEL após adicionar pontos da conquista
-                $gamificationService = new GamificationService();
-                $gamificationService->recalculateLevel($userId);
+                $this->gamificationService()->recalculateLevel($userId);
 
                 \Application\Services\Infrastructure\LogService::safeErrorLog("🏆 [ACHIEVEMENT] User {$userId} desbloqueou '{$achievement->name}' (+{$achievement->points_reward} pts)");
             }
@@ -289,6 +289,15 @@ class AchievementService
                 'points_reward' => $achievement->points_reward,
             ],
         ];
+    }
+
+    private function gamificationService(): GamificationService
+    {
+        return $this->gamificationService ??= ApplicationContainer::resolveOrNew(
+            null,
+            GamificationService::class,
+            fn(): GamificationService => new GamificationService($this)
+        );
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\UseCases\Financas;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\ServiceResultDTO;
 use Application\Models\Categoria;
 use Application\Models\Conta;
@@ -19,8 +20,8 @@ class GetFinanceiroOptionsUseCase
         ?CategoriaRepository $categoriaRepo = null,
         ?ContaRepository $contaRepo = null
     ) {
-        $this->categoriaRepo = $categoriaRepo ?? new CategoriaRepository();
-        $this->contaRepo = $contaRepo ?? new ContaRepository();
+        $this->categoriaRepo = ApplicationContainer::resolveOrNew($categoriaRepo, CategoriaRepository::class);
+        $this->contaRepo = ApplicationContainer::resolveOrNew($contaRepo, ContaRepository::class);
     }
 
     public function execute(int $userId): ServiceResultDTO

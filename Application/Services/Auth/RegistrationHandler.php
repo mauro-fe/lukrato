@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Auth;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\Auth\RegistrationDTO;
 use Application\Models\Usuario;
 use Application\Services\Infrastructure\LogService;
@@ -15,10 +16,18 @@ class RegistrationHandler
     private RegistrationValidationStrategy $validationStrategy;
     private ReferralAntifraudService $antifraudService;
 
-    public function __construct()
-    {
-        $this->validationStrategy = new RegistrationValidationStrategy();
-        $this->antifraudService = new ReferralAntifraudService();
+    public function __construct(
+        ?RegistrationValidationStrategy $validationStrategy = null,
+        ?ReferralAntifraudService $antifraudService = null
+    ) {
+        $this->validationStrategy = ApplicationContainer::resolveOrNew(
+            $validationStrategy,
+            RegistrationValidationStrategy::class
+        );
+        $this->antifraudService = ApplicationContainer::resolveOrNew(
+            $antifraudService,
+            ReferralAntifraudService::class
+        );
     }
 
     public function handle(RegistrationDTO $registration): array

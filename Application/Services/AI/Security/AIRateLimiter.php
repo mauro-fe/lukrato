@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Security;
 
+use Application\Container\ApplicationContainer;
 use Application\Enums\LogCategory;
 use Application\Enums\LogLevel;
 use Application\Services\Infrastructure\CacheService;
@@ -18,9 +19,12 @@ use Application\Services\Infrastructure\LogService;
  */
 final class AIRateLimiter
 {
-    public function __construct(
-        private readonly CacheService $cache = new CacheService(),
-    ) {}
+    private readonly CacheService $cache;
+
+    public function __construct(?CacheService $cache = null)
+    {
+        $this->cache = ApplicationContainer::resolveOrNew($cache, CacheService::class);
+    }
 
     public function allow(
         string $scope,
@@ -40,7 +44,7 @@ final class AIRateLimiter
 
         $attempts = array_values(array_filter(
             $attempts,
-            static fn ($timestamp): bool => is_int($timestamp) && ($now - $timestamp) < $windowSeconds,
+            static fn($timestamp): bool => is_int($timestamp) && ($now - $timestamp) < $windowSeconds,
         ));
 
         if (count($attempts) >= $maxAttempts) {

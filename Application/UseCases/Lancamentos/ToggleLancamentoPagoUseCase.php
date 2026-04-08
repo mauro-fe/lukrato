@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\UseCases\Lancamentos;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\ServiceResultDTO;
 use Application\Repositories\LancamentoRepository;
 use Application\Repositories\ParcelamentoRepository;
@@ -12,11 +13,18 @@ use DomainException;
 
 class ToggleLancamentoPagoUseCase
 {
+    private readonly LancamentoRepository $lancamentoRepo;
+    private readonly LancamentoStatusService $statusService;
+    private readonly ParcelamentoRepository $parcelamentoRepo;
+
     public function __construct(
-        private readonly LancamentoRepository $lancamentoRepo = new LancamentoRepository(),
-        private readonly LancamentoStatusService $statusService = new LancamentoStatusService(),
-        private readonly ParcelamentoRepository $parcelamentoRepo = new ParcelamentoRepository()
+        ?LancamentoRepository $lancamentoRepo = null,
+        ?LancamentoStatusService $statusService = null,
+        ?ParcelamentoRepository $parcelamentoRepo = null
     ) {
+        $this->lancamentoRepo = ApplicationContainer::resolveOrNew($lancamentoRepo, LancamentoRepository::class);
+        $this->statusService = ApplicationContainer::resolveOrNew($statusService, LancamentoStatusService::class);
+        $this->parcelamentoRepo = ApplicationContainer::resolveOrNew($parcelamentoRepo, ParcelamentoRepository::class);
     }
 
     public function execute(int $userId, int $lancamentoId, bool $markAsPaid): ServiceResultDTO

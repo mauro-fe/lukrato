@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Admin;
 
+use Application\Container\ApplicationContainer;
 use Application\Enums\LogCategory;
 use Application\Enums\LogLevel;
 use Application\Services\Infrastructure\CacheService;
@@ -13,9 +14,11 @@ use Throwable;
 
 class SysAdminOpsService
 {
-    public function __construct(
-        private ?CacheService $cacheService = null
-    ) {
+    private CacheService $cacheService;
+
+    public function __construct(?CacheService $cacheService = null)
+    {
+        $this->cacheService = ApplicationContainer::resolveOrNew($cacheService, CacheService::class);
     }
 
     /**
@@ -144,9 +147,8 @@ class SysAdminOpsService
         }
 
         try {
-            $cache = $this->cacheService ??= new CacheService();
-            if ($cache->isEnabled()) {
-                $cache->flush();
+            if ($this->cacheService->isEnabled()) {
+                $this->cacheService->flush();
                 $results['redis'] = true;
             }
         } catch (Throwable) {

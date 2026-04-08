@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Communication;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\Lancamento;
 use Application\Models\Notificacao;
 use DateTimeImmutable;
@@ -13,9 +14,12 @@ use Application\Services\Infrastructure\LogService;
 
 class LancamentoReminderDispatchService
 {
+    private MailService $mailService;
+
     public function __construct(
-        private readonly ?MailService $mailService = null
+        ?MailService $mailService = null
     ) {
+        $this->mailService = ApplicationContainer::resolveOrNew($mailService, MailService::class);
     }
 
     /**
@@ -243,6 +247,6 @@ class LancamentoReminderDispatchService
 
     private function getMailService(): MailService
     {
-        return $this->mailService ?? new MailService();
+        return $this->mailService;
     }
 }

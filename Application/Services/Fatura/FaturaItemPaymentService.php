@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Fatura;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\FaturaCartaoItem;
 use Application\Services\Infrastructure\LogService;
 use Exception;
@@ -11,10 +12,11 @@ use Illuminate\Database\Capsule\Manager as DB;
 
 class FaturaItemPaymentService
 {
-    public function __construct(
-        private ?FaturaItemPaymentStateService $itemPaymentStateService = null
-    ) {
-        $this->itemPaymentStateService ??= new FaturaItemPaymentStateService();
+    private FaturaItemPaymentStateService $itemPaymentStateService;
+
+    public function __construct(?FaturaItemPaymentStateService $itemPaymentStateService = null)
+    {
+        $this->itemPaymentStateService = ApplicationContainer::resolveOrNew($itemPaymentStateService, FaturaItemPaymentStateService::class);
     }
 
     public function toggleItemPago(int $faturaId, int $itemId, int $usuarioId, bool $pago): bool

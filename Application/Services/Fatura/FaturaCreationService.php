@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Fatura;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\CartaoCredito;
 use Application\Models\Fatura;
 use Application\Models\FaturaCartaoItem;
@@ -19,10 +20,11 @@ class FaturaCreationService
     private const PARCELAS_MINIMAS = 1;
     private const PARCELAS_MAXIMAS = 120;
 
-    public function __construct(
-        private ?FaturaInstallmentCalculatorService $calculatorService = null
-    ) {
-        $this->calculatorService ??= new FaturaInstallmentCalculatorService();
+    private FaturaInstallmentCalculatorService $calculatorService;
+
+    public function __construct(?FaturaInstallmentCalculatorService $calculatorService = null)
+    {
+        $this->calculatorService = ApplicationContainer::resolveOrNew($calculatorService, FaturaInstallmentCalculatorService::class);
     }
 
     public function criar(array $dados): ?int

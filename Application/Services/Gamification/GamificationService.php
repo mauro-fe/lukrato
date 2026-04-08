@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Gamification;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\UserProgress;
 use Application\Models\Achievement;
 use Application\Models\UserAchievement;
@@ -28,6 +29,17 @@ use Application\Services\Infrastructure\LogService;
  */
 class GamificationService
 {
+    private ?AchievementService $achievementService;
+    private ?StreakService $streakService;
+
+    public function __construct(
+        ?AchievementService $achievementService = null,
+        ?StreakService $streakService = null
+    ) {
+        $this->achievementService = $achievementService;
+        $this->streakService = $streakService;
+    }
+
     /**
      * Thresholds de pontos para cada nível
      * Níveis expandidos de 1 a 15
@@ -126,8 +138,7 @@ class GamificationService
             $levelData = $this->recalculateLevel($userId);
 
             // Verificar conquistas
-            $achievementService = new AchievementService();
-            $newAchievements = $achievementService->checkAndUnlockAchievements($userId, $action->value);
+            $newAchievements = $this->achievementService()->checkAndUnlockAchievements($userId, $action->value);
 
             LogService::info("+{$points} pontos para user {$userId} - Ação: {$action->value}" . ($isPro ? ' [PRO]' : ''));
 
@@ -166,8 +177,7 @@ class GamificationService
      */
     public function updateStreak(int $userId): array
     {
-        $streakService = new StreakService();
-        return $streakService->updateStreak($userId);
+        return $this->streakService()->updateStreak($userId);
     }
 
     /**
@@ -240,8 +250,7 @@ class GamificationService
      */
     public function checkAchievements(int $userId): array
     {
-        $achievementService = new AchievementService();
-        $achievements = $achievementService->checkAndUnlockAchievements($userId);
+        $achievements = $this->achievementService()->checkAndUnlockAchievements($userId);
 
         // Formatar para compatibilidade
         return array_map(function ($ach) {
@@ -314,5 +323,19 @@ class GamificationService
             }
         }
         return 1;
+    }
+
+    private function achievementService(): AchievementService
+    {
+        return $this->achievementService ??= ApplicationContainer::resolveOrNew(
+            null,
+            AchievementService::class,
+            fn(): AchievementService => new AchievementService($this)
+        );
+    }
+
+    private function streakService(): StreakService
+    {
+        return $this->streakService ??= ApplicationContainer::resolveOrNew(null, StreakService::class);
     }
 }

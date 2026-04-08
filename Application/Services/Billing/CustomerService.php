@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Billing;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\CustomerDataDTO;
 use Application\Models\Usuario;
 use Application\Repositories\DocumentoRepository;
@@ -14,9 +15,13 @@ use Illuminate\Database\Capsule\Manager as DB;
  */
 class CustomerService
 {
+    private DocumentoRepository $documentoRepo;
+
     public function __construct(
-        private readonly ?DocumentoRepository $documentoRepo = null
-    ) {}
+        ?DocumentoRepository $documentoRepo = null
+    ) {
+        $this->documentoRepo = ApplicationContainer::resolveOrNew($documentoRepo, DocumentoRepository::class);
+    }
 
     public function buildCustomerData(Usuario $usuario, array $holderInfo = []): CustomerDataDTO
     {
@@ -127,6 +132,6 @@ class CustomerService
 
     private function getDocumentoRepo(): DocumentoRepository
     {
-        return $this->documentoRepo ?? new DocumentoRepository();
+        return $this->documentoRepo;
     }
 }

@@ -4,16 +4,23 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Actions;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\CreateContaDTO;
 use Application\Services\Conta\ContaService;
 
 class CreateContaAction implements ActionInterface
 {
+    private ContaService $service;
+
+    public function __construct(?ContaService $service = null)
+    {
+        $this->service = ApplicationContainer::resolveOrNew($service, ContaService::class);
+    }
+
     public function execute(int $userId, array $payload): ActionResult
     {
         $dto = CreateContaDTO::fromArray($payload, $userId);
-        $service = new ContaService();
-        $result = $service->criarConta($dto);
+        $result = $this->service->criarConta($dto);
 
         if (!($result['success'] ?? false)) {
             $errors = $result['errors'] ?? [];

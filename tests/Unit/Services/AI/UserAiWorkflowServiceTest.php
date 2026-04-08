@@ -108,7 +108,7 @@ class UserAiWorkflowServiceTest extends TestCase
         );
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Descrição muito curta para sugerir categoria.');
+        $this->expectExceptionMessage('Descricao muito curta para sugerir categoria.');
 
         $service->suggestCategory(12, 'a');
     }

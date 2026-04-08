@@ -208,7 +208,8 @@ $guidePathTitle = $initialSourceType === 'csv'
                 </div>
             </dl>
             <div class="imp-page-hero__actions">
-                <a class="btn btn-secondary" href="<?= escape($configUrl) ?>" data-imp-config-link>Ajustes avançados CSV</a>
+                <a class="btn btn-secondary" href="<?= escape($configUrl) ?>" data-imp-config-link>Ajustes avançados
+                    CSV</a>
                 <a class="btn btn-ghost" href="<?= BASE_URL ?>importacoes/historico">Histórico</a>
             </div>
         </aside>
@@ -234,7 +235,7 @@ $guidePathTitle = $initialSourceType === 'csv'
 
                     <fieldset class="imp-format-switch" aria-label="Alvo da importação">
                         <legend class="imp-field__label">Alvo</legend>
-                        <label class="imp-format-switch__item" for="imp-target-conta">
+                        <label class="imp-format-switch__item surface-card" for="imp-target-conta">
                             <input id="imp-target-conta" type="radio" name="import_target" value="conta"
                                 data-imp-target-type <?= $importTarget === 'conta' ? 'checked' : '' ?>>
                             <span>
@@ -242,7 +243,7 @@ $guidePathTitle = $initialSourceType === 'csv'
                                 Conta
                             </span>
                         </label>
-                        <label class="imp-format-switch__item" for="imp-target-cartao">
+                        <label class="imp-format-switch__item surface-card" for="imp-target-cartao">
                             <input id="imp-target-cartao" type="radio" name="import_target" value="cartao"
                                 data-imp-target-type <?= $importTarget === 'cartao' ? 'checked' : '' ?>>
                             <span>
@@ -286,7 +287,8 @@ $guidePathTitle = $initialSourceType === 'csv'
                                     data-imp-card-select-main>
                                     <?php foreach ($cards as $card) : ?>
                                         <?php $cardId = (int) ($card['id'] ?? 0); ?>
-                                        <option value="<?= $cardId ?>" data-linked-account-id="<?= (int) ($card['conta_id'] ?? 0) ?>"
+                                        <option value="<?= $cardId ?>"
+                                            data-linked-account-id="<?= (int) ($card['conta_id'] ?? 0) ?>"
                                             <?= $cardId === $selectedCardId ? 'selected' : '' ?>>
                                             <?= escape((string) ($card['nome'] ?? 'Cartão sem nome')) ?>
                                         </option>
@@ -302,7 +304,7 @@ $guidePathTitle = $initialSourceType === 'csv'
                                 $formatValue = strtolower((string) $format);
                                 $radioId = 'imp-format-' . $formatValue;
                                 ?>
-                                <label class="imp-format-switch__item" for="<?= escape($radioId) ?>">
+                                <label class="imp-format-switch__item surface-card" for="<?= escape($radioId) ?>">
                                     <input id="<?= escape($radioId) ?>" type="radio" name="source_type"
                                         value="<?= escape($formatValue) ?>" data-imp-source-type
                                         <?= $initialSourceType === $formatValue ? 'checked' : '' ?>>
@@ -328,7 +330,7 @@ $guidePathTitle = $initialSourceType === 'csv'
                     </div>
 
                     <section class="imp-guide-strip" aria-label="Guia rápido do fluxo">
-                        <article class="imp-guide-card" data-state="info" data-imp-guide-path-card>
+                        <article class="imp-guide-card surface-card" data-state="info" data-imp-guide-path-card>
                             <span class="imp-guide-card__eyebrow">Caminho recomendado</span>
                             <strong class="imp-guide-card__title" data-imp-guide-path-title>
                                 <?= escape($guidePathTitle) ?>
@@ -338,7 +340,7 @@ $guidePathTitle = $initialSourceType === 'csv'
                             </p>
                         </article>
 
-                        <article class="imp-guide-card" data-state="ready" data-imp-guide-context-card>
+                        <article class="imp-guide-card surface-card" data-state="ready" data-imp-guide-context-card>
                             <span class="imp-guide-card__eyebrow">Contexto ativo</span>
                             <strong class="imp-guide-card__title" data-imp-guide-context-title>
                                 <?= escape($activeContextLabel) ?>
@@ -348,7 +350,7 @@ $guidePathTitle = $initialSourceType === 'csv'
                             </p>
                         </article>
 
-                        <article class="imp-guide-card" data-state="info" data-imp-guide-readiness-card>
+                        <article class="imp-guide-card surface-card" data-state="info" data-imp-guide-readiness-card>
                             <span class="imp-guide-card__eyebrow">Antes do upload</span>
                             <strong class="imp-guide-card__title" data-imp-guide-readiness-title>
                                 Falta só o arquivo
@@ -374,7 +376,7 @@ $guidePathTitle = $initialSourceType === 'csv'
                         </header>
 
                         <div class="imp-advanced-panel__grid">
-                            <div class="imp-advanced-callout">
+                            <div class="imp-advanced-callout surface-card">
                                 <span class="imp-chip" data-imp-advanced-template-chip>
                                     <?= $importTarget === 'cartao' ? 'Modelo de fatura' : 'Modelo de conta' ?>
                                 </span>
@@ -404,7 +406,8 @@ $guidePathTitle = $initialSourceType === 'csv'
                             </div>
                         </div>
 
-                        <details class="imp-advanced-details" data-imp-advanced-details <?= $initialSourceType === 'csv' ? 'open' : '' ?>>
+                        <details class="imp-advanced-details" data-imp-advanced-details
+                            <?= $initialSourceType === 'csv' ? 'open' : '' ?>>
                             <summary>
                                 <span>Ver configuração CSV aplicada</span>
                                 <small data-imp-advanced-summary-context>
@@ -419,7 +422,9 @@ $guidePathTitle = $initialSourceType === 'csv'
                                 </div>
                                 <div>
                                     <dt>Origem padrão</dt>
-                                    <dd data-imp-advanced-source-type><?= strtoupper(escape((string) ($profileConfig['source_type'] ?? 'ofx'))) ?></dd>
+                                    <dd data-imp-advanced-source-type>
+                                        <?= strtoupper(escape((string) ($profileConfig['source_type'] ?? 'ofx'))) ?>
+                                    </dd>
                                 </div>
                                 <div>
                                     <dt>Modo CSV</dt>
@@ -529,7 +534,8 @@ $guidePathTitle = $initialSourceType === 'csv'
                 <ul class="imp-message-list imp-message-list--error" data-imp-preview-errors hidden></ul>
 
                 <div class="imp-preview-empty surface-card" data-imp-preview-empty>
-                    O preview será exibido aqui com resumo do arquivo, validações, linhas normalizadas e categorização opcional.
+                    O preview será exibido aqui com resumo do arquivo, validações, linhas normalizadas e categorização
+                    opcional.
                 </div>
 
                 <div class="imp-preview-tools" data-imp-preview-tools hidden>
@@ -538,7 +544,8 @@ $guidePathTitle = $initialSourceType === 'csv'
                             Categorizar linhas
                         </button>
                         <p class="imp-muted" data-imp-categorize-helper>
-                            Opcional: aplica sugestões automáticas por regra do usuário e regra global sem bloquear a confirmação.
+                            Opcional: aplica sugestões automáticas por regra do usuário e regra global sem bloquear a
+                            confirmação.
                         </p>
                     </div>
                     <div class="imp-preview-tools__secondary">
@@ -621,7 +628,8 @@ $guidePathTitle = $initialSourceType === 'csv'
                     <dt>Conta base</dt>
                     <dd data-imp-profile-account-name><?= escape($activeAccountLabel) ?></dd>
                     <dt>Origem padrão</dt>
-                    <dd data-imp-profile-source-type><?= strtoupper(escape((string) ($profileConfig['source_type'] ?? 'ofx'))) ?></dd>
+                    <dd data-imp-profile-source-type>
+                        <?= strtoupper(escape((string) ($profileConfig['source_type'] ?? 'ofx'))) ?></dd>
                     <dt>Modo CSV</dt>
                     <dd data-imp-profile-csv-mode><?= escape($csvMappingModeLabel) ?></dd>
                     <dt>Delimitador</dt>
@@ -632,7 +640,8 @@ $guidePathTitle = $initialSourceType === 'csv'
                     <dd data-imp-profile-csv-decimal><?= escape($csvDecimalLabel) ?></dd>
                 </dl>
                 <p class="imp-muted" data-imp-profile-context-note><?= escape($advancedContextNote) ?></p>
-                <a class="imp-link" href="<?= escape($configUrl) ?>" data-imp-config-link>Gerenciar perfil e configuração</a>
+                <a class="imp-link" href="<?= escape($configUrl) ?>" data-imp-config-link>Gerenciar perfil e
+                    configuração</a>
             </article>
 
             <article class="imp-side-card imp-surface surface-card surface-card--interactive">

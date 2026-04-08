@@ -6,6 +6,7 @@ namespace Tests\Unit\Controllers\Api\Metas;
 
 use Application\Container\ApplicationContainer;
 use Application\Controllers\Api\Metas\MetasController;
+use Application\DTO\ServiceResultDTO;
 use Application\Models\Usuario;
 use Application\Services\Metas\MetaService;
 use Application\UseCases\Metas\AddMetaAporteUseCase;
@@ -68,14 +69,14 @@ class MetasControllerTest extends TestCase
         $this->seedAuthenticatedUserSession(12, 'Metas Update');
         $_SERVER['REQUEST_METHOD'] = 'PUT';
 
-        $metaService = Mockery::mock(MetaService::class);
-        $metaService
-            ->shouldReceive('atualizar')
+        $updateMetaUseCase = Mockery::mock(UpdateMetaUseCase::class);
+        $updateMetaUseCase
+            ->shouldReceive('execute')
             ->once()
             ->with(12, 99, [])
-            ->andReturnNull();
+            ->andReturn(ServiceResultDTO::fail('Meta não encontrada.', 404));
 
-        $controller = $this->buildController(metaService: $metaService);
+        $controller = $this->buildController(updateMetaUseCase: $updateMetaUseCase);
 
         $response = $controller->update(99);
 
@@ -114,10 +115,21 @@ class MetasControllerTest extends TestCase
         $this->assertSame($getMetasListUseCase, $this->readProperty($controller, 'getMetasListUseCase'));
     }
 
-    private function buildController(?MetaService $metaService = null): MetasController
-    {
+    private function buildController(
+        ?CreateMetaUseCase $createMetaUseCase = null,
+        ?UpdateMetaUseCase $updateMetaUseCase = null,
+        ?AddMetaAporteUseCase $addMetaAporteUseCase = null,
+        ?DeleteMetaUseCase $deleteMetaUseCase = null,
+        ?GetMetaTemplatesUseCase $getMetaTemplatesUseCase = null,
+        ?GetMetasListUseCase $getMetasListUseCase = null
+    ): MetasController {
         return new MetasController(
-            $metaService ?? Mockery::mock(MetaService::class),
+            $createMetaUseCase ?? new CreateMetaUseCase(Mockery::mock(MetaService::class)),
+            $updateMetaUseCase ?? Mockery::mock(UpdateMetaUseCase::class),
+            $addMetaAporteUseCase ?? Mockery::mock(AddMetaAporteUseCase::class),
+            $deleteMetaUseCase ?? Mockery::mock(DeleteMetaUseCase::class),
+            $getMetaTemplatesUseCase ?? Mockery::mock(GetMetaTemplatesUseCase::class),
+            $getMetasListUseCase ?? Mockery::mock(GetMetasListUseCase::class),
         );
     }
 

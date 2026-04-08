@@ -16,6 +16,7 @@ class Router
 {
     private static array $routes = [];
     private static ?RoutingMiddlewareResolver $middlewareResolver = null;
+    private static ?RoutingErrorResponseFactory $errorResponseFactory = null;
 
     public static function add(string $method, string $path, mixed $callback, array $middlewares = []): void
     {
@@ -31,6 +32,7 @@ class Router
     {
         self::$routes = [];
         self::$middlewareResolver = null;
+        self::$errorResponseFactory = null;
         RoutingMiddlewareResolver::reset();
     }
 
@@ -229,7 +231,10 @@ class Router
 
     private static function middlewareResolver(): RoutingMiddlewareResolver
     {
-        return self::$middlewareResolver ??= new RoutingMiddlewareResolver();
+        return self::$middlewareResolver ??= ApplicationContainer::resolveOrNew(
+            null,
+            RoutingMiddlewareResolver::class
+        );
     }
 
     private static function exceptionHandler(): HttpExceptionHandler
@@ -239,6 +244,9 @@ class Router
 
     private static function errorResponseFactory(): RoutingErrorResponseFactory
     {
-        return new RoutingErrorResponseFactory();
+        return self::$errorResponseFactory ??= ApplicationContainer::resolveOrNew(
+            null,
+            RoutingErrorResponseFactory::class
+        );
     }
 }

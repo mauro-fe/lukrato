@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Providers;
 
+use Application\Container\ApplicationContainer;
 use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\PromptBuilder;
 use Application\Services\Infrastructure\CacheService;
@@ -24,17 +25,23 @@ class OpenAIProvider implements AIProvider
     private string $model;
     private array $lastMeta = [];
     private array $lastRateLimits = [];
+    private CacheService $cache;
 
-    public function __construct()
+    public function __construct(?Client $client = null, ?CacheService $cache = null)
     {
         $this->apiKey = $_ENV['OPENAI_API_KEY'] ?? '';
         $this->model  = $_ENV['OPENAI_MODEL'] ?? 'gpt-4o-mini';
+        $this->cache = ApplicationContainer::resolveOrNew($cache, CacheService::class);
 
-        $this->client = new Client([
-            'base_uri'        => 'https://api.openai.com/v1/',
-            'timeout'         => 30,
-            'connect_timeout' => 10,
-        ]);
+        $this->client = ApplicationContainer::resolveOrNew(
+            $client,
+            Client::class,
+            static fn(): Client => new Client([
+                'base_uri'        => 'https://api.openai.com/v1/',
+                'timeout'         => 30,
+                'connect_timeout' => 10,
+            ])
+        );
     }
 
     // ─── Metadata ──────────────────────────────────────────────
@@ -117,7 +124,7 @@ class OpenAIProvider implements AIProvider
 
                 // Persistir rate limits em cache para o endpoint quota()
                 try {
-                    (new CacheService())->set('ai:openai_rate_limits', $this->lastRateLimits, 300);
+                    $this->cache->set('ai:openai_rate_limits', $this->lastRateLimits, 300);
                 } catch (\Throwable) {
                     // Silencioso
                 }

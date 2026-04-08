@@ -26,9 +26,9 @@ class ParcelamentosController extends ApiController
         ?ContaRepository $contaRepo = null
     ) {
         parent::__construct();
-        $this->parcelamentoRepo = $parcelamentoRepo ?? new ParcelamentoRepository();
-        $this->categoriaRepo = $categoriaRepo ?? new CategoriaRepository();
-        $this->contaRepo = $contaRepo ?? new ContaRepository();
+        $this->parcelamentoRepo = $this->resolveOrCreate($parcelamentoRepo, ParcelamentoRepository::class);
+        $this->categoriaRepo = $this->resolveOrCreate($categoriaRepo, CategoriaRepository::class);
+        $this->contaRepo = $this->resolveOrCreate($contaRepo, ContaRepository::class);
     }
 
     public function index(): Response
@@ -340,5 +340,4 @@ class ParcelamentosController extends ApiController
             return Response::errorResponse('Erro ao excluir parcelamento', 500);
         }
     }
-
 }

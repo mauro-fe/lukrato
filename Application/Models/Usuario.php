@@ -2,6 +2,7 @@
 
 namespace Application\Models;
 
+use Application\Container\ApplicationContainer;
 use Illuminate\Database\Eloquent\Model;
 use Application\Services\Auth\TokenPairService;
 use Application\Services\Infrastructure\LogService;
@@ -208,7 +209,7 @@ class Usuario extends Model
      */
     public function generateEmailVerificationCredentials(?TokenPairService $tokenPairService = null): array
     {
-        $tokenPairService ??= new TokenPairService();
+        $tokenPairService = ApplicationContainer::resolveOrNew($tokenPairService, TokenPairService::class);
         $credentials = $tokenPairService->issue();
 
         $this->forceFill([

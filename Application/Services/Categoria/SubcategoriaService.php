@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Categoria;
 
+use Application\Container\ApplicationContainer;
 use Application\Contracts\SubcategoriaServiceInterface;
 use Application\DTO\Requests\CreateSubcategoriaDTO;
 use Application\DTO\Requests\UpdateSubcategoriaDTO;
@@ -27,8 +28,8 @@ class SubcategoriaService implements SubcategoriaServiceInterface
         ?CategoriaRepository $categoriaRepo = null,
         ?PlanLimitService $planLimitService = null
     ) {
-        $this->categoriaRepo = $categoriaRepo ?? new CategoriaRepository();
-        $this->planLimitService = $planLimitService ?? new PlanLimitService();
+        $this->categoriaRepo = ApplicationContainer::resolveOrNew($categoriaRepo, CategoriaRepository::class);
+        $this->planLimitService = ApplicationContainer::resolveOrNew($planLimitService, PlanLimitService::class);
     }
 
     /**

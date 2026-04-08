@@ -17,7 +17,7 @@ class AprendaController extends WebController
     public function __construct(?BlogPostRepository $repo = null)
     {
         parent::__construct();
-        $this->repo = $repo ?? new BlogPostRepository();
+        $this->repo = $this->resolveOrCreate($repo, BlogPostRepository::class);
     }
 
     /**

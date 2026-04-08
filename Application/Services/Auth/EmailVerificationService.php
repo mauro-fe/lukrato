@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Application\Services\Auth;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\Notificacao;
 use Application\Models\Usuario;
 use Application\Services\Communication\MailService;
+use Application\Services\Gamification\AchievementService;
 use Application\Services\Infrastructure\LogService;
 use Application\Services\Referral\ReferralService;
 
@@ -14,11 +16,13 @@ class EmailVerificationService
 {
     private MailService $mailService;
     private TokenPairService $tokenPairService;
+    private ?ReferralService $referralService = null;
+    private ?AchievementService $achievementService = null;
 
     public function __construct(?MailService $mailService = null, ?TokenPairService $tokenPairService = null)
     {
-        $this->mailService = $mailService ?? new MailService();
-        $this->tokenPairService = $tokenPairService ?? new TokenPairService();
+        $this->mailService = ApplicationContainer::resolveOrNew($mailService, MailService::class);
+        $this->tokenPairService = ApplicationContainer::resolveOrNew($tokenPairService, TokenPairService::class);
     }
 
     public function sendVerificationEmail(Usuario $user): bool
@@ -161,7 +165,7 @@ class EmailVerificationService
         }
 
         try {
-            $referralService = new ReferralService();
+            $referralService = $this->referralService();
 
             if (!$indicacao->referred_rewarded) {
                 $referralService->applyRewardToUser($user, ReferralService::REFERRED_REWARD_DAYS);
@@ -195,8 +199,7 @@ class EmailVerificationService
                 $this->sendReferralRewardEmail($referrer, $user, 'referrer');
 
                 try {
-                    $achievementService = new \Application\Services\Gamification\AchievementService();
-                    $achievementService->checkAndUnlockAchievements($referrer->id, 'referral');
+                    $this->achievementService()->checkAndUnlockAchievements($referrer->id, 'referral');
                 } catch (\Throwable $e) {
                     LogService::warning('[EmailVerification] Erro ao verificar conquistas', [
                         'user_id' => $referrer->id,
@@ -329,6 +332,16 @@ class EmailVerificationService
         }
 
         return mb_strtolower(trim((string) $user->email));
+    }
+
+    private function referralService(): ReferralService
+    {
+        return $this->referralService ??= ApplicationContainer::resolveOrNew(null, ReferralService::class);
+    }
+
+    private function achievementService(): AchievementService
+    {
+        return $this->achievementService ??= ApplicationContainer::resolveOrNew(null, AchievementService::class);
     }
 
     public function getUnverifiedForReminder(): \Illuminate\Database\Eloquent\Collection

@@ -4,16 +4,26 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Media;
 
+use Application\Container\ApplicationContainer;
+
 /**
  * Orquestra o pré-processamento multimídia e devolve uma saída única para os canais.
  */
 class MediaRouterService
 {
+    private AudioTranscriptionService $audioTranscriber;
+    private ImageAnalysisService $receiptAnalyzer;
+    private ?VideoTranscriptionService $videoTranscriber;
+
     public function __construct(
-        private readonly ?AudioTranscriptionService $audioTranscriber = null,
-        private readonly ?ImageAnalysisService $receiptAnalyzer = null,
-        private readonly ?VideoTranscriptionService $videoTranscriber = null,
-    ) {}
+        ?AudioTranscriptionService $audioTranscriber = null,
+        ?ImageAnalysisService $receiptAnalyzer = null,
+        ?VideoTranscriptionService $videoTranscriber = null,
+    ) {
+        $this->audioTranscriber = ApplicationContainer::resolveOrNew($audioTranscriber, AudioTranscriptionService::class);
+        $this->receiptAnalyzer = ApplicationContainer::resolveOrNew($receiptAnalyzer, ImageAnalysisService::class);
+        $this->videoTranscriber = $videoTranscriber;
+    }
 
     public function process(MediaAsset $asset): MediaProcessingResult
     {
@@ -39,9 +49,8 @@ class MediaRouterService
 
     private function processAudio(MediaAsset $asset): MediaProcessingResult
     {
-        $transcriber = $this->audioTranscriber ?? new AudioTranscriptionService();
         $filename = $asset->filename ?? ('audio.' . $asset->extension('ogg'));
-        $result = $transcriber->transcribe($asset->content, $filename, $asset->promptHint());
+        $result = $this->audioTranscriber->transcribe($asset->content, $filename, $asset->promptHint());
 
         return new MediaProcessingResult(
             success: $result->success,
@@ -55,8 +64,7 @@ class MediaRouterService
 
     private function processReceipt(MediaAsset $asset, string $mediaType): MediaProcessingResult
     {
-        $analyzer = $this->receiptAnalyzer ?? new ImageAnalysisService();
-        $result = $analyzer->analyzeReceipt(
+        $result = $this->receiptAnalyzer->analyzeReceipt(
             $asset->content,
             $asset->mimeType ?? 'application/octet-stream',
             $asset->promptHint(),
@@ -64,17 +72,16 @@ class MediaRouterService
         );
 
         return new MediaProcessingResult(
-            success: $result->success,
-            mediaType: $mediaType,
-            operation: $mediaType === MediaType::PDF ? 'document_analysis' : 'receipt_analysis',
-            text: $result->rawText,
-            data: $result->data,
-            tokensUsed: $result->tokensUsed,
-            tokensPrompt: $result->promptTokens,
-            tokensCompletion: $result->completionTokens,
-            durationMs: $result->durationMs,
-            error: $result->error,
+            $result->success,
+            $mediaType,
+            $mediaType === MediaType::PDF ? 'document_analysis' : 'receipt_analysis',
+            $result->rawText,
+            $result->data,
+            $result->tokensUsed,
+            $result->promptTokens,
+            $result->completionTokens,
+            $result->durationMs,
+            $result->error,
         );
     }
-
 }

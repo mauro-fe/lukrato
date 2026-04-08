@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Communication;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\Notification;
 use Application\Models\MessageCampaign;
 use Application\Models\Usuario;
@@ -32,17 +33,26 @@ class NotificationService
     private MailService $mailService;
     private LoggerInterface $logger;
     private CampaignDeliveryStatusResolver $deliveryStatusResolver;
+    private SchedulerExecutionLock $schedulerLock;
     private ?array $cachedProUserIds = null;
 
     public function __construct(
         ?MailService $mailService = null,
         ?LoggerInterface $logger = null,
-        ?CampaignDeliveryStatusResolver $deliveryStatusResolver = null
-    )
-    {
-        $this->mailService = $mailService ?? new MailService();
-        $this->logger = $logger ?? new NullLogger();
-        $this->deliveryStatusResolver = $deliveryStatusResolver ?? new CampaignDeliveryStatusResolver();
+        ?CampaignDeliveryStatusResolver $deliveryStatusResolver = null,
+        ?SchedulerExecutionLock $schedulerLock = null
+    ) {
+        $this->mailService = ApplicationContainer::resolveOrNew($mailService, MailService::class);
+        $this->logger = ApplicationContainer::resolveOrNew(
+            $logger,
+            LoggerInterface::class,
+            static fn(): LoggerInterface => new NullLogger()
+        );
+        $this->deliveryStatusResolver = ApplicationContainer::resolveOrNew(
+            $deliveryStatusResolver,
+            CampaignDeliveryStatusResolver::class
+        );
+        $this->schedulerLock = ApplicationContainer::resolveOrNew($schedulerLock, SchedulerExecutionLock::class);
     }
 
     /**
@@ -358,64 +368,63 @@ class NotificationService
     public function processScheduledCampaigns(): array
     {
         $stats = ['processed' => 0, 'sent' => 0, 'partial' => 0, 'failed' => 0, 'stuck_recovered' => 0];
-        $lock = new SchedulerExecutionLock();
 
         try {
-            $lock->acquire('dispatch-scheduled-campaigns');
+            $this->schedulerLock->acquire('dispatch-scheduled-campaigns');
         } catch (Exception) {
             $this->logger->info('[NotificationService] Fila de campanhas agendadas ja esta em processamento');
             return $stats;
         }
 
         try {
-        // Recuperar campanhas presas em "sending" por mais de 10 minutos
-        $stuckCampaigns = MessageCampaign::where('status', MessageCampaign::STATUS_SENDING)
-            ->where('updated_at', '<', Carbon::now()->subMinutes(10))
-            ->get();
+            // Recuperar campanhas presas em "sending" por mais de 10 minutos
+            $stuckCampaigns = MessageCampaign::where('status', MessageCampaign::STATUS_SENDING)
+                ->where('updated_at', '<', Carbon::now()->subMinutes(10))
+                ->get();
 
-        foreach ($stuckCampaigns as $stuck) {
-            $stuck->status = MessageCampaign::STATUS_FAILED;
-            $stuck->save();
-            $stats['stuck_recovered']++;
+            foreach ($stuckCampaigns as $stuck) {
+                $stuck->status = MessageCampaign::STATUS_FAILED;
+                $stuck->save();
+                $stats['stuck_recovered']++;
 
-            $this->logger->warning('[NotificationService] Campanha presa em sending recuperada', [
-                'campaign_id' => $stuck->id,
-                'updated_at' => $stuck->updated_at?->toDateTimeString(),
-            ]);
-        }
-
-        // Processar campanhas agendadas cujo horário já chegou
-        $campaigns = MessageCampaign::readyToSend()->get();
-
-        foreach ($campaigns as $campaign) {
-            $stats['processed']++;
-            try {
-                $processedCampaign = $this->executeCampaignSend($campaign);
-
-                if ($processedCampaign->status === MessageCampaign::STATUS_SENT) {
-                    $stats['sent']++;
-                } elseif ($processedCampaign->status === MessageCampaign::STATUS_PARTIAL) {
-                    $stats['partial']++;
-                } else {
-                    $stats['failed']++;
-                }
-
-                $this->logger->info('[NotificationService] Campanha agendada enviada', [
-                    'campaign_id' => $campaign->id,
-                    'status' => $processedCampaign->status,
-                ]);
-            } catch (Exception $e) {
-                $stats['failed']++;
-                $this->logger->error('[NotificationService] Falha na campanha agendada', [
-                    'campaign_id' => $campaign->id,
-                    'error' => $e->getMessage(),
+                $this->logger->warning('[NotificationService] Campanha presa em sending recuperada', [
+                    'campaign_id' => $stuck->id,
+                    'updated_at' => $stuck->updated_at?->toDateTimeString(),
                 ]);
             }
-        }
+
+            // Processar campanhas agendadas cujo horário já chegou
+            $campaigns = MessageCampaign::readyToSend()->get();
+
+            foreach ($campaigns as $campaign) {
+                $stats['processed']++;
+                try {
+                    $processedCampaign = $this->executeCampaignSend($campaign);
+
+                    if ($processedCampaign->status === MessageCampaign::STATUS_SENT) {
+                        $stats['sent']++;
+                    } elseif ($processedCampaign->status === MessageCampaign::STATUS_PARTIAL) {
+                        $stats['partial']++;
+                    } else {
+                        $stats['failed']++;
+                    }
+
+                    $this->logger->info('[NotificationService] Campanha agendada enviada', [
+                        'campaign_id' => $campaign->id,
+                        'status' => $processedCampaign->status,
+                    ]);
+                } catch (Exception $e) {
+                    $stats['failed']++;
+                    $this->logger->error('[NotificationService] Falha na campanha agendada', [
+                        'campaign_id' => $campaign->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
 
             return $stats;
         } finally {
-            $lock->release();
+            $this->schedulerLock->release();
         }
     }
 

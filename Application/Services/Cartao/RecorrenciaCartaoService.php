@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Cartao;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\FaturaCartaoItem;
 use Application\Models\CartaoCredito;
 use Application\Models\Fatura;
@@ -25,10 +26,12 @@ use Application\Services\Infrastructure\LogService;
  */
 class RecorrenciaCartaoService
 {
+    private CartaoBillingDateService $billingDateService;
+
     public function __construct(
-        private ?CartaoBillingDateService $billingDateService = null
+        ?CartaoBillingDateService $billingDateService = null
     ) {
-        $this->billingDateService ??= new CartaoBillingDateService();
+        $this->billingDateService = ApplicationContainer::resolveOrNew($billingDateService, CartaoBillingDateService::class);
     }
 
     /**

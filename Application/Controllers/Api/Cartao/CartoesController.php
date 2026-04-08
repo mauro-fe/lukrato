@@ -8,11 +8,8 @@ use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Enums\LogCategory;
 use Application\Services\Cartao\CartaoApiWorkflowService;
-use Application\Services\Cartao\CartaoCreditoService;
-use Application\Services\Cartao\CartaoFaturaService;
 use Application\Services\Demo\DemoPreviewService;
 use Application\Services\Infrastructure\LogService;
-use Application\Services\Plan\PlanLimitService;
 
 class CartoesController extends ApiController
 {
@@ -20,60 +17,13 @@ class CartoesController extends ApiController
     private DemoPreviewService $demoPreviewService;
 
     public function __construct(
-        ?CartaoCreditoService $service = null,
-        ?CartaoFaturaService $faturaService = null,
-        ?PlanLimitService $planLimitService = null,
         ?CartaoApiWorkflowService $workflowService = null,
         ?DemoPreviewService $demoPreviewService = null
     ) {
         parent::__construct();
 
-        $resolveCartaoService = function () use (&$service): CartaoCreditoService {
-            $service = $this->resolveOrCreate(
-                $service,
-                CartaoCreditoService::class,
-                static fn(): CartaoCreditoService => new CartaoCreditoService()
-            );
-
-            return $service;
-        };
-
-        $resolveFaturaService = function () use (&$faturaService): CartaoFaturaService {
-            $faturaService = $this->resolveOrCreate(
-                $faturaService,
-                CartaoFaturaService::class,
-                static fn(): CartaoFaturaService => new CartaoFaturaService()
-            );
-
-            return $faturaService;
-        };
-
-        $resolvePlanLimitService = function () use (&$planLimitService): PlanLimitService {
-            $planLimitService = $this->resolveOrCreate(
-                $planLimitService,
-                PlanLimitService::class,
-                static fn(): PlanLimitService => new PlanLimitService()
-            );
-
-            return $planLimitService;
-        };
-
-        $this->workflowService = $this->resolveOrCreate(
-            $workflowService,
-            CartaoApiWorkflowService::class,
-            function () use ($resolveCartaoService, $resolveFaturaService, $resolvePlanLimitService): CartaoApiWorkflowService {
-                return new CartaoApiWorkflowService(
-                    $resolveCartaoService(),
-                    $resolveFaturaService(),
-                    $resolvePlanLimitService()
-                );
-            }
-        );
-        $this->demoPreviewService = $this->resolveOrCreate(
-            $demoPreviewService,
-            DemoPreviewService::class,
-            static fn(): DemoPreviewService => new DemoPreviewService()
-        );
+        $this->workflowService = $this->resolveOrCreate($workflowService, CartaoApiWorkflowService::class);
+        $this->demoPreviewService = $this->resolveOrCreate($demoPreviewService, DemoPreviewService::class);
     }
 
     public function index(): Response

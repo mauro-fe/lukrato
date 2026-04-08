@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\User;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\PerfilUpdateDTO;
 use Application\Models\Usuario;
 use Application\Services\Gamification\AchievementService;
@@ -12,11 +13,14 @@ use Application\Validators\PerfilValidator;
 
 class PerfilApiWorkflowService
 {
+    private AchievementService $achievementService;
+
     public function __construct(
         private readonly PerfilService $perfilService,
         private readonly PerfilValidator $validator,
-        private readonly ?AchievementService $achievementService = null
+        ?AchievementService $achievementService = null
     ) {
+        $this->achievementService = ApplicationContainer::resolveOrNew($achievementService, AchievementService::class);
     }
 
     public function getProfile(int $userId): ?array
@@ -137,6 +141,6 @@ class PerfilApiWorkflowService
 
     private function achievementService(): AchievementService
     {
-        return $this->achievementService ?? new AchievementService();
+        return $this->achievementService;
     }
 }

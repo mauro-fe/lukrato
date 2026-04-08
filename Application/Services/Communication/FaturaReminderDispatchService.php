@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Communication;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\CartaoCredito;
 use Application\Models\Notificacao;
 use Application\Services\Infrastructure\LogService;
@@ -13,9 +14,13 @@ use Throwable;
 
 class FaturaReminderDispatchService
 {
+    private MailService $mailService;
+
     public function __construct(
-        private readonly ?MailService $mailService = null
-    ) {}
+        ?MailService $mailService = null
+    ) {
+        $this->mailService = ApplicationContainer::resolveOrNew($mailService, MailService::class);
+    }
 
     /**
      * @return array<string, int>
@@ -229,6 +234,6 @@ class FaturaReminderDispatchService
 
     private function getMailService(): MailService
     {
-        return $this->mailService ?? new MailService();
+        return $this->mailService;
     }
 }

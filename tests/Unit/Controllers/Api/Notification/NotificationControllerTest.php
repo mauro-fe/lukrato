@@ -82,7 +82,7 @@ class NotificationControllerTest extends TestCase
         $controller = new NotificationController(Mockery::mock(NotificationService::class));
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->index();
     }

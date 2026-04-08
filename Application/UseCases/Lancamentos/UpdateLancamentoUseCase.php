@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\UseCases\Lancamentos;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\Requests\UpdateLancamentoDTO;
 use Application\DTO\ServiceResultDTO;
 use Application\Models\Lancamento;
@@ -17,12 +18,21 @@ use ValueError;
 
 class UpdateLancamentoUseCase
 {
+    private readonly LancamentoRepository $lancamentoRepo;
+    private readonly CategoriaRepository $categoriaRepo;
+    private readonly ContaRepository $contaRepo;
+    private readonly MetaProgressService $metaProgressService;
+
     public function __construct(
-        private readonly LancamentoRepository $lancamentoRepo = new LancamentoRepository(),
-        private readonly CategoriaRepository $categoriaRepo = new CategoriaRepository(),
-        private readonly ContaRepository $contaRepo = new ContaRepository(),
-        private readonly MetaProgressService $metaProgressService = new MetaProgressService()
+        ?LancamentoRepository $lancamentoRepo = null,
+        ?CategoriaRepository $categoriaRepo = null,
+        ?ContaRepository $contaRepo = null,
+        ?MetaProgressService $metaProgressService = null
     ) {
+        $this->lancamentoRepo = ApplicationContainer::resolveOrNew($lancamentoRepo, LancamentoRepository::class);
+        $this->categoriaRepo = ApplicationContainer::resolveOrNew($categoriaRepo, CategoriaRepository::class);
+        $this->contaRepo = ApplicationContainer::resolveOrNew($contaRepo, ContaRepository::class);
+        $this->metaProgressService = ApplicationContainer::resolveOrNew($metaProgressService, MetaProgressService::class);
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Communication;
 
+use Application\Container\ApplicationContainer;
 use Application\Contracts\MailServiceInterface;
 use Application\Models\Lancamento;
 use Application\Models\Usuario;
@@ -35,7 +36,11 @@ class MailService implements MailServiceInterface
     ];
 
     $this->config = array_merge($defaults, $config);
-    $this->logger = $logger ?? new NullLogger();
+    $this->logger = ApplicationContainer::resolveOrNew(
+      $logger,
+      LoggerInterface::class,
+      static fn(): LoggerInterface => new NullLogger()
+    );
   }
 
   public function isConfigured(): bool

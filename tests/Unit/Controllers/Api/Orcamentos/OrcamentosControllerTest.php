@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Controllers\Api\Orcamentos;
 
+use Application\Container\ApplicationContainer;
 use Application\Controllers\Api\Orcamentos\OrcamentosController;
 use Application\Core\Exceptions\AuthException;
 use Application\DTO\ServiceResultDTO;
 use Application\Models\Usuario;
-use Application\Services\Demo\DemoPreviewService;
-use Application\Services\Orcamentos\OrcamentoService;
 use Application\UseCases\Orcamentos\ApplyOrcamentoSugestoesUseCase;
 use Application\UseCases\Orcamentos\BulkSaveOrcamentosUseCase;
 use Application\UseCases\Orcamentos\CopyOrcamentosMesUseCase;
@@ -17,6 +16,7 @@ use Application\UseCases\Orcamentos\DeleteOrcamentoUseCase;
 use Application\UseCases\Orcamentos\GetOrcamentoSugestoesUseCase;
 use Application\UseCases\Orcamentos\GetOrcamentosListUseCase;
 use Application\UseCases\Orcamentos\SaveOrcamentoUseCase;
+use Illuminate\Container\Container as IlluminateContainer;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
@@ -30,6 +30,7 @@ class OrcamentosControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        ApplicationContainer::flush();
         $this->resetSessionState();
         $_GET = [];
         $_POST = [];
@@ -39,6 +40,7 @@ class OrcamentosControllerTest extends TestCase
 
     protected function tearDown(): void
     {
+        ApplicationContainer::flush();
         unset($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);
         $_GET = [];
         $_POST = [];
@@ -114,9 +116,38 @@ class OrcamentosControllerTest extends TestCase
         $this->assertArrayHasKey('request_id', $payload);
     }
 
+    public function testConstructorResolvesUseCasesFromContainerWhenAvailable(): void
+    {
+        $saveOrcamentoUseCase = Mockery::mock(SaveOrcamentoUseCase::class);
+        $bulkSaveOrcamentosUseCase = Mockery::mock(BulkSaveOrcamentosUseCase::class);
+        $deleteOrcamentoUseCase = Mockery::mock(DeleteOrcamentoUseCase::class);
+        $getOrcamentoSugestoesUseCase = Mockery::mock(GetOrcamentoSugestoesUseCase::class);
+        $applyOrcamentoSugestoesUseCase = Mockery::mock(ApplyOrcamentoSugestoesUseCase::class);
+        $copyOrcamentosMesUseCase = Mockery::mock(CopyOrcamentosMesUseCase::class);
+        $getOrcamentosListUseCase = Mockery::mock(GetOrcamentosListUseCase::class);
+
+        $container = new IlluminateContainer();
+        $container->instance(SaveOrcamentoUseCase::class, $saveOrcamentoUseCase);
+        $container->instance(BulkSaveOrcamentosUseCase::class, $bulkSaveOrcamentosUseCase);
+        $container->instance(DeleteOrcamentoUseCase::class, $deleteOrcamentoUseCase);
+        $container->instance(GetOrcamentoSugestoesUseCase::class, $getOrcamentoSugestoesUseCase);
+        $container->instance(ApplyOrcamentoSugestoesUseCase::class, $applyOrcamentoSugestoesUseCase);
+        $container->instance(CopyOrcamentosMesUseCase::class, $copyOrcamentosMesUseCase);
+        $container->instance(GetOrcamentosListUseCase::class, $getOrcamentosListUseCase);
+        ApplicationContainer::setInstance($container);
+
+        $controller = new OrcamentosController();
+
+        $this->assertSame($saveOrcamentoUseCase, $this->readProperty($controller, 'saveOrcamentoUseCase'));
+        $this->assertSame($bulkSaveOrcamentosUseCase, $this->readProperty($controller, 'bulkSaveOrcamentosUseCase'));
+        $this->assertSame($deleteOrcamentoUseCase, $this->readProperty($controller, 'deleteOrcamentoUseCase'));
+        $this->assertSame($getOrcamentoSugestoesUseCase, $this->readProperty($controller, 'getOrcamentoSugestoesUseCase'));
+        $this->assertSame($applyOrcamentoSugestoesUseCase, $this->readProperty($controller, 'applyOrcamentoSugestoesUseCase'));
+        $this->assertSame($copyOrcamentosMesUseCase, $this->readProperty($controller, 'copyOrcamentosMesUseCase'));
+        $this->assertSame($getOrcamentosListUseCase, $this->readProperty($controller, 'getOrcamentosListUseCase'));
+    }
+
     private function buildController(
-        ?OrcamentoService $orcamentoService = null,
-        ?DemoPreviewService $demoPreviewService = null,
         ?SaveOrcamentoUseCase $saveOrcamentoUseCase = null,
         ?BulkSaveOrcamentosUseCase $bulkSaveOrcamentosUseCase = null,
         ?DeleteOrcamentoUseCase $deleteOrcamentoUseCase = null,
@@ -126,8 +157,6 @@ class OrcamentosControllerTest extends TestCase
         ?GetOrcamentosListUseCase $getOrcamentosListUseCase = null
     ): OrcamentosController {
         return new OrcamentosController(
-            $orcamentoService ?? Mockery::mock(OrcamentoService::class),
-            $demoPreviewService ?? Mockery::mock(DemoPreviewService::class),
             $saveOrcamentoUseCase ?? Mockery::mock(SaveOrcamentoUseCase::class),
             $bulkSaveOrcamentosUseCase ?? Mockery::mock(BulkSaveOrcamentosUseCase::class),
             $deleteOrcamentoUseCase ?? Mockery::mock(DeleteOrcamentoUseCase::class),
@@ -136,6 +165,14 @@ class OrcamentosControllerTest extends TestCase
             $copyOrcamentosMesUseCase ?? Mockery::mock(CopyOrcamentosMesUseCase::class),
             $getOrcamentosListUseCase ?? Mockery::mock(GetOrcamentosListUseCase::class),
         );
+    }
+
+    private function readProperty(object $object, string $property): mixed
+    {
+        $reflection = new \ReflectionProperty($object, $property);
+        $reflection->setAccessible(true);
+
+        return $reflection->getValue($object);
     }
 
     private function seedAuthenticatedUserSession(int $userId, string $name): void

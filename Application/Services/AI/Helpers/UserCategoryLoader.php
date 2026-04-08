@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Helpers;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\Categoria;
 use Application\Services\Infrastructure\CacheService;
 
@@ -26,7 +27,7 @@ class UserCategoryLoader
     public static function load(int $userId): array
     {
         try {
-            $cache = new CacheService();
+            $cache = self::cache();
             $cacheKey = self::CACHE_PREFIX . $userId;
 
             $cached = $cache->get($cacheKey);
@@ -76,7 +77,7 @@ class UserCategoryLoader
     public static function invalidate(int $userId): void
     {
         try {
-            $cache = new CacheService();
+            $cache = self::cache();
             $cache->forget(self::CACHE_PREFIX . $userId);
         } catch (\Throwable) {
             // Falha silenciosa — próxima chamada vai buscar do banco
@@ -114,5 +115,13 @@ class UserCategoryLoader
         }
 
         return array_values(array_unique($result));
+    }
+
+    private static function cache(): CacheService
+    {
+        /** @var CacheService $cache */
+        $cache = ApplicationContainer::resolveOrNew(null, CacheService::class);
+
+        return $cache;
     }
 }

@@ -96,7 +96,7 @@ class OverviewControllerTest extends TestCase
         $controller = new OverviewController();
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->overview();
     }

@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace Application\Services\Dashboard;
 
+use Application\Container\ApplicationContainer;
 use Application\Repositories\LancamentoRepository;
 
 class DashboardInsightService
 {
     private LancamentoRepository $lancamentoRepo;
 
-    public function __construct(LancamentoRepository $lancamentoRepo)
+    public function __construct(?LancamentoRepository $lancamentoRepo = null)
     {
-        $this->lancamentoRepo = $lancamentoRepo;
+        $this->lancamentoRepo = ApplicationContainer::resolveOrNew($lancamentoRepo, LancamentoRepository::class);
     }
 
     public function buildComparativoCompetenciaCaixaResponse(array $comparativo, string $month): array

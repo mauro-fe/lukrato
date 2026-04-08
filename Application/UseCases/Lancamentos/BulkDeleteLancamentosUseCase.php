@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\UseCases\Lancamentos;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\ServiceResultDTO;
 use Application\Enums\LogCategory;
 use Application\Repositories\LancamentoRepository;
@@ -12,10 +13,15 @@ use Application\Services\Lancamento\LancamentoDeletionService;
 
 class BulkDeleteLancamentosUseCase
 {
+    private readonly LancamentoRepository $lancamentoRepo;
+    private readonly LancamentoDeletionService $deletionService;
+
     public function __construct(
-        private readonly LancamentoRepository $lancamentoRepo = new LancamentoRepository(),
-        private readonly LancamentoDeletionService $deletionService = new LancamentoDeletionService()
+        ?LancamentoRepository $lancamentoRepo = null,
+        ?LancamentoDeletionService $deletionService = null
     ) {
+        $this->lancamentoRepo = ApplicationContainer::resolveOrNew($lancamentoRepo, LancamentoRepository::class);
+        $this->deletionService = ApplicationContainer::resolveOrNew($deletionService, LancamentoDeletionService::class);
     }
 
     /**

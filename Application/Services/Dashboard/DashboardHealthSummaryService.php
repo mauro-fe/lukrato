@@ -4,12 +4,20 @@ declare(strict_types=1);
 
 namespace Application\Services\Dashboard;
 
+use Application\Container\ApplicationContainer;
+
 class DashboardHealthSummaryService
 {
+    private HealthScoreService $healthScoreService;
+    private HealthScoreInsightService $healthScoreInsightService;
+
     public function __construct(
-        private HealthScoreService $healthScoreService,
-        private HealthScoreInsightService $healthScoreInsightService
-    ) {}
+        ?HealthScoreService $healthScoreService = null,
+        ?HealthScoreInsightService $healthScoreInsightService = null
+    ) {
+        $this->healthScoreService = ApplicationContainer::resolveOrNew($healthScoreService, HealthScoreService::class);
+        $this->healthScoreInsightService = ApplicationContainer::resolveOrNew($healthScoreInsightService, HealthScoreInsightService::class);
+    }
 
     public function generate(int $userId, string $month): array
     {

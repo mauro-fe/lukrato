@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Lancamento;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\ServiceResultDTO;
 use Application\DTO\Requests\UpdateLancamentoDTO;
 use Application\Formatters\LancamentoResponseFormatter;
@@ -31,9 +32,9 @@ class LancamentoUpdateService
         ?LancamentoStatusService $statusService = null,
         ?MetaProgressService $metaProgressService = null
     ) {
-        $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
-        $this->statusService = $statusService ?? new LancamentoStatusService();
-        $this->metaProgressService = $metaProgressService ?? new MetaProgressService();
+        $this->lancamentoRepo = ApplicationContainer::resolveOrNew($lancamentoRepo, LancamentoRepository::class);
+        $this->metaProgressService = ApplicationContainer::resolveOrNew($metaProgressService, MetaProgressService::class);
+        $this->statusService = ApplicationContainer::resolveOrNew($statusService, LancamentoStatusService::class);
     }
 
     /**

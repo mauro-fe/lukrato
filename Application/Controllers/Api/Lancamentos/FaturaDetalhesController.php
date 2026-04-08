@@ -20,8 +20,8 @@ class FaturaDetalhesController extends ApiController
         ?FaturaCartaoRepository $faturaCartaoRepo = null
     ) {
         parent::__construct();
-        $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
-        $this->faturaCartaoRepo = $faturaCartaoRepo ?? new FaturaCartaoRepository();
+        $this->lancamentoRepo = $this->resolveOrCreate($lancamentoRepo, LancamentoRepository::class);
+        $this->faturaCartaoRepo = $this->resolveOrCreate($faturaCartaoRepo, FaturaCartaoRepository::class);
     }
 
     public function __invoke(int $id): Response

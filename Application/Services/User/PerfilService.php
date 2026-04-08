@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\User;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\PerfilUpdateDTO;
 use Application\Repositories\UsuarioRepository;
 use Application\Repositories\DocumentoRepository;
@@ -31,7 +32,8 @@ class PerfilService
         private PerfilPayloadBuilder $payloadBuilder,
         private DocumentFormatter $documentFormatter,
         private TelefoneFormatter $telefoneFormatter,
-        private ?EmailVerificationService $emailVerificationService = null
+        private ?EmailVerificationService $emailVerificationService = null,
+        private ?AsaasService $asaasService = null
     ) {}
 
     /**
@@ -138,7 +140,12 @@ class PerfilService
 
     private function verificationService(): EmailVerificationService
     {
-        return $this->emailVerificationService ??= new EmailVerificationService();
+        return $this->emailVerificationService ??= ApplicationContainer::resolveOrNew(null, EmailVerificationService::class);
+    }
+
+    private function asaasService(): AsaasService
+    {
+        return $this->asaasService ??= ApplicationContainer::resolveOrNew(null, AsaasService::class);
     }
 
     public function deletarConta(int $userId): void
@@ -152,10 +159,9 @@ class PerfilService
 
             // Cancelar assinatura PRO se existir
             if ($user->assinatura_plano === 'pro' && $user->assinatura_ativa) {
-                $asaasService = new AsaasService();
                 if ($user->assinatura_id) {
                     try {
-                        $asaasService->cancelSubscription($user->assinatura_id);
+                        $this->asaasService()->cancelSubscription($user->assinatura_id);
                     } catch (\Exception $e) {
                         LogService::captureException($e, LogCategory::SUBSCRIPTION, [
                             'action' => 'cancelar_assinatura_ao_deletar_conta',

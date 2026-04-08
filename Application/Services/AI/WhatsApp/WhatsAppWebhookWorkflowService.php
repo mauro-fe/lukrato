@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\WhatsApp;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\AI\AIResponseDTO;
 use Application\DTO\AI\WhatsAppMessageDTO;
 use Application\Enums\AI\AIChannel;
@@ -39,15 +40,30 @@ class WhatsAppWebhookWorkflowService
     private const MAX_QUICK_REPLIES = 3;
     private const CONVERSATION_TITLE = 'WhatsApp';
 
-    private ?WhatsAppService $whatsapp;
-    private ?ChannelConversationService $conversationService;
+    private WhatsAppService $whatsapp;
+    private ChannelConversationService $conversationService;
+    private MediaRouterService $mediaRouterService;
+    private ContaRepository $contaRepository;
+    private CacheService $cache;
+    private ActionRegistry $actionRegistry;
+    private AIRateLimiter $rateLimiter;
 
     public function __construct(
         ?WhatsAppService $whatsapp = null,
-        ?ChannelConversationService $conversationService = null
+        ?ChannelConversationService $conversationService = null,
+        ?MediaRouterService $mediaRouterService = null,
+        ?ContaRepository $contaRepository = null,
+        ?CacheService $cache = null,
+        ?ActionRegistry $actionRegistry = null,
+        ?AIRateLimiter $rateLimiter = null
     ) {
-        $this->whatsapp = $whatsapp;
-        $this->conversationService = $conversationService;
+        $this->whatsapp = ApplicationContainer::resolveOrNew($whatsapp, WhatsAppService::class);
+        $this->conversationService = ApplicationContainer::resolveOrNew($conversationService, ChannelConversationService::class);
+        $this->mediaRouterService = ApplicationContainer::resolveOrNew($mediaRouterService, MediaRouterService::class);
+        $this->contaRepository = ApplicationContainer::resolveOrNew($contaRepository, ContaRepository::class);
+        $this->cache = ApplicationContainer::resolveOrNew($cache, CacheService::class);
+        $this->actionRegistry = ApplicationContainer::resolveOrNew($actionRegistry, ActionRegistry::class);
+        $this->rateLimiter = ApplicationContainer::resolveOrNew($rateLimiter, AIRateLimiter::class);
     }
 
     public function handleWebhookBody(string $rawBody): void
@@ -158,8 +174,7 @@ class WhatsAppWebhookWorkflowService
             }
 
             if ($dto->isAffirmative()) {
-                $actionRegistry = new ActionRegistry();
-                $action = $actionRegistry->resolve($pending->action_type);
+                $action = $this->actionRegistry->resolve($pending->action_type);
 
                 if ($action === null) {
                     $pending->reject();
@@ -171,8 +186,7 @@ class WhatsAppWebhookWorkflowService
                 $payload = $pending->payload;
 
                 if ($pending->action_type === 'create_lancamento' && empty($payload['conta_id'])) {
-                    $contaRepo = new ContaRepository();
-                    $contas = $contaRepo->findActive($user->id);
+                    $contas = $this->contaRepository->findActive($user->id);
 
                     if ($contas->isEmpty()) {
                         $pending->reject();
@@ -302,7 +316,7 @@ class WhatsAppWebhookWorkflowService
             remoteId: $dto->mediaId,
         );
 
-        $result = (new MediaRouterService())->process($asset);
+        $result = $this->mediaRouterService->process($asset);
         $this->logMediaProcessing($user->id, 'whatsapp', $dto->mediaId, $dto->caption, $result);
 
         if ($result->isUnsupported()) {
@@ -905,7 +919,7 @@ class WhatsAppWebhookWorkflowService
      */
     private function cacheQuickReplies(string $phone, array $quickReplies): void
     {
-        (new CacheService())->set(
+        $this->cache->set(
             $this->quickReplyCacheKey($phone),
             $quickReplies,
             self::QUICK_REPLY_TTL_SECONDS,
@@ -917,7 +931,7 @@ class WhatsAppWebhookWorkflowService
      */
     private function getCachedQuickReplies(string $phone): array
     {
-        $cached = (new CacheService())->get($this->quickReplyCacheKey($phone), []);
+        $cached = $this->cache->get($this->quickReplyCacheKey($phone), []);
         return is_array($cached) ? $cached : [];
     }
 
@@ -1058,9 +1072,7 @@ class WhatsAppWebhookWorkflowService
 
     private function allowIncomingSender(string $sender, ?string $messageId = null): bool
     {
-        $limiter = new AIRateLimiter();
-
-        return $limiter->allow(
+        return $this->rateLimiter->allow(
             scope: 'webhook_sender',
             bucket: 'whatsapp',
             identifier: $sender,
@@ -1076,11 +1088,11 @@ class WhatsAppWebhookWorkflowService
 
     private function whatsapp(): WhatsAppService
     {
-        return $this->whatsapp ??= new WhatsAppService();
+        return $this->whatsapp;
     }
 
     private function conversationService(): ChannelConversationService
     {
-        return $this->conversationService ??= new ChannelConversationService();
+        return $this->conversationService;
     }
 }

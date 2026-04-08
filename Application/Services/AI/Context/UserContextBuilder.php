@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Context;
 
+use Application\Container\ApplicationContainer;
 use Application\Lib\Auth;
 use Application\Services\AI\SystemContextService;
 
@@ -15,9 +16,9 @@ class UserContextBuilder
 {
     private SystemContextService $contextService;
 
-    public function __construct()
+    public function __construct(?SystemContextService $contextService = null)
     {
-        $this->contextService = new SystemContextService();
+        $this->contextService = ApplicationContainer::resolveOrNew($contextService, SystemContextService::class);
     }
 
     /**

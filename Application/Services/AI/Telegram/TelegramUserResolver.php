@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Telegram;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\Usuario;
 use Application\Services\Infrastructure\CacheService;
 
@@ -56,7 +57,7 @@ class TelegramUserResolver
     {
         $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-        $cache = new CacheService();
+        $cache = self::cache();
         $cache->set("telegram_verify:{$userId}", $code, 600); // 10 min
 
         return $code;
@@ -69,7 +70,7 @@ class TelegramUserResolver
      */
     public static function verifyAndLink(int $userId, string $chatId, string $code): bool
     {
-        $cache      = new CacheService();
+        $cache      = self::cache();
         $storedCode = $cache->get("telegram_verify:{$userId}");
 
         if ($storedCode === null || $storedCode !== $code) {
@@ -99,7 +100,7 @@ class TelegramUserResolver
      */
     public static function verifyByCode(string $chatId, string $code): ?Usuario
     {
-        $cache = new CacheService();
+        $cache = self::cache();
 
         // Buscar em todos os códigos pendentes (pattern: telegram_verify:*)
         // Como CacheService pode não suportar scan, buscamos usuários que possam ter esse código
@@ -149,10 +150,18 @@ class TelegramUserResolver
     {
         $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-        $cache = new CacheService();
+        $cache = self::cache();
         $cache->set("telegram_verify:{$userId}", $code, 600);
         $cache->set("telegram_code_reverse:{$code}", $userId, 600);
 
         return $code;
+    }
+
+    private static function cache(): CacheService
+    {
+        /** @var CacheService $cache */
+        $cache = ApplicationContainer::resolveOrNew(null, CacheService::class);
+
+        return $cache;
     }
 }

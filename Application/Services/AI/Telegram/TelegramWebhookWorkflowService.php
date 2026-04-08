@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Telegram;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\AI\AIResponseDTO;
 use Application\DTO\AI\TelegramMessageDTO;
 use Application\Enums\AI\AIChannel;
@@ -40,15 +41,30 @@ class TelegramWebhookWorkflowService
     private const MAX_QUICK_REPLIES = 3;
     private const CONVERSATION_TITLE = 'Telegram';
 
-    private ?TelegramService $telegram;
-    private ?ChannelConversationService $conversationService;
+    private TelegramService $telegram;
+    private ChannelConversationService $conversationService;
+    private MediaRouterService $mediaRouterService;
+    private ContaRepository $contaRepository;
+    private CacheService $cache;
+    private ActionRegistry $actionRegistry;
+    private AIRateLimiter $rateLimiter;
 
     public function __construct(
         ?TelegramService $telegram = null,
-        ?ChannelConversationService $conversationService = null
+        ?ChannelConversationService $conversationService = null,
+        ?MediaRouterService $mediaRouterService = null,
+        ?ContaRepository $contaRepository = null,
+        ?CacheService $cache = null,
+        ?ActionRegistry $actionRegistry = null,
+        ?AIRateLimiter $rateLimiter = null
     ) {
-        $this->telegram = $telegram;
-        $this->conversationService = $conversationService;
+        $this->telegram = ApplicationContainer::resolveOrNew($telegram, TelegramService::class);
+        $this->conversationService = ApplicationContainer::resolveOrNew($conversationService, ChannelConversationService::class);
+        $this->mediaRouterService = ApplicationContainer::resolveOrNew($mediaRouterService, MediaRouterService::class);
+        $this->contaRepository = ApplicationContainer::resolveOrNew($contaRepository, ContaRepository::class);
+        $this->cache = ApplicationContainer::resolveOrNew($cache, CacheService::class);
+        $this->actionRegistry = ApplicationContainer::resolveOrNew($actionRegistry, ActionRegistry::class);
+        $this->rateLimiter = ApplicationContainer::resolveOrNew($rateLimiter, AIRateLimiter::class);
     }
 
     public function handleWebhookBody(string $rawBody): void
@@ -362,8 +378,7 @@ class TelegramWebhookWorkflowService
             }
 
             if ($dto->isAffirmative()) {
-                $actionRegistry = new ActionRegistry();
-                $action = $actionRegistry->resolve($pending->action_type);
+                $action = $this->actionRegistry->resolve($pending->action_type);
 
                 if ($action === null) {
                     $pending->reject();
@@ -453,8 +468,7 @@ class TelegramWebhookWorkflowService
             return;
         }
 
-        $contaRepo = new ContaRepository();
-        $conta = $contaRepo->findByIdAndUser($contaId, $user->id);
+        $conta = $this->contaRepository->findByIdAndUser($contaId, $user->id);
 
         if ($conta === null) {
             $this->telegram()->sendText($dto->chatId, "⚠️ Conta não encontrada.");
@@ -480,8 +494,7 @@ class TelegramWebhookWorkflowService
             $payload['conta_id'] = $conta->id;
             $pending->update(['payload' => $payload]);
 
-            $actionRegistry = new ActionRegistry();
-            $action = $actionRegistry->resolve($pending->action_type);
+            $action = $this->actionRegistry->resolve($pending->action_type);
 
             if ($action === null) {
                 $pending->reject();
@@ -658,7 +671,7 @@ class TelegramWebhookWorkflowService
             remoteId: $dto->fileId,
         );
 
-        $result = (new MediaRouterService())->process($asset);
+        $result = $this->mediaRouterService->process($asset);
         $this->logMediaProcessing($user->id, 'telegram', $dto->fileId, $dto->caption, $result);
 
         if ($result->isUnsupported()) {
@@ -1031,7 +1044,7 @@ class TelegramWebhookWorkflowService
 
     private function cacheQuickReplies(string $chatId, array $quickReplies): void
     {
-        (new CacheService())->set(
+        $this->cache->set(
             $this->quickReplyCacheKey($chatId),
             $quickReplies,
             self::QUICK_REPLY_TTL_SECONDS,
@@ -1040,7 +1053,7 @@ class TelegramWebhookWorkflowService
 
     private function getCachedQuickReplies(string $chatId): array
     {
-        $cached = (new CacheService())->get($this->quickReplyCacheKey($chatId), []);
+        $cached = $this->cache->get($this->quickReplyCacheKey($chatId), []);
         return is_array($cached) ? $cached : [];
     }
 
@@ -1167,8 +1180,7 @@ class TelegramWebhookWorkflowService
 
     private function resolveAccount(Usuario $user, array $payload): int|array|null
     {
-        $contaRepo = new ContaRepository();
-        $contas = $contaRepo->findActive($user->id);
+        $contas = $this->contaRepository->findActive($user->id);
 
         if ($contas->isEmpty()) {
             return null;
@@ -1278,9 +1290,7 @@ class TelegramWebhookWorkflowService
 
     private function allowIncomingSender(string $sender, ?string $messageId = null): bool
     {
-        $limiter = new AIRateLimiter();
-
-        return $limiter->allow(
+        return $this->rateLimiter->allow(
             scope: 'webhook_sender',
             bucket: 'telegram',
             identifier: $sender,
@@ -1296,11 +1306,11 @@ class TelegramWebhookWorkflowService
 
     private function telegram(): TelegramService
     {
-        return $this->telegram ??= new TelegramService();
+        return $this->telegram;
     }
 
     private function conversationService(): ChannelConversationService
     {
-        return $this->conversationService ??= new ChannelConversationService();
+        return $this->conversationService;
     }
 }

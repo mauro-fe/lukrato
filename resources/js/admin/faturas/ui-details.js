@@ -155,7 +155,6 @@ export const DetailsMethods = {
         }
 
         // Verificar se pode excluir (apenas se não tiver itens pagos)
-        const temItensPagos = parc.parcelas_pagas > 0;
         const faturaCompletamentePaga = parc.parcelas_pendentes === 0 && parc.parcelas_pagas > 0;
 
         return `
@@ -393,6 +392,19 @@ export const DetailsMethods = {
                             </span>
                         </div>
                     </div>
+                    ${parcela.id ? `
+                    <div class="parcela-card-footer">
+                        <div class="btn-group-parcela">
+                            <button class="btn-toggle-parcela btn-excluir"
+                                data-lancamento-id="${parcela.id}"
+                                data-eh-parcelado="false"
+                                data-total-parcelas="1"
+                                title="Excluir estorno">
+                                <i data-lucide="trash-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                    ` : ''}
                 </div>
             `;
         }
@@ -457,11 +469,7 @@ export const DetailsMethods = {
     renderParcelaRow(parcela, index, descricaoFatura) {
         const isPaga = parcela.pago;
         const isEstorno = parcela.tipo === 'estorno';
-        const statusClass = isPaga ? 'parcela-paga' : 'parcela-pendente';
-        const statusText = isPaga ? '✅ Paga' : '⏳ Pendente';
         const rowClass = isPaga ? 'tr-paga' : '';
-        const mesAno = `${this.getNomeMes(parcela.mes_referencia)}/${parcela.ano_referencia}`;
-        const dataPagamentoHtml = this.getDataPagamentoInfo(parcela);
 
         // Usar a descrição da parcela ou categoria se disponível
         let descricaoItem = parcela.descricao || descricaoFatura;
@@ -497,7 +505,18 @@ export const DetailsMethods = {
                         </span>
                     </td>
                     <td data-label="Ação" class="td-acoes">
-                        <span style="color: #10b981; font-size: 0.85rem;">Estorno aplicado</span>
+                        <div class="btn-group-parcela" style="justify-content: flex-end; gap: 0.5rem;">
+                            <span style="color: #10b981; font-size: 0.85rem;">Estorno aplicado</span>
+                            ${parcela.id ? `
+                            <button class="btn-toggle-parcela btn-excluir"
+                                data-lancamento-id="${parcela.id}"
+                                data-eh-parcelado="false"
+                                data-total-parcelas="1"
+                                title="Excluir estorno">
+                                <i data-lucide="trash-2"></i>
+                            </button>
+                            ` : ''}
+                        </div>
                     </td>
                 </tr>
             `;

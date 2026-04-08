@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Lancamento;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\ServiceResultDTO;
 use Application\Enums\GamificationAction;
 use Application\Enums\LogCategory;
@@ -30,6 +31,7 @@ class LancamentoCreationService
     private LancamentoLimitService $limitService;
     private UserPlanService $planService;
     private MetaProgressService $metaProgressService;
+    private AchievementService $achievementService;
 
     public function __construct(
         ?CartaoCreditoLancamentoService $cartaoService = null,
@@ -38,16 +40,17 @@ class LancamentoCreationService
         ?LancamentoLimitService $limitService = null,
         ?UserPlanService $planService = null,
         ?MetaProgressService $metaProgressService = null,
-        ?LancamentoRecurrenceService $recurrenceService = null
+        ?LancamentoRecurrenceService $recurrenceService = null,
+        ?AchievementService $achievementService = null
     ) {
-        $this->cartaoService = $cartaoService ?? new CartaoCreditoLancamentoService();
-        $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
-        $this->gamificationService = $gamificationService ?? new GamificationService();
-        $this->limitService = $limitService ?? new LancamentoLimitService();
-        $this->planService = $planService ?? new UserPlanService();
-        $this->metaProgressService = $metaProgressService ?? new MetaProgressService();
-        $this->recurrenceService = $recurrenceService
-            ?? new LancamentoRecurrenceService($this->lancamentoRepo, $this->metaProgressService);
+        $this->cartaoService = ApplicationContainer::resolveOrNew($cartaoService, CartaoCreditoLancamentoService::class);
+        $this->lancamentoRepo = ApplicationContainer::resolveOrNew($lancamentoRepo, LancamentoRepository::class);
+        $this->gamificationService = ApplicationContainer::resolveOrNew($gamificationService, GamificationService::class);
+        $this->limitService = ApplicationContainer::resolveOrNew($limitService, LancamentoLimitService::class);
+        $this->planService = ApplicationContainer::resolveOrNew($planService, UserPlanService::class);
+        $this->metaProgressService = ApplicationContainer::resolveOrNew($metaProgressService, MetaProgressService::class);
+        $this->recurrenceService = ApplicationContainer::resolveOrNew($recurrenceService, LancamentoRecurrenceService::class);
+        $this->achievementService = ApplicationContainer::resolveOrNew($achievementService, AchievementService::class);
     }
 
     /**
@@ -414,8 +417,7 @@ class LancamentoCreationService
 
         // Verificar conquistas
         try {
-            $achievementService = new AchievementService();
-            $newAchievements = $achievementService->checkAndUnlockAchievements($userId, 'lancamento_created');
+            $newAchievements = $this->achievementService->checkAndUnlockAchievements($userId, 'lancamento_created');
             if (!empty($newAchievements)) {
                 $gamification['achievements'] = $newAchievements;
             }
@@ -483,5 +485,4 @@ class LancamentoCreationService
     {
         return $this->recurrenceService->estenderRecorrenciasInfinitas($horizonMonths);
     }
-
 }

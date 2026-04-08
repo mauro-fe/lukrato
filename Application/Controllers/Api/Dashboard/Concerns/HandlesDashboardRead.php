@@ -49,20 +49,17 @@ trait HandlesDashboardRead
     ) {
         parent::__construct();
 
-        $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
-        $this->provisaoService = $provisaoService ?? new DashboardProvisaoService();
-        $this->orcamentoRepo = $orcamentoRepo ?? new OrcamentoRepository();
-        $this->metaRepo = $metaRepo ?? new MetaRepository();
-        $this->healthScoreService = $healthScoreService
-            ?? new HealthScoreService($this->lancamentoRepo, $this->orcamentoRepo, $this->metaRepo);
-        $this->dashboardInsightService = $dashboardInsightService ?? new DashboardInsightService($this->lancamentoRepo);
-        $this->healthScoreInsightService = $healthScoreInsightService
-            ?? new HealthScoreInsightService($this->lancamentoRepo, $this->metaRepo);
-        $this->dashboardHealthSummaryService = $dashboardHealthSummaryService
-            ?? new DashboardHealthSummaryService($this->healthScoreService, $this->healthScoreInsightService);
-        $this->planLimitService = $planLimitService ?? new PlanLimitService();
-        $this->contaService = $contaService ?? new ContaService();
-        $this->demoPreviewService = $demoPreviewService ?? new DemoPreviewService();
+        $this->lancamentoRepo = $this->resolveOrCreate($lancamentoRepo, LancamentoRepository::class);
+        $this->provisaoService = $this->resolveOrCreate($provisaoService, DashboardProvisaoService::class);
+        $this->orcamentoRepo = $this->resolveOrCreate($orcamentoRepo, OrcamentoRepository::class);
+        $this->metaRepo = $this->resolveOrCreate($metaRepo, MetaRepository::class);
+        $this->healthScoreService = $this->resolveOrCreate($healthScoreService, HealthScoreService::class);
+        $this->dashboardInsightService = $this->resolveOrCreate($dashboardInsightService, DashboardInsightService::class);
+        $this->healthScoreInsightService = $this->resolveOrCreate($healthScoreInsightService, HealthScoreInsightService::class);
+        $this->dashboardHealthSummaryService = $this->resolveOrCreate($dashboardHealthSummaryService, DashboardHealthSummaryService::class);
+        $this->planLimitService = $this->resolveOrCreate($planLimitService, PlanLimitService::class);
+        $this->contaService = $this->resolveOrCreate($contaService, ContaService::class);
+        $this->demoPreviewService = $this->resolveOrCreate($demoPreviewService, DemoPreviewService::class);
     }
 
     /**
@@ -184,5 +181,4 @@ trait HandlesDashboardRead
             'line' => $e->getLine(),
         ]));
     }
-
 }

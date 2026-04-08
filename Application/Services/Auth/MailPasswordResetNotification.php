@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Auth;
 
+use Application\Container\ApplicationContainer;
 use Application\Contracts\Auth\PasswordResetNotificationInterface;
 use Application\Services\Communication\MailService;
 
@@ -14,7 +15,7 @@ class MailPasswordResetNotification implements PasswordResetNotificationInterfac
     public function __construct(?MailService $mailService = null)
     {
         // Se não passar config, ele já pega do .env pelas defaults
-        $this->mail = $mailService ?? new MailService();
+        $this->mail = ApplicationContainer::resolveOrNew($mailService, MailService::class);
     }
 
     public function send(string $email, string $name, string $resetLink): void

@@ -80,7 +80,7 @@ class ParcelamentosControllerTest extends TestCase
         $controller = $this->buildController();
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->index();
     }

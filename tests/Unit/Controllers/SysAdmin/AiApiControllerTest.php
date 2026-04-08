@@ -93,7 +93,7 @@ class AiApiControllerTest extends TestCase
         $this->assertSame(422, $response->getStatusCode());
         $this->assertSame([
             'success' => false,
-            'message' => 'de ser vazia',
+            'message' => 'Mensagem não pode ser vazia',
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 

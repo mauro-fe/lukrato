@@ -52,7 +52,7 @@ class SupportControllerTest extends TestCase
         $controller = new SupportController();
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->send();
     }

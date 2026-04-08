@@ -31,10 +31,10 @@ class GamificationController extends ApiController
         ?MissionService $missionService = null
     ) {
         parent::__construct();
-        $this->gamificationService = $gamificationService ?? new GamificationService();
-        $this->achievementService = $achievementService ?? new AchievementService();
-        $this->streakService = $streakService ?? new StreakService();
-        $this->missionService = $missionService ?? new MissionService();
+        $this->gamificationService = $this->resolveOrCreate($gamificationService, GamificationService::class);
+        $this->achievementService = $this->resolveOrCreate($achievementService, AchievementService::class);
+        $this->streakService = $this->resolveOrCreate($streakService, StreakService::class);
+        $this->missionService = $this->resolveOrCreate($missionService, MissionService::class);
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Auth;
 
+use Application\Container\ApplicationContainer;
 use Application\Contracts\Auth\PasswordResetNotificationInterface;
 use Application\Contracts\Auth\PasswordResetRepositoryInterface;
 use Application\Contracts\Auth\TokenGeneratorInterface;
@@ -29,7 +30,7 @@ class PasswordResetService
         $this->repository = $repository;
         $this->tokenGenerator = $tokenGenerator;
         $this->notifier = $notifier;
-        $this->tokenPairService = $tokenPairService ?? new TokenPairService();
+        $this->tokenPairService = ApplicationContainer::resolveOrNew($tokenPairService, TokenPairService::class);
     }
 
     public function requestReset(string $email): void

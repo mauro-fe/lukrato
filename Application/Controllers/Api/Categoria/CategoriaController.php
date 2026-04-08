@@ -33,10 +33,10 @@ class CategoriaController extends ApiController
         ?AchievementService $achievementService = null
     ) {
         parent::__construct();
-        $this->categoriaRepo = $categoriaRepo ?? new CategoriaRepository();
-        $this->planLimitService = $planLimitService ?? new PlanLimitService();
-        $this->gamificationService = $gamificationService ?? new GamificationService();
-        $this->achievementService = $achievementService ?? new AchievementService();
+        $this->categoriaRepo = $this->resolveOrCreate($categoriaRepo, CategoriaRepository::class);
+        $this->planLimitService = $this->resolveOrCreate($planLimitService, PlanLimitService::class);
+        $this->gamificationService = $this->resolveOrCreate($gamificationService, GamificationService::class);
+        $this->achievementService = $this->resolveOrCreate($achievementService, AchievementService::class);
     }
 
     public function index(): Response

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Handlers;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\AI\AIRequestDTO;
 use Application\DTO\AI\AIResponseDTO;
 use Application\Enums\AI\AIChannel;
@@ -31,6 +32,13 @@ use Application\Services\Infrastructure\LogService;
 class TransactionExtractorHandler implements AIHandlerInterface
 {
     private ?AIProvider $provider = null;
+
+    private ContaRepository $contaRepository;
+
+    public function __construct(?ContaRepository $contaRepository = null)
+    {
+        $this->contaRepository = ApplicationContainer::resolveOrNew($contaRepository, ContaRepository::class);
+    }
 
     public function setProvider(AIProvider $provider): void
     {
@@ -242,8 +250,7 @@ class TransactionExtractorHandler implements AIHandlerInterface
             $cardsList = [];
 
             if (!$isCartao) {
-                $contaRepo = new ContaRepository();
-                $contas = $contaRepo->findActive($request->userId);
+                $contas = $this->contaRepository->findActive($request->userId);
 
                 if ($contas->isEmpty()) {
                     return AIResponseDTO::fromRule(

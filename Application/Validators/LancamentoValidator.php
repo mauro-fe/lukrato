@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Validators;
 
+use Application\Container\ApplicationContainer;
 use Application\Enums\LancamentoTipo;
 use Application\Models\Lancamento;
 use Application\Models\Meta;
@@ -244,7 +245,7 @@ class LancamentoValidator
             return null;
         }
 
-        if ((new CategoriaRepository())->belongsToUser($id, $userId)) {
+        if (self::resolveCategoriaRepository()->belongsToUser($id, $userId)) {
             return $id;
         }
 
@@ -258,7 +259,7 @@ class LancamentoValidator
             return null;
         }
 
-        $repo = new CategoriaRepository();
+        $repo = self::resolveCategoriaRepository();
         if (!$repo->belongsToUser($subcategoriaId, $userId)) {
             $errors['subcategoria_id'] = 'Subcategoria inválida.';
             return null;
@@ -284,7 +285,7 @@ class LancamentoValidator
             return null;
         }
 
-        if ((new ContaRepository())->belongsToUser($id, $userId)) {
+        if (self::resolveContaRepository()->belongsToUser($id, $userId)) {
             return $id;
         }
 
@@ -385,5 +386,21 @@ class LancamentoValidator
         }
 
         return (float) $value;
+    }
+
+    private static function resolveCategoriaRepository(): CategoriaRepository
+    {
+        /** @var CategoriaRepository $repository */
+        $repository = ApplicationContainer::resolveOrNew(null, CategoriaRepository::class);
+
+        return $repository;
+    }
+
+    private static function resolveContaRepository(): ContaRepository
+    {
+        /** @var ContaRepository $repository */
+        $repository = ApplicationContainer::resolveOrNew(null, ContaRepository::class);
+
+        return $repository;
     }
 }

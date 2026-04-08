@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\AI\IntentResult;
 use Application\Enums\AI\IntentType;
 use Application\Services\AI\IntentRules\AnalysisIntentRule;
@@ -48,10 +49,15 @@ class IntentRouter
     /** States that indicate an active multi-turn flow */
     private const ACTIVE_STATES = ['collecting_entity', 'awaiting_selection'];
 
-    public function __construct()
-    {
-        $this->cache = new CacheService();
-        $this->confirmationRule = new ConfirmationIntentRule();
+    public function __construct(
+        ?CacheService $cache = null,
+        ?ConfirmationIntentRule $confirmationRule = null
+    ) {
+        $this->cache = ApplicationContainer::resolveOrNew($cache, CacheService::class);
+        $this->confirmationRule = ApplicationContainer::resolveOrNew(
+            $confirmationRule,
+            ConfirmationIntentRule::class
+        );
         $this->registerRules();
     }
 

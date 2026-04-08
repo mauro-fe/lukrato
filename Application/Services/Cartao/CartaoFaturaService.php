@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Services\Cartao;
 
+use Application\Container\ApplicationContainer;
+
 /**
  * Service para gerenciar faturas de cartão de crédito.
  *
@@ -12,12 +14,19 @@ namespace Application\Services\Cartao;
  */
 class CartaoFaturaService
 {
+    private CartaoFaturaReadService $readService;
+    private CartaoFaturaPaymentService $paymentService;
+
     public function __construct(
-        private ?CartaoFaturaReadService $readService = null,
-        private ?CartaoFaturaPaymentService $paymentService = null
+        ?CartaoFaturaReadService $readService = null,
+        ?CartaoFaturaPaymentService $paymentService = null
     ) {
-        $this->readService ??= new CartaoFaturaReadService();
-        $this->paymentService ??= new CartaoFaturaPaymentService($this->readService);
+        $this->readService = ApplicationContainer::resolveOrNew($readService, CartaoFaturaReadService::class);
+        $this->paymentService = ApplicationContainer::resolveOrNew(
+            $paymentService,
+            CartaoFaturaPaymentService::class,
+            fn(): CartaoFaturaPaymentService => new CartaoFaturaPaymentService($this->readService)
+        );
     }
 
     public function obterHistoricoFaturasPagas(int $cartaoId, int $userId, int $limite = 12): array

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Handlers;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\AI\AIRequestDTO;
 use Application\DTO\AI\AIResponseDTO;
 use Application\Enums\AI\IntentType;
@@ -25,10 +26,14 @@ class ConfirmationHandler implements AIHandlerInterface
 {
     private ?AIProvider $provider = null;
     private ActionRegistry $actionRegistry;
+    private ContaRepository $contaRepository;
 
-    public function __construct()
-    {
-        $this->actionRegistry = new ActionRegistry();
+    public function __construct(
+        ?ActionRegistry $actionRegistry = null,
+        ?ContaRepository $contaRepository = null
+    ) {
+        $this->actionRegistry = ApplicationContainer::resolveOrNew($actionRegistry, ActionRegistry::class);
+        $this->contaRepository = ApplicationContainer::resolveOrNew($contaRepository, ContaRepository::class);
     }
 
     public function setProvider(AIProvider $provider): void
@@ -111,8 +116,7 @@ class ConfirmationHandler implements AIHandlerInterface
         // Se lancamento sem conta_id, auto-preencher com primeira conta (cartão de crédito não precisa)
         $isCartao = ($payload['forma_pagamento'] ?? null) === 'cartao_credito';
         if ($actionType === 'create_lancamento' && empty($payload['conta_id']) && !$isCartao) {
-            $contaRepo = new ContaRepository();
-            $contas = $contaRepo->findActive($userId);
+            $contas = $this->contaRepository->findActive($userId);
 
             if ($contas->isEmpty()) {
                 $pending->reject();

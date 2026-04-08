@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Handlers;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\AI\AIRequestDTO;
 use Application\DTO\AI\AIResponseDTO;
 use Application\Enums\AI\IntentType;
@@ -24,9 +25,9 @@ class CategorizationHandler implements AIHandlerInterface
     private CacheService $cache;
     private ?AIProvider $provider = null;
 
-    public function __construct()
+    public function __construct(?CacheService $cache = null)
     {
-        $this->cache = new CacheService();
+        $this->cache = ApplicationContainer::resolveOrNew($cache, CacheService::class);
     }
 
     public function setProvider(AIProvider $provider): void

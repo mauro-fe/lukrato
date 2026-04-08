@@ -21,7 +21,7 @@ class IndexController extends ApiController
     public function __construct(?LancamentoRepository $lancamentoRepo = null)
     {
         parent::__construct();
-        $this->lancamentoRepo = $lancamentoRepo ?? new LancamentoRepository();
+        $this->lancamentoRepo = $this->resolveOrCreate($lancamentoRepo, LancamentoRepository::class);
     }
 
     public function __invoke(): Response

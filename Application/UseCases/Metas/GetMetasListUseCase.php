@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\UseCases\Metas;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\ServiceResultDTO;
 use Application\Services\Demo\DemoPreviewService;
 use Application\Services\Metas\MetaService;
@@ -17,8 +18,8 @@ class GetMetasListUseCase
         ?MetaService $metaService = null,
         ?DemoPreviewService $demoPreviewService = null
     ) {
-        $this->metaService = $metaService ?? new MetaService();
-        $this->demoPreviewService = $demoPreviewService ?? new DemoPreviewService();
+        $this->metaService = ApplicationContainer::resolveOrNew($metaService, MetaService::class);
+        $this->demoPreviewService = ApplicationContainer::resolveOrNew($demoPreviewService, DemoPreviewService::class);
     }
 
     public function execute(int $userId, ?string $status): ServiceResultDTO
