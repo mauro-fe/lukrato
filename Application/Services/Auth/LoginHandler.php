@@ -42,16 +42,8 @@ class LoginHandler implements AuthHandlerInterface
             CredentialsValidationStrategy::class
         );
         $this->sessionManager = ApplicationContainer::resolveOrNew($sessionManager, SessionManager::class);
-        $this->csrfCheck = ApplicationContainer::resolveOrNew(
-            $csrfCheck,
-            CsrfSecurityCheck::class,
-            fn(): CsrfSecurityCheck => new CsrfSecurityCheck($this->request, 'login_form')
-        );
-        $this->rateLimitCheck = ApplicationContainer::resolveOrNew(
-            $rateLimitCheck,
-            RateLimitSecurityCheck::class,
-            fn(): RateLimitSecurityCheck => new RateLimitSecurityCheck($this->request, $cache, 'login')
-        );
+        $this->csrfCheck = ApplicationContainer::resolveOrNew($csrfCheck, CsrfSecurityCheck::class);
+        $this->rateLimitCheck = ApplicationContainer::resolveOrNew($rateLimitCheck, RateLimitSecurityCheck::class);
     }
 
     public function handle(CredentialsDTO $credentials, bool $remember = false): array

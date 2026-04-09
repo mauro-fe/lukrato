@@ -33,5 +33,31 @@ class SupportServicesCompositionGuardTest extends TestCase
                 "Construtor não deve montar dependência inline com new: {$filePath}"
             );
         }
+
+        $passwordResetService = (string) file_get_contents('Application/Services/Auth/PasswordResetService.php');
+
+        $this->assertStringNotContainsString(
+            'fn(): PasswordResetRepositoryInterface => new PasswordResetRepositoryEloquent()',
+            $passwordResetService,
+            'PasswordResetService não deve montar PasswordResetRepositoryInterface inline.'
+        );
+
+        $this->assertStringNotContainsString(
+            'fn(): TokenGeneratorInterface => new SecureTokenGenerator()',
+            $passwordResetService,
+            'PasswordResetService não deve montar TokenGeneratorInterface inline.'
+        );
+
+        $this->assertStringNotContainsString(
+            'fn(): PasswordResetNotificationInterface => new MailPasswordResetNotification()',
+            $passwordResetService,
+            'PasswordResetService não deve montar PasswordResetNotificationInterface inline.'
+        );
+
+        $this->assertStringNotContainsString(
+            '(new AuthServiceProvider())->register(',
+            $passwordResetService,
+            'PasswordResetService não deve registrar AuthServiceProvider manualmente.'
+        );
     }
 }

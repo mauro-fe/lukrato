@@ -326,11 +326,16 @@ class OrcamentoService
 
     private function insightService(): OrcamentoInsightService
     {
-        if ($this->insightService === null) {
-            $this->insightService = new OrcamentoInsightService($this->repo);
+        if ($this->insightService instanceof OrcamentoInsightService) {
+            return $this->insightService;
         }
 
-        return $this->insightService;
+        $container = ApplicationContainer::getInstance() ?? ApplicationContainer::bootstrap();
+
+        return $this->insightService = $container->makeWith(
+            OrcamentoInsightService::class,
+            ['repo' => $this->repo]
+        );
     }
 
     /**

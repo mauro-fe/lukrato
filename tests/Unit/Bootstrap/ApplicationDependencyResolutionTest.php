@@ -9,6 +9,7 @@ use Application\Bootstrap\ErrorHandler;
 use Application\Bootstrap\RequestHandler;
 use Application\Bootstrap\SecurityHeaders;
 use Application\Bootstrap\SessionManager;
+use Application\Config\InfrastructureRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Core\ResponseEmitter;
 use Illuminate\Container\Container as IlluminateContainer;
@@ -55,6 +56,36 @@ class ApplicationDependencyResolutionTest extends TestCase
         $this->assertSame($securityHeaders, $this->readProperty($application, 'securityHeaders'));
         $this->assertSame($requestHandler, $this->readProperty($application, 'requestHandler'));
         $this->assertSame($responseEmitter, $this->readProperty($application, 'responseEmitter'));
+    }
+
+    public function testErrorHandlerResolvesResponseEmitterFromContainerWhenAvailable(): void
+    {
+        $responseEmitter = Mockery::mock(ResponseEmitter::class);
+
+        $container = new IlluminateContainer();
+        $container->instance(ResponseEmitter::class, $responseEmitter);
+        ApplicationContainer::setInstance($container);
+
+        $handler = new ErrorHandler();
+
+        $this->assertSame($responseEmitter, $this->readProperty($handler, 'responseEmitter'));
+    }
+
+    public function testBootstrapComponentsResolveInfrastructureRuntimeConfigFromContainerWhenAvailable(): void
+    {
+        $runtimeConfig = new InfrastructureRuntimeConfig();
+
+        $container = new IlluminateContainer();
+        $container->instance(InfrastructureRuntimeConfig::class, $runtimeConfig);
+        ApplicationContainer::setInstance($container);
+
+        $sessionManager = new SessionManager();
+        $securityHeaders = new SecurityHeaders();
+        $errorHandler = new ErrorHandler();
+
+        $this->assertSame($runtimeConfig, $this->readProperty($sessionManager, 'runtimeConfig'));
+        $this->assertSame($runtimeConfig, $this->readProperty($securityHeaders, 'runtimeConfig'));
+        $this->assertSame($runtimeConfig, $this->readProperty($errorHandler, 'runtimeConfig'));
     }
 
     private function readProperty(object $object, string $property): mixed

@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace Application\Services\Communication;
 
+use Application\Config\CommunicationRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Contracts\MailServiceInterface;
 use Application\Models\Lancamento;
 use Application\Models\Usuario;
+use Application\Services\Communication\CommunicationServiceProvider;
 use Application\Services\Mail\EmailTemplate;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 
 /**
  * Serviço de envio de emails via SMTP.
@@ -21,26 +22,43 @@ class MailService implements MailServiceInterface
 {
   private array $config;
   private LoggerInterface $logger;
+  private CommunicationRuntimeConfig $runtimeConfig;
 
-  public function __construct(array $config = [], ?LoggerInterface $logger = null)
+  public function __construct(
+    array $config = [],
+    ?LoggerInterface $logger = null,
+    ?CommunicationRuntimeConfig $runtimeConfig = null
+  )
   {
+    $this->runtimeConfig = ApplicationContainer::resolveOrNew(
+      $runtimeConfig,
+      CommunicationRuntimeConfig::class
+    );
+
     $defaults = [
-      'host'       => $_ENV['MAIL_HOST'] ?? '',
-      'username'   => $_ENV['MAIL_USERNAME'] ?? '',
-      'password'   => $_ENV['MAIL_PASSWORD'] ?? '',
-      'port'       => (int) ($_ENV['MAIL_PORT'] ?? 587),
-      'encryption' => $_ENV['MAIL_ENCRYPTION'] ?? PHPMailer::ENCRYPTION_STARTTLS,
-      'from_email' => $_ENV['MAIL_FROM'] ?? ($_ENV['MAIL_USERNAME'] ?? 'no-reply@localhost'),
-      'from_name'  => $_ENV['MAIL_FROM_NAME'] ?? 'Lukrato',
-      'bcc'        => $_ENV['MAIL_BCC'] ?? null,
+      'host'       => $this->runtimeConfig->mailHost(),
+      'username'   => $this->runtimeConfig->mailUsername(),
+      'password'   => $this->runtimeConfig->mailPassword(),
+      'port'       => $this->runtimeConfig->mailPort(),
+      'encryption' => $this->runtimeConfig->mailEncryption(),
+      'from_email' => $this->runtimeConfig->mailFromEmail(),
+      'from_name'  => $this->runtimeConfig->mailFromName(),
+      'bcc'        => $this->runtimeConfig->mailBcc(),
     ];
 
     $this->config = array_merge($defaults, $config);
-    $this->logger = ApplicationContainer::resolveOrNew(
-      $logger,
-      LoggerInterface::class,
-      static fn(): LoggerInterface => new NullLogger()
-    );
+    $this->logger = $this->resolveLogger($logger);
+  }
+
+  private function resolveLogger(?LoggerInterface $logger): LoggerInterface
+  {
+    if ($logger instanceof LoggerInterface) {
+      return $logger;
+    }
+
+    $container = ApplicationContainer::ensureProviderRegistered(CommunicationServiceProvider::class);
+
+    return $container->make(LoggerInterface::class);
   }
 
   public function isConfigured(): bool
@@ -174,10 +192,7 @@ class MailService implements MailServiceInterface
     $tipoLanc = ucfirst($lancamento->tipo ?? 'despesa');
     $nomeUsuario = trim((string) ($usuario->primeiro_nome ?? $usuario->nome ?? ''));
 
-    $baseUrl = defined('BASE_URL')
-      ? rtrim(BASE_URL, '/')
-      : rtrim($_ENV['APP_URL'] ?? '', '/');
-    $link = $baseUrl ? $baseUrl . '/lancamentos' : '#';
+    $link = $this->buildAppLink('/lancamentos');
 
     if ($tipo === 'antecedencia') {
       $subject = 'Lembrete: ' . $titulo . ' vence em breve';
@@ -250,9 +265,7 @@ class MailService implements MailServiceInterface
       throw new \InvalidArgumentException('Informe ao menos um meio de contato (e-mail ou telefone).');
     }
 
-    $supportEmail = $_ENV['SUPPORT_EMAIL']
-      ?? $this->config['from_email']
-      ?? ($_ENV['MAIL_FROM'] ?? $_ENV['MAIL_USERNAME'] ?? 'lukratosistema@gmail.com');
+    $supportEmail = $this->runtimeConfig->supportEmail();
 
     $supportName = 'Suporte Lukrato';
     $subject = '[Suporte Lukrato] Nova mensagem de contato';
@@ -299,11 +312,10 @@ class MailService implements MailServiceInterface
    */
   public function sendWelcomeEmail(string $toEmail, string $userName): bool
   {
-    $baseUrl = rtrim($_ENV['APP_URL'] ?? '', '/');
-    $dashboardUrl = $baseUrl ? $baseUrl . '/dashboard' : '#';
-    $agendamentosUrl = $baseUrl ? $baseUrl . '/agendamentos' : '#';
-    $categoriasUrl = $baseUrl ? $baseUrl . '/categorias' : '#';
-    $billingUrl = $baseUrl ? $baseUrl . '/billing' : '#';
+    $dashboardUrl = $this->buildConfiguredAppLink('/dashboard');
+    $agendamentosUrl = $this->buildConfiguredAppLink('/agendamentos');
+    $categoriasUrl = $this->buildConfiguredAppLink('/categorias');
+    $billingUrl = $this->buildConfiguredAppLink('/billing');
 
     $firstName = explode(' ', trim($userName))[0];
     $safeFirstName = htmlspecialchars($firstName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -556,8 +568,7 @@ TEXT;
 
     $subject = "Sua conta no Lukrato foi removida";
 
-    $baseUrl = rtrim($_ENV['APP_URL'] ?? (defined('BASE_URL') ? BASE_URL : ''), '/');
-    $registerUrl = $baseUrl . '/login';
+    $registerUrl = $this->buildAppLink('/login', '/login');
 
     $content = <<<HTML
       <div style="text-align: center; margin-bottom: 32px;">
@@ -613,8 +624,7 @@ TEXT;
     $firstName = explode(' ', trim($userName))[0];
     $safeFirstName = htmlspecialchars($firstName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
-    $baseUrl = rtrim($_ENV['APP_URL'] ?? '', '/');
-    $dashboardUrl = $baseUrl ? $baseUrl . '/dashboard' : '#';
+    $dashboardUrl = $this->buildConfiguredAppLink('/dashboard');
 
     $subject = "🎉 Você ganhou {$days} dias de acesso PRO grátis!";
 
@@ -714,9 +724,8 @@ TEXT;
     $safeFirstName = htmlspecialchars($firstName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     $safeReferredName = htmlspecialchars($referredName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
-    $baseUrl = rtrim($_ENV['APP_URL'] ?? '', '/');
-    $dashboardUrl = $baseUrl ? $baseUrl . '/dashboard' : '#';
-    $referralUrl = $baseUrl ? $baseUrl . '/indicar' : '#';
+    $dashboardUrl = $this->buildConfiguredAppLink('/dashboard');
+    $referralUrl = $this->buildConfiguredAppLink('/indicar');
 
     $subject = "🎁 {$referredName} verificou o email - Você ganhou {$days} dias PRO!";
 
@@ -803,9 +812,8 @@ TEXT;
     $safeFirstName = htmlspecialchars($firstName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     $safePlanoNome = htmlspecialchars($planoNome, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
-    $baseUrl = rtrim($_ENV['APP_URL'] ?? '', '/');
-    $dashboardUrl = $baseUrl ? $baseUrl . '/dashboard' : '#';
-    $billingUrl = $baseUrl ? $baseUrl . '/billing' : '#';
+    $dashboardUrl = $this->buildConfiguredAppLink('/dashboard');
+    $billingUrl = $this->buildConfiguredAppLink('/billing');
 
     $subject = "✅ Pagamento confirmado - Lukrato {$safePlanoNome} ativado!";
 
@@ -963,6 +971,20 @@ TEXT;
     return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
   }
 
+  private function buildConfiguredAppLink(string $path, string $fallback = '#'): string
+  {
+    $baseUrl = $this->runtimeConfig->configuredAppUrl();
+
+    return $baseUrl !== '' ? $baseUrl . $path : $fallback;
+  }
+
+  private function buildAppLink(string $path, string $fallback = '#'): string
+  {
+    $baseUrl = $this->runtimeConfig->appUrl();
+
+    return $baseUrl !== '' ? $baseUrl . $path : $fallback;
+  }
+
   /**
    * Cria instância configurada do PHPMailer.
    */
@@ -996,7 +1018,7 @@ TEXT;
     $mailer->isHTML(true);
 
     // Debug SMTP apenas em modo debug
-    if (($_ENV['APP_DEBUG'] ?? 'false') === 'true') {
+    if ($this->runtimeConfig->debugEnabled()) {
       $mailer->SMTPDebug = 2;
       $logger = $this->logger;
       $mailer->Debugoutput = static function ($str) use ($logger) {

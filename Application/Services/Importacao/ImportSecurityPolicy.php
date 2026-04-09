@@ -4,21 +4,19 @@ declare(strict_types=1);
 
 namespace Application\Services\Importacao;
 
+use Application\Config\ImportacaoRuntimeConfig;
+use Application\Container\ApplicationContainer;
+
 final class ImportSecurityPolicy
 {
-    private const DEFAULT_MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024;
-    private const DEFAULT_MAX_ROWS_PER_FILE = 1000;
-    private const DEFAULT_IMPORT_RATE_LIMIT_ATTEMPTS = 5;
-    private const DEFAULT_IMPORT_RATE_LIMIT_WINDOW = 60;
-
     public static function maxUploadSizeBytes(): int
     {
-        return max(1024, (int) ($_ENV['IMPORTACOES_MAX_FILE_SIZE_BYTES'] ?? self::DEFAULT_MAX_UPLOAD_SIZE_BYTES));
+        return self::runtimeConfig()->maxUploadSizeBytes();
     }
 
     public static function maxRowsPerFile(): int
     {
-        return max(1, (int) ($_ENV['IMPORTACOES_MAX_ROWS'] ?? self::DEFAULT_MAX_ROWS_PER_FILE));
+        return self::runtimeConfig()->maxRowsPerFile();
     }
 
     public static function rowsLimitMessage(?int $limit = null): string
@@ -35,19 +33,21 @@ final class ImportSecurityPolicy
 
     public static function shouldQueueConfirmByDefault(): bool
     {
-        $configured = $_ENV['IMPORTACOES_CONFIRM_ASYNC_DEFAULT']
-            ?? getenv('IMPORTACOES_CONFIRM_ASYNC_DEFAULT');
-
-        return filter_var($configured, FILTER_VALIDATE_BOOLEAN);
+        return self::runtimeConfig()->shouldQueueConfirmByDefault();
     }
 
     public static function importRateLimitAttempts(): int
     {
-        return max(1, (int) ($_ENV['IMPORTACOES_RATE_LIMIT_MAX_ATTEMPTS'] ?? self::DEFAULT_IMPORT_RATE_LIMIT_ATTEMPTS));
+        return self::runtimeConfig()->importRateLimitAttempts();
     }
 
     public static function importRateLimitWindow(): int
     {
-        return max(30, (int) ($_ENV['IMPORTACOES_RATE_LIMIT_TIME_WINDOW'] ?? self::DEFAULT_IMPORT_RATE_LIMIT_WINDOW));
+        return self::runtimeConfig()->importRateLimitWindow();
+    }
+
+    private static function runtimeConfig(): ImportacaoRuntimeConfig
+    {
+        return ApplicationContainer::resolveOrNew(null, ImportacaoRuntimeConfig::class);
     }
 }

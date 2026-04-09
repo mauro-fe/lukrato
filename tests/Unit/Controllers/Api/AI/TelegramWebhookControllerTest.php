@@ -11,6 +11,7 @@ use PHPUnit\Framework\TestCase;
 class TelegramWebhookControllerTest extends TestCase
 {
     private ?string $originalSecret = null;
+    private string|false $originalSecretGetenv = false;
     private ?string $originalHeader = null;
 
     protected function setUp(): void
@@ -18,6 +19,7 @@ class TelegramWebhookControllerTest extends TestCase
         parent::setUp();
 
         $this->originalSecret = $_ENV['TELEGRAM_WEBHOOK_SECRET'] ?? null;
+        $this->originalSecretGetenv = getenv('TELEGRAM_WEBHOOK_SECRET');
         $this->originalHeader = $_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] ?? null;
 
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
@@ -29,6 +31,12 @@ class TelegramWebhookControllerTest extends TestCase
             unset($_ENV['TELEGRAM_WEBHOOK_SECRET']);
         } else {
             $_ENV['TELEGRAM_WEBHOOK_SECRET'] = $this->originalSecret;
+        }
+
+        if ($this->originalSecretGetenv === false) {
+            putenv('TELEGRAM_WEBHOOK_SECRET');
+        } else {
+            putenv('TELEGRAM_WEBHOOK_SECRET=' . $this->originalSecretGetenv);
         }
 
         if ($this->originalHeader === null) {
@@ -45,6 +53,7 @@ class TelegramWebhookControllerTest extends TestCase
     public function testReceiveReturnsForbiddenWhenSecretIsInvalid(): void
     {
         $_ENV['TELEGRAM_WEBHOOK_SECRET'] = 'secret';
+        putenv('TELEGRAM_WEBHOOK_SECRET=secret');
         $_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] = 'invalid';
 
         $workflow = $this->createMock(TelegramWebhookWorkflowService::class);
@@ -73,6 +82,7 @@ class TelegramWebhookControllerTest extends TestCase
     public function testReceiveDelegatesToWorkflowWhenSecretMatches(): void
     {
         $_ENV['TELEGRAM_WEBHOOK_SECRET'] = 'secret';
+        putenv('TELEGRAM_WEBHOOK_SECRET=secret');
         $_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] = 'secret';
         $rawBody = '{"update_id":123}';
 

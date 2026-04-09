@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Importacao;
 
+use Application\Config\ImportacaoRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Services\Cartao\CartaoBillingDateService;
 use Application\Services\Cartao\CartaoFaturaSupportService;
@@ -59,14 +60,17 @@ class ImportacaoDependencyResolutionTest extends TestCase
     public function testImportQueueServiceResolvesExecutionServiceFromContainerWhenAvailable(): void
     {
         $executionService = Mockery::mock(ImportExecutionService::class);
+        $runtimeConfig = new ImportacaoRuntimeConfig();
 
         $container = new IlluminateContainer();
         $container->instance(ImportExecutionService::class, $executionService);
+        $container->instance(ImportacaoRuntimeConfig::class, $runtimeConfig);
         ApplicationContainer::setInstance($container);
 
         $service = new ImportQueueService();
 
         $this->assertSame($executionService, $this->readProperty($service, 'executionService'));
+        $this->assertSame($runtimeConfig, $this->readProperty($service, 'runtimeConfig'));
     }
 
     public function testImportDeletionServiceResolvesDependenciesFromContainerWhenAvailable(): void

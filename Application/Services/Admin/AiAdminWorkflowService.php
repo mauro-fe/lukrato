@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace Application\Services\Admin;
 
+use Application\Config\AiRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\DTO\AI\AIRequestDTO;
 use Application\Enums\LogCategory;
 use Application\Services\AI\AIService;
 use Application\Services\AI\AiLogService;
 use Application\Services\AI\ContextCompressor;
+use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\SystemContextService;
+use Application\Services\AI\Providers\OllamaProvider;
+use Application\Services\AI\Providers\OpenAIProvider;
 use Application\Services\Infrastructure\CacheService;
 use Application\Services\Infrastructure\LogService;
 use GuzzleHttp\Client;
@@ -21,15 +25,20 @@ class AiAdminWorkflowService
     private ?AIService $aiService;
     private ?SystemContextService $systemContextService;
     private ?CacheService $cacheService;
+    private ?Client $healthHttpClient = null;
+    private ?Client $quotaHttpClient = null;
+    private AiRuntimeConfig $runtimeConfig;
 
     public function __construct(
         ?AIService $aiService = null,
         ?SystemContextService $systemContextService = null,
-        ?CacheService $cacheService = null
+        ?CacheService $cacheService = null,
+        ?AiRuntimeConfig $runtimeConfig = null,
     ) {
         $this->aiService = $aiService;
         $this->systemContextService = $systemContextService;
         $this->cacheService = $cacheService;
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, AiRuntimeConfig::class);
     }
 
     /**
@@ -37,11 +46,11 @@ class AiAdminWorkflowService
      */
     public function healthProxy(): array
     {
-        $provider = strtolower($_ENV['AI_PROVIDER'] ?? 'openai');
+        $provider = $this->runtimeConfig->provider();
 
         if ($provider === 'openai') {
-            $hasKey = !empty($_ENV['OPENAI_API_KEY']);
-            $model = $_ENV['OPENAI_MODEL'] ?? 'gpt-4o-mini';
+            $hasKey = $this->runtimeConfig->hasOpenAiApiKey();
+            $model = $this->runtimeConfig->openAiModel();
 
             return $this->success([
                 'status' => $hasKey ? 'ok' : 'error',
@@ -52,13 +61,10 @@ class AiAdminWorkflowService
             ]);
         }
 
-        $serviceUrl = rtrim($_ENV['AI_SERVICE_URL'] ?? 'http://127.0.0.1:8002', '/');
+        $serviceUrl = $this->runtimeConfig->adminServiceUrl();
 
         try {
-            $client = $this->createHttpClient([
-                'timeout' => 5,
-                'connect_timeout' => 3,
-            ]);
+            $client = $this->healthHttpClient();
 
             $res = $client->get("{$serviceUrl}/health");
             $data = json_decode($res->getBody()->getContents(), true);
@@ -74,7 +80,7 @@ class AiAdminWorkflowService
      */
     public function quota(): array
     {
-        $provider = strtolower($_ENV['AI_PROVIDER'] ?? 'openai');
+        $provider = $this->runtimeConfig->provider();
 
         if ($provider !== 'openai') {
             return $this->success([
@@ -83,12 +89,12 @@ class AiAdminWorkflowService
             ]);
         }
 
-        $apiKey = $_ENV['OPENAI_API_KEY'] ?? '';
+        $apiKey = $this->runtimeConfig->openAiApiKey();
         if ($apiKey === '') {
             return $this->failure('OPENAI_API_KEY nao configurada', 400);
         }
 
-        $model = $_ENV['OPENAI_MODEL'] ?? 'gpt-4o-mini';
+        $model = $this->runtimeConfig->openAiModel();
         $cache = $this->cache();
         $cached = $cache->get('ai:openai_rate_limits');
 
@@ -108,11 +114,7 @@ class AiAdminWorkflowService
         }
 
         try {
-            $client = $this->createHttpClient([
-                'base_uri' => 'https://api.openai.com/v1/',
-                'timeout' => 10,
-                'connect_timeout' => 5,
-            ]);
+            $client = $this->quotaHttpClient();
 
             $response = $client->post('chat/completions', [
                 'headers' => [
@@ -309,9 +311,20 @@ class AiAdminWorkflowService
         ))->gather();
     }
 
-    protected function createHttpClient(array $config): Client
+    protected function healthHttpClient(): Client
     {
-        return new Client($config);
+        return $this->healthHttpClient ??= ApplicationContainer::resolveOrNew(
+            null,
+            AiServiceHealthHttpClient::class
+        );
+    }
+
+    protected function quotaHttpClient(): Client
+    {
+        return $this->quotaHttpClient ??= ApplicationContainer::resolveOrNew(
+            null,
+            OpenAIQuotaHttpClient::class
+        );
     }
 
     protected function cache(): CacheService
@@ -338,7 +351,7 @@ class AiAdminWorkflowService
                 'type' => $type,
                 'prompt' => mb_substr($prompt, 0, 5000),
                 'response' => $response !== null ? mb_substr($response, 0, 10000) : null,
-                'provider' => $_ENV['AI_PROVIDER'] ?? 'openai',
+                'provider' => $this->resolveProviderName($provider),
                 'model' => $provider->getModel(),
                 'tokens_prompt' => $meta['tokens_prompt'] ?? 0,
                 'tokens_completion' => $meta['tokens_completion'] ?? 0,
@@ -397,5 +410,14 @@ class AiAdminWorkflowService
             'error_id' => $errorId,
             'request_id' => $errorId,
         ]);
+    }
+
+    private function resolveProviderName(AIProvider $provider): string
+    {
+        return match (true) {
+            $provider instanceof OllamaProvider => 'ollama',
+            $provider instanceof OpenAIProvider => 'openai',
+            default => $this->runtimeConfig->provider(),
+        };
     }
 }

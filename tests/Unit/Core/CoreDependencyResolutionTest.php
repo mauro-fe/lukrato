@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Core;
 
+use Application\Config\InfrastructureRuntimeConfig;
 use Application\Container\ApplicationContainer;
+use Application\Core\Request;
 use Application\Core\Router;
 use Application\Core\Routing\ErrorResponseFactory as RoutingErrorResponseFactory;
 use Application\Core\Routing\HttpExceptionHandler;
@@ -36,17 +38,25 @@ class CoreDependencyResolutionTest extends TestCase
     {
         $middlewareResolver = Mockery::mock(RoutingMiddlewareResolver::class);
         $errorResponseFactory = Mockery::mock(RoutingErrorResponseFactory::class);
+        $exceptionHandler = Mockery::mock(HttpExceptionHandler::class);
+        $runtimeConfig = new InfrastructureRuntimeConfig();
 
         $container = new IlluminateContainer();
+        $container->instance(InfrastructureRuntimeConfig::class, $runtimeConfig);
         $container->instance(RoutingMiddlewareResolver::class, $middlewareResolver);
         $container->instance(RoutingErrorResponseFactory::class, $errorResponseFactory);
+        $container->instance(HttpExceptionHandler::class, $exceptionHandler);
         ApplicationContainer::setInstance($container);
 
-        $exceptionHandler = new HttpExceptionHandler();
+        $resolvedHandler = new HttpExceptionHandler();
+        $request = new Request(['REQUEST_METHOD' => 'GET']);
 
-        $this->assertSame($errorResponseFactory, $this->readProperty($exceptionHandler, 'errorResponseFactory'));
+        $this->assertSame($errorResponseFactory, $this->readProperty($resolvedHandler, 'errorResponseFactory'));
+        $this->assertSame($runtimeConfig, $this->readProperty($resolvedHandler, 'runtimeConfig'));
+        $this->assertSame($runtimeConfig, $this->readProperty($request, 'runtimeConfig'));
         $this->assertSame($middlewareResolver, $this->invokePrivateStaticMethod(Router::class, 'middlewareResolver'));
         $this->assertSame($errorResponseFactory, $this->invokePrivateStaticMethod(Router::class, 'errorResponseFactory'));
+        $this->assertSame($exceptionHandler, $this->invokePrivateStaticMethod(Router::class, 'exceptionHandler'));
     }
 
     private function readProperty(object $object, string $property): mixed

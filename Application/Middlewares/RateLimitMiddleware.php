@@ -2,6 +2,8 @@
 
 namespace Application\Middlewares;
 
+use Application\Config\RateLimitRuntimeConfig;
+use Application\Container\ApplicationContainer;
 use Application\Core\Exceptions\HttpResponseException;
 use Application\Core\Exceptions\ValidationException;
 use Application\Core\Request;
@@ -18,14 +20,21 @@ class RateLimitMiddleware
     private CacheService $cacheService;
     private bool $customMaxAttempts;
     private bool $customTimeWindow;
+    private RateLimitRuntimeConfig $runtimeConfig;
 
-    public function __construct(CacheService $cacheService, ?int $maxAttempts = null, ?int $timeWindow = null)
+    public function __construct(
+        CacheService $cacheService,
+        ?int $maxAttempts = null,
+        ?int $timeWindow = null,
+        ?RateLimitRuntimeConfig $runtimeConfig = null
+    )
     {
         $this->cacheService = $cacheService;
         $this->customMaxAttempts = $maxAttempts !== null;
         $this->customTimeWindow = $timeWindow !== null;
-        $this->maxAttempts = $maxAttempts ?? (int) ($_ENV['RATELIMIT_MAX_ATTEMPTS'] ?? 60);
-        $this->timeWindow = $timeWindow ?? (int) ($_ENV['RATELIMIT_TIME_WINDOW'] ?? 60);
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, RateLimitRuntimeConfig::class);
+        $this->maxAttempts = $maxAttempts ?? $this->runtimeConfig->maxAttempts();
+        $this->timeWindow = $timeWindow ?? $this->runtimeConfig->timeWindow();
     }
 
     /**

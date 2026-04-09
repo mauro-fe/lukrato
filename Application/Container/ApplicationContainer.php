@@ -7,6 +7,8 @@ namespace Application\Container;
 use Application\Core\Request;
 use Application\Core\Response;
 use Application\Lib\Auth;
+use Application\Services\Auth\AuthServiceProvider;
+use Application\Services\Communication\CommunicationServiceProvider;
 use Application\Services\Infrastructure\CacheService;
 use Application\Services\User\PerfilServiceProvider;
 use Illuminate\Container\Container as IlluminateContainer;
@@ -15,11 +17,17 @@ use Illuminate\Contracts\Container\BindingResolutionException;
 final class ApplicationContainer
 {
     private static ?IlluminateContainer $container = null;
+    /**
+     * @var array<class-string, true>
+     */
+    private static array $registeredProviders = [];
 
     /**
      * @var list<class-string>
      */
     private const SERVICE_PROVIDERS = [
+        AuthServiceProvider::class,
+        CommunicationServiceProvider::class,
         PerfilServiceProvider::class,
     ];
 
@@ -30,12 +38,14 @@ final class ApplicationContainer
         }
 
         $container = new IlluminateContainer();
+        self::$container = $container;
+        self::$registeredProviders = [];
         IlluminateContainer::setInstance($container);
 
         self::registerCoreBindings($container);
         self::registerServiceProviders($container);
 
-        return self::$container = $container;
+        return $container;
     }
 
     public static function getInstance(): ?IlluminateContainer
@@ -46,13 +56,24 @@ final class ApplicationContainer
     public static function setInstance(IlluminateContainer $container): void
     {
         self::$container = $container;
+        self::$registeredProviders = [];
         IlluminateContainer::setInstance($container);
     }
 
     public static function flush(): void
     {
         self::$container = null;
+        self::$registeredProviders = [];
         IlluminateContainer::setInstance(null);
+    }
+
+    public static function ensureProviderRegistered(string $providerClass): IlluminateContainer
+    {
+        $container = self::$container ?? self::bootstrap();
+
+        self::registerServiceProvider($container, $providerClass);
+
+        return $container;
     }
 
     public static function bindRequest(Request $request): void
@@ -97,11 +118,17 @@ final class ApplicationContainer
     private static function registerServiceProviders(IlluminateContainer $container): void
     {
         foreach (self::SERVICE_PROVIDERS as $providerClass) {
-            if (!class_exists($providerClass)) {
-                continue;
-            }
-
-            (new $providerClass())->register($container);
+            self::registerServiceProvider($container, $providerClass);
         }
+    }
+
+    private static function registerServiceProvider(IlluminateContainer $container, string $providerClass): void
+    {
+        if (isset(self::$registeredProviders[$providerClass]) || !class_exists($providerClass)) {
+            return;
+        }
+
+        (new $providerClass())->register($container);
+        self::$registeredProviders[$providerClass] = true;
     }
 }

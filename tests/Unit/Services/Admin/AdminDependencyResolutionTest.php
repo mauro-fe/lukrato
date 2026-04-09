@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Admin;
 
+use Application\Config\AiRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Repositories\BlogPostRepository;
+use Application\Services\Admin\AiServiceHealthHttpClient;
 use Application\Services\Admin\AiAdminWorkflowService;
 use Application\Services\Admin\BlogAdminWorkflowService;
 use Application\Services\Admin\CommunicationAdminViewService;
+use Application\Services\Admin\OpenAIQuotaHttpClient;
 use Application\Services\Admin\SysAdminOpsService;
 use Application\Services\AI\AIService;
 use Application\Services\AI\SystemContextService;
@@ -67,11 +70,17 @@ class AdminDependencyResolutionTest extends TestCase
         $systemContextService = Mockery::mock(SystemContextService::class);
         $systemContextService->shouldReceive('gather')->once()->andReturn([]);
         $cacheService = Mockery::mock(CacheService::class);
+        $healthHttpClient = Mockery::mock(AiServiceHealthHttpClient::class);
+        $quotaHttpClient = Mockery::mock(OpenAIQuotaHttpClient::class);
+        $runtimeConfig = new AiRuntimeConfig();
 
         $container = new IlluminateContainer();
+        $container->instance(AiRuntimeConfig::class, $runtimeConfig);
         $container->instance(AIService::class, $aiService);
         $container->instance(SystemContextService::class, $systemContextService);
         $container->instance(CacheService::class, $cacheService);
+        $container->instance(AiServiceHealthHttpClient::class, $healthHttpClient);
+        $container->instance(OpenAIQuotaHttpClient::class, $quotaHttpClient);
         ApplicationContainer::setInstance($container);
 
         $aiAdminWorkflowService = new AiAdminWorkflowService();
@@ -81,6 +90,9 @@ class AdminDependencyResolutionTest extends TestCase
         $this->assertSame([], $this->invokeMethod($aiAdminWorkflowService, 'gatherSystemContext'));
         $this->assertSame($systemContextService, $this->readProperty($aiAdminWorkflowService, 'systemContextService'));
         $this->assertSame($cacheService, $this->invokeMethod($aiAdminWorkflowService, 'cache'));
+        $this->assertSame($healthHttpClient, $this->invokeMethod($aiAdminWorkflowService, 'healthHttpClient'));
+        $this->assertSame($quotaHttpClient, $this->invokeMethod($aiAdminWorkflowService, 'quotaHttpClient'));
+        $this->assertSame($runtimeConfig, $this->readProperty($aiAdminWorkflowService, 'runtimeConfig'));
         $this->assertSame($cacheService, $this->readProperty($sysAdminOpsService, 'cacheService'));
     }
 

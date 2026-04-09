@@ -15,6 +15,41 @@ use PHPUnit\Framework\TestCase;
 
 class SchedulerTaskRunnerTest extends TestCase
 {
+    public function testHealthAndDebugExposeConfiguredRuntimeValues(): void
+    {
+        $previousAppEnv = $_ENV['APP_ENV'] ?? null;
+        $previousStoragePath = $_ENV['STORAGE_PATH'] ?? null;
+
+        $_ENV['APP_ENV'] = 'testing';
+        $_ENV['STORAGE_PATH'] = sys_get_temp_dir() . '/lukrato-scheduler-debug';
+
+        try {
+            $mailService = $this->createMock(\Application\Services\Communication\MailService::class);
+            $mailService->expects($this->once())->method('isConfigured')->willReturn(false);
+
+            $runner = new SchedulerTaskRunner(mailService: $mailService);
+
+            $health = $runner->health();
+            $debug = $runner->debug();
+
+            $this->assertSame('testing', $health['environment']);
+            $this->assertSame($_ENV['STORAGE_PATH'], $debug['storage_path']);
+            $this->assertFalse($debug['mail_configured']);
+        } finally {
+            if ($previousAppEnv === null) {
+                unset($_ENV['APP_ENV']);
+            } else {
+                $_ENV['APP_ENV'] = $previousAppEnv;
+            }
+
+            if ($previousStoragePath === null) {
+                unset($_ENV['STORAGE_PATH']);
+            } else {
+                $_ENV['STORAGE_PATH'] = $previousStoragePath;
+            }
+        }
+    }
+
     public function testListTasksIncludesExpectedOperationalEntries(): void
     {
         $runner = new SchedulerTaskRunner();

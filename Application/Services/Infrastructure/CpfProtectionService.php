@@ -4,9 +4,18 @@ declare(strict_types=1);
 
 namespace Application\Services\Infrastructure;
 
+use Application\Config\SecurityRuntimeConfig;
+use Application\Container\ApplicationContainer;
+
 class CpfProtectionService
 {
     private const CIPHER = 'aes-256-gcm';
+    private SecurityRuntimeConfig $runtimeConfig;
+
+    public function __construct(?SecurityRuntimeConfig $runtimeConfig = null)
+    {
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, SecurityRuntimeConfig::class);
+    }
 
     public function normalize(string $cpf): string
     {
@@ -92,11 +101,7 @@ class CpfProtectionService
 
     private function resolveKey(): string
     {
-        $key = $_ENV['CPF_ENCRYPTION_KEY']
-            ?? getenv('CPF_ENCRYPTION_KEY')
-            ?: $_ENV['APP_KEY']
-            ?? getenv('APP_KEY')
-            ?: '';
+        $key = $this->runtimeConfig->cpfEncryptionKey();
 
         $key = trim((string) $key);
         if ($key === '') {

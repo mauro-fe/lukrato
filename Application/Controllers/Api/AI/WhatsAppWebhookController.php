@@ -59,8 +59,7 @@ class WhatsAppWebhookController extends ApiController
 
     protected function readRawBody(): string
     {
-        $rawBody = file_get_contents('php://input');
-        return is_string($rawBody) ? $rawBody : '';
+        return $this->request->rawInput();
     }
 
     private function workflowService(): WhatsAppWebhookWorkflowService
@@ -78,7 +77,7 @@ class WhatsAppWebhookController extends ApiController
             return true;
         }
 
-        $signature = (string) ($_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '');
+        $signature = $this->request->header('x-hub-signature-256') ?? '';
         if ($signature === '' || !str_starts_with($signature, 'sha256=')) {
             return false;
         }
@@ -112,6 +111,6 @@ class WhatsAppWebhookController extends ApiController
 
     private function requestIp(): string
     {
-        return (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+        return $this->request->ip();
     }
 }

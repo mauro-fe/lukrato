@@ -218,16 +218,16 @@ class RouterTest extends TestCase
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
-    public function testRunFallsBackToLegacyControllerInstantiationWithoutContainer(): void
+    public function testRunAutoResolvesControllerWithoutExplicitBinding(): void
     {
         $this->registerControllerAlias(
-            RouterLegacyController::class,
-            'Application\\Controllers\\Test\\RouterLegacyController'
+            RouterAutowireController::class,
+            'Application\\Controllers\\Test\\RouterAutowireController'
         );
 
-        $path = 'tests/router-controller-legacy/' . bin2hex(random_bytes(6));
+        $path = 'tests/router-controller-autowire/' . bin2hex(random_bytes(6));
 
-        Router::add('GET', $path, 'Test/RouterLegacyController@show');
+        Router::add('GET', $path, 'Test/RouterAutowireController@show');
 
         $response = Router::run($path, 'GET');
 
@@ -236,7 +236,7 @@ class RouterTest extends TestCase
             'success' => true,
             'message' => 'Success',
             'data' => [
-                'legacy' => true,
+                'autowired' => true,
             ],
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
@@ -392,12 +392,12 @@ final class RouterContainerAwareController
     }
 }
 
-final class RouterLegacyController
+final class RouterAutowireController
 {
     public function show(): Response
     {
         return Response::successResponse([
-            'legacy' => true,
+            'autowired' => true,
         ]);
     }
 }

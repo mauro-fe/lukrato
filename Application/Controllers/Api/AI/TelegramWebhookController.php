@@ -44,8 +44,7 @@ class TelegramWebhookController extends ApiController
 
     protected function readRawBody(): string
     {
-        $rawBody = file_get_contents('php://input');
-        return is_string($rawBody) ? $rawBody : '';
+        return $this->request->rawInput();
     }
 
     private function workflowService(): TelegramWebhookWorkflowService
@@ -64,12 +63,12 @@ class TelegramWebhookController extends ApiController
 
     private function requestSecretHeader(): string
     {
-        return (string) ($_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] ?? '');
+        return $this->request->header('x-telegram-bot-api-secret-token') ?? '';
     }
 
     private function requestIp(): string
     {
-        return (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+        return $this->request->ip();
     }
 
     private function forbiddenWebhook(string $message): Response

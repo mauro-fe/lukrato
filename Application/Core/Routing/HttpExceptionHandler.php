@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Core\Routing;
 
+use Application\Config\InfrastructureRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Core\Exceptions\ClientErrorException;
 use Application\Core\Exceptions\AuthException;
@@ -19,14 +20,17 @@ use ValueError;
 class HttpExceptionHandler
 {
     private ErrorResponseFactory $errorResponseFactory;
+    private InfrastructureRuntimeConfig $runtimeConfig;
 
     public function __construct(
-        ?ErrorResponseFactory $errorResponseFactory = null
+        ?ErrorResponseFactory $errorResponseFactory = null,
+        ?InfrastructureRuntimeConfig $runtimeConfig = null
     ) {
         $this->errorResponseFactory = ApplicationContainer::resolveOrNew(
             $errorResponseFactory,
             ErrorResponseFactory::class
         );
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, InfrastructureRuntimeConfig::class);
     }
 
     public function handle(Throwable $e, ?array $routeContext = null, ?Request $request = null): Response
@@ -85,7 +89,7 @@ class HttpExceptionHandler
             category: \Application\Enums\LogCategory::GENERAL,
         );
 
-        $isDev = (($_ENV['APP_ENV'] ?? 'production') === 'development');
+        $isDev = $this->runtimeConfig->isDevelopment();
         $wantsJson = $request?->wantsJson() || $request?->isAjax();
         $requestId = LogService::currentRequestId();
 

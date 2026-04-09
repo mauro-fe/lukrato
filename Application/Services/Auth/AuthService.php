@@ -40,22 +40,9 @@ class AuthService
         ?RegistrationHandler $registrationHandler = null,
         ?LogoutHandler $logoutHandler = null
     ) {
-        $resolvedRequest = ApplicationContainer::resolveOrNew($request, Request::class);
-
-        $this->loginHandler = ApplicationContainer::resolveOrNew(
-            $loginHandler,
-            LoginHandler::class,
-            fn(): LoginHandler => new LoginHandler($resolvedRequest, $cache)
-        );
-        $this->registrationHandler = ApplicationContainer::resolveOrNew(
-            $registrationHandler,
-            RegistrationHandler::class
-        );
-        $this->logoutHandler = ApplicationContainer::resolveOrNew(
-            $logoutHandler,
-            LogoutHandler::class,
-            fn(): LogoutHandler => new LogoutHandler($resolvedRequest)
-        );
+        $this->loginHandler = ApplicationContainer::resolveOrNew($loginHandler, LoginHandler::class);
+        $this->registrationHandler = ApplicationContainer::resolveOrNew($registrationHandler, RegistrationHandler::class);
+        $this->logoutHandler = ApplicationContainer::resolveOrNew($logoutHandler, LogoutHandler::class);
     }
 
     public function login(string $email, string $password, bool $remember = false): array

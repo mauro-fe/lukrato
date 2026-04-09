@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Application\Services\Importacao;
 
+use Application\Config\ImportacaoRuntimeConfig;
 use Application\Container\ApplicationContainer;
+use Application\Core\Request;
 use Application\DTO\Importacao\ImportProfileConfigDTO;
 use Application\Enums\LogCategory;
 use Application\Models\ImportacaoJob;
@@ -18,15 +20,16 @@ class ImportQueueService
     private const STATUS_PROCESSING = 'processing';
     private const STATUS_COMPLETED = 'completed';
     private const STATUS_FAILED = 'failed';
-    private const DEFAULT_MAX_ATTEMPTS = 3;
-    private const DEFAULT_STALE_TTL_SECONDS = 900;
 
     private readonly ImportExecutionService $executionService;
+    private readonly ImportacaoRuntimeConfig $runtimeConfig;
 
     public function __construct(
         ?ImportExecutionService $executionService = null,
+        ?ImportacaoRuntimeConfig $runtimeConfig = null,
     ) {
         $this->executionService = ApplicationContainer::resolveOrNew($executionService, ImportExecutionService::class);
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, ImportacaoRuntimeConfig::class);
     }
 
     /**
@@ -328,12 +331,12 @@ class ImportQueueService
 
     private function maxAttempts(): int
     {
-        return max(1, (int) ($_ENV['IMPORTACOES_QUEUE_MAX_ATTEMPTS'] ?? self::DEFAULT_MAX_ATTEMPTS));
+        return $this->runtimeConfig->queueMaxAttempts();
     }
 
     private function staleTtlSeconds(): int
     {
-        return max(30, (int) ($_ENV['IMPORTACOES_QUEUE_STALE_TTL'] ?? self::DEFAULT_STALE_TTL_SECONDS));
+        return $this->runtimeConfig->queueStaleTtlSeconds();
     }
 
     private function queueStorageDirectory(): string
@@ -350,7 +353,7 @@ class ImportQueueService
 
     private function resolveQueueStorageDirectory(): string
     {
-        $configured = trim((string) ($_ENV['IMPORTACOES_QUEUE_STORAGE_PATH'] ?? ''));
+        $configured = $this->runtimeConfig->queueStoragePath();
         if ($configured !== '') {
             if (!$this->isAbsolutePath($configured)) {
                 $configured = BASE_PATH . '/' . ltrim($configured, '/\\');
@@ -369,7 +372,7 @@ class ImportQueueService
 
     private function assertDirectoryIsPrivate(string $directory): void
     {
-        $documentRoot = trim((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''));
+        $documentRoot = trim((string) $this->request()->server('DOCUMENT_ROOT', ''));
         if ($documentRoot === '' || PHP_SAPI === 'cli') {
             return;
         }
@@ -380,6 +383,12 @@ class ImportQueueService
         if ($this->pathStartsWith($normalizedDirectory, $normalizedDocumentRoot)) {
             throw new \RuntimeException('Diretório da fila de importação precisa ficar fora do diretório público do servidor.');
         }
+    }
+
+
+    private function request(): Request
+    {
+        return ApplicationContainer::resolveOrNew(null, Request::class);
     }
 
     private function moveToQueueStorage(string $tmpName, string $filename, string $sourceType): string

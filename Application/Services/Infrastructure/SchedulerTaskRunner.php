@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Infrastructure;
 
+use Application\Config\InfrastructureRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Enums\LogCategory;
 use Application\Services\Billing\SubscriptionExpirationService;
@@ -32,6 +33,7 @@ class SchedulerTaskRunner
     private LancamentoCreationService $lancamentoCreationService;
     private RecorrenciaCartaoService $recorrenciaCartaoService;
     private MailService $mailService;
+    private InfrastructureRuntimeConfig $runtimeConfig;
 
     public function __construct(
         ?LancamentoReminderDispatchService $lancamentoReminderService = null,
@@ -40,7 +42,8 @@ class SchedulerTaskRunner
         ?SubscriptionExpirationService $subscriptionExpirationService = null,
         ?LancamentoCreationService $lancamentoCreationService = null,
         ?RecorrenciaCartaoService $recorrenciaCartaoService = null,
-        ?MailService $mailService = null
+        ?MailService $mailService = null,
+        ?InfrastructureRuntimeConfig $runtimeConfig = null
     ) {
         $this->lancamentoReminderService = ApplicationContainer::resolveOrNew($lancamentoReminderService, LancamentoReminderDispatchService::class);
         $this->notificationService = ApplicationContainer::resolveOrNew($notificationService, NotificationService::class);
@@ -49,6 +52,7 @@ class SchedulerTaskRunner
         $this->lancamentoCreationService = ApplicationContainer::resolveOrNew($lancamentoCreationService, LancamentoCreationService::class);
         $this->recorrenciaCartaoService = ApplicationContainer::resolveOrNew($recorrenciaCartaoService, RecorrenciaCartaoService::class);
         $this->mailService = ApplicationContainer::resolveOrNew($mailService, MailService::class);
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, InfrastructureRuntimeConfig::class);
     }
 
     /**
@@ -96,7 +100,7 @@ class SchedulerTaskRunner
         return [
             'status' => 'ok',
             'php_sapi' => PHP_SAPI,
-            'environment' => $_ENV['APP_ENV'] ?? 'production',
+            'environment' => $this->runtimeConfig->appEnvironment(),
             'time' => date('c'),
             'task_count' => count($this->listTasks()),
             'tasks' => array_keys($this->listTasks()),
@@ -111,7 +115,7 @@ class SchedulerTaskRunner
         return [
             'health' => $this->health(),
             'base_url' => defined('BASE_URL') ? BASE_URL : null,
-            'storage_path' => $_ENV['STORAGE_PATH'] ?? null,
+            'storage_path' => $this->runtimeConfig->configuredStoragePath(),
             'mail_configured' => $this->mailService->isConfigured(),
             'tasks' => $this->listTasks(),
         ];

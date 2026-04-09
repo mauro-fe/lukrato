@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Application\Support\Admin;
 
+use Application\Config\InfrastructureRuntimeConfig;
+use Application\Container\ApplicationContainer;
+
 final class AdminModuleRegistry
 {
     /**
@@ -589,11 +592,12 @@ final class AdminModuleRegistry
 
     private static function modulesBasePath(): string
     {
-        $envPath = getenv('ADMIN_MODULES_PATH');
-        if (is_string($envPath) && trim($envPath) !== '') {
-            return rtrim($envPath, "\\/");
-        }
+        return self::runtimeConfig()->adminModulesBasePath();
+    }
 
-        return BASE_PATH . '/Application/Modules';
+    private static function runtimeConfig(): InfrastructureRuntimeConfig
+    {
+        return ApplicationContainer::tryMake(InfrastructureRuntimeConfig::class)
+            ?? new InfrastructureRuntimeConfig();
     }
 }

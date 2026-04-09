@@ -12,6 +12,8 @@ class WhatsAppWebhookControllerTest extends TestCase
 {
     private ?string $originalVerifyToken = null;
     private ?string $originalSecret = null;
+    private string|false $originalVerifyTokenGetenv = false;
+    private string|false $originalSecretGetenv = false;
     private ?string $originalSignature = null;
 
     protected function setUp(): void
@@ -20,6 +22,8 @@ class WhatsAppWebhookControllerTest extends TestCase
 
         $this->originalVerifyToken = $_ENV['WHATSAPP_VERIFY_TOKEN'] ?? null;
         $this->originalSecret = $_ENV['WHATSAPP_APP_SECRET'] ?? null;
+        $this->originalVerifyTokenGetenv = getenv('WHATSAPP_VERIFY_TOKEN');
+        $this->originalSecretGetenv = getenv('WHATSAPP_APP_SECRET');
         $this->originalSignature = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? null;
 
         $_GET = [];
@@ -34,10 +38,22 @@ class WhatsAppWebhookControllerTest extends TestCase
             $_ENV['WHATSAPP_VERIFY_TOKEN'] = $this->originalVerifyToken;
         }
 
+        if ($this->originalVerifyTokenGetenv === false) {
+            putenv('WHATSAPP_VERIFY_TOKEN');
+        } else {
+            putenv('WHATSAPP_VERIFY_TOKEN=' . $this->originalVerifyTokenGetenv);
+        }
+
         if ($this->originalSecret === null) {
             unset($_ENV['WHATSAPP_APP_SECRET']);
         } else {
             $_ENV['WHATSAPP_APP_SECRET'] = $this->originalSecret;
+        }
+
+        if ($this->originalSecretGetenv === false) {
+            putenv('WHATSAPP_APP_SECRET');
+        } else {
+            putenv('WHATSAPP_APP_SECRET=' . $this->originalSecretGetenv);
         }
 
         if ($this->originalSignature === null) {
@@ -55,6 +71,7 @@ class WhatsAppWebhookControllerTest extends TestCase
     public function testVerifyReturnsChallengeWhenTokenMatches(): void
     {
         $_ENV['WHATSAPP_VERIFY_TOKEN'] = 'verify-me';
+        putenv('WHATSAPP_VERIFY_TOKEN=verify-me');
         $_GET['hub.mode'] = 'subscribe';
         $_GET['hub.verify_token'] = 'verify-me';
         $_GET['hub.challenge'] = 'challenge-123';
@@ -69,6 +86,7 @@ class WhatsAppWebhookControllerTest extends TestCase
     public function testReceiveReturnsForbiddenWhenSignatureIsInvalid(): void
     {
         $_ENV['WHATSAPP_APP_SECRET'] = 'secret';
+        putenv('WHATSAPP_APP_SECRET=secret');
         $_SERVER['HTTP_X_HUB_SIGNATURE_256'] = 'sha256=invalid';
 
         $workflow = $this->createMock(WhatsAppWebhookWorkflowService::class);
@@ -98,6 +116,7 @@ class WhatsAppWebhookControllerTest extends TestCase
     {
         $rawBody = '{"entry":[{"changes":[{"value":{"statuses":[]}}]}]}';
         $_ENV['WHATSAPP_APP_SECRET'] = 'secret';
+        putenv('WHATSAPP_APP_SECRET=secret');
         $_SERVER['HTTP_X_HUB_SIGNATURE_256'] = 'sha256=' . hash_hmac('sha256', $rawBody, 'secret');
 
         $workflow = $this->createMock(WhatsAppWebhookWorkflowService::class);

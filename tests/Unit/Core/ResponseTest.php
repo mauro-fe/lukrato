@@ -4,11 +4,20 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Core;
 
+use Application\Container\ApplicationContainer;
 use Application\Core\Response;
+use Application\Core\ResponseEmitter;
+use Illuminate\Container\Container as IlluminateContainer;
 use PHPUnit\Framework\TestCase;
 
 class ResponseTest extends TestCase
 {
+    protected function tearDown(): void
+    {
+        ApplicationContainer::flush();
+        parent::tearDown();
+    }
+
     public function testSuccessResponseBuildsJsonPayloadWithoutSending(): void
     {
         $response = Response::successResponse(['total' => 150], 'Resumo pronto', 202);
@@ -106,5 +115,29 @@ class ResponseTest extends TestCase
         $decoded = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
         $this->assertIsArray($decoded);
         $this->assertStringContainsString('Texto inválido:', $decoded['message']);
+    }
+
+    public function testSendUsesContainerResponseEmitterWhenAvailable(): void
+    {
+        $emitter = new class extends ResponseEmitter {
+            public bool $emitted = false;
+            public ?Response $response = null;
+
+            public function emit(Response $response): void
+            {
+                $this->emitted = true;
+                $this->response = $response;
+            }
+        };
+
+        $container = new IlluminateContainer();
+        $container->instance(ResponseEmitter::class, $emitter);
+        ApplicationContainer::setInstance($container);
+
+        $response = Response::successResponse(['ok' => true]);
+        $response->send();
+
+        $this->assertTrue($emitter->emitted);
+        $this->assertSame($response, $emitter->response);
     }
 }

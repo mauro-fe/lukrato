@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Application\Services\Referral;
 
+use Application\Config\ReferralRuntimeConfig;
+use Application\Container\ApplicationContainer;
+use Application\Core\Request;
 use Application\Models\Usuario;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Application\Services\Infrastructure\LogService;
@@ -25,21 +28,26 @@ class ReferralAntifraudService
     const IP_TRACKING_DAYS = 30;                 // Período em dias para tracking de IP
     const MIN_ACCOUNT_AGE_FOR_REFERRAL = 24;     // Horas mínimas de conta para poder indicar
 
+    private ReferralRuntimeConfig $runtimeConfig;
+
+    public function __construct(?ReferralRuntimeConfig $runtimeConfig = null)
+    {
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, ReferralRuntimeConfig::class);
+    }
+
     /**
      * Permite desabilitar as travas de criação de conta apenas no ambiente local
      * do desenvolvedor, via variável de ambiente opt-in.
      */
     private function shouldBypassRegistrationAntifraud(?string $ip): bool
     {
-        $bypassEnabled = defined('DEV_BYPASS_REGISTRATION_ANTIFRAUD')
-            ? DEV_BYPASS_REGISTRATION_ANTIFRAUD
-            : filter_var($_ENV['DEV_BYPASS_REGISTRATION_ANTIFRAUD'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $bypassEnabled = $this->runtimeConfig->developmentRegistrationAntifraudBypassEnabled();
 
         if (!$bypassEnabled) {
             return false;
         }
 
-        if ((defined('APP_ENV') ? APP_ENV : ($_ENV['APP_ENV'] ?? 'production')) !== 'development') {
+        if ($this->runtimeConfig->appEnvironment() !== 'development') {
             return false;
         }
 
@@ -51,7 +59,7 @@ class ReferralAntifraudService
      */
     public function hashEmail(string $email): string
     {
-        return hash('sha256', strtolower(trim($email)) . ($_ENV['APP_KEY'] ?? 'lukrato_secret'));
+        return hash('sha256', strtolower(trim($email)) . $this->runtimeConfig->hashSecret());
     }
 
     /**
@@ -76,13 +84,13 @@ class ReferralAntifraudService
         ?array $metadata = null
     ): void {
         $emailHash = $this->hashEmail($email);
-        
+
         try {
             Capsule::table('referral_antifraud_tracking')->insert([
                 'email_hash' => $emailHash,
                 'email_domain' => $this->getEmailDomain($email),
                 'ip_address' => $ip,
-                'ip_hash' => $ip ? hash('sha256', $ip . ($_ENV['APP_KEY'] ?? 'lukrato_secret')) : null,
+                'ip_hash' => $ip ? hash('sha256', $ip . $this->runtimeConfig->hashSecret()) : null,
                 'original_user_id' => $userId,
                 'event_type' => $eventType,
                 'referred_by' => $referredBy,
@@ -132,7 +140,7 @@ class ReferralAntifraudService
         if ($quarantine) {
             $quarantineUntil = \Carbon\Carbon::parse($quarantine->quarantine_until);
             $daysRemaining = now()->diffInDays($quarantineUntil);
-            
+
             LogService::warning('[ReferralAntifraud] Email em quarentena tentou criar conta', [
                 'email_hash' => substr($emailHash, 0, 8) . '...',
                 'days_remaining' => $daysRemaining,
@@ -148,7 +156,7 @@ class ReferralAntifraudService
         // 2. Verifica limite de contas por IP
         if ($ip) {
             $recentAccountsFromIp = $this->countRecentAccountsFromIp($ip);
-            
+
             if ($recentAccountsFromIp >= self::MAX_ACCOUNTS_PER_IP) {
                 LogService::warning('[ReferralAntifraud] Limite de contas por IP atingido', [
                     'ip' => $ip,
@@ -239,7 +247,7 @@ class ReferralAntifraudService
             $accountAgeHours = $referrer->created_at->diffInHours(now());
             if ($accountAgeHours < self::MIN_ACCOUNT_AGE_FOR_REFERRAL) {
                 $hoursRemaining = self::MIN_ACCOUNT_AGE_FOR_REFERRAL - $accountAgeHours;
-                
+
                 LogService::warning('[ReferralAntifraud] Conta muito nova para indicar', [
                     'referrer_id' => $referrerId,
                     'account_age_hours' => $accountAgeHours,
@@ -259,7 +267,7 @@ class ReferralAntifraudService
                 'referrer_id' => $referrerId,
                 'ip' => $ip,
             ]);
-            
+
             // Se já houve múltiplas indicações do mesmo IP, bloqueia
             $sameIpReferrals = $this->countReferralsFromSameIp($referrerId, $ip);
             if ($sameIpReferrals >= 2) {
@@ -320,7 +328,7 @@ class ReferralAntifraudService
             null,
             [
                 'created_at' => now()->toIso8601String(),
-                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
+                'user_agent' => $this->request()->header('user-agent'),
             ]
         );
     }
@@ -368,6 +376,11 @@ class ReferralAntifraudService
         ]);
     }
 
+    private function request(): Request
+    {
+        return ApplicationContainer::resolveOrNew(null, Request::class);
+    }
+
     /**
      * Obtém estatísticas anti-fraude (para admin)
      */
@@ -408,16 +421,34 @@ class ReferralAntifraudService
     public function isDisposableEmail(string $email): bool
     {
         $disposableDomains = [
-            'tempmail.com', 'temp-mail.org', 'guerrillamail.com', 'guerrillamail.org',
-            '10minutemail.com', 'mailinator.com', 'throwaway.email', 'tempail.com',
-            'fakeinbox.com', 'sharklasers.com', 'trashmail.com', 'yopmail.com',
-            'getnada.com', 'maildrop.cc', 'mohmal.com', 'dispostable.com',
-            'mailnesia.com', 'tempr.email', 'throwawaymail.com', 'tmpmail.org',
-            'temp-mail.io', 'burnermail.io', 'tempmailo.com', 'emailondeck.com',
+            'tempmail.com',
+            'temp-mail.org',
+            'guerrillamail.com',
+            'guerrillamail.org',
+            '10minutemail.com',
+            'mailinator.com',
+            'throwaway.email',
+            'tempail.com',
+            'fakeinbox.com',
+            'sharklasers.com',
+            'trashmail.com',
+            'yopmail.com',
+            'getnada.com',
+            'maildrop.cc',
+            'mohmal.com',
+            'dispostable.com',
+            'mailnesia.com',
+            'tempr.email',
+            'throwawaymail.com',
+            'tmpmail.org',
+            'temp-mail.io',
+            'burnermail.io',
+            'tempmailo.com',
+            'emailondeck.com',
         ];
 
         $domain = $this->getEmailDomain($email);
-        
+
         if (!$domain) {
             return false;
         }

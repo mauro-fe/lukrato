@@ -36,5 +36,11 @@ class AdminCompositionGuardTest extends TestCase
             $sysAdminOpsService,
             'SysAdminOpsService não deve instanciar CacheService diretamente.'
         );
+
+        $this->assertDoesNotMatchRegularExpression(
+            '/new\s+Client\s*\(/',
+            $aiAdminWorkflowService,
+            'AiAdminWorkflowService não deve instanciar Guzzle Client diretamente.'
+        );
     }
 }

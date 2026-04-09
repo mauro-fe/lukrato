@@ -11,9 +11,9 @@ use Application\Contracts\Auth\TokenGeneratorInterface;
 use Application\Core\Exceptions\ValidationException;
 use Application\Models\PasswordReset;
 use Application\Models\Usuario;
-use Application\Repositories\PasswordResetRepositoryEloquent;
 use Application\Validators\PasswordStrengthValidator;
 use DateTimeImmutable;
+use Illuminate\Container\Container as IlluminateContainer;
 
 class PasswordResetService
 {
@@ -28,21 +28,11 @@ class PasswordResetService
         ?PasswordResetNotificationInterface $notifier = null,
         ?TokenPairService $tokenPairService = null
     ) {
-        $this->repository = ApplicationContainer::resolveOrNew(
-            $repository,
-            PasswordResetRepositoryInterface::class,
-            fn(): PasswordResetRepositoryInterface => new PasswordResetRepositoryEloquent()
-        );
-        $this->tokenGenerator = ApplicationContainer::resolveOrNew(
-            $tokenGenerator,
-            TokenGeneratorInterface::class,
-            fn(): TokenGeneratorInterface => new SecureTokenGenerator()
-        );
-        $this->notifier = ApplicationContainer::resolveOrNew(
-            $notifier,
-            PasswordResetNotificationInterface::class,
-            fn(): PasswordResetNotificationInterface => new MailPasswordResetNotification()
-        );
+        $container = $this->authContainer();
+
+        $this->repository = $repository ?? $container->make(PasswordResetRepositoryInterface::class);
+        $this->tokenGenerator = $tokenGenerator ?? $container->make(TokenGeneratorInterface::class);
+        $this->notifier = $notifier ?? $container->make(PasswordResetNotificationInterface::class);
         $this->tokenPairService = ApplicationContainer::resolveOrNew($tokenPairService, TokenPairService::class);
     }
 
@@ -171,5 +161,10 @@ class PasswordResetService
         }
 
         return $this->repository->findValidTokenHash($this->tokenPairService->hashValidator($token));
+    }
+
+    private function authContainer(): IlluminateContainer
+    {
+        return ApplicationContainer::ensureProviderRegistered(AuthServiceProvider::class);
     }
 }

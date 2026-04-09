@@ -4,8 +4,18 @@ declare(strict_types=1);
 
 namespace Application\Bootstrap;
 
+use Application\Config\InfrastructureRuntimeConfig;
+use Application\Container\ApplicationContainer;
+
 class SessionManager
 {
+    private InfrastructureRuntimeConfig $runtimeConfig;
+
+    public function __construct(?InfrastructureRuntimeConfig $runtimeConfig = null)
+    {
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, InfrastructureRuntimeConfig::class);
+    }
+
     public function start(): void
     {
         if (session_status() !== PHP_SESSION_NONE) {
@@ -39,17 +49,14 @@ class SessionManager
         $host = $_SERVER['HTTP_HOST'] ?? '';
         $host = strtolower(explode(':', $host)[0]);
 
-        $allowed = array_filter(array_map(
-            'trim',
-            explode(',', $_ENV['ALLOWED_DOMAINS'] ?? 'lukrato.com.br,www.lukrato.com.br')
-        ));
+        $allowed = $this->runtimeConfig->allowedDomains();
 
         if (in_array($host, $allowed, true)) {
             return $host;
         }
 
         // Em desenvolvimento, aceitar localhost
-        if (($_ENV['APP_ENV'] ?? 'production') === 'development' && ($host === 'localhost' || str_starts_with($host, '127.'))) {
+        if ($this->runtimeConfig->isDevelopment() && ($host === 'localhost' || str_starts_with($host, '127.'))) {
             return $host;
         }
 
@@ -96,10 +103,7 @@ class SessionManager
 
     private function isTrustedProxy(string $remoteAddr): bool
     {
-        $trustedProxies = array_filter(array_map(
-            'trim',
-            explode(',', $_ENV['TRUSTED_PROXIES'] ?? getenv('TRUSTED_PROXIES') ?: '')
-        ));
+        $trustedProxies = $this->runtimeConfig->trustedProxies();
 
         return $remoteAddr !== '' && in_array($remoteAddr, $trustedProxies, true);
     }

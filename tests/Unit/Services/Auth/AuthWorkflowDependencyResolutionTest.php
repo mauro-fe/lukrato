@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Auth;
 
+use Application\Config\AuthRuntimeConfig;
+use Application\Config\CommunicationRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Core\Request;
 use Application\Services\Auth\AuthService;
@@ -92,7 +94,7 @@ class AuthWorkflowDependencyResolutionTest extends TestCase
         $container->instance(ReferralAntifraudService::class, $antifraudService);
         ApplicationContainer::setInstance($container);
 
-        $loginHandler = new LoginHandler($request, $cache);
+        $loginHandler = new LoginHandler();
         $logoutHandler = new LogoutHandler();
         $registrationHandler = new RegistrationHandler();
 
@@ -107,6 +109,7 @@ class AuthWorkflowDependencyResolutionTest extends TestCase
 
         $this->assertSame($registrationValidation, $this->readProperty($registrationHandler, 'validationStrategy'));
         $this->assertSame($antifraudService, $this->readProperty($registrationHandler, 'antifraudService'));
+        $this->assertSame($request, $this->readProperty($registrationHandler, 'request'));
     }
 
     public function testGoogleAndVerificationServicesResolveDependenciesFromContainerWhenAvailable(): void
@@ -118,8 +121,12 @@ class AuthWorkflowDependencyResolutionTest extends TestCase
         $tokenPairService = Mockery::mock(TokenPairService::class);
         $referralService = Mockery::mock(ReferralService::class);
         $achievementService = Mockery::mock(AchievementService::class);
+        $authRuntimeConfig = new AuthRuntimeConfig();
+        $communicationRuntimeConfig = new CommunicationRuntimeConfig();
 
         $container = new IlluminateContainer();
+        $container->instance(AuthRuntimeConfig::class, $authRuntimeConfig);
+        $container->instance(CommunicationRuntimeConfig::class, $communicationRuntimeConfig);
         $container->instance(Google_Client::class, $googleClient);
         $container->instance(AuthService::class, $authService);
         $container->instance(MailService::class, $mailService);
@@ -136,9 +143,11 @@ class AuthWorkflowDependencyResolutionTest extends TestCase
         $this->assertSame($authService, $this->readProperty($googleAuthService, 'authService'));
         $this->assertSame($mailService, $this->readProperty($googleAuthService, 'mailService'));
         $this->assertSame($sessionManager, $this->readProperty($googleAuthService, 'sessionManager'));
+        $this->assertSame($authRuntimeConfig, $this->readProperty($googleAuthService, 'runtimeConfig'));
 
         $this->assertSame($mailService, $this->readProperty($verificationService, 'mailService'));
         $this->assertSame($tokenPairService, $this->readProperty($verificationService, 'tokenPairService'));
+        $this->assertSame($communicationRuntimeConfig, $this->readProperty($verificationService, 'runtimeConfig'));
         $this->assertSame($referralService, $this->invokePrivateMethod($verificationService, 'referralService'));
         $this->assertSame($achievementService, $this->invokePrivateMethod($verificationService, 'achievementService'));
     }

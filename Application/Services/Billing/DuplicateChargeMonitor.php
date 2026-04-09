@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Services\Billing;
 
+use Application\Config\BillingRuntimeConfig;
+use Application\Container\ApplicationContainer;
 use Application\Services\Billing\BillingAuditService;
 use Application\Services\Infrastructure\LogService;
 use Application\Enums\LogLevel;
@@ -211,8 +213,9 @@ class DuplicateChargeMonitor
         // - Telegram
         // - SMS (Twilio)
 
-        $adminEmail = $_ENV['ADMIN_EMAIL'] ?? null;
-        $slackWebhook = $_ENV['SLACK_WEBHOOK_URL'] ?? null;
+        $runtimeConfig = self::runtimeConfig();
+        $adminEmail = $runtimeConfig->adminEmail();
+        $slackWebhook = $runtimeConfig->slackWebhookUrl();
 
         // Email
         if ($adminEmail && class_exists(\Application\Services\Communication\MailService::class)) {
@@ -253,5 +256,10 @@ class DuplicateChargeMonitor
                 // Continuar mesmo se Slack falhar
             }
         }
+    }
+
+    private static function runtimeConfig(): BillingRuntimeConfig
+    {
+        return ApplicationContainer::resolveOrNew(null, BillingRuntimeConfig::class);
     }
 }

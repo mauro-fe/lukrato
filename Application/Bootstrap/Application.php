@@ -12,7 +12,6 @@ use Application\Services\Infrastructure\MaintenanceService;
 
 class Application
 {
-    private string $environment;
     private ErrorHandler $errorHandler;
     private SessionManager $sessionManager;
     private SecurityHeaders $securityHeaders;
@@ -24,16 +23,10 @@ class Application
         ?SessionManager $sessionManager = null,
         ?SecurityHeaders $securityHeaders = null,
         ?RequestHandler $requestHandler = null,
-        ?ResponseEmitter $responseEmitter = null,
-        ?string $environment = null
+        ?ResponseEmitter $responseEmitter = null
     ) {
         ApplicationContainer::bootstrap();
-        $this->environment = $environment ?? ($_ENV['APP_ENV'] ?? 'production');
-        $this->errorHandler = ApplicationContainer::resolveOrNew(
-            $errorHandler,
-            ErrorHandler::class,
-            fn(): ErrorHandler => new ErrorHandler($this->environment)
-        );
+        $this->errorHandler = ApplicationContainer::resolveOrNew($errorHandler, ErrorHandler::class);
         $this->sessionManager = ApplicationContainer::resolveOrNew($sessionManager, SessionManager::class);
         $this->securityHeaders = ApplicationContainer::resolveOrNew($securityHeaders, SecurityHeaders::class);
         $this->requestHandler = ApplicationContainer::resolveOrNew($requestHandler, RequestHandler::class);

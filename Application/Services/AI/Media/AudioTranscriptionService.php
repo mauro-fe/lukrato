@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Media;
 
+use Application\Config\AiRuntimeConfig;
+use Application\Container\ApplicationContainer;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
@@ -23,19 +25,15 @@ class AudioTranscriptionService
     private Client $client;
     private string $apiKey;
     private string $model;
+    private AiRuntimeConfig $runtimeConfig;
 
-    public function __construct()
+    public function __construct(?Client $client = null, ?AiRuntimeConfig $runtimeConfig = null)
     {
-        $this->apiKey = $_ENV['OPENAI_API_KEY'] ?? '';
-        $this->model = $_ENV['OPENAI_TRANSCRIPTION_MODEL']
-            ?? $_ENV['OPENAI_AUDIO_MODEL']
-            ?? 'gpt-4o-mini-transcribe';
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, AiRuntimeConfig::class);
+        $this->apiKey = $this->runtimeConfig->openAiApiKey();
+        $this->model = $this->runtimeConfig->openAiTranscriptionModel();
 
-        $this->client = new Client([
-            'base_uri'        => 'https://api.openai.com/v1/',
-            'timeout'         => 60,
-            'connect_timeout' => 10,
-        ]);
+        $this->client = ApplicationContainer::resolveOrNew($client, OpenAIAudioHttpClient::class);
     }
 
     public function transcribe(

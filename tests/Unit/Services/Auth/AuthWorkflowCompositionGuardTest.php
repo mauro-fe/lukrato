@@ -82,6 +82,30 @@ class AuthWorkflowCompositionGuardTest extends TestCase
             'LogoutHandler não deve instanciar Request diretamente no fluxo.'
         );
 
+        $this->assertStringNotContainsString(
+            'fn(): LoginHandler => new LoginHandler($resolvedRequest, $cache)',
+            $authService,
+            'AuthService não deve montar LoginHandler inline.'
+        );
+
+        $this->assertStringNotContainsString(
+            'fn(): LogoutHandler => new LogoutHandler($resolvedRequest)',
+            $authService,
+            'AuthService não deve montar LogoutHandler inline.'
+        );
+
+        $this->assertStringNotContainsString(
+            "fn(): CsrfSecurityCheck => new CsrfSecurityCheck(",
+            $loginHandler,
+            'LoginHandler não deve montar CsrfSecurityCheck inline.'
+        );
+
+        $this->assertStringNotContainsString(
+            "fn(): RateLimitSecurityCheck => new RateLimitSecurityCheck(",
+            $loginHandler,
+            'LoginHandler não deve montar RateLimitSecurityCheck inline.'
+        );
+
         $this->assertDoesNotMatchRegularExpression(
             '/new\s+RegistrationValidationStrategy\s*\(/',
             $registrationHandler,

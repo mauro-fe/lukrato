@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Providers;
 
+use Application\Config\AiRuntimeConfig;
+use Application\Container\ApplicationContainer;
 use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\PromptBuilder;
 use GuzzleHttp\Client;
@@ -18,17 +20,18 @@ class OllamaProvider implements AIProvider
     private Client $client;
     private string $serviceUrl;
     private string $internalToken;
+    private string $model;
     private array $lastMeta = [];
+    private AiRuntimeConfig $runtimeConfig;
 
-    public function __construct()
+    public function __construct(?Client $client = null, ?AiRuntimeConfig $runtimeConfig = null)
     {
-        $this->serviceUrl    = rtrim($_ENV['AI_SERVICE_URL'] ?? 'http://localhost:8002', '/');
-        $this->internalToken = $_ENV['AI_INTERNAL_TOKEN'] ?? '';
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, AiRuntimeConfig::class);
+        $this->serviceUrl    = $this->runtimeConfig->ollamaServiceUrl();
+        $this->internalToken = $this->runtimeConfig->aiInternalToken();
+        $this->model = $this->runtimeConfig->ollamaModel();
 
-        $this->client = new Client([
-            'timeout'         => 120,
-            'connect_timeout' => 5,
-        ]);
+        $this->client = ApplicationContainer::resolveOrNew($client, OllamaHttpClient::class);
     }
 
     private function headers(): array
@@ -101,7 +104,7 @@ class OllamaProvider implements AIProvider
 
     public function getModel(): string
     {
-        return $_ENV['OLLAMA_MODEL'] ?? 'ollama';
+        return $this->model;
     }
 
     public function getLastMeta(): array

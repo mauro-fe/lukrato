@@ -9,10 +9,11 @@
 
 require_once __DIR__ . '/../bootstrap.php';
 
+use Application\Config\ImportacaoRuntimeConfig;
 use Application\Services\Importacao\ImportQueueService;
 
 $runOnce = in_array('--once', $argv ?? [], true);
-$sleepSeconds = max(1, (int) ($_ENV['IMPORTACOES_QUEUE_SLEEP'] ?? 2));
+$sleepSeconds = (new ImportacaoRuntimeConfig())->queueSleepSeconds();
 $queue = new ImportQueueService();
 
 echo "Iniciando worker da fila de importacoes...\n";

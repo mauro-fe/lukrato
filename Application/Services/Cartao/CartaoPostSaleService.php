@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Cartao;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\CartaoCredito;
 use Application\Models\FaturaCartaoItem;
 use Application\Models\Lancamento;
@@ -14,10 +15,16 @@ use Illuminate\Database\Capsule\Manager as DB;
 
 class CartaoPostSaleService
 {
+    private CartaoFaturaSupportService $faturaSupportService;
+    private CartaoLimitUpdaterService $limitUpdaterService;
+
     public function __construct(
-        private CartaoFaturaSupportService $faturaSupportService,
-        private CartaoLimitUpdaterService $limitUpdaterService
-    ) {}
+        ?CartaoFaturaSupportService $faturaSupportService = null,
+        ?CartaoLimitUpdaterService $limitUpdaterService = null
+    ) {
+        $this->faturaSupportService = ApplicationContainer::resolveOrNew($faturaSupportService, CartaoFaturaSupportService::class);
+        $this->limitUpdaterService = ApplicationContainer::resolveOrNew($limitUpdaterService, CartaoLimitUpdaterService::class);
+    }
 
     public function cancelarParcelamento(int $parcelamentoId, int $userId): array
     {

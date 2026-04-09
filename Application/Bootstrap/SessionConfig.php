@@ -14,17 +14,22 @@
  * CACHE_DRIVER=redis    # ou 'file' para fallback
  */
 
+$runtimeConfig = \Application\Container\ApplicationContainer::tryMake(\Application\Config\InfrastructureRuntimeConfig::class)
+    ?? new \Application\Config\InfrastructureRuntimeConfig();
+$redisRuntimeConfig = \Application\Container\ApplicationContainer::tryMake(\Application\Config\RedisRuntimeConfig::class)
+    ?? new \Application\Config\RedisRuntimeConfig();
+
 // Verificar se Redis está disponível
-$useRedis = class_exists(Predis\Client::class) && ($_ENV['SESSION_DRIVER'] ?? 'file') === 'redis';
+$useRedis = class_exists(Predis\Client::class) && $runtimeConfig->sessionDriver() === 'redis';
 
 if ($useRedis) {
     try {
         $redisClient = new Predis\Client([
             'scheme' => 'tcp',
-            'host'   => $_ENV['REDIS_HOST'] ?? '127.0.0.1',
-            'port'   => $_ENV['REDIS_PORT'] ?? 6379,
-            'password' => $_ENV['REDIS_PASSWORD'] ?? null,
-            'database' => $_ENV['REDIS_DATABASE'] ?? 0,
+            'host'   => $redisRuntimeConfig->host(),
+            'port'   => $redisRuntimeConfig->port(),
+            'password' => $redisRuntimeConfig->password(),
+            'database' => $redisRuntimeConfig->database(),
         ]);
 
         // Testar conexão
@@ -34,17 +39,17 @@ if ($useRedis) {
         ini_set('session.save_handler', 'redis');
         ini_set('session.save_path', sprintf(
             'tcp://%s:%s?auth=%s&database=%s',
-            $_ENV['REDIS_HOST'] ?? '127.0.0.1',
-            $_ENV['REDIS_PORT'] ?? 6379,
-            $_ENV['REDIS_PASSWORD'] ?? '',
-            $_ENV['REDIS_DATABASE'] ?? 0
+            $redisRuntimeConfig->host(),
+            $redisRuntimeConfig->port(),
+            (string) ($redisRuntimeConfig->password() ?? ''),
+            $redisRuntimeConfig->database()
         ));
 
         // Configurações otimizadas
         ini_set('session.gc_maxlifetime', 7200); // 2 horas
         ini_set('session.cookie_lifetime', 0);    // Até fechar navegador
         ini_set('session.cookie_httponly', 1);
-        ini_set('session.cookie_secure', ($_ENV['APP_ENV'] ?? 'production') === 'production' ? 1 : 0);
+        ini_set('session.cookie_secure', $runtimeConfig->appEnvironment() === 'production' ? '1' : '0');
         ini_set('session.cookie_samesite', 'Lax');
 
         echo "✅ Redis configurado para sessões\n";
@@ -68,7 +73,7 @@ if (!$useRedis) {
     ini_set('session.gc_maxlifetime', 7200);
     ini_set('session.cookie_lifetime', 0);
     ini_set('session.cookie_httponly', 1);
-    ini_set('session.cookie_secure', ($_ENV['APP_ENV'] ?? 'production') === 'production' ? 1 : 0);
+    ini_set('session.cookie_secure', $runtimeConfig->appEnvironment() === 'production' ? '1' : '0');
     ini_set('session.cookie_samesite', 'Lax');
 
     // ✅ Limpar sessões antigas periodicamente (1% de chance a cada request)

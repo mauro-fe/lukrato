@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Controllers\SysAdmin;
 
+use Application\Config\AiRuntimeConfig;
+use Application\Container\ApplicationContainer;
 use Application\Controllers\WebController;
 use Application\Core\Response;
 
@@ -13,10 +15,11 @@ class AiViewController extends WebController
     {
         $this->requireAdminUser();
 
-        $provider = strtolower($_ENV['AI_PROVIDER'] ?? 'openai');
+        $runtimeConfig = $this->runtimeConfig();
+        $provider = $runtimeConfig->provider();
         $model = $provider === 'ollama'
-            ? ($_ENV['OLLAMA_MODEL'] ?? 'gemma3:1b')
-            : ($_ENV['OPENAI_MODEL'] ?? 'gpt-4o-mini');
+            ? ($runtimeConfig->configuredOllamaModel() ?? 'gemma3:1b')
+            : $runtimeConfig->openAiModel();
 
         return $this->renderResponse(
             'admin/sysadmin/ai',
@@ -30,5 +33,10 @@ class AiViewController extends WebController
             'admin/partials/header',
             'admin/partials/footer'
         );
+    }
+
+    private function runtimeConfig(): AiRuntimeConfig
+    {
+        return ApplicationContainer::resolveOrNew(null, AiRuntimeConfig::class);
     }
 }

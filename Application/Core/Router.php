@@ -9,7 +9,6 @@ use Application\Core\Exceptions\HttpResponseException;
 use Application\Core\Routing\ErrorResponseFactory as RoutingErrorResponseFactory;
 use Application\Core\Routing\HttpExceptionHandler;
 use Application\Core\Routing\MiddlewareResolver as RoutingMiddlewareResolver;
-use Illuminate\Contracts\Container\BindingResolutionException;
 use Throwable;
 
 class Router
@@ -17,6 +16,7 @@ class Router
     private static array $routes = [];
     private static ?RoutingMiddlewareResolver $middlewareResolver = null;
     private static ?RoutingErrorResponseFactory $errorResponseFactory = null;
+    private static ?HttpExceptionHandler $exceptionHandler = null;
 
     public static function add(string $method, string $path, mixed $callback, array $middlewares = []): void
     {
@@ -33,12 +33,13 @@ class Router
         self::$routes = [];
         self::$middlewareResolver = null;
         self::$errorResponseFactory = null;
+        self::$exceptionHandler = null;
         RoutingMiddlewareResolver::reset();
     }
 
     public static function run(string $requestedPath, string $requestMethod): ?Response
     {
-        $request = new Request();
+        $request = ApplicationContainer::resolveOrNew(null, Request::class);
         ApplicationContainer::bindRequest($request);
         $routeContext = null;
 
@@ -133,17 +134,7 @@ class Router
 
     private static function resolveControllerInstance(string $controllerNs): object
     {
-        $container = ApplicationContainer::getInstance();
-
-        if ($container !== null) {
-            try {
-                return $container->make($controllerNs);
-            } catch (BindingResolutionException) {
-                // Mantem compatibilidade enquanto a migracao para DI nao cobre todos os controllers.
-            }
-        }
-
-        return new $controllerNs();
+        return (ApplicationContainer::getInstance() ?? ApplicationContainer::bootstrap())->make($controllerNs);
     }
 
     public static function exceptionResponse(Throwable $e, ?array $routeContext, ?Request $request): Response
@@ -239,7 +230,10 @@ class Router
 
     private static function exceptionHandler(): HttpExceptionHandler
     {
-        return new HttpExceptionHandler(self::errorResponseFactory());
+        return self::$exceptionHandler ??= ApplicationContainer::resolveOrNew(
+            null,
+            HttpExceptionHandler::class
+        );
     }
 
     private static function errorResponseFactory(): RoutingErrorResponseFactory

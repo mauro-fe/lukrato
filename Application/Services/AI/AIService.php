@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI;
 
+use Application\Config\AiRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\DTO\AI\AIRequestDTO;
 use Application\DTO\AI\AIResponseDTO;
@@ -42,6 +43,7 @@ class AIService
     private AIProvider $provider;
     private CacheService $cache;
     private IntentRouter $intentRouter;
+    private AiRuntimeConfig $runtimeConfig;
 
     /** @var array<string, AIHandlerInterface> */
     private array $handlers = [];
@@ -49,8 +51,10 @@ class AIService
     public function __construct(
         ?AIProvider $provider = null,
         ?CacheService $cache = null,
-        ?IntentRouter $intentRouter = null
+        ?IntentRouter $intentRouter = null,
+        ?AiRuntimeConfig $runtimeConfig = null,
     ) {
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, AiRuntimeConfig::class);
         $this->provider = $this->resolveProvider($provider);
         $this->cache = ApplicationContainer::resolveOrNew($cache, CacheService::class);
         $this->intentRouter = ApplicationContainer::resolveOrNew($intentRouter, IntentRouter::class);
@@ -93,7 +97,7 @@ class AIService
         }
 
         /** @var class-string<AIProvider> $providerClass */
-        $providerClass = match ($_ENV['AI_PROVIDER'] ?? 'openai') {
+        $providerClass = match ($this->runtimeConfig->provider()) {
             'ollama' => OllamaProvider::class,
             default  => OpenAIProvider::class,
         };
@@ -181,7 +185,7 @@ class AIService
                 'type'             => isset($intent) ? $this->normalizeLogType($intent) : 'chat',
                 'prompt'           => mb_substr($request->message, 0, 5000),
                 'response'         => null,
-                'provider'         => $_ENV['AI_PROVIDER'] ?? 'openai',
+                'provider'         => $this->providerName(),
                 'model'            => $this->provider->getModel(),
                 'tokens_prompt'    => 0,
                 'tokens_completion' => 0,
@@ -234,7 +238,7 @@ class AIService
             'channel'           => $request->channel->value,
             'prompt'            => mb_substr($request->message, 0, 5000),
             'response'          => mb_substr($response->message, 0, 10000),
-            'provider'          => $_ENV['AI_PROVIDER'] ?? 'openai',
+            'provider'          => $this->providerName(),
             'model'             => $model,
             'tokens_prompt'     => $meta['tokens_prompt'] ?? 0,
             'tokens_completion' => $meta['tokens_completion'] ?? 0,
@@ -362,5 +366,14 @@ class AIService
     public function getIntentRouter(): IntentRouter
     {
         return $this->intentRouter;
+    }
+
+    private function providerName(): string
+    {
+        return match (true) {
+            $this->provider instanceof OllamaProvider => 'ollama',
+            $this->provider instanceof OpenAIProvider => 'openai',
+            default => $this->runtimeConfig->provider(),
+        };
     }
 }

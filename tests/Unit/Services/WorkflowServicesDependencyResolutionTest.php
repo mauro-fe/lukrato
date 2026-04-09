@@ -6,6 +6,7 @@ namespace Tests\Unit\Services;
 
 use Application\Builders\ReportExportBuilder;
 use Application\Container\ApplicationContainer;
+use Application\Core\Request;
 use Application\Services\Cartao\CartaoCreditoService;
 use Application\Services\Cartao\CartaoFaturaService;
 use Application\Services\Communication\CampaignApiWorkflowService;
@@ -74,11 +75,13 @@ class WorkflowServicesDependencyResolutionTest extends TestCase
         $contaService = Mockery::mock(ContaService::class);
         $planLimitService = Mockery::mock(PlanLimitService::class);
         $faturaService = Mockery::mock(FaturaService::class);
+        $request = Mockery::mock(Request::class);
 
         $container = new IlluminateContainer();
         $container->instance(ContaService::class, $contaService);
         $container->instance(PlanLimitService::class, $planLimitService);
         $container->instance(FaturaService::class, $faturaService);
+        $container->instance(Request::class, $request);
         ApplicationContainer::setInstance($container);
 
         $contaWorkflow = new ContaApiWorkflowService();
@@ -86,6 +89,7 @@ class WorkflowServicesDependencyResolutionTest extends TestCase
 
         $this->assertSame($contaService, $this->readProperty($contaWorkflow, 'contaService'));
         $this->assertSame($planLimitService, $this->readProperty($contaWorkflow, 'planLimitService'));
+        $this->assertSame($request, $this->readProperty($contaWorkflow, 'request'));
         $this->assertSame($faturaService, $this->readProperty($faturaWorkflow, 'faturaService'));
     }
 

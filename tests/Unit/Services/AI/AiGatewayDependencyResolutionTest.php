@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\AI;
 
+use Application\Config\AiRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Enums\AI\IntentType;
 use Application\Services\AI\AIService;
 use Application\Services\AI\Analysis\FinancialAnalysisPreprocessor;
 use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\Handlers\CategorizationHandler;
+use Application\Services\AI\Handlers\ChatHandler;
 use Application\Services\AI\Handlers\ChatHandlerV2;
 use Application\Services\AI\Handlers\ConfirmationHandler;
 use Application\Services\AI\Handlers\EntityCreationHandler;
@@ -19,6 +21,7 @@ use Application\Services\AI\Handlers\QuickQueryHandler;
 use Application\Services\AI\Handlers\TransactionExtractorHandler;
 use Application\Services\AI\Helpers\UserCategoryLoader;
 use Application\Services\AI\IntentRouter;
+use Application\Services\AI\Providers\OpenAIHttpClient;
 use Application\Services\AI\Providers\OpenAIProvider;
 use Application\Services\AI\Telegram\TelegramUserResolver;
 use Application\Services\AI\WhatsApp\WhatsAppUserResolver;
@@ -50,6 +53,7 @@ class AiGatewayDependencyResolutionTest extends TestCase
         $provider = Mockery::mock(AIProvider::class);
         $cache = Mockery::mock(CacheService::class);
         $intentRouter = Mockery::mock(IntentRouter::class);
+        $runtimeConfig = new AiRuntimeConfig();
 
         $handlers = [
             IntentType::CHAT->value => $this->mockHandler(ChatHandlerV2::class, $provider),
@@ -66,6 +70,7 @@ class AiGatewayDependencyResolutionTest extends TestCase
         $container->instance(AIProvider::class, $provider);
         $container->instance(CacheService::class, $cache);
         $container->instance(IntentRouter::class, $intentRouter);
+        $container->instance(AiRuntimeConfig::class, $runtimeConfig);
         $container->instance(ChatHandlerV2::class, $handlers[IntentType::CHAT->value]);
         $container->instance(QuickQueryHandler::class, $handlers[IntentType::QUICK_QUERY->value]);
         $container->instance(CategorizationHandler::class, $handlers[IntentType::CATEGORIZE->value]);
@@ -82,6 +87,7 @@ class AiGatewayDependencyResolutionTest extends TestCase
         $this->assertSame($provider, $this->readProperty($service, 'provider'));
         $this->assertSame($cache, $this->readProperty($service, 'cache'));
         $this->assertSame($intentRouter, $this->readProperty($service, 'intentRouter'));
+        $this->assertSame($runtimeConfig, $this->readProperty($service, 'runtimeConfig'));
         $this->assertSame($handlers[IntentType::CHAT->value], $registeredHandlers[IntentType::CHAT->value]);
         $this->assertSame($handlers[IntentType::QUICK_QUERY->value], $registeredHandlers[IntentType::QUICK_QUERY->value]);
         $this->assertSame($handlers[IntentType::CATEGORIZE->value], $registeredHandlers[IntentType::CATEGORIZE->value]);
@@ -113,17 +119,48 @@ class AiGatewayDependencyResolutionTest extends TestCase
     public function testOpenAiProviderResolvesClientAndCacheFromContainerWhenAvailable(): void
     {
         $cache = Mockery::mock(CacheService::class);
-        $client = Mockery::mock(Client::class);
+        $client = Mockery::mock(OpenAIHttpClient::class);
+        $runtimeConfig = new AiRuntimeConfig();
 
         $container = new IlluminateContainer();
         $container->instance(CacheService::class, $cache);
-        $container->instance(Client::class, $client);
+        $container->instance(OpenAIHttpClient::class, $client);
+        $container->instance(AiRuntimeConfig::class, $runtimeConfig);
         ApplicationContainer::setInstance($container);
 
         $provider = new OpenAIProvider();
 
         $this->assertSame($cache, $this->readProperty($provider, 'cache'));
         $this->assertSame($client, $this->readProperty($provider, 'client'));
+        $this->assertSame($runtimeConfig, $this->readProperty($provider, 'runtimeConfig'));
+    }
+
+    public function testQuickQueryHandlerResolvesFallbackChatHandlerFromContainerWhenAvailable(): void
+    {
+        $provider = Mockery::mock(AIProvider::class);
+        $request = new \Application\DTO\AI\AIRequestDTO(
+            userId: 99,
+            message: 'quero conversar sobre planejamento',
+        );
+        $expected = \Application\DTO\AI\AIResponseDTO::fromRule(
+            'Resposta pelo chat fallback.',
+            [],
+            IntentType::CHAT
+        );
+
+        $chatHandler = Mockery::mock(ChatHandler::class);
+        $chatHandler->shouldReceive('setProvider')->once()->with($provider);
+        $chatHandler->shouldReceive('handle')->once()->with($request)->andReturn($expected);
+
+        $container = new IlluminateContainer();
+        $container->instance(ChatHandler::class, $chatHandler);
+        ApplicationContainer::setInstance($container);
+
+        $handler = new QuickQueryHandler();
+        $handler->setProvider($provider);
+
+        $this->assertSame($expected, $handler->handle($request));
+        $this->assertSame($chatHandler, $this->readProperty($handler, 'chatHandler'));
     }
 
     public function testUserCategoryLoaderUsesContainerCacheWhenAvailable(): void

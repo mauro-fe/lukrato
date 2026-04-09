@@ -34,5 +34,19 @@ class CartaoServicesCompositionGuardTest extends TestCase
                 "Construtor não deve montar dependência inline com new: {$filePath}"
             );
         }
+
+        $cartaoLancamentoService = (string) file_get_contents('Application/Services/Cartao/CartaoCreditoLancamentoService.php');
+        $this->assertStringNotContainsString(
+            'fn(): CartaoPostSaleService => new CartaoPostSaleService(',
+            $cartaoLancamentoService,
+            'CartaoCreditoLancamentoService não deve montar CartaoPostSaleService inline.'
+        );
+
+        $cartaoFaturaService = (string) file_get_contents('Application/Services/Cartao/CartaoFaturaService.php');
+        $this->assertStringNotContainsString(
+            'fn(): CartaoFaturaPaymentService => new CartaoFaturaPaymentService($this->readService)',
+            $cartaoFaturaService,
+            'CartaoFaturaService não deve montar CartaoFaturaPaymentService inline.'
+        );
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use Application\Container\ApplicationContainer;
+use Application\Core\Request;
 use Application\Repositories\FeedbackRepository;
 use Application\Services\Feedback\FeedbackService;
 use Application\Services\Gamification\AchievementService;
@@ -41,6 +42,7 @@ class EngagementServicesDependencyResolutionTest extends TestCase
         $levelService = Mockery::mock(LevelService::class);
         $feedbackRepository = Mockery::mock(FeedbackRepository::class);
         $antifraudService = Mockery::mock(ReferralAntifraudService::class);
+        $request = Mockery::mock(Request::class);
 
         $container = new IlluminateContainer();
         $container->instance(AchievementService::class, $achievementService);
@@ -48,6 +50,7 @@ class EngagementServicesDependencyResolutionTest extends TestCase
         $container->instance(LevelService::class, $levelService);
         $container->instance(FeedbackRepository::class, $feedbackRepository);
         $container->instance(ReferralAntifraudService::class, $antifraudService);
+        $container->instance(Request::class, $request);
         ApplicationContainer::setInstance($container);
 
         $resolvedGamificationService = new GamificationService();
@@ -60,6 +63,7 @@ class EngagementServicesDependencyResolutionTest extends TestCase
         $this->assertSame($levelService, $this->readProperty($resolvedGamificationService, 'levelService'));
         $this->assertSame($levelService, $this->readProperty($resolvedAchievementService, 'levelService'));
         $this->assertSame($feedbackRepository, $this->readProperty($feedbackService, 'repo'));
+        $this->assertSame($request, $this->readProperty($referralService, 'request'));
         $this->assertSame($antifraudService, $this->invokePrivateMethod($referralService, 'antifraudService'));
         $this->assertSame($achievementService, $this->invokePrivateMethod($referralService, 'achievementService'));
     }

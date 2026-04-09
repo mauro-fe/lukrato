@@ -15,7 +15,7 @@ class TelegramLinkControllerTest extends TestCase
         $controller = new TelegramLinkController();
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->requestLink();
     }

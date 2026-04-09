@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Application\Services\Billing;
 
+use Application\Config\BillingRuntimeConfig;
+use Application\Container\ApplicationContainer;
+use Application\Core\Request;
 use Illuminate\Database\Capsule\Manager as DB;
 use Application\Enums\LogLevel;
 use Application\Enums\LogCategory;
@@ -21,6 +24,8 @@ class BillingAuditService
     public static function log(array $data): void
     {
         try {
+            $request = self::request();
+
             $record = [
                 'user_id' => $data['user_id'] ?? null,
                 'assinatura_id' => $data['assinatura_id'] ?? null,
@@ -30,8 +35,8 @@ class BillingAuditService
                 'external_id' => $data['external_id'] ?? null,
                 'valor' => $data['valor'] ?? null,
                 'metadata' => !empty($data['metadata']) ? json_encode($data['metadata']) : null,
-                'ip_address' => self::getClientIp(),
-                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->header('user-agent'),
                 'created_at' => now(),
             ];
 
@@ -177,28 +182,9 @@ class BillingAuditService
         }
     }
 
-    private static function getClientIp(): ?string
+    private static function request(): Request
     {
-        $headers = [
-            'HTTP_CF_CONNECTING_IP',
-            'HTTP_X_FORWARDED_FOR',
-            'HTTP_X_REAL_IP',
-            'REMOTE_ADDR',
-        ];
-
-        foreach ($headers as $header) {
-            if (!empty($_SERVER[$header])) {
-                $ip = $_SERVER[$header];
-                if (str_contains($ip, ',')) {
-                    $ip = trim(explode(',', $ip)[0]);
-                }
-                if (filter_var($ip, FILTER_VALIDATE_IP)) {
-                    return $ip;
-                }
-            }
-        }
-
-        return $_SERVER['REMOTE_ADDR'] ?? null;
+        return ApplicationContainer::resolveOrNew(null, Request::class);
     }
 
     private static function notifyDuplicateCharge(array $data): void
@@ -206,7 +192,7 @@ class BillingAuditService
         // Implementar notificação (email, Slack, etc)
         // Exemplo: enviar para MailService se existir
         try {
-            $adminEmail = $_ENV['ADMIN_EMAIL'] ?? null;
+            $adminEmail = self::runtimeConfig()->adminEmail();
 
             if ($adminEmail && class_exists(\Application\Services\Communication\MailService::class)) {
                 $subject = '🚨 Cobrança Duplicada Detectada';
@@ -221,5 +207,10 @@ class BillingAuditService
         } catch (\Throwable $e) {
             // Não falhar por erro de notificação
         }
+    }
+
+    private static function runtimeConfig(): BillingRuntimeConfig
+    {
+        return ApplicationContainer::resolveOrNew(null, BillingRuntimeConfig::class);
     }
 }

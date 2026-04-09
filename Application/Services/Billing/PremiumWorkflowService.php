@@ -915,7 +915,7 @@ class PremiumWorkflowService
         $container = ApplicationContainer::getInstance() ?? ApplicationContainer::bootstrap();
 
         if (!$container->bound(PerfilService::class)) {
-            (new PerfilServiceProvider())->register($container);
+            $container = ApplicationContainer::ensureProviderRegistered(PerfilServiceProvider::class);
         }
 
         return $this->perfilService = $container->make(PerfilService::class);

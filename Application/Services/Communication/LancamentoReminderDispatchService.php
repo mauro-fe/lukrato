@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Communication;
 
+use Application\Config\CommunicationRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Models\Lancamento;
 use Application\Models\Notificacao;
@@ -15,11 +16,14 @@ use Application\Services\Infrastructure\LogService;
 class LancamentoReminderDispatchService
 {
     private MailService $mailService;
+    private CommunicationRuntimeConfig $runtimeConfig;
 
     public function __construct(
-        ?MailService $mailService = null
+        ?MailService $mailService = null,
+        ?CommunicationRuntimeConfig $runtimeConfig = null
     ) {
         $this->mailService = ApplicationContainer::resolveOrNew($mailService, MailService::class);
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, CommunicationRuntimeConfig::class);
     }
 
     /**
@@ -238,9 +242,7 @@ class LancamentoReminderDispatchService
 
     private function buildLink(string $path): ?string
     {
-        $baseUrl = defined('BASE_URL')
-            ? rtrim(BASE_URL, '/')
-            : rtrim($_ENV['APP_URL'] ?? '', '/');
+        $baseUrl = $this->runtimeConfig->appUrl();
 
         return $baseUrl !== '' ? $baseUrl . $path : null;
     }

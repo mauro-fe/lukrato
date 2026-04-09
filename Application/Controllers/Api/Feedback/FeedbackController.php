@@ -26,7 +26,7 @@ class FeedbackController extends ApiController
         $userId = $this->requireApiUserIdOrFail();
 
         $data = $this->getJson();
-        $data['pagina'] = $_SERVER['HTTP_REFERER'] ?? null;
+        $data['pagina'] = $this->request->header('referer');
 
         $result = $this->service->store($userId, $data);
         $workflowResult = (bool) ($result['success'] ?? false)

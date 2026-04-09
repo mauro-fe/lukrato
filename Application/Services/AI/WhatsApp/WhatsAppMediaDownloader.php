@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\WhatsApp;
 
+use Application\Config\WhatsAppRuntimeConfig;
+use Application\Container\ApplicationContainer;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
@@ -18,18 +20,13 @@ class WhatsAppMediaDownloader
 
     private Client $http;
     private string $token;
+    private WhatsAppRuntimeConfig $runtimeConfig;
 
-    public function __construct()
+    public function __construct(?Client $http = null, ?WhatsAppRuntimeConfig $runtimeConfig = null)
     {
-        $this->token = $_ENV['WHATSAPP_TOKEN'] ?? getenv('WHATSAPP_TOKEN') ?: '';
-        $this->http = new Client([
-            'base_uri' => self::BASE_URL . '/' . self::API_VERSION . '/',
-            'timeout' => 30,
-            'connect_timeout' => 10,
-            'headers' => [
-                'Authorization' => 'Bearer ' . $this->token,
-            ],
-        ]);
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, WhatsAppRuntimeConfig::class);
+        $this->token = $this->runtimeConfig->token();
+        $this->http = ApplicationContainer::resolveOrNew($http, WhatsAppMediaHttpClient::class);
     }
 
     /**

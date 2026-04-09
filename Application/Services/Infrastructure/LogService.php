@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Application\Services\Infrastructure;
 
+use Application\Container\ApplicationContainer;
+use Application\Core\Request;
 use Application\Enums\LogCategory;
 use Application\Enums\LogLevel;
 use Application\Models\ErrorLog;
-use Monolog\Formatter\LineFormatter;
-use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 
 class LogService
@@ -170,7 +170,7 @@ class LogService
             return self::$requestId;
         }
 
-        $headerRequestId = $_SERVER['HTTP_X_REQUEST_ID'] ?? null;
+        $headerRequestId = self::request()->header('x-request-id');
         if (is_string($headerRequestId) && preg_match('/^[a-zA-Z0-9._:-]{6,100}$/', $headerRequestId) === 1) {
             self::$requestId = $headerRequestId;
             return self::$requestId;
@@ -320,10 +320,11 @@ class LogService
         }
 
         try {
-            $url = $_SERVER['REQUEST_URI'] ?? null;
-            $method = $_SERVER['REQUEST_METHOD'] ?? null;
-            $ip = $_SERVER['REMOTE_ADDR'] ?? null;
-            $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
+            $request = self::request();
+            $url = $request->server('REQUEST_URI');
+            $method = $request->server('REQUEST_METHOD');
+            $ip = $request->ip();
+            $userAgent = $request->header('user-agent');
 
             if ($userId === null) {
                 try {
@@ -359,6 +360,11 @@ class LogService
             self::$dbEnabled = false;
             return null;
         }
+    }
+
+    private static function request(): Request
+    {
+        return ApplicationContainer::resolveOrNew(null, Request::class);
     }
 
     /**
@@ -785,21 +791,7 @@ class LogService
     private static function getLogger(): Logger
     {
         if (!self::$logger) {
-            $logFilePath = self::getLogFilePath();
-
-            $logDir = dirname($logFilePath);
-            if (!is_dir($logDir)) {
-                mkdir($logDir, 0775, true);
-            }
-
-            $stream = new StreamHandler($logFilePath, Logger::DEBUG);
-
-            $output = "[%datetime%] [%level_name%]: %message% %context%\n";
-            $formatter = new LineFormatter($output, 'Y-m-d H:i:s', true, true);
-            $stream->setFormatter($formatter);
-
-            self::$logger = new Logger('app');
-            self::$logger->pushHandler($stream);
+            self::$logger = LogChannelFactory::build(self::getLogFilePath());
         }
 
         return self::$logger;

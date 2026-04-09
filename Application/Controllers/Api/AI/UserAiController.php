@@ -9,9 +9,6 @@ use Application\Core\Response;
 use Application\DTO\AI\AIResponseDTO;
 use Application\Models\Usuario;
 use Application\Services\AI\AIQuotaService;
-use Application\Services\AI\AIService;
-use Application\Services\AI\Context\UserContextBuilder;
-use Application\Services\AI\Media\MediaRouterService;
 use Application\Services\AI\UserAiWorkflowService;
 use DomainException;
 use InvalidArgumentException;
@@ -22,22 +19,13 @@ use InvalidArgumentException;
  */
 class UserAiController extends ApiController
 {
-    private ?AIService $aiService;
-    private ?UserContextBuilder $contextBuilder;
-    private ?MediaRouterService $mediaRouterService;
     private ?UserAiWorkflowService $workflowService;
 
     public function __construct(
-        ?AIService $aiService = null,
-        ?UserContextBuilder $contextBuilder = null,
-        ?MediaRouterService $mediaRouterService = null,
         ?UserAiWorkflowService $workflowService = null
     ) {
         parent::__construct();
 
-        $this->aiService = $aiService;
-        $this->contextBuilder = $contextBuilder;
-        $this->mediaRouterService = $mediaRouterService;
         $this->workflowService = $workflowService;
     }
 
@@ -335,34 +323,6 @@ class UserAiController extends ApiController
 
     private function workflowService(): UserAiWorkflowService
     {
-        if ($this->workflowService !== null) {
-            return $this->workflowService;
-        }
-
-        if ($this->aiService !== null || $this->contextBuilder !== null || $this->mediaRouterService !== null) {
-            return $this->workflowService = $this->buildWorkflowService(
-                $this->resolveOrCreate($this->aiService, AIService::class),
-                $this->resolveOrCreate($this->contextBuilder, UserContextBuilder::class),
-                $this->resolveOrCreate($this->mediaRouterService, MediaRouterService::class)
-            );
-        }
-
-        return $this->workflowService = $this->resolveOrCreate(
-            null,
-            UserAiWorkflowService::class,
-            fn(): UserAiWorkflowService => $this->buildWorkflowService(
-                $this->resolveOrCreate($this->aiService, AIService::class),
-                $this->resolveOrCreate($this->contextBuilder, UserContextBuilder::class),
-                $this->resolveOrCreate($this->mediaRouterService, MediaRouterService::class)
-            )
-        );
-    }
-
-    private function buildWorkflowService(
-        AIService $aiService,
-        UserContextBuilder $contextBuilder,
-        MediaRouterService $mediaRouterService
-    ): UserAiWorkflowService {
-        return new UserAiWorkflowService($aiService, $contextBuilder, $mediaRouterService);
+        return $this->workflowService ??= $this->resolveOrCreate($this->workflowService, UserAiWorkflowService::class);
     }
 }

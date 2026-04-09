@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Bootstrap;
 
+use Application\Config\InfrastructureRuntimeConfig;
+use Application\Container\ApplicationContainer;
 use Application\Core\Response;
 use Application\Core\ResponseEmitter;
 use Application\Services\Infrastructure\LogService;
@@ -11,10 +13,18 @@ use Application\Services\Infrastructure\LogService;
 class ErrorHandler
 {
     private string $environment;
+    private ResponseEmitter $responseEmitter;
+    private InfrastructureRuntimeConfig $runtimeConfig;
 
-    public function __construct(string $environment)
+    public function __construct(
+        ?string $environment = null,
+        ?ResponseEmitter $responseEmitter = null,
+        ?InfrastructureRuntimeConfig $runtimeConfig = null
+    )
     {
-        $this->environment = $environment;
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, InfrastructureRuntimeConfig::class);
+        $this->environment = $environment ?? $this->runtimeConfig->appEnvironment();
+        $this->responseEmitter = ApplicationContainer::resolveOrNew($responseEmitter, ResponseEmitter::class);
     }
 
     public function register(): void
@@ -203,6 +213,6 @@ class ErrorHandler
 
     private function emit(Response $response): void
     {
-        (new ResponseEmitter())->emit($response);
+        $this->responseEmitter->emit($response);
     }
 }

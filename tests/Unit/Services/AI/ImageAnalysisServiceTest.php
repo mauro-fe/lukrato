@@ -9,9 +9,22 @@ use PHPUnit\Framework\TestCase;
 
 class ImageAnalysisServiceTest extends TestCase
 {
+    private string|false $originalVisionDetail = false;
+    private string|false $originalVisionMaxDimension = false;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->originalVisionDetail = getenv('OPENAI_VISION_DETAIL');
+        $this->originalVisionMaxDimension = getenv('OPENAI_VISION_MAX_DIMENSION');
+    }
+
     protected function tearDown(): void
     {
         unset($_ENV['OPENAI_VISION_DETAIL'], $_ENV['OPENAI_VISION_MAX_DIMENSION']);
+        $this->restoreEnv('OPENAI_VISION_DETAIL', $this->originalVisionDetail);
+        $this->restoreEnv('OPENAI_VISION_MAX_DIMENSION', $this->originalVisionMaxDimension);
         parent::tearDown();
     }
 
@@ -51,6 +64,7 @@ class ImageAnalysisServiceTest extends TestCase
     public function testConfiguredVisionDetailOverridesHeuristic(): void
     {
         $_ENV['OPENAI_VISION_DETAIL'] = 'auto';
+        putenv('OPENAI_VISION_DETAIL=auto');
 
         $service = new ImageAnalysisService();
         $method = new \ReflectionMethod($service, 'resolveImageDetail');
@@ -59,5 +73,15 @@ class ImageAnalysisServiceTest extends TestCase
         $detail = $method->invoke($service, 900, 1200, 350_000);
 
         $this->assertSame('auto', $detail);
+    }
+
+    private function restoreEnv(string $key, string|false $value): void
+    {
+        if ($value === false) {
+            putenv($key);
+            return;
+        }
+
+        putenv($key . '=' . $value);
     }
 }

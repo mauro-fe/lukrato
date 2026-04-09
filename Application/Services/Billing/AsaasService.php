@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Application\Services\Billing;
 
+use Application\Config\AsaasRuntimeConfig;
 use Application\Container\ApplicationContainer;
+use Application\Core\Request;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Application\Services\Infrastructure\CircuitBreakerService;
@@ -21,6 +23,7 @@ class AsaasService
     private string $baseUrl;
     private string $userAgent;
     private CircuitBreakerService $circuitBreaker;
+    private readonly AsaasRuntimeConfig $runtimeConfig;
 
     public function __construct(
         ?Client $client = null,
@@ -28,31 +31,41 @@ class AsaasService
         ?string $apiKey = null,
         ?string $baseUrl = null,
         ?string $userAgent = null,
-        ?string $webhookToken = null
+        ?string $webhookToken = null,
+        ?AsaasRuntimeConfig $runtimeConfig = null,
     ) {
-        // Pega primeiro de $_ENV (phpdotenv), se não tiver cai pro getenv()
-        $this->apiKey = $apiKey ?? ($_ENV['ASAAS_API_KEY'] ?? getenv('ASAAS_API_KEY') ?: '');
-        $this->baseUrl = $baseUrl ?? ($_ENV['ASAAS_BASE_URL'] ?? getenv('ASAAS_BASE_URL') ?: 'https://sandbox.asaas.com/api/v3');
-        $this->userAgent = $userAgent ?? ($_ENV['ASAAS_USER_AGENT'] ?? getenv('ASAAS_USER_AGENT') ?: 'Lukrato/1.0 (PHP)');
-        $this->webhookToken = $webhookToken ?? ($_ENV['ASAAS_WEBHOOK_TOKEN'] ?? getenv('ASAAS_WEBHOOK_TOKEN') ?: null);
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, AsaasRuntimeConfig::class);
+        $this->apiKey = $apiKey ?? $this->runtimeConfig->apiKey();
+        $this->baseUrl = $baseUrl ?? $this->runtimeConfig->baseUrl();
+        $this->userAgent = $userAgent ?? $this->runtimeConfig->userAgent();
+        $this->webhookToken = $webhookToken ?? $this->runtimeConfig->webhookToken();
 
-        $resolvedClient = $client ?? ApplicationContainer::tryMake(Client::class);
+        $hasCustomHttpConfig = $apiKey !== null || $baseUrl !== null || $userAgent !== null;
+        $resolvedClient = $client;
+
+        if (!$hasCustomHttpConfig) {
+            $resolvedClient ??= ApplicationContainer::tryMake(AsaasHttpClient::class);
+            $resolvedClient ??= ApplicationContainer::tryMake(Client::class);
+        }
 
         if (!$resolvedClient instanceof Client && empty($this->apiKey)) {
             throw new \RuntimeException('ASAAS_API_KEY não configurada no .env');
         }
 
-        $this->client = $resolvedClient ?? $this->createHttpClient();
-        $this->circuitBreaker = ApplicationContainer::resolveOrNew(
-            $circuitBreaker,
-            CircuitBreakerService::class,
-            static fn(): CircuitBreakerService => new CircuitBreakerService('asaas')
+        $this->client = $resolvedClient ?? ApplicationContainer::resolveOrNew(
+            null,
+            AsaasHttpClient::class,
+            fn(): AsaasHttpClient => new AsaasHttpClient($this->httpClientConfig())
         );
+        $this->circuitBreaker = ApplicationContainer::resolveOrNew($circuitBreaker, AsaasCircuitBreakerService::class);
     }
 
-    private function createHttpClient(): Client
+    /**
+     * @return array<string, mixed>
+     */
+    private function httpClientConfig(): array
     {
-        return new Client([
+        return [
             'base_uri'    => rtrim($this->baseUrl, '/') . '/',
             'timeout'     => 10,
             'http_errors' => false,
@@ -61,7 +74,7 @@ class AsaasService
                 'User-Agent'   => $this->userAgent,
                 'access_token' => $this->apiKey,
             ],
-        ]);
+        ];
     }
 
 
@@ -423,7 +436,7 @@ class AsaasService
         }
 
         // ✅ NÍVEL 2: Validação HMAC (opcional mas recomendado)
-        $webhookSecret = $_ENV['ASAAS_WEBHOOK_SECRET'] ?? getenv('ASAAS_WEBHOOK_SECRET') ?: null;
+        $webhookSecret = $this->runtimeConfig->webhookSecret();
 
         if ($webhookSecret && $rawBody !== null) {
             $signatureHeader = $headers['X-Asaas-Signature']
@@ -446,11 +459,10 @@ class AsaasService
         }
 
         // ✅ NÍVEL 3: Validação de IP (opcional)
-        $allowedIps = $_ENV['ASAAS_WEBHOOK_IPS'] ?? getenv('ASAAS_WEBHOOK_IPS') ?: null;
+        $whitelist = $this->runtimeConfig->webhookAllowedIps();
 
-        if ($allowedIps) {
+        if ($whitelist !== []) {
             $clientIp = $this->getClientIp();
-            $whitelist = array_map('trim', explode(',', $allowedIps));
 
             if (!in_array($clientIp, $whitelist, true)) {
                 LogService::persist(
@@ -471,35 +483,6 @@ class AsaasService
      */
     private function getClientIp(): string
     {
-        $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-        $trustedProxies = array_filter(array_map(
-            'trim',
-            explode(',', $_ENV['TRUSTED_PROXIES'] ?? getenv('TRUSTED_PROXIES') ?: '')
-        ));
-
-        if (!empty($trustedProxies) && in_array($remoteAddr, $trustedProxies, true)) {
-            $forwardedHeaders = [
-                'HTTP_CF_CONNECTING_IP',
-                'HTTP_X_FORWARDED_FOR',
-                'HTTP_X_REAL_IP',
-                'HTTP_CLIENT_IP',
-            ];
-
-            foreach ($forwardedHeaders as $header) {
-                if (empty($_SERVER[$header])) {
-                    continue;
-                }
-
-                foreach (explode(',', (string) $_SERVER[$header]) as $ip) {
-                    $ip = trim($ip);
-
-                    if (filter_var($ip, FILTER_VALIDATE_IP)) {
-                        return $ip;
-                    }
-                }
-            }
-        }
-
-        return $remoteAddr;
+        return ApplicationContainer::resolveOrNew(null, Request::class)->ip();
     }
 }

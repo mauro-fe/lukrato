@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Auth;
 
+use Application\Config\AuthRuntimeConfig;
 use Application\Controllers\WebController;
 use Application\Core\Response;
 use Application\Enums\LogCategory;
@@ -14,11 +15,16 @@ use Exception;
 class GoogleLoginController extends WebController
 {
     private GoogleAuthService $googleAuthService;
+    private AuthRuntimeConfig $runtimeConfig;
 
-    public function __construct(?GoogleAuthService $googleAuthService = null)
+    public function __construct(
+        ?GoogleAuthService $googleAuthService = null,
+        ?AuthRuntimeConfig $runtimeConfig = null
+    )
     {
         parent::__construct();
         $this->googleAuthService = $this->resolveOrCreate($googleAuthService, GoogleAuthService::class);
+        $this->runtimeConfig = $this->resolveOrCreate($runtimeConfig, AuthRuntimeConfig::class);
     }
 
     public function login(): Response
@@ -28,16 +34,18 @@ class GoogleLoginController extends WebController
         }
 
         try {
-            $ref = $_GET['ref'] ?? '';
+            $ref = $this->request->queryString('ref');
             if ($ref !== '') {
                 $_SESSION['pending_referral_code'] = strtoupper(trim($ref));
             }
 
             $authUrl = $this->googleAuthService->getAuthUrl();
+            $clientId = $this->runtimeConfig->googleClientId();
+            $redirectUri = $this->runtimeConfig->googleRedirectUri();
 
             LogService::info('Iniciando login com Google OAuth', [
-                'client_id' => $_ENV['GOOGLE_CLIENT_ID'] ?? null,
-                'redirect_uri' => $_ENV['GOOGLE_REDIRECT_URI'] ?? null,
+                'client_id' => $clientId !== '' ? $clientId : null,
+                'redirect_uri' => $redirectUri !== '' ? $redirectUri : null,
                 'auth_url' => $authUrl,
             ]);
 

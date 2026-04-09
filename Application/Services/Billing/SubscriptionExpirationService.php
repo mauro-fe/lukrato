@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Billing;
 
+use Application\Config\BillingRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Models\AssinaturaUsuario;
 use Application\Models\Notificacao;
@@ -28,13 +29,15 @@ use Application\Services\Communication\MailService;
 class SubscriptionExpirationService
 {
     private MailService $mail;
+    private BillingRuntimeConfig $runtimeConfig;
 
     /** Dias de carência após vencimento antes de bloquear */
     public const GRACE_PERIOD_DAYS = 3;
 
-    public function __construct(?MailService $mail = null)
+    public function __construct(?MailService $mail = null, ?BillingRuntimeConfig $runtimeConfig = null)
     {
         $this->mail = ApplicationContainer::resolveOrNew($mail, MailService::class);
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, BillingRuntimeConfig::class);
     }
 
     /**
@@ -218,8 +221,7 @@ class SubscriptionExpirationService
         $nomeUsuario = trim((string)($usuario->primeiro_nome ?? $usuario->nome ?? 'Cliente'));
         $dataVencimento = Carbon::parse($subscription->renova_em)->format('d/m/Y');
 
-        $baseUrl = defined('BASE_URL') ? rtrim(BASE_URL, '/') : rtrim($_ENV['APP_URL'] ?? '', '/');
-        $link = $baseUrl ? $baseUrl . '/billing' : '#';
+        $link = $this->billingPageLink();
 
         $subject = '⚠️ Seu plano PRO Lukrato venceu - Renove agora!';
 
@@ -287,8 +289,7 @@ class SubscriptionExpirationService
         }
 
         $nomeUsuario = trim((string)($usuario->primeiro_nome ?? $usuario->nome ?? 'Cliente'));
-        $baseUrl = defined('BASE_URL') ? rtrim(BASE_URL, '/') : rtrim($_ENV['APP_URL'] ?? '', '/');
-        $link = $baseUrl ? $baseUrl . '/billing' : '#';
+        $link = $this->billingPageLink();
 
         $subject = '🔒 Seu plano PRO Lukrato foi desativado';
 
@@ -329,6 +330,15 @@ class SubscriptionExpirationService
             ], $usuario->id);
             return false;
         }
+    }
+
+    private function billingPageLink(): string
+    {
+        $baseUrl = defined('BASE_URL')
+            ? rtrim(BASE_URL, '/')
+            : rtrim($this->runtimeConfig->appUrl(), '/');
+
+        return $baseUrl !== '' ? $baseUrl . '/billing' : '#';
     }
 
     /**

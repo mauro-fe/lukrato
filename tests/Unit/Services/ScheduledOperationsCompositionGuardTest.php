@@ -51,5 +51,31 @@ class ScheduledOperationsCompositionGuardTest extends TestCase
             $notificationService,
             'NotificationService não deve instanciar SchedulerExecutionLock diretamente.'
         );
+
+        $mailService = (string) file_get_contents('Application/Services/Communication/MailService.php');
+
+        $this->assertStringNotContainsString(
+            'static fn(): LoggerInterface => new NullLogger()',
+            $mailService,
+            'MailService não deve montar NullLogger inline por closure.'
+        );
+
+        $this->assertStringNotContainsString(
+            '(new CommunicationServiceProvider())->register(',
+            $mailService,
+            'MailService não deve registrar CommunicationServiceProvider manualmente.'
+        );
+
+        $this->assertStringNotContainsString(
+            'static fn(): LoggerInterface => new NullLogger()',
+            $notificationService,
+            'NotificationService não deve montar NullLogger inline por closure.'
+        );
+
+        $this->assertStringNotContainsString(
+            '(new CommunicationServiceProvider())->register(',
+            $notificationService,
+            'NotificationService não deve registrar CommunicationServiceProvider manualmente.'
+        );
     }
 }

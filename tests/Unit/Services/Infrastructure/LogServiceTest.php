@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Infrastructure;
 
+use Application\Container\ApplicationContainer;
+use Application\Core\Request;
 use Application\Services\Infrastructure\LogService;
+use Illuminate\Container\Container as IlluminateContainer;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -93,7 +96,7 @@ class LogServiceTest extends TestCase
     {
         $sanitized = LogService::sanitizeMessage(
             'Falha com token=abc123 email john.doe@gmail.com cpf: 12345678901 ' .
-            'Authorization: Bearer token-123 /reset?selector=sel123&validator=val456'
+                'Authorization: Bearer token-123 /reset?selector=sel123&validator=val456'
         );
 
         $this->assertStringContainsString('token=[REDACTED]', $sanitized);
@@ -118,6 +121,22 @@ class LogServiceTest extends TestCase
         $this->assertStringContainsString('token=[REDACTED]', $contents);
         $this->assertStringContainsString('j***@gmail.com', $contents);
         $this->assertStringContainsString('Bearer [REDACTED]', $contents);
+    }
+
+    public function testCurrentRequestIdUsesRequestHeaderWhenAvailable(): void
+    {
+        $container = new IlluminateContainer();
+        $container->instance(Request::class, new Request(
+            server: ['REQUEST_METHOD' => 'GET'],
+            headers: ['X-Request-Id' => 'trace-abc123']
+        ));
+        ApplicationContainer::setInstance($container);
+
+        $requestId = new \ReflectionProperty(LogService::class, 'requestId');
+        $requestId->setAccessible(true);
+        $requestId->setValue(null);
+
+        $this->assertSame('trace-abc123', LogService::currentRequestId());
     }
 
     public function testCleanupUsesResolvedAtForResolvedOnlyCleanup(): void

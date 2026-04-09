@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Services\Infrastructure;
 
+use Application\Config\CacheRuntimeConfig;
+use Application\Container\ApplicationContainer;
 use Application\Core\Exceptions\ValidationException;
 use Application\Enums\LogCategory;
 use Application\Enums\LogLevel;
@@ -21,32 +23,29 @@ class CacheService
     private ?PredisClient $redis = null;
     private bool $enabled = false;
     private string $fileCacheDir;
+    private CacheRuntimeConfig $runtimeConfig;
 
-    public function __construct()
+    public function __construct(?CacheRuntimeConfig $runtimeConfig = null, ?PredisClient $redis = null)
     {
-        $this->fileCacheDir = ($_ENV['STORAGE_PATH'] ?? dirname(__DIR__, 2) . '/storage') . '/cache';
-        $this->enabled = ($_ENV['REDIS_ENABLED'] ?? 'false') === 'true';
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, CacheRuntimeConfig::class);
+        $this->fileCacheDir = $this->runtimeConfig->fileCacheDirectory();
+        $this->enabled = $this->runtimeConfig->redisEnabled();
 
         if (!$this->enabled) {
             return;
         }
 
-        $config = [
-            'scheme' => 'tcp',
-            'host' => $_ENV['REDIS_HOST'] ?? '127.0.0.1',
-            'port' => (int) ($_ENV['REDIS_PORT'] ?? 6379),
-            'timeout' => (float) ($_ENV['REDIS_TIMEOUT'] ?? 0.5),
-            'read_write_timeout' => (float) ($_ENV['REDIS_RW_TIMEOUT'] ?? 1.0),
-            'database' => (int) ($_ENV['REDIS_DB'] ?? 0),
-        ];
-
-        $password = $_ENV['REDIS_PASSWORD'] ?? null;
-        if ($password !== null && $password !== '' && strtolower($password) !== 'null') {
-            $config['password'] = $password;
-        }
-
         try {
-            $this->redis = new PredisClient($config);
+            $resolvedRedis = $redis;
+
+            if (!$resolvedRedis instanceof PredisClient) {
+                $resolvedRedis = ApplicationContainer::tryMake(PredisClient::class);
+            }
+
+            $this->redis = $resolvedRedis instanceof PredisClient
+                ? $resolvedRedis
+                : new PredisClient($this->runtimeConfig->redisConnection());
+
             $this->redis->ping();
         } catch (\Throwable $e) {
             $this->enabled = false;

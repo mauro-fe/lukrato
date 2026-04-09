@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Media;
 
+use Application\Config\AiRuntimeConfig;
 use Application\Container\ApplicationContainer;
 
 /**
@@ -14,11 +15,14 @@ class VideoTranscriptionService
     private const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
 
     private AudioTranscriptionService $transcriber;
+    private AiRuntimeConfig $runtimeConfig;
 
     public function __construct(
         ?AudioTranscriptionService $transcriber = null,
+        ?AiRuntimeConfig $runtimeConfig = null,
     ) {
         $this->transcriber = ApplicationContainer::resolveOrNew($transcriber, AudioTranscriptionService::class);
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, AiRuntimeConfig::class);
     }
 
     public function transcribe(string $videoContent, string $filename = 'video.mp4', ?string $prompt = null): TranscriptionResult
@@ -96,8 +100,8 @@ class VideoTranscriptionService
 
     private function resolveFfmpegBinary(): ?string
     {
-        $configured = trim((string) ($_ENV['FFMPEG_BINARY'] ?? getenv('FFMPEG_BINARY') ?: ''));
-        if ($configured !== '') {
+        $configured = $this->runtimeConfig->ffmpegBinary();
+        if ($configured !== null) {
             return $configured;
         }
 

@@ -364,25 +364,17 @@ class AsaasWebhookController extends ApiController
      */
     protected function readRequestHeaders(): array
     {
-        if (!function_exists('getallheaders')) {
-            return [];
-        }
-
-        $headers = getallheaders();
-
-        return is_array($headers) ? $headers : [];
+        return $this->request->headers();
     }
 
     protected function readRawBody(): string
     {
-        $rawBody = file_get_contents('php://input');
-
-        return is_string($rawBody) ? $rawBody : '';
+        return $this->request->rawInput();
     }
 
     private function requestIp(): string
     {
-        return (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+        return $this->request->ip();
     }
 
     private function plainTextResponse(string $content, int $statusCode = 200): Response

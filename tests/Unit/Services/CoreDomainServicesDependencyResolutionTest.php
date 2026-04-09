@@ -15,6 +15,7 @@ use Application\Services\Lancamento\LancamentoDeletionService;
 use Application\Services\Lancamento\LancamentoStatusService;
 use Application\Services\Metas\MetaProgressService;
 use Application\Services\Metas\MetaService;
+use Application\Services\Orcamentos\OrcamentoInsightService;
 use Application\Services\Orcamentos\OrcamentoMetricsService;
 use Application\Services\Orcamentos\OrcamentoService;
 use Application\Services\Plan\PlanLimitService;
@@ -48,6 +49,7 @@ class CoreDomainServicesDependencyResolutionTest extends TestCase
         $parcelamentoRepository = Mockery::mock(ParcelamentoRepository::class);
         $planLimitService = Mockery::mock(PlanLimitService::class);
         $orcamentoMetricsService = Mockery::mock(OrcamentoMetricsService::class);
+        $orcamentoInsightService = Mockery::mock(OrcamentoInsightService::class);
         $metaProgressService = Mockery::mock(MetaProgressService::class);
 
         $container = new IlluminateContainer();
@@ -58,6 +60,7 @@ class CoreDomainServicesDependencyResolutionTest extends TestCase
         $container->instance(ParcelamentoRepository::class, $parcelamentoRepository);
         $container->instance(PlanLimitService::class, $planLimitService);
         $container->instance(OrcamentoMetricsService::class, $orcamentoMetricsService);
+        $container->instance(OrcamentoInsightService::class, $orcamentoInsightService);
         $container->instance(MetaProgressService::class, $metaProgressService);
         ApplicationContainer::setInstance($container);
 
@@ -70,6 +73,7 @@ class CoreDomainServicesDependencyResolutionTest extends TestCase
         $this->assertSame($orcamentoRepository, $this->readProperty($orcamentoService, 'repo'));
         $this->assertSame($planLimitService, $this->readProperty($orcamentoService, 'planLimit'));
         $this->assertSame($orcamentoMetricsService, $this->readProperty($orcamentoService, 'metricsService'));
+        $this->assertSame($orcamentoInsightService, $this->readProperty($orcamentoService, 'insightService'));
 
         $this->assertSame($metaRepository, $this->readProperty($metaService, 'repo'));
         $this->assertSame($planLimitService, $this->readProperty($metaService, 'planLimit'));

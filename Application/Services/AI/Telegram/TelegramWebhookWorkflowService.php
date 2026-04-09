@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Telegram;
 
+use Application\Config\AiRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\DTO\AI\AIResponseDTO;
 use Application\DTO\AI\TelegramMessageDTO;
@@ -48,6 +49,7 @@ class TelegramWebhookWorkflowService
     private CacheService $cache;
     private ActionRegistry $actionRegistry;
     private AIRateLimiter $rateLimiter;
+    private ?AiRuntimeConfig $aiRuntimeConfig = null;
 
     public function __construct(
         ?TelegramService $telegram = null,
@@ -769,10 +771,7 @@ class TelegramWebhookWorkflowService
             'prompt' => "[media:{$fileId}]" . ($caption ? " caption: {$caption}" : ''),
             'response' => $result->text !== '' ? $result->text : json_encode($result->data, JSON_UNESCAPED_UNICODE),
             'provider' => 'openai',
-            'model' => $_ENV['OPENAI_VISION_MODEL']
-                ?? $_ENV['OPENAI_TRANSCRIPTION_MODEL']
-                ?? $_ENV['OPENAI_MODEL']
-                ?? 'gpt-4o-mini',
+            'model' => $this->aiRuntimeConfig()->mediaLogModel(),
             'tokens_prompt' => $result->tokensPrompt,
             'tokens_completion' => $result->tokensCompletion,
             'tokens_total' => $result->tokensUsed > 0
@@ -782,6 +781,11 @@ class TelegramWebhookWorkflowService
             'success' => $result->success,
             'error_message' => $result->error,
         ]);
+    }
+
+    private function aiRuntimeConfig(): AiRuntimeConfig
+    {
+        return $this->aiRuntimeConfig ??= ApplicationContainer::resolveOrNew(null, AiRuntimeConfig::class);
     }
 
     private function handleNormalMessage(TelegramMessageDTO $dto, Usuario $user, TelegramMessage $msgRecord): void

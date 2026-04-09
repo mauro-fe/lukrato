@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Core;
 
+use Application\Container\ApplicationContainer;
+
 class Response
 {
     private int $statusCode = 200;
@@ -200,7 +202,7 @@ class Response
 
     public function send(): void
     {
-        (new ResponseEmitter())->emit($this);
+        ApplicationContainer::resolveOrNew(null, ResponseEmitter::class)->emit($this);
     }
 
     public static function jsonResponse(mixed $data, int $statusCode = 200): self

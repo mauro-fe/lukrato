@@ -48,4 +48,26 @@ class SchedulerExecutionLockTest extends TestCase
         $this->addToAssertionCount(1);
         $second->release();
     }
+
+    public function testUsesConfiguredStoragePathWhenBaseDirectoryIsNotProvided(): void
+    {
+        $previousStoragePath = $_ENV['STORAGE_PATH'] ?? null;
+        $storagePath = sys_get_temp_dir() . '/lukrato-scheduler-default-' . bin2hex(random_bytes(4));
+        $_ENV['STORAGE_PATH'] = $storagePath;
+
+        try {
+            $lock = new SchedulerExecutionLock();
+            $lock->acquire('scheduler-default');
+
+            $this->assertFileExists($storagePath . '/locks/scheduler-default.lock');
+
+            $lock->release();
+        } finally {
+            if ($previousStoragePath === null) {
+                unset($_ENV['STORAGE_PATH']);
+            } else {
+                $_ENV['STORAGE_PATH'] = $previousStoragePath;
+            }
+        }
+    }
 }

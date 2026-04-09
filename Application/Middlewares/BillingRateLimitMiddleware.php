@@ -2,6 +2,8 @@
 
 namespace Application\Middlewares;
 
+use Application\Config\RedisRuntimeConfig;
+use Application\Container\ApplicationContainer;
 use Application\Core\Exceptions\HttpResponseException;
 use Application\Core\Request;
 use Application\Core\Response;
@@ -18,6 +20,7 @@ use Predis\Client as RedisClient;
 class BillingRateLimitMiddleware
 {
     private ?RedisClient $redis = null;
+    private RedisRuntimeConfig $runtimeConfig;
     private const PREFIX = 'rate_limit:';
 
     private const LIMIT_GENERAL_PER_MINUTE = 100;
@@ -30,14 +33,16 @@ class BillingRateLimitMiddleware
         '/api/webhook/asaas',
     ];
 
-    public function __construct()
+    public function __construct(?RedisRuntimeConfig $runtimeConfig = null)
     {
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, RedisRuntimeConfig::class);
+
         try {
             if (class_exists(RedisClient::class)) {
                 $this->redis = new RedisClient([
                     'scheme' => 'tcp',
-                    'host' => $_ENV['REDIS_HOST'] ?? '127.0.0.1',
-                    'port' => $_ENV['REDIS_PORT'] ?? 6379,
+                    'host' => $this->runtimeConfig->host(),
+                    'port' => $this->runtimeConfig->port(),
                 ]);
                 $this->redis->ping();
             }

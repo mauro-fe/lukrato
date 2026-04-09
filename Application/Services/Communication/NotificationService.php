@@ -4,19 +4,20 @@ declare(strict_types=1);
 
 namespace Application\Services\Communication;
 
+use Application\Config\CommunicationRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Models\Notification;
 use Application\Models\MessageCampaign;
 use Application\Models\Usuario;
 use Application\Models\AssinaturaUsuario;
 use Application\Models\Plano;
+use Application\Services\Communication\CommunicationServiceProvider;
 use Application\Services\Infrastructure\SchedulerExecutionLock;
 use Application\Services\Mail\EmailTemplate;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 
 /**
  * NotificationService
@@ -34,25 +35,24 @@ class NotificationService
     private LoggerInterface $logger;
     private CampaignDeliveryStatusResolver $deliveryStatusResolver;
     private SchedulerExecutionLock $schedulerLock;
+    private CommunicationRuntimeConfig $runtimeConfig;
     private ?array $cachedProUserIds = null;
 
     public function __construct(
         ?MailService $mailService = null,
         ?LoggerInterface $logger = null,
         ?CampaignDeliveryStatusResolver $deliveryStatusResolver = null,
-        ?SchedulerExecutionLock $schedulerLock = null
+        ?SchedulerExecutionLock $schedulerLock = null,
+        ?CommunicationRuntimeConfig $runtimeConfig = null
     ) {
         $this->mailService = ApplicationContainer::resolveOrNew($mailService, MailService::class);
-        $this->logger = ApplicationContainer::resolveOrNew(
-            $logger,
-            LoggerInterface::class,
-            static fn(): LoggerInterface => new NullLogger()
-        );
+        $this->logger = $this->resolveLogger($logger);
         $this->deliveryStatusResolver = ApplicationContainer::resolveOrNew(
             $deliveryStatusResolver,
             CampaignDeliveryStatusResolver::class
         );
         $this->schedulerLock = ApplicationContainer::resolveOrNew($schedulerLock, SchedulerExecutionLock::class);
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, CommunicationRuntimeConfig::class);
     }
 
     /**
@@ -153,6 +153,17 @@ class NotificationService
         return Notification::where('id', $notificationId)
             ->where('user_id', $userId)
             ->delete() > 0;
+    }
+
+    private function resolveLogger(?LoggerInterface $logger): LoggerInterface
+    {
+        if ($logger instanceof LoggerInterface) {
+            return $logger;
+        }
+
+        $container = ApplicationContainer::ensureProviderRegistered(CommunicationServiceProvider::class);
+
+        return $container->make(LoggerInterface::class);
     }
 
     /**
@@ -871,7 +882,8 @@ class NotificationService
     private function buildBirthdayEmailHtml(Usuario $user, string $firstName, int $age): string
     {
         $year = date('Y');
-        $dashboardUrl = rtrim($_ENV['APP_URL'] ?? (defined('BASE_URL') ? BASE_URL : 'https://lukrato.com.br'), '/') . '/dashboard';
+        $baseUrl = $this->runtimeConfig->appUrl();
+        $dashboardUrl = ($baseUrl !== '' ? $baseUrl : 'https://lukrato.com.br') . '/dashboard';
 
         $content = "
             <div style='text-align: center; padding: 20px 0;'>

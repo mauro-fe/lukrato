@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use Application\Config\AuthRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Services\AI\Media\AudioTranscriptionService;
 use Application\Services\AI\Media\ImageAnalysisService;
@@ -49,8 +50,10 @@ class UserImportAuthMediaDependencyResolutionTest extends TestCase
         $authService = Mockery::mock(AuthService::class);
         $audioTranscriber = Mockery::mock(AudioTranscriptionService::class);
         $imageAnalysisService = Mockery::mock(ImageAnalysisService::class);
+        $authRuntimeConfig = new AuthRuntimeConfig();
 
         $container = new IlluminateContainer();
+        $container->instance(AuthRuntimeConfig::class, $authRuntimeConfig);
         $container->instance(AchievementService::class, $achievementService);
         $container->instance(OfxImportTargetDetector::class, $ofxImportTargetDetector);
         $container->instance(ImportRowCategorizationService::class, $rowCategorizationService);
@@ -74,6 +77,7 @@ class UserImportAuthMediaDependencyResolutionTest extends TestCase
         $this->assertSame($rowCategorizationService, $this->readProperty($importPreviewService, 'rowCategorizationService'));
         $this->assertSame($googleClient, $this->readProperty($googleAuthService, 'client'));
         $this->assertSame($authService, $this->readProperty($googleAuthService, 'authService'));
+        $this->assertSame($authRuntimeConfig, $this->readProperty($googleAuthService, 'runtimeConfig'));
         $this->assertSame($audioTranscriber, $this->readProperty($mediaRouterService, 'audioTranscriber'));
         $this->assertSame($imageAnalysisService, $this->readProperty($mediaRouterService, 'receiptAnalyzer'));
         $this->assertSame($audioTranscriber, $this->readProperty($videoTranscriptionService, 'transcriber'));

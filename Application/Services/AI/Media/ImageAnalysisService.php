@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Application\Services\AI\Media;
 
 use Application\Services\AI\PromptBuilder;
+use Application\Config\AiRuntimeConfig;
+use Application\Container\ApplicationContainer;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\Http\Message\ResponseInterface;
@@ -16,7 +18,6 @@ class ImageAnalysisService
 {
     private const MAX_IMAGE_SIZE = 20 * 1024 * 1024; // 20MB
     private const MAX_PDF_SIZE = 20 * 1024 * 1024; // 20MB
-    private const DEFAULT_MAX_IMAGE_DIMENSION = 1024;
     private const FORCE_REENCODE_MIN_BYTES = 250_000;
     private const SMALL_IMAGE_AUTO_MAX_DIMENSION = 720;
     private const SMALL_IMAGE_AUTO_MAX_BYTES = 180_000;
@@ -25,20 +26,15 @@ class ImageAnalysisService
     private Client $client;
     private string $apiKey;
     private string $model;
+    private AiRuntimeConfig $runtimeConfig;
 
-    public function __construct()
+    public function __construct(?Client $client = null, ?AiRuntimeConfig $runtimeConfig = null)
     {
-        $this->apiKey = $_ENV['OPENAI_API_KEY'] ?? '';
-        $this->model  = $_ENV['OPENAI_VISION_MODEL']
-            ?? $_ENV['OPENAI_DOCUMENT_MODEL']
-            ?? $_ENV['OPENAI_MODEL']
-            ?? 'gpt-4o-mini';
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, AiRuntimeConfig::class);
+        $this->apiKey = $this->runtimeConfig->openAiApiKey();
+        $this->model  = $this->runtimeConfig->openAiVisionModel();
 
-        $this->client = new Client([
-            'base_uri'        => 'https://api.openai.com/v1/',
-            'timeout'         => 45,
-            'connect_timeout' => 10,
-        ]);
+        $this->client = ApplicationContainer::resolveOrNew($client, OpenAIVisionHttpClient::class);
     }
 
     public function analyzeReceipt(
@@ -141,8 +137,7 @@ class ImageAnalysisService
         string $mimeType,
         ?string $contextHint,
         string $detail = 'auto',
-    ): ResponseInterface
-    {
+    ): ResponseInterface {
         $base64 = base64_encode($content);
 
         return $this->client->post('chat/completions', [
@@ -307,14 +302,15 @@ class ImageAnalysisService
 
     private function resolveImageDetail(?int $width, ?int $height, int $bytes): string
     {
-        $configured = strtolower(trim((string) ($_ENV['OPENAI_VISION_DETAIL'] ?? '')));
-        if (in_array($configured, ['low', 'auto', 'high'], true)) {
+        $configured = $this->runtimeConfig->visionDetail();
+        if ($configured !== null) {
             return $configured;
         }
 
         $maxDimension = max((int) ($width ?? 0), (int) ($height ?? 0));
 
-        if ($maxDimension > 0
+        if (
+            $maxDimension > 0
             && $maxDimension <= self::SMALL_IMAGE_AUTO_MAX_DIMENSION
             && $bytes <= self::SMALL_IMAGE_AUTO_MAX_BYTES
         ) {
@@ -326,8 +322,7 @@ class ImageAnalysisService
 
     private function visionMaxDimension(): int
     {
-        $configured = (int) ($_ENV['OPENAI_VISION_MAX_DIMENSION'] ?? self::DEFAULT_MAX_IMAGE_DIMENSION);
-        return max(768, min(2000, $configured));
+        return $this->runtimeConfig->visionMaxDimension();
     }
 
     private function canOptimizeRasterImage(string $mimeType): bool

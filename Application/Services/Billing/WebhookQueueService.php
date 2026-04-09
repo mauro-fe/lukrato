@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Billing;
 
+use Application\Config\RedisRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Services\Infrastructure\LogService;
 use Application\Enums\LogLevel;
@@ -17,12 +18,15 @@ use Predis\Client as RedisClient;
 class WebhookQueueService
 {
     private ?RedisClient $redis = null;
+    private RedisRuntimeConfig $runtimeConfig;
     private const QUEUE_KEY = 'webhooks:queue';
     private const PROCESSING_KEY = 'webhooks:processing';
     private const FAILED_KEY = 'webhooks:failed';
 
-    public function __construct(?RedisClient $redis = null)
+    public function __construct(?RedisClient $redis = null, ?RedisRuntimeConfig $runtimeConfig = null)
     {
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, RedisRuntimeConfig::class);
+
         try {
             if ($redis instanceof RedisClient) {
                 $this->redis = $redis;
@@ -33,11 +37,7 @@ class WebhookQueueService
                 $resolvedRedis = ApplicationContainer::tryMake(RedisClient::class);
 
                 if (!$resolvedRedis instanceof RedisClient) {
-                    $resolvedRedis = new RedisClient([
-                        'scheme' => 'tcp',
-                        'host'   => $_ENV['REDIS_HOST'] ?? '127.0.0.1',
-                        'port'   => $_ENV['REDIS_PORT'] ?? 6379,
-                    ]);
+                    $resolvedRedis = new RedisClient($this->runtimeConfig->webhookQueueConnection());
                 }
 
                 $this->redis = $resolvedRedis;

@@ -11,6 +11,7 @@ use ReflectionClass;
 class WhatsAppWebhookSecurityTest extends TestCase
 {
     private ?string $originalSecret = null;
+    private string|false $originalSecretGetenv = false;
     private ?string $originalSignature = null;
 
     protected function setUp(): void
@@ -18,6 +19,7 @@ class WhatsAppWebhookSecurityTest extends TestCase
         parent::setUp();
 
         $this->originalSecret = $_ENV['WHATSAPP_APP_SECRET'] ?? null;
+        $this->originalSecretGetenv = getenv('WHATSAPP_APP_SECRET');
         $this->originalSignature = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? null;
     }
 
@@ -27,6 +29,12 @@ class WhatsAppWebhookSecurityTest extends TestCase
             unset($_ENV['WHATSAPP_APP_SECRET']);
         } else {
             $_ENV['WHATSAPP_APP_SECRET'] = $this->originalSecret;
+        }
+
+        if ($this->originalSecretGetenv === false) {
+            putenv('WHATSAPP_APP_SECRET');
+        } else {
+            putenv('WHATSAPP_APP_SECRET=' . $this->originalSecretGetenv);
         }
 
         if ($this->originalSignature === null) {
@@ -41,6 +49,7 @@ class WhatsAppWebhookSecurityTest extends TestCase
     public function testSignatureValidationIsBypassedWhenSecretIsNotConfigured(): void
     {
         unset($_ENV['WHATSAPP_APP_SECRET'], $_SERVER['HTTP_X_HUB_SIGNATURE_256']);
+        putenv('WHATSAPP_APP_SECRET');
 
         $this->assertTrue($this->invokeSignatureValidator('{"test":true}'));
     }
@@ -49,6 +58,7 @@ class WhatsAppWebhookSecurityTest extends TestCase
     {
         $rawBody = '{"entry":[{"id":"abc"}]}';
         $_ENV['WHATSAPP_APP_SECRET'] = 'app-secret-test';
+        putenv('WHATSAPP_APP_SECRET=app-secret-test');
         $_SERVER['HTTP_X_HUB_SIGNATURE_256'] = 'sha256=' . hash_hmac('sha256', $rawBody, 'app-secret-test');
 
         $this->assertTrue($this->invokeSignatureValidator($rawBody));
@@ -57,6 +67,7 @@ class WhatsAppWebhookSecurityTest extends TestCase
     public function testInvalidSignatureIsRejected(): void
     {
         $_ENV['WHATSAPP_APP_SECRET'] = 'app-secret-test';
+        putenv('WHATSAPP_APP_SECRET=app-secret-test');
         $_SERVER['HTTP_X_HUB_SIGNATURE_256'] = 'sha256=invalid';
 
         $this->assertFalse($this->invokeSignatureValidator('{"entry":[{"id":"abc"}]}'));
@@ -65,7 +76,7 @@ class WhatsAppWebhookSecurityTest extends TestCase
     private function invokeSignatureValidator(string $rawBody): bool
     {
         $reflection = new ReflectionClass(WhatsAppWebhookController::class);
-        $controller = $reflection->newInstanceWithoutConstructor();
+        $controller = new WhatsAppWebhookController();
         $method = $reflection->getMethod('isValidWebhookSignature');
         $method->setAccessible(true);
 

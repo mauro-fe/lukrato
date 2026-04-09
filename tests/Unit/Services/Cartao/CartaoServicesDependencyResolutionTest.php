@@ -81,6 +81,7 @@ class CartaoServicesDependencyResolutionTest extends TestCase
         $cartaoCreditoService = new CartaoCreditoService();
         $faturaPaymentService = new CartaoFaturaPaymentService();
         $faturaServiceResolved = new CartaoFaturaService();
+        $postSaleServiceResolved = new CartaoPostSaleService();
         $recorrenciaServiceResolved = new RecorrenciaCartaoService();
 
         $this->assertSame($billingDateService, $this->readProperty($cartaoLancamentoService, 'billingDateService'));
@@ -102,6 +103,9 @@ class CartaoServicesDependencyResolutionTest extends TestCase
 
         $this->assertSame($readService, $this->readProperty($faturaServiceResolved, 'readService'));
         $this->assertSame($paymentService, $this->readProperty($faturaServiceResolved, 'paymentService'));
+
+        $this->assertSame($faturaSupportService, $this->readProperty($postSaleServiceResolved, 'faturaSupportService'));
+        $this->assertSame($limitUpdaterService, $this->readProperty($postSaleServiceResolved, 'limitUpdaterService'));
 
         $this->assertSame($billingDateService, $this->readProperty($recorrenciaServiceResolved, 'billingDateService'));
     }

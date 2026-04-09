@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Handlers;
 
+use Application\Container\ApplicationContainer;
 use Application\DTO\AI\AIRequestDTO;
 use Application\DTO\AI\AIResponseDTO;
 use Application\Enums\AI\IntentType;
@@ -28,7 +29,13 @@ use Illuminate\Database\Capsule\Manager as DB;
 class QuickQueryHandler implements AIHandlerInterface
 {
     private ?AIProvider $provider = null;
+    private ?ChatHandler $chatHandler = null;
     private ?string $lastMessage = null;
+
+    public function __construct(?ChatHandler $chatHandler = null)
+    {
+        $this->chatHandler = $chatHandler;
+    }
 
     public function setProvider(AIProvider $provider): void
     {
@@ -119,9 +126,17 @@ class QuickQueryHandler implements AIHandlerInterface
         }
 
         // Fallback: delegar para o ChatHandler com contexto
-        $chatHandler = new ChatHandler();
-        $chatHandler->setProvider($this->provider);
+        $chatHandler = $this->chatHandler();
+        if ($this->provider !== null) {
+            $chatHandler->setProvider($this->provider);
+        }
+
         return $chatHandler->handle($request);
+    }
+
+    private function chatHandler(): ChatHandler
+    {
+        return $this->chatHandler ??= ApplicationContainer::resolveOrNew($this->chatHandler, ChatHandler::class);
     }
 
     // ─── Extração de período ─────────────────────────────────

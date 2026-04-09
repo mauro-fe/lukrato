@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Telegram;
 
+use Application\Config\TelegramRuntimeConfig;
+use Application\Container\ApplicationContainer;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
@@ -24,18 +26,14 @@ class TelegramService
 
     private Client $http;
     private string $token;
+    private TelegramRuntimeConfig $runtimeConfig;
 
-    public function __construct()
+    public function __construct(?Client $http = null, ?TelegramRuntimeConfig $runtimeConfig = null)
     {
-        $this->token = $_ENV['TELEGRAM_BOT_TOKEN'] ?? getenv('TELEGRAM_BOT_TOKEN') ?: '';
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, TelegramRuntimeConfig::class);
+        $this->token = $this->runtimeConfig->botToken();
 
-        $this->http = new Client([
-            'base_uri' => self::BASE_URL . '/bot' . $this->token . '/',
-            'timeout'  => 10,
-            'headers'  => [
-                'Content-Type' => 'application/json',
-            ],
-        ]);
+        $this->http = ApplicationContainer::resolveOrNew($http, TelegramBotClient::class);
     }
 
     /**
@@ -144,7 +142,7 @@ class TelegramService
      */
     public static function getWebhookSecret(): string
     {
-        return $_ENV['TELEGRAM_WEBHOOK_SECRET'] ?? getenv('TELEGRAM_WEBHOOK_SECRET') ?: '';
+        return self::runtimeConfig()->webhookSecret();
     }
 
     // ─── Internal ──────────────────────────────────────────
@@ -217,5 +215,10 @@ class TelegramService
             \Application\Services\Infrastructure\LogService::safeErrorLog("[Telegram] Erro ao chamar {$method}: " . $e->getMessage());
             return ['ok' => false, 'description' => $e->getMessage()];
         }
+    }
+
+    private static function runtimeConfig(): TelegramRuntimeConfig
+    {
+        return ApplicationContainer::resolveOrNew(null, TelegramRuntimeConfig::class);
     }
 }

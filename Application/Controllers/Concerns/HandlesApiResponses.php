@@ -197,9 +197,9 @@ trait HandlesApiResponses
             e: $e,
             publicMessage: $userMessage,
             context: array_merge([
-                'url' => ($_SERVER['REQUEST_METHOD'] ?? '-') . ' ' . ($_SERVER['REQUEST_URI'] ?? '-'),
+                'url' => $this->request->method() . ' ' . $this->request->uri('-'),
                 'user_id' => $this->userId ?? null,
-                'ip' => $_SERVER['REMOTE_ADDR'] ?? null,
+                'ip' => $this->request->ip(),
             ], $extra),
             userId: $this->userId ?? null,
             category: $category,

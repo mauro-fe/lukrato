@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\WhatsApp;
 
+use Application\Config\WhatsAppRuntimeConfig;
+use Application\Container\ApplicationContainer;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
@@ -28,20 +30,15 @@ class WhatsAppService
     private Client $http;
     private string $token;
     private string $phoneId;
+    private WhatsAppRuntimeConfig $runtimeConfig;
 
-    public function __construct()
+    public function __construct(?Client $http = null, ?WhatsAppRuntimeConfig $runtimeConfig = null)
     {
-        $this->token   = $_ENV['WHATSAPP_TOKEN']    ?? getenv('WHATSAPP_TOKEN')    ?: '';
-        $this->phoneId = $_ENV['WHATSAPP_PHONE_ID'] ?? getenv('WHATSAPP_PHONE_ID') ?: '';
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, WhatsAppRuntimeConfig::class);
+        $this->token = $this->runtimeConfig->token();
+        $this->phoneId = $this->runtimeConfig->phoneId();
 
-        $this->http = new Client([
-            'base_uri' => self::BASE_URL . '/' . self::API_VERSION . '/',
-            'timeout'  => 10,
-            'headers'  => [
-                'Authorization' => 'Bearer ' . $this->token,
-                'Content-Type'  => 'application/json',
-            ],
-        ]);
+        $this->http = ApplicationContainer::resolveOrNew($http, WhatsAppGraphClient::class);
     }
 
     /**
@@ -204,7 +201,7 @@ class WhatsAppService
      */
     public static function getVerifyToken(): string
     {
-        return $_ENV['WHATSAPP_VERIFY_TOKEN'] ?? getenv('WHATSAPP_VERIFY_TOKEN') ?: '';
+        return self::runtimeConfig()->verifyToken();
     }
 
     /**
@@ -212,6 +209,11 @@ class WhatsAppService
      */
     public static function getAppSecret(): string
     {
-        return $_ENV['WHATSAPP_APP_SECRET'] ?? getenv('WHATSAPP_APP_SECRET') ?: '';
+        return self::runtimeConfig()->appSecret();
+    }
+
+    private static function runtimeConfig(): WhatsAppRuntimeConfig
+    {
+        return ApplicationContainer::resolveOrNew(null, WhatsAppRuntimeConfig::class);
     }
 }

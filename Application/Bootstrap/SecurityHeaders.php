@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Application\Bootstrap;
 
+use Application\Config\InfrastructureRuntimeConfig;
+use Application\Container\ApplicationContainer;
+
 class SecurityHeaders
 {
     /**
@@ -38,10 +41,16 @@ class SecurityHeaders
         'Strict-Transport-Security' => 'max-age=31536000; includeSubDomains; preload',
     ];
 
+    private InfrastructureRuntimeConfig $runtimeConfig;
+
+    public function __construct(?InfrastructureRuntimeConfig $runtimeConfig = null)
+    {
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, InfrastructureRuntimeConfig::class);
+    }
+
     private function isDev(): bool
     {
-        return (defined('APP_ENV') && APP_ENV === 'development')
-            || (($_ENV['APP_ENV'] ?? 'production') === 'development');
+        return $this->runtimeConfig->isDevelopment();
     }
 
     private function isLocalHost(string $host): bool

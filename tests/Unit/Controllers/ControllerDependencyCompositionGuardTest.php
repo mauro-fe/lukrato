@@ -26,6 +26,7 @@ class ControllerDependencyCompositionGuardTest extends TestCase
             'Application/Controllers/Api/Metas/MetasController.php',
             'Application/Controllers/Api/Orcamentos/OrcamentosController.php',
             'Application/Controllers/Api/Report/RelatoriosController.php',
+            'Application/Controllers/Api/AI/UserAiController.php',
             'Application/Controllers/Api/Perfil/PerfilController.php',
         ];
 
@@ -107,6 +108,11 @@ class ControllerDependencyCompositionGuardTest extends TestCase
             'Application/Controllers/Api/Orcamentos/OrcamentosController.php' => [
                 'OrcamentoService',
                 'DemoPreviewService',
+            ],
+            'Application/Controllers/Api/AI/UserAiController.php' => [
+                'AIService',
+                'UserContextBuilder',
+                'MediaRouterService',
             ],
         ];
 
@@ -193,6 +199,28 @@ class ControllerDependencyCompositionGuardTest extends TestCase
             'CampaignController não deve montar CampaignApiWorkflowService inline.'
         );
 
+        $userAiController = (string) file_get_contents('Application/Controllers/Api/AI/UserAiController.php');
+        $this->assertStringNotContainsString(
+            'fn(): UserAiWorkflowService => new UserAiWorkflowService(',
+            $userAiController,
+            'UserAiController não deve montar UserAiWorkflowService inline.'
+        );
+        $this->assertStringNotContainsString(
+            '?AIService $aiService',
+            $userAiController,
+            'UserAiController não deve depender diretamente de AIService.'
+        );
+        $this->assertStringNotContainsString(
+            '?UserContextBuilder $contextBuilder',
+            $userAiController,
+            'UserAiController não deve depender diretamente de UserContextBuilder.'
+        );
+        $this->assertStringNotContainsString(
+            '?MediaRouterService $mediaRouterService',
+            $userAiController,
+            'UserAiController não deve depender diretamente de MediaRouterService.'
+        );
+
         $blogController = (string) file_get_contents('Application/Controllers/SysAdmin/BlogController.php');
         $this->assertStringNotContainsString(
             'fn(): BlogAdminWorkflowService => new BlogAdminWorkflowService(',
@@ -272,5 +300,28 @@ class ControllerDependencyCompositionGuardTest extends TestCase
             $perfilController,
             'PerfilController não deve montar PerfilApiWorkflowService inline.'
         );
+    }
+
+    public function testRequestBoundaryControllersDoNotReadSuperglobalsDirectly(): void
+    {
+        $files = [
+            'Application/Controllers/Auth/GoogleLoginController.php',
+            'Application/Controllers/Concerns/HandlesApiResponses.php',
+            'Application/Controllers/SysAdmin/BlogController.php',
+            'Application/Controllers/Api/AI/WhatsAppWebhookController.php',
+            'Application/Controllers/Api/AI/TelegramWebhookController.php',
+            'Application/Controllers/Api/Billing/AsaasWebhookController.php',
+            'Application/Controllers/Api/Feedback/FeedbackController.php',
+        ];
+
+        foreach ($files as $filePath) {
+            $content = (string) file_get_contents($filePath);
+
+            $this->assertDoesNotMatchRegularExpression(
+                '/\$_GET\[|\$_POST\[|\$_FILES\[|\$_SERVER\[/',
+                $content,
+                "Controller/request concern não deve ler superglobais diretamente: {$filePath}"
+            );
+        }
     }
 }

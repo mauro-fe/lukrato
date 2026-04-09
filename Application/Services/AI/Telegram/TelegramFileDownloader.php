@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Telegram;
 
+use Application\Config\TelegramRuntimeConfig;
+use Application\Container\ApplicationContainer;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
@@ -23,15 +25,13 @@ class TelegramFileDownloader
 
     private Client $http;
     private string $token;
+    private TelegramRuntimeConfig $runtimeConfig;
 
-    public function __construct()
+    public function __construct(?Client $http = null, ?TelegramRuntimeConfig $runtimeConfig = null)
     {
-        $this->token = $_ENV['TELEGRAM_BOT_TOKEN'] ?? getenv('TELEGRAM_BOT_TOKEN') ?: '';
-
-        $this->http = new Client([
-            'timeout'         => 30,
-            'connect_timeout' => 10,
-        ]);
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, TelegramRuntimeConfig::class);
+        $this->token = $this->runtimeConfig->botToken();
+        $this->http = ApplicationContainer::resolveOrNew($http, TelegramFileHttpClient::class);
     }
 
     /**

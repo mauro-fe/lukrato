@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use Application\Config\BillingRuntimeConfig;
+use Application\Config\InfrastructureRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Services\Billing\SubscriptionExpirationService;
 use Application\Services\Cartao\RecorrenciaCartaoService;
@@ -22,6 +24,7 @@ use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 class ScheduledOperationsDependencyResolutionTest extends TestCase
 {
@@ -47,6 +50,8 @@ class ScheduledOperationsDependencyResolutionTest extends TestCase
         $notificationService = Mockery::mock(NotificationService::class);
         $cacheService = Mockery::mock(CacheService::class);
         $lock = Mockery::mock(SchedulerExecutionLock::class);
+        $billingRuntimeConfig = new BillingRuntimeConfig();
+        $infrastructureRuntimeConfig = new InfrastructureRuntimeConfig();
         $lancamentoReminderService = Mockery::mock(LancamentoReminderDispatchService::class);
         $faturaReminderService = Mockery::mock(FaturaReminderDispatchService::class);
         $subscriptionExpirationService = Mockery::mock(SubscriptionExpirationService::class);
@@ -60,6 +65,8 @@ class ScheduledOperationsDependencyResolutionTest extends TestCase
         $container->instance(NotificationService::class, $notificationService);
         $container->instance(CacheService::class, $cacheService);
         $container->instance(SchedulerExecutionLock::class, $lock);
+        $container->instance(BillingRuntimeConfig::class, $billingRuntimeConfig);
+        $container->instance(InfrastructureRuntimeConfig::class, $infrastructureRuntimeConfig);
         $container->instance(LancamentoReminderDispatchService::class, $lancamentoReminderService);
         $container->instance(FaturaReminderDispatchService::class, $faturaReminderService);
         $container->instance(SubscriptionExpirationService::class, $subscriptionExpirationService);
@@ -91,8 +98,10 @@ class ScheduledOperationsDependencyResolutionTest extends TestCase
         $this->assertSame($lancamentoCreationService, $this->readProperty($runner, 'lancamentoCreationService'));
         $this->assertSame($recorrenciaCartaoService, $this->readProperty($runner, 'recorrenciaCartaoService'));
         $this->assertSame($mailService, $this->readProperty($runner, 'mailService'));
+        $this->assertSame($infrastructureRuntimeConfig, $this->readProperty($runner, 'runtimeConfig'));
 
         $this->assertSame($mailService, $this->readProperty($subscriptionExpiration, 'mail'));
+        $this->assertSame($billingRuntimeConfig, $this->readProperty($subscriptionExpiration, 'runtimeConfig'));
         $this->assertSame($mailService, $this->readProperty($lancamentoReminder, 'mailService'));
         $this->assertSame($mailService, $this->readProperty($faturaReminder, 'mailService'));
         $this->assertSame($logger, $this->readProperty($mail, 'logger'));
@@ -102,6 +111,17 @@ class ScheduledOperationsDependencyResolutionTest extends TestCase
         $debug = $runner->debug();
 
         $this->assertTrue($debug['mail_configured']);
+    }
+
+    public function testCommunicationServicesUseNullLoggerWhenContainerHasNoLoggerBinding(): void
+    {
+        ApplicationContainer::flush();
+
+        $mail = new MailService();
+        $notification = new NotificationService(Mockery::mock(MailService::class));
+
+        $this->assertInstanceOf(NullLogger::class, $this->readProperty($mail, 'logger'));
+        $this->assertInstanceOf(NullLogger::class, $this->readProperty($notification, 'logger'));
     }
 
     private function readProperty(object $object, string $property): mixed

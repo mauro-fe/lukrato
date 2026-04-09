@@ -27,14 +27,7 @@ class CartaoCreditoLancamentoService
         $this->billingDateService = ApplicationContainer::resolveOrNew($billingDateService, CartaoBillingDateService::class);
         $this->faturaSupportService = ApplicationContainer::resolveOrNew($faturaSupportService, CartaoFaturaSupportService::class);
         $this->limitUpdaterService = ApplicationContainer::resolveOrNew($limitUpdaterService, CartaoLimitUpdaterService::class);
-        $this->postSaleService = ApplicationContainer::resolveOrNew(
-            $postSaleService,
-            CartaoPostSaleService::class,
-            fn(): CartaoPostSaleService => new CartaoPostSaleService(
-                $this->faturaSupportService,
-                $this->limitUpdaterService
-            )
-        );
+        $this->postSaleService = ApplicationContainer::resolveOrNew($postSaleService, CartaoPostSaleService::class);
     }
 
     /**

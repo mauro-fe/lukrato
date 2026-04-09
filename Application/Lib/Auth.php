@@ -2,6 +2,8 @@
 
 namespace Application\Lib;
 
+use Application\Config\InfrastructureRuntimeConfig;
+use Application\Container\ApplicationContainer;
 use Application\Models\Usuario;
 
 class Auth
@@ -236,11 +238,14 @@ class Auth
 
     private static function isTrustedProxy(string $remoteAddr): bool
     {
-        $trustedProxies = array_filter(array_map(
-            'trim',
-            explode(',', $_ENV['TRUSTED_PROXIES'] ?? getenv('TRUSTED_PROXIES') ?: '')
-        ));
+        $trustedProxies = self::runtimeConfig()->trustedProxies();
 
         return $remoteAddr !== '' && in_array($remoteAddr, $trustedProxies, true);
+    }
+
+    private static function runtimeConfig(): InfrastructureRuntimeConfig
+    {
+        return ApplicationContainer::tryMake(InfrastructureRuntimeConfig::class)
+            ?? new InfrastructureRuntimeConfig();
     }
 }

@@ -22,11 +22,7 @@ class CartaoFaturaService
         ?CartaoFaturaPaymentService $paymentService = null
     ) {
         $this->readService = ApplicationContainer::resolveOrNew($readService, CartaoFaturaReadService::class);
-        $this->paymentService = ApplicationContainer::resolveOrNew(
-            $paymentService,
-            CartaoFaturaPaymentService::class,
-            fn(): CartaoFaturaPaymentService => new CartaoFaturaPaymentService($this->readService)
-        );
+        $this->paymentService = ApplicationContainer::resolveOrNew($paymentService, CartaoFaturaPaymentService::class);
     }
 
     public function obterHistoricoFaturasPagas(int $cartaoId, int $userId, int $limite = 12): array

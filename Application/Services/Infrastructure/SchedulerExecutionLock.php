@@ -4,16 +4,21 @@ declare(strict_types=1);
 
 namespace Application\Services\Infrastructure;
 
+use Application\Config\InfrastructureRuntimeConfig;
+use Application\Container\ApplicationContainer;
 use RuntimeException;
 
 class SchedulerExecutionLock
 {
     /** @var resource|null */
     private $handle = null;
+    private readonly InfrastructureRuntimeConfig $runtimeConfig;
 
     public function __construct(
-        private readonly ?string $baseDirectory = null
+        private readonly ?string $baseDirectory = null,
+        ?InfrastructureRuntimeConfig $runtimeConfig = null
     ) {
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, InfrastructureRuntimeConfig::class);
     }
 
     public function acquire(string $name = 'scheduler'): void
@@ -75,7 +80,7 @@ class SchedulerExecutionLock
     {
         $safeName = preg_replace('/[^a-zA-Z0-9_-]+/', '-', $name) ?: 'scheduler';
         $basePath = $this->baseDirectory
-            ?? ($_ENV['STORAGE_PATH'] ?? (defined('BASE_PATH') ? BASE_PATH . '/storage' : sys_get_temp_dir()));
+            ?? $this->runtimeConfig->schedulerLockBaseDirectory();
 
         return rtrim($basePath, '/\\') . DIRECTORY_SEPARATOR . 'locks' . DIRECTORY_SEPARATOR . $safeName . '.lock';
     }

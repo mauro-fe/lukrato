@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Providers;
 
+use Application\Config\AiRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\PromptBuilder;
@@ -26,22 +27,20 @@ class OpenAIProvider implements AIProvider
     private array $lastMeta = [];
     private array $lastRateLimits = [];
     private CacheService $cache;
+    private AiRuntimeConfig $runtimeConfig;
 
-    public function __construct(?Client $client = null, ?CacheService $cache = null)
+    public function __construct(?Client $client = null, ?CacheService $cache = null, ?AiRuntimeConfig $runtimeConfig = null)
     {
-        $this->apiKey = $_ENV['OPENAI_API_KEY'] ?? '';
-        $this->model  = $_ENV['OPENAI_MODEL'] ?? 'gpt-4o-mini';
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, AiRuntimeConfig::class);
+        $this->apiKey = $this->runtimeConfig->openAiApiKey();
+        $this->model  = $this->runtimeConfig->openAiModel();
         $this->cache = ApplicationContainer::resolveOrNew($cache, CacheService::class);
 
-        $this->client = ApplicationContainer::resolveOrNew(
-            $client,
-            Client::class,
-            static fn(): Client => new Client([
-                'base_uri'        => 'https://api.openai.com/v1/',
-                'timeout'         => 30,
-                'connect_timeout' => 10,
-            ])
-        );
+        $resolvedClient = $client
+            ?? ApplicationContainer::tryMake(OpenAIHttpClient::class)
+            ?? ApplicationContainer::tryMake(Client::class);
+
+        $this->client = ApplicationContainer::resolveOrNew($resolvedClient, OpenAIHttpClient::class);
     }
 
     // ─── Metadata ──────────────────────────────────────────────

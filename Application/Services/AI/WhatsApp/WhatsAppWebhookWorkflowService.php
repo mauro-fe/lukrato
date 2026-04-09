@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\WhatsApp;
 
+use Application\Config\AiRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\DTO\AI\AIResponseDTO;
 use Application\DTO\AI\WhatsAppMessageDTO;
@@ -47,6 +48,7 @@ class WhatsAppWebhookWorkflowService
     private CacheService $cache;
     private ActionRegistry $actionRegistry;
     private AIRateLimiter $rateLimiter;
+    private ?AiRuntimeConfig $aiRuntimeConfig = null;
 
     public function __construct(
         ?WhatsAppService $whatsapp = null,
@@ -412,10 +414,7 @@ class WhatsAppWebhookWorkflowService
             'prompt' => "[media:{$fileId}]" . ($caption ? " caption: {$caption}" : ''),
             'response' => $result->text !== '' ? $result->text : json_encode($result->data, JSON_UNESCAPED_UNICODE),
             'provider' => 'openai',
-            'model' => $_ENV['OPENAI_VISION_MODEL']
-                ?? $_ENV['OPENAI_TRANSCRIPTION_MODEL']
-                ?? $_ENV['OPENAI_MODEL']
-                ?? 'gpt-4o-mini',
+            'model' => $this->aiRuntimeConfig()->mediaLogModel(),
             'tokens_prompt' => $result->tokensPrompt,
             'tokens_completion' => $result->tokensCompletion,
             'tokens_total' => $result->tokensUsed > 0
@@ -425,6 +424,11 @@ class WhatsAppWebhookWorkflowService
             'success' => $result->success,
             'error_message' => $result->error,
         ]);
+    }
+
+    private function aiRuntimeConfig(): AiRuntimeConfig
+    {
+        return $this->aiRuntimeConfig ??= ApplicationContainer::resolveOrNew(null, AiRuntimeConfig::class);
     }
 
     private function handleNormalMessage(WhatsAppMessageDTO $dto, Usuario $user, WhatsAppMessage $msgRecord): void

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Auth;
 
+use Application\Config\AuthRuntimeConfig;
 use Application\Controllers\WebController;
 use Application\Core\Response;
 use Application\Enums\LogCategory;
@@ -15,19 +16,26 @@ use Throwable;
 class GoogleCallbackController extends WebController
 {
     private GoogleAuthService $googleAuthService;
+    private AuthRuntimeConfig $runtimeConfig;
 
-    public function __construct(?GoogleAuthService $googleAuthService = null)
+    public function __construct(
+        ?GoogleAuthService $googleAuthService = null,
+        ?AuthRuntimeConfig $runtimeConfig = null
+    )
     {
         parent::__construct();
         $this->googleAuthService = $this->resolveOrCreate($googleAuthService, GoogleAuthService::class);
+        $this->runtimeConfig = $this->resolveOrCreate($runtimeConfig, AuthRuntimeConfig::class);
     }
 
     public function callback(): Response
     {
         try {
+            $redirectUri = $this->runtimeConfig->googleRedirectUri();
+
             LogService::info('Google callback iniciado', [
                 'query_params' => $_GET,
-                'env_redirect_uri' => $_ENV['GOOGLE_REDIRECT_URI'] ?? 'NAO DEFINIDO',
+                'env_redirect_uri' => $redirectUri !== '' ? $redirectUri : 'NAO DEFINIDO',
                 'base_url' => BASE_URL,
             ]);
 

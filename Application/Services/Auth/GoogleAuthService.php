@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Auth;
 
+use Application\Config\AuthRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Enums\LogCategory;
 use Application\Models\Usuario;
@@ -24,13 +25,16 @@ class GoogleAuthService
     private AuthService $authService;
     private MailService $mailService;
     private SessionManager $sessionManager;
+    private AuthRuntimeConfig $runtimeConfig;
 
     public function __construct(
         ?Google_Client $client = null,
         ?AuthService $authService = null,
         ?MailService $mailService = null,
-        ?SessionManager $sessionManager = null
+        ?SessionManager $sessionManager = null,
+        ?AuthRuntimeConfig $runtimeConfig = null
     ) {
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, AuthRuntimeConfig::class);
         $this->client = ApplicationContainer::resolveOrNew(
             $client,
             Google_Client::class,
@@ -296,18 +300,14 @@ class GoogleAuthService
 
     private function createGoogleClient(): Google_Client
     {
-        if (
-            empty($_ENV['GOOGLE_CLIENT_ID'])
-            || empty($_ENV['GOOGLE_CLIENT_SECRET'])
-            || empty($_ENV['GOOGLE_REDIRECT_URI'])
-        ) {
+        if (!$this->runtimeConfig->hasGoogleOauthCredentials()) {
             throw new RuntimeException('Google OAuth nao configurado no .env');
         }
 
         $client = new Google_Client();
-        $client->setClientId($_ENV['GOOGLE_CLIENT_ID']);
-        $client->setClientSecret($_ENV['GOOGLE_CLIENT_SECRET']);
-        $client->setRedirectUri($_ENV['GOOGLE_REDIRECT_URI']);
+        $client->setClientId($this->runtimeConfig->googleClientId());
+        $client->setClientSecret($this->runtimeConfig->googleClientSecret());
+        $client->setRedirectUri($this->runtimeConfig->googleRedirectUri());
 
         $client->addScope('email');
         $client->addScope('profile');

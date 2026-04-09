@@ -9,8 +9,7 @@ use Application\Core\Exceptions\AuthException;
 use Application\DTO\AI\AIResponseDTO;
 use Application\Enums\AI\IntentType;
 use Application\Models\Usuario;
-use Application\Services\AI\AIService;
-use Application\Services\AI\Context\UserContextBuilder;
+use Application\Services\AI\UserAiWorkflowService;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
@@ -82,29 +81,26 @@ class UserAiControllerTest extends TestCase
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
-    public function testChatReturnsSuccessResponseWithInjectedAiService(): void
+    public function testChatReturnsSuccessResponseWithInjectedWorkflowService(): void
     {
         $this->seedAuthenticatedSession(1903, 'AI User');
         $_POST['message'] = 'Me ajuda com minhas finanças?';
 
-        $aiService = Mockery::mock(AIService::class);
-        $aiService
-            ->shouldReceive('dispatch')
+        $workflowService = Mockery::mock(UserAiWorkflowService::class);
+        $workflowService
+            ->shouldReceive('chat')
             ->once()
-            ->andReturn(AIResponseDTO::fromRule(
-                'Claro, vamos analisar.',
-                ['hint' => 'ok'],
-                IntentType::CHAT
-            ));
+            ->with(1903, 'Me ajuda com minhas finanças?', null)
+            ->andReturn([
+                'response' => AIResponseDTO::fromRule(
+                    'Claro, vamos analisar.',
+                    ['hint' => 'ok'],
+                    IntentType::CHAT
+                ),
+                'derived_message' => null,
+            ]);
 
-        $contextBuilder = Mockery::mock(UserContextBuilder::class);
-        $contextBuilder
-            ->shouldReceive('build')
-            ->once()
-            ->with(1903)
-            ->andReturn([]);
-
-        $controller = new UserAiController($aiService, $contextBuilder);
+        $controller = new UserAiController($workflowService);
 
         $response = $controller->chat();
 

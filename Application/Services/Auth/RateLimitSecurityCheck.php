@@ -16,9 +16,9 @@ class RateLimitSecurityCheck extends AbstractSecurityCheck
     private CacheService $cache;
     private string $prefix;
 
-    public function __construct(Request $request, ?CacheService $cache = null, string $prefix = 'login')
+    public function __construct(?Request $request = null, ?CacheService $cache = null, string $prefix = 'login')
     {
-        parent::__construct($request);
+        parent::__construct(ApplicationContainer::resolveOrNew($request, Request::class));
         $this->cache = ApplicationContainer::resolveOrNew($cache, CacheService::class);
         $this->prefix = $prefix;
     }

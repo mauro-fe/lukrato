@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\AI;
 
+use Application\Config\TelegramRuntimeConfig;
+use Application\Container\ApplicationContainer;
 use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Models\Usuario;
@@ -107,11 +109,11 @@ class TelegramLinkController extends ApiController
 
     private function botUsername(): string
     {
-        $username = $_ENV['TELEGRAM_BOT_USERNAME'] ?? null;
-        if ($username === null || $username === '') {
-            $username = getenv('TELEGRAM_BOT_USERNAME');
-        }
+        return $this->telegramRuntimeConfig()->botUsername();
+    }
 
-        return trim((string) $username) !== '' ? (string) $username : 'LukratoBot';
+    private function telegramRuntimeConfig(): TelegramRuntimeConfig
+    {
+        return ApplicationContainer::resolveOrNew(null, TelegramRuntimeConfig::class);
     }
 }

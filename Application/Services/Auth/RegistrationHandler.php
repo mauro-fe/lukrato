@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Application\Services\Auth;
 
 use Application\Container\ApplicationContainer;
+use Application\Core\Request;
 use Application\DTO\Auth\RegistrationDTO;
 use Application\Models\Usuario;
 use Application\Services\Infrastructure\LogService;
@@ -15,10 +16,12 @@ class RegistrationHandler
 {
     private RegistrationValidationStrategy $validationStrategy;
     private ReferralAntifraudService $antifraudService;
+    private Request $request;
 
     public function __construct(
         ?RegistrationValidationStrategy $validationStrategy = null,
-        ?ReferralAntifraudService $antifraudService = null
+        ?ReferralAntifraudService $antifraudService = null,
+        ?Request $request = null
     ) {
         $this->validationStrategy = ApplicationContainer::resolveOrNew(
             $validationStrategy,
@@ -28,6 +31,7 @@ class RegistrationHandler
             $antifraudService,
             ReferralAntifraudService::class
         );
+        $this->request = ApplicationContainer::resolveOrNew($request, Request::class);
     }
 
     public function handle(RegistrationDTO $registration): array
@@ -35,7 +39,7 @@ class RegistrationHandler
         try {
             $this->validationStrategy->validateRegistration($registration);
 
-            $ip = $_SERVER['REMOTE_ADDR'] ?? null;
+            $ip = $this->request->ip();
 
             // Verificação anti-fraude antes de criar conta
             $this->validateAntifraud($registration->email, $ip);

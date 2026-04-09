@@ -83,7 +83,7 @@ class BlogController extends ApiController
         $this->requireApiAdminUserAndReleaseSessionOrFail();
 
         return $this->respondApiWorkflowResult(
-            $this->workflowService->deletePost($id, (string) ($_SERVER['DOCUMENT_ROOT'] ?? '')),
+            $this->workflowService->deletePost($id, (string) $this->request->server('DOCUMENT_ROOT', '')),
             'Erro ao processar operacao do blog.',
             LogCategory::GENERAL,
             ['controller' => 'sysadmin_blog'],
@@ -97,8 +97,8 @@ class BlogController extends ApiController
 
         return $this->respondApiWorkflowResult(
             $this->workflowService->uploadImage(
-                is_array($_FILES['imagem'] ?? null) ? $_FILES['imagem'] : [],
-                (string) ($_SERVER['DOCUMENT_ROOT'] ?? ''),
+                $this->request->file('imagem') ?? [],
+                (string) $this->request->server('DOCUMENT_ROOT', ''),
                 (string) BASE_URL
             ),
             'Erro ao processar operacao do blog.',

@@ -4,12 +4,21 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Core;
 
+use Application\Container\ApplicationContainer;
 use Application\Core\Request;
 use Application\Core\Exceptions\ValidationException;
+use Application\Core\Validation\RequestValidator;
+use Illuminate\Container\Container as IlluminateContainer;
 use PHPUnit\Framework\TestCase;
 
 class RequestTest extends TestCase
 {
+    protected function tearDown(): void
+    {
+        ApplicationContainer::flush();
+        parent::tearDown();
+    }
+
     public function testQueryAndInputRemainSeparated(): void
     {
         $request = new Request(
@@ -106,6 +115,90 @@ class RequestTest extends TestCase
         $this->assertSame('10.0.0.1', $request->ip());
     }
 
+    public function testIpUsesCloudflareHeaderWhenRequestComesFromTrustedProxy(): void
+    {
+        $hadTrustedProxies = array_key_exists('TRUSTED_PROXIES', $_ENV);
+        $originalTrustedProxies = $_ENV['TRUSTED_PROXIES'] ?? null;
+        $_ENV['TRUSTED_PROXIES'] = '127.0.0.10';
+
+        try {
+            $request = new Request(server: [
+                'REQUEST_METHOD' => 'GET',
+                'REMOTE_ADDR' => '127.0.0.10',
+                'HTTP_CF_CONNECTING_IP' => '8.8.8.8',
+                'HTTP_X_REAL_IP' => '9.9.9.9',
+            ]);
+
+            $this->assertSame('8.8.8.8', $request->ip());
+        } finally {
+            if ($hadTrustedProxies) {
+                $_ENV['TRUSTED_PROXIES'] = $originalTrustedProxies;
+            } else {
+                unset($_ENV['TRUSTED_PROXIES']);
+            }
+        }
+    }
+
+    public function testIpUsesXRealIpWhenTrustedProxyDoesNotExposeCloudflareHeader(): void
+    {
+        $hadTrustedProxies = array_key_exists('TRUSTED_PROXIES', $_ENV);
+        $originalTrustedProxies = $_ENV['TRUSTED_PROXIES'] ?? null;
+        $_ENV['TRUSTED_PROXIES'] = '127.0.0.10';
+
+        try {
+            $request = new Request(server: [
+                'REQUEST_METHOD' => 'GET',
+                'REMOTE_ADDR' => '127.0.0.10',
+                'HTTP_X_REAL_IP' => '9.9.9.9',
+                'HTTP_X_FORWARDED_FOR' => '8.8.4.4, 10.0.0.1',
+            ]);
+
+            $this->assertSame('9.9.9.9', $request->ip());
+        } finally {
+            if ($hadTrustedProxies) {
+                $_ENV['TRUSTED_PROXIES'] = $originalTrustedProxies;
+            } else {
+                unset($_ENV['TRUSTED_PROXIES']);
+            }
+        }
+    }
+
+    public function testIpFallsBackToFirstValidPrivateForwardedIpWhenTrustedProxyHasNoPublicClientIp(): void
+    {
+        $hadTrustedProxies = array_key_exists('TRUSTED_PROXIES', $_ENV);
+        $originalTrustedProxies = $_ENV['TRUSTED_PROXIES'] ?? null;
+        $_ENV['TRUSTED_PROXIES'] = '127.0.0.10';
+
+        try {
+            $request = new Request(server: [
+                'REQUEST_METHOD' => 'GET',
+                'REMOTE_ADDR' => '127.0.0.10',
+                'HTTP_X_FORWARDED_FOR' => '10.8.0.5, 10.8.0.6',
+            ]);
+
+            $this->assertSame('10.8.0.5', $request->ip());
+        } finally {
+            if ($hadTrustedProxies) {
+                $_ENV['TRUSTED_PROXIES'] = $originalTrustedProxies;
+            } else {
+                unset($_ENV['TRUSTED_PROXIES']);
+            }
+        }
+    }
+
+    public function testServerAndUriExposeInjectedServerState(): void
+    {
+        $request = new Request(server: [
+            'REQUEST_METHOD' => 'GET',
+            'REQUEST_URI' => '/api/blog/upload?draft=1',
+            'DOCUMENT_ROOT' => 'C:/xampp/htdocs/lukrato/public',
+        ]);
+
+        $this->assertSame('/api/blog/upload?draft=1', $request->uri());
+        $this->assertSame('C:/xampp/htdocs/lukrato/public', $request->server('DOCUMENT_ROOT'));
+        $this->assertSame('fallback', $request->server('MISSING_KEY', 'fallback'));
+    }
+
     public function testValidateDelegatesAndAcceptsValidCpfThroughCompatRule(): void
     {
         $request = new Request(
@@ -147,5 +240,41 @@ class RequestTest extends TestCase
             $this->assertArrayHasKey('documento', $e->getErrors());
             $this->assertStringContainsString('CPF', (string) $e->getErrors()['documento']);
         }
+    }
+
+    public function testValidateUsesContainerValidatorWhenAvailable(): void
+    {
+        $validator = new class extends RequestValidator {
+            public function validate(array $data, array $rules, array $filters = []): array
+            {
+                return [
+                    'source' => 'container',
+                    'rules' => $rules,
+                    'data' => $data,
+                ];
+            }
+        };
+
+        $container = new IlluminateContainer();
+        $container->instance(RequestValidator::class, $validator);
+        ApplicationContainer::setInstance($container);
+
+        $request = new Request(
+            server: [
+                'REQUEST_METHOD' => 'POST',
+                'CONTENT_TYPE' => 'application/x-www-form-urlencoded',
+            ],
+            post: [
+                'documento' => '529.982.247-25',
+            ]
+        );
+
+        $validated = $request->validate([
+            'documento' => 'required|cpf_cnpj',
+        ]);
+
+        $this->assertSame('container', $validated['source']);
+        $this->assertSame(['documento' => 'required|cpf_cnpj'], $validated['rules']);
+        $this->assertSame(['documento' => '529.982.247-25'], $validated['data']);
     }
 }

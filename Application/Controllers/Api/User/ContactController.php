@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Api\User;
 
+use Application\Config\CommunicationRuntimeConfig;
 use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Services\Communication\MailService;
@@ -11,11 +12,16 @@ use Application\Services\Communication\MailService;
 class ContactController extends ApiController
 {
     private MailService $mail;
+    private CommunicationRuntimeConfig $runtimeConfig;
 
-    public function __construct(?MailService $mail = null)
+    public function __construct(
+        ?MailService $mail = null,
+        ?CommunicationRuntimeConfig $runtimeConfig = null
+    )
     {
         parent::__construct();
         $this->mail = $this->resolveOrCreate($mail, MailService::class);
+        $this->runtimeConfig = $this->resolveOrCreate($runtimeConfig, CommunicationRuntimeConfig::class);
     }
 
     public function send(): Response
@@ -38,9 +44,7 @@ class ContactController extends ApiController
         require $templatePath;
         $html = ob_get_clean();
 
-        $to = $_ENV['MAIL_USERNAME']
-            ?? $_ENV['MAIL_FROM']
-            ?? 'lukratosistema@gmail.com';
+        $to = $this->runtimeConfig->mailInboxEmail();
 
         $replyTo = ['email' => $email, 'name' => $nome];
 

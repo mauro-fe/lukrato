@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Application\Services\Referral;
 
 use Application\Container\ApplicationContainer;
+use Application\Core\Request;
 use Application\Models\Usuario;
 use Application\Models\Indicacao;
 use Application\Models\AssinaturaUsuario;
@@ -28,13 +29,16 @@ class ReferralService
 
     private ?ReferralAntifraudService $antifraudService;
     private ?AchievementService $achievementService;
+    private readonly Request $request;
 
     public function __construct(
         ?ReferralAntifraudService $antifraudService = null,
-        ?AchievementService $achievementService = null
+        ?AchievementService $achievementService = null,
+        ?Request $request = null
     ) {
         $this->antifraudService = $antifraudService;
         $this->achievementService = $achievementService;
+        $this->request = ApplicationContainer::resolveOrNew($request, Request::class);
     }
 
     /**
@@ -140,7 +144,7 @@ class ReferralService
         }
 
         $referrer = $validation['referrer'];
-        $ip = $_SERVER['REMOTE_ADDR'] ?? null;
+        $ip = $this->request->ip();
 
         // Validação anti-fraude
         $canProcess = $this->antifraudService()->canProcessReferral($referredUser->email, $referrer->id, $ip);

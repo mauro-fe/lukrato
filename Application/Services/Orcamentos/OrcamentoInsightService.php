@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace Application\Services\Orcamentos;
 
+use Application\Container\ApplicationContainer;
 use Application\Repositories\OrcamentoRepository;
 
 class OrcamentoInsightService
 {
     private OrcamentoRepository $repo;
 
-    public function __construct(OrcamentoRepository $repo)
+    public function __construct(?OrcamentoRepository $repo = null)
     {
-        $this->repo = $repo;
+        $this->repo = ApplicationContainer::resolveOrNew($repo, OrcamentoRepository::class);
     }
 
     public function generate(int $userId, int $mes, int $ano, array $orcamentos): array

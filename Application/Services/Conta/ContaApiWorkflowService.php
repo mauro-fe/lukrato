@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Application\Services\Conta;
 
 use Application\Container\ApplicationContainer;
+use Application\Core\Request;
 use Application\DTO\CreateContaDTO;
 use Application\DTO\UpdateContaDTO;
 use Application\Middlewares\CsrfMiddleware;
@@ -16,13 +17,16 @@ class ContaApiWorkflowService
 {
     private readonly ContaService $contaService;
     private readonly PlanLimitService $planLimitService;
+    private readonly Request $request;
 
     public function __construct(
         ?ContaService $contaService = null,
-        ?PlanLimitService $planLimitService = null
+        ?PlanLimitService $planLimitService = null,
+        ?Request $request = null
     ) {
         $this->contaService = ApplicationContainer::resolveOrNew($contaService, ContaService::class);
         $this->planLimitService = ApplicationContainer::resolveOrNew($planLimitService, PlanLimitService::class);
+        $this->request = ApplicationContainer::resolveOrNew($request, Request::class);
     }
 
     /**
@@ -83,8 +87,8 @@ class ContaApiWorkflowService
         LogService::info('INICIO - Criacao de conta', [
             'user_id' => $userId,
             'request_id' => uniqid('req_'),
-            'ip' => $_SERVER['REMOTE_ADDR'] ?? null,
-            'user_agent' => substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 100),
+            'ip' => $this->request->ip(),
+            'user_agent' => substr($this->request->header('user-agent') ?? '', 0, 100),
             'data_recebida' => $payload,
         ]);
 
@@ -141,7 +145,7 @@ class ContaApiWorkflowService
             'user_id' => $userId,
             'conta_id' => $accountId,
             'data_recebida' => $payload,
-            'method' => $_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN',
+            'method' => $this->request->method(),
         ]);
 
         $dto = UpdateContaDTO::fromArray($payload);

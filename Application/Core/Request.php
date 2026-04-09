@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Core;
 
+use Application\Config\InfrastructureRuntimeConfig;
+use Application\Container\ApplicationContainer;
 use Application\Core\Validation\RequestValidator;
 
 class Request
@@ -18,6 +20,7 @@ class Request
     private readonly ?array $json;
     private readonly ?string $jsonError;
     private readonly string $rawInput;
+    private readonly InfrastructureRuntimeConfig $runtimeConfig;
 
     public function __construct(
         ?array $server = null,
@@ -25,8 +28,10 @@ class Request
         ?array $post = null,
         ?array $files = null,
         ?string $rawInput = null,
-        ?array $headers = null
+        ?array $headers = null,
+        ?InfrastructureRuntimeConfig $runtimeConfig = null
     ) {
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, InfrastructureRuntimeConfig::class);
         $this->server = $server ?? $_SERVER ?? [];
         $this->method = strtoupper($this->server['REQUEST_METHOD'] ?? 'GET');
         $this->headers = $this->normalizeHeaders($headers ?? $this->detectHeaders($this->server));
@@ -192,6 +197,18 @@ class Request
         $normalizedKey = strtolower(str_replace('_', '-', $key));
 
         return $this->headers[$normalizedKey] ?? null;
+    }
+
+    public function server(?string $key = null, mixed $default = null): mixed
+    {
+        return $this->valueFromBag($this->server, $key, $default);
+    }
+
+    public function uri(string $default = '/'): string
+    {
+        $uri = $this->server('REQUEST_URI', $default);
+
+        return is_string($uri) && $uri !== '' ? $uri : $default;
     }
 
     public function headers(): array
@@ -378,33 +395,60 @@ class Request
 
     public function validate(array $rules, array $filters = []): array
     {
-        return (new RequestValidator())->validate($this->data, $rules, $filters);
+        return ApplicationContainer::resolveOrNew(null, RequestValidator::class)
+            ->validate($this->data, $rules, $filters);
     }
 
     public function ip(): string
     {
-        $remoteAddr = $this->server['REMOTE_ADDR'] ?? '0.0.0.0';
+        $remoteAddr = $this->normalizeIpCandidate($this->server['REMOTE_ADDR'] ?? null) ?? '0.0.0.0';
 
-        $trustedProxies = array_filter(array_map(
-            'trim',
-            explode(',', $_ENV['TRUSTED_PROXIES'] ?? '')
-        ));
+        $trustedProxies = $this->runtimeConfig->trustedProxies();
 
         if (!empty($trustedProxies) && in_array($remoteAddr, $trustedProxies, true)) {
-            $forwardedHeaders = ['HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP'];
+            $fallbackIp = null;
+            $forwardedHeaders = [
+                'HTTP_CF_CONNECTING_IP',
+                'HTTP_X_REAL_IP',
+                'HTTP_X_FORWARDED_FOR',
+                'HTTP_CLIENT_IP',
+            ];
+
             foreach ($forwardedHeaders as $key) {
                 if (!empty($this->server[$key])) {
                     foreach (explode(',', $this->server[$key]) as $ip) {
-                        $ip = trim($ip);
-                        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-                            return $ip;
+                        $candidate = $this->normalizeIpCandidate($ip);
+                        if ($candidate === null) {
+                            continue;
                         }
+
+                        if (!$this->isPrivateOrReservedIp($candidate)) {
+                            return $candidate;
+                        }
+
+                        $fallbackIp ??= $candidate;
                     }
                 }
+            }
+
+            if ($fallbackIp !== null) {
+                return $fallbackIp;
             }
         }
 
         return $remoteAddr;
+    }
+
+    private function normalizeIpCandidate(mixed $value): ?string
+    {
+        $ip = trim((string) $value);
+
+        return filter_var($ip, FILTER_VALIDATE_IP) ? $ip : null;
+    }
+
+    private function isPrivateOrReservedIp(string $ip): bool
+    {
+        return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false;
     }
 
     private function valueFromBag(array $bag, ?string $key, mixed $default = null): mixed

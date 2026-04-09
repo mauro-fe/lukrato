@@ -32,6 +32,12 @@ class BillingGatewayCompositionGuardTest extends TestCase
             'PremiumWorkflowService não deve recorrer à PerfilControllerFactory.'
         );
 
+        $this->assertStringNotContainsString(
+            '(new PerfilServiceProvider())->register(',
+            $premiumWorkflowService,
+            'PremiumWorkflowService não deve registrar PerfilServiceProvider manualmente.'
+        );
+
         $this->assertDoesNotMatchRegularExpression(
             '/new\s+PerfilService\s*\(/',
             $premiumWorkflowService,
@@ -48,6 +54,18 @@ class BillingGatewayCompositionGuardTest extends TestCase
             '/\$this->circuitBreaker\s*=\s*new\s+CircuitBreakerService\s*\(/',
             $asaasService,
             'AsaasService não deve atribuir CircuitBreakerService diretamente.'
+        );
+
+        $this->assertStringNotContainsString(
+            "static fn(): CircuitBreakerService => new CircuitBreakerService('asaas')",
+            $asaasService,
+            'AsaasService não deve montar CircuitBreakerService inline por closure.'
+        );
+
+        $this->assertDoesNotMatchRegularExpression(
+            '/new\s+Client\s*\(/',
+            $asaasService,
+            'AsaasService não deve instanciar Guzzle Client diretamente.'
         );
 
         $this->assertDoesNotMatchRegularExpression(
