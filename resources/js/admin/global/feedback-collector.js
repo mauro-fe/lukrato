@@ -448,12 +448,18 @@ import { getRuntimeConfig } from './runtime-config.js';
     // INIT
     // ========================================================================
 
-    document.addEventListener('DOMContentLoaded', () => {
+    function boot() {
         if (!userId()) return;
 
         initNps();
         initSuggestionButton();
-    });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', boot, { once: true });
+    } else {
+        boot();
+    }
 
     // ========================================================================
     // PUBLIC API

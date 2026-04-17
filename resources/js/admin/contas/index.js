@@ -14,6 +14,7 @@ import { ContasAPI } from './api.js';
 import { ContasModal } from './modal.js';
 import { ContasEvents, ContasMoneyMask } from './events.js';
 import { initCustomize } from './customize.js';
+import './render.js';
 
 const getLancamentoGlobalManager = () => window.lancamentoGlobalManager || null;
 const openLancamentoGlobalFromConta = (contaId, options = {}) => {

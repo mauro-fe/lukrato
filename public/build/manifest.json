@@ -157,16 +157,16 @@
     "file": "assets/billing-B0QCLun_.js",
     "name": "billing"
   },
-  "_engagement-CsKoxZga.js": {
-    "file": "assets/engagement-CsKoxZga.js",
+  "_engagement-CKfJJjuW.js": {
+    "file": "assets/engagement-CKfJJjuW.js",
     "name": "engagement"
   },
-  "_faturas-D7JhsB1d.js": {
-    "file": "assets/faturas-D7JhsB1d.js",
+  "_faturas-BPj54il_.js": {
+    "file": "assets/faturas-BPj54il_.js",
     "name": "faturas"
   },
-  "_finance-B5kGXnLh.js": {
-    "file": "assets/finance-B5kGXnLh.js",
+  "_finance-Bg33tLnx.js": {
+    "file": "assets/finance-Bg33tLnx.js",
     "name": "finance"
   },
   "_gamification-CU88zbWN.js": {
@@ -180,13 +180,13 @@
       "_api-BuS0u49N.js"
     ]
   },
-  "_lancamento-meta-B_JEaEB7.js": {
-    "file": "assets/lancamento-meta-B_JEaEB7.js",
+  "_lancamento-meta-Ddy6ueJW.js": {
+    "file": "assets/lancamento-meta-Ddy6ueJW.js",
     "name": "lancamento-meta",
     "imports": [
       "_api-BuS0u49N.js",
       "_ai-C7wMxAIs.js",
-      "_finance-B5kGXnLh.js",
+      "_finance-Bg33tLnx.js",
       "_utils-DjCGKc_K.js"
     ]
   },
@@ -266,14 +266,14 @@
     ]
   },
   "admin/auth/login/index.js": {
-    "file": "assets/auth-login-Cx4M9900.js",
+    "file": "assets/auth-login-C-bU9DCt.js",
     "name": "auth-login",
     "src": "admin/auth/login/index.js",
     "isEntry": true,
     "imports": [
       "_shared-FZK8t9Sx.js",
       "_api-BuS0u49N.js",
-      "_engagement-CsKoxZga.js",
+      "_engagement-CKfJJjuW.js",
       "_lucide-init-JWOLZR--.js"
     ]
   },
@@ -326,7 +326,7 @@
     ]
   },
   "admin/cartoes-arquivadas/index.js": {
-    "file": "assets/cartoes-arquivadas-D429PoR4.js",
+    "file": "assets/cartoes-arquivadas-yEXsqnYW.js",
     "name": "cartoes-arquivadas",
     "src": "admin/cartoes-arquivadas/index.js",
     "isEntry": true,
@@ -334,14 +334,14 @@
       "_api-BuS0u49N.js",
       "_utils-DjCGKc_K.js",
       "_ui-fdNlX1aK.js",
-      "_finance-B5kGXnLh.js"
+      "_finance-Bg33tLnx.js"
     ],
     "css": [
       "assets/cartoes-arquivadas-DuR4OBUt.css"
     ]
   },
   "admin/cartoes/index.js": {
-    "file": "assets/cartoes-jb66ZfL8.js",
+    "file": "assets/cartoes-C1OrQvbB.js",
     "name": "cartoes",
     "src": "admin/cartoes/index.js",
     "isEntry": true,
@@ -349,7 +349,8 @@
       "_api-BuS0u49N.js",
       "_utils-DjCGKc_K.js",
       "_ui-fdNlX1aK.js",
-      "_faturas-D7JhsB1d.js",
+      "_faturas-BPj54il_.js",
+      "_finance-Bg33tLnx.js",
       "_ui-preferences-qNtlvJmB.js"
     ],
     "css": [
@@ -357,14 +358,14 @@
     ]
   },
   "admin/categorias/index.js": {
-    "file": "assets/categorias-izbOTOwX.js",
+    "file": "assets/categorias-DSc5dyH2.js",
     "name": "categorias",
     "src": "admin/categorias/index.js",
     "isEntry": true,
     "imports": [
       "_utils-DjCGKc_K.js",
       "_api-BuS0u49N.js",
-      "_finance-B5kGXnLh.js",
+      "_finance-Bg33tLnx.js",
       "_ui-fdNlX1aK.js",
       "_ui-preferences-qNtlvJmB.js"
     ],
@@ -373,14 +374,14 @@
     ]
   },
   "admin/configuracoes/index.js": {
-    "file": "assets/configuracoes-Dpd9hDMH.js",
+    "file": "assets/configuracoes-BvyMSXIZ.js",
     "name": "configuracoes",
     "src": "admin/configuracoes/index.js",
     "isEntry": true,
     "imports": [
       "_account-page-DjQBWOA8.js",
       "_api-BuS0u49N.js",
-      "_engagement-CsKoxZga.js",
+      "_engagement-CKfJJjuW.js",
       "_profile-C-tTPOzx.js",
       "_runtime-config-C-o_uYY4.js",
       "_ui-preferences-qNtlvJmB.js"
@@ -390,35 +391,36 @@
     ]
   },
   "admin/contas-arquivadas/index.js": {
-    "file": "assets/contas-arquivadas-BzYeywwX.js",
+    "file": "assets/contas-arquivadas-DuGEO17A.js",
     "name": "contas-arquivadas",
     "src": "admin/contas-arquivadas/index.js",
     "isEntry": true,
     "imports": [
       "_api-BuS0u49N.js",
-      "_finance-B5kGXnLh.js"
+      "_finance-Bg33tLnx.js"
     ],
     "css": [
       "assets/contas-arquivadas-YOq3PK9w.css"
     ]
   },
   "admin/contas/index.js": {
-    "file": "assets/contas-DfFdaJJS.js",
+    "file": "assets/contas-jRmgEwrW.js",
     "name": "contas",
     "src": "admin/contas/index.js",
     "isEntry": true,
     "imports": [
       "_api-BuS0u49N.js",
       "_ui-fdNlX1aK.js",
-      "_finance-B5kGXnLh.js",
-      "_ui-preferences-qNtlvJmB.js"
+      "_finance-Bg33tLnx.js",
+      "_ui-preferences-qNtlvJmB.js",
+      "_utils-DjCGKc_K.js"
     ],
     "css": [
       "assets/contas-Dtqi-D_R.css"
     ]
   },
   "admin/dashboard/index.js": {
-    "file": "assets/dashboard-DMz2c4yj.js",
+    "file": "assets/dashboard-_AYew5Ka.js",
     "name": "dashboard",
     "src": "admin/dashboard/index.js",
     "isEntry": true,
@@ -426,7 +428,7 @@
       "_api-BuS0u49N.js",
       "_primary-actions-Ds-jgbnP.js",
       "_runtime-config-C-o_uYY4.js",
-      "_finance-B5kGXnLh.js",
+      "_finance-Bg33tLnx.js",
       "_lancamentos-DdebLrkk.js",
       "_utils-DjCGKc_K.js",
       "_ui-preferences-qNtlvJmB.js"
@@ -436,14 +438,14 @@
     ]
   },
   "admin/faturas/index.js": {
-    "file": "assets/faturas-q0CeBk_S.js",
+    "file": "assets/faturas-D2-_q_l_.js",
     "name": "faturas",
     "src": "admin/faturas/index.js",
     "isEntry": true,
     "imports": [
       "_api-BuS0u49N.js",
-      "_finance-B5kGXnLh.js",
-      "_faturas-D7JhsB1d.js",
+      "_finance-Bg33tLnx.js",
+      "_faturas-BPj54il_.js",
       "_ui-fdNlX1aK.js",
       "_ui-preferences-qNtlvJmB.js"
     ],
@@ -452,13 +454,13 @@
     ]
   },
   "admin/financas/index.js": {
-    "file": "assets/financas-BqtuYkS8.js",
+    "file": "assets/financas-C8lDB-OJ.js",
     "name": "financas",
     "src": "admin/financas/index.js",
     "isEntry": true,
     "imports": [
       "_api-BuS0u49N.js",
-      "_finance-B5kGXnLh.js",
+      "_finance-Bg33tLnx.js",
       "_ui-preferences-qNtlvJmB.js"
     ],
     "css": [
@@ -509,7 +511,7 @@
     ]
   },
   "admin/global/index.js": {
-    "file": "assets/global-D6-DzRNQ.js",
+    "file": "assets/global-DgRXIMcu.js",
     "name": "global",
     "src": "admin/global/index.js",
     "isEntry": true,
@@ -521,12 +523,12 @@
       "_primary-actions-Ds-jgbnP.js",
       "_billing-B0QCLun_.js",
       "_lucide-init-JWOLZR--.js",
-      "_finance-B5kGXnLh.js",
+      "_finance-Bg33tLnx.js",
       "_utils-DjCGKc_K.js",
       "_lancamentos-DdebLrkk.js",
       "_ui-fdNlX1aK.js",
       "_ai-C7wMxAIs.js",
-      "_engagement-CsKoxZga.js"
+      "_engagement-CKfJJjuW.js"
     ],
     "css": [
       "assets/global-BzGaJ1aZ.css"
@@ -559,14 +561,14 @@
     ]
   },
   "admin/importacoes/index.js": {
-    "file": "assets/importacoes-39XWUxim.js",
+    "file": "assets/importacoes-DDzLzjsU.js",
     "name": "importacoes",
     "src": "admin/importacoes/index.js",
     "isEntry": true,
     "imports": [
       "_importacoes-BGbePw6B.js",
       "_billing-B0QCLun_.js",
-      "_finance-B5kGXnLh.js",
+      "_finance-Bg33tLnx.js",
       "_ui-preferences-qNtlvJmB.js",
       "_api-BuS0u49N.js"
     ],
@@ -575,7 +577,7 @@
     ]
   },
   "admin/lancamento-global/index.js": {
-    "file": "assets/lancamento-global-rFUm6ibw.js",
+    "file": "assets/lancamento-global-CubpHTCs.js",
     "name": "lancamento-global",
     "src": "admin/lancamento-global/index.js",
     "isEntry": true,
@@ -583,9 +585,9 @@
       "_utils-DjCGKc_K.js",
       "_api-BuS0u49N.js",
       "_ui-fdNlX1aK.js",
-      "_lancamento-meta-B_JEaEB7.js",
+      "_lancamento-meta-Ddy6ueJW.js",
       "_lancamentos-DdebLrkk.js",
-      "_finance-B5kGXnLh.js",
+      "_finance-Bg33tLnx.js",
       "_ai-C7wMxAIs.js"
     ],
     "css": [
@@ -593,7 +595,7 @@
     ]
   },
   "admin/lancamentos/index.js": {
-    "file": "assets/lancamentos-tz4cku6M.js",
+    "file": "assets/lancamentos-ceLWg3Zq.js",
     "name": "lancamentos",
     "src": "admin/lancamentos/index.js",
     "isEntry": true,
@@ -601,8 +603,8 @@
       "_utils-DjCGKc_K.js",
       "_api-BuS0u49N.js",
       "_lancamentos-DdebLrkk.js",
-      "_lancamento-meta-B_JEaEB7.js",
-      "_finance-B5kGXnLh.js",
+      "_lancamento-meta-Ddy6ueJW.js",
+      "_finance-Bg33tLnx.js",
       "_ui-preferences-qNtlvJmB.js",
       "_ai-C7wMxAIs.js"
     ],
@@ -611,13 +613,13 @@
     ]
   },
   "admin/metas/index.js": {
-    "file": "assets/metas-CWiFS_LM.js",
+    "file": "assets/metas-D8Os9oGU.js",
     "name": "metas",
     "src": "admin/metas/index.js",
     "isEntry": true,
     "imports": [
       "_api-BuS0u49N.js",
-      "_finance-B5kGXnLh.js",
+      "_finance-Bg33tLnx.js",
       "_ui-preferences-qNtlvJmB.js"
     ],
     "css": [
@@ -625,13 +627,13 @@
     ]
   },
   "admin/orcamento/index.js": {
-    "file": "assets/orcamento-DuAGqKl9.js",
+    "file": "assets/orcamento-CqtiPAgd.js",
     "name": "orcamento",
     "src": "admin/orcamento/index.js",
     "isEntry": true,
     "imports": [
       "_api-BuS0u49N.js",
-      "_finance-B5kGXnLh.js",
+      "_finance-Bg33tLnx.js",
       "_ui-preferences-qNtlvJmB.js"
     ],
     "css": [
@@ -655,7 +657,7 @@
     ]
   },
   "admin/relatorios/index.js": {
-    "file": "assets/relatorios-DN4q8RbW.js",
+    "file": "assets/relatorios-GxbHROFO.js",
     "name": "relatorios",
     "src": "admin/relatorios/index.js",
     "isEntry": true,
@@ -664,7 +666,7 @@
       "_utils-DjCGKc_K.js",
       "_ui-preferences-qNtlvJmB.js",
       "_runtime-config-C-o_uYY4.js",
-      "_finance-B5kGXnLh.js",
+      "_finance-Bg33tLnx.js",
       "_reports-BC0wIUpu.js"
     ],
     "css": [
