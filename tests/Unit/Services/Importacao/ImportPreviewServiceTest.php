@@ -328,6 +328,38 @@ class ImportPreviewServiceTest extends TestCase
         $this->assertSame('receita', $rows[1]->type);
     }
 
+    public function testCsvParserIgnoresExcelSeparatorHintLine(): void
+    {
+        $parser = new CsvImportParser();
+        $profile = ImportProfileConfigDTO::fromArray([
+            'conta_id' => 4111,
+            'source_type' => 'csv',
+            'options' => [
+                'csv_mapping_mode' => 'auto',
+                'csv_delimiter' => ';',
+                'csv_has_header' => true,
+                'csv_start_row' => 2,
+                'csv_date_format' => 'd/m/Y',
+                'csv_decimal_separator' => ',',
+            ],
+        ]);
+
+        $csv = implode("\n", [
+            'sep=;',
+            'tipo;data;descricao;valor',
+            'despesa;01/03/2026;Mercado;150,25',
+            'receita;05/03/2026;Salario;3200,00',
+        ]);
+
+        $rows = $parser->parse($csv, $profile);
+
+        $this->assertCount(2, $rows);
+        $this->assertSame('despesa', $rows[0]->type);
+        $this->assertSame('2026-03-01', $rows[0]->date);
+        $this->assertSame(150.25, $rows[0]->amount);
+        $this->assertSame('receita', $rows[1]->type);
+    }
+
     public function testCsvParserAutomaticModeInfersCardTransactionsWithoutTipoColumn(): void
     {
         $parser = new CsvImportParser();

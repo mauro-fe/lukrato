@@ -20,6 +20,7 @@ class CsvImportParser implements ImportParserInterface
     public function parse(string $contents, ImportProfileConfigDTO $profile): array
     {
         $contents = ltrim(trim($contents), "\xEF\xBB\xBF");
+        $contents = $this->stripExcelSeparatorHint($contents);
         if ($contents === '') {
             return [];
         }
@@ -676,5 +677,22 @@ class CsvImportParser implements ImportParserInterface
         $normalized = strtolower(trim((string) $value));
 
         return $normalized === 'cartao' ? 'cartao' : 'conta';
+    }
+
+    private function stripExcelSeparatorHint(string $contents): string
+    {
+        if ($contents === '') {
+            return $contents;
+        }
+
+        $firstLineLength = strcspn($contents, "\r\n");
+        $firstLine = trim(substr($contents, 0, $firstLineLength));
+        if (preg_match('/^sep=.{1}$/i', $firstLine) !== 1) {
+            return $contents;
+        }
+
+        $remaining = substr($contents, $firstLineLength);
+
+        return ltrim((string) $remaining, "\r\n");
     }
 }

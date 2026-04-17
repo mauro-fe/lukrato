@@ -38,6 +38,7 @@ class CsvTemplateControllerTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
         $this->assertSame('text/csv; charset=utf-8', $response->getHeaders()['Content-Type'] ?? null);
         $this->assertStringContainsString('modelo_importacao_automatico.csv', $response->getHeaders()['Content-Disposition'] ?? '');
+        $this->assertStringContainsString('sep=;', $response->getContent());
         $this->assertStringContainsString('tipo;data;descricao;valor', $response->getContent());
     }
 
@@ -52,6 +53,7 @@ class CsvTemplateControllerTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
         $this->assertSame('text/csv; charset=utf-8', $response->getHeaders()['Content-Type'] ?? null);
         $this->assertStringContainsString('modelo_importacao_manual.csv', $response->getHeaders()['Content-Disposition'] ?? '');
+        $this->assertStringContainsString('sep=;', $response->getContent());
         $this->assertStringContainsString('categoria;subcategoria;observacao;id_externo', $response->getContent());
     }
 
@@ -66,6 +68,7 @@ class CsvTemplateControllerTest extends TestCase
 
         $this->assertSame(200, $response->getStatusCode());
         $this->assertStringContainsString('modelo_importacao_cartao_automatico.csv', $response->getHeaders()['Content-Disposition'] ?? '');
+        $this->assertStringContainsString('sep=;', $response->getContent());
         $this->assertStringContainsString('data;descricao;valor', $response->getContent());
         $this->assertStringNotContainsString('tipo;data;descricao;valor', $response->getContent());
         $this->assertStringContainsString('Estorno parcial;-40,00', $response->getContent());
@@ -82,6 +85,7 @@ class CsvTemplateControllerTest extends TestCase
 
         $this->assertSame(200, $response->getStatusCode());
         $this->assertStringContainsString('modelo_importacao_cartao_manual.csv', $response->getHeaders()['Content-Disposition'] ?? '');
+        $this->assertStringContainsString('sep=;', $response->getContent());
         $this->assertStringContainsString('data;descricao;valor;observacao;id_externo', $response->getContent());
         $this->assertStringContainsString('Compra presencial;FAT-0001', $response->getContent());
     }
