@@ -417,7 +417,7 @@ $guidePathTitle = $initialSourceType === 'csv'
                                     <dt>Separador decimal</dt>
                                     <dd data-imp-advanced-decimal><?= escape($csvDecimalLabel) ?></dd>
                                 </div>
-                                <div>
+                                <div class="imp-advanced-profile__item imp-advanced-profile__item--full">
                                     <dt>Mapeamento principal</dt>
                                     <dd data-imp-advanced-column-map><?= escape($csvColumnMapSummary) ?></dd>
                                 </div>

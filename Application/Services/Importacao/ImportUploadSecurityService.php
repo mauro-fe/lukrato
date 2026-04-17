@@ -34,8 +34,8 @@ class ImportUploadSecurityService
         );
         $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
 
-        if ($normalizedSourceType === 'ofx' && $extension !== 'ofx') {
-            throw new \InvalidArgumentException('Para OFX, envie arquivo com extensão .ofx.');
+        if ($normalizedSourceType === 'ofx' && !in_array($extension, ['ofx', 'qfx'], true)) {
+            throw new \InvalidArgumentException('Para OFX, envie arquivo com extensão .ofx ou .qfx.');
         }
 
         if ($normalizedSourceType === 'csv' && $extension !== 'csv') {

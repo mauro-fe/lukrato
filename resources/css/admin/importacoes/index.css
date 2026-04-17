@@ -234,10 +234,20 @@
 
 .imp-advanced-profile {
   margin-top: var(--spacing-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.imp-advanced-profile > div {
+  min-width: 0;
 }
 
 .imp-advanced-profile dd {
   word-break: break-word;
+}
+
+.imp-advanced-profile__item--full {
+  grid-column: 1 / -1;
 }
 
 .imp-page[data-source-type='csv'] .imp-advanced-panel {
@@ -838,6 +848,14 @@
   .imp-advanced-panel__head,
   .imp-advanced-panel__grid {
     grid-template-columns: 1fr;
+  }
+
+  .imp-advanced-profile {
+    grid-template-columns: 1fr;
+  }
+
+  .imp-advanced-profile__item--full {
+    grid-column: auto;
   }
 }
 

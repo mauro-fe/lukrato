@@ -60,4 +60,34 @@ class ImportUploadSecurityServiceTest extends TestCase
         $this->assertSame('csv', pathinfo((string) $result['filename'], PATHINFO_EXTENSION));
         $this->assertStringContainsString('Mercado', (string) ($result['contents'] ?? ''));
     }
+
+    public function testLoadsValidQfxUploadForOfxSourceType(): void
+    {
+        $service = new ImportUploadSecurityService();
+        $tmpFile = tempnam(sys_get_temp_dir(), 'upload-qfx');
+        $this->assertNotFalse($tmpFile);
+
+        file_put_contents($tmpFile, implode("\n", [
+            'OFXHEADER:100',
+            '<OFX>',
+            '<STMTTRN><TRNAMT>-10.00</TRNAMT><DTPOSTED>20260401</DTPOSTED><NAME>Teste</NAME></STMTTRN>',
+            '</OFX>',
+        ]));
+
+        try {
+            $result = $service->extractValidatedUpload('ofx', [
+                'name' => 'extrato.qfx',
+                'type' => 'application/vnd.intu.qfx',
+                'tmp_name' => $tmpFile,
+                'error' => UPLOAD_ERR_OK,
+                'size' => (int) filesize($tmpFile),
+            ], true);
+        } finally {
+            @unlink((string) $tmpFile);
+        }
+
+        $this->assertSame('extrato.qfx', $result['filename']);
+        $this->assertSame('qfx', pathinfo((string) $result['filename'], PATHINFO_EXTENSION));
+        $this->assertStringContainsString('<STMTTRN>', (string) ($result['contents'] ?? ''));
+    }
 }

@@ -75,6 +75,11 @@ class ImportPreviewService
                 $errors[] = $mismatchMessage;
                 $targetMismatch = true;
             }
+
+            $warnings = array_merge(
+                $warnings,
+                $this->buildOfxProfileWarnings($contents, $parserProfile, $importTarget, $detectedImportTarget)
+            );
         }
 
         if ($rows !== [] && count($rows) > ImportSecurityPolicy::maxRowsPerFile()) {
@@ -97,6 +102,10 @@ class ImportPreviewService
             && $this->shouldCategorizeRows($sourceType, $importTarget, $userId)
         ) {
             $rows = $this->rowCategorizationService->enrichRows($rows, $userId);
+        }
+
+        if ($warnings !== []) {
+            $warnings = array_values(array_unique($warnings));
         }
 
         return [
@@ -153,6 +162,86 @@ class ImportPreviewService
         $normalized = strtolower(trim($importTarget));
 
         return in_array($normalized, ['conta', 'cartao'], true) ? $normalized : 'conta';
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function buildOfxProfileWarnings(
+        string $contents,
+        ImportProfileConfigDTO $profile,
+        string $importTarget,
+        ?string $detectedImportTarget
+    ): array {
+        if ($this->normalizeImportTarget($importTarget) !== 'conta') {
+            return [];
+        }
+
+        if ($this->normalizeImportTarget((string) $detectedImportTarget) === 'cartao') {
+            return [];
+        }
+
+        $profileAgencia = $this->normalizeAccountToken($profile->agencia);
+        $profileConta = $this->normalizeAccountToken($profile->numeroConta);
+        if ($profileAgencia === '' && $profileConta === '') {
+            return [];
+        }
+
+        $ofxAgencia = $this->normalizeAccountToken($this->extractOfxTagValue($contents, ['BRANCHID', 'AGENCYID']));
+        $ofxConta = $this->normalizeAccountToken($this->extractOfxTagValue($contents, ['ACCTID']));
+
+        $warnings = [];
+        if ($profileAgencia !== '' && $ofxAgencia !== '' && $profileAgencia !== $ofxAgencia) {
+            $warnings[] = 'A agência informada no perfil não corresponde ao BRANCHID do OFX. Revise antes de confirmar.';
+        }
+
+        if ($profileConta !== '' && $ofxConta !== '' && $profileConta !== $ofxConta) {
+            $warnings[] = 'O número da conta informado no perfil não corresponde ao ACCTID do OFX. Revise antes de confirmar.';
+        }
+
+        return $warnings;
+    }
+
+    /**
+     * @param array<int, string> $tags
+     */
+    private function extractOfxTagValue(string $contents, array $tags): ?string
+    {
+        foreach ($tags as $tag) {
+            $value = $this->extractSingleOfxTagValue($contents, $tag);
+            if ($value !== null) {
+                return $value;
+            }
+        }
+
+        return null;
+    }
+
+    private function extractSingleOfxTagValue(string $contents, string $tag): ?string
+    {
+        $inlinePattern = '/<\s*' . preg_quote($tag, '/') . '\s*>\s*([^\r\n<]+)/i';
+        if (preg_match($inlinePattern, $contents, $matches) === 1) {
+            $value = trim((string) ($matches[1] ?? ''));
+            if ($value !== '') {
+                return $value;
+            }
+        }
+
+        $wrappedPattern = '/<\s*' . preg_quote($tag, '/') . '\s*>\s*(.*?)\s*<\s*\/\s*' . preg_quote($tag, '/') . '\s*>/is';
+        if (preg_match($wrappedPattern, $contents, $matches) === 1) {
+            $value = trim((string) ($matches[1] ?? ''));
+            if ($value !== '') {
+                return $value;
+            }
+        }
+
+        return null;
+    }
+
+    private function normalizeAccountToken(?string $value): string
+    {
+        $normalized = strtoupper(trim((string) $value));
+        return preg_replace('/[^A-Z0-9]/', '', $normalized) ?? '';
     }
 
     private function shouldCategorizeRows(string $sourceType, string $importTarget, ?int $userId): bool

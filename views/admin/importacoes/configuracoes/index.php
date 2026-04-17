@@ -52,8 +52,7 @@ $summaryCsvMappingMode = $csvMappingMode === 'manual' ? 'manual' : 'auto';
 $summaryCsvDelimiter = $csvDelimiter !== '' ? $csvDelimiter : ';';
 ?>
 
-<section class="imp-config-page" data-importacoes-page="configuracoes"
-    data-lk-help-page="importacoes_configuracoes"
+<section class="imp-config-page" data-importacoes-page="configuracoes" data-lk-help-page="importacoes_configuracoes"
     data-imp-active-account-id="<?= $selectedAccountId ?>">
     <header
         class="imp-page-hero imp-page-hero--compact imp-surface surface-card surface-card--interactive surface-card--clip">
@@ -83,7 +82,8 @@ $summaryCsvDelimiter = $csvDelimiter !== '' ? $csvDelimiter : ';';
                 </div>
             </dl>
             <div class="imp-page-hero__actions">
-                <a class="btn btn-ghost" href="<?= escape($importacoesUrl) ?>" data-imp-config-importacoes-link>Voltar para importações</a>
+                <a class="btn btn-ghost" href="<?= escape($importacoesUrl) ?>" data-imp-config-importacoes-link>Voltar
+                    para importações</a>
                 <a class="btn btn-secondary" href="<?= BASE_URL ?>importacoes/historico">Ir para histórico</a>
             </div>
         </aside>
@@ -143,7 +143,7 @@ $summaryCsvDelimiter = $csvDelimiter !== '' ? $csvDelimiter : ';';
                         <?= function_exists('csrf_input') ? csrf_input('default') : '' ?>
                         <input type="hidden" name="conta_id" value="<?= $selectedAccountId ?>" data-imp-conta-id-input>
 
-                        <section class="imp-config-section">
+                        <section class="imp-config-section card-surface">
                             <header class="imp-card-head">
                                 <h4 class="imp-card-title">Dados gerais</h4>
                             </header>
@@ -186,7 +186,7 @@ $summaryCsvDelimiter = $csvDelimiter !== '' ? $csvDelimiter : ';';
                             </div>
                         </section>
 
-                        <section class="imp-config-section imp-config-csv-block">
+                        <section class="imp-config-section imp-config-csv-block card-surface">
                             <header class="imp-card-head">
                                 <h4 class="imp-card-title">Configuração CSV</h4>
                                 <p class="imp-card-text">
@@ -264,7 +264,8 @@ $summaryCsvDelimiter = $csvDelimiter !== '' ? $csvDelimiter : ';';
 
                                 <div class="imp-field-grid imp-field-grid--mapping">
                                     <div class="imp-field">
-                                        <label class="imp-field__label" for="imp-csv-column-tipo">Tipo (opcional para cartão/fatura)</label>
+                                        <label class="imp-field__label" for="imp-csv-column-tipo">Tipo (opcional para
+                                            cartão/fatura)</label>
                                         <input id="imp-csv-column-tipo" class="imp-field__control" type="text"
                                             name="csv_column_tipo" maxlength="8" value="<?= escape($csvColumnTipo) ?>"
                                             data-imp-csv-column-tipo>
@@ -324,23 +325,23 @@ $summaryCsvDelimiter = $csvDelimiter !== '' ? $csvDelimiter : ';';
                                 <p class="imp-card-text">
                                     Modelos de conta:
                                 </p>
-                                <a class="btn btn-ghost" href="#"
-                                    data-imp-csv-template-auto data-no-transition="true" download>
+                                <a class="btn btn-ghost" href="#" data-imp-csv-template-auto data-no-transition="true"
+                                    download>
                                     Baixar modelo CSV automático
                                 </a>
-                                <a class="btn btn-ghost" href="#"
-                                    data-imp-csv-template-manual data-no-transition="true" download>
+                                <a class="btn btn-ghost" href="#" data-imp-csv-template-manual data-no-transition="true"
+                                    download>
                                     Baixar modelo CSV manual
                                 </a>
                                 <p class="imp-card-text">
                                     Modelos de cartão/fatura:
                                 </p>
-                                <a class="btn btn-ghost" href="#"
-                                    data-imp-csv-template-card-auto data-no-transition="true" download>
+                                <a class="btn btn-ghost" href="#" data-imp-csv-template-card-auto data-no-transition="true"
+                                    download>
                                     Baixar modelo fatura automático
                                 </a>
-                                <a class="btn btn-ghost" href="#"
-                                    data-imp-csv-template-card-manual data-no-transition="true" download>
+                                <a class="btn btn-ghost" href="#" data-imp-csv-template-card-manual
+                                    data-no-transition="true" download>
                                     Baixar modelo fatura manual
                                 </a>
                             </div>
@@ -405,7 +406,8 @@ $summaryCsvDelimiter = $csvDelimiter !== '' ? $csvDelimiter : ';';
                         </p>
                     </header>
                     <div class="imp-config-side__actions">
-                        <a class="btn btn-primary" href="<?= escape($importacoesUrl) ?>" data-imp-config-importacoes-link>Abrir fluxo de importação</a>
+                        <a class="btn btn-primary" href="<?= escape($importacoesUrl) ?>"
+                            data-imp-config-importacoes-link>Abrir fluxo de importação</a>
                         <a class="btn btn-ghost" href="<?= BASE_URL ?>importacoes/historico">Abrir histórico</a>
                     </div>
                 </article>

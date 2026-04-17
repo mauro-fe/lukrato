@@ -29,7 +29,6 @@
   border: 1px solid color-mix(in srgb, var(--glass-border) 90%, transparent);
   border-radius: var(--radius-lg);
   padding: var(--spacing-3);
-  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
   display: grid;
   gap: var(--spacing-3);
 }
