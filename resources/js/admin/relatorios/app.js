@@ -15,6 +15,14 @@ import {
 } from './state.js';
 import { ChartManager } from './charts.js';
 import { apiGet, getErrorMessage } from '../shared/api.js';
+import { resolveAccountsEndpoint } from '../api/endpoints/finance.js';
+import {
+    resolveReportsComparativesEndpoint,
+    resolveReportsEndpoint,
+    resolveReportsInsightsEndpoint,
+    resolveReportsInsightsTeaserEndpoint,
+    resolveReportsSummaryEndpoint,
+} from '../api/endpoints/reports.js';
 import {
     renderChartInsight,
     renderCardsReport,
@@ -172,7 +180,7 @@ export const API = {
         const timeoutId = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT);
 
         try {
-            const json = await apiGet(`${CONFIG.BASE_URL}api/reports`, {
+            const json = await apiGet(resolveReportsEndpoint(), {
                 type: Utils.getReportType(),
                 year: STATE.currentMonth.split('-')[0],
                 month: STATE.currentMonth.split('-')[1],
@@ -213,7 +221,7 @@ export const API = {
         }
 
         try {
-            const json = await apiGet(`${CONFIG.BASE_URL}api/reports`, Object.fromEntries(params.entries()));
+            const json = await apiGet(resolveReportsEndpoint(), Object.fromEntries(params.entries()));
             return json.data || json;
         } catch {
             return null;
@@ -222,7 +230,7 @@ export const API = {
 
     async fetchAccounts() {
         try {
-            const json = await apiGet(`${CONFIG.BASE_URL}api/contas`);
+            const json = await apiGet(resolveAccountsEndpoint());
             STATE.accessRestricted = false;
             const items = json.data || json.items || json || [];
             return (Array.isArray(items) ? items : []).map(acc => ({
@@ -243,7 +251,7 @@ export const API = {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT);
         try {
-            const json = await apiGet(`${CONFIG.BASE_URL}api/reports/summary`, { year, month });
+            const json = await apiGet(resolveReportsSummaryEndpoint(), { year, month });
             clearTimeout(timeoutId);
             return json.data || json;
         } catch (error) {
@@ -271,7 +279,7 @@ export const API = {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT);
         try {
-            const json = await apiGet(`${CONFIG.BASE_URL}api/reports/insights`, { year, month });
+            const json = await apiGet(resolveReportsInsightsEndpoint(), { year, month });
             clearTimeout(timeoutId);
             return json.data || json;
         } catch (error) {
@@ -287,7 +295,7 @@ export const API = {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT);
         try {
-            const json = await apiGet(`${CONFIG.BASE_URL}api/reports/insights-teaser`, { year, month });
+            const json = await apiGet(resolveReportsInsightsTeaserEndpoint(), { year, month });
             clearTimeout(timeoutId);
             return json.data || json;
         } catch (error) {
@@ -306,7 +314,7 @@ export const API = {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT);
         try {
-            const json = await apiGet(`${CONFIG.BASE_URL}api/reports/comparatives`, Object.fromEntries(params.entries()));
+            const json = await apiGet(resolveReportsComparativesEndpoint(), Object.fromEntries(params.entries()));
             clearTimeout(timeoutId);
             return json.data || json;
         } catch (error) {

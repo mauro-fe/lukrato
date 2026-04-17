@@ -4,16 +4,36 @@
  */
 
 import { CONFIG, STATE, Utils, Modules } from './state.js';
-import { apiFetch, getApiPayload, getErrorMessage, logClientError, logClientWarning } from '../shared/api.js';
+import { apiFetch, getApiBaseUrl, getApiPayload, getCSRFToken, getErrorMessage, logClientError, logClientWarning } from '../shared/api.js';
 import { refreshIcons } from '../shared/ui.js';
+import {
+    resolveCardFaturaEndpoint,
+    resolveCardHistoricoFaturasEndpoint,
+    resolveCardParcelamentosResumoEndpoint,
+    resolveCardParcelasPayEndpoint,
+    resolveCardPendingFaturasEndpoint,
+    resolveCardFaturaUndoPaymentEndpoint,
+    resolveCardParcelaUndoPaymentEndpoint,
+} from '../api/endpoints/faturas.js';
+import {
+    resolveAccountsEndpoint,
+    resolveCardArchiveEndpoint,
+    resolveCardEndpoint,
+    resolveCardsAlertsEndpoint,
+    resolveCardsEndpoint,
+} from '../api/endpoints/finance.js';
 
 function normalizeApiUrl(url) {
     if (typeof url !== 'string') {
         return url;
     }
 
-    if (url.startsWith(CONFIG.BASE_URL)) {
-        return url.slice(CONFIG.BASE_URL.length);
+    const bases = [CONFIG.BASE_URL, getApiBaseUrl()].filter(Boolean);
+
+    for (const base of bases) {
+        if (url.startsWith(base)) {
+            return url.slice(base.length);
+        }
     }
 
     return url;
@@ -64,19 +84,7 @@ export const CartoesAPI = {
             emptyState.style.display = 'none';
 
 
-            // Usar lkFetch se disponível (com timeout, retry e indicadores)
-            let data;
-            if (window.lkFetch) {
-                const result = await window.lkFetch.get(`${CONFIG.API_URL}/cartoes?preview=1`, {
-                    timeout: 20000,      // 20 segundos
-                    maxRetries: 2,       // 2 tentativas extras
-                    showLoading: true,
-                    loadingTarget: '#cartoesContainer'
-                });
-                data = getApiPayload(result, []);
-            } else {
-                data = await requestJson(`${CONFIG.API_URL}/cartoes?preview=1`);
-            }
+            const data = await requestJson(`${resolveCardsEndpoint()}?preview=1`);
 
             const payload = getApiPayload(data, {});
             applyPreviewMeta(payload?.meta);
@@ -138,7 +146,7 @@ export const CartoesAPI = {
         // Verificar para cada cartão se tem fatura pendente
         const promises = STATE.cartoes.map(async (cartao) => {
             try {
-                const data = await requestJson(`${CONFIG.API_URL}/cartoes/${cartao.id}/faturas-pendentes`);
+                const data = await requestJson(resolveCardPendingFaturasEndpoint(cartao.id));
                 const payload = getApiPayload(data, {});
                 const meses = payload?.meses || getApiPayload(payload, []) || [];
                 cartao.temFaturaPendente = Array.isArray(meses) && meses.length > 0;
@@ -155,21 +163,9 @@ export const CartoesAPI = {
      */
     async carregarAlertas() {
         try {
-            let data;
-            if (window.lkFetch) {
-                const result = await window.lkFetch.get(`${CONFIG.API_URL}/cartoes/alertas`, {
-                    timeout: 10000,
-                    maxRetries: 1,
-                    showLoading: false // Não mostrar loading global para alertas
-                });
-                data = getApiPayload(result, {});
-                const payload = getApiPayload(data, {});
-                STATE.alertas = payload?.alertas || [];
-            } else {
-                data = await requestJson(`${CONFIG.API_URL}/cartoes/alertas`, { timeout: 10000 });
-                const payload = getApiPayload(data, {});
-                STATE.alertas = payload?.alertas || [];
-            }
+            const data = await requestJson(resolveCardsAlertsEndpoint(), { timeout: 10000 });
+            const payload = getApiPayload(data, {});
+            STATE.alertas = payload?.alertas || [];
 
             CartoesAPI.renderAlertas();
         } catch (error) {
@@ -282,7 +278,7 @@ export const CartoesAPI = {
         }
 
         try {
-            const url = `${CONFIG.API_URL}/contas?only_active=0&with_balances=1`;
+            const url = `${resolveAccountsEndpoint()}?only_active=0&with_balances=1`;
             const data = await requestJson(url);
 
             // Tentar diferentes estruturas de resposta
@@ -358,9 +354,7 @@ export const CartoesAPI = {
         const isEdit = !!cartaoId;
 
         // Obter token CSRF
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ||
-            document.querySelector('input[name="csrf_token"]')?.value ||
-            '';
+        const csrfToken = getCSRFToken();
 
         const limiteOriginal = document.getElementById('limiteTotal').value;
         const limiteParsed = Utils.parseMoney(limiteOriginal);
@@ -397,8 +391,8 @@ export const CartoesAPI = {
 
         try {
             const url = isEdit
-                ? `${CONFIG.API_URL}/cartoes/${cartaoId}`
-                : `${CONFIG.API_URL}/cartoes`;
+                ? resolveCardEndpoint(cartaoId)
+                : resolveCardsEndpoint();
 
             const result = await requestJson(url, {
                 method: isEdit ? 'PUT' : 'POST',
@@ -460,7 +454,7 @@ export const CartoesAPI = {
         if (!confirmacao) return;
 
         try {
-            await requestJson(`${CONFIG.API_URL}/cartoes/${id}/archive`, {
+            await requestJson(resolveCardArchiveEndpoint(id), {
                 method: 'POST',
             });
 
@@ -487,7 +481,7 @@ export const CartoesAPI = {
      */
     async carregarFatura(cartaoId, mes, ano) {
         try {
-            const json = await requestJson(`${CONFIG.API_URL}/cartoes/${cartaoId}/fatura?mes=${mes}&ano=${ano}`);
+            const json = await requestJson(`${resolveCardFaturaEndpoint(cartaoId)}?mes=${mes}&ano=${ano}`);
             return getApiPayload(json, { itens: [], total: 0, pago: 0, pendente: 0 });
         } catch (error) {
             if (error?.status === 404) {
@@ -501,7 +495,7 @@ export const CartoesAPI = {
      * Carregar resumo de parcelamentos
      */
     async carregarParcelamentosResumo(cartaoId, mes, ano) {
-        const json = await requestJson(`${CONFIG.API_URL}/cartoes/${cartaoId}/parcelamentos-resumo?mes=${mes}&ano=${ano}`);
+        const json = await requestJson(`${resolveCardParcelamentosResumoEndpoint(cartaoId)}?mes=${mes}&ano=${ano}`);
         return getApiPayload(json, null);
     },
 
@@ -509,7 +503,7 @@ export const CartoesAPI = {
      * Carregar histórico de faturas pagas
      */
     async carregarHistoricoFaturas(cartaoId, limite = 12) {
-        const json = await requestJson(`${CONFIG.API_URL}/cartoes/${cartaoId}/faturas-historico?limite=${limite}`);
+        const json = await requestJson(`${resolveCardHistoricoFaturasEndpoint(cartaoId)}?limite=${limite}`);
         return getApiPayload(json, null);
     },
 
@@ -527,7 +521,7 @@ export const CartoesAPI = {
                 throw new Error('ID do cartão não encontrado na fatura');
             }
 
-            const data = await requestJson(`${CONFIG.API_URL}/cartoes/${cartaoId}/parcelas/pagar`, {
+            const data = await requestJson(resolveCardParcelasPayEndpoint(cartaoId), {
                 method: 'POST',
                 data: {
                     parcela_ids: parcelaIds,
@@ -580,7 +574,7 @@ export const CartoesAPI = {
         if (!confirmado.isConfirmed) return;
 
         try {
-            const data = await requestJson(`${CONFIG.API_URL}/cartoes/${cartaoId}/fatura/desfazer-pagamento`, {
+            const data = await requestJson(resolveCardFaturaUndoPaymentEndpoint(cartaoId), {
                 method: 'POST',
                 data: { mes, ano }
             });
@@ -629,7 +623,7 @@ export const CartoesAPI = {
         if (!confirmado.isConfirmed) return;
 
         try {
-            const data = await requestJson(`${CONFIG.API_URL}/cartoes/parcelas/${parcelaId}/desfazer-pagamento`, {
+            const data = await requestJson(resolveCardParcelaUndoPaymentEndpoint(parcelaId), {
                 method: 'POST',
             });
 

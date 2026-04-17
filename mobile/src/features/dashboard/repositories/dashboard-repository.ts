@@ -361,23 +361,23 @@ class DashboardRepository {
       const warnings: string[] = [];
 
       const [metrics, transactions, greeting, health, provisao] = await Promise.all([
-        httpClient.get<RemoteMetrics>('api/dashboard/metrics', {
+        httpClient.get<RemoteMetrics>('api/v1/dashboard/metrics', {
           month: monthKey,
           view: 'caixa',
         }),
-        httpClient.get<RemoteTransaction[]>('api/dashboard/transactions', {
+        httpClient.get<RemoteTransaction[]>('api/v1/dashboard/transactions', {
           month: monthKey,
           limit: 5,
         }),
-        httpClient.get<RemoteGreetingInsight>('api/dashboard/greeting-insight').catch(() => {
+        httpClient.get<RemoteGreetingInsight>('api/v1/dashboard/greeting-insight').catch(() => {
           warnings.push('Insight dinamico indisponivel no momento.');
           return null;
         }),
-        httpClient.get<RemoteHealthScore>('api/dashboard/health-score').catch(() => {
+        httpClient.get<RemoteHealthScore>('api/v1/dashboard/health-score').catch(() => {
           warnings.push('Health Score indisponivel no momento.');
           return null;
         }),
-        httpClient.get<RemoteProvisao>('api/dashboard/provisao', {
+        httpClient.get<RemoteProvisao>('api/v1/dashboard/provisao', {
           month: monthKey,
         }).catch(() => {
           warnings.push('Provisao financeira indisponivel no momento.');

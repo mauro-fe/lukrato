@@ -9,13 +9,20 @@
  * ============================================================================
  */
 
-import { apiGet, apiPost, getBaseUrl, getErrorMessage } from '../shared/api.js';
+import { apiGet, apiPost, getErrorMessage } from '../shared/api.js';
+import {
+    resolveCouponValidateEndpoint,
+    resolvePremiumCancelPendingEndpoint,
+    resolvePremiumCheckPaymentEndpoint,
+    resolvePremiumCheckoutEndpoint,
+    resolvePremiumPendingPaymentEndpoint,
+    resolvePremiumPendingPixEndpoint,
+} from '../api/endpoints/billing.js';
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 
 const modalEl = document.getElementById('billing-modal');
 const ds = modalEl?.dataset || {};
-const BASE_URL = getBaseUrl();
 const userDataComplete = {
     pix: ds.pixComplete === '1',
     boleto: ds.boletoComplete === '1',
@@ -140,7 +147,7 @@ async function applyCoupon() {
     couponApplyBtn.querySelector('span').textContent = 'Validando...';
 
     try {
-        const json = await apiGet('api/cupons/validar', { codigo: code });
+        const json = await apiGet(resolveCouponValidateEndpoint(), { codigo: code });
 
         if (json.success && json.data?.cupom) {
             const c = json.data.cupom;
@@ -371,7 +378,7 @@ function switchPaymentMethod(method) {
 
 async function checkPendingPix() {
     try {
-        const json = await apiGet('premium/pending-pix');
+        const json = await apiGet(resolvePremiumPendingPixEndpoint());
         if (json.success && json.data?.hasPending && json.data?.pix) {
             showPendingPaymentSection({
                 billingType: 'PIX', createdAt: json.data.createdAt || new Date().toLocaleString('pt-BR'),
@@ -408,7 +415,7 @@ function startPaymentPolling(paymentId) {
     if (paymentPollingInterval) clearInterval(paymentPollingInterval);
     paymentPollingInterval = setInterval(async () => {
         try {
-            const json = await apiGet(`premium/check-payment/${paymentId}`);
+            const json = await apiGet(resolvePremiumCheckPaymentEndpoint(paymentId));
             if (json.success && json.data?.paid) {
                 clearInterval(paymentPollingInterval);
                 window.Swal?.fire('Pagamento confirmado! 🎉', 'Seu plano foi ativado com sucesso.', 'success').then(() => window.location.reload());
@@ -425,7 +432,7 @@ function stopPaymentPolling() {
 
 async function checkPendingPayment() {
     try {
-        const json = await apiGet('premium/pending-payment');
+        const json = await apiGet(resolvePremiumPendingPaymentEndpoint());
         if (json.success && json.data?.hasPending) {
             hasPendingPayment = true;
             pendingPaymentData = json.data;
@@ -493,7 +500,7 @@ async function cancelPendingPayment() {
         cancelPendingBtn.disabled = true;
         cancelPendingBtn.innerHTML = '<i data-lucide="loader-2" class="icon-spin"></i> <span>Cancelando...</span>';
 
-        const json = await apiPost('premium/cancel-pending');
+        const json = await apiPost(resolvePremiumCancelPendingEndpoint());
 
         if (json.success) {
             hasPendingPayment = false; pendingPaymentData = null;
@@ -688,7 +695,7 @@ form?.addEventListener('submit', async (e) => {
             Swal.fire({ title: loadingTitle, text: 'Aguarde enquanto processamos sua solicitação.', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
         }
 
-        const json = await apiPost('premium/checkout', payload);
+        const json = await apiPost(resolvePremiumCheckoutEndpoint(), payload);
         if (!json || !json.success) throw new Error('Nao foi possivel processar a solicitacao.');
 
         Swal?.close();

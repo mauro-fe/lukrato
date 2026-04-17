@@ -1,4 +1,5 @@
 import { apiGet } from '../shared/api.js';
+import { resolveBirthdayCheckEndpoint } from '../api/endpoints/preferences.js';
 
 /**
  * Birthday Modal - Sistema de Celebração de Aniversário
@@ -36,8 +37,7 @@ import { apiGet } from '../shared/api.js';
                     return;
                 }
 
-                const baseUrl = document.querySelector('meta[name="base-url"]')?.content || '/';
-                const data = await apiGet(`${baseUrl}api/user/birthday-check`);
+                const data = await apiGet(resolveBirthdayCheckEndpoint());
 
                 if (data.success && data.data?.is_birthday) {
                     this.showModal(data.data);

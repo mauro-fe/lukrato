@@ -38,32 +38,6 @@ $resolvedBundle = [
         : null,
 ];
 $bundle = is_array($bundle ?? null) ? array_replace($resolvedBundle, $bundle) : $resolvedBundle;
-$dashboardPreferencesRaw = $currentUser?->dashboard_preferences ?? null;
-$dashboardPreferences = is_array($dashboardPreferencesRaw)
-    ? $dashboardPreferencesRaw
-    : [];
-$rawHelpCenterPreferences = is_array($dashboardPreferences['help_center'] ?? null)
-    ? $dashboardPreferences['help_center']
-    : [];
-$rawHelpSettings = is_array($rawHelpCenterPreferences['settings'] ?? null)
-    ? $rawHelpCenterPreferences['settings']
-    : [];
-$helpCenterPreferences = [
-    'settings' => [
-        'auto_offer' => array_key_exists('auto_offer', $rawHelpSettings)
-            ? (bool) $rawHelpSettings['auto_offer']
-            : true,
-    ],
-    'tour_completed' => is_array($rawHelpCenterPreferences['tour_completed'] ?? null)
-        ? $rawHelpCenterPreferences['tour_completed']
-        : [],
-    'offer_dismissed' => is_array($rawHelpCenterPreferences['offer_dismissed'] ?? null)
-        ? $rawHelpCenterPreferences['offer_dismissed']
-        : [],
-    'tips_seen' => is_array($rawHelpCenterPreferences['tips_seen'] ?? null)
-        ? $rawHelpCenterPreferences['tips_seen']
-        : [],
-];
 
 // Helpers para menu ativo
 $active = fn(string $key): string => (!empty($menu) && $menu === $key) ? 'active' : '';
@@ -201,6 +175,7 @@ $footerModules = is_array($footerModules ?? null)
         }
 
         @media (prefers-reduced-motion: reduce) {
+
             .lk-preboot-overlay,
             .lk-preboot-spinner {
                 transition: none;
@@ -294,43 +269,14 @@ $footerModules = is_array($footerModules ?? null)
     <?= vite_scripts('admin/global/index.js') ?>
 
     <!-- ============================================================================
-         BRIDGE PHP → JS (configuração global centralizada)
-         ============================================================================ -->
-    <script>
-        window.__LK_CONFIG = {
-            baseUrl: <?= json_encode(rtrim(BASE_URL, '/') . '/', JSON_UNESCAPED_SLASHES) ?>,
-            csrfTtl: <?= (int) \Application\Middlewares\CsrfMiddleware::TOKEN_TTL ?>,
-            isPro: <?= json_encode($isPro) ?>,
-            isSysAdmin: <?= json_encode($isSysAdmin) ?>,
-            userId: <?= json_encode($currentUser?->id ?? null) ?>,
-            username: <?= json_encode($username) ?>,
-            userEmail: <?= json_encode($currentUser?->email ?? '') ?>,
-            currentMenu: <?= json_encode($menu ?: 'dashboard') ?>,
-            currentViewId: <?= json_encode($currentViewId) ?>,
-            currentViewPath: <?= json_encode($currentViewPath, JSON_UNESCAPED_SLASHES) ?>,
-            bundle: <?= json_encode($bundle, JSON_UNESCAPED_SLASHES) ?>,
-            needsDisplayNamePrompt: <?= json_encode(trim((string) ($currentUser?->nome ?? '')) === '') ?>,
-            tourCompleted: <?= json_encode(!empty($currentUser?->tour_completed_at)) ?>,
-            helpCenter: <?= json_encode($helpCenterPreferences, JSON_UNESCAPED_SLASHES) ?>,
-            userAvatar: <?= json_encode($currentUser?->avatar ? rtrim(BASE_URL, '/') . '/' . $currentUser->avatar : '') ?>,
-            userAvatarSettings: <?= json_encode([
-                                    'position_x' => max(0, min(100, (int) ($currentUser?->avatar_focus_x ?? 50))),
-                                    'position_y' => max(0, min(100, (int) ($currentUser?->avatar_focus_y ?? 50))),
-                                    'zoom' => max(1, min(2, round((float) ($currentUser?->avatar_zoom ?? 1), 2))),
-                                ]) ?>
-        };
-    </script>
-
-    <!-- ============================================================================
-         CONFIGURAÇÃO GLOBAL (Lukrato Namespace) — via Vite global bundle
-         ============================================================================ -->
-
-    <!-- ============================================================================
          CONTEXTO DE PAGINA
          ============================================================================ -->
 </head>
 
-<body<?php if (!empty($showMonthSelector)) echo ' class="has-month-bar"'; ?>>
+<body data-lk-menu="<?= htmlspecialchars((string) $menu, ENT_QUOTES, 'UTF-8') ?>"
+    data-lk-view-id="<?= htmlspecialchars((string) $currentViewId, ENT_QUOTES, 'UTF-8') ?>"
+    data-lk-view-path="<?= htmlspecialchars((string) $currentViewPath, ENT_QUOTES, 'UTF-8') ?>"
+    <?php if (!empty($showMonthSelector)) echo ' class="has-month-bar"'; ?>>
     <div class="lk-preboot-overlay" id="lkPrebootOverlay" aria-hidden="true">
         <div class="lk-preboot-card" role="status" aria-live="polite">
             <div class="lk-preboot-spinner" aria-hidden="true">

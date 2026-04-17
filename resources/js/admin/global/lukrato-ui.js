@@ -10,30 +10,15 @@
  *   LK.pageLoading(msg)    — page loading (area de conteudo)
  *   LK.sectionLoading(el)  — section loading (bloco/cartao)
  *
- * Delega para LKFeedback (toasts), lkFetch (HTTP) e CsrfManager (CSRF)
- * quando disponíveis, com fallback direto para SweetAlert2 / fetch nativo.
+ * Delega para LKFeedback (toasts) e shared/api (HTTP + CSRF)
+ * com fallback direto para SweetAlert2 quando necessario.
  *
  * @version 1.0.0
  */
+import { apiFetch as sharedApiFetch, getApiPayload, getErrorMessage } from '../shared/api.js';
+
 (function () {
     'use strict';
-
-    // ── helpers ──────────────────────────────────────────────────
-    function getBase() {
-        if (window.LK?.getBase) return window.LK.getBase();
-        const meta = document.querySelector('meta[name="base-url"]');
-        if (meta?.content) return meta.content.replace(/\/?$/, '/');
-        return '/';
-    }
-
-    function getCsrf() {
-        if (window.CsrfManager?.getToken) return window.CsrfManager.getToken();
-        if (window.LK?.getCSRF) return window.LK.getCSRF();
-        const meta = document.querySelector('meta[name="csrf-token"]');
-        if (meta?.content) return meta.content;
-        const input = document.querySelector('input[name="csrf_token"]');
-        return input?.value || '';
-    }
 
     // ── TOAST ────────────────────────────────────────────────────
     // Wrappers finos sobre LKFeedback (já carregado globalmente).
@@ -135,7 +120,7 @@
     function pageLoading(message, options = {}) {
         const api = getPageLoadingApi();
         if (!api?.show) {
-            return () => {};
+            return () => { };
         }
 
         return api.show(message || 'Carregando...', options);
@@ -173,82 +158,78 @@
     }
 
     // ── API (HTTP) ───────────────────────────────────────────────
-    // Usa lkFetch quando disponível. Senão, fetch nativo com CSRF.
-    // Todas retornam Promise<{ok, data, message?, errors?}>
+    // Adapter fino sobre a camada compartilhada.
+    // Mantem o contrato legado esperado por LK.api.*
 
-    async function apiFetch(url, method, body, opts = {}) {
-        // Resolve URL relativa baseada no BASE_URL
-        const fullUrl = url.startsWith('http') ? url : getBase() + url.replace(/^\//, '');
+    function normalizeApiRequestOptions(opts = {}) {
+        const request = opts && typeof opts === 'object' ? { ...opts } : {};
+        const extra = {};
 
-        // Tentar via lkFetch (tem retry, timeout, loading bar)
-        if (window.lkFetch && !opts._skipLkFetch) {
-            try {
-                const headers = { 'Accept': 'application/json' };
-                if (method !== 'GET') {
-                    headers['X-CSRF-Token'] = getCsrf();
-                }
-
-                const fetchOpts = { method, headers, credentials: 'same-origin' };
-
-                if (body !== undefined && body !== null) {
-                    if (body instanceof FormData) {
-                        // FormData: don't set Content-Type (browser sets boundary)
-                        fetchOpts.body = body;
-                        delete headers['Content-Type'];
-                    } else {
-                        headers['Content-Type'] = 'application/json';
-                        fetchOpts.body = JSON.stringify(body);
-                    }
-                }
-
-                const result = await window.lkFetch.request(fullUrl, fetchOpts, {
-                    showLoading: opts.showLoading ?? false,
-                    loadingTarget: opts.loadingTarget || null,
-                });
-
-                return { ok: true, data: result.data?.data ?? result.data, raw: result.data };
-            } catch (err) {
-                return { ok: false, message: err.message || 'Erro na requisição', data: null };
-            }
+        if (Object.prototype.hasOwnProperty.call(request, 'timeout')) {
+            extra.timeout = request.timeout;
+            delete request.timeout;
         }
 
-        // Fallback: fetch nativo
+        if (request.suppressErrorLogging === true) {
+            extra.suppressErrorLogging = true;
+        }
+
+        delete request.suppressErrorLogging;
+        delete request.showLoading;
+        delete request.loadingTarget;
+
+        return { request, extra };
+    }
+
+    function buildLegacyApiSuccess(raw) {
+        return {
+            ok: true,
+            data: getApiPayload(raw, null),
+            raw,
+            message: typeof raw?.message === 'string' ? raw.message : null,
+            errors: raw?.errors ?? null,
+            status: Number(raw?.status || 200),
+        };
+    }
+
+    function buildLegacyApiFailure(error) {
+        const status = Number(error?.status || error?.data?.status || 0) || null;
+
+        return {
+            ok: false,
+            data: null,
+            raw: error?.data ?? null,
+            message: getErrorMessage(error, 'Erro na requisição'),
+            errors: error?.data?.errors ?? null,
+            status,
+        };
+    }
+
+    async function apiRequest(url, method, body, opts = {}) {
+        const { request, extra } = normalizeApiRequestOptions(opts);
+        const options = {
+            ...request,
+            method,
+        };
+
+        if (body !== undefined && body !== null && options.body === undefined) {
+            options.body = body;
+        }
+
         try {
-            const headers = { 'Accept': 'application/json' };
-            if (method !== 'GET') {
-                headers['X-CSRF-Token'] = getCsrf();
-            }
-            const fetchOpts = { method, headers, credentials: 'same-origin' };
-
-            if (body !== undefined && body !== null) {
-                if (body instanceof FormData) {
-                    fetchOpts.body = body;
-                } else {
-                    headers['Content-Type'] = 'application/json';
-                    fetchOpts.body = JSON.stringify(body);
-                }
-            }
-
-            const res = await fetch(fullUrl, fetchOpts);
-            const json = await res.json().catch(() => null);
-
-            if (!res.ok) {
-                const msg = json?.message || json?.errors?.[0] || `Erro ${res.status}`;
-                return { ok: false, message: msg, errors: json?.errors, data: null, status: res.status };
-            }
-
-            return { ok: true, data: json?.data ?? json, raw: json };
-        } catch (err) {
-            return { ok: false, message: err.message || 'Erro de conexão', data: null };
+            const raw = await sharedApiFetch(url, options, extra);
+            return buildLegacyApiSuccess(raw);
+        } catch (error) {
+            return buildLegacyApiFailure(error);
         }
     }
 
     const api = {
-        get:    (url, opts) => apiFetch(url, 'GET', null, opts),
-        post:   (url, data, opts) => apiFetch(url, 'POST', data, opts),
-        put:    (url, data, opts) => apiFetch(url, 'PUT', data, opts),
-        patch:  (url, data, opts) => apiFetch(url, 'PATCH', data, opts),
-        delete: (url, opts) => apiFetch(url, 'DELETE', null, opts),
+        get: (url, opts) => apiRequest(url, 'GET', null, opts),
+        post: (url, data, opts) => apiRequest(url, 'POST', data, opts),
+        put: (url, data, opts) => apiRequest(url, 'PUT', data, opts),
+        patch: (url, data, opts) => apiRequest(url, 'PATCH', data, opts),
+        delete: (url, opts) => apiRequest(url, 'DELETE', null, opts),
     };
 
     // ── EXPOSE GLOBAL ────────────────────────────────────────────
@@ -264,8 +245,6 @@
     LK.hidePageLoading = hidePageLoading;
     LK.withPageLoading = withPageLoading;
     LK.sectionLoading = sectionLoading;
-    LK.getBase = LK.getBase || getBase;
-    LK.getCSRF = LK.getCSRF || getCsrf;
     window.LK = LK;
 
 })();

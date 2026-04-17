@@ -8,6 +8,7 @@
  */
 
 import { DOM, Utils } from './state.js';
+import { buildAppUrl } from '../shared/api.js';
 import { refreshIcons } from '../shared/ui.js';
 
 const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, Number(value) || 0));
@@ -18,8 +19,6 @@ const formatPercent = (value, digits = 0) => `${(Number(value) || 0).toLocaleStr
 })}%`;
 const buildTooltipAttrs = (title, text) => `data-lk-tooltip-title="${safeText(title)}" data-lk-tooltip="${safeText(text)}"`;
 const COLOR_TOKEN_REGEX = /(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\))/;
-const getBaseUrl = () => (window.LK?.getBase?.() || '/');
-
 export const CardListMethods = {
     renderParcelamentos(parcelamentos) {
         if (!Array.isArray(parcelamentos) || parcelamentos.length === 0) {
@@ -346,9 +345,10 @@ export const CardListMethods = {
         const resumoPrincipal = this.getResumoPrincipal(parc, dueMeta, statusMeta, itensPendentes, itensPagos, totalItens);
         const progressoSection = this.getProgressoSection(totalItens, itensPendentes, itensPagos, progresso, statusMeta);
         const cartaoId = Number.parseInt(String(parc.cartao?.id ?? parc.cartao_id ?? 0), 10) || 0;
-        const cardImportUrl = cartaoId > 0
-            ? `${getBaseUrl()}importacoes?import_target=cartao&cartao_id=${cartaoId}`
-            : `${getBaseUrl()}importacoes?import_target=cartao`;
+        const cardImportUrl = buildAppUrl('importacoes', {
+            import_target: 'cartao',
+            ...(cartaoId > 0 ? { cartao_id: cartaoId } : {}),
+        });
         const cartaoNome = parc.cartao ? (parc.cartao.nome || parc.cartao.bandeira || 'Cartao') : 'Cartao';
         const instituicaoNome = parc.cartao?.conta?.instituicao_financeira?.nome || 'Sem instituicao';
         const cartaoNumero = parc.cartao?.ultimos_digitos ? `Final ${parc.cartao.ultimos_digitos}` : '';

@@ -1,3 +1,4 @@
+import { resolveReferralStatsEndpoint } from '../api/endpoints/engagement.js';
 import { apiGet } from '../shared/api.js';
 
 function copyToClipboard(text, button) {
@@ -17,9 +18,9 @@ function copyToClipboard(text, button) {
     });
 }
 
-async function loadReferralStats(context) {
+async function loadReferralStats() {
     try {
-        const response = await apiGet(`${context.API}referral/stats`);
+        const response = await apiGet(resolveReferralStatsEndpoint());
         const stats = response?.data;
         if (!stats) {
             return;
@@ -80,7 +81,7 @@ async function loadReferralStats(context) {
     }
 }
 
-export function initConfigReferral(context) {
+export function initConfigReferral() {
     document.getElementById('btn-copy-code')?.addEventListener('click', () => {
         const code = document.getElementById('referral-code')?.value;
         const button = document.getElementById('btn-copy-code');
@@ -138,6 +139,6 @@ export function initConfigReferral(context) {
     });
 
     if (document.getElementById('referral-stats')) {
-        void loadReferralStats(context);
+        void loadReferralStats();
     }
 }

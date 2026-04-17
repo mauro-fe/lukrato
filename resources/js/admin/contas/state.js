@@ -7,7 +7,7 @@
  * ============================================================================
  */
 
-import { getCSRFToken as getStoredCSRFToken, refreshCSRFToken } from '../shared/api.js';
+import { getBaseUrl, getCSRFToken as getSharedCSRFToken, refreshCSRFToken } from '../shared/api.js';
 import { formatMoney, parseMoney, escapeHtml, normalizeText, getTipoClass, debounce, calcularRecorrenciaFim } from '../shared/utils.js';
 import { toastSuccess, toastError, showConfirm, confirmDelete, showLoading, hideLoading, refreshIcons } from '../shared/ui.js';
 import { setupMoneyMask, setMoneyValue, getMoneyValue, applyMoneyMask } from '../shared/money-mask.js';
@@ -20,11 +20,8 @@ export { setupMoneyMask, setMoneyValue, getMoneyValue, applyMoneyMask };
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 
 export const CONFIG = {
-    BASE_URL: (window.BASE_URL || (location.pathname.includes('/public/') ?
-        location.pathname.split('/public/')[0] + '/public/' : '/')).replace(/\/?$/, '/'),
+    BASE_URL: getBaseUrl(),
 };
-
-CONFIG.API_URL = `${CONFIG.BASE_URL}api`;
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
 
@@ -66,18 +63,9 @@ export const Utils = {
         }
 
         // Fallback: tentar meta tag
-        const metaToken = getStoredCSRFToken();
+        const metaToken = getSharedCSRFToken();
         if (metaToken) {
             return metaToken;
-        }
-
-        if (window.LK?.getCSRF) {
-            const token = window.LK.getCSRF();
-            return token;
-        }
-
-        if (window.CSRF) {
-            return window.CSRF;
         }
 
         console.error('❌ CSRF token não encontrado!');
@@ -88,16 +76,16 @@ export const Utils = {
      * Atualizar token CSRF em todos os locais conhecidos
      */
     updateCSRFToken(newToken) {
-        const metaTag = document.querySelector('meta[name="csrf-token"]');
-        if (metaTag) {
-            metaTag.setAttribute('content', newToken);
+        if (window.CsrfManager?.applyToken) {
+            window.CsrfManager.applyToken(newToken);
+            return;
         }
+
         if (window.LK) {
-            window.LK.csrf = newToken;
+            window.LK.csrfToken = newToken;
         }
-        if (typeof window.CSRF !== 'undefined') {
-            window.CSRF = newToken;
-        }
+
+        window.CSRF = newToken;
     },
 
     // ── Navigation / Date ────────────────────────────────────────────────

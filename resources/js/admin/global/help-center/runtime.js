@@ -1,4 +1,5 @@
 import {
+    fetchHelpPreferences,
     clearOfferSessionCache as clearOfferSessionCacheStore,
     getOfferSessionKey as getOfferSessionKeyStore,
     markOfferShownThisSession as markOfferShownThisSessionStore,
@@ -30,6 +31,11 @@ import {
     showOfferRuntime,
 } from './offer-runtime.js';
 import {
+    applyRuntimeConfig,
+    ensureRuntimeConfig,
+    getRuntimeConfig,
+} from '../runtime-config.js';
+import {
     buildStepsRuntime,
     clearTourTargetRuntime,
     closeMobileSidebarIfNeededRuntime,
@@ -54,7 +60,7 @@ import {
 class HelpCenter {
     constructor() {
         this.currentPage = this.getCurrentPage();
-        this.preferences = normalizeHelpPreferences(window.__LK_CONFIG?.helpCenter);
+        this.preferences = normalizeHelpPreferences(getRuntimeConfig().helpCenter);
         this.tour = null;
         this.activeTourTarget = null;
         this.completedCurrentRun = false;
@@ -83,7 +89,26 @@ class HelpCenter {
         this.createOffer();
         this.bindMenu();
         this.renderMenuState();
-        this.scheduleOffer();
+        void this.hydratePreferences();
+    }
+
+    async hydratePreferences() {
+        try {
+            const bootstrapConfig = await ensureRuntimeConfig({}, { silent: true });
+            this.preferences = normalizeHelpPreferences(bootstrapConfig.helpCenter);
+            this.currentPage = this.getCurrentPage();
+
+            const result = await fetchHelpPreferences({ silent: true });
+            if (result?.ok && result.preferences) {
+                this.preferences = result.preferences;
+                applyRuntimeConfig({ helpCenter: this.preferences }, {
+                    source: 'help-preferences',
+                });
+            }
+        } finally {
+            this.renderMenuState();
+            this.scheduleOffer();
+        }
     }
 
     getCurrentPage() {
@@ -94,7 +119,7 @@ class HelpCenter {
             return pageOverride;
         }
 
-        const configPage = String(window.__LK_CONFIG?.currentMenu || '').trim().toLowerCase();
+        const configPage = String(getRuntimeConfig().currentMenu || '').trim().toLowerCase();
         if (configPage) {
             return configPage;
         }
@@ -385,7 +410,9 @@ class HelpCenter {
 
         if (result.preferences) {
             this.preferences = result.preferences;
-            window.__LK_CONFIG.helpCenter = this.preferences;
+            applyRuntimeConfig({ helpCenter: this.preferences }, {
+                source: 'help-preferences',
+            });
         }
 
         return true;

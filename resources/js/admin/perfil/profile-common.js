@@ -1,4 +1,5 @@
-import { apiDelete, apiFetch, apiGet, getErrorMessage } from '../shared/api.js';
+import { apiDelete, apiFetch, apiGet, getCSRFToken as getSharedCSRFToken, getErrorMessage } from '../shared/api.js';
+import { applyRuntimeConfig } from '../global/runtime-config.js';
 
 export function maskCep(value) {
     const digits = String(value || '').replace(/\D/g, '');
@@ -11,7 +12,7 @@ export function maskCep(value) {
 
 export function getCsrfToken(context) {
     return context.form?.querySelector('input[name="csrf_token"]')?.value
-        || document.querySelector('meta[name="csrf-token"]')?.content
+        || getSharedCSRFToken()
         || '';
 }
 
@@ -92,13 +93,18 @@ async function removeAvatar(context) {
     }
 
     try {
-        const response = await apiDelete(`${context.API}perfil/avatar`);
+        const response = await apiDelete(context.endpoints.avatar);
 
         if (response?.success === false) {
             throw new Error(getErrorMessage({ data: response }, 'Falha ao remover foto.'));
         }
 
         updateAvatarDisplay(context, '', fieldNome?.value);
+        applyRuntimeConfig({
+            userAvatar: '',
+        }, {
+            source: 'profile-avatar',
+        });
 
         if (window.Swal) {
             Swal.fire({
@@ -218,7 +224,7 @@ export function setupAvatarHandlers(context) {
         avatarEditBtn.disabled = true;
 
         try {
-            const response = await apiFetch(`${context.API}perfil/avatar`, {
+            const response = await apiFetch(context.endpoints.avatar, {
                 method: 'POST',
                 credentials: 'include',
                 body: formData,
@@ -229,6 +235,11 @@ export function setupAvatarHandlers(context) {
             }
 
             updateAvatarDisplay(context, response.data?.avatar, fieldNome?.value);
+            applyRuntimeConfig({
+                userAvatar: String(response?.data?.avatar || '').trim(),
+            }, {
+                source: 'profile-avatar',
+            });
 
             if (window.Swal) {
                 Swal.fire({
@@ -262,7 +273,7 @@ export async function loadProfile(context) {
     }
 
     try {
-        const response = await apiGet(`${context.API}perfil`);
+        const response = await apiGet(context.endpoints.profile);
         if (response?.success === false) {
             throw new Error(getErrorMessage({ data: response }, 'Falha ao carregar perfil.'));
         }
@@ -276,6 +287,14 @@ export async function loadProfile(context) {
 
         updateEmailPendingNotice(context, user);
         updateAvatarDisplay(context, user.avatar, user.nome);
+        applyRuntimeConfig({
+            username: String(user.nome || '').trim(),
+            userEmail: String(user.email || '').trim(),
+            userAvatar: String(user.avatar || '').trim(),
+            needsDisplayNamePrompt: String(user.nome || '').trim() === '',
+        }, {
+            source: 'profile-load',
+        });
 
         const supportCodeField = document.getElementById('support_code');
         if (supportCodeField) {

@@ -9,9 +9,8 @@
 
 import '../../../css/admin/contas/index.css';
 import '../../../css/admin/modules/modal-contas.css';
-import { CONFIG } from './state.js';
+import { buildAppUrl } from '../shared/api.js';
 import { ContasAPI } from './api.js';
-import { ContasRender } from './render.js';
 import { ContasModal } from './modal.js';
 import { ContasEvents, ContasMoneyMask } from './events.js';
 import { initCustomize } from './customize.js';
@@ -20,7 +19,7 @@ const getLancamentoGlobalManager = () => window.lancamentoGlobalManager || null;
 const openLancamentoGlobalFromConta = (contaId, options = {}) => {
     const manager = getLancamentoGlobalManager();
     if (!manager?.openModal) {
-        window.location.href = `${CONFIG.BASE_URL}lancamentos`;
+        window.location.href = buildAppUrl('lancamentos');
         return;
     }
 

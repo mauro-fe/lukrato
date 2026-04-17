@@ -1,4 +1,5 @@
-import { apiGet, getBaseUrl, getErrorMessage } from './api.js';
+import { resolveLancamentosEndpoint } from '../api/endpoints/lancamentos.js';
+import { apiGet, getErrorMessage } from './api.js';
 import { refreshIcons } from './ui.js';
 import { escapeHtml, formatMoney } from './utils.js';
 
@@ -94,8 +95,7 @@ export async function loadLancamentoRecentHistory({
     limit = 5,
     lookbackDays = 120,
     emptyMessage = 'Nenhuma movimentacao recente',
-    errorMessage = 'Erro ao carregar historico',
-    baseUrl = getBaseUrl()
+    errorMessage = 'Erro ao carregar historico'
 }) {
     if (!containerEl) return [];
 
@@ -112,7 +112,7 @@ export async function loadLancamentoRecentHistory({
     startDate.setDate(startDate.getDate() - lookbackDays);
 
     try {
-        const result = await apiGet('api/lancamentos', {
+        const result = await apiGet(resolveLancamentosEndpoint(), {
             account_id: String(contaId),
             limit: String(limit),
             start_date: startDate.toISOString().slice(0, 10),

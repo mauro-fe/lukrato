@@ -14,13 +14,17 @@ import {
     escapeHtml, toastSuccess, toastError,
 } from './state.js';
 import { apiGet, apiPost, apiPut, apiDelete, getErrorMessage } from '../shared/api.js';
+import {
+    resolveCategorySubcategoriesEndpoint,
+    resolveSubcategoryEndpoint,
+} from '../api/endpoints/finance.js';
 
 // =========================================================================
 // API HELPERS
 // =========================================================================
 
 async function fetchSubcategorias(categoriaId) {
-    const json = await apiGet(`${CONFIG.API_URL}categorias/${categoriaId}/subcategorias`);
+    const json = await apiGet(resolveCategorySubcategoriesEndpoint(categoriaId));
     const subs = json?.data?.subcategorias ?? json?.data ?? [];
     STATE.subcategoriasCache[categoriaId] = subs;
     return subs;
@@ -28,7 +32,7 @@ async function fetchSubcategorias(categoriaId) {
 
 async function apiCreateSubcategoria(parentId, data) {
     try {
-        return await apiPost(`${CONFIG.API_URL}categorias/${parentId}/subcategorias`, data);
+        return await apiPost(resolveCategorySubcategoriesEndpoint(parentId), data);
     } catch (error) {
         throw new Error(getErrorMessage(error, 'Erro ao criar subcategoria'));
     }
@@ -36,7 +40,7 @@ async function apiCreateSubcategoria(parentId, data) {
 
 async function apiUpdateSubcategoria(id, data) {
     try {
-        return await apiPut(`${CONFIG.API_URL}subcategorias/${id}`, data);
+        return await apiPut(resolveSubcategoryEndpoint(id), data);
     } catch (error) {
         throw new Error(getErrorMessage(error, 'Erro ao atualizar subcategoria'));
     }
@@ -44,7 +48,7 @@ async function apiUpdateSubcategoria(id, data) {
 
 async function apiDeleteSubcategoria(id) {
     try {
-        await apiDelete(`${CONFIG.API_URL}subcategorias/${id}`);
+        await apiDelete(resolveSubcategoryEndpoint(id));
     } catch (error) {
         throw new Error(getErrorMessage(error, 'Erro ao excluir subcategoria'));
     }

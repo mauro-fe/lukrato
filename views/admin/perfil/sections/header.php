@@ -1,9 +1,8 @@
     <div class="profile-header surface-card surface-card--interactive surface-card--clip" id="profileHeaderSection">
-        <?php $avatarUrl = $currentUser?->avatar ? rtrim(BASE_URL, '/') . '/' . $currentUser->avatar : ''; ?>
         <div class="profile-avatar-wrapper">
             <div class="profile-avatar" id="profileAvatar">
-                <span class="avatar-initials" id="avatarInitials" <?= $avatarUrl ? 'style="display:none"' : '' ?>><?= mb_substr($topNavFirstName ?: 'U', 0, 1) ?></span>
-                <img class="avatar-img" id="avatarImg" src="<?= htmlspecialchars($avatarUrl) ?>" alt="Foto de perfil" <?= $avatarUrl ? '' : 'style="display:none"' ?>>
+                <span class="avatar-initials" id="avatarInitials">U</span>
+                <img class="avatar-img" id="avatarImg" alt="Foto de perfil" style="display:none">
             </div>
             <button type="button" class="avatar-edit-btn" id="avatarEditBtn" title="Alterar foto de perfil">
                 <i data-lucide="camera"></i>

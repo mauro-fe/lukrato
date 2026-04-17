@@ -7,6 +7,7 @@
  * ============================================================================
  */
 
+import { getBaseUrl } from '../shared/api.js';
 import { formatMoney, escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
 import { refreshIcons } from '../shared/ui.js';
 
@@ -20,7 +21,7 @@ export const PAYWALL_MESSAGE = 'Relatórios são exclusivos do plano Pro.';
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 
 export const CONFIG = {
-    BASE_URL: (window.LK?.getBase?.() || '/'),
+    BASE_URL: getBaseUrl(),
 
     CHART_COLORS: [
         '#E67E22', '#2C3E50', '#2ECC71', '#F39C12',

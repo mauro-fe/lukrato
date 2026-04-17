@@ -6,7 +6,6 @@
 import '../../../css/admin/cartoes/index.css';
 import '../../../css/admin/modules/modal-cartoes.css';
 import { Modules, STATE, Utils } from './state.js';
-import { CartoesAPI } from './api.js';
 import { CartoesUI } from './ui.js';
 import { FaturaModal } from './fatura.js';
 import { initCustomize } from './customize.js';

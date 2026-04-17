@@ -1,5 +1,11 @@
 import '../../../css/admin/sysadmin/ai-chat.css';
-import { apiGet, apiPost, getBaseUrl, getErrorMessage } from '../shared/api.js';
+import { apiGet, apiPost, getErrorMessage } from '../shared/api.js';
+import {
+    resolveSysadminAiChatEndpoint,
+    resolveSysadminAiHealthProxyEndpoint,
+    resolveSysadminAiLogsSummaryEndpoint,
+    resolveSysadminAiQuotaEndpoint,
+} from '../api/endpoints/sysadmin-ai.js';
 
 (function () {
     'use strict';
@@ -15,13 +21,12 @@ import { apiGet, apiPost, getBaseUrl, getErrorMessage } from '../shared/api.js';
         return;
     }
 
-    const BASE = getBaseUrl();
     const MAX_DOM_MESSAGES = 200;
     let isLoading = false;
 
     async function checkServiceHealth() {
         try {
-            const data = await apiGet(`${BASE}api/sysadmin/ai/health-proxy`);
+            const data = await apiGet(resolveSysadminAiHealthProxyEndpoint());
             setStatus(Boolean(data?.success), data?.success ? 'Online' : 'Offline');
         } catch {
             setStatus(false, 'Offline');
@@ -91,7 +96,7 @@ import { apiGet, apiPost, getBaseUrl, getErrorMessage } from '../shared/api.js';
         const typingEl = appendMessage('ai', '... ', true);
 
         try {
-            const data = await apiPost(`${BASE}api/sysadmin/ai/chat`, { message });
+            const data = await apiPost(resolveSysadminAiChatEndpoint(), { message });
 
             typingEl.remove();
 
@@ -158,7 +163,7 @@ import { apiGet, apiPost, getBaseUrl, getErrorMessage } from '../shared/api.js';
         };
 
         try {
-            const json = await apiGet(`${BASE}api/sysadmin/ai/quota`);
+            const json = await apiGet(resolveSysadminAiQuotaEndpoint());
             const quota = json?.data;
             if (!quota) {
                 statusEl.textContent = 'Erro';
@@ -212,7 +217,7 @@ import { apiGet, apiPost, getBaseUrl, getErrorMessage } from '../shared/api.js';
         }
 
         try {
-            const json = await apiGet(`${BASE}api/sysadmin/ai/logs/summary`, { hours: 24 });
+            const json = await apiGet(resolveSysadminAiLogsSummaryEndpoint(), { hours: 24 });
             if (!json.success || !json.data?.recentes?.length) {
                 container.innerHTML = '<div style="font-size:var(--font-size-xs);color:var(--color-text-muted);text-align:center;padding:.5rem 0;">Nenhuma interacao recente</div>';
                 return;

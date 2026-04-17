@@ -2,10 +2,11 @@
    LUKRATO - Perfil Page CSS (Barrel)
    ============================================================================
    Stable entrypoint imported by resources/js/admin/perfil/index.js.
-   Shared-only styles live here. Configuracoes has its own entrypoint.
+   Shared-only styles live here. Configurações has its own entrypoint.
    ============================================================================ */
 
 @import './_page-shell.css';
+@import './_quick-display-name.css';
 @import './_sections.css';
 @import './_tabs.css';
 @import './_customize.css';

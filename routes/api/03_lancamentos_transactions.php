@@ -27,9 +27,12 @@ Router::add('POST', '/api/transactions/{id}/update', 'Api\\Lancamentos\\Transact
 Router::add('POST', '/api/transfers', 'Api\\Lancamentos\\TransactionsController@transfer', ['auth', 'csrf', 'ratelimit_strict']);
 
 // Importações (preview, confirmação, configuração e histórico)
+Router::add('GET',  '/api/importacoes/page-init', 'Api\\Importacoes\\PageInitController@__invoke', ['auth']);
+Router::add('GET',  '/api/importacoes/configuracoes/page-init', 'Api\\Importacoes\\ConfiguracoesPageInitController@__invoke', ['auth']);
 Router::add('GET',  '/api/importacoes/configuracoes', 'Api\\Importacoes\\ConfiguracoesController@__invoke', ['auth']);
 Router::add('POST', '/api/importacoes/configuracoes', 'Api\\Importacoes\\ConfiguracoesController@save', ['auth', 'csrf', 'ratelimit']);
 Router::add('GET',  '/api/importacoes/modelos/csv', 'Api\\Importacoes\\CsvTemplateController@__invoke', ['auth']);
+Router::add('GET',  '/api/importacoes/historico/page-init', 'Api\\Importacoes\\HistoricoPageInitController@__invoke', ['auth']);
 Router::add('GET',  '/api/importacoes/historico', 'Api\\Importacoes\\HistoricoController@__invoke', ['auth']);
 Router::add('DELETE', '/api/importacoes/historico/{id}', 'Api\\Importacoes\\DeleteController@__invoke', ['auth', 'csrf', 'ratelimit']);
 Router::add('GET',  '/api/importacoes/jobs/{id}', 'Api\\Importacoes\\JobStatusController@__invoke', ['auth']);

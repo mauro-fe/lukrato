@@ -27,6 +27,7 @@ class AdminModuleRegistryTest extends TestCase
     public function testInferMenuFromViewPathUsesConfiguredPrefixes(): void
     {
         $this->assertSame('faturas', AdminModuleRegistry::inferMenuFromViewPath('admin/parcelamentos/index'));
+        $this->assertSame('billing', AdminModuleRegistry::inferMenuFromViewPath('admin/billing/index'));
         $this->assertSame('super_admin', AdminModuleRegistry::inferMenuFromViewPath('admin/sysadmin/ai'));
         $this->assertSame('configuracoes', AdminModuleRegistry::inferMenuFromViewPath('admin/configuracoes/index'));
         $this->assertSame('perfil', AdminModuleRegistry::inferMenuFromViewPath('admin/perfil/index'));
@@ -36,8 +37,10 @@ class AdminModuleRegistryTest extends TestCase
 
     public function testResolveMenuByViewContextResolvesRegisteredViews(): void
     {
+        $this->assertSame('billing', AdminModuleRegistry::resolveMenuByViewContext('admin/billing/index'));
         $this->assertSame('configuracoes', AdminModuleRegistry::resolveMenuByViewContext('admin/configuracoes/index'));
         $this->assertSame('perfil', AdminModuleRegistry::resolveMenuByViewContext('admin/perfil/index'));
+        $this->assertSame('perfil', AdminModuleRegistry::resolveMenuByViewContext('admin/frontend-pilot/index'));
         $this->assertSame('super_admin', AdminModuleRegistry::resolveMenuByViewContext('admin/sysadmin/cupons'));
         $this->assertSame('importacoes', AdminModuleRegistry::resolveMenuByViewContext('admin/importacoes/historico/index'));
     }
@@ -48,6 +51,7 @@ class AdminModuleRegistryTest extends TestCase
         $this->assertSame('admin/configuracoes/index.js', AdminModuleRegistry::resolveViteEntryByViewId('admin-configuracoes-index'));
         $this->assertSame('admin/importacoes/index.js', AdminModuleRegistry::resolveViteEntryByViewId('admin-importacoes-index'));
         $this->assertSame('admin/importacoes/configuracoes.js', AdminModuleRegistry::resolveViteEntryByViewId('admin-importacoes-configuracoes-index'));
+        $this->assertSame('admin/frontend-pilot/index.js', AdminModuleRegistry::resolveViteEntryByViewId('admin-frontend-pilot-index'));
         $this->assertSame('admin/sysadmin/ai-logs.js', AdminModuleRegistry::resolveViteEntryByViewId('admin-sysadmin-ai-logs'));
         $this->assertNull(AdminModuleRegistry::resolveViteEntryByViewId('admin-view-inexistente'));
     }
@@ -72,6 +76,16 @@ class AdminModuleRegistryTest extends TestCase
         $this->assertSame(
             [['label' => 'Perfil', 'icon' => 'user']],
             AdminModuleRegistry::resolveBreadcrumbsByViewContext('admin/configuracoes/index')
+        );
+
+        $this->assertSame(
+            [['label' => 'Perfil', 'icon' => 'user']],
+            AdminModuleRegistry::resolveBreadcrumbsByViewContext('admin/frontend-pilot/index')
+        );
+
+        $this->assertSame(
+            [['label' => 'Assinatura', 'icon' => 'star']],
+            AdminModuleRegistry::resolveBreadcrumbsByViewContext('admin/billing/index')
         );
 
         $this->assertSame([], AdminModuleRegistry::resolveBreadcrumbsByViewContext('admin/perfil/index'));

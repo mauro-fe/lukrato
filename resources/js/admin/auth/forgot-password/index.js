@@ -4,10 +4,9 @@
  * ============================================================================
  */
 
-import { createParticles, createConfetti, getBaseUrl } from '../shared.js';
+import { createParticles, createConfetti } from '../shared.js';
+import { resolveAuthForgotPasswordEndpoint } from '../../api/endpoints/auth.js';
 import { apiFetch, getErrorMessage } from '../../shared/api.js';
-
-const BASE = getBaseUrl();
 
 // -- Init particles ---------------------------------------------------------
 createParticles();
@@ -56,7 +55,7 @@ if (typeof window.lucide !== 'undefined') {
 
             try {
                 const formData = new FormData(form);
-                const data = await apiFetch(form.action, {
+                const data = await apiFetch(resolveAuthForgotPasswordEndpoint(), {
                     method: 'POST',
                     body: formData,
                     headers: {

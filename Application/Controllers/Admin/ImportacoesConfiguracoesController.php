@@ -6,82 +6,32 @@ namespace Application\Controllers\Admin;
 
 use Application\Controllers\WebController;
 use Application\Core\Response;
-use Application\Repositories\ContaRepository;
-use Application\Services\Importacao\ImportProfileConfigService;
+use Application\Services\Importacao\ImportacoesConfiguracoesPageDataService;
 
 class ImportacoesConfiguracoesController extends WebController
 {
-    private readonly ContaRepository $contaRepository;
-    private readonly ImportProfileConfigService $profileConfigService;
+    private readonly ImportacoesConfiguracoesPageDataService $pageDataService;
 
     public function __construct(
-        ?ContaRepository $contaRepository = null,
-        ?ImportProfileConfigService $profileConfigService = null,
+        ?ImportacoesConfiguracoesPageDataService $pageDataService = null,
     ) {
         parent::__construct();
-        $this->contaRepository = $this->resolveOrCreate($contaRepository, ContaRepository::class);
-        $this->profileConfigService = $this->resolveOrCreate($profileConfigService, ImportProfileConfigService::class);
+        $this->pageDataService = $this->resolveOrCreate($pageDataService, ImportacoesConfiguracoesPageDataService::class);
     }
 
     public function index(): Response
     {
         $userId = $this->requireUserId();
-
-        $accounts = $this->loadActiveAccounts($userId);
-        $selectedAccountId = $this->resolveSelectedAccountId($accounts, $this->getIntQuery('conta_id', 0));
-
-        $profileConfig = null;
-        if ($selectedAccountId > 0) {
-            $profileConfig = $this->profileConfigService
-                ->getForUserAndConta($userId, $selectedAccountId, 'ofx')
-                ->toArray();
-        }
+        $pageData = $this->pageDataService->buildForUser($userId, [
+            'conta_id' => $this->getIntQuery('conta_id', 0),
+        ]);
 
         return $this->renderAdminResponse(
             'admin/importacoes/configuracoes/index',
-            [
-                'pageTitle' => 'Configuracoes de Importacao',
+            array_merge([
+                'pageTitle' => 'Configurações de Importação',
                 'subTitle' => 'Defina perfil por conta para OFX agora e CSV na mesma base',
-                'accounts' => $accounts,
-                'selectedAccountId' => $selectedAccountId,
-                'profileConfig' => $profileConfig,
-                'configLoadEndpoint' => BASE_URL . 'api/importacoes/configuracoes',
-                'configSaveEndpoint' => BASE_URL . 'api/importacoes/configuracoes',
-                'csvTemplateAutoEndpoint' => BASE_URL . 'api/importacoes/modelos/csv?mode=auto&target=conta',
-                'csvTemplateManualEndpoint' => BASE_URL . 'api/importacoes/modelos/csv?mode=manual&target=conta',
-                'csvTemplateCardAutoEndpoint' => BASE_URL . 'api/importacoes/modelos/csv?mode=auto&target=cartao',
-                'csvTemplateCardManualEndpoint' => BASE_URL . 'api/importacoes/modelos/csv?mode=manual&target=cartao',
-            ]
+            ], $pageData)
         );
-    }
-
-    /**
-     * @return array<int, array{id:int, nome:string, instituicao:string}>
-     */
-    private function loadActiveAccounts(int $userId): array
-    {
-        $accounts = [];
-        foreach ($this->contaRepository->findActive($userId) as $account) {
-            $accounts[] = [
-                'id' => (int) ($account->id ?? 0),
-                'nome' => (string) ($account->nome ?? ''),
-                'instituicao' => (string) ($account->instituicao ?? ''),
-            ];
-        }
-
-        return $accounts;
-    }
-
-    /**
-     * @param array<int, array{id:int, nome:string, instituicao:string}> $accounts
-     */
-    private function resolveSelectedAccountId(array $accounts, int $requestedAccountId): int
-    {
-        $accountIds = array_column($accounts, 'id');
-        if ($requestedAccountId > 0 && in_array($requestedAccountId, $accountIds, true)) {
-            return $requestedAccountId;
-        }
-
-        return isset($accountIds[0]) ? (int) $accountIds[0] : 0;
     }
 }

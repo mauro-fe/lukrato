@@ -94,7 +94,8 @@ Resumo rapido:
 
 ## Observacoes de deploy
 
-- atualize qualquer cron antigo que chamava `/api/scheduler/*` ou `/api/rota-do-cron`
+- remova qualquer cron antigo que ainda chame `/api/*`, incluindo `/api/scheduler/*` ou `/api/rota-do-cron`
+- mesmo com `/api/v1/*` padronizado, rotinas operacionais nao devem depender de HTTP quando houver runner CLI equivalente
 - mantenha HTTP apenas para webhooks externos inevitaveis
 - novas rotinas operacionais devem entrar primeiro no runner CLI, nao em rota publica
 - o arquivo versionado para cron Linux fica em `deploy/cron/lukrato-scheduler.cron.example`

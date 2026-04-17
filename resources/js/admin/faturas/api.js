@@ -2,6 +2,14 @@
  * LUKRATO — Faturas / API
  */
 import { CONFIG, STATE, Utils, Modules } from './state.js';
+import {
+    resolveCardFaturaPayEndpoint,
+    resolveCardFaturaUndoPaymentEndpoint,
+    resolveFaturaEndpoint,
+    resolveFaturaItemEndpoint,
+    resolveFaturaItemParcelamentoEndpoint,
+    resolveFaturaItemToggleEndpoint,
+} from '../api/endpoints/faturas.js';
 
 export const FaturasAPI = {
     async listarParcelamentos(filters = {}) {
@@ -25,7 +33,7 @@ export const FaturasAPI = {
         if (isNaN(parcelamentoId)) {
             throw new Error('ID inválido');
         }
-        return await Utils.apiRequest(`${CONFIG.ENDPOINTS.parcelamentos}/${parcelamentoId}`);
+        return await Utils.apiRequest(resolveFaturaEndpoint(parcelamentoId));
     },
 
     async criarParcelamento(dados) {
@@ -36,15 +44,34 @@ export const FaturasAPI = {
     },
 
     async cancelarParcelamento(id) {
-        return await Utils.apiRequest(`${CONFIG.ENDPOINTS.parcelamentos}/${id}`, {
+        return await Utils.apiRequest(resolveFaturaEndpoint(id), {
             method: 'DELETE'
         });
     },
 
     async toggleItemFatura(faturaId, itemId, pago) {
-        return await Utils.apiRequest(`${CONFIG.ENDPOINTS.parcelamentos}/${faturaId}/itens/${itemId}/toggle`, {
+        return await Utils.apiRequest(resolveFaturaItemToggleEndpoint(faturaId, itemId), {
             method: 'POST',
             body: JSON.stringify({ pago })
+        });
+    },
+
+    async atualizarItemFatura(faturaId, itemId, dados) {
+        return await Utils.apiRequest(resolveFaturaItemEndpoint(faturaId, itemId), {
+            method: 'PUT',
+            body: JSON.stringify(dados)
+        });
+    },
+
+    async excluirItemFatura(faturaId, itemId) {
+        return await Utils.apiRequest(resolveFaturaItemEndpoint(faturaId, itemId), {
+            method: 'DELETE'
+        });
+    },
+
+    async excluirParcelamentoDoItem(faturaId, itemId) {
+        return await Utils.apiRequest(resolveFaturaItemParcelamentoEndpoint(faturaId, itemId), {
+            method: 'DELETE'
         });
     },
 
@@ -59,9 +86,28 @@ export const FaturasAPI = {
         const payload = { mes, ano };
         if (contaId) payload.conta_id = contaId;
 
-        return await Utils.apiRequest(`${CONFIG.ENDPOINTS.cartoes}/${cartaoId}/fatura/pagar`, {
+        return await Utils.apiRequest(resolveCardFaturaPayEndpoint(cartaoId), {
             method: 'POST',
             body: JSON.stringify(payload)
+        });
+    },
+
+    async pagarFaturaParcial(cartaoId, mes, ano, contaId, valorParcial) {
+        return await Utils.apiRequest(resolveCardFaturaPayEndpoint(cartaoId), {
+            method: 'POST',
+            body: JSON.stringify({
+                mes,
+                ano,
+                conta_id: contaId,
+                valor_parcial: valorParcial,
+            })
+        });
+    },
+
+    async desfazerPagamentoFatura(cartaoId, mes, ano) {
+        return await Utils.apiRequest(resolveCardFaturaUndoPaymentEndpoint(cartaoId), {
+            method: 'POST',
+            body: JSON.stringify({ mes, ano })
         });
     },
 

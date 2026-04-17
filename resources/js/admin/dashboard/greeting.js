@@ -1,5 +1,10 @@
 import { logClientError } from '../shared/api.js';
 import { getDashboardOverview, invalidateDashboardOverview } from './dashboard-data.js';
+import {
+  ensureRuntimeConfig,
+  getRuntimeConfig,
+  onRuntimeConfigUpdate,
+} from '../global/runtime-config.js';
 
 /**
  * Dashboard Greeting Component
@@ -9,13 +14,24 @@ import { getDashboardOverview, invalidateDashboardOverview } from './dashboard-d
 class DashboardGreeting {
   constructor(containerId = 'greetingContainer') {
     this.container = document.getElementById(containerId);
-    const fullName = window.__LK_CONFIG?.username || 'Usuario';
-    this.userName = fullName.split(' ')[0];
+    this.userName = this.getUserName();
     this._listeningDataChanged = false;
+
+    onRuntimeConfigUpdate(() => {
+      this.userName = this.getUserName();
+      this.updateGreetingTitle();
+    });
+  }
+
+  getUserName() {
+    const fullName = String(getRuntimeConfig().username || 'Usuario').trim();
+    return fullName.split(/\s+/)[0] || 'Usuario';
   }
 
   render() {
     if (!this.container) return;
+
+    this.userName = this.getUserName();
 
     const greeting = this.getGreeting();
     const today = new Date();
@@ -38,6 +54,16 @@ class DashboardGreeting {
     `;
 
     this.loadInsight();
+    void ensureRuntimeConfig({}, { silent: true });
+  }
+
+  updateGreetingTitle() {
+    const titleNode = this.container?.querySelector('.greeting-title');
+    if (!titleNode) {
+      return;
+    }
+
+    titleNode.textContent = this.getGreeting().title;
   }
 
   getGreeting() {

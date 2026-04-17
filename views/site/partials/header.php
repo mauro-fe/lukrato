@@ -52,6 +52,13 @@ $isLandingPage = $isLandingPage ?? false;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="base-url" content="<?= htmlspecialchars(rtrim(BASE_URL, '/') . '/') ?>">
+    <meta name="api-base-url" content="<?= htmlspecialchars(rtrim(BASE_URL, '/') . '/') ?>">
+
+    <script>
+        window.APP_BASE_URL = <?= json_encode(rtrim(BASE_URL, '/'), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+        window.API_BASE_URL = <?= json_encode(rtrim(BASE_URL, '/'), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+    </script>
 
     <!-- Primary Meta Tags -->
     <title><?= htmlspecialchars($pageTitle) ?></title>

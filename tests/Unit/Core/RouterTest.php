@@ -10,6 +10,7 @@ use Application\Core\Exceptions\HttpResponseException;
 use Application\Core\Request;
 use Application\Core\Response;
 use Application\Core\Router;
+use Application\Core\Routing\LegacyApiUsageTracker;
 use Application\Core\Routing\MiddlewareResolver;
 use Application\Services\Infrastructure\CacheService;
 use Illuminate\Container\Container as IlluminateContainer;
@@ -17,6 +18,8 @@ use PHPUnit\Framework\TestCase;
 
 class RouterTest extends TestCase
 {
+    private ?string $previousLegacyApiSunset = null;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -29,6 +32,9 @@ class RouterTest extends TestCase
         $_FILES = [];
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['HTTP_ACCEPT'] = 'application/json';
+        $this->previousLegacyApiSunset = $_ENV['LEGACY_API_SUNSET'] ?? null;
+        unset($_ENV['LEGACY_API_SUNSET']);
+        putenv('LEGACY_API_SUNSET');
     }
 
     protected function tearDown(): void
@@ -38,6 +44,14 @@ class RouterTest extends TestCase
         $_GET = [];
         $_POST = [];
         $_FILES = [];
+
+        if ($this->previousLegacyApiSunset === null) {
+            unset($_ENV['LEGACY_API_SUNSET']);
+            putenv('LEGACY_API_SUNSET');
+        } else {
+            $_ENV['LEGACY_API_SUNSET'] = $this->previousLegacyApiSunset;
+            putenv('LEGACY_API_SUNSET=' . $this->previousLegacyApiSunset);
+        }
 
         Router::reset();
 
@@ -61,6 +75,115 @@ class RouterTest extends TestCase
             'message' => 'Tudo certo',
             'data' => ['ok' => true],
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+    }
+
+    public function testRunAddsLegacyApiTransitionHeadersToLegacyApiResponses(): void
+    {
+        $_ENV['LEGACY_API_SUNSET'] = '2026-12-31T23:59:59Z';
+        putenv('LEGACY_API_SUNSET=2026-12-31T23:59:59Z');
+
+        $path = '/api/tests/router-legacy/' . bin2hex(random_bytes(4));
+
+        Router::add('GET', $path . '/{id}', static function (string $id) {
+            return Response::successResponse(['id' => $id]);
+        });
+
+        $response = Router::run($path . '/42', 'GET');
+        $expectedSuccessor = preg_replace('#^/api/#', '/api/v1/', $path . '/42');
+        $expectedSunsetTimestamp = strtotime('2026-12-31T23:59:59Z');
+
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertSame('true', $response->getHeaders()['X-Legacy-Api'] ?? null);
+        $this->assertSame($expectedSuccessor, $response->getHeaders()['X-Legacy-Api-Successor'] ?? null);
+        $this->assertSame(sprintf('<%s>; rel="successor-version"', $expectedSuccessor), $response->getHeaders()['Link'] ?? null);
+        $this->assertSame('@' . $expectedSunsetTimestamp, $response->getHeaders()['Deprecation'] ?? null);
+        $this->assertSame(gmdate(DATE_RFC7231, $expectedSunsetTimestamp), $response->getHeaders()['Sunset'] ?? null);
+    }
+
+    public function testRunDoesNotAddLegacyTransitionHeadersToVersionedApiResponses(): void
+    {
+        $path = '/api/v1/tests/router-versioned/' . bin2hex(random_bytes(4));
+
+        Router::add('GET', $path, static function () {
+            return Response::successResponse(['ok' => true]);
+        });
+
+        $response = Router::run($path, 'GET');
+
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertArrayNotHasKey('X-Legacy-Api', $response->getHeaders());
+        $this->assertArrayNotHasKey('X-Legacy-Api-Successor', $response->getHeaders());
+        $this->assertArrayNotHasKey('Link', $response->getHeaders());
+        $this->assertArrayNotHasKey('Deprecation', $response->getHeaders());
+        $this->assertArrayNotHasKey('Sunset', $response->getHeaders());
+    }
+
+    public function testRunTracksMatchedLegacyApiRoutesThroughLegacyApiUsageTracker(): void
+    {
+        $tracker = new class extends LegacyApiUsageTracker {
+            /** @var array<int, array{method:string,routePath:string,requestedPath:string,requestMethod:string}> */
+            public array $calls = [];
+
+            public function __construct() {}
+
+            public function track(string $method, string $routePath, string $requestedPath, Request $request): void
+            {
+                $this->calls[] = [
+                    'method' => $method,
+                    'routePath' => $routePath,
+                    'requestedPath' => $requestedPath,
+                    'requestMethod' => $request->method(),
+                ];
+            }
+        };
+
+        $container = new IlluminateContainer();
+        $container->instance(LegacyApiUsageTracker::class, $tracker);
+        ApplicationContainer::setInstance($container);
+
+        $path = '/api/tests/router-tracked/' . bin2hex(random_bytes(4));
+
+        Router::add('GET', $path . '/{id}', static function (string $id) {
+            return Response::successResponse(['id' => $id]);
+        });
+
+        $response = Router::run($path . '/42', 'GET');
+
+        $this->assertSame(200, $response?->getStatusCode());
+        $this->assertCount(1, $tracker->calls);
+        $this->assertSame('GET', $tracker->calls[0]['method']);
+        $this->assertSame($path . '/{id}', $tracker->calls[0]['routePath']);
+        $this->assertSame($path . '/42', $tracker->calls[0]['requestedPath']);
+        $this->assertSame('GET', $tracker->calls[0]['requestMethod']);
+    }
+
+    public function testRunSkipsLegacyUsageTrackingForVersionedRoutes(): void
+    {
+        $tracker = new class extends LegacyApiUsageTracker {
+            public int $calls = 0;
+
+            public function __construct() {}
+
+            public function track(string $method, string $routePath, string $requestedPath, Request $request): void
+            {
+                $this->calls++;
+            }
+        };
+
+        $container = new IlluminateContainer();
+        $container->instance(LegacyApiUsageTracker::class, $tracker);
+        ApplicationContainer::setInstance($container);
+
+        $path = '/api/v1/tests/router-not-tracked/' . bin2hex(random_bytes(4));
+
+        Router::add('GET', $path, static function () {
+            return Response::successResponse(['ok' => true]);
+        });
+
+        $response = Router::run($path, 'GET');
+
+        $this->assertSame(200, $response?->getStatusCode());
+        $this->assertSame(0, $tracker->calls);
     }
 
     public function testRunMapsAuthExceptionCodeToForbiddenResponse(): void

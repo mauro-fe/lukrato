@@ -92,7 +92,7 @@ export const emptyPerfilFormData: PerfilFormData = {
 
 function buildEmptyReferral(): PerfilSnapshot['referral'] {
   return {
-    code: 'Sem codigo ainda',
+    code: 'Sem código ainda',
     link: '',
     rewardDays: 0,
     totalInvites: 0,
@@ -113,7 +113,7 @@ function buildEmptyTelegram(): PerfilSnapshot['telegram'] {
   };
 }
 
-function normalizeValue(value: string | null | undefined, fallback = 'Nao informado') {
+function normalizeValue(value: string | null | undefined, fallback = 'Não informado') {
   const trimmed = String(value ?? '').trim();
   return trimmed || fallback;
 }
@@ -136,7 +136,7 @@ function normalizeSex(value?: string): PerfilSexOption {
 
 function formatBirthDate(value?: string) {
   if (!value) {
-    return 'Nao informado';
+    return 'Não informado';
   }
 
   const parsed = new Date(value);
@@ -153,7 +153,7 @@ function formatBirthDate(value?: string) {
 
 function buildAddressLabel(address?: RemoteUser['endereco']) {
   if (!address) {
-    return 'Nao informado';
+    return 'Não informado';
   }
 
   const parts = [
@@ -166,7 +166,7 @@ function buildAddressLabel(address?: RemoteUser['endereco']) {
     .map((part) => String(part ?? '').trim())
     .filter(Boolean);
 
-  return parts.length ? parts.join(', ') : 'Nao informado';
+  return parts.length ? parts.join(', ') : 'Não informado';
 }
 
 function getInitials(name?: string) {
@@ -188,7 +188,7 @@ function getCompletion(user: RemoteUser) {
     Boolean(String(user.telefone ?? '').trim()),
     Boolean(String(user.data_nascimento ?? '').trim()),
     Boolean(String(user.cpf ?? '').trim()),
-    buildAddressLabel(user.endereco) !== 'Nao informado',
+    buildAddressLabel(user.endereco) !== 'Não informado',
   ];
 
   const completed = checks.filter(Boolean).length;
@@ -219,41 +219,41 @@ function buildFocus(
     return {
       title: 'Seu perfil ainda precisa de alguns detalhes',
       description:
-        'Completar os dados reduz duvida quando você precisar de ajuda ou quiser ligar algum recurso mais avancado.',
+        'Completar os dados reduz dúvidas quando você precisar de ajuda ou quiser ligar algum recurso mais avançado.',
       valueLabel: `${completion.score}% completo`,
-      supportText: 'Telefone, avatar e endereco costumam ser os pontos que faltam primeiro.',
+      supportText: 'Telefone, avatar e endereço costumam ser os pontos que faltam primeiro.',
       tone: 'warning',
     };
   }
 
   if (!telegram.linked) {
     return {
-      title: 'Telegram segue opcional, mas facil de achar',
+      title: 'Telegram segue opcional, mas fácil de achar',
       description:
-        'A integracao fica aqui para o usuario decidir com calma se quer usar esse atalho fora do app.',
+        'A integração fica aqui para o usuário decidir com calma se quer usar esse atalho fora do app.',
       valueLabel: 'Telegram desligado',
-      supportText: 'Nada fica escondido: se quiser conectar, o bot e o codigo aparecem na mesma tela.',
+      supportText: 'Nada fica escondido: se quiser conectar, o bot e o código aparecem na mesma tela.',
       tone: 'warning',
     };
   }
 
   if (referral.pendingInvites > 0) {
     return {
-      title: 'você tem indicacoes esperando fechar o ciclo',
+      title: 'Você tem indicações esperando fechar o ciclo',
       description:
-        'O perfil mostra o progresso do programa de indicacao sem misturar isso com configuracoes sensiveis.',
+        'O perfil mostra o progresso do programa de indicação sem misturar isso com configurações sensíveis.',
       valueLabel: `${referral.pendingInvites} pendente(s)`,
-      supportText: 'Assim fica facil entender se a recompensa ja virou dias de PRO ou se ainda esta em andamento.',
+      supportText: 'Assim fica fácil entender se a recompensa já virou dias de PRO ou se ainda está em andamento.',
       tone: 'positive',
     };
   }
 
   return {
-    title: 'Seu codigo de suporte esta pronto para uso',
+    title: 'Seu código de suporte está pronto para uso',
     description:
-      'Esse e um dado simples, mas importante. Por isso ele aparece cedo e sem precisar abrir outra aba.',
+      'Este é um dado simples, mas importante. Por isso ele aparece cedo e sem precisar abrir outra aba.',
     valueLabel: supportCode,
-    supportText: 'Quando precisar falar com a equipe, ter esse codigo por perto acelera bastante.',
+    supportText: 'Quando precisar falar com a equipe, ter esse código por perto acelera bastante.',
     tone: 'positive',
   };
 }
@@ -287,16 +287,16 @@ function buildSnapshot(
   identityExtras?: { avatarUrl?: string; supportCode?: string }
 ): PerfilSnapshot {
   const completion = getCompletion(user);
-  const supportCode = normalizeValue(identityExtras?.supportCode ?? user.support_code, 'Sem codigo');
+  const supportCode = normalizeValue(identityExtras?.supportCode ?? user.support_code, 'Sem código');
   const avatarUrl = String(identityExtras?.avatarUrl ?? user.avatar ?? '').trim();
 
   return {
     helperTitle: 'Perfil claro, ajuda perto e nada escondido',
     helperDescription:
-      'O usuario encontra seus dados, suporte, indicacoes e integracoes sem precisar adivinhar em qual menu tocar.',
+      'O usuário encontra seus dados, suporte, indicações e integrações sem precisar adivinhar em qual menu tocar.',
     identity: {
-      name: normalizeValue(user.nome, 'Usuario Lukrato'),
-      email: normalizeValue(user.email, 'Sem email'),
+      name: normalizeValue(user.nome, 'Usuário Lukrato'),
+      email: normalizeValue(user.email, 'Sem e-mail'),
       avatarUrl,
       initials: getInitials(user.nome),
       supportCode,
@@ -308,19 +308,19 @@ function buildSnapshot(
       {
         id: '1',
         title: 'Confira os dados que a conta usa de verdade',
-        description: 'Manter telefone, endereco e email corretos evita idas e voltas quando algo precisar ser validado.',
+        description: 'Manter telefone, endereço e e-mail corretos evita idas e voltas quando algo precisar ser validado.',
         done: completion.score >= 75,
       },
       {
         id: '2',
-        title: 'Guarde o codigo de suporte onde você lembra',
-        description: 'Ele acelera ajuda humana sem obrigar o usuario a explicar tudo do zero.',
-        done: supportCode !== 'Sem codigo',
+        title: 'Guarde o código de suporte onde você lembre',
+        description: 'Ele acelera ajuda humana sem obrigar o usuário a explicar tudo do zero.',
+        done: supportCode !== 'Sem código',
       },
       {
         id: '3',
-        title: 'Ative integracao so se ela encurtar sua rotina',
-        description: 'O app mostra o caminho, mas deixa claro que Telegram e opcional.',
+        title: 'Ative a integração só se ela encurtar sua rotina',
+        description: 'O app mostra o caminho, mas deixa claro que o Telegram é opcional.',
         done: telegram.linked,
       },
     ],
@@ -329,7 +329,7 @@ function buildSnapshot(
         id: 'phone',
         label: 'Telefone',
         value: normalizeValue(user.telefone),
-        helper: 'Canal util para suporte e confirmacoes.',
+        helper: 'Canal útil para suporte e confirmações.',
       },
       {
         id: 'birth',
@@ -341,7 +341,7 @@ function buildSnapshot(
         id: 'cpf',
         label: 'CPF',
         value: normalizeValue(user.cpf),
-        helper: 'Fica visivel so para o usuario conferir o essencial.',
+        helper: 'Fica visível só para o usuário conferir o essencial.',
       },
       {
         id: 'sex',
@@ -350,7 +350,7 @@ function buildSnapshot(
       },
       {
         id: 'address',
-        label: 'Endereco',
+        label: 'Endereço',
         value: buildAddressLabel(user.endereco),
         helper: 'Importante para pagamento, suporte e dados da conta.',
       },
@@ -359,7 +359,7 @@ function buildSnapshot(
     telegram,
     support: {
       recommendedChannel: String(user.telefone ?? '').trim() ? 'whatsapp' : 'email',
-      hint: 'Se surgir duvida, escreva com suas palavras. O app manda a mensagem sem o usuario cacar email ou formulario externo.',
+      hint: 'Se surgir dúvida, escreva com suas palavras. O app manda a mensagem sem o usuário caçar e-mail ou formulário externo.',
     },
   };
 }
@@ -371,17 +371,17 @@ function getErrorMessage(error: unknown) {
 
   if (error instanceof HttpClientError) {
     if (error.status === 401) {
-      return 'Sua sessao nao foi aceita pelo backend. Entre novamente para carregar o perfil.';
+      return 'Sua sessão não foi aceita pelo backend. Entre novamente para carregar o perfil.';
     }
 
     if (error.code === 'NO_BASE_URL') {
-      return 'A URL da API nao foi configurada para este aparelho.';
+      return 'A URL da API não foi configurada para este aparelho.';
     }
 
     return error.message;
   }
 
-  return 'Nao foi possivel carregar o perfil agora.';
+  return 'Não foi possível carregar o perfil agora.';
 }
 
 function buildProfileFormData(formData: PerfilFormData) {
@@ -442,23 +442,23 @@ function mapPasswordErrors(error: HttpClientError): PasswordFormErrors {
 class PerfilRepository {
   async getSnapshot(): Promise<RepositoryResult<PerfilSnapshot>> {
     try {
-      const profilePayload = await httpClient.get<RemoteProfilePayload>('api/perfil');
+      const profilePayload = await httpClient.get<RemoteProfilePayload>('api/v1/perfil');
       const optionalWarnings: string[] = [];
 
       const [referralPayload, telegramPayload] = await Promise.all([
-        httpClient.get<RemoteReferralStats>('api/referral/stats').catch(() => {
-          optionalWarnings.push('Indicacoes indisponiveis no momento.');
+        httpClient.get<RemoteReferralStats>('api/v1/referral/stats').catch(() => {
+          optionalWarnings.push('Indicações indisponíveis no momento.');
           return null;
         }),
-        httpClient.get<RemoteTelegramStatus>('api/telegram/status').catch(() => {
-          optionalWarnings.push('Status do Telegram indisponivel no momento.');
+        httpClient.get<RemoteTelegramStatus>('api/v1/telegram/status').catch(() => {
+          optionalWarnings.push('Status do Telegram indisponível no momento.');
           return null;
         }),
       ]);
 
       const referral = referralPayload
         ? {
-          code: normalizeValue(referralPayload.referral_code, 'Sem codigo ainda'),
+          code: normalizeValue(referralPayload.referral_code, 'Sem código ainda'),
           link: String(referralPayload.referral_link ?? '').trim(),
           rewardDays: Number(referralPayload.dias_ganhos ?? 0),
           totalInvites: Number(referralPayload.total_indicacoes ?? 0),
@@ -475,7 +475,7 @@ class PerfilRepository {
           linked: Boolean(telegramPayload.linked),
           username: telegramPayload.username ?? null,
           helperText: telegramPayload.linked
-            ? 'Telegram vinculado. O usuario consegue ver isso sem medo de mexer em configuracao sensivel.'
+            ? 'Telegram vinculado. O usuário consegue ver isso sem medo de mexer em configuração sensível.'
             : 'Conecte o Telegram apenas se fizer sentido para registrar coisas sem abrir o app inteiro.',
         }
         : buildEmptyTelegram();
@@ -496,7 +496,7 @@ class PerfilRepository {
 
   async getFormData(): Promise<RepositoryResult<{ profile: PerfilFormData }>> {
     try {
-      const profilePayload = await httpClient.get<RemoteProfilePayload>('api/perfil');
+      const profilePayload = await httpClient.get<RemoteProfilePayload>('api/v1/perfil');
 
       return {
         source: 'remote',
@@ -517,7 +517,7 @@ class PerfilRepository {
 
   async updateProfile(formData: PerfilFormData) {
     const payload = await httpClient.postForm<UpdateProfileResponse>(
-      'api/perfil',
+      'api/v1/perfil',
       buildProfileFormData(formData),
       undefined,
       { csrf: true }
@@ -534,7 +534,7 @@ class PerfilRepository {
   async changePassword(currentPassword: string, newPassword: string, confirmPassword: string) {
     try {
       const payload = await httpClient.postForm<ChangePasswordResponse>(
-        'api/perfil/senha',
+        'api/v1/perfil/senha',
         buildPasswordFormData(currentPassword, newPassword, confirmPassword),
         undefined,
         { csrf: true }
@@ -549,13 +549,13 @@ class PerfilRepository {
       }
 
       throw new HttpClientError(
-        'Nao foi possivel alterar a senha agora. Tente novamente em alguns instantes.'
+        'Não foi possível alterar a senha agora. Tente novamente em alguns instantes.'
       );
     }
   }
 
   async sendSupportMessage(message: string, replyVia: PerfilContactChannel) {
-    const payload = await httpClient.post<SupportResponse>('api/suporte/enviar', {
+    const payload = await httpClient.post<SupportResponse>('api/v1/suporte/enviar', {
       message,
       retorno: replyVia,
     });
@@ -567,7 +567,7 @@ class PerfilRepository {
 
   async requestTelegramLink(): Promise<TelegramLinkDraft> {
     const payload = await httpClient.post<RemoteTelegramLink>(
-      'api/telegram/link',
+      'api/v1/telegram/link',
       undefined,
       undefined,
       { csrf: true }
@@ -581,7 +581,7 @@ class PerfilRepository {
   }
 
   async unlinkTelegram() {
-    await httpClient.post('api/telegram/unlink', undefined, undefined, { csrf: true });
+    await httpClient.post('api/v1/telegram/unlink', undefined, undefined, { csrf: true });
   }
 }
 

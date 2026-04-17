@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
-use Application\Config\CommunicationRuntimeConfig;
+use Application\Config\AuthRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Contracts\Auth\PasswordResetNotificationInterface;
 use Application\Contracts\Auth\PasswordResetRepositoryInterface;
@@ -51,10 +51,10 @@ class SupportServicesDependencyResolutionTest extends TestCase
         $repository = Mockery::mock(PasswordResetRepositoryInterface::class);
         $tokenGenerator = Mockery::mock(TokenGeneratorInterface::class);
         $notifier = Mockery::mock(PasswordResetNotificationInterface::class);
-        $communicationRuntimeConfig = new CommunicationRuntimeConfig();
+        $authRuntimeConfig = new AuthRuntimeConfig();
 
         $container = new IlluminateContainer();
-        $container->instance(CommunicationRuntimeConfig::class, $communicationRuntimeConfig);
+        $container->instance(AuthRuntimeConfig::class, $authRuntimeConfig);
         $container->instance(MailService::class, $mailService);
         $container->instance(TokenPairService::class, $tokenPairService);
         $container->instance(CacheService::class, $cacheService);
@@ -73,12 +73,13 @@ class SupportServicesDependencyResolutionTest extends TestCase
 
         $this->assertSame($mailService, $this->readProperty($emailVerificationService, 'mailService'));
         $this->assertSame($tokenPairService, $this->readProperty($emailVerificationService, 'tokenPairService'));
-        $this->assertSame($communicationRuntimeConfig, $this->readProperty($emailVerificationService, 'runtimeConfig'));
+        $this->assertSame($authRuntimeConfig, $this->readProperty($emailVerificationService, 'runtimeConfig'));
         $this->assertSame($cacheService, $this->readProperty($rateLimitSecurityCheck, 'cache'));
         $this->assertSame($repository, $this->readProperty($passwordResetService, 'repository'));
         $this->assertSame($tokenGenerator, $this->readProperty($passwordResetService, 'tokenGenerator'));
         $this->assertSame($notifier, $this->readProperty($passwordResetService, 'notifier'));
         $this->assertSame($tokenPairService, $this->readProperty($passwordResetService, 'tokenPairService'));
+        $this->assertSame($authRuntimeConfig, $this->readProperty($passwordResetService, 'runtimeConfig'));
         $this->assertSame($request, $this->readProperty($registrationResponseHandler, 'request'));
         $this->assertSame($mailService, $this->readProperty($mailPasswordResetNotification, 'mail'));
         $this->assertSame($cacheService, $this->readProperty($turnstileService, 'cache'));
@@ -105,6 +106,7 @@ class SupportServicesDependencyResolutionTest extends TestCase
         $this->assertInstanceOf(MailPasswordResetNotification::class, $notifier);
         $this->assertSame($mailService, $this->readProperty($notifier, 'mail'));
         $this->assertSame($tokenPairService, $this->readProperty($passwordResetService, 'tokenPairService'));
+        $this->assertInstanceOf(AuthRuntimeConfig::class, $this->readProperty($passwordResetService, 'runtimeConfig'));
     }
 
     private function readProperty(object $object, string $property): mixed

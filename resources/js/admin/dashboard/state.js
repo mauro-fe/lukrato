@@ -22,25 +22,11 @@ export const Modules = {};
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 
 export const CONFIG = {
-    BASE_URL: (() => {
-        const meta = document.querySelector('meta[name="base-url"]')?.content || '';
-        let base = meta;
-        if (!base) {
-            const m = location.pathname.match(/^(.*\/public\/)/);
-            base = m ? (location.origin + m[1]) : (location.origin + '/');
-        }
-        if (base && !/\/public\/?$/.test(base)) {
-            const m2 = location.pathname.match(/^(.*\/public\/)/);
-            if (m2) base = location.origin + m2[1];
-        }
-        return base.replace(/\/?$/, '/');
-    })(),
+    BASE_URL: getBaseUrl(),
     TRANSACTIONS_LIMIT: 5,
     CHART_MONTHS: 6,
     ANIMATION_DELAY: 300
 };
-
-CONFIG.API_URL = `${CONFIG.BASE_URL}api/`;
 
 // ─── DOM References ──────────────────────────────────────────────────────────
 

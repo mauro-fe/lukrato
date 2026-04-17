@@ -5,8 +5,6 @@ declare(strict_types=1);
 $accounts = is_array($accounts ?? null) ? $accounts : [];
 $selectedAccountId = (int) ($selectedAccountId ?? 0);
 $profileConfig = is_array($profileConfig ?? null) ? $profileConfig : null;
-$configLoadEndpoint = trim((string) ($configLoadEndpoint ?? ''));
-$configSaveEndpoint = trim((string) ($configSaveEndpoint ?? ''));
 $profileOptions = is_array($profileConfig['options'] ?? null) ? $profileConfig['options'] : [];
 $currentSourceType = strtolower(trim((string) ($profileConfig['source_type'] ?? 'ofx')));
 if (!in_array($currentSourceType, ['ofx', 'csv'], true)) {
@@ -33,10 +31,6 @@ $csvColumnCategoria = strtoupper(trim((string) ($csvColumnMap['categoria'] ?? 'E
 $csvColumnSubcategoria = strtoupper(trim((string) ($csvColumnMap['subcategoria'] ?? 'F')));
 $csvColumnObservacao = strtoupper(trim((string) ($csvColumnMap['observacao'] ?? 'G')));
 $csvColumnIdExterno = strtoupper(trim((string) ($csvColumnMap['id_externo'] ?? 'H')));
-$csvTemplateAutoEndpoint = trim((string) ($csvTemplateAutoEndpoint ?? ''));
-$csvTemplateManualEndpoint = trim((string) ($csvTemplateManualEndpoint ?? ''));
-$csvTemplateCardAutoEndpoint = trim((string) ($csvTemplateCardAutoEndpoint ?? ''));
-$csvTemplateCardManualEndpoint = trim((string) ($csvTemplateCardManualEndpoint ?? ''));
 $importacoesUrl = BASE_URL . 'importacoes';
 if ($selectedAccountId > 0) {
     $importacoesUrl .= '?conta_id=' . $selectedAccountId;
@@ -60,13 +54,7 @@ $summaryCsvDelimiter = $csvDelimiter !== '' ? $csvDelimiter : ';';
 
 <section class="imp-config-page" data-importacoes-page="configuracoes"
     data-lk-help-page="importacoes_configuracoes"
-    data-imp-active-account-id="<?= $selectedAccountId ?>"
-    data-imp-config-load-endpoint="<?= escape($configLoadEndpoint) ?>"
-    data-imp-config-save-endpoint="<?= escape($configSaveEndpoint) ?>"
-    data-imp-csv-template-auto-endpoint="<?= escape($csvTemplateAutoEndpoint) ?>"
-    data-imp-csv-template-manual-endpoint="<?= escape($csvTemplateManualEndpoint) ?>"
-    data-imp-csv-template-card-auto-endpoint="<?= escape($csvTemplateCardAutoEndpoint) ?>"
-    data-imp-csv-template-card-manual-endpoint="<?= escape($csvTemplateCardManualEndpoint) ?>">
+    data-imp-active-account-id="<?= $selectedAccountId ?>">
     <header
         class="imp-page-hero imp-page-hero--compact imp-surface surface-card surface-card--interactive surface-card--clip">
         <div class="imp-page-hero__content">
@@ -95,7 +83,7 @@ $summaryCsvDelimiter = $csvDelimiter !== '' ? $csvDelimiter : ';';
                 </div>
             </dl>
             <div class="imp-page-hero__actions">
-                <a class="btn btn-ghost" href="<?= escape($importacoesUrl) ?>">Voltar para importações</a>
+                <a class="btn btn-ghost" href="<?= escape($importacoesUrl) ?>" data-imp-config-importacoes-link>Voltar para importações</a>
                 <a class="btn btn-secondary" href="<?= BASE_URL ?>importacoes/historico">Ir para histórico</a>
             </div>
         </aside>
@@ -336,22 +324,22 @@ $summaryCsvDelimiter = $csvDelimiter !== '' ? $csvDelimiter : ';';
                                 <p class="imp-card-text">
                                     Modelos de conta:
                                 </p>
-                                <a class="btn btn-ghost" href="<?= escape($csvTemplateAutoEndpoint) ?>"
+                                <a class="btn btn-ghost" href="#"
                                     data-imp-csv-template-auto data-no-transition="true" download>
                                     Baixar modelo CSV automático
                                 </a>
-                                <a class="btn btn-ghost" href="<?= escape($csvTemplateManualEndpoint) ?>"
+                                <a class="btn btn-ghost" href="#"
                                     data-imp-csv-template-manual data-no-transition="true" download>
                                     Baixar modelo CSV manual
                                 </a>
                                 <p class="imp-card-text">
                                     Modelos de cartão/fatura:
                                 </p>
-                                <a class="btn btn-ghost" href="<?= escape($csvTemplateCardAutoEndpoint) ?>"
+                                <a class="btn btn-ghost" href="#"
                                     data-imp-csv-template-card-auto data-no-transition="true" download>
                                     Baixar modelo fatura automático
                                 </a>
-                                <a class="btn btn-ghost" href="<?= escape($csvTemplateCardManualEndpoint) ?>"
+                                <a class="btn btn-ghost" href="#"
                                     data-imp-csv-template-card-manual data-no-transition="true" download>
                                     Baixar modelo fatura manual
                                 </a>
@@ -417,7 +405,7 @@ $summaryCsvDelimiter = $csvDelimiter !== '' ? $csvDelimiter : ';';
                         </p>
                     </header>
                     <div class="imp-config-side__actions">
-                        <a class="btn btn-primary" href="<?= escape($importacoesUrl) ?>">Abrir fluxo de importação</a>
+                        <a class="btn btn-primary" href="<?= escape($importacoesUrl) ?>" data-imp-config-importacoes-link>Abrir fluxo de importação</a>
                         <a class="btn btn-ghost" href="<?= BASE_URL ?>importacoes/historico">Abrir histórico</a>
                     </div>
                 </article>

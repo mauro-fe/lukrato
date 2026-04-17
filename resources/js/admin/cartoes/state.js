@@ -3,7 +3,7 @@
  * Extracted from cartoes-manager.js (monolith → modules)
  */
 
-import { getCSRFToken as getStoredCSRFToken, refreshCSRFToken } from '../shared/api.js';
+import { buildAssetUrl, getBaseUrl, getCSRFToken as getSharedCSRFToken, refreshCSRFToken } from '../shared/api.js';
 import { formatMoney, parseMoney, escapeHtml, debounce } from '../shared/utils.js';
 import { refreshIcons } from '../shared/ui.js';
 
@@ -11,10 +11,8 @@ export { formatMoney as fmtMoney, escapeHtml, debounce };
 
 // ── Configuration ──────────────────────────────────────────────
 export const CONFIG = {
-    BASE_URL: (window.LK?.getBase?.() || '/'),
-    API_URL: '',
+    BASE_URL: getBaseUrl(),
 };
-CONFIG.API_URL = CONFIG.BASE_URL + 'api';
 
 // ── Shared state ───────────────────────────────────────────────
 export const STATE = {
@@ -47,11 +45,8 @@ export const Utils = {
         }
 
         // Fallback: tentar meta tag
-        const metaToken = getStoredCSRFToken();
+        const metaToken = getSharedCSRFToken();
         if (metaToken) return metaToken;
-
-        if (window.LK?.getCSRF) return window.LK.getCSRF();
-        if (window.CSRF) return window.CSRF;
 
         console.warn('⚠️ Nenhum token CSRF encontrado');
         return '';
@@ -185,16 +180,15 @@ export const Utils = {
      * Obter ícone/logo da bandeira
      */
     getBrandIcon(bandeira) {
-        const baseUrl = `${CONFIG.BASE_URL}assets/img/bandeiras/`;
         const logos = {
-            'visa': `${baseUrl}visa.png`,
-            'mastercard': `${baseUrl}mastercard.png`,
-            'elo': `${baseUrl}elo.png`,
-            'amex': `${baseUrl}amex.png`,
-            'diners': `${baseUrl}diners.png`,
-            'discover': `${baseUrl}discover.png`
+            'visa': buildAssetUrl('img/bandeiras/visa.png'),
+            'mastercard': buildAssetUrl('img/bandeiras/mastercard.png'),
+            'elo': buildAssetUrl('img/bandeiras/elo.png'),
+            'amex': buildAssetUrl('img/bandeiras/amex.png'),
+            'diners': buildAssetUrl('img/bandeiras/diners.png'),
+            'discover': buildAssetUrl('img/bandeiras/discover.png')
         };
-        return logos[bandeira?.toLowerCase()] || `${baseUrl}default.png`;
+        return logos[bandeira?.toLowerCase()] || buildAssetUrl('img/bandeiras/default.png');
     },
 
     /**

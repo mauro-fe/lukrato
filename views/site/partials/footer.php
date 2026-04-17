@@ -194,9 +194,6 @@ $extraJs = $extraJs ?? [];
     <script src="<?= BASE_URL ?>assets/js/site/<?= htmlspecialchars($js) ?>.js"></script>
 <?php endforeach; ?>
 <!-- SweetAlert2 loaded on-demand by scripts that need it -->
-<script>
-    window.APP_BASE_URL = "<?= rtrim(BASE_URL, '/') ?>";
-</script>
 <script src="<?= BASE_URL ?>assets/js/lucide-init.js"></script>
 
 

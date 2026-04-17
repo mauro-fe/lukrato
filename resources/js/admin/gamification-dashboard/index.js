@@ -11,6 +11,11 @@
  */
 
 import { apiGet, getBaseUrl, getErrorMessage } from '../shared/api.js';
+import {
+    resolveGamificationAchievementsEndpoint,
+    resolveGamificationProgressEndpoint,
+    resolveGamificationStatsEndpoint,
+} from '../api/endpoints/gamification.js';
 import { escapeHtml } from '../shared/utils.js';
 
 // ─── Globals ────────────────────────────────────────────────────────────────
@@ -78,7 +83,7 @@ function initGamification() {
 
 async function loadGamificationProgress() {
     try {
-        const data = await apiGet(`${BASE}api/gamification/progress`);
+        const data = await apiGet(resolveGamificationProgressEndpoint());
         const isSuccess = data.success === true;
         if (isSuccess && data.data) {
             currentProgress = data.data;
@@ -143,7 +148,7 @@ function updateProgressUI(progress) {
 
 async function loadGamificationStats() {
     try {
-        const data = await apiGet(`${BASE}api/gamification/stats`);
+        const data = await apiGet(resolveGamificationStatsEndpoint());
         const isSuccess = data.success === true;
         if (isSuccess && data.data) updateStatsUI(data.data);
     } catch (error) {
@@ -200,7 +205,7 @@ function getCurrentMonth() {
 async function loadAchievements() {
     try {
         const month = getCurrentMonth();
-        const data = await apiGet(`${BASE}api/gamification/achievements`, { month });
+        const data = await apiGet(resolveGamificationAchievementsEndpoint(), { month });
         const isSuccess = data.success === true;
         if (isSuccess && data.data) updateAchievementsUI(data.data.achievements);
     } catch (error) {
@@ -290,7 +295,7 @@ function showAchievementDetail(achievement) {
 
 async function showAllAchievements() {
     try {
-        const data = await apiGet(`${BASE}api/gamification/achievements`);
+        const data = await apiGet(resolveGamificationAchievementsEndpoint());
         const isSuccess = data.success === true;
         if (!isSuccess || !data.data) return;
 

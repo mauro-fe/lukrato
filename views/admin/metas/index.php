@@ -1,5 +1,7 @@
-<section class="met-page">
+<section
+    class="met-page">
     <?php include __DIR__ . '/sections/header.php'; ?>
+
     <?php include __DIR__ . '/sections/summary-cards.php'; ?>
     <?php include __DIR__ . '/sections/focus-panel.php'; ?>
     <?php include __DIR__ . '/sections/toolbar.php'; ?>

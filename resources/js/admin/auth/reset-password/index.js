@@ -4,10 +4,12 @@
  * ============================================================================
  */
 
-import { createParticles, createConfetti, initTogglePassword, getBaseUrl } from '../shared.js';
-import { apiFetch, getErrorMessage } from '../../shared/api.js';
-
-const BASE = getBaseUrl();
+import { createParticles, createConfetti, initTogglePassword } from '../shared.js';
+import {
+    resolveAuthResetPasswordEndpoint,
+    resolveAuthResetPasswordValidateEndpoint,
+} from '../../api/endpoints/auth.js';
+import { apiFetch, buildUrl, getErrorMessage } from '../../shared/api.js';
 
 // -- Init shared features ---------------------------------------------------
 createParticles();
@@ -55,8 +57,18 @@ if (typeof window.lucide !== 'undefined') {
 // Form Handler
 // =====================
 {
+    const root = document.querySelector('[data-reset-password-root]');
     const form = document.getElementById('resetForm');
     const messageContainer = document.getElementById('messageContainer');
+    const submitBtn = document.getElementById('submitBtn');
+    const tokenInput = document.querySelector('[data-reset-token]');
+    const selectorInput = document.querySelector('[data-reset-selector]');
+    const validatorInput = document.querySelector('[data-reset-validator]');
+    const forgotPasswordUrl = root?.dataset.forgotPasswordUrl || '/recuperar-senha';
+    const loginUrl = root?.dataset.loginUrl || '/login';
+    const resetSubmitEndpoint = root?.dataset.resetSubmitEndpoint || resolveAuthResetPasswordEndpoint();
+    const resetValidateEndpoint = root?.dataset.resetValidateEndpoint || resolveAuthResetPasswordValidateEndpoint();
+    let linkValidated = false;
 
     function showMessage(text, type = 'error') {
         if (!messageContainer) return;
@@ -67,10 +79,90 @@ if (typeof window.lucide !== 'undefined') {
         if (messageContainer) messageContainer.innerHTML = '';
     }
 
-    if (form) {
+    function setSubmitState(enabled, label = 'Redefinir senha') {
+        if (!submitBtn) {
+            return;
+        }
+
+        submitBtn.disabled = !enabled;
+        submitBtn.innerHTML = `<span>${label}</span>`;
+    }
+
+    function getResetCredentials() {
+        const params = new URLSearchParams(window.location.search);
+
+        return {
+            token: params.get('token') || '',
+            selector: params.get('selector') || '',
+            validator: params.get('validator') || '',
+        };
+    }
+
+    function hasValidCredentialShape({ token, selector, validator }) {
+        return token !== '' || (selector !== '' && validator !== '');
+    }
+
+    function populateHiddenInputs({ token, selector, validator }) {
+        if (tokenInput) {
+            tokenInput.value = token;
+        }
+
+        if (selectorInput) {
+            selectorInput.value = selector;
+        }
+
+        if (validatorInput) {
+            validatorInput.value = validator;
+        }
+    }
+
+    async function validateResetLink() {
+        const credentials = getResetCredentials();
+
+        if (!hasValidCredentialShape(credentials)) {
+            showMessage('Link de redefinição inválido ou incompleto.');
+            window.setTimeout(() => {
+                window.location.href = forgotPasswordUrl;
+            }, 1800);
+            return;
+        }
+
+        setSubmitState(false, 'Validando link...');
+
+        try {
+            await apiFetch(buildUrl(resetValidateEndpoint, credentials), {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                },
+            }, {
+                suppressErrorLogging: true,
+            });
+
+            populateHiddenInputs(credentials);
+            linkValidated = true;
+            clearMessage();
+            setSubmitState(true);
+        } catch (err) {
+            showMessage(getErrorMessage(err, 'Não foi possível validar seu link de redefinição.'));
+            setSubmitState(false);
+
+            const redirect = err?.data?.errors?.redirect || forgotPasswordUrl;
+            window.setTimeout(() => {
+                window.location.href = redirect;
+            }, 1800);
+        }
+    }
+
+    if (form && root) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             clearMessage();
+
+            if (!linkValidated) {
+                showMessage('Aguarde a validação do link antes de redefinir sua senha.');
+                return;
+            }
 
             const password = document.getElementById('password').value;
             const confirm = document.getElementById('password_confirmation').value;
@@ -105,14 +197,15 @@ if (typeof window.lucide !== 'undefined') {
                 return;
             }
 
-            const btn = form.querySelector('.btn-primary');
-            const originalHtml = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<span>Redefinindo...</span>';
+            const originalHtml = submitBtn?.innerHTML || '<span>Redefinir senha</span>';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span>Redefinindo...</span>';
+            }
 
             try {
                 const formData = new FormData(form);
-                const data = await apiFetch(form.action, {
+                const data = await apiFetch(resetSubmitEndpoint, {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -126,7 +219,7 @@ if (typeof window.lucide !== 'undefined') {
                     showMessage(data.message || 'Senha redefinida com sucesso!', 'success');
                     createConfetti(200);
                     setTimeout(() => {
-                        window.location.href = data.redirect || BASE + 'login';
+                        window.location.href = data?.data?.redirect || loginUrl;
                     }, 2000);
                 } else {
                     showMessage(getErrorMessage({ data }, 'Erro ao redefinir senha.'));
@@ -134,9 +227,13 @@ if (typeof window.lucide !== 'undefined') {
             } catch (err) {
                 showMessage(getErrorMessage(err, 'Erro de conexão. Tente novamente.'));
             } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalHtml;
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHtml;
+                }
             }
         });
+
+        validateResetLink();
     }
 }

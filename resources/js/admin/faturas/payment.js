@@ -252,15 +252,13 @@ export const ModalPagarFatura = {
         });
 
         try {
-            const response = await Utils.apiRequest(`api/cartoes/${this.cartaoId}/fatura/pagar`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    mes: this.mes,
-                    ano: this.ano,
-                    conta_id: parseInt(contaId),
-                    valor_parcial: valorPagar
-                })
-            });
+            const response = await Modules.API.pagarFaturaParcial(
+                this.cartaoId,
+                this.mes,
+                this.ano,
+                parseInt(contaId, 10),
+                valorPagar,
+            );
 
             if (!response.success) {
                 throw new Error(getErrorMessage(response, 'Erro ao processar pagamento'));
@@ -351,10 +349,7 @@ export async function reverterPagamentoFaturaGlobal(faturaId) {
         const mes = fatura.mes_referencia;
         const ano = fatura.ano_referencia;
 
-        const response = await Utils.apiRequest(`api/cartoes/${cartaoId}/fatura/desfazer-pagamento`, {
-            method: 'POST',
-            body: JSON.stringify({ mes, ano })
-        });
+        const response = await Modules.API.desfazerPagamentoFatura(cartaoId, mes, ano);
 
         if (response.success) {
             await Swal.fire({
@@ -409,9 +404,7 @@ export async function excluirFaturaGlobal(faturaId) {
     if (!result.isConfirmed) return;
 
     try {
-        const response = await Utils.apiRequest(`api/faturas/${faturaId}`, {
-            method: 'DELETE'
-        });
+        const response = await Modules.API.cancelarParcelamento(faturaId);
 
         if (response.success) {
             Swal.fire({
@@ -462,9 +455,7 @@ export async function excluirItemFaturaGlobal(faturaId, itemId) {
     if (!result.isConfirmed) return;
 
     try {
-        const response = await Utils.apiRequest(`api/faturas/${faturaId}/itens/${itemId}`, {
-            method: 'DELETE'
-        });
+        const response = await Modules.API.excluirItemFatura(faturaId, itemId);
 
         if (response.success) {
             Swal.fire({

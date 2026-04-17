@@ -5,10 +5,15 @@
  */
 
 import '../../../css/admin/sysadmin/communications.css';
-import { apiGet, apiPost, getBaseUrl, getErrorMessage, logClientError } from '../shared/api.js';
+import { apiGet, apiPost, getErrorMessage, logClientError } from '../shared/api.js';
+import {
+    resolveCampaignCancelScheduledEndpoint,
+    resolveCampaignEndpoint,
+    resolveCampaignPreviewEndpoint,
+    resolveCampaignProcessDueEndpoint,
+    resolveCampaignsEndpoint,
+} from '../api/endpoints/campaigns.js';
 import { debounce, escapeHtml } from '../shared/utils.js';
-
-const BASE = getBaseUrl();
 
 const faToLucide = {
     'fa-bullhorn': 'megaphone',
@@ -139,7 +144,7 @@ async function syncCampaignQueue(options = {}) {
     isProcessingDueCampaigns = true;
 
     try {
-        const response = await apiPost(`${BASE}api/campaigns/process-due`, {}, {
+        const response = await apiPost(resolveCampaignProcessDueEndpoint(), {}, {
             timeout: CAMPAIGN_QUEUE_SYNC_TIMEOUT
         });
 
@@ -205,7 +210,7 @@ async function updatePreview() {
     previewCount.closest('.preview-count')?.classList.remove('is-error');
 
     try {
-        const response = await apiGet(`${BASE}api/campaigns/preview`, {
+        const response = await apiGet(resolveCampaignPreviewEndpoint(), {
             plan: document.getElementById('filterPlan')?.value || '',
             status: document.getElementById('filterStatus')?.value || '',
             days_inactive: document.getElementById('filterDaysInactive')?.value || '',
@@ -377,7 +382,7 @@ async function loadCampaigns(page = 1) {
     await syncCampaignQueue({ silent: true });
 
     try {
-        const response = await apiGet(`${BASE}api/campaigns`, {
+        const response = await apiGet(resolveCampaignsEndpoint(), {
             page,
             per_page: 10
         });
@@ -453,7 +458,7 @@ async function showCampaignDetail(id) {
     renderIcons();
 
     try {
-        const response = await apiGet(`${BASE}api/campaigns/${id}`);
+        const response = await apiGet(resolveCampaignEndpoint(id));
 
         if (response?.success === false) {
             body.innerHTML = '<div class="text-danger">Erro ao carregar detalhes</div>';
@@ -637,7 +642,7 @@ async function handleFormSubmit(event) {
     renderIcons();
 
     try {
-        const response = await apiPost(`${BASE}api/campaigns`, {
+        const response = await apiPost(resolveCampaignsEndpoint(), {
             title,
             message,
             type: document.getElementById('campaignType')?.value || 'promo',
@@ -711,7 +716,7 @@ async function cancelScheduled(id) {
     }
 
     try {
-        const response = await apiPost(`${BASE}api/campaigns/${id}/cancel`);
+        const response = await apiPost(resolveCampaignCancelScheduledEndpoint(id));
 
         if (response?.success === false) {
             LKFeedback.error(response?.message || 'Erro ao cancelar campanha.');

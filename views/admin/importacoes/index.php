@@ -15,21 +15,10 @@ $profileConfig = is_array($profileConfig ?? null) ? $profileConfig : null;
 $planLimits = is_array($planLimits ?? null) ? $planLimits : [];
 $importQuota = is_array($importQuota ?? null) ? $importQuota : [];
 $importLimitBuckets = is_array($planLimits['importacoes'] ?? null) ? $planLimits['importacoes'] : [];
-$importLimitsJson = json_encode($importLimitBuckets, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
-$importLimitsJson = is_string($importLimitsJson) ? $importLimitsJson : '{}';
-$importLimitsEncoded = base64_encode($importLimitsJson);
 $currentPlan = strtolower(trim((string) ($planLimits['plan'] ?? 'free')));
 $upgradeUrl = trim((string) ($planLimits['upgrade_url'] ?? '/assinatura'));
-$previewEndpoint = trim((string) ($previewEndpoint ?? ''));
-$confirmEndpoint = trim((string) ($confirmEndpoint ?? ''));
-$configEndpoint = trim((string) ($configEndpoint ?? ''));
 $configPageBaseUrl = trim((string) ($configPageBaseUrl ?? (BASE_URL . 'importacoes/configuracoes')));
-$jobStatusEndpointBase = trim((string) ($jobStatusEndpointBase ?? ''));
 $confirmAsyncDefault = (bool) ($confirmAsyncDefault ?? false);
-$csvTemplateAutoEndpoint = trim((string) ($csvTemplateAutoEndpoint ?? (BASE_URL . 'api/importacoes/modelos/csv?mode=auto&target=conta')));
-$csvTemplateManualEndpoint = trim((string) ($csvTemplateManualEndpoint ?? (BASE_URL . 'api/importacoes/modelos/csv?mode=manual&target=conta')));
-$csvTemplateCardAutoEndpoint = trim((string) ($csvTemplateCardAutoEndpoint ?? (BASE_URL . 'api/importacoes/modelos/csv?mode=auto&target=cartao')));
-$csvTemplateCardManualEndpoint = trim((string) ($csvTemplateCardManualEndpoint ?? (BASE_URL . 'api/importacoes/modelos/csv?mode=manual&target=cartao')));
 $latestHistoryItems = is_array($latestHistoryItems ?? null) ? $latestHistoryItems : [];
 $initialSourceType = strtolower(trim((string) ($profileConfig['source_type'] ?? 'ofx')));
 if (!in_array($initialSourceType, ['ofx', 'csv'], true)) {
@@ -69,10 +58,6 @@ foreach ($csvColumnSummaryLabels as $field => $label) {
     $csvColumnSummaryParts[] = $label . ': ' . $columnReference;
 }
 $csvColumnMapSummary = $csvColumnSummaryParts !== [] ? implode(' | ', $csvColumnSummaryParts) : 'Padrão Lukrato';
-
-$profileConfigJson = json_encode($profileConfig, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
-$profileConfigJson = is_string($profileConfigJson) ? $profileConfigJson : 'null';
-$profileConfigEncoded = base64_encode($profileConfigJson);
 
 $activeAccount = null;
 foreach ($accounts as $account) {
@@ -130,8 +115,6 @@ $activeContextLabel = $importTarget === 'cartao'
     ? (string) ($activeCard['nome'] ?? 'Cartão não selecionado')
     : (string) ($activeAccount['nome'] ?? 'Conta não selecionada');
 $activeAccountLabel = (string) ($activeAccount['nome'] ?? ($selectedAccountId > 0 ? 'Conta #' . $selectedAccountId : 'Conta não selecionada'));
-$advancedAutoTemplateEndpoint = $importTarget === 'cartao' ? $csvTemplateCardAutoEndpoint : $csvTemplateAutoEndpoint;
-$advancedManualTemplateEndpoint = $importTarget === 'cartao' ? $csvTemplateCardManualEndpoint : $csvTemplateManualEndpoint;
 $advancedBadgeLabel = $initialSourceType === 'csv' ? 'CSV ativo' : 'OFX automático';
 $advancedDescription = $initialSourceType === 'csv'
     ? ($importTarget === 'cartao'
@@ -156,21 +139,9 @@ $guidePathTitle = $initialSourceType === 'csv'
 ?>
 
 <section class="imp-page" data-importacoes-page="index" data-lk-help-page="importacoes"
-    data-imp-preview-endpoint="<?= escape($previewEndpoint) ?>"
-    data-imp-config-endpoint="<?= escape($configEndpoint) ?>"
-    data-imp-config-page-base-url="<?= escape($configPageBaseUrl) ?>"
-    data-imp-confirm-endpoint="<?= escape($confirmEndpoint) ?>" data-imp-active-account-id="<?= $selectedAccountId ?>"
+    data-imp-config-page-base-url="<?= escape($configPageBaseUrl) ?>" data-imp-active-account-id="<?= $selectedAccountId ?>"
     data-imp-active-card-id="<?= $selectedCardId ?>" data-imp-import-target="<?= escape($importTarget) ?>"
-    data-imp-plan="<?= escape($currentPlan) ?>" data-imp-upgrade-url="<?= escape($upgradeUrl) ?>"
-    data-imp-import-limits="<?= escape($importLimitsEncoded) ?>"
-    data-imp-job-status-endpoint-base="<?= escape($jobStatusEndpointBase) ?>"
-    data-imp-profile-config="<?= escape($profileConfigEncoded) ?>"
-    data-imp-csv-template-auto-endpoint="<?= escape($csvTemplateAutoEndpoint) ?>"
-    data-imp-csv-template-manual-endpoint="<?= escape($csvTemplateManualEndpoint) ?>"
-    data-imp-csv-template-card-auto-endpoint="<?= escape($csvTemplateCardAutoEndpoint) ?>"
-    data-imp-csv-template-card-manual-endpoint="<?= escape($csvTemplateCardManualEndpoint) ?>"
-    data-imp-categories-endpoint="<?= escape(BASE_URL . 'api/categorias') ?>"
-    data-imp-subcategories-endpoint-base="<?= escape(BASE_URL . 'api/categorias') ?>"
+    data-imp-source-type="<?= escape($initialSourceType) ?>"
     data-imp-confirm-async-default="<?= $confirmAsyncDefault ? '1' : '0' ?>">
     <?php include __DIR__ . '/sections/customize-modal.php'; ?>
 
@@ -196,15 +167,15 @@ $guidePathTitle = $initialSourceType === 'csv'
             <dl class="imp-hero-definition">
                 <div class="surface-card">
                     <dt>Contexto ativo</dt>
-                    <dd><?= escape($activeContextLabel) ?></dd>
+                    <dd data-imp-hero-context-label><?= escape($activeContextLabel) ?></dd>
                 </div>
                 <div class="surface-card">
                     <dt>Lotes no painel</dt>
-                    <dd><?= $heroBatchCount ?></dd>
+                    <dd data-imp-hero-batch-count><?= $heroBatchCount ?></dd>
                 </div>
                 <div class="surface-card">
                     <dt>Pendentes</dt>
-                    <dd><?= $heroPendingCount ?></dd>
+                    <dd data-imp-hero-pending-count><?= $heroPendingCount ?></dd>
                 </div>
             </dl>
             <div class="imp-page-hero__actions">
@@ -256,45 +227,41 @@ $guidePathTitle = $initialSourceType === 'csv'
                     <div class="imp-flow-grid">
                         <div class="imp-field" data-imp-account-field <?= $importTarget === 'cartao' ? 'hidden' : '' ?>>
                             <label class="imp-field__label" for="imp-account-select">Conta vinculada</label>
-                            <?php if ($accounts === []) : ?>
-                                <p class="imp-inline-warning" data-imp-account-warning>
-                                    Nenhuma conta ativa encontrada. Configure uma conta para liberar o preview.
-                                </p>
-                                <a class="imp-link" href="<?= BASE_URL ?>contas">Abrir contas</a>
-                            <?php else : ?>
-                                <select id="imp-account-select" class="imp-field__control" name="conta_id"
-                                    data-imp-account-select-main>
-                                    <?php foreach ($accounts as $account) : ?>
-                                        <?php $accountId = (int) ($account['id'] ?? 0); ?>
-                                        <option value="<?= $accountId ?>"
-                                            <?= $accountId === $selectedAccountId ? 'selected' : '' ?>>
-                                            <?= escape((string) ($account['nome'] ?? 'Conta sem nome')) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            <?php endif; ?>
+                            <p class="imp-inline-warning" data-imp-account-warning <?= $accounts !== [] ? 'hidden' : '' ?>>
+                                Nenhuma conta ativa encontrada. Configure uma conta para liberar o preview.
+                            </p>
+                            <a class="imp-link" href="<?= BASE_URL ?>contas" data-imp-account-link
+                                <?= $accounts !== [] ? 'hidden' : '' ?>>Abrir contas</a>
+                            <select id="imp-account-select" class="imp-field__control" name="conta_id"
+                                data-imp-account-select-main <?= $accounts === [] ? 'hidden' : '' ?>>
+                                <?php foreach ($accounts as $account) : ?>
+                                    <?php $accountId = (int) ($account['id'] ?? 0); ?>
+                                    <option value="<?= $accountId ?>"
+                                        <?= $accountId === $selectedAccountId ? 'selected' : '' ?>>
+                                        <?= escape((string) ($account['nome'] ?? 'Conta sem nome')) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
 
                         <div class="imp-field" data-imp-card-field <?= $importTarget === 'conta' ? 'hidden' : '' ?>>
                             <label class="imp-field__label" for="imp-card-select">Cartão vinculado</label>
-                            <?php if ($cards === []) : ?>
-                                <p class="imp-inline-warning" data-imp-card-warning>
-                                    Nenhum cartão ativo encontrado. Cadastre ou restaure um cartão para importar a fatura.
-                                </p>
-                                <a class="imp-link" href="<?= BASE_URL ?>cartoes">Abrir cartões</a>
-                            <?php else : ?>
-                                <select id="imp-card-select" class="imp-field__control" name="cartao_id"
-                                    data-imp-card-select-main>
-                                    <?php foreach ($cards as $card) : ?>
-                                        <?php $cardId = (int) ($card['id'] ?? 0); ?>
-                                        <option value="<?= $cardId ?>"
-                                            data-linked-account-id="<?= (int) ($card['conta_id'] ?? 0) ?>"
-                                            <?= $cardId === $selectedCardId ? 'selected' : '' ?>>
-                                            <?= escape((string) ($card['nome'] ?? 'Cartão sem nome')) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            <?php endif; ?>
+                            <p class="imp-inline-warning" data-imp-card-warning <?= $cards !== [] ? 'hidden' : '' ?>>
+                                Nenhum cartão ativo encontrado. Cadastre ou restaure um cartão para importar a fatura.
+                            </p>
+                            <a class="imp-link" href="<?= BASE_URL ?>cartoes" data-imp-card-link
+                                <?= $cards !== [] ? 'hidden' : '' ?>>Abrir cartões</a>
+                            <select id="imp-card-select" class="imp-field__control" name="cartao_id"
+                                data-imp-card-select-main <?= $cards === [] ? 'hidden' : '' ?>>
+                                <?php foreach ($cards as $card) : ?>
+                                    <?php $cardId = (int) ($card['id'] ?? 0); ?>
+                                    <option value="<?= $cardId ?>"
+                                        data-linked-account-id="<?= (int) ($card['conta_id'] ?? 0) ?>"
+                                        <?= $cardId === $selectedCardId ? 'selected' : '' ?>>
+                                        <?= escape((string) ($card['nome'] ?? 'Cartão sem nome')) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
 
                         <fieldset class="imp-format-switch" aria-label="Formato da importação">
@@ -392,11 +359,11 @@ $guidePathTitle = $initialSourceType === 'csv'
                             </div>
 
                             <div class="imp-advanced-actions">
-                                <a class="btn btn-ghost" href="<?= escape($advancedAutoTemplateEndpoint) ?>"
+                                <a class="btn btn-ghost" href="#"
                                     data-imp-advanced-template-auto data-no-transition="true" download>
                                     <?= $importTarget === 'cartao' ? 'Baixar modelo rápido de fatura' : 'Baixar modelo rápido de conta' ?>
                                 </a>
-                                <a class="btn btn-ghost" href="<?= escape($advancedManualTemplateEndpoint) ?>"
+                                <a class="btn btn-ghost" href="#"
                                     data-imp-advanced-template-manual data-no-transition="true" download>
                                     <?= $importTarget === 'cartao' ? 'Baixar modelo completo de fatura' : 'Baixar modelo completo de conta' ?>
                                 </a>
@@ -599,24 +566,26 @@ $guidePathTitle = $initialSourceType === 'csv'
             <article class="imp-side-card imp-surface surface-card surface-card--interactive" data-imp-plan-card>
                 <header class="imp-card-head imp-card-head--split">
                     <h3 class="imp-card-title">Plano e quota</h3>
-                    <span class="imp-status-badge"
+                    <span class="imp-status-badge" data-imp-plan-badge
                         data-status="<?= $currentPlan === 'free' ? 'idle' : 'preview_ready' ?>">
                         <?= strtoupper(escape($currentPlan)) ?>
                     </span>
                 </header>
-                <?php if ($currentPlan !== 'free') : ?>
-                    <p class="imp-card-text">Plano pago ativo: importações OFX/CSV liberadas sem limite prático.</p>
-                <?php else : ?>
-                    <dl class="imp-definition-list">
-                        <?php foreach ($importLimitLabelMap as $bucketKey => $bucketLabel) : ?>
-                            <?php $bucket = is_array($importLimitBuckets[$bucketKey] ?? null) ? $importLimitBuckets[$bucketKey] : []; ?>
-                            <?php $bucketRemaining = $bucket['remaining'] ?? null; ?>
-                            <dt><?= escape($bucketLabel) ?></dt>
-                            <dd><?= is_numeric($bucketRemaining) ? (int) $bucketRemaining . ' restante(s)' : 'Ilimitado' ?></dd>
-                        <?php endforeach; ?>
-                    </dl>
-                    <a class="imp-link" href="<?= escape($upgradeUrl) ?>">Fazer upgrade</a>
-                <?php endif; ?>
+                <div data-imp-plan-summary>
+                    <?php if ($currentPlan !== 'free') : ?>
+                        <p class="imp-card-text">Plano pago ativo: importações OFX/CSV liberadas sem limite prático.</p>
+                    <?php else : ?>
+                        <dl class="imp-definition-list">
+                            <?php foreach ($importLimitLabelMap as $bucketKey => $bucketLabel) : ?>
+                                <?php $bucket = is_array($importLimitBuckets[$bucketKey] ?? null) ? $importLimitBuckets[$bucketKey] : []; ?>
+                                <?php $bucketRemaining = $bucket['remaining'] ?? null; ?>
+                                <dt><?= escape($bucketLabel) ?></dt>
+                                <dd><?= is_numeric($bucketRemaining) ? (int) $bucketRemaining . ' restante(s)' : 'Ilimitado' ?></dd>
+                            <?php endforeach; ?>
+                        </dl>
+                        <a class="imp-link" href="<?= escape($upgradeUrl) ?>">Fazer upgrade</a>
+                    <?php endif; ?>
+                </div>
             </article>
             <article class="imp-side-card imp-surface surface-card surface-card--interactive">
                 <header class="imp-card-head imp-card-head--split">
@@ -647,31 +616,33 @@ $guidePathTitle = $initialSourceType === 'csv'
             <article class="imp-side-card imp-surface surface-card surface-card--interactive">
                 <header class="imp-card-head imp-card-head--split">
                     <h3 class="imp-card-title">Histórico de lotes</h3>
-                    <span class="imp-status-badge" data-status="processed"><?= $heroProcessedCount ?> processados</span>
+                    <span class="imp-status-badge" data-status="processed" data-imp-history-badge><?= $heroProcessedCount ?> processados</span>
                 </header>
-                <?php if ($latestHistoryItems !== []) : ?>
-                    <ul class="imp-history-mini-list">
-                        <?php foreach ($latestHistoryItems as $historyItem) : ?>
-                            <?php $status = strtolower((string) ($historyItem['status'] ?? 'processed')); ?>
-                            <?php $target = strtolower((string) ($historyItem['import_target'] ?? 'conta')); ?>
-                            <li>
-                                <span class="imp-history-mini-list__id">#<?= (int) ($historyItem['batch_id'] ?? 0) ?></span>
-                                <span
-                                    class="imp-history-mini-list__file"><?= escape((string) ($historyItem['filename'] ?? 'arquivo')) ?></span>
-                                <span class="imp-status-badge" data-status="<?= escape($status) ?>">
-                                    <?= escape($historyStatusLabelMap[$status] ?? strtoupper($status)) ?>
-                                </span>
-                                <span class="imp-status-badge" data-status="idle">
-                                    <?= escape($historyTargetLabelMap[$target] ?? 'Conta') ?>
-                                </span>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
-                <?php else : ?>
-                    <p class="imp-card-text">
-                        Nenhum lote confirmado ainda. O histórico é atualizado assim que uma importação é confirmada.
-                    </p>
-                <?php endif; ?>
+                <div data-imp-history-content>
+                    <?php if ($latestHistoryItems !== []) : ?>
+                        <ul class="imp-history-mini-list">
+                            <?php foreach ($latestHistoryItems as $historyItem) : ?>
+                                <?php $status = strtolower((string) ($historyItem['status'] ?? 'processed')); ?>
+                                <?php $target = strtolower((string) ($historyItem['import_target'] ?? 'conta')); ?>
+                                <li>
+                                    <span class="imp-history-mini-list__id">#<?= (int) ($historyItem['batch_id'] ?? 0) ?></span>
+                                    <span
+                                        class="imp-history-mini-list__file"><?= escape((string) ($historyItem['filename'] ?? 'arquivo')) ?></span>
+                                    <span class="imp-status-badge" data-status="<?= escape($status) ?>">
+                                        <?= escape($historyStatusLabelMap[$status] ?? strtoupper($status)) ?>
+                                    </span>
+                                    <span class="imp-status-badge" data-status="idle">
+                                        <?= escape($historyTargetLabelMap[$target] ?? 'Conta') ?>
+                                    </span>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php else : ?>
+                        <p class="imp-card-text">
+                            Nenhum lote confirmado ainda. O histórico é atualizado assim que uma importação é confirmada.
+                        </p>
+                    <?php endif; ?>
+                </div>
                 <a class="imp-link" href="<?= BASE_URL ?>importacoes/historico">Ver histórico</a>
             </article>
         </aside>

@@ -79,9 +79,9 @@
 
         <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);line-height:1.5;">
             <strong>Endpoints disponíveis:</strong><br>
-            <code style="font-size:.75rem;">POST /api/sysadmin/ai/chat</code><br>
-            <code style="font-size:.75rem;">POST /api/sysadmin/ai/suggest-category</code><br>
-            <code style="font-size:.75rem;">POST /api/sysadmin/ai/analyze-spending</code>
+            <code style="font-size:.75rem;">POST /api/v1/sysadmin/ai/chat</code><br>
+            <code style="font-size:.75rem;">POST /api/v1/sysadmin/ai/suggest-category</code><br>
+            <code style="font-size:.75rem;">POST /api/v1/sysadmin/ai/analyze-spending</code>
         </div>
     </div>
 

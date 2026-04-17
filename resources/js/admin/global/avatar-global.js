@@ -7,6 +7,13 @@
  * ============================================================================
  */
 
+import {
+    applyRuntimeConfig,
+    ensureRuntimeConfig,
+    getRuntimeConfig,
+    onRuntimeConfigUpdate,
+} from './runtime-config.js';
+
 (() => {
     'use strict';
 
@@ -48,15 +55,26 @@
         if (initials) initials.style.display = '';
     }
 
-    function updateGlobalAvatars(avatarUrl) {
+    function updateGlobalAvatars(avatarUrl, { syncRuntime = true } = {}) {
         applyAvatar(topNavAvatar, avatarUrl, 32);
         applyAvatar(sidebarAvatar, avatarUrl, 28);
+
+        if (syncRuntime) {
+            applyRuntimeConfig({ userAvatar: avatarUrl || '' }, {
+                dispatch: false,
+                source: 'avatar-global',
+            });
+        }
     }
 
-    window.__LK_updateGlobalAvatars = updateGlobalAvatars;
+    window.__LK_updateGlobalAvatars = (avatarUrl) => {
+        updateGlobalAvatars(avatarUrl);
+    };
 
-    const cfg = window.__LK_CONFIG || {};
-    if (cfg.userAvatar) {
-        updateGlobalAvatars(cfg.userAvatar);
-    }
+    onRuntimeConfigUpdate((config) => {
+        updateGlobalAvatars(String(config.userAvatar || ''), { syncRuntime: false });
+    });
+
+    updateGlobalAvatars(String(getRuntimeConfig().userAvatar || ''), { syncRuntime: false });
+    void ensureRuntimeConfig({}, { silent: true });
 })();

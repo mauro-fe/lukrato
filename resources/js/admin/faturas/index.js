@@ -5,8 +5,8 @@
  * and bootstraps the application on DOMContentLoaded.
  */
 import '../../../css/admin/faturas/index.css';
-import { CONFIG, DOM, STATE, Utils, Modules, initDOM } from './state.js';
-import { FaturasAPI } from './api.js';
+import { initDOM } from './state.js';
+import './api.js';
 import { FaturasUI } from './ui.js';
 import { FaturasApp } from './app.js';
 import { ModalPagarFatura, reverterPagamentoFaturaGlobal, excluirFaturaGlobal, excluirItemFaturaGlobal } from './payment.js';

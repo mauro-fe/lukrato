@@ -9,11 +9,13 @@
                 </div>
             </div>
 
+
             <div class="danger-zone-content">
                 <div class="danger-zone-info">
                     <h4><i data-lucide="trash-2"
                             style="width:18px;height:18px;display:inline-block;vertical-align:middle;color:#ef4444"></i>
                         Excluir
+
                         Conta</h4>
                     <p>Esta ação é <strong>permanente e irreversível</strong>. Todos os seus dados serão removidos:</p>
                     <ul>
@@ -41,7 +43,8 @@
                             PRO (se ativo) será cancelado automaticamente</li>
                     </ul>
                 </div>
-                <button type="button" class="btn-delete-account surface-button surface-button--danger" id="btn-delete-account">
+                <button type="button" class="btn-delete-account surface-button surface-button--danger"
+                    id="btn-delete-account">
                     <i data-lucide="trash-2"></i>
                     <span>Excluir Minha Conta</span>
                 </button>

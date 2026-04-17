@@ -4,23 +4,13 @@
 
 import { formatMoney, parseMoney, escapeHtml, debounce, formatarDinheiro } from '../shared/utils.js';
 import { refreshIcons } from '../shared/ui.js';
+import { getBaseUrl, getCSRFToken } from '../shared/api.js';
 
 export { formatMoney, parseMoney, escapeHtml, debounce, formatarDinheiro, refreshIcons };
 
 // ── Configuration ──────────────────────────────────────────────
 export const CONFIG = {
-    BASE_URL: (() => {
-        try {
-            if (window.LK && typeof window.LK.getBase === 'function') return window.LK.getBase();
-            const meta = document.querySelector('meta[name="base-url"]');
-            if (meta?.content) return meta.content;
-            if (window.BASE_URL) return window.BASE_URL.endsWith('/') ? window.BASE_URL : window.BASE_URL + '/';
-            return '/lukrato/public/';
-        } catch (error) {
-            console.error('❌ Erro ao obter BASE_URL:', error);
-            return '/lukrato/public/';
-        }
-    })(),
+    BASE_URL: getBaseUrl(),
 };
 
 // ── Shared state ───────────────────────────────────────────────
@@ -63,12 +53,7 @@ export function getCategoryIconColor(icon) {
 // ── Utility helpers ────────────────────────────────────────────
 export const Utils = {
     getCsrfToken() {
-        const input = document.querySelector('input[name="csrf_token"]');
-        if (input?.value) return input.value;
-        const meta = document.querySelector('meta[name="csrf-token"]');
-        if (meta?.content) return meta.content;
-        if (window.LK?.getCSRF) return window.LK.getCSRF();
-        return window.CSRF || '';
+        return getCSRFToken();
     },
 
     formatCurrency(value) {

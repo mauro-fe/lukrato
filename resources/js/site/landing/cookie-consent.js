@@ -2,13 +2,15 @@
  * Cookie Consent — Banner with accept/decline, persists in localStorage
  */
 
+import { buildSiteAppUrl } from '../api/endpoints/engagement.js';
+
 export function init() {
     const COOKIE_KEY = 'lk_cookie_consent';
 
     // Already accepted/declined
     if (localStorage.getItem(COOKIE_KEY)) return;
 
-    const baseUrl = (window.APP_BASE_URL || '') + '/';
+    const privacyUrl = buildSiteAppUrl('privacidade');
 
     // Show after a small delay
     setTimeout(function () {
@@ -79,7 +81,7 @@ export function init() {
                         <h4>Usamos cookies</h4>
                         <p>
                             Para melhorar sua experiência e analisar o uso do site.
-                            <a href="${baseUrl}/privacidade">Saiba mais</a>
+                            <a href="${privacyUrl}">Saiba mais</a>
                         </p>
                         <div class="cookie-buttons">
                             <button id="cookieAccept" class="btn-accept">Aceitar</button>

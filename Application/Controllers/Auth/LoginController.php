@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Auth;
 
+use Application\Config\AuthRuntimeConfig;
 use Application\Controllers\WebController;
 use Application\Core\Exceptions\ValidationException;
 use Application\Core\Response;
@@ -20,22 +21,29 @@ class LoginController extends WebController
 {
     private AuthService $authService;
     private TurnstileService $turnstile;
+    private AuthRuntimeConfig $runtimeConfig;
 
     public function __construct(
         ?CacheService $cache = null,
         ?AuthService $authService = null,
-        ?TurnstileService $turnstile = null
+        ?TurnstileService $turnstile = null,
+        ?AuthRuntimeConfig $runtimeConfig = null
     ) {
         parent::__construct(cache: $cache);
 
         $this->authService = $this->resolveOrCreate($authService, AuthService::class);
         $this->turnstile = $this->resolveOrCreate($turnstile, TurnstileService::class);
+        $this->runtimeConfig = $this->resolveOrCreate($runtimeConfig, AuthRuntimeConfig::class);
     }
 
     public function login(): Response
     {
         if ($this->isAuthenticated()) {
-            return $this->buildRedirectResponse('dashboard');
+            return $this->buildRedirectResponse($this->runtimeConfig->dashboardUrl());
+        }
+        $intended = self::sanitizeIntended($this->getStringQuery('intended'));
+        if ($this->runtimeConfig->hasConfiguredLoginUrl()) {
+            return $this->buildRedirectResponse($this->runtimeConfig->loginUrlForIntended($intended));
         }
 
         $registerErrors = $this->pullRegisterErrors();
@@ -43,7 +51,6 @@ class LoginController extends WebController
 
         $errorMessage = $this->getError();
         $ip = $this->request->ip() ?? 'unknown';
-        $intended = self::sanitizeIntended($this->getStringQuery('intended'));
 
         if ($intended !== '') {
             $this->putSessionValue('login_intended', $intended);
@@ -60,6 +67,7 @@ class LoginController extends WebController
             'require_captcha' => $this->turnstile->shouldRequireCaptcha($ip),
             'turnstile_site_key' => TurnstileService::isEnabled() ? TURNSTILE_SITE_KEY : '',
             'intended' => $intended,
+            'verifyEmailNoticeUrl' => $this->runtimeConfig->verifyEmailNoticePageUrl(),
         ]);
     }
 
@@ -98,6 +106,7 @@ class LoginController extends WebController
             $password = $this->request->postString('password', '');
 
             $result = $this->authService->login($email, $password, $remember);
+            $result['redirect'] = $this->resolvePostLoginRedirect((string) ($result['redirect'] ?? ''));
 
             $this->clearOldCsrfTokens();
             $this->turnstile->resetFailedAttempts($ip);
@@ -126,7 +135,7 @@ class LoginController extends WebController
             return $this->ok($result);
         }
 
-        return $this->buildRedirectResponse('login');
+        return $this->buildRedirectResponse($this->runtimeConfig->loginUrl());
     }
 
     private function validateCsrfToken(): void
@@ -152,6 +161,32 @@ class LoginController extends WebController
     private function clearOldCsrfTokens(): void
     {
         unset($_SESSION['csrf_tokens']);
+    }
+
+    private function resolvePostLoginRedirect(string $defaultRedirect): string
+    {
+        $intended = self::sanitizeIntended((string) ($_SESSION['login_intended'] ?? ''));
+        unset($_SESSION['login_intended']);
+
+        if ($intended !== '') {
+            return $this->runtimeConfig->intendedUrl($intended, $this->runtimeConfig->dashboardUrl());
+        }
+
+        if ($defaultRedirect === '' || $this->isDashboardRedirect($defaultRedirect)) {
+            return $this->runtimeConfig->dashboardUrl();
+        }
+
+        return $defaultRedirect;
+    }
+
+    private function isDashboardRedirect(string $redirect): bool
+    {
+        $normalized = rtrim($redirect, '/');
+        $backendDashboard = rtrim(BASE_URL, '/') . '/dashboard';
+
+        return $normalized === 'dashboard'
+            || $normalized === $backendDashboard
+            || $normalized === rtrim($this->runtimeConfig->dashboardUrl(), '/');
     }
 
     private function handleValidationFailure(ValidationException $e, string $ip, string $email): Response

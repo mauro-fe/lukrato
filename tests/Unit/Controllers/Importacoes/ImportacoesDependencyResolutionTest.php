@@ -8,16 +8,22 @@ use Application\Container\ApplicationContainer;
 use Application\Controllers\Admin\ImportacoesConfiguracoesController;
 use Application\Controllers\Admin\ImportacoesController;
 use Application\Controllers\Admin\ImportacoesHistoricoController;
+use Application\Controllers\Api\Importacoes\ConfiguracoesPageInitController;
 use Application\Controllers\Api\Importacoes\ConfiguracoesController;
 use Application\Controllers\Api\Importacoes\ConfirmController;
 use Application\Controllers\Api\Importacoes\DeleteController;
 use Application\Controllers\Api\Importacoes\HistoricoController;
+use Application\Controllers\Api\Importacoes\HistoricoPageInitController;
 use Application\Controllers\Api\Importacoes\JobStatusController;
+use Application\Controllers\Api\Importacoes\PageInitController;
 use Application\Controllers\Api\Importacoes\PreviewController;
+use Application\Services\Importacao\ImportacoesConfiguracoesPageDataService;
+use Application\Services\Importacao\ImportacoesHistoricoPageDataService;
 use Application\Repositories\ContaRepository;
 use Application\Services\Importacao\ImportDeletionService;
 use Application\Services\Importacao\ImportExecutionService;
 use Application\Services\Importacao\ImportHistoryService;
+use Application\Services\Importacao\ImportacoesIndexPageDataService;
 use Application\Services\Importacao\ImportPreviewService;
 use Application\Services\Importacao\ImportProfileConfigService;
 use Application\Services\Importacao\ImportQueueService;
@@ -46,30 +52,23 @@ class ImportacoesDependencyResolutionTest extends TestCase
 
     public function testAdminImportacoesControllersResolveDependenciesFromContainerWhenAvailable(): void
     {
-        $contaRepository = Mockery::mock(ContaRepository::class);
-        $profileConfigService = Mockery::mock(ImportProfileConfigService::class);
-        $historyService = Mockery::mock(ImportHistoryService::class);
-        $planLimitService = Mockery::mock(PlanLimitService::class);
+        $pageDataService = Mockery::mock(ImportacoesIndexPageDataService::class);
+        $configPageDataService = Mockery::mock(ImportacoesConfiguracoesPageDataService::class);
+        $historyPageDataService = Mockery::mock(ImportacoesHistoricoPageDataService::class);
 
         $container = new IlluminateContainer();
-        $container->instance(ContaRepository::class, $contaRepository);
-        $container->instance(ImportProfileConfigService::class, $profileConfigService);
-        $container->instance(ImportHistoryService::class, $historyService);
-        $container->instance(PlanLimitService::class, $planLimitService);
+        $container->instance(ImportacoesIndexPageDataService::class, $pageDataService);
+        $container->instance(ImportacoesConfiguracoesPageDataService::class, $configPageDataService);
+        $container->instance(ImportacoesHistoricoPageDataService::class, $historyPageDataService);
         ApplicationContainer::setInstance($container);
 
         $indexController = new ImportacoesController();
         $configController = new ImportacoesConfiguracoesController();
         $historyController = new ImportacoesHistoricoController();
 
-        $this->assertSame($contaRepository, $this->readProperty($indexController, 'contaRepository'));
-        $this->assertSame($profileConfigService, $this->readProperty($indexController, 'profileConfigService'));
-        $this->assertSame($historyService, $this->readProperty($indexController, 'historyService'));
-        $this->assertSame($planLimitService, $this->readProperty($indexController, 'planLimitService'));
-        $this->assertSame($contaRepository, $this->readProperty($configController, 'contaRepository'));
-        $this->assertSame($profileConfigService, $this->readProperty($configController, 'profileConfigService'));
-        $this->assertSame($contaRepository, $this->readProperty($historyController, 'contaRepository'));
-        $this->assertSame($historyService, $this->readProperty($historyController, 'historyService'));
+        $this->assertSame($pageDataService, $this->readProperty($indexController, 'pageDataService'));
+        $this->assertSame($configPageDataService, $this->readProperty($configController, 'pageDataService'));
+        $this->assertSame($historyPageDataService, $this->readProperty($historyController, 'pageDataService'));
     }
 
     public function testApiImportacoesWorkflowControllersResolveDependenciesFromContainerWhenAvailable(): void
@@ -114,24 +113,36 @@ class ImportacoesDependencyResolutionTest extends TestCase
 
     public function testApiImportacoesSupportControllersResolveDependenciesFromContainerWhenAvailable(): void
     {
+        $pageDataService = Mockery::mock(ImportacoesIndexPageDataService::class);
+        $configPageDataService = Mockery::mock(ImportacoesConfiguracoesPageDataService::class);
+        $historyPageDataService = Mockery::mock(ImportacoesHistoricoPageDataService::class);
         $profileService = Mockery::mock(ImportProfileConfigService::class);
         $contaRepository = Mockery::mock(ContaRepository::class);
         $historyService = Mockery::mock(ImportHistoryService::class);
         $queueService = Mockery::mock(ImportQueueService::class);
 
         $container = new IlluminateContainer();
+        $container->instance(ImportacoesIndexPageDataService::class, $pageDataService);
+        $container->instance(ImportacoesConfiguracoesPageDataService::class, $configPageDataService);
+        $container->instance(ImportacoesHistoricoPageDataService::class, $historyPageDataService);
         $container->instance(ImportProfileConfigService::class, $profileService);
         $container->instance(ContaRepository::class, $contaRepository);
         $container->instance(ImportHistoryService::class, $historyService);
         $container->instance(ImportQueueService::class, $queueService);
         ApplicationContainer::setInstance($container);
 
+        $pageInitController = new PageInitController();
+        $configPageInitController = new ConfiguracoesPageInitController();
         $configController = new ConfiguracoesController();
+        $historyPageInitController = new HistoricoPageInitController();
         $historyController = new HistoricoController();
         $jobStatusController = new JobStatusController();
 
+        $this->assertSame($pageDataService, $this->readProperty($pageInitController, 'pageDataService'));
+        $this->assertSame($configPageDataService, $this->readProperty($configPageInitController, 'pageDataService'));
         $this->assertSame($profileService, $this->readProperty($configController, 'profileService'));
         $this->assertSame($contaRepository, $this->readProperty($configController, 'contaRepository'));
+        $this->assertSame($historyPageDataService, $this->readProperty($historyPageInitController, 'pageDataService'));
         $this->assertSame($historyService, $this->readProperty($historyController, 'historyService'));
         $this->assertSame($queueService, $this->readProperty($jobStatusController, 'queueService'));
     }

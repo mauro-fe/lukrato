@@ -1,3 +1,6 @@
+import { resolveCardsSummaryEndpoint, resolveFinanceSummaryEndpoint } from '../api/endpoints/finance.js';
+import { resolveLancamentoEndpoint, resolveLancamentosBulkDeleteEndpoint } from '../api/endpoints/lancamentos.js';
+
 /**
  * ============================================================================
  * LUKRATO - Dashboard / Foundation
@@ -33,11 +36,6 @@ export function createDashboardFoundation({
         },
 
         fetch: async (url) => {
-            if (window.LK?.api) {
-                const res = await LK.api.get(url);
-                if (!res.ok) throw new Error(res.message || 'Erro na API');
-                return res.data;
-            }
             const json = await apiGet(url);
             if (json?.success === false) throw new Error(getErrorMessage({ data: json }, 'Erro na API'));
             return json?.data ?? json;
@@ -67,7 +65,7 @@ export function createDashboardFoundation({
             const match = String(month || '').match(/^(\d{4})-(\d{2})$/);
             if (!match) return {};
 
-            const response = await apiGet(`${CONFIG.API_URL}financas/resumo`, {
+            const response = await apiGet(resolveFinanceSummaryEndpoint(), {
                 ano: Number(match[1]),
                 mes: Number(match[2]),
             });
@@ -76,22 +74,14 @@ export function createDashboardFoundation({
         },
 
         getCardsSummary: async () => {
-            const response = await apiGet(`${CONFIG.API_URL}cartoes/resumo`);
+            const response = await apiGet(resolveCardsSummaryEndpoint());
             return getApiPayload(response, {});
         },
 
         deleteTransaction: async (id) => {
-            if (window.LK?.api) {
-                // Tenta o endpoint primário via facade
-                const res = await LK.api.delete(`${CONFIG.API_URL}lancamentos/${id}`);
-                if (res.ok) return res.data;
-                throw new Error(res.message || 'Erro ao excluir');
-            }
-            // Fallback com múltiplos endpoints
             const endpoints = [
-                { request: () => apiDelete(`${CONFIG.API_URL}lancamentos/${id}`) },
-                { request: () => apiPost(`${CONFIG.API_URL}lancamentos/${id}/delete`, {}) },
-                { request: () => apiPost(`${CONFIG.API_URL}lancamentos/delete`, { id }) }
+                { request: () => apiDelete(resolveLancamentoEndpoint(id)) },
+                { request: () => apiPost(resolveLancamentosBulkDeleteEndpoint(), { id }) }
             ];
             for (const endpoint of endpoints) {
                 try {

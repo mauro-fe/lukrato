@@ -1,6 +1,7 @@
 ﻿// ============================================================================
 // HEADER.JS - Sistema de Header e Sidebar
-import { apiGet } from '../shared/api.js';
+import { apiGet, apiLogout, buildAppUrl, getApiPayload, getBaseUrl } from '../shared/api.js';
+import { resolveAccountsEndpoint } from '../api/endpoints/finance.js';
 
 // ============================================================================
 // Comportamentos do HEADER: 
@@ -27,14 +28,14 @@ import { apiGet } from '../shared/api.js';
         const opts = {
             selectors: {
                 accountSelect: '#headerConta',
-                logoutButton: '#btn-logout',
+                logoutButton: '#btn-logout, .logout-btn',
                 sidebarLinks: '.sidebar .nav-item[href]',
             },
             api: {
-                accounts: 'api/contas?only_active=1',
+                accounts: `${resolveAccountsEndpoint()}?only_active=1`,
             },
             storageKey: STORAGE_KEY,
-            baseUrl: getBaseUrl(),
+            loginUrl: buildAppUrl('login'),
             getCsrf: () => (window.CSRF || ''),
             confirmLogout: defaultConfirmLogout,
             onAccountChange: (accountId) => {
@@ -46,7 +47,7 @@ import { apiGet } from '../shared/api.js';
         };
 
         const selAccount = qs(opts.selectors.accountSelect);
-        const logoutBtn = qs(opts.selectors.logoutButton);
+        const logoutButtons = qsa(opts.selectors.logoutButton);
 
         // 1) Popular seletor de contas do header
         if (selAccount) {
@@ -55,8 +56,10 @@ import { apiGet } from '../shared/api.js';
         }
 
         // 2) Logout com confirmação
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', handleLogoutClick(logoutBtn, opts));
+        if (logoutButtons.length > 0) {
+            logoutButtons.forEach((logoutBtn) => {
+                logoutBtn.addEventListener('click', handleLogoutClick(logoutBtn, opts));
+            });
         }
 
         // 3) Highlight da sidebar
@@ -83,29 +86,21 @@ import { apiGet } from '../shared/api.js';
         return scope.querySelector(selector);
     }
 
-    /**
-     * Obtém a base URL do sistema
-     */
-    function getBaseUrl() {
-        const meta = qs('meta[name="base-url"]');
-        if (meta?.content) return meta.content.replace(/\/?$/, '/');
-        if (window.BASE_URL) return String(window.BASE_URL).replace(/\/?$/, '/');
-        return (location.origin + '/').replace(/\/?$/, '/');
+    function qsa(selector, scope = document) {
+        return Array.from(scope.querySelectorAll(selector));
     }
 
     /**
      * Fetch JSON com tratamento de erros
      */
-    async function fetchJSON(baseUrl, path, init = {}) {
-        const url = baseUrl.replace(/\/?$/, '/') + path.replace(/^\/?/, '');
-
+    async function fetchJSON(path) {
         try {
-            const json = await apiGet(url);
+            const json = await apiGet(path);
             if (json && !json.success) {
                 throw new Error(json?.message || 'Erro na requisição');
             }
 
-            return json;
+            return getApiPayload(json, []);
         } catch (error) {
             console.error('[Header] Erro na requisição:', error);
             throw error;
@@ -125,7 +120,7 @@ import { apiGet } from '../shared/api.js';
         const currentValue = selectEl.value;
 
         try {
-            const accounts = await fetchJSON(opts.baseUrl, opts.api.accounts);
+            const accounts = await fetchJSON(opts.api.accounts);
 
             // Limpa e repopula o select
             selectEl.innerHTML = '<option value="">Todas as contas (opcional)</option>';
@@ -191,12 +186,9 @@ import { apiGet } from '../shared/api.js';
     function handleLogoutClick(logoutBtn, opts) {
         return async (e) => {
             e.preventDefault();
-            const href = logoutBtn.getAttribute('href');
-            if (!href) return;
-
             const confirmed = await opts.confirmLogout();
             if (confirmed) {
-                window.location.href = href;
+                await apiLogout({ redirectTo: opts.loginUrl || buildAppUrl('login') });
             }
         };
     }

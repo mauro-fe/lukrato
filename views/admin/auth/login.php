@@ -4,6 +4,8 @@
 $activeTab = isset($activeTab) && $activeTab === 'register' ? 'register' : 'login';
 $registerErrorMessage = $registerErrorMessage ?? '';
 $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
+$loginPageUrl = rtrim(BASE_URL, '/') . '/login';
+$verifyEmailNoticeUrl = $verifyEmailNoticeUrl ?? rtrim(BASE_URL, '/') . '/verificar-email/aviso';
 
 ?>
 
@@ -14,8 +16,9 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
+    <meta name="verify-email-notice-url" content="<?= htmlspecialchars($verifyEmailNoticeUrl, ENT_QUOTES, 'UTF-8') ?>">
     <?php if (!empty($intended)): ?>
-    <meta name="intended-redirect" content="<?= htmlspecialchars($intended, ENT_QUOTES, 'UTF-8') ?>">
+        <meta name="intended-redirect" content="<?= htmlspecialchars($intended, ENT_QUOTES, 'UTF-8') ?>">
     <?php endif; ?>
 
     <!-- CSRF Meta Tags para renovação automática -->
@@ -31,31 +34,31 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
 
     <!-- Cloudflare Turnstile (carrega só se configurado) -->
     <?php if (!empty($turnstile_site_key)): ?>
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
-    <meta name="turnstile-site-key" content="<?= htmlspecialchars($turnstile_site_key, ENT_QUOTES, 'UTF-8') ?>">
-    <meta name="turnstile-required" content="<?= !empty($require_captcha) ? '1' : '0' ?>">
-    <style>
-    .turnstile-wrapper {
-        margin: 12px 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-        animation: fadeInCaptcha 0.3s ease;
-    }
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+        <meta name="turnstile-site-key" content="<?= htmlspecialchars($turnstile_site_key, ENT_QUOTES, 'UTF-8') ?>">
+        <meta name="turnstile-required" content="<?= !empty($require_captcha) ? '1' : '0' ?>">
+        <style>
+            .turnstile-wrapper {
+                margin: 12px 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 6px;
+                animation: fadeInCaptcha 0.3s ease;
+            }
 
-    @keyframes fadeInCaptcha {
-        from {
-            opacity: 0;
-            transform: translateY(-8px);
-        }
+            @keyframes fadeInCaptcha {
+                from {
+                    opacity: 0;
+                    transform: translateY(-8px);
+                }
 
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    </style>
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        </style>
     <?php endif; ?>
 
 </head>
@@ -105,7 +108,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                                 aria-labelledby="authTabLogin" aria-hidden="<?= $activeTab === 'login' ? 'false' : 'true' ?>">
                                 <h3 class="card-title">Entrar</h3>
 
-                                <a href="<?= BASE_URL ?>auth/google/login" class="google-sign-in-button">
+                                <a href="<?= htmlspecialchars($loginPageUrl, ENT_QUOTES, 'UTF-8') ?>" class="google-sign-in-button" data-google-auth="login">
                                     <svg class="google-icon" viewBox="0 0 48 48">
                                         <path fill="#EA4335"
                                             d="M24 9.5c3.3 0 6.2 1.1 8.5 3.2l6.3-6.3C34.6 2.4 29.7 0 24 0 14.6 0 6.6 5.4 2.7 13.2l7.4 5.7C12 13.1 17.5 9.5 24 9.5z" />
@@ -121,7 +124,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
 
                                 <div class="auth-separator"><span>ou</span></div>
 
-                                <form action="<?= BASE_URL ?>login/entrar" method="POST" id="loginForm" novalidate>
+                                <form action="<?= htmlspecialchars($loginPageUrl, ENT_QUOTES, 'UTF-8') ?>" method="POST" id="loginForm" novalidate>
                                     <?= csrf_input('login_form') ?>
                                     <div class="field">
                                         <input type="email" id="email" name="email" placeholder="E-mail"
@@ -171,7 +174,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                                 aria-labelledby="authTabRegister" aria-hidden="<?= $activeTab === 'register' ? 'false' : 'true' ?>">
                                 <h3 class="card-title">Cadastrar</h3>
 
-                                <a href="<?= BASE_URL ?>auth/google/register" class="google-sign-in-button">
+                                <a href="<?= htmlspecialchars($loginPageUrl, ENT_QUOTES, 'UTF-8') ?>" class="google-sign-in-button" data-google-auth="register">
                                     <svg class="google-icon" viewBox="0 0 48 48">
                                         <path fill="#EA4335"
                                             d="M24 9.5c3.3 0 6.2 1.1 8.5 3.2l6.3-6.3C34.6 2.4 29.7 0 24 0 14.6 0 6.6 5.4 2.7 13.2l7.4 5.7C12 13.1 17.5 9.5 24 9.5z" />
@@ -185,7 +188,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
                                     <span>Com Google</span>
                                 </a>
                                 <div class="auth-separator"><span>ou</span></div>
-                                <form action="<?= BASE_URL ?>register/criar" method="POST" id="registerForm" novalidate>
+                                <form action="<?= htmlspecialchars($loginPageUrl, ENT_QUOTES, 'UTF-8') ?>" method="POST" id="registerForm" novalidate>
                                     <?= csrf_input('register_form') ?>
                                     <div class="field">
                                         <input type="email" id="reg_email" name="email" placeholder="E-mail"

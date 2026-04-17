@@ -1,6 +1,7 @@
 <!-- Incluir o CSS dos cartões modernos -->
 
-<div class="cont-page">
+<div
+    class="cont-page">
     <!-- ==================== HEADER ==================== -->
     <div class="lk-accounts-wrap" style="margin-bottom: 2rem;" data-aos="fade-down">
         <div class="lk-acc-header"

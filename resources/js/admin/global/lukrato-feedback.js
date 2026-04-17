@@ -6,7 +6,9 @@
  * consistência visual e acessibilidade.
  */
 
-(function() {
+import { buildAppUrl } from '../shared/api.js';
+
+(function () {
     'use strict';
 
     // ============================================
@@ -31,9 +33,9 @@
         const style = getComputedStyle(root);
         return {
             success: style.getPropertyValue('--color-success').trim() || FALLBACK_COLORS.success,
-            error:   style.getPropertyValue('--color-danger').trim()  || FALLBACK_COLORS.error,
+            error: style.getPropertyValue('--color-danger').trim() || FALLBACK_COLORS.error,
             warning: style.getPropertyValue('--color-warning').trim() || FALLBACK_COLORS.warning,
-            info:    style.getPropertyValue('--color-secondary').trim() || FALLBACK_COLORS.info,
+            info: style.getPropertyValue('--color-secondary').trim() || FALLBACK_COLORS.info,
             primary: style.getPropertyValue('--color-primary').trim() || FALLBACK_COLORS.primary,
         };
     }
@@ -76,14 +78,7 @@
             ? upgradeUrl.trim()
             : 'billing';
 
-        if (/^https?:\/\//i.test(raw)) {
-            return raw;
-        }
-
-        const base = (typeof window.getBaseUrl === 'function' ? window.getBaseUrl() : (window.BASE_URL || '/'))
-            .replace(/\/?$/, '/');
-        const normalizedPath = raw.replace(/^\/+/, '');
-        return `${base}${normalizedPath}`;
+        return buildAppUrl(raw);
     }
 
     // ============================================
@@ -381,7 +376,7 @@
             },
         }).then((result) => {
             if (result.isConfirmed) {
-                window.location.href = (window.BASE_URL || '/') + 'billing';
+                window.location.href = buildAppUrl('billing');
             }
             return result;
         });
@@ -401,7 +396,7 @@
         hideLoading: hideLoading,
         upgradePrompt: showUpgradePrompt,
         limitReached: showLimitReached,
-        
+
         // Alias para compatibilidade
         showSuccess,
         showError,
@@ -413,7 +408,7 @@
     };
 
     // Alias global para acesso rápido
-    window.showNotification = function(message, type = 'success') {
+    window.showNotification = function (message, type = 'success') {
         switch (type) {
             case 'error':
             case 'danger':

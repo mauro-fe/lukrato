@@ -5,6 +5,12 @@
  */
 
 import { CONFIG, DOM, STATE, Utils, MoneyMask, Notifications, Modules } from './state.js';
+import {
+    resolveLancamentoFaturaDetailsEndpoint,
+    resolveLancamentoPayEndpoint,
+    resolveLancamentoUnpayEndpoint,
+    resolveParcelamentoEndpoint,
+} from '../api/endpoints/lancamentos.js';
 
 import { apiDelete, apiGet, apiPut, getErrorMessage, logClientError, logClientWarning } from '../shared/api.js';
 // ============================================================================
@@ -641,7 +647,7 @@ export const ParcelamentoGrouper = {
 
         try {
             // Buscar TODAS as parcelas da API (não apenas as do mês atual)
-            const json = await apiGet(`${CONFIG.BASE_URL}api/parcelamentos/${parcelamentoId}`);
+            const json = await apiGet(resolveParcelamentoEndpoint(parcelamentoId));
             const parcelamento = json.data || json;
             const parcelas = (parcelamento.parcelas || []).sort((a, b) => new Date(a.data) - new Date(b.data));
 
@@ -725,8 +731,8 @@ export const ParcelamentoGrouper = {
     async togglePago(lancamentoId, pago) {
         try {
             const endpoint = pago
-                ? `${CONFIG.BASE_URL}api/lancamentos/${lancamentoId}/pagar`
-                : `${CONFIG.BASE_URL}api/lancamentos/${lancamentoId}/despagar`;
+                ? resolveLancamentoPayEndpoint(lancamentoId)
+                : resolveLancamentoUnpayEndpoint(lancamentoId);
 
             await apiPut(endpoint, {});
 
@@ -752,7 +758,7 @@ export const ParcelamentoGrouper = {
 
         const scope = result.scope;
         try {
-            const data = await apiDelete(`${CONFIG.BASE_URL}api/parcelamentos/${parcelamentoId}?scope=${scope}`);
+            const data = await apiDelete(`${resolveParcelamentoEndpoint(parcelamentoId)}?scope=${scope}`);
             LKFeedback.success(data?.message || 'Parcelamento atualizado com sucesso', { toast: true });
             await DataManager.load();
         } catch (error) {
@@ -853,7 +859,7 @@ export const FaturaDetalhes = {
         let data = this.cache[lancamentoId];
         if (!data) {
             try {
-                const json = await apiGet(`${CONFIG.ENDPOINT}/${lancamentoId}/fatura-detalhes`);
+                const json = await apiGet(resolveLancamentoFaturaDetailsEndpoint(lancamentoId));
                 if (json.success && json.data) {
                     data = json.data;
                     this.cache[lancamentoId] = data;
@@ -942,7 +948,7 @@ export const FaturaDetalhes = {
         let data = this.cache[lancamentoId];
         if (!data) {
             try {
-                const json = await apiGet(`${CONFIG.ENDPOINT}/${lancamentoId}/fatura-detalhes`);
+                const json = await apiGet(resolveLancamentoFaturaDetailsEndpoint(lancamentoId));
                 if (json.success && json.data) {
                     data = json.data;
                     this.cache[lancamentoId] = data;

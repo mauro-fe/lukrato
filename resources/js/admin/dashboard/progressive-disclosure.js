@@ -1,5 +1,6 @@
 import { logClientError } from '../shared/api.js';
 import { getDashboardOverview, invalidateDashboardOverview } from './dashboard-data.js';
+import { ensureRuntimeConfig, getRuntimeConfig } from '../global/runtime-config.js';
 
 /**
  * Progressive disclosure for first-time users.
@@ -131,10 +132,12 @@ class ProgressiveDisclosure {
 window.ProgressiveDisclosure = ProgressiveDisclosure;
 
 document.addEventListener('DOMContentLoaded', () => {
-  const isFirstTime = Boolean(window.__lkFirstVisit)
-    || window.__LK_CONFIG?.needsDisplayNamePrompt === true;
+  void ensureRuntimeConfig({}, { silent: true }).finally(() => {
+    const isFirstTime = Boolean(window.__lkFirstVisit)
+      || getRuntimeConfig().needsDisplayNamePrompt === true;
 
-  if (isFirstTime) {
-    window.progressiveDisclosure = new ProgressiveDisclosure({ isFirstTime: true });
-  }
+    if (isFirstTime) {
+      window.progressiveDisclosure = new ProgressiveDisclosure({ isFirstTime: true });
+    }
+  });
 });

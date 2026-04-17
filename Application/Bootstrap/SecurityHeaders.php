@@ -73,10 +73,7 @@ class SecurityHeaders
         }
 
         $normalizedOrigin = rtrim($origin, '/');
-        $allowedOrigins = [
-            'https://lukrato.com.br',
-            'https://www.lukrato.com.br',
-        ];
+        $allowedOrigins = $this->runtimeConfig->allowedOrigins();
 
         if (in_array($normalizedOrigin, $allowedOrigins, true)) {
             return true;

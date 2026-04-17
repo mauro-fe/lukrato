@@ -21,8 +21,7 @@ class GoogleCallbackController extends WebController
     public function __construct(
         ?GoogleAuthService $googleAuthService = null,
         ?AuthRuntimeConfig $runtimeConfig = null
-    )
-    {
+    ) {
         parent::__construct();
         $this->googleAuthService = $this->resolveOrCreate($googleAuthService, GoogleAuthService::class);
         $this->runtimeConfig = $this->resolveOrCreate($runtimeConfig, AuthRuntimeConfig::class);
@@ -31,23 +30,24 @@ class GoogleCallbackController extends WebController
     public function callback(): Response
     {
         try {
-            $redirectUri = $this->runtimeConfig->googleRedirectUri();
+            $callbackUrl = $this->runtimeConfig->googleCallbackUrl();
 
             LogService::info('Google callback iniciado', [
                 'query_params' => $_GET,
-                'env_redirect_uri' => $redirectUri !== '' ? $redirectUri : 'NAO DEFINIDO',
+                'env_redirect_uri' => $this->runtimeConfig->googleRedirectUri() !== '' ? $this->runtimeConfig->googleRedirectUri() : 'NAO DEFINIDO',
+                'callback_url' => $callbackUrl,
                 'base_url' => BASE_URL,
             ]);
 
             if ($this->isAuthenticated()) {
-                return $this->buildRedirectResponse('dashboard');
+                return $this->buildRedirectResponse($this->runtimeConfig->dashboardUrl());
             }
 
             $this->validateCallbackParams();
             $code = $this->getQuery('code');
 
             LogService::info('Processando callback do Google', [
-                'redirect_uri' => rtrim(BASE_URL, '/') . '/auth/google/callback',
+                'redirect_uri' => $callbackUrl,
                 'base_url' => BASE_URL,
                 'code_received' => !empty($code),
             ]);
@@ -56,7 +56,7 @@ class GoogleCallbackController extends WebController
 
             if ($result['needs_confirmation'] ?? false) {
                 $_SESSION['google_pending_user'] = $result['user_info'];
-                return $this->buildRedirectResponse('auth/google/confirm-page');
+                return $this->buildRedirectResponse($this->runtimeConfig->googleConfirmPageUrl());
             }
 
             $usuario = $result['usuario'];
@@ -74,14 +74,16 @@ class GoogleCallbackController extends WebController
             unset($_SESSION['login_intended']);
 
             if ($isNew) {
-                return $this->buildRedirectResponse('dashboard?welcome=1');
+                return $this->buildRedirectResponse($this->runtimeConfig->welcomeUrl());
             }
 
-            if ($intended !== '' && preg_match('#^[a-zA-Z0-9/_\-]+$#', $intended)) {
-                return $this->buildRedirectResponse($intended);
+            if ($intended !== '') {
+                return $this->buildRedirectResponse(
+                    $this->runtimeConfig->intendedUrl($intended, $this->runtimeConfig->dashboardUrl())
+                );
             }
 
-            return $this->buildRedirectResponse('dashboard');
+            return $this->buildRedirectResponse($this->runtimeConfig->dashboardUrl());
         } catch (Exception $e) {
             return $this->handleCallbackError($e);
         } catch (Throwable $e) {
@@ -89,19 +91,39 @@ class GoogleCallbackController extends WebController
         }
     }
 
+    public function pending(): Response
+    {
+        $pendingUser = $this->pendingGoogleUser();
+        if ($pendingUser === null) {
+            return $this->fail('Nenhum cadastro Google pendente encontrado.', 404);
+        }
+
+        return $this->ok([
+            'message' => 'Cadastro Google pendente encontrado.',
+            'pending_user' => $pendingUser,
+            'actions' => [
+                'confirm_url' => $this->runtimeConfig->googleConfirmUrl(),
+                'cancel_url' => $this->runtimeConfig->googleCancelUrl(),
+            ],
+        ]);
+    }
+
     public function confirmPage(): Response
     {
         if ($this->isAuthenticated()) {
-            return $this->buildRedirectResponse('dashboard');
+            return $this->buildRedirectResponse($this->runtimeConfig->dashboardUrl());
         }
 
-        $googleData = $_SESSION['google_pending_user'] ?? null;
-        if (!$googleData) {
-            return $this->buildRedirectResponse('login');
+        if (!$this->pendingGoogleUser()) {
+            return $this->buildRedirectResponse($this->runtimeConfig->loginUrl());
+        }
+
+        if ($this->runtimeConfig->hasConfiguredGoogleConfirmPageUrl()) {
+            return $this->buildRedirectResponse($this->runtimeConfig->googleConfirmPageUrl());
         }
 
         return $this->renderResponse('site/auth/google-confirm', [
-            'googleData' => $googleData,
+            'googleLoginUrl' => $this->runtimeConfig->loginUrl(),
         ]);
     }
 
@@ -109,13 +131,22 @@ class GoogleCallbackController extends WebController
     {
         try {
             if ($this->isAuthenticated()) {
-                return $this->buildRedirectResponse('dashboard');
+                return $this->respondWithRedirectOrJson(
+                    $this->runtimeConfig->dashboardUrl(),
+                    'Você já está autenticado.'
+                );
             }
 
-            $pendingUser = $_SESSION['google_pending_user'] ?? null;
+            $pendingUser = $this->pendingGoogleUser();
             if (!$pendingUser) {
+                if ($this->request->isAjax()) {
+                    return $this->fail('Sessão expirada. Tente novamente.', 410, [
+                        'redirect' => $this->runtimeConfig->loginUrl(),
+                    ]);
+                }
+
                 $this->setError('Sessão expirada. Tente novamente.');
-                return $this->buildRedirectResponse('login');
+                return $this->buildRedirectResponse($this->runtimeConfig->loginUrl());
             }
 
             $referralCode = $_SESSION['pending_referral_code'] ?? '';
@@ -137,27 +168,46 @@ class GoogleCallbackController extends WebController
                 'email' => $usuario->email,
             ]);
 
-            return $this->buildRedirectResponse('dashboard?welcome=1');
+            return $this->respondWithRedirectOrJson(
+                $this->runtimeConfig->welcomeUrl(),
+                'Conta criada via Google com sucesso!'
+            );
         } catch (Exception $e) {
             LogService::captureException($e, LogCategory::AUTH, [
                 'action' => 'google_confirm_account',
             ]);
-            $this->setError($this->internalErrorMessage(
+            $message = $this->internalErrorMessage(
                 $e,
                 'Erro ao criar conta com Google. Tente novamente.',
                 ['action' => 'google_confirm_account']
-            ));
+            );
 
-            return $this->buildRedirectResponse('login');
+            if ($this->request->isAjax()) {
+                return $this->fail($message, 500, [
+                    'redirect' => $this->runtimeConfig->loginUrl(),
+                ]);
+            }
+
+            $this->setError($message);
+
+            return $this->buildRedirectResponse($this->runtimeConfig->loginUrl());
         }
     }
 
     public function cancel(): Response
     {
         unset($_SESSION['google_pending_user']);
+
+        if ($this->request->isAjax()) {
+            return $this->ok([
+                'message' => 'Cadastro cancelado.',
+                'redirect' => $this->runtimeConfig->loginUrl(),
+            ]);
+        }
+
         $this->setError('Cadastro cancelado.');
 
-        return $this->buildRedirectResponse('login');
+        return $this->buildRedirectResponse($this->runtimeConfig->loginUrl());
     }
 
     /**
@@ -198,6 +248,37 @@ class GoogleCallbackController extends WebController
             ['action' => 'google_callback']
         ));
 
-        return $this->buildRedirectResponse('login');
+        return $this->buildRedirectResponse($this->runtimeConfig->loginUrl());
+    }
+
+    private function respondWithRedirectOrJson(string $redirectUrl, string $message): Response
+    {
+        if ($this->request->isAjax()) {
+            return $this->ok([
+                'message' => $message,
+                'redirect' => $redirectUrl,
+            ]);
+        }
+
+        return $this->buildRedirectResponse($redirectUrl);
+    }
+
+    /**
+     * @return array{name:string,email:string,picture:?string}|null
+     */
+    private function pendingGoogleUser(): ?array
+    {
+        $pendingUser = $_SESSION['google_pending_user'] ?? null;
+        if (!is_array($pendingUser) || $pendingUser === []) {
+            return null;
+        }
+
+        return [
+            'name' => (string) ($pendingUser['name'] ?? ''),
+            'email' => (string) ($pendingUser['email'] ?? ''),
+            'picture' => isset($pendingUser['picture']) && $pendingUser['picture'] !== ''
+                ? (string) $pendingUser['picture']
+                : null,
+        ];
     }
 }

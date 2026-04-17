@@ -3,20 +3,10 @@
  * Handles /planos, /funcionalidades etc. as virtual routes that scroll to sections.
  */
 
-export function init() {
-    function getBasePath() {
-        const meta = document.querySelector('meta[name="base-url"]');
-        if (meta?.content) {
-            try { return new URL(meta.content).pathname.replace(/\/?$/, '/'); }
-            catch { return meta.content.replace(/\/?$/, '/'); }
-        }
-        const path = location.pathname;
-        const idx = path.indexOf('/public/');
-        if (idx !== -1) return path.substring(0, idx + 8);
-        return '/';
-    }
+import { getSiteBasePath } from '../api/endpoints/engagement.js';
 
-    const basePath = getBasePath();
+export function init() {
+    const basePath = getSiteBasePath();
     const slugs = [
         'funcionalidades',
         'beneficios',

@@ -2,6 +2,7 @@
 
 namespace Application\Middlewares;
 
+use Application\Config\AuthRuntimeConfig;
 use Application\Core\Exceptions\HttpResponseException;
 use Application\Core\Request;
 use Application\Core\Response;
@@ -63,11 +64,8 @@ class AuthMiddleware
     private static function buildLoginRedirectResponse(): Response
     {
         $intended = self::extractIntendedPath();
-        $loginUrl = BASE_URL . 'login';
-
-        if ($intended !== '') {
-            $loginUrl .= '?intended=' . urlencode($intended);
-        }
+        $runtimeConfig = new AuthRuntimeConfig();
+        $loginUrl = $runtimeConfig->loginUrlForIntended($intended);
 
         return Response::redirectResponse($loginUrl);
     }

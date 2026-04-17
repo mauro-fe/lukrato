@@ -1,10 +1,16 @@
 import '../../../css/admin/sysadmin/ai-logs.css';
-import { apiDelete, apiGet, getBaseUrl, getErrorMessage } from '../shared/api.js';
+import { apiDelete, apiGet, getErrorMessage } from '../shared/api.js';
+import {
+    resolveSysadminAiLogsCleanupEndpoint,
+    resolveSysadminAiLogsEndpoint,
+    resolveSysadminAiLogsQualityEndpoint,
+    resolveSysadminAiLogsSummaryEndpoint,
+    resolveSysadminAiQuotaEndpoint,
+} from '../api/endpoints/sysadmin-ai.js';
 
 (function () {
     'use strict';
 
-    const BASE = getBaseUrl();
     const FILTERS_STORAGE_KEY = 'sysadmin-ai-logs-filters-v2';
     const PERIOD_STORAGE_KEY = 'sysadmin-ai-logs-summary-period-v1';
 
@@ -281,7 +287,7 @@ import { apiDelete, apiGet, getBaseUrl, getErrorMessage } from '../shared/api.js
         const badge = getEl('quotaStatus');
 
         try {
-            const json = await apiGet(`${BASE}api/sysadmin/ai/quota`);
+            const json = await apiGet(resolveSysadminAiQuotaEndpoint());
             const data = json.data;
 
             if (!data) {
@@ -339,7 +345,7 @@ import { apiDelete, apiGet, getBaseUrl, getErrorMessage } from '../shared/api.js
 
     async function loadSummary() {
         try {
-            const json = await apiGet(`${BASE}api/sysadmin/ai/logs/summary`, { hours: summaryHours });
+            const json = await apiGet(resolveSysadminAiLogsSummaryEndpoint(), { hours: summaryHours });
             if (!json.success) return;
 
             const data = json.data;
@@ -362,7 +368,7 @@ import { apiDelete, apiGet, getBaseUrl, getErrorMessage } from '../shared/api.js
 
     async function loadQualityMetrics() {
         try {
-            const json = await apiGet(`${BASE}api/sysadmin/ai/logs/quality`, { hours: summaryHours });
+            const json = await apiGet(resolveSysadminAiLogsQualityEndpoint(), { hours: summaryHours });
             if (!json.success) return;
 
             const data = json.data;
@@ -406,7 +412,7 @@ import { apiDelete, apiGet, getBaseUrl, getErrorMessage } from '../shared/api.js
         setLoadingRow('Carregando logs...');
 
         try {
-            const json = await apiGet(`${BASE}api/sysadmin/ai/logs`, Object.fromEntries(params.entries()));
+            const json = await apiGet(resolveSysadminAiLogsEndpoint(), Object.fromEntries(params.entries()));
 
             if (!json.success) {
                 setLoadingRow('Erro ao carregar logs');
@@ -545,7 +551,7 @@ import { apiDelete, apiGet, getBaseUrl, getErrorMessage } from '../shared/api.js
         if (!confirm('Remover todos os logs com mais de 90 dias?')) return;
 
         try {
-            const json = await apiDelete(`${BASE}api/sysadmin/ai/logs/cleanup`, { days: 90 });
+            const json = await apiDelete(resolveSysadminAiLogsCleanupEndpoint(), { days: 90 });
             alert(json.data?.message || json.message || 'Concluido');
             await refreshDashboard();
         } catch (error) {

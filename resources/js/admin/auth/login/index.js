@@ -8,12 +8,24 @@
  * ============================================================================
  */
 
-import { createParticles, createConfetti, initTogglePassword, getBaseUrl } from '../shared.js';
-import { apiFetch, apiGet, apiPost, getErrorMessage } from '../../shared/api.js';
+import { createParticles, initTogglePassword, getBaseUrl } from '../shared.js';
+import { apiFetch, apiGet, apiPost, getCSRFToken, getErrorMessage } from '../../shared/api.js';
+import {
+    resolveAuthGoogleLoginEndpoint,
+    resolveAuthGoogleRegisterEndpoint,
+    resolveAuthLoginEndpoint,
+    resolveAuthRegisterEndpoint,
+} from '../../api/endpoints/auth.js';
+import { resolveReferralValidateEndpoint } from '../../api/endpoints/engagement.js';
+import { resolveCsrfRefreshEndpoint } from '../../api/endpoints/security.js';
 
 const BASE = getBaseUrl();
-let refreshAuthCardLayout = () => {};
-let setAuthCardTab = () => {};
+let refreshAuthCardLayout = () => { };
+let setAuthCardTab = () => { };
+
+function getVerifyEmailNoticeUrl() {
+    return document.querySelector('meta[name="verify-email-notice-url"]')?.content || `${BASE}verificar-email/aviso`;
+}
 
 // ── Init shared features ───────────────────────────────────────────────────
 createParticles();
@@ -153,7 +165,7 @@ TurnstileManager.init();
 // =====================
 
 async function refreshCsrfForForm(tokenId) {
-    const data = await apiPost(BASE + 'api/csrf/refresh', { token_id: tokenId });
+    const data = await apiPost(resolveCsrfRefreshEndpoint(), { token_id: tokenId });
     const payload = data?.data && typeof data.data === 'object' ? data.data : data;
     const token = typeof payload?.token === 'string' ? payload.token : '';
 
@@ -192,7 +204,7 @@ function getFormCsrfToken(formId, tokenId) {
     }
 
     return document.querySelector(`meta[data-csrf-id="${tokenId}"]`)?.content
-        || document.querySelector('meta[name="csrf-token"]')?.content
+        || getCSRFToken()
         || '';
 }
 
@@ -228,13 +240,29 @@ function isCsrfError(response, data) {
     let lastRefresh = Date.now();
     const MIN_REFRESH_GAP = 30000;
 
+    function refreshAuthFormTokens() {
+        const refreshJobs = [];
+
+        if (document.getElementById('loginForm')) {
+            refreshJobs.push(refreshCsrfForForm('login_form'));
+        }
+
+        if (document.getElementById('registerForm')) {
+            refreshJobs.push(refreshCsrfForForm('register_form'));
+        }
+
+        if (refreshJobs.length === 0) {
+            return;
+        }
+
+        void Promise.allSettled(refreshJobs);
+    }
+
     function maybeRefreshToken() {
         const now = Date.now();
         if (now - lastRefresh > MIN_REFRESH_GAP) {
             lastRefresh = now;
-            if (typeof window.refreshCsrfToken === 'function') {
-                window.refreshCsrfToken();
-            }
+            refreshAuthFormTokens();
         }
     }
 
@@ -243,9 +271,7 @@ function isCsrfError(response, data) {
     });
 
     setInterval(() => {
-        if (typeof window.refreshCsrfToken === 'function') {
-            window.refreshCsrfToken();
-        }
+        refreshAuthFormTokens();
     }, LOGIN_CSRF_REFRESH_INTERVAL);
 
     document.addEventListener('visibilitychange', () => {
@@ -446,26 +472,33 @@ AuthCard.init();
     const referralHint = document.getElementById('referralHint');
     const referralError = document.getElementById('referralError');
     let referralValidationTimeout = null;
-    let validatedReferralCode = null;
+
+    function updateGoogleAuthLinks() {
+        const googleLoginBtn = document.querySelector('[data-google-auth="login"]');
+        if (googleLoginBtn) {
+            googleLoginBtn.href = BASE + resolveAuthGoogleLoginEndpoint();
+        }
+
+        const googleRegisterBtn = document.querySelector('[data-google-auth="register"]');
+        if (!googleRegisterBtn) return;
+
+        const base = BASE + resolveAuthGoogleRegisterEndpoint();
+        const code = referralInput ? referralInput.value.trim() : '';
+        googleRegisterBtn.href = code ? `${base}?ref=${encodeURIComponent(code)}` : base;
+    }
 
     function initReferralCode() {
         const urlParams = new URLSearchParams(window.location.search);
         const refCode = urlParams.get('ref');
 
+        updateGoogleAuthLinks();
+
         if (refCode && referralInput) {
             referralInput.value = refCode.toUpperCase();
             validateReferralCode(refCode);
-            updateGoogleRegisterLink();
+            updateGoogleAuthLinks();
             setAuthCardTab('register');
         }
-    }
-
-    function updateGoogleRegisterLink() {
-        const googleRegisterBtn = document.querySelector('a[href*="auth/google/register"]');
-        if (!googleRegisterBtn) return;
-        const base = BASE + 'auth/google/register';
-        const code = referralInput ? referralInput.value.trim() : '';
-        googleRegisterBtn.href = code ? `${base}?ref=${encodeURIComponent(code)}` : base;
     }
 
     async function validateReferralCode(code) {
@@ -473,41 +506,40 @@ AuthCard.init();
             referralHint.textContent = '';
             referralHint.className = 'field-hint';
             referralError.textContent = '';
-            validatedReferralCode = null;
             refreshAuthCardLayout();
             return;
         }
 
         try {
-            const data = await apiGet(`${BASE}api/referral/validate`, { code });
+            const data = await apiGet(resolveReferralValidateEndpoint(), { code });
 
             if (data?.success) {
                 referralHint.innerHTML =
                     `<i data-lucide="check"></i> Indicado por <strong>${data.data.referrer_name}</strong> - Você ganha ${data.data.reward_days} dias de PRO!`;
                 referralHint.className = 'field-hint valid';
                 referralError.textContent = '';
-                validatedReferralCode = code;
                 if (typeof lucide !== 'undefined') lucide.createIcons();
                 refreshAuthCardLayout();
             } else {
                 referralHint.textContent = '';
                 referralHint.className = 'field-hint';
                 referralError.textContent = getErrorMessage({ data }, 'Código inválido');
-                validatedReferralCode = null;
                 refreshAuthCardLayout();
             }
         } catch (err) {
             referralHint.textContent = '';
             referralHint.className = 'field-hint';
             referralError.textContent = getErrorMessage(err, 'Erro ao validar código');
-            validatedReferralCode = null;
             refreshAuthCardLayout();
         }
     }
+
+    updateGoogleAuthLinks();
+
     if (referralInput) {
         referralInput.addEventListener('input', (e) => {
             e.target.value = e.target.value.toUpperCase();
-            updateGoogleRegisterLink();
+            updateGoogleAuthLinks();
 
             clearTimeout(referralValidationTimeout);
             referralValidationTimeout = setTimeout(() => {
@@ -611,7 +643,7 @@ function clearErrors(form) {
                     formData.set('cf-turnstile-response', turnstileToken);
                 }
 
-                const result = await resolveApiResult(() => apiFetch(loginForm.action, {
+                const result = await resolveApiResult(() => apiFetch(resolveAuthLoginEndpoint(), {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -626,7 +658,7 @@ function clearErrors(form) {
                     try {
                         await refreshCsrfForForm('login_form');
                         return attemptLogin();
-                    } catch (refreshErr) {
+                    } catch {
                         return {
                             response: result.response,
                             data: {
@@ -666,50 +698,9 @@ function clearErrors(form) {
 
                     // Email não verificado: mostrar opção de reenviar
                     if (data?.errors?.email_not_verified) {
-                        const userEmail = data.errors.user_email || '';
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'E-mail não verificado',
-                            html: `<p>${data.errors.email || 'Você precisa verificar seu e-mail antes de fazer login.'}</p>` +
-                                `<p style="margin-top:8px;font-size:0.9rem;color:#888;">Verifique sua caixa de entrada e spam.</p>`,
-                            showCancelButton: true,
-                            confirmButtonText: 'Reenviar e-mail',
-                            cancelButtonText: 'OK',
-                            confirmButtonColor: '#6366f1',
-                        }).then(async (result) => {
-                            if (result.isConfirmed && userEmail) {
-                                try {
-                                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-                                    const fd = new FormData();
-                                    fd.append('email', userEmail);
-                                    // Inclui CSRF token do formulário de login como fallback
-                                    const csrfInput = document.querySelector('#loginForm input[name="csrf_token"]');
-                                    if (csrfInput) fd.append('csrf_token', csrfInput.value);
-
-                                    const resData = await apiFetch(BASE + 'verificar-email/reenviar', {
-                                        method: 'POST',
-                                        body: fd,
-                                        headers: {
-                                            'X-Requested-With': 'XMLHttpRequest',
-                                            'Accept': 'application/json',
-                                            'X-CSRF-TOKEN': csrfToken
-                                        }
-                                    });
-                                    Swal.fire({
-                                        icon: resData?.success === false ? 'error' : 'success',
-                                        title: resData?.success === false ? 'Erro' : 'E-mail reenviado!',
-                                        text: resData?.message || 'Verifique sua caixa de entrada.',
-                                        timer: 3000,
-                                        showConfirmButton: false
-                                    });
-                                } catch (resendError) {
-                                    Swal.fire({ icon: 'error', title: 'Erro', text: getErrorMessage(resendError, 'Erro de conexão. Tente novamente.'), timer: 2500, showConfirmButton: false });
-                                }
-                            }
-                        });
-
                         btn.disabled = false;
                         btn.innerHTML = originalBtnHtml;
+                        window.location.href = getVerifyEmailNoticeUrl();
                         return;
                     }
 
@@ -841,7 +832,7 @@ function clearErrors(form) {
                     formData.set('cf-turnstile-response', turnstileToken);
                 }
 
-                const result = await resolveApiResult(() => apiFetch(registerForm.action, {
+                const result = await resolveApiResult(() => apiFetch(resolveAuthRegisterEndpoint(), {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -856,7 +847,7 @@ function clearErrors(form) {
                     try {
                         await refreshCsrfForForm('register_form');
                         return attemptRegister();
-                    } catch (refreshErr) {
+                    } catch {
                         throw new Error('Sessão expirada. Por favor, recarregue a página.');
                     }
                 }

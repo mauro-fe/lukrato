@@ -28,8 +28,8 @@ return [
     ],
     [
         'key' => 'importacoes_configuracoes',
-        'label' => 'Configuracoes de Importacao',
-        'title' => 'Configuracoes de Importacao',
+        'label' => 'Configurações de Importação',
+        'title' => 'Configurações de Importação',
         'icon' => 'sliders-horizontal',
         'group' => 'Finanças',
         'route' => 'importacoes/configuracoes',

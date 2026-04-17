@@ -10,8 +10,7 @@
 
 import '../../../css/admin/categorias/index.css';
 import { Modules } from './state.js';
-import { CategoriasManager, EventListeners } from './app.js';
-import { SubcategoriasModule } from './subcategorias.js';
+import { CategoriasManager } from './app.js';
 import { initCustomize } from './customize.js';
 
 // ─── Guard against double-loading ────────────────────────────────────────────

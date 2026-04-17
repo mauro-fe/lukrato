@@ -1,4 +1,9 @@
 import { apiGet, apiPost, getBaseUrl, getErrorMessage } from '../shared/api.js';
+import {
+    resolveMarkAllNotificationsEndpoint,
+    resolveNotificationsListEndpoint,
+    resolveUnreadNotificationsEndpoint,
+} from '../api/endpoints/notifications.js';
 import { toastError, toastSuccess } from '../shared/ui.js';
 import { escapeHtml } from '../shared/utils.js';
 
@@ -41,7 +46,7 @@ import { escapeHtml } from '../shared/utils.js';
     const NotificationApi = {
         async fetchList() {
             try {
-                const response = await apiGet('api/notificacoes');
+                const response = await apiGet(resolveNotificationsListEndpoint());
                 const items = response?.data?.itens ?? response?.itens ?? [];
                 return Array.isArray(items) ? items : [];
             } catch (error) {
@@ -54,7 +59,7 @@ import { escapeHtml } from '../shared/utils.js';
 
         async fetchUnreadCount() {
             try {
-                const response = await apiGet('api/notificacoes/unread');
+                const response = await apiGet(resolveUnreadNotificationsEndpoint());
                 return Number(response?.data?.unread ?? response?.unread ?? 0);
             } catch (error) {
                 if (await handleApiError(error, null)) {
@@ -66,7 +71,7 @@ import { escapeHtml } from '../shared/utils.js';
 
         async markAllRead() {
             try {
-                await apiPost('api/notificacoes/marcar-todas', {});
+                await apiPost(resolveMarkAllNotificationsEndpoint(), {});
                 return true;
             } catch (error) {
                 if (error?.status === 422) {

@@ -1,3 +1,5 @@
+import { apiFetch, getCSRFToken, getErrorMessage } from '../shared/api.js';
+
 const VALID_PREVIEW_STATES = new Set([
     'idle',
     'file_selected',
@@ -70,9 +72,9 @@ export function findCsrfToken(scope = document) {
         return String(fromForm);
     }
 
-    const fromMeta = document.querySelector('meta[name="csrf-token"]')?.content;
-    if (fromMeta) {
-        return String(fromMeta);
+    const sharedToken = getCSRFToken();
+    if (sharedToken) {
+        return String(sharedToken);
     }
 
     return '';
@@ -93,49 +95,58 @@ export function appendCsrfToken(formData, scope = document) {
     }
 }
 
+function buildFetchApiJsonError(error, payload = null) {
+    const resolvedPayload = payload ?? error?.payload ?? error?.data ?? null;
+    const messages = normalizeMessageList([
+        ...flattenErrorMap(resolvedPayload?.errors),
+        resolvedPayload?.message,
+    ]);
+    const message = String(
+        resolvedPayload?.message
+        || messages[0]
+        || getErrorMessage(error, 'Falha na requisicao.')
+    ).trim();
+
+    const requestError = error instanceof Error
+        ? error
+        : new Error(message || 'Falha na requisicao.');
+
+    requestError.message = message || requestError.message || 'Falha na requisicao.';
+    requestError.response = error?.response ?? null;
+    requestError.payload = resolvedPayload;
+    requestError.messages = messages;
+
+    return requestError;
+}
+
 export async function fetchApiJson(url, options = {}) {
-    const response = await fetch(url, {
-        credentials: 'same-origin',
-        headers: {
-            Accept: 'application/json',
-            ...(options.headers || {}),
-        },
-        ...options,
-    });
-
-    let payload = null;
     try {
-        payload = await response.json();
-    } catch {
-        payload = null;
+        const payload = await apiFetch(url, {
+            ...options,
+            headers: {
+                Accept: 'application/json',
+                ...(options.headers || {}),
+            },
+        });
+
+        if (payload?.success === true) {
+            return payload;
+        }
+
+        throw buildFetchApiJsonError(null, payload);
+    } catch (error) {
+        if (error?.payload && Array.isArray(error?.messages)) {
+            throw error;
+        }
+
+        throw buildFetchApiJsonError(error);
     }
-
-    const success = Boolean(payload && payload.success === true);
-
-    if (!response.ok || !success) {
-        const message = String(
-            payload?.message
-            || flattenErrorMap(payload?.errors)[0]
-            || `Falha na requisicao (HTTP ${response.status}).`
-        ).trim();
-
-        const error = new Error(message || 'Falha na requisicao.');
-        error.response = response;
-        error.payload = payload;
-        error.messages = normalizeMessageList([
-            ...flattenErrorMap(payload?.errors),
-            payload?.message,
-        ]);
-        throw error;
-    }
-
-    return payload;
 }
 
 function createInitialState(root) {
     return {
         selectedImportTarget: normalizeImportTarget(root?.dataset.impImportTarget || 'conta'),
-        selectedSourceType: 'ofx',
+        selectedSourceType: normalizeSourceType(root?.dataset.impSourceType || 'ofx', 'ofx'),
         selectedAccountId: parseInteger(root?.dataset.impActiveAccountId || null),
         selectedCardId: parseInteger(root?.dataset.impActiveCardId || null),
         selectedFile: null,

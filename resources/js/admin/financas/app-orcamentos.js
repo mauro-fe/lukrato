@@ -3,6 +3,14 @@
  * Orcamento CRUD and suggestion workflows.
  */
 
+import {
+    resolveFinanceBudgetApplySuggestionsEndpoint,
+    resolveFinanceBudgetCopyMonthEndpoint,
+    resolveFinanceBudgetEndpoint,
+    resolveFinanceBudgetSuggestionsEndpoint,
+    resolveFinanceBudgetsEndpoint,
+} from '../api/endpoints/finance.js';
+
 export function createFinancasOrcamentos({
     STATE,
     Utils,
@@ -58,7 +66,7 @@ export function createFinancasOrcamentos({
         if (valorLimite <= 0) return Utils.showToast('Informe um valor valido', 'error');
 
         try {
-            const res = await apiPost('api/financas/orcamentos', {
+            const res = await apiPost(resolveFinanceBudgetsEndpoint(), {
                 categoria_id: Number.parseInt(categoriaId, 10),
                 valor_limite: valorLimite,
                 mes: STATE.currentMonth,
@@ -101,7 +109,7 @@ export function createFinancasOrcamentos({
         if (!result.isConfirmed) return;
 
         try {
-            const res = await apiDelete(`api/financas/orcamentos/${id}`);
+            const res = await apiDelete(resolveFinanceBudgetEndpoint(id));
             if (res.success !== false) {
                 Utils.showToast('Orcamento excluido', 'success');
                 await loadAll();
@@ -120,7 +128,7 @@ export function createFinancasOrcamentos({
         if (window.lucide) lucide.createIcons();
 
         try {
-            const res = await apiGet(`api/financas/orcamentos/sugestoes?mes=${STATE.currentMonth}&ano=${STATE.currentYear}`);
+            const res = await apiGet(resolveFinanceBudgetSuggestionsEndpoint(), { mes: STATE.currentMonth, ano: STATE.currentYear });
             if (res.success !== false && res.data?.length) {
                 STATE.sugestoes = res.data;
                 renderSugestoes();
@@ -190,7 +198,7 @@ export function createFinancasOrcamentos({
         if (!orcamentos.length) return Utils.showToast('Selecione ao menos uma categoria', 'error');
 
         try {
-            const res = await apiPost('api/financas/orcamentos/aplicar-sugestoes', {
+            const res = await apiPost(resolveFinanceBudgetApplySuggestionsEndpoint(), {
                 mes: STATE.currentMonth,
                 ano: STATE.currentYear,
                 orcamentos,
@@ -232,7 +240,7 @@ export function createFinancasOrcamentos({
         if (!result.isConfirmed) return;
 
         try {
-            const res = await apiPost('api/financas/orcamentos/copiar-mes', {
+            const res = await apiPost(resolveFinanceBudgetCopyMonthEndpoint(), {
                 mes_origem: mesAnt,
                 ano_origem: anoAnt,
                 mes_destino: STATE.currentMonth,
@@ -260,7 +268,7 @@ export function createFinancasOrcamentos({
         }
 
         try {
-            const res = await apiGet(`api/financas/orcamentos/sugestoes?mes=${STATE.currentMonth}&ano=${STATE.currentYear}`);
+            const res = await apiGet(resolveFinanceBudgetSuggestionsEndpoint(), { mes: STATE.currentMonth, ano: STATE.currentYear });
             if (res.success !== false && res.data?.length) {
                 const sug = res.data.find((item) => item.categoria_id == categoriaId);
                 if (sug) {

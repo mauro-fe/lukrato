@@ -12,6 +12,8 @@
  * ============================================================================
  */
 
+import { getRuntimeConfig } from './runtime-config.js';
+
 // ── Error Suppression (Bootstrap Modal backdrop only) ────────────────────────
 // Narrowly suppresses only the known Bootstrap 5 backdrop disposal error.
 // Previous version also suppressed ALL "Cannot read properties of undefined"
@@ -89,25 +91,7 @@
 window.LK = window.LK || {};
 
 // Lê csrfTtl do bridge PHP→JS
-window.LK.csrfTtl = window.__LK_CONFIG?.csrfTtl ?? 3600;
-
-// ── Helpers Globais ─────────────────────────────────────────────────────────
-LK.getBase = () => {
-    // Primeiro tenta o bridge config, depois meta tag, depois fallback
-    if (window.__LK_CONFIG?.baseUrl) return window.__LK_CONFIG.baseUrl;
-    const meta = document.querySelector('meta[name="base-url"]');
-    return (meta?.content || '/').replace(/\/?$/, '/');
-};
-
-// Compatibilidade com scripts antigos
-window.BASE_URL = LK.getBase();
-
-LK.getCSRF = () => {
-    return document.querySelector('meta[name="csrf-token"]')?.content ||
-        document.querySelector('input[name="_token"]')?.value || '';
-};
-
-LK.apiBase = () => LK.getBase() + 'api/';
+window.LK.csrfTtl = getRuntimeConfig().csrfTtl ?? 3600;
 
 // ── Page Transitions ────────────────────────────────────────────────────────
 LK.initPageTransitions = () => {

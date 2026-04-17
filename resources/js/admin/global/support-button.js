@@ -1,4 +1,12 @@
-import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
+import { apiFetch, apiGet, apiPost, buildAppUrl, getErrorMessage } from '../shared/api.js';
+import {
+    resolveAiActionConfirmEndpoint,
+    resolveAiActionRejectEndpoint,
+    resolveAiConversationMessagesEndpoint,
+    resolveAiConversationsEndpoint,
+    resolveAiQuotaEndpoint,
+} from '../api/endpoints/ai.js';
+import { resolveSupportSendEndpoint } from '../api/endpoints/engagement.js';
 
 /**
  * Support button + floating AI panel.
@@ -7,8 +15,7 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
 (function () {
     'use strict';
 
-    const BASE = (window.BASE_URL || document.querySelector('meta[name="base-url"]')?.content || '/')
-        .replace(/\/?$/, '/');
+    const billingUrl = buildAppUrl('billing');
 
     const fabContainer = document.getElementById('lkFabContainer');
     const toggleBtn = document.getElementById('lkSupportToggle');
@@ -237,7 +244,7 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
         if (status === 429) {
             appendAIMessage(
                 'assistant',
-                `Você usou suas 5 mensagens de IA gratuitas este mês. <a href="${BASE}billing" style="color:var(--color-primary);font-weight:600;">Faça upgrade para o Pro</a> e tenha IA ilimitada.`
+                `Você usou suas 5 mensagens de IA gratuitas este mês. <a href="${billingUrl}" style="color:var(--color-primary);font-weight:600;">Faça upgrade para o Pro</a> e tenha IA ilimitada.`
             );
             showExhaustedOverlay();
             updateQuotaDisplay(0, true);
@@ -261,7 +268,7 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
         }
 
         try {
-            const data = await apiGet('api/ai/quota');
+            const data = await apiGet(resolveAiQuotaEndpoint());
 
             if (data.success && data.data) {
                 const chat = data.data.chat;
@@ -289,7 +296,7 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
 
     async function loadMessages(convId) {
         try {
-            const data = await apiGet(`api/ai/conversations/${encodeURIComponent(convId)}/messages`);
+            const data = await apiGet(resolveAiConversationMessagesEndpoint(convId));
 
             if (data.success && data.data?.length > 0) {
                 clearMessages();
@@ -309,7 +316,7 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
 
         setAiRequestState(true);
         try {
-            const data = await apiPost('api/ai/conversations', {});
+            const data = await apiPost(resolveAiConversationsEndpoint(), {});
             if (data.success && data.data?.id) {
                 currentConvId = data.data.id;
             }
@@ -322,7 +329,7 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
 
     async function loadOrCreateConversation() {
         try {
-            const data = await apiFetch('api/ai/conversations', { method: 'GET' }, { timeout: 15000 });
+            const data = await apiFetch(resolveAiConversationsEndpoint(), { method: 'GET' }, { timeout: 15000 });
 
             if (data.success && data.data?.length > 0) {
                 const sorted = data.data
@@ -367,7 +374,7 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
         refreshIcons();
 
         try {
-            const data = await apiPost('api/suporte/enviar', { message: msg, retorno });
+            const data = await apiPost(resolveSupportSendEndpoint(), { message: msg, retorno });
 
             if (data.success) {
                 supportMsg.value = '';
@@ -409,7 +416,7 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
 
         try {
             const data = await apiFetch(
-                `api/ai/conversations/${encodeURIComponent(currentConvId)}/messages`,
+                resolveAiConversationMessagesEndpoint(currentConvId),
                 { method: 'POST', body: { message } },
                 { timeout: 120000 }
             );
@@ -519,7 +526,7 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
         }
 
         try {
-            const data = await apiPost(`api/ai/actions/${encodeURIComponent(pendingId)}/confirm`, body);
+            const data = await apiPost(resolveAiActionConfirmEndpoint(pendingId), body);
             btnWrap.remove();
             appendAIMessage('assistant', data.data?.message || (data.success ? '✅ Ação confirmada!' : '⚠️ Erro ao confirmar.'));
         } catch (error) {
@@ -532,7 +539,7 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
         disableConfirmButtons(btnWrap);
 
         try {
-            const data = await apiPost(`api/ai/actions/${encodeURIComponent(pendingId)}/reject`, {});
+            const data = await apiPost(resolveAiActionRejectEndpoint(pendingId), {});
             btnWrap.remove();
             appendAIMessage('assistant', data.data?.message || '❌ Ação cancelada.');
         } catch (error) {
@@ -567,7 +574,7 @@ import { apiFetch, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
             }
 
             const data = await apiFetch(
-                `api/ai/conversations/${encodeURIComponent(currentConvId)}/messages`,
+                resolveAiConversationMessagesEndpoint(currentConvId),
                 { method: 'POST', body: formData },
                 { timeout: 120000 }
             );

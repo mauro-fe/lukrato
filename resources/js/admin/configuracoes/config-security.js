@@ -68,7 +68,13 @@ function resetPasswordFormUi() {
 
 export function initConfigSecurity(context) {
     const form = context.form;
+    const passwordEndpoint = context.endpoints?.password;
     if (!form) {
+        return;
+    }
+
+    if (!passwordEndpoint) {
+        console.error('Endpoint de alteracao de senha nao configurado.');
         return;
     }
 
@@ -108,7 +114,7 @@ export function initConfigSecurity(context) {
         }
 
         try {
-            const response = await apiFetch(`${context.API}perfil/senha`, {
+            const response = await apiFetch(passwordEndpoint, {
                 method: 'POST',
                 credentials: 'include',
                 body: formData,

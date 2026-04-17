@@ -51,7 +51,7 @@ class WhatsAppLinkControllerTest extends TestCase
         $controller = new WhatsAppLinkController();
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->requestLink();
     }

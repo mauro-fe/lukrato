@@ -1,6 +1,6 @@
 import { apiGet, apiPost } from './api.js';
 
-const BASE_ENDPOINT = 'api/user/ui-preferences';
+const BASE_ENDPOINT = 'api/v1/user/ui-preferences';
 
 function normalizePageKey(pageKey) {
     const normalized = String(pageKey || '').trim().toLowerCase();

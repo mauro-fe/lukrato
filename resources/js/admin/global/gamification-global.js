@@ -3,7 +3,15 @@
  * Carregado em todas as páginas para exibir conquistas e level ups
  */
 
-import { apiGet, apiPost } from '../shared/api.js';
+import { apiGet, apiPost, buildAssetUrl } from '../shared/api.js';
+import {
+    resolveGamificationMarkAchievementsSeenEndpoint,
+    resolveGamificationPendingAchievementsEndpoint,
+} from '../api/endpoints/gamification.js';
+import {
+    resolveReferralRewardsEndpoint,
+    resolveReferralRewardsSeenEndpoint,
+} from '../api/endpoints/notifications.js';
 
 (function () {
     'use strict';
@@ -78,9 +86,7 @@ import { apiGet, apiPost } from '../shared/api.js';
      */
     function playAchievementSound() {
         try {
-            // Obter base URL dinamicamente
-            const baseUrl = window.BASE_URL || window.LK?.getBase?.() || '/';
-            const audio = new Audio(baseUrl + 'assets/audio/success-fanfare-trumpets-6185.mp3');
+            const audio = new Audio(buildAssetUrl('audio/success-fanfare-trumpets-6185.mp3'));
             audio.volume = 0.5;
             audio.play().catch(err => {
             });
@@ -519,8 +525,7 @@ import { apiGet, apiPost } from '../shared/api.js';
         isCheckingPending = true;
 
         try {
-            const baseUrl = window.BASE_URL || window.LK?.getBase?.() || '/';
-            const data = await apiGet(`${baseUrl}api/gamification/achievements/pending`);
+            const data = await apiGet(resolveGamificationPendingAchievementsEndpoint());
 
             if (data.success && data.data && data.data.pending && data.data.pending.length > 0) {
                 const pending = data.data.pending;
@@ -562,8 +567,7 @@ import { apiGet, apiPost } from '../shared/api.js';
      */
     async function markAchievementsSeen(achievementIds) {
         try {
-            const baseUrl = window.BASE_URL || window.LK?.getBase?.() || '/';
-            await apiPost(`${baseUrl}api/gamification/achievements/mark-seen`, { achievement_ids: achievementIds });
+            await apiPost(resolveGamificationMarkAchievementsSeenEndpoint(), { achievement_ids: achievementIds });
         } catch (error) {
             console.error('🎮 [GAMIFICATION] Erro ao marcar conquistas como vistas:', error);
         }
@@ -581,8 +585,7 @@ import { apiGet, apiPost } from '../shared/api.js';
         isCheckingReferralRewards = true;
 
         try {
-            const baseUrl = window.BASE_URL || window.LK?.getBase?.() || '/';
-            const data = await apiGet(`${baseUrl}api/notificacoes/referral-rewards`);
+            const data = await apiGet(resolveReferralRewardsEndpoint());
 
             if (data.success && data.data && data.data.rewards && data.data.rewards.length > 0) {
                 const rewards = data.data.rewards;
@@ -661,8 +664,7 @@ import { apiGet, apiPost } from '../shared/api.js';
      */
     async function markReferralRewardsSeen(ids) {
         try {
-            const baseUrl = window.BASE_URL || window.LK?.getBase?.() || '/';
-            await apiPost(`${baseUrl}api/notificacoes/referral-rewards/seen`, { ids });
+            await apiPost(resolveReferralRewardsSeenEndpoint(), { ids });
         } catch (error) {
             console.error('🎁 [REFERRAL] Erro ao marcar recompensas como vistas:', error);
         }

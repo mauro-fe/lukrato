@@ -1,5 +1,9 @@
 <?php
-$favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
+$favicon = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
+$forgotPasswordUrl = $forgotPasswordUrl ?? rtrim(BASE_URL, '/') . '/recuperar-senha';
+$loginUrl = $loginUrl ?? rtrim(BASE_URL, '/') . '/login';
+$currentFormAction = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -23,7 +27,11 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
 <body>
     <div class="particles" id="particles"></div>
 
-    <main class="lukrato-auth">
+    <main
+        class="lukrato-auth"
+        data-reset-password-root
+        data-forgot-password-url="<?= htmlspecialchars($forgotPasswordUrl, ENT_QUOTES, 'UTF-8') ?>"
+        data-login-url="<?= htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8') ?>">
         <div class="login-wrapper">
             <section class="login-left">
                 <div class="brand">
@@ -42,13 +50,13 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
                 <div class="card">
                     <h3 class="card-title">Nova senha</h3>
 
-                    <div id="messageContainer"></div>
+                    <div id="messageContainer">Validando seu link de redefinição...</div>
 
-                    <form action="<?= BASE_URL ?>resetar-senha" method="POST" novalidate id="resetForm">
+                    <form action="<?= htmlspecialchars($currentFormAction, ENT_QUOTES, 'UTF-8') ?>" method="POST" novalidate id="resetForm">
                         <?= csrf_input('reset_form') ?>
-                        <input type="hidden" name="token" value="<?= htmlspecialchars($token ?? '', ENT_QUOTES, 'UTF-8') ?>">
-                        <input type="hidden" name="selector" value="<?= htmlspecialchars($selector ?? '', ENT_QUOTES, 'UTF-8') ?>">
-                        <input type="hidden" name="validator" value="<?= htmlspecialchars($validator ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                        <input type="hidden" name="token" value="" data-reset-token>
+                        <input type="hidden" name="selector" value="" data-reset-selector>
+                        <input type="hidden" name="validator" value="" data-reset-validator>
                         <div class="field">
                             <input type="password" name="password" id="password"
                                 placeholder="Nova senha (mínimo 8 caracteres)" required minlength="8"
@@ -74,12 +82,12 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
                             </button>
                         </div>
 
-                        <button type="submit" class="btn-primary" id="submitBtn">
+                        <button type="submit" class="btn-primary" id="submitBtn" disabled>
                             <span>Redefinir senha</span>
                         </button>
 
                         <p class="extra-link">
-                            <a href="<?= BASE_URL ?>login"> <i data-lucide="arrow-left"></i>
+                            <a href="<?= htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8') ?>"> <i data-lucide="arrow-left"></i>
                                 Voltar para o login</a>
                         </p>
                     </form>

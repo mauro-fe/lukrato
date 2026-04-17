@@ -432,7 +432,7 @@ body.sidebar-open-mobile .top-navbar-menu-btn svg {
 .upgrade-btn {
   background: linear-gradient(135deg, #f59e0b, #ea580c);
   border-color: rgba(249, 115, 22, 0.5);
-  color: white !important;
+  color: var(--color-text) !important;
   font-weight: 600;
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
   text-decoration: none !important;

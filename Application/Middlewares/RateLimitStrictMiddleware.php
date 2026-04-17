@@ -102,7 +102,12 @@ class RateLimitStrictMiddleware
     {
         $path = $this->normalizeRequestPath();
 
-        if (in_array($path, ['/api/importacoes/preview', '/api/importacoes/confirm'], true)) {
+        if (in_array($path, [
+            '/api/importacoes/preview',
+            '/api/importacoes/confirm',
+            '/api/v1/importacoes/preview',
+            '/api/v1/importacoes/confirm',
+        ], true)) {
             return [
                 'import-upload',
                 ImportSecurityPolicy::importRateLimitAttempts(),

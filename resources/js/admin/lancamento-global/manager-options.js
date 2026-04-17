@@ -1,7 +1,8 @@
+import { resolveCategorySubcategoriesEndpoint } from '../api/endpoints/finance.js';
+
 export function attachLancamentoGlobalOptionsMethods(ManagerClass, dependencies) {
     const {
         escapeHtml,
-        getBaseUrl,
         apiGet,
         sortByLabel,
         _sugerirCategoriaIA,
@@ -84,8 +85,7 @@ export function attachLancamentoGlobalOptionsMethods(ManagerClass, dependencies)
         }
 
         try {
-            const base = getBaseUrl();
-            const json = await apiGet(`${base}api/categorias/${categoriaId}/subcategorias`);
+            const json = await apiGet(resolveCategorySubcategoriesEndpoint(categoriaId));
             const rawSubs = json?.data?.subcategorias ?? (Array.isArray(json?.data) ? json.data : []);
             const subs = sortByLabel(Array.isArray(rawSubs) ? rawSubs : [], (sub) => sub?.nome || '');
 

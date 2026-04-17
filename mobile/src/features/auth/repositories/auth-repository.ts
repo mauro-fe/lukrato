@@ -107,16 +107,16 @@ function getSessionFailureSource(error: unknown): AuthSessionSource {
 class AuthRepository {
   async getSessionSnapshot(): Promise<AuthSessionSnapshot> {
     try {
-      const session = await httpClient.get<RemoteSessionStatus>('api/session/status');
+      const session = await httpClient.get<RemoteSessionStatus>('api/v1/session/status');
 
       if (session.authenticated) {
         return createSignedInSnapshot(session);
       }
 
       if (session.canRenew) {
-        await httpClient.post('api/session/renew');
+        await httpClient.post('api/v1/session/renew');
 
-        const renewedSession = await httpClient.get<RemoteSessionStatus>('api/session/status');
+        const renewedSession = await httpClient.get<RemoteSessionStatus>('api/v1/session/status');
         if (renewedSession.authenticated) {
           return createSignedInSnapshot(
             renewedSession,
@@ -146,7 +146,7 @@ class AuthRepository {
     clearCsrfTokenCache();
 
     await httpClient.post(
-      'login/entrar',
+      'api/v1/auth/login',
       {
         email: input.email.trim(),
         password: input.password,
@@ -175,7 +175,7 @@ class AuthRepository {
 
   async logout() {
     try {
-      await httpClient.get('logout');
+      await httpClient.post('api/v1/auth/logout', undefined, undefined, { csrf: true });
     } finally {
       clearCsrfTokenCache();
     }

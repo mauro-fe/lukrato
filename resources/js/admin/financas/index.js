@@ -4,7 +4,7 @@
  */
 
 import '../../../css/admin/financas/index.css';
-import { CONFIG, STATE, Utils, Modules } from './state.js';
+import { Utils } from './state.js';
 import { FinancasApp } from './app.js';
 import { initCustomize } from './customize.js';
 

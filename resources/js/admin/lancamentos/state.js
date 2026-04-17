@@ -8,6 +8,11 @@
  */
 
 import { formatMoney, parseMoney, escapeHtml, normalizeText, getTipoClass, debounce } from '../shared/utils.js';
+import { getBaseUrl, getCSRFToken as getSharedCSRFToken } from '../shared/api.js';
+import {
+    resolveLancamentosEndpoint,
+    resolveLancamentosExportEndpoint,
+} from '../api/endpoints/lancamentos.js';
 
 // Re-export shared utilities for convenience
 export { formatMoney as fmtMoney, escapeHtml, normalizeText, getTipoClass, debounce };
@@ -15,7 +20,7 @@ export { formatMoney as fmtMoney, escapeHtml, normalizeText, getTipoClass, debou
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 
 export const CONFIG = {
-    BASE_URL: (window.LK?.getBase?.() || '/'),
+    BASE_URL: getBaseUrl(),
     TABLE_HEIGHT: '520px',
     PAGINATION_SIZE: 10,
     PAGINATION_OPTIONS: [10, 25, 50, 100],
@@ -23,8 +28,8 @@ export const CONFIG = {
     DEBOUNCE_DELAY: 250
 };
 
-CONFIG.ENDPOINT = `${CONFIG.BASE_URL}api/lancamentos`;
-CONFIG.EXPORT_ENDPOINT = `${CONFIG.ENDPOINT}/export`;
+CONFIG.ENDPOINT = resolveLancamentosEndpoint();
+CONFIG.EXPORT_ENDPOINT = resolveLancamentosExportEndpoint();
 
 // ─── DOM (populated on init) ─────────────────────────────────────────────────
 
@@ -440,7 +445,7 @@ export const Utils = {
     },
 
     hasSwal: () => !!window.Swal,
-    getCSRFToken: () => (window.LK && typeof LK.getCSRF === 'function') ? LK.getCSRF() : '',
+    getCSRFToken: () => getSharedCSRFToken(),
     getCurrentMonth: () => (window.LukratoHeader?.getMonth?.()) || (new Date()).toISOString().slice(0, 7)
     ,
 

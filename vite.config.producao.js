@@ -32,6 +32,8 @@ export default defineConfig({
                 'faturas': resolve(__dirname, 'resources/js/admin/faturas/index.js'),
                 'cartoes': resolve(__dirname, 'resources/js/admin/cartoes/index.js'),
                 'financas': resolve(__dirname, 'resources/js/admin/financas/index.js'),
+                'orcamento': resolve(__dirname, 'resources/js/admin/orcamento/index.js'),
+                'metas': resolve(__dirname, 'resources/js/admin/metas/index.js'),
                 'relatorios': resolve(__dirname, 'resources/js/admin/relatorios/index.js'),
                 'dashboard': resolve(__dirname, 'resources/js/admin/dashboard/index.js'),
                 'categorias': resolve(__dirname, 'resources/js/admin/categorias/index.js'),
@@ -40,6 +42,11 @@ export default defineConfig({
                 'gamification-dashboard': resolve(__dirname, 'resources/js/admin/gamification-dashboard/index.js'),
                 'billing': resolve(__dirname, 'resources/js/admin/billing/index.js'),
                 'perfil': resolve(__dirname, 'resources/js/admin/perfil/index.js'),
+                'configuracoes': resolve(__dirname, 'resources/js/admin/configuracoes/index.js'),
+                'frontend-pilot': resolve(__dirname, 'resources/js/admin/frontend-pilot/index.js'),
+                'importacoes': resolve(__dirname, 'resources/js/admin/importacoes/index.js'),
+                'importacoes-configuracoes': resolve(__dirname, 'resources/js/admin/importacoes/configuracoes.js'),
+                'importacoes-historico': resolve(__dirname, 'resources/js/admin/importacoes/historico.js'),
                 'card-modals': resolve(__dirname, 'resources/js/admin/card-modals/index.js'),
                 'sysadmin': resolve(__dirname, 'resources/js/admin/sysadmin/index.js'),
                 'contas-arquivadas': resolve(__dirname, 'resources/js/admin/contas-arquivadas/index.js'),
@@ -60,6 +67,7 @@ export default defineConfig({
                 // Site (público)
                 'landing-base': resolve(__dirname, 'resources/js/site/landing-base.js'),
                 'site-card': resolve(__dirname, 'resources/js/site/card/index.js'),
+                'site-google-confirm-page': resolve(__dirname, 'resources/js/site/auth/google-confirm/index.js'),
                 // CSS compilado do Tailwind (site público)
                 'site-app': resolve(__dirname, 'resources/css/site/app.css'),
                 'site-base': resolve(__dirname, 'resources/css/site/base.css'),

@@ -4,8 +4,14 @@
  */
 
 import { CONFIG, STATE, Utils, Modules } from './state.js';
-import { apiGet, apiPost, getApiPayload, getErrorMessage } from '../shared/api.js';
+import { apiGet, apiPost, buildAppUrl, getApiPayload, getErrorMessage } from '../shared/api.js';
 import { refreshIcons } from '../shared/ui.js';
+import {
+    resolveCardFaturaEndpoint,
+    resolveCardFaturaPayEndpoint,
+    resolveCardFaturaStatusEndpoint,
+    resolveCardParcelamentosResumoEndpoint,
+} from '../api/endpoints/faturas.js';
 
 export const FaturaModal = {
     /**
@@ -18,7 +24,7 @@ export const FaturaModal = {
         ano = ano || hoje.getFullYear();
 
         // Redirecionar para página de faturas com filtro do cartão
-        window.location.href = `${CONFIG.BASE_URL}faturas?cartao_id=${cartaoId}&mes=${mes}&ano=${ano}`;
+        window.location.href = buildAppUrl('faturas', { cartao_id: cartaoId, mes, ano });
     },
 
     /**
@@ -392,7 +398,7 @@ export const FaturaModal = {
                 btnPagar.style.cursor = 'not-allowed';
             }
 
-            const resultado = await apiPost(`${CONFIG.API_URL}/cartoes/${fatura.cartao.id}/fatura/pagar`, {
+            const resultado = await apiPost(resolveCardFaturaPayEndpoint(fatura.cartao.id), {
                 mes: fatura.mes,
                 ano: fatura.ano
             });
@@ -524,9 +530,9 @@ export const FaturaModal = {
         try {
             // Buscar fatura, parcelamentos e status do novo mês
             const [faturaJson, parcJson, statusJson] = await Promise.all([
-                apiGet(`${CONFIG.API_URL}/cartoes/${cartaoId}/fatura`, { mes: novoMes, ano: novoAno }).catch(() => null),
-                apiGet(`${CONFIG.API_URL}/cartoes/${cartaoId}/parcelamentos-resumo`, { mes: novoMes, ano: novoAno }).catch(() => null),
-                apiGet(`${CONFIG.API_URL}/cartoes/${cartaoId}/fatura/status`, { mes: novoMes, ano: novoAno }).catch(() => null)
+                apiGet(resolveCardFaturaEndpoint(cartaoId), { mes: novoMes, ano: novoAno }).catch(() => null),
+                apiGet(resolveCardParcelamentosResumoEndpoint(cartaoId), { mes: novoMes, ano: novoAno }).catch(() => null),
+                apiGet(resolveCardFaturaStatusEndpoint(cartaoId), { mes: novoMes, ano: novoAno }).catch(() => null)
             ]);
 
             if (!faturaJson) {
@@ -599,7 +605,7 @@ export const FaturaModal = {
                 const [fatura, parcelamentos, statusResponse] = await Promise.all([
                     Modules.API.carregarFatura(cartaoId, mes, ano),
                     Modules.API.carregarParcelamentosResumo(cartaoId, mes, ano).catch(() => null),
-                    apiGet(`${CONFIG.API_URL}/cartoes/${cartaoId}/fatura/status`, { mes, ano }).then((j) => getApiPayload(j, null)).catch(() => null)
+                    apiGet(resolveCardFaturaStatusEndpoint(cartaoId), { mes, ano }).then((j) => getApiPayload(j, null)).catch(() => null)
                 ]);
 
                 const conteudo = FaturaModal.criarConteudoModal(fatura, parcelamentos, statusResponse, cartaoId);

@@ -11,9 +11,21 @@
  */
 
 import '../../../css/admin/modules/gamification-page.css';
-import { apiGet, getBaseUrl, getErrorMessage } from '../shared/api.js';
+import { apiGet, getErrorMessage } from '../shared/api.js';
+import {
+    resolveGamificationAchievementsEndpoint,
+    resolveGamificationHistoryEndpoint,
+    resolveGamificationLeaderboardEndpoint,
+    resolveGamificationMissionsEndpoint,
+    resolveGamificationProgressEndpoint,
+} from '../api/endpoints/gamification.js';
 import { toastError } from '../shared/ui.js';
 import { escapeHtml, formatDate as sharedFormatDate } from '../shared/utils.js';
+import {
+    ensureRuntimeConfig,
+    getRuntimeConfig,
+    onRuntimeConfigUpdate,
+} from '../global/runtime-config.js';
 import { initCustomize } from './customize.js';
 
 // ─── Globals ────────────────────────────────────────────────────────────────
@@ -21,9 +33,14 @@ import { initCustomize } from './customize.js';
 const GAM = window.GAMIFICATION;
 const formatNumber = GAM.formatNumber.bind(GAM);
 const formatDate = GAM.formatDate.bind(GAM);
-const BASE_URL = getBaseUrl();
-const CURRENT_USER_ID = window.__LK_CONFIG?.userId ?? null;
-const CURRENT_USERNAME = window.__LK_CONFIG?.username ?? '';
+
+function getCurrentUserId() {
+    return getRuntimeConfig().userId ?? null;
+}
+
+function getCurrentUsername() {
+    return String(getRuntimeConfig().username ?? '').trim();
+}
 
 // ─── Achievement icon colors (shared with dashboard) ────────────────────────
 
@@ -80,6 +97,7 @@ const elements = {
 let currentFilter = 'all';
 let cachedAchievements = null;
 let cachedProgress = null;
+let cachedLeaderboardData = null;
 
 // ─── Animated Number Counter ────────────────────────────────────────────────
 
@@ -112,11 +130,11 @@ function animateValue(el, from, to, duration = 800) {
 async function loadAllData() {
     try {
         const [progressData, achievementsData, historyData, leaderboardData, missionsData] = await Promise.all([
-            apiGet(`${BASE_URL}api/gamification/progress`),
-            apiGet(`${BASE_URL}api/gamification/achievements`),
-            apiGet(`${BASE_URL}api/gamification/history`, { limit: 20 }),
-            apiGet(`${BASE_URL}api/gamification/leaderboard`).catch(() => null),
-            apiGet(`${BASE_URL}api/gamification/missions`).catch(() => null),
+            apiGet(resolveGamificationProgressEndpoint()),
+            apiGet(resolveGamificationAchievementsEndpoint()),
+            apiGet(resolveGamificationHistoryEndpoint(), { limit: 20 }),
+            apiGet(resolveGamificationLeaderboardEndpoint()).catch(() => null),
+            apiGet(resolveGamificationMissionsEndpoint()).catch(() => null),
         ]);
 
         updateProgressSection(progressData);
@@ -146,7 +164,8 @@ function updateProgressSection(data) {
     const streak = progress.current_streak || 0;
 
     // Personalized header with level name
-    const firstName = CURRENT_USERNAME ? CURRENT_USERNAME.split(' ')[0] : '';
+    const currentUsername = getCurrentUsername();
+    const firstName = currentUsername ? currentUsername.split(' ')[0] : '';
     const levelName = GAM.getLevelName(level);
     if (elements.pageHeaderTitle && firstName) {
         elements.pageHeaderTitle.textContent = `${firstName}, você é um ${levelName}!`;
@@ -574,7 +593,7 @@ function generateInsights(progressData, missionsData) {
 
 function getLeaderboardDisplayName(user, isCurrentUser = false) {
     const rawName = String(user?.user_name || '').trim();
-    const currentUserName = isCurrentUser ? String(CURRENT_USERNAME || '').trim() : '';
+    const currentUserName = isCurrentUser ? getCurrentUsername() : '';
     const resolvedName = rawName || currentUserName || 'Usuário';
 
     return resolvedName.split(/\s+/).slice(0, 2).join(' ');
@@ -589,6 +608,8 @@ function updateLeaderboard(data) {
     if (!data) return;
     const isSuccess = data.success === true;
     if (!isSuccess || !data.data?.leaderboard) return;
+
+    cachedLeaderboardData = data.data;
 
     const leaderboard = data.data.leaderboard;
     const userPosition = data.data.user_position;
@@ -605,7 +626,8 @@ function updateLeaderboard(data) {
             <tbody>
                 ${leaderboard.map((user) => {
         const rankClass = user.position <= 3 ? `rank-${user.position}` : '';
-        const isCurrentUser = CURRENT_USER_ID && user.user_id === CURRENT_USER_ID;
+        const currentUserId = getCurrentUserId();
+        const isCurrentUser = currentUserId && user.user_id === currentUserId;
         const currentUserClass = isCurrentUser ? ' current-user' : '';
         const rankIcon = user.position === 1 ? '<i data-lucide="medal" style="color:#fbbf24;"></i>'
             : user.position === 2 ? '<i data-lucide="medal" style="color:#94a3b8;"></i>'
@@ -645,8 +667,9 @@ function updateLeaderboard(data) {
     `;
 
     // Points gap message
-    if (elements.leaderboardGap && CURRENT_USER_ID && userPosition) {
-        const currentUserEntry = leaderboard.find(u => u.user_id === CURRENT_USER_ID);
+    if (elements.leaderboardGap && getCurrentUserId() && userPosition) {
+        const currentUserId = getCurrentUserId();
+        const currentUserEntry = leaderboard.find(u => u.user_id === currentUserId);
         if (currentUserEntry && currentUserEntry.position > 1) {
             const above = leaderboard.find(u => u.position === currentUserEntry.position - 1);
             if (above) {
@@ -802,7 +825,7 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
         if (cachedAchievements) {
             renderAchievements(cachedAchievements);
         } else {
-            apiGet(`${BASE_URL}api/gamification/achievements`)
+            apiGet(resolveGamificationAchievementsEndpoint())
                 .then(data => {
                     if (data.data?.achievements) {
                         cachedAchievements = data.data.achievements;
@@ -826,10 +849,21 @@ document.addEventListener('lukrato:data-changed', () => {
     loadAllData();
 });
 
+onRuntimeConfigUpdate(() => {
+    if (cachedProgress) {
+        updateProgressSection({ success: true, data: cachedProgress });
+    }
+
+    if (cachedLeaderboardData) {
+        updateLeaderboard({ success: true, data: cachedLeaderboardData });
+    }
+});
+
 // ─── Init ───────────────────────────────────────────────────────────────────
 
 function initPage() {
     initCustomize();
+    void ensureRuntimeConfig({}, { silent: true });
     loadAllData();
 }
 

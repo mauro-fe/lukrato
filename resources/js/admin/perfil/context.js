@@ -1,12 +1,15 @@
+import { createPerfilEndpoints } from '../api/endpoints/profile.js';
 import { getBaseUrl } from '../shared/api.js';
 
 export function createPerfilContext(mode = 'perfil') {
     const BASE = getBaseUrl();
+    const root = document.querySelector('[data-account-root], [data-profile-root]');
 
     return {
         mode,
         BASE,
-        API: `${BASE}api/`,
+        root,
+        endpoints: createPerfilEndpoints(),
         form: document.getElementById('profileForm'),
         fields: {
             nome: document.getElementById('nome'),

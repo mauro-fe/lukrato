@@ -1,6 +1,7 @@
 .gitignore
 /vendor/
 .env
+.env.example
 *.log
 *.txt
 node_modules/

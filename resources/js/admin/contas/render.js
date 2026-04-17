@@ -7,6 +7,7 @@
  */
 
 import { CONFIG, STATE, Utils, Modules, escapeHtml } from './state.js';
+import { buildAssetUrl } from '../shared/api.js';
 import { refreshIcons } from '../shared/ui.js';
 
 const RESERVE_TYPES = new Set(['conta_poupanca', 'conta_investimento']);
@@ -463,7 +464,7 @@ export const ContasRender = {
 
     createContaCard(conta, portfolio = calculatePortfolio(STATE.contas)) {
         const instituicao = getInstitution(conta);
-        const logoUrl = instituicao?.logo_url || `${CONFIG.BASE_URL}assets/img/banks/default.svg`;
+        const logoUrl = instituicao?.logo_url || buildAssetUrl('img/banks/default.svg');
         const balance = normalizeBalance(conta);
         const type = getContaType(conta);
         const typeMeta = conta?.typeMeta || getTypeMeta(type);

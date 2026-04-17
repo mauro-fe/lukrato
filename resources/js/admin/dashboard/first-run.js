@@ -1,19 +1,24 @@
 import '../../../css/admin/dashboard/_first-run.css';
 
 import { apiPost, getErrorMessage, logClientError } from '../shared/api.js';
+import { resolveDisplayNameEndpoint } from '../api/endpoints/preferences.js';
 import { getDashboardPrimaryActionCopy, openPrimaryAction } from '../shared/primary-actions.js';
+import {
+  applyRuntimeConfig,
+  ensureRuntimeConfig,
+  getRuntimeConfig,
+  onRuntimeConfigUpdate,
+} from '../global/runtime-config.js';
 import { CONFIG } from './state.js';
 
-const STORAGE_PREFIX = `lk_user_${window.__LK_CONFIG?.userId ?? 'anon'}_`;
-
 function storageKey(name) {
-  return STORAGE_PREFIX + name;
+  return `lk_user_${getRuntimeConfig().userId ?? 'anon'}_${name}`;
 }
 
 const STORAGE = {
-  DISPLAY_NAME_DISMISSED: storageKey('display_name_prompt_dismissed_v1'),
-  TOUR_PROMPT_DISMISSED: storageKey('dashboard_tour_prompt_dismissed_v1'),
-  FIRST_ACTION_TOAST: storageKey('dashboard_first_action_toast_v1'),
+  DISPLAY_NAME_DISMISSED: () => storageKey('display_name_prompt_dismissed_v1'),
+  TOUR_PROMPT_DISMISSED: () => storageKey('dashboard_tour_prompt_dismissed_v1'),
+  FIRST_ACTION_TOAST: () => storageKey('dashboard_first_action_toast_v1'),
 };
 
 class DashboardFirstRunExperience {
@@ -54,6 +59,14 @@ class DashboardFirstRunExperience {
 
     this.bindEvents();
     this.syncDisplayNamePrompt();
+
+    onRuntimeConfigUpdate(() => {
+      this.syncDisplayNamePrompt();
+    });
+
+    void ensureRuntimeConfig({}, { silent: true }).then(() => {
+      this.syncDisplayNamePrompt();
+    });
   }
 
   bindEvents() {
@@ -65,7 +78,7 @@ class DashboardFirstRunExperience {
 
     this.tourPrompt?.querySelector('[data-tour-action="start"]')?.addEventListener('click', () => this.startTour());
     this.tourPrompt?.querySelector('[data-tour-action="dismiss"]')?.addEventListener('click', () => {
-      localStorage.setItem(STORAGE.TOUR_PROMPT_DISMISSED, '1');
+      localStorage.setItem(STORAGE.TOUR_PROMPT_DISMISSED(), '1');
       this.hideTourPrompt();
       this.focusPrimaryAction();
     });
@@ -147,9 +160,11 @@ class DashboardFirstRunExperience {
   }
 
   shouldOfferTour() {
+    const runtimeConfig = getRuntimeConfig();
+
     return !window.LKHelpCenter?.isManagingAutoOffers?.()
-      && localStorage.getItem(STORAGE.TOUR_PROMPT_DISMISSED) !== '1'
-      && window.__LK_CONFIG?.tourCompleted !== true
+      && localStorage.getItem(STORAGE.TOUR_PROMPT_DISMISSED()) !== '1'
+      && runtimeConfig.tourCompleted !== true
       && this.state.primaryAction === 'create_transaction'
       && Number(this.state.transactionCount ?? 0) === 0;
   }
@@ -237,14 +252,14 @@ class DashboardFirstRunExperience {
       return;
     }
 
-    const shouldShow = Boolean(window.__LK_CONFIG?.needsDisplayNamePrompt)
-      && localStorage.getItem(STORAGE.DISPLAY_NAME_DISMISSED) !== '1';
+    const shouldShow = Boolean(getRuntimeConfig().needsDisplayNamePrompt)
+      && localStorage.getItem(STORAGE.DISPLAY_NAME_DISMISSED()) !== '1';
 
     this.elements.displayNameCard.style.display = shouldShow ? '' : 'none';
   }
 
   dismissDisplayNamePrompt() {
-    localStorage.setItem(STORAGE.DISPLAY_NAME_DISMISSED, '1');
+    localStorage.setItem(STORAGE.DISPLAY_NAME_DISMISSED(), '1');
     this.syncDisplayNamePrompt();
   }
 
@@ -265,7 +280,7 @@ class DashboardFirstRunExperience {
     this.elements.displayNameSubmit.textContent = 'Salvando...';
 
     try {
-      const response = await apiPost(`${CONFIG.BASE_URL}api/user/display-name`, {
+      const response = await apiPost(resolveDisplayNameEndpoint(), {
         display_name: value,
       });
 
@@ -277,9 +292,13 @@ class DashboardFirstRunExperience {
       const displayName = String(payload.display_name || value).trim();
       const firstName = String(payload.first_name || displayName).trim();
 
-      window.__LK_CONFIG.username = displayName;
-      window.__LK_CONFIG.needsDisplayNamePrompt = false;
-      localStorage.removeItem(STORAGE.DISPLAY_NAME_DISMISSED);
+      applyRuntimeConfig({
+        username: displayName,
+        needsDisplayNamePrompt: false,
+      }, {
+        source: 'display-name',
+      });
+      localStorage.removeItem(STORAGE.DISPLAY_NAME_DISMISSED());
 
       this.updateGlobalIdentity(displayName, firstName);
       this.showDisplayNameFeedback('Perfeito. Agora o Lukrato já fala com você do jeito certo.');
@@ -340,7 +359,7 @@ class DashboardFirstRunExperience {
       return;
     }
 
-    localStorage.setItem(STORAGE.TOUR_PROMPT_DISMISSED, '1');
+    localStorage.setItem(STORAGE.TOUR_PROMPT_DISMISSED(), '1');
     this.hideTourPrompt();
     window.LKHelpCenter.startCurrentPageTutorial({ source: 'dashboard-first-run' });
   }
@@ -376,12 +395,12 @@ class DashboardFirstRunExperience {
   handleFirstActionCompleted() {
     this.state.awaitingFirstActionFeedback = false;
 
-    if (localStorage.getItem(STORAGE.FIRST_ACTION_TOAST) !== '1') {
+    if (localStorage.getItem(STORAGE.FIRST_ACTION_TOAST()) !== '1') {
       if (window.LK?.toast) {
         window.LK.toast.success('Boa! Você já começou a controlar suas finanças.');
       }
 
-      localStorage.setItem(STORAGE.FIRST_ACTION_TOAST, '1');
+      localStorage.setItem(STORAGE.FIRST_ACTION_TOAST(), '1');
     }
 
     this.hideTourPrompt();

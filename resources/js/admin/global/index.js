@@ -12,22 +12,22 @@
  */
 
 // ─── 0. Namespace + Infrastructure (extraído do header.php inline) ──────────
+import './runtime-config.js';      // window.LKRuntimeConfig, hidratação do bootstrap autenticado
 import './lk-namespace.js';        // window.LK namespace, error suppression, page transitions, DOM init
 import './sidebar-state.js';       // Sidebar collapsed pre-render (localStorage)
 import './scroll-to-top.js';       // AOS init + scroll-to-top button logic
 import './page-loading.js';        // LKPageLoading (loading da area de conteudo)
 import './modal-scopes.js';        // LK.modalSystem (roots + page/app modal scopes)
 
-// ─── 1. Core: CSRF + Fetch + Feedback + UI Facade ──────────────────────────
-import './csrf-manager.js';        // window.CsrfManager, LK.getCSRF, LK.refreshCSRF
-import './lukrato-fetch.js';       // window.lkFetch (LukratoFetch), fetch interceptor
+// ─── 1. Core: CSRF + Shared API + Feedback + UI Facade ─────────────────────
+import './csrf-manager.js';        // window.CsrfManager (token, retry, refresh)
 import './lukrato-feedback.js';    // window.LKFeedback, window.showNotification
 import './lukrato-ui.js';          // LK.toast, LK.api, LK.confirm, LK.loading
 
 // ─── 2. Gestão e Funcionalidades ────────────────────────────────────────────
 import './session-manager.js';     // LK.SessionManager (inatividade, heartbeat)
 import './gamification-global.js'; // window.GAMIFICATION, notifyAchievementUnlocked, etc.
-import './plan-limits.js';         // window.PlanLimits, fetch interceptor (403/limit)
+import './plan-limits.js';         // window.PlanLimits, UI de upgrade e restrições do plano
 import './enhancements.js';        // window.showToast, debounce, copyToClipboard
 
 // ─── 3. UI Components ──────────────────────────────────────────────────────

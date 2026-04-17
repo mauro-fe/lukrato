@@ -20,8 +20,7 @@ class GoogleLoginController extends WebController
     public function __construct(
         ?GoogleAuthService $googleAuthService = null,
         ?AuthRuntimeConfig $runtimeConfig = null
-    )
-    {
+    ) {
         parent::__construct();
         $this->googleAuthService = $this->resolveOrCreate($googleAuthService, GoogleAuthService::class);
         $this->runtimeConfig = $this->resolveOrCreate($runtimeConfig, AuthRuntimeConfig::class);
@@ -30,7 +29,7 @@ class GoogleLoginController extends WebController
     public function login(): Response
     {
         if ($this->isAuthenticated()) {
-            return $this->buildRedirectResponse('dashboard');
+            return $this->buildRedirectResponse($this->runtimeConfig->dashboardUrl());
         }
 
         try {
@@ -56,7 +55,7 @@ class GoogleLoginController extends WebController
             ]);
 
             $this->setError('Não foi possível conectar ao Google. Tente novamente.');
-            return $this->buildRedirectResponse('login');
+            return $this->buildRedirectResponse($this->runtimeConfig->loginUrl());
         }
     }
 }

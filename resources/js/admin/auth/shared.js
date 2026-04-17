@@ -10,6 +10,7 @@
 */
 
 import '../global/lucide-init.js';
+import { getBaseUrl as getSharedBaseUrl } from '../shared/api.js';
 
 // ── Particles ──────────────────────────────────────────────────────────────
 
@@ -82,6 +83,5 @@ export function initTogglePassword() {
 // ── Base URL helper ────────────────────────────────────────────────────────
 
 export function getBaseUrl() {
-    const meta = document.querySelector('meta[name="base-url"]');
-    return meta ? meta.content.replace(/\/?$/, '/') : '/';
+    return getSharedBaseUrl();
 }

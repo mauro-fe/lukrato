@@ -2,6 +2,11 @@ import { CONFIG, STATE, STORAGE_KEYS, TYPE_OPTIONS } from './state.js';
 import { ChartManager } from './charts.js';
 import { initCustomize } from './customize.js';
 import {
+    ensureRuntimeConfig,
+    getRuntimeConfig,
+    onRuntimeConfigUpdate,
+} from '../global/runtime-config.js';
+import {
     API,
     UI,
     handleAccountChange,
@@ -14,6 +19,15 @@ import {
     renderReport,
     syncPickerMode,
 } from './app.js';
+
+function syncReportsProFlag() {
+    window.IS_PRO = getRuntimeConfig().isPro === true;
+    return window.IS_PRO;
+}
+
+onRuntimeConfigUpdate(() => {
+    syncReportsProFlag();
+});
 
 function restoreSavedPreferences() {
     try {
@@ -95,7 +109,7 @@ function setupSectionTabs() {
                         cancelButtonColor: '#64748b',
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            window.location.href = `${window.BASE_URL || '/'}billing`;
+                            window.location.href = `${CONFIG.BASE_URL}billing`;
                         }
                     });
                 }
@@ -233,6 +247,7 @@ function setupGlobalApi() {
 }
 
 async function initialize() {
+    syncReportsProFlag();
     initCustomize();
     ChartManager.setupDefaults();
 
@@ -295,12 +310,18 @@ export function bootRelatoriosPage() {
 
     window.__LK_REPORTS_LOADED__ = true;
 
+    const start = async () => {
+        await ensureRuntimeConfig({}, { silent: true });
+        syncReportsProFlag();
+        await initialize();
+    };
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
-            void initialize();
+            void start();
         });
     } else {
-        void initialize();
+        void start();
     }
 
     setupGlobalApi();

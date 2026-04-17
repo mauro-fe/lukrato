@@ -6,6 +6,8 @@
  * ============================================================================
  */
 
+import { buildAppUrl } from '../shared/api.js';
+
 export function createProvisao({
     API,
     Utils,
@@ -76,8 +78,8 @@ export function createProvisao({
             }
             if (verTodosEl) {
                 verTodosEl.href = isPro
-                    ? `${window.BASE_URL || '/'}lancamentos`
-                    : `${window.BASE_URL || '/'}faturas`;
+                    ? buildAppUrl('lancamentos')
+                    : buildAppUrl('faturas');
             }
 
             // Cards
@@ -253,7 +255,11 @@ export function createProvisao({
                             el.addEventListener('click', () => {
                                 const dataVenc = (item.data_pagamento || '').split(/[T\s]/)[0];
                                 const [ano, mes] = dataVenc.split('-');
-                                window.location.href = `${window.BASE_URL || '/'}faturas?cartao_id=${item.cartao_id}&mes=${parseInt(mes, 10)}&ano=${ano}`;
+                                window.location.href = buildAppUrl('faturas', {
+                                    cartao_id: item.cartao_id,
+                                    mes: parseInt(mes, 10),
+                                    ano,
+                                });
                             });
                         }
 

@@ -7,6 +7,10 @@
  * ============================================================================
  */
 
+import { resolveAuthLogoutEndpoint } from '../api/endpoints/auth.js';
+import { resolveCsrfRefreshEndpoint } from '../api/endpoints/security.js';
+import { applyRuntimeCsrfToken, readRuntimeApiBaseUrl, readRuntimeBaseUrl, readRuntimeCsrfToken } from './runtime.js';
+
 // ─── Base URL ───────────────────────────────────────────────────────────────
 
 /**
@@ -14,17 +18,35 @@
  * @returns {string} URL com trailing slash
  */
 export function getBaseUrl() {
-    // Delega para LK.getBase() (fonte canônica) com fallbacks
-    if (window.LK && typeof window.LK.getBase === 'function') {
-        return window.LK.getBase();
-    }
-    const meta = document.querySelector('meta[name="base-url"]');
-    if (meta?.content) return meta.content.replace(/\/?$/, '/');
-    if (window.BASE_URL) return window.BASE_URL.replace(/\/?$/, '/');
-    if (location.pathname.includes('/public/')) {
-        return location.pathname.split('/public/')[0] + '/public/';
-    }
-    return '/';
+    return readRuntimeBaseUrl();
+}
+
+export function getApiBaseUrl() {
+    return readRuntimeApiBaseUrl();
+}
+
+function buildAbsoluteUrl(baseUrl, endpoint, params = {}) {
+    const normalizedEndpoint = String(endpoint || '');
+    const url = normalizedEndpoint.startsWith('http')
+        ? normalizedEndpoint
+        : String(baseUrl || '/') + normalizedEndpoint.replace(/^\//, '');
+    const filtered = Object.entries(params)
+        .filter(([_, value]) => value !== null && value !== undefined && value !== '')
+        .map(([key, value]) => `${key}=${encodeURIComponent(value)}`);
+
+    return filtered.length > 0 ? `${url}?${filtered.join('&')}` : url;
+}
+
+export function buildAppUrl(endpoint, params = {}) {
+    return buildAbsoluteUrl(getBaseUrl(), endpoint, params);
+}
+
+export function buildAssetUrl(assetPath) {
+    const normalizedAssetPath = String(assetPath || '')
+        .replace(/^\/+/, '')
+        .replace(/^assets\/+/, '');
+
+    return buildAppUrl(`assets/${normalizedAssetPath}`);
 }
 
 // ─── CSRF Token ─────────────────────────────────────────────────────────────
@@ -34,7 +56,7 @@ export function getBaseUrl() {
  * @returns {string}
  */
 export function getCSRFToken() {
-    return document.querySelector('meta[name="csrf-token"]')?.content || '';
+    return readRuntimeCsrfToken();
 }
 
 function isLocalDebugEnvironment() {
@@ -78,6 +100,161 @@ function installProductionConsoleGuard() {
 }
 
 installProductionConsoleGuard();
+
+const NETWORK_WARNING_IDS = {
+    offline: 'lk-offline-notification',
+    slow: 'lk-slow-connection',
+};
+
+const NETWORK_SLOW_THRESHOLD = 5000;
+
+let activeNetworkRequests = 0;
+let slowWarningTimerId = null;
+
+function getDocumentRef() {
+    if (typeof document !== 'undefined') {
+        return document;
+    }
+
+    return null;
+}
+
+function getWindowRef() {
+    if (typeof window !== 'undefined') {
+        return window;
+    }
+
+    return null;
+}
+
+function showOfflineNotification() {
+    const doc = getDocumentRef();
+    if (!doc?.body || typeof doc.getElementById !== 'function') {
+        return;
+    }
+
+    if (doc.getElementById(NETWORK_WARNING_IDS.offline)) {
+        return;
+    }
+
+    const notification = doc.createElement('div');
+    notification.id = NETWORK_WARNING_IDS.offline;
+    notification.className = 'lk-offline-notification';
+    notification.innerHTML = `
+        <i data-lucide="wifi" style="opacity: 0.5;"></i>
+        <span>Sem conexão com a internet</span>
+        <button type="button" class="btn-retry-connection">Tentar novamente</button>
+    `;
+
+    const retryButton = notification.querySelector('button');
+    retryButton?.addEventListener('click', () => {
+        getWindowRef()?.location?.reload?.();
+    });
+
+    doc.body.appendChild(notification);
+}
+
+function hideOfflineNotification() {
+    const doc = getDocumentRef();
+    const notification = doc?.getElementById?.(NETWORK_WARNING_IDS.offline);
+    notification?.remove();
+}
+
+function showSlowConnectionWarning() {
+    const doc = getDocumentRef();
+    if (!doc?.body || typeof doc.getElementById !== 'function') {
+        return;
+    }
+
+    let warning = doc.getElementById(NETWORK_WARNING_IDS.slow);
+    if (!warning) {
+        warning = doc.createElement('div');
+        warning.id = NETWORK_WARNING_IDS.slow;
+        warning.className = 'lk-slow-connection';
+        warning.innerHTML = `
+            <i data-lucide="hourglass"></i>
+            <span>Conexão lenta detectada. Aguarde...</span>
+        `;
+        doc.body.appendChild(warning);
+    }
+
+    warning.classList.add('visible');
+}
+
+function hideSlowConnectionWarning() {
+    if (slowWarningTimerId) {
+        clearTimeout(slowWarningTimerId);
+        slowWarningTimerId = null;
+    }
+
+    const doc = getDocumentRef();
+    const warning = doc?.getElementById?.(NETWORK_WARNING_IDS.slow);
+    warning?.classList.remove('visible');
+}
+
+function ensureNetworkUiBindings() {
+    const win = getWindowRef();
+
+    if (!win || win.__LK_SHARED_API_NETWORK_UI__ === true) {
+        return;
+    }
+
+    win.__LK_SHARED_API_NETWORK_UI__ = true;
+
+    if (typeof win.addEventListener === 'function') {
+        win.addEventListener('online', hideOfflineNotification);
+        win.addEventListener('offline', showOfflineNotification);
+    }
+
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        showOfflineNotification();
+    }
+}
+
+function startNetworkActivityWatch({ showSlowWarning = true } = {}) {
+    ensureNetworkUiBindings();
+    activeNetworkRequests += 1;
+
+    if (showSlowWarning && activeNetworkRequests === 1 && !slowWarningTimerId) {
+        slowWarningTimerId = setTimeout(() => {
+            if (activeNetworkRequests > 0) {
+                showSlowConnectionWarning();
+            }
+        }, NETWORK_SLOW_THRESHOLD);
+    }
+
+    return () => {
+        activeNetworkRequests = Math.max(0, activeNetworkRequests - 1);
+
+        if (activeNetworkRequests === 0) {
+            hideSlowConnectionWarning();
+        }
+    };
+}
+
+function isPlanLimitReachedPayload(data) {
+    return Boolean(data && typeof data === 'object' && (data.limit_reached === true || data?.errors?.limit_reached === true));
+}
+
+function notifyPlanLimitReached(data) {
+    if (!isPlanLimitReachedPayload(data)) {
+        return;
+    }
+
+    const handler = getWindowRef()?.PlanLimits?.handleApiLimitReached;
+    if (typeof handler !== 'function') {
+        return;
+    }
+
+    try {
+        const result = handler(data);
+        if (result && typeof result.catch === 'function') {
+            result.catch(() => { /* ignore */ });
+        }
+    } catch {
+        // ignore prompt failures and preserve original request error flow
+    }
+}
 
 function summarizeClientError(error, fallback = 'Erro inesperado') {
     if (!error) {
@@ -124,49 +301,52 @@ export function logClientWarning(context, error, fallback = 'Aviso inesperado') 
  * Obtém CSRF token fresco do servidor (async)
  * @returns {Promise<string>}
  */
-export async function refreshCSRFToken() {
-    const base = getBaseUrl();
+export async function refreshCSRFSession(tokenId = 'default') {
+    const finishNetworkActivity = startNetworkActivityWatch({ showSlowWarning: false });
 
     try {
-        const response = await fetch(`${base}api/csrf/refresh`, {
+        if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+            showOfflineNotification();
+            return { token: '', ttl: null };
+        }
+
+        const response = await fetch(buildUrl(resolveCsrfRefreshEndpoint()), {
             method: 'POST',
-            credentials: 'same-origin',
+            credentials: 'include',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'
             },
-            body: JSON.stringify({ token_id: 'default' })
+            body: JSON.stringify({ token_id: tokenId })
         });
 
         if (response.ok) {
             const data = await response.json();
             const token = data?.data?.token || data?.token || '';
+            const ttl = typeof data?.data?.ttl === 'number'
+                ? data.data.ttl
+                : (typeof data?.ttl === 'number' ? data.ttl : null);
+
             if (token) {
-                const metaTag = document.querySelector('meta[name="csrf-token"]');
-                if (metaTag) metaTag.setAttribute('content', token);
-                return token;
+                return {
+                    token: applyRuntimeCsrfToken(token, { tokenId, ttl }),
+                    ttl,
+                };
             }
         }
     } catch (error) {
-        logClientWarning('Erro ao renovar CSRF pela rota oficial, tentando fallback legado', error, 'Falha ao renovar token CSRF');
+        logClientWarning('Erro ao renovar CSRF pela rota oficial', error, 'Falha ao renovar token CSRF');
+    } finally {
+        finishNetworkActivity();
     }
 
-    try {
-        const response = await fetch(`${base}api/csrf-token.php`);
-        if (response.ok) {
-            const data = await response.json();
-            if (data.token) {
-                const metaTag = document.querySelector('meta[name="csrf-token"]');
-                if (metaTag) metaTag.setAttribute('content', data.token);
-                return data.token;
-            }
-        }
-    } catch (error) {
-        logClientWarning('Erro ao buscar CSRF token fresco', error, 'Falha ao buscar token CSRF');
-    }
+    return { token: '', ttl: null };
+}
 
-    return getCSRFToken();
+export async function refreshCSRFToken(tokenId = 'default') {
+    const { token } = await refreshCSRFSession(tokenId);
+    return token;
 }
 
 // ─── Fetch Wrapper ──────────────────────────────────────────────────────────
@@ -178,26 +358,23 @@ export async function refreshCSRFToken() {
  * @returns {string}
  */
 export function buildUrl(endpoint, params = {}) {
-    const base = getBaseUrl();
-    const url = endpoint.startsWith('http') ? endpoint : base + endpoint.replace(/^\//, '');
-    const filtered = Object.entries(params)
-        .filter(([_, v]) => v !== null && v !== undefined && v !== '')
-        .map(([k, v]) => `${k}=${encodeURIComponent(v)}`);
-    return filtered.length > 0 ? `${url}?${filtered.join('&')}` : url;
+    return buildAbsoluteUrl(getApiBaseUrl(), endpoint, params);
 }
 
 /**
  * Fetch wrapper com CSRF automático e error handling
  * @param {string} url - Relativo ao base URL (ex: "api/lancamentos")
  * @param {RequestInit} options
- * @param {Object} [extra] - Opções extras: { timeout: ms }
- * @returns {Promise<any>} JSON parsed response
+ * @param {Object} [extra] - Opções extras: { timeout: ms, responseType: 'response' }
+ * @returns {Promise<any>} JSON parsed response or raw Response when responseType='response'
  */
 export async function apiFetch(url, options = {}, extra = {}) {
-    const base = getBaseUrl();
+    const base = getApiBaseUrl();
     const fullUrl = url.startsWith('http') ? url : base + url.replace(/^\//, '');
     const method = (options.method || 'GET').toUpperCase();
+    const responseType = extra.responseType === 'response' ? 'response' : 'json';
     const releaseBootRequest = window.LKPageLoading?.bootRequestStart?.() || null;
+    const suppressErrorLogging = extra.suppressErrorLogging === true;
     const requestHeaders = normalizeRequestHeaders({
         'Accept': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
@@ -228,16 +405,27 @@ export async function apiFetch(url, options = {}, extra = {}) {
     }
 
     const requestSignal = options.signal ?? controller.signal;
+    const finishNetworkActivity = startNetworkActivityWatch();
 
     try {
+        if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+            showOfflineNotification();
+            throw new Error('Você está offline. Verifique sua conexão.');
+        }
+
         const response = await fetch(fullUrl, {
             ...options,
             body: requestBody,
             signal: requestSignal,
-            credentials: options.credentials ?? 'same-origin',
+            credentials: options.credentials ?? 'include',
             headers: requestHeaders,
         });
 
+        if (responseType === 'response' && response.ok) {
+            return response;
+        }
+
+        const responseClone = typeof response.clone === 'function' ? response.clone() : response;
         const data = await parseResponsePayload(response);
 
         if (shouldRetryWithFreshCsrf(response, data)) {
@@ -247,30 +435,41 @@ export async function apiFetch(url, options = {}, extra = {}) {
                     ...options,
                     body: requestBody,
                     signal: requestSignal,
-                    credentials: options.credentials ?? 'same-origin',
+                    credentials: options.credentials ?? 'include',
                     headers: normalizeRequestHeaders({
                         ...requestHeaders,
                         'X-CSRF-Token': newToken,
                     }),
                 });
+
+                if (responseType === 'response' && retryResponse.ok) {
+                    return retryResponse;
+                }
+
+                const retryResponseClone = typeof retryResponse.clone === 'function' ? retryResponse.clone() : retryResponse;
                 const retryData = await parseResponsePayload(retryResponse);
                 if (!retryResponse.ok) {
-                    throw buildApiError(retryResponse, retryData);
+                    notifyPlanLimitReached(retryData);
+                    throw buildApiError(retryResponseClone, retryData);
                 }
                 return retryData;
             }
         }
         if (!response.ok) {
-            throw buildApiError(response, data);
+            notifyPlanLimitReached(data);
+            throw buildApiError(responseClone, data);
         }
         return data;
     } catch (error) {
         if (error.name === 'AbortError') {
             throw new Error('A requisição demorou demais. Verifique sua conexão e tente novamente.');
         }
-        logClientError('Erro na requisição', error);
+        if (!suppressErrorLogging) {
+            logClientError('Erro na requisição', error);
+        }
         throw error;
     } finally {
+        finishNetworkActivity();
         if (timeoutId) clearTimeout(timeoutId);
         if (typeof releaseBootRequest === 'function') {
             releaseBootRequest();
@@ -454,6 +653,25 @@ export function apiDelete(url, data = null, extra = {}) {
     }, extra);
 }
 
+export async function apiLogout(options = {}) {
+    const redirectTo = Object.prototype.hasOwnProperty.call(options, 'redirectTo')
+        ? options.redirectTo
+        : buildAppUrl('login');
+
+    try {
+        await apiPost(resolveAuthLogoutEndpoint(), {}, {
+            timeout: options.timeout ?? 10000,
+            suppressErrorLogging: true,
+        });
+    } catch {
+        // Redireciona para login mesmo quando a sessão já expirou no backend.
+    }
+
+    if (redirectTo) {
+        window.location.href = redirectTo;
+    }
+}
+
 async function parseResponsePayload(response) {
     if (response.status === 204) {
         return null;
@@ -476,6 +694,7 @@ function buildApiError(response, data) {
 
     error.status = response.status;
     error.data = data;
+    error.response = response;
     error.code = typeof data === 'object' && data !== null && typeof data.code === 'string'
         ? data.code
         : null;

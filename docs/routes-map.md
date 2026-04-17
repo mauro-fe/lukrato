@@ -2,6 +2,15 @@
 
 Este documento mostra onde cada grupo de rotas está para facilitar manutenção e busca.
 
+## Contrato canonico
+
+- Para clientes internos novos, use `/api/v1/*` como base canonica e oficial.
+- `/api/*` continua existindo apenas como camada de compatibilidade ate o sunset configurado em `LEGACY_API_SUNSET`.
+- Respostas servidas por rotas legadas `/api/*` agora incluem `X-Legacy-Api: true`, `X-Legacy-Api-Successor`, `Link: <...>; rel="successor-version"` e, quando `LEGACY_API_SUNSET` estiver configurado, tambem `Deprecation` e `Sunset`.
+- O backend tambem registra telemetria leve de consumo legado: primeiro hit do dia por rota e novos marcos a cada 100 chamadas daquela rota legado.
+- O contrato funcional de auth, session e CSRF para esse namespace esta documentado em `docs/frontend-pilot-v1.md`.
+- Rotas SSR do site publico em `routes/web/*` continuam intencionais e nao invalidam o status de API-first para os consumidores JS/mobile.
+
 ## Ordem de carga em runtime
 
 Definida em `Application/Bootstrap/Application.php`:
@@ -46,6 +55,17 @@ Definida em `Application/Bootstrap/Application.php`:
 | API: IA (usuário + sysadmin) | `routes/api/10_ai.php` |
 | API: campanhas + notifications (en) | `routes/api/11_campaigns_notifications.php` |
 | API: plano + referral + feedback | `routes/api/12_plan_referral_feedback.php` |
+| API v1: frontend pilot | `routes/api/13_frontend_pilot_v1.php` |
+| API v1: financas compartilhadas | `routes/api/14_financas_shared_v1.php` |
+| API v1: faturas + parcelamentos | `routes/api/15_faturas_parcelamentos_v1.php` |
+| API v1: lancamentos + transactions | `routes/api/16_lancamentos_transactions_v1.php` |
+| API v1: reports + gamification | `routes/api/17_reports_gamification_v1.php` |
+| API v1: engagement + billing + dashboard | `routes/api/18_engagement_billing_dashboard_v1.php` |
+| API v1: sysadmin + adminops | `routes/api/19_sysadmin_adminops_v1.php` |
+| API v1: finance + dashboard + AI | `routes/api/20_finance_dashboard_ai_v1.php` |
+| API v1: auth | `routes/api/21_auth_v1.php` |
+| API v1: integrations | `routes/api/22_integrations_v1.php` |
+| API v1: remaining legacy catch-up | `routes/api/23_remaining_legacy_v1.php` |
 | Webhooks | `routes/webhooks.php` |
 
 ## Busca rápida
@@ -53,7 +73,8 @@ Definida em `Application/Bootstrap/Application.php`:
 Use `rg` para achar endpoints:
 
 ```powershell
-rg "Router::add\('GET', '/api/ai" routes
+rg "Router::add\('GET', '/api/v1/ai" routes
+rg "Router::add\(.*'/api/" routes/api
 rg "Router::add\(.*'/login" routes
 rg "Router::add\(.*sysadmin" routes
 ```

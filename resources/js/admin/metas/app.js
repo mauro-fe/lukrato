@@ -5,6 +5,14 @@
 
 import { CONFIG, STATE, Utils, getCategoryIconColor } from './state.js';
 import {
+    resolveAccountsEndpoint,
+    resolveFinanceGoalContributionEndpoint,
+    resolveFinanceGoalEndpoint,
+    resolveFinanceGoalTemplatesEndpoint,
+    resolveFinanceGoalsEndpoint,
+    resolveFinanceSummaryEndpoint,
+} from '../api/endpoints/finance.js';
+import {
     apiDelete as sharedApiDelete,
     apiGet as sharedApiGet,
     apiPost as sharedApiPost,
@@ -15,7 +23,7 @@ import { createMetasUi } from './app-ui.js';
 
 // ── API Helpers ────────────────────────────────────────────────
 
-async function apiGet(endpoint) { return sharedApiGet(endpoint); }
+async function apiGet(endpoint, params) { return sharedApiGet(endpoint, params); }
 async function apiPost(endpoint, data) { return sharedApiPost(endpoint, data); }
 async function apiPut(endpoint, data) { return sharedApiPut(endpoint, data); }
 async function apiDelete(endpoint) { return sharedApiDelete(endpoint); }
@@ -215,7 +223,7 @@ export const MetasApp = {
 
     async loadContas() {
         try {
-            const res = await apiGet('api/contas?only_active=1&with_balances=1');
+            const res = await apiGet(resolveAccountsEndpoint(), { only_active: 1, with_balances: 1 });
             if (Array.isArray(res)) {
                 STATE.contas = res;
             } else if (res.success !== false && Array.isArray(res.data)) {
@@ -236,7 +244,7 @@ export const MetasApp = {
 
     async loadResumo() {
         try {
-            const res = await apiGet('api/financas/resumo');
+            const res = await apiGet(resolveFinanceSummaryEndpoint());
             if (res.success !== false) {
                 applyPreviewMeta(res.data?.meta);
                 STATE.resumo = res.data;
@@ -249,7 +257,7 @@ export const MetasApp = {
 
     async loadMetas() {
         try {
-            const res = await apiGet('api/financas/metas');
+            const res = await apiGet(resolveFinanceGoalsEndpoint());
             if (res.success !== false) {
                 applyPreviewMeta(res.data?.meta);
                 STATE.metas = getCollectionPayload(res.data, 'metas');
@@ -382,9 +390,9 @@ export const MetasApp = {
         try {
             let res;
             if (metaId) {
-                res = await apiPut(`api/financas/metas/${metaId}`, data);
+                res = await apiPut(resolveFinanceGoalEndpoint(metaId), data);
             } else {
-                res = await apiPost('api/financas/metas', data);
+                res = await apiPost(resolveFinanceGoalsEndpoint(), data);
             }
 
             if (handleLimitError(res)) return;
@@ -422,7 +430,7 @@ export const MetasApp = {
         if (!result.isConfirmed) return;
 
         try {
-            const res = await apiDelete(`api/financas/metas/${id}`);
+            const res = await apiDelete(resolveFinanceGoalEndpoint(id));
             if (res.success !== false) {
                 Utils.showToast('Meta excluída', 'success');
                 await MetasApp.loadAll();
@@ -460,7 +468,7 @@ export const MetasApp = {
         if (valor <= 0) return Utils.showToast('Informe um valor válido', 'error');
 
         try {
-            const res = await apiPost(`api/financas/metas/${metaId}/aporte`, { valor });
+            const res = await apiPost(resolveFinanceGoalContributionEndpoint(metaId), { valor });
 
             if (res.success !== false) {
                 MetasApp.closeModal('modalAporte');
@@ -499,7 +507,7 @@ export const MetasApp = {
         if (window.lucide) lucide.createIcons();
 
         try {
-            const res = await apiGet('api/financas/metas/templates');
+            const res = await apiGet(resolveFinanceGoalTemplatesEndpoint());
             if (res.success !== false && res.data?.length) {
                 grid.innerHTML = res.data.map(tmpl => {
                     const iconeHtml = tmpl.icone

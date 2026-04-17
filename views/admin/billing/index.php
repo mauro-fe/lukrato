@@ -36,10 +36,12 @@ if (isset($plans) && is_iterable($plans)) {
 $currentPlanCode = $currentPlanCode ?? ($user?->planoAtual()?->code ?? null);
 ?>
 
-<div class="billing-page">
-<?php include __DIR__ . '/sections/header.php'; ?>
-<?php include __DIR__ . '/sections/plans-grid.php'; ?>
-<?php include __DIR__ . '/sections/customize-modal.php'; ?>
+<div
+    class="billing-page">
+    <?php include __DIR__ . '/sections/header.php'; ?>
+
+    <?php include __DIR__ . '/sections/plans-grid.php'; ?>
+    <?php include __DIR__ . '/sections/customize-modal.php'; ?>
 </div>
 
 <!-- Modal de Pagamento -->

@@ -53,8 +53,8 @@ trait HandlesAdminLayoutData
 
         $data['currentBreadcrumbs'] = $data['currentBreadcrumbs'] ?? (
             $currentViewPath !== ''
-                ? AdminModuleRegistry::resolveBreadcrumbsByViewContext($currentViewPath, $data)
-                : []
+            ? AdminModuleRegistry::resolveBreadcrumbsByViewContext($currentViewPath, $data)
+            : []
         );
 
         if (!isset($data['supportName'])) {
@@ -77,11 +77,11 @@ trait HandlesAdminLayoutData
 
         $currentPageJsViewId = trim((string) (
             $data['currentPageJsViewId']
-                ?? (
-                    $currentViewId !== ''
-                        ? AdminModuleRegistry::resolvePageJsViewId($currentViewId, $contextData)
-                        : ''
-                )
+            ?? (
+                $currentViewId !== ''
+                ? AdminModuleRegistry::resolvePageJsViewId($currentViewId, $contextData)
+                : ''
+            )
         ));
         if ($currentPageJsViewId === '') {
             $currentPageJsViewId = $currentViewId;
@@ -121,8 +121,49 @@ trait HandlesAdminLayoutData
             'footerModules' => $data['footerModules'],
             'bundle' => $data['bundle'],
         ];
+        $data['adminRuntimeConfig'] = $data['adminRuntimeConfig'] ?? $this->buildAdminRuntimeConfig($data);
 
         return $data;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    protected function buildAdminRuntimeConfig(array $data): array
+    {
+        $currentUser = $data['currentUser'] ?? null;
+        $dashboardPreferencesRaw = $currentUser?->dashboard_preferences ?? null;
+        $dashboardPreferences = is_array($dashboardPreferencesRaw)
+            ? $dashboardPreferencesRaw
+            : [];
+
+        return [
+            'baseUrl' => rtrim(BASE_URL, '/') . '/',
+            'apiBaseUrl' => rtrim(BASE_URL, '/') . '/',
+            'csrfTtl' => (int) \Application\Middlewares\CsrfMiddleware::TOKEN_TTL,
+            'isPro' => (bool) ($data['isPro'] ?? false),
+            'isSysAdmin' => (bool) ($data['isSysAdmin'] ?? false),
+            'planTier' => (string) ($data['planTier'] ?? 'free'),
+            'planLabel' => (string) ($data['planLabel'] ?? 'FREE'),
+            'showUpgradeCTA' => (bool) ($data['showUpgradeCTA'] ?? true),
+            'userTheme' => (string) ($data['userTheme'] ?? 'dark'),
+            'userId' => $currentUser?->id ?? $currentUser?->id_usuario ?? null,
+            'username' => (string) ($data['username'] ?? $this->resolveAdminDisplayName($currentUser)),
+            'userEmail' => (string) ($currentUser?->email ?? ''),
+            'currentMenu' => (string) (($data['menu'] ?? '') ?: 'dashboard'),
+            'currentViewId' => (string) ($data['currentViewId'] ?? ''),
+            'currentViewPath' => (string) ($data['currentViewPath'] ?? ''),
+            'bundle' => is_array($data['bundle'] ?? null) ? $data['bundle'] : [],
+            'needsDisplayNamePrompt' => trim((string) ($currentUser?->nome ?? '')) === '',
+            'tourCompleted' => !empty($currentUser?->tour_completed_at),
+            'helpCenter' => $this->normalizeAdminHelpCenterPreferences($dashboardPreferences['help_center'] ?? null),
+            'userAvatar' => $currentUser?->avatar
+                ? rtrim(BASE_URL, '/') . '/' . ltrim((string) $currentUser->avatar, '/')
+                : '',
+            'userAvatarSettings' => $this->buildAdminAvatarSettings($currentUser),
+            'pageContext' => is_array($data['adminPageContext'] ?? null) ? $data['adminPageContext'] : null,
+        ];
     }
 
     protected function injectSiteLayoutData(array $data): array
@@ -169,5 +210,47 @@ trait HandlesAdminLayoutData
         }
 
         return ucfirst($candidate);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function normalizeAdminHelpCenterPreferences(mixed $rawPreferences): array
+    {
+        $rawHelpCenterPreferences = is_array($rawPreferences)
+            ? $rawPreferences
+            : [];
+        $rawHelpSettings = is_array($rawHelpCenterPreferences['settings'] ?? null)
+            ? $rawHelpCenterPreferences['settings']
+            : [];
+
+        return [
+            'settings' => [
+                'auto_offer' => array_key_exists('auto_offer', $rawHelpSettings)
+                    ? (bool) $rawHelpSettings['auto_offer']
+                    : true,
+            ],
+            'tour_completed' => is_array($rawHelpCenterPreferences['tour_completed'] ?? null)
+                ? $rawHelpCenterPreferences['tour_completed']
+                : [],
+            'offer_dismissed' => is_array($rawHelpCenterPreferences['offer_dismissed'] ?? null)
+                ? $rawHelpCenterPreferences['offer_dismissed']
+                : [],
+            'tips_seen' => is_array($rawHelpCenterPreferences['tips_seen'] ?? null)
+                ? $rawHelpCenterPreferences['tips_seen']
+                : [],
+        ];
+    }
+
+    /**
+     * @return array{position_x:int,position_y:int,zoom:float}
+     */
+    private function buildAdminAvatarSettings(?Usuario $currentUser): array
+    {
+        return [
+            'position_x' => max(0, min(100, (int) ($currentUser?->avatar_focus_x ?? 50))),
+            'position_y' => max(0, min(100, (int) ($currentUser?->avatar_focus_y ?? 50))),
+            'zoom' => max(1, min(2, round((float) ($currentUser?->avatar_zoom ?? 1), 2))),
+        ];
     }
 }

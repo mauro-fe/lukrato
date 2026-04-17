@@ -12,7 +12,12 @@
  * @author Lukrato Team
  */
 
-import { apiFetch, getBaseUrl, getCSRFToken, logClientError } from '../shared/api.js';
+import { apiFetch, apiLogout, getApiBaseUrl, getCSRFToken, logClientError } from '../shared/api.js';
+import {
+    resolveSessionHeartbeatEndpoint,
+    resolveSessionRenewEndpoint,
+    resolveSessionStatusEndpoint,
+} from '../api/endpoints/session.js';
 
 (function () {
     'use strict';
@@ -41,9 +46,9 @@ import { apiFetch, getBaseUrl, getCSRFToken, logClientError } from '../shared/ap
 
         // Endpoints da API
         endpoints: {
-            status: 'api/session/status',
-            renew: 'api/session/renew',
-            heartbeat: 'api/session/heartbeat'
+            status: resolveSessionStatusEndpoint(),
+            renew: resolveSessionRenewEndpoint(),
+            heartbeat: resolveSessionHeartbeatEndpoint()
         }
     };
 
@@ -68,8 +73,8 @@ import { apiFetch, getBaseUrl, getCSRFToken, logClientError } from '../shared/ap
     // UTILITÁRIOS
     // ========================================================================
     const utils = {
-        getBaseUrl() {
-            return getBaseUrl();
+        getApiBaseUrl() {
+            return getApiBaseUrl();
         },
 
         getCsrfToken() {
@@ -118,14 +123,14 @@ import { apiFetch, getBaseUrl, getCSRFToken, logClientError } from '../shared/ap
         },
 
         async apiRequest(endpoint, method = 'GET', body = null) {
-            const url = this.getBaseUrl() + endpoint;
+            const url = this.getApiBaseUrl() + endpoint;
             const options = {
                 method,
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
                 },
-                credentials: 'same-origin'
+                credentials: 'include'
             };
 
             if (body && method !== 'GET') {
@@ -633,12 +638,12 @@ import { apiFetch, getBaseUrl, getCSRFToken, logClientError } from '../shared/ap
         // Verifica se está em página autenticada
         isAuthenticatedPage() {
             // Verifica se há indicadores de página autenticada
-            const hasCSRFMeta = !!document.querySelector('meta[name="csrf-token"]');
+            const hasSessionToken = !!utils.getCsrfToken();
             const isLoginPage = window.location.pathname.includes('/login');
             const isPublicPage = window.location.pathname.includes('/site/') ||
                 window.location.pathname === '/';
 
-            return hasCSRFMeta && !isLoginPage && !isPublicPage;
+            return hasSessionToken && !isLoginPage && !isPublicPage;
         },
 
         // Injeta os estilos CSS
@@ -845,9 +850,14 @@ import { apiFetch, getBaseUrl, getCSRFToken, logClientError } from '../shared/ap
                 const renewData = result.data.data || {};
                 // Atualiza token CSRF se fornecido
                 if (renewData.newToken) {
-                    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-                    if (csrfMeta) {
-                        csrfMeta.content = renewData.newToken;
+                    if (window.CsrfManager?.applyToken) {
+                        window.CsrfManager.applyToken(renewData.newToken);
+                    } else {
+                        if (window.LK) {
+                            window.LK.csrfToken = renewData.newToken;
+                        }
+
+                        window.CSRF = renewData.newToken;
                     }
                 }
 
@@ -875,7 +885,7 @@ import { apiFetch, getBaseUrl, getCSRFToken, logClientError } from '../shared/ap
 
         // Faz logout
         logout() {
-            window.location.href = utils.getBaseUrl() + 'logout';
+            void apiLogout({ redirectTo: utils.getBaseUrl() + 'login' });
         },
 
         // Redireciona para login

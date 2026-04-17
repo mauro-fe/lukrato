@@ -1,4 +1,5 @@
 import { apiGet, getBaseUrl } from './api.js';
+import { resolveLancamentosUsageEndpoint } from '../api/endpoints/lancamentos.js';
 import { escapeHtml } from './utils.js';
 
 (() => {
@@ -12,7 +13,7 @@ import { escapeHtml } from './utils.js';
 
     if (localStorage.getItem(dismissedKey) === '1') return;
 
-    void apiGet('api/lancamentos/usage', { month: ym })
+    void apiGet(resolveLancamentosUsageEndpoint(), { month: ym })
         .then((json) => {
             const data = json?.data ?? json;
             const msg = data?.ui_message;

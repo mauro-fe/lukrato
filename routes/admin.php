@@ -12,6 +12,7 @@ $adminRouteFiles = [
     __DIR__ . '/admin/03_finance_billing.php',
     __DIR__ . '/admin/04_sysadmin_views.php',
     __DIR__ . '/admin/05_legacy_redirects.php',
+    __DIR__ . '/admin/06_frontend_pilot.php',
 ];
 
 foreach ($adminRouteFiles as $routeFile) {

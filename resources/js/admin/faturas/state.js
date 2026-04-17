@@ -1,7 +1,13 @@
 /**
  * LUKRATO — Faturas / State & Config
  */
-import { apiFetch, getCSRFToken as getStoredCSRFToken } from '../shared/api.js';
+import { apiFetch, getApiBaseUrl, getCSRFToken as getSharedCSRFToken } from '../shared/api.js';
+import {
+    resolveAccountsEndpoint,
+    resolveCardsEndpoint,
+    resolveCategoriesEndpoint,
+} from '../api/endpoints/finance.js';
+import { resolveFaturasEndpoint } from '../api/endpoints/faturas.js';
 import { formatMoney, parseMoney, escapeHtml, debounce } from '../shared/utils.js';
 
 export { formatMoney, escapeHtml, debounce };
@@ -29,12 +35,12 @@ export function getCategoryIconColor(icon) {
 // ─── CONFIG ─────────────────────────────────────────────────────────────────
 
 export const CONFIG = {
-    BASE_URL: (window.BASE_URL || '/').replace(/\/?$/, '/'),
+    BASE_URL: getApiBaseUrl(),
     ENDPOINTS: {
-        parcelamentos: 'api/faturas',
-        categorias: 'api/categorias',
-        contas: 'api/contas',
-        cartoes: 'api/cartoes'
+        parcelamentos: resolveFaturasEndpoint(),
+        categorias: resolveCategoriesEndpoint(),
+        contas: resolveAccountsEndpoint(),
+        cartoes: resolveCardsEndpoint()
     },
     TIMEOUTS: {
         alert: 5000,
@@ -137,7 +143,7 @@ export const Utils = {
     },
 
     getCSRFToken() {
-        return getStoredCSRFToken();
+        return getSharedCSRFToken();
     },
 
     escapeHtml(text) {

@@ -1,0 +1,93 @@
+.profile-sync-hidden {
+  display: none;
+}
+
+.profile-quick-name {
+  padding: var(--spacing-4);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 18%, var(--glass-border));
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-primary) 4%, var(--color-bg-secondary));
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.profile-quick-name[data-busy="true"] {
+  opacity: 0.78;
+}
+
+.profile-quick-name__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-3);
+}
+
+.profile-quick-name__eyebrow {
+  display: inline-flex;
+  margin-bottom: var(--spacing-1);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.profile-quick-name__title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  color: var(--color-text);
+}
+
+.profile-quick-name__description {
+  margin: var(--spacing-1) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.profile-quick-name__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--spacing-3);
+  align-items: center;
+}
+
+.profile-quick-name__hint {
+  display: block;
+  margin-top: var(--spacing-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.profile-quick-name__status {
+  margin: var(--spacing-3) 0 0;
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-text-muted) 10%, transparent);
+}
+
+.profile-quick-name__status[data-tone="success"] {
+  border-color: color-mix(in srgb, var(--color-success) 30%, transparent);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  color: var(--color-success);
+}
+
+.profile-quick-name__status[data-tone="danger"] {
+  border-color: color-mix(in srgb, var(--color-danger) 30%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  color: var(--color-danger);
+}
+
+@media (max-width: 768px) {
+  .profile-quick-name__row {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-quick-name__row .surface-button {
+    width: 100%;
+    justify-content: center;
+  }
+}

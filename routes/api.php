@@ -19,6 +19,17 @@ $apiRouteFiles = [
     __DIR__ . '/api/10_ai.php',
     __DIR__ . '/api/11_campaigns_notifications.php',
     __DIR__ . '/api/12_plan_referral_feedback.php',
+    __DIR__ . '/api/13_frontend_pilot_v1.php',
+    __DIR__ . '/api/14_financas_shared_v1.php',
+    __DIR__ . '/api/15_faturas_parcelamentos_v1.php',
+    __DIR__ . '/api/16_lancamentos_transactions_v1.php',
+    __DIR__ . '/api/17_reports_gamification_v1.php',
+    __DIR__ . '/api/18_engagement_billing_dashboard_v1.php',
+    __DIR__ . '/api/19_sysadmin_adminops_v1.php',
+    __DIR__ . '/api/20_finance_dashboard_ai_v1.php',
+    __DIR__ . '/api/21_auth_v1.php',
+    __DIR__ . '/api/22_integrations_v1.php',
+    __DIR__ . '/api/23_remaining_legacy_v1.php',
 ];
 
 foreach ($apiRouteFiles as $routeFile) {
@@ -26,5 +37,5 @@ foreach ($apiRouteFiles as $routeFile) {
         throw new \RuntimeException("API route file not found: {$routeFile}");
     }
 
-    require_once $routeFile;
+    require $routeFile;
 }

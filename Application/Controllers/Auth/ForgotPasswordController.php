@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Controllers\Auth;
 
+use Application\Config\AuthRuntimeConfig;
 use Application\Controllers\WebController;
 use Application\Core\Exceptions\ValidationException;
 use Application\Core\Response;
@@ -16,16 +17,25 @@ use Throwable;
 class ForgotPasswordController extends WebController
 {
     private PasswordResetService $service;
+    private AuthRuntimeConfig $runtimeConfig;
 
-    public function __construct(?PasswordResetService $service = null, ?CacheService $cache = null)
-    {
+    public function __construct(
+        ?PasswordResetService $service = null,
+        ?CacheService $cache = null,
+        ?AuthRuntimeConfig $runtimeConfig = null
+    ) {
         parent::__construct(cache: $cache);
 
         $this->service = $this->resolveOrCreate($service, PasswordResetService::class);
+        $this->runtimeConfig = $this->resolveOrCreate($runtimeConfig, AuthRuntimeConfig::class);
     }
 
     public function showRequestForm(): Response
     {
+        if ($this->runtimeConfig->hasConfiguredForgotPasswordUrl()) {
+            return $this->buildRedirectResponse($this->runtimeConfig->forgotPasswordUrl());
+        }
+
         return $this->renderResponse('admin/auth/forgot-password', [
             'error' => $this->getError(),
             'success' => $this->getSuccess(),
@@ -50,7 +60,7 @@ class ForgotPasswordController extends WebController
             }
 
             $this->setSuccess('Se o e-mail existir no sistema, enviaremos um link de recuperacao.');
-            return $this->buildRedirectResponse('recuperar-senha');
+            return $this->buildRedirectResponse($this->runtimeConfig->forgotPasswordUrl());
         } catch (ValidationException $e) {
             if ($this->isRateLimitException($e)) {
                 if ($isJson) {
@@ -58,7 +68,7 @@ class ForgotPasswordController extends WebController
                 }
 
                 $this->setError('Muitas tentativas. Aguarde 1 minuto e tente novamente.');
-                return $this->buildRedirectResponse('recuperar-senha');
+                return $this->buildRedirectResponse($this->runtimeConfig->forgotPasswordUrl());
             }
 
             if ($isJson) {
@@ -66,7 +76,7 @@ class ForgotPasswordController extends WebController
             }
 
             $this->setError($this->validationMessage($e));
-            return $this->buildRedirectResponse('recuperar-senha');
+            return $this->buildRedirectResponse($this->runtimeConfig->forgotPasswordUrl());
         } catch (Throwable $e) {
             LogService::error('Erro no envio de reset password', [
                 'message' => $e->getMessage(),
@@ -79,8 +89,26 @@ class ForgotPasswordController extends WebController
             }
 
             $this->setError('Erro inesperado ao enviar o link.');
-            return $this->buildRedirectResponse('recuperar-senha');
+            return $this->buildRedirectResponse($this->runtimeConfig->forgotPasswordUrl());
         }
+    }
+
+    public function validateResetLink(): Response
+    {
+        $token = $this->getStringQuery('token');
+        $selector = $this->getStringQuery('selector');
+        $validator = $this->getStringQuery('validator');
+
+        $reset = $this->service->getValidReset($token, $selector, $validator);
+        if (!$reset) {
+            return $this->fail('Token invalido ou expirado.', 404, [
+                'redirect' => $this->runtimeConfig->forgotPasswordUrl(),
+            ]);
+        }
+
+        return $this->ok([
+            'message' => 'Token valido para redefinicao de senha.',
+        ]);
     }
 
     public function showResetForm(): Response
@@ -88,21 +116,16 @@ class ForgotPasswordController extends WebController
         $token = $this->getStringQuery('token');
         $selector = $this->getStringQuery('selector');
         $validator = $this->getStringQuery('validator');
-        $reset = null;
 
-        if ($token !== '' || ($selector !== '' && $validator !== '')) {
-            $reset = $this->service->getValidReset($token, $selector, $validator);
-        }
-
-        if (!$reset) {
-            $this->setError('Token invalido ou expirado.');
-            return $this->buildRedirectResponse('recuperar-senha');
+        if ($this->runtimeConfig->hasConfiguredResetPasswordUrl()) {
+            return $this->buildRedirectResponse($this->runtimeConfig->resetPasswordUrl($token, $selector, $validator));
         }
 
         return $this->renderResponse('admin/auth/reset-password', [
-            'token' => $token,
-            'selector' => $selector,
-            'validator' => $validator,
+            'resetValidateUrl' => $this->runtimeConfig->resetPasswordValidateUrl(),
+            'resetSubmitUrl' => $this->runtimeConfig->resetPasswordSubmitUrl(),
+            'forgotPasswordUrl' => $this->runtimeConfig->forgotPasswordUrl(),
+            'loginUrl' => $this->runtimeConfig->loginUrl(),
         ]);
     }
 
@@ -128,11 +151,12 @@ class ForgotPasswordController extends WebController
             if ($isJson) {
                 return $this->ok([
                     'message' => 'Senha redefinida com sucesso! Faca login.',
+                    'redirect' => $this->runtimeConfig->loginUrl(),
                 ]);
             }
 
             $this->setSuccess('Senha redefinida com sucesso! Faca login.');
-            return $this->buildRedirectResponse('login');
+            return $this->buildRedirectResponse($this->runtimeConfig->loginUrl());
         } catch (ValidationException $e) {
             if ($this->isRateLimitException($e)) {
                 if ($isJson) {
@@ -161,17 +185,13 @@ class ForgotPasswordController extends WebController
             }
 
             $this->setError('Erro inesperado ao redefinir senha.');
-            return $this->buildRedirectResponse('login');
+            return $this->buildRedirectResponse($this->runtimeConfig->loginUrl());
         }
     }
 
     private function buildResetPasswordUrl(string $token, string $selector, string $validator): string
     {
-        if ($selector !== '' && $validator !== '') {
-            return 'resetar-senha?selector=' . urlencode($selector) . '&validator=' . urlencode($validator);
-        }
-
-        return 'resetar-senha?token=' . urlencode($token);
+        return $this->runtimeConfig->resetPasswordUrl($token, $selector, $validator);
     }
 
     private function applyRateLimit(string $action, int $limit, int $seconds): void

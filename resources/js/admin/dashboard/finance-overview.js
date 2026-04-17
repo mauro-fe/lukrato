@@ -1,4 +1,5 @@
-import { apiGet } from '../shared/api.js';
+import { apiGet, getBaseUrl } from '../shared/api.js';
+import { resolveFinanceSummaryEndpoint } from '../api/endpoints/finance.js';
 import { Utils } from './state.js';
 
 /**
@@ -9,7 +10,7 @@ import { Utils } from './state.js';
 class FinanceOverview {
   constructor(containerId = 'financeOverviewContainer') {
     this.container = document.getElementById(containerId);
-    this.baseURL = window.BASE_URL || '/';
+    this.baseURL = getBaseUrl();
   }
 
   render() {
@@ -41,7 +42,7 @@ class FinanceOverview {
   async load() {
     try {
       const { mes, ano } = this.getSelectedPeriod();
-      const result = await apiGet(`${this.baseURL}api/financas/resumo`, { mes, ano });
+      const result = await apiGet(resolveFinanceSummaryEndpoint(), { mes, ano });
 
       if (result.success && result.data) {
         this.renderAlerts(result.data);

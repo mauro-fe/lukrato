@@ -1,3 +1,9 @@
+import {
+    resolveAccountsEndpoint,
+    resolveCategoriesEndpoint,
+    resolveCategorySubcategoriesEndpoint,
+} from '../api/endpoints/finance.js';
+
 export function attachLancamentosModalOptions(OptionsManager, dependencies) {
     const {
         CONFIG,
@@ -66,7 +72,7 @@ export function attachLancamentosModalOptions(OptionsManager, dependencies) {
                 return;
             }
             try {
-                const json = await apiGet(`${CONFIG.BASE_URL}api/categorias/${normalizedCategoriaId}/subcategorias`);
+                const json = await apiGet(resolveCategorySubcategoriesEndpoint(normalizedCategoriaId));
                 const subs = [...(json?.data?.subcategorias ?? (Array.isArray(json?.data) ? json.data : []))]
                     .sort((a, b) => String(a?.nome || '').localeCompare(String(b?.nome || ''), 'pt-BR', { sensitivity: 'base' }));
 
@@ -156,8 +162,8 @@ export function attachLancamentosModalOptions(OptionsManager, dependencies) {
 
         loadFilterOptions: async () => {
             const [categorias, contas] = await Promise.all([
-                DOM.selectCategoria ? Modules.API.fetchJsonList(`${CONFIG.BASE_URL}api/categorias`) : Promise.resolve([]),
-                DOM.selectConta ? Modules.API.fetchJsonList(`${CONFIG.BASE_URL}api/contas?only_active=1&with_balances=1`) : Promise.resolve([])
+                DOM.selectCategoria ? Modules.API.fetchJsonList(resolveCategoriesEndpoint()) : Promise.resolve([]),
+                DOM.selectConta ? Modules.API.fetchJsonList(`${resolveAccountsEndpoint()}?only_active=1&with_balances=1`) : Promise.resolve([])
             ]);
 
             if (DOM.selectCategoria) {

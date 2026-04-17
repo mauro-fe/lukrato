@@ -54,10 +54,10 @@ type ContaRecord = {
 export type CreateContaInput = {
   name: string;
   accountType:
-    | 'conta_corrente'
-    | 'conta_poupanca'
-    | 'carteira_digital'
-    | 'dinheiro';
+  | 'conta_corrente'
+  | 'conta_poupanca'
+  | 'carteira_digital'
+  | 'dinheiro';
   institutionId?: string;
   institutionName?: string;
   initialBalance: number;
@@ -290,21 +290,21 @@ function buildSnapshot(
   const focus =
     negativeAccounts.length > 0
       ? {
-          title: 'Revise primeiro a conta que saiu do trilho',
-          description:
-            'Quando alguma conta fica negativa, ela sobe para o topo porque e a informacao que mais ajuda o usuario a agir rapido.',
-          amount: focusAccount.balance,
-          supportText: `${focusAccount.name} esta pedindo ajuste antes de novas saidas.`,
-          tone: 'negative' as const,
-        }
+        title: 'Revise primeiro a conta que saiu do trilho',
+        description:
+          'Quando alguma conta fica negativa, ela sobe para o topo porque e a informacao que mais ajuda o usuario a agir rapido.',
+        amount: focusAccount.balance,
+        supportText: `${focusAccount.name} esta pedindo ajuste antes de novas saidas.`,
+        tone: 'negative' as const,
+      }
       : {
-          title: 'Sua conta principal esta facil de encontrar',
-          description:
-            'O app destaca a conta mais forte do dia a dia para o usuario bater o olho e entender onde o dinheiro esta entrando.',
-          amount: focusAccount.balance,
-          supportText: `${focusAccount.name} lidera o saldo disponivel neste momento.`,
-          tone: 'positive' as const,
-        };
+        title: 'Sua conta principal esta facil de encontrar',
+        description:
+          'O app destaca a conta mais forte do dia a dia para o usuario bater o olho e entender onde o dinheiro esta entrando.',
+        amount: focusAccount.balance,
+        supportText: `${focusAccount.name} lidera o saldo disponivel neste momento.`,
+        tone: 'positive' as const,
+      };
 
   return {
     monthLabel: getMonthLabel(monthKey),
@@ -404,12 +404,12 @@ class ContasRepository {
   async getSnapshot(monthKey = getCurrentMonthKey()): Promise<RepositoryResult<ContasSnapshot>> {
     try {
       const [activeAccounts, archivedAccounts] = await Promise.all([
-        httpClient.get<RemoteConta[]>('api/contas', {
+        httpClient.get<RemoteConta[]>('api/v1/contas', {
           with_balances: 1,
           only_active: 1,
           month: monthKey,
         }),
-        httpClient.get<RemoteConta[]>('api/contas', {
+        httpClient.get<RemoteConta[]>('api/v1/contas', {
           archived: 1,
           with_balances: 1,
           month: monthKey,
@@ -432,7 +432,7 @@ class ContasRepository {
   async getFormOptions(): Promise<RepositoryResult<{ institutions: ContaInstitutionOption[] }>> {
     try {
       const remoteInstitutions = await httpClient.get<RemoteInstitutionOption[]>(
-        'api/contas/instituicoes'
+        'api/v1/contas/instituicoes'
       );
 
       return {
@@ -464,7 +464,7 @@ class ContasRepository {
     };
 
     try {
-      await httpClient.post('api/contas', payload, undefined, { csrf: true });
+      await httpClient.post('api/v1/contas', payload, undefined, { csrf: true });
 
       return {
         source: 'remote',

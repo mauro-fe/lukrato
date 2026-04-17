@@ -4,7 +4,6 @@
  */
 
 import { Modules } from './state.js';
-import { apiGet, apiPost } from '../shared/api.js';
 import { createPageCustomizer } from '../shared/page-customizer.js';
 import { fetchUiPagePreferences, persistUiPagePreferences } from '../shared/ui-preferences.js';
 
@@ -51,26 +50,11 @@ const ESSENTIAL_DEFAULTS = {
 };
 
 async function loadDashboardPrefs() {
-    // New reusable endpoint
-    try {
-        return await fetchUiPagePreferences('dashboard');
-    } catch {
-        // Backward compatibility while old endpoint exists
-        const legacyResponse = await apiGet('api/perfil/dashboard-preferences');
-        const legacyData = legacyResponse?.data ?? legacyResponse;
-        return legacyData?.preferences ?? {};
-    }
+    return fetchUiPagePreferences('dashboard');
 }
 
 async function saveDashboardPrefs(prefs) {
-    // New reusable endpoint
-    try {
-        await persistUiPagePreferences('dashboard', prefs);
-        return;
-    } catch {
-        // Backward compatibility while old endpoint exists
-        await apiPost('api/perfil/dashboard-preferences', prefs);
-    }
+    await persistUiPagePreferences('dashboard', prefs);
 }
 
 const dashboardCustomizer = createPageCustomizer({

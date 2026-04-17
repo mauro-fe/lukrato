@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Controllers\Auth;
 
+use Application\Config\AuthRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Controllers\Auth\EmailVerificationController;
 use Application\Controllers\Auth\ForgotPasswordController;
@@ -69,33 +70,40 @@ class AuthDependencyResolutionTest extends TestCase
         $passwordResetService = Mockery::mock(PasswordResetService::class);
         $emailVerificationService = Mockery::mock(EmailVerificationService::class);
         $usuarioRepository = Mockery::mock(UsuarioRepository::class);
+        $runtimeConfig = new AuthRuntimeConfig();
 
         $container = new IlluminateContainer();
         $container->instance(PasswordResetService::class, $passwordResetService);
         $container->instance(EmailVerificationService::class, $emailVerificationService);
         $container->instance(UsuarioRepository::class, $usuarioRepository);
+        $container->instance(AuthRuntimeConfig::class, $runtimeConfig);
         ApplicationContainer::setInstance($container);
 
         $forgotPasswordController = new ForgotPasswordController();
         $emailVerificationController = new EmailVerificationController();
 
         $this->assertSame($passwordResetService, $this->readProperty($forgotPasswordController, 'service'));
+        $this->assertSame($runtimeConfig, $this->readProperty($forgotPasswordController, 'runtimeConfig'));
         $this->assertSame($emailVerificationService, $this->readProperty($emailVerificationController, 'verificationService'));
         $this->assertSame($usuarioRepository, $this->readProperty($emailVerificationController, 'usuarioRepo'));
+        $this->assertSame($runtimeConfig, $this->readProperty($emailVerificationController, 'runtimeConfig'));
     }
 
     public function testGoogleControllersResolveDependenciesFromContainerWhenAvailable(): void
     {
         $googleAuthService = Mockery::mock(GoogleAuthService::class);
+        $runtimeConfig = new AuthRuntimeConfig();
 
         $container = new IlluminateContainer();
         $container->instance(GoogleAuthService::class, $googleAuthService);
+        $container->instance(AuthRuntimeConfig::class, $runtimeConfig);
         ApplicationContainer::setInstance($container);
 
         $googleLoginController = new GoogleLoginController();
         $googleCallbackController = new GoogleCallbackController();
 
         $this->assertSame($googleAuthService, $this->readProperty($googleLoginController, 'googleAuthService'));
+        $this->assertSame($runtimeConfig, $this->readProperty($googleLoginController, 'runtimeConfig'));
         $this->assertSame($googleAuthService, $this->readProperty($googleCallbackController, 'googleAuthService'));
     }
 

@@ -2,6 +2,14 @@
  * Support + Assistente IA
  */
 import { apiFetch, apiGet, apiPost, getErrorMessage, logClientError } from '../shared/api.js';
+import {
+    resolveAiActionConfirmEndpoint,
+    resolveAiActionRejectEndpoint,
+    resolveAiConversationMessagesEndpoint,
+    resolveAiConversationsEndpoint,
+    resolveAiQuotaEndpoint,
+} from '../api/endpoints/ai.js';
+import { resolveSupportSendEndpoint } from '../api/endpoints/engagement.js';
 import { toastError, toastSuccess, toastWarning } from '../shared/ui.js';
 import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
 
@@ -514,7 +522,7 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
         }
 
         try {
-            const data = await apiPost('api/suporte/enviar', { message, retorno });
+            const data = await apiPost(resolveSupportSendEndpoint(), { message, retorno });
 
             if (data.success) {
                 if (dom.supportMsg) dom.supportMsg.value = '';
@@ -613,7 +621,7 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
 
     async function loadOrCreateConversation() {
         try {
-            const data = await apiFetch('api/ai/conversations', { method: 'GET' }, { timeout: 15000 });
+            const data = await apiFetch(resolveAiConversationsEndpoint(), { method: 'GET' }, { timeout: 15000 });
 
             if (data.success && Array.isArray(data.data) && data.data.length > 0) {
                 const [latest] = data.data.sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
@@ -643,7 +651,7 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
 
     async function createConversation() {
         try {
-            const data = await apiPost('api/ai/conversations', {});
+            const data = await apiPost(resolveAiConversationsEndpoint(), {});
 
             if (data.success && data.data?.id) {
                 state.currentConvId = data.data.id;
@@ -658,7 +666,7 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
 
     async function loadMessages(convId) {
         try {
-            const data = await apiGet(`api/ai/conversations/${encodeURIComponent(convId)}/messages`);
+            const data = await apiGet(resolveAiConversationMessagesEndpoint(convId));
 
             if (data.success && Array.isArray(data.data) && data.data.length > 0) {
                 clearMessages(false);
@@ -780,7 +788,7 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
         const typingEl = appendAIMessage('assistant', '● ● ●', true);
 
         try {
-            const data = await apiFetch(`api/ai/conversations/${encodeURIComponent(state.currentConvId)}/messages`, {
+            const data = await apiFetch(resolveAiConversationMessagesEndpoint(state.currentConvId), {
                 method: 'POST',
                 body: { message },
             }, { timeout: 120000 });
@@ -833,7 +841,7 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
             formData.append('attachment', file);
             if (textMsg) formData.append('message', textMsg);
 
-            const data = await apiFetch(`api/ai/conversations/${encodeURIComponent(state.currentConvId)}/messages`, {
+            const data = await apiFetch(resolveAiConversationMessagesEndpoint(state.currentConvId), {
                 method: 'POST',
                 body: formData,
             }, { timeout: 120000 });
@@ -924,7 +932,7 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
         if (categorySelect?.value) payload.categoria_id = Number(categorySelect.value);
 
         try {
-            const data = await apiFetch(`api/ai/actions/${encodeURIComponent(pendingId)}/confirm`, {
+            const data = await apiFetch(resolveAiActionConfirmEndpoint(pendingId), {
                 method: 'POST',
                 body: payload,
             });
@@ -950,7 +958,7 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
         disableConfirmButtons(wrapper);
 
         try {
-            const data = await apiPost(`api/ai/actions/${encodeURIComponent(pendingId)}/reject`, {});
+            const data = await apiPost(resolveAiActionRejectEndpoint(pendingId), {});
 
             wrapper.remove();
             appendAIMessage('assistant', data.data?.message || 'Acao cancelada.', false, {
@@ -972,7 +980,7 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
         if (!dom.aiQuotaText || state.planTier === 'ultra') return;
 
         try {
-            const data = await apiGet('api/ai/quota');
+            const data = await apiGet(resolveAiQuotaEndpoint());
             const chat = data.data?.chat;
 
             if (!data.success || !chat) return;

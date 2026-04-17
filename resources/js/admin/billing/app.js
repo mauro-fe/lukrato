@@ -1,4 +1,5 @@
-import { apiPost, getBaseUrl, getCSRFToken, getErrorMessage } from '../shared/api.js';
+import { apiPost, getBaseUrl, getErrorMessage } from '../shared/api.js';
+import { resolvePremiumCancelEndpoint } from '../api/endpoints/billing.js';
 import { initCustomize } from './customize.js';
 
 const BASE_URL = getBaseUrl();
@@ -113,8 +114,7 @@ function setupCancelSubscription() {
         });
 
         try {
-            const csrfToken = getCSRFToken();
-            const data = await apiPost(`${BASE_URL}premium/cancel`, { csrf_token: csrfToken });
+            const data = await apiPost(resolvePremiumCancelEndpoint());
 
             if (data?.success === false) {
                 throw new Error(getErrorMessage({ data }, 'Erro ao cancelar assinatura.'));

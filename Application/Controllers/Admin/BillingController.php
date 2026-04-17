@@ -68,11 +68,22 @@ class BillingController extends WebController
         if ($user) {
             $cpfValue = $this->getDocumentoRepo()->getCpf($user->id) ?? '';
 
-            $telRow = DB::table('telefones as t')
-                ->leftJoin('ddd as d', 'd.id_ddd', '=', 't.id_ddd')
-                ->where('t.id_usuario', $user->id)
-                ->orderBy('t.id_telefone')
-                ->first();
+            $hasTelefonesTable = DB::schema()->hasTable('telefones');
+            $hasDddTable = DB::schema()->hasTable('ddd');
+            $hasEnderecosTable = DB::schema()->hasTable('enderecos');
+
+            $telRow = null;
+            if ($hasTelefonesTable) {
+                $telQuery = DB::table('telefones as t')
+                    ->where('t.id_usuario', $user->id)
+                    ->orderBy('t.id_telefone');
+
+                if ($hasDddTable) {
+                    $telQuery->leftJoin('ddd as d', 'd.id_ddd', '=', 't.id_ddd');
+                }
+
+                $telRow = $telQuery->first();
+            }
 
             if ($telRow) {
                 $ddd = trim((string) ($telRow->codigo ?? ''));
@@ -82,14 +93,17 @@ class BillingController extends WebController
                 }
             }
 
-            $endereco = $user->enderecoPrincipal ?? null;
+            $endereco = null;
+            if ($hasEnderecosTable) {
+                $endereco = $user->enderecoPrincipal ?? null;
 
-            if (!$endereco || empty($endereco->cep)) {
-                $endereco = DB::table('enderecos')
-                    ->where('user_id', $user->id)
-                    ->whereNotNull('cep')
-                    ->where('cep', '!=', '')
-                    ->first();
+                if (!$endereco || empty($endereco->cep)) {
+                    $endereco = DB::table('enderecos')
+                        ->where('user_id', $user->id)
+                        ->whereNotNull('cep')
+                        ->where('cep', '!=', '')
+                        ->first();
+                }
             }
 
             if ($endereco && !empty($endereco->cep)) {

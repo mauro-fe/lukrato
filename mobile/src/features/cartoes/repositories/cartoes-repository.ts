@@ -173,7 +173,7 @@ function mapAlert(alert: RemoteAlert, index: number): CartaoAlert {
 
 async function loadCardMeta(card: RemoteCard) {
   const pendingPayload = await httpClient
-    .get<RemotePendingMonths>(`api/cartoes/${card.id}/faturas-pendentes`)
+    .get<RemotePendingMonths>(`api/v1/cartoes/${card.id}/faturas-pendentes`)
     .catch(() => ({ meses: [] }));
   const pendingMonths = Array.isArray(pendingPayload.meses) ? pendingPayload.meses.slice() : [];
   const referenceMonth = pendingMonths.sort((left, right) => {
@@ -188,13 +188,13 @@ async function loadCardMeta(card: RemoteCard) {
 
   const [invoicePayload, statusPayload] = await Promise.all([
     httpClient
-      .get<RemoteInvoice>(`api/cartoes/${card.id}/fatura`, {
+      .get<RemoteInvoice>(`api/v1/cartoes/${card.id}/fatura`, {
         mes: month,
         ano: year,
       })
       .catch(() => ({ total: 0 })),
     httpClient
-      .get<RemoteInvoiceStatus>(`api/cartoes/${card.id}/fatura/status`, {
+      .get<RemoteInvoiceStatus>(`api/v1/cartoes/${card.id}/fatura/status`, {
         mes: month,
         ano: year,
       })
@@ -376,10 +376,10 @@ class CartoesRepository {
     try {
       const warnings: string[] = [];
       const [resumo, cardsPayload, alertsPayload] = await Promise.all([
-        httpClient.get<RemoteResumo>('api/cartoes/resumo'),
-        httpClient.get<RemoteCard[]>('api/cartoes'),
+        httpClient.get<RemoteResumo>('api/v1/cartoes/resumo'),
+        httpClient.get<RemoteCard[]>('api/v1/cartoes'),
         httpClient
-          .get<RemoteAlertsPayload>('api/cartoes/alertas')
+          .get<RemoteAlertsPayload>('api/v1/cartoes/alertas')
           .catch(() => {
             warnings.push('Alertas de cartao indisponiveis no momento.');
             return { total: 0, alertas: [] };

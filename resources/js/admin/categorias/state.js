@@ -28,8 +28,6 @@ export const CONFIG = {
     })(),
 };
 
-CONFIG.API_URL = `${CONFIG.BASE_URL}api/`;
-
 // ─── Mutable State ───────────────────────────────────────────────────────────
 
 export const STATE = {

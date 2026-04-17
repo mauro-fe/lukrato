@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Controllers\Api\User;
 
 use Application\Controllers\Api\User\SessionController;
+use Application\Lib\Auth;
 use Application\Models\Usuario;
 use PHPUnit\Framework\TestCase;
 use Tests\Support\SessionIsolation;
@@ -64,8 +65,33 @@ class SessionControllerTest extends TestCase
         $this->assertTrue($payload['success']);
         $this->assertTrue($payload['data']['authenticated']);
         $this->assertFalse($payload['data']['expired']);
+        $this->assertFalse($payload['data']['showWarning']);
+        $this->assertTrue($payload['data']['canRenew']);
+        $this->assertSame(300, $payload['data']['warningThreshold']);
         $this->assertSame('Session User', $payload['data']['userName']);
+        $this->assertFalse($payload['data']['isRemembered']);
+        $this->assertGreaterThan(0, $payload['data']['sessionLifetime']);
         $this->assertGreaterThan(0, $payload['data']['remainingTime']);
+    }
+
+    public function testStatusReturnsExpiredButRenewablePayloadDuringGracePeriod(): void
+    {
+        $this->seedAuthenticatedSession(1003, 'Grace User');
+        $_SESSION['last_activity'] = time() - Auth::getSessionTimeout() - 60;
+
+        $controller = new SessionController();
+
+        $response = $controller->status();
+        $payload = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertTrue($payload['success']);
+        $this->assertFalse($payload['data']['authenticated']);
+        $this->assertTrue($payload['data']['expired']);
+        $this->assertTrue($payload['data']['showWarning']);
+        $this->assertTrue($payload['data']['canRenew']);
+        $this->assertSame('Grace User', $payload['data']['userName']);
+        $this->assertSame(0, $payload['data']['remainingTime']);
     }
 
     public function testRenewReturnsUnauthorizedWhenSessionIsMissing(): void
@@ -79,6 +105,24 @@ class SessionControllerTest extends TestCase
             'success' => false,
             'message' => 'Sessão inválida. Por favor, faça login novamente.',
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+    }
+
+    public function testRenewReturnsNewCsrfTokenAndSessionMetadataWhenSessionIsActive(): void
+    {
+        $this->seedAuthenticatedSession(1004, 'Renew User');
+
+        $controller = new SessionController();
+
+        $response = $controller->renew();
+        $payload = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertTrue($payload['success']);
+        $this->assertSame('Sessão renovada com sucesso', $payload['message']);
+        $this->assertMatchesRegularExpression('/^[a-f0-9]{64}$/', $payload['data']['newToken']);
+        $this->assertGreaterThan(0, $payload['data']['remainingTime']);
+        $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $payload['data']['expiresAt']);
+        $this->assertArrayHasKey('X-CSRF-TTL', $response->getHeaders());
     }
 
     public function testHeartbeatReturnsSuccessWhenUserIsAuthenticated(): void

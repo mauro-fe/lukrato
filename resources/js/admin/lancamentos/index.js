@@ -1,5 +1,11 @@
 ﻿import '../../../css/admin/lancamentos/index.css';
 import { CONFIG, DOM, initDOM, STATE, Utils, MoneyMask, Notifications, Modules } from './state.js';
+import {
+    resolveLancamentoEndpoint,
+    resolveLancamentosBulkDeleteEndpoint,
+    resolveLancamentosEndpoint,
+    resolveLancamentosExportEndpoint,
+} from '../api/endpoints/lancamentos.js';
 import { TableManager } from './table.js';
 import { MobileCards } from './mobile.js';
 import { OptionsManager, ModalManager } from './modal.js';
@@ -12,7 +18,7 @@ import {
     FaturaDetalhes
 } from './features.js';
 import { initCustomize } from './customize.js';
-import { apiDelete, apiFetch, apiGet, apiPost, apiPut } from '../shared/api.js';
+import { apiDelete, apiFetch, apiGet, apiPost, apiPut, getErrorMessage } from '../shared/api.js';
 
 export const API = {
     fetchJsonList: async (url) => {
@@ -31,7 +37,7 @@ export const API = {
         const qs = API.buildQuery({ month, tipo, categoria, conta, limit, startDate, endDate, search, status });
 
         try {
-            const data = await apiFetch(`${CONFIG.ENDPOINT}?${qs.toString()}`, {
+            const data = await apiFetch(`${resolveLancamentosEndpoint()}?${qs.toString()}`, {
                 method: 'GET',
                 headers: { 'Accept': 'application/json' },
                 signal
@@ -70,7 +76,7 @@ export const API = {
 
     deleteOne: async (id, scope = 'single') => {
         try {
-            const url = `${CONFIG.ENDPOINT}/${encodeURIComponent(id)}${scope !== 'single' ? `?scope=${scope}` : ''}`;
+            const url = `${resolveLancamentoEndpoint(id)}${scope !== 'single' ? `?scope=${scope}` : ''}`;
             await apiDelete(url);
             return true;
         } catch {
@@ -80,7 +86,7 @@ export const API = {
 
     bulkDelete: async (ids) => {
         try {
-            await apiPost(`${CONFIG.ENDPOINT}/delete`, { ids });
+            await apiPost(resolveLancamentosBulkDeleteEndpoint(), { ids });
             return true;
         } catch { /* fall through to fallback */ }
 
@@ -90,25 +96,23 @@ export const API = {
     },
 
     updateLancamento: async (id, payload) => {
-        return apiPut(`${CONFIG.ENDPOINT}/${encodeURIComponent(id)}`, payload);
+        return apiPut(resolveLancamentoEndpoint(id), payload);
     },
 
     exportLancamentos: async (params, format) => {
         const qs = API.buildQuery(params);
         qs.set('format', format);
 
-        const res = await fetch(`${CONFIG.EXPORT_ENDPOINT}?${qs.toString()}`, {
-            credentials: 'include'
-        });
-
-        if (!res.ok) {
-            let message = 'Falha ao exportar lançamentos.';
-            const maybeJson = await res.json().catch(() => null);
-            if (maybeJson?.message) message = maybeJson.message;
-            throw new Error(message);
+        try {
+            return await apiFetch(`${resolveLancamentosExportEndpoint()}?${qs.toString()}`, {
+                method: 'GET',
+            }, {
+                responseType: 'response',
+            });
+        } catch (error) {
+            error.message = getErrorMessage(error, 'Falha ao exportar lançamentos.');
+            throw error;
         }
-
-        return res;
     }
 };
 

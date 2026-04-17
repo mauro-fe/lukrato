@@ -3,10 +3,12 @@
  * Dois charts: Mensal (barras diárias) e Anual (área 12 meses)
  */
 
+import { apiGet } from '../shared/api.js';
+import { resolveDashboardEvolutionEndpoint } from '../api/endpoints/dashboard.js';
+
 class EvolucaoCharts {
     constructor(containerId = 'evolucaoChartsContainer') {
         this.container = document.getElementById(containerId);
-        this.baseURL = window.BASE_URL || window.__LK_CONFIG?.baseUrl || '/';
         this._chartMensal = null;
         this._chartAnual = null;
         this._activeTab = 'mensal';
@@ -82,12 +84,10 @@ class EvolucaoCharts {
 
     async _loadAndDraw() {
         const month = this._currentMonth || this._detectMonth();
-        const url = `${this.baseURL}api/dashboard/evolucao?month=${encodeURIComponent(month)}`;
 
         try {
-            const res = await fetch(url, { credentials: 'same-origin' });
-            const json = await res.json();
-            const data = json?.data ?? json;
+            const response = await apiGet(resolveDashboardEvolutionEndpoint(), { month });
+            const data = response?.data ?? response;
 
             if (!data?.mensal) return;
 

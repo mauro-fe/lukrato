@@ -82,7 +82,7 @@
             <figure class="relative" data-aos="fade-up" data-aos-delay="150">
                 <!-- Card principal -->
                 <div class="relative bg-white rounded-2xl shadow-xl border border-gray-100 p-3 lg:p-4">
-                    <img src="<?= BASE_URL ?>/assets/img/mockups/5.png"
+                    <img src="<?= BASE_URL ?>/assets/img/mockups/6-black.png"
                         alt="Dashboard do Lukrato mostrando controle financeiro pessoal em modo claro"
                         title="Sistema de controle financeiro Lukrato - Dashboard principal"
                         class="w-full h-auto rounded-xl" loading="eager" width="800" height="500"

@@ -7,12 +7,17 @@
  * ============================================================================
  */
 import { apiGet, apiPost } from '../shared/api.js';
+import {
+    resolveFeedbackCanMicroEndpoint,
+    resolveFeedbackCheckNpsEndpoint,
+    resolveFeedbackEndpoint,
+} from '../api/endpoints/engagement.js';
+import { getRuntimeConfig } from './runtime-config.js';
 
 (function () {
     'use strict';
 
-    const BASE = () => window.LK?.getBase?.() || window.__LK_CONFIG?.baseUrl || '/';
-    const userId = () => window.__LK_CONFIG?.userId;
+    const userId = () => getRuntimeConfig().userId;
 
     // ========================================================================
     // API HELPERS
@@ -20,11 +25,7 @@ import { apiGet, apiPost } from '../shared/api.js';
 
     async function postFeedback(data) {
         try {
-            if (window.LK?.api?.post) {
-                const res = await LK.api.post('api/feedback', data);
-                return res?.ok ?? res?.data?.success ?? false;
-            }
-            const json = await apiPost(BASE() + 'api/feedback', data);
+            const json = await apiPost(resolveFeedbackEndpoint(), data);
             return json.success === true;
         } catch {
             return false;
@@ -33,11 +34,7 @@ import { apiGet, apiPost } from '../shared/api.js';
 
     async function apiCheck(endpoint) {
         try {
-            if (window.LK?.api?.get) {
-                const res = await LK.api.get(endpoint);
-                return res?.data?.data ?? res?.data ?? {};
-            }
-            const json = await apiGet(BASE() + endpoint);
+            const json = await apiGet(endpoint);
             return json.data ?? json;
         } catch {
             return {};
@@ -55,7 +52,7 @@ import { apiGet, apiPost } from '../shared/api.js';
         if (sessionStorage.getItem(sessionKey)) return;
 
         try {
-            const check = await apiCheck(`api/feedback/can-micro?contexto=${encodeURIComponent(contexto)}`);
+            const check = await apiCheck(`${resolveFeedbackCanMicroEndpoint()}?contexto=${encodeURIComponent(contexto)}`);
             if (!check.can_show) return;
         } catch { return; }
 
@@ -151,7 +148,7 @@ import { apiGet, apiPost } from '../shared/api.js';
             if (!userId()) return;
 
             try {
-                const check = await apiCheck('api/feedback/check-nps');
+                const check = await apiCheck(resolveFeedbackCheckNpsEndpoint());
                 if (!check.show_nps) return;
             } catch { return; }
 

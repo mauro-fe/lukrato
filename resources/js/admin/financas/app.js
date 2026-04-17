@@ -6,6 +6,16 @@
 
 import { CONFIG, STATE, Modules, Utils, getCategoryIconColor } from './state.js';
 import {
+    resolveAccountsEndpoint,
+    resolveCategoriesEndpoint,
+    resolveFinanceGoalEndpoint,
+    resolveFinanceGoalTemplatesEndpoint,
+    resolveFinanceGoalsEndpoint,
+    resolveFinanceBudgetsEndpoint,
+    resolveFinanceInsightsEndpoint,
+    resolveFinanceSummaryEndpoint,
+} from '../api/endpoints/finance.js';
+import {
     apiDelete as sharedApiDelete,
     apiGet as sharedApiGet,
     apiPost as sharedApiPost,
@@ -17,8 +27,8 @@ import { createFinancasOrcamentos } from './app-orcamentos.js';
 
 // ── API Helpers ────────────────────────────────────────────────
 
-async function apiGet(endpoint) {
-    return sharedApiGet(endpoint);
+async function apiGet(endpoint, params) {
+    return sharedApiGet(endpoint, params);
 }
 
 async function apiPost(endpoint, data) {
@@ -175,7 +185,7 @@ export const FinancasApp = {
             try {
                 const stored = localStorage.getItem('financas_tab');
                 if (stored && validTabs.includes(stored)) initialTab = stored;
-            } catch (e) { }
+            } catch { }
         }
         if (initialTab !== 'orcamentos') FinancasApp.switchTab(initialTab);
 
@@ -303,7 +313,7 @@ export const FinancasApp = {
 
     async loadCategorias() {
         try {
-            const res = await apiGet('api/categorias');
+            const res = await apiGet(resolveCategoriesEndpoint());
             if (res.success !== false && res.data) {
                 // Filter only expense categories (despesa)
                 STATE.categorias = (res.data || []).filter(c => c.tipo === 'despesa');
@@ -316,7 +326,7 @@ export const FinancasApp = {
 
     async loadContas() {
         try {
-            const res = await apiGet('api/contas?only_active=1&with_balances=1');
+            const res = await apiGet(resolveAccountsEndpoint(), { only_active: 1, with_balances: 1 });
             // A API de contas retorna array direto (sem wrapper {success, data})
             if (Array.isArray(res)) {
                 STATE.contas = res;
@@ -342,7 +352,7 @@ export const FinancasApp = {
 
     async loadResumo() {
         try {
-            const res = await apiGet(`api/financas/resumo?mes=${STATE.currentMonth}&ano=${STATE.currentYear}`);
+            const res = await apiGet(resolveFinanceSummaryEndpoint(), { mes: STATE.currentMonth, ano: STATE.currentYear });
             if (res.success !== false) {
                 applyPreviewMeta(res.data?.meta);
                 FinancasApp.renderResumo(res.data);
@@ -354,7 +364,7 @@ export const FinancasApp = {
 
     async loadOrcamentos() {
         try {
-            const res = await apiGet(`api/financas/orcamentos?mes=${STATE.currentMonth}&ano=${STATE.currentYear}`);
+            const res = await apiGet(resolveFinanceBudgetsEndpoint(), { mes: STATE.currentMonth, ano: STATE.currentYear });
             if (res.success !== false) {
                 applyPreviewMeta(res.data?.meta);
                 STATE.orcamentos = getCollectionPayload(res.data, 'orcamentos');
@@ -367,7 +377,7 @@ export const FinancasApp = {
 
     async loadMetas() {
         try {
-            const res = await apiGet('api/financas/metas');
+            const res = await apiGet(resolveFinanceGoalsEndpoint());
             if (res.success !== false) {
                 applyPreviewMeta(res.data?.meta);
                 STATE.metas = getCollectionPayload(res.data, 'metas');
@@ -380,7 +390,7 @@ export const FinancasApp = {
 
     async loadInsights() {
         try {
-            const res = await apiGet(`api/financas/insights?mes=${STATE.currentMonth}&ano=${STATE.currentYear}`);
+            const res = await apiGet(resolveFinanceInsightsEndpoint(), { mes: STATE.currentMonth, ano: STATE.currentYear });
             if (res.success !== false) {
                 applyPreviewMeta(res.data?.meta);
                 FinancasApp.renderInsights(getCollectionPayload(res.data, 'insights'));
@@ -545,9 +555,9 @@ export const FinancasApp = {
         try {
             let res;
             if (metaId) {
-                res = await apiPut(`api/financas/metas/${metaId}`, data);
+                res = await apiPut(resolveFinanceGoalEndpoint(metaId), data);
             } else {
-                res = await apiPost('api/financas/metas', data);
+                res = await apiPost(resolveFinanceGoalsEndpoint(), data);
             }
 
             // Verificar se é erro de limite do plano
@@ -587,7 +597,7 @@ export const FinancasApp = {
         if (!result.isConfirmed) return;
 
         try {
-            const res = await apiDelete(`api/financas/metas/${id}`);
+            const res = await apiDelete(resolveFinanceGoalEndpoint(id));
             if (res.success !== false) {
                 Utils.showToast('Meta excluída', 'success');
                 await FinancasApp.loadAll();
@@ -617,45 +627,6 @@ export const FinancasApp = {
         e.preventDefault();
         FinancasApp.closeModal('modalAporte');
         Utils.showToast('Para movimentar metas, use lançamentos com vínculo de meta.', 'info');
-        return;
-
-        const metaId = document.getElementById('aporteMetaId').value;
-        const valor = Utils.parseMoney(document.getElementById('aporteValor').value);
-
-        if (valor <= 0) return Utils.showToast('Informe um valor válido', 'error');
-
-        try {
-            const res = await apiPost(`api/financas/metas/${metaId}/aporte`, { valor });
-
-            if (res.success !== false) {
-                FinancasApp.closeModal('modalAporte');
-
-                // Extrair meta e gamificação da resposta
-                const responseData = res.data;
-                const meta = responseData?.meta || responseData;
-                const gamification = responseData?.gamification || res.gamification;
-
-                if (meta?.status === 'concluida') {
-                    await Swal.fire({
-                        icon: 'success',
-                        title: '🎉 Meta concluída!',
-                        html: `Parabéns! Você atingiu <strong>${Utils.formatCurrency(meta.valor_alvo)}</strong> na meta <strong>${Utils.escHtml(meta.titulo)}</strong>!`,
-                        confirmButtonText: 'Celebrar! 🎊'
-                    });
-                } else {
-                    Utils.showToast('Aporte registrado!', 'success');
-                }
-
-                // Processar conquistas desbloqueadas (após o modal de conclusão)
-                processGamification(gamification);
-
-                await FinancasApp.loadAll();
-            } else {
-                Utils.showToast(res.message || 'Erro ao registrar aporte', 'error');
-            }
-        } catch (e) {
-            Utils.showToast(requestErrorMessage(e, 'Erro ao registrar aporte'), 'error');
-        }
     },
 
     // ==================== METAS: TEMPLATES ====================
@@ -667,7 +638,7 @@ export const FinancasApp = {
         if (window.lucide) lucide.createIcons();
 
         try {
-            const res = await apiGet('api/financas/metas/templates');
+            const res = await apiGet(resolveFinanceGoalTemplatesEndpoint());
             if (res.success !== false && res.data?.length) {
                 const _faToLucide = {
                     'fa-arrow-down': 'arrow-down', 'fa-arrow-up': 'arrow-up', 'fa-calendar-alt': 'calendar-days',
@@ -700,7 +671,7 @@ export const FinancasApp = {
             } else {
                 grid.innerHTML = '<div class="fin-empty-state"><p>Nenhum template disponível.</p></div>';
             }
-        } catch (e) {
+        } catch {
             grid.innerHTML = '<div class="fin-empty-state"><p>Erro ao carregar templates.</p></div>';
         }
     },

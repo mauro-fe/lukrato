@@ -8,16 +8,26 @@
  */
 
 import { CONFIG, STATE, Utils, Modules } from './state.js';
-import { apiFetch, getApiPayload, getErrorMessage } from '../shared/api.js';
+import { apiFetch, getApiBaseUrl, getApiPayload, getErrorMessage } from '../shared/api.js';
 import { refreshIcons } from '../shared/ui.js';
+import {
+    resolveAccountArchiveEndpoint,
+    resolveAccountEndpoint,
+    resolveAccountsEndpoint,
+    resolveInstitutionsEndpoint,
+} from '../api/endpoints/finance.js';
 
 function normalizeApiUrl(url) {
     if (typeof url !== 'string') {
         return url;
     }
 
-    if (url.startsWith(CONFIG.BASE_URL)) {
-        return url.slice(CONFIG.BASE_URL.length);
+    const bases = [CONFIG.BASE_URL, getApiBaseUrl()].filter(Boolean);
+
+    for (const base of bases) {
+        if (url.startsWith(base)) {
+            return url.slice(base.length);
+        }
     }
 
     return url;
@@ -97,18 +107,7 @@ export const ContasAPI = {
 
     async loadInstituicoes() {
         try {
-            let data;
-
-            if (window.lkFetch) {
-                const result = await window.lkFetch.get(`${CONFIG.API_URL}/instituicoes`, {
-                    timeout: 15000,
-                    maxRetries: 2,
-                    showLoading: false
-                });
-                data = getApiPayload(result, []);
-            } else {
-                data = await requestJson(`${CONFIG.API_URL}/instituicoes`, { timeout: 15000 });
-            }
+            const data = await requestJson(resolveInstitutionsEndpoint(), { timeout: 15000 });
 
             STATE.instituicoes = Array.isArray(data) ? data : getApiPayload(data, []);
             Modules.Render.renderInstituicoesSelect();
@@ -128,7 +127,7 @@ export const ContasAPI = {
 
     async createInstituicao(data) {
         try {
-            return await requestJson(`${CONFIG.API_URL}/instituicoes`, {
+            return await requestJson(resolveInstitutionsEndpoint(), {
                 method: 'POST',
                 data,
             });
@@ -195,20 +194,8 @@ export const ContasAPI = {
                 preview: '1',
             });
 
-            const url = `${CONFIG.API_URL}/contas?${params}`;
-            let data;
-
-            if (window.lkFetch) {
-                const result = await window.lkFetch.get(url, {
-                    timeout: 20000,
-                    maxRetries: 2,
-                    showLoading: !silent,
-                    loadingTarget: '#accountsGrid'
-                });
-                data = getApiPayload(result, []);
-            } else {
-                data = await requestJson(url, { timeout: 20000 });
-            }
+            const url = `${resolveAccountsEndpoint()}?${params}`;
+            const data = await requestJson(url, { timeout: 20000 });
 
             const payload = getApiPayload(data, {});
             applyPreviewMeta(payload?.meta);
@@ -250,7 +237,7 @@ export const ContasAPI = {
         const requestId = `req_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 
         try {
-            const result = await requestJson(`${CONFIG.API_URL}/contas`, {
+            const result = await requestJson(resolveAccountsEndpoint(), {
                 method: 'POST',
                 data,
             });
@@ -291,12 +278,9 @@ export const ContasAPI = {
 
     async updateConta(contaId, data) {
         try {
-            const result = await requestJson(`${CONFIG.API_URL}/contas/${contaId}`, {
-                method: 'POST',
+            const result = await requestJson(resolveAccountEndpoint(contaId), {
+                method: 'PUT',
                 data,
-                headers: {
-                    'X-HTTP-Method-Override': 'PUT'
-                }
             });
 
             if (result.csrf_token) {
@@ -343,7 +327,7 @@ export const ContasAPI = {
         if (!result.isConfirmed) return;
 
         try {
-            await requestJson(`${CONFIG.API_URL}/contas/${contaId}/archive`, {
+            await requestJson(resolveAccountArchiveEndpoint(contaId), {
                 method: 'POST'
             });
 
@@ -373,11 +357,8 @@ export const ContasAPI = {
 
         ContasAPI.showDeleteConfirmation(nomeConta, async () => {
             try {
-                const result = await requestJson(`${CONFIG.API_URL}/contas/${contaId}`, {
-                    method: 'POST',
-                    headers: {
-                        'X-HTTP-Method-Override': 'DELETE'
-                    }
+                const result = await requestJson(resolveAccountEndpoint(contaId), {
+                    method: 'DELETE',
                 });
 
                 if (!result.success && result.errors?.requires_confirmation) {
@@ -406,11 +387,8 @@ export const ContasAPI = {
 
     async forceDeleteConta(contaId) {
         try {
-            await requestJson(`${CONFIG.API_URL}/contas/${contaId}?force=1`, {
-                method: 'POST',
-                headers: {
-                    'X-HTTP-Method-Override': 'DELETE'
-                }
+            await requestJson(`${resolveAccountEndpoint(contaId)}?force=1`, {
+                method: 'DELETE',
             });
 
             Utils.showToast('Conta e lancamentos excluidos com sucesso!', 'success');

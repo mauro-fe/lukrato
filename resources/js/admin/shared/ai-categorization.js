@@ -1,4 +1,5 @@
 import { apiPost, getErrorMessage } from './api.js';
+import { resolveAiSuggestCategoryEndpoint } from '../api/endpoints/ai.js';
 
 export async function sugerirCategoriaIA(opts) {
     const {
@@ -23,7 +24,7 @@ export async function sugerirCategoriaIA(opts) {
     }
 
     try {
-        const data = await apiPost('api/ai/suggest-category', { description: descricao });
+        const data = await apiPost(resolveAiSuggestCategoryEndpoint(), { description: descricao });
 
         if (data.success && data.data?.category) {
             const select = document.getElementById(categoriaSelectId);

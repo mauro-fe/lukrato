@@ -1,4 +1,6 @@
 import { apiGetCached } from '../shared/api-store.js';
+import { buildAppUrl } from '../shared/api.js';
+import { resolvePlanLimitsEndpoint } from '../api/endpoints/billing.js';
 
 /**
  * ============================================
@@ -16,18 +18,9 @@ import { apiGetCached } from '../shared/api-store.js';
     // ============================================
 
     const CONFIG = {
-        apiBase: (function () {
-            // Tentar várias formas de obter a URL base
-            if (typeof window.getBaseUrl === 'function') return window.getBaseUrl();
-            if (typeof LK !== 'undefined' && typeof LK.getBase === 'function') return LK.getBase();
-            const meta = document.querySelector('meta[name="base-url"]');
-            if (meta?.content) return meta.content.replace(/\/?$/, '/');
-            // Fallback para ambiente de desenvolvimento
-            return window.BASE_URL || '/lukrato/public/';
-        })(),
         cacheKey: 'lukrato_plan_limits',
         cacheTTL: 5 * 60 * 1000, // 5 minutos
-        upgradeUrl: '/billing',
+        upgradeUrl: buildAppUrl('billing'),
         // Mensagens contextuais por página
         contextualMessages: {
             relatorios: '📊 Análises completas e exportação com o Pro',
@@ -102,7 +95,9 @@ import { apiGetCached } from '../shared/api-store.js';
     let limitsData = null;
     let lastFetch = 0;
     let initPromise = null;
-    let apiInterceptorInstalled = false;
+    let activeUpgradePrompt = null;
+    let lastUpgradePromptKey = '';
+    let lastUpgradePromptAt = 0;
 
     // ============================================
     // API
@@ -117,7 +112,7 @@ import { apiGetCached } from '../shared/api-store.js';
         }
 
         try {
-            const result = await apiGetCached(`${CONFIG.apiBase}api/plan/limits`, {}, {
+            const result = await apiGetCached(resolvePlanLimitsEndpoint(), {}, {
                 cacheKey: 'global:plan-limits',
                 ttlMs: CONFIG.cacheTTL,
                 force,
@@ -207,13 +202,15 @@ import { apiGetCached } from '../shared/api-store.js';
             return raw;
         }
 
-        const normalizedBase = CONFIG.apiBase.replace(/\/?$/, '/');
-        const normalizedPath = raw.replace(/^\/+/, '');
-        return `${normalizedBase}${normalizedPath}`;
+        return buildAppUrl(raw);
     }
 
     function getUpgradeFeatures(context) {
         return CONFIG.contextualFeatures[context] || CONFIG.contextualFeatures.default;
+    }
+
+    function buildUpgradePromptKey({ title, message, context, upgradeUrl }) {
+        return [title, message, context, upgradeUrl].map((value) => String(value || '').trim()).join('::');
     }
 
     // ============================================
@@ -248,7 +245,7 @@ import { apiGetCached } from '../shared/api-store.js';
 
         if (showUpgrade) {
             html += `
-                <a href="${CONFIG.upgradeUrl}" class="btn btn-sm btn-${type === 'error' ? 'light' : 'primary'} ms-3">
+                <a href="${resolveUpgradeUrl(CONFIG.upgradeUrl)}" class="btn btn-sm btn-${type === 'error' ? 'light' : 'primary'} ms-3">
                     <i data-lucide="rocket" style="width:16px;height:16px;display:inline-block;"></i> Fazer Upgrade
                 </a>
             `;
@@ -398,25 +395,64 @@ import { apiGetCached } from '../shared/api-store.js';
             ? features
             : getUpgradeFeatures(detectedContext);
 
-        if (window.LKFeedback?.upgradePrompt) {
-            return window.LKFeedback.upgradePrompt({
+        const promptKey = buildUpgradePromptKey({
+            title,
+            message,
+            context: detectedContext,
+            upgradeUrl: resolvedUpgradeUrl,
+        });
+        const now = Date.now();
+
+        if (activeUpgradePrompt) {
+            return activeUpgradePrompt;
+        }
+
+        if (lastUpgradePromptKey === promptKey && (now - lastUpgradePromptAt) < 1500) {
+            return { isConfirmed: false, isDismissed: true, skipped: true };
+        }
+
+        lastUpgradePromptKey = promptKey;
+        lastUpgradePromptAt = now;
+
+        activeUpgradePrompt = (async () => {
+            if (window.LKFeedback?.upgradePrompt) {
+                return window.LKFeedback.upgradePrompt({
+                    title,
+                    message,
+                    context: detectedContext,
+                    features: featureList,
+                    upgradeUrl: resolvedUpgradeUrl,
+                });
+            }
+
+            showUpgradeModal({
                 title,
                 message,
                 context: detectedContext,
                 features: featureList,
                 upgradeUrl: resolvedUpgradeUrl,
             });
+
+            return { isConfirmed: false, isDismissed: true };
+        })();
+
+        return activeUpgradePrompt.finally(() => {
+            activeUpgradePrompt = null;
+            lastUpgradePromptAt = Date.now();
+        });
+    }
+
+    function handleApiLimitReached(payload = {}) {
+        const limitReached = payload?.limit_reached === true || payload?.errors?.limit_reached === true;
+        if (!limitReached) {
+            return false;
         }
 
-        showUpgradeModal({
-            title,
-            message,
-            context: detectedContext,
-            features: featureList,
-            upgradeUrl: resolvedUpgradeUrl,
+        return promptUpgrade({
+            context: getCurrentPageContext(),
+            message: payload?.message || 'Você atingiu o limite do plano gratuito.',
+            upgradeUrl: payload?.errors?.upgrade_url || payload?.upgrade_url || CONFIG.upgradeUrl,
         });
-
-        return { isConfirmed: false, isDismissed: true };
     }
 
     // ============================================
@@ -510,43 +546,6 @@ import { apiGetCached } from '../shared/api-store.js';
     }
 
     // ============================================
-    // INTERCEPTAR RESPOSTAS DA API
-    // ============================================
-
-    function setupApiInterceptor() {
-        if (apiInterceptorInstalled) {
-            return;
-        }
-
-        apiInterceptorInstalled = true;
-        const originalFetch = window.fetch;
-
-        window.fetch = async function (...args) {
-            const response = await originalFetch.apply(this, args);
-
-            // Clone para não consumir o body
-            const clone = response.clone();
-
-            try {
-                // Verificar se é resposta 403 com limit_reached
-                if (response.status === 403) {
-                    const data = await clone.json();
-                    const limitReached = data?.limit_reached || data?.errors?.limit_reached;
-                    if (limitReached) {
-                        promptUpgrade({
-                            context: getCurrentPageContext(),
-                            message: data.message || 'Você atingiu o limite do plano gratuito.',
-                            upgradeUrl: data?.errors?.upgrade_url || data?.upgrade_url || CONFIG.upgradeUrl,
-                        }).catch(() => { /* ignore */ });
-                    }
-                }
-            } catch (e) { /* ignore */ }
-
-            return response;
-        };
-    }
-
-    // ============================================
     // HISTÓRICO - APLICAR RESTRIÇÃO
     // ============================================
 
@@ -602,9 +601,6 @@ import { apiGetCached } from '../shared/api-store.js';
         if (limitsData.is_pro) {
             return;
         }
-
-        // Configurar interceptor de API
-        setupApiInterceptor();
 
         // Atualizar botões
         updateAddButtons();
@@ -680,6 +676,7 @@ import { apiGetCached } from '../shared/api-store.js';
         showLimitAlert,
         showUpgradeModal,
         promptUpgrade,
+        handleApiLimitReached,
         renderLimitBadge,
         updateAddButtons,
         getData: () => limitsData,

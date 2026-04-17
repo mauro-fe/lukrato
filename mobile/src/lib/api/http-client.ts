@@ -28,8 +28,21 @@ function isFormDataBody(body: RequestInit['body']) {
   return typeof FormData !== 'undefined' && body instanceof FormData;
 }
 
+function normalizeApiPath(path: string) {
+  if (/^https?:\/\//i.test(path)) {
+    return path;
+  }
+
+  if (/^\/?api\/(?!v1\/)/i.test(path)) {
+    return path.replace(/^\/?api\//i, (match) => (match.startsWith('/') ? '/api/v1/' : 'api/v1/'));
+  }
+
+  return path;
+}
+
 function buildUrl(path: string, query?: Record<string, QueryValue>) {
-  const url = new URL(path.replace(/^\//, ''), appConfig.apiBaseUrl);
+  const normalizedPath = normalizeApiPath(path);
+  const url = new URL(normalizedPath.replace(/^\//, ''), appConfig.apiBaseUrl);
 
   if (query) {
     Object.entries(query).forEach(([key, value]) => {
@@ -84,7 +97,7 @@ async function getCsrfToken(tokenId = 'default') {
   }
 
   const data = await request<{ token: string }>(
-    'api/csrf/refresh',
+    'api/v1/csrf/refresh',
     {
       method: 'POST',
       body: JSON.stringify({ token_id: tokenId }),

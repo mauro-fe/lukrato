@@ -448,7 +448,7 @@
     .nav-item
   ):not(.logo):not(.lk-fab-item):not(.lk-support-button) {
   position: relative;
-  color: var(--color-primary);
+  color: var(--color-text) !important;
   text-decoration: none;
   transition: all 0.3s ease;
 }

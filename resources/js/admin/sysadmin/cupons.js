@@ -7,10 +7,12 @@
  */
 
 import '../../../css/admin/sysadmin/cupons.css';
-import { apiDelete, apiGet, apiPost, getBaseUrl, getErrorMessage } from '../shared/api.js';
+import { apiDelete, apiGet, apiPost, getErrorMessage } from '../shared/api.js';
+import {
+    resolveCuponsEndpoint,
+    resolveCuponsStatisticsEndpoint,
+} from '../api/endpoints/cupons.js';
 import { escapeHtml } from '../shared/utils.js';
-
-const BASE_URL = getBaseUrl();
 
 let cupons = [];
 
@@ -21,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function carregarCupons() {
     try {
-        const data = await apiGet(`${BASE_URL}api/cupons`);
+        const data = await apiGet(resolveCuponsEndpoint());
 
         if (data.success) {
             cupons = data.data.cupons;
@@ -169,7 +171,7 @@ document.getElementById('formCupom').addEventListener('submit', async (e) => {
     data.meses_inatividade_reativacao = parseInt(document.getElementById('meses_inatividade_reativacao').value, 10) || 3;
 
     try {
-        const result = await apiPost(`${BASE_URL}api/cupons`, data);
+        const result = await apiPost(resolveCuponsEndpoint(), data);
 
         if (result.success) {
             LKFeedback.success(result.message, { toast: true });
@@ -196,7 +198,7 @@ async function excluirCupom(id, codigo) {
     if (!result.isConfirmed) return;
 
     try {
-        const data = await apiDelete(`${BASE_URL}api/cupons`, { id });
+        const data = await apiDelete(resolveCuponsEndpoint(), { id });
 
         if (data.success) {
             LKFeedback.success(data.message, { toast: true });
@@ -212,7 +214,7 @@ async function excluirCupom(id, codigo) {
 
 async function verEstatisticas(cupomId) {
     try {
-        const data = await apiGet(`${BASE_URL}api/cupons/estatisticas`, { id: cupomId });
+        const data = await apiGet(resolveCuponsStatisticsEndpoint(), { id: cupomId });
 
         if (!data.success) {
             throw new Error(data.message || 'Erro ao carregar estatisticas');

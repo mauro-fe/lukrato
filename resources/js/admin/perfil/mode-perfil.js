@@ -87,7 +87,7 @@ function bindProfileSubmit(context) {
         }
 
         try {
-            const response = await apiFetch(`${context.API}perfil`, {
+            const response = await apiFetch(context.endpoints.profile, {
                 method: 'POST',
                 credentials: 'include',
                 body: formData,

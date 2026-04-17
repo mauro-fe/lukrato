@@ -1,5 +1,6 @@
 import { apiGetCached, invalidateApiCache } from '../shared/api-store.js';
 import { CONFIG, Utils } from './state.js';
+import { resolveDashboardOverviewEndpoint } from '../api/endpoints/dashboard.js';
 
 const OVERVIEW_TTL_MS = 30000;
 
@@ -8,7 +9,7 @@ function overviewCacheKey(month, limit) {
 }
 
 export function getDashboardOverview(month = Utils.getCurrentMonth(), { limit = CONFIG.TRANSACTIONS_LIMIT, force = false } = {}) {
-    return apiGetCached(`${CONFIG.API_URL}dashboard/overview`, {
+    return apiGetCached(resolveDashboardOverviewEndpoint(), {
         month,
         limit,
     }, {

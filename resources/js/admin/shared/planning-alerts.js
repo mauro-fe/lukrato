@@ -1,4 +1,8 @@
 import { apiGet, logClientWarning } from './api.js';
+import {
+    resolveFinanceBudgetsEndpoint,
+    resolveFinanceGoalsEndpoint,
+} from '../api/endpoints/finance.js';
 
 function getCollectionPayload(data, key) {
     if (Array.isArray(data)) {
@@ -208,7 +212,7 @@ class PlanningAlertsStore {
             return this.metaRequest;
         }
 
-        this.metaRequest = apiGet('api/financas/metas')
+        this.metaRequest = apiGet(resolveFinanceGoalsEndpoint())
             .then((response) => {
                 this.setMetas(getCollectionPayload(response, 'metas'));
                 return this.metas;
@@ -251,7 +255,7 @@ class PlanningAlertsStore {
             return this.budgetRequests.get(period.key);
         }
 
-        const request = apiGet('api/financas/orcamentos', {
+        const request = apiGet(resolveFinanceBudgetsEndpoint(), {
             mes: period.month,
             ano: period.year
         })

@@ -1,3 +1,10 @@
+import {
+    resolveAccountsEndpoint,
+    resolveCardsEndpoint,
+    resolveCategoriesEndpoint,
+    resolveFinanceGoalsEndpoint,
+} from '../api/endpoints/finance.js';
+
 export function attachLancamentoGlobalCoreMethods(ManagerClass, dependencies) {
     const {
         CustomSelectManager,
@@ -131,9 +138,8 @@ export function attachLancamentoGlobalCoreMethods(ManagerClass, dependencies) {
     },
 
     async carregarDados() {
-        const base = getBaseUrl();
         try {
-            const dataContas = await apiGet(`${base}api/contas`, { with_balances: 1 }).catch(() => null);
+            const dataContas = await apiGet(resolveAccountsEndpoint(), { with_balances: 1 }).catch(() => null);
             if (!dataContas) {
                 this.contas = [];
             } else {
@@ -153,7 +159,7 @@ export function attachLancamentoGlobalCoreMethods(ManagerClass, dependencies) {
             }
             this.preencherSelectContas();
 
-            const dataCategorias = await apiGet(`${base}api/categorias`).catch(() => null);
+            const dataCategorias = await apiGet(resolveCategoriesEndpoint()).catch(() => null);
             if (!dataCategorias) {
                 this.categorias = [];
             } else {
@@ -163,7 +169,7 @@ export function attachLancamentoGlobalCoreMethods(ManagerClass, dependencies) {
                     : [];
             }
 
-            const dataCartoes = await apiGet(`${base}api/cartoes`).catch(() => null);
+            const dataCartoes = await apiGet(resolveCardsEndpoint()).catch(() => null);
             if (!dataCartoes) {
                 this.cartoes = [];
             } else {
@@ -173,7 +179,7 @@ export function attachLancamentoGlobalCoreMethods(ManagerClass, dependencies) {
                     : [];
             }
 
-            const dataMetas = await apiGet(`${base}api/financas/metas`).catch(() => null);
+            const dataMetas = await apiGet(resolveFinanceGoalsEndpoint()).catch(() => null);
             if (!dataMetas) {
                 this.metas = [];
             } else {

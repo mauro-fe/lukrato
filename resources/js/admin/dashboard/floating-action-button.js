@@ -2,10 +2,13 @@
  * Floating Action Button for quick transaction creation.
  */
 
+import { getBaseUrl } from '../shared/api.js';
+import { ensureRuntimeConfig, getRuntimeConfig } from '../global/runtime-config.js';
+
 class FloatingActionButton {
   constructor(config = {}) {
     this.config = {
-      baseURL: config.baseURL || window.BASE_URL || '/',
+      baseURL: config.baseURL || getRuntimeConfig().baseUrl || getBaseUrl(),
       firstTime: config.firstTime || false,
       ...config,
     };
@@ -220,12 +223,16 @@ class FloatingActionButton {
 window.FloatingActionButton = FloatingActionButton;
 
 document.addEventListener('DOMContentLoaded', () => {
-  if (!document.getElementById('fabContainer')) {
+  void ensureRuntimeConfig({}, { silent: true }).finally(() => {
+    if (document.getElementById('fabContainer')) {
+      return;
+    }
+
     const firstTime = Boolean(window.__lkFirstVisit)
-      || window.__LK_CONFIG?.needsDisplayNamePrompt === true;
+      || getRuntimeConfig().needsDisplayNamePrompt === true;
 
     window.fab = new FloatingActionButton({ firstTime });
-  }
+  });
 });
 
 document.addEventListener('lukrato:transaction-added', () => {

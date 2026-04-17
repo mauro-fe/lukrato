@@ -14,11 +14,26 @@
  */
 
 import '../../../css/admin/sysadmin/index.css';
-import { apiDelete, apiGet, apiPost, apiPut, getErrorMessage } from '../shared/api.js';
+import { apiDelete, apiGet, apiPost, apiPut, buildUrl, getErrorMessage } from '../shared/api.js';
+import {
+    resolveSysadminClearCacheEndpoint,
+    resolveSysadminCleanupErrorLogsEndpoint,
+    resolveSysadminErrorLogsEndpoint,
+    resolveSysadminErrorLogsSummaryEndpoint,
+    resolveSysadminFeedbackEndpoint,
+    resolveSysadminFeedbackExportEndpoint,
+    resolveSysadminFeedbackStatsEndpoint,
+    resolveSysadminGrantAccessEndpoint,
+    resolveSysadminMaintenanceEndpoint,
+    resolveSysadminResolveErrorLogEndpoint,
+    resolveSysadminRevokeAccessEndpoint,
+    resolveSysadminStatsEndpoint,
+    resolveSysadminUserEndpoint,
+    resolveSysadminUsersEndpoint,
+} from '../api/endpoints/sysadmin.js';
 import { escapeHtml } from '../shared/utils.js';
 import { initCustomize } from './customize.js';
 
-const BASE_URL = (window.LK?.getBase?.() || '/');
 const cleanupLogsModalEl = document.getElementById('cleanupLogsModal');
 const cleanupLogsDaysEl = document.getElementById('cleanupLogsDays');
 const cleanupLogsIncludeUnresolvedEl = document.getElementById('cleanupLogsIncludeUnresolved');
@@ -52,7 +67,7 @@ function limparCache() {
             if (result.isConfirmed) {
                 setButtonLoading(triggerBtn, true);
                 try {
-                    const data = await apiPost(`${BASE_URL}api/sysadmin/clear-cache`, {});
+                    const data = await apiPost(resolveSysadminClearCacheEndpoint(), {});
                     if (data.success) {
                         LKFeedback.success(data.message || 'Cache limpo com sucesso.', { toast: true });
                     } else {
@@ -81,7 +96,7 @@ let maintenanceActive = false;
 
 async function checkMaintenanceStatus() {
     try {
-        const data = await apiGet(`${BASE_URL}api/sysadmin/maintenance`);
+        const data = await apiGet(resolveSysadminMaintenanceEndpoint());
         maintenanceActive = data.active || false;
         updateMaintenanceButton();
     } catch (e) {
@@ -123,13 +138,10 @@ async function toggleMaintenance() {
     const doToggle = async (reason, minutes) => {
         setButtonLoading(maintenanceBtn, true);
         try {
-            const data = await window.CsrfManager.fetchJson(`${BASE_URL}api/sysadmin/maintenance`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action,
-                    reason: reason || '',
-                    estimated_minutes: minutes || null
-                })
+            const data = await apiPost(resolveSysadminMaintenanceEndpoint(), {
+                action,
+                reason: reason || '',
+                estimated_minutes: minutes || null
             });
 
             maintenanceActive = data.active;
@@ -201,7 +213,7 @@ function fetchUsers(page = 1) {
     const formData = new FormData(userFiltersForm);
     const params = new URLSearchParams(formData);
     params.set('page', page);
-    apiGet(`${BASE_URL}api/sysadmin/users?${params.toString()}`)
+    apiGet(resolveSysadminUsersEndpoint(), Object.fromEntries(params.entries()))
         .then(data => {
             if (!data.success) {
                 userTableSection.innerHTML = `<div class='error-msg'>Erro ao buscar usuários</div>`;
@@ -274,7 +286,7 @@ function goToPage(p) {
 }
 
 function viewUser(userId) {
-    apiGet(`${BASE_URL}api/sysadmin/users/${userId}`)
+    apiGet(resolveSysadminUserEndpoint(userId))
         .then(response => {
             if (!response.success) {
                 LKFeedback.error(response.message || 'Erro ao buscar usuário');
@@ -380,7 +392,7 @@ function editUser(userId) {
     LKFeedback.hideLoading();
     LKFeedback.loading('Buscando dados do usuário');
 
-    apiGet(`${BASE_URL}api/sysadmin/users/${userId}`)
+    apiGet(resolveSysadminUserEndpoint(userId))
         .then(response => {
             LKFeedback.hideLoading();
             if (!response.success) {
@@ -450,7 +462,7 @@ function editUser(userId) {
 
                     LKFeedback.loading('Salvando...');
 
-                    apiPut(`${BASE_URL}api/sysadmin/users/${userId}`, payload)
+                    apiPut(resolveSysadminUserEndpoint(userId), payload)
                         .then(saveResponse => {
                             if (saveResponse.success) {
                                 LKFeedback.success(saveResponse.message || 'Usuário atualizado com sucesso', { toast: true });
@@ -476,7 +488,7 @@ function deleteUser(userId) {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            apiDelete(`${BASE_URL}api/sysadmin/users/${userId}`)
+            apiDelete(resolveSysadminUserEndpoint(userId))
                 .then(response => {
                     if (response.success) {
                         LKFeedback.success(response.message || 'Usuário removido com sucesso.', { toast: true });
@@ -562,7 +574,7 @@ function openGrantAccessModal() {
 
 async function grantAccess(userId, days, planType) {
     try {
-        const data = await apiPost(`${BASE_URL}api/sysadmin/grant-access`, { userId, days, planType });
+        const data = await apiPost(resolveSysadminGrantAccessEndpoint(), { userId, days, planType });
 
         if (data.success) {
             const planName = data.data.planName || planType.toUpperCase();
@@ -611,7 +623,7 @@ function openRevokeAccessModal() {
 
 async function revokeProAccess(userId) {
     try {
-        const data = await apiPost(`${BASE_URL}api/sysadmin/revoke-access`, { userId });
+        const data = await apiPost(resolveSysadminRevokeAccessEndpoint(), { userId });
 
         if (data.success) {
             Swal.fire({
@@ -639,7 +651,7 @@ let errorLogFiltersLoaded = false;
 
 async function loadErrorLogsSummary() {
     try {
-        const data = await apiGet(`${BASE_URL}api/sysadmin/error-logs/summary?hours=24`);
+        const data = await apiGet(resolveSysadminErrorLogsSummaryEndpoint(), { hours: 24 });
         if (!data.success) return;
 
         const summary = data.data;
@@ -705,7 +717,7 @@ async function loadErrorLogs(page) {
         params.set('page', errorLogsCurrentPage);
 
         const [logsData] = await Promise.all([
-            apiGet(`${BASE_URL}api/sysadmin/error-logs?${params.toString()}`),
+            apiGet(resolveSysadminErrorLogsEndpoint(), Object.fromEntries(params.entries())),
             loadErrorLogsSummary()
         ]);
         if (refreshIcon) refreshIcon.classList.remove('icon-spin');
@@ -824,7 +836,7 @@ function toggleLogDetail(logId) {
 
 async function resolveErrorLog(logId) {
     try {
-        const data = await window.CsrfManager.fetchJson(`${BASE_URL}api/sysadmin/error-logs/${logId}/resolve`, { method: 'PUT' });
+        const data = await apiPut(resolveSysadminResolveErrorLogEndpoint(logId), {});
         if (data.success) {
             LKFeedback.success('Log marcado como resolvido.', { toast: true });
             loadErrorLogs();
@@ -881,12 +893,9 @@ async function submitCleanupLogs() {
     try {
         setButtonLoading(cleanupLogsConfirmBtn, true);
 
-        const data = await window.CsrfManager.fetchJson(`${BASE_URL}api/sysadmin/error-logs/cleanup`, {
-            method: 'DELETE',
-            body: JSON.stringify({
-                days,
-                include_unresolved: includeUnresolved,
-            })
+        const data = await apiDelete(resolveSysadminCleanupErrorLogsEndpoint(), {
+            days,
+            include_unresolved: includeUnresolved,
         });
 
         if (!data.success) {
@@ -927,7 +936,7 @@ function loadStats() {
     const refreshBtn = document.querySelector('.btn-refresh-stats i');
     if (refreshBtn) refreshBtn.classList.add('icon-spin');
 
-    apiGet(`${BASE_URL}api/sysadmin/stats`)
+    apiGet(resolveSysadminStatsEndpoint())
         .then(response => {
             if (refreshBtn) refreshBtn.classList.remove('icon-spin');
             if (!response.success) { showStatsError(response.message || 'Erro ao carregar estatísticas'); return; }
@@ -1078,7 +1087,7 @@ let feedbackStatsLoaded = false;
 
 async function loadFeedbackStats() {
     try {
-        const json = await apiGet(`${BASE_URL}api/sysadmin/feedback/stats`);
+        const json = await apiGet(resolveSysadminFeedbackStatsEndpoint());
         const data = json.data ?? json;
 
         // NPS
@@ -1130,10 +1139,11 @@ async function loadFeedbackList(page = 1) {
         const tipo = document.getElementById('feedbackFilterTipo')?.value || '';
         const perPage = document.getElementById('feedbackPerPage')?.value || '15';
 
-        let url = `${BASE_URL}api/sysadmin/feedback?page=${page}&per_page=${perPage}`;
-        if (tipo) url += `&tipo_feedback=${encodeURIComponent(tipo)}`;
-
-        const json = await apiGet(url);
+        const json = await apiGet(resolveSysadminFeedbackEndpoint(), {
+            page,
+            per_page: perPage,
+            tipo_feedback: tipo || undefined,
+        });
         const data = json.data ?? json;
 
         renderFeedbackTable(data);
@@ -1236,9 +1246,9 @@ function renderFeedbackPagination(page, totalPages, total) {
 
 function exportFeedback() {
     const tipo = document.getElementById('feedbackFilterTipo')?.value || '';
-    let url = `${BASE_URL}api/sysadmin/feedback/export`;
-    if (tipo) url += `?tipo_feedback=${encodeURIComponent(tipo)}`;
-    window.open(url, '_blank');
+    window.open(buildUrl(resolveSysadminFeedbackExportEndpoint(), {
+        tipo_feedback: tipo || undefined,
+    }), '_blank');
 }
 
 

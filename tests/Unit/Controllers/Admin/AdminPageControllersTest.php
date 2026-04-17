@@ -77,6 +77,18 @@ namespace Tests\Unit\Controllers\Admin {
             }
         }
 
+        public function testBillingIndexRendersBootstrapShellPage(): void
+        {
+            $this->seedAuthenticatedSession(3116, 'Billing User');
+
+            $controller = new BillingController();
+            $response = $controller->index();
+
+            $this->assertSame(200, $response->getStatusCode());
+            $this->assertStringContainsString('billing-page', $response->getContent());
+            $this->assertStringContainsString('data-lk-menu="billing"', $response->getContent());
+        }
+
         public function testCartoesPagesRender(): void
         {
             $this->seedAuthenticatedSession(3106, 'Cartoes User');
@@ -85,25 +97,31 @@ namespace Tests\Unit\Controllers\Admin {
 
             $index = $controller->index();
             $archived = $controller->archived();
+            $indexContent = $index->getContent();
+            $archivedContent = $archived->getContent();
 
             $this->assertSame(200, $index->getStatusCode());
-            $this->assertStringContainsString('cartoes-page', $index->getContent());
-            $this->assertStringContainsString('data-cartoes-import-ofx-link', $index->getContent());
-            $this->assertStringContainsString('import_target=cartao', $index->getContent());
-            $this->assertStringNotContainsString('import_target=cartao&source_type=ofx', $index->getContent());
+            $this->assertStringContainsString('cartoes-page', $indexContent);
+            $this->assertStringContainsString('data-lk-menu="cartoes"', $indexContent);
+            $this->assertStringContainsString('data-cartoes-import-ofx-link', $indexContent);
+            $this->assertStringContainsString('import_target=cartao', $indexContent);
+            $this->assertStringNotContainsString('import_target=cartao&source_type=ofx', $indexContent);
             $this->assertSame(200, $archived->getStatusCode());
-            $this->assertStringContainsString('Cartões Arquivados', $archived->getContent());
+            $this->assertStringContainsString('Cartões Arquivados', $archivedContent);
+            $this->assertStringContainsString('data-lk-menu="cartoes"', $archivedContent);
         }
 
-        public function testCategoriaIndexRendersPage(): void
+        public function testCategoriaIndexRendersBootstrapShellPage(): void
         {
             $this->seedAuthenticatedSession(3107, 'Categoria User');
 
             $controller = new CategoriaController();
             $response = $controller->index();
+            $content = $response->getContent();
 
             $this->assertSame(200, $response->getStatusCode());
-            $this->assertStringContainsString('cat-page', $response->getContent());
+            $this->assertStringContainsString('cat-page', $content);
+            $this->assertStringContainsString('data-lk-menu="categorias"', $content);
         }
 
         public function testConfigIndexRendersConfiguracoesView(): void
@@ -115,7 +133,8 @@ namespace Tests\Unit\Controllers\Admin {
 
             $this->assertSame(200, $response->getStatusCode());
             $this->assertStringContainsString('Configurações', $response->getContent());
-            $this->assertMatchesRegularExpression('/currentMenu\s*:\s*"configuracoes"/', $response->getContent());
+            $this->assertStringContainsString('data-account-root', $response->getContent());
+            $this->assertStringContainsString('data-lk-menu="configuracoes"', $response->getContent());
         }
 
         public function testContasPagesRender(): void
@@ -126,11 +145,15 @@ namespace Tests\Unit\Controllers\Admin {
 
             $index = $controller->index();
             $archived = $controller->archived();
+            $indexContent = $index->getContent();
+            $archivedContent = $archived->getContent();
 
             $this->assertSame(200, $index->getStatusCode());
-            $this->assertStringContainsString('cont-page', $index->getContent());
+            $this->assertStringContainsString('cont-page', $indexContent);
+            $this->assertStringContainsString('data-lk-menu="contas"', $indexContent);
             $this->assertSame(200, $archived->getStatusCode());
-            $this->assertStringContainsString('Contas Arquivadas', $archived->getContent());
+            $this->assertStringContainsString('Contas Arquivadas', $archivedContent);
+            $this->assertStringContainsString('data-lk-menu="contas"', $archivedContent);
         }
 
         public function testDashboardIndexRendersPage(): void
@@ -144,29 +167,33 @@ namespace Tests\Unit\Controllers\Admin {
             $this->assertStringContainsString('modern-dashboard', $response->getContent());
         }
 
-        public function testFaturaIndexRendersPage(): void
+        public function testFaturaIndexRendersBootstrapShellPage(): void
         {
             $this->seedAuthenticatedSession(3111, 'Fatura User');
 
             $controller = new FaturaController();
             $response = $controller->index();
+            $content = $response->getContent();
 
             $this->assertSame(200, $response->getStatusCode());
-            $this->assertStringContainsString('parc-page', $response->getContent());
-            $this->assertStringContainsString('data-faturas-import-ofx-link', $response->getContent());
-            $this->assertStringContainsString('import_target=cartao', $response->getContent());
-            $this->assertStringNotContainsString('import_target=cartao&source_type=ofx', $response->getContent());
+            $this->assertStringContainsString('parc-page', $content);
+            $this->assertStringContainsString('data-lk-menu="faturas"', $content);
+            $this->assertStringContainsString('data-faturas-import-ofx-link', $content);
+            $this->assertStringContainsString('import_target=cartao', $content);
+            $this->assertStringNotContainsString('import_target=cartao&source_type=ofx', $content);
         }
 
-        public function testFinancasIndexRendersPage(): void
+        public function testFinancasIndexRendersBootstrapShellPage(): void
         {
             $this->seedAuthenticatedSession(3112, 'Financas User');
 
             $controller = new FinancasController();
             $response = $controller->index();
+            $content = $response->getContent();
 
             $this->assertSame(200, $response->getStatusCode());
-            $this->assertStringContainsString('fin-page', $response->getContent());
+            $this->assertStringContainsString('fin-page', $content);
+            $this->assertStringContainsString('data-lk-menu="financas"', $content);
         }
 
         public function testFinancasLayoutSmokeRendersSidebarCurrentMenuAndBundleMarkers(): void
@@ -179,12 +206,12 @@ namespace Tests\Unit\Controllers\Admin {
 
             $this->assertSame(200, $response->getStatusCode());
             $this->assertStringContainsString('id="sidebar-main"', $content);
-            $this->assertMatchesRegularExpression('/currentMenu\s*:\s*"financas"/', $content);
-            $this->assertMatchesRegularExpression('/currentViewId\s*:\s*"admin-financas-index"/', $content);
-            $this->assertMatchesRegularExpression('/currentViewPath\s*:\s*"admin\/financas\/index"/', $content);
+            $this->assertStringContainsString('data-lk-menu="financas"', $content);
+            $this->assertStringContainsString('data-lk-view-id="admin-financas-index"', $content);
+            $this->assertStringContainsString('data-lk-view-path="admin/financas/index"', $content);
             $this->assertStringContainsString('bundle', $content);
             $this->assertStringContainsString('GLOBAL INFRASTRUCTURE BUNDLE (Vite)', $content);
-            $this->assertStringContainsString('window.__LK_CONFIG', $content);
+            $this->assertStringNotContainsString('window.__LK_CONFIG =', $content);
         }
 
         public function testImportacoesPagesRender(): void
@@ -205,13 +232,7 @@ namespace Tests\Unit\Controllers\Admin {
             $this->assertStringContainsString('data-imp-preview-badge', $index->getContent());
             $this->assertStringContainsString('data-imp-preview-table-wrap', $index->getContent());
             $this->assertStringContainsString('data-imp-active-account-id', $index->getContent());
-            $this->assertStringContainsString('data-imp-preview-endpoint', $index->getContent());
-            $this->assertStringContainsString('data-imp-confirm-endpoint', $index->getContent());
-            $this->assertStringContainsString('data-imp-config-endpoint', $index->getContent());
             $this->assertStringContainsString('data-imp-config-page-base-url', $index->getContent());
-            $this->assertStringContainsString('data-imp-plan', $index->getContent());
-            $this->assertStringContainsString('data-imp-import-limits', $index->getContent());
-            $this->assertStringContainsString('data-imp-profile-config', $index->getContent());
             $this->assertStringContainsString('data-imp-quota-warning', $index->getContent());
             $this->assertStringContainsString('data-imp-advanced-panel', $index->getContent());
             $this->assertStringContainsString('data-imp-advanced-template-auto', $index->getContent());
@@ -245,8 +266,6 @@ namespace Tests\Unit\Controllers\Admin {
                 str_contains($config->getContent(), 'data-imp-csv-mapping-mode')
                     || str_contains($config->getContent(), 'Nenhuma conta ativa encontrada')
             );
-            $this->assertStringContainsString('data-imp-csv-template-auto-endpoint', $config->getContent());
-            $this->assertStringContainsString('data-imp-csv-template-manual-endpoint', $config->getContent());
             $this->assertTrue(
                 preg_match('/data-imp-csv-template-auto[^>]*data-no-transition="true"[^>]*download/', $config->getContent()) === 1
                     || str_contains($config->getContent(), 'Nenhuma conta ativa encontrada')
@@ -276,12 +295,12 @@ namespace Tests\Unit\Controllers\Admin {
 
             $this->assertSame(200, $response->getStatusCode());
             $this->assertStringContainsString('id="sidebar-main"', $content);
-            $this->assertMatchesRegularExpression('/currentMenu\s*:\s*"importacoes"/', $content);
-            $this->assertMatchesRegularExpression('/currentViewId\s*:\s*"admin-importacoes-index"/', $content);
-            $this->assertMatchesRegularExpression('/currentViewPath\s*:\s*"admin\/importacoes\/index"/', $content);
+            $this->assertStringContainsString('data-lk-menu="importacoes"', $content);
+            $this->assertStringContainsString('data-lk-view-id="admin-importacoes-index"', $content);
+            $this->assertStringContainsString('data-lk-view-path="admin/importacoes/index"', $content);
             $this->assertStringContainsString('bundle', $content);
             $this->assertStringContainsString('GLOBAL INFRASTRUCTURE BUNDLE (Vite)', $content);
-            $this->assertStringContainsString('window.__LK_CONFIG', $content);
+            $this->assertStringNotContainsString('window.__LK_CONFIG =', $content);
         }
 
         public function testLancamentoIndexRendersPage(): void
@@ -295,7 +314,7 @@ namespace Tests\Unit\Controllers\Admin {
             $this->assertStringContainsString('lan-page', $response->getContent());
         }
 
-        public function testRelatoriosViewRendersPage(): void
+        public function testRelatoriosViewRendersBootstrapShellPage(): void
         {
             $user = new class extends Usuario {
                 public function isPro(): bool
@@ -308,9 +327,11 @@ namespace Tests\Unit\Controllers\Admin {
 
             $controller = new RelatoriosController();
             $response = $controller->view();
+            $content = $response->getContent();
 
             $this->assertSame(200, $response->getStatusCode());
-            $this->assertStringContainsString('rel-page', $response->getContent());
+            $this->assertStringContainsString('rel-page', $content);
+            $this->assertStringContainsString('data-lk-menu="relatorios"', $content);
         }
 
         public function testPerfilIndexRendersPage(): void
@@ -322,21 +343,25 @@ namespace Tests\Unit\Controllers\Admin {
 
             $this->assertSame(200, $response->getStatusCode());
             $this->assertStringContainsString('profile-page', $response->getContent());
-            $this->assertMatchesRegularExpression('/currentMenu\s*:\s*"perfil"/', $response->getContent());
+            $this->assertStringContainsString('data-profile-root', $response->getContent());
+            $this->assertStringContainsString('data-profile-display-name-root', $response->getContent());
+            $this->assertStringContainsString('data-lk-menu="perfil"', $response->getContent());
         }
 
-        public function testOrcamentoIndexRendersPage(): void
+        public function testOrcamentoIndexRendersBootstrapShellPage(): void
         {
             $this->seedAuthenticatedSession(3104, 'Orcamento User');
 
             $controller = new OrcamentoController();
             $response = $controller->index();
+            $content = $response->getContent();
 
             $this->assertSame(200, $response->getStatusCode());
-            $this->assertStringContainsString('orc-page', $response->getContent());
+            $this->assertStringContainsString('orc-page', $content);
+            $this->assertStringContainsString('data-lk-menu="orcamento"', $content);
         }
 
-        public function testMetasIndexRendersPage(): void
+        public function testMetasIndexRendersBootstrapShellPage(): void
         {
             $this->seedAuthenticatedSession(3105, 'Metas User');
 
@@ -345,6 +370,7 @@ namespace Tests\Unit\Controllers\Admin {
 
             $this->assertSame(200, $response->getStatusCode());
             $this->assertStringContainsString('met-page', $response->getContent());
+            $this->assertStringContainsString('data-lk-menu="metas"', $response->getContent());
         }
 
         public function testSysadminBlogLayoutSmokeRendersSidebarCurrentMenuAndBundleMarkers(): void
@@ -357,12 +383,12 @@ namespace Tests\Unit\Controllers\Admin {
 
             $this->assertSame(200, $response->getStatusCode());
             $this->assertStringContainsString('id="sidebar-main"', $content);
-            $this->assertMatchesRegularExpression('/currentMenu\s*:\s*"super_admin"/', $content);
-            $this->assertMatchesRegularExpression('/currentViewId\s*:\s*"admin-sysadmin-blog"/', $content);
-            $this->assertMatchesRegularExpression('/currentViewPath\s*:\s*"admin\/sysadmin\/blog"/', $content);
+            $this->assertStringContainsString('data-lk-menu="super_admin"', $content);
+            $this->assertStringContainsString('data-lk-view-id="admin-sysadmin-blog"', $content);
+            $this->assertStringContainsString('data-lk-view-path="admin/sysadmin/blog"', $content);
             $this->assertStringContainsString('bundle', $content);
             $this->assertStringContainsString('GLOBAL INFRASTRUCTURE BUNDLE (Vite)', $content);
-            $this->assertStringContainsString('window.__LK_CONFIG', $content);
+            $this->assertStringNotContainsString('window.__LK_CONFIG =', $content);
         }
 
         private function seedAuthenticatedSession(int $userId, string $name, ?Usuario $user = null, bool $isAdmin = false): void

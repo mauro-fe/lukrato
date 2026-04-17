@@ -7,10 +7,14 @@
  */
 
 import '../../../css/admin/sysadmin/blog.css';
-import { apiFetch, getBaseUrl, getErrorMessage } from '../shared/api.js';
+import { apiFetch, buildUrl, getErrorMessage } from '../shared/api.js';
+import {
+    resolveSysadminBlogCategoriesEndpoint,
+    resolveSysadminBlogPostEndpoint,
+    resolveSysadminBlogPostsEndpoint,
+    resolveSysadminBlogUploadEndpoint,
+} from '../api/endpoints/sysadmin-blog.js';
 import { escapeHtml } from '../shared/utils.js';
-
-const BASE_URL = getBaseUrl();
 
 // ─── State ──────────────────────────────────────────────────
 let posts = [];
@@ -179,7 +183,7 @@ async function apiRequest(url, options = {}) {
 // ─── Load Categorias ────────────────────────────────────────
 async function loadCategorias() {
     try {
-        const data = await apiRequest(`${BASE_URL}api/sysadmin/blog/categorias`);
+        const data = await apiRequest(resolveSysadminBlogCategoriesEndpoint());
         if (data.success) {
             categorias = data.data.categorias;
             populateCategoriaSelects();
@@ -228,7 +232,7 @@ async function loadPosts() {
         if (status) params.set('status', status);
         if (catId) params.set('blog_categoria_id', catId);
 
-        const data = await apiRequest(`${BASE_URL}api/sysadmin/blog/posts?${params}`);
+        const data = await apiRequest(buildUrl(resolveSysadminBlogPostsEndpoint(), Object.fromEntries(params.entries())));
 
         if (data.success) {
             posts = data.data.items;
@@ -401,7 +405,7 @@ function openModal(mode, post = null) {
         // Image
         if (post.imagem_capa) {
             document.getElementById('imagemCapaPath').value = post.imagem_capa;
-            const imgUrl = post.imagem_capa_url || (BASE_URL + post.imagem_capa);
+            const imgUrl = post.imagem_capa_url || buildUrl(post.imagem_capa);
             document.getElementById('previewImg').src = imgUrl;
             document.getElementById('uploadPreview').style.display = 'block';
             document.getElementById('uploadPlaceholder').style.display = 'none';
@@ -527,7 +531,7 @@ async function uploadImage(file) {
     formData.append('imagem', file);
 
     try {
-        const data = await apiFetch(`${BASE_URL}api/sysadmin/blog/upload`, {
+        const data = await apiFetch(resolveSysadminBlogUploadEndpoint(), {
             method: 'POST',
             credentials: 'include',
             body: formData,
@@ -587,8 +591,8 @@ async function savePost() {
 
     const isEdit = !!editingPostId;
     const url = isEdit
-        ? `${BASE_URL}api/sysadmin/blog/posts/${editingPostId}`
-        : `${BASE_URL}api/sysadmin/blog/posts`;
+        ? resolveSysadminBlogPostEndpoint(editingPostId)
+        : resolveSysadminBlogPostsEndpoint();
     const method = isEdit ? 'PUT' : 'POST';
 
     try {
@@ -619,7 +623,7 @@ async function savePost() {
 // ─── Edit Post ──────────────────────────────────────────────
 async function editPost(id) {
     try {
-        const data = await apiRequest(`${BASE_URL}api/sysadmin/blog/posts/${id}`);
+        const data = await apiRequest(resolveSysadminBlogPostEndpoint(id));
 
         if (data.success) {
             openModal('edit', data.data.post);
@@ -647,7 +651,7 @@ async function deletePost(id) {
     if (!confirmed) return;
 
     try {
-        const data = await apiRequest(`${BASE_URL}api/sysadmin/blog/posts/${id}`, {
+        const data = await apiRequest(resolveSysadminBlogPostEndpoint(id), {
             method: 'DELETE',
         });
 

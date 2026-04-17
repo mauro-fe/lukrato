@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Application\Core;
 
+use Application\Config\InfrastructureRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Core\Exceptions\HttpResponseException;
 use Application\Core\Routing\ErrorResponseFactory as RoutingErrorResponseFactory;
 use Application\Core\Routing\HttpExceptionHandler;
+use Application\Core\Routing\LegacyApiUsageTracker;
 use Application\Core\Routing\MiddlewareResolver as RoutingMiddlewareResolver;
 use Throwable;
 
@@ -17,6 +19,8 @@ class Router
     private static ?RoutingMiddlewareResolver $middlewareResolver = null;
     private static ?RoutingErrorResponseFactory $errorResponseFactory = null;
     private static ?HttpExceptionHandler $exceptionHandler = null;
+    private static ?LegacyApiUsageTracker $legacyApiUsageTracker = null;
+    private static ?InfrastructureRuntimeConfig $infrastructureRuntimeConfig = null;
 
     public static function add(string $method, string $path, mixed $callback, array $middlewares = []): void
     {
@@ -34,6 +38,8 @@ class Router
         self::$middlewareResolver = null;
         self::$errorResponseFactory = null;
         self::$exceptionHandler = null;
+        self::$legacyApiUsageTracker = null;
+        self::$infrastructureRuntimeConfig = null;
         RoutingMiddlewareResolver::reset();
     }
 
@@ -42,6 +48,7 @@ class Router
         $request = ApplicationContainer::resolveOrNew(null, Request::class);
         ApplicationContainer::bindRequest($request);
         $routeContext = null;
+        $normalizedRequestedPath = self::normalizeRoutePath($requestedPath);
 
         try {
             $match = self::findMatchingRoute($requestedPath, strtoupper($requestMethod));
@@ -58,7 +65,20 @@ class Router
 
             self::middlewareResolver()->execute($routeContext['middlewares'], $request);
 
-            return self::executeCallback($routeContext, $match['params'], $request);
+            $response = self::executeCallback($routeContext, $match['params'], $request);
+
+            self::trackLegacyApiUsage(
+                $routeContext['method'],
+                $routeContext['path'],
+                $normalizedRequestedPath,
+                $request
+            );
+
+            return self::decorateLegacyApiResponse(
+                $response,
+                $routeContext['path'],
+                $normalizedRequestedPath
+            );
         } catch (HttpResponseException $e) {
             return $e->getResponse();
         } catch (Throwable $e) {
@@ -132,6 +152,53 @@ class Router
         throw new \Exception('Callback da rota inválida.');
     }
 
+    private static function decorateLegacyApiResponse(
+        ?Response $response,
+        string $routePath,
+        string $requestedPath
+    ): ?Response {
+        if ($response === null || !self::isLegacyApiPath($routePath)) {
+            return $response;
+        }
+
+        $successorPath = self::versionedApiPathFor($requestedPath);
+
+        $headers = $response->getHeaders();
+        $linkHeader = sprintf('<%s>; rel="successor-version"', $successorPath);
+
+        if (isset($headers['Link']) && trim((string) $headers['Link']) !== '') {
+            $linkHeader = $headers['Link'] . ', ' . $linkHeader;
+        }
+
+        $response
+            ->header('Link', $linkHeader)
+            ->header('X-Legacy-Api', 'true')
+            ->header('X-Legacy-Api-Successor', $successorPath);
+
+        $legacyApiSunsetTimestamp = self::infrastructureRuntimeConfig()->legacyApiSunsetTimestamp();
+
+        if ($legacyApiSunsetTimestamp !== null) {
+            $response
+                ->header('Deprecation', '@' . $legacyApiSunsetTimestamp)
+                ->header('Sunset', gmdate(DATE_RFC7231, $legacyApiSunsetTimestamp));
+        }
+
+        return $response;
+    }
+
+    private static function trackLegacyApiUsage(
+        string $method,
+        string $routePath,
+        string $requestedPath,
+        Request $request
+    ): void {
+        if (!self::isLegacyApiPath($routePath)) {
+            return;
+        }
+
+        self::legacyApiUsageTracker()->track($method, $routePath, $requestedPath, $request);
+    }
+
     private static function resolveControllerInstance(string $controllerNs): object
     {
         return (ApplicationContainer::getInstance() ?? ApplicationContainer::bootstrap())->make($controllerNs);
@@ -167,6 +234,20 @@ class Router
         $trimmed = trim($path, '/');
 
         return $trimmed === '' ? '/' : '/' . $trimmed;
+    }
+
+    private static function isLegacyApiPath(string $path): bool
+    {
+        return str_starts_with($path, '/api/') && !str_starts_with($path, '/api/v1/');
+    }
+
+    private static function versionedApiPathFor(string $path): string
+    {
+        if (!self::isLegacyApiPath($path)) {
+            return $path;
+        }
+
+        return preg_replace('#^/api/#', '/api/v1/', $path) ?? $path;
     }
 
     private static function matchRoutePath(string $routePath, string $requestedPath): ?array
@@ -228,6 +309,14 @@ class Router
         );
     }
 
+    private static function legacyApiUsageTracker(): LegacyApiUsageTracker
+    {
+        return self::$legacyApiUsageTracker ??= ApplicationContainer::resolveOrNew(
+            null,
+            LegacyApiUsageTracker::class
+        );
+    }
+
     private static function exceptionHandler(): HttpExceptionHandler
     {
         return self::$exceptionHandler ??= ApplicationContainer::resolveOrNew(
@@ -241,6 +330,14 @@ class Router
         return self::$errorResponseFactory ??= ApplicationContainer::resolveOrNew(
             null,
             RoutingErrorResponseFactory::class
+        );
+    }
+
+    private static function infrastructureRuntimeConfig(): InfrastructureRuntimeConfig
+    {
+        return self::$infrastructureRuntimeConfig ??= ApplicationContainer::resolveOrNew(
+            null,
+            InfrastructureRuntimeConfig::class
         );
     }
 }

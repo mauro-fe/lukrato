@@ -2,8 +2,14 @@
 <html lang="pt-BR">
 <?php
 $favicon = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
-$email = $email ?? '';
-$message = $message ?? 'Por favor, verifique seu email antes de fazer login.';
+$loginUrl = $loginUrl ?? rtrim(BASE_URL, '/') . '/login';
+$currentFormAction = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+$initialEmail = trim((string) ($email ?? ''));
+$initialMessage = trim((string) ($message ?? ''));
+
+if ($initialMessage === '') {
+    $initialMessage = 'Carregando seu aviso de verificacao...';
+}
 ?>
 
 <head>
@@ -21,22 +27,23 @@ $message = $message ?? 'Por favor, verifique seu email antes de fazer login.';
 </head>
 
 <body>
-    <div class="container">
+    <div
+        class="container"
+        data-verify-email-root
+        data-login-url="<?= htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8') ?>">
         <div class="icon" aria-hidden="true">
             <i data-lucide="mail" style="width:64px;height:64px;" aria-hidden="true"></i>
         </div>
-        
+
         <h1>Verifique seu e-mail</h1>
-        
-        <p class="message">
-            <?= htmlspecialchars($message) ?>
+
+        <p class="message" data-verify-email-message>
+            <?= htmlspecialchars($initialMessage, ENT_QUOTES, 'UTF-8') ?>
         </p>
 
-        <?php if ($email): ?>
-        <div class="email-highlight">
-            <i data-lucide="mail" style="width:16px;height:16px;" aria-hidden="true"></i> <?= htmlspecialchars($email) ?>
+        <div class="email-highlight" data-verify-email-highlight<?= $initialEmail !== '' ? '' : ' hidden' ?>>
+            <i data-lucide="mail" style="width:16px;height:16px;" aria-hidden="true"></i> <span data-verify-email-address><?= htmlspecialchars($initialEmail, ENT_QUOTES, 'UTF-8') ?></span>
         </div>
-        <?php endif; ?>
 
         <div class="tips">
             <div class="tips-title"><i data-lucide="lightbulb" style="width:16px;height:16px;" aria-hidden="true"></i> Não encontrou o e-mail?</div>
@@ -47,9 +54,9 @@ $message = $message ?? 'Por favor, verifique seu email antes de fazer login.';
             </ul>
         </div>
 
-        <form class="resend-form" id="resendForm" method="POST" action="<?= BASE_URL ?>verificar-email/reenviar">
+        <form class="resend-form" id="resendForm" method="POST" action="<?= htmlspecialchars($currentFormAction, ENT_QUOTES, 'UTF-8') ?>">
             <?= csrf_input('verify_email_form') ?>
-            <input type="hidden" name="email" value="<?= htmlspecialchars($email) ?>">
+            <input type="hidden" name="email" value="<?= htmlspecialchars($initialEmail, ENT_QUOTES, 'UTF-8') ?>" data-verify-email-input>
             <button type="submit" class="btn btn-primary" id="resendBtn" aria-label="Reenviar e-mail de verificação">
                 <span>Reenviar e-mail de verificação</span>
             </button>
@@ -57,7 +64,7 @@ $message = $message ?? 'Por favor, verifique seu email antes de fazer login.';
 
         <div class="resend-message" id="resendMessage" aria-live="polite" role="status"></div>
 
-        <a href="<?= BASE_URL ?>login" class="btn btn-outline">
+        <a href="<?= htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline" data-verify-email-login-link>
             ← Voltar para o login
         </a>
 
@@ -67,4 +74,5 @@ $message = $message ?? 'Por favor, verifique seu email antes de fazer login.';
     </div>
     <?php loadPageJs('admin-auth-verify-email'); ?>
 </body>
+
 </html>

@@ -9,6 +9,7 @@ $selectedSourceType = strtolower(trim((string) ($selectedSourceType ?? '')));
 $selectedStatus = strtolower(trim((string) ($selectedStatus ?? '')));
 $selectedImportTarget = strtolower(trim((string) ($selectedImportTarget ?? '')));
 $statusOptions = is_array($statusOptions ?? null) ? $statusOptions : [];
+$totals = is_array($totals ?? null) ? $totals : [];
 
 $statusLabels = [
     'processing' => 'Processando',
@@ -23,18 +24,11 @@ $targetLabels = [
     'cartao' => 'Cartão',
 ];
 
-$totalBatches = count($historyItems);
-$totalRows = 0;
-$totalImported = 0;
-$totalDuplicates = 0;
-$totalErrors = 0;
-
-foreach ($historyItems as $item) {
-    $totalRows += (int) ($item['total_rows'] ?? 0);
-    $totalImported += (int) ($item['imported_rows'] ?? 0);
-    $totalDuplicates += (int) ($item['duplicate_rows'] ?? 0);
-    $totalErrors += (int) ($item['error_rows'] ?? 0);
-}
+$totalBatches = (int) ($totals['batches'] ?? count($historyItems));
+$totalRows = (int) ($totals['totalRows'] ?? 0);
+$totalImported = (int) ($totals['importedRows'] ?? 0);
+$totalDuplicates = (int) ($totals['duplicateRows'] ?? 0);
+$totalErrors = (int) ($totals['errorRows'] ?? 0);
 ?>
 
 <section class="imp-history-page" data-importacoes-page="historico" data-lk-help-page="importacoes_historico">
@@ -165,95 +159,92 @@ foreach ($historyItems as $item) {
             </p>
         </header>
 
-        <?php if ($historyItems === []) : ?>
-            <div class="imp-empty-state imp-empty-state--history surface-card">
-                <h4 class="imp-card-title">Nenhum lote registrado</h4>
-                <p class="imp-card-text">
-                    Nenhum lote encontrado para os filtros atuais. Confirme uma importação para gerar histórico.
-                </p>
-                <div class="imp-empty-state__actions">
-                    <a class="btn btn-primary" href="<?= BASE_URL ?>importacoes">Iniciar nova importação</a>
-                    <a class="btn btn-secondary" href="<?= BASE_URL ?>importacoes/configuracoes">Revisar configurações</a>
-                </div>
+        <div class="imp-empty-state imp-empty-state--history surface-card" data-imp-history-empty
+            <?= $historyItems === [] ? '' : 'hidden' ?>>
+            <h4 class="imp-card-title">Nenhum lote registrado</h4>
+            <p class="imp-card-text">
+                Nenhum lote encontrado para os filtros atuais. Confirme uma importação para gerar histórico.
+            </p>
+            <div class="imp-empty-state__actions">
+                <a class="btn btn-primary" href="<?= BASE_URL ?>importacoes">Iniciar nova importação</a>
+                <a class="btn btn-secondary" href="<?= BASE_URL ?>importacoes/configuracoes">Revisar configurações</a>
             </div>
-        <?php else : ?>
-            <div class="imp-history-table-wrap">
-                <table class="imp-history-table" data-imp-history-table>
-                    <thead>
-                        <tr>
-                            <th>Lote</th>
-                            <th>Alvo</th>
-                            <th>Contexto</th>
-                            <th>Arquivo</th>
-                            <th>Formato</th>
-                            <th>Linhas</th>
-                            <th>Importadas</th>
-                            <th>Duplicadas</th>
-                            <th>Erros</th>
-                            <th>Status</th>
-                            <th>Importado em</th>
-                            <th>Ações</th>
+        </div>
+        <div class="imp-history-table-wrap" data-imp-history-table-wrap <?= $historyItems === [] ? 'hidden' : '' ?>>
+            <table class="imp-history-table" data-imp-history-table>
+                <thead>
+                    <tr>
+                        <th>Lote</th>
+                        <th>Alvo</th>
+                        <th>Contexto</th>
+                        <th>Arquivo</th>
+                        <th>Formato</th>
+                        <th>Linhas</th>
+                        <th>Importadas</th>
+                        <th>Duplicadas</th>
+                        <th>Erros</th>
+                        <th>Status</th>
+                        <th>Importado em</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody data-imp-history-rows>
+                    <?php foreach ($historyItems as $item) : ?>
+                        <?php $status = strtolower((string) ($item['status'] ?? 'processed')); ?>
+                        <?php $target = strtolower((string) ($item['import_target'] ?? 'conta')); ?>
+                        <?php
+                        $contextLabel = $target === 'cartao'
+                            ? ((string) ($item['cartao_nome'] ?? '') !== ''
+                                ? (string) ($item['cartao_nome'] ?? '')
+                                : ('Cartão #' . (int) ($item['cartao_id'] ?? 0)))
+                            : (string) ($item['conta_nome'] ?? '-');
+                        ?>
+                        <?php $batchId = (int) ($item['batch_id'] ?? 0); ?>
+                        <?php $canDelete = (bool) ($item['can_delete'] ?? true); ?>
+                        <?php $partialDeleteSummary = trim((string) ($item['partial_delete_summary'] ?? '')); ?>
+                        <tr data-imp-history-row data-batch-id="<?= $batchId ?>"
+                            data-total-rows="<?= (int) ($item['total_rows'] ?? 0) ?>"
+                            data-imported-rows="<?= (int) ($item['imported_rows'] ?? 0) ?>"
+                            data-duplicate-rows="<?= (int) ($item['duplicate_rows'] ?? 0) ?>"
+                            data-error-rows="<?= (int) ($item['error_rows'] ?? 0) ?>">
+                            <td class="imp-history-table__batch">#<?= escape((string) ($item['batch_id'] ?? '-')) ?></td>
+                            <td><?= escape($targetLabels[$target] ?? 'Conta') ?></td>
+                            <td><?= escape($contextLabel) ?></td>
+                            <td class="imp-history-table__file">
+                                <div class="imp-history-table__file-name"><?= escape((string) ($item['filename'] ?? '')) ?>
+                                </div>
+                                <p class="imp-history-table__summary" data-imp-history-retention-summary
+                                    <?= $partialDeleteSummary === '' ? 'hidden' : '' ?>>
+                                    <?= escape($partialDeleteSummary) ?>
+                                </p>
+                            </td>
+                            <td class="imp-history-table__source">
+                                <?= strtoupper(escape((string) ($item['source_type'] ?? ''))) ?></td>
+                            <td data-imp-history-col="total_rows"><?= (int) ($item['total_rows'] ?? 0) ?></td>
+                            <td data-imp-history-col="imported_rows"><?= (int) ($item['imported_rows'] ?? 0) ?></td>
+                            <td data-imp-history-col="duplicate_rows"><?= (int) ($item['duplicate_rows'] ?? 0) ?></td>
+                            <td data-imp-history-col="error_rows"><?= (int) ($item['error_rows'] ?? 0) ?></td>
+                            <td>
+                                <span class="imp-status-badge" data-status="<?= escape($status) ?>"
+                                    data-imp-history-status-badge>
+                                    <?= escape($statusLabels[$status] ?? $status) ?>
+                                </span>
+                            </td>
+                            <td class="imp-history-table__date"><?= escape((string) ($item['created_at'] ?? '')) ?></td>
+                            <td class="imp-history-table__actions">
+                                <button type="button" class="btn btn-ghost imp-history-table__delete"
+                                    data-imp-history-delete
+                                    <?= $canDelete ? '' : 'disabled' ?>>
+                                    Excluir importação
+                                </button>
+                                <p class="imp-history-table__action-hint" data-imp-history-action-hint>
+                                    <?= $canDelete ? 'Remove o lote e os registros ainda intactos.' : 'Aguarde o processamento terminar para excluir.' ?>
+                                </p>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($historyItems as $item) : ?>
-                            <?php $status = strtolower((string) ($item['status'] ?? 'processed')); ?>
-                            <?php $target = strtolower((string) ($item['import_target'] ?? 'conta')); ?>
-                            <?php
-                            $contextLabel = $target === 'cartao'
-                                ? ((string) ($item['cartao_nome'] ?? '') !== ''
-                                    ? (string) ($item['cartao_nome'] ?? '')
-                                    : ('Cartão #' . (int) ($item['cartao_id'] ?? 0)))
-                                : (string) ($item['conta_nome'] ?? '-');
-                            ?>
-                            <?php $batchId = (int) ($item['batch_id'] ?? 0); ?>
-                            <?php $canDelete = (bool) ($item['can_delete'] ?? true); ?>
-                            <?php $partialDeleteSummary = trim((string) ($item['partial_delete_summary'] ?? '')); ?>
-                            <tr data-imp-history-row data-batch-id="<?= $batchId ?>"
-                                data-total-rows="<?= (int) ($item['total_rows'] ?? 0) ?>"
-                                data-imported-rows="<?= (int) ($item['imported_rows'] ?? 0) ?>"
-                                data-duplicate-rows="<?= (int) ($item['duplicate_rows'] ?? 0) ?>"
-                                data-error-rows="<?= (int) ($item['error_rows'] ?? 0) ?>">
-                                <td class="imp-history-table__batch">#<?= escape((string) ($item['batch_id'] ?? '-')) ?></td>
-                                <td><?= escape($targetLabels[$target] ?? 'Conta') ?></td>
-                                <td><?= escape($contextLabel) ?></td>
-                                <td class="imp-history-table__file">
-                                    <div class="imp-history-table__file-name"><?= escape((string) ($item['filename'] ?? '')) ?>
-                                    </div>
-                                    <p class="imp-history-table__summary" data-imp-history-retention-summary
-                                        <?= $partialDeleteSummary === '' ? 'hidden' : '' ?>>
-                                        <?= escape($partialDeleteSummary) ?>
-                                    </p>
-                                </td>
-                                <td class="imp-history-table__source">
-                                    <?= strtoupper(escape((string) ($item['source_type'] ?? ''))) ?></td>
-                                <td data-imp-history-col="total_rows"><?= (int) ($item['total_rows'] ?? 0) ?></td>
-                                <td data-imp-history-col="imported_rows"><?= (int) ($item['imported_rows'] ?? 0) ?></td>
-                                <td data-imp-history-col="duplicate_rows"><?= (int) ($item['duplicate_rows'] ?? 0) ?></td>
-                                <td data-imp-history-col="error_rows"><?= (int) ($item['error_rows'] ?? 0) ?></td>
-                                <td>
-                                    <span class="imp-status-badge" data-status="<?= escape($status) ?>"
-                                        data-imp-history-status-badge>
-                                        <?= escape($statusLabels[$status] ?? $status) ?>
-                                    </span>
-                                </td>
-                                <td class="imp-history-table__date"><?= escape((string) ($item['created_at'] ?? '')) ?></td>
-                                <td class="imp-history-table__actions">
-                                    <button type="button" class="btn btn-ghost imp-history-table__delete"
-                                        data-imp-history-delete
-                                        data-delete-url="<?= BASE_URL ?>api/importacoes/historico/<?= $batchId ?>"
-                                        <?= $canDelete ? '' : 'disabled' ?>>
-                                        Excluir importação
-                                    </button>
-                                    <p class="imp-history-table__action-hint" data-imp-history-action-hint>
-                                        <?= $canDelete ? 'Remove o lote e os registros ainda intactos.' : 'Aguarde o processamento terminar para excluir.' ?>
-                                    </p>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        <?php endif; ?>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
     </article>
 </section>

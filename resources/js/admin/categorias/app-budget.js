@@ -1,3 +1,5 @@
+import { resolveFinanceBudgetEndpoint, resolveFinanceBudgetsEndpoint } from '../api/endpoints/finance.js';
+
 /**
  * ============================================================================
  * LUKRATO - Categorias / Budget
@@ -37,7 +39,7 @@ export function createCategoriasBudget({
             const mes = STATE.mesSelecionado;
             const ano = STATE.anoSelecionado;
 
-            await apiPost(`${CONFIG.API_URL}financas/orcamentos`, {
+            await apiPost(resolveFinanceBudgetsEndpoint(), {
                 categoria_id: categoriaId,
                 valor_limite: valorLimite,
                 mes,
@@ -55,7 +57,7 @@ export function createCategoriasBudget({
 
     async function removerOrcamento(orcamentoId) {
         try {
-            await apiDelete(`${CONFIG.API_URL}financas/orcamentos/${orcamentoId}`);
+            await apiDelete(resolveFinanceBudgetEndpoint(orcamentoId));
 
             showSuccess('Limite removido!');
             await loadOrcamentos();

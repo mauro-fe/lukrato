@@ -179,12 +179,277 @@ class PerfilControllerTest extends TestCase
         $controller = new PerfilController($workflowService);
 
         $response = $controller->update();
-        $payload = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame([
+            'success' => true,
+            'message' => 'Success',
+            'data' => [
+                'message' => 'Perfil atualizado com sucesso',
+                'user' => ['nome' => 'Perfil Flags'],
+                'new_achievements' => [],
+                'email_change_pending' => true,
+                'email_verification_sent' => true,
+            ],
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+    }
+
+    public function testUpdatePasswordReturnsSuccessContractPayload(): void
+    {
+        $this->seedAuthenticatedUserSession(108, 'Perfil Password Success');
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = [
+            'senha_atual' => 'Senha@123',
+            'nova_senha' => 'NovaSenha@123',
+            'conf_senha' => 'NovaSenha@123',
+        ];
+
+        $workflowService = Mockery::mock(PerfilApiWorkflowService::class);
+        $workflowService
+            ->shouldReceive('updatePassword')
+            ->once()
+            ->with(
+                Mockery::type(Usuario::class),
+                Mockery::on(static function (array $payload): bool {
+                    return ($payload['senha_atual'] ?? null) === 'Senha@123'
+                        && ($payload['nova_senha'] ?? null) === 'NovaSenha@123'
+                        && ($payload['conf_senha'] ?? null) === 'NovaSenha@123';
+                })
+            )
+            ->andReturn([
+                'success' => true,
+                'message' => 'Senha alterada com sucesso',
+            ]);
+
+        $controller = new PerfilController($workflowService);
+
+        $response = $controller->updatePassword();
 
         $this->assertSame(200, $response->getStatusCode());
-        $this->assertTrue($payload['success']);
-        $this->assertTrue($payload['data']['email_change_pending']);
-        $this->assertTrue($payload['data']['email_verification_sent']);
+        $this->assertSame([
+            'success' => true,
+            'message' => 'Success',
+            'data' => [
+                'message' => 'Senha alterada com sucesso',
+            ],
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+    }
+
+    public function testUpdateThemeReturnsDomainErrorForInvalidTheme(): void
+    {
+        $this->seedAuthenticatedUserSession(109, 'Perfil Theme Invalid');
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = ['theme' => 'system'];
+
+        $workflowService = Mockery::mock(PerfilApiWorkflowService::class);
+        $workflowService
+            ->shouldReceive('updateTheme')
+            ->once()
+            ->with(
+                Mockery::type(Usuario::class),
+                Mockery::on(static fn(array $payload): bool => ($payload['theme'] ?? null) === 'system')
+            )
+            ->andReturn([
+                'success' => false,
+                'status' => 400,
+                'message' => 'Tema inválido. Use "light" ou "dark"',
+            ]);
+
+        $controller = new PerfilController($workflowService);
+
+        $response = $controller->updateTheme();
+
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertSame([
+            'success' => false,
+            'message' => 'Tema inválido. Use "light" ou "dark"',
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+    }
+
+    public function testUpdateThemeReturnsSuccessContractPayload(): void
+    {
+        $this->seedAuthenticatedUserSession(110, 'Perfil Theme Success');
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = ['theme' => 'dark'];
+
+        $workflowService = Mockery::mock(PerfilApiWorkflowService::class);
+        $workflowService
+            ->shouldReceive('updateTheme')
+            ->once()
+            ->with(
+                Mockery::type(Usuario::class),
+                Mockery::on(static fn(array $payload): bool => ($payload['theme'] ?? null) === 'dark')
+            )
+            ->andReturn([
+                'success' => true,
+                'data' => [
+                    'message' => 'Tema atualizado com sucesso',
+                    'theme' => 'dark',
+                ],
+            ]);
+
+        $controller = new PerfilController($workflowService);
+
+        $response = $controller->updateTheme();
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame([
+            'success' => true,
+            'message' => 'Success',
+            'data' => [
+                'message' => 'Tema atualizado com sucesso',
+                'theme' => 'dark',
+            ],
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+    }
+
+    public function testUploadAvatarReturnsDomainErrorWhenFileIsMissing(): void
+    {
+        $this->seedAuthenticatedUserSession(111, 'Perfil Avatar Error');
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $avatarUseCase = Mockery::mock(AvatarUseCase::class);
+        $avatarUseCase
+            ->shouldReceive('upload')
+            ->once()
+            ->with(Mockery::type(Usuario::class), null)
+            ->andReturn([
+                'success' => false,
+                'status' => 400,
+                'message' => 'Nenhuma imagem enviada ou erro no upload',
+            ]);
+
+        $controller = new PerfilController(
+            Mockery::mock(PerfilApiWorkflowService::class),
+            Mockery::mock(DashboardPreferencesUseCase::class),
+            $avatarUseCase
+        );
+
+        $response = $controller->uploadAvatar();
+
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertSame([
+            'success' => false,
+            'message' => 'Nenhuma imagem enviada ou erro no upload',
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+    }
+
+    public function testUploadAvatarReturnsSuccessContractPayload(): void
+    {
+        $this->seedAuthenticatedUserSession(112, 'Perfil Avatar Success');
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_FILES['avatar'] = [
+            'name' => 'avatar.webp',
+            'type' => 'image/webp',
+            'tmp_name' => 'C:/tmp/avatar.webp',
+            'error' => UPLOAD_ERR_OK,
+            'size' => 12345,
+        ];
+
+        $avatarUseCase = Mockery::mock(AvatarUseCase::class);
+        $avatarUseCase
+            ->shouldReceive('upload')
+            ->once()
+            ->with(
+                Mockery::type(Usuario::class),
+                [
+                    'name' => 'avatar.webp',
+                    'type' => 'image/webp',
+                    'tmp_name' => 'C:/tmp/avatar.webp',
+                    'error' => UPLOAD_ERR_OK,
+                    'size' => 12345,
+                ]
+            )
+            ->andReturn([
+                'success' => true,
+                'data' => [
+                    'message' => 'Foto de perfil atualizada!',
+                    'avatar' => 'https://example.test/assets/uploads/avatars/avatar_112.webp',
+                    'avatar_settings' => [
+                        'position_x' => 50,
+                        'position_y' => 50,
+                        'zoom' => 1,
+                    ],
+                ],
+            ]);
+
+        $controller = new PerfilController(
+            Mockery::mock(PerfilApiWorkflowService::class),
+            Mockery::mock(DashboardPreferencesUseCase::class),
+            $avatarUseCase
+        );
+
+        $response = $controller->uploadAvatar();
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame([
+            'success' => true,
+            'message' => 'Success',
+            'data' => [
+                'message' => 'Foto de perfil atualizada!',
+                'avatar' => 'https://example.test/assets/uploads/avatars/avatar_112.webp',
+                'avatar_settings' => [
+                    'position_x' => 50,
+                    'position_y' => 50,
+                    'zoom' => 1,
+                ],
+            ],
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+    }
+
+    public function testUpdateAvatarPreferencesReturnsSuccessContractPayload(): void
+    {
+        $this->seedAuthenticatedUserSession(113, 'Perfil Avatar Preferences');
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = [
+            'position_x' => '42',
+            'position_y' => '58',
+            'zoom' => '1.2',
+        ];
+
+        $avatarUseCase = Mockery::mock(AvatarUseCase::class);
+        $avatarUseCase
+            ->shouldReceive('updatePreferences')
+            ->once()
+            ->with(
+                Mockery::type(Usuario::class),
+                [
+                    'position_x' => '42',
+                    'position_y' => '58',
+                    'zoom' => '1.2',
+                ]
+            )
+            ->andReturn([
+                'data' => [
+                    'message' => 'Enquadramento da foto atualizado.',
+                    'avatar_settings' => [
+                        'position_x' => 42,
+                        'position_y' => 58,
+                        'zoom' => 1.2,
+                    ],
+                ],
+            ]);
+
+        $controller = new PerfilController(
+            Mockery::mock(PerfilApiWorkflowService::class),
+            Mockery::mock(DashboardPreferencesUseCase::class),
+            $avatarUseCase
+        );
+
+        $response = $controller->updateAvatarPreferences();
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame([
+            'success' => true,
+            'message' => 'Success',
+            'data' => [
+                'message' => 'Enquadramento da foto atualizado.',
+                'avatar_settings' => [
+                    'position_x' => 42,
+                    'position_y' => 58,
+                    'zoom' => 1.2,
+                ],
+            ],
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
     public function testShowThrowsAuthExceptionWhenSessionIsMissing(): void
@@ -216,11 +481,14 @@ class PerfilControllerTest extends TestCase
         );
 
         $response = $controller->getDashboardPreferences();
-        $payload = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
-
         $this->assertSame(200, $response->getStatusCode());
-        $this->assertTrue($payload['success']);
-        $this->assertSame(['toggleGrafico' => true], $payload['data']['preferences'] ?? null);
+        $this->assertSame([
+            'success' => true,
+            'message' => 'Success',
+            'data' => [
+                'preferences' => ['toggleGrafico' => true],
+            ],
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
     public function testUpdateDashboardPreferencesReturnsSuccessFromUseCase(): void
@@ -247,12 +515,14 @@ class PerfilControllerTest extends TestCase
         );
 
         $response = $controller->updateDashboardPreferences();
-        $payload = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
-
         $this->assertSame(200, $response->getStatusCode());
-        $this->assertTrue($payload['success']);
-        $this->assertSame('Preferências do dashboard atualizadas', $payload['message'] ?? null);
-        $this->assertSame(['toggleMetas' => true], $payload['data']['preferences'] ?? null);
+        $this->assertSame([
+            'success' => true,
+            'message' => 'Preferências do dashboard atualizadas',
+            'data' => [
+                'preferences' => ['toggleMetas' => true],
+            ],
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
     public function testDeleteReturnsSuccessFromUseCase(): void
@@ -276,11 +546,60 @@ class PerfilControllerTest extends TestCase
         );
 
         $response = $controller->delete();
-        $payload = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame([
+            'success' => true,
+            'message' => 'Success',
+            'data' => [
+                'message' => 'Conta excluída com sucesso',
+            ],
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+    }
+
+    public function testRemoveAvatarReturnsSuccessContractPayload(): void
+    {
+        $this->seedAuthenticatedUserSession(114, 'Perfil Avatar Remove');
+        $_SERVER['REQUEST_METHOD'] = 'DELETE';
+
+        $avatarUseCase = Mockery::mock(AvatarUseCase::class);
+        $avatarUseCase
+            ->shouldReceive('remove')
+            ->once()
+            ->with(Mockery::type(Usuario::class))
+            ->andReturn([
+                'data' => [
+                    'message' => 'Foto de perfil removida',
+                    'avatar' => '',
+                    'avatar_settings' => [
+                        'position_x' => 50,
+                        'position_y' => 50,
+                        'zoom' => 1,
+                    ],
+                ],
+            ]);
+
+        $controller = new PerfilController(
+            Mockery::mock(PerfilApiWorkflowService::class),
+            Mockery::mock(DashboardPreferencesUseCase::class),
+            $avatarUseCase
+        );
+
+        $response = $controller->removeAvatar();
 
         $this->assertSame(200, $response->getStatusCode());
-        $this->assertTrue($payload['success']);
-        $this->assertSame('Conta excluída com sucesso', $payload['data']['message'] ?? null);
+        $this->assertSame([
+            'success' => true,
+            'message' => 'Success',
+            'data' => [
+                'message' => 'Foto de perfil removida',
+                'avatar' => '',
+                'avatar_settings' => [
+                    'position_x' => 50,
+                    'position_y' => 50,
+                    'zoom' => 1,
+                ],
+            ],
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
     private function seedAuthenticatedUserSession(int $userId, string $name): void

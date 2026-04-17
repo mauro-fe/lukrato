@@ -1,3 +1,12 @@
+import {
+    resolveTelegramLinkEndpoint,
+    resolveTelegramStatusEndpoint,
+    resolveTelegramUnlinkEndpoint,
+    resolveWhatsAppLinkEndpoint,
+    resolveWhatsAppStatusEndpoint,
+    resolveWhatsAppUnlinkEndpoint,
+    resolveWhatsAppVerifyEndpoint,
+} from '../api/endpoints/integrations.js';
 import { apiFetch, apiGet, getErrorMessage } from '../shared/api.js';
 import { getCsrfToken } from '../perfil/profile-common.js';
 
@@ -13,6 +22,16 @@ function setDisplay(id, displayValue) {
 }
 
 export function initConfigIntegrations(context) {
+    const endpoints = {
+        whatsappStatus: resolveWhatsAppStatusEndpoint(),
+        whatsappLink: resolveWhatsAppLinkEndpoint(),
+        whatsappVerify: resolveWhatsAppVerifyEndpoint(),
+        whatsappUnlink: resolveWhatsAppUnlinkEndpoint(),
+        telegramStatus: resolveTelegramStatusEndpoint(),
+        telegramLink: resolveTelegramLinkEndpoint(),
+        telegramUnlink: resolveTelegramUnlinkEndpoint(),
+    };
+
     function buildIntegrationFormData(fields = {}) {
         const formData = new FormData();
 
@@ -33,7 +52,7 @@ export function initConfigIntegrations(context) {
         }
 
         try {
-            const response = await apiGet(`${context.API}whatsapp/status`);
+            const response = await apiGet(endpoints.whatsappStatus);
             const data = response?.data || {};
 
             if (data.linked) {
@@ -70,9 +89,8 @@ export function initConfigIntegrations(context) {
         }
 
         try {
-            const response = await apiFetch(`${context.API}whatsapp/link`, {
+            const response = await apiFetch(endpoints.whatsappLink, {
                 method: 'POST',
-                credentials: 'same-origin',
                 body: buildIntegrationFormData({ phone }),
             });
 
@@ -124,9 +142,8 @@ export function initConfigIntegrations(context) {
         }
 
         try {
-            const response = await apiFetch(`${context.API}whatsapp/verify`, {
+            const response = await apiFetch(endpoints.whatsappVerify, {
                 method: 'POST',
-                credentials: 'same-origin',
                 body: buildIntegrationFormData({ phone, code }),
             });
 
@@ -187,9 +204,8 @@ export function initConfigIntegrations(context) {
         }
 
         try {
-            const response = await apiFetch(`${context.API}whatsapp/unlink`, {
+            const response = await apiFetch(endpoints.whatsappUnlink, {
                 method: 'POST',
-                credentials: 'same-origin',
                 body: buildIntegrationFormData(),
             });
 
@@ -269,7 +285,7 @@ export function initConfigIntegrations(context) {
         }
 
         try {
-            const response = await apiGet(`${context.API}telegram/status`);
+            const response = await apiGet(endpoints.telegramStatus);
             const data = response?.data || {};
 
             if (data.linked) {
@@ -368,9 +384,8 @@ export function initConfigIntegrations(context) {
         if (regenerateButton) regenerateButton.disabled = true;
 
         try {
-            const response = await apiFetch(`${context.API}telegram/link`, {
+            const response = await apiFetch(endpoints.telegramLink, {
                 method: 'POST',
-                credentials: 'same-origin',
                 body: buildIntegrationFormData(),
             });
 
@@ -449,9 +464,8 @@ export function initConfigIntegrations(context) {
         }
 
         try {
-            const response = await apiFetch(`${context.API}telegram/unlink`, {
+            const response = await apiFetch(endpoints.telegramUnlink, {
                 method: 'POST',
-                credentials: 'same-origin',
                 body: buildIntegrationFormData(),
             });
 

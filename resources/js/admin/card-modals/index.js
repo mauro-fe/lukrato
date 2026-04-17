@@ -12,7 +12,8 @@
 
 import '../../../css/admin/relatorios/_modal-cartao.css';
 import '../../../css/admin/relatorios/_modal-responsive.css';
-import { apiFetch, getBaseUrl, getErrorMessage } from '../shared/api.js';
+import { apiFetch, buildUrl, getErrorMessage } from '../shared/api.js';
+import { resolveReportCardDetailsEndpoint } from '../api/endpoints/reports.js';
 import { escapeHtml } from '../shared/utils.js';
 
 // ─── Formatação local (BRL) ────────────────────────────────────────────────
@@ -178,8 +179,7 @@ async function openCardDetailModal(cardId, cardName, cardColor, currentMonth) {
 
     try {
         const [year, month] = currentMonth.split('-');
-        const params = new URLSearchParams({ mes: month, ano: year });
-        const url = `${getBaseUrl()}api/reports/card-details/${cardId}?${params}`;
+        const url = buildUrl(resolveReportCardDetailsEndpoint(cardId), { mes: month, ano: year });
 
         const data = await apiFetch(url, { credentials: 'include' }, { timeout: 15000 });
 

@@ -45,7 +45,7 @@
       "reactCompiler": true
     },
     "extra": {
-      "apiBaseUrl": "",
+      "apiBaseUrl": "https://lukrato.com.br/",
       "usePreviewFallback": false
     }
   }

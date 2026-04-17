@@ -30,6 +30,7 @@ import { createCategoriasCrud } from './app-crud.js';
 import { createCategoriasBudget } from './app-budget.js';
 import { createCategoriasFeedback } from './app-feedback.js';
 import { apiDelete, apiGet, apiPost, apiPut, getErrorMessage } from '../shared/api.js';
+import { resolveCategoriesEndpoint, resolveFinanceBudgetsEndpoint } from '../api/endpoints/finance.js';
 
 const {
     toggleIconPicker,
@@ -121,7 +122,7 @@ const { editarOrcamento } = createCategoriasBudget({
  */
 async function loadCategorias() {
     try {
-        const result = await apiGet(`${CONFIG.API_URL}categorias`);
+        const result = await apiGet(resolveCategoriesEndpoint());
         STATE.lastLoadError = null;
 
         // Processar resposta
@@ -160,7 +161,7 @@ async function loadOrcamentos() {
     try {
         const mes = STATE.mesSelecionado;
         const ano = STATE.anoSelecionado;
-        const result = await apiGet(`${CONFIG.API_URL}financas/orcamentos`, { mes, ano });
+        const result = await apiGet(resolveFinanceBudgetsEndpoint(), { mes, ano });
         if (result.success !== false) {
             if (Array.isArray(result.data)) {
                 STATE.orcamentos = result.data;

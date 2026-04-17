@@ -31,6 +31,26 @@ final class InfrastructureRuntimeConfig
     /**
      * @return list<string>
      */
+    public function allowedOrigins(): array
+    {
+        $configured = $this->csv('ALLOWED_ORIGINS', '');
+
+        if ($configured !== []) {
+            return array_values(array_unique(array_map(
+                static fn(string $origin): string => rtrim($origin, '/'),
+                $configured
+            )));
+        }
+
+        return [
+            'https://lukrato.com.br',
+            'https://www.lukrato.com.br',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
     public function trustedProxies(): array
     {
         return $this->csv('TRUSTED_PROXIES', '');
@@ -59,6 +79,19 @@ final class InfrastructureRuntimeConfig
                 ?? (defined('BASE_PATH') ? BASE_PATH . '/Application/Modules' : 'Application/Modules'),
             "\\/"
         );
+    }
+
+    public function legacyApiSunsetTimestamp(): ?int
+    {
+        $configured = $this->nullableString('LEGACY_API_SUNSET');
+
+        if ($configured === null) {
+            return null;
+        }
+
+        $timestamp = strtotime($configured);
+
+        return $timestamp !== false ? $timestamp : null;
     }
 
     /**

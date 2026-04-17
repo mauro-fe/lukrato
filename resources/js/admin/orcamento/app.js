@@ -5,6 +5,16 @@
 
 import { CONFIG, STATE, Utils, getCategoryIconColor } from './state.js';
 import {
+    resolveCategoriesEndpoint,
+    resolveFinanceBudgetApplySuggestionsEndpoint,
+    resolveFinanceBudgetCopyMonthEndpoint,
+    resolveFinanceBudgetEndpoint,
+    resolveFinanceBudgetSuggestionsEndpoint,
+    resolveFinanceBudgetsEndpoint,
+    resolveFinanceInsightsEndpoint,
+    resolveFinanceSummaryEndpoint,
+} from '../api/endpoints/finance.js';
+import {
     apiDelete as sharedApiDelete,
     apiGet as sharedApiGet,
     apiPost as sharedApiPost,
@@ -14,7 +24,7 @@ import { createOrcamentoUi } from './app-ui.js';
 
 // ── API Helpers ────────────────────────────────────────────────
 
-async function apiGet(endpoint) { return sharedApiGet(endpoint); }
+async function apiGet(endpoint, params) { return sharedApiGet(endpoint, params); }
 async function apiPost(endpoint, data) { return sharedApiPost(endpoint, data); }
 async function apiDelete(endpoint) { return sharedApiDelete(endpoint); }
 function requestErrorMessage(error, fallback) { return getErrorMessage(error, fallback); }
@@ -208,7 +218,7 @@ export const OrcamentoApp = {
 
     async loadCategorias() {
         try {
-            const res = await apiGet('api/categorias');
+            const res = await apiGet(resolveCategoriesEndpoint());
             if (res.success !== false && res.data) {
                 STATE.categorias = (res.data || []).filter(c => c.tipo === 'despesa');
                 OrcamentoApp.populateCategoriaSelect();
@@ -224,7 +234,7 @@ export const OrcamentoApp = {
 
     async loadResumo() {
         try {
-            const res = await apiGet(`api/financas/resumo?mes=${STATE.currentMonth}&ano=${STATE.currentYear}`);
+            const res = await apiGet(resolveFinanceSummaryEndpoint(), { mes: STATE.currentMonth, ano: STATE.currentYear });
             if (res.success !== false) {
                 applyPreviewMeta(res.data?.meta);
                 STATE.resumo = res.data;
@@ -237,7 +247,7 @@ export const OrcamentoApp = {
 
     async loadOrcamentos() {
         try {
-            const res = await apiGet(`api/financas/orcamentos?mes=${STATE.currentMonth}&ano=${STATE.currentYear}`);
+            const res = await apiGet(resolveFinanceBudgetsEndpoint(), { mes: STATE.currentMonth, ano: STATE.currentYear });
             if (res.success !== false) {
                 applyPreviewMeta(res.data?.meta);
                 STATE.orcamentos = getCollectionPayload(res.data, 'orcamentos');
@@ -251,7 +261,7 @@ export const OrcamentoApp = {
 
     async loadInsights() {
         try {
-            const res = await apiGet(`api/financas/insights?mes=${STATE.currentMonth}&ano=${STATE.currentYear}`);
+            const res = await apiGet(resolveFinanceInsightsEndpoint(), { mes: STATE.currentMonth, ano: STATE.currentYear });
             if (res.success !== false) {
                 applyPreviewMeta(res.data?.meta);
                 STATE.insights = getCollectionPayload(res.data, 'insights');
@@ -377,7 +387,7 @@ export const OrcamentoApp = {
         if (valorLimite <= 0) return Utils.showToast('Informe um valor válido', 'error');
 
         try {
-            const res = await apiPost('api/financas/orcamentos', {
+            const res = await apiPost(resolveFinanceBudgetsEndpoint(), {
                 categoria_id: parseInt(categoriaId),
                 valor_limite: valorLimite,
                 mes: STATE.currentMonth,
@@ -420,7 +430,7 @@ export const OrcamentoApp = {
         if (!result.isConfirmed) return;
 
         try {
-            const res = await apiDelete(`api/financas/orcamentos/${id}`);
+            const res = await apiDelete(resolveFinanceBudgetEndpoint(id));
             if (res.success !== false) {
                 Utils.showToast('Orçamento excluído', 'success');
                 await OrcamentoApp.loadAll();
@@ -441,7 +451,7 @@ export const OrcamentoApp = {
         if (window.lucide) lucide.createIcons();
 
         try {
-            const res = await apiGet(`api/financas/orcamentos/sugestoes?mes=${STATE.currentMonth}&ano=${STATE.currentYear}`);
+            const res = await apiGet(resolveFinanceBudgetSuggestionsEndpoint(), { mes: STATE.currentMonth, ano: STATE.currentYear });
             if (res.success !== false && res.data?.length) {
                 STATE.sugestoes = res.data;
                 OrcamentoApp.renderSugestoes();
@@ -511,7 +521,7 @@ export const OrcamentoApp = {
         if (!orcamentos.length) return Utils.showToast('Selecione ao menos uma categoria', 'error');
 
         try {
-            const res = await apiPost('api/financas/orcamentos/aplicar-sugestoes', {
+            const res = await apiPost(resolveFinanceBudgetApplySuggestionsEndpoint(), {
                 mes: STATE.currentMonth,
                 ano: STATE.currentYear,
                 orcamentos: orcamentos
@@ -551,7 +561,7 @@ export const OrcamentoApp = {
         if (!result.isConfirmed) return;
 
         try {
-            const res = await apiPost('api/financas/orcamentos/copiar-mes', {
+            const res = await apiPost(resolveFinanceBudgetCopyMonthEndpoint(), {
                 mes_origem: mesAnt,
                 ano_origem: anoAnt,
                 mes_destino: STATE.currentMonth,
@@ -576,7 +586,7 @@ export const OrcamentoApp = {
         if (!hint || !categoriaId) { if (hint) hint.textContent = ''; return; }
 
         try {
-            const res = await apiGet(`api/financas/orcamentos/sugestoes?mes=${STATE.currentMonth}&ano=${STATE.currentYear}`);
+            const res = await apiGet(resolveFinanceBudgetSuggestionsEndpoint(), { mes: STATE.currentMonth, ano: STATE.currentYear });
             if (res.success !== false && res.data?.length) {
                 const sug = res.data.find(s => s.categoria_id == categoriaId);
                 if (sug) {

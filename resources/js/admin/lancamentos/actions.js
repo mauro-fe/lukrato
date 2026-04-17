@@ -1,5 +1,10 @@
 ﻿
 import { CONFIG, STATE, Utils, Notifications, Modules } from './state.js';
+import {
+    resolveLancamentoCancelRecurringEndpoint,
+    resolveLancamentoPayEndpoint,
+    resolveLancamentoUnpayEndpoint,
+} from '../api/endpoints/lancamentos.js';
 import { apiPost, apiPut, getErrorMessage } from '../shared/api.js';
 
 /**
@@ -16,7 +21,7 @@ export async function handleMarcarPago(id, triggerBtn) {
 
     if (triggerBtn) triggerBtn.disabled = true;
     try {
-        await apiPut(`${CONFIG.BASE_URL}api/lancamentos/${id}/pagar`, {});
+        await apiPut(resolveLancamentoPayEndpoint(id), {});
         Notifications.toast('Lançamento marcado como pago!');
         await Modules.DataManager.load();
     } catch (error) {
@@ -39,7 +44,7 @@ export async function handleDesmarcarPago(id, triggerBtn) {
 
     if (triggerBtn) triggerBtn.disabled = true;
     try {
-        await apiPut(`${CONFIG.BASE_URL}api/lancamentos/${id}/despagar`, {});
+        await apiPut(resolveLancamentoUnpayEndpoint(id), {});
         Notifications.toast('Lançamento marcado como pendente!');
         await Modules.DataManager.load();
     } catch (error) {
@@ -62,7 +67,7 @@ export async function handleCancelarRecorrencia(id, triggerBtn) {
 
     if (triggerBtn) triggerBtn.disabled = true;
     try {
-        await apiPost(`${CONFIG.BASE_URL}api/lancamentos/${id}/cancelar-recorrencia`, {});
+        await apiPost(resolveLancamentoCancelRecurringEndpoint(id), {});
         Notifications.toast('Recorrência cancelada com sucesso!');
         await Modules.DataManager.load();
     } catch (error) {

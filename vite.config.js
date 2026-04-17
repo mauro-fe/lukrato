@@ -28,6 +28,7 @@ export default defineConfig({
                 'billing': resolve(__dirname, 'resources/js/admin/billing/index.js'),
                 'perfil': resolve(__dirname, 'resources/js/admin/perfil/index.js'),
                 'configuracoes': resolve(__dirname, 'resources/js/admin/configuracoes/index.js'),
+                'frontend-pilot': resolve(__dirname, 'resources/js/admin/frontend-pilot/index.js'),
                 'importacoes': resolve(__dirname, 'resources/js/admin/importacoes/index.js'),
                 'importacoes-configuracoes': resolve(__dirname, 'resources/js/admin/importacoes/configuracoes.js'),
                 'importacoes-historico': resolve(__dirname, 'resources/js/admin/importacoes/historico.js'),
@@ -51,6 +52,7 @@ export default defineConfig({
                 // Site (público)
                 'landing-base': resolve(__dirname, 'resources/js/site/landing-base.js'),
                 'site-card': resolve(__dirname, 'resources/js/site/card/index.js'),
+                'site-google-confirm-page': resolve(__dirname, 'resources/js/site/auth/google-confirm/index.js'),
                 // CSS compilado do Tailwind (site público)
                 'site-app': resolve(__dirname, 'resources/css/site/app.css'),
                 'site-base': resolve(__dirname, 'resources/css/site/base.css'),

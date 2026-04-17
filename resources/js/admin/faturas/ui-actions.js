@@ -351,12 +351,9 @@ export const ActionMethods = {
             });
 
             // Chamar API para atualizar o item da fatura
-            await Utils.apiRequest(`api/faturas/${faturaId}/itens/${itemId}`, {
-                method: 'PUT',
-                body: JSON.stringify({
-                    descricao: novaDescricao,
-                    valor: novoValor
-                })
+            await Modules.API.atualizarItemFatura(faturaId, itemId, {
+                descricao: novaDescricao,
+                valor: novoValor
             });
 
             await Swal.fire({
@@ -439,9 +436,7 @@ export const ActionMethods = {
                 }
             });
 
-            await Utils.apiRequest(`api/faturas/${faturaId}/itens/${itemId}`, {
-                method: 'DELETE'
-            });
+            await Modules.API.excluirItemFatura(faturaId, itemId);
 
             await Swal.fire({
                 icon: 'success',
@@ -536,9 +531,7 @@ export const ActionMethods = {
         });
 
         try {
-            const response = await Utils.apiRequest(`api/faturas/${faturaId}/itens/${itemId}/parcelamento`, {
-                method: 'DELETE'
-            });
+            const response = await Modules.API.excluirParcelamentoDoItem(faturaId, itemId);
 
             await Swal.fire({
                 icon: 'success',

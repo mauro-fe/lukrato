@@ -20,10 +20,16 @@ class AiApiControllerTest extends TestCase
     use MockeryPHPUnitIntegration;
     use SessionIsolation;
 
+    private array $originalEnv = [];
+
     protected function setUp(): void
     {
         parent::setUp();
         ApplicationContainer::flush();
+        $this->originalEnv = [
+            'AI_PROVIDER' => getenv('AI_PROVIDER'),
+            'OPENAI_API_KEY' => getenv('OPENAI_API_KEY'),
+        ];
         $this->resetSessionState();
         $_GET = [];
         $_POST = [];
@@ -33,6 +39,9 @@ class AiApiControllerTest extends TestCase
     protected function tearDown(): void
     {
         ApplicationContainer::flush();
+        unset($_ENV['AI_PROVIDER'], $_ENV['OPENAI_API_KEY']);
+        $this->restoreEnv('AI_PROVIDER');
+        $this->restoreEnv('OPENAI_API_KEY');
         $_GET = [];
         $_POST = [];
         $_REQUEST = [];
@@ -67,8 +76,8 @@ class AiApiControllerTest extends TestCase
     public function testQuotaReturnsBadRequestWhenOpenAiKeyIsMissing(): void
     {
         $this->seedAuthenticatedSession(2201, 'AI Admin', true);
-        $_ENV['AI_PROVIDER'] = 'openai';
-        unset($_ENV['OPENAI_API_KEY']);
+        $this->setEnv('AI_PROVIDER', 'openai');
+        $this->setEnv('OPENAI_API_KEY', '');
 
         $controller = new AiApiController();
 
@@ -121,5 +130,23 @@ class AiApiControllerTest extends TestCase
         $reflection->setAccessible(true);
 
         return $reflection->getValue($object);
+    }
+
+    private function setEnv(string $key, string $value): void
+    {
+        $_ENV[$key] = $value;
+        putenv($key . '=' . $value);
+    }
+
+    private function restoreEnv(string $key): void
+    {
+        $value = $this->originalEnv[$key] ?? false;
+
+        if ($value === false) {
+            putenv($key);
+            return;
+        }
+
+        putenv($key . '=' . $value);
     }
 }

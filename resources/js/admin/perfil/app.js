@@ -1,14 +1,16 @@
-import { createPerfilContext } from './context.js';
-import { initCustomize } from './customize.js';
+import { bootAccountPage } from './account-page.js';
 import { initPerfilMode } from './mode-perfil.js';
-import { setupAvatarHandlers } from './profile-common.js';
-import { initTabs } from './tabs.js';
+import { initProfileDisplayName } from './quick-display-name.js';
 
 export function bootPerfilPage() {
-    const context = createPerfilContext('perfil');
+    const { context, pageReadyPromise } = bootAccountPage({
+        mode: 'perfil',
+        initMode: initPerfilMode,
+        afterInit: (resolvedContext, profileReadyPromise) => {
+            initProfileDisplayName(resolvedContext, profileReadyPromise);
+        },
+    });
 
-    initCustomize();
-    initTabs('perfil');
-    setupAvatarHandlers(context);
-    void initPerfilMode(context);
+    void context;
+    void pageReadyPromise;
 }

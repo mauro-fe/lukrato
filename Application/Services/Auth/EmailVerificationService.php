@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Auth;
 
-use Application\Config\CommunicationRuntimeConfig;
+use Application\Config\AuthRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Models\Notificacao;
 use Application\Models\Usuario;
@@ -17,19 +17,18 @@ class EmailVerificationService
 {
     private MailService $mailService;
     private TokenPairService $tokenPairService;
-    private CommunicationRuntimeConfig $runtimeConfig;
+    private AuthRuntimeConfig $runtimeConfig;
     private ?ReferralService $referralService = null;
     private ?AchievementService $achievementService = null;
 
     public function __construct(
         ?MailService $mailService = null,
         ?TokenPairService $tokenPairService = null,
-        ?CommunicationRuntimeConfig $runtimeConfig = null
-    )
-    {
+        ?AuthRuntimeConfig $runtimeConfig = null
+    ) {
         $this->mailService = ApplicationContainer::resolveOrNew($mailService, MailService::class);
         $this->tokenPairService = ApplicationContainer::resolveOrNew($tokenPairService, TokenPairService::class);
-        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, CommunicationRuntimeConfig::class);
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, AuthRuntimeConfig::class);
     }
 
     public function sendVerificationEmail(Usuario $user): bool
@@ -450,10 +449,7 @@ class EmailVerificationService
 
     private function buildVerificationUrl(string $selector, string $validator): string
     {
-        $baseUrl = $this->runtimeConfig->appUrl();
-
-        return $baseUrl . '/verificar-email?selector=' . urlencode($selector)
-            . '&validator=' . urlencode($validator);
+        return $this->runtimeConfig->verifyEmailPageUrl('', $selector, $validator);
     }
 
     private function resolveVerificationUser(string $token, string $selector, string $validator): ?Usuario

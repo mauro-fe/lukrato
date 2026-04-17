@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Auth;
 
+use Application\Config\AuthRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Contracts\Auth\PasswordResetNotificationInterface;
 use Application\Contracts\Auth\PasswordResetRepositoryInterface;
@@ -21,12 +22,14 @@ class PasswordResetService
     private TokenGeneratorInterface $tokenGenerator;
     private PasswordResetNotificationInterface $notifier;
     private TokenPairService $tokenPairService;
+    private AuthRuntimeConfig $runtimeConfig;
 
     public function __construct(
         ?PasswordResetRepositoryInterface $repository = null,
         ?TokenGeneratorInterface $tokenGenerator = null,
         ?PasswordResetNotificationInterface $notifier = null,
-        ?TokenPairService $tokenPairService = null
+        ?TokenPairService $tokenPairService = null,
+        ?AuthRuntimeConfig $runtimeConfig = null
     ) {
         $container = $this->authContainer();
 
@@ -34,6 +37,7 @@ class PasswordResetService
         $this->tokenGenerator = $tokenGenerator ?? $container->make(TokenGeneratorInterface::class);
         $this->notifier = $notifier ?? $container->make(PasswordResetNotificationInterface::class);
         $this->tokenPairService = ApplicationContainer::resolveOrNew($tokenPairService, TokenPairService::class);
+        $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, AuthRuntimeConfig::class);
     }
 
     public function requestReset(string $email): void
@@ -80,8 +84,7 @@ class PasswordResetService
             $expiresAt
         );
 
-        $resetLink = rtrim(BASE_URL, '/') . '/resetar-senha?selector=' . urlencode($credentials['selector'])
-            . '&validator=' . urlencode($credentials['validator']);
+        $resetLink = $this->runtimeConfig->resetPasswordUrl('', $credentials['selector'], $credentials['validator']);
 
         $this->notifier->send($usuario->email, $usuario->nome, $resetLink);
     }

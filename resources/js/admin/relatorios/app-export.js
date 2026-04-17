@@ -6,8 +6,9 @@
  * ============================================================================
  */
 
-import { CONFIG, STATE, Utils } from './state.js';
-import { getErrorMessage } from '../shared/api.js';
+import { STATE, Utils } from './state.js';
+import { apiFetch, getErrorMessage } from '../shared/api.js';
+import { resolveReportsExportEndpoint } from '../api/endpoints/reports.js';
 
 export function createExportHandler({
     getReportType,
@@ -82,25 +83,11 @@ export function createExportHandler({
                 params.set('account_id', STATE.currentAccount);
             }
 
-            const response = await fetch(`${CONFIG.BASE_URL}api/reports/export?${params}`, {
-                credentials: 'include',
+            const response = await apiFetch(`${resolveReportsExportEndpoint()}?${params.toString()}`, {
+                method: 'GET',
+            }, {
+                responseType: 'response',
             });
-
-            if (await handleRestrictedAccess(response)) {
-                return;
-            }
-
-            if (!response.ok) {
-                let errorMsg = 'Erro ao exportar relatório.';
-                try {
-                    const errorData = await response.json();
-                    if (errorData?.message) errorMsg = errorData.message;
-                    else if (errorData?.errors) errorMsg = Object.values(errorData.errors).flat().join(', ');
-                } catch {
-                    // ignore invalid error payload
-                }
-                throw new Error(errorMsg);
-            }
 
             const blob = await response.blob();
             const disposition = response.headers.get('Content-Disposition');
@@ -129,6 +116,9 @@ export function createExportHandler({
                 });
             }
         } catch (error) {
+            if (await handleRestrictedAccess(error)) {
+                return;
+            }
             console.error('Export error:', error);
             const message = getErrorMessage(error, 'Erro ao exportar relatório. Tente novamente.');
             if (typeof Swal !== 'undefined') {

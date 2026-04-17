@@ -9,18 +9,17 @@
  */
 
 import '../../../css/admin/contas-arquivadas/index.css';
-import { apiFetch } from '../shared/api.js';
+import { apiFetch, buildAssetUrl, getCSRFToken } from '../shared/api.js';
+import {
+    resolveAccountDeleteEndpoint,
+    resolveAccountRestoreEndpoint,
+    resolveAccountsEndpoint,
+} from '../api/endpoints/finance.js';
 
-const BASE = (() => {
-    const meta = document.querySelector('meta[name="base-url"]')?.content || '';
-    return meta.replace(/\/?$/, '/');
-})();
-
-const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
-
-// URLs com e sem index.php (fallback)
-const apiPretty = (p) => `${BASE}api/${p}`.replace(/\/{2,}/g, '/').replace(':/', '://');
-const apiIndex = (p) => `${BASE}index.php/api/${p}`.replace(/\/{2,}/g, '/').replace(':/', '://');
+function getCsrfHeaders() {
+    const token = getCSRFToken();
+    return token ? { 'X-CSRF-TOKEN': token } : {};
+}
 
 async function fetchAPI(path, opts = {}) {
     const buildResponse = (payload, status = 200) => ({
@@ -34,24 +33,12 @@ async function fetchAPI(path, opts = {}) {
     });
 
     try {
-        const payload = await apiFetch(apiPretty(path), {
-            credentials: 'same-origin',
+        const payload = await apiFetch(path, {
             ...opts
         });
         return buildResponse(payload, 200);
     } catch (error) {
-        if (error?.status !== 404) {
-            return buildResponse(error?.data ?? { message: error?.message }, error?.status || 500);
-        }
-        try {
-            const payload = await apiFetch(apiIndex(path), {
-                credentials: 'same-origin',
-                ...opts
-            });
-            return buildResponse(payload, 200);
-        } catch (fallbackError) {
-            return buildResponse(fallbackError?.data ?? { message: fallbackError?.message }, fallbackError?.status || 500);
-        }
+        return buildResponse(error?.data ?? { message: error?.message }, error?.status || 500);
     }
 }
 
@@ -117,7 +104,7 @@ function renderCards(rows) {
 
         const instituicao = c.instituicao_financeira || {};
         const instituicaoNome = instituicao.nome || c.instituicao || 'Sem instituição';
-        const logoUrl = instituicao.logo_url || `${BASE}assets/img/banks/default.svg`;
+        const logoUrl = instituicao.logo_url || buildAssetUrl('img/banks/default.svg');
         const corPrimaria = instituicao.cor_primaria || '#95a5a6';
 
         const card = document.createElement('div');
@@ -183,10 +170,9 @@ async function handleRestore(id) {
     if (!result.isConfirmed) return;
 
     try {
-        const res = await fetchAPI(`contas/${id}/restore`, {
+        const res = await fetchAPI(resolveAccountRestoreEndpoint(id), {
             method: 'POST',
-            credentials: 'same-origin',
-            headers: CSRF ? { 'X-CSRF-TOKEN': CSRF } : {}
+            headers: getCsrfHeaders()
         });
         if (!res.ok) throw new Error('Falha ao restaurar');
 
@@ -228,12 +214,11 @@ async function handleHardDelete(id, nome = '') {
     if (!ok.isConfirmed) return;
 
     try {
-        const res = await fetchAPI(`contas/${id}/delete`, {
+        const res = await fetchAPI(resolveAccountDeleteEndpoint(id), {
             method: 'POST',
-            credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
-                ...(CSRF ? { 'X-CSRF-TOKEN': CSRF } : {})
+                ...getCsrfHeaders()
             },
             body: JSON.stringify({ force: false })
         });
@@ -270,12 +255,11 @@ async function handleHardDelete(id, nome = '') {
                     return;
                 }
 
-                const res2 = await fetchAPI(`contas/${id}/delete?force=1`, {
+                const res2 = await fetchAPI(`${resolveAccountDeleteEndpoint(id)}?force=1`, {
                     method: 'POST',
-                    credentials: 'same-origin',
                     headers: {
                         'Content-Type': 'application/json',
-                        ...(CSRF ? { 'X-CSRF-TOKEN': CSRF } : {})
+                        ...getCsrfHeaders()
                     },
                     body: JSON.stringify({ force: true })
                 });
@@ -315,7 +299,7 @@ async function load() {
             <div class="lk-skeleton lk-skeleton--card"></div>`;
 
         const ym = new Date().toISOString().slice(0, 7);
-        const res = await fetchAPI(`contas?archived=1&with_balances=1&month=${ym}`);
+        const res = await fetchAPI(`${resolveAccountsEndpoint()}?archived=1&with_balances=1&month=${ym}`);
         const ct = res.headers.get('content-type') || '';
 
         if (!res.ok) {

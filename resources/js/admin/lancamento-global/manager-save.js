@@ -1,3 +1,9 @@
+import {
+    resolveLancamentosEndpoint,
+    resolveParcelamentosEndpoint,
+    resolveTransfersEndpoint,
+} from '../api/endpoints/lancamentos.js';
+
 export function attachLancamentoGlobalSaveMethods(ManagerClass, dependencies) {
     const {
         formatMoney,
@@ -6,7 +12,6 @@ export function attachLancamentoGlobalSaveMethods(ManagerClass, dependencies) {
         showToast,
         logClientWarning,
         apiPost,
-        getBaseUrl,
         getErrorMessage,
         logClientError,
     } = dependencies;
@@ -17,7 +22,6 @@ export function attachLancamentoGlobalSaveMethods(ManagerClass, dependencies) {
             if (!this.validarFormulario()) return;
 
             this.salvando = true;
-            const base = getBaseUrl();
             let result = null;
 
             try {
@@ -30,11 +34,11 @@ export function attachLancamentoGlobalSaveMethods(ManagerClass, dependencies) {
                     refreshIcons();
                 }
 
-                let apiUrl = `${base}api/lancamentos`;
+                let apiUrl = resolveLancamentosEndpoint();
                 let requestData = dados;
 
                 if (this.tipoAtual === 'transferencia') {
-                    apiUrl = `${base}api/transfers`;
+                    apiUrl = resolveTransfersEndpoint();
                     requestData = {
                         conta_id: dados.conta_id,
                         conta_id_destino: dados.conta_destino_id,
@@ -46,7 +50,7 @@ export function attachLancamentoGlobalSaveMethods(ManagerClass, dependencies) {
                         descricao: dados.descricao
                     };
                 } else if (dados.eh_parcelado && dados.total_parcelas > 1 && !dados.cartao_credito_id) {
-                    apiUrl = `${base}api/parcelamentos`;
+                    apiUrl = resolveParcelamentosEndpoint();
                     requestData = {
                         descricao: dados.descricao,
                         valor_total: dados.valor,

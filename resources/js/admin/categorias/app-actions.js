@@ -1,3 +1,5 @@
+import { resolveCategoryReorderEndpoint } from '../api/endpoints/finance.js';
+
 /**
  * ============================================================================
  * LUKRATO - Categorias / Actions
@@ -101,7 +103,7 @@ export function createCategoriasActions({
         [orderedIds[idx], orderedIds[swapIdx]] = [orderedIds[swapIdx], orderedIds[idx]];
 
         try {
-            await apiPut(`${CONFIG.API_URL}categorias/reorder`, { ids: orderedIds });
+            await apiPut(resolveCategoryReorderEndpoint(), { ids: orderedIds });
             await loadCategorias();
             renderCategorias();
             SubcategoriasModule.initSubcategoriaEvents();

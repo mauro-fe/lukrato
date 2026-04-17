@@ -46,19 +46,9 @@
             return csrfToken;
         }
 
-        // Tenta obter do window.LK
-        if (window.LK) {
-            if (typeof window.LK.csrfToken === 'string' && window.LK.csrfToken) {
-                csrfToken = window.LK.csrfToken;
-                return csrfToken;
-            }
-            if (typeof window.LK.getCSRF === 'function') {
-                const token = window.LK.getCSRF();
-                if (token) {
-                    csrfToken = token;
-                    return csrfToken;
-                }
-            }
+        if (window.LK && typeof window.LK.csrfToken === 'string' && window.LK.csrfToken) {
+            csrfToken = window.LK.csrfToken;
+            return csrfToken;
         }
 
         return '';
@@ -299,10 +289,5 @@
         fetchJson,
         applyToken
     };
-
-    // Backward compatibility com window.LK
-    if (!window.LK) window.LK = {};
-    window.LK.getCSRF = getToken;
-    window.LK.refreshCSRF = refreshToken;
 
 })();

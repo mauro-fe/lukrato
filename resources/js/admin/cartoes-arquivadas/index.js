@@ -8,6 +8,11 @@ import '../../../css/admin/cartoes-arquivadas/index.css';
 import { apiFetch, getBaseUrl, getErrorMessage } from '../shared/api.js';
 import { escapeHtml, formatMoney } from '../shared/utils.js';
 import { toastSuccess, toastError, refreshIcons } from '../shared/ui.js';
+import {
+    resolveCardDeleteEndpoint,
+    resolveCardRestoreEndpoint,
+    resolveCardsEndpoint,
+} from '../api/endpoints/finance.js';
 
 const BASE = getBaseUrl();
 
@@ -134,23 +139,12 @@ function renderCartoes(items) {
 }
 
 async function requestAPI(path, options = {}) {
-    const url = `${BASE}api/${path}`.replace(/\/{2,}/g, '/').replace(':/', '://');
-
     try {
-        return await apiFetch(url, {
-            credentials: 'same-origin',
+        return await apiFetch(path, {
             ...options
         });
     } catch (error) {
-        if (error?.status !== 404) {
-            throw error;
-        }
-
-        const fallback = `${BASE}index.php/api/${path}`.replace(/\/{2,}/g, '/').replace(':/', '://');
-        return apiFetch(fallback, {
-            credentials: 'same-origin',
-            ...options
-        });
+        throw error;
     }
 }
 
@@ -162,7 +156,7 @@ async function load() {
 
     try {
         el.setAttribute('aria-busy', 'true');
-        const data = await requestAPI('cartoes?archived=1');
+        const data = await requestAPI(`${resolveCardsEndpoint()}?archived=1`);
         rows = Array.isArray(data) ? data : (data?.data || []);
         updateStats(rows);
         renderCartoes(rows);
@@ -202,7 +196,7 @@ window.handleRestore = async function handleRestore(id) {
     }
 
     try {
-        await requestAPI(`cartoes/${id}/restore`, { method: 'POST' });
+        await requestAPI(resolveCardRestoreEndpoint(id), { method: 'POST' });
         toastSuccess('O cartao foi restaurado com sucesso.');
         await load();
     } catch (error) {
@@ -232,7 +226,7 @@ window.handleHardDelete = async function handleHardDelete(id, nome = '') {
     }
 
     try {
-        const response = await requestAPI(`cartoes/${id}/delete`, {
+        const response = await requestAPI(resolveCardDeleteEndpoint(id), {
             method: 'POST',
             body: { force: false }
         });
@@ -275,7 +269,7 @@ window.handleHardDelete = async function handleHardDelete(id, nome = '') {
                 return;
             }
 
-            const deleteResponse = await requestAPI(`cartoes/${id}/delete`, {
+            const deleteResponse = await requestAPI(resolveCardDeleteEndpoint(id), {
                 method: 'POST',
                 body: { force: true }
             });

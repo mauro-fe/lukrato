@@ -78,7 +78,7 @@ class TourControllerTest extends TestCase
         $controller = new TourController();
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Nao autenticado');
+        $this->expectExceptionMessage('Não autenticado');
 
         $controller->complete();
     }

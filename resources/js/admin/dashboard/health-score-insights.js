@@ -1,4 +1,4 @@
-import { logClientError } from '../shared/api.js';
+import { getBaseUrl, logClientError } from '../shared/api.js';
 import { getDashboardOverview, invalidateDashboardOverview } from './dashboard-data.js';
 
 /**
@@ -9,7 +9,7 @@ import { getDashboardOverview, invalidateDashboardOverview } from './dashboard-d
 class HealthScoreInsights {
   constructor(containerId = 'healthScoreInsights') {
     this.container = document.getElementById(containerId);
-    this.baseURL = window.BASE_URL || '/';
+    this.baseURL = getBaseUrl();
     this.init();
   }
 

@@ -1,4 +1,10 @@
-export const OFFER_SESSION_PREFIX = `lk_help_offer_${window.__LK_CONFIG?.userId ?? 'anon'}_`;
+import { resolveHelpPreferencesEndpoint } from '../../api/endpoints/preferences.js';
+import { apiGet, apiPost, getApiPayload, getErrorMessage } from '../../shared/api.js';
+import { getRuntimeConfig } from '../runtime-config.js';
+
+export function getOfferSessionPrefix() {
+    return `lk_help_offer_${getRuntimeConfig().userId ?? 'anon'}_`;
+}
 
 export function normalizeHelpPreferences(value) {
     const fallback = {
@@ -27,16 +33,16 @@ export function normalizeHelpPreferences(value) {
 export function getOfferSessionKey(target, defaults = {}) {
     const { currentPage = 'dashboard', defaultVersion = 'v2' } = defaults;
     if (!target) {
-        return `${OFFER_SESSION_PREFIX}${currentPage}_${defaultVersion}`;
+        return `${getOfferSessionPrefix()}${currentPage}_${defaultVersion}`;
     }
 
-    return `${OFFER_SESSION_PREFIX}${target.key}_${target.version}`;
+    return `${getOfferSessionPrefix()}${target.key}_${target.version}`;
 }
 
 export function wasOfferShownThisSession(target, defaults = {}) {
     try {
         return sessionStorage.getItem(getOfferSessionKey(target, defaults)) === '1';
-    } catch (_error) {
+    } catch {
         return false;
     }
 }
@@ -44,46 +50,73 @@ export function wasOfferShownThisSession(target, defaults = {}) {
 export function markOfferShownThisSession(target, defaults = {}) {
     try {
         sessionStorage.setItem(getOfferSessionKey(target, defaults), '1');
-    } catch (_error) {
+    } catch {
         // ignore sessionStorage failures
     }
 }
 
 export function clearOfferSessionCache() {
     try {
+        const prefix = getOfferSessionPrefix();
         for (let i = sessionStorage.length - 1; i >= 0; i -= 1) {
             const key = sessionStorage.key(i);
-            if (key?.startsWith(OFFER_SESSION_PREFIX)) {
+            if (key?.startsWith(prefix)) {
                 sessionStorage.removeItem(key);
             }
         }
-    } catch (_error) {
+    } catch {
         // ignore sessionStorage failures
     }
 }
 
 export async function persistHelpPreference(action, extra = {}, options = {}) {
-    if (!window.LK?.api?.post) {
-        return { ok: false, preferences: null };
-    }
-
     const { silent = false } = options;
 
-    const response = await window.LK.api.post('api/user/help-preferences', {
-        action,
-        ...extra,
-    });
+    try {
+        const response = await apiPost(resolveHelpPreferencesEndpoint(), {
+            action,
+            ...extra,
+        });
 
-    if (!response?.ok) {
+        if (response?.success === false) {
+            throw new Error(getErrorMessage({ data: response }, 'Não foi possível salvar sua preferência de ajuda.'));
+        }
+
+        const payload = getApiPayload(response, null);
+
+        return {
+            ok: true,
+            preferences: payload?.preferences ? normalizeHelpPreferences(payload.preferences) : null,
+        };
+    } catch (error) {
         if (!silent) {
-            window.LK?.toast?.error(response?.message || 'Não foi possível salvar sua preferência de ajuda.');
+            window.LK?.toast?.error(getErrorMessage(error, 'Não foi possível salvar sua preferência de ajuda.'));
         }
 
         return { ok: false, preferences: null };
     }
+}
 
-    return {
-        ok: true,
-        preferences: response.data?.preferences ? normalizeHelpPreferences(response.data.preferences) : null,
-    };
+export async function fetchHelpPreferences(options = {}) {
+    const { silent = true } = options;
+
+    try {
+        const response = await apiGet(resolveHelpPreferencesEndpoint());
+        if (response?.success === false) {
+            throw new Error(getErrorMessage({ data: response }, 'Não foi possível carregar suas preferências de ajuda.'));
+        }
+
+        const payload = getApiPayload(response, null);
+
+        return {
+            ok: true,
+            preferences: payload?.preferences ? normalizeHelpPreferences(payload.preferences) : null,
+        };
+    } catch (error) {
+        if (!silent) {
+            window.LK?.toast?.error(getErrorMessage(error, 'Não foi possível carregar suas preferências de ajuda.'));
+        }
+
+        return { ok: false, preferences: null };
+    }
 }

@@ -169,13 +169,13 @@ function buildSnapshot(items: LancamentoItem[], monthKey: string): LancamentoSna
   const focusTip =
     pendingItems.length > 0
       ? {
-          title: 'Existem pendencias pedindo sua atencao',
-          description: 'O app priorizou o que ainda nao foi pago ou recebido para facilitar sua decisao.',
-        }
+        title: 'Existem pendencias pedindo sua atencao',
+        description: 'O app priorizou o que ainda nao foi pago ou recebido para facilitar sua decisao.',
+      }
       : {
-          title: 'Tudo em dia por enquanto',
-          description: 'Como nao ha pendencias, a lista fica livre para consulta e ajustes.',
-        };
+        title: 'Tudo em dia por enquanto',
+        description: 'Como nao ha pendencias, a lista fica livre para consulta e ajustes.',
+      };
 
   return {
     monthLabel: getMonthLabel(monthKey),
@@ -246,7 +246,7 @@ function mapRemoteOptions(data: RemoteOptionsResponse): {
 class LancamentosRepository {
   async getSnapshot(monthKey = getCurrentMonthKey()): Promise<RepositoryResult<LancamentoSnapshot>> {
     try {
-      const remoteItems = await httpClient.get<RemoteLancamento[]>('api/lancamentos', {
+      const remoteItems = await httpClient.get<RemoteLancamento[]>('api/v1/lancamentos', {
         month: monthKey,
       });
 
@@ -267,7 +267,7 @@ class LancamentosRepository {
     RepositoryResult<{ accounts: FormAccountOption[]; categories: FormCategoryOption[] }>
   > {
     try {
-      const remoteOptions = await httpClient.get<RemoteOptionsResponse>('api/options');
+      const remoteOptions = await httpClient.get<RemoteOptionsResponse>('api/v1/options');
       return {
         source: 'remote',
         data: mapRemoteOptions(remoteOptions),
@@ -289,7 +289,7 @@ class LancamentosRepository {
   ): Promise<RepositoryResult<{ message: string }>> {
     if (input.mode === 'transfer') {
       await httpClient.post(
-        'api/transfers',
+        'api/v1/transfers',
         {
           conta_id: Number(input.accountId),
           conta_id_destino: Number(input.destinationAccountId),
@@ -312,7 +312,7 @@ class LancamentosRepository {
 
     try {
       await httpClient.post(
-        'api/lancamentos',
+        'api/v1/lancamentos',
         {
           tipo: input.mode === 'income' ? 'receita' : 'despesa',
           data: input.date,

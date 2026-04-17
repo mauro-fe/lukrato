@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Unit\Services\Auth;
 
 use Application\Config\AuthRuntimeConfig;
-use Application\Config\CommunicationRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Core\Request;
 use Application\Services\Auth\AuthService;
@@ -122,11 +121,9 @@ class AuthWorkflowDependencyResolutionTest extends TestCase
         $referralService = Mockery::mock(ReferralService::class);
         $achievementService = Mockery::mock(AchievementService::class);
         $authRuntimeConfig = new AuthRuntimeConfig();
-        $communicationRuntimeConfig = new CommunicationRuntimeConfig();
 
         $container = new IlluminateContainer();
         $container->instance(AuthRuntimeConfig::class, $authRuntimeConfig);
-        $container->instance(CommunicationRuntimeConfig::class, $communicationRuntimeConfig);
         $container->instance(Google_Client::class, $googleClient);
         $container->instance(AuthService::class, $authService);
         $container->instance(MailService::class, $mailService);
@@ -147,7 +144,7 @@ class AuthWorkflowDependencyResolutionTest extends TestCase
 
         $this->assertSame($mailService, $this->readProperty($verificationService, 'mailService'));
         $this->assertSame($tokenPairService, $this->readProperty($verificationService, 'tokenPairService'));
-        $this->assertSame($communicationRuntimeConfig, $this->readProperty($verificationService, 'runtimeConfig'));
+        $this->assertSame($authRuntimeConfig, $this->readProperty($verificationService, 'runtimeConfig'));
         $this->assertSame($referralService, $this->invokePrivateMethod($verificationService, 'referralService'));
         $this->assertSame($achievementService, $this->invokePrivateMethod($verificationService, 'achievementService'));
     }

@@ -1,15 +1,20 @@
 import '../../../css/admin/importacoes/configuracoes.css';
 import {
-    appendCsrfToken,
     bootImportacoesPage,
-    fetchApiJson,
     normalizeSourceType,
 } from './app.js';
+import { buildUrl, getBaseUrl } from '../shared/api.js';
+import { resolveImportacoesCsvTemplateEndpoint } from '../api/endpoints/importacoes.js';
+import {
+    loadImportacoesConfiguracoesPageInit,
+    saveImportacoesConfiguracao,
+} from './api/configuracoes.js';
 
 const context = bootImportacoesPage('configuracoes');
 
 if (context) {
     const accountSelect = context.root.querySelector('[data-imp-account-select]');
+    const accountForm = context.root.querySelector('[data-imp-config-form]');
     const selectedAccountLabel = context.root.querySelector('[data-imp-config-selected-account]');
     const saveForm = context.root.querySelector('[data-imp-config-save-form]');
     const saveFeedback = context.root.querySelector('[data-imp-config-save-feedback]');
@@ -46,8 +51,13 @@ if (context) {
     const summaryNumeroConta = context.root.querySelector('[data-imp-summary-numero-conta]');
     const summaryCsvDelimiter = context.root.querySelector('[data-imp-summary-csv-delimiter]');
     const summaryCsvStartRow = context.root.querySelector('[data-imp-summary-csv-start-row]');
+    const importacoesLinks = Array.from(context.root.querySelectorAll('[data-imp-config-importacoes-link]'));
+    const csvTemplateAutoLink = context.root.querySelector('[data-imp-csv-template-auto]');
+    const csvTemplateManualLink = context.root.querySelector('[data-imp-csv-template-manual]');
+    const csvTemplateCardAutoLink = context.root.querySelector('[data-imp-csv-template-card-auto]');
+    const csvTemplateCardManualLink = context.root.querySelector('[data-imp-csv-template-card-manual]');
 
-    const saveEndpoint = String(context.root.dataset.impConfigSaveEndpoint || '').trim();
+    let pageInitRequestToken = 0;
 
     const setFeedback = (message, status = 'idle') => {
         if (!saveFeedback) {
@@ -121,6 +131,103 @@ if (context) {
         }
     };
 
+    const replaceAccountOptions = (accounts, selectedAccountId) => {
+        if (!accountSelect) {
+            return;
+        }
+
+        const normalizedAccounts = Array.isArray(accounts) ? accounts : [];
+        accountSelect.innerHTML = '';
+
+        normalizedAccounts.forEach((account) => {
+            const option = document.createElement('option');
+            const accountId = Number.parseInt(String(account?.id || '0'), 10);
+            option.value = Number.isFinite(accountId) && accountId > 0 ? String(accountId) : '0';
+            option.textContent = String(account?.nome || 'Conta sem nome');
+            accountSelect.appendChild(option);
+        });
+
+        accountSelect.value = String(selectedAccountId || normalizedAccounts[0]?.id || '0');
+    };
+
+    const updateImportacoesLinks = (selectedAccountId) => {
+        const baseUrl = getBaseUrl();
+        const href = Number.isFinite(Number(selectedAccountId)) && Number(selectedAccountId) > 0
+            ? `${baseUrl}importacoes?conta_id=${encodeURIComponent(String(selectedAccountId))}`
+            : `${baseUrl}importacoes`;
+
+        importacoesLinks.forEach((link) => {
+            link.setAttribute('href', href);
+        });
+    };
+
+    const updateTemplateLinks = () => {
+        if (csvTemplateAutoLink) {
+            csvTemplateAutoLink.href = buildUrl(resolveImportacoesCsvTemplateEndpoint({ mode: 'auto', target: 'conta' }));
+        }
+
+        if (csvTemplateManualLink) {
+            csvTemplateManualLink.href = buildUrl(resolveImportacoesCsvTemplateEndpoint({ mode: 'manual', target: 'conta' }));
+        }
+
+        if (csvTemplateCardAutoLink) {
+            csvTemplateCardAutoLink.href = buildUrl(resolveImportacoesCsvTemplateEndpoint({ mode: 'auto', target: 'cartao' }));
+        }
+
+        if (csvTemplateCardManualLink) {
+            csvTemplateCardManualLink.href = buildUrl(resolveImportacoesCsvTemplateEndpoint({ mode: 'manual', target: 'cartao' }));
+        }
+    };
+
+    const applyPageInitPayload = (payload = {}) => {
+        const accounts = Array.isArray(payload?.accounts) ? payload.accounts : [];
+        const selectedAccountId = Number.parseInt(String(payload?.selectedAccountId || '0'), 10);
+
+        replaceAccountOptions(accounts, selectedAccountId);
+        updateImportacoesLinks(selectedAccountId);
+
+        context.setState({
+            selectedAccountId: Number.isFinite(selectedAccountId) && selectedAccountId > 0 ? selectedAccountId : null,
+            previewStatus: accounts.length > 0 ? 'preview_ready' : 'idle',
+        });
+
+        if (selectedAccountLabel) {
+            selectedAccountLabel.textContent = Number.isFinite(selectedAccountId) && selectedAccountId > 0
+                ? String(selectedAccountId)
+                : 'Não definida';
+        }
+
+        updateTemplateLinks();
+        assignPayloadToForm(payload?.profileConfig || {}, selectedAccountId);
+        syncSummary();
+    };
+
+    const hydratePageInit = async (requestedAccountId = null) => {
+        const accountId = Number.parseInt(String(requestedAccountId || accountSelect?.value || context.state.selectedAccountId || '0'), 10);
+        const requestToken = ++pageInitRequestToken;
+
+        setFeedback('Carregando configuração...', 'loading');
+
+        try {
+            const response = await loadImportacoesConfiguracoesPageInit(accountId);
+            if (requestToken !== pageInitRequestToken) {
+                return;
+            }
+
+            applyPageInitPayload(response?.data || {});
+            setFeedback('Configuração carregada.', 'idle');
+        } catch (error) {
+            if (requestToken !== pageInitRequestToken) {
+                return;
+            }
+
+            const messages = Array.isArray(error?.messages) && error.messages.length > 0
+                ? error.messages
+                : [String(error?.message || 'Falha ao carregar configuração.')];
+            setFeedback(messages.join(' '), 'error');
+        }
+    };
+
     const applyOptionsToForm = (options = {}) => {
         if (csvDelimiterInput && options.csv_delimiter !== undefined) {
             csvDelimiterInput.value = String(options.csv_delimiter || ';');
@@ -188,14 +295,24 @@ if (context) {
         context.setState({ selectedAccountId: Number(accountSelect.value || 0) || null });
 
         accountSelect.addEventListener('change', () => {
+            const nextAccountId = Number(accountSelect.value || 0) || null;
             context.setState({
-                selectedAccountId: Number(accountSelect.value || 0) || null,
+                selectedAccountId: nextAccountId,
                 previewStatus: 'idle',
             });
 
             if (selectedAccountLabel) {
                 selectedAccountLabel.textContent = accountSelect.value || 'Não definida';
             }
+
+            void hydratePageInit(nextAccountId);
+        });
+    }
+
+    if (accountForm) {
+        accountForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            void hydratePageInit(accountSelect?.value || context.state.selectedAccountId || null);
         });
     }
 
@@ -229,11 +346,6 @@ if (context) {
         saveForm.addEventListener('submit', async (event) => {
             event.preventDefault();
 
-            if (!saveEndpoint) {
-                setFeedback('Endpoint de salvamento não configurado.', 'error');
-                return;
-            }
-
             const contaId = Number.parseInt(String(contaIdInput?.value || context.state.selectedAccountId || ''), 10);
             if (!Number.isFinite(contaId) || contaId <= 0) {
                 setFeedback('Selecione uma conta válida para salvar.', 'error');
@@ -255,8 +367,6 @@ if (context) {
                 formData.set(`csv_column_${field}`, normalizeColumnReference(input?.value || ''));
             });
 
-            appendCsrfToken(formData, saveForm);
-
             if (saveButton) {
                 saveButton.disabled = true;
             }
@@ -264,10 +374,7 @@ if (context) {
             setFeedback('Salvando configuração...', 'loading');
 
             try {
-                const response = await fetchApiJson(saveEndpoint, {
-                    method: 'POST',
-                    body: formData,
-                });
+                const response = await saveImportacoesConfiguracao(formData, saveForm);
 
                 const profile = typeof response?.data === 'object' && response?.data !== null
                     ? response.data
@@ -290,4 +397,5 @@ if (context) {
 
     toggleManualFields();
     syncSummary();
+    void hydratePageInit(context.state.selectedAccountId || accountSelect?.value || null);
 }

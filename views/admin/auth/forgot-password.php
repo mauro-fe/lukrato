@@ -1,5 +1,7 @@
 <?php
-$favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
+$favicon = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
+$forgotPasswordPageUrl = rtrim(BASE_URL, '/') . '/recuperar-senha';
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -50,7 +52,7 @@ $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1'; ?>
 
                     <div id="messageContainer"></div>
 
-                    <form action="<?= BASE_URL ?>recuperar-senha" method="POST" novalidate id="recoverForm">
+                    <form action="<?= htmlspecialchars($forgotPasswordPageUrl, ENT_QUOTES, 'UTF-8') ?>" method="POST" novalidate id="recoverForm">
                         <?= csrf_input('forgot_form') ?>
                         <div class="field">
                             <input type="email" name="email" id="email" placeholder="Digite seu e-mail"

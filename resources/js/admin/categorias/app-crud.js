@@ -1,3 +1,5 @@
+import { resolveCategoriesEndpoint, resolveCategoryEndpoint } from '../api/endpoints/finance.js';
+
 /**
  * ============================================================================
  * LUKRATO - Categorias / CRUD
@@ -62,7 +64,7 @@ export function createCategoriasCrud({
                 icone: formData.get('icone') || null,
             };
 
-            const result = await apiPost(`${CONFIG.API_URL}categorias`, data);
+            const result = await apiPost(resolveCategoriesEndpoint(), data);
 
             if (result?.success === false) {
                 throw new Error(getErrorMessage({ data: result }, 'Erro ao criar categoria.'));
@@ -165,7 +167,7 @@ export function createCategoriasCrud({
                 icone: formData.get('icone') || null,
             };
 
-            await apiPut(`${CONFIG.API_URL}categorias/${STATE.categoriaEmEdicao.id}`, data);
+            await apiPut(resolveCategoryEndpoint(STATE.categoriaEmEdicao.id), data);
 
             showSuccess('Categoria atualizada com sucesso!');
 
@@ -199,7 +201,7 @@ export function createCategoriasCrud({
         if (!confirmacao.isConfirmed) return;
 
         try {
-            await apiDelete(`${CONFIG.API_URL}categorias/${id}`, {});
+            await apiDelete(resolveCategoryEndpoint(id), {});
         } catch (error) {
             if (error?.status === 422 && error?.data?.errors?.confirm_delete) {
                 const counts = error.data.errors.counts || {};
@@ -223,7 +225,7 @@ export function createCategoriasCrud({
                 if (!forceDelete.isConfirmed) return;
 
                 try {
-                    await apiDelete(`${CONFIG.API_URL}categorias/${id}`, { force: true });
+                    await apiDelete(resolveCategoryEndpoint(id), { force: true });
                 } catch (forcedError) {
                     console.error('Erro ao excluir categoria:', forcedError);
                     showError(getErrorMessage(forcedError, 'Erro ao excluir categoria. Pode haver lancamentos vinculados.'));

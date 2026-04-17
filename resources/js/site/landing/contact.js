@@ -2,6 +2,8 @@
  * Contact — Tabs (WhatsApp / E-mail) + form submit with SweetAlert2
  */
 
+import { buildSiteUrl, resolveContactSendEndpoint } from '../api/endpoints/engagement.js';
+
 /** Lazy-load SweetAlert2 on first use */
 let _swalPromise;
 function loadSwal() {
@@ -46,7 +48,7 @@ export function init() {
 
     let sending = false;
 
-    const apiUrl = `${window.APP_BASE_URL}/api/contato/enviar`;
+    const apiUrl = buildSiteUrl(resolveContactSendEndpoint());
 
     /* Phone mask */
     if (whatsappInput) {

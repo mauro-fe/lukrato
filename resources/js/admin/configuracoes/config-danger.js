@@ -1,4 +1,4 @@
-import { apiDelete, getErrorMessage } from '../shared/api.js';
+import { apiDelete, apiLogout, getErrorMessage } from '../shared/api.js';
 
 async function confirmDeleteAccount() {
     if (!window.Swal) {
@@ -59,7 +59,13 @@ async function confirmDeleteAccount() {
 
 export function initConfigDangerZone(context) {
     const button = document.getElementById('btn-delete-account');
+    const deleteAccountEndpoint = context.endpoints?.deleteAccount;
     if (!button) {
+        return;
+    }
+
+    if (!deleteAccountEndpoint) {
+        console.error('Endpoint de exclusao de conta nao configurado.');
         return;
     }
 
@@ -81,7 +87,7 @@ export function initConfigDangerZone(context) {
                 });
             }
 
-            const response = await apiDelete(`${context.API}perfil/delete`);
+            const response = await apiDelete(deleteAccountEndpoint);
             if (response?.success === false) {
                 throw new Error(getErrorMessage({ data: response }, 'Erro ao excluir conta.'));
             }
@@ -98,7 +104,7 @@ export function initConfigDangerZone(context) {
                 });
             }
 
-            window.location.href = `${context.BASE}logout`;
+            await apiLogout({ redirectTo: `${context.BASE}login` });
         } catch (error) {
             console.error('Erro ao excluir conta:', error);
 
