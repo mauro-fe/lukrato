@@ -13,9 +13,4 @@
     <?php include __DIR__ . '/sections/loading-state.php'; ?>
 </div>
 
-<!-- Template do Modal de Detalhes do Cartão -->
-<?php include BASE_PATH . '/views/admin/partials/modals/card-detail-modal.php'; ?>
-
-<!-- ==================== SCRIPTS ==================== -->
-<?= vite_scripts('admin/card-modals/index.js') ?>
 <!-- Page JS carregado automaticamente via loadPageJs() + Vite -->

@@ -197,32 +197,19 @@ function setupDetailModalDelegation(accountSelect, showClearFiltersButton) {
 
         event.stopPropagation();
 
-        const cardId = parseInt(trigger.dataset.cardId, 10);
-        const cardName = trigger.dataset.cardNome || '';
-        const cardColor = trigger.dataset.cardCor || '#E67E22';
+        const cardId = Number.parseInt(String(trigger.dataset.cardId || ''), 10);
         const cardMonth = trigger.dataset.cardMonth || STATE.currentMonth;
+        const monthParam = /^\d{4}-\d{2}$/.test(cardMonth) ? cardMonth : STATE.currentMonth;
 
-        if (!cardId) {
+        if (!Number.isInteger(cardId) || cardId <= 0) {
             return;
         }
 
-        if (window.LK_CardDetail?.open) {
-            window.LK_CardDetail.open(cardId, cardName, cardColor, cardMonth);
-            return;
-        }
-
-        console.error('[Relatorios] LK_CardDetail module not loaded');
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'error',
-                title: 'Modulo de detalhes nao carregado',
-                text: 'Recarregue a pagina.',
-                showConfirmButton: false,
-                timer: 3000,
-            });
-        }
+        const params = new URLSearchParams({
+            mes: monthParam,
+            origem: 'relatorios',
+        });
+        window.location.href = `${CONFIG.BASE_URL}cartoes/${cardId}?${params.toString()}`;
     });
 }
 

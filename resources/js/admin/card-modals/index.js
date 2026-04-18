@@ -200,9 +200,12 @@ async function fetchCardDetailData(cardId, monthKey) {
         throw new Error('Mês de referência inválido');
     }
 
+    const normalizedMonth = String(parsed.month).padStart(2, '0');
+    const normalizedYear = String(parsed.year);
+
     const url = buildUrl(resolveReportCardDetailsEndpoint(cardId), {
-        mes: parsed.month,
-        ano: parsed.year,
+        mes: normalizedMonth,
+        ano: normalizedYear,
     });
 
     const data = await apiFetch(url, { credentials: 'include' }, { timeout: 15000 });

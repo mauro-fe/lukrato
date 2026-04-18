@@ -38,6 +38,10 @@ class CartoesController extends WebController
     public function show(int $id): Response
     {
         $this->requireUserId();
+        $monthInput = (string) $this->getQuery('mes', '');
+        $normalizedMonth = $this->normalizeYearMonth($monthInput, date('Y-m'));
+        $origin = strtolower(trim((string) $this->getQuery('origem', '')));
+        $fromReports = $origin === 'relatorios';
 
         return $this->renderAdminResponse(
             'admin/cartoes/show',
@@ -45,6 +49,9 @@ class CartoesController extends WebController
                 'pageTitle' => 'Detalhes do Cartão',
                 'subTitle' => 'Acompanhe fatura, evolução e parcelamentos',
                 'cartaoId' => $id,
+                'currentMonth' => $normalizedMonth['month'],
+                'backUrl' => BASE_URL . ($fromReports ? 'relatorios' : 'cartoes'),
+                'backLabel' => $fromReports ? 'Voltar para relatórios' : 'Voltar para cartões',
             ]
         );
     }

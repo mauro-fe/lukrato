@@ -366,7 +366,7 @@ export function renderFormasPagamento(formas) {
 }
 
 export function renderComparative(title, data, period) {
-    const getTrendIcon = (value, isDespesa = false) => {
+    const getTrendIcon = (value) => {
         if (value > 0) return '<i data-lucide="arrow-up"></i>';
         if (value < 0) return '<i data-lucide="arrow-down"></i>';
         return '<i data-lucide="equal"></i>';
@@ -383,7 +383,7 @@ export function renderComparative(title, data, period) {
         return 'trend-neutral';
     };
 
-    const getTrendText = (value, isDespesa = false) => {
+    const getTrendText = (value) => {
         if (Math.abs(value) < 0.1) return 'Sem alteração';
 
         if (value > 0) return `Aumentou ${Math.abs(value).toFixed(1)}%`;
@@ -588,8 +588,6 @@ export function renderCardsReport(data) {
                     <div class="card-item surface-card surface-card--interactive surface-card--clip ${card.status_saude.status}"
                          style="--card-color: ${cardColor}; cursor: pointer;"
                          data-card-id="${card.id || ''}"
-                         data-card-nome="${escapeHtml(card.nome)}"
-                         data-card-cor="${cardColor}"
                          data-card-month="${STATE.currentMonth}"
                          data-action="open-card-detail"
                          role="button"
@@ -687,7 +685,7 @@ export function renderCardsReport(data) {
                         ` : ''}
                         
                         <div class="card-footer">
-                            <button class="card-action-btn primary full-width" data-action="open-card-detail" data-card-id="${card.id || ''}" data-card-nome="${escapeHtml(card.nome)}" data-card-cor="${cardColor}" data-card-month="${STATE.currentMonth}" title="Ver relatório detalhado">
+                            <button class="card-action-btn primary full-width" data-action="open-card-detail" data-card-id="${card.id || ''}" data-card-month="${STATE.currentMonth}" title="Ver relatório detalhado">
                                 <i data-lucide="eye"></i>
                                 <span>Ver Detalhes</span>
                             </button>

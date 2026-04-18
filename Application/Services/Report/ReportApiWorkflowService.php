@@ -193,10 +193,11 @@ class ReportApiWorkflowService
         $mes = $query['mes'] ?? date('m');
         $ano = $query['ano'] ?? date('Y');
 
-        if (!preg_match('/^\d{2}$/', $mes ?? '') || !preg_match('/^\d{4}$/', $ano ?? '')) {
+        if (!preg_match('/^\d{1,2}$/', $mes ?? '') || !preg_match('/^\d{4}$/', $ano ?? '')) {
             throw new InvalidArgumentException('Formato de mês/ano inválido');
         }
 
+        $mes = str_pad((string) ((int) $mes), 2, '0', STR_PAD_LEFT);
         $this->validateDateParams((int) $ano, (int) $mes);
 
         return $this->reportService->getCardDetailedReport($userId, $cardId, $mes, $ano);

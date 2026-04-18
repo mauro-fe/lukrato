@@ -624,6 +624,7 @@ class ReportService
                 ->where('mes_referencia', (int) $proximoMes->format('m'))
                 ->where('ano_referencia', (int) $proximoMes->format('Y'))
                 ->sum('valor');
+            $itensFuturosProximos = (float) $itensFuturosProximos;
 
             if ($itensFuturosProximos > 0) {
                 $alertas[] = [

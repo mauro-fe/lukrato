@@ -2,12 +2,12 @@
     class="card-detail-page"
     id="cardDetailPage"
     data-card-id="<?= (int) ($cartaoId ?? 0) ?>"
-    data-current-month="<?= date('Y-m') ?>">
+    data-current-month="<?= htmlspecialchars((string) ($currentMonth ?? date('Y-m')), ENT_QUOTES, 'UTF-8') ?>">
     <div class="card-detail-shell surface-card surface-card--clip">
         <div class="card-detail-toolbar">
-            <a class="card-detail-back" href="<?= BASE_URL ?>cartoes" data-no-transition="true">
+            <a class="card-detail-back" href="<?= htmlspecialchars((string) ($backUrl ?? (BASE_URL . 'cartoes')), ENT_QUOTES, 'UTF-8') ?>" data-no-transition="true">
                 <i data-lucide="arrow-left"></i>
-                <span>Voltar para cartões</span>
+                <span><?= htmlspecialchars((string) ($backLabel ?? 'Voltar para cartões'), ENT_QUOTES, 'UTF-8') ?></span>
             </a>
 
             <span class="card-detail-pill">
