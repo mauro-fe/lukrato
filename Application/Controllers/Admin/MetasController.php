@@ -21,4 +21,22 @@ class MetasController extends WebController
             ]
         );
     }
+
+    public function templates(): Response
+    {
+        $this->requireUserId();
+
+        return $this->renderAdminResponse(
+            'admin/metas/templates',
+            [
+                'pageTitle' => 'Templates de Metas',
+                'subTitle' => 'Escolha um modelo e crie sua meta rapidamente',
+                'menu' => 'metas',
+                'hideLaunchFab' => true,
+                'backUrl' => rtrim(BASE_URL, '/') . '/metas',
+                'backLabel' => 'Voltar para metas',
+                'currentPageJsViewId' => 'admin-metas-index',
+            ]
+        );
+    }
 }

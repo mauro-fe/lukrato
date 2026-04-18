@@ -657,7 +657,7 @@ export const FinancasApp = {
                         ? `<i data-lucide="${tmpl.icone}" style="color:${getCategoryIconColor(tmpl.icone)}"></i>`
                         : '<i data-lucide="target" style="color:#ef4444"></i>';
                     return `
-                    <div class="template-card" onclick="financasManager.useTemplate(${JSON.stringify(tmpl).replace(/"/g, '&quot;')})">
+                    <div class="template-card surface-card" onclick="financasManager.useTemplate(${JSON.stringify(tmpl).replace(/"/g, '&quot;')})">
                         <span class="template-icon">${iconeHtml}</span>
                         <div class="template-info">
                             <strong>${Utils.escHtml(tmpl.titulo)}</strong>

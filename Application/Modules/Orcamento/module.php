@@ -16,6 +16,7 @@ return array (
     'view_ids' => 
     array (
       0 => 'admin-orcamento-index',
+      1 => 'admin-orcamento-sugestao-inteligente',
     ),
     'vite_entry' => 'admin/orcamento/index.js',
     'css_entry' => '',

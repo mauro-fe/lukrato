@@ -1345,7 +1345,6 @@
   gap: var(--spacing-3);
   padding: var(--spacing-3) var(--spacing-4);
   border-radius: var(--radius-md);
-  border: 1px solid var(--glass-border);
   cursor: pointer;
   transition: all 0.2s ease;
 }

@@ -14,6 +14,7 @@ return array (
   'view_ids' => 
   array (
     0 => 'admin-metas-index',
+    1 => 'admin-metas-templates',
   ),
   'vite_entry' => 'admin/metas/index.js',
   'css_entry' => '',

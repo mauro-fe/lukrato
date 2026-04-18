@@ -126,6 +126,17 @@ const MetasUi = createMetasUi({
     isDemoItem,
 });
 
+function buildAppUrl(path, params = {}) {
+    const url = new URL(String(path || '').replace(/^\/+/, ''), CONFIG.BASE_URL);
+    Object.entries(params).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== '') {
+            url.searchParams.set(key, value);
+        }
+    });
+
+    return url.toString();
+}
+
 // ── Initialization ─────────────────────────────────────────────
 
 export const MetasApp = {
@@ -133,6 +144,13 @@ export const MetasApp = {
         MetasApp.attachEventListeners();
         MetasApp.setupMoneyInputs();
         await MetasApp.loadContas();
+
+        if (MetasApp.isTemplatesPage()) {
+            document.getElementById('btnRecarregarTemplates')?.addEventListener('click', () => MetasApp.loadTemplates());
+            await MetasApp.loadTemplates();
+            return;
+        }
+
         await MetasApp.loadAll();
     },
 
@@ -200,6 +218,20 @@ export const MetasApp = {
 
         // Conta vinculada → toggle valor_atual field
         MetasApp.syncMetaAllocationField();
+    },
+
+    isTemplatesPage() {
+        return Boolean(document.getElementById('metTemplatesPage'));
+    },
+
+    getTemplatesReturnUrl() {
+        return document.getElementById('metTemplatesPage')?.dataset.returnUrl || buildAppUrl('metas');
+    },
+
+    getTemplatesPageUrl() {
+        return buildAppUrl('metas/templates', {
+            return: 'metas',
+        });
     },
 
     setupMoneyInputs() {
@@ -403,8 +435,12 @@ export const MetasApp = {
                 processGamification(gamification);
 
                 MetasApp.closeModal('modalMeta');
-                Utils.showToast(metaId ? 'Meta atualizada!' : 'Meta criada!', 'success');
-                await MetasApp.loadAll();
+                if (MetasApp.isTemplatesPage() && !metaId) {
+                    await MetasApp.showTemplateMetaCreatedAlert();
+                } else {
+                    Utils.showToast(metaId ? 'Meta atualizada!' : 'Meta criada!', 'success');
+                    await MetasApp.loadAll();
+                }
             } else {
                 Utils.showToast(res.message || 'Erro ao salvar', 'error');
             }
@@ -501,8 +537,18 @@ export const MetasApp = {
     // ==================== TEMPLATES ====================
 
     async openTemplates() {
-        MetasApp.openModal('modalTemplates');
+        if (!MetasApp.isTemplatesPage()) {
+            window.location.href = MetasApp.getTemplatesPageUrl();
+            return;
+        }
+
+        await MetasApp.loadTemplates();
+    },
+
+    async loadTemplates() {
         const grid = document.getElementById('templatesGrid');
+        if (!grid) return;
+
         grid.innerHTML = '<div class="lk-loading-state"><i data-lucide="loader-2"></i><p>Carregando templates...</p></div>';
         if (window.lucide) lucide.createIcons();
 
@@ -514,7 +560,7 @@ export const MetasApp = {
                         ? `<i data-lucide="${tmpl.icone}" style="color:${getCategoryIconColor(tmpl.icone)}"></i>`
                         : '<i data-lucide="target" style="color:#ef4444"></i>';
                     return `
-                    <div class="template-card" onclick="metasManager.useTemplate(${JSON.stringify(tmpl).replace(/"/g, '&quot;')})">
+                    <div class="template-card surface-card" onclick="metasManager.useTemplate(${JSON.stringify(tmpl).replace(/"/g, '&quot;')})">
                         <span class="template-icon">${iconeHtml}</span>
                         <div class="template-info">
                             <strong>${Utils.escHtml(tmpl.titulo)}</strong>
@@ -534,7 +580,9 @@ export const MetasApp = {
     },
 
     useTemplate(tmpl) {
-        MetasApp.closeModal('modalTemplates');
+        if (!MetasApp.isTemplatesPage()) {
+            MetasApp.closeModal('modalTemplates');
+        }
         MetasApp.openMetaModal();
 
         setTimeout(() => {
@@ -550,6 +598,29 @@ export const MetasApp = {
             }
             MetasApp.updateAporteSugerido();
         }, 100);
+    },
+
+    async showTemplateMetaCreatedAlert() {
+        if (typeof Swal === 'undefined') {
+            Utils.showToast('Meta criada!', 'success');
+            return;
+        }
+
+        const result = await Swal.fire({
+            icon: 'success',
+            title: 'Meta criada com sucesso',
+            text: 'Sua meta foi salva. Você pode voltar para a lista ou escolher outro template.',
+            showDenyButton: true,
+            confirmButtonText: 'Voltar para metas',
+            denyButtonText: 'Escolher outro template',
+        });
+
+        if (result.isConfirmed) {
+            window.location.href = MetasApp.getTemplatesReturnUrl();
+            return;
+        }
+
+        await MetasApp.loadTemplates();
     },
 
     updateAporteSugerido() {

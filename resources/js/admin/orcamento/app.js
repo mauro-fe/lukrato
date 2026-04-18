@@ -117,11 +117,39 @@ const OrcamentoUi = createOrcamentoUi({
     isDemoItem,
 });
 
+function buildAppUrl(path, params = {}) {
+    const url = new URL(String(path || '').replace(/^\/+/, ''), CONFIG.BASE_URL);
+    Object.entries(params).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== '') {
+            url.searchParams.set(key, value);
+        }
+    });
+
+    return url.toString();
+}
+
+function getCurrentYearMonth() {
+    return `${STATE.currentYear}-${String(STATE.currentMonth).padStart(2, '0')}`;
+}
+
+function getValidQueryMonth() {
+    const ym = new URLSearchParams(window.location.search).get('mes');
+
+    return ym && /^\d{4}-(0[1-9]|1[0-2])$/.test(ym) ? ym : null;
+}
+
 // ── Initialization ─────────────────────────────────────────────
 
 export const OrcamentoApp = {
     async init() {
         OrcamentoApp.syncFromHeader();
+
+        if (OrcamentoApp.isSugestoesPage()) {
+            OrcamentoApp.attachSugestoesPageListeners();
+            await OrcamentoApp.loadSugestoes();
+            return;
+        }
+
         OrcamentoApp.attachEventListeners();
         OrcamentoApp.setupMoneyInputs();
         await OrcamentoApp.loadCategorias();
@@ -131,7 +159,7 @@ export const OrcamentoApp = {
     // ==================== SYNC HEADER ====================
 
     syncFromHeader() {
-        const ym = window.LukratoHeader?.getMonth?.() || sessionStorage.getItem('lkMes');
+        const ym = getValidQueryMonth() || window.LukratoHeader?.getMonth?.() || sessionStorage.getItem('lkMes');
         if (ym && /^\d{4}-(0[1-9]|1[0-2])$/.test(ym)) {
             const [y, m] = ym.split('-').map(Number);
             STATE.currentYear = y;
@@ -195,6 +223,45 @@ export const OrcamentoApp = {
                 document.querySelectorAll('.fin-modal-overlay.active').forEach(m => OrcamentoApp.closeModal(m.id));
             }
         });
+    },
+
+    attachSugestoesPageListeners() {
+        document.addEventListener('lukrato:month-changed', (e) => {
+            const ym = e.detail?.month;
+            if (ym && /^\d{4}-(0[1-9]|1[0-2])$/.test(ym)) {
+                const [y, m] = ym.split('-').map(Number);
+                STATE.currentYear = y;
+                STATE.currentMonth = m;
+                OrcamentoApp.syncSugestoesPageUrl();
+                OrcamentoApp.loadSugestoes();
+            }
+        });
+
+        document.getElementById('btnAplicarSugestoes')?.addEventListener('click', () => OrcamentoApp.aplicarSugestoes());
+        document.getElementById('btnRecarregarSugestoes')?.addEventListener('click', () => OrcamentoApp.loadSugestoes());
+    },
+
+    isSugestoesPage() {
+        return Boolean(document.getElementById('orcSugestoesPage'));
+    },
+
+    getSugestoesReturnUrl() {
+        return document.getElementById('orcSugestoesPage')?.dataset.returnUrl || buildAppUrl('orcamento');
+    },
+
+    getSugestoesPageUrl() {
+        return buildAppUrl('orcamento/sugestao-inteligente', {
+            mes: getCurrentYearMonth(),
+            return: 'orcamento',
+        });
+    },
+
+    syncSugestoesPageUrl() {
+        if (!OrcamentoApp.isSugestoesPage()) return;
+
+        const url = new URL(window.location.href);
+        url.searchParams.set('mes', getCurrentYearMonth());
+        window.history.replaceState({}, '', url.toString());
     },
 
     setupMoneyInputs() {
@@ -445,8 +512,17 @@ export const OrcamentoApp = {
     // ==================== SUGESTÕES ====================
 
     async openSugestoes() {
-        OrcamentoApp.openModal('modalSugestoes');
+        if (!OrcamentoApp.isSugestoesPage()) {
+            window.location.href = OrcamentoApp.getSugestoesPageUrl();
+            return;
+        }
+
+        await OrcamentoApp.loadSugestoes();
+    },
+
+    async loadSugestoes() {
         const list = document.getElementById('sugestoesList');
+        if (!list) return;
         list.innerHTML = '<div class="lk-loading-state"><i data-lucide="loader-2"></i><p>Analisando seu histórico...</p></div>';
         if (window.lucide) lucide.createIcons();
 
@@ -465,6 +541,8 @@ export const OrcamentoApp = {
 
     renderSugestoes() {
         const list = document.getElementById('sugestoesList');
+        if (!list) return;
+
         list.innerHTML = STATE.sugestoes.map((sug, idx) => {
             const trendIcon = sug.tendencia === 'subindo' ? 'arrow-up' : sug.tendencia === 'descendo' ? 'arrow-down' : 'minus';
             const trendClass = sug.tendencia === 'subindo' ? 'up' : sug.tendencia === 'descendo' ? 'down' : 'stable';
@@ -475,7 +553,7 @@ export const OrcamentoApp = {
                 ? `<span class="sugestao-economia"><i data-lucide="banknote" aria-hidden="true"></i> economia de ${Utils.formatCurrency(sug.economia_sugerida)}/mês</span>`
                 : '';
             return `
-            <div class="sugestao-item">
+            <div class="sugestao-item surface-card">
                 <div class="sugestao-info">
                     <span class="sugestao-icon"><i data-lucide="${catIcone}" style="color:${getCategoryIconColor(catIcone)}"></i></span>
                     <div class="sugestao-detail">
@@ -530,15 +608,43 @@ export const OrcamentoApp = {
             if (handleLimitError(res)) return;
 
             if (res.success) {
-                OrcamentoApp.closeModal('modalSugestoes');
-                Utils.showToast(`${res.data?.aplicados || orcamentos.length} orçamentos configurados!`, 'success');
-                await OrcamentoApp.loadAll();
+                const appliedCount = res.data?.aplicados || orcamentos.length;
+                if (OrcamentoApp.isSugestoesPage()) {
+                    await OrcamentoApp.showSugestoesAppliedAlert(appliedCount);
+                } else {
+                    OrcamentoApp.closeModal('modalSugestoes');
+                    Utils.showToast(`${appliedCount} orçamentos configurados!`, 'success');
+                    await OrcamentoApp.loadAll();
+                }
             } else {
                 Utils.showToast(res.message || 'Erro ao aplicar', 'error');
             }
         } catch (e) {
             Utils.showToast(requestErrorMessage(e, 'Erro ao aplicar sugestões'), 'error');
         }
+    },
+
+    async showSugestoesAppliedAlert(appliedCount) {
+        if (typeof Swal === 'undefined') {
+            Utils.showToast(`${appliedCount} orçamentos configurados!`, 'success');
+            return;
+        }
+
+        const result = await Swal.fire({
+            icon: 'success',
+            title: 'Orçamentos aplicados com sucesso',
+            text: `${appliedCount} limite${appliedCount === 1 ? '' : 's'} foram configurados para este mês.`,
+            showDenyButton: true,
+            confirmButtonText: 'Voltar para orçamento',
+            denyButtonText: 'Revisar sugestões',
+        });
+
+        if (result.isConfirmed) {
+            window.location.href = OrcamentoApp.getSugestoesReturnUrl();
+            return;
+        }
+
+        await OrcamentoApp.loadSugestoes();
     },
 
     async copiarMesAnterior() {

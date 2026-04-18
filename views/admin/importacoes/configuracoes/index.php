@@ -143,7 +143,7 @@ $summaryCsvDelimiter = $csvDelimiter !== '' ? $csvDelimiter : ';';
                         <?= function_exists('csrf_input') ? csrf_input('default') : '' ?>
                         <input type="hidden" name="conta_id" value="<?= $selectedAccountId ?>" data-imp-conta-id-input>
 
-                        <section class="imp-config-section card-surface">
+                        <section class="imp-config-section surface-card">
                             <header class="imp-card-head">
                                 <h4 class="imp-card-title">Dados gerais</h4>
                             </header>
@@ -186,7 +186,7 @@ $summaryCsvDelimiter = $csvDelimiter !== '' ? $csvDelimiter : ';';
                             </div>
                         </section>
 
-                        <section class="imp-config-section imp-config-csv-block card-surface">
+                        <section class="imp-config-section imp-config-csv-block surface-card">
                             <header class="imp-card-head">
                                 <h4 class="imp-card-title">Configuração CSV</h4>
                                 <p class="imp-card-text">

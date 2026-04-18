@@ -12,7 +12,9 @@ Router::add('GET', '/cartoes/arquivadas', 'Admin\\CartoesController@archived', [
 Router::add('GET', '/cartoes/{id}', 'Admin\\CartoesController@show', ['auth']);
 Router::add('GET', '/financas', 'Admin\\OrcamentoController@index', ['auth']);
 Router::add('GET', '/orcamento', 'Admin\\OrcamentoController@index', ['auth']);
+Router::add('GET', '/orcamento/sugestao-inteligente', 'Admin\\OrcamentoController@sugestaoInteligente', ['auth']);
 Router::add('GET', '/metas', 'Admin\\MetasController@index', ['auth']);
+Router::add('GET', '/metas/templates', 'Admin\\MetasController@templates', ['auth']);
 Router::add('GET', '/categorias', 'Admin\\CategoriaController@index', ['auth']);
 Router::add('GET', '/gamification', 'GamificationController@index', ['auth']);
 Router::add('GET', '/importacoes', 'Admin\\ImportacoesController@index', ['auth']);

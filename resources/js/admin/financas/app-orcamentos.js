@@ -152,7 +152,7 @@ export function createFinancasOrcamentos({
                 ? `<span class="sugestao-economia"><i data-lucide="banknote" aria-hidden="true"></i> economia de ${Utils.formatCurrency(sug.economia_sugerida)}/mes</span>`
                 : '';
             return `
-            <div class="sugestao-item">
+            <div class="sugestao-item surface-card">
                 <div class="sugestao-info">
                     <span class="sugestao-icon"><i data-lucide="${catIcone}" style="color:${getCategoryIconColor(catIcone)}"></i></span>
                     <div class="sugestao-detail">
