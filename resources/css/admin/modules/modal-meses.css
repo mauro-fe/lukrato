@@ -116,7 +116,7 @@
     align-items: end;
     margin-bottom: var(--spacing-4);
     padding: var(--spacing-3);
-    background: color-mix(in srgb, var(--glass-bg) 92%, transparent);
+    background: var(--color-bg);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
 }
@@ -128,7 +128,7 @@
     gap: var(--spacing-2);
     min-width: 0;
     padding: var(--spacing-2);
-    background: color-mix(in srgb, var(--color-surface-muted) 88%, transparent);
+    background: var(--color-bg);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-md);
 }
@@ -216,7 +216,7 @@
     padding: var(--spacing-3);
     color: var(--color-text);
     font-size: var(--font-size-sm);
-    background: var(--color-surface-muted);
+    background: var(--color-bg);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-md);
     transition: all var(--transition-normal);
@@ -233,7 +233,7 @@
 #yearModal .form-control:focus {
     outline: none;
     color: var(--color-text) !important;
-    background: var(--color-surface);
+    background: var(--color-bg);
     border-color: var(--color-primary);
     box-shadow: 0 0 0 4px var(--ring);
 }

@@ -1,8 +1,7 @@
-/**
+﻿/**
  * LUKRATO — Faturas / Payment modal + global window functions
  */
-import { CONFIG, DOM, STATE, Utils, Modules } from './state.js';
-import { refreshIcons } from '../shared/ui.js';
+import { DOM, STATE, Utils, Modules } from './state.js';
 import { getApiPayload, getErrorMessage } from '../shared/api.js';
 
 // ============================================================================
@@ -280,12 +279,7 @@ export const ModalPagarFatura = {
                 showConfirmButton: false
             });
 
-            await Modules.App.carregarParcelamentos();
-
-            // Fechar modal de detalhes
-            if (STATE.modalDetalhesInstance) {
-                STATE.modalDetalhesInstance.hide();
-            }
+            await Modules.App.refreshAfterMutation(this.faturaId);
 
         } catch (error) {
             console.error('Erro ao pagar fatura:', error);
@@ -367,11 +361,7 @@ export async function reverterPagamentoFaturaGlobal(faturaId) {
                 didOpen: () => { if (window.lucide) lucide.createIcons(); }
             });
 
-            // Fechar modal e recarregar
-            if (STATE.modalDetalhesInstance) {
-                STATE.modalDetalhesInstance.hide();
-            }
-            await Modules.App.carregarParcelamentos();
+            await Modules.App.refreshAfterMutation(faturaId);
         } else {
             throw new Error(getErrorMessage(response, 'Erro ao reverter pagamento'));
         }
@@ -385,113 +375,5 @@ export async function reverterPagamentoFaturaGlobal(faturaId) {
     }
 }
 
-export async function excluirFaturaGlobal(faturaId) {
-    const result = await Swal.fire({
-        title: 'Excluir Fatura?',
-        html: `
-            <p>Você está prestes a excluir esta fatura e <strong>todos os seus itens pendentes</strong>.</p>
-            <p style="color: #ef4444; font-weight: 500;">Esta ação não pode ser desfeita!</p>
-        `,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#ef4444',
-        cancelButtonColor: '#6b7280',
-        confirmButtonText: '<i data-lucide="trash-2"></i> Sim, excluir',
-        cancelButtonText: 'Cancelar',
-        didOpen: () => { if (window.lucide) lucide.createIcons(); }
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-        const response = await Modules.API.cancelarParcelamento(faturaId);
-
-        if (response.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Fatura Excluída!',
-                text: 'A fatura foi excluída com sucesso.',
-                timer: 2000,
-                showConfirmButton: false
-            });
-
-            // Fechar modal e recarregar lista
-            if (STATE.modalDetalhesInstance) {
-                STATE.modalDetalhesInstance.hide();
-            }
-            Modules.App.carregarParcelamentos();
-        } else {
-            throw new Error(getErrorMessage(response, 'Erro ao excluir fatura'));
-        }
-    } catch (error) {
-        console.error('Erro ao excluir fatura:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Erro',
-            text: getErrorMessage(error, 'Não foi possível excluir a fatura.')
-        });
-    }
-}
-
-export async function excluirItemFaturaGlobal(faturaId, itemId) {
-    const result = await Swal.fire({
-        title: 'Excluir Item?',
-        html: `
-            <p>Você está prestes a excluir este item da fatura.</p>
-            <p style="color: #ef4444; font-weight: 500;">Esta ação não pode ser desfeita!</p>
-        `,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#ef4444',
-        cancelButtonColor: '#6b7280',
-        confirmButtonText: '<i data-lucide="trash-2"></i> Sim, excluir',
-        cancelButtonText: 'Cancelar',
-        customClass: {
-            container: 'swal-above-modal'
-        },
-        didOpen: () => { if (window.lucide) lucide.createIcons(); }
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-        const response = await Modules.API.excluirItemFatura(faturaId, itemId);
-
-        if (response.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Item Excluído!',
-                text: 'O item foi excluído com sucesso.',
-                timer: 2000,
-                showConfirmButton: false,
-                customClass: {
-                    container: 'swal-above-modal'
-                }
-            });
-
-            // Recarregar detalhes da fatura
-            Modules.App.carregarParcelamentos();
-
-            // Se modal estiver aberto, recarregar detalhes
-            if (STATE.faturaAtual) {
-                setTimeout(() => {
-                    Modules.UI.abrirDetalhes(faturaId);
-                }, 500);
-            }
-        } else {
-            throw new Error(getErrorMessage(response, 'Erro ao excluir item'));
-        }
-    } catch (error) {
-        console.error('Erro ao excluir item:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Erro',
-            text: getErrorMessage(error, 'Não foi possível excluir o item.'),
-            customClass: {
-                container: 'swal-above-modal'
-            }
-        });
-    }
-}
-
 Modules.ModalPagarFatura = ModalPagarFatura;
+

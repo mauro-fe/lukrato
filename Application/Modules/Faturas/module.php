@@ -16,6 +16,7 @@ return array (
     'view_ids' =>
     array (
       0 => 'admin-faturas-index',
+      1 => 'admin-faturas-show',
     ),
     'vite_entry' => 'admin/faturas/index.js',
     'css_entry' => '',

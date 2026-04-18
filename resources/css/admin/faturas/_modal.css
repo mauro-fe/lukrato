@@ -50,21 +50,6 @@
   opacity: 1;
 }
 
-.modal-fatura-detalhes-dialog {
-  max-width: min(1120px, calc(100vw - 2rem));
-  margin: 1rem auto;
-}
-
-.modal-fatura-detalhes-dialog .modern-modal {
-  max-height: calc(100vh - 2rem);
-  overflow: hidden;
-}
-
-.modal-fatura-detalhes-dialog .modal-body {
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
 /* Modal — Detalhes header */
 
 .detalhes-header {

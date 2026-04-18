@@ -21,4 +21,22 @@ class FaturaController extends WebController
             ]
         );
     }
+
+    public function show(int $id): Response
+    {
+        $this->requireUserId();
+
+        if ($id <= 0) {
+            return $this->buildRedirectResponse('faturas');
+        }
+
+        return $this->renderAdminResponse(
+            'admin/faturas/show',
+            [
+                'pageTitle' => 'Detalhes da Fatura',
+                'subTitle' => 'Acompanhe itens, pagamentos e ajustes',
+                'faturaId' => $id,
+            ]
+        );
+    }
 }

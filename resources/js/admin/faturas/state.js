@@ -8,7 +8,7 @@ import {
     resolveCategoriesEndpoint,
 } from '../api/endpoints/finance.js';
 import { resolveFaturasEndpoint } from '../api/endpoints/faturas.js';
-import { formatMoney, parseMoney, escapeHtml, debounce } from '../shared/utils.js';
+import { formatMoney, escapeHtml, debounce } from '../shared/utils.js';
 
 export { formatMoney, escapeHtml, debounce };
 
@@ -69,6 +69,12 @@ export function initDOM() {
     DOM.loadingEl = document.getElementById('loadingParcelamentos');
     DOM.containerEl = document.getElementById('parcelamentosContainer');
     DOM.emptyStateEl = document.getElementById('emptyState');
+    DOM.detailPageEl = document.getElementById('faturaDetalhePage');
+    DOM.detailPageShell = document.getElementById('faturaDetalheShell');
+    DOM.detailPageLoading = document.getElementById('faturaDetalheLoading');
+    DOM.detailPageContent = document.getElementById('faturaDetalheContent');
+    DOM.detailPageTitle = document.getElementById('faturaDetalheTitle');
+    DOM.detailPageSubtitle = document.getElementById('faturaDetalheSubtitle');
 
     // Filtros
     DOM.filtroStatus = document.getElementById('filtroStatus');
@@ -82,11 +88,9 @@ export function initDOM() {
     DOM.toggleFilters = document.getElementById('toggleFilters');
     DOM.activeFilters = document.getElementById('activeFilters');
 
-    // Modal Detalhes
-    DOM.modalDetalhes = preparePageModal('modalDetalhesParcelamento');
+    // Modais auxiliares
     DOM.modalPagarFatura = preparePageModal('modalPagarFatura');
     DOM.modalEditarItemFatura = preparePageModal('modalEditarItemFatura');
-    DOM.detalhesContent = document.getElementById('detalhesParcelamentoContent');
 }
 
 // ─── STATE ──────────────────────────────────────────────────────────────────
@@ -95,6 +99,7 @@ export const STATE = {
     parcelamentos: [],
     cartoes: [],
     faturaAtual: null,
+    currentDetailId: null,
     sortColumn: 'data_compra',
     sortDirection: 'asc',
     filtros: {
@@ -103,7 +108,6 @@ export const STATE = {
         ano: new Date().getFullYear(),
         mes: ''
     },
-    modalDetalhesInstance: null,
     anosCarregados: false
 };
 

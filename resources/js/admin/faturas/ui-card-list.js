@@ -69,16 +69,11 @@ export const CardListMethods = {
             dueMeta,
             statusMeta,
         });
-
-        this.attachCardEventListeners(div, parc.id);
         return div;
     },
 
-    attachCardEventListeners(card, id) {
-        const btnView = card.querySelector('[data-action="view"]');
-        if (btnView) {
-            btnView.addEventListener('click', () => this.showDetalhes(id));
-        }
+    attachCardEventListeners() {
+        return;
     },
 
     getAccentColorSolid(cartao) {
@@ -359,6 +354,7 @@ export const CardListMethods = {
         const listSubline = [safeText(instituicaoNome), cartaoNumero ? safeText(cartaoNumero) : '']
             .filter(Boolean)
             .join(' - ');
+        const detailUrl = buildAppUrl(`faturas/${parc.id}`);
 
         return `
             <div class="fatura-card-shell" style="--fatura-accent:${accentColor};">
@@ -403,10 +399,13 @@ export const CardListMethods = {
                         <i data-lucide="upload"></i>
                         <span>Importar fatura</span>
                     </a>
-                    <button class="parc-btn parc-btn-view" data-action="view" data-id="${parc.id}">
+                    <a
+                        class="parc-btn parc-btn-view"
+                        href="${safeText(detailUrl)}"
+                        data-no-transition="true">
                         <i data-lucide="eye"></i>
                         <span>Ver detalhes</span>
-                    </button>
+                    </a>
                 </div>
             </div>
         `;

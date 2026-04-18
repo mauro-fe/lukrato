@@ -6,7 +6,7 @@
  * ============================================================================
  */
 
-import { CONFIG, DOM, STATE, Utils, Modules } from './state.js';
+import { CONFIG, DOM, Utils, Modules } from './state.js';
 import { refreshIcons } from '../shared/ui.js';
 import { getApiPayload, getErrorMessage } from '../shared/api.js';
 
@@ -252,13 +252,7 @@ export const ActionMethods = {
                 }
             });
 
-            // Recarregar parcelamentos e reabrir modal atualizado
-            await Modules.App.carregarParcelamentos();
-
-            // Reabrir o modal com dados atualizados
-            setTimeout(() => {
-                this.showDetalhes(faturaId);
-            }, 100);
+            await Modules.App.refreshAfterMutation(faturaId);
 
         } catch (error) {
             console.error('Erro ao alternar status:', error);
@@ -365,13 +359,7 @@ export const ActionMethods = {
                 heightAuto: false
             });
 
-            // Recarregar parcelamentos e reabrir modal atualizado
-            await Modules.App.carregarParcelamentos();
-
-            // Reabrir o modal com dados atualizados
-            setTimeout(() => {
-                this.showDetalhes(faturaId);
-            }, 100);
+            await Modules.App.refreshAfterMutation(faturaId);
 
         } catch (error) {
             console.error('Erro ao editar item:', error);
@@ -386,9 +374,9 @@ export const ActionMethods = {
 
     async excluirItemFatura(faturaId, itemId, ehParcelado, totalParcelas) {
         try {
-            let titulo = 'Excluir Item?';
-            let texto = 'Deseja realmente excluir este item da fatura?';
-            let confirmBtn = 'Sim, excluir item';
+            const titulo = 'Excluir Item?';
+            const texto = 'Deseja realmente excluir este item da fatura?';
+            const confirmBtn = 'Sim, excluir item';
 
             // Se for parcelado, oferecer opções
             if (ehParcelado && totalParcelas > 1) {
@@ -455,22 +443,10 @@ export const ActionMethods = {
             });
 
             // Recarregar parcelamentos
-            await Modules.App.carregarParcelamentos();
+            await Modules.App.refreshAfterMutation(faturaId);
 
-            // Verificar se a fatura ainda existe antes de reabrir o modal
-            const faturaAindaExiste = STATE.parcelamentos.some(p => p.id === faturaId);
 
-            if (faturaAindaExiste) {
-                // Reabrir o modal com dados atualizados
-                setTimeout(() => {
-                    this.showDetalhes(faturaId);
-                }, 100);
-            } else {
                 // Fatura foi excluída (era o último item), fechar modal
-                if (STATE.modalDetalhesInstance) {
-                    STATE.modalDetalhesInstance.hide();
-                }
-            }
 
         } catch (error) {
             console.error('Erro ao excluir item:', error);
@@ -550,22 +526,12 @@ export const ActionMethods = {
             });
 
             // Recarregar parcelamentos
-            await Modules.App.carregarParcelamentos();
+            await Modules.App.refreshAfterMutation(faturaId);
 
             // Verificar se a fatura ainda existe antes de reabrir o modal
-            const faturaAindaExiste = STATE.parcelamentos.some(p => p.id === faturaId);
 
-            if (faturaAindaExiste) {
                 // Reabrir o modal com dados atualizados
-                setTimeout(() => {
-                    this.showDetalhes(faturaId);
-                }, 100);
-            } else {
                 // Fatura foi excluída (era o último item), fechar modal
-                if (STATE.modalDetalhesInstance) {
-                    STATE.modalDetalhesInstance.hide();
-                }
-            }
 
         } catch (error) {
             console.error('Erro ao excluir parcelamento:', error);
@@ -637,7 +603,6 @@ export const ActionMethods = {
                     const saldoFormatado = Utils.formatMoney(saldo);
                     const isDefault = conta.id === contaPadraoId;
                     const saldoSuficiente = saldo >= valorTotal;
-                    const statusClass = saldoSuficiente ? 'color: #059669;' : 'color: #dc2626;';
                     contasOptions += `<option value="${conta.id}" ${isDefault ? 'selected' : ''} ${!saldoSuficiente ? 'style="color: #dc2626;"' : ''}>
                         ${Utils.escapeHtml(conta.nome)} - ${saldoFormatado}${isDefault ? ' (vinculada ao cartão)' : ''}
                     </option>`;
@@ -744,10 +709,9 @@ export const ActionMethods = {
                 }
             });
 
-            await Modules.App.carregarParcelamentos();
+            await Modules.App.refreshAfterMutation(faturaId);
 
             // Fechar o modal após pagamento completo
-            STATE.modalDetalhesInstance.hide();
 
         } catch (error) {
             console.error('Erro ao pagar fatura completa:', error);

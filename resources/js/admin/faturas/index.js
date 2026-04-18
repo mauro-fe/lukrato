@@ -7,9 +7,9 @@
 import '../../../css/admin/faturas/index.css';
 import { initDOM } from './state.js';
 import './api.js';
-import { FaturasUI } from './ui.js';
+import './ui.js';
 import { FaturasApp } from './app.js';
-import { ModalPagarFatura, reverterPagamentoFaturaGlobal, excluirFaturaGlobal, excluirItemFaturaGlobal } from './payment.js';
+import { ModalPagarFatura, reverterPagamentoFaturaGlobal } from './payment.js';
 import { initCustomize } from './customize.js';
 
 // ============================================================================
@@ -18,20 +18,6 @@ import { initCustomize } from './customize.js';
 
 window.abrirModalPagarFatura = (faturaId, valorTotal) => ModalPagarFatura.abrir(faturaId, valorTotal);
 window.reverterPagamentoFaturaGlobal = reverterPagamentoFaturaGlobal;
-window.excluirFaturaGlobal = excluirFaturaGlobal;
-window.excluirItemFaturaGlobal = excluirItemFaturaGlobal;
-window.pagarFaturaCompletaGlobal = (faturaId, valorTotal) => FaturasUI.pagarFaturaCompleta(faturaId, valorTotal);
-
-// ============================================================================
-// FaturasModule for HTML callbacks
-// ============================================================================
-
-window.FaturasModule = {
-    toggleCardDetalhes: (faturaId) => FaturasUI.showDetalhes(faturaId),
-    excluirItemFatura: (...args) => FaturasUI.excluirItemFatura(...args),
-    editarItemFatura: (...args) => FaturasUI.editarItemFatura(...args),
-    toggleParcelaPaga: (...args) => FaturasUI.toggleParcelaPaga(...args),
-};
 
 // ============================================================================
 // Guard + bootstrap
@@ -41,7 +27,9 @@ if (!window.__LK_PARCELAMENTOS_LOADER__) {
     window.__LK_PARCELAMENTOS_LOADER__ = true;
     document.addEventListener('DOMContentLoaded', () => {
         initDOM();
-        initCustomize();
+        if (!document.getElementById('faturaDetalhePage')) {
+            initCustomize();
+        }
         FaturasApp.init();
         ModalPagarFatura.init();
     });

@@ -16,6 +16,7 @@ return array(
     'view_ids' =>
     array(
       0 => 'admin-cartoes-index',
+      1 => 'admin-cartoes-show',
     ),
     'vite_entry' => 'admin/cartoes/index.js',
     'css_entry' => '',

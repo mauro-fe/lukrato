@@ -22,10 +22,6 @@ const formatPercent = (value, digits = 1) => `${(Number(value) || 0).toLocaleStr
     maximumFractionDigits: digits,
 })}%`;
 const COLOR_TOKEN_REGEX = /(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\))/;
-const getCurrentMonthKey = () => {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-};
 const getCardColor = (cartao) => (
     cartao?.cor_cartao ||
     cartao?.conta?.instituicao_financeira?.cor_primaria ||
@@ -365,7 +361,6 @@ export const CartoesUI = {
         const progressWidth = percentualUso > 0 ? Math.max(percentualUso, 8) : 0;
         const brandIcon = Utils.getBrandIcon(cartao.bandeira);
         const accentColor = getCardAccent(cartao);
-        const corBg = accentColor;
         const usageTone = getUsageToneMeta(percentualUso);
         const contaNome = safeText(cartao.conta?.nome, 'Conta nao vinculada');
         const instituicaoNome = safeText(cartao.conta?.instituicao_financeira?.nome, 'Sem instituicao');
@@ -374,9 +369,6 @@ export const CartoesUI = {
         const statusLabel = cartao.temFaturaPendente ? 'Fatura pendente' : 'Sem pendencias';
         const closingLabel = cartao.dia_fechamento ? `Dia ${cartao.dia_fechamento}` : 'A definir';
         const dueLabel = cartao.dia_vencimento ? `Dia ${cartao.dia_vencimento}` : 'A definir';
-        const actionLabel = cartao.temFaturaPendente ? 'Pagar fatura' : 'Ver fatura';
-        const actionIcon = cartao.temFaturaPendente ? 'wallet' : 'file-text';
-        const actionClass = cartao.temFaturaPendente ? 'is-highlight' : 'is-secondary';
         const availableLabel = percentualDisponivel > 0
             ? `${formatPercent(percentualDisponivel, 0)} do limite ainda livre`
             : 'Limite comprometido';
@@ -493,115 +485,6 @@ export const CartoesUI = {
                     </div>
                 </div>
             </article>
-        `;
-
-        return `
-            <div
-                class="credit-card surface-card surface-card--interactive surface-card--clip"
-                data-id="${cartao.id}"
-                data-brand="${String(cartao.bandeira || 'outros').toLowerCase()}"
-                style="background: ${corBg};"
-                tabindex="0"
-                role="button"
-                aria-label="Abrir detalhes do cartao ${cardName}"
-            >
-                ${cartao.temFaturaPendente ? `
-                    <div class="card-badge-fatura" title="Fatura pendente">
-                        <i data-lucide="circle-alert"></i>
-                        Fatura pendente
-                    </div>
-                ` : ''}
-
-                <div class="card-header">
-                    <div class="card-brand">
-                        <img
-                            src="${brandIcon}"
-                            alt="${brandName}"
-                            class="brand-logo"
-                            onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';"
-                        >
-                        <i class="brand-icon-fallback" data-lucide="credit-card" style="display: none;" aria-hidden="true"></i>
-                        <div class="card-brand-copy">
-                            <span class="card-name">${cardName}</span>
-                            <span class="card-institution">${instituicaoNome}</span>
-                        </div>
-                    </div>
-
-                    <div class="card-actions">
-                        ${isDemoCard(cartao) ? `<span class="card-meta-chip card-meta-chip--brand" ${buildTooltipAttrs('Cartao de exemplo', 'Esse cartao existe so para demonstrar a tela.')}>
-                            <i data-lucide="flask-conical" aria-hidden="true"></i>
-                            Exemplo
-                        </span>` : `<button
-                            type="button"
-                            class="lk-info"
-                            data-lk-tooltip-title="Exclusao de cartoes"
-                            data-lk-tooltip="Para evitar perda de historico e faturas, cartoes so podem ser excluidos apos serem arquivados."
-                            aria-label="Ajuda: Exclusao de cartoes"
-                        >
-                            <i data-lucide="info" aria-hidden="true"></i>
-                        </button>
-
-                        <button
-                            type="button"
-                            class="card-action-btn"
-                            onclick="cartoesManager.verFatura(${cartao.id})"
-                            title="Ver fatura"
-                        >
-                            <i data-lucide="file-text" aria-hidden="true"></i>
-                        </button>
-
-                        <button
-                            type="button"
-                            class="card-action-btn"
-                            onclick="cartoesManager.editCartao(${cartao.id})"
-                            title="Editar"
-                        >
-                            <i data-lucide="pencil" aria-hidden="true"></i>
-                        </button>
-
-                        <button
-                            type="button"
-                            class="card-action-btn"
-                            onclick="cartoesManager.arquivarCartao(${cartao.id})"
-                            title="Arquivar"
-                        >
-                            <i data-lucide="archive" aria-hidden="true"></i>
-                        </button>`}
-                    </div>
-                </div>
-
-                <div class="card-account">${contaNome}</div>
-
-                <div class="card-number">
-                    •••• •••• •••• ${safeText(cartao.ultimos_digitos, '0000')}
-                </div>
-
-                <div class="card-metrics">
-                    <div class="card-metric">
-                        <div class="card-label">Fechamento</div>
-                        <div class="card-value">${closingLabel}</div>
-                    </div>
-                    <div class="card-metric">
-                        <div class="card-label">Vencimento</div>
-                        <div class="card-value">${dueLabel}</div>
-                    </div>
-                    <div class="card-metric ${usageTone}">
-                        <div class="card-label">Uso</div>
-                        <div class="card-value">${percentualUso.toFixed(1)}%</div>
-                    </div>
-                </div>
-
-                <div class="card-limit-summary">
-                    <div class="card-limit-row">
-                        <span class="card-label">Disponivel</span>
-                        <span class="card-value">${Utils.formatMoney(limiteDisponivel)}</span>
-                    </div>
-                    <div class="limit-bar">
-                        <div class="limit-fill ${usageTone}" style="width: ${percentualDisponivel}%"></div>
-                    </div>
-                    <div class="limit-caption">Usado ${Utils.formatMoney(limiteUtilizado)} de ${Utils.formatMoney(limiteTotal)}</div>
-                </div>
-            </div>
         `;
     },
 
@@ -1000,17 +883,7 @@ export const CartoesUI = {
             return;
         }
 
-        if (window.LK_CardDetail?.open) {
-            window.LK_CardDetail.open(
-                id,
-                cartao.nome_cartao || cartao.nome || 'Cartao',
-                getCardColor(cartao),
-                getCurrentMonthKey()
-            );
-            return;
-        }
-
-        Modules.Fatura?.verFatura?.(id);
+        window.location.href = `${Utils.getBaseUrl()}cartoes/${id}`;
     },
 
     async exportarRelatorio() {

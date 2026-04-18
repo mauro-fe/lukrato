@@ -34,4 +34,18 @@ class CartoesController extends WebController
             ]
         );
     }
+
+    public function show(int $id): Response
+    {
+        $this->requireUserId();
+
+        return $this->renderAdminResponse(
+            'admin/cartoes/show',
+            [
+                'pageTitle' => 'Detalhes do Cartão',
+                'subTitle' => 'Acompanhe fatura, evolução e parcelamentos',
+                'cartaoId' => $id,
+            ]
+        );
+    }
 }

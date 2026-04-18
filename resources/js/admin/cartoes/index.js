@@ -11,7 +11,78 @@ import { CartoesUI } from './ui.js';
 import { FaturaModal } from './fatura.js';
 import { initCustomize } from './customize.js';
 
+const initDetailPage = async () => {
+    const detailPage = document.getElementById('cardDetailPage');
+
+    if (!detailPage) {
+        return false;
+    }
+
+    const cardId = Number.parseInt(String(detailPage.dataset.cardId || ''), 10);
+    if (!Number.isInteger(cardId) || cardId <= 0) {
+        const loading = document.getElementById('cardDetailPageLoading');
+        const error = document.getElementById('cardDetailPageError');
+        const subtitle = document.getElementById('cardDetailPageSubtitle');
+
+        if (loading) {
+            loading.hidden = true;
+            loading.style.display = 'none';
+        }
+
+        if (error) {
+            error.hidden = false;
+            error.innerHTML = '<p>Cartão inválido para consulta de detalhes.</p>';
+        }
+
+        if (subtitle) {
+            subtitle.textContent = 'Verifique o link e tente novamente.';
+        }
+
+        return true;
+    }
+
+    const currentMonth = detailPage.dataset.currentMonth || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+
+    if (!window.LK_CardDetail?.renderPage) {
+        const loading = document.getElementById('cardDetailPageLoading');
+        const error = document.getElementById('cardDetailPageError');
+        const subtitle = document.getElementById('cardDetailPageSubtitle');
+
+        if (loading) {
+            loading.hidden = true;
+            loading.style.display = 'none';
+        }
+
+        if (error) {
+            error.hidden = false;
+            error.innerHTML = '<p>Não foi possível inicializar os detalhes deste cartão.</p>';
+        }
+
+        if (subtitle) {
+            subtitle.textContent = 'Atualize a página para tentar novamente.';
+        }
+
+        return true;
+    }
+
+    await window.LK_CardDetail.renderPage({
+        cardId,
+        currentMonth,
+        mountId: 'cardDetailPageContent',
+        loadingId: 'cardDetailPageLoading',
+        errorId: 'cardDetailPageError',
+        titleId: 'cardDetailPageTitle',
+        subtitleId: 'cardDetailPageSubtitle',
+    });
+
+    return true;
+};
+
 const init = async () => {
+    if (await initDetailPage()) {
+        return;
+    }
+
     initCustomize();
     CartoesUI.setupEventListeners();
     CartoesUI.restoreViewPreference();

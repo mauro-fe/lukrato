@@ -165,6 +165,53 @@ function renderInsights(insights) {
 let evolutionChart = null;
 let impactChart = null;
 
+function resetCharts() {
+    if (evolutionChart) {
+        evolutionChart.destroy();
+        evolutionChart = null;
+    }
+
+    if (impactChart) {
+        impactChart.destroy();
+        impactChart = null;
+    }
+}
+
+function getCurrentMonthKey() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function parseMonthKey(monthKey) {
+    const [yearRaw, monthRaw] = String(monthKey || '').split('-');
+    const year = Number.parseInt(yearRaw, 10);
+    const month = Number.parseInt(monthRaw, 10);
+
+    if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
+        return null;
+    }
+
+    return { year, month };
+}
+
+async function fetchCardDetailData(cardId, monthKey) {
+    const parsed = parseMonthKey(monthKey || getCurrentMonthKey());
+    if (!parsed) {
+        throw new Error('Mês de referência inválido');
+    }
+
+    const url = buildUrl(resolveReportCardDetailsEndpoint(cardId), {
+        mes: parsed.month,
+        ano: parsed.year,
+    });
+
+    const data = await apiFetch(url, { credentials: 'include' }, { timeout: 15000 });
+
+    if (!data.success || !data.data) throw new Error(data.message || 'Dados inválidos retornados');
+
+    return data.data;
+}
+
 async function openCardDetailModal(cardId, cardName, cardColor, currentMonth) {
     if (!cardId) { console.error('ID do cartão não fornecido'); return; }
 
@@ -178,14 +225,8 @@ async function openCardDetailModal(cardId, cardName, cardColor, currentMonth) {
     }
 
     try {
-        const [year, month] = currentMonth.split('-');
-        const url = buildUrl(resolveReportCardDetailsEndpoint(cardId), { mes: month, ano: year });
-
-        const data = await apiFetch(url, { credentials: 'include' }, { timeout: 15000 });
-
-        if (!data.success || !data.data) throw new Error(data.message || 'Dados inválidos retornados');
-
-        renderCardDetailModal(data.data, cardColor);
+        const detailData = await fetchCardDetailData(cardId, currentMonth);
+        renderCardDetailModal(detailData, cardColor);
     } catch (error) {
         console.error('Erro ao abrir detalhes do cartão:', error);
         document.body.style.overflow = '';
@@ -199,6 +240,104 @@ async function openCardDetailModal(cardId, cardName, cardColor, currentMonth) {
             btn.disabled = false;
             if (originalBtnHtml) btn.innerHTML = originalBtnHtml;
             if (window.lucide) window.lucide.createIcons({ nodes: [btn] });
+        }
+    }
+}
+
+async function renderCardDetailPage({
+    cardId,
+    currentMonth = getCurrentMonthKey(),
+    cardColor = getCssVar('--color-primary', '#e67e22'),
+    mountId = 'cardDetailPageContent',
+    loadingId = 'cardDetailPageLoading',
+    errorId = 'cardDetailPageError',
+    titleId = 'cardDetailPageTitle',
+    subtitleId = 'cardDetailPageSubtitle',
+} = {}) {
+    const mountEl = document.getElementById(mountId);
+    const loadingEl = document.getElementById(loadingId);
+    const errorEl = document.getElementById(errorId);
+    const titleEl = document.getElementById(titleId);
+    const subtitleEl = document.getElementById(subtitleId);
+
+    if (!mountEl || !Number.isInteger(Number(cardId)) || Number(cardId) <= 0) {
+        return;
+    }
+
+    if (errorEl) {
+        errorEl.hidden = true;
+        errorEl.innerHTML = '';
+    }
+
+    if (loadingEl) {
+        loadingEl.hidden = false;
+        loadingEl.style.display = 'flex';
+    }
+
+    mountEl.hidden = true;
+    mountEl.innerHTML = '';
+
+    try {
+        const detailData = await fetchCardDetailData(Number(cardId), currentMonth);
+        const template = document.getElementById('cardDetailModalTemplate');
+
+        if (!template) {
+            throw new Error('Template de detalhes não encontrado');
+        }
+
+        const fragment = template.content.cloneNode(true);
+        const detailRoot = fragment.querySelector('.card-detail-modal');
+        const closeBtn = fragment.querySelector('.card-detail-close');
+
+        if (detailRoot) {
+            detailRoot.classList.add('card-detail-modal--page');
+        }
+
+        if (closeBtn) {
+            closeBtn.remove();
+        }
+
+        mountEl.appendChild(fragment);
+        populateTemplate(mountEl, detailData, cardColor);
+
+        if (titleEl) {
+            titleEl.textContent = `${detailData?.cartao?.nome || 'Cartão'} - ${detailData?.fatura_mes?.mes || ''}/${detailData?.fatura_mes?.ano || ''}`;
+        }
+
+        if (subtitleEl) {
+            subtitleEl.textContent = 'Fatura do mês, evolução mensal e impacto dos parcelamentos.';
+        }
+
+        if (loadingEl) {
+            loadingEl.hidden = true;
+            loadingEl.style.display = 'none';
+        }
+
+        mountEl.hidden = false;
+        if (window.lucide) window.lucide.createIcons({ nodes: [mountEl] });
+
+        resetCharts();
+        renderEvolutionChart(detailData.evolucao?.meses, mountEl);
+        renderImpactChart(detailData.impacto_futuro?.meses, mountEl);
+    } catch (error) {
+        if (loadingEl) {
+            loadingEl.hidden = true;
+            loadingEl.style.display = 'none';
+        }
+
+        const message = getErrorMessage(error, 'Não foi possível carregar os detalhes deste cartão.');
+
+        if (titleEl) {
+            titleEl.textContent = 'Detalhes indisponíveis';
+        }
+
+        if (subtitleEl) {
+            subtitleEl.textContent = message;
+        }
+
+        if (errorEl) {
+            errorEl.hidden = false;
+            errorEl.innerHTML = `<p>${escapeHtml(message)}</p>`;
         }
     }
 }
@@ -244,6 +383,7 @@ function renderCardDetailModal(data, cardColor) {
 
     // Scroll overlay to top
     overlay.scrollTop = 0;
+    resetCharts();
 
     // Close on overlay background click (not on the modal itself)
     overlay.addEventListener('click', (e) => {
@@ -263,8 +403,8 @@ function renderCardDetailModal(data, cardColor) {
         try {
             // Render lucide icons inside modal
             if (window.lucide) window.lucide.createIcons({ nodes: [overlay] });
-            renderEvolutionChart(data.evolucao?.meses);
-            renderImpactChart(data.impacto_futuro?.meses);
+            renderEvolutionChart(data.evolucao?.meses, overlay);
+            renderImpactChart(data.impacto_futuro?.meses, overlay);
         } catch (err) {
             console.error('Erro ao renderizar gráficos do modal:', err);
         }
@@ -342,16 +482,16 @@ function closeCardDetailModal() {
         document.body.style.overflow = '';
     }
 
-    if (evolutionChart) { evolutionChart.destroy(); evolutionChart = null; }
-    if (impactChart) { impactChart.destroy(); impactChart = null; }
+    resetCharts();
 
     setTimeout(() => modal.remove(), 300);
 }
 
-function renderEvolutionChart(meses) {
-    const el = document.getElementById('evolutionChart');
+function renderEvolutionChart(meses, root = document) {
+    const el = root.querySelector('#evolutionChart');
     if (!el) return;
     if (evolutionChart) { evolutionChart.destroy(); evolutionChart = null; }
+    const seriesMeses = Array.isArray(meses) ? meses : [];
 
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     const textMuted = getCssVar('--color-text-muted', '#999');
@@ -365,9 +505,9 @@ function renderEvolutionChart(meses) {
             background: 'transparent',
             fontFamily: 'Inter, Arial, sans-serif',
         },
-        series: [{ name: 'Fatura', data: meses.map(m => Number(m.valor) || 0) }],
+        series: [{ name: 'Fatura', data: seriesMeses.map(m => Number(m.valor) || 0) }],
         xaxis: {
-            categories: meses.map(m => m.mes),
+            categories: seriesMeses.map(m => m.mes),
             labels: { style: { colors: textMuted } },
             axisBorder: { show: false },
             axisTicks: { show: false },
@@ -395,10 +535,11 @@ function renderEvolutionChart(meses) {
     evolutionChart.render();
 }
 
-function renderImpactChart(meses) {
-    const el = document.getElementById('impactChart');
+function renderImpactChart(meses, root = document) {
+    const el = root.querySelector('#impactChart');
     if (!el) return;
     if (impactChart) { impactChart.destroy(); impactChart = null; }
+    const seriesMeses = Array.isArray(meses) ? meses : [];
 
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     const textMuted = getCssVar('--color-text-muted', '#999');
@@ -412,9 +553,9 @@ function renderImpactChart(meses) {
             background: 'transparent',
             fontFamily: 'Inter, Arial, sans-serif',
         },
-        series: [{ name: 'Projeção', data: meses.map(m => Number(m.valor) || 0) }],
+        series: [{ name: 'Projeção', data: seriesMeses.map(m => Number(m.valor) || 0) }],
         xaxis: {
-            categories: meses.map(m => m.mes),
+            categories: seriesMeses.map(m => m.mes),
             labels: { style: { colors: textMuted } },
             axisBorder: { show: false },
             axisTicks: { show: false },
@@ -440,5 +581,10 @@ function renderImpactChart(meses) {
 }
 
 // ─── Expose globally (used by PHP onclick handlers) ─────────────────────────
-window.LK_CardDetail = { open: openCardDetailModal, close: closeCardDetailModal };
+window.LK_CardDetail = {
+    open: openCardDetailModal,
+    close: closeCardDetailModal,
+    renderPage: renderCardDetailPage,
+};
 window.CardModalRenderers = { renderLancamentos, renderComparison, renderParcelamentos, renderInsights, formatCurrency, escapeHtml };
+

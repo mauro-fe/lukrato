@@ -1,68 +1,166 @@
-/**
+﻿/**
  * ============================================================================
  * LUKRATO - Faturas / UI Details Methods
  * ============================================================================
- * Methods responsible for details modal rendering and interactions.
+ * Methods responsible for detail page rendering and interactions.
  * ============================================================================
  */
 
 import { DOM, STATE, Utils, Modules, getCategoryIconColor } from './state.js';
 import { refreshIcons } from '../shared/ui.js';
-import { getApiPayload, getErrorMessage } from '../shared/api.js';
+import { buildAppUrl, getApiPayload, getErrorMessage } from '../shared/api.js';
 
 export const DetailsMethods = {
+    getDetalhesTarget() {
+        return DOM.detailPageContent || null;
+    },
+
+    isDetailPageMode() {
+        return Boolean(DOM.detailPageEl && DOM.detailPageContent);
+    },
+
+    setDetailPageLoading(isLoading) {
+        if (!this.isDetailPageMode()) {
+            return;
+        }
+
+        if (DOM.detailPageLoading) {
+            DOM.detailPageLoading.hidden = !isLoading;
+            DOM.detailPageLoading.style.display = isLoading ? 'flex' : 'none';
+        }
+
+        if (DOM.detailPageContent) {
+            DOM.detailPageContent.hidden = isLoading;
+        }
+    },
+
+    updateDetailPageMeta(parc) {
+        if (!this.isDetailPageMode()) {
+            return;
+        }
+
+        const cartaoNome = parc.cartao?.nome || parc.cartao?.bandeira || 'Cartao';
+        const periodo = parc.mes_referencia && parc.ano_referencia
+            ? `${this.getNomeMesCompleto(parc.mes_referencia)} de ${parc.ano_referencia}`
+            : (parc.descricao || `Fatura #${parc.id}`);
+        const vencimento = parc.data_vencimento
+            ? Utils.formatDate(parc.data_vencimento)
+            : 'a definir';
+        const status = String(parc.status || 'pendente')
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, (letter) => letter.toUpperCase());
+
+        if (DOM.detailPageTitle) {
+            DOM.detailPageTitle.textContent = `${cartaoNome} - ${periodo}`;
+        }
+
+        if (DOM.detailPageSubtitle) {
+            DOM.detailPageSubtitle.textContent = `Vencimento ${vencimento} - Status ${status}.`;
+        }
+
+        if (DOM.detailPageShell) {
+            const accent = this.getAccentColorSolid(parc.cartao);
+            DOM.detailPageShell.style.setProperty('--card-accent', accent);
+        }
+
+        document.title = `${cartaoNome} - ${periodo} | Lukrato`;
+    },
+
+    renderDetailPageState({
+        title = 'Fatura indisponivel',
+        message = 'Nao foi possivel carregar os detalhes desta fatura.',
+    } = {}) {
+        if (!this.isDetailPageMode()) {
+            return;
+        }
+
+        const target = this.getDetalhesTarget();
+        if (!target) {
+            return;
+        }
+
+        this.setDetailPageLoading(false);
+
+        if (DOM.detailPageTitle) {
+            DOM.detailPageTitle.textContent = title;
+        }
+
+        if (DOM.detailPageSubtitle) {
+            DOM.detailPageSubtitle.textContent = message;
+        }
+
+        target.innerHTML = `
+            <div class="fat-detail-empty">
+                <div class="fat-detail-empty__icon">
+                    <i data-lucide="receipt-text"></i>
+                </div>
+                <h3>${Utils.escapeHtml(title)}</h3>
+                <p>${Utils.escapeHtml(message)}</p>
+                <a class="btn btn-primary" href="${Utils.escapeHtml(buildAppUrl('faturas'))}" data-no-transition="true">
+                    Voltar para faturas
+                </a>
+            </div>
+        `;
+
+        refreshIcons();
+    },
+
     async showDetalhes(id) {
+        const detailsTarget = this.getDetalhesTarget();
+
+        if (!detailsTarget) {
+            window.location.href = buildAppUrl(`faturas/${id}`);
+            return;
+        }
+
+        this.setDetailPageLoading(true);
+
         try {
             const response = await Modules.API.buscarParcelamento(id);
             const parc = getApiPayload(response, null);
 
             if (!parc) {
-                // Fatura não existe mais - fechar modal se estiver aberto
-                if (STATE.modalDetalhesInstance) {
-                    STATE.modalDetalhesInstance.hide();
-                }
+                this.renderDetailPageState({
+                    title: 'Fatura indisponivel',
+                    message: 'Esta fatura nao esta mais disponivel para consulta.',
+                });
                 return;
             }
 
             STATE.faturaAtual = parc;
+            STATE.currentDetailId = parc.id;
 
-            // Aplicar cor do cartão no modal
-            const modalEl = DOM.modalDetalhes;
-            if (modalEl && parc.cartao) {
-                const accent = this.getAccentColorSolid(parc.cartao);
-                const modalContent = modalEl.querySelector('.modal-content');
-                if (modalContent) modalContent.style.setProperty('--card-accent', accent);
-            }
-
-            DOM.detalhesContent.innerHTML = this.renderDetalhes(parc);
+            detailsTarget.innerHTML = this.renderDetalhes(parc);
+            this.updateDetailPageMeta(parc);
+            this.setDetailPageLoading(false);
             refreshIcons();
             this.attachDetalhesEventListeners(parc.id);
-
-            // Remover foco antes de mostrar modal
-            document.activeElement?.blur();;
-            STATE.modalDetalhesInstance.show();
         } catch (error) {
             console.error('Erro ao abrir detalhes:', error);
 
-            // Se erro 404, a fatura foi excluída - apenas fechar modal silenciosamente
-            if (error.message && error.message.includes('404')) {
-                if (STATE.modalDetalhesInstance) {
-                    STATE.modalDetalhesInstance.hide();
-                }
+            if (error?.status === 404) {
+                this.renderDetailPageState({
+                    title: 'Fatura nao encontrada',
+                    message: 'Ela pode ter sido removida ou voce nao tem mais acesso a este registro.',
+                });
                 return;
             }
 
-            Swal.fire({
-                icon: 'error',
-                title: 'Erro',
-                text: getErrorMessage(error, 'Não foi possível carregar os detalhes da fatura')
+            this.renderDetailPageState({
+                title: 'Erro ao carregar fatura',
+                message: getErrorMessage(error, 'Nao foi possivel carregar os detalhes desta fatura.'),
             });
         }
     },
 
     attachDetalhesEventListeners(faturaId) {
         // Botões de ordenação nas colunas
-        const thSortable = DOM.detalhesContent.querySelectorAll('.th-sortable');
+        const detailsRoot = this.getDetalhesTarget();
+        if (!detailsRoot) {
+            return;
+        }
+
+        const thSortable = detailsRoot.querySelectorAll('.th-sortable');
         thSortable.forEach(th => {
             th.addEventListener('click', () => {
                 const col = th.dataset.sort;
@@ -74,7 +172,7 @@ export const DetailsMethods = {
                 }
                 // Re-renderizar detalhes mantendo estado
                 if (STATE.faturaAtual) {
-                    DOM.detalhesContent.innerHTML = this.renderDetalhes(STATE.faturaAtual);
+                    detailsRoot.innerHTML = this.renderDetalhes(STATE.faturaAtual);
                     refreshIcons();
                     this.attachDetalhesEventListeners(faturaId);
                 }
@@ -82,7 +180,7 @@ export const DetailsMethods = {
         });
 
         // Botões de pagar/desfazer pagamento
-        const btnToggles = DOM.detalhesContent.querySelectorAll('.btn-pagar, .btn-desfazer');
+        const btnToggles = detailsRoot.querySelectorAll('.btn-pagar, .btn-desfazer');
         btnToggles.forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 const itemId = parseInt(e.currentTarget.dataset.lancamentoId, 10);
@@ -92,7 +190,7 @@ export const DetailsMethods = {
         });
 
         // Botões de editar item
-        const btnEditar = DOM.detalhesContent.querySelectorAll('.btn-editar');
+        const btnEditar = detailsRoot.querySelectorAll('.btn-editar');
         btnEditar.forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 const itemId = parseInt(e.currentTarget.dataset.lancamentoId, 10);
@@ -103,7 +201,7 @@ export const DetailsMethods = {
         });
 
         // Botões de excluir item
-        const btnExcluir = DOM.detalhesContent.querySelectorAll('.btn-excluir');
+        const btnExcluir = detailsRoot.querySelectorAll('.btn-excluir');
         btnExcluir.forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 const itemId = parseInt(e.currentTarget.dataset.lancamentoId, 10);
@@ -542,13 +640,6 @@ export const DetailsMethods = {
             </tr>
         `;
     },
-
-    getDataPagamentoInfo(parcela) {
-        if (!parcela.pago || !parcela.data_pagamento) return '';
-
-        return `<small style="color: #10b981; display: block; margin-top: 3px;">✅ Pago em ${parcela.data_pagamento}</small>`;
-    },
-
     renderParcelaButton(parcela, isPaga) {
         if (isPaga) {
             // Item pago: sem botões individuais (usar reverter fatura completa)
@@ -588,67 +679,10 @@ export const DetailsMethods = {
         return meses[mes - 1] || mes;
     },
 
-    mostrarDetalhesParcela(parcela, descricao) {
-        const isPaga = parcela.pago;
-        const statusIcon = isPaga ? '✅' : '⏳';
-        const statusText = isPaga ? 'Paga' : 'Pendente';
-        const statusColor = isPaga ? '#10b981' : '#f59e0b';
-        const mesAno = `${this.getNomeMesCompleto(parcela.mes_referencia)}/${parcela.ano_referencia}`;
-
-        let dataPagamentoHtml = '';
-        if (isPaga && parcela.data_pagamento) {
-            dataPagamentoHtml = `
-                <div class="detalhes-item">
-                    <span class="detalhes-label">Data de Pagamento</span>
-                    <span class="detalhes-value">${Utils.formatDate(parcela.data_pagamento)}</span>
-                </div>
-            `;
-        }
-
-        Swal.fire({
-            title: `${statusIcon} Detalhes da Parcela`,
-            html: `
-                <div style="text-align: left;">
-                    <div style="background: ${statusColor}15; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid ${statusColor};">
-                        <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem;">Status</div>
-                        <div style="font-size: 1.25rem; font-weight: bold; color: ${statusColor};">${statusText}</div>
-                    </div>
-                    
-                    <div class="detalhes-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                        <div class="detalhes-item">
-                            <span class="detalhes-label" style="display: block; font-size: 0.875rem; color: #6b7280; margin-bottom: 0.25rem;">Parcela</span>
-                            <span class="detalhes-value" style="display: block; font-weight: 600; color: #1f2937;">${parcela.numero_parcela}/${parcela.total_parcelas}</span>
-                        </div>
-                        
-                        <div class="detalhes-item">
-                            <span class="detalhes-label" style="display: block; font-size: 0.875rem; color: #6b7280; margin-bottom: 0.25rem;">Valor</span>
-                            <span class="detalhes-value" style="display: block; font-weight: 600; color: ${statusColor};">${Utils.formatMoney(parcela.valor)}</span>
-                        </div>
-                    </div>
-
-                    <div class="detalhes-item" style="margin-bottom: 1rem;">
-                        <span class="detalhes-label" style="display: block; font-size: 0.875rem; color: #6b7280; margin-bottom: 0.25rem;">Descrição</span>
-                        <span class="detalhes-value" style="display: block; font-weight: 500; color: #1f2937;">${Utils.escapeHtml(descricao)}</span>
-                    </div>
-
-                    <div class="detalhes-item" style="margin-bottom: 1rem;">
-                        <span class="detalhes-label" style="display: block; font-size: 0.875rem; color: #6b7280; margin-bottom: 0.25rem;">Mês de Referência</span>
-                        <span class="detalhes-value" style="display: block; font-weight: 600; color: #1f2937;">${mesAno}</span>
-                    </div>
-
-                    ${dataPagamentoHtml}
-                </div>
-            `,
-            icon: false,
-            confirmButtonText: 'Fechar',
-            confirmButtonColor: '#6366f1',
-            width: '500px'
-        });
-    },
-
     getNomeMesCompleto(mes) {
         const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
             'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
         return meses[mes - 1] || mes;
     },
 };
+

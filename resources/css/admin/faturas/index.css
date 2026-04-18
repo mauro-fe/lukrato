@@ -16,6 +16,7 @@
 @import './_card.css';
 @import './_list-view.css';
 @import './_empty-state.css';
+@import './_detail-page.css';
 @import './_modal.css';
 @import '../lancamentos/_delete-modal.css';
 @import './_animations.css';
