@@ -9,7 +9,7 @@ import {
 } from './integrations.js';
 
 describe('admin/api/endpoints/integrations', () => {
-    it('resolve os endpoints v1 de integracoes', () => {
+    it('resolve os endpoints v1 de integrações', () => {
         expect(resolveWhatsAppLinkEndpoint()).toBe('api/v1/whatsapp/link');
         expect(resolveWhatsAppVerifyEndpoint()).toBe('api/v1/whatsapp/verify');
         expect(resolveWhatsAppUnlinkEndpoint()).toBe('api/v1/whatsapp/unlink');

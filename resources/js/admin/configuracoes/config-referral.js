@@ -69,15 +69,15 @@ async function loadReferralStats() {
                 barHint.textContent = 'Limite atingido! Renova no proximo mes';
                 barHint.classList.add('limit-reached');
             } else if (remaining === 1) {
-                barHint.textContent = 'Ultima indicacao disponivel este mes';
+                barHint.textContent = 'Última indicação disponivel este mês';
                 barHint.classList.remove('limit-reached');
             } else {
-                barHint.textContent = `Voce pode indicar mais ${remaining} amigos este mes`;
+                barHint.textContent = `Voce pode indicar mais ${remaining} amigos este mês`;
                 barHint.classList.remove('limit-reached');
             }
         }
     } catch (error) {
-        console.error('Erro ao carregar estatisticas de indicacao:', error);
+        console.error('Erro ao carregar estatisticas de indicação:', error);
     }
 }
 

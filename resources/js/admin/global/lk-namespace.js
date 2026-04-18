@@ -93,6 +93,77 @@ window.LK = window.LK || {};
 // Lê csrfTtl do bridge PHP→JS
 window.LK.csrfTtl = getRuntimeConfig().csrfTtl ?? 3600;
 
+function getLancamentoCreateFallbackUrl(options = {}) {
+    const runtimeBaseUrl = String(getRuntimeConfig().baseUrl || '/');
+    const currentUrl = new URL(window.location.href);
+    const normalizedBaseUrl = runtimeBaseUrl.replace(/\/?$/, '/');
+    const target = new URL(`${normalizedBaseUrl}lancamentos/novo`, window.location.origin);
+
+    const explicitReturnPath = typeof options?.returnPath === 'string'
+        ? options.returnPath.trim().replace(/^\/+/, '')
+        : '';
+
+    if (explicitReturnPath !== '') {
+        target.searchParams.set('return', explicitReturnPath);
+    }
+
+    try {
+        const base = new URL(runtimeBaseUrl, window.location.origin);
+        if (explicitReturnPath === '' && currentUrl.origin === base.origin && currentUrl.pathname.startsWith(base.pathname)) {
+            const relativePath = currentUrl.pathname.slice(base.pathname.length).replace(/^\/+/, '');
+            const returnPath = `${relativePath}${currentUrl.search}`.replace(/^\/+/, '');
+            if (returnPath) {
+                target.searchParams.set('return', returnPath);
+            }
+        }
+    } catch {
+        // ignore and keep bare route
+    }
+
+    if (options?.source === 'contas') {
+        target.searchParams.set('origem', 'contas');
+    }
+
+    if (options?.presetAccountId) {
+        target.searchParams.set('conta', String(options.presetAccountId));
+    }
+
+    if (options?.tipo) {
+        target.searchParams.set('tipo', String(options.tipo));
+    }
+
+    return target.toString();
+}
+
+function flushPendingToast() {
+    let raw = '';
+
+    try {
+        raw = sessionStorage.getItem('lk:pending-toast') || '';
+        if (raw !== '') {
+            sessionStorage.removeItem('lk:pending-toast');
+        }
+    } catch {
+        raw = '';
+    }
+
+    if (!raw) {
+        return;
+    }
+
+    try {
+        const payload = JSON.parse(raw);
+        const message = String(payload?.message || '').trim();
+        const type = String(payload?.type || 'success').trim() || 'success';
+
+        if (message && typeof window.showToast === 'function') {
+            window.showToast(message, type);
+        }
+    } catch {
+        // ignore malformed payload
+    }
+}
+
 // ── Page Transitions ────────────────────────────────────────────────────────
 LK.initPageTransitions = () => {
     const overlay = document.getElementById('lkPageTransitionOverlay');
@@ -148,9 +219,17 @@ LK.initPageTransitions = () => {
 
 // ── Global FAB Menu Helper ──────────────────────────────────────────────────
 window.openLancamentoModalGlobal = function (options = {}) {
+    if (window.LK?.modals?.openLancamentoModal) {
+        window.LK.modals.openLancamentoModal(options);
+        return;
+    }
+
     if (typeof lancamentoGlobalManager !== 'undefined') {
         lancamentoGlobalManager.openModal(options);
+        return;
     }
+
+    window.location.href = getLancamentoCreateFallbackUrl(options);
 };
 
 // ── DOM Initialization ──────────────────────────────────────────────────────
@@ -170,4 +249,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.LK?.initPageTransitions) {
         window.LK.initPageTransitions();
     }
+
+    flushPendingToast();
 });

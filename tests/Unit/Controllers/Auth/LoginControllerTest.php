@@ -102,6 +102,66 @@ namespace Tests\Unit\Controllers\Auth {
             $this->assertSame('https://app.example.com/login?intended=relatorios', $response->getHeaders()['Location'] ?? null);
         }
 
+        public function testLoginRendersLocalPageWhenConfiguredFrontendLoginMatchesCurrentRequest(): void
+        {
+            if (!defined('ASSETS_URL')) {
+                define('ASSETS_URL', BASE_URL . 'assets/');
+            }
+
+            $this->setEnvValue('FRONTEND_LOGIN_URL', 'https://lukrato.com.br/login');
+            $_SERVER['HTTP_HOST'] = 'lukrato.com.br';
+            $_SERVER['REQUEST_URI'] = '/login';
+
+            $turnstile = Mockery::mock(TurnstileService::class);
+            $turnstile
+                ->shouldReceive('shouldRequireCaptcha')
+                ->once()
+                ->with('127.0.0.1')
+                ->andReturnFalse();
+
+            $controller = new LoginController(
+                Mockery::mock(CacheService::class),
+                Mockery::mock(AuthService::class),
+                $turnstile,
+                new AuthRuntimeConfig()
+            );
+
+            $response = $controller->login();
+
+            $this->assertSame(200, $response->getStatusCode());
+            $this->assertStringContainsString('id="loginForm"', $response->getContent());
+        }
+
+        public function testLoginRendersLocalPageWhenConfiguredFrontendLoginOnlyDiffersByWwwHost(): void
+        {
+            if (!defined('ASSETS_URL')) {
+                define('ASSETS_URL', BASE_URL . 'assets/');
+            }
+
+            $this->setEnvValue('FRONTEND_LOGIN_URL', 'https://www.lukrato.com.br/login');
+            $_SERVER['HTTP_HOST'] = 'lukrato.com.br';
+            $_SERVER['REQUEST_URI'] = '/login';
+
+            $turnstile = Mockery::mock(TurnstileService::class);
+            $turnstile
+                ->shouldReceive('shouldRequireCaptcha')
+                ->once()
+                ->with('127.0.0.1')
+                ->andReturnFalse();
+
+            $controller = new LoginController(
+                Mockery::mock(CacheService::class),
+                Mockery::mock(AuthService::class),
+                $turnstile,
+                new AuthRuntimeConfig()
+            );
+
+            $response = $controller->login();
+
+            $this->assertSame(200, $response->getStatusCode());
+            $this->assertStringContainsString('id="loginForm"', $response->getContent());
+        }
+
         public function testLoginRedirectsToConfiguredDashboardWhenAlreadyAuthenticated(): void
         {
             $_SESSION['user_id'] = 77;

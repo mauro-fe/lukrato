@@ -218,12 +218,12 @@ class EmailVerificationService
             $indicacao->completed_at = now();
             $indicacao->save();
 
-            LogService::info('[EmailVerification] Recompensa de indicacao processada apos verificacao', [
+            LogService::info('[EmailVerification] Recompensa de indicação processada após verificacao', [
                 'referred_id' => $user->id,
                 'referrer_id' => $indicacao->referrer_id,
             ]);
         } catch (\Throwable $e) {
-            LogService::error('[EmailVerification] Erro ao processar recompensa de indicacao', [
+            LogService::error('[EmailVerification] Erro ao processar recompensa de indicação', [
                 'user_id' => $user->id,
                 'error' => $e->getMessage(),
             ]);
@@ -242,7 +242,7 @@ class EmailVerificationService
                 'link' => null,
             ]);
 
-            LogService::info('[EmailVerification] Notificacao de indicacao criada', [
+            LogService::info('[EmailVerification] Notificacao de indicação criada', [
                 'user_id' => $userId,
                 'tipo' => $tipo,
             ]);

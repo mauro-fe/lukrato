@@ -105,7 +105,7 @@ class NotificationApiWorkflowService
     {
         return [
             'success' => true,
-            'message' => 'Recompensas de indicacao',
+            'message' => 'Recompensas de indicação',
             'data' => $this->inboxService->getReferralRewards($userId),
         ];
     }

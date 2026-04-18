@@ -3,7 +3,7 @@ import { PerfilFormData, PerfilSnapshot } from '@/src/features/perfil/types';
 export const perfilPreview: PerfilSnapshot = {
   helperTitle: 'Perfil claro, ajuda perto e nada escondido',
   helperDescription:
-    'O usuario encontra seus dados, suporte, indicacoes e integracoes sem precisar adivinhar em qual menu tocar.',
+    'O usuário encontra seus dados, suporte, indicações e integrações sem precisar adivinhar em qual menu tocar.',
   identity: {
     name: 'Mauro Silva',
     email: 'mauro@lukrato.com',
@@ -14,9 +14,9 @@ export const perfilPreview: PerfilSnapshot = {
     completionLabel: 'Perfil quase completo',
   },
   focus: {
-    title: 'Seu perfil ja orienta o suporte e as integracoes',
+    title: 'Seu perfil já orienta o suporte e as integrações',
     description:
-      'Com os dados basicos preenchidos, fica mais facil receber ajuda certa, compartilhar o app e conectar canais externos.',
+      'Com os dados básicos preenchidos, fica mais fácil receber ajuda certa, compartilhar o app e conectar canais externos.',
     valueLabel: '86% completo',
     supportText: 'Falta pouco para o perfil ficar redondo e sem lacunas.',
     tone: 'positive',
@@ -25,19 +25,19 @@ export const perfilPreview: PerfilSnapshot = {
     {
       id: '1',
       title: 'Confirme os dados que você usa de verdade',
-      description: 'Nome, telefone e endereco corretos evitam duvida quando precisar de suporte ou recuperar acesso.',
+      description: 'Nome, telefone e endereço corretos evitam dúvida quando precisar de suporte ou recuperar acesso.',
       done: true,
     },
     {
       id: '2',
-      title: 'Guarde o codigo de suporte em lugar facil',
-      description: 'Se algo travar, esse codigo ajuda a equipe a achar sua conta mais rapido.',
+      title: 'Guarde o código de suporte em lugar fácil',
+      description: 'Se algo travar, esse código ajuda a equipe a achar sua conta mais rápido.',
       done: true,
     },
     {
       id: '3',
-      title: 'Ative uma integracao so se ela fizer sentido',
-      description: 'A ideia e facilitar a rotina, nao empurrar recurso que o usuario nao quer usar.',
+      title: 'Ative uma integração só se ela fizer sentido',
+      description: 'A ideia é facilitar a rotina, não empurrar recurso que o usuário não quer usar.',
       done: false,
     },
   ],
@@ -46,7 +46,7 @@ export const perfilPreview: PerfilSnapshot = {
       id: 'phone',
       label: 'Telefone',
       value: '(11) 99999-1234',
-      helper: 'Canal util para suporte e recuperacao.',
+      helper: 'Canal útil para suporte e recuperação.',
     },
     {
       id: 'birth',
@@ -58,17 +58,17 @@ export const perfilPreview: PerfilSnapshot = {
       id: 'cpf',
       label: 'CPF',
       value: '123.456.789-09',
-      helper: 'Mantido visivel so o necessario para o usuario conferir.',
+      helper: 'Mantido visível só o necessário para o usuário conferir.',
     },
     {
       id: 'sex',
       label: 'Sexo',
-      value: 'Nao informado',
+      value: 'Não informado',
     },
     {
       id: 'address',
-      label: 'Endereco',
-      value: 'Rua das Laranjeiras, 150, Centro, Sao Paulo - SP',
+      label: 'Endereço',
+      value: 'Rua das Laranjeiras, 150, Centro, São Paulo - SP',
       helper: 'Ajuda a manter o cadastro coerente com pagamentos e suporte.',
     },
   ],
@@ -91,7 +91,7 @@ export const perfilPreview: PerfilSnapshot = {
   },
   support: {
     recommendedChannel: 'whatsapp',
-    hint: 'Se surgir duvida, escreva com suas palavras. O app manda a mensagem sem o usuario caçar email ou formulario externo.',
+    hint: 'Se surgir dúvida, escreva com suas palavras. O app manda a mensagem sem o usuário caçar e-mail ou formulário externo.',
   },
 };
 
@@ -107,6 +107,6 @@ export const perfilPreviewFormData: PerfilFormData = {
   addressNumber: '150',
   addressComplement: '',
   addressNeighborhood: 'Centro',
-  addressCity: 'Sao Paulo',
+  addressCity: 'São Paulo',
   addressState: 'SP',
 };

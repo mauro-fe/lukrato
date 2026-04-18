@@ -44,7 +44,7 @@ class PreferenciasUsuarioUseCase
         try {
             $user = Usuario::find($userId);
             if (!$user) {
-                return $this->error('Usuario nao encontrado.', 404);
+                return $this->error('Usuário não encontrado.', 404);
             }
 
             $theme = strtolower(trim((string) ($user->theme_preference ?? 'system')));
@@ -56,9 +56,9 @@ class PreferenciasUsuarioUseCase
                 'theme' => $theme,
             ]);
         } catch (Throwable $e) {
-            LogService::error('Falha ao buscar preferencia de tema', ['exception' => $e->getMessage()]);
+            LogService::error('Falha ao buscar preferência de tema', ['exception' => $e->getMessage()]);
 
-            return $this->error('Falha ao buscar preferencia de tema.', 500);
+            return $this->error('Falha ao buscar preferência de tema.', 500);
         }
     }
 
@@ -81,23 +81,23 @@ class PreferenciasUsuarioUseCase
 
             $user = Usuario::find($userId);
             if (!$user) {
-                return $this->error('Usuario nao encontrado.', 404);
+                return $this->error('Usuário não encontrado.', 404);
             }
 
             $user->theme_preference = $themeInput;
             $user->save();
 
             return $this->ok([
-                'message' => 'Preferencia de tema atualizada.',
+                'message' => 'Preferência de tema atualizada.',
                 'theme' => $user->theme_preference,
             ]);
         } catch (Throwable $e) {
-            LogService::error('Falha ao salvar preferencia de tema', [
+            LogService::error('Falha ao salvar preferência de tema', [
                 'exception' => $e->getMessage(),
                 'payload' => ['theme' => $themeInput],
             ]);
 
-            return $this->error('Falha ao salvar preferencia.', 500);
+            return $this->error('Falha ao salvar preferência.', 500);
         }
     }
 
@@ -127,30 +127,30 @@ class PreferenciasUsuarioUseCase
 
             if (mb_strlen($displayName) > 80) {
                 return $this->validation([
-                    'display_name' => 'Use no maximo 80 caracteres.',
+                    'display_name' => 'Use no máximo 80 caracteres.',
                 ]);
             }
 
             $user = Usuario::find($userId);
             if (!$user) {
-                return $this->error('Usuario nao encontrado.', 404);
+                return $this->error('Usuário não encontrado.', 404);
             }
 
             $user->nome = $displayName;
             $user->save();
 
             return $this->ok([
-                'message' => 'Nome de exibicao salvo.',
+                'message' => 'Nome de exibição salvo.',
                 'display_name' => $user->nome,
                 'first_name' => $user->primeiro_nome,
             ]);
         } catch (Throwable $e) {
-            LogService::error('Falha ao salvar nome de exibicao', [
+            LogService::error('Falha ao salvar nome de exibição', [
                 'exception' => $e->getMessage(),
                 'payload' => ['display_name' => $displayNameInput],
             ]);
 
-            return $this->error('Falha ao salvar nome de exibicao.', 500);
+            return $this->error('Falha ao salvar nome de exibição.', 500);
         }
     }
 
@@ -162,7 +162,7 @@ class PreferenciasUsuarioUseCase
         try {
             $user = Usuario::find($userId);
             if (!$user) {
-                return $this->error('Usuario nao encontrado.', 404);
+                return $this->error('Usuário não encontrado.', 404);
             }
 
             $dashboardPreferences = $this->getDashboardPreferences($user);
@@ -171,9 +171,9 @@ class PreferenciasUsuarioUseCase
                 'preferences' => $this->normalizeHelpPreferences($dashboardPreferences['help_center'] ?? []),
             ]);
         } catch (Throwable $e) {
-            LogService::error('Falha ao buscar preferencias de ajuda', ['exception' => $e->getMessage()]);
+            LogService::error('Falha ao buscar preferências de ajuda', ['exception' => $e->getMessage()]);
 
-            return $this->error('Falha ao buscar preferencias de ajuda.', 500);
+            return $this->error('Falha ao buscar preferências de ajuda.', 500);
         }
     }
 
@@ -200,27 +200,27 @@ class PreferenciasUsuarioUseCase
                 'reset_all',
             ], true)) {
                 return $this->validation([
-                    'action' => 'Acao de ajuda invalida.',
+                    'action' => 'Ação de ajuda inválida.',
                 ]);
             }
 
             if (in_array($actionInput, ['complete_tour', 'dismiss_offer', 'view_tips', 'reset_page'], true)) {
                 if ($pageInput === '') {
                     return $this->validation([
-                        'page' => 'Pagina obrigatoria para esta acao.',
+                        'page' => 'Página obrigatória para esta ação.',
                     ]);
                 }
 
                 if (!$this->isValidHelpKey($pageInput)) {
                     return $this->validation([
-                        'page' => 'Pagina de ajuda invalida.',
+                        'page' => 'Página de ajuda inválida.',
                     ]);
                 }
             }
 
             $user = Usuario::find($userId);
             if (!$user) {
-                return $this->error('Usuario nao encontrado.', 404);
+                return $this->error('Usuário não encontrado.', 404);
             }
 
             $dashboardPreferences = $this->getDashboardPreferences($user);
@@ -279,15 +279,15 @@ class PreferenciasUsuarioUseCase
                 [
                     'preferences' => $this->normalizeHelpPreferences($helpPreferences),
                 ],
-                'Preferencias de ajuda atualizadas'
+                'Preferências de ajuda atualizadas'
             );
         } catch (Throwable $e) {
-            LogService::error('Falha ao atualizar preferencias de ajuda', [
+            LogService::error('Falha ao atualizar preferências de ajuda', [
                 'exception' => $e->getMessage(),
                 'payload' => ['action' => $actionInput],
             ]);
 
-            return $this->error('Falha ao salvar preferencias de ajuda.', 500);
+            return $this->error('Falha ao salvar preferências de ajuda.', 500);
         }
     }
 
@@ -300,13 +300,13 @@ class PreferenciasUsuarioUseCase
             $pageKey = $this->normalizeUiPageKey($page);
             if ($pageKey === '') {
                 return $this->validation([
-                    'page' => 'Pagina de configuracao invalida.',
+                    'page' => 'Página de configuração inválida.',
                 ]);
             }
 
             $user = Usuario::find($userId);
             if (!$user) {
-                return $this->error('Usuario nao encontrado.', 404);
+                return $this->error('Usuário não encontrado.', 404);
             }
 
             return $this->ok([
@@ -314,12 +314,12 @@ class PreferenciasUsuarioUseCase
                 'preferences' => $this->getUiPagePreferences($user, $pageKey),
             ]);
         } catch (Throwable $e) {
-            LogService::error('Falha ao buscar preferencias de interface', [
+            LogService::error('Falha ao buscar preferências de interface', [
                 'exception' => $e->getMessage(),
                 'page' => $page,
             ]);
 
-            return $this->error('Falha ao buscar preferencias da pagina.', 500);
+            return $this->error('Falha ao buscar preferências da página.', 500);
         }
     }
 
@@ -333,14 +333,14 @@ class PreferenciasUsuarioUseCase
             $pageKey = $this->normalizeUiPageKey($page);
             if ($pageKey === '') {
                 return $this->validation([
-                    'page' => 'Pagina de configuracao invalida.',
+                    'page' => 'Página de configuração inválida.',
                 ]);
             }
 
             $preferencesInput = $payload['preferences'] ?? $payload;
             if (!is_array($preferencesInput)) {
                 return $this->validation([
-                    'preferences' => 'Formato de preferencias invalido.',
+                    'preferences' => 'Formato de preferências inválido.',
                 ]);
             }
 
@@ -348,7 +348,7 @@ class PreferenciasUsuarioUseCase
 
             $user = Usuario::find($userId);
             if (!$user) {
-                return $this->error('Usuario nao encontrado.', 404);
+                return $this->error('Usuário não encontrado.', 404);
             }
 
             $this->persistUiPagePreferences($user, $pageKey, $normalizedPreferences);
@@ -358,15 +358,15 @@ class PreferenciasUsuarioUseCase
                     'page' => $pageKey,
                     'preferences' => $this->getUiPagePreferences($user, $pageKey),
                 ],
-                'Preferencias de interface atualizadas'
+                'Preferências de interface atualizadas'
             );
         } catch (Throwable $e) {
-            LogService::error('Falha ao atualizar preferencias de interface', [
+            LogService::error('Falha ao atualizar preferências de interface', [
                 'exception' => $e->getMessage(),
                 'page' => $page,
             ]);
 
-            return $this->error('Falha ao salvar preferencias da pagina.', 500);
+            return $this->error('Falha ao salvar preferências da página.', 500);
         }
     }
 
@@ -378,7 +378,7 @@ class PreferenciasUsuarioUseCase
         try {
             $user = Usuario::find($userId);
             if (!$user) {
-                return $this->error('Usuario nao encontrado.', 404);
+                return $this->error('Usuário não encontrado.', 404);
             }
 
             if (empty($user->data_nascimento)) {
@@ -402,7 +402,7 @@ class PreferenciasUsuarioUseCase
             if ($isBirthday) {
                 $age = (int) $today->diff($birthDate)->y;
                 $nameParts = explode(' ', trim((string) $user->nome));
-                $firstName = $nameParts[0] ?? 'Voce';
+                $firstName = $nameParts[0] ?? 'Você';
 
                 return $this->ok([
                     'is_birthday' => true,
@@ -416,7 +416,7 @@ class PreferenciasUsuarioUseCase
                 'is_birthday' => false,
             ]);
         } catch (Throwable $e) {
-            LogService::error('Falha ao verificar aniversario', ['exception' => $e->getMessage()]);
+            LogService::error('Falha ao verificar aniversário', ['exception' => $e->getMessage()]);
 
             return $this->ok(['is_birthday' => false]);
         }
@@ -647,4 +647,3 @@ class PreferenciasUsuarioUseCase
         ];
     }
 }
-

@@ -6,15 +6,22 @@ export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) 
 
     Object.assign(ManagerClass.prototype, {
         closeModal() {
-            const overlay = document.getElementById('modalLancamentoGlobalOverlay');
-            if (overlay) {
-                overlay.classList.remove('active');
-                document.body.style.overflow = '';
-                this.pendingTipo = null;
-                this.restaurarCabecalhoPadrao();
-                this.initWizard();
-                this.clearPlanningAlerts();
+            const root = this.getRootElement?.();
+            if (!root) {
+                return;
             }
+
+            if (this.isPageMode?.()) {
+                window.location.href = this.resolveCloseUrl();
+                return;
+            }
+
+            root.classList.remove('active');
+            document.body.style.overflow = '';
+            this.pendingTipo = null;
+            this.restaurarCabecalhoPadrao();
+            this.initWizard();
+            this.clearPlanningAlerts();
         },
 
         restaurarCabecalhoPadrao() {

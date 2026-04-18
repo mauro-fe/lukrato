@@ -215,13 +215,13 @@ function buildInsight(portfolio) {
     if (reserveShare >= 35) {
         return {
             title: `${Utils.formatCurrency(reserveBalance)} ja estao guardados.`,
-            description: `A reserva representa ${formatPercent(reserveShare)} do seu dinheiro total e melhora sua seguranca financeira.`,
+            description: `A reserva representa ${formatPercent(reserveShare)} do seu dinheiro total e melhora sua segurança financeira.`,
         };
     }
 
     return {
         title: `Sua maior parte do dinheiro esta em ${primaryAccount.nome}.`,
-        description: `${formatPercent(primaryShare)} do valor positivo esta nessa conta. Sua distribuicao esta equilibrada, mas ainda pode ficar melhor.`,
+        description: `${formatPercent(primaryShare)} do valor positivo esta nessa conta. Sua distribuição está equilibrada, mas ainda pode ficar melhor.`,
     };
 }
 

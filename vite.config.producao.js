@@ -28,6 +28,7 @@ export default defineConfig({
                 'global': resolve(__dirname, 'resources/js/admin/global/index.js'),
                 'lancamento-global': resolve(__dirname, 'resources/js/admin/lancamento-global/index.js'),
                 'lancamentos': resolve(__dirname, 'resources/js/admin/lancamentos/index.js'),
+                'lancamentos-create': resolve(__dirname, 'resources/js/admin/lancamentos/create.js'),
                 'contas': resolve(__dirname, 'resources/js/admin/contas/index.js'),
                 'faturas': resolve(__dirname, 'resources/js/admin/faturas/index.js'),
                 'cartoes': resolve(__dirname, 'resources/js/admin/cartoes/index.js'),

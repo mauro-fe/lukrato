@@ -14,7 +14,7 @@
             <h1 class="profile-title">Meu Perfil</h1>
 
             <button type="button" class="lk-info" data-lk-tooltip-title="Perfil completo"
-                data-lk-tooltip="Manter seus dados sempre completos ajuda na seguranca da conta, recuperacao de acesso, faturamento e melhor funcionamento do Lukrato."
+                data-lk-tooltip="Manter seus dados sempre completos ajuda na segurança da conta, recuperação de acesso, faturamento e melhor funcionamento do Lukrato."
                 aria-label="Ajuda: Perfil completo">
                 <i data-lucide="info" aria-hidden="true"></i>
             </button>

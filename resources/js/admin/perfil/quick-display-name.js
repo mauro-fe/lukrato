@@ -104,7 +104,7 @@ export function initProfileDisplayName(context, profileReadyPromise = null) {
         const displayName = String(refs.input.value || '').trim();
 
         setBusy(refs, true);
-        setStatus(refs.status, 'Salvando nome de exibicao...', 'neutral');
+        setStatus(refs.status, 'Salvando nome de exibição...', 'neutral');
 
         try {
             const response = await apiPost(endpoint, {
@@ -120,9 +120,9 @@ export function initProfileDisplayName(context, profileReadyPromise = null) {
 
             const savedDisplayName = resolveDisplayNameValue(response?.data?.display_name, displayName);
             syncDisplayNameAcrossPage(context, refs, savedDisplayName);
-            setStatus(refs.status, response?.data?.message || 'Nome de exibicao salvo.', 'success');
+            setStatus(refs.status, response?.data?.message || 'Nome de exibição salvo.', 'success');
         } catch (error) {
-            setStatus(refs.status, getErrorMessage(error, 'Nao foi possivel salvar o nome de exibicao.'), 'danger');
+            setStatus(refs.status, getErrorMessage(error, 'Não foi possível salvar o nome de exibição.'), 'danger');
         } finally {
             setBusy(refs, false);
         }

@@ -7,7 +7,10 @@ export function registerLancamentoGlobalBridge(manager) {
 
 export function bootLancamentoGlobalManager(manager) {
     const init = () => {
-        window.LK?.modalSystem?.prepareOverlay('#modalLancamentoGlobalOverlay', { scope: 'app' });
+        const root = document.getElementById('modalLancamentoGlobalOverlay');
+        if (root && root.dataset.mode !== 'page') {
+            window.LK?.modalSystem?.prepareOverlay('#modalLancamentoGlobalOverlay', { scope: 'app' });
+        }
         manager.init();
     };
 

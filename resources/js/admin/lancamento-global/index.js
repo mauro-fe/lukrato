@@ -119,9 +119,9 @@ attachLancamentoGlobalSaveMethods(LancamentoGlobalManager, {
     parseMoney,
     refreshIcons,
     showToast,
+    getBaseUrl,
     logClientWarning,
     apiPost,
-    getBaseUrl,
     getErrorMessage,
     logClientError,
 });

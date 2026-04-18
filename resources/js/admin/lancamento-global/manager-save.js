@@ -10,6 +10,7 @@ export function attachLancamentoGlobalSaveMethods(ManagerClass, dependencies) {
         parseMoney,
         refreshIcons,
         showToast,
+        getBaseUrl,
         logClientWarning,
         apiPost,
         getErrorMessage,
@@ -69,6 +70,7 @@ export function attachLancamentoGlobalSaveMethods(ManagerClass, dependencies) {
                     }
                 }
 
+                this.ultimoLancamentoPayload = dados;
                 result = await apiPost(apiUrl, requestData);
                 const isSuccess = result?.success === true;
 
@@ -111,6 +113,17 @@ export function attachLancamentoGlobalSaveMethods(ManagerClass, dependencies) {
                     }
                 }
 
+                if (this.isPageMode?.()) {
+                    this.dispatchSuccessfulSaveEvents(payload);
+                    try {
+                        await this.refreshPageModeAccountContext();
+                    } catch (refreshError) {
+                        logClientWarning('Erro ao atualizar contexto da conta apos salvar lancamento', refreshError, 'Falha ao atualizar a tela');
+                    }
+                    await this.showPageModeSuccessDialog(result, payload);
+                    return;
+                }
+
                 this.closeModal();
                 showToast(result?.message || 'Lancamento salvo com sucesso!', 'success');
 
@@ -125,21 +138,134 @@ export function attachLancamentoGlobalSaveMethods(ManagerClass, dependencies) {
                     await window.contasManager.loadContas();
                 }
 
-                document.dispatchEvent(new CustomEvent('lukrato:data-changed', {
-                    detail: {
-                        resource: 'transactions',
-                        action: 'create',
-                        source: 'lancamento-global',
-                        payload
-                    }
-                }));
-                window.dispatchEvent(new CustomEvent('lancamento-created', { detail: payload }));
+                this.dispatchSuccessfulSaveEvents(payload);
             } catch (postSaveError) {
                 logClientWarning('Erro ao atualizar UI apos salvar lancamento', postSaveError, 'Falha ao atualizar a tela');
             } finally {
                 this.salvando = false;
                 this._resetBtnSalvar();
             }
+        },
+
+        dispatchSuccessfulSaveEvents(payload) {
+            document.dispatchEvent(new CustomEvent('lukrato:data-changed', {
+                detail: {
+                    resource: 'transactions',
+                    action: 'create',
+                    source: 'lancamento-global',
+                    payload
+                }
+            }));
+            window.dispatchEvent(new CustomEvent('lancamento-created', { detail: payload }));
+        },
+
+        async refreshPageModeAccountContext() {
+            const contaId = this.contaSelecionada?.id;
+            if (!contaId) return;
+
+            await this.carregarDados();
+
+            const contaAtualizada = this.getContaById(contaId);
+            if (!contaAtualizada) return;
+
+            const saldo = contaAtualizada.saldo !== undefined
+                ? contaAtualizada.saldo
+                : (contaAtualizada.saldoAtual !== undefined ? contaAtualizada.saldoAtual : contaAtualizada.saldo_inicial || 0);
+            const nome = String(contaAtualizada.nome || contaAtualizada.instituicao || `Conta #${contaAtualizada.id}`).trim();
+
+            this.contaSelecionada = {
+                id: String(contaAtualizada.id),
+                nome,
+                saldo: parseFloat(saldo || 0)
+            };
+
+            const select = document.getElementById('globalContaSelect');
+            if (select) {
+                select.value = String(contaAtualizada.id);
+            }
+
+            this.atualizarContaSelecionadaUI();
+            await this.atualizarHistoricoContaSelecionada();
+            this.schedulePlanningAlertsRender();
+        },
+
+        async showPageModeSuccessDialog(result, payload) {
+            if (!window.Swal?.fire) {
+                showToast(result?.message || 'Lancamento criado com sucesso!', 'success');
+                await this.prepareNextPageModeLaunch();
+                return;
+            }
+
+            const swalResult = await window.Swal.fire({
+                icon: 'success',
+                title: this.resolvePageModeSuccessTitle(),
+                text: this.resolvePageModeSuccessText(result, payload),
+                confirmButtonText: 'Criar novo lançamento',
+                denyButtonText: this.resolvePageModeReturnLabel(),
+                showDenyButton: true,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                reverseButtons: true,
+                confirmButtonColor: 'var(--color-primary)',
+                denyButtonColor: 'var(--color-bg-secondary)',
+                customClass: { container: 'swal-above-modal' }
+            });
+
+            if (swalResult.isDenied) {
+                window.location.href = this.resolveCloseUrl?.() || `${String(getBaseUrl() || '/')}lancamentos`;
+                return;
+            }
+
+            await this.prepareNextPageModeLaunch();
+        },
+
+        resolvePageModeSuccessTitle() {
+            if (this.tipoAtual === 'transferencia') {
+                return 'Transferência criada com sucesso';
+            }
+
+            return 'Lançamento criado com sucesso';
+        },
+
+        resolvePageModeSuccessText(result, payload) {
+            const dados = this.ultimoLancamentoPayload || {};
+            const detalhe = payload?.lancamento || payload?.item || payload || {};
+            const descricao = String(dados.descricao || detalhe.descricao || '').trim();
+            const valor = Number(dados.valor || detalhe.valor || 0);
+            const totalCriados = Number(payload?.total_criados || payload?.total_itens_criados || 0);
+            const tipoLabel = this.tipoAtual === 'transferencia'
+                ? 'Transferência'
+                : (this.tipoAtual === 'receita' ? 'Receita' : 'Despesa');
+            const valorTexto = valor > 0 ? ` de ${formatMoney(valor)}` : '';
+            const descricaoTexto = descricao ? ` (${descricao})` : '';
+            const quantidadeTexto = totalCriados > 1 ? ` ${totalCriados} registros foram gerados.` : '';
+            const message = `${tipoLabel}${valorTexto}${descricaoTexto} registrada.${quantidadeTexto}`.trim();
+
+            return message || result?.message || 'O lançamento foi registrado.';
+        },
+
+        resolvePageModeReturnLabel() {
+            const root = this.getRootElement?.();
+            const label = String(root?.dataset.returnLabel || '').trim();
+
+            return label || 'Voltar para página anterior';
+        },
+
+        async prepareNextPageModeLaunch() {
+            const contaId = this.contaSelecionada?.id
+                || this.ultimoLancamentoPayload?.conta_id
+                || this.contextoAbertura?.presetAccountId
+                || null;
+            const tipo = this.tipoAtual
+                || this.ultimoLancamentoPayload?.tipo
+                || this.contextoAbertura?.tipo
+                || null;
+
+            await this.prepareWizardSession({
+                ...this.contextoAbertura,
+                presetAccountId: contaId ? String(contaId) : null,
+                tipo: tipo ? String(tipo) : null
+            });
         },
 
         _resetBtnSalvar() {

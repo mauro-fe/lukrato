@@ -20,7 +20,11 @@ const getLancamentoGlobalManager = () => window.lancamentoGlobalManager || null;
 const openLancamentoGlobalFromConta = (contaId, options = {}) => {
     const manager = getLancamentoGlobalManager();
     if (!manager?.openModal) {
-        window.location.href = buildAppUrl('lancamentos');
+        window.location.href = buildAppUrl('lancamentos/novo', {
+            origem: 'contas',
+            conta: contaId,
+            tipo: options.tipo || '',
+        });
         return;
     }
 

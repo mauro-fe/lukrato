@@ -41,7 +41,7 @@ export function resolvePrimaryActionMeta(meta = {}, fallback = {}) {
     const ctaUrl = normalizeActionUrl(
         meta.cta_url
         ?? fallback.ctaUrl
-        ?? (actionType === ACTION_CREATE_ACCOUNT ? 'contas' : 'lancamentos')
+        ?? (actionType === ACTION_CREATE_ACCOUNT ? 'contas' : 'lancamentos/novo')
     );
     const ctaLabel = String(
         meta.cta_label

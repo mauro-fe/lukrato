@@ -93,11 +93,11 @@ class ReferralController extends ApiController
                 'referred_reward_days' => ReferralService::REFERRED_REWARD_DAYS,
                 'description' => 'Indique amigos para o Lukrato e ganhe '
                     . ReferralService::REFERRER_REWARD_DAYS
-                    . ' dias de PRO! Seu amigo tambem ganha '
+                    . ' dias de PRO! Seu amigo também ganha '
                     . ReferralService::REFERRED_REWARD_DAYS
-                    . ' dias gratis.',
-            ], 'Informacoes do programa de indicacao');
-        }, 'Erro ao carregar informacoes.');
+                    . ' dias grátis.',
+            ], 'Informações do programa de indicação');
+        }, 'Erro ao carregar informações.');
     }
 
     private function authenticatedUser(): Usuario

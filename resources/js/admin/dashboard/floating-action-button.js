@@ -126,9 +126,9 @@ class FloatingActionButton {
 
   handleAction(action) {
     const urls = {
-      receita: `${this.config.baseURL}lancamentos?tipo=receita`,
-      despesa: `${this.config.baseURL}lancamentos?tipo=despesa`,
-      transferencia: `${this.config.baseURL}lancamentos?tipo=transferencia`,
+      receita: `${this.config.baseURL}lancamentos/novo?tipo=receita`,
+      despesa: `${this.config.baseURL}lancamentos/novo?tipo=despesa`,
+      transferencia: `${this.config.baseURL}lancamentos/novo?tipo=transferencia`,
     };
 
     if (!urls[action]) return;

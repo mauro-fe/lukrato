@@ -24,11 +24,113 @@ export function attachLancamentoGlobalCoreMethods(ManagerClass, dependencies) {
             this.eventosConfigurados = true;
         }
 
-        const overlay = document.getElementById('modalLancamentoGlobalOverlay');
-        if (overlay) {
-            CustomSelectManager.init(overlay);
+        const root = this.getRootElement();
+        if (root) {
+            CustomSelectManager.init(root);
             this.syncEnhancedSelects();
         }
+    },
+
+    getRootElement() {
+        return document.getElementById('modalLancamentoGlobalOverlay');
+    },
+
+    isPageMode() {
+        return this.getRootElement()?.dataset.mode === 'page';
+    },
+
+    resolveCurrentReturnPath() {
+        const baseUrl = String(getBaseUrl() || '/');
+        const currentUrl = new URL(window.location.href);
+
+        try {
+            const base = new URL(baseUrl, window.location.origin);
+            if (currentUrl.origin === base.origin && currentUrl.pathname.startsWith(base.pathname)) {
+                const relativePath = currentUrl.pathname.slice(base.pathname.length).replace(/^\/+/, '');
+                if (relativePath === 'lancamentos/novo' || relativePath.startsWith('lancamentos/novo/')) {
+                    return 'lancamentos';
+                }
+
+                return `${relativePath}${currentUrl.search}`.replace(/^\/+/, '');
+            }
+        } catch {
+            // fallback below
+        }
+
+        return `${currentUrl.pathname.replace(/^\/+/, '')}${currentUrl.search}`;
+    },
+
+    buildWizardPageUrl(contexto = {}) {
+        const params = new URLSearchParams();
+        const returnPath = typeof contexto.returnPath === 'string' && contexto.returnPath.trim() !== ''
+            ? contexto.returnPath.trim()
+            : this.resolveCurrentReturnPath();
+
+        if (returnPath !== '') {
+            params.set('return', returnPath);
+        }
+
+        if (contexto.source === 'contas') {
+            params.set('origem', 'contas');
+        }
+
+        if (contexto.presetAccountId) {
+            params.set('conta', String(contexto.presetAccountId));
+        }
+
+        if (contexto.tipo) {
+            params.set('tipo', String(contexto.tipo));
+        }
+
+        const query = params.toString();
+        const baseUrl = String(getBaseUrl() || '/');
+
+        return `${baseUrl}lancamentos/novo${query ? `?${query}` : ''}`;
+    },
+
+    navigateToWizardPage(contexto = {}) {
+        window.location.href = this.buildWizardPageUrl(contexto);
+    },
+
+    resolveCloseUrl() {
+        const root = this.getRootElement();
+        const explicitReturnUrl = String(root?.dataset.returnUrl || '').trim();
+
+        if (explicitReturnUrl !== '') {
+            return explicitReturnUrl;
+        }
+
+        return `${String(getBaseUrl() || '/')}lancamentos`;
+    },
+
+    async prepareWizardSession(contexto = {}) {
+        const root = this.getRootElement();
+        if (!root) {
+            return;
+        }
+
+        root.classList.add('active');
+
+        await this.carregarDados();
+        this.contaSelecionada = null;
+        this.initWizard();
+        this.aplicarContextoAbertura(contexto);
+
+        const select = document.getElementById('globalContaSelect');
+        const contaPadrao = contexto.presetAccountId
+            || (this.contas.length === 1 ? String(this.contas[0].id) : '');
+
+        if (select) {
+            const contaExiste = contaPadrao
+                && Array.from(select.options).some((option) => String(option.value) === String(contaPadrao));
+            select.value = contaExiste ? String(contaPadrao) : '';
+        }
+
+        this.syncEnhancedSelects();
+
+        this.pendingTipo = contexto.tipo;
+        await this.onContaChange();
+        this.schedulePlanningAlertsRender();
     },
 
     normalizarContextoAbertura(options = {}) {
@@ -44,7 +146,10 @@ export function attachLancamentoGlobalCoreMethods(ManagerClass, dependencies) {
                 ? String(rawOptions.presetAccountId)
                 : null,
             lockAccount: Boolean(rawOptions.lockAccount),
-            tipo: typeof rawOptions.tipo === 'string' && rawOptions.tipo !== '' ? rawOptions.tipo : null
+            tipo: typeof rawOptions.tipo === 'string' && rawOptions.tipo !== '' ? rawOptions.tipo : null,
+            returnPath: typeof rawOptions.returnPath === 'string' && rawOptions.returnPath.trim() !== ''
+                ? rawOptions.returnPath.trim()
+                : null
         };
     },
 
@@ -207,9 +312,9 @@ export function attachLancamentoGlobalCoreMethods(ManagerClass, dependencies) {
     },
 
     syncEnhancedSelects() {
-        const overlay = document.getElementById('modalLancamentoGlobalOverlay');
-        if (!overlay) return;
-        syncCustomSelects(overlay);
+        const root = this.getRootElement();
+        if (!root) return;
+        syncCustomSelects(root);
     },
 
     getFormaPlanejamentoAtual() {
@@ -299,32 +404,19 @@ export function attachLancamentoGlobalCoreMethods(ManagerClass, dependencies) {
     },
 
     async openModal(options = {}) {
-        const overlay = document.getElementById('modalLancamentoGlobalOverlay');
-        if (overlay) {
-            const contexto = this.normalizarContextoAbertura(options);
-            overlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-            await this.carregarDados();
-            this.contaSelecionada = null;
-            this.initWizard();
-            this.aplicarContextoAbertura(contexto);
+        const contexto = this.normalizarContextoAbertura(options);
+        const root = this.getRootElement();
 
-            const select = document.getElementById('globalContaSelect');
-            const contaPadrao = contexto.presetAccountId
-                || (this.contas.length === 1 ? String(this.contas[0].id) : '');
-
-            if (select) {
-                const contaExiste = contaPadrao
-                    && Array.from(select.options).some((option) => String(option.value) === String(contaPadrao));
-                select.value = contaExiste ? String(contaPadrao) : '';
-            }
-
-            this.syncEnhancedSelects();
-
-            this.pendingTipo = contexto.tipo;
-            await this.onContaChange();
-            this.schedulePlanningAlertsRender();
+        if (!root) {
+            this.navigateToWizardPage(contexto);
+            return;
         }
+
+        if (!this.isPageMode()) {
+            document.body.style.overflow = 'hidden';
+        }
+
+        await this.prepareWizardSession(contexto);
     }
     });
 }

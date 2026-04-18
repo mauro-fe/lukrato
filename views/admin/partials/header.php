@@ -13,6 +13,7 @@ $currentUser    = $currentUser    ?? null;
 $isSysAdmin     = $isSysAdmin     ?? false;
 $showUpgradeCTA = $showUpgradeCTA ?? true;
 $isPro          = $isPro          ?? (!$showUpgradeCTA);
+$hideLaunchFab  = $hideLaunchFab  ?? false;
 $userTheme      = $userTheme      ?? 'dark';
 $currentViewPath = trim((string) ($currentViewPath ?? ''), '/');
 $currentViewId = trim((string) ($currentViewId ?? ''), '-');
@@ -398,13 +399,14 @@ $footerModules = is_array($footerModules ?? null)
 
     <!-- ================ BOTÕES ======================== -->
 
-    <?php include __DIR__ . '/botao-lancamento.php'; ?>
+    <?php if (!$hideLaunchFab): ?>
+        <?php include __DIR__ . '/botao-lancamento.php'; ?>
+    <?php endif; ?>
     <?php include __DIR__ . '/botao-suporte.php'; ?>
 
     <div id="lk-app-modal-root" class="lk-modal-root lk-modal-root--app" aria-hidden="true"></div>
 
     <!-- ==================== MODAIS ==================== -->
-    <?php include __DIR__ . '/modals/modal-lancamento-global.php'; ?>
     <?php include __DIR__ . '/modals/modal-meses.php'; ?>
     <!-- aviso-lancamentos: funcionalidade migrada para JS (Vite bundle) -->
 

@@ -64,7 +64,7 @@ class PreferenciaUsuarioControllerTest extends TestCase
                 'success' => true,
                 'message' => 'Success',
                 'data' => [
-                    'message' => 'Preferencia de tema atualizada.',
+                    'message' => 'Preferência de tema atualizada.',
                     'theme' => 'dark',
                 ],
                 'status' => 200,
@@ -79,7 +79,7 @@ class PreferenciaUsuarioControllerTest extends TestCase
             'success' => true,
             'message' => 'Success',
             'data' => [
-                'message' => 'Preferencia de tema atualizada.',
+                'message' => 'Preferência de tema atualizada.',
                 'theme' => 'dark',
             ],
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
@@ -118,7 +118,7 @@ class PreferenciaUsuarioControllerTest extends TestCase
                 'success' => true,
                 'message' => 'Success',
                 'data' => [
-                    'message' => 'Nome de exibicao salvo.',
+                    'message' => 'Nome de exibição salvo.',
                     'display_name' => 'Maria Silva',
                     'first_name' => 'Maria',
                 ],
@@ -134,7 +134,7 @@ class PreferenciaUsuarioControllerTest extends TestCase
             'success' => true,
             'message' => 'Success',
             'data' => [
-                'message' => 'Nome de exibicao salvo.',
+                'message' => 'Nome de exibição salvo.',
                 'display_name' => 'Maria Silva',
                 'first_name' => 'Maria',
             ],
@@ -243,7 +243,7 @@ class PreferenciaUsuarioControllerTest extends TestCase
             'success' => false,
             'message' => 'Validation failed',
             'errors' => [
-                'action' => 'Acao de ajuda invalida.',
+                'action' => 'Ação de ajuda inválida.',
             ],
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
@@ -266,7 +266,7 @@ class PreferenciaUsuarioControllerTest extends TestCase
             ])
             ->willReturn([
                 'success' => true,
-                'message' => 'Preferencias de ajuda atualizadas',
+                'message' => 'Preferências de ajuda atualizadas',
                 'data' => [
                     'preferences' => [
                         'settings' => [
@@ -291,7 +291,7 @@ class PreferenciaUsuarioControllerTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
         $this->assertSame([
             'success' => true,
-            'message' => 'Preferencias de ajuda atualizadas',
+            'message' => 'Preferências de ajuda atualizadas',
             'data' => [
                 'preferences' => [
                     'settings' => [
@@ -366,7 +366,7 @@ class PreferenciaUsuarioControllerTest extends TestCase
             'success' => false,
             'message' => 'Validation failed',
             'errors' => [
-                'preferences' => 'Formato de preferencias invalido.',
+                'preferences' => 'Formato de preferências inválido.',
             ],
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
@@ -393,7 +393,7 @@ class PreferenciaUsuarioControllerTest extends TestCase
             ])
             ->willReturn([
                 'success' => true,
-                'message' => 'Preferencias de interface atualizadas',
+                'message' => 'Preferências de interface atualizadas',
                 'data' => [
                     'page' => 'dashboard',
                     'preferences' => [
@@ -411,7 +411,7 @@ class PreferenciaUsuarioControllerTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
         $this->assertSame([
             'success' => true,
-            'message' => 'Preferencias de interface atualizadas',
+            'message' => 'Preferências de interface atualizadas',
             'data' => [
                 'page' => 'dashboard',
                 'preferences' => [

@@ -162,7 +162,7 @@ class LoginController extends WebController
             return null;
         }
 
-        $host = strtolower((string) ($parts['host'] ?? ''));
+        $host = $this->normalizeHost((string) ($parts['host'] ?? ''));
         $port = isset($parts['port']) ? (int) $parts['port'] : null;
         $path = '/' . trim((string) ($parts['path'] ?? '/'), '/');
         $path = $path === '//' ? '/' : $path;
@@ -180,6 +180,17 @@ class LoginController extends WebController
             'path' => $path,
             'query' => $query,
         ];
+    }
+
+    private function normalizeHost(string $host): string
+    {
+        $normalized = strtolower(trim($host));
+
+        if (str_starts_with($normalized, 'www.')) {
+            return substr($normalized, 4);
+        }
+
+        return $normalized;
     }
 
     public function processLogin(): Response

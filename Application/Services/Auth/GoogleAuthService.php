@@ -170,7 +170,7 @@ class GoogleAuthService
 
         if ($referralCode !== '') {
             $registerData['referral_code'] = $referralCode;
-            LogService::info('Codigo de indicacao aplicado no registro via Google', [
+            LogService::info('Código de indicação aplicado no registro via Google', [
                 'email' => $userInfo['email'],
                 'referral_code' => $referralCode,
             ]);
