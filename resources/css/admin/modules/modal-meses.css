@@ -1,6 +1,6 @@
 /* =============================================
-   Modal Month Picker - Estilos aprimorados
-   Extraído de views/admin/partials/modals/modal-meses.php
+   Modal Month Picker
+   Extraido de: views/admin/partials/modals/modal-meses.php
    ============================================= */
 
 #monthModal,
@@ -8,92 +8,177 @@
     --surface-modal-accent: var(--color-primary);
 }
 
-#monthModal .modal-content {
+#monthModal .month-modal-dialog {
+    max-width: 600px;
+}
+
+#yearModal .year-modal-dialog {
+    max-width: 420px;
+}
+
+#monthModal .modal-content,
+#yearModal .modal-content {
     font-family: var(--font-primary);
     overflow: hidden;
+    background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-xl);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
 }
 
-#monthModal .modal-header {
-    padding: var(--spacing-5) var(--spacing-6);
+#monthModal .modal-header,
+#yearModal .modal-header {
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-3);
+    padding: var(--spacing-5) var(--spacing-6);
 }
 
-#monthModal .modal-header::after {
+#monthModal .modal-header::after,
+#yearModal .modal-header::after {
     content: '';
     position: absolute;
     bottom: 0;
     left: var(--spacing-6);
     right: var(--spacing-6);
     height: 2px;
-    background: linear-gradient(90deg,
-            var(--color-primary),
-            var(--color-secondary),
-            var(--color-primary));
+    background: linear-gradient(
+        90deg,
+        var(--color-primary),
+        var(--color-secondary),
+        var(--color-primary)
+    );
     opacity: 0.3;
 }
 
-#monthModal .modal-footer {
-    padding: var(--spacing-4) var(--spacing-6) var(--spacing-5);
-}
-
-#monthModal .modal-title {
+#monthModal .modal-title,
+#yearModal .modal-title {
     font-size: var(--font-size-xl);
     font-weight: 700;
     letter-spacing: -0.02em;
 }
 
-#monthModal .btn-close {
+#monthModal .month-modal-close,
+#yearModal .month-modal-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius-md);
-    opacity: 0.7;
+    background: color-mix(in srgb, var(--glass-bg) 88%, transparent);
+    color: var(--color-text);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
     transition: all var(--transition-normal);
-    width: 32px;
-    height: 32px;
 }
 
-#monthModal .btn-close:hover {
-    transform: rotate(90deg);
+#monthModal .month-modal-close:hover,
+#yearModal .month-modal-close:hover {
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--color-primary) 55%, var(--glass-border));
+    background: color-mix(in srgb, var(--color-primary) 12%, var(--glass-bg));
 }
 
-#monthModal .modal-body {
+#monthModal .month-modal-close:focus-visible,
+#yearModal .month-modal-close:focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+}
+
+#monthModal .month-modal-close i,
+#monthModal .month-modal-close svg,
+#yearModal .month-modal-close i,
+#yearModal .month-modal-close svg {
+    width: 18px;
+    height: 18px;
+}
+
+#monthModal .modal-body,
+#yearModal .modal-body {
     padding: var(--spacing-5) var(--spacing-6);
 }
 
-/* Controles de navegação do ano */
-.modal-body .d-flex.align-items-center.justify-content-between {
-    background: var(--glass-bg);
-    padding: var(--spacing-3);
-    border-radius: var(--radius-lg);
-    margin-bottom: var(--spacing-4);
+#monthModal .modal-footer {
+    justify-content: flex-end;
+    padding: var(--spacing-4) var(--spacing-6) var(--spacing-5);
 }
 
-#monthModal .btn-group {
-    background: var(--color-surface-muted);
-    border-radius: var(--radius-md);
-    padding: var(--spacing-1);
+#monthModal .month-modal-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--spacing-3);
+    align-items: end;
+    margin-bottom: var(--spacing-4);
+    padding: var(--spacing-3);
+    background: color-mix(in srgb, var(--glass-bg) 92%, transparent);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+}
+
+#monthModal .month-modal-year-nav {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: var(--spacing-2);
+    min-width: 0;
+    padding: var(--spacing-2);
+    background: color-mix(in srgb, var(--color-surface-muted) 88%, transparent);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
 }
 
 #monthModal #mpYearLabel {
+    flex: 1 1 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    margin: 0;
+    padding: 0 var(--spacing-3);
+    color: var(--color-primary);
     font-size: var(--font-size-lg);
     font-weight: 700;
-    color: var(--color-primary);
-    min-width: 80px;
     text-align: center;
-    padding: 0 var(--spacing-3);
 }
 
-#monthModal .btn {
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-sm);
-    font-weight: 500;
-    transition: all var(--transition-normal);
+#monthModal .month-modal-quick-actions {
+    display: flex;
+    align-items: stretch;
+    gap: var(--spacing-2);
+}
+
+#monthModal .month-modal-input-wrap {
+    min-width: 172px;
+}
+
+#monthModal .month-modal-input-label {
+    display: block;
+    margin-bottom: var(--spacing-1);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+#monthModal .btn,
+#yearModal .btn {
     position: relative;
     overflow: hidden;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    transition: all var(--transition-normal);
 }
 
-#monthModal .btn::before {
+#monthModal .btn::before,
+#yearModal .btn::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -102,87 +187,86 @@
     transition: opacity var(--transition-fast);
 }
 
-#monthModal .btn:hover::before {
-    opacity: 0.1;
+#monthModal .btn:hover::before,
+#yearModal .btn:hover::before {
+    opacity: 0.08;
 }
 
-#monthModal .btn-outline-light.btn-sm {
-    width: 36px;
-    height: 36px;
-    display: flex;
+#monthModal .month-modal-icon-btn {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     padding: 0;
+    flex-shrink: 0;
 }
 
 #monthModal #mpTodayBtn {
+    min-height: 44px;
+    padding: 0 var(--spacing-4);
     font-weight: 600;
-    padding: 22px 40px;
-}
-
-/* Formulário */
-#monthModal .form-label {
-    color: var(--color-text);
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-    margin-bottom: var(--spacing-2);
+    white-space: nowrap;
 }
 
 #monthModal .form-control,
-#monthModal .form-select {
-    background: var(--color-surface-muted);
+#monthModal .form-select,
+#yearModal .form-control {
+    min-height: 44px;
+    padding: var(--spacing-3);
     color: var(--color-text);
+    font-size: var(--font-size-sm);
+    background: var(--color-surface-muted);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-md);
-    font-size: var(--font-size-sm);
-    padding: var(--spacing-3);
     transition: all var(--transition-normal);
 }
 
-#monthModal .form-control::placeholder {
+#monthModal .form-control::placeholder,
+#yearModal .form-control::placeholder {
     color: var(--color-text-muted);
     opacity: 0.6;
 }
 
 #monthModal .form-control:focus,
-#monthModal .form-select:focus {
+#monthModal .form-select:focus,
+#yearModal .form-control:focus {
     outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 4px var(--ring);
     color: var(--color-text) !important;
     background: var(--color-surface);
-    transform: translateY(-1px);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px var(--ring);
 }
 
 #monthModal #mpInputMonth {
-    width: 165px;
+    width: 100%;
     cursor: pointer;
 }
 
-/* Grid de meses */
 #mpGrid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--spacing-2);
     margin-top: var(--spacing-4);
 }
 
 #mpGrid .col-4 {
+    display: contents;
     padding: 0;
 }
 
 #mpGrid .mp-month {
     width: 100%;
-    padding: 15px 50px;
+    min-height: 56px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-3) var(--spacing-2);
+    color: var(--color-text);
+    text-align: center;
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
-    color: var(--color-text);
     border-radius: var(--radius-md);
-    font-weight: 500;
-    font-size: var(--font-size-sm);
-    transition: all var(--transition-normal);
-    position: relative;
-    overflow: hidden;
     cursor: pointer;
 }
 
@@ -196,25 +280,25 @@
 }
 
 #mpGrid .mp-month:hover::before {
-    opacity: 0.15;
+    opacity: 0.14;
 }
 
 #mpGrid .mp-month:hover {
-    border-color: var(--color-primary);
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: var(--shadow-md);
     color: var(--color-text);
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
 }
 
 #mpGrid .mp-month:active {
-    transform: translateY(-1px) scale(1);
+    transform: translateY(0);
 }
 
 #mpGrid .mp-month.btn-warning {
+    color: #fff;
+    font-weight: 700;
     background: var(--color-primary);
     border-color: var(--color-primary);
-    color: white;
-    font-weight: 700;
     box-shadow: var(--shadow-md);
 }
 
@@ -223,13 +307,10 @@
 }
 
 #mpGrid .mp-month.btn-warning:hover {
-    background: var(--color-secondary);
-    border-color: var(--color-secondary);
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: var(--shadow-lg);
+    background: color-mix(in srgb, var(--color-primary) 78%, var(--color-secondary));
+    border-color: color-mix(in srgb, var(--color-primary) 78%, var(--color-secondary));
 }
 
-/* Animação de entrada do grid */
 #mpGrid .mp-month {
     animation: fadeInScale 0.3s ease forwards;
     opacity: 0;
@@ -260,7 +341,6 @@
     }
 }
 
-/* Animação do modal */
 #monthModal.fade .modal-dialog {
     transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     transform: scale(0.8) translateY(-50px);
@@ -270,72 +350,9 @@
     transform: scale(1) translateY(0);
 }
 
-/* Backdrop customizado */
-#monthModal.modal {
+#monthModal.modal,
+#yearModal.modal {
     backdrop-filter: blur(8px);
-}
-
-/* Responsividade */
-@media (max-width: 640px) {
-    #monthModal .modal-dialog {
-        max-width: calc(100vw - 32px);
-        margin: var(--spacing-4);
-    }
-
-    #monthModal .modal-header,
-    #monthModal .modal-body,
-    #monthModal .modal-footer {
-        padding-left: var(--spacing-4);
-        padding-right: var(--spacing-4);
-    }
-
-    #monthModal .modal-title {
-        font-size: var(--font-size-lg);
-    }
-
-    #mpGrid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: var(--spacing-2);
-    }
-
-    #mpGrid .mp-month {
-        padding: var(--spacing-3) var(--spacing-2);
-        font-size: var(--font-size-xs);
-    }
-
-    .modal-body .d-flex.align-items-center.justify-content-between {
-        flex-direction: column;
-        gap: var(--spacing-3);
-    }
-
-    #monthModal #mpInputMonth {
-        width: 100%;
-    }
-}
-
-/* Tema escuro - ajustes específicos */
-:root[data-theme="dark"] #monthModal .modal-content {
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-}
-
-:root[data-theme="dark"] #monthModal .btn-close {
-    filter: invert(1);
-}
-
-/* Tema claro - ajustes específicos */
-:root[data-theme="light"] #monthModal .modal-header::after {
-    opacity: 0.2;
-}
-
-/* Year Modal */
-#yearModal .modal-content {
-}
-
-#yearModal .modal-header {
-}
-
-#yearModal .modal-body {
-    padding: var(--spacing-5) var(--spacing-6);
 }
 
 .lk-year-grid {
@@ -344,8 +361,163 @@
     gap: var(--spacing-2);
 }
 
-.lk-year-grid .btn.active {
+#yearModal .lk-year-grid .btn,
+#yearModal .year-modal-apply {
+    min-height: 44px;
+    font-weight: 600;
+}
+
+#yearModal .lk-year-grid .btn.active {
+    color: #fff;
     background: var(--color-primary);
     border-color: var(--color-primary);
-    color: #fff;
+}
+
+#yearModal .month-modal-form-row {
+    display: flex;
+    gap: var(--spacing-2);
+}
+
+@media (max-width: 640px) {
+    #monthModal,
+    #yearModal {
+        padding: 0 !important;
+    }
+
+    #monthModal .modal-dialog,
+    #yearModal .modal-dialog {
+        width: 100%;
+        max-width: none;
+        min-height: 100%;
+        margin: auto 0 0;
+        display: flex;
+        align-items: flex-end;
+    }
+
+    #monthModal .modal-content,
+    #yearModal .modal-content {
+        width: 100%;
+        max-height: min(84dvh, 760px);
+        border-radius: 24px 24px 0 0;
+    }
+
+    #monthModal .modal-header,
+    #monthModal .modal-body,
+    #monthModal .modal-footer,
+    #yearModal .modal-header,
+    #yearModal .modal-body {
+        padding-left: var(--spacing-4);
+        padding-right: var(--spacing-4);
+    }
+
+    #monthModal .modal-header,
+    #yearModal .modal-header {
+        padding-top: calc(var(--spacing-5) + env(safe-area-inset-top, 0px));
+    }
+
+    #monthModal .modal-header::before,
+    #yearModal .modal-header::before {
+        content: '';
+        position: absolute;
+        top: var(--spacing-3);
+        left: 50%;
+        transform: translateX(-50%);
+        width: 52px;
+        height: 5px;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--color-text-muted) 55%, transparent);
+        opacity: 0.7;
+    }
+
+    #monthModal .modal-title,
+    #yearModal .modal-title {
+        font-size: var(--font-size-lg);
+    }
+
+    #monthModal .month-modal-toolbar {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-3);
+    }
+
+    #monthModal .month-modal-quick-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #monthModal .month-modal-input-wrap {
+        min-width: 0;
+    }
+
+    #monthModal #mpTodayBtn,
+    #monthModal #mpInputMonth {
+        width: 100%;
+    }
+
+    #monthModal #mpTodayBtn {
+        justify-content: center;
+    }
+
+    #mpGrid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: var(--spacing-3);
+    }
+
+    #mpGrid .mp-month {
+        min-height: 58px;
+        font-size: 0.95rem;
+    }
+
+    #monthModal .modal-body,
+    #yearModal .modal-body {
+        overflow-y: auto;
+    }
+
+    #monthModal .modal-footer {
+        position: sticky;
+        bottom: 0;
+        border-top: 1px solid var(--glass-border);
+        padding-bottom: calc(var(--spacing-4) + env(safe-area-inset-bottom, 0px));
+        background: linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--color-surface) 25%, transparent),
+            color-mix(in srgb, var(--color-surface) 98%, transparent) 38%
+        );
+    }
+
+    #monthModal .month-modal-dismiss,
+    #yearModal .year-modal-apply {
+        width: 100%;
+        min-height: 48px;
+    }
+
+    #yearModal .lk-year-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    #yearModal .month-modal-form-row {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 420px) {
+    #monthModal .modal-header,
+    #monthModal .modal-body,
+    #monthModal .modal-footer,
+    #yearModal .modal-header,
+    #yearModal .modal-body {
+        padding-left: var(--spacing-3);
+        padding-right: var(--spacing-3);
+    }
+
+    #monthModal .month-modal-toolbar {
+        padding: var(--spacing-2);
+    }
+
+    #monthModal .month-modal-icon-btn,
+    #monthModal .month-modal-close,
+    #yearModal .month-modal-close {
+        width: 42px;
+        height: 42px;
+    }
 }
