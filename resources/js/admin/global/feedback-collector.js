@@ -231,13 +231,21 @@ import { getRuntimeConfig } from './runtime-config.js';
     // ========================================================================
 
     function initSuggestionButton() {
-        const btn = document.getElementById('sidebarSuggestionBtn');
-        if (!btn) return;
+        if (document.body?.dataset.lkSuggestionButtonBound === 'true') {
+            return;
+        }
 
-        btn.addEventListener('click', (e) => {
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('#sidebarSuggestionBtn');
+            if (!btn) return;
+
             e.preventDefault();
             showSuggestionModal();
         });
+
+        if (document.body) {
+            document.body.dataset.lkSuggestionButtonBound = 'true';
+        }
     }
 
     function showSuggestionModal() {

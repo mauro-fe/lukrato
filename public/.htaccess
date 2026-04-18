@@ -32,6 +32,11 @@
     # RewriteCond %{HTTP_HOST} !^www\. [NC]
     # RewriteRule ^(.*)$ https://www.%{HTTP_HOST}/$1 [R=301,L]
 
+    # Fallback para assets do Vite com hash antigo ainda em cache no HTML.
+    # Evita que o Apache devolva a página 404 HTML com MIME text/html para módulos JS.
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^build/assets/([A-Za-z0-9][A-Za-z0-9._-]*\.(?:js|css))$ asset-fallback.php?asset=$1 [QSA,L]
+
     RewriteCond %{REQUEST_FILENAME} !-f
 
     RewriteCond %{REQUEST_FILENAME} !-d
