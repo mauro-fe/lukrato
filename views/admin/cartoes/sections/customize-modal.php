@@ -8,7 +8,7 @@
     <div class="cart-customize-modal surface-card" role="dialog" aria-modal="true"
         aria-labelledby="cartoesCustomizeModalTitle">
         <div class="cart-customize-header">
-            <h3 class="cart-customize-title" id="cartoesCustomizeModalTitle">Personalizar cartoes</h3>
+            <h3 class="cart-customize-title" id="cartoesCustomizeModalTitle">Personalizar cartões</h3>
             <button class="cart-customize-close" id="btnCloseCustomizeCartoes" type="button"
                 aria-label="Fechar personalizacao">
                 <i data-lucide="x"></i>
