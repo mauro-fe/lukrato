@@ -43,7 +43,11 @@ class LoginController extends WebController
         }
         $intended = self::sanitizeIntended($this->getStringQuery('intended'));
         if ($this->runtimeConfig->hasConfiguredLoginUrl()) {
-            return $this->buildRedirectResponse($this->runtimeConfig->loginUrlForIntended($intended));
+            $targetLoginUrl = $this->runtimeConfig->loginUrlForIntended($intended);
+
+            if ($this->shouldRedirectToConfiguredLogin($targetLoginUrl)) {
+                return $this->buildRedirectResponse($targetLoginUrl);
+            }
         }
 
         $registerErrors = $this->pullRegisterErrors();
@@ -84,6 +88,98 @@ class LoginController extends WebController
         }
 
         return $path;
+    }
+
+    private function shouldRedirectToConfiguredLogin(string $targetLoginUrl): bool
+    {
+        $currentUrl = $this->resolveCurrentRequestUrl();
+
+        if ($currentUrl !== '' && $this->urlsPointToSameLocation($targetLoginUrl, $currentUrl)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function resolveCurrentRequestUrl(): string
+    {
+        $requestUri = (string) $this->request->server('REQUEST_URI', '/');
+        $requestUri = $requestUri !== '' ? $requestUri : '/';
+        $host = trim((string) $this->request->server('HTTP_HOST', ''));
+
+        if ($host === '') {
+            return $requestUri;
+        }
+
+        return sprintf('%s://%s%s', $this->detectRequestScheme(), $host, $requestUri);
+    }
+
+    private function detectRequestScheme(): string
+    {
+        $https = strtolower((string) $this->request->server('HTTPS', ''));
+        if ($https !== '' && $https !== 'off') {
+            return 'https';
+        }
+
+        $forwardedProto = strtolower((string) $this->request->server('HTTP_X_FORWARDED_PROTO', ''));
+        if ($forwardedProto !== '') {
+            return explode(',', $forwardedProto, 2)[0] === 'https' ? 'https' : 'http';
+        }
+
+        $serverPort = (int) $this->request->server('SERVER_PORT', 80);
+
+        return $serverPort === 443 ? 'https' : 'http';
+    }
+
+    private function urlsPointToSameLocation(string $urlA, string $urlB): bool
+    {
+        $partsA = $this->normalizeUrlParts($urlA);
+        $partsB = $this->normalizeUrlParts($urlB);
+
+        if ($partsA === null || $partsB === null) {
+            return false;
+        }
+
+        if ($partsA['host'] !== '' && $partsB['host'] !== '' && $partsA['host'] !== $partsB['host']) {
+            return false;
+        }
+
+        if ($partsA['port'] !== null && $partsB['port'] !== null && $partsA['port'] !== $partsB['port']) {
+            return false;
+        }
+
+        return $partsA['path'] === $partsB['path']
+            && $partsA['query'] === $partsB['query'];
+    }
+
+    /**
+     * @return array{host: string, port: int|null, path: string, query: string}|null
+     */
+    private function normalizeUrlParts(string $url): ?array
+    {
+        $parts = parse_url($url);
+        if (!is_array($parts)) {
+            return null;
+        }
+
+        $host = strtolower((string) ($parts['host'] ?? ''));
+        $port = isset($parts['port']) ? (int) $parts['port'] : null;
+        $path = '/' . trim((string) ($parts['path'] ?? '/'), '/');
+        $path = $path === '//' ? '/' : $path;
+
+        $query = (string) ($parts['query'] ?? '');
+        if ($query !== '') {
+            parse_str($query, $queryParams);
+            ksort($queryParams);
+            $query = http_build_query($queryParams);
+        }
+
+        return [
+            'host' => $host,
+            'port' => $port,
+            'path' => $path,
+            'query' => $query,
+        ];
     }
 
     public function processLogin(): Response
