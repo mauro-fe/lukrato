@@ -6,7 +6,6 @@ namespace Application\Services\AI\Media;
 
 use Application\Config\AiRuntimeConfig;
 use Application\Container\ApplicationContainer;
-use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
 /**
@@ -22,12 +21,12 @@ class AudioTranscriptionService
         'oga' => 'ogg',
     ];
 
-    private Client $client;
+    private OpenAIAudioHttpClient $client;
     private string $apiKey;
     private string $model;
     private AiRuntimeConfig $runtimeConfig;
 
-    public function __construct(?Client $client = null, ?AiRuntimeConfig $runtimeConfig = null)
+    public function __construct(?OpenAIAudioHttpClient $client = null, ?AiRuntimeConfig $runtimeConfig = null)
     {
         $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, AiRuntimeConfig::class);
         $this->apiKey = $this->runtimeConfig->openAiApiKey();

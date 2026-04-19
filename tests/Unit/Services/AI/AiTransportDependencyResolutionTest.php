@@ -14,6 +14,8 @@ use Application\Services\AI\Media\OpenAIAudioHttpClient;
 use Application\Services\AI\Media\OpenAIVisionHttpClient;
 use Application\Services\AI\Providers\OllamaHttpClient;
 use Application\Services\AI\Providers\OllamaProvider;
+use Application\Services\AI\Providers\OpenAIHttpClient;
+use Application\Services\AI\Providers\OpenAIProvider;
 use Application\Services\AI\Telegram\TelegramBotClient;
 use Application\Services\AI\Telegram\TelegramFileHttpClient;
 use Application\Services\AI\Telegram\TelegramFileDownloader;
@@ -91,6 +93,38 @@ class AiTransportDependencyResolutionTest extends TestCase
         $this->assertSame($aiRuntimeConfig, $this->readProperty($audioTranscriptionService, 'runtimeConfig'));
         $this->assertSame($aiRuntimeConfig, $this->readProperty($imageAnalysisService, 'runtimeConfig'));
         $this->assertSame($aiRuntimeConfig, $this->readProperty($ollamaProvider, 'runtimeConfig'));
+    }
+
+    public function testAiTransportServicesResolvedThroughContainerUseNamedHttpClientsByDefault(): void
+    {
+        ApplicationContainer::setInstance(new IlluminateContainer());
+
+        $telegramService = ApplicationContainer::tryMake(TelegramService::class);
+        $telegramFileDownloader = ApplicationContainer::tryMake(TelegramFileDownloader::class);
+        $whatsAppService = ApplicationContainer::tryMake(WhatsAppService::class);
+        $whatsAppMediaDownloader = ApplicationContainer::tryMake(WhatsAppMediaDownloader::class);
+        $audioTranscriptionService = ApplicationContainer::tryMake(AudioTranscriptionService::class);
+        $imageAnalysisService = ApplicationContainer::tryMake(ImageAnalysisService::class);
+        $openAiProvider = ApplicationContainer::tryMake(OpenAIProvider::class);
+        $ollamaProvider = ApplicationContainer::tryMake(OllamaProvider::class);
+
+        $this->assertInstanceOf(TelegramService::class, $telegramService);
+        $this->assertInstanceOf(TelegramFileDownloader::class, $telegramFileDownloader);
+        $this->assertInstanceOf(WhatsAppService::class, $whatsAppService);
+        $this->assertInstanceOf(WhatsAppMediaDownloader::class, $whatsAppMediaDownloader);
+        $this->assertInstanceOf(AudioTranscriptionService::class, $audioTranscriptionService);
+        $this->assertInstanceOf(ImageAnalysisService::class, $imageAnalysisService);
+        $this->assertInstanceOf(OpenAIProvider::class, $openAiProvider);
+        $this->assertInstanceOf(OllamaProvider::class, $ollamaProvider);
+
+        $this->assertInstanceOf(TelegramBotClient::class, $this->readProperty($telegramService, 'http'));
+        $this->assertInstanceOf(TelegramFileHttpClient::class, $this->readProperty($telegramFileDownloader, 'http'));
+        $this->assertInstanceOf(WhatsAppGraphClient::class, $this->readProperty($whatsAppService, 'http'));
+        $this->assertInstanceOf(WhatsAppMediaHttpClient::class, $this->readProperty($whatsAppMediaDownloader, 'http'));
+        $this->assertInstanceOf(OpenAIAudioHttpClient::class, $this->readProperty($audioTranscriptionService, 'client'));
+        $this->assertInstanceOf(OpenAIVisionHttpClient::class, $this->readProperty($imageAnalysisService, 'client'));
+        $this->assertInstanceOf(OpenAIHttpClient::class, $this->readProperty($openAiProvider, 'client'));
+        $this->assertInstanceOf(OllamaHttpClient::class, $this->readProperty($ollamaProvider, 'client'));
     }
 
     private function readProperty(object $object, string $property): mixed

@@ -246,7 +246,7 @@ class AIService
             'tokens_total'      => $meta['tokens_total'] ?? $response->tokensUsed,
             'response_time_ms'  => $elapsedMs,
             'success'           => $response->success,
-            'error_message'     => $response->success ? null : $response->message,
+            'error_message'     => $response->logErrorMessage(),
             'source'            => $response->source,
             'confidence'        => $confidence,
             'prompt_version'    => $this->resolvePromptVersion($intent),

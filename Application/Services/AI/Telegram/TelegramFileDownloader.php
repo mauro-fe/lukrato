@@ -6,7 +6,6 @@ namespace Application\Services\AI\Telegram;
 
 use Application\Config\TelegramRuntimeConfig;
 use Application\Container\ApplicationContainer;
-use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
 /**
@@ -23,11 +22,11 @@ class TelegramFileDownloader
 {
     private const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB (limite Telegram Bot API)
 
-    private Client $http;
+    private TelegramFileHttpClient $http;
     private string $token;
     private TelegramRuntimeConfig $runtimeConfig;
 
-    public function __construct(?Client $http = null, ?TelegramRuntimeConfig $runtimeConfig = null)
+    public function __construct(?TelegramFileHttpClient $http = null, ?TelegramRuntimeConfig $runtimeConfig = null)
     {
         $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, TelegramRuntimeConfig::class);
         $this->token = $this->runtimeConfig->botToken();

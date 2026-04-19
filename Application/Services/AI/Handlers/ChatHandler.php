@@ -10,6 +10,7 @@ use Application\Enums\AI\IntentType;
 use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\ContextCompressor;
 use Application\Services\AI\PromptOptimizer;
+use Application\Services\Infrastructure\LogService;
 
 /**
  * Handler para conversas gerais com o assistente de IA.
@@ -96,10 +97,7 @@ class ChatHandler implements AIHandlerInterface
             $response = $this->provider->chat($request->message, $context);
 
             if ($response === null || trim($response) === '') {
-                return AIResponseDTO::fail(
-                    'O assistente de IA está indisponível no momento. Tente novamente em instantes.',
-                    IntentType::CHAT,
-                );
+                return $this->providerFailureResponse($request, 'AI provider returned empty chat response.');
             }
 
             // Detectar ação implícita na mensagem do usuário
@@ -116,11 +114,39 @@ class ChatHandler implements AIHandlerInterface
                 IntentType::CHAT,
             );
         } catch (\Throwable $e) {
-            return AIResponseDTO::fail(
-                'O assistente de IA está indisponível no momento. Tente novamente em instantes.',
-                IntentType::CHAT,
-            );
+            return $this->providerFailureResponse($request, $this->describeProviderFailure($e), $e);
         }
+    }
+
+    private function providerFailureResponse(
+        AIRequestDTO $request,
+        string $technicalError,
+        ?\Throwable $exception = null
+    ): AIResponseDTO {
+        LogService::warning('ChatHandler.handle', [
+            'user_id' => $request->userId,
+            'channel' => $request->channel->value,
+            'provider' => $this->provider !== null ? get_class($this->provider) : null,
+            'error' => $technicalError,
+            'exception' => $exception !== null ? get_class($exception) : null,
+        ]);
+
+        return AIResponseDTO::failWithInternalError(
+            'O assistente de IA está indisponível no momento. Tente novamente em instantes.',
+            $technicalError,
+            IntentType::CHAT,
+        );
+    }
+
+    private function describeProviderFailure(\Throwable $e): string
+    {
+        $message = trim($e->getMessage());
+
+        if ($message === '') {
+            return get_class($e);
+        }
+
+        return get_class($e) . ': ' . $message;
     }
 
     /**

@@ -9,7 +9,6 @@ use Application\Container\ApplicationContainer;
 use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\PromptBuilder;
 use Application\Services\Infrastructure\CacheService;
-use GuzzleHttp\Client;
 
 /**
  * Provider que chama a API da OpenAI diretamente via PHP (sem microserviço Python).
@@ -21,7 +20,7 @@ use GuzzleHttp\Client;
  */
 class OpenAIProvider implements AIProvider
 {
-    private Client $client;
+    private OpenAIHttpClient $client;
     private string $apiKey;
     private string $model;
     private array $lastMeta = [];
@@ -29,18 +28,13 @@ class OpenAIProvider implements AIProvider
     private CacheService $cache;
     private AiRuntimeConfig $runtimeConfig;
 
-    public function __construct(?Client $client = null, ?CacheService $cache = null, ?AiRuntimeConfig $runtimeConfig = null)
+    public function __construct(?OpenAIHttpClient $client = null, ?CacheService $cache = null, ?AiRuntimeConfig $runtimeConfig = null)
     {
         $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, AiRuntimeConfig::class);
         $this->apiKey = $this->runtimeConfig->openAiApiKey();
         $this->model  = $this->runtimeConfig->openAiModel();
         $this->cache = ApplicationContainer::resolveOrNew($cache, CacheService::class);
-
-        $resolvedClient = $client
-            ?? ApplicationContainer::tryMake(OpenAIHttpClient::class)
-            ?? ApplicationContainer::tryMake(Client::class);
-
-        $this->client = ApplicationContainer::resolveOrNew($resolvedClient, OpenAIHttpClient::class);
+        $this->client = ApplicationContainer::resolveOrNew($client, OpenAIHttpClient::class);
     }
 
     // ─── Metadata ──────────────────────────────────────────────

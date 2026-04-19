@@ -6,7 +6,6 @@ namespace Application\Services\AI\WhatsApp;
 
 use Application\Config\WhatsAppRuntimeConfig;
 use Application\Container\ApplicationContainer;
-use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
 /**
@@ -18,11 +17,11 @@ class WhatsAppMediaDownloader
     private const BASE_URL = 'https://graph.facebook.com';
     private const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
 
-    private Client $http;
+    private WhatsAppMediaHttpClient $http;
     private string $token;
     private WhatsAppRuntimeConfig $runtimeConfig;
 
-    public function __construct(?Client $http = null, ?WhatsAppRuntimeConfig $runtimeConfig = null)
+    public function __construct(?WhatsAppMediaHttpClient $http = null, ?WhatsAppRuntimeConfig $runtimeConfig = null)
     {
         $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, WhatsAppRuntimeConfig::class);
         $this->token = $this->runtimeConfig->token();

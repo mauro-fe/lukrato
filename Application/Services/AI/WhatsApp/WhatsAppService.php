@@ -6,7 +6,6 @@ namespace Application\Services\AI\WhatsApp;
 
 use Application\Config\WhatsAppRuntimeConfig;
 use Application\Container\ApplicationContainer;
-use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
 /**
@@ -27,12 +26,12 @@ class WhatsAppService
     private const API_VERSION = 'v21.0';
     private const BASE_URL    = 'https://graph.facebook.com';
 
-    private Client $http;
+    private WhatsAppGraphClient $http;
     private string $token;
     private string $phoneId;
     private WhatsAppRuntimeConfig $runtimeConfig;
 
-    public function __construct(?Client $http = null, ?WhatsAppRuntimeConfig $runtimeConfig = null)
+    public function __construct(?WhatsAppGraphClient $http = null, ?WhatsAppRuntimeConfig $runtimeConfig = null)
     {
         $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, WhatsAppRuntimeConfig::class);
         $this->token = $this->runtimeConfig->token();

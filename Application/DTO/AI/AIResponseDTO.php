@@ -29,6 +29,7 @@ readonly class AIResponseDTO
         public int         $tokensUsed = 0,
         public bool        $cached = false,
         public string      $source = 'llm',
+        private ?string    $internalErrorMessage = null,
     ) {}
 
     // ─── Factories ──────────────────────────────────────────
@@ -73,6 +74,28 @@ readonly class AIResponseDTO
         return new self(false, $message, [], $intent);
     }
 
+    /**
+     * Resposta de falha com detalhe técnico somente para logs internos.
+     */
+    public static function failWithInternalError(
+        string $message,
+        string $internalErrorMessage,
+        ?IntentType $intent = null
+    ): self {
+        $internalErrorMessage = trim($internalErrorMessage);
+
+        return new self(
+            false,
+            $message,
+            [],
+            $intent,
+            0,
+            false,
+            'llm',
+            $internalErrorMessage !== '' ? $internalErrorMessage : null,
+        );
+    }
+
     // ─── Helpers ────────────────────────────────────────────
 
     /**
@@ -81,6 +104,18 @@ readonly class AIResponseDTO
     public function usedLLM(): bool
     {
         return $this->source === 'llm';
+    }
+
+    /**
+     * Retorna a mensagem apropriada para persistir em logs de erro.
+     */
+    public function logErrorMessage(): ?string
+    {
+        if ($this->success) {
+            return null;
+        }
+
+        return $this->internalErrorMessage ?? $this->message;
     }
 
     /**

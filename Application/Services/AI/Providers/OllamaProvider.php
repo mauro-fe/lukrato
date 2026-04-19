@@ -8,7 +8,6 @@ use Application\Config\AiRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Services\AI\Contracts\AIProvider;
 use Application\Services\AI\PromptBuilder;
-use GuzzleHttp\Client;
 
 /**
  * Chama o microserviço Python (FastAPI) usando o backend Ollama (LLM local).
@@ -17,14 +16,14 @@ use GuzzleHttp\Client;
  */
 class OllamaProvider implements AIProvider
 {
-    private Client $client;
+    private OllamaHttpClient $client;
     private string $serviceUrl;
     private string $internalToken;
     private string $model;
     private array $lastMeta = [];
     private AiRuntimeConfig $runtimeConfig;
 
-    public function __construct(?Client $client = null, ?AiRuntimeConfig $runtimeConfig = null)
+    public function __construct(?OllamaHttpClient $client = null, ?AiRuntimeConfig $runtimeConfig = null)
     {
         $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, AiRuntimeConfig::class);
         $this->serviceUrl    = $this->runtimeConfig->ollamaServiceUrl();

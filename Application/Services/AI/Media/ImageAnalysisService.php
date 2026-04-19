@@ -7,7 +7,6 @@ namespace Application\Services\AI\Media;
 use Application\Services\AI\PromptBuilder;
 use Application\Config\AiRuntimeConfig;
 use Application\Container\ApplicationContainer;
-use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\Http\Message\ResponseInterface;
 
@@ -23,12 +22,12 @@ class ImageAnalysisService
     private const SMALL_IMAGE_AUTO_MAX_BYTES = 180_000;
     private const JPEG_QUALITY = 72;
 
-    private Client $client;
+    private OpenAIVisionHttpClient $client;
     private string $apiKey;
     private string $model;
     private AiRuntimeConfig $runtimeConfig;
 
-    public function __construct(?Client $client = null, ?AiRuntimeConfig $runtimeConfig = null)
+    public function __construct(?OpenAIVisionHttpClient $client = null, ?AiRuntimeConfig $runtimeConfig = null)
     {
         $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, AiRuntimeConfig::class);
         $this->apiKey = $this->runtimeConfig->openAiApiKey();

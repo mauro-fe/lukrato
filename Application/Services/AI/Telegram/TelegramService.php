@@ -9,7 +9,6 @@ use Application\Container\ApplicationContainer;
 use Application\Enums\LogCategory;
 use Application\Enums\LogLevel;
 use Application\Services\Infrastructure\LogService;
-use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
 /**
@@ -27,12 +26,12 @@ class TelegramService
 {
     private const BASE_URL = 'https://api.telegram.org';
 
-    private Client $http;
+    private TelegramBotClient $http;
     private string $token;
     private TelegramRuntimeConfig $runtimeConfig;
     private ?string $lastErrorMessage = null;
 
-    public function __construct(?Client $http = null, ?TelegramRuntimeConfig $runtimeConfig = null)
+    public function __construct(?TelegramBotClient $http = null, ?TelegramRuntimeConfig $runtimeConfig = null)
     {
         $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, TelegramRuntimeConfig::class);
         $this->token = $this->runtimeConfig->botToken();

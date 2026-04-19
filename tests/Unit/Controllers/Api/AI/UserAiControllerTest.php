@@ -118,6 +118,37 @@ class UserAiControllerTest extends TestCase
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
+    public function testChatFailureDoesNotLeakInternalAiErrorDetails(): void
+    {
+        $this->seedAuthenticatedSession(1904, 'AI User');
+        $_POST['message'] = 'Me ajuda com minhas finanças?';
+
+        $workflowService = Mockery::mock(UserAiWorkflowService::class);
+        $workflowService
+            ->shouldReceive('chat')
+            ->once()
+            ->with(1904, 'Me ajuda com minhas finanças?', null)
+            ->andReturn([
+                'response' => AIResponseDTO::failWithInternalError(
+                    'O assistente de IA esta indisponivel no momento. Tente novamente em instantes.',
+                    'RuntimeException: cURL error 6: Could not resolve host: api.openai.com',
+                    IntentType::CHAT
+                ),
+                'derived_message' => null,
+            ]);
+
+        $controller = new UserAiController($workflowService);
+
+        $response = $controller->chat();
+
+        $this->assertSame(503, $response->getStatusCode());
+        $this->assertSame([
+            'success' => false,
+            'message' => 'O assistente de IA esta indisponivel no momento. Tente novamente em instantes.',
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+        $this->assertStringNotContainsString('Could not resolve host', $response->getContent());
+    }
+
     private function seedAuthenticatedSession(int $userId, string $name): void
     {
         $this->startIsolatedSession('user-ai-controller-test');
