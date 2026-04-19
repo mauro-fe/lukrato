@@ -181,11 +181,11 @@ class ChatHandlerV2 implements AIHandlerInterface
             }
 
             return AIResponseDTO::fromComputed(
-                'Consigo sim. Me mande a transacao em uma frase, como "mercado 30 hoje" ou "recebi freelance 500 ontem". Se faltar algum dado, eu pergunto so o que falta.',
+                'Consigo sim. Me mande a transação em uma frase, como "mercado 30 hoje" ou "recebi freelance 500 ontem". Se faltar algum dado, eu pergunto so o que falta.',
                 [
                     'source' => 'capability_transaction',
                     'action_hint' => 'create_lancamento',
-                    'suggestion' => 'Se quiser, posso comecar por um gasto ou uma receita agora.',
+                    'suggestion' => 'Se quiser, posso começar por um gasto ou uma receita agora.',
                     'quick_replies' => $this->getTransactionCaptureQuickReplies(),
                 ],
                 IntentType::CHAT,
@@ -202,7 +202,7 @@ class ChatHandlerV2 implements AIHandlerInterface
     {
         return [
             ['label' => 'Registrar gasto', 'message' => 'quero registrar um gasto', 'mode' => 'fill'],
-            ['label' => 'Ver gastos do mes', 'message' => 'quanto gastei este mes?', 'mode' => 'send'],
+            ['label' => 'Ver gastos do mês', 'message' => 'quanto gastei este mês?', 'mode' => 'send'],
             ['label' => 'Criar meta', 'message' => 'quero criar uma meta', 'mode' => 'fill'],
         ];
     }
@@ -229,7 +229,7 @@ class ChatHandlerV2 implements AIHandlerInterface
         return match ($actionHint) {
             'create_lancamento' => [
                 ['label' => 'Registrar agora', 'message' => "registre este gasto: {$normalizedMessage}", 'mode' => 'fill'],
-                ['label' => 'Ver gastos do mes', 'message' => 'quanto gastei este mes?', 'mode' => 'send'],
+                ['label' => 'Ver gastos do mês', 'message' => 'quanto gastei este mês?', 'mode' => 'send'],
             ],
             'create_lancamento_receita' => [
                 ['label' => 'Registrar receita', 'message' => "registre esta receita: {$normalizedMessage}", 'mode' => 'fill'],

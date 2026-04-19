@@ -76,8 +76,7 @@ function handleLimitError(res) {
 }
 
 function goToBilling() {
-    if (typeof openBillingModal === 'function') openBillingModal();
-    else window.location.href = `${CONFIG.BASE_URL}billing`;
+    window.location.href = `${CONFIG.BASE_URL}billing`;
 }
 
 function applyPreviewMeta(meta) {

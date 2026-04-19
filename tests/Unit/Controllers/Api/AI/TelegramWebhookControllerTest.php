@@ -6,6 +6,7 @@ namespace Tests\Unit\Controllers\Api\AI;
 
 use Application\Controllers\Api\AI\TelegramWebhookController;
 use Application\Services\AI\Telegram\TelegramWebhookWorkflowService;
+use Illuminate\Database\Capsule\Manager as Capsule;
 use PHPUnit\Framework\TestCase;
 
 class TelegramWebhookControllerTest extends TestCase
@@ -13,6 +14,8 @@ class TelegramWebhookControllerTest extends TestCase
     private ?string $originalSecret = null;
     private string|false $originalSecretGetenv = false;
     private ?string $originalHeader = null;
+    /** @var list<int> */
+    private array $createdAiLogIds = [];
 
     protected function setUp(): void
     {
@@ -43,6 +46,10 @@ class TelegramWebhookControllerTest extends TestCase
             unset($_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN']);
         } else {
             $_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] = $this->originalHeader;
+        }
+
+        if ($this->createdAiLogIds !== []) {
+            Capsule::table('ai_logs')->whereIn('id', $this->createdAiLogIds)->delete();
         }
 
         unset($_SERVER['REMOTE_ADDR']);
@@ -77,6 +84,17 @@ class TelegramWebhookControllerTest extends TestCase
 
         $this->assertSame(403, $response->getStatusCode());
         $this->assertSame('Forbidden', $response->getContent());
+
+        $log = Capsule::table('ai_logs')
+            ->where('channel', 'telegram')
+            ->where('source', 'webhook')
+            ->orderByDesc('id')
+            ->first();
+
+        $this->assertNotNull($log);
+        $this->createdAiLogIds[] = (int) $log->id;
+        $this->assertSame(0, (int) $log->success);
+        $this->assertSame('Telegram webhook secret invalido', $log->error_message);
     }
 
     public function testReceiveDelegatesToWorkflowWhenSecretMatches(): void

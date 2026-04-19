@@ -380,7 +380,7 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
         }
 
         if (/(receita|despesa|lancamento|transacao|gasto|entrada)/.test(normalized)) {
-            return [{ label: 'Ver lancamentos', href: '/lancamentos' }];
+            return [{ label: 'Ver lançamentos', href: '/lancamentos' }];
         }
 
         if (/meta/.test(normalized)) {
@@ -550,7 +550,7 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
             case 'create_lancamento':
                 return [
                     { label: 'Registrar agora', message: `registre este gasto: ${normalized}`, mode: 'fill' },
-                    { label: 'Ver gastos do mes', message: 'quanto gastei este mes?', mode: 'send' },
+                    { label: 'Ver gastos do mês', message: 'quanto gastei este mês?', mode: 'send' },
                 ];
             case 'create_lancamento_receita':
                 return [

@@ -276,7 +276,7 @@ class WhatsAppWebhookWorkflowService
         if ($dto->isVideo()) {
             $this->whatsapp()->sendText(
                 $dto->fromPhone,
-                'Videos nao sao suportados. Envie imagem, PDF ou audio.'
+                'Videos não são suportados. Envie imagem, PDF ou áudio.'
             );
             $msgRecord->markProcessed('video_not_supported');
             return;
@@ -611,7 +611,7 @@ class WhatsAppWebhookWorkflowService
         $optionIndex = $dto->getSelectedOptionIndex();
 
         if ($optionIndex === null) {
-            $this->whatsapp()->sendText($dto->fromPhone, 'Opcao invalida.');
+            $this->whatsapp()->sendText($dto->fromPhone, 'Opção inválida.');
             $msgRecord->markProcessed('option_selection_invalid');
             return;
         }
@@ -855,7 +855,7 @@ class WhatsAppWebhookWorkflowService
             array_keys($options),
         ));
 
-        return $message . "\n\n" . $optionsText . "\n\nResponda com o numero ou toque em uma opcao.";
+        return $message . "\n\n" . $optionsText . "\n\nResponda com o numero ou toque em uma opção.";
     }
 
     /**
@@ -976,17 +976,17 @@ class WhatsAppWebhookWorkflowService
         $this->sendTextChunks(
             $toPhone,
             "Como usar o Lukrato no WhatsApp:\n\n"
-                . "Registrar transacoes:\n"
-                . "- \"almoco 35 hoje\"\n"
+                . "Registrar transações:\n"
+                . "- \"almoço 35 hoje\"\n"
                 . "- \"recebi freelance 500 ontem\"\n"
                 . "- \"netflix 55,90 cartao nubank\"\n\n"
-                . "Consultar financas:\n"
-                . "- \"quanto gastei este mes?\"\n"
+                . "Consultar finanças:\n"
+                . "- \"qês?\"\n"
                 . "- \"qual meu saldo?\"\n"
-                . "- \"maior gasto do mes?\"\n\n"
+                . "- \"maior gasto do mês?\"\n\n"
                 . "Planejamento:\n"
                 . "- \"criar meta de 5000 para viagem\"\n"
-                . "- \"orcamento de 800 para alimentacao\"\n\n"
+                . "- \"orçamento de 800 para alimentação\"\n\n"
                 . "Se faltar algum dado, eu pergunto so o que falta.\n"
                 . "Use /cancel para cancelar um fluxo em andamento."
         );

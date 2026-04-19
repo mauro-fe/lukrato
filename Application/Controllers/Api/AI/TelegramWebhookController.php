@@ -8,6 +8,7 @@ use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Enums\LogCategory;
 use Application\Enums\LogLevel;
+use Application\Services\AI\AiLogService;
 use Application\Services\AI\Telegram\TelegramService;
 use Application\Services\AI\Telegram\TelegramWebhookWorkflowService;
 use Application\Services\Infrastructure\LogService;
@@ -79,6 +80,25 @@ class TelegramWebhookController extends ApiController
             $message,
             ['ip' => $this->requestIp()],
         );
+
+        AiLogService::log([
+            'user_id' => null,
+            'type' => 'chat',
+            'channel' => 'telegram',
+            'prompt' => 'Webhook Telegram rejeitado',
+            'response' => null,
+            'provider' => 'internal',
+            'model' => 'webhook',
+            'tokens_prompt' => 0,
+            'tokens_completion' => 0,
+            'tokens_total' => 0,
+            'response_time_ms' => 0,
+            'success' => false,
+            'error_message' => $message,
+            'source' => 'webhook',
+            'confidence' => 0,
+            'prompt_version' => 'telegram_webhook_v1',
+        ]);
 
         return $this->plainTextResponse('Forbidden', 403);
     }

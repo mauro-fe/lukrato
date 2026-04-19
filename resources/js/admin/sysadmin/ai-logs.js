@@ -93,7 +93,9 @@ import {
             cache: 'Cache',
             computed: 'Computado',
             trivial: 'Trivial',
-            api: 'API'
+            api: 'API',
+            delivery: 'Entrega',
+            webhook: 'Webhook'
         }[source] || (source || '-').replace(/_/g, ' ');
     }
 

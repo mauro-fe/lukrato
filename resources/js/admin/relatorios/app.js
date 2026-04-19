@@ -80,11 +80,7 @@ function persistReportPreferences() {
 // ─── Billing / Paywall Helpers ───────────────────────────────────────────────
 
 function goToBilling() {
-    if (typeof window.openBillingModal === 'function') {
-        window.openBillingModal();
-    } else {
-        location.href = `${CONFIG.BASE_URL}billing`;
-    }
+    location.href = `${CONFIG.BASE_URL}billing`;
 }
 
 async function showRestrictionAlert(message) {

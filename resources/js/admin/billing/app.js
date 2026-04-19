@@ -242,7 +242,6 @@ function setupRenewButton(button, action) {
             return;
         }
 
-        const planId = button.dataset.planId;
         const planCode = button.dataset.planCode;
         const actionText = action === 'reactivate' ? 'reativar' : 'renovar';
         const titleText = action === 'reactivate' ? 'Reativar' : 'Renovar';
@@ -275,23 +274,6 @@ function setupRenewButton(button, action) {
         const signButton = document.getElementById(buttonId);
         if (signButton) {
             signButton.click();
-            return;
-        }
-
-        if (typeof window.openBillingModal === 'function') {
-            const priceEl = document.querySelector(`[data-plan-code="${planCode}"] [data-base-price]`)
-                || document.getElementById('planProPrice');
-            const monthlyBase = priceEl ? Number(priceEl.dataset.basePrice || 0) : 14.90;
-
-            window.openBillingModal({
-                planId,
-                planCode,
-                planName: `Lukrato ${planCode.toUpperCase()}`,
-                monthlyBase,
-                cycle: 'monthly',
-                months: 1,
-                discount: 0,
-            });
             return;
         }
 

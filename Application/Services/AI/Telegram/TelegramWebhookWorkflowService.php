@@ -891,6 +891,25 @@ class TelegramWebhookWorkflowService
     ): void {
         $msgRecord->markFailed("telegram_send_failed: {$operation}");
 
+        AiLogService::log([
+            'user_id' => $msgRecord->user_id,
+            'type' => 'chat',
+            'channel' => 'telegram',
+            'prompt' => mb_substr((string) ($msgRecord->body ?? "Telegram {$operation}"), 0, 5000),
+            'response' => null,
+            'provider' => 'telegram',
+            'model' => 'bot-api',
+            'tokens_prompt' => 0,
+            'tokens_completion' => 0,
+            'tokens_total' => 0,
+            'response_time_ms' => 0,
+            'success' => false,
+            'error_message' => mb_substr("Falha ao enviar resposta para o Telegram ({$operation}).", 0, 1000),
+            'source' => 'delivery',
+            'confidence' => 0,
+            'prompt_version' => 'telegram_delivery_v1',
+        ]);
+
         LogService::persist(
             LogLevel::WARNING,
             LogCategory::WEBHOOK,

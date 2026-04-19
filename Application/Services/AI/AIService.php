@@ -183,6 +183,7 @@ class AIService
             AiLogService::log([
                 'user_id'          => $request->userId,
                 'type'             => isset($intent) ? $this->normalizeLogType($intent) : 'chat',
+                'channel'          => $request->channel->value,
                 'prompt'           => mb_substr($request->message, 0, 5000),
                 'response'         => null,
                 'provider'         => $this->providerName(),
